@@ -1,0 +1,137 @@
+{
+ "actions": [],
+ "autoname": "format:TD-{YYYY}{MM}{DD}-{#####}",
+ "creation": "2026-07-09 09:00:00.000000",
+ "doctype": "DocType",
+ "editable_grid": 0,
+ "engine": "InnoDB",
+ "field_order": [
+  "user",
+  "full_name",
+  "date",
+  "due_time",
+  "column_break_1",
+  "description",
+  "customer",
+  "status",
+  "assigned_by",
+  "carry_count",
+  "completed_at"
+ ],
+ "fields": [
+  {
+   "fieldname": "user",
+   "fieldtype": "Link",
+   "in_standard_filter": 1,
+   "label": "User",
+   "options": "User",
+   "reqd": 1,
+   "search_index": 1
+  },
+  {
+   "fetch_from": "user.full_name",
+   "fieldname": "full_name",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Full Name",
+   "read_only": 1
+  },
+  {
+   "default": "Today",
+   "fieldname": "date",
+   "fieldtype": "Date",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Date",
+   "reqd": 1,
+   "search_index": 1
+  },
+  {
+   "fieldname": "column_break_1",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "description",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "To Do",
+   "reqd": 1
+  },
+  {
+   "fieldname": "customer",
+   "fieldtype": "Link",
+   "label": "Customer",
+   "options": "Customer"
+  },
+  {
+   "default": "Open",
+   "fieldname": "status",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Status",
+   "options": "Open\nDone"
+  },
+  {
+   "fieldname": "completed_at",
+   "fieldtype": "Datetime",
+   "label": "Completed At",
+   "read_only": 1
+  },
+  {
+   "fieldname": "due_time",
+   "fieldtype": "Time",
+   "label": "Due Time"
+  },
+  {
+   "fieldname": "assigned_by",
+   "fieldtype": "Link",
+   "label": "Assigned By",
+   "options": "User",
+   "read_only": 1
+  },
+  {
+   "default": "0",
+   "fieldname": "carry_count",
+   "fieldtype": "Int",
+   "label": "Carried Over (times)",
+   "read_only": 1
+  }
+ ],
+ "index_web_pages_for_search": 0,
+ "links": [],
+ "modified": "2026-07-09 09:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "Duty Board",
+ "name": "Daily Todo",
+ "naming_rule": "Expression",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "All",
+   "write": 1
+  }
+ ],
+ "sort_field": "creation",
+ "sort_order": "ASC",
+ "states": [],
+ "track_changes": 1
+}
