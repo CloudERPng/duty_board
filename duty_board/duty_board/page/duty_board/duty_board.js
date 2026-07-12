@@ -390,7 +390,7 @@ class DutyBoard {
 		return html.replace(/@([\w-]+)/g, '<span class="duty-mention">@$1</span>');
 	}
 
-	append_message(m, is_new, in_search) {
+	append_message(m, is_new, in_search, $insert_after) {
 		const mine = m.user === frappe.session.user;
 		const mentioned = !mine && (m.mentions || []).includes(frappe.session.user);
 		const when = m.creation
@@ -417,7 +417,12 @@ class DutyBoard {
 				<a class="duty-msg-react" title="${__("React")}">🙂</a>
 				${attach}
 			</div>
-		`).appendTo(this.$list);
+		`);
+		if ($insert_after && $insert_after.length) {
+			$row.insertAfter($insert_after);
+		} else {
+			$row.appendTo(this.$list);
+		}
 		if (is_new && !in_search) this.ensure_divider($row);
 		if (in_search) {
 			const day = m.creation ? frappe.datetime.str_to_user(m.creation).split(" ")[0] : "";
@@ -433,8 +438,11 @@ class DutyBoard {
 				this.render_reactions($row, m.reactions, m.name);
 			}
 		}
-		const $rows = this.$list.children();
-		if ($rows.length > 200) $rows.slice(0, $rows.length - 200).remove();
+		if (!$insert_after) {
+			const $rows = this.$list.find(".duty-msg");
+			if ($rows.length > 400) $rows.slice(0, $rows.length - 400).remove();
+		}
+		return $row;
 	}
 
 	load_messages() {
@@ -445,6 +453,12 @@ class DutyBoard {
 				const msgs = data.messages || [];
 				this.seen_map = data.seen || {};
 				this.$list.empty();
+				this.$list.append(
+					`<div class="duty-load-earlier"><a>${__("Load earlier messages")}</a></div>`
+				);
+				this.$list.find(".duty-load-earlier a").on("click", () => this.load_earlier());
+				this.oldest = msgs.length ? msgs[0].creation : null;
+				if (!data.has_more) this.$list.find(".duty-load-earlier").hide();
 				let new_count = 0;
 				msgs.forEach((m) => {
 					const is_new =
@@ -467,6 +481,29 @@ class DutyBoard {
 						this.bump_unread();
 					}
 				}
+			},
+		});
+	}
+
+	load_earlier() {
+		if (!this.oldest) return;
+		frappe.call({
+			method: "duty_board.api.get_messages",
+			args: { before: this.oldest },
+			callback: (r) => {
+				const data = r.message || {};
+				const msgs = data.messages || [];
+				if (msgs.length) {
+					const old_h = this.$list[0].scrollHeight;
+					let $anchor = this.$list.find(".duty-load-earlier");
+					msgs.forEach((m) => {
+						$anchor = this.append_message(m, false, false, $anchor);
+					});
+					this.oldest = msgs[0].creation;
+					this.update_receipts();
+					this.$list.scrollTop(this.$list[0].scrollHeight - old_h);
+				}
+				if (!data.has_more) this.$list.find(".duty-load-earlier").hide();
 			},
 		});
 	}
@@ -1414,6 +1451,9 @@ class DutyBoard {
 				flex: 1 1 auto; overflow-y: auto; margin: 10px 0;
 				border-top: 1px solid var(--border-color); padding-top: 8px;
 			}
+			.duty-load-earlier { text-align: center; padding: 4px 0 8px; }
+			.duty-load-earlier a { cursor: pointer; font-size: var(--text-xs); color: var(--text-muted); }
+			.duty-load-earlier a:hover { color: var(--text-color); }
 			.duty-msg { padding: 4px 2px; font-size: var(--text-sm); line-height: 1.5; }
 			.duty-msg-who { font-weight: 700; color: var(--text-color); margin-right: 6px; }
 			.duty-msg-mine .duty-msg-who { color: var(--green-600, #2e7d32); }

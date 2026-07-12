@@ -252,9 +252,13 @@ def send_message(
 
 
 @frappe.whitelist()
-def get_messages(limit=50):
+def get_messages(limit=50, before=None):
+	filters = {}
+	if before:
+		filters["creation"] = ["<", before]
 	rows = frappe.get_all(
 		"Team Message",
+		filters=filters,
 		fields=[
 			"name",
 			"user",
@@ -271,6 +275,7 @@ def get_messages(limit=50):
 		order_by="creation desc",
 		limit=min(cint(limit) or 50, 200),
 	)
+	has_more = len(rows) >= min(cint(limit) or 50, 200)
 	rows.reverse()
 	reactions = _reactions_for([r.name for r in rows])
 	seen = {
@@ -280,6 +285,7 @@ def get_messages(limit=50):
 	return {
 		"messages": [_message_payload(r, reactions) for r in rows],
 		"seen": seen,
+		"has_more": has_more,
 	}
 
 
