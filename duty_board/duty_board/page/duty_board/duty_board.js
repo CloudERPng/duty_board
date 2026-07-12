@@ -834,6 +834,9 @@ class DutyBoard {
 	}
 
 	render(data) {
+		if (data.day_summary) {
+			this.show_day_summary(data.day_summary);
+		}
 		this.my_todos = data.my_todos || [];
 		this.my_upcoming = data.my_upcoming || [];
 		this.overdue_count = data.overdue_count || 0;
@@ -848,6 +851,39 @@ class DutyBoard {
 		this.body
 			.find(".duty-updated")
 			.text(__("Last updated {0}", [frappe.datetime.now_time()]));
+	}
+
+	show_day_summary(d) {
+		const row = (label, secs, cls) =>
+			`<tr class="${cls || ""}">
+				<td>${label}</td>
+				<td style="text-align:right"><b>${this.fmt_duration(secs)}</b></td>
+			</tr>`;
+		const remarks = (d.remarks || [])
+			.map(
+				(r) =>
+					`<div class="duty-daynum-remark duty-daynum-${r.kind}">${frappe.utils.escape_html(r.text)}</div>`
+			)
+			.join("");
+		const dlg = new frappe.ui.Dialog({
+			title: __("Your Day in Numbers"),
+			primary_action_label: __("Close"),
+			primary_action: () => dlg.hide(),
+		});
+		$(dlg.body).html(`
+			<table class="duty-daynum-table">
+				<tr class="duty-daynum-head"><td>${__("Expected on duty")}</td>
+					<td style="text-align:right">${this.fmt_duration(d.expected_duty)}</td></tr>
+				${row(__("Actual hours on duty"), d.duty, d.duty < d.expected_duty ? "duty-daynum-short" : "duty-daynum-ok")}
+				<tr class="duty-daynum-head"><td>${__("Expected break")}</td>
+					<td style="text-align:right">${this.fmt_duration(d.expected_break)}</td></tr>
+				${row(__("Actual break time"), d.breaks, d.breaks > d.expected_break ? "duty-daynum-short" : "duty-daynum-ok")}
+				${row(__("Hours booked to tasks"), d.task)}
+				${row(__("Hours attached to a customer"), d.customer)}
+			</table>
+			${remarks}
+		`);
+		dlg.show();
 	}
 
 	render_me(me) {
@@ -1503,6 +1539,16 @@ class DutyBoard {
 			.duty-reason { font-style: italic; }
 			.duty-summary { font-style: italic; color: var(--text-color); margin: 2px 0; }
 			.duty-updated { margin-top: 16px; font-size: var(--text-xs); }
+			.duty-daynum-table { width: 100%; border-collapse: collapse; margin-bottom: 12px; }
+			.duty-daynum-table td { padding: 7px 4px; border-bottom: 1px solid var(--border-color); }
+			.duty-daynum-head td { color: var(--text-muted); font-size: var(--text-sm); border-bottom: none; padding-bottom: 2px; }
+			.duty-daynum-short td b { color: var(--red-600, #dc2626); }
+			.duty-daynum-ok td b { color: var(--green-600, #2e7d32); }
+			.duty-daynum-remark {
+				margin-top: 8px; padding: 8px 12px; border-radius: 8px; font-size: var(--text-sm);
+			}
+			.duty-daynum-warn { background: var(--orange-100, #fff3e0); color: var(--orange-700, #e65100); }
+			.duty-daynum-good { background: var(--green-100, #e8f5e9); color: var(--green-700, #2e7d32); }
 		</style>`).appendTo("head");
 	}
 }

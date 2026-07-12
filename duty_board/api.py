@@ -15,6 +15,8 @@ from frappe.utils import (
 
 END_OF_DAY = "End of day"
 AUTO_PREFIX = "Auto clock-out"
+EXPECTED_DUTY_HOURS = 8
+EXPECTED_BREAK_HOURS = 1
 ALLOWED_EMOJIS = ["👍", "❤️", "😂", "🎉", "✅", "👀"]
 
 
@@ -87,7 +89,106 @@ def clock_out(reason=None, summary=None):
 		frappe.throw(_("Please give a reason for clocking out."))
 	_stop_running_session(frappe.session.user)
 	_make_log("Clock Out", reason, summary)
-	return get_board()
+	board = get_board()
+	if (reason or "").strip() == END_OF_DAY:
+		board["day_summary"] = _day_numbers(frappe.session.user)
+	return board
+
+
+def _day_numbers(user):
+	"""The user's day in numbers, computed right after end-of-day clock out."""
+	start, end = user_day_window(user)
+	logs = frappe.get_all(
+		"Duty Log",
+		filters={"user": user, "log_time": ["between", [start, end]]},
+		fields=["log_type", "reason", "log_time"],
+		order_by="log_time asc",
+	)
+
+	duty = 0
+	brk = 0
+	open_in = None
+	break_out = None
+	for log in logs:
+		if log.log_type == "Clock In":
+			if break_out:
+				brk += time_diff_in_seconds(log.log_time, break_out)
+				break_out = None
+			open_in = log.log_time
+		else:
+			if open_in:
+				duty += time_diff_in_seconds(log.log_time, open_in)
+				open_in = None
+			if _is_break(log.reason):
+				break_out = log.log_time
+
+	sessions = frappe.get_all(
+		"Work Session",
+		filters={"user": user, "start_time": ["between", [start, end]]},
+		fields=["customer", "duration", "end_time", "start_time"],
+	)
+	now = now_datetime()
+	task = 0
+	cust = 0
+	for s in sessions:
+		secs = s.duration or 0
+		if not s.end_time:
+			secs = time_diff_in_seconds(now, s.start_time)
+		task += secs
+		if s.customer:
+			cust += secs
+
+	expected_duty = EXPECTED_DUTY_HOURS * 3600
+	expected_break = EXPECTED_BREAK_HOURS * 3600
+
+	remarks = []
+	if duty < expected_duty:
+		remarks.append(
+			{
+				"kind": "warn",
+				"text": _("You were on duty {0} less than the expected {1} hours today.").format(
+					_fmt_hm(expected_duty - duty), EXPECTED_DUTY_HOURS
+				),
+			}
+		)
+	else:
+		remarks.append(
+			{
+				"kind": "good",
+				"text": _("You met the expected {0} hours on duty. Well done.").format(
+					EXPECTED_DUTY_HOURS
+				),
+			}
+		)
+	if brk > expected_break:
+		remarks.append(
+			{
+				"kind": "warn",
+				"text": _("You took {0} more break time than the {1} hour allowance.").format(
+					_fmt_hm(brk - expected_break), EXPECTED_BREAK_HOURS
+				),
+			}
+		)
+	elif brk:
+		remarks.append(
+			{"kind": "good", "text": _("Break time stayed within the allowance.")}
+		)
+
+	return {
+		"expected_duty": expected_duty,
+		"expected_break": expected_break,
+		"duty": int(duty),
+		"task": int(task),
+		"breaks": int(brk),
+		"customer": int(cust),
+		"remarks": remarks,
+	}
+
+
+def _fmt_hm(seconds):
+	seconds = int(seconds)
+	h, m = seconds // 3600, round((seconds % 3600) / 60)
+	return f"{h}h {m}m" if h else f"{m}m"
 
 
 # ---------------- Team chat ----------------
