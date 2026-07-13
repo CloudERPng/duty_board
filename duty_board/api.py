@@ -252,10 +252,12 @@ def send_message(
 
 
 @frappe.whitelist()
-def get_messages(limit=50, before=None):
+def get_messages(limit=50, before=None, after=None):
 	filters = {}
 	if before:
 		filters["creation"] = ["<", before]
+	if after:
+		filters["creation"] = [">", after]
 	rows = frappe.get_all(
 		"Team Message",
 		filters=filters,

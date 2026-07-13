@@ -48,6 +48,7 @@ class DutyBoard {
 				</div>
 			</div>
 		`).appendTo(page.body);
+		this.name_map = {};
 		this.inject_style();
 		this.init_chat();
 	}
@@ -134,23 +135,8 @@ class DutyBoard {
 			if (e.key === "Escape") $c.find(".duty-search-close").click();
 		});
 
-		frappe.realtime.on("duty_board_message", (m) => {
-			const mine = m.user === frappe.session.user;
-			const seen_live = mine || (this.chat_open && !document.hidden);
-			this.append_message(m, !seen_live);
-			this.scroll_chat();
-			if (seen_live) {
-				this.mark_caught_up(m.creation);
-			} else {
-				this.bump_unread();
-			}
-			if (!mine) {
-				const mentioned = (m.mentions || []).includes(frappe.session.user);
-				this.ping();
-				if (mentioned) setTimeout(() => this.ping(), 250);
-				this.desktop_notify(m, mentioned);
-			}
-		});
+		frappe.realtime.on("duty_board_message", (m) => this.handle_incoming(m));
+		this._sync_timer = setInterval(() => this.sync_messages(), 25 * 1000);
 
 		$c.find(".duty-chat-btn").on("click", () => this.send_chat());
 		this.$input.on("keydown", (e) => {
@@ -208,6 +194,45 @@ class DutyBoard {
 				Notification.requestPermission().then(() => $notif.hide());
 			});
 		}
+	}
+
+	handle_incoming(m) {
+		if (!m || !m.name) return;
+		if (this.search_mode) return;
+		if (this.$list.find(`.duty-msg[data-name="${m.name}"]`).length) return;
+		const mine = m.user === frappe.session.user;
+		const seen_live = mine || (this.chat_open && !document.hidden);
+		try {
+			this.append_message(m, !seen_live);
+		} catch (e) {
+			console.error("Duty Room: failed to render message", m && m.name, e);
+		}
+		this.scroll_chat();
+		if (seen_live) {
+			this.mark_caught_up(m.creation);
+		} else {
+			this.bump_unread();
+		}
+		if (!mine) {
+			const mentioned = (m.mentions || []).includes(frappe.session.user);
+			this.ping();
+			if (mentioned) setTimeout(() => this.ping(), 450);
+			this.desktop_notify(m, mentioned);
+		}
+	}
+
+	sync_messages() {
+		if (this.search_mode) return;
+		const latest = this.latest_creation();
+		if (!latest) return;
+		frappe.call({
+			method: "duty_board.api.get_messages",
+			args: { after: latest },
+			callback: (r) => {
+				const msgs = (r.message && r.message.messages) || [];
+				msgs.forEach((m) => this.handle_incoming(m));
+			},
+		});
 	}
 
 	toggle_chat(open) {
@@ -461,12 +486,16 @@ class DutyBoard {
 				if (!data.has_more) this.$list.find(".duty-load-earlier").hide();
 				let new_count = 0;
 				msgs.forEach((m) => {
-					const is_new =
-						m.user !== frappe.session.user &&
-						!!this.last_seen &&
-						m.creation > this.last_seen;
-					if (is_new) new_count += 1;
-					this.append_message(m, is_new);
+					try {
+						const is_new =
+							m.user !== frappe.session.user &&
+							!!this.last_seen &&
+							m.creation > this.last_seen;
+						if (is_new) new_count += 1;
+						this.append_message(m, is_new);
+					} catch (e) {
+						console.error("Duty Room: failed to render message", m && m.name, e);
+					}
 				});
 				if (!this.last_seen && msgs.length) {
 					this.set_seen(msgs[msgs.length - 1].creation);
@@ -497,7 +526,11 @@ class DutyBoard {
 					const old_h = this.$list[0].scrollHeight;
 					let $anchor = this.$list.find(".duty-load-earlier");
 					msgs.forEach((m) => {
-						$anchor = this.append_message(m, false, false, $anchor);
+						try {
+							$anchor = this.append_message(m, false, false, $anchor) || $anchor;
+						} catch (e) {
+							console.error("Duty Room: failed to render message", m && m.name, e);
+						}
 					});
 					this.oldest = msgs[0].creation;
 					this.update_receipts();
@@ -526,7 +559,13 @@ class DutyBoard {
 							: __("No messages match “{0}”", [query])
 					)
 					.show();
-				results.forEach((m) => this.append_message(m, false, true));
+				results.forEach((m) => {
+					try {
+						this.append_message(m, false, true);
+					} catch (e) {
+						console.error("Duty Room: failed to render message", m && m.name, e);
+					}
+				});
 				this.$list.scrollTop(0);
 			},
 		});
@@ -553,7 +592,7 @@ class DutyBoard {
 				$seen.remove();
 				return;
 			}
-			const names = readers.map((u) => (this.name_map[u] || u).split(" ")[0]).join(", ");
+			const names = readers.map((u) => ((this.name_map || {})[u] || u).split(" ")[0]).join(", ");
 			if (!$seen.length) {
 				$seen = $(`<span class="duty-msg-seen"></span>`).insertAfter($row.find(".duty-msg-time"));
 			}
@@ -570,7 +609,7 @@ class DutyBoard {
 			const users = map[emoji] || [];
 			if (!users.length) return;
 			const mine = users.includes(me);
-			const names = users.map((u) => (this.name_map[u] || u).split(" ")[0]).join(", ");
+			const names = users.map((u) => ((this.name_map || {})[u] || u).split(" ")[0]).join(", ");
 			$(`<span class="duty-react-chip ${mine ? "duty-react-mine" : ""}" title="${frappe.utils.escape_html(names)}">${emoji} ${users.length}</span>`)
 				.appendTo($box)
 				.on("click", () =>
@@ -642,12 +681,28 @@ class DutyBoard {
 		this.$badge.text(this.unread).show();
 		this.$rail.find(".duty-rail-badge").text(this.unread).show();
 		document.title = `(${this.unread}) ${this.base_title}`;
+		this.start_title_flash();
+	}
+
+	start_title_flash() {
+		if (this._flash_t) return;
+		this._flash_t = setInterval(() => {
+			document.title = document.title.startsWith("🔴")
+				? `(${this.unread}) ${this.base_title}`
+				: `🔴 ${this.unread} — ${this.base_title}`;
+		}, 1400);
+	}
+
+	stop_title_flash() {
+		clearInterval(this._flash_t);
+		this._flash_t = null;
 	}
 
 	clear_unread() {
 		this.unread = 0;
 		this.$badge.hide();
 		this.$rail.find(".duty-rail-badge").hide();
+		this.stop_title_flash();
 		document.title = this.base_title;
 	}
 
@@ -661,15 +716,16 @@ class DutyBoard {
 				const g = ctx.createGain();
 				o.type = "sine";
 				o.frequency.value = freq;
-				g.gain.setValueAtTime(0.25, ctx.currentTime + at);
+				g.gain.setValueAtTime(0.4, ctx.currentTime + at);
 				o.connect(g);
 				g.connect(ctx.destination);
 				o.start(ctx.currentTime + at);
 				g.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + at + dur);
 				o.stop(ctx.currentTime + at + dur + 0.05);
 			};
-			tone(880, 0, 0.18);
-			tone(1174.66, 0.15, 0.22);
+			tone(880, 0, 0.15);
+			tone(1174.66, 0.13, 0.15);
+			tone(1567.98, 0.26, 0.3);
 		} catch (e) {
 			/* sound blocked until first interaction — fine */
 		}
@@ -682,6 +738,9 @@ class DutyBoard {
 			const who = (m.full_name || m.user).split(" ")[0];
 			new Notification(`${who} — Duty Room${mentioned ? " (mention)" : ""}`, {
 				body: m.message || m.attachment_name || "",
+				tag: "duty-room",
+				renotify: true,
+				requireInteraction: mentioned,
 			});
 		} catch (e) {
 			/* ignore */
