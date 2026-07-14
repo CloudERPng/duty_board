@@ -410,20 +410,42 @@ def _message_payload(r, reactions):
 
 
 @frappe.whitelist()
-def add_todo(description, customer=None, for_user=None, date=None, due_time=None):
+def add_todo(description, customer=None, for_user=None, for_users=None, date=None, due_time=None):
 	session = frappe.session.user
 	if not (description or "").strip():
 		frappe.throw(_("Please type the to-do first."))
 
-	target = for_user or session
-	if target != session:
-		exists = frappe.db.get_value(
-			"User", target, ["enabled", "user_type"], as_dict=True
-		)
-		if not exists or not exists.enabled or exists.user_type != "System User":
-			frappe.throw(_("Cannot assign to that user."))
+	targets = _parse_targets(for_users) or ([for_user] if for_user else [session])
+	for target in targets:
+		_create_todo_for(target, description, customer, date, due_time)
+	frappe.db.commit()
+	return get_board()
 
-	# "today" is the assignee's local today
+
+def _parse_targets(for_users):
+	if not for_users:
+		return None
+	try:
+		parsed = frappe.parse_json(for_users)
+	except Exception:
+		return None
+	if not isinstance(parsed, list):
+		return None
+	targets = [t for t in parsed if isinstance(t, str)]
+	return list(dict.fromkeys(targets)) or None
+
+
+def _validate_target(target):
+	if target == frappe.session.user:
+		return
+	exists = frappe.db.get_value("User", target, ["enabled", "user_type"], as_dict=True)
+	if not exists or not exists.enabled or exists.user_type != "System User":
+		frappe.throw(_("Cannot assign to {0}.").format(target))
+
+
+def _create_todo_for(target, description, customer=None, date=None, due_time=None, notify=True):
+	session = frappe.session.user
+	_validate_target(target)
 	target_today = user_today(target)
 	todo_date = getdate(date) if date else target_today
 	if todo_date < target_today:
@@ -441,6 +463,73 @@ def add_todo(description, customer=None, for_user=None, date=None, due_time=None
 			"assigned_by": session if target != session else None,
 		}
 	).insert()
+	if notify and target != session:
+		first = frappe.utils.get_fullname(session).split(" ")[0]
+		_notify_user(target, _("New to-do from {0}").format(first), description.strip())
+
+
+def _notify_user(user, title, body):
+	frappe.publish_realtime(
+		"duty_board_notify", {"title": title, "body": body or ""}, user=user
+	)
+
+
+@frappe.whitelist()
+def share_todo(name, users):
+	doc = frappe.get_doc("Daily Todo", name)
+	_check_todo_owner(doc)
+	targets = _parse_targets(users) or []
+	if not targets:
+		frappe.throw(_("Pick at least one colleague."))
+	for target in targets:
+		if target == doc.user:
+			continue
+		_create_todo_for(target, doc.description, doc.customer, doc.date, doc.due_time)
+	frappe.db.commit()
+	return get_board()
+
+
+@frappe.whitelist()
+def update_todo(name, description=None, customer=None, due_time=None):
+	doc = frappe.get_doc("Daily Todo", name)
+	_check_todo_owner(doc)
+	if description is not None and description.strip():
+		doc.description = description.strip()
+	doc.customer = customer or None
+	doc.due_time = due_time or None
+	doc.save(ignore_permissions=True)
+	frappe.db.commit()
+	return get_board()
+
+
+@frappe.whitelist()
+def invite_to_task(users):
+	user = frappe.session.user
+	running = _get_running_session(user)
+	if not running:
+		frappe.throw(_("You have no task running."))
+	targets = _parse_targets(users) or []
+	if not targets:
+		frappe.throw(_("Pick at least one colleague."))
+	first = frappe.utils.get_fullname(user).split(" ")[0]
+	for target in targets:
+		if target == user:
+			continue
+		_create_todo_for(target, running.activity, running.customer, None, None, notify=False)
+		_notify_user(target, _("{0} invited you to a task").format(first), running.activity)
+	frappe.db.commit()
+	return get_board()
+
+
+@frappe.whitelist()
+def set_task_customer(customer=None):
+	user = frappe.session.user
+	running = _get_running_session(user)
+	if not running:
+		frappe.throw(_("You have no task running."))
+	doc = frappe.get_doc("Work Session", running.name)
+	doc.customer = customer or None
+	doc.save(ignore_permissions=True)
 	frappe.db.commit()
 	return get_board()
 

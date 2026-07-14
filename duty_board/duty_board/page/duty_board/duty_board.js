@@ -137,6 +137,8 @@ class DutyBoard {
 
 		frappe.realtime.on("duty_board_message", (m) => this.handle_incoming(m));
 		this._sync_timer = setInterval(() => this.sync_messages(), 25 * 1000);
+		frappe.realtime.on("duty_board_notify", (d) => this.notify_event(d));
+		this._due_timer = setInterval(() => this.check_due_todos(), 30 * 1000);
 
 		$c.find(".duty-chat-btn").on("click", () => this.send_chat());
 		this.$input.on("keydown", (e) => {
@@ -194,6 +196,59 @@ class DutyBoard {
 				Notification.requestPermission().then(() => $notif.hide());
 			});
 		}
+	}
+
+	notify_event(d) {
+		if (!d || !d.title) return;
+		frappe.show_alert(
+			{
+				message: `<b>${frappe.utils.escape_html(d.title)}</b><br>${frappe.utils.escape_html(d.body || "")}`,
+				indicator: "blue",
+			},
+			8
+		);
+		this.ping();
+		if (window.Notification && Notification.permission === "granted") {
+			try {
+				new Notification(d.title, {
+					body: d.body || "",
+					tag: "duty-notify",
+					renotify: true,
+				});
+			} catch (e) {
+				/* ignore */
+			}
+		}
+		this.refresh(true);
+	}
+
+	check_due_todos() {
+		this._due_alerted = this._due_alerted || {};
+		const now = new Date();
+		(this.my_todos || []).forEach((t) => {
+			if (t.status !== "Open" || !t.due_time || this._due_alerted[t.name]) return;
+			const parts = t.due_time.split(":");
+			const due = new Date();
+			due.setHours(Number(parts[0]), Number(parts[1]), 0, 0);
+			const mins = (due - now) / 60000;
+			if (mins > 0 && mins <= 5) {
+				this._due_alerted[t.name] = true;
+				this.notify_event({
+					title: __("Starting in {0} min", [Math.ceil(mins)]),
+					body: t.description,
+				});
+			}
+		});
+	}
+
+	user_color(user) {
+		const palette = [
+			"#0E7490", "#B45309", "#6D28D9", "#BE185D", "#15803D", "#B91C1C",
+			"#1D4ED8", "#0F766E", "#A16207", "#7C2D12", "#4D7C0F", "#86198F",
+		];
+		let h = 0;
+		for (let i = 0; i < (user || "").length; i++) h = (h * 31 + user.charCodeAt(i)) >>> 0;
+		return palette[h % palette.length];
 	}
 
 	handle_incoming(m) {
@@ -435,7 +490,7 @@ class DutyBoard {
 		const $row = $(`
 			<div class="duty-msg ${mine ? "duty-msg-mine" : ""} ${mentioned ? "duty-msg-mentioned" : ""} ${is_new ? "duty-msg-new" : ""}" data-creation="${frappe.utils.escape_html(m.creation || "")}" data-name="${frappe.utils.escape_html(m.name || "")}">
 				${m.reply_snippet ? `<div class="duty-msg-quote">${frappe.utils.escape_html(m.reply_snippet)}</div>` : ""}
-				<span class="duty-msg-who">${frappe.utils.escape_html(mine ? __("You") : (m.full_name || m.user).split(" ")[0])}</span>
+				<span class="duty-msg-who" style="color:${this.user_color(m.user)}">${frappe.utils.escape_html(mine ? __("You") : (m.full_name || m.user).split(" ")[0])}</span>
 				<span class="duty-msg-text">${this.format_message_text(m)}</span>
 				<span class="duty-msg-time">${when}</span>
 				<a class="duty-msg-reply" title="${__("Reply")}">↩</a>
@@ -1034,6 +1089,8 @@ class DutyBoard {
 						</div>
 					</div>
 					<div class="duty-task-actions">
+						<button class="btn btn-default duty-invite-btn" title="${__("Invite a colleague to this task")}">👤+</button>
+						<button class="btn btn-default duty-taskcust-btn" title="${__("Set / change customer")}">✎</button>
 						<button class="btn btn-default duty-switch-btn">${__("Switch Task")}</button>
 						<button class="btn btn-primary duty-stop-btn">${__("Stop")}</button>
 					</div>
@@ -1041,6 +1098,8 @@ class DutyBoard {
 			`);
 			$task.find(".duty-stop-btn").on("click", () => this.stop_task_flow());
 			$task.find(".duty-switch-btn").on("click", () => this.start_task_dialog(true));
+			$task.find(".duty-invite-btn").on("click", () => this.invite_task_dialog());
+			$task.find(".duty-taskcust-btn").on("click", () => this.task_customer_dialog(t.customer));
 		} else {
 			$task.html(`
 				<div class="duty-task-card">
@@ -1082,7 +1141,7 @@ class DutyBoard {
 					${this.todo_chips(t)}
 					${
 						t.status === "Open"
-							? `<a class="duty-todo-carry" title="${__("Move to tomorrow")}">→</a>`
+							? `<a class="duty-todo-edit" title="${__("Edit / set customer")}">✎</a><a class="duty-todo-share" title="${__("Invite a colleague")}">👤+</a><a class="duty-todo-carry" title="${__("Move to tomorrow")}">→</a>`
 							: ""
 					}
 					<a class="duty-todo-remove" title="${__("Remove")}">&times;</a>
@@ -1102,8 +1161,14 @@ class DutyBoard {
 			)
 			.join("");
 
+		const plan_open = localStorage.getItem("duty_plan_open") !== "0";
 		$plan.html(`
-			<div class="duty-plan-card">
+			<details class="duty-plan-card duty-plan-details" ${plan_open ? "open" : ""}>
+				<summary class="duty-plan-head">
+					<span>${__("My Plan for Today")}
+						${todos.length ? `<span class="duty-plan-count">${done}/${todos.length} ${__("done")}</span>` : ""}
+					</span>
+				</summary>
 				${
 					this.overdue_count
 						? `<div class="duty-overdue">
@@ -1112,14 +1177,9 @@ class DutyBoard {
 						   </div>`
 						: ""
 				}
-				<div class="duty-plan-head">
-					<span>${__("My Plan for Today")}
-						${todos.length ? `<span class="duty-plan-count">${done}/${todos.length} ${__("done")}</span>` : ""}
-					</span>
-					<span class="duty-plan-actions">
-						${open ? `<a class="duty-carry-all">${__("Carry unfinished → tomorrow")}</a>` : ""}
-						<button class="btn btn-xs btn-default duty-todo-more-btn">＋ ${__("More")}</button>
-					</span>
+				<div class="duty-plan-actions-row">
+					${open ? `<a class="duty-carry-all">${__("Carry unfinished → tomorrow")}</a>` : ""}
+					<button class="btn btn-xs btn-default duty-todo-more-btn">＋ ${__("More")}</button>
 				</div>
 				${rows || `<div class="text-muted duty-plan-empty">${__("Nothing planned yet. What do you want to get done today?")}</div>`}
 				<div class="duty-plan-add">
@@ -1131,8 +1191,11 @@ class DutyBoard {
 						? `<details class="duty-sessions-details"><summary>${__("Upcoming")} (${this.my_upcoming.length})</summary>${upcoming}</details>`
 						: ""
 				}
-			</div>
+			</details>
 		`);
+		$plan.find(".duty-plan-details").on("toggle", (e) => {
+			localStorage.setItem("duty_plan_open", e.target.open ? "1" : "0");
+		});
 
 		const add = () => {
 			const val = $plan.find(".duty-todo-input").val();
@@ -1163,6 +1226,103 @@ class DutyBoard {
 				this.action("remove_todo", { name: name })
 			);
 		});
+		$plan.find(".duty-todo-edit").on("click", (e) => {
+			const name = $(e.target).closest(".duty-todo-row").data("name");
+			const t = (this.my_todos || []).find((x) => x.name === name);
+			if (t) this.edit_todo_dialog(t);
+		});
+		$plan.find(".duty-todo-share").on("click", (e) => {
+			const name = $(e.target).closest(".duty-todo-row").data("name");
+			this.share_todo_dialog(name);
+		});
+	}
+
+	share_todo_dialog(name) {
+		const d = new frappe.ui.Dialog({
+			title: __("Invite colleagues to this to-do"),
+			fields: [
+				{
+					fieldname: "users",
+					fieldtype: "MultiSelectList",
+					label: __("Colleagues"),
+					reqd: 1,
+					get_data: () =>
+						this.team_members().map((x) => ({ value: x.user, description: x.full_name })),
+				},
+			],
+			primary_action_label: __("Invite"),
+			primary_action: (v) => {
+				d.hide();
+				this.action("share_todo", { name: name, users: JSON.stringify(v.users || []) });
+			},
+		});
+		d.show();
+	}
+
+	edit_todo_dialog(t) {
+		const d = new frappe.ui.Dialog({
+			title: __("Edit To-do"),
+			fields: [
+				{ fieldname: "description", fieldtype: "Data", label: __("To-do"), default: t.description, reqd: 1 },
+				{ fieldname: "customer", fieldtype: "Link", label: __("Customer"), options: "Customer", default: t.customer || "" },
+				{ fieldname: "due_time", fieldtype: "Time", label: __("Time (optional)"), default: t.due_time || "" },
+			],
+			primary_action_label: __("Save"),
+			primary_action: (v) => {
+				d.hide();
+				this.action("update_todo", {
+					name: t.name,
+					description: v.description,
+					customer: v.customer || null,
+					due_time: v.due_time || null,
+				});
+			},
+		});
+		d.show();
+	}
+
+	invite_task_dialog() {
+		const d = new frappe.ui.Dialog({
+			title: __("Invite colleagues to this task"),
+			fields: [
+				{
+					fieldname: "users",
+					fieldtype: "MultiSelectList",
+					label: __("Colleagues"),
+					reqd: 1,
+					get_data: () =>
+						this.team_members().map((x) => ({ value: x.user, description: x.full_name })),
+				},
+			],
+			primary_action_label: __("Invite"),
+			primary_action: (v) => {
+				d.hide();
+				this.action("invite_to_task", { users: JSON.stringify(v.users || []) });
+				frappe.show_alert({ message: __("Invitation sent — it lands on their plan."), indicator: "green" }, 5);
+			},
+		});
+		d.show();
+	}
+
+	task_customer_dialog(current) {
+		const d = new frappe.ui.Dialog({
+			title: __("Set customer for this task"),
+			fields: [
+				{
+					fieldname: "customer",
+					fieldtype: "Link",
+					label: __("Customer (clear to remove)"),
+					options: "Customer",
+					default: current || "",
+				},
+			],
+			primary_action_label: __("Save"),
+			primary_action: (v) => {
+				d.hide();
+				this.action("set_task_customer", { customer: v.customer || null });
+			},
+		});
+		d.show();
 	}
 
 	add_todo_dialog() {
@@ -1176,12 +1336,15 @@ class DutyBoard {
 					reqd: 1,
 				},
 				{
-					fieldname: "for_user",
-					fieldtype: "Link",
-					label: __("For (staff)"),
-					options: "User",
-					default: frappe.session.user,
-					description: __("Pick a colleague to add this to their plan — it will show as from you."),
+					fieldname: "for_users",
+					fieldtype: "MultiSelectList",
+					label: __("For (leave empty = just you)"),
+					get_data: () =>
+						this.team_members().map((x) => ({
+							value: x.user,
+							description: x.full_name,
+						})),
+					description: __("Pick one or more colleagues — each gets their own copy, marked as from you."),
 				},
 				{
 					fieldname: "date",
@@ -1207,7 +1370,10 @@ class DutyBoard {
 				d.hide();
 				this.action("add_todo", {
 					description: values.description,
-					for_user: values.for_user || null,
+					for_users:
+						values.for_users && values.for_users.length
+							? JSON.stringify(values.for_users)
+							: null,
 					date: values.date,
 					due_time: values.due_time || null,
 					customer: values.customer || null,
@@ -1254,7 +1420,7 @@ class DutyBoard {
 					<div class="duty-card-head">
 						${frappe.avatar(r.user, "avatar-medium")}
 						<div class="duty-card-name">
-							<div class="duty-name">${frappe.utils.escape_html(r.full_name)}</div>
+							<div class="duty-name" style="color:${this.user_color(r.user)}">${frappe.utils.escape_html(r.full_name)}</div>
 							<div class="duty-badge" style="color:${s.color};background:${s.bg}">
 								<span class="duty-dot" style="background:${s.color}"></span>${__(r.status)}
 							</div>
@@ -1439,6 +1605,20 @@ class DutyBoard {
 				font-size: var(--text-xs); color: var(--text-muted); min-width: 82px;
 				font-variant-numeric: tabular-nums;
 			}
+			.duty-plan-details > summary { cursor: pointer; list-style: none; }
+			.duty-plan-details > summary::-webkit-details-marker { display: none; }
+			.duty-plan-details > summary::after { content: " ▾"; color: var(--text-muted); font-size: var(--text-xs); }
+			.duty-plan-details:not([open]) > summary::after { content: " ▸"; }
+			.duty-plan-actions-row {
+				display: flex; justify-content: flex-end; align-items: center; gap: 12px;
+				margin: 6px 0 4px; font-weight: 400;
+			}
+			.duty-todo-edit, .duty-todo-share {
+				cursor: pointer; color: var(--text-muted); padding: 0 4px;
+				visibility: hidden; font-size: var(--text-sm);
+			}
+			.duty-todo-row:hover .duty-todo-edit,
+			.duty-todo-row:hover .duty-todo-share { visibility: visible; }
 			.duty-todo-carry {
 				cursor: pointer; color: var(--text-muted); font-weight: 700;
 				padding: 0 6px; visibility: hidden;
