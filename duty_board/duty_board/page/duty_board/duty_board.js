@@ -1037,6 +1037,124 @@ class DutyBoard {
 		dlg.show();
 	}
 
+	task_history_dialog() {
+		const d = new frappe.ui.Dialog({ title: __("My Task History"), size: "large" });
+		$(d.body).html(`
+			<div class="duty-history-list"><div class="text-muted">${__("Loading...")}</div></div>
+			<div class="duty-history-more" style="display:none; text-align:center; margin-top:8px">
+				<button class="btn btn-default btn-sm">${__("Load older")}</button>
+			</div>
+		`);
+		const $list = $(d.body).find(".duty-history-list");
+		let before = null;
+		let last_date = null;
+		let first_load = true;
+		const load = () => {
+			frappe.call({
+				method: "duty_board.api.get_task_history",
+				args: { before: before },
+				callback: (r) => {
+					const data = r.message || {};
+					if (first_load) {
+						$list.empty();
+						first_load = false;
+					}
+					(data.sessions || []).forEach((x) => {
+						if (x.date !== last_date) {
+							last_date = x.date;
+							$list.append(
+								`<div class="duty-history-day">${frappe.datetime.str_to_user(x.date)}</div>`
+							);
+						}
+						const $row = $(`
+							<div class="duty-session-row">
+								<span class="duty-session-activity">${frappe.utils.escape_html(x.activity)}</span>
+								${x.customer ? `<span class="duty-task-customer">${frappe.utils.escape_html(x.customer)}</span>` : ""}
+								<span class="duty-session-time text-muted">
+									${this.fmt_time(x.start_time)} – ${x.end_time ? this.fmt_time(x.end_time) : __("open")}
+									· ${this.fmt_duration(x.duration)}
+								</span>
+								<a class="duty-session-notes" title="${__("Notes")}">📝${x.notes ? " " + x.notes : ""}</a>
+							</div>`).appendTo($list);
+						$row.find(".duty-session-notes").on("click", (e) => {
+							e.preventDefault();
+							this.note_dialog(x.name, x.activity, true);
+						});
+					});
+					before = data.next_before;
+					$(d.body).find(".duty-history-more").toggle(!!data.has_more);
+					if (!$list.children().length) {
+						$list.html(`<div class="text-muted">${__("No earlier tasks yet.")}</div>`);
+					}
+				},
+			});
+		};
+		$(d.body).find(".duty-history-more button").on("click", load);
+		load();
+		d.show();
+	}
+
+	note_dialog(session, activity, can_add) {
+		const d = new frappe.ui.Dialog({
+			title: __("Notes — {0}", [frappe.utils.escape_html((activity || "").slice(0, 40))]),
+		});
+		const render_list = (notes) => {
+			const items = (notes || [])
+				.map(
+					(n) => `
+					<div class="duty-note-item">
+						<div class="duty-note-meta">
+							<span style="color:${this.user_color(n.user)}">${frappe.utils.escape_html((n.full_name || n.user).split(" ")[0])}</span>
+							<span class="text-muted">${frappe.datetime.str_to_user(n.creation)}</span>
+						</div>
+						<div class="duty-note-text">${frappe.utils.escape_html(n.note)}</div>
+					</div>`
+				)
+				.join("");
+			$(d.body)
+				.find(".duty-note-list")
+				.html(items || `<div class="text-muted">${__("No notes yet.")}</div>`);
+		};
+		$(d.body).html(`
+			<div class="duty-note-list"></div>
+			${
+				can_add
+					? `<div class="duty-note-add">
+						<textarea rows="2" class="form-control duty-note-input"
+							placeholder="${__("Add a note... Enter to save, Shift+Enter for a new line")}"></textarea>
+						<button class="btn btn-primary btn-sm duty-note-save">${__("Add")}</button>
+					</div>`
+					: ""
+			}
+		`);
+		frappe.call({
+			method: "duty_board.api.get_task_notes",
+			args: { session: session },
+			callback: (r) => render_list(r.message),
+		});
+		const save = () => {
+			const val = ($(d.body).find(".duty-note-input").val() || "").trim();
+			if (!val) return;
+			$(d.body).find(".duty-note-input").val("");
+			frappe.call({
+				method: "duty_board.api.add_task_note",
+				args: { session: session, note: val },
+				callback: (r) => {
+					render_list(r.message);
+					this.refresh(true);
+				},
+			});
+		};
+		$(d.body).find(".duty-note-save").on("click", save);
+		$(d.body).find(".duty-note-input").on("keydown", (e) => {
+			if (e.key === "Enter" && !e.shiftKey) {
+				e.preventDefault();
+				save();
+			}
+		});
+		d.show();
+	}
+
 	render_me(me) {
 		const $me = this.body.find(".duty-me").empty();
 		if (!me) {
@@ -1089,6 +1207,7 @@ class DutyBoard {
 						</div>
 					</div>
 					<div class="duty-task-actions">
+						<button class="btn btn-default duty-note-btn" title="${__("Task notes")}">📝${t.notes ? " " + t.notes : ""}</button>
 						<button class="btn btn-default duty-invite-btn" title="${__("Invite a colleague to this task")}">👤+</button>
 						<button class="btn btn-default duty-taskcust-btn" title="${__("Set / change customer")}">✎</button>
 						<button class="btn btn-default duty-switch-btn">${__("Switch Task")}</button>
@@ -1100,6 +1219,7 @@ class DutyBoard {
 			$task.find(".duty-switch-btn").on("click", () => this.start_task_dialog(true));
 			$task.find(".duty-invite-btn").on("click", () => this.invite_task_dialog());
 			$task.find(".duty-taskcust-btn").on("click", () => this.task_customer_dialog(t.customer));
+			$task.find(".duty-note-btn").on("click", () => this.note_dialog(t.name, t.activity, true));
 		} else {
 			$task.html(`
 				<div class="duty-task-card">
@@ -1385,7 +1505,8 @@ class DutyBoard {
 
 	render_my_sessions(sessions, me) {
 		const $s = this.body.find(".duty-my-sessions").empty();
-		if (!me || !sessions || !sessions.length) return;
+		if (!me) return;
+		sessions = sessions || [];
 		const rows = sessions
 			.map(
 				(x) => `
@@ -1396,15 +1517,25 @@ class DutyBoard {
 						${this.fmt_time(x.start_time)} – ${x.end_time ? this.fmt_time(x.end_time) : __("now")}
 						· ${this.fmt_duration(x.duration)}
 					</span>
+					<a class="duty-session-notes" data-session="${x.name}" title="${__("Notes")}">📝${x.notes ? " " + x.notes : ""}</a>
 				</div>`
 			)
 			.join("");
 		$s.html(`
 			<details class="duty-sessions-details">
 				<summary>${__("My tasks today")} (${sessions.length})</summary>
-				${rows}
+				${rows || `<div class="text-muted duty-history-empty">${__("No tasks yet today.")}</div>`}
+				<div class="duty-history-link"><a>${__("Earlier days ▸")}</a></div>
 			</details>
 		`);
+		$s.find(".duty-session-notes").on("click", (e) => {
+			e.preventDefault();
+			e.stopPropagation();
+			const id = $(e.currentTarget).data("session");
+			const sess = sessions.find((s) => s.name === id);
+			this.note_dialog(id, sess ? sess.activity : "", true);
+		});
+		$s.find(".duty-history-link a").on("click", () => this.task_history_dialog());
 	}
 
 	render_team(rows) {
@@ -1473,6 +1604,7 @@ class DutyBoard {
 						${this.fmt_time(x.start_time)} – ${x.end_time ? this.fmt_time(x.end_time) : __("now")}
 						· ${this.fmt_duration(x.duration)}
 					</span>
+					<a class="duty-session-notes" data-session="${x.name}" title="${__("Notes")}">📝${x.notes ? " " + x.notes : ""}</a>
 				</div>`
 			)
 			.join("");
@@ -1507,6 +1639,12 @@ class DutyBoard {
 				}
 			</div>
 		`);
+		$(d.body).find(".duty-session-notes").on("click", (e) => {
+			e.preventDefault();
+			const id = $(e.currentTarget).data("session");
+			const sess = (r.sessions || []).find((s) => s.name === id);
+			this.note_dialog(id, sess ? sess.activity : "", r.user === frappe.session.user);
+		});
 		d.show();
 	}
 
@@ -1784,6 +1922,25 @@ class DutyBoard {
 			.duty-sessions-details summary { cursor: pointer; color: var(--text-muted); }
 			.duty-session-row { padding: 6px 4px; border-bottom: 1px solid var(--border-color); }
 			.duty-session-live .duty-session-activity { font-weight: 600; }
+			.duty-session-notes {
+				cursor: pointer; margin-left: 8px; color: var(--text-muted);
+				font-size: var(--text-xs); text-decoration: none;
+			}
+			.duty-session-notes:hover { color: var(--text-color); }
+			.duty-history-link { margin-top: 8px; font-size: var(--text-xs); }
+			.duty-history-link a { cursor: pointer; color: var(--text-muted); }
+			.duty-history-link a:hover { color: var(--text-color); }
+			.duty-history-list { max-height: 60vh; overflow-y: auto; }
+			.duty-history-day {
+				font-weight: 700; margin: 12px 0 4px; color: var(--text-muted);
+				font-size: var(--text-xs); text-transform: uppercase; letter-spacing: 0.04em;
+			}
+			.duty-note-list { max-height: 300px; overflow-y: auto; }
+			.duty-note-item { padding: 7px 0; border-bottom: 1px solid var(--border-color); }
+			.duty-note-meta { font-size: var(--text-xs); display: flex; gap: 10px; font-weight: 600; }
+			.duty-note-text { white-space: pre-wrap; word-break: break-word; margin-top: 2px; font-size: var(--text-sm); }
+			.duty-note-add { display: flex; gap: 8px; margin-top: 12px; align-items: flex-end; }
+			.duty-note-add textarea { flex: 1; resize: none; }
 			.duty-session-time { margin-left: 8px; }
 			.duty-team-title {
 				margin: 24px 0 10px; font-weight: 600; color: var(--text-muted);

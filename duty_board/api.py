@@ -535,6 +535,77 @@ def set_task_customer(customer=None):
 
 
 @frappe.whitelist()
+def add_task_note(session, note):
+	if not (note or "").strip():
+		frappe.throw(_("Note is empty."))
+	owner = frappe.db.get_value("Work Session", session, "user")
+	if not owner:
+		frappe.throw(_("Task not found."))
+	if owner != frappe.session.user and "System Manager" not in frappe.get_roles():
+		frappe.throw(_("You can only add notes to your own tasks."))
+	frappe.get_doc(
+		{
+			"doctype": "Task Note",
+			"work_session": session,
+			"user": frappe.session.user,
+			"note": note.strip(),
+		}
+	).insert()
+	frappe.db.commit()
+	return get_task_notes(session)
+
+
+@frappe.whitelist()
+def get_task_history(before=None, limit=60):
+	"""The current user's past work sessions (before their local today), newest first."""
+	user = frappe.session.user
+	start_today, _end = user_day_window(user)
+	cutoff = before or str(start_today)
+	cap = min(cint(limit) or 60, 200)
+	rows = frappe.get_all(
+		"Work Session",
+		filters={"user": user, "start_time": ["<", cutoff]},
+		fields=["name", "activity", "customer", "start_time", "end_time", "duration"],
+		order_by="start_time desc",
+		limit=cap,
+	)
+	has_more = len(rows) >= cap
+	next_before = str(rows[-1].start_time) if rows else None
+
+	counts = {}
+	names = [r.name for r in rows]
+	if names:
+		for nc in frappe.get_all(
+			"Task Note",
+			filters={"work_session": ["in", names]},
+			fields=["work_session", "count(name) as cnt"],
+			group_by="work_session",
+		):
+			counts[nc.work_session] = nc.cnt
+
+	for r in rows:
+		r.notes = counts.get(r.name, 0)
+		r.date = str(getdate(r.start_time))
+		r.start_time = str(r.start_time)
+		r.end_time = str(r.end_time) if r.end_time else None
+
+	return {"sessions": rows, "has_more": has_more, "next_before": next_before}
+
+
+@frappe.whitelist()
+def get_task_notes(session):
+	rows = frappe.get_all(
+		"Task Note",
+		filters={"work_session": session},
+		fields=["user", "full_name", "note", "creation"],
+		order_by="creation asc",
+	)
+	for r in rows:
+		r.creation = str(r.creation)
+	return rows
+
+
+@frappe.whitelist()
 def toggle_todo(name, done):
 	doc = frappe.get_doc("Daily Todo", name)
 	_check_todo_owner(doc)
@@ -783,7 +854,7 @@ def get_board():
 	running = frappe.get_all(
 		"Work Session",
 		filters={"end_time": ["is", "not set"]},
-		fields=["user", "activity", "customer", "daily_todo", "start_time"],
+		fields=["name", "user", "activity", "customer", "daily_todo", "start_time"],
 		order_by="start_time desc",
 	)
 	running_by_user = {}
@@ -793,7 +864,7 @@ def get_board():
 	all_sessions = frappe.get_all(
 		"Work Session",
 		filters={"start_time": ["between", [global_start, global_end]]},
-		fields=["user", "activity", "customer", "start_time", "end_time", "duration"],
+		fields=["name", "user", "activity", "customer", "start_time", "end_time", "duration"],
 		order_by="start_time asc",
 	)
 	sessions_by_user = {}
@@ -804,6 +875,19 @@ def get_board():
 		if not s.end_time:
 			s.duration = int(time_diff_in_seconds(now, s.start_time))
 		sessions_by_user.setdefault(s.user, []).append(s)
+
+	note_names = list({s.name for s in all_sessions} | {s.name for s in running})
+	note_counts = {}
+	if note_names:
+		for nc in frappe.get_all(
+			"Task Note",
+			filters={"work_session": ["in", note_names]},
+			fields=["work_session", "count(name) as cnt"],
+			group_by="work_session",
+		):
+			note_counts[nc.work_session] = nc.cnt
+	for s in all_sessions:
+		s.notes = note_counts.get(s.name, 0)
 
 	todo_fields = [
 		"name",
@@ -871,6 +955,8 @@ def get_board():
 		sess = running_by_user.get(u.name)
 		if sess and status == "On Duty":
 			task = {
+				"name": sess.name,
+				"notes": note_counts.get(sess.name, 0),
 				"activity": sess.activity,
 				"customer": sess.customer,
 				"todo": sess.daily_todo,
@@ -915,13 +1001,14 @@ def get_board():
 	my_sessions = frappe.get_all(
 		"Work Session",
 		filters={"user": session, "start_time": ["between", [my_start, my_end]]},
-		fields=["activity", "customer", "start_time", "end_time", "duration"],
+		fields=["name", "activity", "customer", "start_time", "end_time", "duration"],
 		order_by="start_time desc",
 		limit=10,
 	)
 	for s in my_sessions:
 		if not s.end_time:
 			s.duration = int(time_diff_in_seconds(now, s.start_time))
+		s.notes = note_counts.get(s.name, 0)
 
 	my_today = user_today(session)
 	my_upcoming = frappe.get_all(
