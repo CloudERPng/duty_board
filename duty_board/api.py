@@ -605,6 +605,146 @@ def get_task_notes(session):
 	return rows
 
 
+# ---------------- Issues ----------------
+
+SEVERITIES = ["Low", "Medium", "High", "Critical"]
+ISSUE_STATUSES = ["Open", "In Progress", "Resolved", "Closed"]
+
+
+def _issue_member_check(doc):
+	session = frappe.session.user
+	if "System Manager" in frappe.get_roles():
+		return
+	members = {a.user for a in (doc.assignees or [])}
+	members.add(doc.raised_by)
+	if session not in members:
+		frappe.throw(_("Only the raiser or an assignee can update this issue."))
+
+
+def _issue_payload(doc):
+	return {
+		"name": doc.name,
+		"title": doc.title,
+		"customer": doc.customer,
+		"severity": doc.severity,
+		"status": doc.status,
+		"due_date": str(doc.due_date) if doc.due_date else None,
+		"raised_by": doc.raised_by,
+		"description": doc.description,
+		"resolution": doc.resolution,
+		"resolved_at": str(doc.resolved_at) if doc.resolved_at else None,
+		"source_type": doc.source_type,
+		"source": doc.source,
+		"created": str(doc.creation),
+		"assignees": [a.user for a in (doc.assignees or [])],
+	}
+
+
+@frappe.whitelist()
+def create_issue(
+	title,
+	customer,
+	severity="Medium",
+	due_date=None,
+	description=None,
+	assignees=None,
+	source_type=None,
+	source=None,
+):
+	if not (title or "").strip():
+		frappe.throw(_("Please give the issue a title."))
+	if not customer:
+		frappe.throw(_("An issue must be tracked against a customer."))
+	if severity not in SEVERITIES:
+		severity = "Medium"
+
+	targets = _parse_targets(assignees) or []
+	for t in targets:
+		_validate_target(t)
+
+	doc = frappe.get_doc(
+		{
+			"doctype": "Duty Issue",
+			"title": title.strip(),
+			"customer": customer,
+			"severity": severity,
+			"status": "Open",
+			"due_date": due_date or None,
+			"description": (description or "").strip() or None,
+			"raised_by": frappe.session.user,
+			"source_type": source_type or "Manual",
+			"source": source or None,
+			"assignees": [{"user": t} for t in targets],
+		}
+	)
+	doc.insert(ignore_permissions=True)
+	frappe.db.commit()
+
+	first = frappe.utils.get_fullname(frappe.session.user).split(" ")[0]
+	for t in targets:
+		if t != frappe.session.user:
+			_notify_user(
+				t,
+				_("{0} issue from {1}").format(severity, first),
+				f"{doc.name}: {doc.title}",
+			)
+	return _issue_payload(doc)
+
+
+@frappe.whitelist()
+def get_issue(name):
+	doc = frappe.get_doc("Duty Issue", name)
+	return _issue_payload(doc)
+
+
+@frappe.whitelist()
+def update_issue_status(name, status, resolution=None):
+	if status not in ISSUE_STATUSES:
+		frappe.throw(_("Unknown status."))
+	doc = frappe.get_doc("Duty Issue", name)
+	_issue_member_check(doc)
+	doc.status = status
+	if resolution:
+		doc.resolution = resolution.strip()
+	doc.save(ignore_permissions=True)
+	frappe.db.commit()
+
+	if status in ("Resolved", "Closed") and doc.raised_by != frappe.session.user:
+		first = frappe.utils.get_fullname(frappe.session.user).split(" ")[0]
+		_notify_user(
+			doc.raised_by,
+			_("Issue {0} by {1}").format(status.lower(), first),
+			f"{doc.name}: {doc.title}",
+		)
+	return _issue_payload(doc)
+
+
+@frappe.whitelist()
+def update_issue(name, severity=None, due_date=None, add_assignees=None):
+	doc = frappe.get_doc("Duty Issue", name)
+	_issue_member_check(doc)
+	if severity and severity in SEVERITIES:
+		doc.severity = severity
+	doc.due_date = due_date or None
+	new_targets = _parse_targets(add_assignees) or []
+	existing = {a.user for a in (doc.assignees or [])}
+	first = frappe.utils.get_fullname(frappe.session.user).split(" ")[0]
+	for t in new_targets:
+		if t in existing:
+			continue
+		_validate_target(t)
+		doc.append("assignees", {"user": t})
+		if t != frappe.session.user:
+			_notify_user(
+				t,
+				_("Issue assigned by {0}").format(first),
+				f"{doc.name}: {doc.title}",
+			)
+	doc.save(ignore_permissions=True)
+	frappe.db.commit()
+	return _issue_payload(doc)
+
+
 @frappe.whitelist()
 def toggle_todo(name, done):
 	doc = frappe.get_doc("Daily Todo", name)
@@ -1027,6 +1167,37 @@ def get_board():
 		{"user": session, "date": ["<", my_today], "status": "Open"},
 	)
 
+	sev_order = {"Critical": 0, "High": 1, "Medium": 2, "Low": 3}
+	issues = frappe.get_all(
+		"Duty Issue",
+		filters={"status": ["in", ["Open", "In Progress"]]},
+		fields=[
+			"name",
+			"title",
+			"customer",
+			"severity",
+			"status",
+			"due_date",
+			"raised_by",
+		],
+		limit=200,
+	)
+	if issues:
+		rows = frappe.get_all(
+			"Duty Issue Assignee",
+			filters={"parenttype": "Duty Issue", "parent": ["in", [i.name for i in issues]]},
+			fields=["parent", "user"],
+		)
+		by_issue = {}
+		for r in rows:
+			by_issue.setdefault(r.parent, []).append(r.user)
+		for i in issues:
+			i.assignees = by_issue.get(i.name, [])
+			i.due_date = str(i.due_date) if i.due_date else None
+		issues.sort(
+			key=lambda i: (sev_order.get(i.severity, 9), i.due_date or "9999-12-31")
+		)
+
 	return {
 		"me": me,
 		"board": board,
@@ -1034,5 +1205,6 @@ def get_board():
 		"my_todos": todos_by_user.get(session, []),
 		"my_upcoming": my_upcoming,
 		"overdue_count": overdue_count,
+		"issues": issues,
 		"server_time": str(now),
 	}

@@ -35,6 +35,7 @@ class DutyBoard {
 					<div class="duty-task"></div>
 					<div class="duty-plan"></div>
 					<div class="duty-my-sessions"></div>
+					<div class="duty-issues"></div>
 					<div class="duty-team-title">${__("Team — Today")}</div>
 					<div class="duty-team"></div>
 					<div class="duty-updated text-muted"></div>
@@ -495,6 +496,7 @@ class DutyBoard {
 				<span class="duty-msg-time">${when}</span>
 				<a class="duty-msg-reply" title="${__("Reply")}">↩</a>
 				<a class="duty-msg-react" title="${__("React")}">🙂</a>
+				<a class="duty-msg-issue" title="${__("Raise issue from this message")}">⚠</a>
 				${attach}
 			</div>
 		`);
@@ -507,12 +509,20 @@ class DutyBoard {
 		if (in_search) {
 			const day = m.creation ? frappe.datetime.str_to_user(m.creation).split(" ")[0] : "";
 			$row.find(".duty-msg-time").text(`${day} ${when}`);
-			$row.find(".duty-msg-reply, .duty-msg-react").remove();
+			$row.find(".duty-msg-reply, .duty-msg-react, .duty-msg-issue").remove();
 		} else {
 			$row.find(".duty-msg-reply").on("click", () => this.set_reply(m));
 			$row.find(".duty-msg-react").on("click", (e) => {
 				e.stopPropagation();
 				this.react_picker($row, m.name);
+			});
+			$row.find(".duty-msg-issue").on("click", (e) => {
+				e.stopPropagation();
+				this.create_issue_dialog({
+					description: m.message || "",
+					source_type: "Chat",
+					source: m.name,
+				});
 			});
 			if (m.reactions && Object.keys(m.reactions).length) {
 				this.render_reactions($row, m.reactions, m.name);
@@ -998,6 +1008,7 @@ class DutyBoard {
 		this.render_task(data.me);
 		this.render_plan(data.me);
 		this.render_my_sessions(data.my_sessions, data.me);
+		this.render_issues(data.issues, data.me);
 		this.render_team(data.board);
 		this.body
 			.find(".duty-updated")
@@ -1155,6 +1166,265 @@ class DutyBoard {
 		d.show();
 	}
 
+	issue_is_mine(x) {
+		const me = frappe.session.user;
+		return x.raised_by === me || (x.assignees || []).includes(me);
+	}
+
+	render_issues(issues, me) {
+		const $i = this.body.find(".duty-issues").empty();
+		if (!me) return;
+		issues = issues || [];
+		const mine = issues.filter((x) => this.issue_is_mine(x)).length;
+		const today = frappe.datetime.get_today();
+		const rows = issues
+			.map((x) => {
+				const overdue = x.due_date && x.due_date < today;
+				const names = (x.assignees || [])
+					.map(
+						(u) =>
+							`<span style="color:${this.user_color(u)}">${frappe.utils.escape_html((this.name_map[u] || u).split(" ")[0])}</span>`
+					)
+					.join(", ");
+				return `
+				<div class="duty-issue-row ${this.issue_is_mine(x) ? "duty-issue-mine" : ""}" data-name="${x.name}">
+					<span class="duty-sev duty-sev-${(x.severity || "medium").toLowerCase()}">${__(x.severity)}</span>
+					<span class="duty-issue-title">${frappe.utils.escape_html(x.title)}</span>
+					<span class="duty-task-customer">${frappe.utils.escape_html(x.customer || "")}</span>
+					${names ? `<span class="duty-issue-who">→ ${names}</span>` : ""}
+					${x.status === "In Progress" ? `<span class="duty-issue-status">${__("In Progress")}</span>` : ""}
+					${x.due_date ? `<span class="duty-issue-due ${overdue ? "duty-issue-overdue" : ""}">${overdue ? "⚠ " : ""}${frappe.datetime.str_to_user(x.due_date)}</span>` : ""}
+				</div>`;
+			})
+			.join("");
+
+		const open_state = localStorage.getItem("duty_issues_open") === "1";
+		$i.html(`
+			<details class="duty-plan-card duty-issues-details" ${open_state ? "open" : ""}>
+				<summary class="duty-plan-head">
+					<span>⚠ ${__("Issues")}
+						<span class="duty-plan-count">${issues.length} ${__("open")}${mine ? ` · ${mine} ${__("mine")}` : ""}</span>
+					</span>
+				</summary>
+				<div class="duty-plan-actions-row">
+					<button class="btn btn-xs btn-default duty-issue-new">＋ ${__("New Issue")}</button>
+				</div>
+				${rows || `<div class="text-muted duty-plan-empty">${__("No open issues. Long may it last.")}</div>`}
+			</details>
+		`);
+		$i.find(".duty-issues-details").on("toggle", (e) =>
+			localStorage.setItem("duty_issues_open", e.target.open ? "1" : "0")
+		);
+		$i.find(".duty-issue-new").on("click", () => this.create_issue_dialog({}));
+		$i.find(".duty-issue-row").on("click", (e) =>
+			this.issue_detail_dialog($(e.currentTarget).data("name"))
+		);
+	}
+
+	create_issue_dialog(prefill) {
+		prefill = prefill || {};
+		const all_staff = () =>
+			[{ user: frappe.session.user, full_name: __("Me") }]
+				.concat(this.team_members())
+				.map((x) => ({ value: x.user, description: x.full_name }));
+		const d = new frappe.ui.Dialog({
+			title: __("New Issue"),
+			fields: [
+				{
+					fieldname: "title",
+					fieldtype: "Data",
+					label: __("Title"),
+					reqd: 1,
+					default: prefill.title || (prefill.description || "").slice(0, 80),
+				},
+				{
+					fieldname: "customer",
+					fieldtype: "Link",
+					label: __("Customer"),
+					options: "Customer",
+					reqd: 1,
+					default: prefill.customer || "",
+				},
+				{
+					fieldname: "severity",
+					fieldtype: "Select",
+					label: __("Severity"),
+					options: "Low\nMedium\nHigh\nCritical",
+					default: "Medium",
+					reqd: 1,
+				},
+				{
+					fieldname: "due_date",
+					fieldtype: "Date",
+					label: __("Due Date"),
+				},
+				{
+					fieldname: "assignees",
+					fieldtype: "MultiSelectList",
+					label: __("Assign to"),
+					get_data: all_staff,
+				},
+				{
+					fieldname: "description",
+					fieldtype: "Small Text",
+					label: __("Description"),
+					default: prefill.description || "",
+				},
+			],
+			primary_action_label: __("Create Issue"),
+			primary_action: (v) => {
+				d.hide();
+				frappe.call({
+					method: "duty_board.api.create_issue",
+					args: {
+						title: v.title,
+						customer: v.customer,
+						severity: v.severity,
+						due_date: v.due_date || null,
+						description: v.description || null,
+						assignees:
+							v.assignees && v.assignees.length ? JSON.stringify(v.assignees) : null,
+						source_type: prefill.source_type || "Manual",
+						source: prefill.source || null,
+					},
+					callback: (r) => {
+						if (r.message) {
+							frappe.show_alert(
+								{ message: __("Issue {0} created", [r.message.name]), indicator: "green" },
+								5
+							);
+							this.refresh(true);
+						}
+					},
+				});
+			},
+		});
+		d.show();
+	}
+
+	issue_detail_dialog(name) {
+		const d = new frappe.ui.Dialog({ title: name, size: "large" });
+		const render = (x) => {
+			const today = frappe.datetime.get_today();
+			const overdue = x.due_date && x.due_date < today && ["Open", "In Progress"].includes(x.status);
+			const names = (x.assignees || [])
+				.map(
+					(u) =>
+						`<span style="color:${this.user_color(u)}">${frappe.utils.escape_html((this.name_map[u] || u).split(" ")[0])}</span>`
+				)
+				.join(", ");
+			$(d.body).html(`
+				<div class="duty-issue-detail">
+					<div class="duty-issue-detail-head">
+						<span class="duty-sev duty-sev-${(x.severity || "medium").toLowerCase()}">${__(x.severity)}</span>
+						<b>${frappe.utils.escape_html(x.title)}</b>
+						<span class="duty-task-customer">${frappe.utils.escape_html(x.customer || "")}</span>
+						<span class="duty-issue-status">${__(x.status)}</span>
+					</div>
+					<div class="text-muted duty-issue-meta">
+						${__("Raised by")} ${frappe.utils.escape_html((this.name_map[x.raised_by] || x.raised_by || "").split(" ")[0])}
+						· ${frappe.datetime.str_to_user(x.created)}
+						${x.due_date ? ` · ${__("Due")} <span class="${overdue ? "duty-issue-overdue" : ""}">${frappe.datetime.str_to_user(x.due_date)}</span>` : ""}
+						${x.source_type && x.source_type !== "Manual" ? ` · ${__("From")} ${__(x.source_type)}` : ""}
+					</div>
+					${names ? `<div class="duty-issue-meta">${__("Assigned to")}: ${names}</div>` : ""}
+					${x.description ? `<div class="duty-issue-desc">${frappe.utils.escape_html(x.description)}</div>` : ""}
+					${x.resolution ? `<div class="duty-issue-resolution"><b>${__("Resolution")}:</b> ${frappe.utils.escape_html(x.resolution)}${x.resolved_at ? ` <span class="text-muted">(${frappe.datetime.str_to_user(x.resolved_at)})</span>` : ""}</div>` : ""}
+					<div class="duty-issue-actions">
+						${x.status === "Open" ? `<button class="btn btn-sm btn-default" data-act="In Progress">${__("Start")}</button>` : ""}
+						${["Open", "In Progress"].includes(x.status) ? `<button class="btn btn-sm btn-primary" data-act="Resolved">${__("Resolve")}</button>` : ""}
+						${["Open", "In Progress", "Resolved"].includes(x.status) ? `<button class="btn btn-sm btn-default" data-act="Closed">${__("Close")}</button>` : ""}
+						${["Resolved", "Closed"].includes(x.status) ? `<button class="btn btn-sm btn-default" data-act="Open">${__("Reopen")}</button>` : ""}
+						<button class="btn btn-sm btn-default duty-issue-edit">✎ ${__("Edit")}</button>
+					</div>
+				</div>
+			`);
+			$(d.body)
+				.find(".duty-issue-actions button[data-act]")
+				.on("click", (e) => {
+					const act = $(e.currentTarget).data("act");
+					const apply = (resolution) =>
+						frappe.call({
+							method: "duty_board.api.update_issue_status",
+							args: { name: name, status: act, resolution: resolution || null },
+							callback: (r) => {
+								if (r.message) render(r.message);
+								this.refresh(true);
+							},
+						});
+					if (act === "Resolved") {
+						frappe.prompt(
+							{
+								fieldname: "resolution",
+								fieldtype: "Small Text",
+								label: __("What was done?"),
+								reqd: 1,
+							},
+							(v) => apply(v.resolution),
+							__("Resolve Issue"),
+							__("Resolve")
+						);
+					} else {
+						apply();
+					}
+				});
+			$(d.body).find(".duty-issue-edit").on("click", () => {
+				const ed = new frappe.ui.Dialog({
+					title: __("Edit Issue"),
+					fields: [
+						{
+							fieldname: "severity",
+							fieldtype: "Select",
+							label: __("Severity"),
+							options: "Low\nMedium\nHigh\nCritical",
+							default: x.severity,
+						},
+						{
+							fieldname: "due_date",
+							fieldtype: "Date",
+							label: __("Due Date"),
+							default: x.due_date || "",
+						},
+						{
+							fieldname: "add_assignees",
+							fieldtype: "MultiSelectList",
+							label: __("Add assignees"),
+							get_data: () =>
+								this.team_members().map((t) => ({ value: t.user, description: t.full_name })),
+						},
+					],
+					primary_action_label: __("Save"),
+					primary_action: (v) => {
+						ed.hide();
+						frappe.call({
+							method: "duty_board.api.update_issue",
+							args: {
+								name: name,
+								severity: v.severity,
+								due_date: v.due_date || null,
+								add_assignees:
+									v.add_assignees && v.add_assignees.length
+										? JSON.stringify(v.add_assignees)
+										: null,
+							},
+							callback: (r) => {
+								if (r.message) render(r.message);
+								this.refresh(true);
+							},
+						});
+					},
+				});
+				ed.show();
+			});
+		};
+		frappe.call({
+			method: "duty_board.api.get_issue",
+			args: { name: name },
+			callback: (r) => r.message && render(r.message),
+		});
+		d.show();
+	}
+
 	render_me(me) {
 		const $me = this.body.find(".duty-me").empty();
 		if (!me) {
@@ -1207,6 +1477,7 @@ class DutyBoard {
 						</div>
 					</div>
 					<div class="duty-task-actions">
+						<button class="btn btn-default duty-issue-btn" title="${__("Raise issue from this task")}">⚠</button>
 						<button class="btn btn-default duty-note-btn" title="${__("Task notes")}">📝${t.notes ? " " + t.notes : ""}</button>
 						<button class="btn btn-default duty-invite-btn" title="${__("Invite a colleague to this task")}">👤+</button>
 						<button class="btn btn-default duty-taskcust-btn" title="${__("Set / change customer")}">✎</button>
@@ -1220,6 +1491,14 @@ class DutyBoard {
 			$task.find(".duty-invite-btn").on("click", () => this.invite_task_dialog());
 			$task.find(".duty-taskcust-btn").on("click", () => this.task_customer_dialog(t.customer));
 			$task.find(".duty-note-btn").on("click", () => this.note_dialog(t.name, t.activity, true));
+			$task.find(".duty-issue-btn").on("click", () =>
+				this.create_issue_dialog({
+					title: t.activity,
+					customer: t.customer,
+					source_type: "Task",
+					source: t.name,
+				})
+			);
 		} else {
 			$task.html(`
 				<div class="duty-task-card">
@@ -1927,6 +2206,41 @@ class DutyBoard {
 				font-size: var(--text-xs); text-decoration: none;
 			}
 			.duty-session-notes:hover { color: var(--text-color); }
+			.duty-issue-row {
+				display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
+				padding: 7px 4px; border-bottom: 1px solid var(--border-color); cursor: pointer;
+			}
+			.duty-issue-row:hover { background: var(--gray-50, #fafafa); }
+			.duty-issue-mine { border-left: 3px solid var(--blue-400, #60a5fa); padding-left: 8px; }
+			.duty-issue-title { font-weight: 600; flex: 1; min-width: 140px; }
+			.duty-issue-who, .duty-issue-meta { font-size: var(--text-xs); color: var(--text-muted); }
+			.duty-issue-status {
+				font-size: var(--text-xs); font-weight: 700; padding: 1px 8px; border-radius: 99px;
+				background: var(--blue-100, #e3f2fd); color: var(--blue-700, #1565c0);
+			}
+			.duty-issue-due { font-size: var(--text-xs); color: var(--text-muted); font-variant-numeric: tabular-nums; }
+			.duty-issue-overdue { color: var(--red-600, #dc2626); font-weight: 700; }
+			.duty-sev {
+				font-size: var(--text-xs); font-weight: 700; padding: 1px 8px; border-radius: 99px;
+				text-transform: uppercase; letter-spacing: 0.03em;
+			}
+			.duty-sev-low { background: var(--gray-100, #f5f5f5); color: var(--gray-700, #616161); }
+			.duty-sev-medium { background: var(--blue-100, #e3f2fd); color: var(--blue-700, #1565c0); }
+			.duty-sev-high { background: var(--orange-100, #fff3e0); color: var(--orange-700, #e65100); }
+			.duty-sev-critical { background: var(--red-100, #fee2e2); color: var(--red-700, #b91c1c); }
+			.duty-msg-issue {
+				cursor: pointer; margin-left: 6px; visibility: hidden;
+				font-size: var(--text-sm); opacity: 0.7;
+			}
+			.duty-msg:hover .duty-msg-issue { visibility: visible; }
+			.duty-issue-detail-head { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; font-size: var(--text-base); }
+			.duty-issue-meta { margin-top: 4px; }
+			.duty-issue-desc { margin: 10px 0; white-space: pre-wrap; }
+			.duty-issue-resolution {
+				margin: 10px 0; padding: 8px 12px; border-radius: 8px;
+				background: var(--green-100, #e8f5e9); font-size: var(--text-sm); white-space: pre-wrap;
+			}
+			.duty-issue-actions { display: flex; gap: 8px; margin-top: 14px; flex-wrap: wrap; }
 			.duty-history-link { margin-top: 8px; font-size: var(--text-xs); }
 			.duty-history-link a { cursor: pointer; color: var(--text-muted); }
 			.duty-history-link a:hover { color: var(--text-color); }
