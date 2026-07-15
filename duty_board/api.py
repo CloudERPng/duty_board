@@ -746,6 +746,107 @@ def update_issue(name, severity=None, due_date=None, add_assignees=None):
 
 
 @frappe.whitelist()
+def get_issues(scope="open"):
+	filters = {}
+	if scope == "resolved":
+		filters["status"] = "Resolved"
+	elif scope == "closed":
+		filters["status"] = "Closed"
+	elif scope == "all":
+		pass
+	else:
+		filters["status"] = ["in", ["Open", "In Progress"]]
+
+	issues = frappe.get_all(
+		"Duty Issue",
+		filters=filters,
+		fields=[
+			"name",
+			"title",
+			"customer",
+			"severity",
+			"status",
+			"due_date",
+			"raised_by",
+			"creation",
+			"resolved_at",
+		],
+		order_by="creation desc",
+		limit=200,
+	)
+	if issues:
+		rows = frappe.get_all(
+			"Duty Issue Assignee",
+			filters={"parenttype": "Duty Issue", "parent": ["in", [i.name for i in issues]]},
+			fields=["parent", "user"],
+		)
+		by_issue = {}
+		for r in rows:
+			by_issue.setdefault(r.parent, []).append(r.user)
+		for i in issues:
+			i.assignees = by_issue.get(i.name, [])
+			i.due_date = str(i.due_date) if i.due_date else None
+			i.creation = str(i.creation)
+			i.resolved_at = str(i.resolved_at) if i.resolved_at else None
+	return issues
+
+
+def _fetch_issues(statuses, order_by):
+	issues = frappe.get_all(
+		"Duty Issue",
+		filters={"status": ["in", statuses]},
+		fields=[
+			"name",
+			"title",
+			"customer",
+			"severity",
+			"status",
+			"due_date",
+			"raised_by",
+			"creation",
+		],
+		order_by=order_by,
+		limit=200,
+	)
+	if issues:
+		rows = frappe.get_all(
+			"Duty Issue Assignee",
+			filters={"parenttype": "Duty Issue", "parent": ["in", [i.name for i in issues]]},
+			fields=["parent", "user"],
+		)
+		by_issue = {}
+		for r in rows:
+			by_issue.setdefault(r.parent, []).append(r.user)
+		for i in issues:
+			i.assignees = by_issue.get(i.name, [])
+			i.due_date = str(i.due_date) if i.due_date else None
+			i.creation = str(i.creation)
+	return issues
+
+
+def _open_issues():
+	sev_order = {"Critical": 0, "High": 1, "Medium": 2, "Low": 3}
+	issues = _fetch_issues(["Open", "In Progress"], "creation asc")
+	issues.sort(key=lambda i: (sev_order.get(i.severity, 9), i.due_date or "9999-12-31"))
+	return issues
+
+
+@frappe.whitelist()
+def get_issues(status="open"):
+	status_map = {
+		"open": None,
+		"resolved": ["Resolved"],
+		"closed": ["Closed"],
+		"all": ISSUE_STATUSES,
+	}
+	if status not in status_map:
+		status = "open"
+	if status == "open":
+		return _open_issues()
+	return _fetch_issues(status_map[status], "modified desc")
+
+
+@frappe.whitelist()
 def toggle_todo(name, done):
 	doc = frappe.get_doc("Daily Todo", name)
 	_check_todo_owner(doc)
@@ -1167,38 +1268,7 @@ def get_board():
 		{"user": session, "date": ["<", my_today], "status": "Open"},
 	)
 
-	sev_order = {"Critical": 0, "High": 1, "Medium": 2, "Low": 3}
-	issues = frappe.get_all(
-		"Duty Issue",
-		filters={"status": ["in", ["Open", "In Progress"]]},
-		fields=[
-			"name",
-			"title",
-			"customer",
-			"severity",
-			"status",
-			"due_date",
-			"raised_by",
-			"creation",
-		],
-		limit=200,
-	)
-	if issues:
-		rows = frappe.get_all(
-			"Duty Issue Assignee",
-			filters={"parenttype": "Duty Issue", "parent": ["in", [i.name for i in issues]]},
-			fields=["parent", "user"],
-		)
-		by_issue = {}
-		for r in rows:
-			by_issue.setdefault(r.parent, []).append(r.user)
-		for i in issues:
-			i.assignees = by_issue.get(i.name, [])
-			i.due_date = str(i.due_date) if i.due_date else None
-			i.creation = str(i.creation)
-		issues.sort(
-			key=lambda i: (sev_order.get(i.severity, 9), i.due_date or "9999-12-31")
-		)
+	issues = _open_issues()
 
 	return {
 		"me": me,

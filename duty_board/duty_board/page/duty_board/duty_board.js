@@ -1189,6 +1189,7 @@ class DutyBoard {
 		if (this.issues_open === undefined) {
 			this.issues_open = localStorage.getItem("duty_issues_side") === "1";
 		}
+		this.issue_status_filter = this.issue_status_filter || "open";
 
 		$rail.find(".duty-issues-rail-badge").text(issues.length).toggle(issues.length > 0);
 		this.body.toggleClass("duty-issues-collapsed", !this.issues_open);
@@ -1201,32 +1202,81 @@ class DutyBoard {
 		});
 		if (!this.issues_open) return;
 
+		const scope = this.issue_status_filter;
+		let items;
+		if (scope === "open") {
+			items = issues;
+		} else if (this._issues_alt && this._issues_alt_scope === scope) {
+			items = this._issues_alt;
+		} else {
+			$wrap.html(
+				`<div class="duty-issues-card"><div class="text-muted" style="margin-top:8px">${__("Loading...")}</div></div>`
+			);
+			frappe.call({
+				method: "duty_board.api.get_issues",
+				args: { scope: scope },
+				callback: (r) => {
+					this._issues_alt = r.message || [];
+					this._issues_alt_scope = scope;
+					this.render_issues(this._issues, this._issues_me);
+				},
+			});
+			return;
+		}
+
 		const mine = issues.filter((x) => this.issue_is_mine(x)).length;
-		const customers = [...new Set(issues.map((x) => x.customer).filter(Boolean))].sort();
-		const filter = this.issue_customer_filter || "";
-		const shown = filter ? issues.filter((x) => x.customer === filter) : issues;
+		const cfilter = this.issue_customer_filter || "";
+		const ufilter = this.issue_user_filter || "";
+		const customers = [...new Set(items.map((x) => x.customer).filter(Boolean))].sort();
+		let shown = cfilter ? items.filter((x) => x.customer === cfilter) : items;
+		if (ufilter === "__me__") {
+			shown = shown.filter((x) => (x.assignees || []).includes(frappe.session.user));
+		} else if (ufilter === "__none__") {
+			shown = shown.filter((x) => !(x.assignees || []).length);
+		} else if (ufilter) {
+			shown = shown.filter((x) => (x.assignees || []).includes(ufilter));
+		}
 		const today = frappe.datetime.get_today();
 
 		const rows = shown
 			.map((x) => {
-				const overdue = x.due_date && x.due_date < today;
+				const active = ["Open", "In Progress"].includes(x.status);
+				const overdue = x.due_date && x.due_date < today && active;
 				const names = (x.assignees || [])
 					.map(
 						(u) =>
 							`<span style="color:${this.user_color(u)}">${frappe.utils.escape_html((this.name_map[u] || u).split(" ")[0])}</span>`
 					)
 					.join(", ");
+				const stamp = x.resolved_at
+					? `${__("resolved")} ${this.fmt_stamp(x.resolved_at)}`
+					: `${__("raised")} ${this.fmt_stamp(x.creation)}`;
 				return `
 				<div class="duty-issue-row ${this.issue_is_mine(x) ? "duty-issue-mine" : ""}" data-name="${x.name}">
 					<span class="duty-sev duty-sev-${(x.severity || "medium").toLowerCase()}">${__(x.severity)}</span>
 					<span class="duty-issue-title">${frappe.utils.escape_html(x.title)}</span>
 					<span class="duty-task-customer">${frappe.utils.escape_html(x.customer || "")}</span>
 					${names ? `<span class="duty-issue-who">→ ${names}</span>` : ""}
-					${x.status === "In Progress" ? `<span class="duty-issue-status">${__("In Progress")}</span>` : ""}
-					${x.due_date ? `<span class="duty-issue-due ${overdue ? "duty-issue-overdue" : ""}">${overdue ? "⚠ " : ""}${__("due")} ${frappe.datetime.str_to_user(x.due_date)}</span>` : ""}
-					<span class="duty-issue-raised">${__("raised")} ${this.fmt_stamp(x.creation)}</span>
+					${x.status !== "Open" ? `<span class="duty-issue-status duty-ist-${x.status.replace(/ /g, "").toLowerCase()}">${__(x.status)}</span>` : ""}
+					${x.due_date && active ? `<span class="duty-issue-due ${overdue ? "duty-issue-overdue" : ""}">${overdue ? "⚠ " : ""}${__("due")} ${frappe.datetime.str_to_user(x.due_date)}</span>` : ""}
+					<span class="duty-issue-raised">${stamp}</span>
 				</div>`;
 			})
+			.join("");
+
+		const staff_opts = [
+			`<option value="">${__("Anyone")}</option>`,
+			`<option value="__me__" ${ufilter === "__me__" ? "selected" : ""}>${__("Me")}</option>`,
+		]
+			.concat(
+				this.team_members().map(
+					(t) =>
+						`<option value="${t.user}" ${ufilter === t.user ? "selected" : ""}>${frappe.utils.escape_html(t.full_name)}</option>`
+				)
+			)
+			.concat([
+				`<option value="__none__" ${ufilter === "__none__" ? "selected" : ""}>${__("Unassigned")}</option>`,
+			])
 			.join("");
 
 		$wrap.html(`
@@ -1240,19 +1290,30 @@ class DutyBoard {
 					</span>
 				</div>
 				<div class="duty-issues-toolbar">
+					<div class="duty-issues-toolbar-row">
+						<select class="form-control input-sm duty-issue-scope" title="${__("Status")}">
+							<option value="open" ${scope === "open" ? "selected" : ""}>${__("Open")}</option>
+							<option value="resolved" ${scope === "resolved" ? "selected" : ""}>${__("Resolved")}</option>
+							<option value="closed" ${scope === "closed" ? "selected" : ""}>${__("Closed")}</option>
+							<option value="all" ${scope === "all" ? "selected" : ""}>${__("All")}</option>
+						</select>
+						<button class="btn btn-xs btn-default duty-issue-new">＋ ${__("New")}</button>
+					</div>
 					<select class="form-control input-sm duty-issue-filter" title="${__("Filter by customer")}">
 						<option value="">${__("All customers")}</option>
 						${customers
 							.map(
 								(c) =>
-									`<option value="${frappe.utils.escape_html(c)}" ${c === filter ? "selected" : ""}>${frappe.utils.escape_html(c)}</option>`
+									`<option value="${frappe.utils.escape_html(c)}" ${c === cfilter ? "selected" : ""}>${frappe.utils.escape_html(c)}</option>`
 							)
 							.join("")}
 					</select>
-					<button class="btn btn-xs btn-default duty-issue-new">＋ ${__("New")}</button>
+					<select class="form-control input-sm duty-issue-user" title="${__("Filter by assignee")}">
+						${staff_opts}
+					</select>
 				</div>
 				<div class="duty-issues-list">
-					${rows || `<div class="text-muted duty-plan-empty">${filter ? __("No open issues for this customer.") : __("No open issues. Long may it last.")}</div>`}
+					${rows || `<div class="text-muted duty-plan-empty">${__("Nothing here with these filters.")}</div>`}
 				</div>
 			</div>
 		`);
@@ -1261,8 +1322,18 @@ class DutyBoard {
 			localStorage.setItem("duty_issues_side", "0");
 			this.render_issues(this._issues, this._issues_me);
 		});
+		$wrap.find(".duty-issue-scope").on("change", (e) => {
+			this.issue_status_filter = e.target.value;
+			this._issues_alt = null;
+			this._issues_alt_scope = null;
+			this.render_issues(this._issues, this._issues_me);
+		});
 		$wrap.find(".duty-issue-filter").on("change", (e) => {
 			this.issue_customer_filter = e.target.value || "";
+			this.render_issues(this._issues, this._issues_me);
+		});
+		$wrap.find(".duty-issue-user").on("change", (e) => {
+			this.issue_user_filter = e.target.value || "";
 			this.render_issues(this._issues, this._issues_me);
 		});
 		$wrap.find(".duty-issue-new").on("click", () => this.create_issue_dialog({}));
@@ -2281,8 +2352,11 @@ class DutyBoard {
 				padding: 10px 16px; display: flex; flex-direction: column;
 				height: calc(100vh - 140px); min-height: 320px;
 			}
-			.duty-issues-toolbar { display: flex; gap: 8px; margin-top: 8px; align-items: center; }
-			.duty-issues-toolbar .duty-issue-filter { flex: 1; }
+			.duty-issues-toolbar { display: flex; flex-direction: column; gap: 6px; margin-top: 8px; }
+			.duty-issues-toolbar-row { display: flex; gap: 8px; align-items: center; }
+			.duty-issues-toolbar-row .duty-issue-scope { flex: 1; }
+			.duty-ist-resolved { background: var(--green-100, #e8f5e9); color: var(--green-700, #2e7d32); }
+			.duty-ist-closed { background: var(--gray-200, #eeeeee); color: var(--gray-700, #616161); }
 			.duty-issues-list {
 				flex: 1 1 auto; overflow-y: auto; margin-top: 8px;
 				border-top: 1px solid var(--border-color); padding-top: 4px;
