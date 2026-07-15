@@ -622,7 +622,23 @@ def _issue_member_check(doc):
 
 
 def _issue_payload(doc):
+	files = frappe.get_all(
+		"File",
+		filters={"attached_to_doctype": "Duty Issue", "attached_to_name": doc.name},
+		fields=["file_url", "file_name"],
+		order_by="creation asc",
+	)
+	image_exts = ("png", "jpg", "jpeg", "gif", "webp")
+	attachments = [
+		{
+			"file_url": f.file_url,
+			"file_name": f.file_name,
+			"is_image": (f.file_name or "").lower().rsplit(".", 1)[-1] in image_exts,
+		}
+		for f in files
+	]
 	return {
+		"attachments": attachments,
 		"name": doc.name,
 		"title": doc.title,
 		"customer": doc.customer,
@@ -650,6 +666,7 @@ def create_issue(
 	assignees=None,
 	source_type=None,
 	source=None,
+	attachments=None,
 ):
 	if not (title or "").strip():
 		frappe.throw(_("Please give the issue a title."))
@@ -678,6 +695,18 @@ def create_issue(
 		}
 	)
 	doc.insert(ignore_permissions=True)
+
+	attach_urls = []
+	if attachments:
+		try:
+			parsed = frappe.parse_json(attachments)
+			if isinstance(parsed, list):
+				attach_urls = [u for u in parsed if isinstance(u, str)][:10]
+		except Exception:
+			attach_urls = []
+	for u in attach_urls:
+		_link_upload_to_issue(u, doc.name)
+
 	frappe.db.commit()
 
 	first = frappe.utils.get_fullname(frappe.session.user).split(" ")[0]
@@ -695,6 +724,35 @@ def create_issue(
 def get_issue(name):
 	doc = frappe.get_doc("Duty Issue", name)
 	return _issue_payload(doc)
+
+
+def _link_upload_to_issue(file_url, issue_name):
+	fname = frappe.db.get_value(
+		"File",
+		{
+			"file_url": file_url,
+			"owner": frappe.session.user,
+			"attached_to_name": ["is", "not set"],
+		},
+	)
+	if fname:
+		frappe.db.set_value(
+			"File",
+			fname,
+			{"attached_to_doctype": "Duty Issue", "attached_to_name": issue_name},
+			update_modified=False,
+		)
+	return fname
+
+
+@frappe.whitelist()
+def attach_to_issue(name, file_url):
+	doc = frappe.get_doc("Duty Issue", name)
+	_issue_member_check(doc)
+	if not _link_upload_to_issue(file_url, doc.name):
+		frappe.throw(_("Upload not found — try attaching again."))
+	frappe.db.commit()
+	return _issue_payload(frappe.get_doc("Duty Issue", name))
 
 
 @frappe.whitelist()

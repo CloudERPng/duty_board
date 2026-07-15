@@ -1190,6 +1190,23 @@ class DutyBoard {
 		d.show();
 	}
 
+	async upload_private_file(file) {
+		const fd = new FormData();
+		fd.append("file", file, file.name);
+		fd.append("is_private", "1");
+		const res = await fetch("/api/method/upload_file", {
+			method: "POST",
+			headers: { "X-Frappe-CSRF-Token": frappe.csrf_token },
+			body: fd,
+		});
+		const out = await res.json();
+		const fu = out.message && out.message.file_url;
+		if (!res.ok || !fu) {
+			throw new Error(out.exception || `HTTP ${res.status}`);
+		}
+		return { file_url: fu, file_name: file.name };
+	}
+
 	issue_is_mine(x) {
 		const me = frappe.session.user;
 		return x.raised_by === me || (x.assignees || []).includes(me);
@@ -1410,9 +1427,28 @@ class DutyBoard {
 					label: __("Description"),
 					default: prefill.description || "",
 				},
+				{ fieldname: "attach_html", fieldtype: "HTML" },
 			],
 			primary_action_label: __("Create Issue"),
-			primary_action: (v) => {
+			primary_action: async (v) => {
+				const files = this._pending_issue_files || [];
+				const uploaded = [];
+				if (files.length) {
+					frappe.show_alert(
+						{ message: __("Uploading {0} file(s)...", [files.length]), indicator: "blue" },
+						4
+					);
+					try {
+						for (const f of files) {
+							uploaded.push((await this.upload_private_file(f)).file_url);
+						}
+					} catch (e) {
+						frappe.msgprint(
+							__("Upload failed: {0}", [frappe.utils.escape_html(e.message || "")])
+						);
+						return;
+					}
+				}
 				d.hide();
 				frappe.call({
 					method: "duty_board.api.create_issue",
@@ -1426,6 +1462,7 @@ class DutyBoard {
 							v.assignees && v.assignees.length ? JSON.stringify(v.assignees) : null,
 						source_type: prefill.source_type || "Manual",
 						source: prefill.source || null,
+						attachments: uploaded.length ? JSON.stringify(uploaded) : null,
 					},
 					callback: (r) => {
 						if (r.message) {
@@ -1440,6 +1477,54 @@ class DutyBoard {
 			},
 		});
 		d.show();
+
+		this._pending_issue_files = [];
+		const MAX = 25 * 1024 * 1024;
+		const $area = $(d.fields_dict.attach_html.wrapper).html(`
+			<div class="duty-attach-area">
+				<label class="btn btn-xs btn-default">📎 ${__("Attach image / file")}<input type="file" multiple hidden></label>
+				<div class="duty-pending-files"></div>
+				<div class="text-muted duty-attach-hint">${__("Tip: paste a screenshot straight into the description box.")}</div>
+			</div>
+		`);
+		const add_file = (f) => {
+			if (f.size > MAX) {
+				frappe.msgprint(__("{0} is too large (max 25 MB).", [frappe.utils.escape_html(f.name)]));
+				return;
+			}
+			this._pending_issue_files.push(f);
+			render_chips();
+		};
+		const render_chips = () => {
+			const $c = $area.find(".duty-pending-files").empty();
+			this._pending_issue_files.forEach((f, ix) => {
+				const $chip = $(
+					`<span class="duty-file-chip">📎 ${frappe.utils.escape_html(f.name)} <a>×</a></span>`
+				).appendTo($c);
+				$chip.find("a").on("click", () => {
+					this._pending_issue_files.splice(ix, 1);
+					render_chips();
+				});
+			});
+		};
+		$area.find("input[type=file]").on("change", (e) => {
+			[...e.target.files].forEach(add_file);
+			e.target.value = "";
+		});
+		const $desc = d.fields_dict.description.$input;
+		$desc.on("paste", (e) => {
+			const items = (e.originalEvent.clipboardData || {}).items || [];
+			for (const it of items) {
+				if (it.kind === "file") {
+					const f = it.getAsFile();
+					if (f) {
+						e.preventDefault();
+						add_file(f);
+						break;
+					}
+				}
+			}
+		});
 	}
 
 	issue_detail_dialog(name) {
@@ -1469,6 +1554,17 @@ class DutyBoard {
 					</div>
 					${names ? `<div class="duty-issue-meta">${__("Assigned to")}: ${names}</div>` : ""}
 					${x.description ? `<div class="duty-issue-desc">${frappe.utils.escape_html(x.description)}</div>` : ""}
+					${
+						(x.attachments || []).length
+							? `<div class="duty-issue-files">${x.attachments
+									.map((f) =>
+										f.is_image
+											? `<a href="${f.file_url}" target="_blank"><img src="${f.file_url}" title="${frappe.utils.escape_html(f.file_name)}"></a>`
+											: `<a href="${f.file_url}" target="_blank" class="duty-issue-filelink">📎 ${frappe.utils.escape_html(f.file_name)}</a>`
+									)
+									.join("")}</div>`
+							: ""
+					}
 					${x.resolution ? `<div class="duty-issue-resolution"><b>${__("Resolution")}:</b> ${frappe.utils.escape_html(x.resolution)}${x.resolved_at ? ` <span class="text-muted">(${frappe.datetime.str_to_user(x.resolved_at)})</span>` : ""}</div>` : ""}
 					<div class="duty-issue-actions">
 						${x.status === "Open" ? `<button class="btn btn-sm btn-default" data-act="In Progress">${__("Start")}</button>` : ""}
@@ -1476,6 +1572,7 @@ class DutyBoard {
 						${["Open", "In Progress", "Resolved"].includes(x.status) ? `<button class="btn btn-sm btn-default" data-act="Closed">${__("Close")}</button>` : ""}
 						${["Resolved", "Closed"].includes(x.status) ? `<button class="btn btn-sm btn-default" data-act="Open">${__("Reopen")}</button>` : ""}
 						<button class="btn btn-sm btn-default duty-issue-edit">✎ ${__("Edit")}</button>
+						${this.issue_is_mine(x) || frappe.user.has_role("System Manager") ? `<label class="btn btn-sm btn-default duty-issue-attach">📎 ${__("Add file")}<input type="file" hidden></label>` : ""}
 					</div>
 				</div>
 			`);
@@ -1508,6 +1605,25 @@ class DutyBoard {
 						apply();
 					}
 				});
+			$(d.body).find(".duty-issue-attach input").on("change", async (e) => {
+				const f = e.target.files[0];
+				e.target.value = "";
+				if (!f) return;
+				if (f.size > 25 * 1024 * 1024) {
+					frappe.msgprint(__("File too large (max 25 MB)."));
+					return;
+				}
+				try {
+					const up = await this.upload_private_file(f);
+					frappe.call({
+						method: "duty_board.api.attach_to_issue",
+						args: { name: name, file_url: up.file_url },
+						callback: (r) => r.message && render(r.message),
+					});
+				} catch (err) {
+					frappe.msgprint(__("Upload failed: {0}", [frappe.utils.escape_html(err.message || "")]));
+				}
+			});
 			$(d.body).find(".duty-issue-edit").on("click", () => {
 				const ed = new frappe.ui.Dialog({
 					title: __("Edit Issue"),
@@ -2423,7 +2539,25 @@ class DutyBoard {
 				margin: 10px 0; padding: 8px 12px; border-radius: 8px;
 				background: var(--green-100, #e8f5e9); font-size: var(--text-sm); white-space: pre-wrap;
 			}
-			.duty-issue-actions { display: flex; gap: 8px; margin-top: 14px; flex-wrap: wrap; }
+			.duty-issue-actions { display: flex; gap: 8px; margin-top: 14px; flex-wrap: wrap; align-items: center; }
+			.duty-issue-actions .duty-issue-attach { margin: 0; }
+			.duty-issue-files { display: flex; flex-wrap: wrap; gap: 8px; margin: 10px 0; }
+			.duty-issue-files img {
+				max-width: 180px; max-height: 130px; border-radius: 8px;
+				border: 1px solid var(--border-color); display: block;
+			}
+			.duty-issue-filelink {
+				border: 1px solid var(--border-color); border-radius: 8px;
+				padding: 6px 10px; font-size: var(--text-sm); align-self: center;
+			}
+			.duty-attach-area { margin-top: 4px; }
+			.duty-attach-hint { font-size: var(--text-xs); margin-top: 4px; }
+			.duty-pending-files { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px; }
+			.duty-file-chip {
+				border: 1px solid var(--border-color); border-radius: 99px;
+				padding: 2px 10px; font-size: var(--text-xs); background: var(--gray-100, #f5f5f5);
+			}
+			.duty-file-chip a { cursor: pointer; font-weight: 700; margin-left: 4px; }
 			.duty-history-link { margin-top: 8px; font-size: var(--text-xs); }
 			.duty-history-link a { cursor: pointer; color: var(--text-muted); }
 			.duty-history-link a:hover { color: var(--text-color); }
