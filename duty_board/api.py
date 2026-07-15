@@ -1179,6 +1179,7 @@ def get_board():
 			"status",
 			"due_date",
 			"raised_by",
+			"creation",
 		],
 		limit=200,
 	)
@@ -1194,6 +1195,7 @@ def get_board():
 		for i in issues:
 			i.assignees = by_issue.get(i.name, [])
 			i.due_date = str(i.due_date) if i.due_date else None
+			i.creation = str(i.creation)
 		issues.sort(
 			key=lambda i: (sev_order.get(i.severity, 9), i.due_date or "9999-12-31")
 		)

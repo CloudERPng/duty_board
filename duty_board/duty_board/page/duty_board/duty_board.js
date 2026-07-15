@@ -30,12 +30,18 @@ class DutyBoard {
 		this.page = page;
 		this.body = $(`
 			<div class="duty-board duty-layout">
+				<div class="duty-left">
+					<div class="duty-issues"></div>
+					<div class="duty-issues-rail" style="display:none" title="${__("Open Issues")}">
+						<span class="duty-rail-badge duty-issues-rail-badge" style="display:none"></span>
+						<span class="duty-rail-label">⚠ ${__("Issues")}</span>
+					</div>
+				</div>
 				<div class="duty-main">
 					<div class="duty-me"></div>
 					<div class="duty-task"></div>
 					<div class="duty-plan"></div>
 					<div class="duty-my-sessions"></div>
-					<div class="duty-issues"></div>
 					<div class="duty-team-title">${__("Team — Today")}</div>
 					<div class="duty-team"></div>
 					<div class="duty-updated text-muted"></div>
@@ -1172,12 +1178,36 @@ class DutyBoard {
 	}
 
 	render_issues(issues, me) {
-		const $i = this.body.find(".duty-issues").empty();
-		if (!me) return;
-		issues = issues || [];
+		this._issues = issues = issues || [];
+		this._issues_me = me;
+		const $wrap = this.body.find(".duty-issues").empty();
+		const $rail = this.body.find(".duty-issues-rail");
+		if (!me) {
+			$rail.hide();
+			return;
+		}
+		if (this.issues_open === undefined) {
+			this.issues_open = localStorage.getItem("duty_issues_side") === "1";
+		}
+
+		$rail.find(".duty-issues-rail-badge").text(issues.length).toggle(issues.length > 0);
+		this.body.toggleClass("duty-issues-collapsed", !this.issues_open);
+		$wrap.toggle(this.issues_open);
+		$rail.toggle(!this.issues_open);
+		$rail.off("click").on("click", () => {
+			this.issues_open = true;
+			localStorage.setItem("duty_issues_side", "1");
+			this.render_issues(this._issues, this._issues_me);
+		});
+		if (!this.issues_open) return;
+
 		const mine = issues.filter((x) => this.issue_is_mine(x)).length;
+		const customers = [...new Set(issues.map((x) => x.customer).filter(Boolean))].sort();
+		const filter = this.issue_customer_filter || "";
+		const shown = filter ? issues.filter((x) => x.customer === filter) : issues;
 		const today = frappe.datetime.get_today();
-		const rows = issues
+
+		const rows = shown
 			.map((x) => {
 				const overdue = x.due_date && x.due_date < today;
 				const names = (x.assignees || [])
@@ -1193,30 +1223,50 @@ class DutyBoard {
 					<span class="duty-task-customer">${frappe.utils.escape_html(x.customer || "")}</span>
 					${names ? `<span class="duty-issue-who">→ ${names}</span>` : ""}
 					${x.status === "In Progress" ? `<span class="duty-issue-status">${__("In Progress")}</span>` : ""}
-					${x.due_date ? `<span class="duty-issue-due ${overdue ? "duty-issue-overdue" : ""}">${overdue ? "⚠ " : ""}${frappe.datetime.str_to_user(x.due_date)}</span>` : ""}
+					${x.due_date ? `<span class="duty-issue-due ${overdue ? "duty-issue-overdue" : ""}">${overdue ? "⚠ " : ""}${__("due")} ${frappe.datetime.str_to_user(x.due_date)}</span>` : ""}
+					<span class="duty-issue-raised">${__("raised")} ${this.fmt_stamp(x.creation)}</span>
 				</div>`;
 			})
 			.join("");
 
-		const open_state = localStorage.getItem("duty_issues_open") === "1";
-		$i.html(`
-			<details class="duty-plan-card duty-issues-details" ${open_state ? "open" : ""}>
-				<summary class="duty-plan-head">
+		$wrap.html(`
+			<div class="duty-issues-card">
+				<div class="duty-chat-head">
 					<span>⚠ ${__("Issues")}
 						<span class="duty-plan-count">${issues.length} ${__("open")}${mine ? ` · ${mine} ${__("mine")}` : ""}</span>
 					</span>
-				</summary>
-				<div class="duty-plan-actions-row">
-					<button class="btn btn-xs btn-default duty-issue-new">＋ ${__("New Issue")}</button>
+					<span class="duty-chat-tools">
+						<a class="duty-issues-collapse" title="${__("Collapse")}">«</a>
+					</span>
 				</div>
-				${rows || `<div class="text-muted duty-plan-empty">${__("No open issues. Long may it last.")}</div>`}
-			</details>
+				<div class="duty-issues-toolbar">
+					<select class="form-control input-sm duty-issue-filter" title="${__("Filter by customer")}">
+						<option value="">${__("All customers")}</option>
+						${customers
+							.map(
+								(c) =>
+									`<option value="${frappe.utils.escape_html(c)}" ${c === filter ? "selected" : ""}>${frappe.utils.escape_html(c)}</option>`
+							)
+							.join("")}
+					</select>
+					<button class="btn btn-xs btn-default duty-issue-new">＋ ${__("New")}</button>
+				</div>
+				<div class="duty-issues-list">
+					${rows || `<div class="text-muted duty-plan-empty">${filter ? __("No open issues for this customer.") : __("No open issues. Long may it last.")}</div>`}
+				</div>
+			</div>
 		`);
-		$i.find(".duty-issues-details").on("toggle", (e) =>
-			localStorage.setItem("duty_issues_open", e.target.open ? "1" : "0")
-		);
-		$i.find(".duty-issue-new").on("click", () => this.create_issue_dialog({}));
-		$i.find(".duty-issue-row").on("click", (e) =>
+		$wrap.find(".duty-issues-collapse").on("click", () => {
+			this.issues_open = false;
+			localStorage.setItem("duty_issues_side", "0");
+			this.render_issues(this._issues, this._issues_me);
+		});
+		$wrap.find(".duty-issue-filter").on("change", (e) => {
+			this.issue_customer_filter = e.target.value || "";
+			this.render_issues(this._issues, this._issues_me);
+		});
+		$wrap.find(".duty-issue-new").on("click", () => this.create_issue_dialog({}));
+		$wrap.find(".duty-issue-row").on("click", (e) =>
 			this.issue_detail_dialog($(e.currentTarget).data("name"))
 		);
 	}
@@ -1939,6 +1989,12 @@ class DutyBoard {
 		);
 	}
 
+	fmt_stamp(dt) {
+		if (!dt) return "";
+		const p = frappe.datetime.str_to_user(dt).split(" ");
+		return p[0] + (p[1] ? " " + p[1].slice(0, 5) : "");
+	}
+
 	fmt_time(dt) {
 		return frappe.datetime.str_to_user(dt).split(" ").slice(1).join(" ") || dt;
 	}
@@ -2093,6 +2149,10 @@ class DutyBoard {
 			@media (max-width: 991px) {
 				.duty-layout { flex-direction: column; }
 				.duty-side { position: static; flex: 1 1 auto; max-width: 100%; width: 100%; }
+				.duty-left { position: static; flex: 1 1 auto; max-width: 100%; width: 100%; order: 2; }
+				.duty-issues-card { height: auto; }
+				.duty-issues-list { max-height: 300px; }
+				.duty-issues-rail { writing-mode: horizontal-tb; justify-content: center; padding: 8px 14px; width: 100%; }
 				.duty-chat-card { height: auto; }
 				.duty-chat-list { max-height: 260px; }
 				.duty-chat-rail { writing-mode: horizontal-tb; justify-content: center; padding: 8px 14px; width: 100%; }
@@ -2206,6 +2266,36 @@ class DutyBoard {
 				font-size: var(--text-xs); text-decoration: none;
 			}
 			.duty-session-notes:hover { color: var(--text-color); }
+			.duty-left { flex: 0 0 25%; max-width: 25%; position: sticky; top: 56px; }
+			.duty-issues-collapsed .duty-left { flex: 0 0 auto; max-width: none; }
+			.duty-issues-rail {
+				writing-mode: vertical-rl; cursor: pointer; user-select: none;
+				border: 1px solid var(--border-color); border-radius: 10px;
+				background: var(--card-bg); padding: 14px 8px; font-weight: 600;
+				color: var(--text-muted); display: flex; align-items: center; gap: 8px;
+			}
+			.duty-issues-rail:hover { color: var(--text-color); border-color: var(--gray-400, #bdbdbd); }
+			.duty-issues-card {
+				border: 1px solid var(--border-color);
+				border-radius: var(--border-radius-lg, 10px); background: var(--card-bg);
+				padding: 10px 16px; display: flex; flex-direction: column;
+				height: calc(100vh - 140px); min-height: 320px;
+			}
+			.duty-issues-toolbar { display: flex; gap: 8px; margin-top: 8px; align-items: center; }
+			.duty-issues-toolbar .duty-issue-filter { flex: 1; }
+			.duty-issues-list {
+				flex: 1 1 auto; overflow-y: auto; margin-top: 8px;
+				border-top: 1px solid var(--border-color); padding-top: 4px;
+			}
+			.duty-issues-collapse {
+				cursor: pointer; font-size: 16px; font-weight: 700;
+				color: var(--text-muted); padding: 0 4px;
+			}
+			.duty-issues-collapse:hover { color: var(--text-color); }
+			.duty-issue-raised {
+				font-size: var(--text-xs); color: var(--text-muted);
+				font-variant-numeric: tabular-nums; margin-left: auto;
+			}
 			.duty-issue-row {
 				display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
 				padding: 7px 4px; border-bottom: 1px solid var(--border-color); cursor: pointer;
