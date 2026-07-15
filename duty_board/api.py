@@ -709,13 +709,18 @@ def update_issue_status(name, status, resolution=None):
 	doc.save(ignore_permissions=True)
 	frappe.db.commit()
 
-	if status in ("Resolved", "Closed") and doc.raised_by != frappe.session.user:
-		first = frappe.utils.get_fullname(frappe.session.user).split(" ")[0]
-		_notify_user(
-			doc.raised_by,
-			_("Issue {0} by {1}").format(status.lower(), first),
-			f"{doc.name}: {doc.title}",
-		)
+	if status in ("Resolved", "Closed"):
+		actor = frappe.session.user
+		first = frappe.utils.get_fullname(actor).split(" ")[0]
+		recipients = {a.user for a in (doc.assignees or [])}
+		recipients.add(doc.raised_by)
+		recipients.discard(actor)
+		for r in recipients:
+			_notify_user(
+				r,
+				_("Issue {0} by {1}").format(status.lower(), first),
+				f"{doc.name}: {doc.title}",
+			)
 	return _issue_payload(doc)
 
 

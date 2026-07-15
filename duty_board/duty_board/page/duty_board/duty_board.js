@@ -248,6 +248,24 @@ class DutyBoard {
 		});
 	}
 
+	check_overdue_issues(issues) {
+		const today = frappe.datetime.get_today();
+		if (localStorage.getItem("duty_overdue_day") === today) return;
+		const mine = (issues || []).filter(
+			(x) => this.issue_is_mine(x) && x.due_date && x.due_date < today
+		);
+		if (!mine.length) return;
+		localStorage.setItem("duty_overdue_day", today);
+		const titles = mine
+			.slice(0, 3)
+			.map((x) => x.title)
+			.join(" · ");
+		this.notify_event({
+			title: __("{0} of your issue(s) are overdue", [mine.length]),
+			body: titles + (mine.length > 3 ? " …" : ""),
+		});
+	}
+
 	user_color(user) {
 		const palette = [
 			"#0E7490", "#B45309", "#6D28D9", "#BE185D", "#15803D", "#B91C1C",
@@ -1186,6 +1204,7 @@ class DutyBoard {
 			$rail.hide();
 			return;
 		}
+		this.check_overdue_issues(issues);
 		if (this.issues_open === undefined) {
 			this.issues_open = localStorage.getItem("duty_issues_side") === "1";
 		}

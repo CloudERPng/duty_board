@@ -181,6 +181,37 @@ def weekly_digest():
 			)
 			summaries_html += f"<p><b>{frappe.utils.escape_html(r['name'])}</b></p><ul>{items}</ul>"
 
+	overdue_html = ""
+	if frappe.db.exists("DocType", "Duty Issue"):
+		overdue = frappe.get_all(
+			"Duty Issue",
+			filters={
+				"status": ["in", ["Open", "In Progress"]],
+				"due_date": ["<", today()],
+			},
+			fields=["name", "title", "customer", "severity", "due_date"],
+			order_by="due_date asc",
+			limit=20,
+		)
+		if overdue:
+			issue_rows = "".join(
+				f"<tr><td>{i.name}</td>"
+				f"<td>{frappe.utils.escape_html(i.title)}</td>"
+				f"<td>{frappe.utils.escape_html(i.customer or '')}</td>"
+				f"<td>{i.severity}</td>"
+				f"<td>{i.due_date}</td></tr>"
+				for i in overdue
+			)
+			overdue_html = f"""
+	<h3 style="color:#B91C1C">&#9888; Overdue issues</h3>
+	<table border="1" cellpadding="6" cellspacing="0" style="border-collapse:collapse">
+		<tr style="background:#B91C1C;color:#fff">
+			<th>Ref</th><th>Title</th><th>Customer</th><th>Severity</th><th>Due</th>
+		</tr>
+		{issue_rows}
+	</table>
+	"""
+
 	html = f"""
 	<h2 style="color:#0F5C55">Duty Board — Week of {start.strftime('%d %b')} to {end.strftime('%d %b %Y')}</h2>
 	<h3 style="color:#0E7490">Team summary</h3>
@@ -195,6 +226,7 @@ def weekly_digest():
 		<tr style="background:#0F5C55;color:#fff"><th>Customer</th><th>Hours</th></tr>
 		{cust_rows or "<tr><td colspan='2'>No customer-tagged sessions</td></tr>"}
 	</table>
+	{overdue_html}
 	<h3 style="color:#0E7490">End-of-day summaries</h3>
 	{summaries_html or "<p>No summaries recorded.</p>"}
 	<p style="color:#6B7280;font-size:12px">Automated weekly digest from Duty Board.</p>
