@@ -59,6 +59,7 @@ class DutyBoard {
 		this.inject_style();
 		this.setup_pwa();
 		this.init_chat();
+		this.setup_mobile_tabs();
 	}
 
 	// ---------------- Team chat ----------------
@@ -103,6 +104,7 @@ class DutyBoard {
 		this.$chat = $c.find(".duty-chat-card");
 		this.$rail = this.body.find(".duty-chat-rail");
 		this.chat_open = localStorage.getItem("duty_chat_open") !== "0";
+		if (this.is_mobile()) this.chat_open = true;
 		this.last_seen = localStorage.getItem("duty_chat_seen") || "";
 		this.apply_chat_state();
 		$c.find(".duty-chat-collapse").on("click", () => this.toggle_chat(false));
@@ -193,7 +195,9 @@ class DutyBoard {
 		});
 
 		document.addEventListener("visibilitychange", () => {
-			if (!document.hidden && this.chat_open) this.mark_caught_up();
+			if (!document.hidden && this.chat_open && (!this.is_mobile() || this.mtab === "chat")) {
+				this.mark_caught_up();
+			}
 		});
 
 		const $notif = $c.find(".duty-chat-notif");
@@ -291,7 +295,9 @@ class DutyBoard {
 		if (this.search_mode) return;
 		if (this.$list.find(`.duty-msg[data-name="${m.name}"]`).length) return;
 		const mine = m.user === frappe.session.user;
-		const seen_live = mine || (this.chat_open && !document.hidden);
+		const seen_live =
+			mine ||
+			(this.chat_open && !document.hidden && (!this.is_mobile() || this.mtab === "chat"));
 		try {
 			this.append_message(m, !seen_live);
 		} catch (e) {
@@ -323,6 +329,39 @@ class DutyBoard {
 				msgs.forEach((m) => this.handle_incoming(m));
 			},
 		});
+	}
+
+	is_mobile() {
+		return window.matchMedia("(max-width: 767px)").matches;
+	}
+
+	setup_mobile_tabs() {
+		if (!this.is_mobile()) return;
+		$("body").addClass("duty-mobile");
+		const $bar = $(`
+			<div class="duty-tabbar">
+				<a data-tab="board"><span>🏠</span>${__("Board")}</a>
+				<a data-tab="plan"><span>✓</span>${__("Plan")}</a>
+				<a data-tab="issues"><span>⚠</span>${__("Issues")}<b class="duty-tab-badge duty-tab-issues" style="display:none"></b></a>
+				<a data-tab="chat"><span>💬</span>${__("Chat")}<b class="duty-tab-badge duty-tab-chat" style="display:none"></b></a>
+			</div>
+		`).appendTo("body");
+		$bar.find("a").on("click", (e) => this.set_mtab($(e.currentTarget).data("tab")));
+		this.set_mtab(localStorage.getItem("duty_mtab") || "board");
+	}
+
+	set_mtab(tab) {
+		this.mtab = tab;
+		localStorage.setItem("duty_mtab", tab);
+		this.body.attr("data-mtab", tab);
+		$(".duty-tabbar a")
+			.removeClass("active")
+			.filter(`[data-tab="${tab}"]`)
+			.addClass("active");
+		if (tab === "chat") {
+			this.mark_caught_up();
+			this.scroll_chat();
+		}
 	}
 
 	setup_pwa() {
@@ -648,7 +687,7 @@ class DutyBoard {
 				this.update_receipts();
 				this.scroll_chat();
 				if (new_count) {
-					if (this.chat_open && !document.hidden) {
+					if (this.chat_open && !document.hidden && (!this.is_mobile() || this.mtab === "chat")) {
 						this.mark_caught_up();
 					} else {
 						this.unread = new_count - 1;
@@ -825,6 +864,7 @@ class DutyBoard {
 		this.unread += 1;
 		this.$badge.text(this.unread).show();
 		this.$rail.find(".duty-rail-badge").text(this.unread).show();
+		$(".duty-tab-chat").text(this.unread).show();
 		document.title = `(${this.unread}) ${this.base_title}`;
 		this.start_title_flash();
 	}
@@ -847,6 +887,7 @@ class DutyBoard {
 		this.unread = 0;
 		this.$badge.hide();
 		this.$rail.find(".duty-rail-badge").hide();
+		$(".duty-tab-chat").hide();
 		this.stop_title_flash();
 		document.title = this.base_title;
 	}
@@ -1281,9 +1322,11 @@ class DutyBoard {
 		if (this.issues_open === undefined) {
 			this.issues_open = localStorage.getItem("duty_issues_side") === "1";
 		}
+		if (this.is_mobile()) this.issues_open = true;
 		this.issue_status_filter = this.issue_status_filter || "open";
 
 		$rail.find(".duty-issues-rail-badge").text(issues.length).toggle(issues.length > 0);
+		$(".duty-tab-issues").text(issues.length).toggle(issues.length > 0);
 		this.body.toggleClass("duty-issues-collapsed", !this.issues_open);
 		$wrap.toggle(this.issues_open);
 		$rail.toggle(!this.issues_open);
@@ -2449,6 +2492,51 @@ class DutyBoard {
 				.duty-chat-card { height: auto; }
 				.duty-chat-list { max-height: 260px; }
 				.duty-chat-rail { writing-mode: horizontal-tb; justify-content: center; padding: 8px 14px; width: 100%; }
+			}
+			@media (max-width: 767px) {
+				body.duty-mobile .page-head { display: none; }
+				body.duty-mobile .duty-board { padding-bottom: 76px; }
+				.duty-tabbar {
+					position: fixed; left: 0; right: 0; bottom: 0; z-index: 100;
+					display: flex; background: var(--card-bg, #fff);
+					border-top: 1px solid var(--border-color);
+					padding: 6px 0 calc(6px + env(safe-area-inset-bottom));
+					box-shadow: 0 -2px 10px rgba(0,0,0,0.06);
+				}
+				.duty-tabbar a {
+					flex: 1; text-align: center; font-size: 11px; color: var(--text-muted);
+					text-decoration: none; display: flex; flex-direction: column;
+					align-items: center; gap: 2px; position: relative;
+				}
+				.duty-tabbar a span { font-size: 20px; line-height: 1; filter: grayscale(1); opacity: 0.75; }
+				.duty-tabbar a.active { color: #0F5C55; font-weight: 700; }
+				.duty-tabbar a.active span { filter: none; opacity: 1; }
+				.duty-tab-badge {
+					position: absolute; top: -3px; right: 22%;
+					background: var(--red-500, #ef4444); color: #fff; border-radius: 99px;
+					min-width: 16px; padding: 0 4px; font-size: 10px; line-height: 16px; font-style: normal;
+				}
+				.duty-board[data-mtab] .duty-left, .duty-board[data-mtab] .duty-side,
+				.duty-board[data-mtab] .duty-plan, .duty-board[data-mtab] .duty-my-sessions,
+				.duty-board[data-mtab] .duty-me, .duty-board[data-mtab] .duty-task,
+				.duty-board[data-mtab] .duty-team-title, .duty-board[data-mtab] .duty-team,
+				.duty-board[data-mtab] .duty-updated { display: none; }
+				.duty-board[data-mtab="board"] .duty-me,
+				.duty-board[data-mtab="board"] .duty-task,
+				.duty-board[data-mtab="board"] .duty-team-title,
+				.duty-board[data-mtab="board"] .duty-updated { display: block; }
+				.duty-board[data-mtab="board"] .duty-team { display: grid; }
+				.duty-board[data-mtab="plan"] .duty-plan,
+				.duty-board[data-mtab="plan"] .duty-my-sessions { display: block; }
+				.duty-board[data-mtab="issues"] .duty-left { display: block; }
+				.duty-board[data-mtab="chat"] .duty-side { display: block; }
+				.duty-board[data-mtab="issues"] .duty-issues-rail { display: none !important; }
+				.duty-board[data-mtab="chat"] .duty-chat-rail { display: none !important; }
+				.duty-board[data-mtab="chat"] .duty-chat-card { height: calc(100vh - 175px); min-height: 0; }
+				.duty-board[data-mtab="issues"] .duty-issues-card { height: calc(100vh - 175px); min-height: 0; }
+				.duty-chat-collapse, .duty-issues-collapse { display: none; }
+				.duty-chat-input, .duty-todo-input, .duty-search-input { font-size: 16px; }
+				.duty-tabbar a, .duty-todo-row, .duty-issue-row, .duty-msg { -webkit-tap-highlight-color: rgba(15,92,85,0.1); }
 			}
 			.duty-chat-badge {
 				display: inline-block; min-width: 20px; text-align: center; padding: 1px 7px;
