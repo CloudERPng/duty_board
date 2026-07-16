@@ -1538,6 +1538,13 @@ class DutyBoard {
 						`<span style="color:${this.user_color(u)}">${frappe.utils.escape_html((this.name_map[u] || u).split(" ")[0])}</span>`
 				)
 				.join(", ");
+			const i_am_working = (x.working || []).includes(frappe.session.user);
+			const working_names = (x.working || [])
+				.map(
+					(u) =>
+						`<span style="color:${this.user_color(u)}">${frappe.utils.escape_html((this.name_map[u] || u).split(" ")[0])}</span>`
+				)
+				.join(", ");
 			$(d.body).html(`
 				<div class="duty-issue-detail">
 					<div class="duty-issue-detail-head">
@@ -1553,6 +1560,7 @@ class DutyBoard {
 						${x.source_type && x.source_type !== "Manual" ? ` · ${__("From")} ${__(x.source_type)}` : ""}
 					</div>
 					${names ? `<div class="duty-issue-meta">${__("Assigned to")}: ${names}</div>` : ""}
+					${working_names ? `<div class="duty-issue-meta">⏱ ${__("Working on it now")}: ${working_names}</div>` : ""}
 					${x.description ? `<div class="duty-issue-desc">${frappe.utils.escape_html(x.description)}</div>` : ""}
 					${
 						(x.attachments || []).length
@@ -1567,7 +1575,8 @@ class DutyBoard {
 					}
 					${x.resolution ? `<div class="duty-issue-resolution"><b>${__("Resolution")}:</b> ${frappe.utils.escape_html(x.resolution)}${x.resolved_at ? ` <span class="text-muted">(${frappe.datetime.str_to_user(x.resolved_at)})</span>` : ""}</div>` : ""}
 					<div class="duty-issue-actions">
-						${x.status === "Open" ? `<button class="btn btn-sm btn-default" data-act="In Progress">${__("Start")}</button>` : ""}
+						${["Open", "In Progress"].includes(x.status) && !i_am_working ? `<button class="btn btn-sm btn-default duty-issue-start">▶ ${__("Start work")}</button>` : ""}
+						${i_am_working ? `<button class="btn btn-sm btn-default duty-issue-stopwork">⏸ ${__("Stop work")}</button>` : ""}
 						${["Open", "In Progress"].includes(x.status) ? `<button class="btn btn-sm btn-primary" data-act="Resolved">${__("Resolve")}</button>` : ""}
 						${["Open", "In Progress", "Resolved"].includes(x.status) ? `<button class="btn btn-sm btn-default" data-act="Closed">${__("Close")}</button>` : ""}
 						${["Resolved", "Closed"].includes(x.status) ? `<button class="btn btn-sm btn-default" data-act="Open">${__("Reopen")}</button>` : ""}
@@ -1605,6 +1614,17 @@ class DutyBoard {
 						apply();
 					}
 				});
+			const work_call = (method) =>
+				frappe.call({
+					method: `duty_board.api.${method}`,
+					args: { name: name },
+					callback: (r) => {
+						if (r.message) render(r.message);
+						this.refresh(true);
+					},
+				});
+			$(d.body).find(".duty-issue-start").on("click", () => work_call("start_issue_work"));
+			$(d.body).find(".duty-issue-stopwork").on("click", () => work_call("stop_issue_work"));
 			$(d.body).find(".duty-issue-attach input").on("change", async (e) => {
 				const f = e.target.files[0];
 				e.target.value = "";
@@ -1733,6 +1753,7 @@ class DutyBoard {
 						</div>
 					</div>
 					<div class="duty-task-actions">
+						${t.issue ? `<a class="duty-task-issuechip" title="${__("Open issue")}">${t.issue}</a>` : ""}
 						<button class="btn btn-default duty-issue-btn" title="${__("Raise issue from this task")}">⚠</button>
 						<button class="btn btn-default duty-note-btn" title="${__("Task notes")}">📝${t.notes ? " " + t.notes : ""}</button>
 						<button class="btn btn-default duty-invite-btn" title="${__("Invite a colleague to this task")}">👤+</button>
@@ -1747,6 +1768,7 @@ class DutyBoard {
 			$task.find(".duty-invite-btn").on("click", () => this.invite_task_dialog());
 			$task.find(".duty-taskcust-btn").on("click", () => this.task_customer_dialog(t.customer));
 			$task.find(".duty-note-btn").on("click", () => this.note_dialog(t.name, t.activity, true));
+			$task.find(".duty-task-issuechip").on("click", () => this.issue_detail_dialog(t.issue));
 			$task.find(".duty-issue-btn").on("click", () =>
 				this.create_issue_dialog({
 					title: t.activity,
@@ -2540,6 +2562,12 @@ class DutyBoard {
 				background: var(--green-100, #e8f5e9); font-size: var(--text-sm); white-space: pre-wrap;
 			}
 			.duty-issue-actions { display: flex; gap: 8px; margin-top: 14px; flex-wrap: wrap; align-items: center; }
+			.duty-task-issuechip {
+				cursor: pointer; font-size: var(--text-xs); font-weight: 700;
+				border: 1px solid var(--orange-300, #fdba74); color: var(--orange-700, #e65100);
+				background: var(--orange-100, #fff3e0); border-radius: 99px; padding: 3px 10px;
+				align-self: center;
+			}
 			.duty-issue-actions .duty-issue-attach { margin: 0; }
 			.duty-issue-files { display: flex; flex-wrap: wrap; gap: 8px; margin: 10px 0; }
 			.duty-issue-files img {

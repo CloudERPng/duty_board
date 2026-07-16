@@ -637,8 +637,17 @@ def _issue_payload(doc):
 		}
 		for f in files
 	]
+	working = [
+		w.user
+		for w in frappe.get_all(
+			"Work Session",
+			filters={"duty_issue": doc.name, "end_time": ["is", "not set"]},
+			fields=["user"],
+		)
+	]
 	return {
 		"attachments": attachments,
+		"working": working,
 		"name": doc.name,
 		"title": doc.title,
 		"customer": doc.customer,
@@ -756,11 +765,69 @@ def attach_to_issue(name, file_url):
 
 
 @frappe.whitelist()
+def start_issue_work(name):
+	user = frappe.session.user
+	doc = frappe.get_doc("Duty Issue", name)
+	if doc.status not in ("Open", "In Progress"):
+		frappe.throw(_("This issue is already {0}.").format(_(doc.status)))
+	if not _is_clocked_in(user):
+		frappe.throw(_("Clock in first before starting work on an issue."))
+
+	# picking up an issue assigns you to it
+	if user not in {a.user for a in (doc.assignees or [])}:
+		doc.append("assignees", {"user": user})
+	doc.status = "In Progress"
+	doc.save(ignore_permissions=True)
+
+	_stop_running_session(user)
+	frappe.get_doc(
+		{
+			"doctype": "Work Session",
+			"user": user,
+			"activity": doc.title,
+			"customer": doc.customer,
+			"duty_issue": doc.name,
+			"start_time": now_datetime(),
+		}
+	).insert()
+	frappe.db.commit()
+	return _issue_payload(frappe.get_doc("Duty Issue", name))
+
+
+@frappe.whitelist()
+def stop_issue_work(name):
+	user = frappe.session.user
+	doc = frappe.get_doc("Duty Issue", name)
+
+	running = _get_running_session(user)
+	if running and running.get("duty_issue") == name:
+		s = frappe.get_doc("Work Session", running.name)
+		s.end_time = now_datetime()
+		s.save(ignore_permissions=True)
+
+	# revert to Open only when nobody is actively working it anymore
+	still_working = frappe.db.exists(
+		"Work Session", {"duty_issue": name, "end_time": ["is", "not set"]}
+	)
+	if doc.status == "In Progress" and not still_working:
+		doc.status = "Open"
+		doc.save(ignore_permissions=True)
+	frappe.db.commit()
+	return _issue_payload(frappe.get_doc("Duty Issue", name))
+
+
+@frappe.whitelist()
 def update_issue_status(name, status, resolution=None):
 	if status not in ISSUE_STATUSES:
 		frappe.throw(_("Unknown status."))
 	doc = frappe.get_doc("Duty Issue", name)
 	_issue_member_check(doc)
+	if status in ("Resolved", "Closed"):
+		running = _get_running_session(frappe.session.user)
+		if running and running.get("duty_issue") == name:
+			s = frappe.get_doc("Work Session", running.name)
+			s.end_time = now_datetime()
+			s.save(ignore_permissions=True)
 	doc.status = status
 	if resolution:
 		doc.resolution = resolution.strip()
@@ -1063,7 +1130,7 @@ def _get_running_session(user):
 	rows = frappe.get_all(
 		"Work Session",
 		filters={"user": user, "end_time": ["is", "not set"]},
-		fields=["name", "activity", "customer", "daily_todo", "start_time"],
+		fields=["name", "activity", "customer", "daily_todo", "duty_issue", "start_time"],
 		order_by="start_time desc",
 		limit=1,
 	)
@@ -1158,7 +1225,7 @@ def get_board():
 	running = frappe.get_all(
 		"Work Session",
 		filters={"end_time": ["is", "not set"]},
-		fields=["name", "user", "activity", "customer", "daily_todo", "start_time"],
+		fields=["name", "user", "activity", "customer", "daily_todo", "duty_issue", "start_time"],
 		order_by="start_time desc",
 	)
 	running_by_user = {}
@@ -1261,6 +1328,7 @@ def get_board():
 			task = {
 				"name": sess.name,
 				"notes": note_counts.get(sess.name, 0),
+				"issue": sess.duty_issue,
 				"activity": sess.activity,
 				"customer": sess.customer,
 				"todo": sess.daily_todo,
