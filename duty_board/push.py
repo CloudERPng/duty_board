@@ -68,7 +68,7 @@ def push_to_user(user, title, body=""):
 			webpush(
 				subscription_info={
 					"endpoint": s.endpoint,
-					"keys": json.loads(s.keys or "{}"),
+					"keys": json.loads(s.get("keys") or "{}"),
 				},
 				data=json.dumps({"title": title, "body": body or ""}),
 				vapid_private_key=priv,
