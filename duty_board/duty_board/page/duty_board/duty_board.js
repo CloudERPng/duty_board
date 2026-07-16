@@ -57,6 +57,7 @@ class DutyBoard {
 		`).appendTo(page.body);
 		this.name_map = {};
 		this.inject_style();
+		this.setup_pwa();
 		this.init_chat();
 	}
 
@@ -200,7 +201,10 @@ class DutyBoard {
 			$notif.show().on("click", (e) => {
 				e.preventDefault();
 				e.stopPropagation();
-				Notification.requestPermission().then(() => $notif.hide());
+				Notification.requestPermission().then(() => {
+					$notif.hide();
+					if (this._sw) this.maybe_subscribe_push(this._sw);
+				});
 			});
 		}
 	}
@@ -319,6 +323,52 @@ class DutyBoard {
 				msgs.forEach((m) => this.handle_incoming(m));
 			},
 		});
+	}
+
+	setup_pwa() {
+		if (!("serviceWorker" in navigator)) return;
+		if (!document.querySelector('link[rel="manifest"]')) {
+			$('<link rel="manifest" href="/assets/duty_board/mobile/manifest.webmanifest">').appendTo("head");
+		}
+		navigator.serviceWorker
+			.register("/duty_sw.js", { scope: "/" })
+			.then((reg) => {
+				this._sw = reg;
+				this.maybe_subscribe_push(reg);
+			})
+			.catch(() => {
+				/* SW route not configured yet — PWA features stay off */
+			});
+	}
+
+	async maybe_subscribe_push(reg) {
+		try {
+			if (!window.Notification || Notification.permission !== "granted") return;
+			if (!reg.pushManager) return;
+			const r = await frappe.call({ method: "duty_board.push.get_push_config" });
+			const key = r.message && r.message.public_key;
+			if (!key) return;
+			let sub = await reg.pushManager.getSubscription();
+			if (!sub) {
+				sub = await reg.pushManager.subscribe({
+					userVisibleOnly: true,
+					applicationServerKey: this.urlb64_to_uint8(key),
+				});
+			}
+			frappe.call({
+				method: "duty_board.push.save_push_subscription",
+				args: { subscription: JSON.stringify(sub.toJSON()) },
+			});
+		} catch (e) {
+			/* push unsupported or denied on this device — realtime still works */
+		}
+	}
+
+	urlb64_to_uint8(s) {
+		const pad = "=".repeat((4 - (s.length % 4)) % 4);
+		const b = (s + pad).replace(/-/g, "+").replace(/_/g, "/");
+		const raw = atob(b);
+		return Uint8Array.from([...raw].map((c) => c.charCodeAt(0)));
 	}
 
 	toggle_chat(open) {

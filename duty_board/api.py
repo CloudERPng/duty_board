@@ -248,6 +248,13 @@ def send_message(
 	frappe.db.commit()
 	payload = _message_payload(doc.as_dict(), {})
 	frappe.publish_realtime("duty_board_message", payload)
+
+	if mention_list:
+		first = frappe.utils.get_fullname(frappe.session.user).split(" ")[0]
+		body = (message or attachment_name or "").strip()[:120]
+		for m in mention_list:
+			if m != frappe.session.user:
+				_push_safe(m, _("{0} mentioned you in Duty Room").format(first), body)
 	return payload
 
 
@@ -472,6 +479,16 @@ def _notify_user(user, title, body):
 	frappe.publish_realtime(
 		"duty_board_notify", {"title": title, "body": body or ""}, user=user
 	)
+	_push_safe(user, title, body)
+
+
+def _push_safe(user, title, body):
+	try:
+		from duty_board.push import push_to_user
+
+		push_to_user(user, title, body or "")
+	except Exception:
+		pass
 
 
 @frappe.whitelist()
@@ -962,7 +979,7 @@ def _open_issues():
 
 
 @frappe.whitelist()
-def get_issues_legacy(status="open"):
+def get_issues(status="open"):
 	status_map = {
 		"open": None,
 		"resolved": ["Resolved"],
