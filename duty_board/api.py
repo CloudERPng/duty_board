@@ -962,7 +962,7 @@ def _open_issues():
 
 
 @frappe.whitelist()
-def get_issues(status="open"):
+def get_issues_legacy(status="open"):
 	status_map = {
 		"open": None,
 		"resolved": ["Resolved"],
