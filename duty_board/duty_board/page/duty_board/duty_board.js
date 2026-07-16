@@ -2528,8 +2528,16 @@ class DutyBoard {
 				.duty-board[data-mtab="board"] .duty-team { display: grid; }
 				.duty-board[data-mtab="plan"] .duty-plan,
 				.duty-board[data-mtab="plan"] .duty-my-sessions { display: block; }
+				.duty-board.duty-layout[data-mtab] { display: block; }
 				.duty-board[data-mtab="issues"] .duty-left { display: block; }
 				.duty-board[data-mtab="chat"] .duty-side { display: block; }
+				.duty-board[data-mtab="issues"] .duty-left,
+				.duty-board[data-mtab="chat"] .duty-side {
+					position: static; width: 100%; max-width: 100%; flex: none;
+				}
+				.duty-board[data-mtab="issues"] .duty-issues-toolbar-row .duty-issue-scope,
+				.duty-board[data-mtab="issues"] .duty-issue-filter,
+				.duty-board[data-mtab="issues"] .duty-issue-user { width: 100%; }
 				.duty-board[data-mtab="issues"] .duty-issues-rail { display: none !important; }
 				.duty-board[data-mtab="chat"] .duty-chat-rail { display: none !important; }
 				.duty-board[data-mtab="chat"] .duty-chat-card { height: calc(100vh - 175px); min-height: 0; }
