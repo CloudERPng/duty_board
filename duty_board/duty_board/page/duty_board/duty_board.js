@@ -60,6 +60,12 @@ class DutyBoard {
 		this.setup_pwa();
 		this.init_chat();
 		this.setup_mobile_tabs();
+		this.body.on("click", ".duty-dm-btn", (e) => {
+			e.preventDefault();
+			e.stopPropagation();
+			const $b = $(e.currentTarget);
+			this.open_dm($b.data("user"), $b.data("name"));
+		});
 	}
 
 	// ---------------- Team chat ----------------
@@ -148,6 +154,7 @@ class DutyBoard {
 		frappe.realtime.on("duty_board_message", (m) => this.handle_incoming(m));
 		this._sync_timer = setInterval(() => this.sync_messages(), 25 * 1000);
 		frappe.realtime.on("duty_board_notify", (d) => this.notify_event(d));
+		frappe.realtime.on("duty_board_dm", (m) => this.handle_dm(m));
 		this._due_timer = setInterval(() => this.check_due_todos(), 30 * 1000);
 
 		$c.find(".duty-chat-btn").on("click", () => this.send_chat());
@@ -1119,6 +1126,7 @@ class DutyBoard {
 		if (data.day_summary) {
 			this.show_day_summary(data.day_summary);
 		}
+		this.dm_unread = data.dm_unread || this.dm_unread || {};
 		this.my_todos = data.my_todos || [];
 		this.my_upcoming = data.my_upcoming || [];
 		this.overdue_count = data.overdue_count || 0;
@@ -1224,6 +1232,161 @@ class DutyBoard {
 		$(d.body).find(".duty-history-more button").on("click", load);
 		load();
 		d.show();
+	}
+
+	dm_row(m) {
+		const mine = m.sender === frappe.session.user;
+		const when = m.creation ? frappe.datetime.str_to_user(m.creation) : "";
+		return `
+			<div class="duty-msg ${mine ? "duty-msg-mine" : ""}" data-name="${m.name}">
+				<span class="duty-msg-who" style="color:${this.user_color(m.sender)}">${mine ? __("You") : frappe.utils.escape_html((m.sender_name || m.sender).split(" ")[0])}</span>
+				<span class="duty-msg-text">${frappe.utils.escape_html(m.message || "")}</span>
+				<span class="duty-msg-time">${when}</span>
+			</div>`;
+	}
+
+	set_dm_badge(user, n) {
+		const $b = this.body.find(`.duty-dm-btn[data-user="${user}"] .duty-dm-badge`);
+		if (n) $b.text(n).show();
+		else $b.hide();
+	}
+
+	mark_dm_seen(user) {
+		frappe.call({ method: "duty_board.dm.mark_dm_seen", args: { with_user: user } });
+		if (this.dm_unread) delete this.dm_unread[user];
+		this.set_dm_badge(user, 0);
+	}
+
+	open_dm(user, full_name) {
+		if (!user || user === frappe.session.user) return;
+		full_name = full_name || this.name_map[user] || user;
+		if (this._dm_dialog && this._dm_with === user) {
+			this._dm_dialog.show();
+			return;
+		}
+		if (this._dm_dialog) this._dm_dialog.hide();
+		const d = (this._dm_dialog = new frappe.ui.Dialog({
+			title: `✉ ${full_name.split(" ")[0]}`,
+		}));
+		this._dm_with = user;
+		d.onhide = () => {
+			if (this._dm_with === user) this._dm_with = null;
+		};
+		$(d.body).html(`
+			<div class="duty-dm-list"><div class="text-muted">${__("Loading...")}</div></div>
+			<div class="duty-dm-send">
+				<textarea rows="1" class="form-control duty-dm-input" maxlength="1000"
+					placeholder="${__("Message {0}... Enter to send, Shift+Enter for a new line", [frappe.utils.escape_html(full_name.split(" ")[0])])}"></textarea>
+				<button class="btn btn-primary btn-sm duty-dm-btn-send">${__("Send")}</button>
+			</div>
+		`);
+		const $list = $(d.body).find(".duty-dm-list");
+		const $input = $(d.body).find(".duty-dm-input");
+		let oldest = null;
+		const load = (before) => {
+			frappe.call({
+				method: "duty_board.dm.get_dm_thread",
+				args: { with_user: user, before: before },
+				callback: (r) => {
+					const data = r.message || {};
+					const msgs = data.messages || [];
+					if (msgs.length) oldest = msgs[0].creation;
+					if (!before) {
+						$list.empty();
+						if (data.has_more) {
+							$list.append(
+								`<div class="duty-load-earlier"><a>${__("Load earlier")}</a></div>`
+							);
+							$list.find(".duty-load-earlier a").on("click", () => load(oldest));
+						}
+						$list.append(msgs.map((m) => this.dm_row(m)).join(""));
+						if (!msgs.length) {
+							$list.append(
+								`<div class="text-muted duty-plan-empty">${__("No messages yet — say hello.")}</div>`
+							);
+						}
+						$list.scrollTop($list[0].scrollHeight);
+					} else {
+						const old_h = $list[0].scrollHeight;
+						const $anchor = $list.find(".duty-load-earlier");
+						$anchor.after(msgs.map((m) => this.dm_row(m)).join(""));
+						if (!data.has_more) $anchor.hide();
+						$list.scrollTop($list[0].scrollHeight - old_h);
+					}
+					this.mark_dm_seen(user);
+				},
+			});
+		};
+		const send = () => {
+			const text = ($input.val() || "").trim();
+			if (!text) return;
+			$input.val("");
+			frappe.call({
+				method: "duty_board.dm.send_dm",
+				args: { to: user, message: text },
+				callback: (r) => {
+					const m = r.message;
+					if (m && !$list.find(`[data-name="${m.name}"]`).length) {
+						$list.find(".duty-plan-empty").remove();
+						$list.append(this.dm_row(m));
+						$list.scrollTop($list[0].scrollHeight);
+					}
+				},
+			});
+		};
+		$(d.body).find(".duty-dm-btn-send").on("click", send);
+		$input.on("keydown", (e) => {
+			if (e.key === "Enter" && !e.shiftKey) {
+				e.preventDefault();
+				send();
+			}
+		});
+		d.show();
+		load(null);
+		this.set_dm_badge(user, 0);
+	}
+
+	handle_dm(m) {
+		if (!m || !m.name) return;
+		const me = frappe.session.user;
+		const other = m.sender === me ? m.recipient : m.sender;
+		const dialog_open =
+			this._dm_with === other && this._dm_dialog && this._dm_dialog.$wrapper.is(":visible");
+		if (dialog_open) {
+			const $list = $(this._dm_dialog.body).find(".duty-dm-list");
+			if (!$list.find(`[data-name="${m.name}"]`).length) {
+				$list.find(".duty-plan-empty").remove();
+				$list.append(this.dm_row(m));
+				$list.scrollTop($list[0].scrollHeight);
+			}
+			if (m.sender !== me) this.mark_dm_seen(other);
+			return;
+		}
+		if (m.sender !== me) {
+			this.dm_unread = this.dm_unread || {};
+			this.dm_unread[m.sender] = (this.dm_unread[m.sender] || 0) + 1;
+			this.set_dm_badge(m.sender, this.dm_unread[m.sender]);
+			this.ping();
+			const first = (m.sender_name || m.sender).split(" ")[0];
+			frappe.show_alert(
+				{
+					message: `<b>✉ ${frappe.utils.escape_html(first)}</b><br>${frappe.utils.escape_html((m.message || "").slice(0, 80))}`,
+					indicator: "blue",
+				},
+				6
+			);
+			if (window.Notification && Notification.permission === "granted" && document.hidden) {
+				try {
+					new Notification(`✉ ${first} — DM`, {
+						body: (m.message || "").slice(0, 120),
+						tag: "duty-dm",
+						renotify: true,
+					});
+				} catch (e) {
+					/* ignore */
+				}
+			}
+		}
 	}
 
 	note_dialog(session, activity, can_add) {
@@ -2216,7 +2379,10 @@ class DutyBoard {
 					<div class="duty-card-head">
 						${frappe.avatar(r.user, "avatar-medium")}
 						<div class="duty-card-name">
-							<div class="duty-name" style="color:${this.user_color(r.user)}">${frappe.utils.escape_html(r.full_name)}</div>
+							<div class="duty-name-row">
+								<div class="duty-name" style="color:${this.user_color(r.user)}">${frappe.utils.escape_html(r.full_name)}</div>
+								${r.user !== frappe.session.user ? `<a class="duty-dm-btn" data-user="${r.user}" data-name="${frappe.utils.escape_html(r.full_name)}" title="${__("Direct message")}">✉<b class="duty-dm-badge" ${(this.dm_unread || {})[r.user] ? "" : 'style="display:none"'}>${(this.dm_unread || {})[r.user] || ""}</b></a>` : ""}
+							</div>
 							<div class="duty-badge" style="color:${s.color};background:${s.bg}">
 								<span class="duty-dot" style="background:${s.color}"></span>${__(r.status)}
 							</div>
@@ -2755,6 +2921,25 @@ class DutyBoard {
 				font-weight: 700; margin: 12px 0 4px; color: var(--text-muted);
 				font-size: var(--text-xs); text-transform: uppercase; letter-spacing: 0.04em;
 			}
+			.duty-name-row { display: flex; align-items: center; gap: 8px; min-width: 0; }
+			.duty-name-row .duty-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+			.duty-dm-btn {
+				cursor: pointer; text-decoration: none; font-size: var(--text-sm);
+				opacity: 0.5; position: relative; padding: 0 3px; flex: none;
+			}
+			.duty-dm-btn:hover { opacity: 1; }
+			.duty-dm-badge {
+				position: absolute; top: -8px; right: -10px;
+				background: var(--red-500, #ef4444); color: #fff; border-radius: 99px;
+				min-width: 16px; text-align: center; padding: 0 4px;
+				font-size: 10px; line-height: 16px; font-style: normal;
+			}
+			.duty-dm-list {
+				max-height: 46vh; min-height: 220px; overflow-y: auto;
+				margin-bottom: 10px; border-bottom: 1px solid var(--border-color); padding-bottom: 6px;
+			}
+			.duty-dm-send { display: flex; gap: 8px; align-items: flex-end; }
+			.duty-dm-send textarea { flex: 1; resize: none; font-size: 16px; }
 			.duty-note-list { max-height: 300px; overflow-y: auto; }
 			.duty-note-item { padding: 7px 0; border-bottom: 1px solid var(--border-color); }
 			.duty-note-meta { font-size: var(--text-xs); display: flex; gap: 10px; font-weight: 600; }

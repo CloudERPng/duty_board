@@ -1205,6 +1205,15 @@ def _users_on_leave(user_ids):
 # ---------------- The board ----------------
 
 
+def _dm_unread_safe(user):
+	try:
+		from duty_board.dm import get_unread_map
+
+		return get_unread_map(user)
+	except Exception:
+		return {}
+
+
 @frappe.whitelist()
 def get_board():
 	"""Current status of every enabled System User, each in their own local day."""
@@ -1426,5 +1435,6 @@ def get_board():
 		"my_upcoming": my_upcoming,
 		"overdue_count": overdue_count,
 		"issues": issues,
+		"dm_unread": _dm_unread_safe(session),
 		"server_time": str(now),
 	}
