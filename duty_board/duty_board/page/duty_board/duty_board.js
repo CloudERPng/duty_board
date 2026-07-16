@@ -60,12 +60,17 @@ class DutyBoard {
 		this.setup_pwa();
 		this.init_chat();
 		this.setup_mobile_tabs();
-		this.body.on("click", ".duty-dm-btn", (e) => {
-			e.preventDefault();
-			e.stopPropagation();
-			const $b = $(e.currentTarget);
-			this.open_dm($b.data("user"), $b.data("name"));
-		});
+		document.addEventListener(
+			"click",
+			(e) => {
+				const btn = e.target.closest && e.target.closest(".duty-dm-btn");
+				if (!btn) return;
+				e.preventDefault();
+				e.stopPropagation();
+				this.open_dm($(btn).data("user"), $(btn).data("name"));
+			},
+			true
+		);
 	}
 
 	// ---------------- Team chat ----------------
@@ -2731,7 +2736,8 @@ class DutyBoard {
 			.duty-msg-time { margin-left: 8px; font-size: var(--text-xs); color: var(--text-muted); }
 			.duty-chat-send { display: flex; gap: 8px; align-items: flex-end; }
 			.duty-chat-input { resize: none; overflow-y: auto; max-height: 120px; line-height: 1.45; }
-			.duty-msg-text { white-space: pre-wrap; word-break: break-word; }
+			.duty-msg-text { white-space: pre-wrap; word-break: break-word; color: #000; }
+			[data-theme="dark"] .duty-msg-text { color: var(--text-color); }
 			.duty-chat-input-wrap { flex: 1; position: relative; }
 			.duty-attach-btn { margin: 0; cursor: pointer; }
 			.duty-mention-menu {
