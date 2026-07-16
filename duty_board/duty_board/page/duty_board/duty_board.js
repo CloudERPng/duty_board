@@ -248,6 +248,12 @@ class DutyBoard {
 		});
 	}
 
+	touch_issues() {
+		this._issues_alt = null;
+		this._issues_alt_scope = null;
+		this.refresh(true);
+	}
+
 	check_overdue_issues(issues) {
 		const today = frappe.datetime.get_today();
 		if (localStorage.getItem("duty_overdue_day") === today) return;
@@ -1256,14 +1262,23 @@ class DutyBoard {
 					this._issues_alt_scope = scope;
 					this.render_issues(this._issues, this._issues_me);
 				},
+				error: () => {
+					$wrap.html(
+						`<div class="duty-issues-card"><div class="text-muted" style="margin-top:8px">${__("Could not load issues — press F12, check the console, and report the red error.")}</div></div>`
+					);
+				},
 			});
 			return;
 		}
 
 		const mine = issues.filter((x) => this.issue_is_mine(x)).length;
-		const cfilter = this.issue_customer_filter || "";
 		const ufilter = this.issue_user_filter || "";
 		const customers = [...new Set(items.map((x) => x.customer).filter(Boolean))].sort();
+		let cfilter = this.issue_customer_filter || "";
+		if (cfilter && !customers.includes(cfilter)) {
+			cfilter = "";
+			this.issue_customer_filter = "";
+		}
 		let shown = cfilter ? items.filter((x) => x.customer === cfilter) : items;
 		if (ufilter === "__me__") {
 			shown = shown.filter((x) => (x.assignees || []).includes(frappe.session.user));
@@ -1470,7 +1485,7 @@ class DutyBoard {
 								{ message: __("Issue {0} created", [r.message.name]), indicator: "green" },
 								5
 							);
-							this.refresh(true);
+							this.touch_issues();
 						}
 					},
 				});
@@ -1595,7 +1610,7 @@ class DutyBoard {
 							args: { name: name, status: act, resolution: resolution || null },
 							callback: (r) => {
 								if (r.message) render(r.message);
-								this.refresh(true);
+								this.touch_issues();
 							},
 						});
 					if (act === "Resolved") {
@@ -1620,7 +1635,7 @@ class DutyBoard {
 					args: { name: name },
 					callback: (r) => {
 						if (r.message) render(r.message);
-						this.refresh(true);
+						this.touch_issues();
 					},
 				});
 			$(d.body).find(".duty-issue-start").on("click", () => work_call("start_issue_work"));
@@ -1685,7 +1700,7 @@ class DutyBoard {
 							},
 							callback: (r) => {
 								if (r.message) render(r.message);
-								this.refresh(true);
+								this.touch_issues();
 							},
 						});
 					},
