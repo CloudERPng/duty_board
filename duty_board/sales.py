@@ -33,7 +33,7 @@ def get_pipeline():
 		filters={"status": "Open"},
 		fields=[
 			"name", "company", "lead_owner", "stage", "value",
-			"contact_name", "email", "phone",
+			"contact_name", "email", "phone", "expected_close", "source", "modified",
 		],
 		order_by="modified desc",
 	)
@@ -60,9 +60,15 @@ def get_pipeline():
 			note_counts[n.lead] = n.cnt
 
 	sv = _sees_value()
+	now = frappe.utils.now_datetime()
+	tday = getdate(today())
 	stages = {s: {"leads": [], "count": 0, "value": 0 if sv else None} for s in STAGES}
 	for l in leads:
 		l.value = flt(l.value) if sv else None
+		l.stale_days = (now - l.modified).days if l.modified else 0
+		del l["modified"]
+		l.expected_close = str(l.expected_close) if l.expected_close else None
+		l.close_overdue = bool(l.expected_close and getdate(l.expected_close) < tday)
 		l.tasks_open = task_stats.get(l.name, {}).get("open", 0)
 		l.tasks_overdue = task_stats.get(l.name, {}).get("overdue", 0)
 		l.notes = note_counts.get(l.name, 0)
@@ -79,7 +85,7 @@ def get_pipeline():
 
 
 @frappe.whitelist()
-def create_lead(company, lead_owner, value=None, contact_name=None, email=None, phone=None, description=None):
+def create_lead(company, lead_owner, value=None, contact_name=None, email=None, phone=None, description=None, expected_close=None, source=None):
 	company = (company or "").strip()
 	if not company:
 		frappe.throw(_("Give the prospect a name."))
@@ -97,6 +103,8 @@ def create_lead(company, lead_owner, value=None, contact_name=None, email=None, 
 			"email": email,
 			"phone": phone,
 			"description": description,
+			"expected_close": expected_close or None,
+			"source": source,
 		}
 	).insert(ignore_permissions=True)
 	frappe.db.commit()
@@ -107,7 +115,7 @@ def create_lead(company, lead_owner, value=None, contact_name=None, email=None, 
 
 
 @frappe.whitelist()
-def update_lead(name, company=None, lead_owner=None, value=None, contact_name=None, email=None, phone=None, description=None):
+def update_lead(name, company=None, lead_owner=None, value=None, contact_name=None, email=None, phone=None, description=None, expected_close=None, source=None):
 	doc = frappe.get_doc("Duty Lead", name)
 	old_owner = doc.lead_owner
 	if company and company.strip():
@@ -120,6 +128,8 @@ def update_lead(name, company=None, lead_owner=None, value=None, contact_name=No
 	doc.email = email
 	doc.phone = phone
 	doc.description = description
+	doc.expected_close = expected_close or None
+	doc.source = source
 	doc.save(ignore_permissions=True)
 	frappe.db.commit()
 	if doc.lead_owner not in (old_owner, frappe.session.user):
@@ -128,11 +138,23 @@ def update_lead(name, company=None, lead_owner=None, value=None, contact_name=No
 	return get_lead(name)
 
 
+def _auto_note(lead, text):
+	try:
+		frappe.get_doc({"doctype": "Duty Lead Note", "lead": lead, "note": text}).insert(
+			ignore_permissions=True
+		)
+	except Exception:
+		pass
+
+
 @frappe.whitelist()
 def move_lead(name, stage):
 	if stage not in STAGES:
 		frappe.throw(_("Unknown stage."))
+	old_stage = frappe.db.get_value("Duty Lead", name, "stage")
 	frappe.db.set_value("Duty Lead", name, "stage", stage, update_modified=True)
+	if old_stage != stage:
+		_auto_note(name, f"→ {stage}")
 	frappe.db.commit()
 	return get_pipeline()
 
@@ -148,6 +170,7 @@ def close_lead(name, outcome):
 	# retire open tasks on a closed lead
 	for t in frappe.get_all("Daily Todo", filters={"lead": name, "status": "Open"}):
 		frappe.delete_doc("Daily Todo", t.name, ignore_permissions=True, force=True)
+	_auto_note(name, "🏆 Won" if outcome == "Won" else "✖ Lost")
 	frappe.db.commit()
 	if doc.lead_owner != frappe.session.user:
 		_notify(doc.lead_owner, _("Lead {0}: {1}").format(_(outcome), doc.company), "")
@@ -159,6 +182,7 @@ def reopen_lead(name):
 	frappe.db.set_value(
 		"Duty Lead", name, {"status": "Open", "closed_on": None}, update_modified=True
 	)
+	_auto_note(name, _("Reopened"))
 	frappe.db.commit()
 	return {"ok": True}
 
@@ -216,6 +240,8 @@ def get_lead(name):
 		"email": doc.email,
 		"phone": doc.phone,
 		"description": doc.description,
+		"expected_close": str(doc.expected_close) if doc.expected_close else None,
+		"source": doc.source,
 		"tasks": tasks,
 		"notes": notes,
 	}

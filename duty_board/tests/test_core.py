@@ -68,6 +68,12 @@ class TestDutyBoardCore(FrappeTestCase):
 		todo.save(ignore_permissions=True)
 		self.assertEqual(sales.get_lead(lead)["tasks"][0]["status"], "Done")
 
+	def test_stage_move_writes_auto_note(self):
+		lead = sales.create_lead("__Unit Test Prospect 3", lead_owner="Administrator")
+		sales.move_lead(lead, "Contacted")
+		notes = [n["note"] for n in sales.get_lead(lead)["notes"]]
+		self.assertIn("→ Contacted", notes)
+
 	def test_closed_lead_leaves_the_board(self):
 		lead = sales.create_lead("__Unit Test Prospect 2", lead_owner="Administrator", value=100)
 		sales.close_lead(lead, "Won")

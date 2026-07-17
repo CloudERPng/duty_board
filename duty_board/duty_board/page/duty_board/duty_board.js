@@ -1807,6 +1807,8 @@ class DutyBoard {
 				<div class="duty-kb-meta">
 					${owner}
 					<span class="duty-lead-badges">
+						${l.stale_days >= 7 ? `<span class="duty-stale ${l.stale_days >= 14 ? "duty-stale-red" : ""}" title="${__("Days since last touch")}">🕸 ${l.stale_days}d</span>` : ""}
+						${l.expected_close ? `<span class="${l.close_overdue ? "duty-lead-over" : ""}" title="${__("Expected close")}">🎯 ${frappe.datetime.str_to_user(l.expected_close)}</span>` : ""}
 						${l.tasks_open ? `<span class="${l.tasks_overdue ? "duty-lead-over" : ""}">📋 ${l.tasks_open}</span>` : ""}
 						${l.notes ? `<span>📝 ${l.notes}</span>` : ""}
 					</span>
@@ -1882,6 +1884,13 @@ class DutyBoard {
 				{ fieldname: "contact_name", fieldtype: "Data", label: __("Contact Name") },
 				{ fieldname: "email", fieldtype: "Data", label: __("Email") },
 				{ fieldname: "phone", fieldtype: "Data", label: __("Phone") },
+				{ fieldname: "expected_close", fieldtype: "Date", label: __("Expected Close") },
+				{
+					fieldname: "source",
+					fieldtype: "Select",
+					label: __("Source"),
+					options: "\nReferral\nExisting Client\nWebsite\nCold Outreach\nEvent\nOther",
+				},
 				{ fieldname: "description", fieldtype: "Small Text", label: __("What they do & need") },
 			],
 			primary_action_label: __("Create"),
@@ -1925,6 +1934,14 @@ class DutyBoard {
 				{ fieldname: "contact_name", fieldtype: "Data", label: __("Contact Name"), default: x.contact_name },
 				{ fieldname: "email", fieldtype: "Data", label: __("Email"), default: x.email },
 				{ fieldname: "phone", fieldtype: "Data", label: __("Phone"), default: x.phone },
+				{ fieldname: "expected_close", fieldtype: "Date", label: __("Expected Close"), default: x.expected_close || "" },
+				{
+					fieldname: "source",
+					fieldtype: "Select",
+					label: __("Source"),
+					options: "\nReferral\nExisting Client\nWebsite\nCold Outreach\nEvent\nOther",
+					default: x.source || "",
+				},
 				{ fieldname: "description", fieldtype: "Small Text", label: __("What they do & need"), default: x.description },
 				{ fieldname: "extras", fieldtype: "HTML" },
 			],
@@ -3690,6 +3707,8 @@ class DutyBoard {
 			.duty-lead-contact { font-size: var(--text-xs); color: var(--text-muted); }
 			.duty-lead-badges { display: flex; gap: 8px; font-size: var(--text-xs); }
 			.duty-lead-over { color: var(--red-600, #dc2626); font-weight: 700; }
+			.duty-stale { color: #b45309; font-weight: 700; }
+			.duty-stale-red { color: var(--red-600, #dc2626); }
 			.duty-lead-links { margin-bottom: 10px; font-weight: 600; }
 			.duty-lead-section { font-weight: 700; margin: 14px 0 6px; border-top: 1px solid var(--border-color); padding-top: 10px; }
 			.duty-lead-task { display: flex; gap: 8px; align-items: center; padding: 4px 0; cursor: pointer; font-weight: normal; }
