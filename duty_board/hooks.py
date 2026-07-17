@@ -16,3 +16,9 @@ scheduler_events = {
                 "duty_board.document_hub.doctype.client_document.client_document.alert_stale_checkouts",
         ],
 }
+doc_events = {
+	"Daily Todo": {
+		"on_update": "duty_board.projects.on_todo_update",
+		"on_trash": "duty_board.projects.on_todo_trash",
+	}
+}
