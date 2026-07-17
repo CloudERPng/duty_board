@@ -1205,6 +1205,21 @@ def _users_on_leave(user_ids):
 # ---------------- The board ----------------
 
 
+@frappe.whitelist()
+def delete_message(name):
+	"""System Managers only: remove a Duty Room message everywhere.
+	Cascades attached files and reactions, then tells every open client."""
+	if "System Manager" not in frappe.get_roles():
+		frappe.throw(_("Only System Managers can delete messages."))
+	if not frappe.db.exists("Team Message", name):
+		frappe.throw(_("Message not found — perhaps already deleted."))
+	frappe.db.delete("Message Reaction", {"message": name})
+	frappe.delete_doc("Team Message", name, ignore_permissions=True, force=True)
+	frappe.db.commit()
+	frappe.publish_realtime("duty_board_message_deleted", {"name": name})
+	return {"ok": True}
+
+
 def _dm_unread_safe(user):
 	try:
 		from duty_board.dm import get_unread_map

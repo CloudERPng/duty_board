@@ -196,6 +196,13 @@ class DutyBoard {
 		this._sync_timer = setInterval(() => this.sync_messages(), 25 * 1000);
 		frappe.realtime.on("duty_board_notify", (d) => this.notify_event(d));
 		frappe.realtime.on("duty_board_dm", (m) => this.handle_dm(m));
+		frappe.realtime.on("duty_board_message_deleted", (d) => {
+			if (d && d.name) {
+				this.$list.find(`.duty-msg[data-name="${d.name}"]`).fadeOut(200, function () {
+					$(this).remove();
+				});
+			}
+		});
 		this._due_timer = setInterval(() => this.check_due_todos(), 30 * 1000);
 
 		$c.find(".duty-chat-btn").on("click", () => this.send_chat());
@@ -700,6 +707,7 @@ class DutyBoard {
 				<a class="duty-msg-reply" title="${__("Reply")}">↩</a>
 				<a class="duty-msg-react" title="${__("React")}">🙂</a>
 				<a class="duty-msg-issue" title="${__("Raise issue from this message")}">⚠</a>
+				${frappe.user.has_role("System Manager") ? `<a class="duty-msg-del" title="${__("Delete for everyone")}">🗑</a>` : ""}
 				${attach}
 			</div>
 		`);
@@ -712,12 +720,23 @@ class DutyBoard {
 		if (in_search) {
 			const day = m.creation ? frappe.datetime.str_to_user(m.creation).split(" ")[0] : "";
 			$row.find(".duty-msg-time").text(`${day} ${when}`);
-			$row.find(".duty-msg-reply, .duty-msg-react, .duty-msg-issue").remove();
+			$row.find(".duty-msg-reply, .duty-msg-react, .duty-msg-issue, .duty-msg-del").remove();
 		} else {
 			$row.find(".duty-msg-reply").on("click", () => this.set_reply(m));
 			$row.find(".duty-msg-react").on("click", (e) => {
 				e.stopPropagation();
 				this.react_picker($row, m.name);
+			});
+			$row.find(".duty-msg-del").on("click", (e) => {
+				e.stopPropagation();
+				frappe.confirm(
+					__("Delete this message for everyone? Attachments go with it. This cannot be undone."),
+					() =>
+						frappe.call({
+							method: "duty_board.api.delete_message",
+							args: { name: m.name },
+						})
+				);
 			});
 			$row.find(".duty-msg-issue").on("click", (e) => {
 				e.stopPropagation();
@@ -3710,6 +3729,12 @@ class DutyBoard {
 				font-size: var(--text-sm); opacity: 0.7;
 			}
 			.duty-msg:hover .duty-msg-issue { visibility: visible; }
+			.duty-msg-del {
+				cursor: pointer; visibility: hidden; font-size: var(--text-xs);
+				margin-left: 4px; opacity: 0.6; text-decoration: none;
+			}
+			.duty-msg-del:hover { opacity: 1; }
+			.duty-msg:hover .duty-msg-del { visibility: visible; }
 			.duty-issue-detail-head { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; font-size: var(--text-base); }
 			.duty-issue-meta { margin-top: 4px; }
 			.duty-issue-desc { margin: 10px 0; white-space: pre-wrap; }
