@@ -2,7 +2,7 @@ import frappe
 from frappe.tests.utils import FrappeTestCase
 
 from duty_board.api import _is_break, user_day_window
-from duty_board import projects
+from duty_board import projects, sales
 
 
 class TestDutyBoardCore(FrappeTestCase):
@@ -55,6 +55,29 @@ class TestDutyBoardCore(FrappeTestCase):
 		self.assertEqual(
 			frappe.db.get_value("Duty Project Task", card_name, "column"), "Completed"
 		)
+
+	def test_lead_task_rides_the_plan(self):
+		lead = sales.create_lead("__Unit Test Prospect", lead_owner="Administrator", value=500000)
+		payload = sales.add_lead_task(lead, "Call the MD", assignee="Administrator")
+		task = payload["tasks"][0]
+		todo = frappe.get_doc("Daily Todo", task["name"])
+		self.assertEqual(todo.lead, lead)
+		self.assertEqual(todo.lead_title, "__Unit Test Prospect")
+		# done from the plan side is done on the lead
+		todo.status = "Done"
+		todo.save(ignore_permissions=True)
+		self.assertEqual(sales.get_lead(lead)["tasks"][0]["status"], "Done")
+
+	def test_closed_lead_leaves_the_board(self):
+		lead = sales.create_lead("__Unit Test Prospect 2", lead_owner="Administrator", value=100)
+		sales.close_lead(lead, "Won")
+		open_names = [
+			l["name"]
+			for col in sales.get_pipeline()["pipeline"].values()
+			for l in col["leads"]
+		]
+		self.assertNotIn(lead, open_names)
+		self.assertIn(lead, [r["name"] for r in sales.get_closed_leads("Won")])
 
 	def test_move_task_rejects_unknown_column(self):
 		proj = projects.create_project("__Unit Test Project 2", customer=self._any_customer())
