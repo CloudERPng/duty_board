@@ -252,6 +252,8 @@ class DutyBoard {
 	}
 
 	check_due_todos() {
+		if (this._halted) return;
+		if (frappe.get_route_str() !== "duty-board") return;
 		this._due_alerted = this._due_alerted || {};
 		const now = new Date();
 		(this.my_todos || []).forEach((t) => {
@@ -333,12 +335,18 @@ class DutyBoard {
 
 	sync_messages() {
 		if (this._halted || this.search_mode) return;
+		if (frappe.get_route_str() !== "duty-board") return;
 		const latest = this.latest_creation();
 		if (!latest) return;
 		frappe.call({
 			method: "duty_board.api.get_messages",
 			args: { after: latest },
+			error: () => {
+				this._fail_count = (this._fail_count || 0) + 1;
+				if (this._fail_count >= 3) this.halt_polling();
+			},
 			callback: (r) => {
+				this._fail_count = 0;
 				const msgs = (r.message && r.message.messages) || [];
 				msgs.forEach((m) => this.handle_incoming(m));
 			},
