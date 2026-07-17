@@ -22,6 +22,7 @@ frappe.pages["duty-board"].on_page_load = function (wrapper) {
 
 	board.face_btn = page.set_secondary_action(__("⇄ Projects"), () => board.toggle_face());
 	board.sales_btn = page.add_inner_button(__("💼 Sales"), () => board.toggle_sales());
+	page.add_inner_button(__("📄 Document Hub"), () => frappe.set_route("List", "Client Document"));
 
 	board.timer = setInterval(() => {
 		if (board._halted) return;
