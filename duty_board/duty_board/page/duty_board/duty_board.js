@@ -21,8 +21,10 @@ frappe.pages["duty-board"].on_page_load = function (wrapper) {
 	board.refresh();
 
 	board.timer = setInterval(() => {
+		if (board._halted) return;
 		if (frappe.get_route_str() === "duty-board") board.refresh(true);
 	}, 60 * 1000);
+	board.main_timer = board.timer;
 };
 
 class DutyBoard {
@@ -330,7 +332,7 @@ class DutyBoard {
 	}
 
 	sync_messages() {
-		if (this.search_mode) return;
+		if (this._halted || this.search_mode) return;
 		const latest = this.latest_creation();
 		if (!latest) return;
 		frappe.call({
@@ -420,6 +422,25 @@ class DutyBoard {
 		const b = (s + pad).replace(/-/g, "+").replace(/_/g, "/");
 		const raw = atob(b);
 		return Uint8Array.from([...raw].map((c) => c.charCodeAt(0)));
+	}
+
+	halt_polling() {
+		if (this._halted) return;
+		this._halted = true;
+		clearInterval(this.main_timer);
+		clearInterval(this._sync_timer);
+		clearInterval(this._due_timer);
+		this.stop_title_flash();
+		frappe.msgprint({
+			title: __("Connection lost"),
+			message: __(
+				"Duty Board can no longer reach the server — your session has probably expired. Please log in again, then reopen the board."
+			),
+			primary_action: {
+				label: __("Log in again"),
+				action: () => (window.location.href = "/login?redirect-to=/app/duty-board"),
+			},
+		});
 	}
 
 	toggle_chat(open) {
@@ -946,10 +967,18 @@ class DutyBoard {
 	}
 
 	refresh(silent) {
+		if (this._halted) return;
 		frappe.call({
 			method: "duty_board.api.get_board",
 			freeze: !silent,
-			callback: (r) => r.message && this.render(r.message),
+			error: () => {
+				this._fail_count = (this._fail_count || 0) + 1;
+				if (this._fail_count >= 3) this.halt_polling();
+			},
+			callback: (r) => {
+				this._fail_count = 0;
+				if (r.message) this.render(r.message);
+			},
 		});
 	}
 
