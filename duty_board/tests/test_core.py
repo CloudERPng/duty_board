@@ -17,13 +17,24 @@ class TestDutyBoardCore(FrappeTestCase):
 		self.assertLess(start, end)
 		self.assertAlmostEqual((end - start).total_seconds(), 86399, delta=5)
 
+	def _any_customer(self):
+		rows = frappe.get_all("Customer", limit=1)
+		if not rows:
+			self.skipTest("no Customer on this site")
+		return rows[0].name
+
 	def test_card_todo_sync_both_ways(self):
-		proj = projects.create_project("__Unit Test Project")
+		proj = projects.create_project("__Unit Test Project", customer=self._any_customer())
 		board = projects.create_task(proj, "Sync test card", assignee="Administrator")
 		card_name = board["tasks"]["To Do"][0]["name"]
 		linked = frappe.db.get_value("Duty Project Task", card_name, "linked_todo")
 		self.assertTrue(linked, "assignment should create a linked todo")
 		self.assertEqual(frappe.db.get_value("Daily Todo", linked, "status"), "Open")
+		self.assertEqual(
+			frappe.db.get_value("Daily Todo", linked, "customer"),
+			frappe.db.get_value("Duty Project", proj, "customer"),
+			"todo should inherit the project's customer",
+		)
 
 		# card -> Completed ticks the todo
 		projects.move_task(card_name, "Completed")
@@ -46,7 +57,7 @@ class TestDutyBoardCore(FrappeTestCase):
 		)
 
 	def test_move_task_rejects_unknown_column(self):
-		proj = projects.create_project("__Unit Test Project 2")
+		proj = projects.create_project("__Unit Test Project 2", customer=self._any_customer())
 		board = projects.create_task(proj, "Column guard")
 		card_name = board["tasks"]["To Do"][0]["name"]
 		with self.assertRaises(frappe.ValidationError):

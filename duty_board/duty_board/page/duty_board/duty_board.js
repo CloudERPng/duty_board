@@ -1454,6 +1454,10 @@ class DutyBoard {
 
 	// ---------------- Projects face ----------------
 
+	proj_color(name) {
+		return this.user_color("proj:" + name);
+	}
+
 	show_face(face) {
 		this.face = face;
 		this.body.toggle(face === "board");
@@ -1504,9 +1508,11 @@ class DutyBoard {
 			const bits = [`${p.total} ${__("tasks")}`, `✓ ${p.done}`];
 			if (p.overdue) bits.push(`<span class="duty-proj-over">⚠ ${p.overdue}</span>`);
 			if (p.suspended) bits.push(`⏸ ${p.suspended}`);
+			const pc = this.proj_color(p.name);
 			$(`
-				<a class="duty-proj-tab ${p.name === this.current_project ? "active" : ""}" data-name="${p.name}">
-					<span class="duty-proj-name">${frappe.utils.escape_html(p.project_name)}</span>
+				<a class="duty-proj-tab ${p.name === this.current_project ? "active" : ""}" data-name="${p.name}" style="border-left: 4px solid ${pc}">
+					<span class="duty-proj-name" style="color:${pc}">${frappe.utils.escape_html(p.project_name)}</span>
+					${p.customer ? `<span class="duty-proj-cust">${frappe.utils.escape_html(p.customer)}</span>` : ""}
 					<span class="duty-proj-stats">${bits.join(" · ")}</span>
 				</a>
 			`)
@@ -1533,7 +1539,7 @@ class DutyBoard {
 			? `<span style="color:${this.user_color(t.assignee)}">${frappe.utils.escape_html((this.name_map[t.assignee] || t.assignee).split(" ")[0])}</span>`
 			: `<span class="text-muted">${__("unassigned")}</span>`;
 		return `
-			<div class="duty-kb-card" draggable="true" data-name="${t.name}">
+			<div class="duty-kb-card" draggable="true" data-name="${t.name}" style="border-left: 3px solid ${this._kb_color || "var(--border-color)"}">
 				<div class="duty-kb-top">
 					<span class="duty-sev duty-sev-${(t.urgency || "medium").toLowerCase()}">${__(t.urgency)}</span>
 					${t.due_date ? `<span class="duty-kb-due ${t.overdue ? "duty-issue-overdue" : ""}">${t.overdue ? "⚠ " : ""}${frappe.datetime.str_to_user(t.due_date)}</span>` : ""}
@@ -1547,9 +1553,13 @@ class DutyBoard {
 		if (project !== this.current_project) return;
 		const $wrap = this.$projects.find(".duty-kanban-wrap").empty();
 		const proj = (this._projects || []).find((p) => p.name === project);
+		this._kb_color = this.proj_color(project);
 		const $bar = $(`
 			<div class="duty-kb-bar">
-				<b>${frappe.utils.escape_html(proj ? proj.project_name : project)}</b>
+				<span>
+					<b style="color:${this._kb_color}">${frappe.utils.escape_html(proj ? proj.project_name : project)}</b>
+					${proj && proj.customer ? `<span class="duty-proj-cust-inline">· ${frappe.utils.escape_html(proj.customer)}</span>` : ""}
+				</span>
 				<a class="duty-proj-archive">${__("Archive project")}</a>
 			</div>
 		`).appendTo($wrap);
@@ -1710,11 +1720,14 @@ class DutyBoard {
 
 	new_project_dialog() {
 		frappe.prompt(
-			{ fieldname: "project_name", fieldtype: "Data", label: __("Project name"), reqd: 1 },
+			[
+				{ fieldname: "project_name", fieldtype: "Data", label: __("Project name"), reqd: 1 },
+				{ fieldname: "customer", fieldtype: "Link", label: __("Customer"), options: "Customer", reqd: 1 },
+			],
 			(v) => {
 				frappe.call({
 					method: "duty_board.projects.create_project",
-					args: { project_name: v.project_name },
+					args: { project_name: v.project_name, customer: v.customer },
 					callback: (r) => {
 						this.current_project = r.message;
 						localStorage.setItem("duty_proj", r.message);
@@ -3286,6 +3299,16 @@ class DutyBoard {
 				border: 1px solid var(--border-color); border-radius: 10px; padding: 10px;
 			}
 			.duty-kb-col-head { font-weight: 700; margin-bottom: 8px; display: flex; justify-content: space-between; }
+			.duty-kb-col[data-col="To Do"] { border-top: 3px solid #64748b; }
+			.duty-kb-col[data-col="To Do"] .duty-kb-col-head { color: #475569; }
+			.duty-kb-col[data-col="In Progress"] { border-top: 3px solid #d97706; }
+			.duty-kb-col[data-col="In Progress"] .duty-kb-col-head { color: #b45309; }
+			.duty-kb-col[data-col="Completed"] { border-top: 3px solid #16a34a; }
+			.duty-kb-col[data-col="Completed"] .duty-kb-col-head { color: #15803d; }
+			.duty-kb-col[data-col="Suspended"] { border-top: 3px solid #7c3aed; }
+			.duty-kb-col[data-col="Suspended"] .duty-kb-col-head { color: #6d28d9; }
+			.duty-proj-cust { font-size: var(--text-xs); color: var(--text-color); font-weight: 600; }
+			.duty-proj-cust-inline { font-size: var(--text-sm); color: var(--text-muted); font-weight: 600; }
 			.duty-kb-count { color: var(--text-muted); font-weight: 600; }
 			.duty-kb-add { margin-bottom: 8px; font-size: 16px; }
 			.duty-kb-cards { min-height: 40px; display: flex; flex-direction: column; gap: 8px; }

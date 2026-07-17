@@ -27,7 +27,7 @@ def get_projects():
 	projects = frappe.get_all(
 		"Duty Project",
 		filters={"status": "Active"},
-		fields=["name", "project_name"],
+		fields=["name", "project_name", "customer"],
 		order_by="creation asc",
 	)
 	if not projects:
@@ -54,12 +54,21 @@ def get_projects():
 
 
 @frappe.whitelist()
-def create_project(project_name):
+def create_project(project_name, customer=None):
 	project_name = (project_name or "").strip()
 	if not project_name:
 		frappe.throw(_("Give the project a name."))
+	if not customer:
+		frappe.throw(_("Every project belongs to a customer — pick one."))
+	if not frappe.db.exists("Customer", customer):
+		frappe.throw(_("Unknown customer."))
 	doc = frappe.get_doc(
-		{"doctype": "Duty Project", "project_name": project_name, "status": "Active"}
+		{
+			"doctype": "Duty Project",
+			"project_name": project_name,
+			"customer": customer,
+			"status": "Active",
+		}
 	).insert(ignore_permissions=True)
 	frappe.db.commit()
 	return doc.name
@@ -177,7 +186,10 @@ def delete_task(name):
 def _ensure_todo(card):
 	from duty_board.api import user_today
 
-	project_name = frappe.db.get_value("Duty Project", card.project, "project_name") or card.project
+	proj = frappe.db.get_value(
+		"Duty Project", card.project, ["project_name", "customer"], as_dict=True
+	) or frappe._dict()
+	project_name = proj.project_name or card.project
 	target_today = user_today(card.assignee)
 	date = getdate(card.due_date) if card.due_date else target_today
 	if date < target_today:
@@ -190,6 +202,7 @@ def _ensure_todo(card):
 			"description": card.title,
 			"status": "Done" if card.column == "Completed" else "Open",
 			"assigned_by": frappe.session.user if frappe.session.user != card.assignee else None,
+			"customer": proj.customer,
 			"project_task": card.name,
 			"project": project_name,
 		}
