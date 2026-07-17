@@ -12,6 +12,11 @@ from frappe.utils import cint, flt, getdate, today
 STAGES = ["New", "Contacted", "Qualified", "Proposal", "Negotiation"]
 
 
+def _sees_value():
+	roles = frappe.get_roles()
+	return "Sales Manager" in roles or "System Manager" in roles
+
+
 def _notify(user, title, body):
 	try:
 		from duty_board.api import _notify_user
@@ -54,18 +59,23 @@ def get_pipeline():
 		):
 			note_counts[n.lead] = n.cnt
 
-	stages = {s: {"leads": [], "count": 0, "value": 0} for s in STAGES}
+	sv = _sees_value()
+	stages = {s: {"leads": [], "count": 0, "value": 0 if sv else None} for s in STAGES}
 	for l in leads:
-		l.value = flt(l.value)
+		l.value = flt(l.value) if sv else None
 		l.tasks_open = task_stats.get(l.name, {}).get("open", 0)
 		l.tasks_overdue = task_stats.get(l.name, {}).get("overdue", 0)
 		l.notes = note_counts.get(l.name, 0)
 		col = stages.get(l.stage) or stages["New"]
 		col["leads"].append(l)
 		col["count"] += 1
-		col["value"] += l.value
-	total = {"count": len(leads), "value": sum(s["value"] for s in stages.values())}
-	return {"stages": STAGES, "pipeline": stages, "total": total}
+		if sv:
+			col["value"] += l.value
+	total = {
+		"count": len(leads),
+		"value": sum(s["value"] for s in stages.values()) if sv else None,
+	}
+	return {"stages": STAGES, "pipeline": stages, "total": total, "show_values": sv}
 
 
 @frappe.whitelist()
@@ -104,7 +114,8 @@ def update_lead(name, company=None, lead_owner=None, value=None, contact_name=No
 		doc.company = company.strip()
 	if lead_owner:
 		doc.lead_owner = lead_owner
-	doc.value = flt(value)
+	if _sees_value():
+		doc.value = flt(value)
 	doc.contact_name = contact_name
 	doc.email = email
 	doc.phone = phone
@@ -163,8 +174,9 @@ def get_closed_leads(outcome):
 		order_by="closed_on desc, modified desc",
 		limit=200,
 	)
+	sv = _sees_value()
 	for r in rows:
-		r.value = flt(r.value)
+		r.value = flt(r.value) if sv else None
 		r.closed_on = str(r.closed_on) if r.closed_on else None
 	return rows
 
@@ -175,12 +187,13 @@ def get_lead(name):
 	tasks = frappe.get_all(
 		"Daily Todo",
 		filters={"lead": name},
-		fields=["name", "description", "date", "status", "user"],
-		order_by="date asc, creation asc",
+		fields=["name", "description", "date", "due_time", "status", "user"],
+		order_by="date asc, due_time asc, creation asc",
 	)
 	tday = getdate(today())
 	for t in tasks:
 		t.date = str(t.date) if t.date else None
+		t.due_time = str(t.due_time)[:5] if t.due_time else None
 		t.overdue = bool(t.date and t.status == "Open" and getdate(t.date) < tday)
 	notes = frappe.get_all(
 		"Duty Lead Note",
@@ -197,7 +210,8 @@ def get_lead(name):
 		"lead_owner": doc.lead_owner,
 		"stage": doc.stage,
 		"status": doc.status,
-		"value": flt(doc.value),
+		"value": flt(doc.value) if _sees_value() else None,
+		"can_edit_value": _sees_value(),
 		"contact_name": doc.contact_name,
 		"email": doc.email,
 		"phone": doc.phone,
@@ -208,7 +222,7 @@ def get_lead(name):
 
 
 @frappe.whitelist()
-def add_lead_task(lead, description, date=None, assignee=None):
+def add_lead_task(lead, description, date=None, time=None, assignee=None):
 	description = (description or "").strip()
 	if not description:
 		frappe.throw(_("Describe the task."))
@@ -227,6 +241,7 @@ def add_lead_task(lead, description, date=None, assignee=None):
 			"date": d,
 			"description": description,
 			"status": "Open",
+			"due_time": time or None,
 			"assigned_by": frappe.session.user if frappe.session.user != assignee else None,
 			"lead": lead,
 			"lead_title": doc.company,

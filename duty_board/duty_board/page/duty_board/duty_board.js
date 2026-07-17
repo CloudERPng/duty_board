@@ -1774,6 +1774,7 @@ class DutyBoard {
 	// ---------------- Sales face ----------------
 
 	naira(v) {
+		if (v === null || v === undefined) return "";
 		try {
 			return format_currency(v || 0, frappe.boot.sysdefaults.currency);
 		} catch (e) {
@@ -1817,7 +1818,10 @@ class DutyBoard {
 		this.$sales
 			.find(".duty-sales-total")
 			.html(
-				`💼 <b>${__("Pipeline")}</b> · ${data.total.count} ${__("leads")} · <b class="duty-lead-value">${this.naira(data.total.value)}</b> ${__("open")}`
+				`💼 <b>${__("Pipeline")}</b> · ${data.total.count} ${__("leads")}` +
+					(data.show_values && data.total.value != null
+						? ` · <b class="duty-lead-value">${this.naira(data.total.value)}</b> ${__("open")}`
+						: "")
 			);
 		const $wrap = this.$sales.find(".duty-sales-wrap").empty();
 		const $board = $(`<div class="duty-kanban duty-sales-kanban"></div>`).appendTo($wrap);
@@ -1915,7 +1919,9 @@ class DutyBoard {
 					options: this.staff_options().filter((o) => o.value),
 					default: x.lead_owner,
 				},
-				{ fieldname: "value", fieldtype: "Currency", label: __("Lead Value"), default: x.value },
+				...(x.can_edit_value
+					? [{ fieldname: "value", fieldtype: "Currency", label: __("Lead Value"), default: x.value }]
+					: []),
 				{ fieldname: "contact_name", fieldtype: "Data", label: __("Contact Name"), default: x.contact_name },
 				{ fieldname: "email", fieldtype: "Data", label: __("Email"), default: x.email },
 				{ fieldname: "phone", fieldtype: "Data", label: __("Phone"), default: x.phone },
@@ -1946,6 +1952,7 @@ class DutyBoard {
 						<input type="checkbox" data-name="${t.name}" ${t.status === "Done" ? "checked" : ""}>
 						<span>${frappe.utils.escape_html(t.description)}</span>
 						${t.date ? `<span class="duty-kb-due ${t.overdue ? "duty-issue-overdue" : ""}">${frappe.datetime.str_to_user(t.date)}</span>` : ""}
+						${t.due_time ? `<span class="duty-time-chip">${t.due_time}</span>` : ""}
 						<span style="color:${this.user_color(t.user)}">${frappe.utils.escape_html((this.name_map[t.user] || t.user).split(" ")[0])}</span>
 					</label>`
 					)
@@ -1954,6 +1961,7 @@ class DutyBoard {
 			<div class="duty-lead-addtask">
 				<input type="text" class="form-control input-sm duty-lt-desc" placeholder="${__("New task...")}">
 				<input type="date" class="form-control input-sm duty-lt-date">
+				<input type="time" class="form-control input-sm duty-lt-time">
 				<select class="form-control input-sm duty-lt-who">
 					${this.staff_options().filter((o) => o.value).map((o) => `<option value="${o.value}" ${o.value === x.lead_owner ? "selected" : ""}>${frappe.utils.escape_html(o.label)}</option>`).join("")}
 				</select>
@@ -1991,6 +1999,7 @@ class DutyBoard {
 					lead: x.name,
 					description: desc,
 					date: $x.find(".duty-lt-date").val() || null,
+					time: $x.find(".duty-lt-time").val() || null,
 					assignee: $x.find(".duty-lt-who").val(),
 				},
 				callback: (r) => r.message && this.render_lead_dialog(r.message),
@@ -3688,7 +3697,8 @@ class DutyBoard {
 			.duty-lead-task-done span:first-of-type { text-decoration: line-through; color: var(--text-muted); }
 			.duty-lead-addtask { display: flex; gap: 6px; margin-top: 8px; }
 			.duty-lead-addtask .duty-lt-desc { flex: 2; font-size: 16px; }
-			.duty-lead-addtask .duty-lt-date, .duty-lead-addtask .duty-lt-who { flex: 1; }
+			.duty-lead-addtask .duty-lt-date, .duty-lead-addtask .duty-lt-time, .duty-lead-addtask .duty-lt-who { flex: 1; min-width: 90px; }
+			.duty-lead-addtask { flex-wrap: wrap; }
 			.duty-lead-note { padding: 6px 0; border-bottom: 1px dashed var(--border-color); }
 			.duty-lead-addnote { margin-top: 8px; }
 			.duty-lead-addnote input { font-size: 16px; }
