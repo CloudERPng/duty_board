@@ -20,9 +20,13 @@ frappe.pages["duty-board"].on_page_load = function (wrapper) {
 	const board = new DutyBoard(page);
 	board.refresh();
 
+	board.face_btn = page.set_secondary_action(__("⇄ Projects"), () => board.toggle_face());
+
 	board.timer = setInterval(() => {
 		if (board._halted) return;
-		if (frappe.get_route_str() === "duty-board") board.refresh(true);
+		if (frappe.get_route_str() !== "duty-board") return;
+		if (board.face === "projects") board.refresh_projects(true);
+		else board.refresh(true);
 	}, 60 * 1000);
 	board.main_timer = board.timer;
 };
@@ -57,6 +61,17 @@ class DutyBoard {
 				</div>
 			</div>
 		`).appendTo(page.body);
+		this.face = "board";
+		this.$projects = $(`
+			<div class="duty-projects" style="display:none">
+				<div class="duty-proj-head">
+					<div class="duty-proj-tabs"></div>
+					<button class="btn btn-sm btn-default duty-proj-new">＋ ${__("New Project")}</button>
+				</div>
+				<div class="duty-kanban-wrap"></div>
+			</div>
+		`).appendTo(page.body);
+		this.$projects.find(".duty-proj-new").on("click", () => this.new_project_dialog());
 		this.name_map = {};
 		this.inject_style();
 		this.setup_pwa();
@@ -366,6 +381,7 @@ class DutyBoard {
 				<a data-tab="plan"><span>✓</span>${__("Plan")}</a>
 				<a data-tab="issues"><span>⚠</span>${__("Issues")}<b class="duty-tab-badge duty-tab-issues" style="display:none"></b></a>
 				<a data-tab="chat"><span>💬</span>${__("Chat")}<b class="duty-tab-badge duty-tab-chat" style="display:none"></b></a>
+				<a data-tab="projects"><span>📁</span>${__("Projects")}</a>
 			</div>
 		`).appendTo("body");
 		$bar.find("a").on("click", (e) => this.set_mtab($(e.currentTarget).data("tab")));
@@ -375,7 +391,12 @@ class DutyBoard {
 	set_mtab(tab) {
 		this.mtab = tab;
 		localStorage.setItem("duty_mtab", tab);
-		this.body.attr("data-mtab", tab);
+		if (tab === "projects") {
+			this.show_face("projects");
+		} else {
+			this.show_face("board");
+			this.body.attr("data-mtab", tab);
+		}
 		$(".duty-tabbar a")
 			.removeClass("active")
 			.filter(`[data-tab="${tab}"]`)
@@ -1431,6 +1452,281 @@ class DutyBoard {
 		}
 	}
 
+	// ---------------- Projects face ----------------
+
+	show_face(face) {
+		this.face = face;
+		this.body.toggle(face === "board");
+		this.$projects.toggle(face === "projects");
+		if (this.face_btn) {
+			this.face_btn.text(face === "projects" ? `⇄ ${__("Board")}` : `⇄ ${__("Projects")}`);
+		}
+		if (face === "projects") this.refresh_projects();
+	}
+
+	toggle_face() {
+		this.show_face(this.face === "projects" ? "board" : "projects");
+	}
+
+	refresh_projects(silent) {
+		frappe.call({
+			method: "duty_board.projects.get_projects",
+			freeze: false,
+			error: () => {
+				this._fail_count = (this._fail_count || 0) + 1;
+				if (this._fail_count >= 3) this.halt_polling();
+			},
+			callback: (r) => {
+				this._fail_count = 0;
+				this._projects = r.message || [];
+				this.render_project_tabs();
+				const remembered = localStorage.getItem("duty_proj");
+				if (!this.current_project && remembered && this._projects.find((p) => p.name === remembered)) {
+					this.current_project = remembered;
+				}
+				if (this.current_project && !this._projects.find((p) => p.name === this.current_project)) {
+					this.current_project = null;
+				}
+				if (!this.current_project && this._projects.length) {
+					this.current_project = this._projects[0].name;
+				}
+				if (this.current_project) this.load_kanban(this.current_project);
+				else this.$projects.find(".duty-kanban-wrap").html(
+					`<div class="text-muted duty-plan-empty">${__("No projects yet — create the first one.")}</div>`
+				);
+			},
+		});
+	}
+
+	render_project_tabs() {
+		const $tabs = this.$projects.find(".duty-proj-tabs").empty();
+		(this._projects || []).forEach((p) => {
+			const bits = [`${p.total} ${__("tasks")}`, `✓ ${p.done}`];
+			if (p.overdue) bits.push(`<span class="duty-proj-over">⚠ ${p.overdue}</span>`);
+			if (p.suspended) bits.push(`⏸ ${p.suspended}`);
+			$(`
+				<a class="duty-proj-tab ${p.name === this.current_project ? "active" : ""}" data-name="${p.name}">
+					<span class="duty-proj-name">${frappe.utils.escape_html(p.project_name)}</span>
+					<span class="duty-proj-stats">${bits.join(" · ")}</span>
+				</a>
+			`)
+				.appendTo($tabs)
+				.on("click", () => {
+					this.current_project = p.name;
+					localStorage.setItem("duty_proj", p.name);
+					this.render_project_tabs();
+					this.load_kanban(p.name);
+				});
+		});
+	}
+
+	load_kanban(project) {
+		frappe.call({
+			method: "duty_board.projects.get_project_board",
+			args: { project: project },
+			callback: (r) => r.message && this.render_kanban(project, r.message),
+		});
+	}
+
+	kb_card(t) {
+		const who = t.assignee
+			? `<span style="color:${this.user_color(t.assignee)}">${frappe.utils.escape_html((this.name_map[t.assignee] || t.assignee).split(" ")[0])}</span>`
+			: `<span class="text-muted">${__("unassigned")}</span>`;
+		return `
+			<div class="duty-kb-card" draggable="true" data-name="${t.name}">
+				<div class="duty-kb-top">
+					<span class="duty-sev duty-sev-${(t.urgency || "medium").toLowerCase()}">${__(t.urgency)}</span>
+					${t.due_date ? `<span class="duty-kb-due ${t.overdue ? "duty-issue-overdue" : ""}">${t.overdue ? "⚠ " : ""}${frappe.datetime.str_to_user(t.due_date)}</span>` : ""}
+				</div>
+				<div class="duty-kb-title">${frappe.utils.escape_html(t.title)}</div>
+				<div class="duty-kb-meta">${who}</div>
+			</div>`;
+	}
+
+	render_kanban(project, data) {
+		if (project !== this.current_project) return;
+		const $wrap = this.$projects.find(".duty-kanban-wrap").empty();
+		const proj = (this._projects || []).find((p) => p.name === project);
+		const $bar = $(`
+			<div class="duty-kb-bar">
+				<b>${frappe.utils.escape_html(proj ? proj.project_name : project)}</b>
+				<a class="duty-proj-archive">${__("Archive project")}</a>
+			</div>
+		`).appendTo($wrap);
+		$bar.find(".duty-proj-archive").on("click", () =>
+			frappe.confirm(__("Archive this project? Its board disappears from the tabs (nothing is deleted)."), () =>
+				frappe.call({
+					method: "duty_board.projects.archive_project",
+					args: { name: project },
+					callback: () => {
+						this.current_project = null;
+						this.refresh_projects();
+					},
+				})
+			)
+		);
+		const $board = $(`<div class="duty-kanban"></div>`).appendTo($wrap);
+		(data.columns || []).forEach((col) => {
+			const cards = (data.tasks && data.tasks[col]) || [];
+			const $col = $(`
+				<div class="duty-kb-col" data-col="${col}">
+					<div class="duty-kb-col-head">${__(col)} <span class="duty-kb-count">${cards.length}</span></div>
+					${col === "To Do" ? `<input type="text" class="form-control input-sm duty-kb-add" placeholder="${__("Add a task and press Enter...")}">` : ""}
+					<div class="duty-kb-cards" data-col="${col}">
+						${cards.map((t) => this.kb_card(t)).join("")}
+					</div>
+				</div>
+			`).appendTo($board);
+
+			$col.find(".duty-kb-add").on("keydown", (e) => {
+				if (e.key !== "Enter") return;
+				const title = e.target.value.trim();
+				if (!title) return;
+				e.target.value = "";
+				frappe.call({
+					method: "duty_board.projects.create_task",
+					args: { project: project, title: title },
+					callback: (r) => r.message && this.render_kanban(project, r.message),
+				});
+			});
+
+			$col.on("dragover", (e) => {
+				e.preventDefault();
+				$col.addClass("duty-kb-over");
+			});
+			$col.on("dragleave drop", () => $col.removeClass("duty-kb-over"));
+			$col.on("drop", (e) => {
+				e.preventDefault();
+				const name = e.originalEvent.dataTransfer.getData("text");
+				if (!name) return;
+				frappe.call({
+					method: "duty_board.projects.move_task",
+					args: { name: name, column: col },
+					callback: (r) => {
+						if (r.message) this.render_kanban(project, r.message);
+						this.refresh_projects_counts();
+					},
+				});
+			});
+		});
+
+		const task_index = {};
+		(data.columns || []).forEach((c) =>
+			((data.tasks && data.tasks[c]) || []).forEach((t) => (task_index[t.name] = t))
+		);
+		$board.find(".duty-kb-card").each((_, el) => {
+			const $card = $(el);
+			el.addEventListener("dragstart", (e) => {
+				e.dataTransfer.setData("text", $card.data("name"));
+			});
+			$card.on("click", () => this.task_dialog(project, task_index[$card.data("name")]));
+		});
+	}
+
+	refresh_projects_counts() {
+		frappe.call({
+			method: "duty_board.projects.get_projects",
+			callback: (r) => {
+				this._projects = r.message || [];
+				this.render_project_tabs();
+			},
+		});
+	}
+
+	staff_options() {
+		return [{ label: __("Unassigned"), value: "" }].concat(
+			[{ user: frappe.session.user, full_name: __("Me") }]
+				.concat(this.team_members())
+				.map((x) => ({ label: x.full_name, value: x.user }))
+		);
+	}
+
+	task_dialog(project, t) {
+		if (!t) return;
+		const d = new frappe.ui.Dialog({
+			title: frappe.utils.escape_html(t.title.slice(0, 50)),
+			fields: [
+				{ fieldname: "title", fieldtype: "Data", label: __("Task"), default: t.title, reqd: 1 },
+				{
+					fieldname: "assignee",
+					fieldtype: "Autocomplete",
+					label: __("Assign to"),
+					options: this.staff_options(),
+					default: t.assignee || "",
+					description: __("Assigning puts this on their daily plan — done there is done here."),
+				},
+				{ fieldname: "due_date", fieldtype: "Date", label: __("Due Date"), default: t.due_date || "" },
+				{
+					fieldname: "urgency",
+					fieldtype: "Select",
+					label: __("Urgency"),
+					options: "Low\nMedium\nHigh\nCritical",
+					default: t.urgency || "Medium",
+				},
+				{
+					fieldname: "column",
+					fieldtype: "Select",
+					label: __("Column"),
+					options: "To Do\nIn Progress\nCompleted\nSuspended",
+					default: t.column,
+				},
+			],
+			primary_action_label: __("Save"),
+			primary_action: (v) => {
+				d.hide();
+				frappe.call({
+					method: "duty_board.projects.update_task",
+					args: {
+						name: t.name,
+						title: v.title,
+						assignee: v.assignee || null,
+						due_date: v.due_date || null,
+						urgency: v.urgency,
+						column: v.column,
+					},
+					callback: (r) => {
+						if (r.message) this.render_kanban(project, r.message);
+						this.refresh_projects_counts();
+					},
+				});
+			},
+			secondary_action_label: __("Delete"),
+			secondary_action: () => {
+				frappe.confirm(__("Delete this task?"), () => {
+					d.hide();
+					frappe.call({
+						method: "duty_board.projects.delete_task",
+						args: { name: t.name },
+						callback: (r) => {
+							if (r.message) this.render_kanban(project, r.message);
+							this.refresh_projects_counts();
+						},
+					});
+				});
+			},
+		});
+		d.show();
+	}
+
+	new_project_dialog() {
+		frappe.prompt(
+			{ fieldname: "project_name", fieldtype: "Data", label: __("Project name"), reqd: 1 },
+			(v) => {
+				frappe.call({
+					method: "duty_board.projects.create_project",
+					args: { project_name: v.project_name },
+					callback: (r) => {
+						this.current_project = r.message;
+						localStorage.setItem("duty_proj", r.message);
+						this.refresh_projects();
+					},
+				});
+			},
+			__("New Project"),
+			__("Create")
+		);
+	}
+
 	note_dialog(session, activity, can_add) {
 		const d = new frappe.ui.Dialog({
 			title: __("Notes — {0}", [frappe.utils.escape_html((activity || "").slice(0, 40))]),
@@ -2103,6 +2399,8 @@ class DutyBoard {
 
 	todo_chips(t) {
 		let chips = "";
+		if (t.project)
+			chips += `<span class="duty-proj-chip">📁 ${frappe.utils.escape_html(t.project)}</span>`;
 		if (t.due_time) chips += `<span class="duty-time-chip">${t.due_time}</span>`;
 		if (t.customer)
 			chips += `<span class="duty-task-customer">${frappe.utils.escape_html(t.customer)}</span>`;
@@ -2963,6 +3261,46 @@ class DutyBoard {
 			.duty-history-day {
 				font-weight: 700; margin: 12px 0 4px; color: var(--text-muted);
 				font-size: var(--text-xs); text-transform: uppercase; letter-spacing: 0.04em;
+			}
+			.duty-proj-chip {
+				font-size: var(--text-xs); border-radius: 99px; padding: 1px 8px;
+				background: #ecfdf5; color: #0f766e; font-weight: 600;
+			}
+			.duty-projects { padding-bottom: 76px; }
+			.duty-proj-head { display: flex; gap: 12px; align-items: flex-start; flex-wrap: wrap; margin-bottom: 12px; }
+			.duty-proj-tabs { display: flex; gap: 8px; flex-wrap: wrap; flex: 1; }
+			.duty-proj-tab {
+				border: 1px solid var(--border-color); border-radius: 10px; padding: 8px 14px;
+				background: var(--card-bg); cursor: pointer; text-decoration: none;
+				display: flex; flex-direction: column; gap: 2px; min-width: 140px;
+			}
+			.duty-proj-tab.active { border-color: #0F5C55; box-shadow: 0 0 0 1px #0F5C55 inset; }
+			.duty-proj-name { font-weight: 700; color: var(--text-color); }
+			.duty-proj-stats { font-size: var(--text-xs); color: var(--text-muted); }
+			.duty-proj-over { color: var(--red-600, #dc2626); font-weight: 700; }
+			.duty-kb-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+			.duty-kb-bar a { cursor: pointer; font-size: var(--text-xs); color: var(--text-muted); }
+			.duty-kanban { display: flex; gap: 12px; align-items: flex-start; overflow-x: auto; padding-bottom: 8px; }
+			.duty-kb-col {
+				flex: 1 1 0; min-width: 230px; background: var(--gray-50, #fafafa);
+				border: 1px solid var(--border-color); border-radius: 10px; padding: 10px;
+			}
+			.duty-kb-col-head { font-weight: 700; margin-bottom: 8px; display: flex; justify-content: space-between; }
+			.duty-kb-count { color: var(--text-muted); font-weight: 600; }
+			.duty-kb-add { margin-bottom: 8px; font-size: 16px; }
+			.duty-kb-cards { min-height: 40px; display: flex; flex-direction: column; gap: 8px; }
+			.duty-kb-over { outline: 2px dashed #0F5C55; outline-offset: -4px; }
+			.duty-kb-card {
+				background: var(--card-bg, #fff); border: 1px solid var(--border-color);
+				border-radius: 8px; padding: 8px 10px; cursor: grab;
+			}
+			.duty-kb-card:active { cursor: grabbing; }
+			.duty-kb-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px; }
+			.duty-kb-due { font-size: var(--text-xs); color: var(--text-muted); }
+			.duty-kb-title { font-weight: 600; color: var(--text-color); }
+			.duty-kb-meta { font-size: var(--text-xs); margin-top: 4px; }
+			@media (max-width: 767px) {
+				.duty-kb-col { min-width: 240px; flex: 0 0 240px; }
 			}
 			.duty-name-row { display: flex; align-items: center; gap: 8px; min-width: 0; }
 			.duty-name-row .duty-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }

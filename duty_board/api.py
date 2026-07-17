@@ -1296,6 +1296,8 @@ def get_board():
 		"due_time",
 		"assigned_by",
 		"carry_count",
+		"project_task",
+		"project",
 	]
 	local_dates = {u.name: user_today(u.name) for u in users}
 	todos = frappe.get_all(

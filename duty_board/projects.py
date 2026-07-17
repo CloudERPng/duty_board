@@ -1,0 +1,246 @@
+"""Duty Board projects: the kanban face.
+
+One fact, two views: a card's assignee gets a linked Daily Todo on their
+plan; completing either side completes the other. Sync from the todo side
+runs through doc_events (see hooks.py), from the card side inline here.
+"""
+
+import frappe
+from frappe import _
+from frappe.utils import getdate, today
+
+COLUMNS = ["To Do", "In Progress", "Completed", "Suspended"]
+URGENCIES = ["Low", "Medium", "High", "Critical"]
+
+
+def _notify(user, title, body):
+	try:
+		from duty_board.api import _notify_user
+
+		_notify_user(user, title, body)
+	except Exception:
+		pass
+
+
+@frappe.whitelist()
+def get_projects():
+	projects = frappe.get_all(
+		"Duty Project",
+		filters={"status": "Active"},
+		fields=["name", "project_name"],
+		order_by="creation asc",
+	)
+	if not projects:
+		return []
+	tasks = frappe.get_all(
+		"Duty Project Task",
+		filters={"project": ["in", [p.name for p in projects]]},
+		fields=["project", "column", "due_date"],
+	)
+	tday = getdate(today())
+	stats = {p.name: {"total": 0, "done": 0, "overdue": 0, "suspended": 0} for p in projects}
+	for t in tasks:
+		s = stats[t.project]
+		s["total"] += 1
+		if t.column == "Completed":
+			s["done"] += 1
+		elif t.column == "Suspended":
+			s["suspended"] += 1
+		elif t.due_date and getdate(t.due_date) < tday:
+			s["overdue"] += 1
+	for p in projects:
+		p.update(stats[p.name])
+	return projects
+
+
+@frappe.whitelist()
+def create_project(project_name):
+	project_name = (project_name or "").strip()
+	if not project_name:
+		frappe.throw(_("Give the project a name."))
+	doc = frappe.get_doc(
+		{"doctype": "Duty Project", "project_name": project_name, "status": "Active"}
+	).insert(ignore_permissions=True)
+	frappe.db.commit()
+	return doc.name
+
+
+@frappe.whitelist()
+def archive_project(name):
+	frappe.db.set_value("Duty Project", name, "status", "Archived", update_modified=False)
+	frappe.db.commit()
+	return {"ok": True}
+
+
+@frappe.whitelist()
+def get_project_board(project):
+	rows = frappe.get_all(
+		"Duty Project Task",
+		filters={"project": project},
+		fields=["name", "title", "column", "assignee", "due_date", "urgency", "linked_todo"],
+		order_by="sort_order asc, creation asc",
+	)
+	tday = getdate(today())
+	tasks = {c: [] for c in COLUMNS}
+	for t in rows:
+		t.due_date = str(t.due_date) if t.due_date else None
+		t.overdue = bool(
+			t.due_date and getdate(t.due_date) < tday and t.column in ("To Do", "In Progress")
+		)
+		tasks.setdefault(t.column, []).append(t)
+	return {"columns": COLUMNS, "tasks": tasks}
+
+
+@frappe.whitelist()
+def create_task(project, title, column="To Do", assignee=None, due_date=None, urgency="Medium"):
+	title = (title or "").strip()
+	if not title:
+		frappe.throw(_("Give the task a title."))
+	if column not in COLUMNS:
+		column = "To Do"
+	if urgency not in URGENCIES:
+		urgency = "Medium"
+	doc = frappe.get_doc(
+		{
+			"doctype": "Duty Project Task",
+			"project": project,
+			"title": title,
+			"column": column,
+			"assignee": assignee or None,
+			"due_date": due_date or None,
+			"urgency": urgency,
+		}
+	).insert(ignore_permissions=True)
+	if doc.assignee:
+		_ensure_todo(doc)
+	frappe.db.commit()
+	return get_project_board(project)
+
+
+@frappe.whitelist()
+def update_task(name, title=None, assignee=None, due_date=None, urgency=None, column=None):
+	doc = frappe.get_doc("Duty Project Task", name)
+	old_assignee = doc.assignee
+	if title and title.strip():
+		doc.title = title.strip()
+	doc.due_date = due_date or None
+	if urgency in URGENCIES:
+		doc.urgency = urgency
+	doc.assignee = assignee or None
+	doc.save(ignore_permissions=True)
+
+	if old_assignee != doc.assignee:
+		if old_assignee and doc.linked_todo and frappe.db.exists("Daily Todo", doc.linked_todo):
+			if frappe.db.get_value("Daily Todo", doc.linked_todo, "status") == "Open":
+				frappe.delete_doc(
+					"Daily Todo", doc.linked_todo, ignore_permissions=True, force=True
+				)
+		doc.db_set("linked_todo", None, update_modified=False)
+		if doc.assignee:
+			_ensure_todo(doc)
+	elif doc.linked_todo and frappe.db.exists("Daily Todo", doc.linked_todo):
+		frappe.db.set_value(
+			"Daily Todo", doc.linked_todo, "description", doc.title, update_modified=False
+		)
+
+	if column and column in COLUMNS and column != doc.column:
+		doc.db_set("column", column, update_modified=False)
+		_sync_todo_from_card(doc, column)
+
+	frappe.db.commit()
+	return get_project_board(doc.project)
+
+
+@frappe.whitelist()
+def move_task(name, column):
+	if column not in COLUMNS:
+		frappe.throw(_("Unknown column."))
+	doc = frappe.get_doc("Duty Project Task", name)
+	doc.db_set("column", column, update_modified=False)
+	_sync_todo_from_card(doc, column)
+	frappe.db.commit()
+	return get_project_board(doc.project)
+
+
+@frappe.whitelist()
+def delete_task(name):
+	doc = frappe.get_doc("Duty Project Task", name)
+	project = doc.project
+	if doc.linked_todo and frappe.db.exists("Daily Todo", doc.linked_todo):
+		if frappe.db.get_value("Daily Todo", doc.linked_todo, "status") == "Open":
+			frappe.delete_doc("Daily Todo", doc.linked_todo, ignore_permissions=True, force=True)
+	frappe.delete_doc("Duty Project Task", name, ignore_permissions=True, force=True)
+	frappe.db.commit()
+	return get_project_board(project)
+
+
+def _ensure_todo(card):
+	from duty_board.api import user_today
+
+	project_name = frappe.db.get_value("Duty Project", card.project, "project_name") or card.project
+	target_today = user_today(card.assignee)
+	date = getdate(card.due_date) if card.due_date else target_today
+	if date < target_today:
+		date = target_today
+	todo = frappe.get_doc(
+		{
+			"doctype": "Daily Todo",
+			"user": card.assignee,
+			"date": date,
+			"description": card.title,
+			"status": "Done" if card.column == "Completed" else "Open",
+			"assigned_by": frappe.session.user if frappe.session.user != card.assignee else None,
+			"project_task": card.name,
+			"project": project_name,
+		}
+	).insert(ignore_permissions=True)
+	card.db_set("linked_todo", todo.name, update_modified=False)
+	if card.assignee != frappe.session.user:
+		first = frappe.utils.get_fullname(frappe.session.user).split(" ")[0]
+		_notify(
+			card.assignee,
+			_("Project task from {0}").format(first),
+			f"{project_name}: {card.title}",
+		)
+
+
+def _sync_todo_from_card(card, column):
+	if not card.linked_todo or not frappe.db.exists("Daily Todo", card.linked_todo):
+		return
+	if column == "Completed":
+		frappe.db.set_value("Daily Todo", card.linked_todo, "status", "Done", update_modified=False)
+	elif column in ("To Do", "In Progress"):
+		frappe.db.set_value("Daily Todo", card.linked_todo, "status", "Open", update_modified=False)
+	# Suspended: the plan item is left untouched
+
+
+# ---- doc_events (wired in hooks.py) ----
+
+
+def on_todo_update(doc, method=None):
+	if not doc.get("project_task"):
+		return
+	if not doc.has_value_changed("status"):
+		return
+	card = frappe.db.get_value(
+		"Duty Project Task", doc.project_task, ["name", "column"], as_dict=True
+	)
+	if not card:
+		return
+	if doc.status == "Done" and card.column != "Completed":
+		frappe.db.set_value(
+			"Duty Project Task", card.name, "column", "Completed", update_modified=False
+		)
+	elif doc.status == "Open" and card.column == "Completed":
+		frappe.db.set_value(
+			"Duty Project Task", card.name, "column", "In Progress", update_modified=False
+		)
+
+
+def on_todo_trash(doc, method=None):
+	if not doc.get("project_task"):
+		return
+	if frappe.db.exists("Duty Project Task", doc.project_task):
+		frappe.db.set_value(
+			"Duty Project Task", doc.project_task, "linked_todo", None, update_modified=False
+		)
