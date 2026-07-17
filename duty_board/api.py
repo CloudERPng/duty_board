@@ -1147,7 +1147,7 @@ def _get_running_session(user):
 	rows = frappe.get_all(
 		"Work Session",
 		filters={"user": user, "end_time": ["is", "not set"]},
-		fields=["name", "activity", "customer", "daily_todo", "duty_issue", "start_time"],
+		fields=["name", "activity", "customer", "daily_todo", "duty_issue", "project_task", "start_time"],
 		order_by="start_time desc",
 		limit=1,
 	)
@@ -1251,7 +1251,7 @@ def get_board():
 	running = frappe.get_all(
 		"Work Session",
 		filters={"end_time": ["is", "not set"]},
-		fields=["name", "user", "activity", "customer", "daily_todo", "duty_issue", "start_time"],
+		fields=["name", "user", "activity", "customer", "daily_todo", "duty_issue", "project_task", "start_time"],
 		order_by="start_time desc",
 	)
 	running_by_user = {}
@@ -1359,6 +1359,7 @@ def get_board():
 				"name": sess.name,
 				"notes": note_counts.get(sess.name, 0),
 				"issue": sess.duty_issue,
+				"card": sess.project_task,
 				"activity": sess.activity,
 				"customer": sess.customer,
 				"todo": sess.daily_todo,

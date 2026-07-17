@@ -212,6 +212,36 @@ def weekly_digest():
 	</table>
 	"""
 
+	projects_html = ""
+	if frappe.db.exists("DocType", "Duty Project"):
+		from duty_board.projects import get_projects
+
+		plist = get_projects()
+		if plist:
+			proj_rows = "".join(
+				f"<tr><td>{frappe.utils.escape_html(p['project_name'])}</td>"
+				f"<td>{frappe.utils.escape_html(p.get('customer') or '')}</td>"
+				f"<td align='right'>{p['done']}/{p['total']} ({p['pct']}%)</td>"
+				f"<td align='right' style='color:{'#B91C1C' if p['overdue'] else '#374151'}'>{p['overdue']}</td>"
+				f"<td>{p['target_date'] or ''}"
+				+ (
+					f" ({p['days_left']}d)"
+					if p.get("days_left") is not None
+					else ""
+				)
+				+ "</td></tr>"
+				for p in plist
+			)
+			projects_html = f"""
+	<h3 style="color:#0E7490">Projects pulse</h3>
+	<table border="1" cellpadding="6" cellspacing="0" style="border-collapse:collapse">
+		<tr style="background:#0F5C55;color:#fff">
+			<th>Project</th><th>Customer</th><th>Progress</th><th>Overdue</th><th>Target</th>
+		</tr>
+		{proj_rows}
+	</table>
+	"""
+
 	html = f"""
 	<h2 style="color:#0F5C55">Duty Board — Week of {start.strftime('%d %b')} to {end.strftime('%d %b %Y')}</h2>
 	<h3 style="color:#0E7490">Team summary</h3>
@@ -227,6 +257,7 @@ def weekly_digest():
 		{cust_rows or "<tr><td colspan='2'>No customer-tagged sessions</td></tr>"}
 	</table>
 	{overdue_html}
+	{projects_html}
 	<h3 style="color:#0E7490">End-of-day summaries</h3>
 	{summaries_html or "<p>No summaries recorded.</p>"}
 	<p style="color:#6B7280;font-size:12px">Automated weekly digest from Duty Board.</p>

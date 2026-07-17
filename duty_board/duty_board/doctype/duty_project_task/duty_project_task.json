@@ -4,17 +4,85 @@
  "creation": "2026-07-09 09:00:00.000000",
  "doctype": "DocType",
  "engine": "InnoDB",
- "field_order": ["project", "title", "column", "column_break_1", "assignee", "due_date", "urgency", "sort_order", "linked_todo"],
+ "field_order": [
+  "project",
+  "title",
+  "column",
+  "column_break_1",
+  "assignee",
+  "due_date",
+  "urgency",
+  "sort_order",
+  "linked_todo",
+  "description"
+ ],
  "fields": [
-  {"fieldname": "project", "fieldtype": "Link", "in_list_view": 1, "in_standard_filter": 1, "label": "Project", "options": "Duty Project", "reqd": 1, "search_index": 1},
-  {"fieldname": "title", "fieldtype": "Data", "in_list_view": 1, "label": "Title", "reqd": 1},
-  {"default": "To Do", "fieldname": "column", "fieldtype": "Select", "in_list_view": 1, "in_standard_filter": 1, "label": "Column", "options": "To Do\nIn Progress\nCompleted\nSuspended"},
-  {"fieldname": "column_break_1", "fieldtype": "Column Break"},
-  {"fieldname": "assignee", "fieldtype": "Link", "in_list_view": 1, "label": "Assignee", "options": "User"},
-  {"fieldname": "due_date", "fieldtype": "Date", "label": "Due Date"},
-  {"default": "Medium", "fieldname": "urgency", "fieldtype": "Select", "label": "Urgency", "options": "Low\nMedium\nHigh\nCritical"},
-  {"default": "0", "fieldname": "sort_order", "fieldtype": "Int", "label": "Sort Order"},
-  {"fieldname": "linked_todo", "fieldtype": "Data", "label": "Linked Todo", "read_only": 1}
+  {
+   "fieldname": "project",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Project",
+   "options": "Duty Project",
+   "reqd": 1,
+   "search_index": 1
+  },
+  {
+   "fieldname": "title",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Title",
+   "reqd": 1
+  },
+  {
+   "default": "To Do",
+   "fieldname": "column",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Column",
+   "options": "To Do\nIn Progress\nCompleted\nSuspended"
+  },
+  {
+   "fieldname": "column_break_1",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "assignee",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Assignee",
+   "options": "User"
+  },
+  {
+   "fieldname": "due_date",
+   "fieldtype": "Date",
+   "label": "Due Date"
+  },
+  {
+   "default": "Medium",
+   "fieldname": "urgency",
+   "fieldtype": "Select",
+   "label": "Urgency",
+   "options": "Low\nMedium\nHigh\nCritical"
+  },
+  {
+   "default": "0",
+   "fieldname": "sort_order",
+   "fieldtype": "Int",
+   "label": "Sort Order"
+  },
+  {
+   "fieldname": "linked_todo",
+   "fieldtype": "Data",
+   "label": "Linked Todo",
+   "read_only": 1
+  },
+  {
+   "fieldname": "description",
+   "fieldtype": "Small Text",
+   "label": "Description"
+  }
  ],
  "links": [],
  "modified": "2026-07-09 09:00:00.000000",
@@ -24,8 +92,24 @@
  "naming_rule": "Random",
  "owner": "Administrator",
  "permissions": [
-  {"create": 1, "delete": 1, "email": 1, "export": 1, "print": 1, "read": 1, "report": 1, "role": "System Manager", "share": 1, "write": 1},
-  {"create": 1, "read": 1, "report": 1, "role": "All"}
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "read": 1,
+   "report": 1,
+   "role": "All"
+  }
  ],
  "sort_field": "creation",
  "sort_order": "ASC",

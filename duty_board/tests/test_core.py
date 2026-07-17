@@ -85,6 +85,21 @@ class TestDutyBoardCore(FrappeTestCase):
 		self.assertNotIn(lead, open_names)
 		self.assertIn(lead, [r["name"] for r in sales.get_closed_leads("Won")])
 
+	def test_card_notes(self):
+		proj = projects.create_project("__Unit Test Project N", customer=self._any_customer())
+		board = projects.create_task(proj, "Noted card")
+		card = board["tasks"]["To Do"][0]["name"]
+		payload = projects.add_card_note(card, "blocked on client VPN")
+		self.assertEqual(len(payload["notes"]), 1)
+		self.assertIn("VPN", payload["notes"][0]["note"])
+
+	def test_start_card_requires_clock_in(self):
+		proj = projects.create_project("__Unit Test Project T", customer=self._any_customer())
+		board = projects.create_task(proj, "Timer card")
+		card = board["tasks"]["To Do"][0]["name"]
+		with self.assertRaises(frappe.ValidationError):
+			projects.start_card_work(card)
+
 	def test_move_task_rejects_unknown_column(self):
 		proj = projects.create_project("__Unit Test Project 2", customer=self._any_customer())
 		board = projects.create_task(proj, "Column guard")

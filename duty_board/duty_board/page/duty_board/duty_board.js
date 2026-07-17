@@ -1540,11 +1540,16 @@ class DutyBoard {
 			if (p.overdue) bits.push(`<span class="duty-proj-over">⚠ ${p.overdue}</span>`);
 			if (p.suspended) bits.push(`⏸ ${p.suspended}`);
 			const pc = this.proj_color(p.name);
+			const target = p.target_date
+				? `<span class="duty-proj-target ${p.days_left != null && p.days_left < 0 ? "duty-lead-over" : ""}">🎯 ${frappe.datetime.str_to_user(p.target_date)}${p.days_left != null ? ` (${p.days_left}d)` : ""}</span>`
+				: "";
 			$(`
 				<a class="duty-proj-tab ${p.name === this.current_project ? "active" : ""}" data-name="${p.name}" style="border-left: 4px solid ${pc}">
 					<span class="duty-proj-name" style="color:${pc}">${frappe.utils.escape_html(p.project_name)}</span>
 					${p.customer ? `<span class="duty-proj-cust">${frappe.utils.escape_html(p.customer)}</span>` : ""}
 					<span class="duty-proj-stats">${bits.join(" · ")}</span>
+					<span class="duty-proj-bar"><span style="width:${p.pct || 0}%; background:${pc}"></span></span>
+					${target}
 				</a>
 			`)
 				.appendTo($tabs)
@@ -1576,7 +1581,14 @@ class DutyBoard {
 					${t.due_date ? `<span class="duty-kb-due ${t.overdue ? "duty-issue-overdue" : ""}">${t.overdue ? "⚠ " : ""}${frappe.datetime.str_to_user(t.due_date)}</span>` : ""}
 				</div>
 				<div class="duty-kb-title">${frappe.utils.escape_html(t.title)}</div>
-				<div class="duty-kb-meta">${who}</div>
+				<div class="duty-kb-meta">
+					${who}
+					<span class="duty-lead-badges">
+						${(t.working || []).length ? `<span class="duty-kb-working">⏱ ${t.working.map((u) => `<b style="color:${this.user_color(u)}">${frappe.utils.escape_html((this.name_map[u] || u).split(" ")[0])}</b>`).join(", ")}</span>` : ""}
+						${t.stale_days >= 7 && t.column !== "Completed" ? `<span class="duty-stale ${t.stale_days >= 14 ? "duty-stale-red" : ""}">🕸 ${t.stale_days}d</span>` : ""}
+						${t.notes ? `<span>📝 ${t.notes}</span>` : ""}
+					</span>
+				</div>
 			</div>`;
 	}
 
@@ -1660,7 +1672,13 @@ class DutyBoard {
 			el.addEventListener("dragstart", (e) => {
 				e.dataTransfer.setData("text", $card.data("name"));
 			});
-			$card.on("click", () => this.task_dialog(project, task_index[$card.data("name")]));
+			$card.on("click", () =>
+				frappe.call({
+					method: "duty_board.projects.get_card",
+					args: { name: $card.data("name") },
+					callback: (r) => r.message && this.task_dialog(project, r.message),
+				})
+			);
 		});
 	}
 
@@ -1711,6 +1729,8 @@ class DutyBoard {
 					options: "To Do\nIn Progress\nCompleted\nSuspended",
 					default: t.column,
 				},
+				{ fieldname: "description", fieldtype: "Small Text", label: __("Description"), default: t.description || "" },
+				{ fieldname: "extras", fieldtype: "HTML" },
 			],
 			primary_action_label: __("Save"),
 			primary_action: (v) => {
@@ -1724,6 +1744,7 @@ class DutyBoard {
 						due_date: v.due_date || null,
 						urgency: v.urgency,
 						column: v.column,
+						description: v.description || null,
 					},
 					callback: (r) => {
 						if (r.message) this.render_kanban(project, r.message);
@@ -1746,6 +1767,73 @@ class DutyBoard {
 				});
 			},
 		});
+		const me_working = (t.working || []).includes(frappe.session.user);
+		const $x = $(d.fields_dict.extras.wrapper).html(`
+			${(t.working || []).length ? `<div class="duty-issue-meta">⏱ ${__("Working on it now")}: ${t.working.map((u) => `<span style="color:${this.user_color(u)}">${frappe.utils.escape_html((this.name_map[u] || u).split(" ")[0])}</span>`).join(", ")}</div>` : ""}
+			<div class="duty-lead-close" style="justify-content:flex-start; margin-top:8px">
+				${t.column !== "Completed" && !me_working ? `<button type="button" class="btn btn-sm btn-default duty-card-start">▶ ${__("Start work")}</button>` : ""}
+				${me_working ? `<button type="button" class="btn btn-sm btn-default duty-card-stop">⏸ ${__("Stop work")}</button>` : ""}
+			</div>
+			<div class="duty-lead-section">📝 ${__("Notes")}</div>
+			<div class="duty-lead-notes">
+				${(t.notes_list || t.notes || []).map
+					? ""
+					: ""}
+			</div>
+		`);
+		const notes = Array.isArray(t.notes) ? t.notes : [];
+		$x.find(".duty-lead-notes").html(
+			notes.length
+				? notes
+						.map(
+							(n) =>
+								`<div class="duty-lead-note"><b>${frappe.utils.escape_html(n.who)}</b> <span class="duty-msg-time">${frappe.datetime.str_to_user(n.when)}</span><br>${frappe.utils.escape_html(n.note)}</div>`
+						)
+						.join("")
+				: `<div class="text-muted">${__("No notes yet.")}</div>`
+		);
+		$x.append(`
+			<div class="duty-lead-addnote">
+				<input type="text" class="form-control input-sm duty-cn-text" placeholder="${__("Add a note and press Enter...")}">
+			</div>
+		`);
+		const reopen = (r) => {
+			d.hide();
+			if (r.message) this.task_dialog(project, r.message);
+			this.load_kanban(project);
+		};
+		$x.find(".duty-card-start").on("click", () =>
+			frappe.call({
+				method: "duty_board.projects.start_card_work",
+				args: { name: t.name },
+				callback: (r) => {
+					reopen(r);
+					this.refresh(true);
+				},
+			})
+		);
+		$x.find(".duty-card-stop").on("click", () =>
+			frappe.call({
+				method: "duty_board.projects.stop_card_work",
+				args: { name: t.name },
+				callback: (r) => {
+					reopen(r);
+					this.refresh(true);
+				},
+			})
+		);
+		$x.find(".duty-cn-text").on("keydown", (e) => {
+			if (e.key !== "Enter") return;
+			e.preventDefault();
+			e.stopPropagation();
+			const note = e.target.value.trim();
+			if (!note) return;
+			frappe.call({
+				method: "duty_board.projects.add_card_note",
+				args: { name: t.name, note: note },
+				callback: reopen,
+			});
+		});
 		d.show();
 	}
 
@@ -1754,11 +1842,12 @@ class DutyBoard {
 			[
 				{ fieldname: "project_name", fieldtype: "Data", label: __("Project name"), reqd: 1 },
 				{ fieldname: "customer", fieldtype: "Link", label: __("Customer"), options: "Customer", reqd: 1 },
+				{ fieldname: "target_date", fieldtype: "Date", label: __("Target Date") },
 			],
 			(v) => {
 				frappe.call({
 					method: "duty_board.projects.create_project",
-					args: { project_name: v.project_name, customer: v.customer },
+					args: { project_name: v.project_name, customer: v.customer, target_date: v.target_date || null },
 					callback: (r) => {
 						this.current_project = r.message;
 						localStorage.setItem("duty_proj", r.message);
@@ -2748,6 +2837,7 @@ class DutyBoard {
 					</div>
 					<div class="duty-task-actions">
 						${t.issue ? `<a class="duty-task-issuechip" title="${__("Open issue")}">${t.issue}</a>` : ""}
+						${t.card ? `<a class="duty-task-issuechip" style="border-color:#a7f3d0;color:#0f766e;background:#ecfdf5" data-card="${t.card}" title="${__("Open project card")}">📁</a>` : ""}
 						<button class="btn btn-default duty-issue-btn" title="${__("Raise issue from this task")}">⚠</button>
 						<button class="btn btn-default duty-note-btn" title="${__("Task notes")}">📝${t.notes ? " " + t.notes : ""}</button>
 						<button class="btn btn-default duty-invite-btn" title="${__("Invite a colleague to this task")}">👤+</button>
@@ -2762,7 +2852,18 @@ class DutyBoard {
 			$task.find(".duty-invite-btn").on("click", () => this.invite_task_dialog());
 			$task.find(".duty-taskcust-btn").on("click", () => this.task_customer_dialog(t.customer));
 			$task.find(".duty-note-btn").on("click", () => this.note_dialog(t.name, t.activity, true));
-			$task.find(".duty-task-issuechip").on("click", () => this.issue_detail_dialog(t.issue));
+			$task.find(".duty-task-issuechip").on("click", (e) => {
+				const card = $(e.currentTarget).data("card");
+				if (card) {
+					frappe.call({
+						method: "duty_board.projects.get_card",
+						args: { name: card },
+						callback: (r) => r.message && this.task_dialog(r.message.project, r.message),
+					});
+				} else {
+					this.issue_detail_dialog(t.issue);
+				}
+			});
 			$task.find(".duty-issue-btn").on("click", () =>
 				this.create_issue_dialog({
 					title: t.activity,
@@ -3665,6 +3766,13 @@ class DutyBoard {
 			.duty-proj-name { font-weight: 700; color: var(--text-color); }
 			.duty-proj-stats { font-size: var(--text-xs); color: var(--text-muted); }
 			.duty-proj-over { color: var(--red-600, #dc2626); font-weight: 700; }
+			.duty-proj-bar {
+				display: block; height: 5px; border-radius: 99px;
+				background: var(--gray-200, #e5e7eb); overflow: hidden; margin-top: 4px;
+			}
+			.duty-proj-bar span { display: block; height: 100%; border-radius: 99px; }
+			.duty-proj-target { font-size: var(--text-xs); color: var(--text-muted); font-weight: 600; }
+			.duty-kb-working { font-weight: 600; }
 			.duty-kb-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
 			.duty-kb-bar a { cursor: pointer; font-size: var(--text-xs); color: var(--text-muted); }
 			.duty-kanban { display: flex; gap: 12px; align-items: flex-start; overflow-x: auto; padding-bottom: 8px; }
