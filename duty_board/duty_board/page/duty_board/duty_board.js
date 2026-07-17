@@ -1957,7 +1957,7 @@ class DutyBoard {
 				<select class="form-control input-sm duty-lt-who">
 					${this.staff_options().filter((o) => o.value).map((o) => `<option value="${o.value}" ${o.value === x.lead_owner ? "selected" : ""}>${frappe.utils.escape_html(o.label)}</option>`).join("")}
 				</select>
-				<button class="btn btn-sm btn-default duty-lt-add">＋</button>
+				<button type="button" class="btn btn-sm btn-default duty-lt-add">＋</button>
 			</div>
 			<div class="duty-lead-section">📝 ${__("Notes")}</div>
 			<div class="duty-lead-notes">
@@ -1971,8 +1971,8 @@ class DutyBoard {
 				<input type="text" class="form-control input-sm duty-ln-text" placeholder="${__("Add a note and press Enter...")}">
 			</div>
 			<div class="duty-lead-close">
-				<button class="btn btn-sm btn-success duty-lead-won">🏆 ${__("Mark Won")}</button>
-				<button class="btn btn-sm btn-default duty-lead-lost">✖ ${__("Mark Lost")}</button>
+				<button type="button" class="btn btn-sm btn-success duty-lead-won">🏆 ${__("Mark Won")}</button>
+				<button type="button" class="btn btn-sm btn-default duty-lead-lost">✖ ${__("Mark Lost")}</button>
 			</div>
 		`);
 		$x.find("input[type=checkbox]").on("change", (e) =>
@@ -1996,10 +1996,20 @@ class DutyBoard {
 				callback: (r) => r.message && this.render_lead_dialog(r.message),
 			});
 		};
-		$x.find(".duty-lt-add").on("click", add_task);
-		$x.find(".duty-lt-desc").on("keydown", (e) => e.key === "Enter" && add_task());
+		$x.find(".duty-lt-add").on("click", (e) => {
+			e.preventDefault();
+			add_task();
+		});
+		$x.find(".duty-lt-desc").on("keydown", (e) => {
+			if (e.key !== "Enter") return;
+			e.preventDefault();
+			e.stopPropagation();
+			add_task();
+		});
 		$x.find(".duty-ln-text").on("keydown", (e) => {
 			if (e.key !== "Enter") return;
+			e.preventDefault();
+			e.stopPropagation();
 			const note = e.target.value.trim();
 			if (!note) return;
 			frappe.call({
