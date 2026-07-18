@@ -314,4 +314,5 @@ def add_lead_note(lead, note):
 				)
 	except Exception:
 		pass
+	frappe.publish_realtime("duty_board_note", {"kind": "lead", "id": lead})
 	return get_lead(lead)

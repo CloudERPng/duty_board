@@ -197,6 +197,29 @@ class DutyBoard {
 		this._sync_timer = setInterval(() => this.sync_messages(), 25 * 1000);
 		frappe.realtime.on("duty_board_notify", (d) => this.notify_event(d));
 		frappe.realtime.on("duty_board_dm", (m) => this.handle_dm(m));
+		frappe.realtime.on("duty_board_note", (n) => {
+			if (!n || !n.id) return;
+			if (n.kind === "card" && this._open_card_ctx && this._open_card_ctx.id === n.id) {
+				frappe.call({
+					method: "duty_board.projects.get_card",
+					args: { name: n.id },
+					callback: (r) => {
+						const ctx = this._open_card_ctx;
+						if (r.message && ctx && ctx.id === n.id) this.update_notes(ctx.$x, r.message.notes);
+					},
+				});
+			}
+			if (n.kind === "lead" && this._open_lead_ctx && this._open_lead_ctx.id === n.id) {
+				frappe.call({
+					method: "duty_board.sales.get_lead",
+					args: { name: n.id },
+					callback: (r) => {
+						const ctx = this._open_lead_ctx;
+						if (r.message && ctx && ctx.id === n.id) this.update_notes(ctx.$x, r.message.notes);
+					},
+				});
+			}
+		});
 		frappe.realtime.on("duty_board_message_deleted", (d) => {
 			if (d && d.name) {
 				this.$list.find(`.duty-msg[data-name="${d.name}"]`).fadeOut(200, function () {
@@ -1606,7 +1629,7 @@ class DutyBoard {
 					<span class="duty-lead-badges">
 						${(t.working || []).length ? `<span class="duty-kb-working">⏱ ${t.working.map((u) => `<b style="color:${this.user_color(u)}">${frappe.utils.escape_html((this.name_map[u] || u).split(" ")[0])}</b>`).join(", ")}</span>` : ""}
 						${t.stale_days >= 7 && t.column !== "Completed" ? `<span class="duty-stale ${t.stale_days >= 14 ? "duty-stale-red" : ""}">🕸 ${t.stale_days}d</span>` : ""}
-						${t.notes ? `<span>📝 ${t.notes}</span>` : ""}
+						${t.notes ? `<span>💬 ${t.notes}</span>` : ""}
 					</span>
 				</div>
 			</div>`;
@@ -1794,7 +1817,7 @@ class DutyBoard {
 				${t.column !== "Completed" && !me_working ? `<button type="button" class="btn btn-sm btn-default duty-card-start">▶ ${__("Start work")}</button>` : ""}
 				${me_working ? `<button type="button" class="btn btn-sm btn-default duty-card-stop">⏸ ${__("Stop work")}</button>` : ""}
 			</div>
-			<div class="duty-lead-section">📝 ${__("Notes")}</div>
+			<div class="duty-lead-section">💬 ${__("Chat")}</div>
 			<div class="duty-lead-notes">
 				${(t.notes_list || t.notes || []).map
 					? ""
@@ -1814,7 +1837,7 @@ class DutyBoard {
 		);
 		$x.append(`
 			<div class="duty-lead-addnote">
-				<input type="text" class="form-control input-sm duty-cn-text" placeholder="${__("Write a note — @name to notify, Enter to send...")}">
+				<input type="text" class="form-control input-sm duty-cn-text" placeholder="${__("Message this thread — @ to mention, Enter to send...")}">
 			</div>
 		`);
 		const reopen = (r) => {
@@ -1842,6 +1865,11 @@ class DutyBoard {
 				},
 			})
 		);
+		this.attach_mention_picker($x.find(".duty-cn-text"));
+		this._open_card_ctx = { id: t.name, $x: $x };
+		d.onhide = () => {
+			if (this._open_card_ctx && this._open_card_ctx.id === t.name) this._open_card_ctx = null;
+		};
 		$x.find(".duty-cn-text").on("keydown", (e) => {
 			if (e.key !== "Enter") return;
 			e.preventDefault();
@@ -1881,6 +1909,77 @@ class DutyBoard {
 	}
 
 	// ---------------- Sales face ----------------
+
+	attach_mention_picker($input) {
+		const $wrap = $input.parent();
+		$wrap.addClass("duty-mention-host");
+		const $dd = $('<div class="duty-mention-dd" style="display:none"></div>').appendTo($wrap);
+		const staff = () =>
+			[{ user: frappe.session.user, full_name: this.name_map[frappe.session.user] || frappe.session.user }].concat(
+				this.team_members()
+			);
+		const frag = () => {
+			const v = $input.val();
+			const pos = $input[0].selectionStart;
+			const m = v.slice(0, pos).match(/@([A-Za-z0-9._-]*)$/);
+			return m ? { start: pos - m[0].length, text: m[1], pos: pos } : null;
+		};
+		const close = () => $dd.hide().empty();
+		const render = () => {
+			const f = frag();
+			if (!f) return close();
+			const q = f.text.toLowerCase();
+			const opts = staff()
+				.filter(
+					(s) =>
+						(s.full_name || s.user).toLowerCase().includes(q) ||
+						s.user.toLowerCase().includes(q)
+				)
+				.slice(0, 6);
+			if (!opts.length) return close();
+			$dd.empty().show();
+			opts.forEach((s) => {
+				$(
+					`<a class="duty-mention-opt" style="color:${this.user_color(s.user)}">${frappe.utils.escape_html(s.full_name || s.user)}</a>`
+				)
+					.appendTo($dd)
+					.on("mousedown", (e) => {
+						e.preventDefault();
+						const f2 = frag();
+						if (!f2) return close();
+						const v = $input.val();
+						const first = (s.full_name || s.user).split(" ")[0];
+						$input.val(v.slice(0, f2.start) + "@" + first + " " + v.slice(f2.pos));
+						close();
+						$input.focus();
+					});
+			});
+		};
+		$input.on("input keyup click", render);
+		$input.on("blur", () => setTimeout(close, 150));
+		$input.on("keydown", (e) => {
+			if (e.key === "Enter" && $dd.is(":visible")) {
+				e.preventDefault();
+				e.stopImmediatePropagation();
+				$dd.find(".duty-mention-opt").first().trigger("mousedown");
+			}
+			if (e.key === "Escape") close();
+		});
+	}
+
+	update_notes($x, notes) {
+		notes = Array.isArray(notes) ? notes : [];
+		$x.find(".duty-lead-notes").html(
+			notes.length
+				? notes
+						.map(
+							(n) =>
+								`<div class="duty-lead-note"><b>${frappe.utils.escape_html(n.who)}</b> <span class="duty-msg-time">${frappe.datetime.str_to_user(n.when)}</span><br>${this.fmt_note(n.note)}</div>`
+						)
+						.join("")
+				: `<div class="text-muted">${__("No messages yet.")}</div>`
+		);
+	}
 
 	fmt_note(text) {
 		return frappe.utils
@@ -1925,7 +2024,7 @@ class DutyBoard {
 						${l.stale_days >= 7 ? `<span class="duty-stale ${l.stale_days >= 14 ? "duty-stale-red" : ""}" title="${__("Days since last touch")}">🕸 ${l.stale_days}d</span>` : ""}
 						${l.expected_close ? `<span class="${l.close_overdue ? "duty-lead-over" : ""}" title="${__("Expected close")}">🎯 ${frappe.datetime.str_to_user(l.expected_close)}</span>` : ""}
 						${l.tasks_open ? `<span class="${l.tasks_overdue ? "duty-lead-over" : ""}">📋 ${l.tasks_open}</span>` : ""}
-						${l.notes ? `<span>📝 ${l.notes}</span>` : ""}
+						${l.notes ? `<span>💬 ${l.notes}</span>` : ""}
 					</span>
 				</div>
 			</div>`;
@@ -2099,7 +2198,7 @@ class DutyBoard {
 				</select>
 				<button type="button" class="btn btn-sm btn-default duty-lt-add">＋</button>
 			</div>
-			<div class="duty-lead-section">📝 ${__("Notes")}</div>
+			<div class="duty-lead-section">💬 ${__("Chat")}</div>
 			<div class="duty-lead-notes">
 				${(x.notes || [])
 					.map(
@@ -2108,7 +2207,7 @@ class DutyBoard {
 					.join("") || `<div class="text-muted">${__("No notes yet.")}</div>`}
 			</div>
 			<div class="duty-lead-addnote">
-				<input type="text" class="form-control input-sm duty-ln-text" placeholder="${__("Write a note — @name to notify, Enter to send...")}">
+				<input type="text" class="form-control input-sm duty-ln-text" placeholder="${__("Message this thread — @ to mention, Enter to send...")}">
 			</div>
 			<div class="duty-lead-close">
 				<button type="button" class="btn btn-sm btn-success duty-lead-won">🏆 ${__("Mark Won")}</button>
@@ -2147,6 +2246,11 @@ class DutyBoard {
 			e.stopPropagation();
 			add_task();
 		});
+		this.attach_mention_picker($x.find(".duty-ln-text"));
+		this._open_lead_ctx = { id: x.name, $x: $x };
+		d.onhide = () => {
+			if (this._open_lead_ctx && this._open_lead_ctx.id === x.name) this._open_lead_ctx = null;
+		};
 		$x.find(".duty-ln-text").on("keydown", (e) => {
 			if (e.key !== "Enter") return;
 			e.preventDefault();
@@ -3860,6 +3964,16 @@ class DutyBoard {
 			.duty-lead-addtask { flex-wrap: wrap; }
 			.duty-lead-note { padding: 6px 0; border-bottom: 1px dashed var(--border-color); }
 			.duty-note-mention { color: #0F5C55; }
+			.duty-mention-host { position: relative; }
+			.duty-mention-dd {
+				position: absolute; bottom: 100%; left: 0; margin-bottom: 4px;
+				background: var(--card-bg, #fff); border: 1px solid var(--border-color);
+				border-radius: 8px; box-shadow: 0 4px 14px rgba(0,0,0,0.12);
+				display: flex; flex-direction: column; min-width: 220px; z-index: 1060;
+				overflow: hidden;
+			}
+			.duty-mention-opt { padding: 7px 14px; cursor: pointer; font-weight: 600; text-decoration: none; }
+			.duty-mention-opt:hover { background: var(--gray-100, #f5f5f5); }
 			.duty-lead-addnote { margin-top: 8px; }
 			.duty-lead-addnote input { font-size: 16px; }
 			.duty-lead-close { display: flex; gap: 10px; margin-top: 16px; justify-content: flex-end; }

@@ -332,6 +332,7 @@ def add_card_note(name, note):
 				)
 	except Exception:
 		pass
+	frappe.publish_realtime("duty_board_note", {"kind": "card", "id": name})
 	return get_card(name)
 
 
