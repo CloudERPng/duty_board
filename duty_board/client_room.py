@@ -335,6 +335,9 @@ def post_message(name, message, internal=0, attachment_url=None, attachment_name
 					_("💬 {0} · 🤝 {1}").format(first, room.customer),
 					f"{lock}{(message or '')[:120]}",
 				)
+		if not cint(internal):
+			for m in _room_member_mentions(room, message):
+				_email_mention(m, room, first, message)
 	except Exception:
 		pass
 	return get_room(name)
@@ -475,9 +478,46 @@ def client_post_message(message, attachment_url=None, attachment_name=None):
 					_("🤝 {0} · {1}").format(first, room.customer),
 					(message or "")[:120],
 				)
+		for m in _room_member_mentions(room, message):
+			if m != frappe.session.user:
+				_email_mention(m, room, first, message)
 	except Exception:
 		pass
 	return client_get_room()
+
+
+def _room_member_mentions(room, text):
+	low = (text or "").lower()
+	if "@" not in low:
+		return []
+	out = []
+	for m in frappe.get_all(
+		"Client Room Member", filters={"room": room.name, "active": 1}, fields=["user"]
+	):
+		full = frappe.utils.get_fullname(m.user) or m.user
+		first = full.split(" ")[0].lower()
+		if f"@{first}" in low or f"@{m.user.lower()}" in low:
+			out.append(m.user)
+	return out
+
+
+def _email_mention(user, room, sender_first, message):
+	try:
+		frappe.sendmail(
+			recipients=[user],
+			subject=_("💬 {0} mentioned you — {1} × Xlevel").format(
+				sender_first, room.customer
+			),
+			message=(
+				f"<p><b>{frappe.utils.escape_html(sender_first)}</b> mentioned you in your Xlevel room:</p>"
+				f"<blockquote style='border-left:3px solid #0F5C55;padding-left:10px;color:#374151'>"
+				f"{frappe.utils.escape_html((message or '')[:300])}</blockquote>"
+				f"<p><a href='{frappe.utils.get_url()}/portal'>Open your portal</a></p>"
+			),
+			delayed=True,
+		)
+	except Exception:
+		pass
 
 
 @frappe.whitelist()
@@ -510,7 +550,7 @@ def room_file(msg):
 
 @frappe.whitelist()
 def client_get_staff():
-	_client_room()
+	room = _client_room()
 	out = []
 	for u in frappe.get_all(
 		"User",
@@ -518,7 +558,15 @@ def client_get_staff():
 		fields=["full_name"],
 	):
 		if u.full_name and u.full_name != "Administrator":
-			out.append({"first": u.full_name.split(" ")[0], "full": u.full_name})
+			out.append({"first": u.full_name.split(" ")[0], "full": u.full_name, "kind": "staff"})
+	me = frappe.session.user
+	for m in frappe.get_all(
+		"Client Room Member", filters={"room": room.name, "active": 1}, fields=["user"]
+	):
+		if m.user == me:
+			continue
+		full = frappe.utils.get_fullname(m.user) or m.user
+		out.append({"first": full.split(" ")[0], "full": full, "kind": "colleague"})
 	return out
 
 

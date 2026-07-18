@@ -223,7 +223,7 @@ function pickerRender() {
 	if (!f) { mdd.style.display = "none"; return; }
 	const opts = STAFF.filter((s) => s.first.toLowerCase().startsWith(f.q)).slice(0, 6);
 	if (!opts.length) { mdd.style.display = "none"; return; }
-	mdd.innerHTML = opts.map((s) => `<a data-f="${esc(s.first)}">${esc(s.full)}</a>`).join("");
+	mdd.innerHTML = opts.map((s) => `<a data-f="${esc(s.first)}">${esc(s.full)}${s.kind === "colleague" ? ' <span style="color:#9ca3af;font-weight:400">· your team</span>' : ' <span style="color:#9ca3af;font-weight:400">· Xlevel</span>'}</a>`).join("");
 	mdd.style.display = "flex";
 	[...mdd.querySelectorAll("a")].forEach((a) =>
 		a.addEventListener("mousedown", (e) => {

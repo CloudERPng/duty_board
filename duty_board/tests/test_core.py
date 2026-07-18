@@ -160,6 +160,16 @@ class TestDutyBoardCore(FrappeTestCase):
 			)
 		)
 
+	def test_room_member_mentions_scoped_to_room(self):
+		room1 = client_room.create_room(self._any_customer())
+		frappe.get_doc(
+			{"doctype": "Client Room Member", "room": room1, "user": "Administrator", "active": 1}
+		).insert(ignore_permissions=True)
+		doc = frappe.get_doc("Client Room", room1)
+		hits = client_room._room_member_mentions(doc, "please confirm @administrator")
+		self.assertIn("Administrator", hits)
+		self.assertEqual(client_room._room_member_mentions(doc, "no mentions"), [])
+
 	def test_join_with_password_creates_disabled_user(self):
 		room = client_room.create_room(self._any_customer())
 		token = frappe.db.get_value("Client Room", room, "invite_token")

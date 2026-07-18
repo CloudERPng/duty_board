@@ -2138,7 +2138,14 @@ class DutyBoard {
 			});
 		};
 		$room.find(".duty-cr-send").on("click", send);
-		this.attach_mention_picker($input);
+		this.attach_mention_picker(
+			$input,
+			() =>
+				(x.members || []).map((m) => ({
+					user: m.user,
+					full_name: `${m.full_name} · ${__("client")}`,
+				}))
+		);
 		$input.on("keydown", (e) => {
 			if (e.key === "Enter" && !e.shiftKey) {
 				e.preventDefault();
@@ -2283,14 +2290,14 @@ class DutyBoard {
 
 	// ---------------- Sales face ----------------
 
-	attach_mention_picker($input) {
+	attach_mention_picker($input, extra) {
 		const $wrap = $input.parent();
 		$wrap.addClass("duty-mention-host");
 		const $dd = $('<div class="duty-mention-dd" style="display:none"></div>').appendTo($wrap);
 		const staff = () =>
-			[{ user: frappe.session.user, full_name: this.name_map[frappe.session.user] || frappe.session.user }].concat(
-				this.team_members()
-			);
+			[{ user: frappe.session.user, full_name: this.name_map[frappe.session.user] || frappe.session.user }]
+				.concat(this.team_members())
+				.concat((typeof extra === "function" ? extra() : extra) || []);
 		const frag = () => {
 			const v = $input.val();
 			const pos = $input[0].selectionStart;
