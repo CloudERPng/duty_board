@@ -75,6 +75,30 @@ def _room_payload(room, include_internal, before=None, limit=40):
 			and r.attachment_name.lower().rsplit(".", 1)[-1]
 			in ("png", "jpg", "jpeg", "gif", "webp")
 		)
+	by_name = {r.name: r for r in rows}
+	for r in rows:
+		if not r.get("ref"):
+			continue
+		t = by_name.get(r.ref)
+		if t is None:
+			t = frappe.db.get_value(
+				"Client Room Message",
+				{"name": r.ref, "room": room.name},
+				["owner", "message", "internal"],
+				as_dict=True,
+			)
+		if not t:
+			r.ref = None
+			continue
+		t_internal = cint(t.get("internal"))
+		if t_internal and not include_internal:
+			r.ref_who = "Xlevel"
+			r.ref_text = "🔒 …"
+		else:
+			r.ref_who = (
+				frappe.utils.get_fullname(t.get("owner")) or t.get("owner") or ""
+			).split(" ")[0]
+			r.ref_text = (t.get("message") or "📎")[:90]
 	return rows, has_more
 
 
@@ -140,7 +164,7 @@ def _work_rows(room):
 		for t in frappe.get_all(
 			"Duty Project Task",
 			filters={"project": ["in", projs], "client_visible": 1},
-			fields=["name", "title", "column", "assignee", "client_requested", "modified"],
+			fields=["name", "title", "column", "assignee", "client_requested", "modified", "creation"],
 		):
 			status = CLIENT_STATUS.get(t.column)
 			if not status:
@@ -157,6 +181,7 @@ def _work_rows(room):
 						if t.assignee
 						else None
 					),
+					"reported": str(t.creation)[:16],
 					"modified": t.modified,
 				}
 			)
@@ -211,7 +236,7 @@ def _ensure_project(room):
 	return proj.name
 
 
-def _post(room, text, internal=0, attachment_url=None, attachment_name=None):
+def _post(room, text, internal=0, attachment_url=None, attachment_name=None, ref=None):
 	text = (text or "").strip()
 	if not text and not attachment_url:
 		frappe.throw(_("Message is empty."))
@@ -224,6 +249,8 @@ def _post(room, text, internal=0, attachment_url=None, attachment_name=None):
 		if not owned:
 			frappe.throw(_("Upload not found — try attaching again."))
 		attachment_name = (attachment_name or owned)[:120]
+	if ref and not frappe.db.exists("Client Room Message", {"name": ref, "room": room.name}):
+		ref = None
 	doc = frappe.get_doc(
 		{
 			"doctype": "Client Room Message",
@@ -232,6 +259,7 @@ def _post(room, text, internal=0, attachment_url=None, attachment_name=None):
 			"internal": cint(internal),
 			"attachment_url": attachment_url,
 			"attachment_name": attachment_name,
+			"ref": ref,
 		}
 	).insert(ignore_permissions=True)
 	frappe.db.commit()
@@ -316,12 +344,12 @@ def get_room(name, before=None):
 
 
 @frappe.whitelist()
-def post_message(name, message, internal=0, attachment_url=None, attachment_name=None):
+def post_message(name, message, internal=0, attachment_url=None, attachment_name=None, ref=None):
 	_staff_only()
 	room = frappe.get_doc("Client Room", name)
 	if room.status != "Active" and not cint(internal):
 		frappe.throw(_("Room is frozen — only internal notes allowed."))
-	_post(room, message, internal, attachment_url, attachment_name)
+	_post(room, message, internal, attachment_url, attachment_name, ref)
 	try:
 		from duty_board.api import _notify_user, parse_mentions
 
@@ -451,9 +479,16 @@ def client_get_room(before=None):
 
 
 @frappe.whitelist()
-def client_post_message(message, attachment_url=None, attachment_name=None):
+def client_post_message(message, attachment_url=None, attachment_name=None, ref=None):
 	room = _client_room()
-	_post(room, message, internal=0, attachment_url=attachment_url, attachment_name=attachment_name)
+	_post(
+		room,
+		message,
+		internal=0,
+		attachment_url=attachment_url,
+		attachment_name=attachment_name,
+		ref=ref,
+	)
 	# staff hear about client words; @mentioned staff hear personally
 	try:
 		from duty_board.api import _notify_user, parse_mentions

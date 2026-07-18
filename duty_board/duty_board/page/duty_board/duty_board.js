@@ -754,7 +754,7 @@ class DutyBoard {
 		}
 		const $row = $(`
 			<div class="duty-msg ${mine ? "duty-msg-mine" : ""} ${mentioned ? "duty-msg-mentioned" : ""} ${is_new ? "duty-msg-new" : ""}" data-creation="${frappe.utils.escape_html(m.creation || "")}" data-name="${frappe.utils.escape_html(m.name || "")}">
-				${m.reply_snippet ? `<div class="duty-msg-quote">${frappe.utils.escape_html(m.reply_snippet)}</div>` : ""}
+				${m.reply_snippet ? `<div class="duty-msg-quote ${m.reply_to ? "duty-msg-quote-link" : ""}" ${m.reply_to ? `data-target="${m.reply_to}"` : ""}>${frappe.utils.escape_html(m.reply_snippet)}</div>` : ""}
 				<span class="duty-msg-who" style="color:${this.user_color(m.user)}">${frappe.utils.escape_html(mine ? __("You") : (m.full_name || m.user).split(" ")[0])}</span>
 				<span class="duty-msg-text">${this.format_message_text(m)}</span>
 				<span class="duty-msg-time">${when}</span>
@@ -777,6 +777,18 @@ class DutyBoard {
 			$row.find(".duty-msg-reply, .duty-msg-react, .duty-msg-issue, .duty-msg-del").remove();
 		} else {
 			$row.find(".duty-msg-reply").on("click", () => this.set_reply(m));
+			$row.find(".duty-msg-quote-link").on("click", (e) => {
+				e.stopPropagation();
+				const target = $(e.currentTarget).data("target");
+				const $t = this.$list.find(`.duty-msg[data-name="${target}"]`);
+				if (!$t.length) {
+					frappe.show_alert({ message: __("That message is further up — use Load earlier."), indicator: "orange" }, 3);
+					return;
+				}
+				$t[0].scrollIntoView({ behavior: "smooth", block: "center" });
+				$t.addClass("duty-msg-flash");
+				setTimeout(() => $t.removeClass("duty-msg-flash"), 1600);
+			});
 			$row.find(".duty-msg-react").on("click", (e) => {
 				e.stopPropagation();
 				this.react_picker($row, m.name);
@@ -2021,8 +2033,10 @@ class DutyBoard {
 
 	cr_msg(m) {
 		return `
-			<div class="duty-cr-msg ${m.internal ? "duty-cr-internal" : m.is_staff ? "duty-cr-staff" : "duty-cr-client"}">
+			<div class="duty-cr-msg ${m.internal ? "duty-cr-internal" : m.is_staff ? "duty-cr-staff" : "duty-cr-client"}" data-name="${m.name}">
+				<a class="duty-cr-reply" title="${__("Reply")}">↩</a>
 				<span class="duty-msg-who" style="color:${this.user_color(m.owner)}">${m.internal ? "🔒 " : ""}${frappe.utils.escape_html((m.who || m.owner).split(" ")[0])}${m.is_staff ? "" : ` · ${__("client")}`}</span>
+				${m.ref ? `<a class="duty-cr-quote" data-target="${m.ref}"><b>${frappe.utils.escape_html(m.ref_who || "")}</b>: ${frappe.utils.escape_html(m.ref_text || "")}</a>` : ""}
 				<span class="duty-msg-text">${frappe.utils.escape_html(m.message)}</span>
 				${m.attachment_url ? `<span class="duty-cr-att">${m.is_image ? `<a href="/api/method/duty_board.client_room.room_file?msg=${m.name}" target="_blank"><img src="/api/method/duty_board.client_room.room_file?msg=${m.name}"></a>` : `<a class="duty-issue-filelink" href="/api/method/duty_board.client_room.room_file?msg=${m.name}" target="_blank">📎 ${frappe.utils.escape_html(m.attachment_name || "file")}</a>`}</span>` : ""}
 				<span class="duty-msg-time">${frappe.datetime.str_to_user(m.creation)}</span>
@@ -2070,10 +2084,13 @@ class DutyBoard {
 				<a class="duty-cr-openissues">⚠ ${__("Open issue register for {0}", [frappe.utils.escape_html(x.customer)])} ›</a>
 			</div>
 			<div class="duty-cr-msgs">${(x.messages || []).map((m) => this.cr_msg(m)).join("") || `<div class="text-muted">${__("No messages yet.")}</div>`}</div>
+			<div class="duty-cr-replychip"></div>
 			<div class="duty-cr-pending"></div>
+			<div class="duty-cr-emojis" style="display:none"></div>
 			<div class="duty-cr-compose">
 				<label class="duty-cr-int"><input type="checkbox" class="duty-cr-internal-toggle"> 🔒 ${__("Internal")}</label>
 				<label class="duty-cr-attach" title="${__("Attach image / file")}">📎<input type="file" hidden></label>
+				<a class="duty-cr-emojibtn" title="${__("Emoji")}">😊</a>
 				<textarea rows="2" class="form-control duty-cr-input" placeholder="${__("Message {0}... Enter to send", [frappe.utils.escape_html(x.customer)])}"></textarea>
 				<button type="button" class="btn btn-primary btn-sm duty-cr-send">${__("Send")}</button>
 			</div>
@@ -2084,6 +2101,62 @@ class DutyBoard {
 		const $int = $room.find(".duty-cr-internal-toggle");
 		const restyle = () => $room.find(".duty-cr-compose").toggleClass("duty-cr-composing-internal", $int.is(":checked"));
 		$int.on("change", restyle);
+		this._cr_reply = null;
+		const show_reply = () => {
+			const $rc = $room.find(".duty-cr-replychip").empty();
+			if (this._cr_reply) {
+				$(`<span class="duty-file-chip">↩ <b>${frappe.utils.escape_html(this._cr_reply.who)}</b>: ${frappe.utils.escape_html(this._cr_reply.text)} <a>×</a></span>`)
+					.appendTo($rc)
+					.find("a")
+					.on("click", () => {
+						this._cr_reply = null;
+						show_reply();
+					});
+			}
+		};
+		const $msgs2 = $room.find(".duty-cr-msgs");
+		$msgs2.find(".duty-cr-reply").on("click", (e) => {
+			const $m = $(e.currentTarget).closest(".duty-cr-msg");
+			const mm = (x.messages || []).find((q) => q.name === $m.data("name"));
+			if (!mm) return;
+			this._cr_reply = {
+				name: mm.name,
+				who: (mm.who || mm.owner).split(" ")[0],
+				text: (mm.message || "📎").slice(0, 80),
+			};
+			show_reply();
+			$input.trigger("focus");
+		});
+		$msgs2.find(".duty-cr-quote").on("click", (e) => {
+			const target = $(e.currentTarget).data("target");
+			const $t = $msgs2.find(`.duty-cr-msg[data-name="${target}"]`);
+			if (!$t.length) {
+				frappe.show_alert({ message: __("That message is further up the history."), indicator: "orange" }, 3);
+				return;
+			}
+			$t[0].scrollIntoView({ behavior: "smooth", block: "center" });
+			$t.addClass("duty-msg-flash");
+			setTimeout(() => $t.removeClass("duty-msg-flash"), 1600);
+		});
+		const EMOJIS = ["😀","😂","🙏","👍","👌","🙌","🎉","❤️","🔥","💯","😅","😢","😡","🤔","👀","✅","❌","⏳","📌","💡","📞","🤝","🚀","🙈"];
+		$room.find(".duty-cr-emojibtn").on("click", () => {
+			const $e = $room.find(".duty-cr-emojis");
+			if ($e.is(":visible")) return $e.hide();
+			if (!$e.children().length) {
+				EMOJIS.forEach((em) =>
+					$(`<a>${em}</a>`)
+						.appendTo($e)
+						.on("click", () => {
+							const el = $input[0];
+							const p = el.selectionStart || el.value.length;
+							el.value = el.value.slice(0, p) + em + el.value.slice(p);
+							el.focus();
+							el.selectionStart = el.selectionEnd = p + em.length;
+						})
+				);
+			}
+			$e.css("display", "flex");
+		});
 		this._cr_pending = null;
 		const show_pending = () => {
 			const $p = $room.find(".duty-cr-pending").empty();
@@ -2145,6 +2218,7 @@ class DutyBoard {
 					internal: $int.is(":checked") ? 1 : 0,
 					attachment_url: up ? up.file_url : null,
 					attachment_name: up ? up.file_name : null,
+					ref: this._cr_reply ? this._cr_reply.name : null,
 				},
 				callback: (r) => r.message && this.render_client_room(r.message),
 			});
@@ -4098,7 +4172,7 @@ class DutyBoard {
 			.duty-msg-time { margin-left: 8px; font-size: var(--text-xs); color: var(--text-muted); }
 			.duty-chat-send { display: flex; gap: 8px; align-items: flex-end; }
 			.duty-chat-input { resize: none; overflow-y: auto; max-height: 120px; line-height: 1.45; }
-			.duty-msg-text { white-space: pre-wrap; word-break: break-word; color: #000; }
+			.duty-msg-text { white-space: pre-wrap; word-break: break-word; color: #000; font-size: 15px; }
 			[data-theme="dark"] .duty-msg-text { color: var(--text-color); }
 			.duty-chat-input-wrap { flex: 1; position: relative; }
 			.duty-attach-btn { margin: 0; cursor: pointer; }
@@ -4380,7 +4454,26 @@ class DutyBoard {
 			.duty-cr-pending { margin-bottom: 4px; }
 			.duty-issue-vis { cursor: pointer; font-weight: 600; }
 			.duty-cr-msgs { display: flex; flex-direction: column; gap: 8px; max-height: 42vh; overflow-y: auto; padding: 4px 0 8px; }
-			.duty-cr-msg { border-radius: 10px; padding: 7px 11px; max-width: 88%; position: relative; }
+			.duty-cr-msg { border-radius: 10px; padding: 7px 11px; max-width: 88%; position: relative; font-size: 15px; }
+			.duty-cr-reply {
+				position: absolute; right: 6px; top: 4px; cursor: pointer; font-size: var(--text-xs);
+				visibility: hidden; opacity: 0.6; text-decoration: none;
+			}
+			.duty-cr-msg:hover .duty-cr-reply { visibility: visible; }
+			.duty-cr-quote {
+				display: block; background: rgba(15, 92, 85, 0.08); border-left: 3px solid #0F5C55;
+				border-radius: 6px; padding: 3px 8px; font-size: var(--text-xs); margin: 2px 0 4px;
+				cursor: pointer; color: var(--text-color); text-decoration: none;
+			}
+			.duty-msg-flash { outline: 2px solid #0F5C55; border-radius: 10px; }
+			.duty-msg-quote-link { cursor: pointer; }
+			.duty-cr-emojis {
+				flex-wrap: wrap; gap: 2px; border: 1px solid var(--border-color); border-radius: 10px;
+				padding: 5px; margin-bottom: 5px; background: var(--card-bg);
+			}
+			.duty-cr-emojis a { font-size: 19px; padding: 2px 5px; cursor: pointer; border-radius: 6px; text-decoration: none; }
+			.duty-cr-emojis a:hover { background: var(--gray-100, #f5f5f5); }
+			.duty-cr-emojibtn { cursor: pointer; align-self: center; font-size: 18px; text-decoration: none; }
 			.duty-cr-staff { background: #ecfdf5; align-self: flex-end; }
 			.duty-cr-client { background: var(--gray-100, #f3f4f6); align-self: flex-start; }
 			.duty-cr-internal { background: #fef9c3; border: 1px dashed #d97706; align-self: flex-end; }

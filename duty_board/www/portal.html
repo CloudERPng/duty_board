@@ -8,14 +8,14 @@
 <meta name="theme-color" content="#0F5C55">
 <style>
 	* { box-sizing: border-box; }
-	body { margin: 0; font-family: system-ui, -apple-system, sans-serif; background: #f4f6f5; color: #111; }
+	body { margin: 0; font-family: system-ui, -apple-system, sans-serif; background: #f4f6f5; color: #111; font-size: 15px; }
 	.top { background: #0F5C55; color: #fff; padding: 14px 18px; display: flex; justify-content: space-between; align-items: center; }
 	.top b { font-size: 17px; }
 	.top a { color: #a7f3d0; text-decoration: none; font-size: 13px; }
 	.hours { background: #ecfdf5; color: #0f766e; font-size: 12px; padding: 6px 18px; }
 	.wrap { max-width: 720px; margin: 0 auto; padding: 14px; }
 	@media (min-width: 900px) {
-		.wrap { max-width: 1180px; display: grid; grid-template-columns: 380px 1fr; gap: 16px; align-items: start; }
+		.wrap { max-width: 1560px; display: grid; grid-template-columns: minmax(480px, 5fr) 7fr; gap: 18px; align-items: start; }
 		.wrap > #err { grid-column: 1 / -1; }
 		.wrap > .card.tasks { position: sticky; top: 14px; }
 		.wrap > .foot { grid-column: 1 / -1; }
@@ -23,8 +23,15 @@
 	}
 	.card { background: #fff; border: 1px solid #e5e7eb; border-radius: 12px; padding: 14px; margin-bottom: 14px; }
 	h3 { margin: 0 0 10px; font-size: 14px; color: #0F5C55; }
-	.task { display: flex; gap: 8px; align-items: center; padding: 6px 0; border-bottom: 1px dashed #eee; font-size: 14px; }
-	.task:last-child { border-bottom: none; }
+	#tasks { max-height: calc(100vh - 300px); overflow-y: auto; }
+	table.tt { width: 100%; border-collapse: collapse; font-size: 14px; }
+	table.tt th { text-align: left; font-size: 11px; text-transform: uppercase; letter-spacing: 0.04em;
+		color: #6b7280; padding: 6px 8px; border-bottom: 2px solid #e5e7eb; position: sticky; top: 0; background: #fff; }
+	table.tt td { padding: 8px; border-bottom: 1px dashed #eee; vertical-align: top; }
+	table.tt tr:last-child td { border-bottom: none; }
+	td.dt { white-space: nowrap; color: #6b7280; font-size: 13px; }
+	td.dur { white-space: nowrap; font-weight: 600; font-size: 13px; }
+	td.dur.open { color: #b45309; } td.dur.closed { color: #15803d; }
 	.pill { font-size: 11px; border-radius: 99px; padding: 2px 10px; font-weight: 700; }
 	.p-q { background: #f1f5f9; color: #475569; }
 	.p-i { background: #fef3c7; color: #b45309; }
@@ -43,7 +50,19 @@
 	.chip a { cursor: pointer; font-weight: 700; }
 	label.attach { cursor: pointer; font-size: 20px; align-self: center; }
 	.msgs { display: flex; flex-direction: column; gap: 10px; max-height: 50vh; overflow-y: auto; padding-bottom: 6px; }
-	.m { max-width: 85%; padding: 8px 12px; border-radius: 12px; font-size: 14px; white-space: pre-wrap; word-break: break-word; }
+	.m { max-width: 85%; padding: 8px 12px; border-radius: 12px; font-size: 15px; white-space: pre-wrap; word-break: break-word; }
+	.m .rep { visibility: hidden; float: right; margin-left: 8px; cursor: pointer; font-size: 13px; opacity: .6; }
+	.m:hover .rep { visibility: visible; }
+	.qt { display: block; background: rgba(15,92,85,.08); border-left: 3px solid #0F5C55; border-radius: 6px;
+		padding: 4px 8px; font-size: 13px; margin-bottom: 4px; cursor: pointer; color: #374151; }
+	.qt b { color: #0F5C55; }
+	.m.flash { outline: 2px solid #0F5C55; transition: outline .2s; }
+	#replychip { margin-bottom: 6px; }
+	#emojis { display: none; flex-wrap: wrap; gap: 2px; background: #fff; border: 1px solid #e5e7eb;
+		border-radius: 10px; padding: 6px; margin-bottom: 6px; }
+	#emojis a { font-size: 20px; padding: 2px 5px; cursor: pointer; border-radius: 6px; }
+	#emojis a:hover { background: #f0fdf4; }
+	.emojibtn { cursor: pointer; font-size: 20px; align-self: center; }
 	.m .w { font-size: 11px; font-weight: 700; display: block; margin-bottom: 2px; }
 	.m .tm { font-size: 10px; color: #9ca3af; display: block; margin-top: 3px; }
 	.m.staff { background: #ecfdf5; align-self: flex-start; }
@@ -73,7 +92,7 @@
 	<div id="err"></div>
 	<div class="card tasks">
 		<div class="thead">
-			<h3 onclick="toggleTasks()"><span id="tcaret">▾</span> 📋 Your tasks with us</h3>
+			<h3>📋 Your tasks with us</h3>
 			<select id="tfilter" onchange="render(LAST)"><option value="">All</option><option>Queued</option><option>In Progress</option><option>Done</option></select>
 		</div>
 		<div id="tasks"><span class="muted">Loading…</span></div>
@@ -85,10 +104,13 @@
 	<div class="card">
 		<h3>💬 Conversation</h3>
 		<div class="msgs" id="msgs"><span class="muted">Loading…</span></div>
+		<div id="replychip"></div>
 		<div id="pend"></div>
+		<div id="emojis"></div>
 		<div class="compose">
 			<div id="mdd"></div>
 			<label class="attach" title="Attach image or file">📎<input type="file" hidden id="file" onchange="pickFile(this)"></label>
+			<span class="emojibtn" onclick="toggleEmojis()" title="Emoji">😊</span>
 			<textarea id="text" rows="2" placeholder="Write to the Xlevel team… @ to mention someone"></textarea>
 			<button onclick="send()">Send</button>
 		</div>
@@ -114,30 +136,37 @@ function frappe_csrf() {
 }
 const PILL = { "Queued": "p-q", "In Progress": "p-i", "Done": "p-d" };
 let LAST = {};
-let tasksOpen = localStorage.getItem("xl_tasks_open") !== "0";
-function toggleTasks() {
-	tasksOpen = !tasksOpen;
-	localStorage.setItem("xl_tasks_open", tasksOpen ? "1" : "0");
-	render(LAST);
+function fdt(s) {
+	if (!s) return "—";
+	const d = new Date(s.replace(" ", "T"));
+	return d.toLocaleDateString(undefined, { day: "numeric", month: "short" }) + " " + s.slice(11, 16);
 }
-function stampLine(x) {
-	const bits = [];
-	if (x.reported) bits.push("Reported " + x.reported.slice(0, 10));
-	if (x.started) bits.push("Started " + x.started.slice(0, 10));
-	if (x.done) bits.push("Done " + x.done.slice(0, 10));
-	return bits.length ? `<span class="stamps">${bits.join(" · ")}</span>` : "";
+function dur(x) {
+	if (!x.reported) return { txt: "—", cls: "" };
+	const a = new Date(x.reported.replace(" ", "T"));
+	const b = x.done ? new Date(x.done.replace(" ", "T")) : new Date();
+	let mins = Math.max(0, Math.round((b - a) / 60000));
+	const days = Math.floor(mins / 1440);
+	const hrs = Math.floor((mins % 1440) / 60);
+	const txt = days ? `${days}d ${hrs}h` : hrs ? `${hrs}h` : `${mins}m`;
+	return x.done ? { txt: "took " + txt, cls: "closed" } : { txt: txt + " open", cls: "open" };
 }
 function render(d) {
 	LAST = d;
 	document.getElementById("cust").textContent = d.customer || "";
 	document.getElementById("me").textContent = d.me ? "👤 " + d.me : "";
-	document.getElementById("tcaret").textContent = tasksOpen ? "▾" : "▸";
 	const t = document.getElementById("tasks");
-	t.style.display = tasksOpen ? "" : "none";
 	const filt = document.getElementById("tfilter").value;
 	const rows = (d.tasks || []).filter((x) => !filt || x.status === filt);
 	t.innerHTML = rows.length
-		? rows.map((x) => `<div class="task"><span class="t">${esc(x.title)}</span>${x.assignee_first ? `<span class="a">${esc(x.assignee_first)}</span>` : ""}<span class="pill ${PILL[x.status]}">${esc(x.status)}</span>${stampLine(x)}</div>`).join("")
+		? `<table class="tt"><tr><th>Task</th><th>📅 Reported</th><th>✅ Done</th><th>⏳ Time</th><th>👤 With</th><th>Status</th></tr>` +
+			rows
+				.map((x) => {
+					const dd = dur(x);
+					return `<tr><td>${esc(x.title)}</td><td class="dt">${fdt(x.reported)}</td><td class="dt">${fdt(x.done)}</td><td class="dur ${dd.cls}">${dd.txt}</td><td>${esc(x.assignee_first || "—")}</td><td><span class="pill ${PILL[x.status]}">${esc(x.status)}</span></td></tr>`;
+				})
+				.join("") +
+			`</table>`
 		: '<span class="muted">Nothing here with this filter.</span>';
 	const box = document.getElementById("msgs");
 	const stick = box.scrollTop + box.clientHeight >= box.scrollHeight - 40;
@@ -147,7 +176,8 @@ function render(d) {
 				const att = m.attachment_url
 					? `<span class="att">${m.is_image ? `<a href="${url}" target="_blank"><img src="${url}"></a>` : `<a class="filelink" href="${url}" target="_blank">📎 ${esc(m.attachment_name || "file")}</a>`}</span>`
 					: "";
-				return `<div class="m ${m.is_staff ? "staff" : "me"}"><span class="w">${esc(m.who)}</span>${esc(m.message)}${att}<span class="tm">${esc((m.creation || "").slice(0, 16))}</span></div>`;
+				const qt = m.ref ? `<a class="qt" onclick="jumpTo('${esc(m.ref)}')"><b>${esc(m.ref_who || "")}</b>: ${esc(m.ref_text || "")}</a>` : "";
+				return `<div class="m ${m.is_staff ? "staff" : "me"}" data-name="${esc(m.name)}"><a class="rep" onclick='setReply(${JSON.stringify({ name: m.name, who: m.who, text: (m.message || "📎").slice(0, 80) }).replace(/'/g, "&#39;")})'>↩ reply</a><span class="w">${esc(m.who)}</span>${qt}${esc(m.message)}${att}<span class="tm">${esc((m.creation || "").slice(0, 16))}</span></div>`;
 			}).join("")
 		: '<span class="muted">Say hello — the team is listening.</span>';
 	if (stick) box.scrollTop = box.scrollHeight;
@@ -159,6 +189,33 @@ function fail(e) {
 	setTimeout(() => (el.style.display = "none"), 6000);
 }
 function load() { api("client_get_room").then(render).catch(fail); }
+let REPLY = null;
+function setReply(r) {
+	REPLY = r;
+	document.getElementById("replychip").innerHTML = `<span class="chip">↩ ${esc(r.who)}: ${esc(r.text)} <a onclick="REPLY=null;document.getElementById('replychip').innerHTML=''">×</a></span>`;
+	document.getElementById("text").focus();
+}
+function jumpTo(name) {
+	const el = document.querySelector(`.m[data-name="${CSS.escape(name)}"]`);
+	if (!el) return;
+	el.scrollIntoView({ behavior: "smooth", block: "center" });
+	el.classList.add("flash");
+	setTimeout(() => el.classList.remove("flash"), 1600);
+}
+const EMOJIS = ["😀","😂","🙏","👍","👌","🙌","🎉","❤️","🔥","💯","😅","😢","😡","🤔","👀","✅","❌","⏳","📌","💡","📞","🤝","🚀","🙈"];
+function toggleEmojis() {
+	const e = document.getElementById("emojis");
+	if (e.style.display === "flex") { e.style.display = "none"; return; }
+	if (!e.innerHTML) e.innerHTML = EMOJIS.map((x) => `<a onclick="addEmoji('${x}')">${x}</a>`).join("");
+	e.style.display = "flex";
+}
+function addEmoji(x) {
+	const el = document.getElementById("text");
+	const p = el.selectionStart || el.value.length;
+	el.value = el.value.slice(0, p) + x + el.value.slice(p);
+	el.focus();
+	el.selectionStart = el.selectionEnd = p + x.length;
+}
 let PENDING = null;
 function pickFile(inp) {
 	const f = inp.files[0];
@@ -205,8 +262,14 @@ function send() {
 				message: v,
 				attachment_url: up ? up.url : null,
 				attachment_name: up ? up.name : null,
+				ref: REPLY ? REPLY.name : null,
 			})
 		)
+		.then((d) => {
+			REPLY = null;
+			document.getElementById("replychip").innerHTML = "";
+			return d;
+		})
 		.then(render)
 		.catch(fail);
 }
