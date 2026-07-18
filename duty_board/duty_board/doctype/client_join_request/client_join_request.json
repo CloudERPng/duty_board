@@ -4,13 +4,55 @@
  "creation": "2026-07-09 09:00:00.000000",
  "doctype": "DocType",
  "engine": "InnoDB",
- "field_order": ["room", "full_name", "email", "phone", "status"],
+ "field_order": [
+  "room",
+  "full_name",
+  "email",
+  "phone",
+  "status",
+  "created_user"
+ ],
  "fields": [
-  {"fieldname": "room", "fieldtype": "Data", "label": "Room", "reqd": 1, "search_index": 1},
-  {"fieldname": "full_name", "fieldtype": "Data", "label": "Full Name", "reqd": 1},
-  {"fieldname": "email", "fieldtype": "Data", "label": "Email", "reqd": 1, "search_index": 1},
-  {"fieldname": "phone", "fieldtype": "Data", "label": "Phone"},
-  {"default": "Pending", "fieldname": "status", "fieldtype": "Select", "in_list_view": 1, "label": "Status", "options": "Pending\nApproved\nRejected", "search_index": 1}
+  {
+   "fieldname": "room",
+   "fieldtype": "Data",
+   "label": "Room",
+   "reqd": 1,
+   "search_index": 1
+  },
+  {
+   "fieldname": "full_name",
+   "fieldtype": "Data",
+   "label": "Full Name",
+   "reqd": 1
+  },
+  {
+   "fieldname": "email",
+   "fieldtype": "Data",
+   "label": "Email",
+   "reqd": 1,
+   "search_index": 1
+  },
+  {
+   "fieldname": "phone",
+   "fieldtype": "Data",
+   "label": "Phone"
+  },
+  {
+   "default": "Pending",
+   "fieldname": "status",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "Status",
+   "options": "Pending\nApproved\nRejected",
+   "search_index": 1
+  },
+  {
+   "default": "0",
+   "fieldname": "created_user",
+   "fieldtype": "Check",
+   "label": "Created User"
+  }
  ],
  "links": [],
  "modified": "2026-07-09 09:00:00.000000",
@@ -20,7 +62,18 @@
  "naming_rule": "Random",
  "owner": "Administrator",
  "permissions": [
-  {"create": 1, "delete": 1, "email": 1, "export": 1, "print": 1, "read": 1, "report": 1, "role": "System Manager", "share": 1, "write": 1}
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
  ],
  "sort_field": "creation",
  "sort_order": "DESC",

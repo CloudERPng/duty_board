@@ -54,7 +54,10 @@ def _room_payload(room, include_internal, before=None, limit=40):
 	rows = frappe.get_all(
 		"Client Room Message",
 		filters=filters,
-		fields=["name", "message", "internal", "owner", "creation"],
+		fields=[
+			"name", "message", "internal", "owner", "creation",
+			"attachment_url", "attachment_name",
+		],
 		order_by="creation desc",
 		limit=min(cint(limit) or 40, 100),
 	)
@@ -67,6 +70,11 @@ def _room_payload(room, include_internal, before=None, limit=40):
 			r.owner, frappe.utils.get_fullname(r.owner) or r.owner
 		)
 		r.is_staff = frappe.db.get_value("User", r.owner, "user_type") == "System User"
+		r.is_image = bool(
+			r.attachment_name
+			and r.attachment_name.lower().rsplit(".", 1)[-1]
+			in ("png", "jpg", "jpeg", "gif", "webp")
+		)
 	return rows, has_more
 
 
@@ -84,7 +92,10 @@ def _work_rows(room):
 	issues = frappe.get_all(
 		"Duty Issue",
 		filters={"customer": room.customer, "client_visible": 1},
-		fields=["name", "title", "status", "client_requested", "modified"],
+		fields=[
+			"name", "title", "status", "client_requested", "modified",
+			"creation", "work_started_at", "resolved_at",
+		],
 		order_by="modified desc",
 		limit=100,
 	)
@@ -114,6 +125,9 @@ def _work_rows(room):
 					if i.name in first_assignee
 					else None
 				),
+				"reported": str(i.creation)[:16],
+				"started": str(i.work_started_at)[:16] if i.work_started_at else None,
+				"done": str(i.resolved_at)[:16] if i.resolved_at else None,
 				"modified": i.modified,
 			}
 		)
@@ -159,6 +173,9 @@ def _visible_tasks(room):
 			"title": o["title"],
 			"status": o["status"],
 			"assignee_first": o["assignee_first"],
+			"reported": o.get("reported"),
+			"started": o.get("started"),
+			"done": o.get("done"),
 		}
 		for o in _work_rows(room)
 	]
@@ -194,18 +211,27 @@ def _ensure_project(room):
 	return proj.name
 
 
-def _post(room, text, internal=0):
+def _post(room, text, internal=0, attachment_url=None, attachment_name=None):
 	text = (text or "").strip()
-	if not text:
+	if not text and not attachment_url:
 		frappe.throw(_("Message is empty."))
 	if len(text) > MSG_MAX:
 		frappe.throw(_("Message is too long."))
+	if attachment_url:
+		owned = frappe.db.get_value(
+			"File", {"file_url": attachment_url, "owner": frappe.session.user}, "file_name"
+		)
+		if not owned:
+			frappe.throw(_("Upload not found — try attaching again."))
+		attachment_name = (attachment_name or owned)[:120]
 	doc = frappe.get_doc(
 		{
 			"doctype": "Client Room Message",
 			"room": room.name,
-			"message": text,
+			"message": text or "📎",
 			"internal": cint(internal),
+			"attachment_url": attachment_url,
+			"attachment_name": attachment_name,
 		}
 	).insert(ignore_permissions=True)
 	frappe.db.commit()
@@ -290,12 +316,12 @@ def get_room(name, before=None):
 
 
 @frappe.whitelist()
-def post_message(name, message, internal=0):
+def post_message(name, message, internal=0, attachment_url=None, attachment_name=None):
 	_staff_only()
 	room = frappe.get_doc("Client Room", name)
 	if room.status != "Active" and not cint(internal):
 		frappe.throw(_("Room is frozen — only internal notes allowed."))
-	_post(room, message, internal)
+	_post(room, message, internal, attachment_url, attachment_name)
 	try:
 		from duty_board.api import _notify_user, parse_mentions
 
@@ -325,6 +351,7 @@ def add_member(name, email, full_name=None):
 		utype = frappe.db.get_value("User", email, "user_type")
 		if utype != "Website User":
 			frappe.throw(_("{0} is a staff account — clients must be portal users.").format(email))
+		frappe.db.set_value("User", email, "enabled", 1, update_modified=False)
 	else:
 		frappe.get_doc(
 			{
@@ -420,9 +447,9 @@ def client_get_room(before=None):
 
 
 @frappe.whitelist()
-def client_post_message(message):
+def client_post_message(message, attachment_url=None, attachment_name=None):
 	room = _client_room()
-	_post(room, message, internal=0)
+	_post(room, message, internal=0, attachment_url=attachment_url, attachment_name=attachment_name)
 	# staff hear about client words; @mentioned staff hear personally
 	try:
 		from duty_board.api import _notify_user, parse_mentions
@@ -454,6 +481,34 @@ def client_post_message(message):
 
 
 @frappe.whitelist()
+def room_file(msg):
+	"""Serve a room attachment to staff or to members of that room only."""
+	m = frappe.get_doc("Client Room Message", msg)
+	user = frappe.session.user
+	utype = frappe.db.get_value("User", user, "user_type")
+	if utype == "System User":
+		pass
+	elif utype == "Website User":
+		if m.internal:
+			frappe.throw(_("Not permitted."), frappe.PermissionError)
+		if not frappe.db.exists(
+			"Client Room Member", {"room": m.room, "user": user, "active": 1}
+		):
+			frappe.throw(_("Not permitted."), frappe.PermissionError)
+	else:
+		frappe.throw(_("Not permitted."), frappe.PermissionError)
+	if not m.attachment_url:
+		frappe.throw(_("No attachment."))
+	fname = frappe.db.get_value("File", {"file_url": m.attachment_url})
+	if not fname:
+		frappe.throw(_("File missing."))
+	fdoc = frappe.get_doc("File", fname)
+	frappe.local.response.filename = m.attachment_name or fdoc.file_name
+	frappe.local.response.filecontent = fdoc.get_content()
+	frappe.local.response.type = "download"
+
+
+@frappe.whitelist()
 def client_get_staff():
 	_client_room()
 	out = []
@@ -468,7 +523,7 @@ def client_get_staff():
 
 
 @frappe.whitelist(allow_guest=True)
-def submit_join_request(token, full_name, email, phone=None):
+def submit_join_request(token, full_name, email, phone=None, password=None):
 	token = (token or "").strip()
 	full_name = (full_name or "").strip()[:100]
 	email = (email or "").strip().lower()[:120]
@@ -484,6 +539,29 @@ def submit_join_request(token, full_name, email, phone=None):
 		"Client Join Request", {"room": room_name, "email": email, "status": "Pending"}
 	):
 		return {"ok": True, "pending": True}
+	if frappe.db.count("Client Join Request", {"room": room_name, "status": "Pending"}) >= 20:
+		frappe.throw(_("Too many pending requests for this room — contact Xlevel directly."))
+
+	created_user = 0
+	if not frappe.db.exists("User", email):
+		password = (password or "").strip()
+		if password and len(password) < 8:
+			frappe.throw(_("Password must be at least 8 characters."))
+		u = frappe.get_doc(
+			{
+				"doctype": "User",
+				"email": email,
+				"first_name": full_name,
+				"user_type": "Website User",
+				"enabled": 0,
+				"send_welcome_email": 0 if password else 1,
+			}
+		)
+		if password:
+			u.new_password = password
+		u.insert(ignore_permissions=True)
+		created_user = 1
+
 	frappe.get_doc(
 		{
 			"doctype": "Client Join Request",
@@ -492,6 +570,7 @@ def submit_join_request(token, full_name, email, phone=None):
 			"email": email,
 			"phone": phone,
 			"status": "Pending",
+			"created_user": created_user,
 		}
 	).insert(ignore_permissions=True)
 	frappe.db.commit()
@@ -516,6 +595,8 @@ def approve_join(request_name):
 	if req.status != "Pending":
 		frappe.throw(_("Already handled."))
 	add_member(req.room, req.email, req.full_name)
+	if frappe.db.get_value("User", req.email, "user_type") == "Website User":
+		frappe.db.set_value("User", req.email, "enabled", 1, update_modified=False)
 	req.db_set("status", "Approved", update_modified=False)
 	frappe.db.commit()
 	return get_room(req.room)
@@ -525,6 +606,13 @@ def approve_join(request_name):
 def reject_join(request_name):
 	_staff_only()
 	req = frappe.get_doc("Client Join Request", request_name)
+	if (
+		req.created_user
+		and frappe.db.exists("User", req.email)
+		and frappe.db.get_value("User", req.email, ["user_type", "enabled"], as_dict=True)
+		== frappe._dict(user_type="Website User", enabled=0)
+	):
+		frappe.delete_doc("User", req.email, ignore_permissions=True, force=True)
 	req.db_set("status", "Rejected", update_modified=False)
 	frappe.db.commit()
 	return get_room(req.room)

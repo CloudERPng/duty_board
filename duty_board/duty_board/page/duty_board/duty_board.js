@@ -2012,6 +2012,7 @@ class DutyBoard {
 			<div class="duty-cr-msg ${m.internal ? "duty-cr-internal" : m.is_staff ? "duty-cr-staff" : "duty-cr-client"}">
 				<span class="duty-msg-who" style="color:${this.user_color(m.owner)}">${m.internal ? "🔒 " : ""}${frappe.utils.escape_html((m.who || m.owner).split(" ")[0])}${m.is_staff ? "" : ` · ${__("client")}`}</span>
 				<span class="duty-msg-text">${frappe.utils.escape_html(m.message)}</span>
+				${m.attachment_url ? `<span class="duty-cr-att">${m.is_image ? `<a href="/api/method/duty_board.client_room.room_file?msg=${m.name}" target="_blank"><img src="/api/method/duty_board.client_room.room_file?msg=${m.name}"></a>` : `<a class="duty-issue-filelink" href="/api/method/duty_board.client_room.room_file?msg=${m.name}" target="_blank">📎 ${frappe.utils.escape_html(m.attachment_name || "file")}</a>`}</span>` : ""}
 				<span class="duty-msg-time">${frappe.datetime.str_to_user(m.creation)}</span>
 				${m.is_staff ? "" : `<a class="duty-cr-mktask" data-text="${frappe.utils.escape_html(m.message.slice(0, 120))}" title="${__("Make task from this")}">➕</a>`}
 			</div>`;
@@ -2032,22 +2033,35 @@ class DutyBoard {
 					${frappe.user.has_role("System Manager") ? `<a class="duty-cr-freeze">${x.status === "Active" ? "🧊 " + __("Freeze") : "▶ " + __("Unfreeze")}</a>` : ""}
 				</span>
 			</div>
-			<div class="duty-cr-tasks">
+			<div class="duty-cr-tasksbar">
+				<a class="duty-cr-taskstoggle"><b>${this._cr_tasks_open === false ? "▸" : "▾"} 📋 ${__("Work")} (${(x.tasks || []).length})</b></a>
+				<select class="form-control input-sm duty-cr-tfilter">
+					<option value="">${__("All")}</option>
+					<option ${this._cr_tfilter === "Queued" ? "selected" : ""}>Queued</option>
+					<option ${this._cr_tfilter === "In Progress" ? "selected" : ""}>In Progress</option>
+					<option ${this._cr_tfilter === "Done" ? "selected" : ""}>Done</option>
+				</select>
+			</div>
+			<div class="duty-cr-tasks" ${this._cr_tasks_open === false ? 'style="display:none"' : ""}>
 				${(x.tasks || [])
+					.filter((t) => !this._cr_tfilter || t.status === this._cr_tfilter)
 					.map(
 						(t) => `
 					<a class="duty-cr-task" data-name="${t.name}" data-kind="${t.kind}">
 						<span class="duty-crt-pill duty-crt-${(t.status || "").replace(/ /g, "").toLowerCase()}">${__(t.status)}</span>
 						<span class="duty-crt-title">${t.kind === "issue" ? "⚠ " : "📁 "}${t.client_requested ? "🙋 " : ""}${frappe.utils.escape_html(t.title)}</span>
 						${t.assignee_first ? `<span class="duty-crt-who">${frappe.utils.escape_html(t.assignee_first)}</span>` : ""}
+						${t.reported ? `<span class="duty-crt-stamps">${__("Rep")} ${t.reported.slice(0, 10)}${t.started ? ` · ${__("Start")} ${t.started.slice(0, 10)}` : ""}${t.done ? ` · ${__("Done")} ${t.done.slice(0, 10)}` : ""}</span>` : ""}
 					</a>`
 					)
 					.join("")}
 				<a class="duty-cr-openissues">⚠ ${__("Open issue register for {0}", [frappe.utils.escape_html(x.customer)])} ›</a>
 			</div>
 			<div class="duty-cr-msgs">${(x.messages || []).map((m) => this.cr_msg(m)).join("") || `<div class="text-muted">${__("No messages yet.")}</div>`}</div>
+			<div class="duty-cr-pending"></div>
 			<div class="duty-cr-compose">
 				<label class="duty-cr-int"><input type="checkbox" class="duty-cr-internal-toggle"> 🔒 ${__("Internal")}</label>
+				<label class="duty-cr-attach" title="${__("Attach image / file")}">📎<input type="file" hidden></label>
 				<textarea rows="2" class="form-control duty-cr-input" placeholder="${__("Message {0}... Enter to send", [frappe.utils.escape_html(x.customer)])}"></textarea>
 				<button type="button" class="btn btn-primary btn-sm duty-cr-send">${__("Send")}</button>
 			</div>
@@ -2058,13 +2072,68 @@ class DutyBoard {
 		const $int = $room.find(".duty-cr-internal-toggle");
 		const restyle = () => $room.find(".duty-cr-compose").toggleClass("duty-cr-composing-internal", $int.is(":checked"));
 		$int.on("change", restyle);
-		const send = () => {
+		this._cr_pending = null;
+		const show_pending = () => {
+			const $p = $room.find(".duty-cr-pending").empty();
+			if (this._cr_pending) {
+				$(`<span class="duty-file-chip">📎 ${frappe.utils.escape_html(this._cr_pending.name)} <a>×</a></span>`)
+					.appendTo($p)
+					.find("a")
+					.on("click", () => {
+						this._cr_pending = null;
+						show_pending();
+					});
+			}
+		};
+		const take_file = (f) => {
+			if (!f) return;
+			if (f.size > 15 * 1024 * 1024) {
+				frappe.msgprint(__("File too large (max 15 MB)."));
+				return;
+			}
+			this._cr_pending = f;
+			show_pending();
+		};
+		$room.find(".duty-cr-attach input").on("change", (e) => {
+			take_file(e.target.files[0]);
+			e.target.value = "";
+		});
+		$input.on("paste", (e) => {
+			for (const it of (e.originalEvent.clipboardData || {}).items || []) {
+				if (it.kind === "file") {
+					const f = it.getAsFile();
+					if (f) {
+						e.preventDefault();
+						take_file(f);
+						break;
+					}
+				}
+			}
+		});
+		const send = async () => {
 			const text = ($input.val() || "").trim();
-			if (!text) return;
+			if (!text && !this._cr_pending) return;
 			$input.val("");
+			let up = null;
+			if (this._cr_pending) {
+				try {
+					up = await this.upload_private_file(this._cr_pending);
+					this._cr_pending = null;
+					show_pending();
+				} catch (err) {
+					frappe.msgprint(__("Upload failed: {0}", [frappe.utils.escape_html(err.message || "")]));
+					return;
+				}
+			}
 			frappe.call({
 				method: "duty_board.client_room.post_message",
-				args: { name: x.name, message: text, internal: $int.is(":checked") ? 1 : 0 },
+				args: {
+					name: x.name,
+					message: text,
+					internal: $int.is(":checked") ? 1 : 0,
+					attachment_url: up ? up.file_url : null,
+					attachment_name: up ? up.file_name : null,
+				},
 				callback: (r) => r.message && this.render_client_room(r.message),
 			});
 		};
@@ -2090,6 +2159,14 @@ class DutyBoard {
 				__("Create")
 			);
 		});
+		$room.find(".duty-cr-taskstoggle").on("click", () => {
+			this._cr_tasks_open = this._cr_tasks_open === false;
+			this.render_client_room(x);
+		});
+		$room.find(".duty-cr-tfilter").on("change", (e) => {
+			this._cr_tfilter = e.target.value;
+			this.render_client_room(x);
+		});
 		$room.find(".duty-cr-task").on("click", (e) => {
 			const $t = $(e.currentTarget);
 			if ($t.data("kind") === "issue") {
@@ -2103,6 +2180,7 @@ class DutyBoard {
 			}
 		});
 		$room.find(".duty-cr-openissues").on("click", () => {
+			this._force_cfilter = true;
 			this.issue_customer_filter = x.customer;
 			this.issues_open = true;
 			localStorage.setItem("duty_issues_side", "1");
@@ -2768,7 +2846,10 @@ class DutyBoard {
 		const ufilter = this.issue_user_filter || "";
 		const customers = [...new Set(items.map((x) => x.customer).filter(Boolean))].sort();
 		let cfilter = this.issue_customer_filter || "";
-		if (cfilter && !customers.includes(cfilter)) {
+		if (this._force_cfilter) {
+			if (cfilter && !customers.includes(cfilter)) customers.push(cfilter);
+			this._force_cfilter = false;
+		} else if (cfilter && !customers.includes(cfilter)) {
 			cfilter = "";
 			this.issue_customer_filter = "";
 		}
@@ -4268,6 +4349,14 @@ class DutyBoard {
 			.duty-crt-title { flex: 1; color: var(--text-color); font-size: var(--text-sm); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 			.duty-crt-who { font-size: var(--text-xs); color: var(--text-muted); flex: none; }
 			.duty-cr-openissues { cursor: pointer; font-size: var(--text-xs); font-weight: 700; margin-top: 2px; }
+			.duty-cr-tasksbar { display: flex; gap: 10px; align-items: center; margin-bottom: 6px; }
+			.duty-cr-taskstoggle { cursor: pointer; text-decoration: none; color: var(--text-color); }
+			.duty-cr-tfilter { width: auto; margin-left: auto; }
+			.duty-crt-stamps { flex-basis: 100%; font-size: 10px; color: var(--text-muted); }
+			.duty-cr-task { flex-wrap: wrap; }
+			.duty-cr-att img { max-width: 220px; max-height: 160px; border-radius: 10px; display: block; margin-top: 6px; border: 1px solid var(--border-color); }
+			.duty-cr-attach { cursor: pointer; align-self: center; margin: 0; font-size: 16px; }
+			.duty-cr-pending { margin-bottom: 4px; }
 			.duty-issue-vis { cursor: pointer; font-weight: 600; }
 			.duty-cr-msgs { display: flex; flex-direction: column; gap: 8px; max-height: 42vh; overflow-y: auto; padding: 4px 0 8px; }
 			.duty-cr-msg { border-radius: 10px; padding: 7px 11px; max-width: 88%; position: relative; }

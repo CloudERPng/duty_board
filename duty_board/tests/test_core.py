@@ -160,6 +160,18 @@ class TestDutyBoardCore(FrappeTestCase):
 			)
 		)
 
+	def test_join_with_password_creates_disabled_user(self):
+		room = client_room.create_room(self._any_customer())
+		token = frappe.db.get_value("Client Room", room, "invite_token")
+		email = "__unittest_pw_client@example.com"
+		client_room.submit_join_request(token, "PW Client", email, password="secret123!")
+		self.assertEqual(frappe.db.get_value("User", email, "enabled"), 0)
+		req = frappe.get_all(
+			"Client Join Request", filters={"room": room, "email": email}, limit=1
+		)[0].name
+		client_room.approve_join(req)
+		self.assertEqual(frappe.db.get_value("User", email, "enabled"), 1)
+
 	def test_move_task_rejects_unknown_column(self):
 		proj = projects.create_project("__Unit Test Project 2", customer=self._any_customer())
 		board = projects.create_task(proj, "Column guard")

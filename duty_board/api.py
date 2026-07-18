@@ -822,6 +822,8 @@ def start_issue_work(name):
 	if user not in {a.user for a in (doc.assignees or [])}:
 		doc.append("assignees", {"user": user})
 	doc.status = "In Progress"
+	if not doc.get("work_started_at"):
+		doc.work_started_at = now_datetime()
 	doc.save(ignore_permissions=True)
 
 	_stop_running_session(user)
