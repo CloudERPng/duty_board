@@ -905,6 +905,19 @@ def room_file(msg):
 
 
 @frappe.whitelist()
+def client_push_ping():
+	_client_room()
+	from duty_board.push import push_to_user
+
+	push_to_user(
+		frappe.session.user,
+		"🔔 " + _("Xlevel notifications are on"),
+		_("We'll buzz you right here when we reply."),
+	)
+	return {"ok": True}
+
+
+@frappe.whitelist()
 def client_get_staff():
 	room = _client_room()
 	out = []

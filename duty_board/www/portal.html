@@ -347,39 +347,52 @@ async function setupPush() {
 	if (!("serviceWorker" in navigator) || !("PushManager" in window)) return;
 	let reg;
 	try {
-		reg = await navigator.serviceWorker.register("/portal_sw.js");
+		// dedicated scope: never collides with the staff app's worker, needs no nginx help
+		reg = await navigator.serviceWorker.register("/assets/duty_board/mobile/portal_sw.js");
 	} catch (e) {
-		try {
-			reg = await navigator.serviceWorker.register("/assets/duty_board/mobile/portal_sw.js");
-		} catch (e2) {
-			return;
-		}
+		return;
 	}
 	const bell = document.getElementById("bell");
+	const saveSub = async (s) => {
+		const r = await fetch("/api/method/duty_board.push.save_push_subscription", {
+			method: "POST",
+			headers: { "Content-Type": "application/json", "X-Frappe-CSRF-Token": frappe_csrf() },
+			credentials: "same-origin",
+			body: JSON.stringify({ subscription: JSON.stringify(s) }),
+		});
+		if (!r.ok) throw new Error("Could not save your notification setup — try again.");
+	};
 	const sub = await reg.pushManager.getSubscription();
-	if (sub) return; // already enrolled — stay quiet
+	if (sub) {
+		// device follows whoever is logged in now
+		saveSub(sub).catch(() => {});
+		return;
+	}
 	bell.style.display = "";
 	bell.onclick = async () => {
 		try {
 			const perm = await Notification.requestPermission();
-			if (perm !== "granted") return;
+			if (perm !== "granted") {
+				fail(new Error("Notifications are blocked — allow them for this site in your browser settings."));
+				return;
+			}
 			const cfg = await fetch("/api/method/duty_board.push.get_push_config", {
 				credentials: "same-origin",
 			}).then((r) => r.json());
 			const key = cfg.message && cfg.message.vapid_public;
-			if (!key) throw new Error("Push not configured");
+			if (!key) throw new Error("Notifications are not configured on the server yet.");
 			const s = await reg.pushManager.subscribe({
 				userVisibleOnly: true,
 				applicationServerKey: b64ToU8(key),
 			});
-			await fetch("/api/method/duty_board.push.save_push_subscription", {
+			await saveSub(s);
+			fetch("/api/method/duty_board.client_room.client_push_ping", {
 				method: "POST",
-				headers: { "Content-Type": "application/json", "X-Frappe-CSRF-Token": frappe_csrf() },
+				headers: { "X-Frappe-CSRF-Token": frappe_csrf() },
 				credentials: "same-origin",
-				body: JSON.stringify({ subscription: JSON.stringify(s) }),
 			});
 			bell.textContent = "🔔 On";
-			setTimeout(() => (bell.style.display = "none"), 2500);
+			setTimeout(() => (bell.style.display = "none"), 4000);
 		} catch (e) {
 			fail(e);
 		}
