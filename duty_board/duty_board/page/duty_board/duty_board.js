@@ -20,8 +20,12 @@ frappe.pages["duty-board"].on_page_load = function (wrapper) {
 	const board = new DutyBoard(page);
 	board.refresh();
 
-	board.face_btn = page.set_secondary_action(__("⇄ Projects"), () => board.toggle_face());
-	board.sales_btn = page.add_inner_button(__("💼 Sales"), () => board.toggle_sales());
+	board.face_btn = null;
+	board.sales_btn = null;
+	page.add_inner_button(__("🏠 Board"), () => board.show_face("board"), __("⇄ View"));
+	page.add_inner_button(__("📁 Projects"), () => board.show_face("projects"), __("⇄ View"));
+	page.add_inner_button(__("💼 Sales"), () => board.show_face("sales"), __("⇄ View"));
+	page.add_inner_button(__("🤝 Clients"), () => board.show_face("clients"), __("⇄ View"));
 	page.add_inner_button(__("📄 Document Hub"), () => frappe.set_route("List", "Client Document"));
 
 	board.timer = setInterval(() => {
@@ -29,6 +33,7 @@ frappe.pages["duty-board"].on_page_load = function (wrapper) {
 		if (frappe.get_route_str() !== "duty-board") return;
 		if (board.face === "projects") board.refresh_projects(true);
 		else if (board.face === "sales") board.refresh_sales(true);
+		else if (board.face === "clients") board.refresh_clients(true);
 		else board.refresh(true);
 	}, 60 * 1000);
 	board.main_timer = board.timer;
@@ -92,6 +97,12 @@ class DutyBoard {
 		this.$sales.find(".duty-sales-arch").on("click", (e) =>
 			this.closed_leads_dialog($(e.currentTarget).data("outcome"))
 		);
+		this.$clients = $(`
+			<div class="duty-clients" style="display:none">
+				<div class="duty-cr-list"></div>
+				<div class="duty-cr-room" style="display:none"></div>
+			</div>
+		`).appendTo(page.body);
 		this.name_map = {};
 		this.inject_style();
 		this.setup_pwa();
@@ -197,6 +208,10 @@ class DutyBoard {
 		this._sync_timer = setInterval(() => this.sync_messages(), 25 * 1000);
 		frappe.realtime.on("duty_board_notify", (d) => this.notify_event(d));
 		frappe.realtime.on("duty_board_dm", (m) => this.handle_dm(m));
+		frappe.realtime.on("duty_client_room", (n) => {
+			if (n && n.room && this._open_room === n.room) this.load_client_room(n.room);
+			else if (this.face === "clients") this.refresh_clients(true);
+		});
 		frappe.realtime.on("duty_board_note", (n) => {
 			if (!n || !n.id) return;
 			if (n.kind === "card" && this._open_card_ctx && this._open_card_ctx.id === n.id) {
@@ -433,6 +448,7 @@ class DutyBoard {
 				<a data-tab="chat"><span>💬</span>${__("Chat")}<b class="duty-tab-badge duty-tab-chat" style="display:none"></b></a>
 				<a data-tab="projects"><span>📁</span>${__("Projects")}</a>
 				<a data-tab="sales"><span>💼</span>${__("Sales")}</a>
+				<a data-tab="clients"><span>🤝</span>${__("Clients")}</a>
 			</div>
 		`).appendTo("body");
 		$bar.find("a").on("click", (e) => this.set_mtab($(e.currentTarget).data("tab")));
@@ -446,6 +462,8 @@ class DutyBoard {
 			this.show_face("projects");
 		} else if (tab === "sales") {
 			this.show_face("sales");
+		} else if (tab === "clients") {
+			this.show_face("clients");
 		} else {
 			this.show_face("board");
 			this.body.attr("data-mtab", tab);
@@ -1528,14 +1546,10 @@ class DutyBoard {
 		this.body.toggle(face === "board");
 		this.$projects.toggle(face === "projects");
 		this.$sales.toggle(face === "sales");
-		if (this.face_btn) {
-			this.face_btn.text(face === "projects" ? `⇄ ${__("Board")}` : `⇄ ${__("Projects")}`);
-		}
-		if (this.sales_btn) {
-			this.sales_btn.text(face === "sales" ? `⇄ ${__("Board")}` : `💼 ${__("Sales")}`);
-		}
+		this.$clients.toggle(face === "clients");
 		if (face === "projects") this.refresh_projects();
 		if (face === "sales") this.refresh_sales();
+		if (face === "clients") this.refresh_clients();
 	}
 
 	toggle_face() {
@@ -1906,6 +1920,203 @@ class DutyBoard {
 			__("New Project"),
 			__("Create")
 		);
+	}
+
+	// ---------------- Clients face ----------------
+
+	refresh_clients(silent) {
+		frappe.call({
+			method: "duty_board.client_room.get_rooms",
+			freeze: false,
+			error: () => {
+				this._fail_count = (this._fail_count || 0) + 1;
+				if (this._fail_count >= 3) this.halt_polling();
+			},
+			callback: (r) => {
+				this._fail_count = 0;
+				this._rooms = r.message || [];
+				this.render_room_list();
+				if (this._open_room) this.load_client_room(this._open_room, true);
+			},
+		});
+	}
+
+	render_room_list() {
+		const $list = this.$clients.find(".duty-cr-list").empty();
+		const $bar = $(`
+			<div class="duty-cr-bar">
+				<b>🤝 ${__("Client Rooms")}</b>
+				<button class="btn btn-sm btn-primary duty-cr-new">＋ ${__("New Room")}</button>
+			</div>
+		`).appendTo($list);
+		$bar.find(".duty-cr-new").on("click", () =>
+			frappe.prompt(
+				{ fieldname: "customer", fieldtype: "Link", label: __("Customer"), options: "Customer", reqd: 1 },
+				(v) =>
+					frappe.call({
+						method: "duty_board.client_room.create_room",
+						args: { customer: v.customer },
+						callback: (r) => {
+							this.refresh_clients();
+							if (r.message) this.open_client_room(r.message);
+						},
+					}),
+				__("New Client Room"),
+				__("Create")
+			)
+		);
+		if (!(this._rooms || []).length) {
+			$list.append(`<div class="text-muted duty-plan-empty">${__("No client rooms yet.")}</div>`);
+			return;
+		}
+		this._rooms.forEach((r) => {
+			$(`
+				<a class="duty-cr-item ${r.name === this._open_room ? "active" : ""} ${r.status !== "Active" ? "duty-cr-frozen" : ""}">
+					<b style="color:${this.proj_color(r.name)}">${frappe.utils.escape_html(r.customer)}</b>
+					${r.status !== "Active" ? `<span class="duty-cr-status">${__(r.status)}</span>` : ""}
+					<span class="duty-cr-last">${frappe.utils.escape_html(r.last || "")}</span>
+					<span class="duty-cr-members">👥 ${r.members}</span>
+				</a>
+			`)
+				.appendTo($list)
+				.on("click", () => this.open_client_room(r.name));
+		});
+	}
+
+	open_client_room(name) {
+		this._open_room = name;
+		this.render_room_list();
+		this.load_client_room(name);
+	}
+
+	load_client_room(name, silent) {
+		frappe.call({
+			method: "duty_board.client_room.get_room",
+			args: { name: name },
+			callback: (r) => r.message && this.render_client_room(r.message),
+		});
+	}
+
+	cr_msg(m) {
+		return `
+			<div class="duty-cr-msg ${m.internal ? "duty-cr-internal" : m.is_staff ? "duty-cr-staff" : "duty-cr-client"}">
+				<span class="duty-msg-who" style="color:${this.user_color(m.owner)}">${m.internal ? "🔒 " : ""}${frappe.utils.escape_html((m.who || m.owner).split(" ")[0])}${m.is_staff ? "" : ` · ${__("client")}`}</span>
+				<span class="duty-msg-text">${frappe.utils.escape_html(m.message)}</span>
+				<span class="duty-msg-time">${frappe.datetime.str_to_user(m.creation)}</span>
+				${m.is_staff ? "" : `<a class="duty-cr-mktask" data-text="${frappe.utils.escape_html(m.message.slice(0, 120))}" title="${__("Make task from this")}">➕</a>`}
+			</div>`;
+	}
+
+	render_client_room(x) {
+		if (x.name !== this._open_room) return;
+		const $room = this.$clients.find(".duty-cr-room").show();
+		const counts = { Queued: 0, "In Progress": 0, Done: 0 };
+		(x.tasks || []).forEach((t) => (counts[t.status] = (counts[t.status] || 0) + 1));
+		$room.html(`
+			<div class="duty-cr-ribbon">🤝 ${__("{0} can read this room — whispers 🔒 excepted", [frappe.utils.escape_html(x.customer)])}</div>
+			<div class="duty-cr-head">
+				<b>${frappe.utils.escape_html(x.customer)}</b>
+				<span class="duty-cr-taskchips">📋 ${counts.Queued} ${__("queued")} · ${counts["In Progress"]} ${__("in progress")} · ${counts.Done} ${__("done")}</span>
+				<span class="duty-cr-tools">
+					<a class="duty-cr-membersbtn">👥 ${__("Members")}</a>
+					${frappe.user.has_role("System Manager") ? `<a class="duty-cr-freeze">${x.status === "Active" ? "🧊 " + __("Freeze") : "▶ " + __("Unfreeze")}</a>` : ""}
+				</span>
+			</div>
+			<div class="duty-cr-msgs">${(x.messages || []).map((m) => this.cr_msg(m)).join("") || `<div class="text-muted">${__("No messages yet.")}</div>`}</div>
+			<div class="duty-cr-compose">
+				<label class="duty-cr-int"><input type="checkbox" class="duty-cr-internal-toggle"> 🔒 ${__("Internal")}</label>
+				<textarea rows="2" class="form-control duty-cr-input" placeholder="${__("Message {0}... Enter to send", [frappe.utils.escape_html(x.customer)])}"></textarea>
+				<button type="button" class="btn btn-primary btn-sm duty-cr-send">${__("Send")}</button>
+			</div>
+		`);
+		const $msgs = $room.find(".duty-cr-msgs");
+		$msgs.scrollTop($msgs[0].scrollHeight);
+		const $input = $room.find(".duty-cr-input");
+		const $int = $room.find(".duty-cr-internal-toggle");
+		const restyle = () => $room.find(".duty-cr-compose").toggleClass("duty-cr-composing-internal", $int.is(":checked"));
+		$int.on("change", restyle);
+		const send = () => {
+			const text = ($input.val() || "").trim();
+			if (!text) return;
+			$input.val("");
+			frappe.call({
+				method: "duty_board.client_room.post_message",
+				args: { name: x.name, message: text, internal: $int.is(":checked") ? 1 : 0 },
+				callback: (r) => r.message && this.render_client_room(r.message),
+			});
+		};
+		$room.find(".duty-cr-send").on("click", send);
+		$input.on("keydown", (e) => {
+			if (e.key === "Enter" && !e.shiftKey) {
+				e.preventDefault();
+				send();
+			}
+		});
+		$room.find(".duty-cr-mktask").on("click", (e) => {
+			const seed = $(e.currentTarget).data("text");
+			frappe.prompt(
+				{ fieldname: "title", fieldtype: "Data", label: __("Task title"), default: seed, reqd: 1 },
+				(v) =>
+					frappe.call({
+						method: "duty_board.client_room.make_task_from_message",
+						args: { name: x.name, title: v.title },
+						callback: (r) => r.message && this.render_client_room(r.message),
+					}),
+				__("Make client-visible task"),
+				__("Create")
+			);
+		});
+		$room.find(".duty-cr-membersbtn").on("click", () => this.room_members_dialog(x));
+		$room.find(".duty-cr-freeze").on("click", () =>
+			frappe.call({
+				method: "duty_board.client_room.set_room_status",
+				args: { name: x.name, status: x.status === "Active" ? "Frozen" : "Active" },
+				callback: () => this.load_client_room(x.name),
+			})
+		);
+	}
+
+	room_members_dialog(x) {
+		const d = new frappe.ui.Dialog({ title: `👥 ${x.customer}` });
+		const render = (data) => {
+			$(d.body).html(`
+				<div class="duty-cr-memlist">
+					${(data.members || [])
+						.map(
+							(m) =>
+								`<div class="duty-cr-mem"><b>${frappe.utils.escape_html(m.full_name)}</b> <span class="text-muted">${frappe.utils.escape_html(m.user)}</span> <a class="duty-cr-memrm" data-name="${m.name}">${__("Remove")}</a></div>`
+						)
+						.join("") || `<div class="text-muted">${__("No client members yet.")}</div>`}
+				</div>
+				<div class="duty-cr-addmem">
+					<input type="text" class="form-control input-sm duty-cr-em" placeholder="${__("client email")}">
+					<input type="text" class="form-control input-sm duty-cr-nm" placeholder="${__("full name")}">
+					<button type="button" class="btn btn-sm btn-primary duty-cr-addbtn">＋</button>
+				</div>
+				<p class="text-muted duty-attach-hint">${__("New members get a welcome email with a password link. Their portal: {0}", ["<b>" + location.origin + "/portal</b>"])}</p>
+			`);
+			$(d.body).find(".duty-cr-addbtn").on("click", () => {
+				const email = $(d.body).find(".duty-cr-em").val().trim();
+				const nm = $(d.body).find(".duty-cr-nm").val().trim();
+				if (!email) return;
+				frappe.call({
+					method: "duty_board.client_room.add_member",
+					args: { name: x.name, email: email, full_name: nm },
+					callback: (r) => r.message && render(r.message),
+				});
+			});
+			$(d.body).find(".duty-cr-memrm").on("click", (e) =>
+				frappe.confirm(__("Remove this member's access?"), () =>
+					frappe.call({
+						method: "duty_board.client_room.remove_member",
+						args: { member_name: $(e.currentTarget).data("name") },
+						callback: () => this.load_client_room(x.name),
+					}).then(() => d.hide())
+				)
+			);
+		};
+		render(x);
+		d.show();
 	}
 
 	// ---------------- Sales face ----------------
@@ -3925,6 +4136,48 @@ class DutyBoard {
 			.duty-kb-col[data-col="Completed"] .duty-kb-col-head { color: #15803d; }
 			.duty-kb-col[data-col="Suspended"] { border-top: 3px solid #7c3aed; }
 			.duty-kb-col[data-col="Suspended"] .duty-kb-col-head { color: #6d28d9; }
+			.duty-clients { padding-bottom: 76px; display: flex; gap: 14px; align-items: flex-start; }
+			.duty-cr-list { flex: 0 0 280px; display: flex; flex-direction: column; gap: 8px; }
+			.duty-cr-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px; }
+			.duty-cr-item {
+				border: 1px solid var(--border-color); border-radius: 10px; padding: 10px 12px;
+				background: var(--card-bg); cursor: pointer; text-decoration: none;
+				display: flex; flex-direction: column; gap: 2px;
+			}
+			.duty-cr-item.active { border-color: #0F5C55; box-shadow: 0 0 0 1px #0F5C55 inset; }
+			.duty-cr-frozen { opacity: 0.6; }
+			.duty-cr-status { font-size: var(--text-xs); font-weight: 700; color: #0369a1; }
+			.duty-cr-last { font-size: var(--text-xs); color: var(--text-muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+			.duty-cr-members { font-size: var(--text-xs); color: var(--text-muted); }
+			.duty-cr-room { flex: 1; border: 1px solid var(--border-color); border-radius: 12px; background: var(--card-bg); padding: 0 14px 14px; min-width: 0; }
+			.duty-cr-ribbon {
+				margin: 0 -14px 10px; padding: 7px 14px; border-radius: 12px 12px 0 0;
+				background: #fef3c7; color: #92400e; font-size: var(--text-xs); font-weight: 700;
+			}
+			.duty-cr-head { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; margin-bottom: 8px; }
+			.duty-cr-taskchips { font-size: var(--text-xs); color: var(--text-muted); font-weight: 600; }
+			.duty-cr-tools { margin-left: auto; display: flex; gap: 12px; }
+			.duty-cr-tools a { cursor: pointer; font-size: var(--text-xs); font-weight: 600; }
+			.duty-cr-msgs { display: flex; flex-direction: column; gap: 8px; max-height: 52vh; overflow-y: auto; padding: 4px 0 8px; }
+			.duty-cr-msg { border-radius: 10px; padding: 7px 11px; max-width: 88%; position: relative; }
+			.duty-cr-staff { background: #ecfdf5; align-self: flex-end; }
+			.duty-cr-client { background: var(--gray-100, #f3f4f6); align-self: flex-start; }
+			.duty-cr-internal { background: #fef9c3; border: 1px dashed #d97706; align-self: flex-end; }
+			.duty-cr-msg .duty-msg-who { display: block; font-size: var(--text-xs); font-weight: 700; }
+			.duty-cr-mktask { position: absolute; right: -26px; top: 6px; cursor: pointer; text-decoration: none; opacity: 0.5; }
+			.duty-cr-msg:hover .duty-cr-mktask { opacity: 1; }
+			.duty-cr-compose { display: flex; gap: 8px; align-items: flex-end; }
+			.duty-cr-compose textarea { flex: 1; resize: none; font-size: 16px; }
+			.duty-cr-int { font-size: var(--text-xs); font-weight: 700; align-self: center; white-space: nowrap; }
+			.duty-cr-composing-internal textarea { background: #fef9c3; border-color: #d97706; }
+			.duty-cr-mem { padding: 6px 0; border-bottom: 1px dashed var(--border-color); display: flex; gap: 8px; align-items: center; }
+			.duty-cr-mem a { margin-left: auto; cursor: pointer; font-size: var(--text-xs); }
+			.duty-cr-addmem { display: flex; gap: 6px; margin-top: 10px; }
+			@media (max-width: 767px) {
+				.duty-clients { flex-direction: column; }
+				.duty-cr-list { flex: 1 1 auto; width: 100%; }
+				.duty-cr-room { width: 100%; }
+			}
 			.duty-lead-chip {
 				font-size: var(--text-xs); border-radius: 99px; padding: 1px 8px;
 				background: #fef3c7; color: #92400e; font-weight: 600;

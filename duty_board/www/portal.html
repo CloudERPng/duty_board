@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Xlevel Client Portal</title>
+<link rel="icon" href="/assets/duty_board/mobile/icon-192.png">
+<meta name="theme-color" content="#0F5C55">
+<style>
+	* { box-sizing: border-box; }
+	body { margin: 0; font-family: system-ui, -apple-system, sans-serif; background: #f4f6f5; color: #111; }
+	.top { background: #0F5C55; color: #fff; padding: 14px 18px; display: flex; justify-content: space-between; align-items: center; }
+	.top b { font-size: 17px; }
+	.top a { color: #a7f3d0; text-decoration: none; font-size: 13px; }
+	.hours { background: #ecfdf5; color: #0f766e; font-size: 12px; padding: 6px 18px; }
+	.wrap { max-width: 720px; margin: 0 auto; padding: 14px; }
+	.card { background: #fff; border: 1px solid #e5e7eb; border-radius: 12px; padding: 14px; margin-bottom: 14px; }
+	h3 { margin: 0 0 10px; font-size: 14px; color: #0F5C55; }
+	.task { display: flex; gap: 8px; align-items: center; padding: 6px 0; border-bottom: 1px dashed #eee; font-size: 14px; }
+	.task:last-child { border-bottom: none; }
+	.pill { font-size: 11px; border-radius: 99px; padding: 2px 10px; font-weight: 700; }
+	.p-q { background: #f1f5f9; color: #475569; }
+	.p-i { background: #fef3c7; color: #b45309; }
+	.p-d { background: #dcfce7; color: #15803d; }
+	.task span.t { flex: 1; }
+	.task span.a { font-size: 12px; color: #6b7280; }
+	.msgs { display: flex; flex-direction: column; gap: 10px; max-height: 50vh; overflow-y: auto; padding-bottom: 6px; }
+	.m { max-width: 85%; padding: 8px 12px; border-radius: 12px; font-size: 14px; white-space: pre-wrap; word-break: break-word; }
+	.m .w { font-size: 11px; font-weight: 700; display: block; margin-bottom: 2px; }
+	.m .tm { font-size: 10px; color: #9ca3af; display: block; margin-top: 3px; }
+	.m.staff { background: #ecfdf5; align-self: flex-start; }
+	.m.staff .w { color: #0F5C55; }
+	.m.me { background: #e0e7ff; align-self: flex-end; }
+	.compose { display: flex; gap: 8px; margin-top: 10px; }
+	.compose textarea { flex: 1; border: 1px solid #d1d5db; border-radius: 10px; padding: 9px 12px; font-size: 16px; resize: none; font-family: inherit; }
+	button { background: #0F5C55; color: #fff; border: none; border-radius: 10px; padding: 9px 18px; font-weight: 700; cursor: pointer; font-size: 14px; }
+	.req { display: flex; gap: 8px; margin-top: 8px; }
+	.req input { flex: 1; border: 1px solid #d1d5db; border-radius: 10px; padding: 8px 12px; font-size: 16px; }
+	.muted { color: #6b7280; font-size: 13px; }
+	#err { color: #b91c1c; font-size: 13px; margin: 8px 0; display: none; }
+</style>
+</head>
+<body>
+<div class="top">
+	<span><b id="brand">Xlevel</b> · <span id="cust"></span></span>
+	<a href="/?cmd=web_logout">Log out</a>
+</div>
+<div class="hours">🕘 We reply Mon–Fri, 9:00–18:00 WAT. Urgent? Call your account manager.</div>
+<div class="wrap">
+	<div id="err"></div>
+	<div class="card">
+		<h3>📋 Your tasks with us</h3>
+		<div id="tasks"><span class="muted">Loading…</span></div>
+		<div class="req">
+			<input id="reqtext" maxlength="200" placeholder="Request something new…">
+			<button onclick="requestTask()">Request</button>
+		</div>
+	</div>
+	<div class="card">
+		<h3>💬 Conversation</h3>
+		<div class="msgs" id="msgs"><span class="muted">Loading…</span></div>
+		<div class="compose">
+			<textarea id="text" rows="2" placeholder="Write to the Xlevel team…"></textarea>
+			<button onclick="send()">Send</button>
+		</div>
+	</div>
+	<p class="muted" style="text-align:center">Powered by Xlevel Retail Systems · CloudERP.One</p>
+</div>
+<script>
+const esc = (s) => (s || "").replace(/[&<>"']/g, (c) => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const api = (method, args) =>
+	fetch("/api/method/duty_board.client_room." + method, {
+		method: "POST",
+		headers: { "Content-Type": "application/json", "X-Frappe-CSRF-Token": frappe_csrf() },
+		credentials: "same-origin",
+		body: JSON.stringify(args || {}),
+	}).then(async (r) => {
+		const j = await r.json();
+		if (!r.ok) throw new Error((j._server_messages && JSON.parse(JSON.parse(j._server_messages)[0]).message) || j.exception || "Request failed");
+		return j.message;
+	});
+function frappe_csrf() {
+	const m = document.cookie.match(/csrf_token=([^;]+)/);
+	return m ? m[1] : "";
+}
+const PILL = { "Queued": "p-q", "In Progress": "p-i", "Done": "p-d" };
+function render(d) {
+	document.getElementById("cust").textContent = d.customer || "";
+	const t = document.getElementById("tasks");
+	t.innerHTML = (d.tasks || []).length
+		? d.tasks.map((x) => `<div class="task"><span class="t">${esc(x.title)}</span>${x.assignee_first ? `<span class="a">${esc(x.assignee_first)}</span>` : ""}<span class="pill ${PILL[x.status]}">${esc(x.status)}</span></div>`).join("")
+		: '<span class="muted">Nothing yet — request something below.</span>';
+	const box = document.getElementById("msgs");
+	const stick = box.scrollTop + box.clientHeight >= box.scrollHeight - 40;
+	box.innerHTML = (d.messages || []).length
+		? d.messages.map((m) => `<div class="m ${m.is_staff ? "staff" : "me"}"><span class="w">${esc(m.who)}</span>${esc(m.message)}<span class="tm">${esc((m.creation || "").slice(0, 16))}</span></div>`).join("")
+		: '<span class="muted">Say hello — the team is listening.</span>';
+	if (stick) box.scrollTop = box.scrollHeight;
+}
+function fail(e) {
+	const el = document.getElementById("err");
+	el.textContent = e.message || "Something went wrong";
+	el.style.display = "block";
+	setTimeout(() => (el.style.display = "none"), 6000);
+}
+function load() { api("client_get_room").then(render).catch(fail); }
+function send() {
+	const el = document.getElementById("text");
+	const v = el.value.trim();
+	if (!v) return;
+	el.value = "";
+	api("client_post_message", { message: v }).then(render).catch(fail);
+}
+function requestTask() {
+	const el = document.getElementById("reqtext");
+	const v = el.value.trim();
+	if (!v) return;
+	el.value = "";
+	api("client_request_task", { title: v }).then(render).catch(fail);
+}
+document.getElementById("text").addEventListener("keydown", (e) => {
+	if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); send(); }
+});
+load();
+setInterval(load, 15000);
+</script>
+</body>
+</html>

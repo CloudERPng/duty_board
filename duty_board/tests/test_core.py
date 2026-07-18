@@ -2,7 +2,7 @@ import frappe
 from frappe.tests.utils import FrappeTestCase
 
 from duty_board.api import _is_break, user_day_window
-from duty_board import projects, sales
+from duty_board import projects, sales, client_room
 
 
 class TestDutyBoardCore(FrappeTestCase):
@@ -114,6 +114,18 @@ class TestDutyBoardCore(FrappeTestCase):
 		card = board["tasks"]["To Do"][0]["name"]
 		with self.assertRaises(frappe.ValidationError):
 			projects.start_card_work(card)
+
+	def test_client_room_membrane(self):
+		room = client_room.create_room(self._any_customer())
+		payload = client_room.post_message(room, "visible to client")
+		client_room.post_message(room, "whisper: internal only", internal=1)
+		doc = frappe.get_doc("Client Room", room)
+		public, _more = client_room._room_payload(doc, include_internal=False)
+		texts = [m["message"] for m in public]
+		self.assertIn("visible to client", texts)
+		self.assertNotIn("whisper: internal only", " ".join(texts))
+		both, _more = client_room._room_payload(doc, include_internal=True)
+		self.assertEqual(len(both), len(public) + 1)
 
 	def test_move_task_rejects_unknown_column(self):
 		proj = projects.create_project("__Unit Test Project 2", customer=self._any_customer())
