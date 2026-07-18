@@ -35,7 +35,24 @@
 	td.dt { white-space: nowrap; color: #6b7280; font-size: 13px; }
 	td.dur { white-space: nowrap; font-weight: 600; font-size: 13px; }
 	td.dur.open { color: #b45309; } td.dur.closed { color: #15803d; }
+	.tabbar { display: none; }
 	@media (max-width: 899px) {
+		body { padding-bottom: 64px; }
+		.tabbar {
+			display: flex; position: fixed; bottom: 0; left: 0; right: 0; z-index: 90;
+			background: #fff; border-top: 1px solid #e5e7eb; box-shadow: 0 -2px 10px rgba(0,0,0,.06);
+		}
+		.tabbar a {
+			flex: 1; text-align: center; padding: 8px 0 10px; font-size: 12px; font-weight: 700;
+			color: #6b7280; cursor: pointer; text-decoration: none; display: flex;
+			flex-direction: column; gap: 2px; align-items: center;
+		}
+		.tabbar a span { font-size: 20px; }
+		.tabbar a.active { color: #0F5C55; }
+		body[data-tab="chat"] .card.tasks, body[data-tab="chat"] .card.docs { display: none; }
+		body[data-tab="tasks"] .card.chat, body[data-tab="tasks"] .card.docs { display: none; }
+		body[data-tab="docs"] .card.tasks, body[data-tab="docs"] .card.chat { display: none; }
+		body[data-tab="chat"] .msgs { max-height: calc(100vh - 330px); }
 		table.tt, table.tt tbody { display: block; width: 100%; }
 		table.tt tr:first-child { display: none; } /* headers retire; labels take over */
 		table.tt tr.row {
@@ -170,7 +187,7 @@
 		<h3>📚 Your documents</h3>
 		<div id="docs"><span class="muted">Nothing on your shelf yet.</span></div>
 	</div>
-	<div class="card">
+	<div class="card chat">
 		<div class="thead" style="margin-bottom:8px">
 			<h3 style="margin:0">💬 Conversation</h3>
 			<input id="q" placeholder="🔍 Search messages & tasks…" style="max-width:260px;border:1px solid #d1d5db;border-radius:8px;padding:6px 10px;font-size:14px">
@@ -190,6 +207,11 @@
 		</div>
 	</div>
 	<p class="muted foot" style="text-align:center">Powered by Xlevel Retail Systems · CloudERP.One</p>
+</div>
+<div class="tabbar">
+	<a data-tab="tasks" onclick="setTab('tasks')"><span>📋</span>Tasks</a>
+	<a data-tab="chat" onclick="setTab('chat')"><span>💬</span>Chat</a>
+	<a data-tab="docs" onclick="setTab('docs')"><span>📚</span>Docs</a>
 </div>
 <div id="ov" onclick="if(event.target===this)this.style.display='none'">
 	<div class="box"><span class="close" onclick="document.getElementById('ov').style.display='none'">×</span><div id="ovbody"></div></div>
@@ -451,7 +473,20 @@ function setReply(r) {
 	document.getElementById("replychip").innerHTML = `<span class="chip">↩ ${esc(r.who)}: ${esc(r.text)} <a onclick="REPLY=null;document.getElementById('replychip').innerHTML=''">×</a></span>`;
 	document.getElementById("text").focus();
 }
+function setTab(t) {
+	document.body.dataset.tab = t;
+	localStorage.setItem("xl_tab", t);
+	document.querySelectorAll(".tabbar a").forEach((a) =>
+		a.classList.toggle("active", a.dataset.tab === t)
+	);
+	if (t === "chat") {
+		const box = document.getElementById("msgs");
+		if (box) box.scrollTop = box.scrollHeight;
+	}
+}
+setTab(localStorage.getItem("xl_tab") || "chat");
 function jumpTo(name) {
+	if (window.innerWidth < 900) setTab("chat");
 	const el = document.querySelector(`.m[data-name="${CSS.escape(name)}"]`);
 	if (!el) return;
 	el.scrollIntoView({ behavior: "smooth", block: "center" });
