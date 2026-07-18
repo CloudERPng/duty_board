@@ -482,6 +482,23 @@ def _notify_user(user, title, body):
 	_push_safe(user, title, body)
 
 
+def parse_mentions(text):
+	"""Find @first-name or @email mentions of enabled staff in free text."""
+	if not text or "@" not in text:
+		return []
+	low = text.lower()
+	mentioned = []
+	for u in frappe.get_all(
+		"User",
+		filters={"enabled": 1, "user_type": "System User"},
+		fields=["name", "full_name"],
+	):
+		first = (u.full_name or u.name).split(" ")[0].lower()
+		if f"@{first}" in low or f"@{u.name.lower()}" in low:
+			mentioned.append(u.name)
+	return mentioned
+
+
 def _push_safe(user, title, body):
 	try:
 		from duty_board.push import push_to_user

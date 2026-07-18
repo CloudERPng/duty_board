@@ -1807,14 +1807,14 @@ class DutyBoard {
 				? notes
 						.map(
 							(n) =>
-								`<div class="duty-lead-note"><b>${frappe.utils.escape_html(n.who)}</b> <span class="duty-msg-time">${frappe.datetime.str_to_user(n.when)}</span><br>${frappe.utils.escape_html(n.note)}</div>`
+								`<div class="duty-lead-note"><b>${frappe.utils.escape_html(n.who)}</b> <span class="duty-msg-time">${frappe.datetime.str_to_user(n.when)}</span><br>${this.fmt_note(n.note)}</div>`
 						)
 						.join("")
 				: `<div class="text-muted">${__("No notes yet.")}</div>`
 		);
 		$x.append(`
 			<div class="duty-lead-addnote">
-				<input type="text" class="form-control input-sm duty-cn-text" placeholder="${__("Add a note and press Enter...")}">
+				<input type="text" class="form-control input-sm duty-cn-text" placeholder="${__("Write a note — @name to notify, Enter to send...")}">
 			</div>
 		`);
 		const reopen = (r) => {
@@ -1881,6 +1881,12 @@ class DutyBoard {
 	}
 
 	// ---------------- Sales face ----------------
+
+	fmt_note(text) {
+		return frappe.utils
+			.escape_html(text || "")
+			.replace(/@([A-Za-z0-9._-]+)/g, '<b class="duty-note-mention">@$1</b>');
+	}
 
 	naira(v) {
 		if (v === null || v === undefined) return "";
@@ -2097,12 +2103,12 @@ class DutyBoard {
 			<div class="duty-lead-notes">
 				${(x.notes || [])
 					.map(
-						(n) => `<div class="duty-lead-note"><b>${frappe.utils.escape_html(n.who)}</b> <span class="duty-msg-time">${frappe.datetime.str_to_user(n.when)}</span><br>${frappe.utils.escape_html(n.note)}</div>`
+						(n) => `<div class="duty-lead-note"><b>${frappe.utils.escape_html(n.who)}</b> <span class="duty-msg-time">${frappe.datetime.str_to_user(n.when)}</span><br>${this.fmt_note(n.note)}</div>`
 					)
 					.join("") || `<div class="text-muted">${__("No notes yet.")}</div>`}
 			</div>
 			<div class="duty-lead-addnote">
-				<input type="text" class="form-control input-sm duty-ln-text" placeholder="${__("Add a note and press Enter...")}">
+				<input type="text" class="form-control input-sm duty-ln-text" placeholder="${__("Write a note — @name to notify, Enter to send...")}">
 			</div>
 			<div class="duty-lead-close">
 				<button type="button" class="btn btn-sm btn-success duty-lead-won">🏆 ${__("Mark Won")}</button>
@@ -3853,6 +3859,7 @@ class DutyBoard {
 			.duty-lead-addtask .duty-lt-date, .duty-lead-addtask .duty-lt-time, .duty-lead-addtask .duty-lt-who { flex: 1; min-width: 90px; }
 			.duty-lead-addtask { flex-wrap: wrap; }
 			.duty-lead-note { padding: 6px 0; border-bottom: 1px dashed var(--border-color); }
+			.duty-note-mention { color: #0F5C55; }
 			.duty-lead-addnote { margin-top: 8px; }
 			.duty-lead-addnote input { font-size: 16px; }
 			.duty-lead-close { display: flex; gap: 10px; margin-top: 16px; justify-content: flex-end; }

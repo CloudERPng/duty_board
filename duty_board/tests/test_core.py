@@ -85,6 +85,13 @@ class TestDutyBoardCore(FrappeTestCase):
 		self.assertNotIn(lead, open_names)
 		self.assertIn(lead, [r["name"] for r in sales.get_closed_leads("Won")])
 
+	def test_parse_mentions(self):
+		from duty_board.api import parse_mentions
+
+		found = parse_mentions("please chase this @administrator thanks")
+		self.assertIn("Administrator", found)
+		self.assertEqual(parse_mentions("no mentions here"), [])
+
 	def test_card_notes(self):
 		proj = projects.create_project("__Unit Test Project N", customer=self._any_customer())
 		board = projects.create_task(proj, "Noted card")

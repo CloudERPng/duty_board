@@ -300,4 +300,18 @@ def add_lead_note(lead, note):
 		ignore_permissions=True
 	)
 	frappe.db.commit()
+	try:
+		from duty_board.api import parse_mentions
+
+		company = frappe.db.get_value("Duty Lead", lead, "company") or lead
+		first = frappe.utils.get_fullname(frappe.session.user).split(" ")[0]
+		for m in parse_mentions(note):
+			if m != frappe.session.user:
+				_notify(
+					m,
+					_("💬 {0} mentioned you").format(first),
+					f"💼 {company}: {note[:120]}",
+				)
+	except Exception:
+		pass
 	return get_lead(lead)

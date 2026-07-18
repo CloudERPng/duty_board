@@ -318,6 +318,20 @@ def add_card_note(name, note):
 		ignore_permissions=True
 	)
 	frappe.db.commit()
+	try:
+		from duty_board.api import parse_mentions
+
+		title = frappe.db.get_value("Duty Project Task", name, "title") or name
+		first = frappe.utils.get_fullname(frappe.session.user).split(" ")[0]
+		for m in parse_mentions(note):
+			if m != frappe.session.user:
+				_notify(
+					m,
+					_("💬 {0} mentioned you").format(first),
+					f"📁 {title}: {note[:120]}",
+				)
+	except Exception:
+		pass
 	return get_card(name)
 
 
