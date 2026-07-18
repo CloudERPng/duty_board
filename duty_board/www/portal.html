@@ -379,7 +379,7 @@ async function setupPush() {
 			const cfg = await fetch("/api/method/duty_board.push.get_push_config", {
 				credentials: "same-origin",
 			}).then((r) => r.json());
-			const key = cfg.message && cfg.message.vapid_public;
+			const key = cfg.message && (cfg.message.public_key || cfg.message.vapid_public);
 			if (!key) throw new Error("Notifications are not configured on the server yet.");
 			const s = await reg.pushManager.subscribe({
 				userVisibleOnly: true,
