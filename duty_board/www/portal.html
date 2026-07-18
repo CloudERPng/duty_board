@@ -31,7 +31,12 @@
 	.m.staff { background: #ecfdf5; align-self: flex-start; }
 	.m.staff .w { color: #0F5C55; }
 	.m.me { background: #e0e7ff; align-self: flex-end; }
-	.compose { display: flex; gap: 8px; margin-top: 10px; }
+	.compose { display: flex; gap: 8px; margin-top: 10px; position: relative; }
+	#mdd { position: absolute; bottom: 100%; left: 0; margin-bottom: 4px; background: #fff;
+		border: 1px solid #d1d5db; border-radius: 10px; box-shadow: 0 4px 14px rgba(0,0,0,.14);
+		display: none; flex-direction: column; min-width: 200px; overflow: hidden; z-index: 50; }
+	#mdd a { padding: 8px 14px; font-weight: 700; color: #0F5C55; cursor: pointer; }
+	#mdd a:hover { background: #f0fdf4; }
 	.compose textarea { flex: 1; border: 1px solid #d1d5db; border-radius: 10px; padding: 9px 12px; font-size: 16px; resize: none; font-family: inherit; }
 	button { background: #0F5C55; color: #fff; border: none; border-radius: 10px; padding: 9px 18px; font-weight: 700; cursor: pointer; font-size: 14px; }
 	.req { display: flex; gap: 8px; margin-top: 8px; }
@@ -60,7 +65,8 @@
 		<h3>💬 Conversation</h3>
 		<div class="msgs" id="msgs"><span class="muted">Loading…</span></div>
 		<div class="compose">
-			<textarea id="text" rows="2" placeholder="Write to the Xlevel team…"></textarea>
+			<div id="mdd"></div>
+			<textarea id="text" rows="2" placeholder="Write to the Xlevel team… @ to mention someone"></textarea>
 			<button onclick="send()">Send</button>
 		</div>
 	</div>
@@ -118,7 +124,44 @@ function requestTask() {
 	el.value = "";
 	api("client_request_task", { title: v }).then(render).catch(fail);
 }
-document.getElementById("text").addEventListener("keydown", (e) => {
+let STAFF = [];
+api("client_get_staff").then((s) => (STAFF = s || [])).catch(() => {});
+const ta = document.getElementById("text");
+const mdd = document.getElementById("mdd");
+function frag() {
+	const pos = ta.selectionStart;
+	const m = ta.value.slice(0, pos).match(/@([A-Za-z]*)$/);
+	return m ? { start: pos - m[0].length, q: m[1].toLowerCase(), pos: pos } : null;
+}
+function pickerRender() {
+	const f = frag();
+	if (!f) { mdd.style.display = "none"; return; }
+	const opts = STAFF.filter((s) => s.first.toLowerCase().startsWith(f.q)).slice(0, 6);
+	if (!opts.length) { mdd.style.display = "none"; return; }
+	mdd.innerHTML = opts.map((s) => `<a data-f="${esc(s.first)}">${esc(s.full)}</a>`).join("");
+	mdd.style.display = "flex";
+	[...mdd.querySelectorAll("a")].forEach((a) =>
+		a.addEventListener("mousedown", (e) => {
+			e.preventDefault();
+			const f2 = frag();
+			if (!f2) return;
+			ta.value = ta.value.slice(0, f2.start) + "@" + a.dataset.f + " " + ta.value.slice(f2.pos);
+			mdd.style.display = "none";
+			ta.focus();
+		})
+	);
+}
+ta.addEventListener("input", pickerRender);
+ta.addEventListener("click", pickerRender);
+ta.addEventListener("blur", () => setTimeout(() => (mdd.style.display = "none"), 150));
+ta.addEventListener("keydown", (e) => {
+	if (e.key === "Enter" && mdd.style.display === "flex") {
+		e.preventDefault();
+		const first = mdd.querySelector("a");
+		if (first) first.dispatchEvent(new Event("mousedown"));
+		return;
+	}
+	if (e.key === "Escape") mdd.style.display = "none";
 	if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); send(); }
 });
 load();

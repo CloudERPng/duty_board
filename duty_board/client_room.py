@@ -119,6 +119,14 @@ def _staff_tasks(room):
 	return rows
 
 
+def _ensure_token(room):
+	if not room.invite_token:
+		token = frappe.generate_hash(length=24)
+		room.db_set("invite_token", token, update_modified=False)
+		room.invite_token = token
+	return room.invite_token
+
+
 def _ensure_project(room):
 	if room.project and frappe.db.exists("Duty Project", room.project):
 		return room.project
@@ -193,6 +201,7 @@ def create_room(customer):
 		{"doctype": "Client Room", "customer": customer, "status": "Active"}
 	).insert(ignore_permissions=True)
 	_ensure_project(doc)
+	_ensure_token(doc)
 	frappe.db.commit()
 	return doc.name
 
@@ -209,6 +218,14 @@ def get_room(name, before=None):
 	)
 	for m in members:
 		m.full_name = frappe.utils.get_fullname(m.user)
+	requests = frappe.get_all(
+		"Client Join Request",
+		filters={"room": name, "status": "Pending"},
+		fields=["name", "full_name", "email", "phone", "creation"],
+		order_by="creation asc",
+	)
+	for q in requests:
+		q.creation = str(q.creation)
 	return {
 		"name": room.name,
 		"customer": room.customer,
@@ -217,6 +234,8 @@ def get_room(name, before=None):
 		"messages": messages,
 		"has_more": has_more,
 		"members": members,
+		"requests": requests,
+		"join_url": f"{frappe.utils.get_url()}/join?token={_ensure_token(room)}",
 		"tasks": _staff_tasks(room),
 	}
 
@@ -228,6 +247,21 @@ def post_message(name, message, internal=0):
 	if room.status != "Active" and not cint(internal):
 		frappe.throw(_("Room is frozen — only internal notes allowed."))
 	_post(room, message, internal)
+	try:
+		from duty_board.api import _notify_user, parse_mentions
+
+		me = frappe.session.user
+		first = frappe.utils.get_fullname(me).split(" ")[0]
+		lock = "🔒 " if cint(internal) else ""
+		for m in parse_mentions(message):
+			if m != me:
+				_notify_user(
+					m,
+					_("💬 {0} · 🤝 {1}").format(first, room.customer),
+					f"{lock}{(message or '')[:120]}",
+				)
+	except Exception:
+		pass
 	return get_room(name)
 
 
@@ -334,16 +368,25 @@ def client_get_room(before=None):
 def client_post_message(message):
 	room = _client_room()
 	_post(room, message, internal=0)
-	# staff hear about client words
+	# staff hear about client words; @mentioned staff hear personally
 	try:
-		from duty_board.api import _notify_user
+		from duty_board.api import _notify_user, parse_mentions
 
 		first = frappe.utils.get_fullname(frappe.session.user).split(" ")[0]
+		mentioned = set(parse_mentions(message))
+		for m in mentioned:
+			_notify_user(
+				m,
+				_("💬 {0} ({1}) mentioned you").format(first, room.customer),
+				(message or "")[:120],
+			)
 		for u in frappe.get_all(
 			"User",
 			filters={"enabled": 1, "user_type": "System User"},
 			fields=["name"],
 		):
+			if u.name in mentioned:
+				continue
 			if frappe.db.exists("Duty Push Subscription", {"user": u.name}):
 				_notify_user(
 					u.name,
@@ -353,6 +396,83 @@ def client_post_message(message):
 	except Exception:
 		pass
 	return client_get_room()
+
+
+@frappe.whitelist()
+def client_get_staff():
+	_client_room()
+	out = []
+	for u in frappe.get_all(
+		"User",
+		filters={"enabled": 1, "user_type": "System User"},
+		fields=["full_name"],
+	):
+		if u.full_name and u.full_name != "Administrator":
+			out.append({"first": u.full_name.split(" ")[0], "full": u.full_name})
+	return out
+
+
+@frappe.whitelist(allow_guest=True)
+def submit_join_request(token, full_name, email, phone=None):
+	token = (token or "").strip()
+	full_name = (full_name or "").strip()[:100]
+	email = (email or "").strip().lower()[:120]
+	phone = (phone or "").strip()[:30]
+	if not token or not full_name or not email or "@" not in email or "." not in email.split("@")[-1]:
+		frappe.throw(_("Please fill your name and a valid email."))
+	room_name = frappe.db.get_value("Client Room", {"invite_token": token, "status": "Active"})
+	if not room_name:
+		frappe.throw(_("This invite link is not valid — ask your Xlevel contact for a fresh one."))
+	if frappe.db.exists("Client Room Member", {"room": room_name, "user": email, "active": 1}):
+		return {"ok": True, "already": True}
+	if frappe.db.exists(
+		"Client Join Request", {"room": room_name, "email": email, "status": "Pending"}
+	):
+		return {"ok": True, "pending": True}
+	frappe.get_doc(
+		{
+			"doctype": "Client Join Request",
+			"room": room_name,
+			"full_name": full_name,
+			"email": email,
+			"phone": phone,
+			"status": "Pending",
+		}
+	).insert(ignore_permissions=True)
+	frappe.db.commit()
+	try:
+		from duty_board.api import _notify_user
+
+		customer = frappe.db.get_value("Client Room", room_name, "customer")
+		for u in frappe.get_all(
+			"User", filters={"enabled": 1, "user_type": "System User"}, fields=["name"]
+		):
+			if frappe.db.exists("Duty Push Subscription", {"user": u.name}):
+				_notify_user(u.name, _("🙋 Join request · {0}").format(customer), full_name)
+	except Exception:
+		pass
+	return {"ok": True}
+
+
+@frappe.whitelist()
+def approve_join(request_name):
+	_staff_only()
+	req = frappe.get_doc("Client Join Request", request_name)
+	if req.status != "Pending":
+		frappe.throw(_("Already handled."))
+	add_member(req.room, req.email, req.full_name)
+	req.db_set("status", "Approved", update_modified=False)
+	frappe.db.commit()
+	return get_room(req.room)
+
+
+@frappe.whitelist()
+def reject_join(request_name):
+	_staff_only()
+	req = frappe.get_doc("Client Join Request", request_name)
+	req.db_set("status", "Rejected", update_modified=False)
+	frappe.db.commit()
+	return get_room(req.room)
 
 
 @frappe.whitelist()

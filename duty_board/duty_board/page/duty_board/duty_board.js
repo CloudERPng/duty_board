@@ -2028,7 +2028,7 @@ class DutyBoard {
 				<b>${frappe.utils.escape_html(x.customer)}</b>
 				<span class="duty-cr-taskchips">📋 ${counts.Queued} ${__("queued")} · ${counts["In Progress"]} ${__("in progress")} · ${counts.Done} ${__("done")}</span>
 				<span class="duty-cr-tools">
-					<a class="duty-cr-membersbtn">👥 ${__("Members")}</a>
+					<a class="duty-cr-membersbtn">👥 ${__("Members")}${(x.requests || []).length ? ` <b class="duty-cr-reqbadge">${x.requests.length}</b>` : ""}</a>
 					${frappe.user.has_role("System Manager") ? `<a class="duty-cr-freeze">${x.status === "Active" ? "🧊 " + __("Freeze") : "▶ " + __("Unfreeze")}</a>` : ""}
 				</span>
 			</div>
@@ -2069,6 +2069,7 @@ class DutyBoard {
 			});
 		};
 		$room.find(".duty-cr-send").on("click", send);
+		this.attach_mention_picker($input);
 		$input.on("keydown", (e) => {
 			if (e.key === "Enter" && !e.shiftKey) {
 				e.preventDefault();
@@ -2123,6 +2124,23 @@ class DutyBoard {
 						)
 						.join("") || `<div class="text-muted">${__("No client members yet.")}</div>`}
 				</div>
+				${
+					(data.requests || []).length
+						? `<div class="duty-lead-section">🙋 ${__("Waiting for approval")}</div>` +
+							data.requests
+								.map(
+									(q) =>
+										`<div class="duty-cr-mem"><b>${frappe.utils.escape_html(q.full_name)}</b> <span class="text-muted">${frappe.utils.escape_html(q.email)}${q.phone ? " · " + frappe.utils.escape_html(q.phone) : ""}</span> <a class="duty-cr-approve" data-name="${q.name}">✔ ${__("Approve")}</a> <a class="duty-cr-rejectq" data-name="${q.name}">✖</a></div>`
+								)
+								.join("")
+						: ""
+				}
+				<div class="duty-lead-section">🔗 ${__("Invite link")}</div>
+				<div class="duty-cr-joinlink">
+					<input type="text" class="form-control input-sm" readonly value="${frappe.utils.escape_html(data.join_url || "")}">
+					<button type="button" class="btn btn-sm btn-default duty-cr-copylink">${__("Copy")}</button>
+				</div>
+				<p class="text-muted duty-attach-hint">${__("Share this with the client — anyone who submits the form appears above for approval.")}</p>
 				<div class="duty-cr-addmem">
 					<input type="text" class="form-control input-sm duty-cr-em" placeholder="${__("client email")}">
 					<input type="text" class="form-control input-sm duty-cr-nm" placeholder="${__("full name")}">
@@ -2140,6 +2158,30 @@ class DutyBoard {
 					callback: (r) => r.message && render(r.message),
 				});
 			});
+			$(d.body).find(".duty-cr-copylink").on("click", (e) => {
+				const $inp = $(d.body).find(".duty-cr-joinlink input");
+				$inp.trigger("select");
+				try {
+					navigator.clipboard.writeText($inp.val());
+					frappe.show_alert({ message: __("Link copied"), indicator: "green" }, 3);
+				} catch (err) {
+					document.execCommand("copy");
+				}
+			});
+			$(d.body).find(".duty-cr-approve").on("click", (e) =>
+				frappe.call({
+					method: "duty_board.client_room.approve_join",
+					args: { request_name: $(e.currentTarget).data("name") },
+					callback: (r) => r.message && render(r.message),
+				})
+			);
+			$(d.body).find(".duty-cr-rejectq").on("click", (e) =>
+				frappe.call({
+					method: "duty_board.client_room.reject_join",
+					args: { request_name: $(e.currentTarget).data("name") },
+					callback: (r) => r.message && render(r.message),
+				})
+			);
 			$(d.body).find(".duty-cr-memrm").on("click", (e) =>
 				frappe.confirm(__("Remove this member's access?"), () =>
 					frappe.call({
@@ -4222,6 +4264,13 @@ class DutyBoard {
 			.duty-cr-mem { padding: 6px 0; border-bottom: 1px dashed var(--border-color); display: flex; gap: 8px; align-items: center; }
 			.duty-cr-mem a { margin-left: auto; cursor: pointer; font-size: var(--text-xs); }
 			.duty-cr-addmem { display: flex; gap: 6px; margin-top: 10px; }
+			.duty-cr-joinlink { display: flex; gap: 6px; }
+			.duty-cr-approve { color: var(--green-600, #16a34a); font-weight: 700; cursor: pointer; margin-left: auto; }
+			.duty-cr-rejectq { color: var(--red-600, #dc2626); font-weight: 700; cursor: pointer; }
+			.duty-cr-reqbadge {
+				background: var(--red-500, #ef4444); color: #fff; border-radius: 99px;
+				padding: 0 6px; font-size: 10px; font-style: normal;
+			}
 			@media (max-width: 767px) {
 				.duty-clients { flex-direction: column; }
 				.duty-cr-list { flex: 1 1 auto; width: 100%; }

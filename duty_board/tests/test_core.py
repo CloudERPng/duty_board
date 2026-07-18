@@ -127,6 +127,25 @@ class TestDutyBoardCore(FrappeTestCase):
 		both, _more = client_room._room_payload(doc, include_internal=True)
 		self.assertEqual(len(both), len(public) + 1)
 
+	def test_join_request_flow(self):
+		room = client_room.create_room(self._any_customer())
+		token = frappe.db.get_value("Client Room", room, "invite_token")
+		self.assertTrue(token)
+		client_room.submit_join_request(token, "Test Client", "__unittest_client@example.com")
+		req = frappe.get_all(
+			"Client Join Request",
+			filters={"room": room, "email": "__unittest_client@example.com"},
+			limit=1,
+		)
+		self.assertTrue(req)
+		client_room.approve_join(req[0].name)
+		self.assertTrue(
+			frappe.db.exists(
+				"Client Room Member",
+				{"room": room, "user": "__unittest_client@example.com", "active": 1},
+			)
+		)
+
 	def test_move_task_rejects_unknown_column(self):
 		proj = projects.create_project("__Unit Test Project 2", customer=self._any_customer())
 		board = projects.create_task(proj, "Column guard")
