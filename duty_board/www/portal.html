@@ -135,11 +135,17 @@
 		.card.chat .msgs { flex: 1 1 auto; min-height: 0; max-height: none !important; }
 		.foot { display: none; }
 	}
+	.ctools { display: contents; }
 	@media (max-width: 899px) {
 		.compose { flex-wrap: wrap; }
-		.compose textarea { order: 1; flex: 1 1 60%; }
-		.compose button { order: 2; }
-		.compose .attach, .compose .emojibtn, .compose .mic { order: 3; font-size: 22px; margin-right: 16px; margin-top: 4px; }
+		.compose textarea { order: 1; flex: 1 1 auto; min-width: 0; }
+		.compose button { order: 2; flex: none; }
+		.ctools {
+			display: flex; order: 3; width: 100%; gap: 22px; align-items: center;
+			margin-top: 6px; padding-left: 2px;
+		}
+		.ctools .attach, .ctools .emojibtn, .ctools .mic { font-size: 24px; align-self: auto; }
+		.m .att img { max-width: 100%; max-height: 220px; }
 	}
 	.m .w { font-size: 11px; font-weight: 700; display: block; margin-bottom: 2px; }
 	.m .tm { font-size: 10px; color: #9ca3af; display: block; margin-top: 3px; }
@@ -221,9 +227,11 @@
 		<div id="emojis"></div>
 		<div class="compose">
 			<div id="mdd"></div>
-			<label class="attach" title="Attach image or file">📎<input type="file" hidden id="file" onchange="pickFile(this)"></label>
-			<span class="emojibtn" onclick="toggleEmojis()" title="Emoji">😊</span>
-			<span class="mic" id="mic" title="Hold to record a voice note">🎙</span>
+			<div class="ctools">
+				<label class="attach" title="Attach image or file">📎<input type="file" hidden id="file" onchange="pickFile(this)"></label>
+				<span class="emojibtn" onclick="toggleEmojis()" title="Emoji">😊</span>
+				<span class="mic" id="mic" title="Hold to record a voice note">🎙</span>
+			</div>
 			<textarea id="text" rows="2" placeholder="Write to the Xlevel team… @ to mention someone"></textarea>
 			<button onclick="send()">Send</button>
 		</div>
