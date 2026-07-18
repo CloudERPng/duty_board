@@ -321,15 +321,26 @@ def add_card_note(name, note):
 	try:
 		from duty_board.api import parse_mentions
 
-		title = frappe.db.get_value("Duty Project Task", name, "title") or name
-		first = frappe.utils.get_fullname(frappe.session.user).split(" ")[0]
-		for m in parse_mentions(note):
-			if m != frappe.session.user:
-				_notify(
-					m,
-					_("💬 {0} mentioned you").format(first),
-					f"📁 {title}: {note[:120]}",
-				)
+		doc = frappe.get_doc("Duty Project Task", name)
+		title = doc.title or name
+		me = frappe.session.user
+		first = frappe.utils.get_fullname(me).split(" ")[0]
+		mentioned = [m for m in parse_mentions(note) if m != me]
+
+		participants = set()
+		if doc.assignee:
+			participants.add(doc.assignee)
+		for a in frappe.get_all(
+			"Duty Project Note", filters={"card": name}, fields=["owner"]
+		):
+			participants.add(a.owner)
+		participants.discard(me)
+		participants -= set(mentioned)
+
+		for m in mentioned:
+			_notify(m, _("💬 {0} mentioned you").format(first), f"📁 {title}: {note[:120]}")
+		for p in participants:
+			_notify(p, _("💬 {0} · 📁 {1}").format(first, title[:40]), note[:120])
 	except Exception:
 		pass
 	frappe.publish_realtime("duty_board_note", {"kind": "card", "id": name})

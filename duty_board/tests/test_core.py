@@ -100,6 +100,14 @@ class TestDutyBoardCore(FrappeTestCase):
 		self.assertEqual(len(payload["notes"]), 1)
 		self.assertIn("VPN", payload["notes"][0]["note"])
 
+	def test_thread_participants_collected(self):
+		proj = projects.create_project("__Unit Test Project P", customer=self._any_customer())
+		board = projects.create_task(proj, "Thread card", assignee="Administrator")
+		card = board["tasks"]["To Do"][0]["name"]
+		# posting must not raise even with participants + mentions in play
+		payload = projects.add_card_note(card, "update for @administrator and the room")
+		self.assertEqual(len(payload["notes"]), 1)
+
 	def test_start_card_requires_clock_in(self):
 		proj = projects.create_project("__Unit Test Project T", customer=self._any_customer())
 		board = projects.create_task(proj, "Timer card")

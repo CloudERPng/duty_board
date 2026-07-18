@@ -303,15 +303,24 @@ def add_lead_note(lead, note):
 	try:
 		from duty_board.api import parse_mentions
 
-		company = frappe.db.get_value("Duty Lead", lead, "company") or lead
-		first = frappe.utils.get_fullname(frappe.session.user).split(" ")[0]
-		for m in parse_mentions(note):
-			if m != frappe.session.user:
-				_notify(
-					m,
-					_("💬 {0} mentioned you").format(first),
-					f"💼 {company}: {note[:120]}",
-				)
+		doc = frappe.get_doc("Duty Lead", lead)
+		company = doc.company or lead
+		me = frappe.session.user
+		first = frappe.utils.get_fullname(me).split(" ")[0]
+		mentioned = [m for m in parse_mentions(note) if m != me]
+
+		participants = set()
+		if doc.lead_owner:
+			participants.add(doc.lead_owner)
+		for a in frappe.get_all("Duty Lead Note", filters={"lead": lead}, fields=["owner"]):
+			participants.add(a.owner)
+		participants.discard(me)
+		participants -= set(mentioned)
+
+		for m in mentioned:
+			_notify(m, _("💬 {0} mentioned you").format(first), f"💼 {company}: {note[:120]}")
+		for p in participants:
+			_notify(p, _("💬 {0} · 💼 {1}").format(first, company[:40]), note[:120])
 	except Exception:
 		pass
 	frappe.publish_realtime("duty_board_note", {"kind": "lead", "id": lead})
