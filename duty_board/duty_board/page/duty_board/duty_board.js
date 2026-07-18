@@ -4454,7 +4454,12 @@ class DutyBoard {
 			.duty-cr-pending { margin-bottom: 4px; }
 			.duty-issue-vis { cursor: pointer; font-weight: 600; }
 			.duty-cr-msgs { display: flex; flex-direction: column; gap: 8px; max-height: 42vh; overflow-y: auto; padding: 4px 0 8px; }
-			.duty-cr-msg { border-radius: 10px; padding: 7px 11px; max-width: 88%; position: relative; font-size: 15px; }
+			.duty-cr-msg {
+				border-radius: 10px; padding: 7px 11px; width: fit-content; min-width: 140px;
+				max-width: 88%; position: relative; font-size: 15px;
+				overflow-wrap: break-word; word-break: normal;
+			}
+			.duty-cr-msg .duty-msg-who { white-space: nowrap; }
 			.duty-cr-reply {
 				position: absolute; right: 6px; top: 4px; cursor: pointer; font-size: var(--text-xs);
 				visibility: hidden; opacity: 0.6; text-decoration: none;

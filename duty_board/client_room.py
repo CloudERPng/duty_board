@@ -56,7 +56,7 @@ def _room_payload(room, include_internal, before=None, limit=40):
 		filters=filters,
 		fields=[
 			"name", "message", "internal", "owner", "creation",
-			"attachment_url", "attachment_name",
+			"attachment_url", "attachment_name", "ref",
 		],
 		order_by="creation desc",
 		limit=min(cint(limit) or 40, 100),

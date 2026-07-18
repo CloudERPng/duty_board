@@ -50,7 +50,12 @@
 	.chip a { cursor: pointer; font-weight: 700; }
 	label.attach { cursor: pointer; font-size: 20px; align-self: center; }
 	.msgs { display: flex; flex-direction: column; gap: 10px; max-height: 50vh; overflow-y: auto; padding-bottom: 6px; }
-	.m { max-width: 85%; padding: 8px 12px; border-radius: 12px; font-size: 15px; white-space: pre-wrap; word-break: break-word; }
+	.m { width: fit-content; min-width: 150px; max-width: min(72ch, 85%); padding: 8px 12px;
+		border-radius: 12px; font-size: 15px; white-space: pre-wrap;
+		overflow-wrap: break-word; word-break: normal; }
+	.m .w { white-space: nowrap; }
+	.m.me { margin-left: auto; }
+	.m.staff { margin-right: auto; }
 	.m .rep { visibility: hidden; float: right; margin-left: 8px; cursor: pointer; font-size: 13px; opacity: .6; }
 	.m:hover .rep { visibility: visible; }
 	.qt { display: block; background: rgba(15,92,85,.08); border-left: 3px solid #0F5C55; border-radius: 6px;
@@ -143,6 +148,7 @@ function fdt(s) {
 }
 function dur(x) {
 	if (!x.reported) return { txt: "—", cls: "" };
+	if (x.status === "Done" && !x.done) return { txt: "—", cls: "" };
 	const a = new Date(x.reported.replace(" ", "T"));
 	const b = x.done ? new Date(x.done.replace(" ", "T")) : new Date();
 	let mins = Math.max(0, Math.round((b - a) / 60000));
