@@ -2241,14 +2241,17 @@ class DutyBoard {
 		$room.find(".duty-cr-mktask").on("click", (e) => {
 			const seed = $(e.currentTarget).data("text");
 			frappe.prompt(
-				{ fieldname: "title", fieldtype: "Data", label: __("Task title"), default: seed, reqd: 1 },
+				[
+					{ fieldname: "title", fieldtype: "Data", label: __("Issue title"), default: seed, reqd: 1 },
+					{ fieldname: "detail", fieldtype: "Small Text", label: __("Details (client-visible)") },
+				],
 				(v) =>
 					frappe.call({
 						method: "duty_board.client_room.make_task_from_message",
-						args: { name: x.name, title: v.title },
+						args: { name: x.name, title: v.title, detail: v.detail || null },
 						callback: (r) => r.message && this.render_client_room(r.message),
 					}),
-				__("Make client-visible task"),
+				__("Log client-visible issue"),
 				__("Create")
 			);
 		});

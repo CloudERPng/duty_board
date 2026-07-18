@@ -423,11 +423,12 @@ def set_room_status(name, status):
 	return {"ok": True}
 
 
-def _new_client_issue(room, title, requested=0, raised_by=None):
+def _new_client_issue(room, title, requested=0, raised_by=None, detail=None):
 	doc = frappe.get_doc(
 		{
 			"doctype": "Duty Issue",
 			"title": title[:140],
+			"description": (detail or "").strip()[:2000] or None,
 			"customer": room.customer,
 			"severity": "Medium",
 			"status": "Open",
@@ -442,13 +443,13 @@ def _new_client_issue(room, title, requested=0, raised_by=None):
 
 
 @frappe.whitelist()
-def make_task_from_message(name, title):
+def make_task_from_message(name, title, detail=None):
 	_staff_only()
 	room = frappe.get_doc("Client Room", name)
 	title = (title or "").strip()
 	if not title:
 		frappe.throw(_("Give the issue a title."))
-	_new_client_issue(room, title)
+	_new_client_issue(room, title, detail=detail)
 	_post(room, _("⚠ Logged: “{0}” → Queued").format(title))
 	frappe.db.commit()
 	return get_room(name)
@@ -820,7 +821,7 @@ def reject_join(request_name):
 
 
 @frappe.whitelist()
-def client_request_task(title, attachment_url=None, attachment_name=None):
+def client_request_task(title, detail=None, attachment_url=None, attachment_name=None):
 	room = _client_room()
 	title = (title or "").strip()
 	if not title:
@@ -837,7 +838,9 @@ def client_request_task(title, attachment_url=None, attachment_name=None):
 		)
 		if not att:
 			frappe.throw(_("Upload not found — try attaching again."))
-	doc = _new_client_issue(room, title, requested=1, raised_by=frappe.session.user)
+	doc = _new_client_issue(
+		room, title, requested=1, raised_by=frappe.session.user, detail=detail
+	)
 	if att:
 		frappe.db.set_value(
 			"File",
