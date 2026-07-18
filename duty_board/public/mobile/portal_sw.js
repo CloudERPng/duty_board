@@ -15,6 +15,8 @@ self.addEventListener("push", (event) => {
 			icon: "/assets/duty_board/mobile/icon-192.png",
 			badge: "/assets/duty_board/mobile/icon-192.png",
 			tag: data.tag || "xlevel-portal",
+			renotify: true,
+			vibrate: [180, 60, 180],
 		})
 	);
 });
