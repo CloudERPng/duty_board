@@ -365,16 +365,24 @@ def post_message(name, message, internal=0, attachment_url=None, attachment_name
 					f"{lock}{(message or '')[:120]}",
 				)
 		if not cint(internal):
-			for m in _room_member_mentions(room, message):
-				_email_mention(m, room, first, message)
 			from duty_board.api import _push_safe
 
+			member_mentions = set(_room_member_mentions(room, message))
+			for m in member_mentions:
+				if frappe.db.exists("Duty Push Subscription", {"user": m}):
+					_push_safe(
+						m,
+						_("💬 {0} mentioned you").format(first),
+						(message or "📎")[:120],
+					)
+				else:
+					_email_mention(m, room, first, message)
 			for mm in frappe.get_all(
 				"Client Room Member", filters={"room": room.name, "active": 1}, fields=["user"]
 			):
-				if mm.user != me and frappe.db.exists(
-					"Duty Push Subscription", {"user": mm.user}
-				):
+				if mm.user == me or mm.user in member_mentions:
+					continue
+				if frappe.db.exists("Duty Push Subscription", {"user": mm.user}):
 					_push_safe(
 						mm.user,
 						_("🤝 Xlevel · {0}").format(first),
@@ -529,8 +537,14 @@ def client_post_message(message, attachment_url=None, attachment_name=None, ref=
 					_("🤝 {0} · {1}").format(first, room.customer),
 					(message or "")[:120],
 				)
+		from duty_board.api import _push_safe as _ps
+
 		for m in _room_member_mentions(room, message):
-			if m != frappe.session.user:
+			if m == frappe.session.user:
+				continue
+			if frappe.db.exists("Duty Push Subscription", {"user": m}):
+				_ps(m, _("💬 {0} mentioned you").format(first), (message or "")[:120])
+			else:
 				_email_mention(m, room, first, message)
 	except Exception:
 		pass
