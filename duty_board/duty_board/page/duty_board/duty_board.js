@@ -4421,7 +4421,11 @@ class DutyBoard {
 			.duty-cr-status { font-size: var(--text-xs); font-weight: 700; color: #0369a1; }
 			.duty-cr-last { font-size: var(--text-xs); color: var(--text-muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 			.duty-cr-members { font-size: var(--text-xs); color: var(--text-muted); }
-			.duty-cr-room { flex: 1; border: 1px solid var(--border-color); border-radius: 12px; background: var(--card-bg); padding: 0 14px 14px; min-width: 0; }
+			.duty-cr-room {
+				flex: 1; border: 1px solid var(--border-color); border-radius: 12px;
+				background: var(--card-bg); padding: 0 14px 14px; min-width: 0;
+				display: flex; flex-direction: column; height: calc(100vh - 185px);
+			}
 			.duty-cr-ribbon {
 				margin: 0 -14px 10px; padding: 7px 14px; border-radius: 12px 12px 0 0;
 				background: #fef3c7; color: #92400e; font-size: var(--text-xs); font-weight: 700;
@@ -4430,7 +4434,7 @@ class DutyBoard {
 			.duty-cr-taskchips { font-size: var(--text-xs); color: var(--text-muted); font-weight: 600; }
 			.duty-cr-tools { margin-left: auto; display: flex; gap: 12px; }
 			.duty-cr-tools a { cursor: pointer; font-size: var(--text-xs); font-weight: 600; }
-			.duty-cr-tasks { display: flex; flex-direction: column; gap: 4px; margin-bottom: 10px; border-bottom: 1px solid var(--border-color); padding-bottom: 8px; }
+			.duty-cr-tasks { display: flex; flex-direction: column; gap: 4px; margin-bottom: 10px; border-bottom: 1px solid var(--border-color); padding-bottom: 8px; max-height: 30vh; overflow-y: auto; flex: none; }
 			.duty-cr-task {
 				display: flex; gap: 10px; align-items: center; padding: 5px 8px;
 				border-radius: 8px; cursor: pointer; text-decoration: none;
@@ -4453,7 +4457,7 @@ class DutyBoard {
 			.duty-cr-attach { cursor: pointer; align-self: center; margin: 0; font-size: 16px; }
 			.duty-cr-pending { margin-bottom: 4px; }
 			.duty-issue-vis { cursor: pointer; font-weight: 600; }
-			.duty-cr-msgs { display: flex; flex-direction: column; gap: 8px; max-height: 42vh; overflow-y: auto; padding: 4px 0 8px; }
+			.duty-cr-msgs { display: flex; flex-direction: column; gap: 8px; flex: 1 1 auto; min-height: 120px; overflow-y: auto; padding: 4px 0 8px; }
 			.duty-cr-msg {
 				border-radius: 10px; padding: 7px 11px; width: fit-content; min-width: 140px;
 				max-width: 88%; position: relative; font-size: 15px;
@@ -4502,7 +4506,8 @@ class DutyBoard {
 			@media (max-width: 767px) {
 				.duty-clients { flex-direction: column; }
 				.duty-cr-list { flex: 1 1 auto; width: 100%; }
-				.duty-cr-room { width: 100%; }
+				.duty-cr-room { width: 100%; height: auto; }
+				.duty-cr-msgs { max-height: 46vh; flex: none; }
 			}
 			.duty-lead-chip {
 				font-size: var(--text-xs); border-radius: 99px; padding: 1px 8px;

@@ -195,6 +195,8 @@ def _visible_tasks(room):
 	"""Client payload: titles and statuses only — no internal identifiers."""
 	return [
 		{
+			"id": o["name"],
+			"kind": o["kind"],
 			"title": o["title"],
 			"status": o["status"],
 			"assignee_first": o["assignee_first"],
@@ -522,6 +524,123 @@ def client_post_message(message, attachment_url=None, attachment_name=None, ref=
 	return client_get_room()
 
 
+def _serve_file(fdoc, filename):
+	import mimetypes
+
+	mimetype = (
+		mimetypes.guess_type(filename or fdoc.file_name or "")[0]
+		or "application/octet-stream"
+	)
+	frappe.local.response.filename = filename or fdoc.file_name
+	frappe.local.response.filecontent = fdoc.get_content()
+	frappe.local.response.type = "binary"
+	frappe.local.response.content_type = mimetype
+
+
+def _client_issue_for_room(room, issue_name):
+	row = frappe.db.get_value(
+		"Duty Issue",
+		issue_name,
+		[
+			"name", "title", "status", "customer", "client_visible",
+			"client_requested", "description", "creation",
+			"work_started_at", "resolved_at",
+		],
+		as_dict=True,
+	)
+	if not row or row.customer != room.customer or not cint(row.client_visible):
+		frappe.throw(_("Not found."), frappe.PermissionError)
+	return row
+
+
+@frappe.whitelist()
+def client_task_detail(id, kind):
+	room = _client_room()
+	if kind == "issue":
+		row = _client_issue_for_room(room, id)
+		files = frappe.get_all(
+			"File",
+			filters={"attached_to_doctype": "Duty Issue", "attached_to_name": row.name},
+			fields=["name", "file_name"],
+			order_by="creation asc",
+		)
+		image_exts = ("png", "jpg", "jpeg", "gif", "webp")
+		atts = [
+			{
+				"id": f.name,
+				"file_name": f.file_name,
+				"is_image": (f.file_name or "").lower().rsplit(".", 1)[-1] in image_exts,
+			}
+			for f in files
+		]
+		assignee = frappe.get_all(
+			"Duty Issue Assignee",
+			filters={"parent": row.name},
+			fields=["user"],
+			order_by="idx asc",
+			limit=1,
+		)
+		return {
+			"kind": "issue",
+			"title": row.title,
+			"status": ISSUE_CLIENT_STATUS.get(row.status, row.status),
+			"client_requested": cint(row.client_requested),
+			"detail": row.description,
+			"reported": str(row.creation)[:16],
+			"started": str(row.work_started_at)[:16] if row.work_started_at else None,
+			"done": str(row.resolved_at)[:16] if row.resolved_at else None,
+			"assignee_first": (
+				frappe.utils.get_fullname(assignee[0].user).split(" ")[0]
+				if assignee
+				else None
+			),
+			"attachments": atts,
+		}
+	if kind == "card":
+		t = frappe.db.get_value(
+			"Duty Project Task",
+			id,
+			[
+				"name", "title", "column", "assignee", "description",
+				"creation", "client_visible", "client_requested", "project",
+			],
+			as_dict=True,
+		)
+		if not t or not cint(t.client_visible):
+			frappe.throw(_("Not found."), frappe.PermissionError)
+		cust = frappe.db.get_value("Duty Project", t.project, "customer")
+		if cust != room.customer:
+			frappe.throw(_("Not found."), frappe.PermissionError)
+		status = CLIENT_STATUS.get(t.column)
+		if not status:
+			frappe.throw(_("Not found."), frappe.PermissionError)
+		return {
+			"kind": "card",
+			"title": t.title,
+			"status": status,
+			"client_requested": cint(t.client_requested),
+			"detail": t.description,
+			"reported": str(t.creation)[:16],
+			"started": None,
+			"done": None,
+			"assignee_first": (
+				frappe.utils.get_fullname(t.assignee).split(" ")[0] if t.assignee else None
+			),
+			"attachments": [],
+		}
+	frappe.throw(_("Not found."), frappe.PermissionError)
+
+
+@frappe.whitelist()
+def client_issue_file(fid):
+	room = _client_room()
+	fdoc = frappe.get_doc("File", fid)
+	if fdoc.attached_to_doctype != "Duty Issue" or not fdoc.attached_to_name:
+		frappe.throw(_("Not permitted."), frappe.PermissionError)
+	_client_issue_for_room(room, fdoc.attached_to_name)
+	_serve_file(fdoc, fdoc.file_name)
+
+
 def _room_member_mentions(room, text):
 	low = (text or "").lower()
 	if "@" not in low:
@@ -579,9 +698,7 @@ def room_file(msg):
 	if not fname:
 		frappe.throw(_("File missing."))
 	fdoc = frappe.get_doc("File", fname)
-	frappe.local.response.filename = m.attachment_name or fdoc.file_name
-	frappe.local.response.filecontent = fdoc.get_content()
-	frappe.local.response.type = "download"
+	_serve_file(fdoc, m.attachment_name or fdoc.file_name)
 
 
 @frappe.whitelist()
@@ -703,15 +820,37 @@ def reject_join(request_name):
 
 
 @frappe.whitelist()
-def client_request_task(title):
+def client_request_task(title, attachment_url=None, attachment_name=None):
 	room = _client_room()
 	title = (title or "").strip()
 	if not title:
 		frappe.throw(_("Describe what you need."))
 	if len(title) > 200:
 		frappe.throw(_("Keep the request under 200 characters."))
-	_new_client_issue(room, title, requested=1, raised_by=frappe.session.user)
-	_post(room, _("🙋 Requested: “{0}” → Queued").format(title))
+	att = None
+	if attachment_url:
+		att = frappe.db.get_value(
+			"File",
+			{"file_url": attachment_url, "owner": frappe.session.user},
+			["name", "file_name"],
+			as_dict=True,
+		)
+		if not att:
+			frappe.throw(_("Upload not found — try attaching again."))
+	doc = _new_client_issue(room, title, requested=1, raised_by=frappe.session.user)
+	if att:
+		frappe.db.set_value(
+			"File",
+			att.name,
+			{"attached_to_doctype": "Duty Issue", "attached_to_name": doc.name},
+			update_modified=False,
+		)
+	_post(
+		room,
+		_("🙋 Requested: “{0}” → Queued").format(title),
+		attachment_url=attachment_url,
+		attachment_name=(attachment_name or (att.file_name if att else None)),
+	)
 	try:
 		from duty_board.api import _notify_user
 
