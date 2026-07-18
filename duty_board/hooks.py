@@ -11,10 +11,13 @@ scheduler_events = {
 		"15 * * * *": ["duty_board.tasks.auto_clock_out"],
 		# Monday 07:00 site time
 		"0 7 * * 1": ["duty_board.tasks.weekly_digest"],
+                # Monday 08:00 site time — weekly pulse into each client room
+                "0 8 * * 1": ["duty_board.client_room.weekly_room_pulse"],
 	},
         "hourly": [
                 "duty_board.document_hub.doctype.client_document.client_document.alert_stale_checkouts",
         ],
+        
 }
 doc_events = {
 	"Daily Todo": {

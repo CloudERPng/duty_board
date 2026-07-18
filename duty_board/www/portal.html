@@ -35,6 +35,22 @@
 	td.dt { white-space: nowrap; color: #6b7280; font-size: 13px; }
 	td.dur { white-space: nowrap; font-weight: 600; font-size: 13px; }
 	td.dur.open { color: #b45309; } td.dur.closed { color: #15803d; }
+	@media (max-width: 899px) {
+		table.tt, table.tt tbody { display: block; width: 100%; }
+		table.tt tr:first-child { display: none; } /* headers retire; labels take over */
+		table.tt tr.row {
+			display: block; position: relative; border: 1px solid #e5e7eb; border-radius: 12px;
+			margin-bottom: 10px; padding: 10px 12px; background: #fff;
+		}
+		table.tt tr.row td { display: block; border: none; padding: 2px 0; }
+		td.tt-title { font-weight: 700; font-size: 15px; padding-right: 92px !important; }
+		td.st { position: absolute; top: 10px; right: 12px; padding: 0 !important; }
+		td.dt, td.dur, td.who { display: inline-block !important; margin-right: 14px; font-size: 12px !important; }
+		td[data-l]::before { content: attr(data-l) " "; color: #9ca3af; font-weight: 600; }
+		td.dt:empty, td.who:empty { display: none !important; }
+		#tasks { max-height: none; overflow: visible; }
+		.top #me { display: none; } /* phone header breathes */
+	}
 	.pill { font-size: 11px; border-radius: 99px; padding: 2px 10px; font-weight: 700; }
 	.p-q { background: #f1f5f9; color: #475569; }
 	.p-i { background: #fef3c7; color: #b45309; }
@@ -227,7 +243,7 @@ function render(d) {
 			rows
 				.map((x) => {
 					const dd = dur(x);
-					return `<tr class="row" onclick="openTask('${esc(x.id)}','${esc(x.kind)}')"><td>${esc(x.title)}</td><td class="dt">${fdt(x.reported)}</td><td class="dt">${fdt(x.done)}</td><td class="dur ${dd.cls}">${dd.txt}</td><td>${esc(x.assignee_first || "—")}</td><td><span class="pill ${PILL[x.status]}">${esc(x.status)}</span></td></tr>`;
+					return `<tr class="row" onclick="openTask('${esc(x.id)}','${esc(x.kind)}')"><td class="tt-title">${esc(x.title)}</td><td class="dt" data-l="📅 Reported">${fdt(x.reported)}</td><td class="dt" data-l="✅ Done">${fdt(x.done)}</td><td class="dur ${dd.cls}" data-l="⏳ Time">${dd.txt}</td><td class="who" data-l="👤 With">${esc(x.assignee_first || "—")}</td><td class="st"><span class="pill ${PILL[x.status]}">${esc(x.status)}</span></td></tr>`;
 				})
 				.join("") +
 			`</table>`
