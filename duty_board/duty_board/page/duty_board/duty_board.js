@@ -451,8 +451,20 @@ class DutyBoard {
 				<a data-tab="clients"><span>🤝</span>${__("Clients")}</a>
 			</div>
 		`).appendTo("body");
-		$bar.find("a").on("click", (e) => this.set_mtab($(e.currentTarget).data("tab")));
+		$bar.find("a").on("click", (e) => {
+			const tab = $(e.currentTarget).data("tab");
+			if (frappe.get_route_str() !== "duty-board") {
+				localStorage.setItem("duty_mtab", tab);
+				frappe.set_route("duty-board").then(() => this.set_mtab(tab));
+				return;
+			}
+			this.set_mtab(tab);
+		});
 		this.set_mtab(localStorage.getItem("duty_mtab") || "board");
+		// dim the bar when the user wanders off to other desk screens
+		const sync_bar = () => $bar.toggleClass("duty-tabbar-away", frappe.get_route_str() !== "duty-board");
+		frappe.router.on("change", sync_bar);
+		sync_bar();
 	}
 
 	set_mtab(tab) {
@@ -4029,6 +4041,8 @@ class DutyBoard {
 				}
 				.duty-tabbar a span { font-size: 20px; line-height: 1; filter: grayscale(1); opacity: 0.75; }
 				.duty-tabbar a.active { color: #0F5C55; font-weight: 700; }
+			.duty-tabbar-away { opacity: 0.92; box-shadow: 0 -2px 10px rgba(15, 92, 85, 0.25); }
+			.duty-tabbar-away a.active { color: inherit; font-weight: 500; }
 				.duty-tabbar a.active span { filter: none; opacity: 1; }
 				.duty-tab-badge {
 					position: absolute; top: -3px; right: 22%;

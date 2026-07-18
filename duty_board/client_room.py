@@ -443,6 +443,7 @@ def client_get_room(before=None):
 	messages, has_more = _room_payload(room, include_internal=False, before=before)
 	return {
 		"customer": room.customer,
+		"me": frappe.utils.get_fullname(frappe.session.user),
 		"messages": messages,
 		"has_more": has_more,
 		"tasks": _visible_tasks(room),

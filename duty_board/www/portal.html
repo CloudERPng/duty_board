@@ -14,6 +14,13 @@
 	.top a { color: #a7f3d0; text-decoration: none; font-size: 13px; }
 	.hours { background: #ecfdf5; color: #0f766e; font-size: 12px; padding: 6px 18px; }
 	.wrap { max-width: 720px; margin: 0 auto; padding: 14px; }
+	@media (min-width: 900px) {
+		.wrap { max-width: 1180px; display: grid; grid-template-columns: 380px 1fr; gap: 16px; align-items: start; }
+		.wrap > #err { grid-column: 1 / -1; }
+		.wrap > .card.tasks { position: sticky; top: 14px; }
+		.wrap > .foot { grid-column: 1 / -1; }
+		.msgs { max-height: calc(100vh - 320px) !important; }
+	}
 	.card { background: #fff; border: 1px solid #e5e7eb; border-radius: 12px; padding: 14px; margin-bottom: 14px; }
 	h3 { margin: 0 0 10px; font-size: 14px; color: #0F5C55; }
 	.task { display: flex; gap: 8px; align-items: center; padding: 6px 0; border-bottom: 1px dashed #eee; font-size: 14px; }
@@ -59,12 +66,12 @@
 <body>
 <div class="top">
 	<span><b id="brand">Xlevel</b> · <span id="cust"></span></span>
-	<a href="/?cmd=web_logout">Log out</a>
+	<span><span id="me" style="font-size:13px;color:#a7f3d0;margin-right:14px"></span><a href="/?cmd=web_logout">Log out</a></span>
 </div>
 <div class="hours">🕘 We reply Mon–Fri, 9:00–18:00 WAT. Urgent? Call your account manager.</div>
 <div class="wrap">
 	<div id="err"></div>
-	<div class="card">
+	<div class="card tasks">
 		<div class="thead">
 			<h3 onclick="toggleTasks()"><span id="tcaret">▾</span> 📋 Your tasks with us</h3>
 			<select id="tfilter" onchange="render(LAST)"><option value="">All</option><option>Queued</option><option>In Progress</option><option>Done</option></select>
@@ -86,7 +93,7 @@
 			<button onclick="send()">Send</button>
 		</div>
 	</div>
-	<p class="muted" style="text-align:center">Powered by Xlevel Retail Systems · CloudERP.One</p>
+	<p class="muted foot" style="text-align:center">Powered by Xlevel Retail Systems · CloudERP.One</p>
 </div>
 <script>
 const esc = (s) => (s || "").replace(/[&<>"']/g, (c) => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
@@ -123,6 +130,7 @@ function stampLine(x) {
 function render(d) {
 	LAST = d;
 	document.getElementById("cust").textContent = d.customer || "";
+	document.getElementById("me").textContent = d.me ? "👤 " + d.me : "";
 	document.getElementById("tcaret").textContent = tasksOpen ? "▾" : "▸";
 	const t = document.getElementById("tasks");
 	t.style.display = tasksOpen ? "" : "none";
