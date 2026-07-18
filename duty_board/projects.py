@@ -7,7 +7,7 @@ runs through doc_events (see hooks.py), from the card side inline here.
 
 import frappe
 from frappe import _
-from frappe.utils import getdate, today
+from frappe.utils import cint, getdate, today
 
 COLUMNS = ["To Do", "In Progress", "Completed", "Suspended"]
 URGENCIES = ["Low", "Medium", "High", "Critical"]
@@ -155,7 +155,7 @@ def create_task(project, title, column="To Do", assignee=None, due_date=None, ur
 
 
 @frappe.whitelist()
-def update_task(name, title=None, assignee=None, due_date=None, urgency=None, column=None, description=None):
+def update_task(name, title=None, assignee=None, due_date=None, urgency=None, column=None, description=None, client_visible=None):
 	doc = frappe.get_doc("Duty Project Task", name)
 	old_assignee = doc.assignee
 	if title and title.strip():
@@ -164,6 +164,8 @@ def update_task(name, title=None, assignee=None, due_date=None, urgency=None, co
 	if urgency in URGENCIES:
 		doc.urgency = urgency
 	doc.description = description
+	if client_visible is not None:
+		doc.client_visible = cint(client_visible)
 	doc.assignee = assignee or None
 	doc.save(ignore_permissions=True)
 
@@ -304,6 +306,7 @@ def get_card(name):
 		"due_date": str(doc.due_date) if doc.due_date else None,
 		"urgency": doc.urgency,
 		"description": doc.description,
+		"client_visible": cint(doc.client_visible),
 		"notes": notes,
 		"working": working,
 	}

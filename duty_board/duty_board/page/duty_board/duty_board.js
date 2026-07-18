@@ -1715,6 +1715,7 @@ class DutyBoard {
 					callback: (r) => {
 						if (r.message) this.render_kanban(project, r.message);
 						this.refresh_projects_counts();
+						if (this._open_room) this.load_client_room(this._open_room);
 					},
 				});
 			});
@@ -1786,6 +1787,12 @@ class DutyBoard {
 					options: "To Do\nIn Progress\nCompleted\nSuspended",
 					default: t.column,
 				},
+				{
+					fieldname: "client_visible",
+					fieldtype: "Check",
+					label: __("Visible to client (shows on their portal)"),
+					default: t.client_visible ? 1 : 0,
+				},
 				{ fieldname: "description", fieldtype: "Small Text", label: __("Description"), default: t.description || "" },
 				{ fieldname: "extras", fieldtype: "HTML" },
 			],
@@ -1802,10 +1809,12 @@ class DutyBoard {
 						urgency: v.urgency,
 						column: v.column,
 						description: v.description || null,
+						client_visible: v.client_visible ? 1 : 0,
 					},
 					callback: (r) => {
 						if (r.message) this.render_kanban(project, r.message);
 						this.refresh_projects_counts();
+						if (this._open_room) this.load_client_room(this._open_room);
 					},
 				});
 			},
@@ -1858,6 +1867,7 @@ class DutyBoard {
 			d.hide();
 			if (r.message) this.task_dialog(project, r.message);
 			this.load_kanban(project);
+			if (this._open_room) this.load_client_room(this._open_room);
 		};
 		$x.find(".duty-card-start").on("click", () =>
 			frappe.call({
@@ -2022,6 +2032,19 @@ class DutyBoard {
 					${frappe.user.has_role("System Manager") ? `<a class="duty-cr-freeze">${x.status === "Active" ? "🧊 " + __("Freeze") : "▶ " + __("Unfreeze")}</a>` : ""}
 				</span>
 			</div>
+			<div class="duty-cr-tasks">
+				${(x.tasks || [])
+					.map(
+						(t) => `
+					<a class="duty-cr-task" data-name="${t.name}">
+						<span class="duty-crt-pill duty-crt-${(t.status || "").replace(/ /g, "").toLowerCase()}">${__(t.status)}</span>
+						<span class="duty-crt-title">${t.client_requested ? "🙋 " : ""}${frappe.utils.escape_html(t.title)}</span>
+						${t.assignee_first ? `<span class="duty-crt-who">${frappe.utils.escape_html(t.assignee_first)}</span>` : ""}
+					</a>`
+					)
+					.join("")}
+				${x.project ? `<a class="duty-cr-openproj">📁 ${__("Open project board")} ›</a>` : ""}
+			</div>
 			<div class="duty-cr-msgs">${(x.messages || []).map((m) => this.cr_msg(m)).join("") || `<div class="text-muted">${__("No messages yet.")}</div>`}</div>
 			<div class="duty-cr-compose">
 				<label class="duty-cr-int"><input type="checkbox" class="duty-cr-internal-toggle"> 🔒 ${__("Internal")}</label>
@@ -2065,6 +2088,18 @@ class DutyBoard {
 				__("Make client-visible task"),
 				__("Create")
 			);
+		});
+		$room.find(".duty-cr-task").on("click", (e) => {
+			frappe.call({
+				method: "duty_board.projects.get_card",
+				args: { name: $(e.currentTarget).data("name") },
+				callback: (r) => r.message && this.task_dialog(r.message.project, r.message),
+			});
+		});
+		$room.find(".duty-cr-openproj").on("click", () => {
+			this.current_project = x.project;
+			localStorage.setItem("duty_proj", x.project);
+			this.show_face("projects");
 		});
 		$room.find(".duty-cr-membersbtn").on("click", () => this.room_members_dialog(x));
 		$room.find(".duty-cr-freeze").on("click", () =>
@@ -4158,7 +4193,21 @@ class DutyBoard {
 			.duty-cr-taskchips { font-size: var(--text-xs); color: var(--text-muted); font-weight: 600; }
 			.duty-cr-tools { margin-left: auto; display: flex; gap: 12px; }
 			.duty-cr-tools a { cursor: pointer; font-size: var(--text-xs); font-weight: 600; }
-			.duty-cr-msgs { display: flex; flex-direction: column; gap: 8px; max-height: 52vh; overflow-y: auto; padding: 4px 0 8px; }
+			.duty-cr-tasks { display: flex; flex-direction: column; gap: 4px; margin-bottom: 10px; border-bottom: 1px solid var(--border-color); padding-bottom: 8px; }
+			.duty-cr-task {
+				display: flex; gap: 10px; align-items: center; padding: 5px 8px;
+				border-radius: 8px; cursor: pointer; text-decoration: none;
+			}
+			.duty-cr-task:hover { background: var(--gray-100, #f5f5f5); }
+			.duty-crt-pill { font-size: 10px; font-weight: 700; border-radius: 99px; padding: 2px 9px; flex: none; }
+			.duty-crt-queued { background: #f1f5f9; color: #475569; }
+			.duty-crt-inprogress { background: #fef3c7; color: #b45309; }
+			.duty-crt-done { background: #dcfce7; color: #15803d; }
+			.duty-crt-suspended { background: #ede9fe; color: #6d28d9; }
+			.duty-crt-title { flex: 1; color: var(--text-color); font-size: var(--text-sm); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+			.duty-crt-who { font-size: var(--text-xs); color: var(--text-muted); flex: none; }
+			.duty-cr-openproj { cursor: pointer; font-size: var(--text-xs); font-weight: 700; margin-top: 2px; }
+			.duty-cr-msgs { display: flex; flex-direction: column; gap: 8px; max-height: 42vh; overflow-y: auto; padding: 4px 0 8px; }
 			.duty-cr-msg { border-radius: 10px; padding: 7px 11px; max-width: 88%; position: relative; }
 			.duty-cr-staff { background: #ecfdf5; align-self: flex-end; }
 			.duty-cr-client { background: var(--gray-100, #f3f4f6); align-self: flex-start; }

@@ -99,6 +99,26 @@ def _visible_tasks(room):
 	return out
 
 
+def _staff_tasks(room):
+	"""Fuller task rows for the staff face — names included so cards open."""
+	if not room.project:
+		return []
+	rows = frappe.get_all(
+		"Duty Project Task",
+		filters={"project": room.project, "client_visible": 1},
+		fields=["name", "title", "column", "assignee", "urgency", "due_date", "client_requested"],
+		order_by="modified desc",
+		limit=100,
+	)
+	for t in rows:
+		t.due_date = str(t.due_date) if t.due_date else None
+		t.status = CLIENT_STATUS.get(t.column, t.column)
+		t.assignee_first = (
+			frappe.utils.get_fullname(t.assignee).split(" ")[0] if t.assignee else None
+		)
+	return rows
+
+
 def _ensure_project(room):
 	if room.project and frappe.db.exists("Duty Project", room.project):
 		return room.project
@@ -197,7 +217,7 @@ def get_room(name, before=None):
 		"messages": messages,
 		"has_more": has_more,
 		"members": members,
-		"tasks": _visible_tasks(room),
+		"tasks": _staff_tasks(room),
 	}
 
 
