@@ -127,6 +127,20 @@ class TestDutyBoardCore(FrappeTestCase):
 		both, _more = client_room._room_payload(doc, include_internal=True)
 		self.assertEqual(len(both), len(public) + 1)
 
+	def test_room_requests_land_on_issue_register(self):
+		room = client_room.create_room(self._any_customer())
+		client_room.make_task_from_message(room, "POS not printing receipts")
+		issue = frappe.get_all(
+			"Duty Issue",
+			filters={"source_type": "Client Room", "source": room, "client_visible": 1},
+			fields=["name", "customer", "status"],
+			limit=1,
+		)
+		self.assertTrue(issue, "room request should create a Duty Issue")
+		self.assertEqual(issue[0].status, "Open")
+		titles = [t["title"] for t in client_room._visible_tasks(frappe.get_doc("Client Room", room))]
+		self.assertIn("POS not printing receipts", titles)
+
 	def test_join_request_flow(self):
 		room = client_room.create_room(self._any_customer())
 		token = frappe.db.get_value("Client Room", room, "invite_token")

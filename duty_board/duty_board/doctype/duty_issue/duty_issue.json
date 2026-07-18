@@ -5,25 +5,126 @@
  "doctype": "DocType",
  "engine": "InnoDB",
  "field_order": [
-  "title", "customer", "severity", "status",
-  "column_break_1", "due_date", "raised_by", "source_type", "source",
-  "section_break_1", "description", "assignees", "resolution", "resolved_at"
+  "title",
+  "customer",
+  "severity",
+  "status",
+  "column_break_1",
+  "due_date",
+  "raised_by",
+  "source_type",
+  "source",
+  "section_break_1",
+  "description",
+  "assignees",
+  "resolution",
+  "resolved_at",
+  "client_visible",
+  "client_requested"
  ],
  "fields": [
-  {"fieldname": "title", "fieldtype": "Data", "in_list_view": 1, "label": "Title", "reqd": 1},
-  {"fieldname": "customer", "fieldtype": "Link", "in_list_view": 1, "in_standard_filter": 1, "label": "Customer", "options": "Customer", "reqd": 1},
-  {"default": "Medium", "fieldname": "severity", "fieldtype": "Select", "in_list_view": 1, "in_standard_filter": 1, "label": "Severity", "options": "Low\nMedium\nHigh\nCritical"},
-  {"default": "Open", "fieldname": "status", "fieldtype": "Select", "in_list_view": 1, "in_standard_filter": 1, "label": "Status", "options": "Open\nIn Progress\nResolved\nClosed"},
-  {"fieldname": "column_break_1", "fieldtype": "Column Break"},
-  {"fieldname": "due_date", "fieldtype": "Date", "in_list_view": 1, "label": "Due Date"},
-  {"fieldname": "raised_by", "fieldtype": "Link", "label": "Raised By", "options": "User", "read_only": 1},
-  {"fieldname": "source_type", "fieldtype": "Data", "label": "Source Type", "read_only": 1},
-  {"fieldname": "source", "fieldtype": "Data", "label": "Source", "read_only": 1},
-  {"fieldname": "section_break_1", "fieldtype": "Section Break"},
-  {"fieldname": "description", "fieldtype": "Small Text", "label": "Description"},
-  {"fieldname": "assignees", "fieldtype": "Table", "label": "Assignees", "options": "Duty Issue Assignee"},
-  {"fieldname": "resolution", "fieldtype": "Small Text", "label": "Resolution"},
-  {"fieldname": "resolved_at", "fieldtype": "Datetime", "label": "Resolved At", "read_only": 1}
+  {
+   "fieldname": "title",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Title",
+   "reqd": 1
+  },
+  {
+   "fieldname": "customer",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Customer",
+   "options": "Customer",
+   "reqd": 1
+  },
+  {
+   "default": "Medium",
+   "fieldname": "severity",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Severity",
+   "options": "Low\nMedium\nHigh\nCritical"
+  },
+  {
+   "default": "Open",
+   "fieldname": "status",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Status",
+   "options": "Open\nIn Progress\nResolved\nClosed"
+  },
+  {
+   "fieldname": "column_break_1",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "due_date",
+   "fieldtype": "Date",
+   "in_list_view": 1,
+   "label": "Due Date"
+  },
+  {
+   "fieldname": "raised_by",
+   "fieldtype": "Link",
+   "label": "Raised By",
+   "options": "User",
+   "read_only": 1
+  },
+  {
+   "fieldname": "source_type",
+   "fieldtype": "Data",
+   "label": "Source Type",
+   "read_only": 1
+  },
+  {
+   "fieldname": "source",
+   "fieldtype": "Data",
+   "label": "Source",
+   "read_only": 1
+  },
+  {
+   "fieldname": "section_break_1",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "description",
+   "fieldtype": "Small Text",
+   "label": "Description"
+  },
+  {
+   "fieldname": "assignees",
+   "fieldtype": "Table",
+   "label": "Assignees",
+   "options": "Duty Issue Assignee"
+  },
+  {
+   "fieldname": "resolution",
+   "fieldtype": "Small Text",
+   "label": "Resolution"
+  },
+  {
+   "fieldname": "resolved_at",
+   "fieldtype": "Datetime",
+   "label": "Resolved At",
+   "read_only": 1
+  },
+  {
+   "default": "0",
+   "fieldname": "client_visible",
+   "fieldtype": "Check",
+   "label": "Client Visible",
+   "search_index": 1
+  },
+  {
+   "default": "0",
+   "fieldname": "client_requested",
+   "fieldtype": "Check",
+   "label": "Client Requested"
+  }
  ],
  "links": [],
  "modified": "2026-07-09 09:00:00.000000",
@@ -33,8 +134,24 @@
  "naming_rule": "Expression",
  "owner": "Administrator",
  "permissions": [
-  {"create": 1, "delete": 1, "email": 1, "export": 1, "print": 1, "read": 1, "report": 1, "role": "System Manager", "share": 1, "write": 1},
-  {"create": 1, "read": 1, "report": 1, "role": "All"}
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "read": 1,
+   "report": 1,
+   "role": "All"
+  }
  ],
  "sort_field": "creation",
  "sort_order": "DESC",

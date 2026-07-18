@@ -70,53 +70,103 @@ def _room_payload(room, include_internal, before=None, limit=40):
 	return rows, has_more
 
 
-def _visible_tasks(room):
-	if not room.project:
-		return []
-	rows = frappe.get_all(
-		"Duty Project Task",
-		filters={"project": room.project, "client_visible": 1},
-		fields=["name", "title", "column", "assignee", "modified"],
+ISSUE_CLIENT_STATUS = {
+	"Open": "Queued",
+	"In Progress": "In Progress",
+	"Resolved": "Done",
+	"Closed": "Done",
+}
+
+
+def _work_rows(room):
+	"""Everything client-visible for this customer: issues + project milestones."""
+	out = []
+	issues = frappe.get_all(
+		"Duty Issue",
+		filters={"customer": room.customer, "client_visible": 1},
+		fields=["name", "title", "status", "client_requested", "modified"],
 		order_by="modified desc",
 		limit=100,
 	)
-	out = []
-	for t in rows:
-		status = CLIENT_STATUS.get(t.column)
+	names = [i.name for i in issues]
+	first_assignee = {}
+	if names:
+		for a in frappe.get_all(
+			"Duty Issue Assignee",
+			filters={"parent": ["in", names]},
+			fields=["parent", "user"],
+			order_by="idx asc",
+		):
+			first_assignee.setdefault(a.parent, a.user)
+	for i in issues:
+		status = ISSUE_CLIENT_STATUS.get(i.status)
 		if not status:
-			continue  # Suspended stays behind the membrane
+			continue
 		out.append(
 			{
-				"title": t.title,
+				"name": i.name,
+				"kind": "issue",
+				"title": i.title,
 				"status": status,
+				"client_requested": i.client_requested,
 				"assignee_first": (
-					frappe.utils.get_fullname(t.assignee).split(" ")[0]
-					if t.assignee
+					frappe.utils.get_fullname(first_assignee[i.name]).split(" ")[0]
+					if i.name in first_assignee
 					else None
 				),
+				"modified": i.modified,
 			}
 		)
-	return out
+	projs = frappe.get_all(
+		"Duty Project",
+		filters={"customer": room.customer, "status": "Active"},
+		pluck="name",
+	)
+	if projs:
+		for t in frappe.get_all(
+			"Duty Project Task",
+			filters={"project": ["in", projs], "client_visible": 1},
+			fields=["name", "title", "column", "assignee", "client_requested", "modified"],
+		):
+			status = CLIENT_STATUS.get(t.column)
+			if not status:
+				continue  # Suspended stays behind the membrane
+			out.append(
+				{
+					"name": t.name,
+					"kind": "card",
+					"title": t.title,
+					"status": status,
+					"client_requested": t.client_requested,
+					"assignee_first": (
+						frappe.utils.get_fullname(t.assignee).split(" ")[0]
+						if t.assignee
+						else None
+					),
+					"modified": t.modified,
+				}
+			)
+	out.sort(key=lambda x: x["modified"], reverse=True)
+	for o in out:
+		del o["modified"]
+	return out[:100]
+
+
+def _visible_tasks(room):
+	"""Client payload: titles and statuses only — no internal identifiers."""
+	return [
+		{
+			"title": o["title"],
+			"status": o["status"],
+			"assignee_first": o["assignee_first"],
+		}
+		for o in _work_rows(room)
+	]
 
 
 def _staff_tasks(room):
-	"""Fuller task rows for the staff face — names included so cards open."""
-	if not room.project:
-		return []
-	rows = frappe.get_all(
-		"Duty Project Task",
-		filters={"project": room.project, "client_visible": 1},
-		fields=["name", "title", "column", "assignee", "urgency", "due_date", "client_requested"],
-		order_by="modified desc",
-		limit=100,
-	)
-	for t in rows:
-		t.due_date = str(t.due_date) if t.due_date else None
-		t.status = CLIENT_STATUS.get(t.column, t.column)
-		t.assignee_first = (
-			frappe.utils.get_fullname(t.assignee).split(" ")[0] if t.assignee else None
-		)
-	return rows
+	"""Staff face gets the same rows with names and kinds so they open."""
+	return _work_rows(room)
 
 
 def _ensure_token(room):
@@ -200,7 +250,6 @@ def create_room(customer):
 	doc = frappe.get_doc(
 		{"doctype": "Client Room", "customer": customer, "status": "Active"}
 	).insert(ignore_permissions=True)
-	_ensure_project(doc)
 	_ensure_token(doc)
 	frappe.db.commit()
 	return doc.name
@@ -314,27 +363,33 @@ def set_room_status(name, status):
 	return {"ok": True}
 
 
+def _new_client_issue(room, title, requested=0, raised_by=None):
+	doc = frappe.get_doc(
+		{
+			"doctype": "Duty Issue",
+			"title": title[:140],
+			"customer": room.customer,
+			"severity": "Medium",
+			"status": "Open",
+			"raised_by": raised_by or frappe.session.user,
+			"source_type": "Client Room",
+			"source": room.name,
+			"client_visible": 1,
+			"client_requested": cint(requested),
+		}
+	).insert(ignore_permissions=True)
+	return doc
+
+
 @frappe.whitelist()
 def make_task_from_message(name, title):
 	_staff_only()
 	room = frappe.get_doc("Client Room", name)
 	title = (title or "").strip()
 	if not title:
-		frappe.throw(_("Give the task a title."))
-	project = _ensure_project(room)
-	from duty_board.projects import create_task
-
-	create_task(project, title)
-	card = frappe.get_all(
-		"Duty Project Task",
-		filters={"project": project, "title": title},
-		order_by="creation desc",
-		limit=1,
-	)[0].name
-	frappe.db.set_value(
-		"Duty Project Task", card, "client_visible", 1, update_modified=False
-	)
-	_post(room, _("📋 Logged: “{0}” → Queued").format(title))
+		frappe.throw(_("Give the issue a title."))
+	_new_client_issue(room, title)
+	_post(room, _("⚠ Logged: “{0}” → Queued").format(title))
 	frappe.db.commit()
 	return get_room(name)
 
@@ -483,18 +538,22 @@ def client_request_task(title):
 		frappe.throw(_("Describe what you need."))
 	if len(title) > 200:
 		frappe.throw(_("Keep the request under 200 characters."))
-	project = _ensure_project(room)
-	frappe.get_doc(
-		{
-			"doctype": "Duty Project Task",
-			"project": project,
-			"title": title,
-			"column": "To Do",
-			"urgency": "Medium",
-			"client_visible": 1,
-			"client_requested": 1,
-		}
-	).insert(ignore_permissions=True)
+	_new_client_issue(room, title, requested=1, raised_by=frappe.session.user)
 	_post(room, _("🙋 Requested: “{0}” → Queued").format(title))
+	try:
+		from duty_board.api import _notify_user
+
+		first = frappe.utils.get_fullname(frappe.session.user).split(" ")[0]
+		for u in frappe.get_all(
+			"User", filters={"enabled": 1, "user_type": "System User"}, fields=["name"]
+		):
+			if frappe.db.exists("Duty Push Subscription", {"user": u.name}):
+				_notify_user(
+					u.name,
+					_("⚠ New client issue · {0}").format(room.customer),
+					title[:120],
+				)
+	except Exception:
+		pass
 	frappe.db.commit()
 	return client_get_room()

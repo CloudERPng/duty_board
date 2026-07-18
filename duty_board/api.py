@@ -682,6 +682,8 @@ def _issue_payload(doc):
 	return {
 		"attachments": attachments,
 		"working": working,
+		"client_visible": cint(doc.client_visible or 0),
+		"client_requested": cint(doc.client_requested or 0),
 		"name": doc.name,
 		"title": doc.title,
 		"customer": doc.customer,
@@ -794,6 +796,15 @@ def attach_to_issue(name, file_url):
 	_issue_member_check(doc)
 	if not _link_upload_to_issue(file_url, doc.name):
 		frappe.throw(_("Upload not found — try attaching again."))
+	frappe.db.commit()
+	return _issue_payload(frappe.get_doc("Duty Issue", name))
+
+
+@frappe.whitelist()
+def set_issue_visibility(name, visible):
+	doc = frappe.get_doc("Duty Issue", name)
+	_issue_member_check(doc)
+	frappe.db.set_value("Duty Issue", name, "client_visible", cint(visible), update_modified=False)
 	frappe.db.commit()
 	return _issue_payload(frappe.get_doc("Duty Issue", name))
 
