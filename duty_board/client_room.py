@@ -70,11 +70,9 @@ def _room_payload(room, include_internal, before=None, limit=40):
 			r.owner, frappe.utils.get_fullname(r.owner) or r.owner
 		)
 		r.is_staff = frappe.db.get_value("User", r.owner, "user_type") == "System User"
-		r.is_image = bool(
-			r.attachment_name
-			and r.attachment_name.lower().rsplit(".", 1)[-1]
-			in ("png", "jpg", "jpeg", "gif", "webp")
-		)
+		ext = (r.attachment_name or "").lower().rsplit(".", 1)[-1]
+		r.is_image = ext in ("png", "jpg", "jpeg", "gif", "webp")
+		r.is_audio = ext in ("webm", "ogg", "mp3", "m4a", "wav")
 	by_name = {r.name: r for r in rows}
 	for r in rows:
 		if not r.get("ref"):
@@ -341,6 +339,7 @@ def get_room(name, before=None):
 		"members": members,
 		"requests": requests,
 		"join_url": f"{frappe.utils.get_url()}/join?token={_ensure_token(room)}",
+		"shelf": _shelf_rows(room),
 		"tasks": _staff_tasks(room),
 	}
 
@@ -368,6 +367,19 @@ def post_message(name, message, internal=0, attachment_url=None, attachment_name
 		if not cint(internal):
 			for m in _room_member_mentions(room, message):
 				_email_mention(m, room, first, message)
+			from duty_board.api import _push_safe
+
+			for mm in frappe.get_all(
+				"Client Room Member", filters={"room": room.name, "active": 1}, fields=["user"]
+			):
+				if mm.user != me and frappe.db.exists(
+					"Duty Push Subscription", {"user": mm.user}
+				):
+					_push_safe(
+						mm.user,
+						_("🤝 Xlevel · {0}").format(first),
+						(message or "📎")[:120],
+					)
 	except Exception:
 		pass
 	return get_room(name)
@@ -642,6 +654,196 @@ def client_issue_file(fid):
 	_serve_file(fdoc, fdoc.file_name)
 
 
+def _shelf_rows(room):
+	rows = frappe.get_all(
+		"Client Shelf Doc",
+		filters={"room": room.name, "active": 1},
+		fields=["name", "title", "category", "file_name", "creation"],
+		order_by="creation desc",
+		limit=200,
+	)
+	for r in rows:
+		r.creation = str(r.creation)[:10]
+	return rows
+
+
+@frappe.whitelist()
+def shelf_add(name, title, attachment_url, attachment_name=None, category=None):
+	_staff_only()
+	room = frappe.get_doc("Client Room", name)
+	title = (title or "").strip()
+	if not title:
+		frappe.throw(_("Give the document a title."))
+	owned = frappe.db.get_value(
+		"File", {"file_url": attachment_url, "owner": frappe.session.user}, "file_name"
+	)
+	if not owned:
+		frappe.throw(_("Upload not found — try attaching again."))
+	frappe.get_doc(
+		{
+			"doctype": "Client Shelf Doc",
+			"room": room.name,
+			"title": title[:140],
+			"category": (category or "").strip()[:60] or None,
+			"file_url": attachment_url,
+			"file_name": attachment_name or owned,
+			"active": 1,
+		}
+	).insert(ignore_permissions=True)
+	frappe.db.commit()
+	return get_room(name)
+
+
+@frappe.whitelist()
+def shelf_remove(doc_name):
+	_staff_only()
+	frappe.db.set_value("Client Shelf Doc", doc_name, "active", 0, update_modified=False)
+	frappe.db.commit()
+	return {"ok": True}
+
+
+@frappe.whitelist()
+def client_get_documents():
+	room = _client_room()
+	return _shelf_rows(room)
+
+
+@frappe.whitelist()
+def client_shelf_file(id):
+	room = _client_room()
+	d = frappe.db.get_value(
+		"Client Shelf Doc", id, ["room", "file_url", "file_name", "active"], as_dict=True
+	)
+	if not d or d.room != room.name or not cint(d.active):
+		frappe.throw(_("Not found."), frappe.PermissionError)
+	fname = frappe.db.get_value("File", {"file_url": d.file_url})
+	if not fname:
+		frappe.throw(_("File missing."))
+	_serve_file(frappe.get_doc("File", fname), d.file_name)
+
+
+@frappe.whitelist()
+def staff_shelf_file(id):
+	_staff_only()
+	d = frappe.db.get_value(
+		"Client Shelf Doc", id, ["file_url", "file_name"], as_dict=True
+	)
+	if not d:
+		frappe.throw(_("Not found."))
+	fname = frappe.db.get_value("File", {"file_url": d.file_url})
+	if not fname:
+		frappe.throw(_("File missing."))
+	_serve_file(frappe.get_doc("File", fname), d.file_name)
+
+
+@frappe.whitelist()
+def client_search(q):
+	room = _client_room()
+	q = (q or "").strip()
+	if len(q) < 2:
+		return {"messages": [], "issues": []}
+	like = f"%{q}%"
+	msgs = frappe.get_all(
+		"Client Room Message",
+		filters={"room": room.name, "internal": 0, "message": ["like", like]},
+		fields=["name", "message", "owner", "creation"],
+		order_by="creation desc",
+		limit=15,
+	)
+	for m in msgs:
+		m.who = (frappe.utils.get_fullname(m.owner) or m.owner).split(" ")[0]
+		m.creation = str(m.creation)[:16]
+		m.message = m.message[:140]
+	issues = frappe.get_all(
+		"Duty Issue",
+		filters={"customer": room.customer, "client_visible": 1, "title": ["like", like]},
+		fields=["name", "title", "status"],
+		order_by="modified desc",
+		limit=10,
+	)
+	extra = frappe.get_all(
+		"Duty Issue",
+		filters={
+			"customer": room.customer,
+			"client_visible": 1,
+			"description": ["like", like],
+		},
+		fields=["name", "title", "status"],
+		limit=10,
+	)
+	seen = {i.name for i in issues}
+	issues += [e for e in extra if e.name not in seen]
+	out_issues = []
+	for i in issues:
+		status = ISSUE_CLIENT_STATUS.get(i.status)
+		if status:
+			out_issues.append({"id": i.name, "title": i.title, "status": status})
+	return {"messages": msgs, "issues": out_issues[:12]}
+
+
+@frappe.whitelist()
+def client_rate_task(id, rating):
+	room = _client_room()
+	if rating not in ("Up", "Down"):
+		frappe.throw(_("Bad rating."))
+	row = _client_issue_for_room(room, id)
+	if ISSUE_CLIENT_STATUS.get(row.status) != "Done":
+		frappe.throw(_("You can rate once it's done."))
+	frappe.db.set_value("Duty Issue", row.name, "client_rating", rating, update_modified=False)
+	frappe.db.commit()
+	if rating == "Down":
+		try:
+			from duty_board.api import _notify_user
+
+			for u in frappe.get_all(
+				"User", filters={"enabled": 1, "user_type": "System User"}, fields=["name"]
+			):
+				if frappe.db.exists("Duty Push Subscription", {"user": u.name}):
+					_notify_user(
+						u.name,
+						_("👎 Client unhappy · {0}").format(room.customer),
+						row.title[:120],
+					)
+		except Exception:
+			pass
+	return {"ok": True, "rating": rating}
+
+
+def weekly_room_pulse():
+	"""Scheduled: each active room gets its week in one honest line."""
+	week_ago = frappe.utils.add_days(frappe.utils.today(), -7)
+	for r in frappe.get_all(
+		"Client Room", filters={"status": "Active"}, fields=["name", "customer"]
+	):
+		if not frappe.db.exists("Client Room Member", {"room": r.name, "active": 1}):
+			continue
+		done = frappe.db.count(
+			"Duty Issue",
+			{
+				"customer": r.customer,
+				"client_visible": 1,
+				"status": ["in", ["Resolved", "Closed"]],
+				"modified": [">=", week_ago],
+			},
+		)
+		prog = frappe.db.count(
+			"Duty Issue",
+			{"customer": r.customer, "client_visible": 1, "status": "In Progress"},
+		)
+		queued = frappe.db.count(
+			"Duty Issue",
+			{"customer": r.customer, "client_visible": 1, "status": "Open"},
+		)
+		if not (done or prog or queued):
+			continue
+		room = frappe.get_doc("Client Room", r.name)
+		_post(
+			room,
+			f"📊 Your week with Xlevel: ✅ {done} completed · 🔄 {prog} in progress · 📋 {queued} queued.",
+		)
+	frappe.db.commit()
+
+
 def _room_member_mentions(room, text):
 	low = (text or "").lower()
 	if "@" not in low:
@@ -821,7 +1023,7 @@ def reject_join(request_name):
 
 
 @frappe.whitelist()
-def client_request_task(title, detail=None, attachment_url=None, attachment_name=None):
+def client_request_task(title, detail=None, attachment_url=None, attachment_name=None, urgent=0):
 	room = _client_room()
 	title = (title or "").strip()
 	if not title:
@@ -838,9 +1040,25 @@ def client_request_task(title, detail=None, attachment_url=None, attachment_name
 		)
 		if not att:
 			frappe.throw(_("Upload not found — try attaching again."))
+	if cint(urgent):
+		today_urgent = frappe.db.count(
+			"Duty Issue",
+			{
+				"customer": room.customer,
+				"client_requested": 1,
+				"severity": "High",
+				"creation": [">=", frappe.utils.today()],
+			},
+		)
+		if today_urgent >= 3:
+			frappe.throw(
+				_("Urgent limit reached for today — please call your account manager for anything critical.")
+			)
 	doc = _new_client_issue(
 		room, title, requested=1, raised_by=frappe.session.user, detail=detail
 	)
+	if cint(urgent):
+		frappe.db.set_value("Duty Issue", doc.name, "severity", "High", update_modified=False)
 	if att:
 		frappe.db.set_value(
 			"File",
@@ -850,7 +1068,8 @@ def client_request_task(title, detail=None, attachment_url=None, attachment_name
 		)
 	_post(
 		room,
-		_("🙋 Requested: “{0}” → Queued").format(title),
+		(_("🔴 URGENT — ") if cint(urgent) else "")
+		+ _("🙋 Requested: “{0}” → Queued").format(title),
 		attachment_url=attachment_url,
 		attachment_name=(attachment_name or (att.file_name if att else None)),
 	)
@@ -864,7 +1083,9 @@ def client_request_task(title, detail=None, attachment_url=None, attachment_name
 			if frappe.db.exists("Duty Push Subscription", {"user": u.name}):
 				_notify_user(
 					u.name,
-					_("⚠ New client issue · {0}").format(room.customer),
+					(_("🔴 URGENT · {0}") if cint(urgent) else _("⚠ New client issue · {0}")).format(
+						room.customer
+					),
 					title[:120],
 				)
 	except Exception:

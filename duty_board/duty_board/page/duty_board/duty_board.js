@@ -2038,7 +2038,7 @@ class DutyBoard {
 				<span class="duty-msg-who" style="color:${this.user_color(m.owner)}">${m.internal ? "🔒 " : ""}${frappe.utils.escape_html((m.who || m.owner).split(" ")[0])}${m.is_staff ? "" : ` · ${__("client")}`}</span>
 				${m.ref ? `<a class="duty-cr-quote" data-target="${m.ref}"><b>${frappe.utils.escape_html(m.ref_who || "")}</b>: ${frappe.utils.escape_html(m.ref_text || "")}</a>` : ""}
 				<span class="duty-msg-text">${frappe.utils.escape_html(m.message)}</span>
-				${m.attachment_url ? `<span class="duty-cr-att">${m.is_image ? `<a href="/api/method/duty_board.client_room.room_file?msg=${m.name}" target="_blank"><img src="/api/method/duty_board.client_room.room_file?msg=${m.name}"></a>` : `<a class="duty-issue-filelink" href="/api/method/duty_board.client_room.room_file?msg=${m.name}" target="_blank">📎 ${frappe.utils.escape_html(m.attachment_name || "file")}</a>`}</span>` : ""}
+				${m.attachment_url ? `<span class="duty-cr-att">${m.is_image ? `<a href="/api/method/duty_board.client_room.room_file?msg=${m.name}" target="_blank"><img src="/api/method/duty_board.client_room.room_file?msg=${m.name}"></a>` : m.is_audio ? `<audio controls preload="none" src="/api/method/duty_board.client_room.room_file?msg=${m.name}" style="display:block;margin-top:6px;max-width:240px"></audio>` : `<a class="duty-issue-filelink" href="/api/method/duty_board.client_room.room_file?msg=${m.name}" target="_blank">📎 ${frappe.utils.escape_html(m.attachment_name || "file")}</a>`}</span>` : ""}
 				<span class="duty-msg-time">${frappe.datetime.str_to_user(m.creation)}</span>
 				${m.is_staff ? "" : `<a class="duty-cr-mktask" data-text="${frappe.utils.escape_html(m.message.slice(0, 120))}" title="${__("Make task from this")}">➕</a>`}
 			</div>`;
@@ -2055,6 +2055,7 @@ class DutyBoard {
 				<b>${frappe.utils.escape_html(x.customer)}</b>
 				<span class="duty-cr-taskchips">📋 ${counts.Queued} ${__("queued")} · ${counts["In Progress"]} ${__("in progress")} · ${counts.Done} ${__("done")}</span>
 				<span class="duty-cr-tools">
+					<a class="duty-cr-shelfbtn">📚 ${__("Shelf")}</a>
 					<a class="duty-cr-membersbtn">👥 ${__("Members")}${(x.requests || []).length ? ` <b class="duty-cr-reqbadge">${x.requests.length}</b>` : ""}</a>
 					${frappe.user.has_role("System Manager") ? `<a class="duty-cr-freeze">${x.status === "Active" ? "🧊 " + __("Freeze") : "▶ " + __("Unfreeze")}</a>` : ""}
 				</span>
@@ -2283,6 +2284,7 @@ class DutyBoard {
 			this.show_face("board");
 			this.refresh(true);
 		});
+		$room.find(".duty-cr-shelfbtn").on("click", () => this.room_shelf_dialog(x));
 		$room.find(".duty-cr-membersbtn").on("click", () => this.room_members_dialog(x));
 		$room.find(".duty-cr-freeze").on("click", () =>
 			frappe.call({
@@ -2291,6 +2293,76 @@ class DutyBoard {
 				callback: () => this.load_client_room(x.name),
 			})
 		);
+	}
+
+	room_shelf_dialog(x) {
+		const d = new frappe.ui.Dialog({ title: `📚 ${x.customer} — ${__("Shelf")}` });
+		const load = () =>
+			frappe.call({
+				method: "duty_board.client_room.get_room",
+				args: { name: x.name },
+				callback: (r) => r.message && render(r.message.shelf || []),
+			});
+		const render = (docs) => {
+			$(d.body).html(`
+				<div class="duty-cr-shelflist">
+					${docs
+						.map(
+							(s) =>
+								`<div class="duty-cr-mem"><a href="/api/method/duty_board.client_room.staff_shelf_file?id=${encodeURIComponent(s.name)}" target="_blank"><b>📄 ${frappe.utils.escape_html(s.title)}</b></a> ${s.category ? `<span class="duty-lead-chip">${frappe.utils.escape_html(s.category)}</span>` : ""} <span class="text-muted">${s.creation}</span> <a class="duty-cr-shelfrm" data-name="${s.name}" style="margin-left:auto;color:var(--red-600,#dc2626)">${__("Remove")}</a></div>`
+						)
+						.join("") || `<div class="text-muted">${__("Empty shelf — add the manuals and agreements this client should always have.")}</div>`}
+				</div>
+				<div class="duty-lead-section">＋ ${__("Add document")}</div>
+				<div class="duty-cr-addmem" style="flex-wrap:wrap">
+					<input type="text" class="form-control input-sm duty-sh-title" placeholder="${__("Title")}" style="flex:2">
+					<input type="text" class="form-control input-sm duty-sh-cat" placeholder="${__("Category (optional)")}" style="flex:1">
+					<label class="btn btn-sm btn-default" style="margin:0">📎 ${__("Choose file")}<input type="file" hidden class="duty-sh-file"></label>
+					<button type="button" class="btn btn-sm btn-primary duty-sh-add">＋ ${__("Publish")}</button>
+				</div>
+				<p class="text-muted duty-attach-hint">${__("Everything here is permanently visible on the client's portal.")}</p>
+			`);
+			let pending = null;
+			$(d.body).find(".duty-sh-file").on("change", (e) => {
+				pending = e.target.files[0] || null;
+				if (pending) $(e.target).parent().contents().first()[0].textContent = "📎 " + pending.name.slice(0, 24) + " ";
+			});
+			$(d.body).find(".duty-cr-shelfrm").on("click", (e) =>
+				frappe.confirm(__("Remove from the client's shelf?"), () =>
+					frappe.call({
+						method: "duty_board.client_room.shelf_remove",
+						args: { doc_name: $(e.currentTarget).data("name") },
+						callback: load,
+					})
+				)
+			);
+			$(d.body).find(".duty-sh-add").on("click", async () => {
+				const title = $(d.body).find(".duty-sh-title").val().trim();
+				const cat = $(d.body).find(".duty-sh-cat").val().trim();
+				if (!title || !pending) {
+					frappe.msgprint(__("A title and a file are both needed."));
+					return;
+				}
+				try {
+					const up = await this.upload_private_file(pending);
+					frappe.call({
+						method: "duty_board.client_room.shelf_add",
+						args: {
+							name: x.name,
+							title: title,
+							category: cat || null,
+							attachment_url: up.file_url,
+							attachment_name: up.file_name,
+						},
+						callback: (r) => r.message && render(r.message.shelf || []),
+					});
+				} catch (err) {
+					frappe.msgprint(__("Upload failed: {0}", [frappe.utils.escape_html(err.message || "")]));
+				}
+			});
+		};
+		render(x.shelf || []);
+		d.show();
 	}
 
 	room_members_dialog(x) {
@@ -3246,7 +3318,7 @@ class DutyBoard {
 					</div>
 					${names ? `<div class="duty-issue-meta">${__("Assigned to")}: ${names}</div>` : ""}
 					${working_names ? `<div class="duty-issue-meta">⏱ ${__("Working on it now")}: ${working_names}</div>` : ""}
-					<div class="duty-issue-meta"><a class="duty-issue-vis">${x.client_visible ? "👁 " + __("Client-visible — click to hide") : "🙈 " + __("Hidden from client — click to publish")}</a></div>
+					<div class="duty-issue-meta"><a class="duty-issue-vis">${x.client_visible ? "👁 " + __("Client-visible — click to hide") : "🙈 " + __("Hidden from client — click to publish")}</a>${x.client_rating ? ` · ${x.client_rating === "Up" ? "👍 " + __("Client satisfied") : "👎 " + __("Client unhappy")}` : ""}</div>
 					${x.description ? `<div class="duty-issue-desc">${frappe.utils.escape_html(x.description)}</div>` : ""}
 					${
 						(x.attachments || []).length

@@ -684,6 +684,7 @@ def _issue_payload(doc):
 		"working": working,
 		"client_visible": cint(doc.client_visible or 0),
 		"client_requested": cint(doc.client_requested or 0),
+		"client_rating": doc.get("client_rating") or None,
 		"name": doc.name,
 		"title": doc.title,
 		"customer": doc.customer,

@@ -182,6 +182,28 @@ class TestDutyBoardCore(FrappeTestCase):
 		client_room.approve_join(req)
 		self.assertEqual(frappe.db.get_value("User", email, "enabled"), 1)
 
+	def test_shelf_membrane(self):
+		room = client_room.create_room(self._any_customer())
+		rows = client_room._shelf_rows(frappe.get_doc("Client Room", room))
+		self.assertEqual(rows, [])
+
+	def test_urgent_valve_counting(self):
+		room_name = client_room.create_room(self._any_customer())
+		room = frappe.get_doc("Client Room", room_name)
+		for i in range(3):
+			d = client_room._new_client_issue(room, f"urgent {i}", requested=1)
+			frappe.db.set_value("Duty Issue", d.name, "severity", "High", update_modified=False)
+		count = frappe.db.count(
+			"Duty Issue",
+			{
+				"customer": room.customer,
+				"client_requested": 1,
+				"severity": "High",
+				"creation": [">=", frappe.utils.today()],
+			},
+		)
+		self.assertGreaterEqual(count, 3)
+
 	def test_move_task_rejects_unknown_column(self):
 		proj = projects.create_project("__Unit Test Project 2", customer=self._any_customer())
 		board = projects.create_task(proj, "Column guard")

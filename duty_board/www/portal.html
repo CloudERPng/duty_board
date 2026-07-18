@@ -5,6 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Xlevel Client Portal</title>
 <link rel="icon" href="/assets/duty_board/mobile/icon-192.png">
+<link rel="manifest" href="/assets/duty_board/mobile/portal.webmanifest">
+<link rel="apple-touch-icon" href="/assets/duty_board/mobile/icon-192.png">
 <meta name="theme-color" content="#0F5C55">
 <style>
 	* { box-sizing: border-box; }
@@ -18,6 +20,7 @@
 		.wrap { max-width: 1560px; display: grid; grid-template-columns: minmax(480px, 5fr) 7fr; gap: 18px; align-items: start; }
 		.wrap > #err { grid-column: 1 / -1; }
 		.wrap > .card.tasks { position: sticky; top: 14px; }
+		.wrap > .card.docs { grid-column: 1; }
 		.wrap > .foot { grid-column: 1 / -1; }
 		.msgs { max-height: calc(100vh - 320px) !important; }
 	}
@@ -49,6 +52,23 @@
 		padding: 3px 12px; font-size: 12px; margin-bottom: 6px; }
 	.chip a { cursor: pointer; font-weight: 700; }
 	label.attach { cursor: pointer; font-size: 20px; align-self: center; }
+	.doc { display: flex; gap: 10px; align-items: center; padding: 7px 0; border-bottom: 1px dashed #eee; font-size: 14px; }
+	.doc:last-child { border-bottom: none; }
+	.doc .cat { font-size: 11px; background: #f1f5f9; color: #475569; border-radius: 99px; padding: 2px 9px; }
+	.doc a { color: #0F5C55; font-weight: 700; text-decoration: none; flex: 1; }
+	.doc .dt2 { font-size: 12px; color: #9ca3af; }
+	#qres { background: #f8fafc; border: 1px solid #e5e7eb; border-radius: 10px; padding: 10px; margin-bottom: 10px;
+		max-height: 40vh; overflow-y: auto; font-size: 14px; }
+	#qres .hit { padding: 6px 4px; border-bottom: 1px dashed #e5e7eb; cursor: pointer; }
+	#qres .hit:hover { background: #f0fdf4; }
+	#qres .hit b { color: #0F5C55; }
+	.mic { cursor: pointer; font-size: 20px; align-self: center; user-select: none; }
+	.mic.rec { animation: pulse 1s infinite; }
+	@keyframes pulse { 50% { opacity: 0.4; } }
+	.m audio { display: block; margin-top: 6px; max-width: 240px; }
+	.urg { display: flex; gap: 6px; align-items: center; font-size: 13px; font-weight: 700; color: #b91c1c; white-space: nowrap; }
+	.rate { margin-top: 10px; font-size: 14px; }
+	.rate a { font-size: 22px; cursor: pointer; margin-right: 10px; text-decoration: none; }
 	.msgs { display: flex; flex-direction: column; gap: 10px; max-height: 50vh; overflow-y: auto; padding-bottom: 6px; }
 	.m { width: fit-content; min-width: 150px; max-width: min(72ch, 85%); padding: 8px 12px;
 		border-radius: 12px; font-size: 15px; white-space: pre-wrap;
@@ -107,7 +127,7 @@
 <body>
 <div class="top">
 	<span><b id="brand">Xlevel</b> · <span id="cust"></span></span>
-	<span><span id="me" style="font-size:13px;color:#a7f3d0;margin-right:14px"></span><a href="/?cmd=web_logout">Log out</a></span>
+	<span><a id="bell" style="cursor:pointer;margin-right:14px;display:none" title="Get notified when we reply">🔔 Notify me</a><span id="me" style="font-size:13px;color:#a7f3d0;margin-right:14px"></span><a href="/?cmd=web_logout">Log out</a></span>
 </div>
 <div class="hours">🕘 We reply Mon–Fri, 9:00–18:00 WAT. Urgent? Call your account manager.</div>
 <div class="wrap">
@@ -124,13 +144,22 @@
 			<div id="reqpend"></div>
 			<div class="reqrow">
 				<label class="attach" title="Attach image or document">📎<input type="file" hidden onchange="pickReqFile(this)"></label>
+				<label class="urg"><input type="checkbox" id="requrgent"> 🔴 Urgent</label>
 				<span class="muted" style="flex:1">Details and screenshots help us fix it faster.</span>
 				<button onclick="requestTask()">Request</button>
 			</div>
 		</div>
 	</div>
+	<div class="card docs">
+		<h3>📚 Your documents</h3>
+		<div id="docs"><span class="muted">Nothing on your shelf yet.</span></div>
+	</div>
 	<div class="card">
-		<h3>💬 Conversation</h3>
+		<div class="thead" style="margin-bottom:8px">
+			<h3 style="margin:0">💬 Conversation</h3>
+			<input id="q" placeholder="🔍 Search messages & tasks…" style="max-width:260px;border:1px solid #d1d5db;border-radius:8px;padding:6px 10px;font-size:14px">
+		</div>
+		<div id="qres" style="display:none"></div>
 		<div class="msgs" id="msgs"><span class="muted">Loading…</span></div>
 		<div id="replychip"></div>
 		<div id="pend"></div>
@@ -139,6 +168,7 @@
 			<div id="mdd"></div>
 			<label class="attach" title="Attach image or file">📎<input type="file" hidden id="file" onchange="pickFile(this)"></label>
 			<span class="emojibtn" onclick="toggleEmojis()" title="Emoji">😊</span>
+			<span class="mic" id="mic" title="Hold to record a voice note">🎙</span>
 			<textarea id="text" rows="2" placeholder="Write to the Xlevel team… @ to mention someone"></textarea>
 			<button onclick="send()">Send</button>
 		</div>
@@ -208,7 +238,7 @@ function render(d) {
 		? d.messages.map((m) => {
 				const url = "/api/method/duty_board.client_room.room_file?msg=" + encodeURIComponent(m.name);
 				const att = m.attachment_url
-					? `<span class="att">${m.is_image ? `<a href="${url}" target="_blank"><img src="${url}"></a>` : `<a class="filelink" href="${url}" target="_blank">📎 ${esc(m.attachment_name || "file")}</a>`}</span>`
+					? `<span class="att">${m.is_image ? `<a href="${url}" target="_blank"><img src="${url}"></a>` : m.is_audio ? `<audio controls preload="none" src="${url}"></audio>` : `<a class="filelink" href="${url}" target="_blank">📎 ${esc(m.attachment_name || "file")}</a>`}</span>`
 					: "";
 				const qt = m.ref ? `<a class="qt" onclick="jumpTo('${esc(m.ref)}')"><b>${esc(m.ref_who || "")}</b>: ${esc(m.ref_text || "")}</a>` : "";
 				return `<div class="m ${m.is_staff ? "staff" : "me"}" data-name="${esc(m.name)}"><a class="rep" onclick='setReply(${JSON.stringify({ name: m.name, who: m.who, text: (m.message || "📎").slice(0, 80) }).replace(/'/g, "&#39;")})'>↩ reply</a><span class="w">${esc(m.who)}</span>${qt}${esc(m.message)}${att}<span class="tm">${esc((m.creation || "").slice(0, 16))}</span></div>`;
@@ -222,7 +252,142 @@ function fail(e) {
 	el.style.display = "block";
 	setTimeout(() => (el.style.display = "none"), 6000);
 }
-function load() { api("client_get_room").then(render).catch(fail); }
+function load() {
+	api("client_get_room").then(render).catch(fail);
+	api("client_get_documents")
+		.then((docs) => {
+			const el = document.getElementById("docs");
+			el.innerHTML = (docs || []).length
+				? docs
+						.map(
+							(d) =>
+								`<div class="doc"><a href="/api/method/duty_board.client_room.client_shelf_file?id=${encodeURIComponent(d.name)}" target="_blank">📄 ${esc(d.title)}</a>${d.category ? `<span class="cat">${esc(d.category)}</span>` : ""}<span class="dt2">${esc(d.creation)}</span></div>`
+						)
+						.join("")
+				: '<span class="muted">Nothing on your shelf yet.</span>';
+		})
+		.catch(() => {});
+}
+
+/* ---- push + home screen ---- */
+function b64ToU8(s) {
+	const pad = "=".repeat((4 - (s.length % 4)) % 4);
+	const raw = atob((s + pad).replace(/-/g, "+").replace(/_/g, "/"));
+	return Uint8Array.from([...raw].map((c) => c.charCodeAt(0)));
+}
+async function setupPush() {
+	if (!("serviceWorker" in navigator) || !("PushManager" in window)) return;
+	let reg;
+	try {
+		reg = await navigator.serviceWorker.register("/portal_sw.js");
+	} catch (e) {
+		try {
+			reg = await navigator.serviceWorker.register("/assets/duty_board/mobile/portal_sw.js");
+		} catch (e2) {
+			return;
+		}
+	}
+	const bell = document.getElementById("bell");
+	const sub = await reg.pushManager.getSubscription();
+	if (sub) return; // already enrolled — stay quiet
+	bell.style.display = "";
+	bell.onclick = async () => {
+		try {
+			const perm = await Notification.requestPermission();
+			if (perm !== "granted") return;
+			const cfg = await fetch("/api/method/duty_board.push.get_push_config", {
+				credentials: "same-origin",
+			}).then((r) => r.json());
+			const key = cfg.message && cfg.message.vapid_public;
+			if (!key) throw new Error("Push not configured");
+			const s = await reg.pushManager.subscribe({
+				userVisibleOnly: true,
+				applicationServerKey: b64ToU8(key),
+			});
+			await fetch("/api/method/duty_board.push.save_push_subscription", {
+				method: "POST",
+				headers: { "Content-Type": "application/json", "X-Frappe-CSRF-Token": frappe_csrf() },
+				credentials: "same-origin",
+				body: JSON.stringify({ subscription: JSON.stringify(s) }),
+			});
+			bell.textContent = "🔔 On";
+			setTimeout(() => (bell.style.display = "none"), 2500);
+		} catch (e) {
+			fail(e);
+		}
+	};
+}
+setupPush();
+
+/* ---- search ---- */
+let qtimer = null;
+document.getElementById("q").addEventListener("input", (e) => {
+	clearTimeout(qtimer);
+	const v = e.target.value.trim();
+	const box = document.getElementById("qres");
+	if (v.length < 2) {
+		box.style.display = "none";
+		return;
+	}
+	qtimer = setTimeout(() => {
+		api("client_search", { q: v })
+			.then((r) => {
+				const hits = [];
+				(r.issues || []).forEach((i) =>
+					hits.push(
+						`<div class="hit" onclick="openTask('${esc(i.id)}','issue')">📋 <b>${esc(i.title)}</b> <span class="pill ${PILL[i.status]}">${esc(i.status)}</span></div>`
+					)
+				);
+				(r.messages || []).forEach((m) =>
+					hits.push(
+						`<div class="hit" onclick="jumpTo('${esc(m.name)}')">💬 <b>${esc(m.who)}</b> <span class="dt2">${esc(m.creation)}</span><br>${esc(m.message)}</div>`
+					)
+				);
+				box.innerHTML = hits.length ? hits.join("") : '<span class="muted">No matches.</span>';
+				box.style.display = "block";
+			})
+			.catch(fail);
+	}, 350);
+});
+document.getElementById("q").addEventListener("keydown", (e) => {
+	if (e.key === "Escape") {
+		e.target.value = "";
+		document.getElementById("qres").style.display = "none";
+	}
+});
+
+/* ---- voice notes ---- */
+let recorder = null, chunks = [], recStart = 0;
+const micEl = document.getElementById("mic");
+async function startRec() {
+	try {
+		const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+		chunks = [];
+		recorder = new MediaRecorder(stream);
+		recorder.ondataavailable = (e) => e.data.size && chunks.push(e.data);
+		recorder.onstop = () => {
+			stream.getTracks().forEach((t) => t.stop());
+			const secs = Math.round((Date.now() - recStart) / 1000);
+			if (secs < 1) return;
+			const blob = new Blob(chunks, { type: recorder.mimeType || "audio/webm" });
+			const f = new File([blob], `voice-note-${secs}s.webm`, { type: blob.type });
+			pickFile({ files: [f] });
+		};
+		recStart = Date.now();
+		recorder.start();
+		micEl.classList.add("rec");
+	} catch (e) {
+		fail(new Error("Microphone unavailable"));
+	}
+}
+function stopRec() {
+	micEl.classList.remove("rec");
+	if (recorder && recorder.state === "recording") recorder.stop();
+}
+micEl.addEventListener("mousedown", startRec);
+micEl.addEventListener("touchstart", (e) => { e.preventDefault(); startRec(); });
+["mouseup", "mouseleave"].forEach((ev) => micEl.addEventListener(ev, stopRec));
+micEl.addEventListener("touchend", stopRec);
 function openTask(id, kind) {
 	api("client_task_detail", { id: id, kind: kind })
 		.then((d) => {
@@ -250,8 +415,17 @@ function openTask(id, kind) {
 				</div>
 				${d.detail ? `<div class="det">${esc(d.detail)}</div>` : ""}
 				${atts}
+				${d.kind === "issue" && d.status === "Done" ? `<div class="rate">How did we do? <a onclick="rateTask('${esc(id)}','Up')">👍</a><a onclick="rateTask('${esc(id)}','Down')">👎</a></div>` : ""}
 			`;
 			document.getElementById("ov").style.display = "flex";
+		})
+		.catch(fail);
+}
+function rateTask(id, rating) {
+	api("client_rate_task", { id: id, rating: rating })
+		.then(() => {
+			document.querySelector("#ov .rate").innerHTML =
+				rating === "Up" ? "Thank you! 🙏" : "Sorry to hear — we'll do better. Your team has been told.";
 		})
 		.catch(fail);
 }
@@ -380,11 +554,13 @@ function requestTask() {
 				detail: body || null,
 				attachment_url: up ? up.url : null,
 				attachment_name: up ? up.name : null,
+				urgent: document.getElementById("requrgent").checked ? 1 : 0,
 			})
 		)
 		.then((d) => {
 			t.value = "";
 			b.value = "";
+			document.getElementById("requrgent").checked = false;
 			REQP = null;
 			document.getElementById("reqpend").innerHTML = "";
 			return render(d);
