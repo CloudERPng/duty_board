@@ -745,6 +745,7 @@ def _bh_fmt(minutes):
 
 
 def sla_dues(severity, start):
+	start = frappe.utils.get_datetime(start)
 	ack_h, res_h = SLA_MATRIX.get(severity or "Medium", SLA_MATRIX["Medium"])
 	return _bh_add(start, ack_h), _bh_add(start, res_h)
 
@@ -759,12 +760,13 @@ def stamp_sla(doc_name, severity, start):
 			update_modified=False,
 		)
 	except Exception:
-		pass
+		frappe.log_error(frappe.get_traceback(), "duty_board.stamp_sla")
 
 
 def _sla_state(due, done_at, met_flag):
 	if not due:
 		return None, None
+	due = frappe.utils.get_datetime(due)
 	now = now_datetime()
 	if done_at:
 		return ("met" if cint(met_flag) else "missed"), None
@@ -991,7 +993,7 @@ def acknowledge_issue(name):
 		now = now_datetime()
 		vals = {"acknowledged_by": frappe.session.user, "acknowledged_at": now}
 		if doc.get("sla_ack_due"):
-			vals["sla_ack_met"] = 1 if now <= doc.sla_ack_due else 0
+			vals["sla_ack_met"] = 1 if now <= frappe.utils.get_datetime(doc.sla_ack_due) else 0
 		frappe.db.set_value("Duty Issue", name, vals, update_modified=False)
 		frappe.db.commit()
 		try:
@@ -1029,7 +1031,12 @@ def start_issue_work(name):
 		doc.acknowledged_by = user
 		doc.acknowledged_at = now_datetime()
 		if doc.get("sla_ack_due"):
-			doc.sla_ack_met = 1 if doc.acknowledged_at <= doc.sla_ack_due else 0
+			doc.sla_ack_met = (
+				1
+				if frappe.utils.get_datetime(doc.acknowledged_at)
+				<= frappe.utils.get_datetime(doc.sla_ack_due)
+				else 0
+			)
 	doc.save(ignore_permissions=True)
 	try:
 		from duty_board.client_room import narrate_issue
@@ -1101,7 +1108,10 @@ def update_issue_status(name, status, resolution=None):
 				"Duty Issue",
 				name,
 				"sla_res_met",
-				1 if fresh.resolved_at <= fresh.sla_res_due else 0,
+				1
+				if frappe.utils.get_datetime(fresh.resolved_at)
+				<= frappe.utils.get_datetime(fresh.sla_res_due)
+				else 0,
 				update_modified=False,
 			)
 			frappe.db.commit()
