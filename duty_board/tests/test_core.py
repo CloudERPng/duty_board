@@ -334,7 +334,7 @@ class TestDutyBoardCore(FrappeTestCase):
 			"doctype": "Customer", "customer_name": "Milestone Guard Other Ltd",
 		}).insert(ignore_permissions=True)
 		stray = frappe.get_doc({
-			"doctype": "Duty Project", "title": "stray project",
+			"doctype": "Duty Project", "project_name": "stray project",
 			"customer": other_cust.name,
 		}).insert(ignore_permissions=True)
 		with self.assertRaises(frappe.ValidationError):
@@ -346,7 +346,7 @@ class TestDutyBoardCore(FrappeTestCase):
 		client_room.milestones_seed(room_name)
 		ms = client_room._milestone_rows(room)[0]
 		proj = frappe.get_doc({
-			"doctype": "Duty Project", "title": "linkage project",
+			"doctype": "Duty Project", "project_name": "linkage project",
 			"customer": room.customer,
 		}).insert(ignore_permissions=True)
 		cards = []

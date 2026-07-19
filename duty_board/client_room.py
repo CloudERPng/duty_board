@@ -1254,7 +1254,7 @@ def milestone_task_options(id):
 	customer = frappe.db.get_value("Client Room", ms.room, "customer")
 	out = []
 	for p in frappe.get_all(
-		"Duty Project", filters={"customer": customer}, fields=["name", "title"]
+		"Duty Project", filters={"customer": customer}, fields=["name", "project_name"]
 	):
 		for t in frappe.get_all(
 			"Duty Project Task",
@@ -1266,7 +1266,7 @@ def milestone_task_options(id):
 				{
 					"name": t.name,
 					"title": t.title,
-					"project_title": p.title,
+					"project_title": p.project_name,
 					"column": t.column,
 					"checked": t.milestone == id,
 					"elsewhere": bool(t.milestone and t.milestone != id),
