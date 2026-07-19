@@ -297,7 +297,7 @@
 </div>
 <script>
 const esc = (s) => (s || "").replace(/[&<>"']/g, (c) => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
-const XLV = "2.45.0";
+const XLV = "2.45.1";
 document.getElementById("xlv").textContent = "v" + XLV;
 console.log("Xlevel portal", XLV);
 let ROOM = localStorage.getItem("xl_room") || null;
@@ -509,7 +509,9 @@ setupPush();
 
 /* ---- milestones ---- */
 function loadMilestones() {
-	api("client_get_milestones").then(renderMilestones).catch(() => {});
+	api("client_get_milestones")
+		.then(renderMilestones)
+		.catch((e) => console.warn("milestones:", e.message));
 }
 function renderMilestones(rows) {
 	rows = rows || [];
@@ -521,6 +523,8 @@ function renderMilestones(rows) {
 		document.querySelector("#msbar i").style.width = Math.round((done / rows.length) * 100) + "%";
 		document.getElementById("mscount").textContent = `${done} of ${rows.length} phases approved`;
 	} else wrap.style.display = "none";
+	const tt = document.querySelector('.tabbar a[data-tab="tasks"]');
+	if (tt) tt.classList.toggle("dot", rows.some((m) => m.status === "Awaiting Approval"));
 	document.getElementById("mstones").innerHTML = rows.length
 		? rows
 				.map(
@@ -538,13 +542,31 @@ function renderMilestones(rows) {
 		: '<span class="muted">No project phases defined yet.</span>';
 }
 function approveMilestone(id, title) {
-	const note = prompt(
-		`You are formally approving the phase:\n\n“${title}”\n\nThis records your sign-off permanently, with your name and the date.\n\nOptional comment (or leave blank):`
-	);
-	if (note === null) return;
-	api("client_approve_milestone", { id: id, note: note || null })
-		.then(renderMilestones)
-		.catch(fail);
+	document.getElementById("ovbody").innerHTML = `
+		<h2>✍ Approve “${esc(title)}”</h2>
+		<p style="font-size:14px;line-height:1.55">You are <b>formally accepting this phase as complete</b>.
+		Your sign-off is recorded permanently with your name and today's date, and your Xlevel team
+		is notified immediately.</p>
+		<textarea id="msnote" rows="3" maxlength="300" placeholder="Optional comment — e.g. “All reconciled, well done.”"
+			style="width:100%;box-sizing:border-box;border:1px solid #d1d5db;border-radius:10px;padding:9px 12px;font-size:14px;font-family:inherit;margin:8px 0 14px"></textarea>
+		<div style="display:flex;gap:10px;justify-content:flex-end">
+			<button style="background:#e5e7eb;color:#374151" onclick="document.getElementById('ov').style.display='none'">Cancel</button>
+			<button id="msgo" style="background:#0F5C55">✍ Approve this phase</button>
+		</div>`;
+	document.getElementById("ov").style.display = "flex";
+	document.getElementById("msgo").onclick = () => {
+		const note = document.getElementById("msnote").value.trim();
+		document.getElementById("msgo").disabled = true;
+		api("client_approve_milestone", { id: id, note: note || null })
+			.then((rows) => {
+				document.getElementById("ov").style.display = "none";
+				renderMilestones(rows);
+			})
+			.catch((e) => {
+				document.getElementById("ov").style.display = "none";
+				fail(e);
+			});
+	};
 }
 
 /* ---- meetings ---- */
