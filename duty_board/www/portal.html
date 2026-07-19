@@ -268,7 +268,7 @@
 			<button onclick="send()">Send</button>
 		</div>
 	</div>
-	<p class="muted foot" style="text-align:center">Powered by Xlevel Retail Systems · CloudERP.One</p>
+	<p class="muted foot" style="text-align:center">Powered by Xlevel Retail Systems · CloudERP.One · <span id="xlv"></span></p>
 </div>
 <div class="tabbar">
 	<a data-tab="tasks" onclick="setTab('tasks')"><span>📋</span>Tasks</a>
@@ -282,6 +282,9 @@
 </div>
 <script>
 const esc = (s) => (s || "").replace(/[&<>"']/g, (c) => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const XLV = "2.43.3";
+document.getElementById("xlv").textContent = "v" + XLV;
+console.log("Xlevel portal", XLV);
 let ROOM = localStorage.getItem("xl_room") || null;
 function setRoom(name) {
 	ROOM = name;
