@@ -8,7 +8,7 @@ Internal ("whisper") messages never cross the membrane.
 
 import frappe
 from frappe import _
-from frappe.utils import cint, now_datetime
+from frappe.utils import cint, getdate, now_datetime
 
 MSG_MAX = 2000
 CLIENT_STATUS = {"To Do": "Queued", "In Progress": "In Progress", "Completed": "Done"}
@@ -345,6 +345,7 @@ def get_room(name, before=None):
 		"join_url": f"{frappe.utils.get_url()}/join?token={_ensure_token(room)}",
 		"shelf": _shelf_rows(room),
 		"meetings": _meeting_rows(room),
+		"meeting_staff": json.loads(room.meeting_staff or "[]") if room.meeting_staff else [],
 		"tasks": _staff_tasks(room),
 	}
 
@@ -1009,7 +1010,7 @@ def client_typing():
 
 # ---------------- meetings ----------------
 
-MEETING_SLOTS = ["09:00", "10:00", "11:00", "12:00", "13:00", "14:00", "15:00", "16:00", "17:00"]
+MEETING_SLOTS = ["10:00", "11:00", "12:00", "13:00", "14:00", "15:00", "16:00"]
 MEETING_DAY_CAP = 2
 
 
@@ -1101,18 +1102,40 @@ def _meeting_rows(room, include_past=False):
 	return rows
 
 
-@frappe.whitelist()
-def client_meeting_staff():
-	_client_room()
+def _bookable_staff(room):
+	try:
+		chosen = json.loads(room.meeting_staff or "[]")
+	except Exception:
+		chosen = []
 	out = []
 	for u in frappe.get_all(
 		"User",
 		filters={"enabled": 1, "user_type": "System User"},
 		fields=["name", "full_name"],
 	):
-		if u.name != "Administrator" and u.full_name:
-			out.append({"id": u.name, "first": u.full_name.split(" ")[0], "full": u.full_name})
+		if u.name == "Administrator" or not u.full_name:
+			continue
+		if chosen and u.name not in chosen:
+			continue
+		out.append({"id": u.name, "first": u.full_name.split(" ")[0], "full": u.full_name})
 	return out
+
+
+@frappe.whitelist()
+def client_meeting_staff():
+	room = _client_room()
+	return _bookable_staff(room)
+
+
+@frappe.whitelist()
+def set_meeting_staff(name, users):
+	_staff_only()
+	ids = _valid_staff_ids(frappe.parse_json(users) or [])
+	frappe.db.set_value(
+		"Client Room", name, "meeting_staff", json.dumps(ids), update_modified=False
+	)
+	frappe.db.commit()
+	return get_room(name)
 
 
 @frappe.whitelist()
@@ -1131,6 +1154,8 @@ def client_request_meeting(date, time, staff, topic):
 	if not topic:
 		frappe.throw(_("What is the meeting about?"))
 	ids = _valid_staff_ids(frappe.parse_json(staff) or [])
+	allowed = {s["id"] for s in _bookable_staff(room)}
+	ids = [u for u in ids if u in allowed]
 	if not ids:
 		frappe.throw(_("Pick at least one team member."))
 	if frappe.db.count(

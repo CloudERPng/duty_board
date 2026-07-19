@@ -242,7 +242,7 @@ class TestDutyBoardCore(FrappeTestCase):
 		}).insert(ignore_permissions=True)
 		slots = client_room._meeting_slots(["Administrator"], date)
 		self.assertNotIn("10:00", slots, "a timed todo must block its hour")
-		self.assertIn("09:00", slots)
+		self.assertIn("11:00", slots)
 
 	def test_meeting_day_cap_blanks_the_day(self):
 		import frappe.utils as fu

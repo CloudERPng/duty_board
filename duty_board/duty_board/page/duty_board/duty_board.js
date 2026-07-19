@@ -2515,7 +2515,30 @@ class DutyBoard {
 					<button type="button" class="btn btn-sm btn-primary duty-cr-addbtn">＋</button>
 				</div>
 				<p class="text-muted duty-attach-hint">${__("New members get a welcome email with a password link. Their portal: {0}", ["<b>" + location.origin + "/portal</b>"])}</p>
+				<div class="duty-lead-section">📅 ${__("Bookable for meetings")}</div>
+				<div class="duty-cr-bookable">
+					${this.staff
+						.filter((s) => s.name !== "Administrator")
+						.map(
+							(s) =>
+								`<label style="margin-right:12px;font-size:var(--text-sm)"><input type="checkbox" value="${s.name}" ${(data.meeting_staff || []).includes(s.name) ? "checked" : ""}> ${frappe.utils.escape_html((s.full_name || s.name).split(" ")[0])}</label>`
+						)
+						.join("")}
+					<button type="button" class="btn btn-sm btn-default duty-cr-booksave">${__("Save")}</button>
+				</div>
+				<p class="text-muted duty-attach-hint">${__("Ticked staff appear in the client's meeting picker. Nobody ticked = everyone bookable.")}</p>
 			`);
+			$(d.body).find(".duty-cr-booksave").on("click", () => {
+				const users = $(d.body)
+					.find(".duty-cr-bookable input:checked")
+					.map((i, el) => el.value)
+					.get();
+				frappe.call({
+					method: "duty_board.client_room.set_meeting_staff",
+					args: { name: x.name, users: JSON.stringify(users) },
+					callback: (r) => r.message && render(r.message),
+				});
+			});
 			$(d.body).find(".duty-cr-addbtn").on("click", () => {
 				const email = $(d.body).find(".duty-cr-em").val().trim();
 				const nm = $(d.body).find(".duty-cr-nm").val().trim();
