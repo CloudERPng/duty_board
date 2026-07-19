@@ -1726,6 +1726,7 @@ def submit_join_request(token, full_name, email, phone=None, password=None):
 		}
 	).insert(ignore_permissions=True)
 	frappe.db.commit()
+	frappe.publish_realtime("duty_client_room", {"room": room_name})
 	try:
 		from duty_board.api import _notify_user
 
@@ -1751,6 +1752,7 @@ def approve_join(request_name):
 		frappe.db.set_value("User", req.email, "enabled", 1, update_modified=False)
 	req.db_set("status", "Approved", update_modified=False)
 	frappe.db.commit()
+	frappe.publish_realtime("duty_client_room", {"room": req.room})
 	return get_room(req.room)
 
 
@@ -1767,6 +1769,7 @@ def reject_join(request_name):
 		frappe.delete_doc("User", req.email, ignore_permissions=True, force=True)
 	req.db_set("status", "Rejected", update_modified=False)
 	frappe.db.commit()
+	frappe.publish_realtime("duty_client_room", {"room": req.room})
 	return get_room(req.room)
 
 

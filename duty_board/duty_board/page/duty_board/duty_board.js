@@ -2058,10 +2058,19 @@ class DutyBoard {
 		}
 		const cust_unread = {};
 		const cust_joins = {};
+		let total_unread = 0;
+		let total_joins = 0;
 		this._rooms.forEach((r) => {
 			cust_unread[r.customer] = (cust_unread[r.customer] || 0) + (r.unread || 0);
 			cust_joins[r.customer] = (cust_joins[r.customer] || 0) + (r.join_requests || 0);
+			total_unread += r.unread ? 1 : 0;
+			total_joins += r.join_requests || 0;
 		});
+		$(".duty-cr-barjoins").html(
+			total_joins ? ` <span class="duty-cr-joinpill">🙋 ${total_joins} ${__("waiting")}</span>` : ""
+		);
+		const cr_attn2 = total_unread + total_joins;
+		$(".duty-tab-clients").text(cr_attn2).toggle(cr_attn2 > 0);
 		let prev_cust = null;
 		this._rooms.forEach((r) => {
 			const folded = localStorage.getItem("duty_cr_fold_" + r.customer) === "1";
