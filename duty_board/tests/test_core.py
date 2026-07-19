@@ -2,7 +2,7 @@ import frappe
 from frappe.tests.utils import FrappeTestCase
 
 from duty_board.api import _is_break, user_day_window
-from duty_board import projects, sales, client_room
+from duty_board import api, projects, sales, client_room
 
 
 class TestDutyBoardCore(FrappeTestCase):
@@ -16,6 +16,14 @@ class TestDutyBoardCore(FrappeTestCase):
 		start, end = user_day_window("Administrator")
 		self.assertLess(start, end)
 		self.assertAlmostEqual((end - start).total_seconds(), 86399, delta=5)
+
+	def _fresh_room(self):
+		"""A throwaway customer + room: immune to whatever the site remembers."""
+		cust = frappe.get_doc({
+			"doctype": "Customer",
+			"customer_name": "DB Test " + frappe.generate_hash(length=8),
+		}).insert(ignore_permissions=True)
+		return cust.name, client_room.create_room(cust.name)
 
 	def _any_customer(self):
 		rows = frappe.get_all("Customer", limit=1)
@@ -173,7 +181,7 @@ class TestDutyBoardCore(FrappeTestCase):
 	def test_join_with_password_creates_disabled_user(self):
 		room = client_room.create_room(self._any_customer())
 		token = frappe.db.get_value("Client Room", room, "invite_token")
-		email = "__unittest_pw_client@example.com"
+		email = f"__unittest_pw_{frappe.generate_hash(length=8)}@example.com"
 		client_room.submit_join_request(token, "PW Client", email, password="secret123!")
 		self.assertEqual(frappe.db.get_value("User", email, "enabled"), 0)
 		req = frappe.get_all(
@@ -309,7 +317,7 @@ class TestDutyBoardCore(FrappeTestCase):
 		self.assertNotIn("loose customer issue", h_titles)
 
 	def test_approved_milestone_is_immutable(self):
-		room_name = client_room.create_room(self._any_customer())
+		cust, room_name = self._fresh_room()
 		room = frappe.get_doc("Client Room", room_name)
 		client_room.milestones_seed(room_name)
 		rows = client_room._milestone_rows(room)
@@ -341,7 +349,7 @@ class TestDutyBoardCore(FrappeTestCase):
 			client_room._validate_milestone_project(room_name, stray.name)
 
 	def test_milestone_task_linkage(self):
-		room_name = client_room.create_room(self._any_customer())
+		cust, room_name = self._fresh_room()
 		room = frappe.get_doc("Client Room", room_name)
 		client_room.milestones_seed(room_name)
 		ms = client_room._milestone_rows(room)[0]
@@ -380,7 +388,7 @@ class TestDutyBoardCore(FrappeTestCase):
 		self.assertTrue(res_due > ack_due)
 
 	def test_sla_met_on_quick_resolve(self):
-		cust = self._any_customer()
+		cust, _room = self._fresh_room()
 		p = api.create_issue(title="sla probe", customer=cust, severity="High")
 		row = frappe.db.get_value(
 			"Duty Issue", p["name"], ["sla_ack_due", "sla_res_due"], as_dict=True
@@ -397,7 +405,7 @@ class TestDutyBoardCore(FrappeTestCase):
 
 	def test_report_stats(self):
 		from datetime import datetime, timedelta
-		room_name = client_room.create_room(self._any_customer())
+		cust, room_name = self._fresh_room()
 		room = frappe.get_doc("Client Room", room_name)
 		p = api.create_issue(
 			title="report probe", customer=room.customer, severity="High"
