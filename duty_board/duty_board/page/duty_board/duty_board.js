@@ -2140,6 +2140,7 @@ class DutyBoard {
 			</div>
 			<div class="duty-cr-msgs">${(x.messages || []).map((m) => this.cr_msg(m)).join("") || `<div class="text-muted">${__("No messages yet.")}</div>`}</div>
 			<div class="duty-cr-meetings"></div>
+			<div class="duty-cr-unsettled"></div>
 			<div class="duty-cr-typing" style="display:none"></div>
 			<div class="duty-cr-replychip"></div>
 			<div class="duty-cr-pending"></div>
@@ -2340,6 +2341,39 @@ class DutyBoard {
 			this.show_face("board");
 			this.refresh(true);
 		});
+		const $us = $room.find(".duty-cr-unsettled");
+		if ($us.length && (x.unsettled || []).length) {
+			$us.html(
+				`<div class="duty-lead-section">📅 ${__("How did these go?")}</div>` +
+					x.unsettled
+						.map(
+							(m) => `
+					<div class="duty-cr-meeting">
+						<b>${frappe.utils.escape_html(m.topic)}</b>
+						<span>${frappe.datetime.str_to_user(m.meeting_date).slice(0, 5)} ${m.start_time}</span>
+						<a class="duty-cr-mheld" data-id="${m.name}">✓ ${__("Held")}</a>
+						<a class="duty-cr-mmissed" data-id="${m.name}">✗ ${__("Missed")}</a>
+					</div>`
+						)
+						.join("")
+			);
+			const settle = (id, outcome) =>
+				frappe.prompt(
+					{ fieldname: "note", fieldtype: "Small Text", label: __("Note (client sees this — optional)") },
+					(v) =>
+						frappe.call({
+							method: "duty_board.client_room.settle_meeting_outcome",
+							args: { id: id, outcome: outcome, note: v.note || null },
+							callback: (r) => r.message && this.render_client_room(r.message),
+						}),
+					outcome === "Held" ? __("Meeting held") : __("Meeting missed"),
+					__("Save")
+				);
+			$us.find(".duty-cr-mheld").on("click", (e) => settle($(e.currentTarget).data("id"), "Held"));
+			$us.find(".duty-cr-mmissed").on("click", (e) => settle($(e.currentTarget).data("id"), "Missed"));
+		} else if ($us.length) {
+			$us.empty();
+		}
 		const $mt = $room.find(".duty-cr-meetings");
 		if ($mt.length && (x.meetings || []).length) {
 			$mt.html(
@@ -4728,7 +4762,8 @@ class DutyBoard {
 				padding: 4px 0; border-bottom: 1px dashed var(--border-color); flex-wrap: wrap;
 			}
 			.duty-cr-meeting a { cursor: pointer; font-weight: 700; }
-			.duty-cr-mconfirm { color: var(--green-600, #16a34a); }
+			.duty-cr-mconfirm, .duty-cr-mheld { color: var(--green-600, #16a34a); }
+			.duty-cr-mmissed { color: var(--red-600, #dc2626); }
 			.duty-cr-mdecline { color: var(--red-600, #dc2626); }
 			.duty-cr-unread {
 				background: var(--red-500, #ef4444); color: #fff; border-radius: 99px;

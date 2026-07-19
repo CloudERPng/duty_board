@@ -16,7 +16,11 @@
   "confirmed_by",
   "decline_reason",
   "attendees",
-  "created_todos"
+  "created_todos",
+  "reminded_morning",
+  "reminded_hour",
+  "outcome",
+  "outcome_note"
  ],
  "fields": [
   {
@@ -96,6 +100,33 @@
    "fieldname": "created_todos",
    "fieldtype": "Small Text",
    "label": "Created Todos",
+   "read_only": 1
+  },
+  {
+   "default": "0",
+   "fieldname": "reminded_morning",
+   "fieldtype": "Check",
+   "label": "Morning Reminder Sent",
+   "read_only": 1
+  },
+  {
+   "default": "0",
+   "fieldname": "reminded_hour",
+   "fieldtype": "Check",
+   "label": "Hour Reminder Sent",
+   "read_only": 1
+  },
+  {
+   "fieldname": "outcome",
+   "fieldtype": "Select",
+   "label": "Outcome",
+   "options": "\nHeld\nMissed",
+   "read_only": 1
+  },
+  {
+   "fieldname": "outcome_note",
+   "fieldtype": "Small Text",
+   "label": "Outcome Note",
    "read_only": 1
   }
  ],

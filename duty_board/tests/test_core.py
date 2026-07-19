@@ -261,6 +261,34 @@ class TestDutyBoardCore(FrappeTestCase):
 		self.assertEqual(client_room._meeting_slots(["Administrator"], date), [],
 			"two meetings must blank the whole day")
 
+	def test_meeting_ics_shape(self):
+		room_name = client_room.create_room(self._any_customer())
+		room = frappe.get_doc("Client Room", room_name)
+		doc = frappe.get_doc({
+			"doctype": "Duty Meeting", "room": room_name, "customer": room.customer,
+			"topic": "ics test", "meeting_date": "2026-08-03", "start_time": "14:00:00",
+			"status": "Confirmed", "attendees": [{"user": "Administrator"}],
+		}).insert(ignore_permissions=True)
+		ics = client_room._meeting_ics(doc)
+		self.assertIn("DTSTART;TZID=Africa/Lagos:20260803T140000", ics)
+		self.assertIn("DTEND;TZID=Africa/Lagos:20260803T150000", ics)
+		self.assertIn("SUMMARY:Xlevel meeting: ics test", ics)
+
+	def test_settle_outcome_posts_to_room(self):
+		room_name = client_room.create_room(self._any_customer())
+		room = frappe.get_doc("Client Room", room_name)
+		doc = frappe.get_doc({
+			"doctype": "Duty Meeting", "room": room_name, "customer": room.customer,
+			"topic": "settle test", "meeting_date": "2026-07-01", "start_time": "11:00:00",
+			"status": "Confirmed", "attendees": [{"user": "Administrator"}],
+		}).insert(ignore_permissions=True)
+		before = frappe.db.count("Client Room Message", {"room": room_name})
+		client_room.settle_meeting_outcome(doc.name, "Held", "great session")
+		self.assertEqual(frappe.db.get_value("Duty Meeting", doc.name, "outcome"), "Held")
+		self.assertEqual(
+			frappe.db.count("Client Room Message", {"room": room_name}), before + 1
+		)
+
 	def test_move_task_rejects_unknown_column(self):
 		proj = projects.create_project("__Unit Test Project 2", customer=self._any_customer())
 		board = projects.create_task(proj, "Column guard")

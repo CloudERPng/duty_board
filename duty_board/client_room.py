@@ -347,6 +347,25 @@ def get_room(name, before=None):
 		"join_url": f"{frappe.utils.get_url()}/join?token={_ensure_token(room)}",
 		"shelf": _shelf_rows(room),
 		"meetings": _meeting_rows(room),
+		"unsettled": [
+			dict(
+				u,
+				meeting_date=str(u.meeting_date),
+				start_time=str(u.start_time)[:5],
+			)
+			for u in frappe.get_all(
+				"Duty Meeting",
+				filters={
+					"room": room.name,
+					"status": "Confirmed",
+					"outcome": ["in", ["", None]],
+					"meeting_date": ["<", frappe.utils.today()],
+				},
+				fields=["name", "topic", "meeting_date", "start_time"],
+				order_by="meeting_date desc",
+				limit=5,
+			)
+		],
 		"meeting_staff": json.loads(room.meeting_staff or "[]") if room.meeting_staff else [],
 		"tasks": _staff_tasks(room),
 	}
@@ -1285,6 +1304,7 @@ def confirm_meeting(id):
 		_("📅 Meeting confirmed · Xlevel"),
 		f"{doc.topic} — {frappe.utils.formatdate(doc.meeting_date, 'd MMM')} {str(doc.start_time)[:5]}",
 	)
+	_email_meeting_invite(doc, room)
 	return get_room(doc.room)
 
 
@@ -1306,6 +1326,135 @@ def decline_meeting(id, reason=None):
 		),
 	)
 	_push_room_clients(room, _("📅 Please rebook · Xlevel"), doc.topic[:120])
+	return get_room(doc.room)
+
+
+def meeting_reminders():
+	"""Hourly: morning-of and hour-before pushes to the client. Staff already
+	ride the todo alert machinery."""
+	now = now_datetime()
+	today = frappe.utils.today()
+	for m in frappe.get_all(
+		"Duty Meeting",
+		filters={"status": "Confirmed", "meeting_date": today},
+		fields=["name", "room", "topic", "start_time", "reminded_morning", "reminded_hour"],
+	):
+		try:
+			room = frappe.get_doc("Client Room", m.room)
+		except Exception:
+			continue
+		slot = str(m.start_time)[:5]
+		if not cint(m.reminded_morning) and now.hour >= 7:
+			frappe.db.set_value(
+				"Duty Meeting", m.name, "reminded_morning", 1, update_modified=False
+			)
+			_post(room, _("📅 Reminder: today {0} — “{1}”").format(slot, m.topic))
+			_push_room_clients(
+				room, _("📅 Today {0} · Xlevel").format(slot), m.topic[:120]
+			)
+		if not cint(m.reminded_hour) and int(str(m.start_time)[:2]) == now.hour + 1:
+			frappe.db.set_value(
+				"Duty Meeting", m.name, "reminded_hour", 1, update_modified=False
+			)
+			_push_room_clients(
+				room,
+				_("📅 In about an hour · Xlevel"),
+				f"{m.topic[:100]} — {slot}",
+			)
+	frappe.db.commit()
+
+
+def _meeting_ics(doc):
+	start = f"{str(doc.meeting_date).replace('-', '')}T{str(doc.start_time).replace(':', '')[:6]}"
+	end_hour = int(str(doc.start_time)[:2]) + 1
+	end = f"{str(doc.meeting_date).replace('-', '')}T{end_hour:02d}{str(doc.start_time)[3:5]}00"
+	firsts = ", ".join(
+		frappe.utils.get_fullname(a.user).split(" ")[0] for a in (doc.attendees or [])
+	)
+	return "\r\n".join(
+		[
+			"BEGIN:VCALENDAR",
+			"VERSION:2.0",
+			"PRODID:-//Xlevel Retail Systems//Duty Board//EN",
+			"METHOD:PUBLISH",
+			"BEGIN:VEVENT",
+			f"UID:{doc.name}@xlevel.clouderp.one",
+			f"DTSTART;TZID=Africa/Lagos:{start}",
+			f"DTEND;TZID=Africa/Lagos:{end}",
+			f"SUMMARY:Xlevel meeting: {doc.topic}",
+			f"DESCRIPTION:With {firsts}. Manage this meeting on your portal.",
+			"END:VEVENT",
+			"END:VCALENDAR",
+		]
+	)
+
+
+def _email_meeting_invite(doc, room):
+	try:
+		emails = [
+			mm.user
+			for mm in frappe.get_all(
+				"Client Room Member",
+				filters={"room": room.name, "active": 1},
+				fields=["user"],
+			)
+			if "@" in (mm.user or "")
+		]
+		if not emails:
+			return
+		slot = str(doc.start_time)[:5]
+		frappe.sendmail(
+			recipients=emails,
+			subject=_("📅 Confirmed: {0} — {1} {2}").format(
+				doc.topic, frappe.utils.formatdate(doc.meeting_date, "d MMM"), slot
+			),
+			message=_(
+				"Your meeting is confirmed.<br><b>{0}</b><br>{1} at {2} (WAT)<br><br>"
+				"The attached invite adds it to your calendar."
+			).format(
+				frappe.utils.escape_html(doc.topic),
+				frappe.utils.formatdate(doc.meeting_date, "EEEE, d MMMM"),
+				slot,
+			),
+			attachments=[{"fname": "xlevel-meeting.ics", "fcontent": _meeting_ics(doc)}],
+			delayed=True,
+		)
+	except Exception:
+		pass
+
+
+@frappe.whitelist()
+def settle_meeting_outcome(id, outcome, note=None):
+	_staff_only()
+	if outcome not in ("Held", "Missed"):
+		frappe.throw(_("Held or Missed."))
+	doc = frappe.get_doc("Duty Meeting", id)
+	if doc.status != "Confirmed":
+		frappe.throw(_("Only confirmed meetings get an outcome."))
+	frappe.db.set_value(
+		"Duty Meeting",
+		id,
+		{"outcome": outcome, "outcome_note": (note or "").strip()[:300] or None},
+		update_modified=False,
+	)
+	frappe.db.commit()
+	room = frappe.get_doc("Client Room", doc.room)
+	slot = str(doc.start_time)[:5]
+	if outcome == "Held":
+		_post(
+			room,
+			_("📅 Held ✓ “{0}”{1}").format(
+				doc.topic, f" — {note.strip()[:200]}" if note else ""
+			),
+		)
+	else:
+		_post(
+			room,
+			_("📅 “{0}” didn't happen{1} — pick a new slot whenever suits.").format(
+				doc.topic, f" ({note.strip()[:150]})" if note else ""
+			),
+		)
+		_push_room_clients(room, _("📅 Let's rebook · Xlevel"), doc.topic[:120])
 	return get_room(doc.room)
 
 
