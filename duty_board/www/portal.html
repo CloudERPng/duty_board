@@ -25,9 +25,9 @@
 	@media (min-width: 900px) {
 		.wrap { max-width: 1780px; display: grid; grid-template-columns: minmax(440px, 5fr) 7fr auto; gap: 18px; align-items: start; }
 		.rightcol { width: 330px; overflow-y: auto; height: 100%; min-height: 0; transition: width 0.25s; }
-		.rightcol:has(.card.folded) { width: 52px; }
-		.rightcol:has(.card.folded) .card { padding: 12px 8px; }
-		.rightcol .card.folded .t { display: none; }
+		.rightcol:not(:has(.card:not(.folded))) { width: 52px; }
+		.rightcol:not(:has(.card:not(.folded))) .card { padding: 12px 8px; }
+		.rightcol:not(:has(.card:not(.folded))) .card .t { display: none; }
 		.wrap > #err { grid-column: 1 / -1; }
 		.wrap > .card.tasks { position: sticky; top: 14px; }
 		.wrap > .card.docs { grid-column: 1; }
@@ -323,7 +323,7 @@
 </div>
 <script>
 const esc = (s) => (s || "").replace(/[&<>"']/g, (c) => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
-const XLV = "2.49.0";
+const XLV = "2.49.2";
 document.getElementById("xlv").textContent = "v" + XLV;
 console.log("Xlevel portal", XLV);
 let ROOM = localStorage.getItem("xl_room") || null;
