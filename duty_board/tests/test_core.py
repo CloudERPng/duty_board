@@ -395,6 +395,28 @@ class TestDutyBoardCore(FrappeTestCase):
 			frappe.db.get_value("Duty Issue", p["name"], "sla_res_met"), 1
 		)
 
+	def test_report_stats(self):
+		from datetime import datetime, timedelta
+		room_name = client_room.create_room(self._any_customer())
+		room = frappe.get_doc("Client Room", room_name)
+		p = api.create_issue(
+			title="report probe", customer=room.customer, severity="High"
+		)
+		frappe.db.set_value("Duty Issue", p["name"], "client_visible", 1, update_modified=False)
+		api.acknowledge_issue(p["name"])
+		api.update_issue_status(p["name"], "Resolved", resolution="ok")
+		start = datetime.now() - timedelta(days=1)
+		end = datetime.now() + timedelta(days=1)
+		s = client_room._report_stats(room, start, end)
+		self.assertEqual(s["new"], 1)
+		self.assertEqual(s["resolved"], 1)
+		self.assertTrue(s["activity"])
+		self.assertEqual(s["ack_pct"], 100)
+		self.assertEqual(s["res_pct"], 100)
+		html = client_room._report_html(room, "Test Month", s)
+		self.assertIn("Monthly Service Report", html)
+		self.assertIn("100%", html)
+
 	def test_move_task_rejects_unknown_column(self):
 		proj = projects.create_project("__Unit Test Project 2", customer=self._any_customer())
 		board = projects.create_task(proj, "Column guard")

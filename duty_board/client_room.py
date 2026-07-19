@@ -1500,6 +1500,200 @@ def client_approve_milestone(id, note=None):
 	return _milestone_rows(room)
 
 
+# ---------------- monthly service report: the scorecard ----------------
+
+
+def _report_stats(room, start, end):
+	"""Everything the scorecard says about one room's month."""
+	from duty_board.api import _bh_between, _bh_fmt
+
+	issues = frappe.get_all(
+		"Duty Issue",
+		filters={"customer": room.customer, "client_visible": 1},
+		fields=[
+			"name", "title", "status", "creation", "resolved_at", "acknowledged_at",
+			"sla_ack_met", "sla_res_met", "sla_ack_due", "sla_res_due",
+			"client_rating", "severity", "source_type", "source",
+		],
+		limit=500,
+	)
+	issues = [i for i in issues if _issue_in_room(i, room)]
+
+	def _in(dt):
+		return dt and str(start) <= str(dt) < str(end)
+
+	new = [i for i in issues if _in(i.creation)]
+	resolved = [i for i in issues if _in(i.resolved_at)]
+	open_now = [i for i in issues if i.status in ("Open", "In Progress")]
+
+	ack_verdicts = [i for i in resolved if i.sla_ack_due and i.acknowledged_at]
+	res_verdicts = [i for i in resolved if i.sla_res_due]
+	ack_hit = sum(1 for i in ack_verdicts if cint(i.sla_ack_met))
+	res_hit = sum(1 for i in res_verdicts if cint(i.sla_res_met))
+
+	ack_times = [
+		_bh_between(frappe.utils.get_datetime(i.creation), frappe.utils.get_datetime(i.acknowledged_at))
+		for i in resolved
+		if i.acknowledged_at
+	]
+	res_times = [
+		_bh_between(frappe.utils.get_datetime(i.creation), frappe.utils.get_datetime(i.resolved_at))
+		for i in resolved
+		if i.resolved_at
+	]
+
+	ups = sum(1 for i in issues if i.client_rating == "Up" and _in(i.resolved_at))
+	downs = sum(1 for i in issues if i.client_rating == "Down" and _in(i.resolved_at))
+
+	meetings = frappe.db.count(
+		"Duty Meeting",
+		{"room": room.name, "outcome": "Held", "meeting_date": ["between", [str(start)[:10], str(end)[:10]]]},
+	)
+	milestones = frappe.get_all(
+		"Duty Milestone",
+		filters={"room": room.name, "status": "Approved"},
+		fields=["title", "approved_at", "approved_full"],
+	)
+	milestones = [m for m in milestones if _in(m.approved_at)]
+
+	return {
+		"new": len(new),
+		"resolved": len(resolved),
+		"open_now": len(open_now),
+		"ack_pct": round(ack_hit * 100 / len(ack_verdicts)) if ack_verdicts else None,
+		"res_pct": round(res_hit * 100 / len(res_verdicts)) if res_verdicts else None,
+		"avg_ack": _bh_fmt(sum(ack_times) // len(ack_times)) if ack_times else None,
+		"avg_res": _bh_fmt(sum(res_times) // len(res_times)) if res_times else None,
+		"ups": ups,
+		"downs": downs,
+		"meetings": meetings,
+		"milestones": milestones,
+		"resolved_titles": [i.title for i in resolved][:12],
+		"activity": bool(new or resolved or meetings or milestones),
+	}
+
+
+def _report_html(room, label, s):
+	unit = room.unit or "General"
+	kpi = lambda n, l: f'<div class="k"><b>{n}</b><span>{l}</span></div>'
+	sla_bits = ""
+	if s["ack_pct"] is not None or s["res_pct"] is not None:
+		sla_bits = '<h2>Our promises, kept</h2><div class="kpis">'
+		if s["ack_pct"] is not None:
+			sla_bits += kpi(f'{s["ack_pct"]}%', "responses within SLA")
+		if s["res_pct"] is not None:
+			sla_bits += kpi(f'{s["res_pct"]}%', "resolutions within SLA")
+		if s["avg_ack"]:
+			sla_bits += kpi(s["avg_ack"], "average response time")
+		if s["avg_res"]:
+			sla_bits += kpi(s["avg_res"], "average resolution time")
+		sla_bits += "</div>"
+	ms_bits = ""
+	if s["milestones"]:
+		ms_bits = "<h2>Milestones you approved</h2><ul>" + "".join(
+			f"<li>✅ <b>{frappe.utils.escape_html(m.title)}</b> — signed off by {frappe.utils.escape_html(m.approved_full or '')}</li>"
+			for m in s["milestones"]
+		) + "</ul>"
+	work_bits = ""
+	if s["resolved_titles"]:
+		work_bits = "<h2>Completed this month</h2><ul>" + "".join(
+			f"<li>{frappe.utils.escape_html(t)}</li>" for t in s["resolved_titles"]
+		) + "</ul>"
+	sat = ""
+	if s["ups"] or s["downs"]:
+		sat = f'<p class="sat">Your ratings this month: 👍 {s["ups"]} &nbsp; 👎 {s["downs"]}</p>'
+	return f"""<html><head><meta charset="utf-8"><style>
+	body {{ font-family: Helvetica, Arial, sans-serif; color: #1f2937; margin: 34px 40px; }}
+	.head {{ border-bottom: 4px solid #0F5C55; padding-bottom: 12px; margin-bottom: 20px; }}
+	.head h1 {{ color: #0F5C55; margin: 0 0 4px; font-size: 24px; }}
+	.head p {{ margin: 0; color: #6b7280; font-size: 13px; }}
+	h2 {{ color: #0E7490; font-size: 15px; margin: 22px 0 8px; }}
+	.kpis {{ display: table; width: 100%; border-spacing: 8px 0; }}
+	.k {{ display: table-cell; background: #f0fdfa; border-radius: 10px; padding: 12px; text-align: center; }}
+	.k b {{ display: block; font-size: 22px; color: #0F5C55; }}
+	.k span {{ font-size: 11px; color: #6b7280; }}
+	ul {{ margin: 6px 0; padding-left: 20px; font-size: 13px; }}
+	li {{ margin: 3px 0; }}
+	.sat {{ font-size: 14px; }}
+	.foot {{ margin-top: 28px; border-top: 1px solid #e5e7eb; padding-top: 10px; font-size: 11px; color: #6b7280; }}
+	</style></head><body>
+	<div class="head">
+		<h1>Monthly Service Report — {frappe.utils.escape_html(label)}</h1>
+		<p>{frappe.utils.escape_html(room.customer)}{" · " + frappe.utils.escape_html(unit) if unit != "General" else ""} · prepared by Xlevel Retail Systems</p>
+	</div>
+	<h2>The month at a glance</h2>
+	<div class="kpis">{kpi(s["new"], "new requests")}{kpi(s["resolved"], "completed")}{kpi(s["open_now"], "in progress now")}{kpi(s["meetings"], "meetings held")}</div>
+	{sla_bits}{ms_bits}{work_bits}{sat}
+	<div class="foot">Generated automatically by your Xlevel Client Portal · xlevel.clouderp.one/portal · Questions? Just reply in your portal chat.</div>
+	</body></html>"""
+
+
+def _generate_room_report(room, start, end, label):
+	s = _report_stats(room, start, end)
+	if not s["activity"]:
+		return None
+	pdf = frappe.utils.pdf.get_pdf(_report_html(room, label, s))
+	fname = f"Xlevel_Service_Report_{label.replace(' ', '_')}.pdf"
+	f = frappe.get_doc(
+		{
+			"doctype": "File",
+			"file_name": fname,
+			"content": pdf,
+			"is_private": 1,
+		}
+	).insert(ignore_permissions=True)
+	frappe.get_doc(
+		{
+			"doctype": "Client Shelf Doc",
+			"room": room.name,
+			"title": _("Service Report — {0}").format(label),
+			"category": _("Monthly Report"),
+			"file_url": f.file_url,
+			"file_name": fname,
+			"active": 1,
+		}
+	).insert(ignore_permissions=True)
+	frappe.db.commit()
+	_post(room, _("📊 Your service report for {0} is on your shelf.").format(label))
+	_push_room_clients(room, _("📊 {0} report · Xlevel").format(label), _("Your monthly service report is ready"))
+	return s
+
+
+@frappe.whitelist()
+def generate_service_report(name):
+	"""Staff: report for the previous calendar month, on demand."""
+	_staff_only()
+	import calendar
+	from datetime import date
+
+	room = frappe.get_doc("Client Room", name)
+	today_d = getdate(today())
+	first_this = today_d.replace(day=1)
+	last_month_end = first_this
+	last_month_start = getdate(frappe.utils.add_days(first_this, -1)).replace(day=1)
+	label = calendar.month_name[last_month_start.month] + " " + str(last_month_start.year)
+	s = _generate_room_report(room, last_month_start, last_month_end, label)
+	if not s:
+		frappe.throw(_("No activity in {0} for this room — nothing to report.").format(label))
+	return {"ok": True, "label": label}
+
+
+def monthly_service_reports():
+	"""Cron: first of the month, every active room with a story to tell."""
+	import calendar
+
+	today_d = getdate(today())
+	first_this = today_d.replace(day=1)
+	last_month_start = getdate(frappe.utils.add_days(first_this, -1)).replace(day=1)
+	label = calendar.month_name[last_month_start.month] + " " + str(last_month_start.year)
+	for r in frappe.get_all("Client Room", filters={"status": "Active"}, pluck="name"):
+		try:
+			room = frappe.get_doc("Client Room", r)
+			_generate_room_report(room, last_month_start, first_this, label)
+		except Exception:
+			frappe.log_error(frappe.get_traceback(), "duty_board.monthly_service_reports")
+
+
 # ---------------- meetings ----------------
 
 MEETING_SLOTS = ["10:00", "11:00", "12:00", "13:00", "14:00", "15:00", "16:00"]

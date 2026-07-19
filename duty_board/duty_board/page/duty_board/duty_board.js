@@ -2147,6 +2147,7 @@ class DutyBoard {
 					const seen = (x.members || []).map((m) => m.last_seen).filter(Boolean).sort().pop();
 					return seen ? `<span class="duty-cr-lastseen">👀 ${__("client seen")} ${frappe.datetime.comment_when(seen)}</span>` : "";
 				})()}
+				<a class="duty-cr-report" title="${__("Generate last month's service report")}">📊</a>
 				<a class="duty-cr-rename" title="${__("Rename room")}">✏</a>
 				<a class="duty-cr-delete" title="${__("Delete room (System Manager)")}">🗑</a>
 				<span class="duty-cr-tools">
@@ -2486,6 +2487,24 @@ class DutyBoard {
 			$mt.empty();
 		}
 		$room.find(".duty-cr-shelfbtn").on("click", () => this.room_shelf_dialog(x));
+		$room.find(".duty-cr-report").on("click", () =>
+			frappe.confirm(
+				__("Generate last month's service report and place it on this room's shelf? The client is notified."),
+				() =>
+					frappe.call({
+						method: "duty_board.client_room.generate_service_report",
+						args: { name: x.name },
+						callback: (r) => {
+							if (r.message)
+								frappe.show_alert({
+									message: __("📊 {0} report published to the shelf", [r.message.label]),
+									indicator: "green",
+								});
+							this.load_client_room(x.name);
+						},
+					})
+			)
+		);
 		$room.find(".duty-cr-rename").on("click", () =>
 			frappe.prompt(
 				{ fieldname: "unit", fieldtype: "Data", label: __("Room name"), default: x.unit || "General", reqd: 1 },
