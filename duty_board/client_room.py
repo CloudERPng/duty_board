@@ -6,6 +6,8 @@ the FIRST act — nothing is ever queried by a client-supplied identifier.
 Internal ("whisper") messages never cross the membrane.
 """
 
+import json
+
 import frappe
 from frappe import _
 from frappe.utils import cint, getdate, now_datetime
