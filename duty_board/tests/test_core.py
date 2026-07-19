@@ -366,6 +366,35 @@ class TestDutyBoardCore(FrappeTestCase):
 		row = [r for r in client_room._milestone_rows(room) if r.name == ms.name][0]
 		self.assertEqual(row.cards_total, 1, "unticking must release the card")
 
+	def test_sla_business_hours(self):
+		from duty_board import api as dapi
+		from datetime import datetime
+		# Friday 16:00 + 4 business hours crosses the weekend to Monday 11:00
+		fri = datetime(2026, 7, 17, 16, 0)
+		due = dapi._bh_add(fri, 4)
+		self.assertEqual((due.weekday(), due.hour), (0, 11))
+		# elapsed business minutes over that same span
+		self.assertEqual(dapi._bh_between(fri, due), 240)
+		ack_due, res_due = dapi.sla_dues("High", fri)
+		self.assertEqual((ack_due.weekday(), ack_due.hour), (4, 18))
+		self.assertTrue(res_due > ack_due)
+
+	def test_sla_met_on_quick_resolve(self):
+		cust = self._any_customer()
+		p = api.create_issue(title="sla probe", customer=cust, severity="High")
+		row = frappe.db.get_value(
+			"Duty Issue", p["name"], ["sla_ack_due", "sla_res_due"], as_dict=True
+		)
+		self.assertTrue(row.sla_ack_due and row.sla_res_due, "dues stamped at birth")
+		api.acknowledge_issue(p["name"])
+		self.assertEqual(
+			frappe.db.get_value("Duty Issue", p["name"], "sla_ack_met"), 1
+		)
+		api.update_issue_status(p["name"], "Resolved", resolution="done fast")
+		self.assertEqual(
+			frappe.db.get_value("Duty Issue", p["name"], "sla_res_met"), 1
+		)
+
 	def test_move_task_rejects_unknown_column(self):
 		proj = projects.create_project("__Unit Test Project 2", customer=self._any_customer())
 		board = projects.create_task(proj, "Column guard")

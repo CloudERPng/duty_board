@@ -3385,6 +3385,31 @@ class DutyBoard {
 		return x.raised_by === me || (x.assignees || []).includes(me);
 	}
 
+	sla_chip(x) {
+		const s = x.sla || {};
+		const pick = !x.acknowledged_first && s.ack && s.ack.state ? s.ack : s.res;
+		if (!pick || !pick.state) return "";
+		if (pick.state === "overdue")
+			return `<span class="duty-sla duty-sla-over">🔴 SLA ${frappe.utils.escape_html(pick.detail || "")}</span>`;
+		if (pick.state === "pending")
+			return `<span class="duty-sla">⏳ ${frappe.utils.escape_html(pick.detail || "")}</span>`;
+		return "";
+	}
+
+	sla_meta(x) {
+		const s = x.sla || {};
+		const bit = (label, v) => {
+			if (!v || !v.state) return "";
+			if (v.state === "met") return `<span class="duty-sla duty-sla-met">✓ ${label} ${__("SLA met")}</span>`;
+			if (v.state === "missed") return `<span class="duty-sla duty-sla-over">✗ ${label} ${__("SLA missed")}</span>`;
+			if (v.state === "overdue") return `<span class="duty-sla duty-sla-over">🔴 ${label} ${frappe.utils.escape_html(v.detail || "")}</span>`;
+			return `<span class="duty-sla">⏳ ${label} ${frappe.utils.escape_html(v.detail || "")}</span>`;
+		};
+		const a = bit(__("response"), s.ack);
+		const b = bit(__("resolution"), s.res);
+		return a || b ? `<div class="duty-issue-meta">${a} ${b}</div>` : "";
+	}
+
 	render_issues(issues, me) {
 		this._issues = issues = issues || [];
 		this._issues_me = me;
@@ -3482,6 +3507,7 @@ class DutyBoard {
 					${names ? `<span class="duty-issue-who">→ ${names}</span>` : ""}
 					${x.status !== "Open" ? `<span class="duty-issue-status duty-ist-${x.status.replace(/ /g, "").toLowerCase()}">${__(x.status)}</span>` : ""}
 					${x.due_date && active ? `<span class="duty-issue-due ${overdue ? "duty-issue-overdue" : ""}">${overdue ? "⚠ " : ""}${__("due")} ${frappe.datetime.str_to_user(x.due_date)}</span>` : ""}
+					${this.sla_chip(x)}
 					<span class="duty-issue-raised">${stamp}</span>
 				</div>`;
 			})
@@ -3748,6 +3774,7 @@ class DutyBoard {
 					</div>
 					${names ? `<div class="duty-issue-meta">${__("Assigned to")}: ${names}</div>` : ""}
 					${working_names ? `<div class="duty-issue-meta">⏱ ${__("Working on it now")}: ${working_names}</div>` : ""}
+					${this.sla_meta(x)}
 					<div class="duty-issue-meta"><a class="duty-issue-vis">${x.client_visible ? "👁 " + __("Client-visible — click to hide") : "🙈 " + __("Hidden from client — click to publish")}</a>${x.client_rating ? ` · ${x.client_rating === "Up" ? "👍 " + __("Client satisfied") : "👎 " + __("Client unhappy")}` : ""}${x.acknowledged_first ? ` · 👀 ${__("Acknowledged by")} ${frappe.utils.escape_html(x.acknowledged_first)}` : x.client_visible ? ` · <a class="duty-issue-ack">👀 ${__("Acknowledge")}</a>` : ""}</div>
 					${x.description ? `<div class="duty-issue-desc">${frappe.utils.escape_html(x.description)}</div>` : ""}
 					${
@@ -4826,6 +4853,9 @@ class DutyBoard {
 				background: var(--blue-100, #e3f2fd); color: var(--blue-700, #1565c0);
 			}
 			.duty-issue-due { font-size: var(--text-xs); color: var(--text-muted); font-variant-numeric: tabular-nums; }
+			.duty-sla { font-size: var(--text-xs); background: #fef3c7; color: #92400e; border-radius: 99px; padding: 1px 8px; font-weight: 700; white-space: nowrap; }
+			.duty-sla-over { background: #fee2e2; color: #b91c1c; }
+			.duty-sla-met { background: #dcfce7; color: #166534; }
 			.duty-issue-overdue { color: var(--red-600, #dc2626); font-weight: 700; }
 			.duty-sev {
 				font-size: var(--text-xs); font-weight: 700; padding: 1px 8px; border-radius: 99px;

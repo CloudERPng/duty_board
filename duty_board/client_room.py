@@ -509,6 +509,12 @@ def _new_client_issue(room, title, requested=0, raised_by=None, detail=None):
 			"client_requested": cint(requested),
 		}
 	).insert(ignore_permissions=True)
+	try:
+		from duty_board.api import stamp_sla
+
+		stamp_sla(doc.name, doc.severity, doc.creation)
+	except Exception:
+		pass
 	return doc
 
 
@@ -657,6 +663,46 @@ def _client_issue_for_room(room, issue_name):
 		frappe.throw(_("Not found."), frappe.PermissionError)
 	if not _issue_in_room(row, room):
 		frappe.throw(_("Not found."), frappe.PermissionError)
+	try:
+		from duty_board.api import SLA_MATRIX, _bh_between, _bh_fmt
+
+		full = frappe.db.get_value(
+			"Duty Issue",
+			issue_name,
+			["severity", "sla_ack_due", "sla_ack_met", "sla_res_met"],
+			as_dict=True,
+		)
+		if full and full.sla_ack_due:
+			ack_h, res_h = SLA_MATRIX.get(full.severity or "Medium", SLA_MATRIX["Medium"])
+			lines = [
+				{
+					"label": _("Our promise"),
+					"text": _("response within {0} business hours, resolution within {1}").format(
+						ack_h, res_h
+					),
+				}
+			]
+			if row.get("acknowledged_at") and row.get("creation"):
+				mins = _bh_between(row.creation, row.acknowledged_at)
+				lines.append(
+					{
+						"label": _("Responded"),
+						"text": _("in {0}").format(_bh_fmt(mins)),
+						"ok": cint(full.sla_ack_met),
+					}
+				)
+			if row.get("resolved_at") and row.get("creation"):
+				mins = _bh_between(row.creation, row.resolved_at)
+				lines.append(
+					{
+						"label": _("Resolved"),
+						"text": _("in {0}").format(_bh_fmt(mins)),
+						"ok": cint(full.sla_res_met),
+					}
+				)
+			row.sla_lines = lines
+	except Exception:
+		pass
 	return row
 
 

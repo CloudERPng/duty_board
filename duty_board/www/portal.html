@@ -107,7 +107,13 @@
 	.ms .sig { font-size: 12px; color: #166534; background: #f0fdf4; border-radius: 8px; padding: 3px 9px; }
 	.ms .desc { width: 100%; font-size: 12px; color: #6b7280; margin-left: 26px; }
 	.ms button { background: #b45309; padding: 6px 14px; font-size: 13px; }
-	.mstasks { width: 100%; margin: 4px 0 2px 24px; display: flex; flex-direction: column; gap: 3px; }
+	.mstoggle { font-size: 12px; font-weight: 700; color: #0E7490; cursor: pointer; margin-left: 24px; }
+	.mstoggle i { font-style: normal; }
+	.mstasks { display: none; width: 100%; margin: 4px 0 2px 24px; flex-direction: column; gap: 3px; }
+	.mstasks.open { display: flex; }
+	.slaline { font-size: 13px; background: #f0fdfa; border-radius: 8px; padding: 6px 10px; margin: 4px 0; }
+	.slaline.ok { background: #f0fdf4; color: #166534; }
+	.slaline.bad { background: #fef2f2; color: #b91c1c; }
 	.mst { display: flex; gap: 8px; align-items: baseline; font-size: 13px; }
 	.mst .pill { margin-left: auto; font-size: 10px; }
 	.mrow { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; margin: 6px 0; }
@@ -309,7 +315,7 @@
 </div>
 <script>
 const esc = (s) => (s || "").replace(/[&<>"']/g, (c) => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
-const XLV = "2.46.1";
+const XLV = "2.47.0";
 document.getElementById("xlv").textContent = "v" + XLV;
 console.log("Xlevel portal", XLV);
 let ROOM = localStorage.getItem("xl_room") || null;
@@ -554,7 +560,7 @@ function renderMilestones(rows) {
 				${m.status !== "Approved" && m.cards_total ? `<span class="muted" style="font-size:12px">📋 ${m.cards_done} of ${m.cards_total} tasks complete</span>` : ""}
 				${m.status === "Awaiting Approval" ? `<button onclick="approveMilestone('${esc(m.name)}','${esc(m.title)}')">✍ Approve this phase</button>` : ""}
 				${m.description ? `<div class="desc">${esc(m.description)}</div>` : ""}
-				${(m.tasks || []).length ? `<div class="mstasks">${m.tasks.map((t) => `<div class="mst"><span>${t.status === "Done" ? "✅" : t.status === "In Progress" ? "🔵" : "⚪"}</span>${esc(t.title)}<span class="pill ${PILL[t.status]}">${esc(t.status)}</span></div>`).join("")}</div>` : ""}
+				${(m.tasks || []).length ? `<a class="mstoggle" onclick="this.nextElementSibling.classList.toggle('open');this.querySelector('i').textContent=this.nextElementSibling.classList.contains('open')?'▾':'▸'">📋 ${m.tasks.filter((t) => t.status === "Done").length}/${m.tasks.length} tasks <i>▸</i></a><div class="mstasks">${m.tasks.map((t) => `<div class="mst"><span>${t.status === "Done" ? "✅" : t.status === "In Progress" ? "🔵" : "⚪"}</span>${esc(t.title)}<span class="pill ${PILL[t.status]}">${esc(t.status)}</span></div>`).join("")}</div>` : ""}
 			</div>`
 				)
 				.join("")
@@ -765,6 +771,7 @@ function openTask(id, kind) {
 					<b>👤 With</b><span>${esc(d.assignee_first || "—")}</span>
 					${d.seen_by ? `<b>👀 Seen</b><span>${esc(d.seen_by)} · ${fdt(d.seen_at)}</span>` : ""}
 				</div>
+				${(d.sla_lines || []).map((l) => `<div class="slaline${l.ok === 1 ? " ok" : l.ok === 0 ? " bad" : ""}"><b>${esc(l.label)}:</b> ${esc(l.text)}${l.ok === 1 ? " ✓" : l.ok === 0 ? " ✗" : ""}</div>`).join("")}
 				${d.detail ? `<div class="det">${esc(d.detail)}</div>` : ""}
 				${atts}
 				${d.kind === "issue" && d.status === "Done" ? `<div class="rate">How did we do? <a onclick="rateTask('${esc(id)}','Up')">👍</a><a onclick="rateTask('${esc(id)}','Down')">👎</a></div>` : ""}

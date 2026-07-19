@@ -24,7 +24,13 @@
   "work_started_at",
   "client_rating",
   "acknowledged_by",
-  "acknowledged_at"
+  "acknowledged_at",
+  "sla_ack_due",
+  "sla_res_due",
+  "sla_ack_met",
+  "sla_res_met",
+  "sla_ack_warned",
+  "sla_res_warned"
  ],
  "fields": [
   {
@@ -153,6 +159,46 @@
    "fieldname": "acknowledged_at",
    "fieldtype": "Datetime",
    "label": "Acknowledged At",
+   "read_only": 1
+  },
+  {
+   "fieldname": "sla_ack_due",
+   "fieldtype": "Datetime",
+   "label": "SLA Ack Due",
+   "read_only": 1
+  },
+  {
+   "fieldname": "sla_res_due",
+   "fieldtype": "Datetime",
+   "label": "SLA Resolve Due",
+   "read_only": 1
+  },
+  {
+   "default": "0",
+   "fieldname": "sla_ack_met",
+   "fieldtype": "Check",
+   "label": "Ack SLA Met",
+   "read_only": 1
+  },
+  {
+   "default": "0",
+   "fieldname": "sla_res_met",
+   "fieldtype": "Check",
+   "label": "Resolve SLA Met",
+   "read_only": 1
+  },
+  {
+   "default": "0",
+   "fieldname": "sla_ack_warned",
+   "fieldtype": "Check",
+   "label": "Ack Warned",
+   "read_only": 1
+  },
+  {
+   "default": "0",
+   "fieldname": "sla_res_warned",
+   "fieldtype": "Check",
+   "label": "Resolve Warned",
    "read_only": 1
   }
  ],

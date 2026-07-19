@@ -655,6 +655,145 @@ def _issue_member_check(doc):
 		frappe.throw(_("Only the raiser or an assignee can update this issue."))
 
 
+# ---------------- SLA engine: promises in business hours ----------------
+# Business hours: Mon-Fri 09:00-18:00 site time. (ack_hours, resolve_hours)
+SLA_MATRIX = {
+	"Critical": (1, 4),
+	"High": (2, 8),
+	"Medium": (8, 24),
+	"Low": (24, 40),
+}
+BH_START, BH_END = 9, 18
+
+
+def _bh_snap(dt):
+	from datetime import timedelta
+
+	while True:
+		if dt.weekday() >= 5:
+			dt = (dt + timedelta(days=1)).replace(hour=BH_START, minute=0, second=0, microsecond=0)
+			continue
+		if dt.hour < BH_START:
+			return dt.replace(hour=BH_START, minute=0, second=0, microsecond=0)
+		if dt.hour >= BH_END:
+			dt = (dt + timedelta(days=1)).replace(hour=BH_START, minute=0, second=0, microsecond=0)
+			continue
+		return dt
+
+
+def _bh_add(start, hours):
+	from datetime import timedelta
+
+	minutes = int(hours * 60)
+	cur = _bh_snap(start)
+	while minutes > 0:
+		eod = cur.replace(hour=BH_END, minute=0, second=0, microsecond=0)
+		avail = int((eod - cur).total_seconds() // 60)
+		chunk = min(minutes, avail)
+		cur += timedelta(minutes=chunk)
+		minutes -= chunk
+		if minutes > 0:
+			cur = _bh_snap(cur)
+	return cur
+
+
+def _bh_between(a, b):
+	from datetime import timedelta
+
+	if b <= a:
+		return 0
+	cur = _bh_snap(a)
+	total = 0
+	while cur < b:
+		eod = cur.replace(hour=BH_END, minute=0, second=0, microsecond=0)
+		stop = min(eod, b)
+		if stop > cur:
+			total += int((stop - cur).total_seconds() // 60)
+		cur = _bh_snap(eod + timedelta(minutes=1))
+	return total
+
+
+def _bh_fmt(minutes):
+	if minutes < 60:
+		return f"{minutes}m"
+	h, m = minutes // 60, minutes % 60
+	return f"{h}h {m}m" if m else f"{h}h"
+
+
+def sla_dues(severity, start):
+	ack_h, res_h = SLA_MATRIX.get(severity or "Medium", SLA_MATRIX["Medium"])
+	return _bh_add(start, ack_h), _bh_add(start, res_h)
+
+
+def stamp_sla(doc_name, severity, start):
+	try:
+		ack_due, res_due = sla_dues(severity, start)
+		frappe.db.set_value(
+			"Duty Issue",
+			doc_name,
+			{"sla_ack_due": ack_due, "sla_res_due": res_due},
+			update_modified=False,
+		)
+	except Exception:
+		pass
+
+
+def _sla_state(due, done_at, met_flag):
+	if not due:
+		return None, None
+	now = now_datetime()
+	if done_at:
+		return ("met" if cint(met_flag) else "missed"), None
+	if now < due:
+		return "pending", _bh_fmt(_bh_between(now, due)) + " left"
+	return "overdue", _bh_fmt(_bh_between(due, now)) + " over"
+
+
+def sla_warnings():
+	from datetime import timedelta
+
+	now = now_datetime()
+	horizon = now + timedelta(hours=2)
+	for due_f, warned_f, done_f, label in [
+		("sla_ack_due", "sla_ack_warned", "acknowledged_at", "response"),
+		("sla_res_due", "sla_res_warned", "resolved_at", "resolution"),
+	]:
+		rows = frappe.get_all(
+			"Duty Issue",
+			filters={
+				"status": ["in", ["Open", "In Progress"]],
+				due_f: ["<=", horizon],
+				warned_f: 0,
+			},
+			fields=["name", "title", "customer", due_f, done_f],
+			limit=50,
+		)
+		for r in rows:
+			if r.get(done_f):
+				continue
+			frappe.db.set_value("Duty Issue", r.name, warned_f, 1, update_modified=False)
+			assignees = frappe.get_all(
+				"Duty Issue Assignee", filters={"parent": r.name}, pluck="user"
+			)
+			targets = assignees or [
+				u.name
+				for u in frappe.get_all(
+					"User", filters={"enabled": 1, "user_type": "System User"}, fields=["name"]
+				)
+				if frappe.db.exists("Duty Push Subscription", {"user": u.name})
+			]
+			overdue = now > r.get(due_f)
+			for t in targets:
+				_notify_user(
+					t,
+					(_("🔴 SLA {0} BREACHED · {1}") if overdue else _("⏳ SLA {0} due soon · {1}")).format(
+						label, r.customer
+					),
+					r.title[:120],
+				)
+	frappe.db.commit()
+
+
 def _issue_payload(doc):
 	files = frappe.get_all(
 		"File",
@@ -685,6 +824,10 @@ def _issue_payload(doc):
 		"client_visible": cint(doc.client_visible or 0),
 		"client_requested": cint(doc.client_requested or 0),
 		"client_rating": doc.get("client_rating") or None,
+		"sla": {
+			"ack": dict(zip(("state", "detail"), _sla_state(doc.get("sla_ack_due"), doc.get("acknowledged_at"), doc.get("sla_ack_met")))),
+			"res": dict(zip(("state", "detail"), _sla_state(doc.get("sla_res_due"), doc.get("resolved_at"), doc.get("sla_res_met")))),
+		},
 		"acknowledged_first": (
 			frappe.utils.get_fullname(doc.acknowledged_by).split(" ")[0]
 			if doc.get("acknowledged_by")
@@ -746,6 +889,7 @@ def create_issue(
 		}
 	)
 	doc.insert(ignore_permissions=True)
+	stamp_sla(doc.name, severity, doc.creation)
 
 	attach_urls = []
 	if attachments:
@@ -820,12 +964,11 @@ def acknowledge_issue(name):
 	doc = frappe.get_doc("Duty Issue", name)
 	_issue_member_check(doc)
 	if not doc.acknowledged_by:
-		frappe.db.set_value(
-			"Duty Issue",
-			name,
-			{"acknowledged_by": frappe.session.user, "acknowledged_at": now_datetime()},
-			update_modified=False,
-		)
+		now = now_datetime()
+		vals = {"acknowledged_by": frappe.session.user, "acknowledged_at": now}
+		if doc.get("sla_ack_due"):
+			vals["sla_ack_met"] = 1 if now <= doc.sla_ack_due else 0
+		frappe.db.set_value("Duty Issue", name, vals, update_modified=False)
 		frappe.db.commit()
 		try:
 			from duty_board.client_room import narrate_issue
@@ -861,6 +1004,8 @@ def start_issue_work(name):
 	if not doc.get("acknowledged_by"):
 		doc.acknowledged_by = user
 		doc.acknowledged_at = now_datetime()
+		if doc.get("sla_ack_due"):
+			doc.sla_ack_met = 1 if doc.acknowledged_at <= doc.sla_ack_due else 0
 	doc.save(ignore_permissions=True)
 	try:
 		from duty_board.client_room import narrate_issue
@@ -924,6 +1069,18 @@ def update_issue_status(name, status, resolution=None):
 	doc.save(ignore_permissions=True)
 	frappe.db.commit()
 	if status in ("Resolved", "Closed"):
+		fresh = frappe.db.get_value(
+			"Duty Issue", name, ["resolved_at", "sla_res_due"], as_dict=True
+		)
+		if fresh and fresh.resolved_at and fresh.sla_res_due:
+			frappe.db.set_value(
+				"Duty Issue",
+				name,
+				"sla_res_met",
+				1 if fresh.resolved_at <= fresh.sla_res_due else 0,
+				update_modified=False,
+			)
+			frappe.db.commit()
 		try:
 			from duty_board.client_room import narrate_issue
 
