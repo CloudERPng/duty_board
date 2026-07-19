@@ -454,7 +454,7 @@ function loadMeetings() {
 				? rows
 						.map(
 							(m) =>
-								`<div class="meet"><span class="pill ${m.status === "Confirmed" ? "done" : "queued"}">${m.status === "Confirmed" ? "✅ Confirmed" : "⏳ Pending"}</span><b>${esc(m.topic)}</b><span>${esc(m.meeting_date.slice(5))} ${esc(m.start_time)} · ${m.staff.map(esc).join(", ")}</span><a class="x" onclick="cancelMeeting('${esc(m.name)}')" title="Cancel">×</a></div>`
+								`<div class="meet"><span class="pill ${m.status === "Confirmed" ? "done" : "queued"}">${m.status === "Confirmed" ? "✅ Confirmed" : "⏳ Pending"}</span><b>${esc(m.topic)}</b><span>${esc(m.meeting_date.slice(5))} ${esc(m.start_time)} · ${m.staff.map(esc).join(", ")}${m.requested_first ? ` · asked by ${esc(m.requested_first)}` : ""}</span><a class="x" onclick="cancelMeeting('${esc(m.name)}')" title="Cancel">×</a></div>`
 						)
 						.join("")
 				: '<span class="muted">No meetings planned.</span>';

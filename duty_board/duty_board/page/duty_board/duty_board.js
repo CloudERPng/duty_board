@@ -2384,7 +2384,7 @@ class DutyBoard {
 					<div class="duty-cr-meeting">
 						<span class="duty-cr-mstatus ${m.status === "Confirmed" ? "ok" : "wait"}">${m.status === "Confirmed" ? "✅" : "⏳"}</span>
 						<b>${frappe.utils.escape_html(m.topic)}</b>
-						<span>${frappe.datetime.str_to_user(m.meeting_date).slice(0, 5)} ${m.start_time} · ${m.staff.map(frappe.utils.escape_html).join(", ")}</span>
+						<span>${frappe.datetime.str_to_user(m.meeting_date).slice(0, 5)} ${m.start_time} · ${m.staff.map(frappe.utils.escape_html).join(", ")}${m.requested_first ? ` · 🙋 ${frappe.utils.escape_html(m.requested_first)}` : ""}</span>
 						${m.status === "Pending" ? `<a class="duty-cr-mconfirm" data-id="${m.name}">✔ ${__("Confirm")}</a><a class="duty-cr-mdecline" data-id="${m.name}">✖</a>` : ""}
 					</div>`
 						)

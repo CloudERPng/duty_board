@@ -1112,6 +1112,11 @@ def _meeting_rows(room, include_past=False):
 	for r in rows:
 		r.meeting_date = str(r.meeting_date)
 		r.start_time = str(r.start_time)[:5]
+		r.requested_first = (
+			frappe.utils.get_fullname(r.requested_by).split(" ")[0]
+			if r.requested_by
+			else None
+		)
 		r.staff = [
 			frappe.utils.get_fullname(a.user).split(" ")[0]
 			for a in frappe.get_all(
