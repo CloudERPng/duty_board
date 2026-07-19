@@ -1412,7 +1412,7 @@ class DutyBoard {
 						const $row = $(`
 							<div class="duty-session-row">
 								<span class="duty-session-activity">${frappe.utils.escape_html(x.activity)}</span>
-								${x.customer ? `<span class="duty-task-customer">${frappe.utils.escape_html(x.customer)}</span>` : ""}
+								${x.customer ? `<span class="duty-task-customer">${frappe.utils.escape_html(x.customer)}${x.unit && x.unit !== "General" ? ` <span class="duty-cr-unitchip">${frappe.utils.escape_html(x.unit)}</span>` : ""}</span>` : ""}
 								<span class="duty-session-time text-muted">
 									${this.fmt_time(x.start_time)} – ${x.end_time ? this.fmt_time(x.end_time) : __("open")}
 									· ${this.fmt_duration(x.duration)}
@@ -2029,11 +2029,15 @@ class DutyBoard {
 		`).appendTo($list);
 		$bar.find(".duty-cr-new").on("click", () =>
 			frappe.prompt(
-				{ fieldname: "customer", fieldtype: "Link", label: __("Customer"), options: "Customer", reqd: 1 },
+				[
+					{ fieldname: "customer", fieldtype: "Link", label: __("Customer"), options: "Customer", reqd: 1 },
+					{ fieldname: "unit", fieldtype: "Data", label: __("Unit"), default: "General",
+					  description: __("General, HR, Finance… separate rooms keep departments confidential.") },
+				],
 				(v) =>
 					frappe.call({
 						method: "duty_board.client_room.create_room",
-						args: { customer: v.customer },
+						args: { customer: v.customer, unit: v.unit || "General" },
 						callback: (r) => {
 							this.refresh_clients();
 							if (r.message) this.open_client_room(r.message);
@@ -2047,10 +2051,15 @@ class DutyBoard {
 			$list.append(`<div class="text-muted duty-plan-empty">${__("No client rooms yet.")}</div>`);
 			return;
 		}
+		let prev_cust = null;
 		this._rooms.forEach((r) => {
+			if (r.customer !== prev_cust) {
+				prev_cust = r.customer;
+				$list.append(`<div class="duty-cr-cust">${frappe.utils.escape_html(r.customer)}</div>`);
+			}
 			$(`
 				<a class="duty-cr-item ${r.name === this._open_room ? "active" : ""} ${r.status !== "Active" ? "duty-cr-frozen" : ""}">
-					<b style="color:${this.proj_color(r.name)}">${frappe.utils.escape_html(r.customer)}${r.unread ? ` <span class="duty-cr-unread">${r.unread}</span>` : ""}</b>
+					<b style="color:${this.proj_color(r.name)}">${frappe.utils.escape_html(r.unit || "General")}${r.unread ? ` <span class="duty-cr-unread">${r.unread}</span>` : ""}</b>
 					${r.status !== "Active" ? `<span class="duty-cr-status">${__(r.status)}</span>` : ""}
 					<span class="duty-cr-last">${frappe.utils.escape_html(r.last || "")}</span>
 					<span class="duty-cr-members">👥 ${r.members}</span>
@@ -4765,6 +4774,14 @@ class DutyBoard {
 			.duty-cr-mconfirm, .duty-cr-mheld { color: var(--green-600, #16a34a); }
 			.duty-cr-mmissed { color: var(--red-600, #dc2626); }
 			.duty-cr-mdecline { color: var(--red-600, #dc2626); }
+			.duty-cr-cust {
+				font-size: var(--text-xs); font-weight: 800; color: var(--text-muted);
+				text-transform: uppercase; letter-spacing: 0.04em; margin: 10px 2px 2px;
+			}
+			.duty-cr-unitchip {
+				font-size: var(--text-xs); background: var(--bg-light-gray, #f1f5f9);
+				border-radius: 99px; padding: 2px 9px; font-weight: 700;
+			}
 			.duty-cr-unread {
 				background: var(--red-500, #ef4444); color: #fff; border-radius: 99px;
 				padding: 0 7px; font-size: 10px; font-weight: 700;

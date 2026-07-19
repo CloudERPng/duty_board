@@ -26,19 +26,33 @@ def _staff_only():
 		frappe.throw(_("Not permitted."), frappe.PermissionError)
 
 
-def _client_room():
-	"""Resolve the calling Website User's room. The only door clients have."""
+def _client_memberships():
 	user = frappe.session.user
 	if user == "Guest":
 		frappe.throw(_("Please log in."), frappe.PermissionError)
 	if frappe.db.get_value("User", user, "user_type") != "Website User":
 		frappe.throw(_("Not permitted."), frappe.PermissionError)
-	member = frappe.get_all(
+	return frappe.get_all(
 		"Client Room Member",
 		filters={"user": user, "active": 1},
 		fields=["room"],
-		limit=1,
 	)
+
+
+def _client_room():
+	"""Resolve the calling Website User's room. The only door clients have.
+	With multiple memberships the portal names a room via xl_room — honored
+	only if it is in the caller's own membership set."""
+	memberships = _client_memberships()
+	want = frappe.form_dict.get("xl_room")
+	if want:
+		if want not in {m.room for m in memberships}:
+			frappe.throw(_("Not permitted."), frappe.PermissionError)
+		room = frappe.get_doc("Client Room", want)
+		if room.status == "Archived":
+			frappe.throw(_("This room is closed."), frappe.PermissionError)
+		return room
+	member = memberships[:1]
 	if not member:
 		frappe.throw(_("No room is linked to your account — contact Xlevel support."))
 	room = frappe.get_doc("Client Room", member[0].room)
@@ -119,10 +133,12 @@ def _work_rows(room):
 		fields=[
 			"name", "title", "status", "client_requested", "modified",
 			"creation", "work_started_at", "resolved_at", "acknowledged_by",
+			"source_type", "source",
 		],
 		order_by="modified desc",
 		limit=100,
 	)
+	issues = [i for i in issues if _issue_in_room(i, room)]
 	names = [i.name for i in issues]
 	first_assignee = {}
 	if names:
@@ -294,19 +310,21 @@ def get_rooms():
 		r.last_when = str(last[0].creation) if last else None
 		r.members = frappe.db.count("Client Room Member", {"room": r.name, "active": 1})
 		r.unread = _room_unread(r.name, frappe.session.user)
+	rooms.sort(key=lambda r: (r.customer, (r.unit or "General") != "General", r.unit or ""))
 	return rooms
 
 
 @frappe.whitelist()
-def create_room(customer):
+def create_room(customer, unit=None):
 	_staff_only()
 	if not frappe.db.exists("Customer", customer):
 		frappe.throw(_("Unknown customer."))
-	existing = frappe.db.get_value("Client Room", {"customer": customer})
+	unit = (unit or "General").strip()[:40] or "General"
+	existing = frappe.db.get_value("Client Room", {"customer": customer, "unit": unit})
 	if existing:
 		return existing
 	doc = frappe.get_doc(
-		{"doctype": "Client Room", "customer": customer, "status": "Active"}
+		{"doctype": "Client Room", "customer": customer, "unit": unit, "status": "Active"}
 	).insert(ignore_permissions=True)
 	_ensure_token(doc)
 	frappe.db.commit()
@@ -337,6 +355,7 @@ def get_room(name, before=None):
 	return {
 		"name": room.name,
 		"customer": room.customer,
+		"unit": room.unit or "General",
 		"owner_user": room.owner_user,
 		"status": room.status,
 		"project": room.project,
@@ -516,6 +535,19 @@ def set_card_visibility(card, visible):
 
 
 @frappe.whitelist()
+def client_my_rooms():
+	out = []
+	for m in _client_memberships():
+		r = frappe.db.get_value(
+			"Client Room", m.room, ["name", "customer", "unit", "status"], as_dict=True
+		)
+		if r and r.status != "Archived":
+			out.append({"name": r.name, "customer": r.customer, "unit": r.unit or "General"})
+	out.sort(key=lambda r: (r["customer"], r["unit"] != "General", r["unit"]))
+	return out
+
+
+@frappe.whitelist()
 def client_get_room(before=None):
 	room = _client_room()
 	member = frappe.db.exists(
@@ -528,6 +560,8 @@ def client_get_room(before=None):
 	messages, has_more = _room_payload(room, include_internal=False, before=before)
 	return {
 		"customer": room.customer,
+		"room": room.name,
+		"unit": room.unit or "General",
 		"manager_first": (
 			frappe.utils.get_fullname(room.owner_user).split(" ")[0]
 			if room.owner_user
@@ -611,10 +645,13 @@ def _client_issue_for_room(room, issue_name):
 			"name", "title", "status", "customer", "client_visible",
 			"client_requested", "description", "creation",
 			"work_started_at", "resolved_at", "acknowledged_by", "acknowledged_at",
+			"source_type", "source",
 		],
 		as_dict=True,
 	)
 	if not row or row.customer != room.customer or not cint(row.client_visible):
+		frappe.throw(_("Not found."), frappe.PermissionError)
+	if not _issue_in_room(row, room):
 		frappe.throw(_("Not found."), frappe.PermissionError)
 	return row
 
@@ -816,9 +853,9 @@ def client_search(q):
 	issues = frappe.get_all(
 		"Duty Issue",
 		filters={"customer": room.customer, "client_visible": 1, "title": ["like", like]},
-		fields=["name", "title", "status"],
+		fields=["name", "title", "status", "source_type", "source"],
 		order_by="modified desc",
-		limit=10,
+		limit=20,
 	)
 	extra = frappe.get_all(
 		"Duty Issue",
@@ -827,9 +864,11 @@ def client_search(q):
 			"client_visible": 1,
 			"description": ["like", like],
 		},
-		fields=["name", "title", "status"],
-		limit=10,
+		fields=["name", "title", "status", "source_type", "source"],
+		limit=20,
 	)
+	issues = [i for i in issues if _issue_in_room(i, room)]
+	extra = [e for e in extra if _issue_in_room(e, room)]
 	seen = {i.name for i in issues}
 	issues += [e for e in extra if e.name not in seen]
 	out_issues = []
@@ -876,26 +915,17 @@ def weekly_room_pulse():
 	):
 		if not frappe.db.exists("Client Room Member", {"room": r.name, "active": 1}):
 			continue
-		done = frappe.db.count(
-			"Duty Issue",
-			{
-				"customer": r.customer,
-				"client_visible": 1,
-				"status": ["in", ["Resolved", "Closed"]],
-				"modified": [">=", week_ago],
-			},
+		room = frappe.get_doc("Client Room", r.name)
+		rows = [x for x in _work_rows(room) if x["kind"] == "issue"]
+		done = sum(
+			1
+			for x in rows
+			if x["status"] == "Done" and str(x.get("modified") or "") >= str(week_ago)
 		)
-		prog = frappe.db.count(
-			"Duty Issue",
-			{"customer": r.customer, "client_visible": 1, "status": "In Progress"},
-		)
-		queued = frappe.db.count(
-			"Duty Issue",
-			{"customer": r.customer, "client_visible": 1, "status": "Open"},
-		)
+		prog = sum(1 for x in rows if x["status"] == "In Progress")
+		queued = sum(1 for x in rows if x["status"] == "Queued")
 		if not (done or prog or queued):
 			continue
-		room = frappe.get_doc("Client Room", r.name)
 		_post(
 			room,
 			f"📊 Your week with Xlevel: ✅ {done} completed · 🔄 {prog} in progress · 📋 {queued} queued.",
@@ -922,17 +952,15 @@ def narrate_issue(issue_name, event):
 		row = frappe.db.get_value(
 			"Duty Issue",
 			issue_name,
-			["title", "customer", "client_visible"],
+			["title", "customer", "client_visible", "source_type", "source"],
 			as_dict=True,
 		)
 		if not row or not cint(row.client_visible):
 			return
-		room_name = frappe.db.get_value(
-			"Client Room", {"customer": row.customer, "status": "Active"}
-		)
-		if not room_name:
+		home = _issue_home_room(row)
+		if not home:
 			return
-		room = frappe.get_doc("Client Room", room_name)
+		room = frappe.get_doc("Client Room", home.name)
 		first = frappe.utils.get_fullname(frappe.session.user).split(" ")[0]
 		lines = {
 			"seen": (_("👀 Seen by the team — {0}: “{1}”"), _("👀 Your request has been seen")),
@@ -1027,6 +1055,43 @@ def client_typing():
 		"duty_client_typing", {"room": room.name, "who": first, "client": 1}
 	)
 	return {"ok": True}
+
+
+def _issue_in_room(i, room):
+	"""Room-born issues stay in their room; the General room sweeps everything
+	unclaimed (loose customer issues, orphaned rooms)."""
+	roomed = i.get("source_type") == "Client Room" and i.get("source")
+	if roomed and i.get("source") == room.name:
+		return True
+	if (room.unit or "General") != "General":
+		return False
+	if not roomed:
+		return True
+	return not frappe.db.exists("Client Room", i.get("source"))
+
+
+def _issue_home_room(row):
+	"""Where an issue's story belongs: its birth room, else the customer's General."""
+	if row.get("source_type") == "Client Room" and row.get("source"):
+		if frappe.db.exists("Client Room", row.source):
+			return frappe.db.get_value(
+				"Client Room", row.source, ["name", "status"], as_dict=True
+			)
+	general = frappe.db.get_value(
+		"Client Room",
+		{"customer": row.customer, "unit": "General", "status": "Active"},
+		["name", "status"],
+		as_dict=True,
+	)
+	if general:
+		return general
+	any_room = frappe.db.get_value(
+		"Client Room",
+		{"customer": row.customer, "status": "Active"},
+		["name", "status"],
+		as_dict=True,
+	)
+	return any_room
 
 
 # ---------------- meetings ----------------

@@ -289,6 +289,25 @@ class TestDutyBoardCore(FrappeTestCase):
 			frappe.db.count("Client Room Message", {"room": room_name}), before + 1
 		)
 
+	def test_department_walls(self):
+		cust = self._any_customer()
+		general = client_room.create_room(cust)
+		hr = client_room.create_room(cust, "HR")
+		self.assertNotEqual(general, hr, "units must make distinct rooms")
+		g_room = frappe.get_doc("Client Room", general)
+		h_room = frappe.get_doc("Client Room", hr)
+		hr_issue = client_room._new_client_issue(h_room, "salary review", requested=1)
+		loose = frappe.get_doc({
+			"doctype": "Duty Issue", "title": "loose customer issue",
+			"customer": cust, "status": "Open", "client_visible": 1,
+		}).insert(ignore_permissions=True)
+		g_titles = [x["title"] for x in client_room._work_rows(g_room) if x["kind"] == "issue"]
+		h_titles = [x["title"] for x in client_room._work_rows(h_room) if x["kind"] == "issue"]
+		self.assertNotIn("salary review", g_titles, "HR issues must not leak to General")
+		self.assertIn("salary review", h_titles)
+		self.assertIn("loose customer issue", g_titles, "General sweeps the unclaimed")
+		self.assertNotIn("loose customer issue", h_titles)
+
 	def test_move_task_rejects_unknown_column(self):
 		proj = projects.create_project("__Unit Test Project 2", customer=self._any_customer())
 		board = projects.create_task(proj, "Column guard")

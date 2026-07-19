@@ -14,6 +14,12 @@
 	.top { background: #0F5C55; color: #fff; padding: 14px 18px; display: flex; justify-content: space-between; align-items: center; }
 	.top b { font-size: 17px; }
 	.top a { color: #a7f3d0; text-decoration: none; font-size: 13px; }
+	#roomswitch { display: flex; gap: 8px; padding: 10px 14px 0; flex-wrap: wrap; background: #0F5C55; }
+	#roomswitch a {
+		color: #a7f3d0; font-weight: 700; font-size: 14px; text-decoration: none;
+		padding: 6px 14px; border-radius: 99px 99px 0 0; cursor: pointer;
+	}
+	#roomswitch a.on { background: #f6f8f7; color: #0F5C55; }
 	.hours { background: #ecfdf5; color: #0f766e; font-size: 12px; padding: 6px 18px; }
 	.wrap { max-width: 720px; margin: 0 auto; padding: 14px; }
 	@media (min-width: 900px) {
@@ -197,6 +203,7 @@
 	<span><b id="brand">Xlevel</b> · <span id="cust"></span></span>
 	<span><a id="bell" style="cursor:pointer;margin-right:14px;display:none" title="Get notified when we reply">🔔 Notify me</a><span id="me" style="font-size:13px;color:#a7f3d0;margin-right:14px"></span><a href="/?cmd=web_logout">Log out</a></span>
 </div>
+<div id="roomswitch" style="display:none"></div>
 <div class="hours">🕘 We reply Mon–Fri, 9:00–18:00 WAT.<span id="mgr"></span></div>
 <div class="wrap">
 	<div id="err"></div>
@@ -275,12 +282,45 @@
 </div>
 <script>
 const esc = (s) => (s || "").replace(/[&<>"']/g, (c) => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+let ROOM = localStorage.getItem("xl_room") || null;
+function setRoom(name) {
+	ROOM = name;
+	localStorage.setItem("xl_room", name);
+	window.SESSION_PREV = localStorage.getItem("xl_seen_" + name) || "";
+	window.DIVIDED = false;
+	document.querySelectorAll("#roomswitch a").forEach((a) =>
+		a.classList.toggle("on", a.dataset.room === name)
+	);
+	load();
+	loadMeetings();
+}
+function initRooms() {
+	api("client_my_rooms")
+		.then((rooms) => {
+			if (!rooms || rooms.length < 2) {
+				if (rooms && rooms.length === 1) ROOM = rooms[0].name;
+				return;
+			}
+			const sw = document.getElementById("roomswitch");
+			const one_customer = new Set(rooms.map((r) => r.customer)).size === 1;
+			sw.innerHTML = rooms
+				.map(
+					(r) =>
+						`<a data-room="${esc(r.name)}" onclick="setRoom('${esc(r.name)}')">${esc(one_customer ? r.unit : r.customer + " · " + r.unit)}</a>`
+				)
+				.join("");
+			sw.style.display = "flex";
+			if (!ROOM || !rooms.some((r) => r.name === ROOM)) ROOM = rooms[0].name;
+			setRoom(ROOM);
+		})
+		.catch(() => {});
+}
 const api = (method, args) =>
 	fetch("/api/method/duty_board.client_room." + method, {
 		method: "POST",
 		headers: { "Content-Type": "application/json", "X-Frappe-CSRF-Token": frappe_csrf() },
 		credentials: "same-origin",
-		body: JSON.stringify(args || {}),
+		body: JSON.stringify(Object.assign({}, args || {}, ROOM ? { xl_room: ROOM } : {})),
 	}).then(async (r) => {
 		const j = await r.json();
 		if (!r.ok) throw new Error((j._server_messages && JSON.parse(JSON.parse(j._server_messages)[0]).message) || j.exception || "Request failed");
@@ -312,6 +352,8 @@ function render(d) {
 	LAST = d;
 	document.getElementById("cust").textContent = d.customer || "";
 	document.getElementById("me").textContent = d.me ? "👤 " + d.me : "";
+	if (d.room && !ROOM) ROOM = d.room;
+	document.title = d.unit && d.unit !== "General" ? `Xlevel — ${d.unit}` : "Xlevel Client Portal";
 	document.getElementById("mgr").textContent = d.manager_first
 		? " Your account manager: " + d.manager_first + "."
 		: " Urgent? Call your account manager.";
@@ -334,13 +376,14 @@ function render(d) {
 	if (window.SESSION_PREV === undefined) {
 		window.SESSION_PREV = localStorage.getItem("xl_seen") || "";
 	}
-	if (latest && latest > (localStorage.getItem("xl_seen") || "")) {
+	const seen_key = "xl_seen_" + (ROOM || d.room || "one");
+	if (latest && latest > (localStorage.getItem(seen_key) || "")) {
 		if (document.body.dataset.tab && document.body.dataset.tab !== "chat" && window.innerWidth < 900) {
 			document.querySelector('.tabbar a[data-tab="chat"]').classList.add("dot");
 		}
 	}
 	if (latest && (document.body.dataset.tab === "chat" || window.innerWidth >= 900)) {
-		localStorage.setItem("xl_seen", latest);
+		localStorage.setItem(seen_key, latest);
 	}
 	window.DIVIDED = false;
 	box.innerHTML = (d.messages || []).length
@@ -479,6 +522,7 @@ document.addEventListener("DOMContentLoaded", () => {
 	const md = document.getElementById("mdate");
 	md.min = new Date().toISOString().slice(0, 10);
 	md.addEventListener("change", mSlots);
+	initRooms();
 	loadMeetings();
 });
 function mSlots() {
@@ -668,7 +712,10 @@ function setTab(t) {
 		if (box) box.scrollTop = box.scrollHeight;
 		document.querySelector('.tabbar a[data-tab="chat"]').classList.remove("dot");
 		if (LAST.messages && LAST.messages.length) {
-			localStorage.setItem("xl_seen", LAST.messages[LAST.messages.length - 1].creation);
+			localStorage.setItem(
+				"xl_seen_" + (ROOM || LAST.room || "one"),
+				LAST.messages[LAST.messages.length - 1].creation
+			);
 		}
 	}
 }
