@@ -230,6 +230,37 @@ class TestDutyBoardCore(FrappeTestCase):
 			frappe.db.count("Client Room Message", {"room": room_name}), before + 1
 		)
 
+	def test_meeting_slots_respect_timed_todos(self):
+		import frappe.utils as fu
+		# next Monday, guaranteed weekday
+		d = fu.getdate(fu.today())
+		d = fu.add_days(d, (7 - d.weekday()) % 7 or 7)
+		date = str(d)
+		frappe.get_doc({
+			"doctype": "Daily Todo", "user": "Administrator", "date": date,
+			"description": "busy hour", "status": "Open", "due_time": "10:30:00",
+		}).insert(ignore_permissions=True)
+		slots = client_room._meeting_slots(["Administrator"], date)
+		self.assertNotIn("10:00", slots, "a timed todo must block its hour")
+		self.assertIn("09:00", slots)
+
+	def test_meeting_day_cap_blanks_the_day(self):
+		import frappe.utils as fu
+		d = fu.getdate(fu.today())
+		d = fu.add_days(d, ((7 - d.weekday()) % 7 or 7) + 1)  # next Tuesday
+		date = str(d)
+		room = client_room.create_room(self._any_customer())
+		cust = frappe.db.get_value("Client Room", room, "customer")
+		for i, slot in enumerate(["09:00:00", "11:00:00"]):
+			frappe.get_doc({
+				"doctype": "Duty Meeting", "room": room, "customer": cust,
+				"topic": f"cap {i}", "meeting_date": date, "start_time": slot,
+				"status": "Pending",
+				"attendees": [{"user": "Administrator"}],
+			}).insert(ignore_permissions=True)
+		self.assertEqual(client_room._meeting_slots(["Administrator"], date), [],
+			"two meetings must blank the whole day")
+
 	def test_move_task_rejects_unknown_column(self):
 		proj = projects.create_project("__Unit Test Project 2", customer=self._any_customer())
 		board = projects.create_task(proj, "Column guard")

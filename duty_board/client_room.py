@@ -344,6 +344,7 @@ def get_room(name, before=None):
 		"requests": requests,
 		"join_url": f"{frappe.utils.get_url()}/join?token={_ensure_token(room)}",
 		"shelf": _shelf_rows(room),
+		"meetings": _meeting_rows(room),
 		"tasks": _staff_tasks(room),
 	}
 
@@ -1004,6 +1005,281 @@ def client_typing():
 		"duty_client_typing", {"room": room.name, "who": first, "client": 1}
 	)
 	return {"ok": True}
+
+
+# ---------------- meetings ----------------
+
+MEETING_SLOTS = ["09:00", "10:00", "11:00", "12:00", "13:00", "14:00", "15:00", "16:00", "17:00"]
+MEETING_DAY_CAP = 2
+
+
+def _staff_hour_load(user, date):
+	"""(busy_hours set, meeting_count) — pending holds count as busy and toward the cap."""
+	busy = set()
+	count = 0
+	for m in frappe.db.sql(
+		"""select dm.start_time from `tabDuty Meeting` dm
+		   join `tabDuty Meeting Attendee` a on a.parent = dm.name
+		   where a.user = %s and dm.meeting_date = %s
+		     and dm.status in ('Pending', 'Confirmed')""",
+		(user, date),
+		as_dict=True,
+	):
+		busy.add(str(m.start_time)[:2])
+		count += 1
+	for t in frappe.get_all(
+		"Daily Todo",
+		filters={
+			"user": user,
+			"date": date,
+			"status": "Open",
+			"due_time": ["is", "set"],
+		},
+		fields=["due_time"],
+	):
+		busy.add(str(t.due_time)[:2])
+	return busy, count
+
+
+def _meeting_slots(staff_list, date):
+	d = getdate(date)
+	if d < getdate(frappe.utils.today()):
+		return []
+	if d.weekday() >= 5:  # Sat/Sun — the banner's promise holds
+		return []
+	blocked = set()
+	for u in staff_list:
+		busy, count = _staff_hour_load(u, date)
+		if count >= MEETING_DAY_CAP:
+			return []  # someone is fully booked that day
+		blocked |= busy
+	now = frappe.utils.now_datetime()
+	out = []
+	for s in MEETING_SLOTS:
+		if s[:2] in blocked:
+			continue
+		if d == getdate(frappe.utils.today()) and int(s[:2]) <= now.hour:
+			continue
+		out.append(s)
+	return out
+
+
+def _valid_staff_ids(ids):
+	out = []
+	for u in ids:
+		if (
+			frappe.db.get_value("User", u, "user_type") == "System User"
+			and frappe.db.get_value("User", u, "enabled")
+			and u != "Administrator"
+		):
+			out.append(u)
+	return out
+
+
+def _meeting_rows(room, include_past=False):
+	filters = {"room": room.name, "status": ["in", ["Pending", "Confirmed"]]}
+	if not include_past:
+		filters["meeting_date"] = [">=", frappe.utils.today()]
+	rows = frappe.get_all(
+		"Duty Meeting",
+		filters=filters,
+		fields=["name", "topic", "meeting_date", "start_time", "status", "requested_by"],
+		order_by="meeting_date asc, start_time asc",
+		limit=30,
+	)
+	for r in rows:
+		r.meeting_date = str(r.meeting_date)
+		r.start_time = str(r.start_time)[:5]
+		r.staff = [
+			frappe.utils.get_fullname(a.user).split(" ")[0]
+			for a in frappe.get_all(
+				"Duty Meeting Attendee",
+				filters={"parent": r.name},
+				fields=["user"],
+			)
+		]
+	return rows
+
+
+@frappe.whitelist()
+def client_meeting_staff():
+	_client_room()
+	out = []
+	for u in frappe.get_all(
+		"User",
+		filters={"enabled": 1, "user_type": "System User"},
+		fields=["name", "full_name"],
+	):
+		if u.name != "Administrator" and u.full_name:
+			out.append({"id": u.name, "first": u.full_name.split(" ")[0], "full": u.full_name})
+	return out
+
+
+@frappe.whitelist()
+def client_meeting_slots(date, staff):
+	_client_room()
+	ids = _valid_staff_ids(frappe.parse_json(staff) or [])
+	if not ids:
+		frappe.throw(_("Pick at least one team member."))
+	return {"slots": _meeting_slots(ids, date)}
+
+
+@frappe.whitelist()
+def client_request_meeting(date, time, staff, topic):
+	room = _client_room()
+	topic = (topic or "").strip()[:120]
+	if not topic:
+		frappe.throw(_("What is the meeting about?"))
+	ids = _valid_staff_ids(frappe.parse_json(staff) or [])
+	if not ids:
+		frappe.throw(_("Pick at least one team member."))
+	if frappe.db.count(
+		"Duty Meeting", {"room": room.name, "status": "Pending"}
+	) >= 3:
+		frappe.throw(_("You have several meetings awaiting confirmation already."))
+	if time not in _meeting_slots(ids, date):
+		frappe.throw(_("That slot just became unavailable — pick another."))
+	doc = frappe.get_doc(
+		{
+			"doctype": "Duty Meeting",
+			"room": room.name,
+			"customer": room.customer,
+			"topic": topic,
+			"meeting_date": date,
+			"start_time": time + ":00",
+			"duration_mins": 60,
+			"status": "Pending",
+			"requested_by": frappe.session.user,
+			"attendees": [{"user": u} for u in ids],
+		}
+	).insert(ignore_permissions=True)
+	frappe.db.commit()
+	firsts = ", ".join(frappe.utils.get_fullname(u).split(" ")[0] for u in ids)
+	_post(
+		room,
+		_("📅 Meeting requested: “{0}” — {1} {2} with {3} · awaiting confirmation").format(
+			topic, frappe.utils.formatdate(date, "d MMM"), time, firsts
+		),
+	)
+	try:
+		from duty_board.api import _notify_user
+
+		who = frappe.utils.get_fullname(frappe.session.user).split(" ")[0]
+		for u in ids:
+			_notify_user(
+				u,
+				_("📅 Meeting request · {0}").format(room.customer),
+				f"{topic} — {date} {time} ({who})",
+			)
+	except Exception:
+		pass
+	return client_get_meetings()
+
+
+@frappe.whitelist()
+def client_get_meetings():
+	room = _client_room()
+	return _meeting_rows(room)
+
+
+@frappe.whitelist()
+def client_cancel_meeting(id):
+	room = _client_room()
+	doc = frappe.get_doc("Duty Meeting", id)
+	if doc.room != room.name:
+		frappe.throw(_("Not found."), frappe.PermissionError)
+	if doc.status not in ("Pending", "Confirmed"):
+		frappe.throw(_("Already settled."))
+	_settle_meeting(doc, "Cancelled")
+	_post(room, _("📅 Meeting cancelled by client: “{0}”").format(doc.topic))
+	frappe.db.commit()
+	return client_get_meetings()
+
+
+def _settle_meeting(doc, status):
+	doc.db_set("status", status, update_modified=False)
+	if doc.created_todos:
+		try:
+			for t in json.loads(doc.created_todos):
+				if frappe.db.exists("Daily Todo", t):
+					frappe.delete_doc("Daily Todo", t, ignore_permissions=True, force=True)
+		except Exception:
+			pass
+
+
+@frappe.whitelist()
+def confirm_meeting(id):
+	_staff_only()
+	doc = frappe.get_doc("Duty Meeting", id)
+	if doc.status != "Pending":
+		frappe.throw(_("Already settled."))
+	attendee_ids = [a.user for a in doc.attendees]
+	me = frappe.session.user
+	if me not in attendee_ids and "System Manager" not in frappe.get_roles():
+		frappe.throw(_("Only a requested attendee can confirm."))
+	slot = str(doc.start_time)[:5]
+	# recheck against everything EXCEPT this meeting's own pending hold
+	doc.db_set("status", "Cancelled", update_modified=False)
+	ok = slot in _meeting_slots(attendee_ids, str(doc.meeting_date))
+	doc.db_set("status", "Pending", update_modified=False)
+	if not ok:
+		frappe.throw(_("Conflict has appeared — decline and ask the client to rebook."))
+	todos = []
+	for u in attendee_ids:
+		t = frappe.get_doc(
+			{
+				"doctype": "Daily Todo",
+				"user": u,
+				"date": doc.meeting_date,
+				"description": f"📅 {doc.customer}: {doc.topic}",
+				"status": "Open",
+				"due_time": doc.start_time,
+				"assigned_by": me if me != u else None,
+			}
+		).insert(ignore_permissions=True)
+		todos.append(t.name)
+	doc.db_set("created_todos", json.dumps(todos), update_modified=False)
+	doc.db_set("status", "Confirmed", update_modified=False)
+	doc.db_set("confirmed_by", me, update_modified=False)
+	frappe.db.commit()
+	room = frappe.get_doc("Client Room", doc.room)
+	firsts = ", ".join(frappe.utils.get_fullname(u).split(" ")[0] for u in attendee_ids)
+	_post(
+		room,
+		_("📅 Confirmed: “{0}” — {1} {2} with {3}").format(
+			doc.topic,
+			frappe.utils.formatdate(doc.meeting_date, "d MMM"),
+			str(doc.start_time)[:5],
+			firsts,
+		),
+	)
+	_push_room_clients(
+		room,
+		_("📅 Meeting confirmed · Xlevel"),
+		f"{doc.topic} — {frappe.utils.formatdate(doc.meeting_date, 'd MMM')} {str(doc.start_time)[:5]}",
+	)
+	return get_room(doc.room)
+
+
+@frappe.whitelist()
+def decline_meeting(id, reason=None):
+	_staff_only()
+	doc = frappe.get_doc("Duty Meeting", id)
+	if doc.status != "Pending":
+		frappe.throw(_("Already settled."))
+	_settle_meeting(doc, "Declined")
+	if reason:
+		doc.db_set("decline_reason", reason.strip()[:200], update_modified=False)
+	frappe.db.commit()
+	room = frappe.get_doc("Client Room", doc.room)
+	_post(
+		room,
+		_("📅 “{0}” can't happen then{1} — please pick another slot.").format(
+			doc.topic, f" ({reason.strip()[:120]})" if reason else ""
+		),
+	)
+	_push_room_clients(room, _("📅 Please rebook · Xlevel"), doc.topic[:120])
+	return get_room(doc.room)
 
 
 def _room_member_mentions(room, text):

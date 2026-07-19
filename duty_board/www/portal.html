@@ -49,9 +49,9 @@
 		}
 		.tabbar a span { font-size: 20px; }
 		.tabbar a.active { color: #0F5C55; }
-		body[data-tab="chat"] .card.tasks, body[data-tab="chat"] .card.docs { display: none; }
+		body[data-tab="chat"] .card.tasks, body[data-tab="chat"] .card.docs, body[data-tab="chat"] .card.meets { display: none; }
 		body[data-tab="tasks"] .card.chat, body[data-tab="tasks"] .card.docs { display: none; }
-		body[data-tab="docs"] .card.tasks, body[data-tab="docs"] .card.chat { display: none; }
+		body[data-tab="docs"] .card.tasks, body[data-tab="docs"] .card.chat, body[data-tab="docs"] .card.meets { display: none; }
 		body[data-tab="chat"] .msgs { max-height: calc(100vh - 330px); }
 		table.tt, table.tt tbody { display: block; width: 100%; }
 		table.tt tr:first-child { display: none; } /* headers retire; labels take over */
@@ -85,6 +85,13 @@
 		padding: 3px 12px; font-size: 12px; margin-bottom: 6px; }
 	.chip a { cursor: pointer; font-weight: 700; }
 	label.attach { cursor: pointer; font-size: 20px; align-self: center; }
+	.mrow { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; margin: 6px 0; }
+	.mrow input { border: 1px solid #d1d5db; border-radius: 8px; padding: 7px 10px; font-size: 14px; font-family: inherit; }
+	.mrow label { font-size: 13px; display: flex; gap: 4px; align-items: center; background: #f1f5f9; border-radius: 99px; padding: 4px 10px; cursor: pointer; }
+	.slot { border: 1px solid #0F5C55; color: #0F5C55; border-radius: 8px; padding: 4px 9px; font-size: 13px; font-weight: 700; cursor: pointer; }
+	.slot.on { background: #0F5C55; color: #fff; }
+	.meet { display: flex; gap: 8px; align-items: center; padding: 6px 0; border-bottom: 1px dashed #eee; font-size: 14px; flex-wrap: wrap; }
+	.meet .x { color: #b91c1c; cursor: pointer; font-weight: 700; margin-left: auto; }
 	.doc { display: flex; gap: 10px; align-items: center; padding: 7px 0; border-bottom: 1px dashed #eee; font-size: 14px; }
 	.doc:last-child { border-bottom: none; }
 	.doc .cat { font-size: 11px; background: #f1f5f9; color: #475569; border-radius: 99px; padding: 2px 9px; }
@@ -209,6 +216,22 @@
 				<label class="urg"><input type="checkbox" id="requrgent"> 🔴 Urgent</label>
 				<span class="muted" style="flex:1">Details and screenshots help us fix it faster.</span>
 				<button onclick="requestTask()">Request</button>
+			</div>
+		</div>
+	</div>
+	<div class="card meets">
+		<h3 class="foldh" onclick="fold(this,'meets')"><span class="fc">▾</span> 📅 Meetings</h3>
+		<div id="meets"><span class="muted">No meetings planned.</span></div>
+		<div id="meetform">
+			<div class="muted" style="margin:8px 0 4px">Request a meeting:</div>
+			<div id="mstaff" class="mrow"></div>
+			<div class="mrow">
+				<input type="date" id="mdate">
+				<span id="mslots" class="mrow" style="flex:1"></span>
+			</div>
+			<div class="mrow">
+				<input id="mtopic" maxlength="120" placeholder="What is it about?" style="flex:1">
+				<button onclick="requestMeeting()">Request</button>
 			</div>
 		</div>
 	</div>
@@ -421,6 +444,86 @@ async function setupPush() {
 	};
 }
 setupPush();
+
+/* ---- meetings ---- */
+let MSTAFF = [], MSLOT = null;
+function loadMeetings() {
+	api("client_get_meetings")
+		.then((rows) => {
+			document.getElementById("meets").innerHTML = (rows || []).length
+				? rows
+						.map(
+							(m) =>
+								`<div class="meet"><span class="pill ${m.status === "Confirmed" ? "done" : "queued"}">${m.status === "Confirmed" ? "✅ Confirmed" : "⏳ Pending"}</span><b>${esc(m.topic)}</b><span>${esc(m.meeting_date.slice(5))} ${esc(m.start_time)} · ${m.staff.map(esc).join(", ")}</span><a class="x" onclick="cancelMeeting('${esc(m.name)}')" title="Cancel">×</a></div>`
+						)
+						.join("")
+				: '<span class="muted">No meetings planned.</span>';
+		})
+		.catch(() => {});
+	api("client_meeting_staff")
+		.then((staff) => {
+			document.getElementById("mstaff").innerHTML = (staff || [])
+				.map(
+					(s) =>
+						`<label><input type="checkbox" value="${esc(s.id)}" onchange="mPick(this)"> ${esc(s.first)}</label>`
+				)
+				.join("");
+		})
+		.catch(() => {});
+}
+function mPick(cb) {
+	MSTAFF = [...document.querySelectorAll("#mstaff input:checked")].map((i) => i.value);
+	mSlots();
+}
+document.addEventListener("DOMContentLoaded", () => {
+	const md = document.getElementById("mdate");
+	md.min = new Date().toISOString().slice(0, 10);
+	md.addEventListener("change", mSlots);
+	loadMeetings();
+});
+function mSlots() {
+	MSLOT = null;
+	const d = document.getElementById("mdate").value;
+	const box = document.getElementById("mslots");
+	if (!d || !MSTAFF.length) {
+		box.innerHTML = "";
+		return;
+	}
+	api("client_meeting_slots", { date: d, staff: JSON.stringify(MSTAFF) })
+		.then((r) => {
+			box.innerHTML = (r.slots || []).length
+				? r.slots
+						.map((s) => `<span class="slot" onclick="mSet(this,'${s}')">${s}</span>`)
+						.join("")
+				: '<span class="muted">No free slots that day — try another.</span>';
+		})
+		.catch(fail);
+}
+function mSet(el, s) {
+	MSLOT = s;
+	document.querySelectorAll(".slot").forEach((x) => x.classList.remove("on"));
+	el.classList.add("on");
+}
+function requestMeeting() {
+	const topic = document.getElementById("mtopic").value.trim();
+	const d = document.getElementById("mdate").value;
+	if (!MSTAFF.length) return fail(new Error("Pick who you'd like to meet."));
+	if (!d || !MSLOT) return fail(new Error("Pick a day and a time slot."));
+	if (!topic) return fail(new Error("Say what the meeting is about."));
+	api("client_request_meeting", {
+		date: d, time: MSLOT, staff: JSON.stringify(MSTAFF), topic: topic,
+	})
+		.then(() => {
+			document.getElementById("mtopic").value = "";
+			MSLOT = null;
+			mSlots();
+			loadMeetings();
+		})
+		.catch(fail);
+}
+function cancelMeeting(id) {
+	api("client_cancel_meeting", { id: id }).then(loadMeetings).catch(fail);
+}
 
 /* ---- search ---- */
 let qtimer = null;

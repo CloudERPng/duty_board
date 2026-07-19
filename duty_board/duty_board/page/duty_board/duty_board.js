@@ -2139,6 +2139,7 @@ class DutyBoard {
 				<a class="duty-cr-openissues">⚠ ${__("Open issue register for {0}", [frappe.utils.escape_html(x.customer)])} ›</a>
 			</div>
 			<div class="duty-cr-msgs">${(x.messages || []).map((m) => this.cr_msg(m)).join("") || `<div class="text-muted">${__("No messages yet.")}</div>`}</div>
+			<div class="duty-cr-meetings"></div>
 			<div class="duty-cr-typing" style="display:none"></div>
 			<div class="duty-cr-replychip"></div>
 			<div class="duty-cr-pending"></div>
@@ -2339,6 +2340,46 @@ class DutyBoard {
 			this.show_face("board");
 			this.refresh(true);
 		});
+		const $mt = $room.find(".duty-cr-meetings");
+		if ($mt.length && (x.meetings || []).length) {
+			$mt.html(
+				`<div class="duty-lead-section">📅 ${__("Meetings")}</div>` +
+					x.meetings
+						.map(
+							(m) => `
+					<div class="duty-cr-meeting">
+						<span class="duty-cr-mstatus ${m.status === "Confirmed" ? "ok" : "wait"}">${m.status === "Confirmed" ? "✅" : "⏳"}</span>
+						<b>${frappe.utils.escape_html(m.topic)}</b>
+						<span>${frappe.datetime.str_to_user(m.meeting_date).slice(0, 5)} ${m.start_time} · ${m.staff.map(frappe.utils.escape_html).join(", ")}</span>
+						${m.status === "Pending" ? `<a class="duty-cr-mconfirm" data-id="${m.name}">✔ ${__("Confirm")}</a><a class="duty-cr-mdecline" data-id="${m.name}">✖</a>` : ""}
+					</div>`
+						)
+						.join("")
+			);
+			$mt.find(".duty-cr-mconfirm").on("click", (e) =>
+				frappe.call({
+					method: "duty_board.client_room.confirm_meeting",
+					args: { id: $(e.currentTarget).data("id") },
+					callback: (r) => r.message && this.render_client_room(r.message),
+				})
+			);
+			$mt.find(".duty-cr-mdecline").on("click", (e) => {
+				const id = $(e.currentTarget).data("id");
+				frappe.prompt(
+					{ fieldname: "reason", fieldtype: "Small Text", label: __("Why not? (client sees this)") },
+					(v) =>
+						frappe.call({
+							method: "duty_board.client_room.decline_meeting",
+							args: { id: id, reason: v.reason || null },
+							callback: (r) => r.message && this.render_client_room(r.message),
+						}),
+					__("Decline meeting"),
+					__("Decline")
+				);
+			});
+		} else if ($mt.length) {
+			$mt.empty();
+		}
 		$room.find(".duty-cr-shelfbtn").on("click", () => this.room_shelf_dialog(x));
 		$room.find(".duty-cr-owner").on("click", () =>
 			frappe.prompt(
@@ -4658,6 +4699,13 @@ class DutyBoard {
 			.duty-cr-joinlink { display: flex; gap: 6px; }
 			.duty-cr-approve { color: var(--green-600, #16a34a); font-weight: 700; cursor: pointer; margin-left: auto; }
 			.duty-cr-rejectq { color: var(--red-600, #dc2626); font-weight: 700; cursor: pointer; }
+			.duty-cr-meeting {
+				display: flex; gap: 8px; align-items: center; font-size: var(--text-sm);
+				padding: 4px 0; border-bottom: 1px dashed var(--border-color); flex-wrap: wrap;
+			}
+			.duty-cr-meeting a { cursor: pointer; font-weight: 700; }
+			.duty-cr-mconfirm { color: var(--green-600, #16a34a); }
+			.duty-cr-mdecline { color: var(--red-600, #dc2626); }
 			.duty-cr-unread {
 				background: var(--red-500, #ef4444); color: #fff; border-radius: 99px;
 				padding: 0 7px; font-size: 10px; font-weight: 700;
