@@ -4976,7 +4976,12 @@ class DutyBoard {
 			.duty-kb-col[data-col="Suspended"] { border-top: 3px solid #7c3aed; }
 			.duty-kb-col[data-col="Suspended"] .duty-kb-col-head { color: #6d28d9; }
 			.duty-clients { padding-bottom: 76px; display: flex; gap: 14px; align-items: flex-start; }
-			.duty-cr-list { flex: 0 0 340px; display: flex; flex-direction: column; gap: 8px; }
+			.duty-cr-list {
+				flex: 0 0 340px; display: flex; flex-direction: column; gap: 8px;
+				background: var(--bg-light-gray, #f4f6f8); border: 1px solid var(--border-color);
+				border-radius: 12px; padding: 12px; align-self: flex-start;
+				max-height: calc(100vh - 185px); overflow-y: auto;
+			}
 			.duty-cr-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px; }
 			.duty-cr-item {
 				border: 1px solid var(--border-color); border-radius: 10px; padding: 10px 12px;
@@ -5001,12 +5006,17 @@ class DutyBoard {
 			.duty-cr-taskchips { font-size: var(--text-xs); color: var(--text-muted); font-weight: 600; }
 			.duty-cr-tools { margin-left: auto; display: flex; gap: 12px; }
 			.duty-cr-tools a { cursor: pointer; font-size: var(--text-xs); font-weight: 600; }
-			.duty-cr-main { display: flex; gap: 14px; flex: 1 1 auto; min-height: 0; }
+			.duty-cr-main { display: flex; gap: 0; flex: 1 1 auto; min-height: 0; }
+			.duty-cr-chatcol { padding-right: 14px; }
 			.duty-cr-chatcol { flex: 1 1 auto; min-width: 0; display: flex; flex-direction: column; min-height: 0; }
 			.duty-cr-side {
-				width: clamp(360px, 32%, 520px); flex: none; border-left: 1px solid var(--border-color);
-				padding-left: 12px; display: flex; flex-direction: column; min-height: 0;
+				width: clamp(360px, 32%, 520px); flex: none;
+				border-left: 3px solid var(--border-color);
+				background: var(--bg-light-gray, #f8fafc);
+				border-radius: 0 12px 12px 0;
+				padding: 10px 12px; display: flex; flex-direction: column; min-height: 0;
 			}
+			.duty-cr-side .duty-cr-tasksbar { border-bottom: 2px solid var(--border-color); padding-bottom: 6px; margin-bottom: 8px; }
 			.duty-cr-side.folded { width: 46px; padding-left: 6px; }
 			.duty-cr-side.folded .duty-cr-sidebody { display: none; }
 			.duty-cr-sidebody { overflow-y: auto; min-height: 0; flex: 1 1 auto; }
