@@ -1,0 +1,92 @@
+{
+ "actions": [],
+ "autoname": "hash",
+ "creation": "2026-07-19 12:00:00.000000",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "room",
+  "module",
+  "trainee",
+  "trainee_name",
+  "status",
+  "completed_on",
+  "trained_by",
+  "certificate_shelf"
+ ],
+ "fields": [
+  {
+   "fieldname": "room",
+   "fieldtype": "Data",
+   "label": "Room",
+   "reqd": 1,
+   "search_index": 1
+  },
+  {
+   "fieldname": "module",
+   "fieldtype": "Link",
+   "label": "Module",
+   "options": "Duty Training Module",
+   "reqd": 1
+  },
+  {
+   "fieldname": "trainee",
+   "fieldtype": "Link",
+   "label": "Trainee",
+   "options": "User",
+   "reqd": 1
+  },
+  {
+   "fieldname": "trainee_name",
+   "fieldtype": "Data",
+   "label": "Trainee Name",
+   "read_only": 1
+  },
+  {
+   "default": "Assigned",
+   "fieldname": "status",
+   "fieldtype": "Select",
+   "label": "Status",
+   "options": "Assigned\nCompleted"
+  },
+  {
+   "fieldname": "completed_on",
+   "fieldtype": "Date",
+   "label": "Completed On",
+   "read_only": 1
+  },
+  {
+   "fieldname": "trained_by",
+   "fieldtype": "Link",
+   "label": "Trained By",
+   "options": "User",
+   "read_only": 1
+  },
+  {
+   "fieldname": "certificate_shelf",
+   "fieldtype": "Data",
+   "label": "Certificate Shelf Doc",
+   "read_only": 1
+  }
+ ],
+ "links": [],
+ "modified": "2026-07-19 12:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "Duty Board",
+ "name": "Duty Training Record",
+ "naming_rule": "Random",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "write": 1
+  }
+ ],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}

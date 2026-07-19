@@ -2147,6 +2147,7 @@ class DutyBoard {
 					const seen = (x.members || []).map((m) => m.last_seen).filter(Boolean).sort().pop();
 					return seen ? `<span class="duty-cr-lastseen">👀 ${__("client seen")} ${frappe.datetime.comment_when(seen)}</span>` : "";
 				})()}
+				<a class="duty-cr-academy" title="${__("Training Academy")}">🎓</a>
 				<a class="duty-cr-report" title="${__("Generate last month's service report")}">📊</a>
 				<a class="duty-cr-rename" title="${__("Rename room")}">✏</a>
 				<a class="duty-cr-delete" title="${__("Delete room (System Manager)")}">🗑</a>
@@ -2487,6 +2488,7 @@ class DutyBoard {
 			$mt.empty();
 		}
 		$room.find(".duty-cr-shelfbtn").on("click", () => this.room_shelf_dialog(x));
+		$room.find(".duty-cr-academy").on("click", () => this.academy_dialog(x));
 		$room.find(".duty-cr-report").on("click", () =>
 			frappe.confirm(
 				__("Generate last month's service report and place it on this room's shelf? The client is notified."),
@@ -2566,6 +2568,101 @@ class DutyBoard {
 				callback: () => this.load_client_room(x.name),
 			})
 		);
+	}
+
+	academy_dialog(x) {
+		const d = new frappe.ui.Dialog({ title: `🎓 ${x.customer} — ${__("Training Academy")}`, size: "large" });
+		const load = () =>
+			frappe.call({
+				method: "duty_board.client_room.room_training",
+				args: { name: x.name },
+				callback: (r) =>
+					frappe.call({
+						method: "duty_board.client_room.training_modules",
+						callback: (mr) => render(r.message || [], mr.message || []),
+					}),
+			});
+		const render = (rows, mods) => {
+			const members = (x.members || []).filter((m) => m.user);
+			const by_trainee = {};
+			rows.forEach((r) => {
+				(by_trainee[r.trainee_name] = by_trainee[r.trainee_name] || []).push(r);
+			});
+			$(d.body).html(`
+				${Object.keys(by_trainee)
+					.map(
+						(t) => `
+					<div class="duty-lead-section">👤 ${frappe.utils.escape_html(t)}</div>
+					${by_trainee[t]
+						.map(
+							(r) => `
+						<div class="duty-acad-row">
+							${r.status === "Completed" ? "🏅" : "📖"} <b>${frappe.utils.escape_html(r.module_title)}</b>
+							${r.product ? `<span class="text-muted">${frappe.utils.escape_html(r.product)}</span>` : ""}
+							${r.status === "Completed"
+								? `<span class="duty-acad-done">✓ ${__("certified")} ${r.completed_on}</span>`
+								: `<button type="button" class="btn btn-xs btn-primary duty-acad-complete" data-id="${r.name}">🏅 ${__("Mark completed — issue certificate")}</button>`}
+						</div>`
+						)
+						.join("")}`
+					)
+					.join("") || `<div class="text-muted">${__("No training assigned in this room yet.")}</div>`}
+				<div class="duty-lead-section">＋ ${__("Assign training")}</div>
+				<div class="duty-cr-addmem" style="flex-wrap:wrap">
+					<select class="form-control input-sm duty-acad-user" style="flex:1">
+						${members.map((m) => `<option value="${frappe.utils.escape_html(m.user)}">${frappe.utils.escape_html(m.full_name || m.user)}</option>`).join("")}
+					</select>
+					<select class="form-control input-sm duty-acad-mod" style="flex:1">
+						${mods.map((m) => `<option value="${m.name}">${frappe.utils.escape_html((m.product ? m.product + " · " : "") + m.title)}</option>`).join("")}
+					</select>
+					<button type="button" class="btn btn-sm btn-primary duty-acad-assign">＋</button>
+					<a class="duty-acad-newmod" style="cursor:pointer;font-size:var(--text-xs);align-self:center">＋ ${__("new module")}</a>
+				</div>
+			`);
+			$(d.body).find(".duty-acad-assign").on("click", () =>
+				frappe.call({
+					method: "duty_board.client_room.training_assign",
+					args: {
+						name: x.name,
+						module: $(d.body).find(".duty-acad-mod").val(),
+						user: $(d.body).find(".duty-acad-user").val(),
+					},
+					callback: () => load(),
+				})
+			);
+			$(d.body).find(".duty-acad-complete").on("click", (e) =>
+				frappe.confirm(
+					__("Mark completed and issue the branded certificate to the client's shelf?"),
+					() =>
+						frappe.call({
+							method: "duty_board.client_room.training_complete",
+							args: { record: $(e.currentTarget).data("id") },
+							callback: () => {
+								load();
+								this.load_client_room(x.name);
+							},
+						})
+				)
+			);
+			$(d.body).find(".duty-acad-newmod").on("click", () =>
+				frappe.prompt(
+					[
+						{ fieldname: "title", fieldtype: "Data", label: __("Module title"), reqd: 1 },
+						{ fieldname: "product", fieldtype: "Data", label: __("Product (e.g. ZhiftPOS)") },
+					],
+					(v) =>
+						frappe.call({
+							method: "duty_board.client_room.training_module_add",
+							args: { title: v.title, product: v.product || "" },
+							callback: () => load(),
+						}),
+					__("New training module"),
+					__("Add")
+				)
+			);
+		};
+		load();
+		d.show();
 	}
 
 	milestones_dialog(x) {
@@ -3795,7 +3892,7 @@ class DutyBoard {
 					${names ? `<div class="duty-issue-meta">${__("Assigned to")}: ${names}</div>` : ""}
 					${working_names ? `<div class="duty-issue-meta">⏱ ${__("Working on it now")}: ${working_names}</div>` : ""}
 					${this.sla_meta(x)}
-					<div class="duty-issue-meta"><a class="duty-issue-vis">${x.client_visible ? "👁 " + __("Client-visible — click to hide") : "🙈 " + __("Hidden from client — click to publish")}</a>${x.client_rating ? ` · ${x.client_rating === "Up" ? "👍 " + __("Client satisfied") : "👎 " + __("Client unhappy")}` : ""}${x.acknowledged_first ? ` · 👀 ${__("Acknowledged by")} ${frappe.utils.escape_html(x.acknowledged_first)}` : x.client_visible ? ` · <a class="duty-issue-ack">👀 ${__("Acknowledge")}</a>` : ""}</div>
+					<div class="duty-issue-meta"><a class="duty-issue-rca">📋 ${__("RCA report")}</a> · <a class="duty-issue-vis">${x.client_visible ? "👁 " + __("Client-visible — click to hide") : "🙈 " + __("Hidden from client — click to publish")}</a>${x.client_rating ? ` · ${x.client_rating === "Up" ? "👍 " + __("Client satisfied") : "👎 " + __("Client unhappy")}` : ""}${x.acknowledged_first ? ` · 👀 ${__("Acknowledged by")} ${frappe.utils.escape_html(x.acknowledged_first)}` : x.client_visible ? ` · <a class="duty-issue-ack">👀 ${__("Acknowledge")}</a>` : ""}</div>
 					${x.description ? `<div class="duty-issue-desc">${frappe.utils.escape_html(x.description)}</div>` : ""}
 					${
 						(x.attachments || []).length
@@ -3866,6 +3963,35 @@ class DutyBoard {
 					callback: (r) => {
 						if (r.message) render(r.message);
 						if (this._open_room) this.load_client_room(this._open_room);
+					},
+				})
+			);
+			$(d.body).find(".duty-issue-rca").on("click", () =>
+				frappe.call({
+					method: "duty_board.client_room.rca_get",
+					args: { issue: x.name },
+					callback: (r) => {
+						const ex = r.message || {};
+						frappe.prompt(
+							[
+								{ fieldname: "what_happened", fieldtype: "Small Text", label: __("What happened"), default: ex.what_happened, reqd: 1 },
+								{ fieldname: "root_cause", fieldtype: "Small Text", label: __("Root cause"), default: ex.root_cause, reqd: 1 },
+								{ fieldname: "resolution_action", fieldtype: "Small Text", label: __("How we resolved it"), default: ex.resolution_action, reqd: 1 },
+								{ fieldname: "prevention", fieldtype: "Small Text", label: __("What we changed so it cannot recur"), default: ex.prevention, reqd: 1 },
+							],
+							(v) =>
+								frappe.call({
+									method: "duty_board.client_room.rca_publish",
+									args: Object.assign({ issue: x.name }, v),
+									callback: () =>
+										frappe.show_alert({
+											message: __("📋 RCA published to the client's shelf"),
+											indicator: "green",
+										}),
+								}),
+							__("Incident report — published to the client's shelf as a branded PDF"),
+							ex.what_happened ? __("Republish (updates the shelf copy)") : __("Publish")
+						);
 					},
 				})
 			);
@@ -5093,6 +5219,8 @@ class DutyBoard {
 			.duty-cr-joinlink { display: flex; gap: 6px; }
 			.duty-cr-approve { color: var(--green-600, #16a34a); font-weight: 700; cursor: pointer; margin-left: auto; }
 			.duty-cr-rejectq { color: var(--red-600, #dc2626); font-weight: 700; cursor: pointer; }
+			.duty-acad-row { display: flex; gap: 10px; align-items: baseline; padding: 6px 4px; border-bottom: 1px dashed var(--border-color); font-size: var(--text-sm); flex-wrap: wrap; }
+			.duty-acad-done { color: #166534; font-weight: 700; font-size: var(--text-xs); }
 			.duty-cr-msline { display: flex; flex-direction: column; gap: 4px; font-size: var(--text-sm); margin-bottom: 8px; }
 			.duty-cr-msbar { height: 7px; background: var(--bg-light-gray, #f1f5f9); border-radius: 99px; overflow: hidden; }
 			.duty-cr-msbar i { display: block; height: 100%; background: #0F5C55; border-radius: 99px; }

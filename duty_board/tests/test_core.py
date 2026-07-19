@@ -425,6 +425,54 @@ class TestDutyBoardCore(FrappeTestCase):
 		self.assertIn("Monthly Service Report", html)
 		self.assertIn("100%", html)
 
+	def test_academy_certificate_flow(self):
+		cust, room_name = self._fresh_room()
+		room = frappe.get_doc("Client Room", room_name)
+		email = f"__acad_{frappe.generate_hash(length=8)}@example.com"
+		client_room.add_member(room_name, email, "Acad Trainee")
+		mod = client_room.training_module_add("Test Module Alpha", "ZhiftPOS")
+		client_room.training_assign(room_name, mod["name"], email)
+		rows = client_room._training_rows(room)
+		self.assertEqual(len(rows), 1)
+		self.assertEqual(rows[0].status, "Assigned")
+		client_room.training_complete(rows[0].name)
+		rows = client_room._training_rows(room)
+		self.assertEqual(rows[0].status, "Completed")
+		self.assertTrue(rows[0].certificate_shelf)
+		self.assertEqual(
+			frappe.db.get_value("Client Shelf Doc", rows[0].certificate_shelf, "category"),
+			"Certificate",
+		)
+
+	def test_rca_publish_and_update(self):
+		cust, room_name = self._fresh_room()
+		p = api.create_issue(title="rca probe", customer=cust, severity="Critical")
+		frappe.db.set_value("Duty Issue", p["name"], "client_visible", 1, update_modified=False)
+		client_room.rca_publish(
+			p["name"],
+			what_happened="it broke",
+			root_cause="a wire",
+			resolution_action="fixed wire",
+			prevention="wire audit",
+		)
+		rca = frappe.db.get_value(
+			"Duty RCA", {"issue": p["name"]}, ["name", "shelf_doc", "root_cause"], as_dict=True
+		)
+		self.assertTrue(rca and rca.shelf_doc)
+		self.assertEqual(rca.root_cause, "a wire")
+		client_room.rca_publish(
+			p["name"],
+			what_happened="it broke",
+			root_cause="a deeper wire",
+			resolution_action="fixed wire",
+			prevention="wire audit",
+		)
+		self.assertEqual(
+			frappe.db.get_value("Duty RCA", {"issue": p["name"]}, "root_cause"),
+			"a deeper wire",
+		)
+		self.assertEqual(frappe.db.count("Duty RCA", {"issue": p["name"]}), 1)
+
 	def test_move_task_rejects_unknown_column(self):
 		proj = projects.create_project("__Unit Test Project 2", customer=self._any_customer())
 		board = projects.create_task(proj, "Column guard")

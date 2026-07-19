@@ -62,7 +62,7 @@
 		.tabbar a.active { color: #0F5C55; }
 		body[data-tab="chat"] .card:not(.chat) { display: none; }
 		body[data-tab="tasks"] .card:not(.tasks):not(.meets) { display: none; }
-		body[data-tab="plan"] .card:not(.mstones) { display: none; }
+		body[data-tab="plan"] .card:not(.mstones):not(.acad) { display: none; }
 		body[data-tab="docs"] .card:not(.docs) { display: none; }
 		body[data-tab="chat"] .msgs { max-height: calc(100vh - 330px); }
 		table.tt, table.tt tbody { display: block; width: 100%; }
@@ -107,6 +107,10 @@
 	.ms .sig { font-size: 12px; color: #166534; background: #f0fdf4; border-radius: 8px; padding: 3px 9px; }
 	.ms .desc { width: 100%; font-size: 12px; color: #6b7280; margin-left: 26px; }
 	.ms button { background: #b45309; padding: 6px 14px; font-size: 13px; }
+	.acadrow { display: flex; gap: 8px; align-items: baseline; flex-wrap: wrap; padding: 8px 0; border-bottom: 1px dashed #eee; font-size: 14px; }
+	.acadrow:last-child { border-bottom: none; }
+	.acaddone { font-size: 12px; color: #166534; }
+	.acaddone a { color: #0E7490; font-weight: 700; }
 	.mstoggle { font-size: 12px; font-weight: 700; color: #0E7490; cursor: pointer; margin-left: 24px; }
 	.mstoggle i { font-style: normal; }
 	.mstasks { display: none; width: 100%; margin: 4px 0 2px 24px; flex-direction: column; gap: 3px; }
@@ -298,6 +302,10 @@
 		<h3 class="foldh" onclick="fold(this,'mstones')"><span class="fc">▾</span> 🏁 <span class="t">Project milestones</span></h3>
 		<div id="msbarwrap" style="display:none"><div id="msbar"><i></i></div><div id="mscount" class="muted"></div></div>
 		<div id="mstones"><span class="muted">No project phases defined yet.</span></div>
+	<div class="card acad">
+		<h3 class="foldh" onclick="fold(this,'acad')"><span class="fc">▾</span> 🎓 <span class="t">Training</span></h3>
+		<div id="acad"><span class="muted">No training records yet.</span></div>
+	</div>
 	</div>
 	</div>
 	<p class="muted foot" style="text-align:center">Powered by Xlevel Retail Systems · CloudERP.One · <span id="xlv"></span></p>
@@ -315,7 +323,7 @@
 </div>
 <script>
 const esc = (s) => (s || "").replace(/[&<>"']/g, (c) => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
-const XLV = "2.48.0";
+const XLV = "2.49.0";
 document.getElementById("xlv").textContent = "v" + XLV;
 console.log("Xlevel portal", XLV);
 let ROOM = localStorage.getItem("xl_room") || null;
@@ -330,6 +338,7 @@ function setRoom(name) {
 	load();
 	loadMeetings();
 	loadMilestones();
+	loadTraining();
 }
 function initRooms() {
 	api("client_my_rooms")
@@ -594,6 +603,29 @@ function approveMilestone(id, title) {
 	};
 }
 
+/* ---- academy ---- */
+function loadTraining() {
+	api("client_get_training")
+		.then((rows) => {
+			rows = rows || [];
+			document.getElementById("acad").innerHTML = rows.length
+				? rows
+						.map(
+							(r) => `
+					<div class="acadrow">
+						${r.status === "Completed" ? "🏅" : "📖"} <b>${esc(r.trainee_name)}</b>
+						<span>${esc(r.module_title)}${r.product ? " · " + esc(r.product) : ""}</span>
+						${r.status === "Completed"
+							? `<span class="acaddone">✓ certified ${esc(r.completed_on || "")}${r.cert ? ` · <a href="/api/method/duty_board.client_room.client_shelf_file?id=${esc(r.cert)}" target="_blank">📜 certificate</a>` : ""}</span>`
+							: `<span class="muted" style="font-size:12px">in progress</span>`}
+					</div>`
+						)
+						.join("")
+				: '<span class="muted">No training records yet.</span>';
+		})
+		.catch((e) => console.warn("training:", e.message));
+}
+
 /* ---- meetings ---- */
 let MSTAFF = [], MSLOT = null;
 function loadMeetings() {
@@ -631,6 +663,7 @@ document.addEventListener("DOMContentLoaded", () => {
 	initRooms();
 	loadMeetings();
 	loadMilestones();
+	loadTraining();
 });
 function mSlots() {
 	MSLOT = null;

@@ -10,7 +10,7 @@ import json
 
 import frappe
 from frappe import _
-from frappe.utils import cint, getdate, now_datetime
+from frappe.utils import cint, getdate, now_datetime, today
 
 MSG_MAX = 2000
 CLIENT_STATUS = {"To Do": "Queued", "In Progress": "In Progress", "Completed": "Done"}
@@ -1692,6 +1692,306 @@ def monthly_service_reports():
 			_generate_room_report(room, last_month_start, first_this, label)
 		except Exception:
 			frappe.log_error(frappe.get_traceback(), "duty_board.monthly_service_reports")
+
+
+# ---------------- academy: training + certificates ----------------
+
+
+def _training_rows(room):
+	rows = frappe.get_all(
+		"Duty Training Record",
+		filters={"room": room.name},
+		fields=[
+			"name", "module", "trainee", "trainee_name", "status",
+			"completed_on", "certificate_shelf",
+		],
+		order_by="creation asc",
+	)
+	mods = {
+		m.name: m
+		for m in frappe.get_all(
+			"Duty Training Module", fields=["name", "title", "product"]
+		)
+	}
+	for r in rows:
+		m = mods.get(r.module)
+		r.module_title = m.title if m else r.module
+		r.product = m.product if m else None
+		r.completed_on = str(r.completed_on) if r.completed_on else None
+	return rows
+
+
+@frappe.whitelist()
+def training_modules():
+	_staff_only()
+	return frappe.get_all(
+		"Duty Training Module",
+		filters={"active": 1},
+		fields=["name", "title", "product"],
+		order_by="product asc, title asc",
+	)
+
+
+@frappe.whitelist()
+def training_module_add(title, product=None):
+	_staff_only()
+	title = (title or "").strip()
+	if not title:
+		frappe.throw(_("Give the module a title."))
+	doc = frappe.get_doc(
+		{
+			"doctype": "Duty Training Module",
+			"title": title[:120],
+			"product": (product or "").strip()[:60] or None,
+			"active": 1,
+		}
+	).insert(ignore_permissions=True)
+	frappe.db.commit()
+	return {"name": doc.name}
+
+
+@frappe.whitelist()
+def room_training(name):
+	_staff_only()
+	room = frappe.get_doc("Client Room", name)
+	return _training_rows(room)
+
+
+@frappe.whitelist()
+def training_assign(name, module, user):
+	_staff_only()
+	room = frappe.get_doc("Client Room", name)
+	if not frappe.db.exists(
+		"Client Room Member", {"room": room.name, "user": user, "active": 1}
+	):
+		frappe.throw(_("That person is not a member of this room."))
+	if frappe.db.exists(
+		"Duty Training Record", {"room": room.name, "module": module, "trainee": user}
+	):
+		frappe.throw(_("Already assigned."))
+	frappe.get_doc(
+		{
+			"doctype": "Duty Training Record",
+			"room": room.name,
+			"module": module,
+			"trainee": user,
+			"trainee_name": frappe.utils.get_fullname(user),
+			"status": "Assigned",
+		}
+	).insert(ignore_permissions=True)
+	frappe.db.commit()
+	mod_title = frappe.db.get_value("Duty Training Module", module, "title")
+	_post(room, _("🎓 Training assigned: “{0}” for {1}").format(mod_title, frappe.utils.get_fullname(user)))
+	try:
+		from duty_board.api import _notify_user
+
+		_notify_user(user, _("🎓 New training · Xlevel"), mod_title)
+	except Exception:
+		pass
+	return _training_rows(room)
+
+
+def _certificate_html(trainee_name, module_title, product, date_str):
+	prod = f" · {frappe.utils.escape_html(product)}" if product else ""
+	return f"""<html><head><meta charset="utf-8"><style>
+	body {{ font-family: Georgia, 'Times New Roman', serif; margin: 0; padding: 0; }}
+	.frame {{ margin: 30px; border: 3px double #0F5C55; padding: 46px 40px; text-align: center; }}
+	.brand {{ color: #0F5C55; font-size: 13px; letter-spacing: 0.25em; text-transform: uppercase; }}
+	h1 {{ color: #0F5C55; font-size: 34px; margin: 18px 0 6px; }}
+	.sub {{ color: #6b7280; font-size: 14px; margin-bottom: 30px; }}
+	.name {{ font-size: 30px; margin: 22px 0 8px; border-bottom: 1px solid #d1d5db; display: inline-block; padding: 0 34px 8px; }}
+	.mod {{ font-size: 19px; color: #0E7490; margin: 16px 0 4px; }}
+	.date {{ color: #6b7280; font-size: 13px; margin-top: 26px; }}
+	.sig {{ margin-top: 44px; display: inline-block; border-top: 1px solid #9ca3af; padding: 6px 40px 0; font-size: 13px; color: #374151; }}
+	</style></head><body><div class="frame">
+	<div class="brand">Xlevel Retail Systems · CloudERP.One</div>
+	<h1>Certificate of Completion</h1>
+	<div class="sub">This certifies that</div>
+	<div class="name">{frappe.utils.escape_html(trainee_name)}</div>
+	<div class="sub">has successfully completed the training module</div>
+	<div class="mod">“{frappe.utils.escape_html(module_title)}”{prod}</div>
+	<div class="date">Awarded on {date_str}</div>
+	<div class="sig">Olamide Shodunke · Chief Executive Officer</div>
+	</div></body></html>"""
+
+
+@frappe.whitelist()
+def training_complete(record):
+	_staff_only()
+	rec = frappe.get_doc("Duty Training Record", record)
+	if rec.status == "Completed":
+		frappe.throw(_("Already completed."))
+	room = frappe.get_doc("Client Room", rec.room)
+	mod = frappe.db.get_value(
+		"Duty Training Module", rec.module, ["title", "product"], as_dict=True
+	)
+	date_str = frappe.utils.format_date(today(), "d MMMM yyyy")
+	pdf = frappe.utils.pdf.get_pdf(
+		_certificate_html(rec.trainee_name, mod.title, mod.product, date_str)
+	)
+	fname = f"Certificate_{rec.trainee_name.replace(' ', '_')}_{mod.title.replace(' ', '_')[:40]}.pdf"
+	f = frappe.get_doc(
+		{"doctype": "File", "file_name": fname, "content": pdf, "is_private": 1}
+	).insert(ignore_permissions=True)
+	shelf = frappe.get_doc(
+		{
+			"doctype": "Client Shelf Doc",
+			"room": room.name,
+			"title": _("Certificate — {0} · {1}").format(rec.trainee_name, mod.title),
+			"category": _("Certificate"),
+			"file_url": f.file_url,
+			"file_name": fname,
+			"active": 1,
+		}
+	).insert(ignore_permissions=True)
+	rec.db_set(
+		{
+			"status": "Completed",
+			"completed_on": today(),
+			"trained_by": frappe.session.user,
+			"certificate_shelf": shelf.name,
+		},
+		update_modified=False,
+	)
+	frappe.db.commit()
+	_post(
+		room,
+		_("🎓 {0} is now certified: “{1}” — the certificate is on your shelf. Congratulations!").format(
+			rec.trainee_name, mod.title
+		),
+	)
+	_push_room_clients(room, _("🎓 Certificate awarded · Xlevel"), _("{0} — {1}").format(rec.trainee_name, mod.title))
+	return _training_rows(room)
+
+
+@frappe.whitelist()
+def client_get_training():
+	room = _client_room()
+	rows = _training_rows(room)
+	return [
+		{
+			"trainee_name": r.trainee_name,
+			"module_title": r.module_title,
+			"product": r.product,
+			"status": r.status,
+			"completed_on": r.completed_on,
+			"cert": r.certificate_shelf,
+		}
+		for r in rows
+	]
+
+
+# ---------------- rca: the post-incident report ----------------
+
+
+def _rca_html(issue, rca, timeline):
+	sec = lambda t, b: (
+		f'<h2>{t}</h2><p>{frappe.utils.escape_html(b).replace(chr(10), "<br>")}</p>' if b else ""
+	)
+	tl = "".join(f"<tr><td>{k}</td><td>{v}</td></tr>" for k, v in timeline if v)
+	return f"""<html><head><meta charset="utf-8"><style>
+	body {{ font-family: Helvetica, Arial, sans-serif; color: #1f2937; margin: 34px 42px; }}
+	.head {{ border-bottom: 4px solid #0F5C55; padding-bottom: 12px; margin-bottom: 18px; }}
+	.head h1 {{ color: #0F5C55; margin: 0 0 4px; font-size: 22px; }}
+	.head p {{ margin: 0; color: #6b7280; font-size: 12px; }}
+	h2 {{ color: #0E7490; font-size: 14px; margin: 20px 0 6px; }}
+	p {{ font-size: 13px; line-height: 1.6; margin: 0 0 8px; }}
+	table {{ border-collapse: collapse; font-size: 12px; margin-top: 6px; }}
+	td {{ border: 1px solid #e5e7eb; padding: 5px 12px; }}
+	td:first-child {{ background: #f0fdfa; font-weight: bold; color: #0F5C55; }}
+	.foot {{ margin-top: 30px; border-top: 1px solid #e5e7eb; padding-top: 8px; font-size: 11px; color: #6b7280; }}
+	</style></head><body>
+	<div class="head">
+		<h1>Incident Report &amp; Root Cause Analysis</h1>
+		<p>{frappe.utils.escape_html(issue.title)} · {frappe.utils.escape_html(issue.customer)} · Severity: {frappe.utils.escape_html(issue.severity or "")}</p>
+	</div>
+	<h2>Timeline</h2><table>{tl}</table>
+	{sec("What happened", rca.get("what_happened"))}
+	{sec("Root cause", rca.get("root_cause"))}
+	{sec("How we resolved it", rca.get("resolution_action"))}
+	{sec("What we changed so it cannot recur", rca.get("prevention"))}
+	<div class="foot">Prepared by Xlevel Retail Systems · This report is part of our commitment to transparency after every serious incident.</div>
+	</body></html>"""
+
+
+@frappe.whitelist()
+def rca_get(issue):
+	_staff_only()
+	existing = frappe.db.get_value(
+		"Duty RCA",
+		{"issue": issue},
+		["name", "what_happened", "root_cause", "resolution_action", "prevention"],
+		as_dict=True,
+	)
+	return existing or {}
+
+
+@frappe.whitelist()
+def rca_publish(issue, what_happened=None, root_cause=None, resolution_action=None, prevention=None):
+	_staff_only()
+	doc = frappe.get_doc("Duty Issue", issue)
+	row = frappe._dict(
+		customer=doc.customer, source_type=doc.source_type, source=doc.source
+	)
+	home = _issue_home_room(row)
+	if not home:
+		frappe.throw(_("This customer has no active room to publish to."))
+	room = frappe.get_doc("Client Room", home.name)
+	rca = {
+		"what_happened": (what_happened or "").strip(),
+		"root_cause": (root_cause or "").strip(),
+		"resolution_action": (resolution_action or "").strip(),
+		"prevention": (prevention or "").strip(),
+	}
+	fmt = lambda d: frappe.utils.format_datetime(d, "d MMM yyyy HH:mm") if d else None
+	timeline = [
+		(_("Reported"), fmt(doc.creation)),
+		(_("Work started"), fmt(doc.work_started_at)),
+		(_("Resolved"), fmt(doc.resolved_at)),
+	]
+	pdf = frappe.utils.pdf.get_pdf(_rca_html(doc, rca, timeline))
+	fname = f"RCA_{doc.name}.pdf"
+	f = frappe.get_doc(
+		{"doctype": "File", "file_name": fname, "content": pdf, "is_private": 1}
+	).insert(ignore_permissions=True)
+	existing = frappe.db.get_value("Duty RCA", {"issue": issue})
+	if existing:
+		r = frappe.get_doc("Duty RCA", existing)
+		shelf_name = r.shelf_doc
+		if shelf_name and frappe.db.exists("Client Shelf Doc", shelf_name):
+			frappe.db.set_value(
+				"Client Shelf Doc", shelf_name,
+				{"file_url": f.file_url, "file_name": fname},
+				update_modified=False,
+			)
+		else:
+			shelf_name = None
+	else:
+		r = frappe.get_doc({"doctype": "Duty RCA", "issue": issue})
+		shelf_name = None
+	if not shelf_name:
+		shelf = frappe.get_doc(
+			{
+				"doctype": "Client Shelf Doc",
+				"room": room.name,
+				"title": _("Incident Report — {0}").format(doc.title[:80]),
+				"category": _("RCA Report"),
+				"file_url": f.file_url,
+				"file_name": fname,
+				"active": 1,
+			}
+		).insert(ignore_permissions=True)
+		shelf_name = shelf.name
+	r.update(rca)
+	r.room = room.name
+	r.published_on = now_datetime()
+	r.shelf_doc = shelf_name
+	r.save(ignore_permissions=True)
+	frappe.db.commit()
+	if not existing:
+		_post(room, _("📋 Incident report published: “{0}” — the full root-cause analysis is on your shelf.").format(doc.title))
+		_push_room_clients(room, _("📋 Incident report · Xlevel"), doc.title[:120])
+	return {"ok": True}
 
 
 # ---------------- meetings ----------------
