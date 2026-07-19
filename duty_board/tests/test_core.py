@@ -340,6 +340,32 @@ class TestDutyBoardCore(FrappeTestCase):
 		with self.assertRaises(frappe.ValidationError):
 			client_room._validate_milestone_project(room_name, stray.name)
 
+	def test_milestone_task_linkage(self):
+		room_name = client_room.create_room(self._any_customer())
+		room = frappe.get_doc("Client Room", room_name)
+		client_room.milestones_seed(room_name)
+		ms = client_room._milestone_rows(room)[0]
+		proj = frappe.get_doc({
+			"doctype": "Duty Project", "title": "linkage project",
+			"customer": room.customer,
+		}).insert(ignore_permissions=True)
+		cards = []
+		for i, col in enumerate(["To Do", "Completed"]):
+			c = frappe.get_doc({
+				"doctype": "Duty Project Task", "project": proj.name,
+				"title": f"card {i}", "column": col,
+			}).insert(ignore_permissions=True)
+			cards.append(c.name)
+		import json as _json
+		client_room.milestone_set_tasks(ms.name, _json.dumps(cards))
+		row = [r for r in client_room._milestone_rows(room) if r.name == ms.name][0]
+		self.assertEqual(row.cards_total, 2)
+		self.assertEqual(row.cards_done, 1)
+		self.assertEqual(len(row.tasks), 2)
+		client_room.milestone_set_tasks(ms.name, _json.dumps([cards[0]]))
+		row = [r for r in client_room._milestone_rows(room) if r.name == ms.name][0]
+		self.assertEqual(row.cards_total, 1, "unticking must release the card")
+
 	def test_move_task_rejects_unknown_column(self):
 		proj = projects.create_project("__Unit Test Project 2", customer=self._any_customer())
 		board = projects.create_task(proj, "Column guard")

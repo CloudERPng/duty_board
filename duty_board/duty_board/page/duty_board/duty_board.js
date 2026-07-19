@@ -2574,6 +2574,7 @@ class DutyBoard {
 									${i > 0 ? `<a data-a="up" data-id="${m.name}">↑</a>` : ""}
 									${i < mst.length - 1 ? `<a data-a="down" data-id="${m.name}">↓</a>` : ""}
 									<a data-a="edit" data-id="${m.name}">✎</a>
+									<a data-a="tasks" data-id="${m.name}">📋 ${__("Tasks")}</a>
 									${m.status === "Upcoming" ? `<a data-a="start" data-id="${m.name}">▶ ${__("Start")}</a>` : ""}
 									${m.status === "In Progress" ? `<a data-a="ask" data-id="${m.name}" class="duty-cr-msask ${m.project && m.cards_total && m.cards_done === m.cards_total ? "glow" : ""}">🏁 ${__("Request approval")}${m.project && m.cards_total && m.cards_done === m.cards_total ? " — " + __("board complete!") : ""}</a>` : ""}
 									${m.status === "Awaiting Approval" ? `<b class="duty-cr-mswait">${__("client's move")}</b>` : ""}
@@ -2623,6 +2624,55 @@ class DutyBoard {
 						__("Tell the client this phase is complete and request their formal sign-off?"),
 						() => call("milestone_request_approval", { id: id })
 					);
+				if (a === "tasks") {
+					const m = (x.milestones || []).find((z) => z.name === id) || {};
+					frappe.call({
+						method: "duty_board.client_room.milestone_task_options",
+						args: { id: id },
+						callback: (r) => {
+							const opts = r.message || [];
+							const pd = new frappe.ui.Dialog({
+								title: `📋 ${frappe.utils.escape_html(m.title || "")} — ${__("tasks in this phase")}`,
+							});
+							$(pd.body).html(
+								opts.length
+									? opts
+											.map(
+												(o) => `
+									<label style="display:flex;gap:8px;align-items:baseline;padding:5px 2px;border-bottom:1px dashed var(--border-color);font-size:var(--text-sm)">
+										<input type="checkbox" value="${o.name}" ${o.checked ? "checked" : ""}>
+										<b>${frappe.utils.escape_html(o.title)}</b>
+										<span class="text-muted">${frappe.utils.escape_html(o.project_title)} · ${o.column}</span>
+										${o.elsewhere ? `<span class="duty-lead-chip">${__("in another phase")}</span>` : ""}
+									</label>`
+											)
+											.join("") +
+											`<p class="text-muted duty-attach-hint">${__("Ticked tasks appear under this phase on the client's plan — title and status become client-visible.")}</p>
+											<button type="button" class="btn btn-sm btn-primary duty-ms-tsave">${__("Save")}</button>`
+									: `<div class="text-muted">${__("No project tasks exist for this customer yet.")}</div>`
+							);
+							$(pd.body).find(".duty-ms-tsave").on("click", () => {
+								const picked = $(pd.body)
+									.find("input:checked")
+									.map((i, el) => el.value)
+									.get();
+								frappe.call({
+									method: "duty_board.client_room.milestone_set_tasks",
+									args: { id: id, tasks: JSON.stringify(picked) },
+									callback: (rr) => {
+										pd.hide();
+										if (rr.message) {
+											render(rr.message);
+											this.render_client_room(rr.message);
+										}
+									},
+								});
+							});
+							pd.show();
+						},
+					});
+					return;
+				}
 				if (a === "del")
 					return frappe.confirm(__("Delete this milestone?"), () =>
 						call("milestone_delete", { id: id })
@@ -2634,14 +2684,12 @@ class DutyBoard {
 							{ fieldname: "title", fieldtype: "Data", label: __("Title"), default: m.title, reqd: 1 },
 							{ fieldname: "description", fieldtype: "Small Text", label: __("Description (client-visible)"), default: m.description },
 							{ fieldname: "target_date", fieldtype: "Date", label: __("Target date"), default: m.target_date },
-							{ fieldname: "project", fieldtype: "Link", options: "Duty Project", label: __("Linked project (its board becomes this phase's evidence)"), default: m.project },
 						],
 						(v) =>
 							call("milestone_update", {
 								id: id, title: v.title,
 								description: v.description || "",
 								target_date: v.target_date || "",
-								project: v.project || "",
 							}),
 						__("Edit milestone"),
 						__("Save")

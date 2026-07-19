@@ -23,7 +23,11 @@
 	.hours { background: #ecfdf5; color: #0f766e; font-size: 12px; padding: 6px 18px; }
 	.wrap { max-width: 720px; margin: 0 auto; padding: 14px; }
 	@media (min-width: 900px) {
-		.wrap { max-width: 1560px; display: grid; grid-template-columns: minmax(480px, 5fr) 7fr; gap: 18px; align-items: start; }
+		.wrap { max-width: 1780px; display: grid; grid-template-columns: minmax(440px, 5fr) 7fr auto; gap: 18px; align-items: start; }
+		.rightcol { width: 330px; overflow-y: auto; height: 100%; min-height: 0; transition: width 0.25s; }
+		.rightcol:has(.card.folded) { width: 52px; }
+		.rightcol:has(.card.folded) .card { padding: 12px 8px; }
+		.rightcol .card.folded .t { display: none; }
 		.wrap > #err { grid-column: 1 / -1; }
 		.wrap > .card.tasks { position: sticky; top: 14px; }
 		.wrap > .card.docs { grid-column: 1; }
@@ -44,6 +48,7 @@
 	.tabbar { display: none; }
 	@media (max-width: 899px) {
 		body { padding-bottom: 64px; }
+		.rightcol { display: contents; }
 		.tabbar {
 			display: flex; position: fixed; bottom: 0; left: 0; right: 0; z-index: 90;
 			background: #fff; border-top: 1px solid #e5e7eb; box-shadow: 0 -2px 10px rgba(0,0,0,.06);
@@ -55,9 +60,10 @@
 		}
 		.tabbar a span { font-size: 20px; }
 		.tabbar a.active { color: #0F5C55; }
-		body[data-tab="chat"] .card.tasks, body[data-tab="chat"] .card.docs, body[data-tab="chat"] .card.meets, body[data-tab="chat"] .card.mstones { display: none; }
-		body[data-tab="tasks"] .card.chat, body[data-tab="tasks"] .card.docs { display: none; }
-		body[data-tab="docs"] .card.tasks, body[data-tab="docs"] .card.chat, body[data-tab="docs"] .card.meets, body[data-tab="docs"] .card.mstones { display: none; }
+		body[data-tab="chat"] .card:not(.chat) { display: none; }
+		body[data-tab="tasks"] .card:not(.tasks):not(.meets) { display: none; }
+		body[data-tab="plan"] .card:not(.mstones) { display: none; }
+		body[data-tab="docs"] .card:not(.docs) { display: none; }
 		body[data-tab="chat"] .msgs { max-height: calc(100vh - 330px); }
 		table.tt, table.tt tbody { display: block; width: 100%; }
 		table.tt tr:first-child { display: none; } /* headers retire; labels take over */
@@ -101,6 +107,9 @@
 	.ms .sig { font-size: 12px; color: #166534; background: #f0fdf4; border-radius: 8px; padding: 3px 9px; }
 	.ms .desc { width: 100%; font-size: 12px; color: #6b7280; margin-left: 26px; }
 	.ms button { background: #b45309; padding: 6px 14px; font-size: 13px; }
+	.mstasks { width: 100%; margin: 4px 0 2px 24px; display: flex; flex-direction: column; gap: 3px; }
+	.mst { display: flex; gap: 8px; align-items: baseline; font-size: 13px; }
+	.mst .pill { margin-left: auto; font-size: 10px; }
 	.mrow { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; margin: 6px 0; }
 	.mrow input { border: 1px solid #d1d5db; border-radius: 8px; padding: 7px 10px; font-size: 14px; font-family: inherit; }
 	.mrow label { font-size: 13px; display: flex; gap: 4px; align-items: center; background: #f1f5f9; border-radius: 99px; padding: 4px 10px; cursor: pointer; }
@@ -236,11 +245,6 @@
 			</div>
 		</div>
 	</div>
-	<div class="card mstones">
-		<h3 class="foldh" onclick="fold(this,'mstones')"><span class="fc">▾</span> 🏁 Project milestones</h3>
-		<div id="msbarwrap" style="display:none"><div id="msbar"><i></i></div><div id="mscount" class="muted"></div></div>
-		<div id="mstones"><span class="muted">No project phases defined yet.</span></div>
-	</div>
 	<div class="card meets">
 		<h3 class="foldh" onclick="fold(this,'meets')"><span class="fc">▾</span> 📅 Meetings</h3>
 		<div id="meets"><span class="muted">No meetings planned.</span></div>
@@ -283,11 +287,19 @@
 			<button onclick="send()">Send</button>
 		</div>
 	</div>
+	<div class="rightcol">
+	<div class="card mstones">
+		<h3 class="foldh" onclick="fold(this,'mstones')"><span class="fc">▾</span> 🏁 <span class="t">Project milestones</span></h3>
+		<div id="msbarwrap" style="display:none"><div id="msbar"><i></i></div><div id="mscount" class="muted"></div></div>
+		<div id="mstones"><span class="muted">No project phases defined yet.</span></div>
+	</div>
+	</div>
 	<p class="muted foot" style="text-align:center">Powered by Xlevel Retail Systems · CloudERP.One · <span id="xlv"></span></p>
 </div>
 <div class="tabbar">
 	<a data-tab="tasks" onclick="setTab('tasks')"><span>📋</span>Tasks</a>
 	<a data-tab="chat" onclick="setTab('chat')"><span>💬</span>Chat</a>
+	<a data-tab="plan" onclick="setTab('plan')"><span>🏁</span>Plan</a>
 	<a data-tab="docs" onclick="setTab('docs')"><span>📚</span>Docs</a>
 </div>
 <div id="ov" onclick="if(event.target===this)this.style.display='none'">
@@ -297,7 +309,7 @@
 </div>
 <script>
 const esc = (s) => (s || "").replace(/[&<>"']/g, (c) => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
-const XLV = "2.45.2";
+const XLV = "2.46.0";
 document.getElementById("xlv").textContent = "v" + XLV;
 console.log("Xlevel portal", XLV);
 let ROOM = localStorage.getItem("xl_room") || null;
@@ -542,6 +554,7 @@ function renderMilestones(rows) {
 				${m.status !== "Approved" && m.cards_total ? `<span class="muted" style="font-size:12px">📋 ${m.cards_done} of ${m.cards_total} tasks complete</span>` : ""}
 				${m.status === "Awaiting Approval" ? `<button onclick="approveMilestone('${esc(m.name)}','${esc(m.title)}')">✍ Approve this phase</button>` : ""}
 				${m.description ? `<div class="desc">${esc(m.description)}</div>` : ""}
+				${(m.tasks || []).length ? `<div class="mstasks">${m.tasks.map((t) => `<div class="mst"><span>${t.status === "Done" ? "✅" : t.status === "In Progress" ? "🔵" : "⚪"}</span>${esc(t.title)}<span class="pill ${PILL[t.status]}">${esc(t.status)}</span></div>`).join("")}</div>` : ""}
 			</div>`
 				)
 				.join("")

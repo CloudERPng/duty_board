@@ -1181,11 +1181,22 @@ def _milestone_rows(room):
 	for r in rows:
 		r.target_date = str(r.target_date) if r.target_date else None
 		r.approved_at = str(r.approved_at)[:16] if r.approved_at else None
-		if r.project:
-			r.cards_total = frappe.db.count("Duty Project Task", {"project": r.project})
-			r.cards_done = frappe.db.count(
-				"Duty Project Task", {"project": r.project, "column": "Completed"}
-			)
+		tasks = frappe.get_all(
+			"Duty Project Task",
+			filters={"milestone": r.name},
+			fields=["title", "column"],
+			order_by="creation asc",
+			limit=60,
+		)
+		r.tasks = [
+			{
+				"title": t.title,
+				"status": CLIENT_STATUS.get(t.column, "Queued"),
+			}
+			for t in tasks
+		]
+		r.cards_total = len(tasks)
+		r.cards_done = sum(1 for t in tasks if t.column == "Completed")
 	return rows
 
 
@@ -1234,6 +1245,55 @@ def milestone_add(name, title, description=None, target_date=None):
 	).insert(ignore_permissions=True)
 	frappe.db.commit()
 	return get_room(name)
+
+
+@frappe.whitelist()
+def milestone_task_options(id):
+	_staff_only()
+	ms = frappe.get_doc("Duty Milestone", id)
+	customer = frappe.db.get_value("Client Room", ms.room, "customer")
+	out = []
+	for p in frappe.get_all(
+		"Duty Project", filters={"customer": customer}, fields=["name", "title"]
+	):
+		for t in frappe.get_all(
+			"Duty Project Task",
+			filters={"project": p.name},
+			fields=["name", "title", "column", "milestone"],
+			order_by="creation asc",
+		):
+			out.append(
+				{
+					"name": t.name,
+					"title": t.title,
+					"project_title": p.title,
+					"column": t.column,
+					"checked": t.milestone == id,
+					"elsewhere": bool(t.milestone and t.milestone != id),
+				}
+			)
+	return out
+
+
+@frappe.whitelist()
+def milestone_set_tasks(id, tasks):
+	_staff_only()
+	ms = frappe.get_doc("Duty Milestone", id)
+	customer = frappe.db.get_value("Client Room", ms.room, "customer")
+	wanted = set(frappe.parse_json(tasks) or [])
+	for t in wanted:
+		proj = frappe.db.get_value("Duty Project Task", t, "project")
+		if frappe.db.get_value("Duty Project", proj, "customer") != customer:
+			frappe.throw(_("A selected task belongs to a different customer."))
+	current = set(
+		frappe.get_all("Duty Project Task", filters={"milestone": id}, pluck="name")
+	)
+	for t in current - wanted:
+		frappe.db.set_value("Duty Project Task", t, "milestone", None, update_modified=False)
+	for t in wanted - current:
+		frappe.db.set_value("Duty Project Task", t, "milestone", id, update_modified=False)
+	frappe.db.commit()
+	return get_room(ms.room)
 
 
 def _validate_milestone_project(room_name, project):
