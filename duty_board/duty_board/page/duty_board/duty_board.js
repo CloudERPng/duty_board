@@ -2051,12 +2051,26 @@ class DutyBoard {
 			$list.append(`<div class="text-muted duty-plan-empty">${__("No client rooms yet.")}</div>`);
 			return;
 		}
+		const cust_unread = {};
+		this._rooms.forEach((r) => {
+			cust_unread[r.customer] = (cust_unread[r.customer] || 0) + (r.unread || 0);
+		});
 		let prev_cust = null;
 		this._rooms.forEach((r) => {
+			const folded = localStorage.getItem("duty_cr_fold_" + r.customer) === "1";
 			if (r.customer !== prev_cust) {
 				prev_cust = r.customer;
-				$list.append(`<div class="duty-cr-cust">${frappe.utils.escape_html(r.customer)}</div>`);
+				$(`<div class="duty-cr-cust"><span class="duty-cr-caret">${folded ? "▸" : "▾"}</span> ${frappe.utils.escape_html(r.customer)}${folded && cust_unread[r.customer] ? ` <span class="duty-cr-unread">${cust_unread[r.customer]}</span>` : ""}</div>`)
+					.appendTo($list)
+					.on("click", () => {
+						localStorage.setItem(
+							"duty_cr_fold_" + r.customer,
+							folded ? "0" : "1"
+						);
+						this.render_room_list();
+					});
 			}
+			if (folded) return;
 			$(`
 				<a class="duty-cr-item ${r.name === this._open_room ? "active" : ""} ${r.status !== "Active" ? "duty-cr-frozen" : ""}">
 					<b style="color:${this.proj_color(r.name)}">${frappe.utils.escape_html(r.unit || "General")}${r.unread ? ` <span class="duty-cr-unread">${r.unread}</span>` : ""}</b>
@@ -4777,7 +4791,10 @@ class DutyBoard {
 			.duty-cr-cust {
 				font-size: var(--text-xs); font-weight: 800; color: var(--text-muted);
 				text-transform: uppercase; letter-spacing: 0.04em; margin: 10px 2px 2px;
+				cursor: pointer; user-select: none;
 			}
+			.duty-cr-cust:hover { color: var(--text-color); }
+			.duty-cr-caret { display: inline-block; width: 12px; color: var(--text-muted); }
 			.duty-cr-unitchip {
 				font-size: var(--text-xs); background: var(--bg-light-gray, #f1f5f9);
 				border-radius: 99px; padding: 2px 9px; font-weight: 700;
