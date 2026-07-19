@@ -1327,9 +1327,14 @@ class DutyBoard {
 			this.show_day_summary(data.day_summary);
 		}
 		this.dm_unread = data.dm_unread || this.dm_unread || {};
-		$(".duty-tab-clients")
-			.text(data.rooms_unread || 0)
-			.toggle((data.rooms_unread || 0) > 0);
+		const cr_attn = (data.rooms_unread || 0) + (data.rooms_joins || 0);
+		$(".duty-tab-clients").text(cr_attn).toggle(cr_attn > 0);
+		this._rooms_joins = data.rooms_joins || 0;
+		$(".duty-cr-barjoins").html(
+			this._rooms_joins
+				? ` <span class="duty-cr-joinpill">🙋 ${this._rooms_joins} ${__("waiting")}</span>`
+				: ""
+		);
 		this.my_todos = data.my_todos || [];
 		this.my_upcoming = data.my_upcoming || [];
 		this.overdue_count = data.overdue_count || 0;
@@ -2023,7 +2028,7 @@ class DutyBoard {
 		const $list = this.$clients.find(".duty-cr-list").empty();
 		const $bar = $(`
 			<div class="duty-cr-bar">
-				<b>🤝 ${__("Client Rooms")}</b>
+				<b>🤝 ${__("Client Rooms")}<span class="duty-cr-barjoins"></span></b>
 				<button class="btn btn-sm btn-primary duty-cr-new">＋ ${__("New Room")}</button>
 			</div>
 		`).appendTo($list);
@@ -2052,15 +2057,17 @@ class DutyBoard {
 			return;
 		}
 		const cust_unread = {};
+		const cust_joins = {};
 		this._rooms.forEach((r) => {
 			cust_unread[r.customer] = (cust_unread[r.customer] || 0) + (r.unread || 0);
+			cust_joins[r.customer] = (cust_joins[r.customer] || 0) + (r.join_requests || 0);
 		});
 		let prev_cust = null;
 		this._rooms.forEach((r) => {
 			const folded = localStorage.getItem("duty_cr_fold_" + r.customer) === "1";
 			if (r.customer !== prev_cust) {
 				prev_cust = r.customer;
-				$(`<div class="duty-cr-cust"><span class="duty-cr-caret">${folded ? "▸" : "▾"}</span> ${frappe.utils.escape_html(r.customer)}${folded && cust_unread[r.customer] ? ` <span class="duty-cr-unread">${cust_unread[r.customer]}</span>` : ""}</div>`)
+				$(`<div class="duty-cr-cust"><span class="duty-cr-caret">${folded ? "▸" : "▾"}</span> ${frappe.utils.escape_html(r.customer)}${folded && cust_unread[r.customer] ? ` <span class="duty-cr-unread">${cust_unread[r.customer]}</span>` : ""}${folded && cust_joins[r.customer] ? ` <span class="duty-cr-joinpill">🙋 ${cust_joins[r.customer]}</span>` : ""}</div>`)
 					.appendTo($list)
 					.on("click", () => {
 						localStorage.setItem(
@@ -2073,7 +2080,7 @@ class DutyBoard {
 			if (folded) return;
 			$(`
 				<a class="duty-cr-item ${r.name === this._open_room ? "active" : ""} ${r.status !== "Active" ? "duty-cr-frozen" : ""}">
-					<b style="color:${this.proj_color(r.name)}">${frappe.utils.escape_html(r.unit || "General")}${r.unread ? ` <span class="duty-cr-unread">${r.unread}</span>` : ""}</b>
+					<b style="color:${this.proj_color(r.name)}">${frappe.utils.escape_html(r.unit || "General")}${r.unread ? ` <span class="duty-cr-unread">${r.unread}</span>` : ""}${r.join_requests ? ` <span class="duty-cr-joinpill" title="${__("Join requests awaiting approval")}">🙋 ${r.join_requests}</span>` : ""}</b>
 					${r.status !== "Active" ? `<span class="duty-cr-status">${__(r.status)}</span>` : ""}
 					<span class="duty-cr-last">${frappe.utils.escape_html(r.last || "")}</span>
 					<span class="duty-cr-members">👥 ${r.members}</span>
@@ -4865,6 +4872,10 @@ class DutyBoard {
 			.duty-cr-unitchip {
 				font-size: var(--text-xs); background: var(--bg-light-gray, #f1f5f9);
 				border-radius: 99px; padding: 2px 9px; font-weight: 700;
+			}
+			.duty-cr-joinpill {
+				background: #fef3c7; color: #92400e; border-radius: 99px;
+				padding: 0 8px; font-size: 10px; font-weight: 700; white-space: nowrap;
 			}
 			.duty-cr-unread {
 				background: var(--red-500, #ef4444); color: #fff; border-radius: 99px;

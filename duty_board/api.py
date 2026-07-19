@@ -1300,6 +1300,15 @@ def delete_message(name):
 	return {"ok": True}
 
 
+def _rooms_joins_board_safe():
+	try:
+		from duty_board.client_room import _pending_joins_safe
+
+		return _pending_joins_safe()
+	except Exception:
+		return 0
+
+
 def _rooms_unread_board_safe(user):
 	try:
 		from duty_board.client_room import _rooms_unread_safe
@@ -1546,5 +1555,6 @@ def get_board():
 		"issues": issues,
 		"dm_unread": _dm_unread_safe(session),
 		"rooms_unread": _rooms_unread_board_safe(session),
+		"rooms_joins": _rooms_joins_board_safe(),
 		"server_time": str(now),
 	}

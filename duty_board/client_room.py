@@ -310,6 +310,9 @@ def get_rooms():
 		r.last_when = str(last[0].creation) if last else None
 		r.members = frappe.db.count("Client Room Member", {"room": r.name, "active": 1})
 		r.unread = _room_unread(r.name, frappe.session.user)
+		r.join_requests = frappe.db.count(
+			"Client Join Request", {"room": r.name, "status": "Pending"}
+		)
 	rooms.sort(key=lambda r: (r.customer, (r.unit or "General") != "General", r.unit or ""))
 	return rooms
 
@@ -974,6 +977,13 @@ def narrate_issue(issue_name, event):
 		_push_room_clients(room, f"{push_title} · Xlevel", row.title[:120])
 	except Exception:
 		pass
+
+
+def _pending_joins_safe():
+	try:
+		return frappe.db.count("Client Join Request", {"status": "Pending"})
+	except Exception:
+		return 0
 
 
 def _rooms_unread_safe(user):
