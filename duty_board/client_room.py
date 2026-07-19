@@ -295,7 +295,7 @@ def get_rooms():
 	rooms = frappe.get_all(
 		"Client Room",
 		filters={"status": ["!=", "Archived"]},
-		fields=["name", "customer", "status", "project"],
+		fields=["name", "customer", "unit", "status", "project"],
 		order_by="modified desc",
 	)
 	for r in rooms:
@@ -1025,6 +1025,47 @@ def mark_room_seen(name):
 		).insert(ignore_permissions=True)
 	frappe.db.commit()
 	return {"ok": True}
+
+
+@frappe.whitelist()
+def rename_room_unit(name, unit):
+	_staff_only()
+	room = frappe.get_doc("Client Room", name)
+	unit = (unit or "").strip()[:40]
+	if not unit:
+		frappe.throw(_("Give the room a name."))
+	clash = frappe.db.get_value(
+		"Client Room", {"customer": room.customer, "unit": unit, "name": ["!=", name]}
+	)
+	if clash:
+		frappe.throw(_("{0} already has a room called {1}.").format(room.customer, unit))
+	frappe.db.set_value("Client Room", name, "unit", unit, update_modified=False)
+	frappe.db.commit()
+	return get_room(name)
+
+
+@frappe.whitelist()
+def delete_room(name):
+	"""Full removal — System Manager only. Messages, members, shelf, meetings,
+	seen-markers and join requests go with it. Issues born here become loose
+	customer issues and surface in the General room."""
+	_staff_only()
+	if "System Manager" not in frappe.get_roles():
+		frappe.throw(_("Only a System Manager can delete a room."))
+	room = frappe.get_doc("Client Room", name)
+	for dt, field in [
+		("Client Room Message", "room"),
+		("Client Room Member", "room"),
+		("Client Room Seen", "room"),
+		("Client Join Request", "room"),
+		("Client Shelf Doc", "room"),
+		("Duty Meeting", "room"),
+	]:
+		for d in frappe.get_all(dt, filters={field: name}, pluck="name"):
+			frappe.delete_doc(dt, d, ignore_permissions=True, force=True)
+	frappe.delete_doc("Client Room", name, ignore_permissions=True, force=True)
+	frappe.db.commit()
+	return {"ok": True, "customer": room.customer}
 
 
 @frappe.whitelist()

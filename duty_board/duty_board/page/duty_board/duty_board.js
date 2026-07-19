@@ -2131,6 +2131,8 @@ class DutyBoard {
 					const seen = (x.members || []).map((m) => m.last_seen).filter(Boolean).sort().pop();
 					return seen ? `<span class="duty-cr-lastseen">👀 ${__("client seen")} ${frappe.datetime.comment_when(seen)}</span>` : "";
 				})()}
+				<a class="duty-cr-rename" title="${__("Rename room")}">✏</a>
+				<a class="duty-cr-delete" title="${__("Delete room (System Manager)")}">🗑</a>
 				<span class="duty-cr-tools">
 					<a class="duty-cr-shelfbtn">📚 ${__("Shelf")}</a>
 					<a class="duty-cr-membersbtn">👥 ${__("Members")}${(x.requests || []).length ? ` <b class="duty-cr-reqbadge">${x.requests.length}</b>` : ""}</a>
@@ -2438,6 +2440,40 @@ class DutyBoard {
 			$mt.empty();
 		}
 		$room.find(".duty-cr-shelfbtn").on("click", () => this.room_shelf_dialog(x));
+		$room.find(".duty-cr-rename").on("click", () =>
+			frappe.prompt(
+				{ fieldname: "unit", fieldtype: "Data", label: __("Room name"), default: x.unit || "General", reqd: 1 },
+				(v) =>
+					frappe.call({
+						method: "duty_board.client_room.rename_room_unit",
+						args: { name: x.name, unit: v.unit },
+						callback: (r) => {
+							if (r.message) this.render_client_room(r.message);
+							this.refresh_clients(true);
+						},
+					}),
+				__("Rename room"),
+				__("Rename")
+			)
+		);
+		$room.find(".duty-cr-delete").on("click", () =>
+			frappe.confirm(
+				__("Delete <b>{0} · {1}</b>?<br><br>All messages, members, shelf documents and meetings in this room are permanently removed. Client-visible issues survive and move to the General room.", [
+					frappe.utils.escape_html(x.customer),
+					frappe.utils.escape_html(x.unit || "General"),
+				]),
+				() =>
+					frappe.call({
+						method: "duty_board.client_room.delete_room",
+						args: { name: x.name },
+						callback: () => {
+							this._open_room = null;
+							this.refresh_clients();
+							frappe.show_alert({ message: __("Room deleted"), indicator: "orange" });
+						},
+					})
+			)
+		);
 		$room.find(".duty-cr-owner").on("click", () =>
 			frappe.prompt(
 				{
@@ -4808,6 +4844,8 @@ class DutyBoard {
 				padding: 2px 4px; min-height: 16px;
 			}
 			.duty-cr-owner { font-size: var(--text-xs); font-weight: 700; cursor: pointer; color: #b45309; }
+			.duty-cr-rename, .duty-cr-delete { cursor: pointer; font-size: var(--text-sm); opacity: 0.55; }
+			.duty-cr-rename:hover, .duty-cr-delete:hover { opacity: 1; }
 			.duty-cr-lastseen { font-size: var(--text-xs); color: var(--text-muted); }
 			.duty-issue-ack { cursor: pointer; font-weight: 700; }
 			.duty-cr-reqbadge {
