@@ -2517,11 +2517,12 @@ class DutyBoard {
 				<p class="text-muted duty-attach-hint">${__("New members get a welcome email with a password link. Their portal: {0}", ["<b>" + location.origin + "/portal</b>"])}</p>
 				<div class="duty-lead-section">📅 ${__("Bookable for meetings")}</div>
 				<div class="duty-cr-bookable">
-					${this.staff
-						.filter((s) => s.name !== "Administrator")
+					${[{ user: frappe.session.user, full_name: frappe.session.user_fullname || frappe.session.user }]
+						.concat(this.team_members() || [])
+						.filter((s, i, arr) => s.user !== "Administrator" && arr.findIndex((z) => z.user === s.user) === i)
 						.map(
 							(s) =>
-								`<label style="margin-right:12px;font-size:var(--text-sm)"><input type="checkbox" value="${s.name}" ${(data.meeting_staff || []).includes(s.name) ? "checked" : ""}> ${frappe.utils.escape_html((s.full_name || s.name).split(" ")[0])}</label>`
+								`<label style="margin-right:12px;font-size:var(--text-sm)"><input type="checkbox" value="${frappe.utils.escape_html(s.user)}" ${(data.meeting_staff || []).includes(s.user) ? "checked" : ""}> ${frappe.utils.escape_html((s.full_name || s.user).split(" ")[0])}</label>`
 						)
 						.join("")}
 					<button type="button" class="btn btn-sm btn-default duty-cr-booksave">${__("Save")}</button>
