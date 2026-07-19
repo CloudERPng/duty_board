@@ -17,6 +17,7 @@ scheduler_events = {
         "hourly": [
                 "duty_board.document_hub.doctype.client_document.client_document.alert_stale_checkouts",
                 "duty_board.client_room.meeting_reminders",
+                "duty_board.api.sla_warnings",
         ],
         
 }
