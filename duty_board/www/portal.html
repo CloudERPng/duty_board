@@ -55,9 +55,9 @@
 		}
 		.tabbar a span { font-size: 20px; }
 		.tabbar a.active { color: #0F5C55; }
-		body[data-tab="chat"] .card.tasks, body[data-tab="chat"] .card.docs, body[data-tab="chat"] .card.meets { display: none; }
+		body[data-tab="chat"] .card.tasks, body[data-tab="chat"] .card.docs, body[data-tab="chat"] .card.meets, body[data-tab="chat"] .card.mstones { display: none; }
 		body[data-tab="tasks"] .card.chat, body[data-tab="tasks"] .card.docs { display: none; }
-		body[data-tab="docs"] .card.tasks, body[data-tab="docs"] .card.chat, body[data-tab="docs"] .card.meets { display: none; }
+		body[data-tab="docs"] .card.tasks, body[data-tab="docs"] .card.chat, body[data-tab="docs"] .card.meets, body[data-tab="docs"] .card.mstones { display: none; }
 		body[data-tab="chat"] .msgs { max-height: calc(100vh - 330px); }
 		table.tt, table.tt tbody { display: block; width: 100%; }
 		table.tt tr:first-child { display: none; } /* headers retire; labels take over */
@@ -91,6 +91,16 @@
 		padding: 3px 12px; font-size: 12px; margin-bottom: 6px; }
 	.chip a { cursor: pointer; font-weight: 700; }
 	label.attach { cursor: pointer; font-size: 20px; align-self: center; }
+	#msbar { height: 8px; background: #f1f5f9; border-radius: 99px; overflow: hidden; margin: 6px 0 4px; }
+	#msbar i { display: block; height: 100%; background: #0F5C55; border-radius: 99px; transition: width 0.4s; }
+	#mscount { font-size: 12px; margin-bottom: 8px; }
+	.ms { display: flex; gap: 10px; padding: 9px 0; border-bottom: 1px dashed #eee; align-items: baseline; flex-wrap: wrap; font-size: 14px; }
+	.ms:last-child { border-bottom: none; }
+	.ms .dot { font-size: 15px; }
+	.ms b { flex: 0 1 auto; }
+	.ms .sig { font-size: 12px; color: #166534; background: #f0fdf4; border-radius: 8px; padding: 3px 9px; }
+	.ms .desc { width: 100%; font-size: 12px; color: #6b7280; margin-left: 26px; }
+	.ms button { background: #b45309; padding: 6px 14px; font-size: 13px; }
 	.mrow { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; margin: 6px 0; }
 	.mrow input { border: 1px solid #d1d5db; border-radius: 8px; padding: 7px 10px; font-size: 14px; font-family: inherit; }
 	.mrow label { font-size: 13px; display: flex; gap: 4px; align-items: center; background: #f1f5f9; border-radius: 99px; padding: 4px 10px; cursor: pointer; }
@@ -226,6 +236,11 @@
 			</div>
 		</div>
 	</div>
+	<div class="card mstones">
+		<h3 class="foldh" onclick="fold(this,'mstones')"><span class="fc">▾</span> 🏁 Project milestones</h3>
+		<div id="msbarwrap" style="display:none"><div id="msbar"><i></i></div><div id="mscount" class="muted"></div></div>
+		<div id="mstones"><span class="muted">No project phases defined yet.</span></div>
+	</div>
 	<div class="card meets">
 		<h3 class="foldh" onclick="fold(this,'meets')"><span class="fc">▾</span> 📅 Meetings</h3>
 		<div id="meets"><span class="muted">No meetings planned.</span></div>
@@ -282,7 +297,7 @@
 </div>
 <script>
 const esc = (s) => (s || "").replace(/[&<>"']/g, (c) => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
-const XLV = "2.43.3";
+const XLV = "2.45.0";
 document.getElementById("xlv").textContent = "v" + XLV;
 console.log("Xlevel portal", XLV);
 let ROOM = localStorage.getItem("xl_room") || null;
@@ -296,6 +311,7 @@ function setRoom(name) {
 	);
 	load();
 	loadMeetings();
+	loadMilestones();
 }
 function initRooms() {
 	api("client_my_rooms")
@@ -491,6 +507,46 @@ async function setupPush() {
 }
 setupPush();
 
+/* ---- milestones ---- */
+function loadMilestones() {
+	api("client_get_milestones").then(renderMilestones).catch(() => {});
+}
+function renderMilestones(rows) {
+	rows = rows || [];
+	const DOTS = { "Upcoming": "⚪", "In Progress": "🔵", "Awaiting Approval": "🟠", "Approved": "✅" };
+	const done = rows.filter((m) => m.status === "Approved").length;
+	const wrap = document.getElementById("msbarwrap");
+	if (rows.length) {
+		wrap.style.display = "block";
+		document.querySelector("#msbar i").style.width = Math.round((done / rows.length) * 100) + "%";
+		document.getElementById("mscount").textContent = `${done} of ${rows.length} phases approved`;
+	} else wrap.style.display = "none";
+	document.getElementById("mstones").innerHTML = rows.length
+		? rows
+				.map(
+					(m) => `
+			<div class="ms">
+				<span class="dot">${DOTS[m.status]}</span><b>${esc(m.title)}</b>
+				${m.target_date ? `<span class="muted" style="font-size:12px">🎯 ${esc(m.target_date)}</span>` : ""}
+				${m.status === "Approved" ? `<span class="sig">Signed off by ${esc(m.approved_full || "")} · ${esc(m.approved_at || "")}</span>` : ""}
+				${m.status !== "Approved" && m.cards_total ? `<span class="muted" style="font-size:12px">📋 ${m.cards_done} of ${m.cards_total} tasks complete</span>` : ""}
+				${m.status === "Awaiting Approval" ? `<button onclick="approveMilestone('${esc(m.name)}','${esc(m.title)}')">✍ Approve this phase</button>` : ""}
+				${m.description ? `<div class="desc">${esc(m.description)}</div>` : ""}
+			</div>`
+				)
+				.join("")
+		: '<span class="muted">No project phases defined yet.</span>';
+}
+function approveMilestone(id, title) {
+	const note = prompt(
+		`You are formally approving the phase:\n\n“${title}”\n\nThis records your sign-off permanently, with your name and the date.\n\nOptional comment (or leave blank):`
+	);
+	if (note === null) return;
+	api("client_approve_milestone", { id: id, note: note || null })
+		.then(renderMilestones)
+		.catch(fail);
+}
+
 /* ---- meetings ---- */
 let MSTAFF = [], MSLOT = null;
 function loadMeetings() {
@@ -527,6 +583,7 @@ document.addEventListener("DOMContentLoaded", () => {
 	md.addEventListener("change", mSlots);
 	initRooms();
 	loadMeetings();
+	loadMilestones();
 });
 function mSlots() {
 	MSLOT = null;

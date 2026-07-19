@@ -308,6 +308,38 @@ class TestDutyBoardCore(FrappeTestCase):
 		self.assertIn("loose customer issue", g_titles, "General sweeps the unclaimed")
 		self.assertNotIn("loose customer issue", h_titles)
 
+	def test_approved_milestone_is_immutable(self):
+		room_name = client_room.create_room(self._any_customer())
+		room = frappe.get_doc("Client Room", room_name)
+		client_room.milestones_seed(room_name)
+		rows = client_room._milestone_rows(room)
+		self.assertEqual(len(rows), 7, "the Xlevel method has seven phases")
+		m = rows[0]
+		frappe.db.set_value("Duty Milestone", m.name, {
+			"status": "Approved", "approved_full": "Test Client",
+		}, update_modified=False)
+		with self.assertRaises(frappe.ValidationError):
+			client_room.milestone_update(m.name, title="tamper attempt")
+		with self.assertRaises(frappe.ValidationError):
+			client_room.milestone_delete(m.name)
+		with self.assertRaises(frappe.ValidationError):
+			client_room.milestone_request_approval(m.name)
+		self.assertEqual(
+			frappe.db.get_value("Duty Milestone", m.name, "title"), rows[0].title
+		)
+
+	def test_milestone_project_customer_guard(self):
+		room_name = client_room.create_room(self._any_customer())
+		other_cust = frappe.get_doc({
+			"doctype": "Customer", "customer_name": "Milestone Guard Other Ltd",
+		}).insert(ignore_permissions=True)
+		stray = frappe.get_doc({
+			"doctype": "Duty Project", "title": "stray project",
+			"customer": other_cust.name,
+		}).insert(ignore_permissions=True)
+		with self.assertRaises(frappe.ValidationError):
+			client_room._validate_milestone_project(room_name, stray.name)
+
 	def test_move_task_rejects_unknown_column(self):
 		proj = projects.create_project("__Unit Test Project 2", customer=self._any_customer())
 		board = projects.create_task(proj, "Column guard")

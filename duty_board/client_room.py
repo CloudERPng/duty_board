@@ -369,6 +369,7 @@ def get_room(name, before=None):
 		"join_url": f"{frappe.utils.get_url()}/join?token={_ensure_token(room)}",
 		"shelf": _shelf_rows(room),
 		"meetings": _meeting_rows(room),
+		"milestones": _milestone_rows(room),
 		"unsettled": [
 			dict(
 				u,
@@ -1143,6 +1144,254 @@ def _issue_home_room(row):
 		as_dict=True,
 	)
 	return any_room
+
+
+# ---------------- milestones: the governance layer ----------------
+
+XLEVEL_METHOD = [
+	("Discovery", "Requirements gathered, current processes documented, scope agreed."),
+	("Configuration", "System configured to your business: masters, workflows, permissions."),
+	("Data Migration", "Your historical data cleaned, migrated and reconciled."),
+	("Training", "Your team trained and confident on their daily operations."),
+	("User Acceptance Testing", "You test real scenarios end-to-end and confirm readiness."),
+	("Go-Live", "The system becomes your live system of record."),
+	("Hypercare", "Intensive post-go-live support until stability is confirmed."),
+]
+
+
+def _milestone_locked(doc):
+	if doc.status == "Approved":
+		frappe.throw(
+			_("“{0}” has been formally approved by the client and can no longer be changed.").format(
+				doc.title
+			)
+		)
+
+
+def _milestone_rows(room):
+	rows = frappe.get_all(
+		"Duty Milestone",
+		filters={"room": room.name},
+		fields=[
+			"name", "title", "description", "sort_order", "status", "target_date",
+			"approved_full", "approved_at", "approval_note", "submitted_on", "project",
+		],
+		order_by="sort_order asc, creation asc",
+	)
+	for r in rows:
+		r.target_date = str(r.target_date) if r.target_date else None
+		r.approved_at = str(r.approved_at)[:16] if r.approved_at else None
+		if r.project:
+			r.cards_total = frappe.db.count("Duty Project Task", {"project": r.project})
+			r.cards_done = frappe.db.count(
+				"Duty Project Task", {"project": r.project, "column": "Completed"}
+			)
+	return rows
+
+
+@frappe.whitelist()
+def milestones_seed(name):
+	_staff_only()
+	room = frappe.get_doc("Client Room", name)
+	if frappe.db.count("Duty Milestone", {"room": room.name}):
+		frappe.throw(_("This room already has milestones."))
+	for i, (title, desc) in enumerate(XLEVEL_METHOD):
+		frappe.get_doc(
+			{
+				"doctype": "Duty Milestone",
+				"room": room.name,
+				"title": title,
+				"description": desc,
+				"sort_order": i,
+				"status": "Upcoming",
+			}
+		).insert(ignore_permissions=True)
+	frappe.db.commit()
+	return get_room(name)
+
+
+@frappe.whitelist()
+def milestone_add(name, title, description=None, target_date=None):
+	_staff_only()
+	room = frappe.get_doc("Client Room", name)
+	title = (title or "").strip()
+	if not title:
+		frappe.throw(_("Give the milestone a title."))
+	last = frappe.db.sql(
+		"select coalesce(max(sort_order), -1) from `tabDuty Milestone` where room = %s",
+		room.name,
+	)[0][0]
+	frappe.get_doc(
+		{
+			"doctype": "Duty Milestone",
+			"room": room.name,
+			"title": title[:120],
+			"description": (description or "").strip()[:500] or None,
+			"target_date": target_date or None,
+			"sort_order": last + 1,
+			"status": "Upcoming",
+		}
+	).insert(ignore_permissions=True)
+	frappe.db.commit()
+	return get_room(name)
+
+
+def _validate_milestone_project(room_name, project):
+	if not project:
+		return None
+	cust = frappe.db.get_value("Duty Project", project, "customer")
+	room_cust = frappe.db.get_value("Client Room", room_name, "customer")
+	if cust != room_cust:
+		frappe.throw(_("That project belongs to a different customer."))
+	return project
+
+
+@frappe.whitelist()
+def milestone_update(id, title=None, description=None, target_date=None, project=None):
+	_staff_only()
+	doc = frappe.get_doc("Duty Milestone", id)
+	_milestone_locked(doc)
+	vals = {}
+	if project is not None:
+		vals["project"] = _validate_milestone_project(doc.room, project or None)
+	if title is not None:
+		title = title.strip()
+		if not title:
+			frappe.throw(_("Give the milestone a title."))
+		vals["title"] = title[:120]
+	if description is not None:
+		vals["description"] = description.strip()[:500] or None
+	if target_date is not None:
+		vals["target_date"] = target_date or None
+	if vals:
+		frappe.db.set_value("Duty Milestone", id, vals, update_modified=False)
+		frappe.db.commit()
+	return get_room(doc.room)
+
+
+@frappe.whitelist()
+def milestone_move(id, direction):
+	_staff_only()
+	doc = frappe.get_doc("Duty Milestone", id)
+	siblings = frappe.get_all(
+		"Duty Milestone",
+		filters={"room": doc.room},
+		fields=["name", "sort_order"],
+		order_by="sort_order asc, creation asc",
+	)
+	idx = next(i for i, s in enumerate(siblings) if s.name == id)
+	swap = idx - 1 if direction == "up" else idx + 1
+	if 0 <= swap < len(siblings):
+		a, b = siblings[idx], siblings[swap]
+		frappe.db.set_value("Duty Milestone", a.name, "sort_order", b.sort_order, update_modified=False)
+		frappe.db.set_value("Duty Milestone", b.name, "sort_order", a.sort_order, update_modified=False)
+		frappe.db.commit()
+	return get_room(doc.room)
+
+
+@frappe.whitelist()
+def milestone_set_status(id, status):
+	_staff_only()
+	if status not in ("Upcoming", "In Progress"):
+		frappe.throw(_("Use Request approval for that."))
+	doc = frappe.get_doc("Duty Milestone", id)
+	_milestone_locked(doc)
+	frappe.db.set_value("Duty Milestone", id, "status", status, update_modified=False)
+	frappe.db.commit()
+	if status == "In Progress":
+		room = frappe.get_doc("Client Room", doc.room)
+		_post(room, _("🏁 Phase started: “{0}”").format(doc.title))
+		_push_room_clients(room, _("🏁 Phase started · Xlevel"), doc.title[:120])
+	return get_room(doc.room)
+
+
+@frappe.whitelist()
+def milestone_request_approval(id):
+	_staff_only()
+	doc = frappe.get_doc("Duty Milestone", id)
+	_milestone_locked(doc)
+	frappe.db.set_value(
+		"Duty Milestone",
+		id,
+		{"status": "Awaiting Approval", "submitted_on": now_datetime()},
+		update_modified=False,
+	)
+	frappe.db.commit()
+	room = frappe.get_doc("Client Room", doc.room)
+	_post(
+		room,
+		_("🏁 “{0}” is complete and awaits your formal approval — open Milestones on your portal.").format(
+			doc.title
+		),
+	)
+	_push_room_clients(
+		room, _("🏁 Your approval requested · Xlevel"), doc.title[:120]
+	)
+	return get_room(doc.room)
+
+
+@frappe.whitelist()
+def milestone_delete(id):
+	_staff_only()
+	doc = frappe.get_doc("Duty Milestone", id)
+	_milestone_locked(doc)
+	room = doc.room
+	frappe.delete_doc("Duty Milestone", id, ignore_permissions=True, force=True)
+	frappe.db.commit()
+	return get_room(room)
+
+
+@frappe.whitelist()
+def client_get_milestones():
+	room = _client_room()
+	return _milestone_rows(room)
+
+
+@frappe.whitelist()
+def client_approve_milestone(id, note=None):
+	room = _client_room()
+	doc = frappe.get_doc("Duty Milestone", id)
+	if doc.room != room.name:
+		frappe.throw(_("Not found."), frappe.PermissionError)
+	if doc.status != "Awaiting Approval":
+		frappe.throw(_("This phase is not awaiting approval."))
+	full = frappe.utils.get_fullname(frappe.session.user)
+	frappe.db.set_value(
+		"Duty Milestone",
+		id,
+		{
+			"status": "Approved",
+			"approved_by": frappe.session.user,
+			"approved_full": full,
+			"approved_at": now_datetime(),
+			"approval_note": (note or "").strip()[:300] or None,
+		},
+		update_modified=False,
+	)
+	frappe.db.commit()
+	stamp = frappe.utils.format_datetime(now_datetime(), "d MMM yyyy HH:mm")
+	_post(
+		room,
+		_("✅ PHASE APPROVED: “{0}” — formally signed off by {1} on {2}{3}").format(
+			doc.title, full, stamp, f' — “{note.strip()[:200]}”' if note else ""
+		),
+	)
+	try:
+		from duty_board.api import _notify_user
+
+		for u in frappe.get_all(
+			"User", filters={"enabled": 1, "user_type": "System User"}, fields=["name"]
+		):
+			if frappe.db.exists("Duty Push Subscription", {"user": u.name}):
+				_notify_user(
+					u.name,
+					_("✅ {0} approved “{1}”").format(room.customer, doc.title),
+					full,
+				)
+	except Exception:
+		pass
+	frappe.publish_realtime("duty_client_room", {"room": room.name})
+	return _milestone_rows(room)
 
 
 # ---------------- meetings ----------------

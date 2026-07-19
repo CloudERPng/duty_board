@@ -2196,6 +2196,7 @@ class DutyBoard {
 					.join("")}
 				<a class="duty-cr-openissues">⚠ ${__("Open issue register for {0}", [frappe.utils.escape_html(x.customer)])} ›</a>
 			</div>
+			<div class="duty-cr-mstones"></div>
 			<div class="duty-cr-meetings"></div>
 			<div class="duty-cr-unsettled"></div>
 			</div>
@@ -2427,6 +2428,23 @@ class DutyBoard {
 		} else if ($us.length) {
 			$us.empty();
 		}
+		const $ms = $room.find(".duty-cr-mstones");
+		if ($ms.length) {
+			const mst = x.milestones || [];
+			const done = mst.filter((m) => m.status === "Approved").length;
+			const waiting = mst.filter((m) => m.status === "Awaiting Approval").length;
+			const current = mst.find((m) => m.status === "In Progress");
+			$ms.html(`
+				<div class="duty-lead-section">🏁 ${__("Milestones")} <a class="duty-cr-msmanage">${__("Manage")}</a></div>
+				${mst.length
+					? `<div class="duty-cr-msline">
+							<div class="duty-cr-msbar"><i style="width:${Math.round((done / mst.length) * 100)}%"></i></div>
+							<span>${done}/${mst.length} ${__("approved")}${waiting ? ` · <b class="duty-cr-mswait">⏳ ${waiting} ${__("awaiting client")}</b>` : ""}${current ? ` · 🔵 ${frappe.utils.escape_html(current.title)}` : ""}</span>
+						</div>`
+					: `<div class="text-muted" style="font-size:var(--text-sm)">${__("No milestones yet — Manage to seed the Xlevel method.")}</div>`}
+			`);
+			$ms.find(".duty-cr-msmanage").on("click", () => this.milestones_dialog(x));
+		}
 		const $mt = $room.find(".duty-cr-meetings");
 		if ($mt.length && (x.meetings || []).length) {
 			$mt.html(
@@ -2529,6 +2547,110 @@ class DutyBoard {
 				callback: () => this.load_client_room(x.name),
 			})
 		);
+	}
+
+	milestones_dialog(x) {
+		const d = new frappe.ui.Dialog({ title: `🏁 ${x.customer} — ${__("Milestones")}`, size: "large" });
+		const CHIP = {
+			"Upcoming": ["⚪", "#6b7280"], "In Progress": ["🔵", "#0E7490"],
+			"Awaiting Approval": ["🟠", "#b45309"], "Approved": ["✅", "#15803d"],
+		};
+		const render = (data) => {
+			const mst = data.milestones || [];
+			$(d.body).html(`
+				<div class="duty-cr-mslist">
+					${mst
+						.map((m, i) => {
+							const [icon, color] = CHIP[m.status];
+							const locked = m.status === "Approved";
+							return `
+						<div class="duty-cr-msrow ${locked ? "locked" : ""}">
+							<span style="color:${color};white-space:nowrap">${icon} <b>${frappe.utils.escape_html(m.title)}</b></span>
+							${m.target_date ? `<span class="text-muted">🎯 ${m.target_date}</span>` : ""}
+							${m.project && m.cards_total ? `<span class="duty-cr-msev ${m.cards_done === m.cards_total ? "ready" : ""}">📋 ${m.cards_done}/${m.cards_total} ${__("tasks")}</span>` : ""}
+							${locked
+								? `<span class="duty-cr-mssig">${__("Signed off by")} <b>${frappe.utils.escape_html(m.approved_full || "")}</b> · ${m.approved_at}${m.approval_note ? ` · “${frappe.utils.escape_html(m.approval_note)}”` : ""}</span>`
+								: `<span class="duty-cr-msacts">
+									${i > 0 ? `<a data-a="up" data-id="${m.name}">↑</a>` : ""}
+									${i < mst.length - 1 ? `<a data-a="down" data-id="${m.name}">↓</a>` : ""}
+									<a data-a="edit" data-id="${m.name}">✎</a>
+									${m.status === "Upcoming" ? `<a data-a="start" data-id="${m.name}">▶ ${__("Start")}</a>` : ""}
+									${m.status === "In Progress" ? `<a data-a="ask" data-id="${m.name}" class="duty-cr-msask ${m.project && m.cards_total && m.cards_done === m.cards_total ? "glow" : ""}">🏁 ${__("Request approval")}${m.project && m.cards_total && m.cards_done === m.cards_total ? " — " + __("board complete!") : ""}</a>` : ""}
+									${m.status === "Awaiting Approval" ? `<b class="duty-cr-mswait">${__("client's move")}</b>` : ""}
+									<a data-a="del" data-id="${m.name}" style="color:var(--red-600,#dc2626)">🗑</a>
+								</span>`}
+							${m.description ? `<div class="duty-cr-msdesc text-muted">${frappe.utils.escape_html(m.description)}</div>` : ""}
+						</div>`;
+						})
+						.join("") || ""}
+				</div>
+				${!mst.length ? `<button type="button" class="btn btn-sm btn-primary duty-cr-msseed">🏁 ${__("Seed the Xlevel method (7 phases)")}</button>` : ""}
+				<div class="duty-lead-section">＋ ${__("Add milestone")}</div>
+				<div class="duty-cr-addmem" style="flex-wrap:wrap">
+					<input type="text" class="form-control input-sm duty-ms-title" placeholder="${__("Title")}" style="flex:2">
+					<input type="date" class="form-control input-sm duty-ms-date" style="flex:1">
+					<button type="button" class="btn btn-sm btn-primary duty-ms-add">＋</button>
+				</div>
+				<p class="text-muted duty-attach-hint">${__("Approved phases are permanent — they are the client's formal sign-off and cannot be edited or deleted.")}</p>
+			`);
+			const call = (method, args) =>
+				frappe.call({
+					method: "duty_board.client_room." + method,
+					args: args,
+					callback: (r) => {
+						if (r.message) {
+							render(r.message);
+							this.render_client_room(r.message);
+						}
+					},
+				});
+			$(d.body).find(".duty-cr-msseed").on("click", () => call("milestones_seed", { name: x.name }));
+			$(d.body).find(".duty-ms-add").on("click", () => {
+				const t = $(d.body).find(".duty-ms-title").val().trim();
+				if (!t) return;
+				call("milestone_add", {
+					name: x.name, title: t,
+					target_date: $(d.body).find(".duty-ms-date").val() || null,
+				});
+			});
+			$(d.body).find(".duty-cr-msacts a").on("click", (e) => {
+				const a = $(e.currentTarget).data("a");
+				const id = $(e.currentTarget).data("id");
+				if (a === "up" || a === "down") return call("milestone_move", { id: id, direction: a });
+				if (a === "start") return call("milestone_set_status", { id: id, status: "In Progress" });
+				if (a === "ask")
+					return frappe.confirm(
+						__("Tell the client this phase is complete and request their formal sign-off?"),
+						() => call("milestone_request_approval", { id: id })
+					);
+				if (a === "del")
+					return frappe.confirm(__("Delete this milestone?"), () =>
+						call("milestone_delete", { id: id })
+					);
+				if (a === "edit") {
+					const m = (x.milestones || []).find((z) => z.name === id) || {};
+					frappe.prompt(
+						[
+							{ fieldname: "title", fieldtype: "Data", label: __("Title"), default: m.title, reqd: 1 },
+							{ fieldname: "description", fieldtype: "Small Text", label: __("Description (client-visible)"), default: m.description },
+							{ fieldname: "target_date", fieldtype: "Date", label: __("Target date"), default: m.target_date },
+							{ fieldname: "project", fieldtype: "Link", options: "Duty Project", label: __("Linked project (its board becomes this phase's evidence)"), default: m.project },
+						],
+						(v) =>
+							call("milestone_update", {
+								id: id, title: v.title,
+								description: v.description || "",
+								target_date: v.target_date || "",
+								project: v.project || "",
+							}),
+						__("Edit milestone"),
+						__("Save")
+					);
+				}
+			});
+		};
+		render(x);
+		d.show();
 	}
 
 	room_shelf_dialog(x) {
@@ -4863,6 +4985,20 @@ class DutyBoard {
 			.duty-cr-joinlink { display: flex; gap: 6px; }
 			.duty-cr-approve { color: var(--green-600, #16a34a); font-weight: 700; cursor: pointer; margin-left: auto; }
 			.duty-cr-rejectq { color: var(--red-600, #dc2626); font-weight: 700; cursor: pointer; }
+			.duty-cr-msline { display: flex; flex-direction: column; gap: 4px; font-size: var(--text-sm); margin-bottom: 8px; }
+			.duty-cr-msbar { height: 7px; background: var(--bg-light-gray, #f1f5f9); border-radius: 99px; overflow: hidden; }
+			.duty-cr-msbar i { display: block; height: 100%; background: #0F5C55; border-radius: 99px; }
+			.duty-cr-mswait { color: #b45309; }
+			.duty-cr-msmanage { float: right; cursor: pointer; font-size: var(--text-xs); font-weight: 700; }
+			.duty-cr-msrow { padding: 8px 4px; border-bottom: 1px dashed var(--border-color); display: flex; gap: 10px; align-items: baseline; flex-wrap: wrap; }
+			.duty-cr-msrow.locked { background: #f0fdf4; border-radius: 8px; }
+			.duty-cr-mssig { font-size: var(--text-xs); color: #166534; }
+			.duty-cr-msacts a { margin-right: 8px; cursor: pointer; font-weight: 700; }
+			.duty-cr-msask { color: #b45309; }
+			.duty-cr-msask.glow { background: #fef3c7; border-radius: 8px; padding: 2px 8px; }
+			.duty-cr-msev { font-size: var(--text-xs); background: var(--bg-light-gray, #f1f5f9); border-radius: 99px; padding: 2px 9px; }
+			.duty-cr-msev.ready { background: #dcfce7; color: #166534; font-weight: 700; }
+			.duty-cr-msdesc { width: 100%; font-size: var(--text-xs); }
 			.duty-cr-meeting {
 				display: flex; gap: 8px; align-items: center; font-size: var(--text-sm);
 				padding: 4px 0; border-bottom: 1px dashed var(--border-color); flex-wrap: wrap;
