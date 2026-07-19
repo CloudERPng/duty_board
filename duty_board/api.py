@@ -655,6 +655,193 @@ def _issue_member_check(doc):
 		frappe.throw(_("Only the raiser or an assignee can update this issue."))
 
 
+# ---------------- knowledge: kb, similar work, team load, on-call ----------------
+
+
+@frappe.whitelist()
+def kb_promote(issue, title=None, problem=None, solution=None, product=None):
+	doc = frappe.get_doc("Duty Issue", issue)
+	solution = (solution or doc.resolution or "").strip()
+	if not solution:
+		frappe.throw(_("Write the solution before promoting to the knowledge base."))
+	art = frappe.get_doc(
+		{
+			"doctype": "Duty KB Article",
+			"title": (title or doc.title).strip()[:140],
+			"product": (product or "").strip()[:60] or None,
+			"problem": (problem or doc.description or "").strip() or None,
+			"solution": solution,
+			"source_issue": issue,
+			"active": 1,
+		}
+	).insert(ignore_permissions=True)
+	frappe.db.commit()
+	return {"name": art.name}
+
+
+@frappe.whitelist()
+def kb_search(query):
+	query = (query or "").strip()
+	if len(query) < 2:
+		return []
+	like = f"%{query}%"
+	rows = frappe.get_all(
+		"Duty KB Article",
+		filters={"active": 1},
+		or_filters=[
+			{"title": ["like", like]},
+			{"problem": ["like", like]},
+			{"solution": ["like", like]},
+			{"product": ["like", like]},
+		],
+		fields=["name", "title", "product", "problem", "solution", "source_issue"],
+		order_by="modified desc",
+		limit=12,
+	)
+	return rows
+
+
+def _title_tokens(title):
+	import re
+
+	stop = {"the", "and", "for", "with", "from", "not", "issue", "error", "problem"}
+	return [
+		w
+		for w in re.findall(r"[a-zA-Z]{4,}", (title or "").lower())
+		if w not in stop
+	][:6]
+
+
+@frappe.whitelist()
+def similar_issues(name):
+	doc = frappe.get_doc("Duty Issue", name)
+	tokens = _title_tokens(doc.title)
+	if not tokens:
+		return {"issues": [], "kb": []}
+	or_issues = [{"title": ["like", f"%{t}%"]} for t in tokens]
+	rows = frappe.get_all(
+		"Duty Issue",
+		filters={"name": ["!=", name], "status": ["in", ["Resolved", "Closed"]]},
+		or_filters=or_issues,
+		fields=["name", "title", "customer", "resolution", "resolved_at"],
+		order_by="resolved_at desc",
+		limit=5,
+	)
+	for r in rows:
+		r.resolved_at = str(r.resolved_at)[:10] if r.resolved_at else None
+		r.resolution = (r.resolution or "")[:220]
+	kb = frappe.get_all(
+		"Duty KB Article",
+		filters={"active": 1},
+		or_filters=[{"title": ["like", f"%{t}%"]} for t in tokens],
+		fields=["name", "title", "product", "solution"],
+		limit=4,
+	)
+	for k in kb:
+		k.solution = (k.solution or "")[:220]
+	return {"issues": rows, "kb": kb}
+
+
+@frappe.whitelist()
+def staff_workload():
+	staff = frappe.get_all(
+		"User",
+		filters={"enabled": 1, "user_type": "System User"},
+		fields=["name", "full_name"],
+	)
+	skills = {}
+	for s in frappe.get_all("Duty Staff Skill", fields=["name", "user", "skill"]):
+		skills.setdefault(s.user, []).append({"name": s.name, "skill": s.skill})
+	out = []
+	for u in staff:
+		if u.name in ("Administrator", "Guest"):
+			continue
+		assigned = frappe.get_all(
+			"Duty Issue Assignee",
+			filters={"user": u.name},
+			pluck="parent",
+		)
+		open_n = prog_n = 0
+		if assigned:
+			open_n = frappe.db.count(
+				"Duty Issue", {"name": ["in", assigned], "status": "Open"}
+			)
+			prog_n = frappe.db.count(
+				"Duty Issue", {"name": ["in", assigned], "status": "In Progress"}
+			)
+		out.append(
+			{
+				"user": u.name,
+				"full_name": u.full_name or u.name,
+				"open": open_n,
+				"in_progress": prog_n,
+				"skills": skills.get(u.name, []),
+			}
+		)
+	out.sort(key=lambda r: -(r["open"] + r["in_progress"]))
+	return out
+
+
+@frappe.whitelist()
+def skill_add(user, skill):
+	skill = (skill or "").strip()[:60]
+	if not skill:
+		frappe.throw(_("Name the skill."))
+	if user != frappe.session.user and "System Manager" not in frappe.get_roles():
+		frappe.throw(_("You can only edit your own skills."))
+	if not frappe.db.exists("Duty Staff Skill", {"user": user, "skill": skill}):
+		frappe.get_doc(
+			{"doctype": "Duty Staff Skill", "user": user, "skill": skill}
+		).insert(ignore_permissions=True)
+		frappe.db.commit()
+	return staff_workload()
+
+
+@frappe.whitelist()
+def skill_remove(name):
+	row = frappe.get_doc("Duty Staff Skill", name)
+	if row.user != frappe.session.user and "System Manager" not in frappe.get_roles():
+		frappe.throw(_("You can only edit your own skills."))
+	frappe.delete_doc("Duty Staff Skill", name, ignore_permissions=True, force=True)
+	frappe.db.commit()
+	return staff_workload()
+
+
+@frappe.whitelist()
+def set_on_call(user):
+	if "System Manager" not in frappe.get_roles():
+		frappe.throw(_("Only a System Manager can set the on-call person."))
+	frappe.db.set_value("Duty Settings", "Duty Settings", "on_call_user", user or None)
+	frappe.db.commit()
+	frappe.get_cached_doc("Duty Settings").reload()
+	return {"ok": True}
+
+
+def on_call_info():
+	try:
+		u = frappe.get_cached_doc("Duty Settings").get("on_call_user")
+		if u:
+			return {
+				"user": u,
+				"first": frappe.utils.get_fullname(u).split(" ")[0],
+			}
+	except Exception:
+		pass
+	return None
+
+
+def notify_on_call(title, body):
+	"""Out-of-hours urgent escalation to the named person."""
+	info = on_call_info()
+	if not info:
+		return
+	now = now_datetime()
+	in_hours = now.weekday() < 5 and BH_START <= now.hour < BH_END
+	if in_hours:
+		return
+	_notify_user(info["user"], _("🌙 OUT-OF-HOURS · {0}").format(title), body)
+
+
 # ---------------- SLA engine: promises in business hours ----------------
 # Business hours: Mon-Fri 09:00-18:00 site time. (ack_hours, resolve_hours)
 SLA_DEFAULTS = {
@@ -1757,5 +1944,6 @@ def get_board():
 		"dm_unread": _dm_unread_safe(session),
 		"rooms_unread": _rooms_unread_board_safe(session),
 		"rooms_joins": _rooms_joins_board_safe(),
+		"on_call": on_call_info(),
 		"server_time": str(now),
 	}

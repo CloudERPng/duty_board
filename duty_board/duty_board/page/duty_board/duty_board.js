@@ -1327,6 +1327,7 @@ class DutyBoard {
 			this.show_day_summary(data.day_summary);
 		}
 		this.dm_unread = data.dm_unread || this.dm_unread || {};
+		this._on_call = data.on_call || null;
 		const cr_attn = (data.rooms_unread || 0) + (data.rooms_joins || 0);
 		$(".duty-tab-clients").text(cr_attn).toggle(cr_attn > 0);
 		this._rooms_joins = data.rooms_joins || 0;
@@ -2089,7 +2090,7 @@ class DutyBoard {
 			if (folded) return;
 			$(`
 				<a class="duty-cr-item ${r.name === this._open_room ? "active" : ""} ${r.status !== "Active" ? "duty-cr-frozen" : ""}">
-					<b style="color:${this.proj_color(r.name)}">${frappe.utils.escape_html(r.unit || "General")}${r.unread ? ` <span class="duty-cr-unread">${r.unread}</span>` : ""}${r.join_requests ? ` <span class="duty-cr-joinpill" title="${__("Join requests awaiting approval")}">🙋 ${r.join_requests}</span>` : ""}</b>
+					<b style="color:${this.proj_color(r.name)}">${r.health ? `<span class="duty-health duty-health-${r.health.state}" title="${frappe.utils.escape_html((r.health.reasons || []).join(" · ") || __("healthy"))}">●</span> ` : ""}${frappe.utils.escape_html(r.unit || "General")}${r.unread ? ` <span class="duty-cr-unread">${r.unread}</span>` : ""}${r.join_requests ? ` <span class="duty-cr-joinpill" title="${__("Join requests awaiting approval")}">🙋 ${r.join_requests}</span>` : ""}</b>
 					${r.status !== "Active" ? `<span class="duty-cr-status">${__(r.status)}</span>` : ""}
 					<span class="duty-cr-last">${frappe.utils.escape_html(r.last || "")}</span>
 					<span class="duty-cr-members">👥 ${r.members}</span>
@@ -3501,6 +3502,112 @@ class DutyBoard {
 		return x.raised_by === me || (x.assignees || []).includes(me);
 	}
 
+	kb_dialog() {
+		const d = new frappe.ui.Dialog({ title: `📚 ${__("Knowledge Base")}`, size: "large" });
+		$(d.body).html(`
+			<input type="text" class="form-control duty-kb-q" placeholder="${__("Search solutions… (2+ letters)")}">
+			<div class="duty-kb-results" style="margin-top:10px"></div>
+		`);
+		let t = null;
+		$(d.body).find(".duty-kb-q").on("input", (e) => {
+			clearTimeout(t);
+			t = setTimeout(() => {
+				frappe.call({
+					method: "duty_board.api.kb_search",
+					args: { query: e.target.value },
+					callback: (r) => {
+						const rows = r.message || [];
+						$(d.body).find(".duty-kb-results").html(
+							rows
+								.map(
+									(a) => `
+							<div class="duty-kb-art">
+								<b>${frappe.utils.escape_html(a.title)}</b>
+								${a.product ? `<span class="duty-lead-chip">${frappe.utils.escape_html(a.product)}</span>` : ""}
+								${a.problem ? `<div class="text-muted" style="font-size:var(--text-xs)">${frappe.utils.escape_html(a.problem.slice(0, 160))}</div>` : ""}
+								<div class="duty-kb-sol">${frappe.utils.escape_html(a.solution)}</div>
+							</div>`
+								)
+								.join("") || `<div class="text-muted">${__("Nothing yet — resolve issues and promote the good ones.")}</div>`
+						);
+					},
+				});
+			}, 250);
+		});
+		d.show();
+		setTimeout(() => $(d.body).find(".duty-kb-q").trigger("focus"), 200);
+	}
+
+	team_load_dialog() {
+		const d = new frappe.ui.Dialog({ title: `👥 ${__("Team load & skills")}`, size: "large" });
+		const render = (rows) => {
+			$(d.body).html(
+				(rows || [])
+					.map(
+						(r) => `
+					<div class="duty-load-row">
+						<b>${frappe.utils.escape_html(r.full_name)}</b>
+						<span class="duty-load-n ${r.open + r.in_progress >= 5 ? "hot" : ""}">${r.open} ${__("open")} · ${r.in_progress} ${__("active")}</span>
+						<span class="duty-load-skills">
+							${r.skills.map((s) => `<span class="duty-lead-chip">${frappe.utils.escape_html(s.skill)} <a data-id="${s.name}" data-user="${frappe.utils.escape_html(r.user)}" class="duty-skill-x">×</a></span>`).join("")}
+							<a class="duty-skill-add" data-user="${frappe.utils.escape_html(r.user)}">＋ ${__("skill")}</a>
+						</span>
+					</div>`
+					)
+					.join("")
+			);
+			$(d.body).find(".duty-skill-add").on("click", (e) =>
+				frappe.prompt(
+					{ fieldname: "skill", fieldtype: "Data", label: __("Skill (e.g. ZhiftPOS, Payroll, Stock)"), reqd: 1 },
+					(v) =>
+						frappe.call({
+							method: "duty_board.api.skill_add",
+							args: { user: $(e.currentTarget).data("user"), skill: v.skill },
+							callback: (r) => render(r.message),
+						}),
+					__("Add skill"),
+					__("Add")
+				)
+			);
+			$(d.body).find(".duty-skill-x").on("click", (e) =>
+				frappe.call({
+					method: "duty_board.api.skill_remove",
+					args: { name: $(e.currentTarget).data("id") },
+					callback: (r) => render(r.message),
+				})
+			);
+		};
+		frappe.call({
+			method: "duty_board.api.staff_workload",
+			callback: (r) => render(r.message),
+		});
+		d.show();
+	}
+
+	load_similar(x, $host) {
+		frappe.call({
+			method: "duty_board.api.similar_issues",
+			args: { name: x.name },
+			callback: (r) => {
+				const m = r.message || {};
+				if (!(m.issues || []).length && !(m.kb || []).length) return;
+				$host.html(`
+					<div class="duty-lead-section">🧠 ${__("Similar past work")}</div>
+					${(m.kb || [])
+						.map(
+							(k) => `<div class="duty-sim-row">📚 <b>${frappe.utils.escape_html(k.title)}</b><span class="text-muted">${frappe.utils.escape_html(k.solution)}</span></div>`
+						)
+						.join("")}
+					${(m.issues || [])
+						.map(
+							(i) => `<div class="duty-sim-row">✅ <b>${frappe.utils.escape_html(i.title)}</b> <span class="duty-lead-chip">${frappe.utils.escape_html(i.customer || "")}</span>${i.resolution ? `<span class="text-muted">${frappe.utils.escape_html(i.resolution)}</span>` : ""}</div>`
+						)
+						.join("")}
+				`);
+			},
+		});
+	}
+
 	sla_chip(x) {
 		const s = x.sla || {};
 		const live = (v) => v && (v.state === "pending" || v.state === "overdue");
@@ -3663,6 +3770,9 @@ class DutyBoard {
 							<option value="closed" ${scope === "closed" ? "selected" : ""}>${__("Closed")}</option>
 							<option value="all" ${scope === "all" ? "selected" : ""}>${__("All")}</option>
 						</select>
+						<a class="duty-oncall-chip" title="${__("On-call for out-of-hours urgents — click to change (System Manager)")}">${this._on_call ? `🌙 ${frappe.utils.escape_html(this._on_call.first)}` : `🌙 ${__("no on-call")}`}</a>
+						<button class="btn btn-xs btn-default duty-kb-open">📚 ${__("KB")}</button>
+						<button class="btn btn-xs btn-default duty-team-load">👥 ${__("Load")}</button>
 						<button class="btn btn-xs btn-default duty-issue-new">＋ ${__("New")}</button>
 					</div>
 					<select class="form-control input-sm duty-issue-filter" title="${__("Filter by customer")}">
@@ -3703,6 +3813,21 @@ class DutyBoard {
 			this.render_issues(this._issues, this._issues_me);
 		});
 		$wrap.find(".duty-issue-new").on("click", () => this.create_issue_dialog({}));
+		$wrap.find(".duty-kb-open").on("click", () => this.kb_dialog());
+		$wrap.find(".duty-team-load").on("click", () => this.team_load_dialog());
+		$wrap.find(".duty-oncall-chip").on("click", () =>
+			frappe.prompt(
+				{ fieldname: "user", fieldtype: "Link", options: "User", label: __("On-call person"), default: this._on_call ? this._on_call.user : "" },
+				(v) =>
+					frappe.call({
+						method: "duty_board.api.set_on_call",
+						args: { user: v.user || "" },
+						callback: () => this.refresh(),
+					}),
+				__("Set on-call"),
+				__("Save")
+			)
+		);
 		$wrap.find(".duty-issue-row").on("click", (e) =>
 			this.issue_detail_dialog($(e.currentTarget).data("name"))
 		);
@@ -3892,7 +4017,8 @@ class DutyBoard {
 					${names ? `<div class="duty-issue-meta">${__("Assigned to")}: ${names}</div>` : ""}
 					${working_names ? `<div class="duty-issue-meta">⏱ ${__("Working on it now")}: ${working_names}</div>` : ""}
 					${this.sla_meta(x)}
-					<div class="duty-issue-meta"><a class="duty-issue-rca">📋 ${__("RCA report")}</a> · <a class="duty-issue-vis">${x.client_visible ? "👁 " + __("Client-visible — click to hide") : "🙈 " + __("Hidden from client — click to publish")}</a>${x.client_rating ? ` · ${x.client_rating === "Up" ? "👍 " + __("Client satisfied") : "👎 " + __("Client unhappy")}` : ""}${x.acknowledged_first ? ` · 👀 ${__("Acknowledged by")} ${frappe.utils.escape_html(x.acknowledged_first)}` : x.client_visible ? ` · <a class="duty-issue-ack">👀 ${__("Acknowledge")}</a>` : ""}</div>
+					<div class="duty-sim-host"></div>
+					<div class="duty-issue-meta"><a class="duty-issue-rca">📋 ${__("RCA report")}</a> · <a class="duty-issue-kb">📚 ${__("Promote to KB")}</a> · <a class="duty-issue-vis">${x.client_visible ? "👁 " + __("Client-visible — click to hide") : "🙈 " + __("Hidden from client — click to publish")}</a>${x.client_rating ? ` · ${x.client_rating === "Up" ? "👍 " + __("Client satisfied") : "👎 " + __("Client unhappy")}` : ""}${x.acknowledged_first ? ` · 👀 ${__("Acknowledged by")} ${frappe.utils.escape_html(x.acknowledged_first)}` : x.client_visible ? ` · <a class="duty-issue-ack">👀 ${__("Acknowledge")}</a>` : ""}</div>
 					${x.description ? `<div class="duty-issue-desc">${frappe.utils.escape_html(x.description)}</div>` : ""}
 					${
 						(x.attachments || []).length
@@ -3965,6 +4091,25 @@ class DutyBoard {
 						if (this._open_room) this.load_client_room(this._open_room);
 					},
 				})
+			);
+			this.load_similar(x, $(d.body).find(".duty-sim-host"));
+			$(d.body).find(".duty-issue-kb").on("click", () =>
+				frappe.prompt(
+					[
+						{ fieldname: "title", fieldtype: "Data", label: __("Title"), default: x.title, reqd: 1 },
+						{ fieldname: "product", fieldtype: "Data", label: __("Product") },
+						{ fieldname: "solution", fieldtype: "Small Text", label: __("Solution"), default: x.resolution, reqd: 1 },
+					],
+					(v) =>
+						frappe.call({
+							method: "duty_board.api.kb_promote",
+							args: Object.assign({ issue: x.name, problem: x.description || "" }, v),
+							callback: () =>
+								frappe.show_alert({ message: __("📚 Added to the knowledge base"), indicator: "green" }),
+						}),
+					__("Promote to knowledge base"),
+					__("Promote")
+				)
 			);
 			$(d.body).find(".duty-issue-rca").on("click", () =>
 				frappe.call({
@@ -4999,6 +5144,21 @@ class DutyBoard {
 				background: var(--blue-100, #e3f2fd); color: var(--blue-700, #1565c0);
 			}
 			.duty-issue-due { font-size: var(--text-xs); color: var(--text-muted); font-variant-numeric: tabular-nums; }
+			.duty-health { font-size: 11px; }
+			.duty-health-green { color: #16a34a; }
+			.duty-health-amber { color: #d97706; }
+			.duty-health-red { color: #dc2626; }
+			.duty-oncall-chip { font-size: var(--text-xs); font-weight: 700; cursor: pointer; background: #ede9fe; color: #5b21b6; border-radius: 99px; padding: 2px 10px; white-space: nowrap; }
+			.duty-kb-art { padding: 9px 4px; border-bottom: 1px dashed var(--border-color); }
+			.duty-kb-sol { font-size: var(--text-sm); background: #f0fdfa; border-radius: 8px; padding: 7px 10px; margin-top: 5px; white-space: pre-wrap; }
+			.duty-load-row { display: flex; gap: 12px; align-items: baseline; padding: 8px 4px; border-bottom: 1px dashed var(--border-color); flex-wrap: wrap; }
+			.duty-load-n { font-weight: 700; font-size: var(--text-sm); }
+			.duty-load-n.hot { color: #dc2626; }
+			.duty-load-skills { display: flex; gap: 6px; flex-wrap: wrap; align-items: baseline; }
+			.duty-skill-x { cursor: pointer; margin-left: 3px; }
+			.duty-skill-add { cursor: pointer; font-size: var(--text-xs); font-weight: 700; }
+			.duty-sim-row { padding: 6px 4px; border-bottom: 1px dashed var(--border-color); font-size: var(--text-sm); display: flex; gap: 8px; flex-wrap: wrap; align-items: baseline; }
+			.duty-sim-row .text-muted { font-size: var(--text-xs); width: 100%; }
 			.duty-sla { font-size: var(--text-xs); background: #fef3c7; color: #92400e; border-radius: 99px; padding: 1px 8px; font-weight: 700; white-space: nowrap; }
 			.duty-sla-over { background: #fee2e2; color: #b91c1c; }
 			.duty-sla-met { background: #dcfce7; color: #166534; }

@@ -313,6 +313,10 @@ def get_rooms():
 		r.join_requests = frappe.db.count(
 			"Client Join Request", {"room": r.name, "status": "Pending"}
 		)
+		try:
+			r.health = _room_health(r.name)
+		except Exception:
+			r.health = None
 	rooms.sort(key=lambda r: (r.customer, (r.unit or "General") != "General", r.unit or ""))
 	return rooms
 
@@ -1498,6 +1502,66 @@ def client_approve_milestone(id, note=None):
 		pass
 	frappe.publish_realtime("duty_client_room", {"room": room.name})
 	return _milestone_rows(room)
+
+
+# ---------------- client health: who's drifting ----------------
+
+
+def _room_health(room_name):
+	"""Green/Amber/Red with plain reasons. Cheap enough to run per room list."""
+	from datetime import timedelta
+
+	reasons = []
+	month_ago = now_datetime() - timedelta(days=30)
+	week_ago = now_datetime() - timedelta(days=7)
+	room = frappe.db.get_value(
+		"Client Room", room_name, ["customer", "unit"], as_dict=True
+	)
+	downs = frappe.db.count(
+		"Duty Issue",
+		{
+			"customer": room.customer,
+			"client_rating": "Down",
+			"modified": [">=", month_ago],
+		},
+	)
+	if downs:
+		reasons.append(_("{0} 👎 in 30 days").format(downs))
+	aging = frappe.db.count(
+		"Duty Issue",
+		{
+			"customer": room.customer,
+			"client_visible": 1,
+			"status": ["in", ["Open", "In Progress"]],
+			"creation": ["<", week_ago],
+		},
+	)
+	if aging:
+		reasons.append(_("{0} open >7 days").format(aging))
+	sla_missed = frappe.db.count(
+		"Duty Issue",
+		{
+			"customer": room.customer,
+			"sla_res_met": 0,
+			"resolved_at": [">=", month_ago],
+			"sla_res_due": ["is", "set"],
+		},
+	)
+	if sla_missed:
+		reasons.append(_("{0} SLA missed in 30 days").format(sla_missed))
+	last_msg = frappe.db.get_value(
+		"Client Room Message",
+		{"room": room_name, "internal": 0},
+		"creation",
+		order_by="creation desc",
+	)
+	if last_msg:
+		silent_days = (now_datetime() - frappe.utils.get_datetime(last_msg)).days
+		if silent_days >= 14:
+			reasons.append(_("silent {0} days").format(silent_days))
+	score = downs * 2 + aging + sla_missed + (1 if last_msg and silent_days >= 14 else 0)
+	state = "red" if score >= 4 or downs >= 2 else "amber" if score >= 1 else "green"
+	return {"state": state, "reasons": reasons}
 
 
 # ---------------- monthly service report: the scorecard ----------------
@@ -2695,5 +2759,12 @@ def client_request_task(title, detail=None, attachment_url=None, attachment_name
 				)
 	except Exception:
 		pass
+	if cint(urgent):
+		try:
+			from duty_board.api import notify_on_call
+
+			notify_on_call(_("URGENT · {0}").format(room.customer), title[:120])
+		except Exception:
+			pass
 	frappe.db.commit()
 	return client_get_room()

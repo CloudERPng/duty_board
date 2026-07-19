@@ -473,6 +473,45 @@ class TestDutyBoardCore(FrappeTestCase):
 		)
 		self.assertEqual(frappe.db.count("Duty RCA", {"issue": p["name"]}), 1)
 
+	def test_kb_and_similar(self):
+		cust, room_name = self._fresh_room()
+		p = api.create_issue(
+			title="printer spooler jammed badly", customer=cust, severity="High"
+		)
+		api.update_issue_status(p["name"], "Resolved", resolution="restarted spooler service")
+		art = api.kb_promote(p["name"])
+		self.assertTrue(art["name"])
+		hits = api.kb_search("spooler")
+		self.assertTrue(any(h.name == art["name"] for h in hits))
+		p2 = api.create_issue(
+			title="printer spooler stuck again", customer=cust, severity="High"
+		)
+		sim = api.similar_issues(p2["name"])
+		self.assertTrue(any(i.name == p["name"] for i in sim["issues"]))
+		self.assertTrue(any(k.name == art["name"] for k in sim["kb"]))
+
+	def test_workload_and_skills(self):
+		me = frappe.session.user
+		before = api.skill_add(me, "UnitTestSkillZ")
+		mine = next(r for r in before if r["user"] == me)
+		self.assertTrue(any(s["skill"] == "UnitTestSkillZ" for s in mine["skills"]))
+		rec = next(s for s in mine["skills"] if s["skill"] == "UnitTestSkillZ")
+		after = api.skill_remove(rec["name"])
+		mine = next(r for r in after if r["user"] == me)
+		self.assertFalse(any(s["skill"] == "UnitTestSkillZ" for s in mine["skills"]))
+
+	def test_room_health(self):
+		cust, room_name = self._fresh_room()
+		h = client_room._room_health(room_name)
+		self.assertEqual(h["state"], "green")
+		p = api.create_issue(title="unhappy probe", customer=cust, severity="Low")
+		frappe.db.set_value("Duty Issue", p["name"], {
+			"client_rating": "Down", "client_visible": 1,
+		}, update_modified=False)
+		h = client_room._room_health(room_name)
+		self.assertIn(h["state"], ("amber", "red"))
+		self.assertTrue(h["reasons"])
+
 	def test_move_task_rejects_unknown_column(self):
 		proj = projects.create_project("__Unit Test Project 2", customer=self._any_customer())
 		board = projects.create_task(proj, "Column guard")
