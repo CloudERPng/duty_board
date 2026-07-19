@@ -7,7 +7,6 @@
  "field_order": [
   "room",
   "user",
-  "active",
   "last_seen"
  ],
  "fields": [
@@ -21,47 +20,34 @@
   {
    "fieldname": "user",
    "fieldtype": "Link",
-   "in_list_view": 1,
    "label": "User",
    "options": "User",
    "reqd": 1,
    "search_index": 1
   },
   {
-   "default": "1",
-   "fieldname": "active",
-   "fieldtype": "Check",
-   "label": "Active"
-  },
-  {
    "fieldname": "last_seen",
    "fieldtype": "Datetime",
-   "label": "Last Seen",
-   "read_only": 1
+   "label": "Last Seen"
   }
  ],
  "links": [],
  "modified": "2026-07-09 09:00:00.000000",
  "modified_by": "Administrator",
  "module": "Duty Board",
- "name": "Client Room Member",
+ "name": "Client Room Seen",
  "naming_rule": "Random",
  "owner": "Administrator",
  "permissions": [
   {
    "create": 1,
    "delete": 1,
-   "email": 1,
-   "export": 1,
-   "print": 1,
    "read": 1,
-   "report": 1,
    "role": "System Manager",
-   "share": 1,
    "write": 1
   }
  ],
- "sort_field": "creation",
- "sort_order": "ASC",
+ "sort_field": "modified",
+ "sort_order": "DESC",
  "states": []
 }

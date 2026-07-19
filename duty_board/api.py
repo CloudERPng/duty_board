@@ -685,6 +685,11 @@ def _issue_payload(doc):
 		"client_visible": cint(doc.client_visible or 0),
 		"client_requested": cint(doc.client_requested or 0),
 		"client_rating": doc.get("client_rating") or None,
+		"acknowledged_first": (
+			frappe.utils.get_fullname(doc.acknowledged_by).split(" ")[0]
+			if doc.get("acknowledged_by")
+			else None
+		),
 		"name": doc.name,
 		"title": doc.title,
 		"customer": doc.customer,
@@ -811,6 +816,34 @@ def set_issue_visibility(name, visible):
 
 
 @frappe.whitelist()
+def acknowledge_issue(name):
+	doc = frappe.get_doc("Duty Issue", name)
+	_issue_member_check(doc)
+	if not doc.acknowledged_by:
+		frappe.db.set_value(
+			"Duty Issue",
+			name,
+			{"acknowledged_by": frappe.session.user, "acknowledged_at": now_datetime()},
+			update_modified=False,
+		)
+		frappe.db.commit()
+		try:
+			from duty_board.client_room import narrate_issue
+
+			narrate_issue(name, "seen")
+		except Exception:
+			pass
+	return _issue_payload(frappe.get_doc("Duty Issue", name))
+
+
+@frappe.whitelist()
+def duty_typing():
+	first = frappe.utils.get_fullname(frappe.session.user).split(" ")[0]
+	frappe.publish_realtime("duty_board_typing", {"who": first, "user": frappe.session.user})
+	return {"ok": True}
+
+
+@frappe.whitelist()
 def start_issue_work(name):
 	user = frappe.session.user
 	doc = frappe.get_doc("Duty Issue", name)
@@ -825,7 +858,16 @@ def start_issue_work(name):
 	doc.status = "In Progress"
 	if not doc.get("work_started_at"):
 		doc.work_started_at = now_datetime()
+	if not doc.get("acknowledged_by"):
+		doc.acknowledged_by = user
+		doc.acknowledged_at = now_datetime()
 	doc.save(ignore_permissions=True)
+	try:
+		from duty_board.client_room import narrate_issue
+
+		narrate_issue(name, "started")
+	except Exception:
+		pass
 
 	_stop_running_session(user)
 	frappe.get_doc(
@@ -881,6 +923,13 @@ def update_issue_status(name, status, resolution=None):
 		doc.resolution = resolution.strip()
 	doc.save(ignore_permissions=True)
 	frappe.db.commit()
+	if status in ("Resolved", "Closed"):
+		try:
+			from duty_board.client_room import narrate_issue
+
+			narrate_issue(name, "done")
+		except Exception:
+			pass
 
 	if status in ("Resolved", "Closed"):
 		actor = frappe.session.user
@@ -1251,6 +1300,15 @@ def delete_message(name):
 	return {"ok": True}
 
 
+def _rooms_unread_board_safe(user):
+	try:
+		from duty_board.client_room import _rooms_unread_safe
+
+		return _rooms_unread_safe(user)
+	except Exception:
+		return 0
+
+
 def _dm_unread_safe(user):
 	try:
 		from duty_board.dm import get_unread_map
@@ -1487,5 +1545,6 @@ def get_board():
 		"overdue_count": overdue_count,
 		"issues": issues,
 		"dm_unread": _dm_unread_safe(session),
+		"rooms_unread": _rooms_unread_board_safe(session),
 		"server_time": str(now),
 	}

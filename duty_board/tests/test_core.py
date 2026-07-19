@@ -204,6 +204,32 @@ class TestDutyBoardCore(FrappeTestCase):
 		)
 		self.assertGreaterEqual(count, 3)
 
+	def test_room_unread_counting(self):
+		room = client_room.create_room(self._any_customer())
+		client_room.post_message(room, "unread check one")
+		# a different viewer has not seen it
+		count = client_room._room_unread(room, "someone.else@example.com")
+		self.assertGreaterEqual(count, 1)
+		# the author has effectively seen their own message
+		self.assertEqual(client_room._room_unread(room, frappe.session.user), 0)
+
+	def test_narration_stays_behind_visibility(self):
+		room_name = client_room.create_room(self._any_customer())
+		room = frappe.get_doc("Client Room", room_name)
+		d = client_room._new_client_issue(room, "narrated issue", requested=1)
+		before = frappe.db.count("Client Room Message", {"room": room_name})
+		frappe.db.set_value("Duty Issue", d.name, "client_visible", 0, update_modified=False)
+		client_room.narrate_issue(d.name, "started")
+		self.assertEqual(
+			frappe.db.count("Client Room Message", {"room": room_name}), before,
+			"hidden issues must not narrate",
+		)
+		frappe.db.set_value("Duty Issue", d.name, "client_visible", 1, update_modified=False)
+		client_room.narrate_issue(d.name, "done")
+		self.assertEqual(
+			frappe.db.count("Client Room Message", {"room": room_name}), before + 1
+		)
+
 	def test_move_task_rejects_unknown_column(self):
 		proj = projects.create_project("__Unit Test Project 2", customer=self._any_customer())
 		board = projects.create_task(proj, "Column guard")

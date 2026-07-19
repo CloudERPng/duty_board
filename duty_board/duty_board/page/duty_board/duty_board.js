@@ -148,6 +148,7 @@ class DutyBoard {
 				<div class="duty-chat-list"></div>
 				<div class="duty-reply-bar" style="display:none"></div>
 				<div class="duty-attach-bar" style="display:none"></div>
+				<div class="duty-chat-typing" style="display:none"></div>
 				<div class="duty-chat-send">
 					<label class="btn btn-default btn-sm duty-attach-btn" title="${__("Attach file, image or video (max 25 MB)")}">📎<input type="file" class="duty-file-input" hidden></label>
 					<div class="duty-chat-input-wrap">
@@ -171,6 +172,13 @@ class DutyBoard {
 		this.$list = $c.find(".duty-chat-list");
 		this.$badge = $c.find(".duty-chat-badge");
 		this.$input = $c.find(".duty-chat-input");
+		this._last_typing = 0;
+		this.$input.on("input", () => {
+			const now = Date.now();
+			if (now - this._last_typing < 2500) return;
+			this._last_typing = now;
+			frappe.call({ method: "duty_board.api.duty_typing", freeze: false });
+		});
 		this.$mmenu = $c.find(".duty-mention-menu");
 		this.$replybar = $c.find(".duty-reply-bar");
 		this.$attachbar = $c.find(".duty-attach-bar");
@@ -208,6 +216,28 @@ class DutyBoard {
 		this._sync_timer = setInterval(() => this.sync_messages(), 25 * 1000);
 		frappe.realtime.on("duty_board_notify", (d) => this.notify_event(d));
 		frappe.realtime.on("duty_board_dm", (m) => this.handle_dm(m));
+		frappe.realtime.on("duty_board_typing", (n) => {
+			if (!n || n.user === frappe.session.user) return;
+			const $t = $(".duty-chat-typing");
+			if (!$t.length) return;
+			$t.text(`${n.who} ${__("is typing…")}`).show();
+			clearTimeout(this._typing_hide);
+			this._typing_hide = setTimeout(() => $t.hide(), 4000);
+		});
+		frappe.realtime.on("duty_client_typing", (n) => {
+			if (!n || !n.room || n.room !== this._open_room) return;
+			const me_first = (this.name_map[frappe.session.user] || "").split(" ")[0];
+			if (n.staff && n.who === me_first) return;
+			const $t = this.$clients.find(".duty-cr-typing");
+			if (!$t.length) return;
+			$t.text(
+				n.client
+					? `${n.who} (${__("client")}) ${__("is typing…")}`
+					: `${n.who} ${__("is typing…")}`
+			).show();
+			clearTimeout(this._cr_typing_hide);
+			this._cr_typing_hide = setTimeout(() => $t.hide(), 4000);
+		});
 		frappe.realtime.on("duty_client_room", (n) => {
 			if (n && n.room && this._open_room === n.room) this.load_client_room(n.room);
 			else if (this.face === "clients") this.refresh_clients(true);
@@ -448,7 +478,7 @@ class DutyBoard {
 				<a data-tab="chat"><span>💬</span>${__("Chat")}<b class="duty-tab-badge duty-tab-chat" style="display:none"></b></a>
 				<a data-tab="projects"><span>📁</span>${__("Projects")}</a>
 				<a data-tab="sales"><span>💼</span>${__("Sales")}</a>
-				<a data-tab="clients"><span>🤝</span>${__("Clients")}</a>
+				<a data-tab="clients"><span>🤝</span>${__("Clients")}<b class="duty-tab-badge duty-tab-clients" style="display:none"></b></a>
 			</div>
 		`).appendTo("body");
 		$bar.find("a").on("click", (e) => {
@@ -1297,6 +1327,9 @@ class DutyBoard {
 			this.show_day_summary(data.day_summary);
 		}
 		this.dm_unread = data.dm_unread || this.dm_unread || {};
+		$(".duty-tab-clients")
+			.text(data.rooms_unread || 0)
+			.toggle((data.rooms_unread || 0) > 0);
 		this.my_todos = data.my_todos || [];
 		this.my_upcoming = data.my_upcoming || [];
 		this.overdue_count = data.overdue_count || 0;
@@ -1510,6 +1543,17 @@ class DutyBoard {
 				e.preventDefault();
 				send();
 			}
+		});
+		this._cr_last_typing = 0;
+		$input.on("input", () => {
+			const now = Date.now();
+			if (now - this._cr_last_typing < 2500) return;
+			this._cr_last_typing = now;
+			frappe.call({
+				method: "duty_board.client_room.staff_typing",
+				args: { name: x.name },
+				freeze: false,
+			});
 		});
 		d.show();
 		load(null);
@@ -2006,7 +2050,7 @@ class DutyBoard {
 		this._rooms.forEach((r) => {
 			$(`
 				<a class="duty-cr-item ${r.name === this._open_room ? "active" : ""} ${r.status !== "Active" ? "duty-cr-frozen" : ""}">
-					<b style="color:${this.proj_color(r.name)}">${frappe.utils.escape_html(r.customer)}</b>
+					<b style="color:${this.proj_color(r.name)}">${frappe.utils.escape_html(r.customer)}${r.unread ? ` <span class="duty-cr-unread">${r.unread}</span>` : ""}</b>
 					${r.status !== "Active" ? `<span class="duty-cr-status">${__(r.status)}</span>` : ""}
 					<span class="duty-cr-last">${frappe.utils.escape_html(r.last || "")}</span>
 					<span class="duty-cr-members">👥 ${r.members}</span>
@@ -2019,6 +2063,11 @@ class DutyBoard {
 
 	open_client_room(name) {
 		this._open_room = name;
+		frappe.call({
+			method: "duty_board.client_room.mark_room_seen",
+			args: { name: name },
+			callback: () => this.refresh_clients(true),
+		});
 		this.render_room_list();
 		this.load_client_room(name);
 	}
@@ -2054,6 +2103,11 @@ class DutyBoard {
 			<div class="duty-cr-head">
 				<b>${frappe.utils.escape_html(x.customer)}</b>
 				<span class="duty-cr-taskchips">📋 ${counts.Queued} ${__("queued")} · ${counts["In Progress"]} ${__("in progress")} · ${counts.Done} ${__("done")}</span>
+				<span class="duty-cr-owner" title="${__("Account manager")}">★ ${x.owner_user ? frappe.utils.escape_html((this.name_map[x.owner_user] || x.owner_user).split(" ")[0]) : `<i>${__("unowned")}</i>`}</span>
+				${(() => {
+					const seen = (x.members || []).map((m) => m.last_seen).filter(Boolean).sort().pop();
+					return seen ? `<span class="duty-cr-lastseen">👀 ${__("client seen")} ${frappe.datetime.comment_when(seen)}</span>` : "";
+				})()}
 				<span class="duty-cr-tools">
 					<a class="duty-cr-shelfbtn">📚 ${__("Shelf")}</a>
 					<a class="duty-cr-membersbtn">👥 ${__("Members")}${(x.requests || []).length ? ` <b class="duty-cr-reqbadge">${x.requests.length}</b>` : ""}</a>
@@ -2085,6 +2139,7 @@ class DutyBoard {
 				<a class="duty-cr-openissues">⚠ ${__("Open issue register for {0}", [frappe.utils.escape_html(x.customer)])} ›</a>
 			</div>
 			<div class="duty-cr-msgs">${(x.messages || []).map((m) => this.cr_msg(m)).join("") || `<div class="text-muted">${__("No messages yet.")}</div>`}</div>
+			<div class="duty-cr-typing" style="display:none"></div>
 			<div class="duty-cr-replychip"></div>
 			<div class="duty-cr-pending"></div>
 			<div class="duty-cr-emojis" style="display:none"></div>
@@ -2285,6 +2340,25 @@ class DutyBoard {
 			this.refresh(true);
 		});
 		$room.find(".duty-cr-shelfbtn").on("click", () => this.room_shelf_dialog(x));
+		$room.find(".duty-cr-owner").on("click", () =>
+			frappe.prompt(
+				{
+					fieldname: "owner",
+					fieldtype: "Autocomplete",
+					label: __("Account manager"),
+					options: this.staff_options(),
+					default: x.owner_user || "",
+				},
+				(v) =>
+					frappe.call({
+						method: "duty_board.client_room.set_room_owner",
+						args: { name: x.name, owner: v.owner || null },
+						callback: (r) => r.message && this.render_client_room(r.message),
+					}),
+				__("Who owns this account?"),
+				__("Set")
+			)
+		);
 		$room.find(".duty-cr-membersbtn").on("click", () => this.room_members_dialog(x));
 		$room.find(".duty-cr-freeze").on("click", () =>
 			frappe.call({
@@ -3318,7 +3392,7 @@ class DutyBoard {
 					</div>
 					${names ? `<div class="duty-issue-meta">${__("Assigned to")}: ${names}</div>` : ""}
 					${working_names ? `<div class="duty-issue-meta">⏱ ${__("Working on it now")}: ${working_names}</div>` : ""}
-					<div class="duty-issue-meta"><a class="duty-issue-vis">${x.client_visible ? "👁 " + __("Client-visible — click to hide") : "🙈 " + __("Hidden from client — click to publish")}</a>${x.client_rating ? ` · ${x.client_rating === "Up" ? "👍 " + __("Client satisfied") : "👎 " + __("Client unhappy")}` : ""}</div>
+					<div class="duty-issue-meta"><a class="duty-issue-vis">${x.client_visible ? "👁 " + __("Client-visible — click to hide") : "🙈 " + __("Hidden from client — click to publish")}</a>${x.client_rating ? ` · ${x.client_rating === "Up" ? "👍 " + __("Client satisfied") : "👎 " + __("Client unhappy")}` : ""}${x.acknowledged_first ? ` · 👀 ${__("Acknowledged by")} ${frappe.utils.escape_html(x.acknowledged_first)}` : x.client_visible ? ` · <a class="duty-issue-ack">👀 ${__("Acknowledge")}</a>` : ""}</div>
 					${x.description ? `<div class="duty-issue-desc">${frappe.utils.escape_html(x.description)}</div>` : ""}
 					${
 						(x.attachments || []).length
@@ -3382,6 +3456,16 @@ class DutyBoard {
 						if (this._open_room) this.load_client_room(this._open_room);
 					},
 				});
+			$(d.body).find(".duty-issue-ack").on("click", () =>
+				frappe.call({
+					method: "duty_board.api.acknowledge_issue",
+					args: { name: name },
+					callback: (r) => {
+						if (r.message) render(r.message);
+						if (this._open_room) this.load_client_room(this._open_room);
+					},
+				})
+			);
 			$(d.body).find(".duty-issue-vis").on("click", () =>
 				frappe.call({
 					method: "duty_board.api.set_issue_visibility",
@@ -4574,6 +4658,17 @@ class DutyBoard {
 			.duty-cr-joinlink { display: flex; gap: 6px; }
 			.duty-cr-approve { color: var(--green-600, #16a34a); font-weight: 700; cursor: pointer; margin-left: auto; }
 			.duty-cr-rejectq { color: var(--red-600, #dc2626); font-weight: 700; cursor: pointer; }
+			.duty-cr-unread {
+				background: var(--red-500, #ef4444); color: #fff; border-radius: 99px;
+				padding: 0 7px; font-size: 10px; font-weight: 700;
+			}
+			.duty-chat-typing, .duty-cr-typing {
+				font-size: var(--text-xs); color: var(--text-muted); font-style: italic;
+				padding: 2px 4px; min-height: 16px;
+			}
+			.duty-cr-owner { font-size: var(--text-xs); font-weight: 700; cursor: pointer; color: #b45309; }
+			.duty-cr-lastseen { font-size: var(--text-xs); color: var(--text-muted); }
+			.duty-issue-ack { cursor: pointer; font-weight: 700; }
 			.duty-cr-reqbadge {
 				background: var(--red-500, #ef4444); color: #fff; border-radius: 99px;
 				padding: 0 6px; font-size: 10px; font-style: normal;

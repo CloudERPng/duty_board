@@ -116,7 +116,7 @@ def _work_rows(room):
 		filters={"customer": room.customer, "client_visible": 1},
 		fields=[
 			"name", "title", "status", "client_requested", "modified",
-			"creation", "work_started_at", "resolved_at",
+			"creation", "work_started_at", "resolved_at", "acknowledged_by",
 		],
 		order_by="modified desc",
 		limit=100,
@@ -150,6 +150,7 @@ def _work_rows(room):
 				"reported": str(i.creation)[:16],
 				"started": str(i.work_started_at)[:16] if i.work_started_at else None,
 				"done": str(i.resolved_at)[:16] if i.resolved_at else None,
+				"seen": bool(i.acknowledged_by),
 				"modified": i.modified,
 			}
 		)
@@ -290,6 +291,7 @@ def get_rooms():
 		r.last = last[0].message[:60] if last else ""
 		r.last_when = str(last[0].creation) if last else None
 		r.members = frappe.db.count("Client Room Member", {"room": r.name, "active": 1})
+		r.unread = _room_unread(r.name, frappe.session.user)
 	return rooms
 
 
@@ -317,10 +319,11 @@ def get_room(name, before=None):
 	members = frappe.get_all(
 		"Client Room Member",
 		filters={"room": name, "active": 1},
-		fields=["name", "user"],
+		fields=["name", "user", "last_seen"],
 	)
 	for m in members:
 		m.full_name = frappe.utils.get_fullname(m.user)
+		m.last_seen = str(m.last_seen) if m.last_seen else None
 	requests = frappe.get_all(
 		"Client Join Request",
 		filters={"room": name, "status": "Pending"},
@@ -332,6 +335,7 @@ def get_room(name, before=None):
 	return {
 		"name": room.name,
 		"customer": room.customer,
+		"owner_user": room.owner_user,
 		"status": room.status,
 		"project": room.project,
 		"messages": messages,
@@ -491,9 +495,21 @@ def set_card_visibility(card, visible):
 @frappe.whitelist()
 def client_get_room(before=None):
 	room = _client_room()
+	member = frappe.db.exists(
+		"Client Room Member", {"room": room.name, "user": frappe.session.user}
+	)
+	if member:
+		frappe.db.set_value(
+			"Client Room Member", member, "last_seen", now_datetime(), update_modified=False
+		)
 	messages, has_more = _room_payload(room, include_internal=False, before=before)
 	return {
 		"customer": room.customer,
+		"manager_first": (
+			frappe.utils.get_fullname(room.owner_user).split(" ")[0]
+			if room.owner_user
+			else None
+		),
 		"me": frappe.utils.get_fullname(frappe.session.user),
 		"messages": messages,
 		"has_more": has_more,
@@ -571,7 +587,7 @@ def _client_issue_for_room(room, issue_name):
 		[
 			"name", "title", "status", "customer", "client_visible",
 			"client_requested", "description", "creation",
-			"work_started_at", "resolved_at",
+			"work_started_at", "resolved_at", "acknowledged_by", "acknowledged_at",
 		],
 		as_dict=True,
 	)
@@ -621,6 +637,12 @@ def client_task_detail(id, kind):
 				if assignee
 				else None
 			),
+			"seen_by": (
+				frappe.utils.get_fullname(row.acknowledged_by).split(" ")[0]
+				if row.acknowledged_by
+				else None
+			),
+			"seen_at": str(row.acknowledged_at)[:16] if row.acknowledged_at else None,
 			"attachments": atts,
 		}
 	if kind == "card":
@@ -856,6 +878,132 @@ def weekly_room_pulse():
 			f"📊 Your week with Xlevel: ✅ {done} completed · 🔄 {prog} in progress · 📋 {queued} queued.",
 		)
 	frappe.db.commit()
+
+
+def _push_room_clients(room, title, body):
+	try:
+		from duty_board.api import _push_safe
+
+		for mm in frappe.get_all(
+			"Client Room Member", filters={"room": room.name, "active": 1}, fields=["user"]
+		):
+			if frappe.db.exists("Duty Push Subscription", {"user": mm.user}):
+				_push_safe(mm.user, title, body)
+	except Exception:
+		pass
+
+
+def narrate_issue(issue_name, event):
+	"""The room speaks when client-visible work moves. event: seen | started | done"""
+	try:
+		row = frappe.db.get_value(
+			"Duty Issue",
+			issue_name,
+			["title", "customer", "client_visible"],
+			as_dict=True,
+		)
+		if not row or not cint(row.client_visible):
+			return
+		room_name = frappe.db.get_value(
+			"Client Room", {"customer": row.customer, "status": "Active"}
+		)
+		if not room_name:
+			return
+		room = frappe.get_doc("Client Room", room_name)
+		first = frappe.utils.get_fullname(frappe.session.user).split(" ")[0]
+		lines = {
+			"seen": (_("👀 Seen by the team — {0}: “{1}”"), _("👀 Your request has been seen")),
+			"started": (_("🔄 “{1}” → In Progress · {0}"), _("🔄 Being worked on now")),
+			"done": (_("✅ “{1}” → Done · {0}"), _("✅ Completed")),
+		}
+		if event not in lines:
+			return
+		room_line, push_title = lines[event]
+		_post(room, room_line.format(first, row.title[:90]))
+		_push_room_clients(room, f"{push_title} · Xlevel", row.title[:120])
+	except Exception:
+		pass
+
+
+def _rooms_unread_safe(user):
+	try:
+		total = 0
+		for r in frappe.get_all(
+			"Client Room", filters={"status": ["!=", "Archived"]}, pluck="name"
+		):
+			seen = frappe.db.get_value(
+				"Client Room Seen", {"room": r, "user": user}, "last_seen"
+			)
+			filters = {"room": r, "owner": ["!=", user]}
+			if seen:
+				filters["creation"] = [">", seen]
+			if frappe.db.count("Client Room Message", filters):
+				total += 1
+		return total
+	except Exception:
+		return 0
+
+
+def _room_unread(room_name, user):
+	seen = frappe.db.get_value(
+		"Client Room Seen", {"room": room_name, "user": user}, "last_seen"
+	)
+	filters = {"room": room_name, "owner": ["!=", user]}
+	if seen:
+		filters["creation"] = [">", seen]
+	return frappe.db.count("Client Room Message", filters)
+
+
+@frappe.whitelist()
+def mark_room_seen(name):
+	_staff_only()
+	user = frappe.session.user
+	existing = frappe.db.exists("Client Room Seen", {"room": name, "user": user})
+	if existing:
+		frappe.db.set_value(
+			"Client Room Seen", existing, "last_seen", now_datetime(), update_modified=False
+		)
+	else:
+		frappe.get_doc(
+			{
+				"doctype": "Client Room Seen",
+				"room": name,
+				"user": user,
+				"last_seen": now_datetime(),
+			}
+		).insert(ignore_permissions=True)
+	frappe.db.commit()
+	return {"ok": True}
+
+
+@frappe.whitelist()
+def set_room_owner(name, owner):
+	_staff_only()
+	if owner and frappe.db.get_value("User", owner, "user_type") != "System User":
+		frappe.throw(_("The account manager must be a staff account."))
+	frappe.db.set_value("Client Room", name, "owner_user", owner or None, update_modified=False)
+	frappe.db.commit()
+	return get_room(name)
+
+
+@frappe.whitelist()
+def staff_typing(name):
+	_staff_only()
+	first = frappe.utils.get_fullname(frappe.session.user).split(" ")[0]
+	frappe.publish_realtime(
+		"duty_client_typing", {"room": name, "who": first, "staff": 1}
+	)
+	return {"ok": True}
+
+
+@frappe.whitelist()
+def client_typing():
+	room = _client_room()
+	first = frappe.utils.get_fullname(frappe.session.user).split(" ")[0]
+	frappe.publish_realtime(
+		"duty_client_typing", {"room": room.name, "who": first, "client": 1}
+	)
+	return {"ok": True}
 
 
 def _room_member_mentions(room, text):
@@ -1108,11 +1256,16 @@ def client_request_task(title, detail=None, attachment_url=None, attachment_name
 			"User", filters={"enabled": 1, "user_type": "System User"}, fields=["name"]
 		):
 			if frappe.db.exists("Duty Push Subscription", {"user": u.name}):
+				is_owner = room.owner_user and u.name == room.owner_user
 				_notify_user(
 					u.name,
-					(_("🔴 URGENT · {0}") if cint(urgent) else _("⚠ New client issue · {0}")).format(
-						room.customer
-					),
+					(
+						_("★ 🔴 URGENT — your account · {0}")
+						if (cint(urgent) and is_owner)
+						else _("🔴 URGENT · {0}")
+						if cint(urgent)
+						else _("⚠ New client issue · {0}")
+					).format(room.customer),
 					title[:120],
 				)
 	except Exception:

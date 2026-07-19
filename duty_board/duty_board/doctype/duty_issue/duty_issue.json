@@ -22,7 +22,9 @@
   "client_visible",
   "client_requested",
   "work_started_at",
-  "client_rating"
+  "client_rating",
+  "acknowledged_by",
+  "acknowledged_at"
  ],
  "fields": [
   {
@@ -138,6 +140,19 @@
    "fieldtype": "Select",
    "label": "Client Rating",
    "options": "\nUp\nDown",
+   "read_only": 1
+  },
+  {
+   "fieldname": "acknowledged_by",
+   "fieldtype": "Link",
+   "label": "Acknowledged By",
+   "options": "User",
+   "read_only": 1
+  },
+  {
+   "fieldname": "acknowledged_at",
+   "fieldtype": "Datetime",
+   "label": "Acknowledged At",
    "read_only": 1
   }
  ],

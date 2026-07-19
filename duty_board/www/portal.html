@@ -109,6 +109,8 @@
 	.m .w { white-space: nowrap; }
 	.m.me { margin-left: auto; }
 	.m.staff { margin-right: auto; }
+	.newdiv { text-align: center; color: #0F5C55; font-size: 12px; font-weight: 700; margin: 8px 0; }
+	.tabbar a.dot span::after { content: " •"; color: #ef4444; font-size: 18px; }
 	.m .rep { visibility: hidden; float: right; margin-left: 8px; cursor: pointer; font-size: 13px; opacity: .6; }
 	.m:hover .rep { visibility: visible; }
 	.qt { display: block; background: rgba(15,92,85,.08); border-left: 3px solid #0F5C55; border-radius: 6px;
@@ -188,7 +190,7 @@
 	<span><b id="brand">Xlevel</b> · <span id="cust"></span></span>
 	<span><a id="bell" style="cursor:pointer;margin-right:14px;display:none" title="Get notified when we reply">🔔 Notify me</a><span id="me" style="font-size:13px;color:#a7f3d0;margin-right:14px"></span><a href="/?cmd=web_logout">Log out</a></span>
 </div>
-<div class="hours">🕘 We reply Mon–Fri, 9:00–18:00 WAT. Urgent? Call your account manager.</div>
+<div class="hours">🕘 We reply Mon–Fri, 9:00–18:00 WAT.<span id="mgr"></span></div>
 <div class="wrap">
 	<div id="err"></div>
 	<div class="leftcol">
@@ -287,6 +289,9 @@ function render(d) {
 	LAST = d;
 	document.getElementById("cust").textContent = d.customer || "";
 	document.getElementById("me").textContent = d.me ? "👤 " + d.me : "";
+	document.getElementById("mgr").textContent = d.manager_first
+		? " Your account manager: " + d.manager_first + "."
+		: " Urgent? Call your account manager.";
 	const t = document.getElementById("tasks");
 	const filt = document.getElementById("tfilter").value;
 	const rows = (d.tasks || []).filter((x) => !filt || x.status === filt);
@@ -295,13 +300,26 @@ function render(d) {
 			rows
 				.map((x) => {
 					const dd = dur(x);
-					return `<tr class="row" onclick="openTask('${esc(x.id)}','${esc(x.kind)}')"><td class="tt-title">${esc(x.title)}</td><td class="dt" data-l="📅 Reported">${fdt(x.reported)}</td><td class="dt" data-l="✅ Done">${fdt(x.done)}</td><td class="dur ${dd.cls}" data-l="⏳ Time">${dd.txt}</td><td class="who" data-l="👤 With">${esc(x.assignee_first || "—")}</td><td class="st"><span class="pill ${PILL[x.status]}">${esc(x.status)}</span></td></tr>`;
+					return `<tr class="row" onclick="openTask('${esc(x.id)}','${esc(x.kind)}')"><td class="tt-title">${x.seen ? "👀 " : ""}${esc(x.title)}</td><td class="dt" data-l="📅 Reported">${fdt(x.reported)}</td><td class="dt" data-l="✅ Done">${fdt(x.done)}</td><td class="dur ${dd.cls}" data-l="⏳ Time">${dd.txt}</td><td class="who" data-l="👤 With">${esc(x.assignee_first || "—")}</td><td class="st"><span class="pill ${PILL[x.status]}">${esc(x.status)}</span></td></tr>`;
 				})
 				.join("") +
 			`</table>`
 		: '<span class="muted">Nothing here with this filter.</span>';
 	const box = document.getElementById("msgs");
 	const stick = box.scrollTop + box.clientHeight >= box.scrollHeight - 40;
+	const latest = (d.messages || []).length ? d.messages[d.messages.length - 1].creation : null;
+	if (window.SESSION_PREV === undefined) {
+		window.SESSION_PREV = localStorage.getItem("xl_seen") || "";
+	}
+	if (latest && latest > (localStorage.getItem("xl_seen") || "")) {
+		if (document.body.dataset.tab && document.body.dataset.tab !== "chat" && window.innerWidth < 900) {
+			document.querySelector('.tabbar a[data-tab="chat"]').classList.add("dot");
+		}
+	}
+	if (latest && (document.body.dataset.tab === "chat" || window.innerWidth >= 900)) {
+		localStorage.setItem("xl_seen", latest);
+	}
+	window.DIVIDED = false;
 	box.innerHTML = (d.messages || []).length
 		? d.messages.map((m) => {
 				const url = "/api/method/duty_board.client_room.room_file?msg=" + encodeURIComponent(m.name);
@@ -309,7 +327,11 @@ function render(d) {
 					? `<span class="att">${m.is_image ? `<a href="${url}" target="_blank"><img src="${url}"></a>` : m.is_audio ? `<audio controls preload="none" src="${url}"></audio>` : `<a class="filelink" href="${url}" target="_blank">📎 ${esc(m.attachment_name || "file")}</a>`}</span>`
 					: "";
 				const qt = m.ref ? `<a class="qt" onclick="jumpTo('${esc(m.ref)}')"><b>${esc(m.ref_who || "")}</b>: ${esc(m.ref_text || "")}</a>` : "";
-				return `<div class="m ${m.is_staff ? "staff" : "me"}" data-name="${esc(m.name)}"><a class="rep" onclick='setReply(${JSON.stringify({ name: m.name, who: m.who, text: (m.message || "📎").slice(0, 80) }).replace(/'/g, "&#39;")})'>↩ reply</a><span class="w">${esc(m.who)}</span>${qt}${esc(m.message)}${att}<span class="tm">${esc((m.creation || "").slice(0, 16))}</span></div>`;
+				const divider =
+					window.SESSION_PREV && m.creation > window.SESSION_PREV && !window.DIVIDED
+						? ((window.DIVIDED = true), '<div class="newdiv">— new since your last visit —</div>')
+						: "";
+				return `${divider}<div class="m ${m.is_staff ? "staff" : "me"}" data-name="${esc(m.name)}"><a class="rep" onclick='setReply(${JSON.stringify({ name: m.name, who: m.who, text: (m.message || "📎").slice(0, 80) }).replace(/'/g, "&#39;")})'>↩ reply</a><span class="w">${esc(m.who)}</span>${qt}${esc(m.message)}${att}<span class="tm">${esc((m.creation || "").slice(0, 16))}</span></div>`;
 			}).join("")
 		: '<span class="muted">Say hello — the team is listening.</span>';
 	if (stick) box.scrollTop = box.scrollHeight;
@@ -493,6 +515,7 @@ function openTask(id, kind) {
 					<b>✅ Done</b><span>${fdt(d.done)}</span>
 					<b>⏳ Time</b><span>${dd.txt}</span>
 					<b>👤 With</b><span>${esc(d.assignee_first || "—")}</span>
+					${d.seen_by ? `<b>👀 Seen</b><span>${esc(d.seen_by)} · ${fdt(d.seen_at)}</span>` : ""}
 				</div>
 				${d.detail ? `<div class="det">${esc(d.detail)}</div>` : ""}
 				${atts}
@@ -540,6 +563,10 @@ function setTab(t) {
 	if (t === "chat") {
 		const box = document.getElementById("msgs");
 		if (box) box.scrollTop = box.scrollHeight;
+		document.querySelector('.tabbar a[data-tab="chat"]').classList.remove("dot");
+		if (LAST.messages && LAST.messages.length) {
+			localStorage.setItem("xl_seen", LAST.messages[LAST.messages.length - 1].creation);
+		}
 	}
 }
 setTab(localStorage.getItem("xl_tab") || "chat");
@@ -613,6 +640,17 @@ function pickFile(inp) {
 	PENDING = f;
 	document.getElementById("pend").innerHTML = `<span class="chip">📎 ${esc(f.name)} <a onclick="PENDING=null;document.getElementById('pend').innerHTML=''">×</a></span>`;
 }
+let LAST_TYPE = 0;
+document.getElementById("text").addEventListener("input", () => {
+	const now = Date.now();
+	if (now - LAST_TYPE < 3000) return;
+	LAST_TYPE = now;
+	fetch("/api/method/duty_board.client_room.client_typing", {
+		method: "POST",
+		headers: { "X-Frappe-CSRF-Token": frappe_csrf() },
+		credentials: "same-origin",
+	}).catch(() => {});
+});
 document.getElementById("text").addEventListener("paste", (e) => {
 	for (const it of (e.clipboardData || {}).items || []) {
 		if (it.kind === "file") {
