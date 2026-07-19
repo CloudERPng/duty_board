@@ -3387,8 +3387,9 @@ class DutyBoard {
 
 	sla_chip(x) {
 		const s = x.sla || {};
-		const pick = !x.acknowledged_first && s.ack && s.ack.state ? s.ack : s.res;
-		if (!pick || !pick.state) return "";
+		const live = (v) => v && (v.state === "pending" || v.state === "overdue");
+		const pick = live(s.ack) ? s.ack : live(s.res) ? s.res : null;
+		if (!pick) return "";
 		if (pick.state === "overdue")
 			return `<span class="duty-sla duty-sla-over">🔴 SLA ${frappe.utils.escape_html(pick.detail || "")}</span>`;
 		if (pick.state === "pending")

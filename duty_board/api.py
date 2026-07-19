@@ -657,12 +657,36 @@ def _issue_member_check(doc):
 
 # ---------------- SLA engine: promises in business hours ----------------
 # Business hours: Mon-Fri 09:00-18:00 site time. (ack_hours, resolve_hours)
-SLA_MATRIX = {
+SLA_DEFAULTS = {
 	"Critical": (1, 4),
 	"High": (2, 8),
 	"Medium": (8, 24),
 	"Low": (24, 40),
 }
+
+
+def SLA_MATRIX_get(severity, fallback):
+	sev = (severity or "Medium").lower()
+	try:
+		s = frappe.get_cached_doc("Duty Settings")
+		a = s.get(f"sla_{sev}_ack_hours")
+		r = s.get(f"sla_{sev}_res_hours")
+		if a and r:
+			return (a, r)
+	except Exception:
+		pass
+	return SLA_DEFAULTS.get(severity or "Medium", fallback)
+
+
+class _SLAMatrix:
+	def get(self, severity, fallback=None):
+		return SLA_MATRIX_get(severity, fallback or SLA_DEFAULTS["Medium"])
+
+	def __getitem__(self, severity):
+		return SLA_MATRIX_get(severity, SLA_DEFAULTS["Medium"])
+
+
+SLA_MATRIX = _SLAMatrix()
 BH_START, BH_END = 9, 18
 
 
@@ -1154,10 +1178,20 @@ def get_issues(scope="open"):
 			"raised_by",
 			"creation",
 			"resolved_at",
+			"acknowledged_at",
+			"sla_ack_due",
+			"sla_res_due",
+			"sla_ack_met",
+			"sla_res_met",
 		],
 		order_by="creation desc",
 		limit=200,
 	)
+	for r in issues:
+		r["sla"] = {
+			"ack": dict(zip(("state", "detail"), _sla_state(r.get("sla_ack_due"), r.get("acknowledged_at"), r.get("sla_ack_met")))),
+			"res": dict(zip(("state", "detail"), _sla_state(r.get("sla_res_due"), r.get("resolved_at"), r.get("sla_res_met")))),
+		}
 	if issues:
 		rows = frappe.get_all(
 			"Duty Issue Assignee",
