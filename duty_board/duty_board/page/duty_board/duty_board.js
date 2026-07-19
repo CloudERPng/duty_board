@@ -2139,16 +2139,33 @@ class DutyBoard {
 					${frappe.user.has_role("System Manager") ? `<a class="duty-cr-freeze">${x.status === "Active" ? "🧊 " + __("Freeze") : "▶ " + __("Unfreeze")}</a>` : ""}
 				</span>
 			</div>
+			<div class="duty-cr-main">
+			<div class="duty-cr-chatcol">
+			<div class="duty-cr-msgs">${(x.messages || []).map((m) => this.cr_msg(m)).join("") || `<div class="text-muted">${__("No messages yet.")}</div>`}</div>
+			<div class="duty-cr-typing" style="display:none"></div>
+			<div class="duty-cr-replychip"></div>
+			<div class="duty-cr-pending"></div>
+			<div class="duty-cr-emojis" style="display:none"></div>
+			<div class="duty-cr-compose">
+				<label class="duty-cr-int"><input type="checkbox" class="duty-cr-internal-toggle"> 🔒 ${__("Internal")}</label>
+				<label class="duty-cr-attach" title="${__("Attach image / file")}">📎<input type="file" hidden></label>
+				<a class="duty-cr-emojibtn" title="${__("Emoji")}">😊</a>
+				<textarea rows="2" class="form-control duty-cr-input" placeholder="${__("Message {0}... Enter to send", [frappe.utils.escape_html(x.customer)])}"></textarea>
+				<button type="button" class="btn btn-primary btn-sm duty-cr-send">${__("Send")}</button>
+			</div>
+			</div>
+			<div class="duty-cr-side ${this._cr_tasks_open === false ? "folded" : ""}">
 			<div class="duty-cr-tasksbar">
-				<a class="duty-cr-taskstoggle"><b>${this._cr_tasks_open === false ? "▸" : "▾"} 📋 ${__("Work")} (${(x.tasks || []).length})</b></a>
-				<select class="form-control input-sm duty-cr-tfilter">
+				<a class="duty-cr-taskstoggle"><b>${this._cr_tasks_open === false ? "◂" : "▸"} 📋 ${this._cr_tasks_open === false ? "" : `${__("Tasks")} (${(x.tasks || []).length})`}</b></a>
+				${this._cr_tasks_open === false ? "" : `<select class="form-control input-sm duty-cr-tfilter">
 					<option value="">${__("All")}</option>
 					<option ${this._cr_tfilter === "Queued" ? "selected" : ""}>Queued</option>
 					<option ${this._cr_tfilter === "In Progress" ? "selected" : ""}>In Progress</option>
 					<option ${this._cr_tfilter === "Done" ? "selected" : ""}>Done</option>
-				</select>
+				</select>`}
 			</div>
-			<div class="duty-cr-tasks" ${this._cr_tasks_open === false ? 'style="display:none"' : ""}>
+			<div class="duty-cr-sidebody">
+			<div class="duty-cr-tasks">
 				${(x.tasks || [])
 					.filter((t) => !this._cr_tfilter || t.status === this._cr_tfilter)
 					.map(
@@ -2163,19 +2180,10 @@ class DutyBoard {
 					.join("")}
 				<a class="duty-cr-openissues">⚠ ${__("Open issue register for {0}", [frappe.utils.escape_html(x.customer)])} ›</a>
 			</div>
-			<div class="duty-cr-msgs">${(x.messages || []).map((m) => this.cr_msg(m)).join("") || `<div class="text-muted">${__("No messages yet.")}</div>`}</div>
 			<div class="duty-cr-meetings"></div>
 			<div class="duty-cr-unsettled"></div>
-			<div class="duty-cr-typing" style="display:none"></div>
-			<div class="duty-cr-replychip"></div>
-			<div class="duty-cr-pending"></div>
-			<div class="duty-cr-emojis" style="display:none"></div>
-			<div class="duty-cr-compose">
-				<label class="duty-cr-int"><input type="checkbox" class="duty-cr-internal-toggle"> 🔒 ${__("Internal")}</label>
-				<label class="duty-cr-attach" title="${__("Attach image / file")}">📎<input type="file" hidden></label>
-				<a class="duty-cr-emojibtn" title="${__("Emoji")}">😊</a>
-				<textarea rows="2" class="form-control duty-cr-input" placeholder="${__("Message {0}... Enter to send", [frappe.utils.escape_html(x.customer)])}"></textarea>
-				<button type="button" class="btn btn-primary btn-sm duty-cr-send">${__("Send")}</button>
+			</div>
+			</div>
 			</div>
 		`);
 		const $msgs = $room.find(".duty-cr-msgs");
@@ -2207,6 +2215,10 @@ class DutyBoard {
 				who: (mm.who || mm.owner).split(" ")[0],
 				text: (mm.message || "📎").slice(0, 80),
 			};
+			if (mm.internal) {
+				$int.prop("checked", true);
+				restyle();
+			}
 			show_reply();
 			$input.trigger("focus");
 		});
@@ -2618,7 +2630,7 @@ class DutyBoard {
 								`<label style="margin-right:12px;font-size:var(--text-sm)"><input type="checkbox" value="${frappe.utils.escape_html(s.user)}" ${(data.meeting_staff || []).includes(s.user) ? "checked" : ""}> ${frappe.utils.escape_html((s.full_name || s.user).split(" ")[0])}</label>`
 						)
 						.join("")}
-					<button type="button" class="btn btn-sm btn-default duty-cr-booksave">${__("Save")}</button>
+					<button type="button" class="btn btn-sm btn-primary duty-cr-booksave">${__("Save")}</button>
 				</div>
 				<p class="text-muted duty-attach-hint">${__("Ticked staff appear in the client's meeting picker. Nobody ticked = everyone bookable.")}</p>
 			`);
@@ -3890,11 +3902,10 @@ class DutyBoard {
 					<input type="text" class="form-control duty-todo-input" placeholder="${__("Add a to-do and press Enter...")}">
 					<button class="btn btn-default btn-sm duty-todo-add-btn">${__("Add")}</button>
 				</div>
-				${
-					upcoming
-						? `<details class="duty-sessions-details"><summary>${__("Upcoming")} (${this.my_upcoming.length})</summary>${upcoming}</details>`
-						: ""
-				}
+			</details>
+			<details class="duty-sessions-details">
+				<summary>${__("Upcoming")} (${(this.my_upcoming || []).length})</summary>
+				${upcoming || `<div class="text-muted duty-history-empty">${__("Nothing scheduled ahead.")}</div>`}
 			</details>
 		`);
 		$plan.find(".duty-plan-details").on("toggle", (e) => {
@@ -4109,7 +4120,10 @@ class DutyBoard {
 			<details class="duty-sessions-details">
 				<summary>${__("My tasks today")} (${sessions.length})</summary>
 				${rows || `<div class="text-muted duty-history-empty">${__("No tasks yet today.")}</div>`}
-				<div class="duty-history-link"><a>${__("Earlier days ▸")}</a></div>
+			</details>
+			<details class="duty-sessions-details">
+				<summary>${__("Earlier days")}</summary>
+				<div class="duty-history-link"><a>${__("Open work history ▸")}</a></div>
 			</details>
 		`);
 		$s.find(".duty-session-notes").on("click", (e) => {
@@ -4751,7 +4765,24 @@ class DutyBoard {
 			.duty-cr-taskchips { font-size: var(--text-xs); color: var(--text-muted); font-weight: 600; }
 			.duty-cr-tools { margin-left: auto; display: flex; gap: 12px; }
 			.duty-cr-tools a { cursor: pointer; font-size: var(--text-xs); font-weight: 600; }
-			.duty-cr-tasks { display: flex; flex-direction: column; gap: 4px; margin-bottom: 10px; border-bottom: 1px solid var(--border-color); padding-bottom: 8px; max-height: 30vh; overflow-y: auto; flex: none; }
+			.duty-cr-main { display: flex; gap: 14px; flex: 1 1 auto; min-height: 0; }
+			.duty-cr-chatcol { flex: 1 1 auto; min-width: 0; display: flex; flex-direction: column; min-height: 0; }
+			.duty-cr-side {
+				width: 320px; flex: none; border-left: 1px solid var(--border-color);
+				padding-left: 12px; display: flex; flex-direction: column; min-height: 0;
+			}
+			.duty-cr-side.folded { width: 46px; padding-left: 6px; }
+			.duty-cr-side.folded .duty-cr-sidebody { display: none; }
+			.duty-cr-sidebody { overflow-y: auto; min-height: 0; flex: 1 1 auto; }
+			.duty-cr-tasks { display: flex; flex-direction: column; gap: 4px; margin-bottom: 10px; border-bottom: 1px solid var(--border-color); padding-bottom: 8px; flex: none; }
+			.duty-sessions-details { margin-top: 8px; width: 100%; }
+			.duty-sessions-details > summary { cursor: pointer; font-weight: 600; }
+			@media (max-width: 767px) {
+				.duty-cr-main { flex-direction: column; }
+				.duty-cr-side { width: 100%; border-left: none; padding-left: 0; order: -1; }
+				.duty-cr-side.folded { width: 100%; }
+				.duty-cr-sidebody { max-height: 32vh; }
+			}
 			.duty-cr-task {
 				display: flex; gap: 10px; align-items: center; padding: 5px 8px;
 				border-radius: 8px; cursor: pointer; text-decoration: none;
