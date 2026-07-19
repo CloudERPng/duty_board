@@ -297,7 +297,7 @@
 </div>
 <script>
 const esc = (s) => (s || "").replace(/[&<>"']/g, (c) => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
-const XLV = "2.45.1";
+const XLV = "2.45.2";
 document.getElementById("xlv").textContent = "v" + XLV;
 console.log("Xlevel portal", XLV);
 let ROOM = localStorage.getItem("xl_room") || null;
@@ -317,7 +317,13 @@ function initRooms() {
 	api("client_my_rooms")
 		.then((rooms) => {
 			if (!rooms || rooms.length < 2) {
-				if (rooms && rooms.length === 1) ROOM = rooms[0].name;
+				// single room: correct any stale remembered choice, then refetch
+				ROOM = rooms && rooms.length === 1 ? rooms[0].name : null;
+				if (ROOM) localStorage.setItem("xl_room", ROOM);
+				else localStorage.removeItem("xl_room");
+				load();
+				loadMeetings();
+				loadMilestones();
 				return;
 			}
 			const sw = document.getElementById("roomswitch");
@@ -539,7 +545,7 @@ function renderMilestones(rows) {
 			</div>`
 				)
 				.join("")
-		: '<span class="muted">No project phases defined yet.</span>';
+		: '<span class="muted">No project phases in this room yet.</span>';
 }
 function approveMilestone(id, title) {
 	document.getElementById("ovbody").innerHTML = `
