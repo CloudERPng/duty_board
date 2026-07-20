@@ -14,6 +14,19 @@
 	.top { background: #0F5C55; color: #fff; padding: 14px 18px; display: flex; justify-content: space-between; align-items: center; }
 	.top b { font-size: 17px; }
 	.top a { color: #a7f3d0; text-decoration: none; font-size: 13px; }
+	#renewbar { font-size: 13px; font-weight: 600; padding: 8px 18px; }
+	#renewbar.calm { background: #f0fdfa; color: #0f766e; }
+	#renewbar.warn { background: #fef3c7; color: #92400e; }
+	#renewbar.over { background: #fee2e2; color: #b91c1c; }
+	#frozen {
+		position: fixed; inset: 0; z-index: 998; background: rgba(15, 92, 85, 0.97);
+		align-items: center; justify-content: center; padding: 24px;
+	}
+	#frozen .fz {
+		background: #fff; border-radius: 18px; padding: 32px 30px; max-width: 480px;
+		font-size: 15px; line-height: 1.6;
+	}
+	#frozen h2 { color: #0F5C55; margin: 0 0 12px; }
 	#roomswitch { display: flex; gap: 8px; padding: 10px 14px 0; flex-wrap: wrap; background: #0F5C55; }
 	#roomswitch a {
 		color: #a7f3d0; font-weight: 700; font-size: 14px; text-decoration: none;
@@ -239,6 +252,16 @@
 </div>
 <div id="roomswitch" style="display:none"></div>
 <div class="hours">🕘 We reply Mon–Fri, 9:00–18:00 WAT.<span id="mgr"></span></div>
+<div id="renewbar" style="display:none"></div>
+<div id="frozen" style="display:none">
+	<div class="fz">
+		<h2>⏸ Your portal is paused</h2>
+		<p>Your subscription renewal is overdue, so this portal is temporarily on hold.
+		Everything is safe — your history, documents and project records are untouched
+		and will be right here the moment your renewal is processed.</p>
+		<p><b>To renew:</b> contact your account manager<span id="fzmgr"></span>, or call Xlevel Retail Systems.</p>
+	</div>
+</div>
 <div class="wrap">
 	<div id="err"></div>
 	<div class="leftcol">
@@ -328,7 +351,7 @@
 </div>
 <script>
 const esc = (s) => (s || "").replace(/[&<>"']/g, (c) => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
-const XLV = "2.50.5";
+const XLV = "2.51.0";
 document.getElementById("xlv").textContent = "v" + XLV;
 console.log("Xlevel portal", XLV);
 let ROOM = localStorage.getItem("xl_room") || null;
@@ -383,6 +406,31 @@ const api = (method, args) =>
 		if (!r.ok) throw new Error((j._server_messages && JSON.parse(JSON.parse(j._server_messages)[0]).message) || j.exception || "Request failed");
 		return j.message;
 	});
+let FROZEN = false;
+function renderRenewal(r, mgr) {
+	const bar = document.getElementById("renewbar");
+	if (!r) { bar.style.display = "none"; return; }
+	if (r.frozen) {
+		if (!FROZEN) {
+			FROZEN = true;
+			document.getElementById("fzmgr").textContent = mgr ? ` (${mgr})` : "";
+			document.getElementById("frozen").style.display = "flex";
+		}
+		bar.style.display = "none";
+		return;
+	}
+	bar.style.display = "block";
+	if (r.days_left < 0) {
+		bar.className = "over";
+		bar.textContent = `🔴 Your subscription expired ${-r.days_left} day${r.days_left === -1 ? "" : "s"} ago (${r.date}). Please renew to keep your portal active — it pauses ${14 + r.days_left} day${14 + r.days_left === 1 ? "" : "s"} from now.`;
+	} else if (r.days_left <= 14) {
+		bar.className = "warn";
+		bar.textContent = `⏳ Your subscription renews in ${r.days_left} day${r.days_left === 1 ? "" : "s"} (${r.date}).`;
+	} else {
+		bar.className = "calm";
+		bar.textContent = `🔄 Subscription renews in ${r.days_left} days (${r.date}).`;
+	}
+}
 function frappe_csrf() {
 	const m = document.cookie.match(/csrf_token=([^;]+)/);
 	return m ? m[1] : "";
@@ -410,6 +458,7 @@ function render(d) {
 	document.getElementById("cust").textContent = d.customer || "";
 	document.getElementById("me").textContent = d.me ? "👤 " + d.me : "";
 	if (d.room && !ROOM) ROOM = d.room;
+	renderRenewal(d.renewal, d.manager_first);
 	document.title = d.unit && d.unit !== "General" ? `Xlevel — ${d.unit}` : "Xlevel Client Portal";
 	document.getElementById("mgr").textContent = d.manager_first
 		? " Your account manager: " + d.manager_first + "."

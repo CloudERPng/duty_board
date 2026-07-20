@@ -26,6 +26,25 @@ def _staff_only():
 		frappe.throw(_("Not permitted."), frappe.PermissionError)
 
 
+RENEWAL_GRACE_DAYS = 14
+
+
+def _renewal_info(customer):
+	"""days_left (negative = overdue), frozen flag. None if no date set."""
+	try:
+		d = frappe.db.get_value("Customer", customer, "renewal_date")
+	except Exception:
+		return None
+	if not d:
+		return None
+	days_left = (getdate(d) - getdate(today())).days
+	return {
+		"date": str(d),
+		"days_left": days_left,
+		"frozen": days_left < -RENEWAL_GRACE_DAYS,
+	}
+
+
 def _client_memberships():
 	user = frappe.session.user
 	if user == "Guest":
@@ -39,10 +58,11 @@ def _client_memberships():
 	)
 
 
-def _client_room():
+def _client_room(allow_frozen=False):
 	"""Resolve the calling Website User's room. The only door clients have.
 	With multiple memberships the portal names a room via xl_room — honored
-	only if it is in the caller's own membership set."""
+	only if it is in the caller's own membership set. A room whose customer's
+	renewal is past grace is frozen: only the notice endpoint may pass."""
 	memberships = _client_memberships()
 	want = frappe.form_dict.get("xl_room")
 	if want:
@@ -51,6 +71,7 @@ def _client_room():
 		room = frappe.get_doc("Client Room", want)
 		if room.status == "Archived":
 			frappe.throw(_("This room is closed."), frappe.PermissionError)
+		_renewal_gate(room, allow_frozen)
 		return room
 	member = memberships[:1]
 	if not member:
@@ -58,7 +79,19 @@ def _client_room():
 	room = frappe.get_doc("Client Room", member[0].room)
 	if room.status != "Active":
 		frappe.throw(_("This room is not currently active."))
+	_renewal_gate(room, allow_frozen)
 	return room
+
+
+def _renewal_gate(room, allow_frozen):
+	if allow_frozen:
+		return
+	info = _renewal_info(room.customer)
+	if info and info["frozen"]:
+		frappe.throw(
+			_("Your portal is paused — subscription renewal is overdue. Please contact your account manager."),
+			frappe.PermissionError,
+		)
 
 
 def _room_payload(room, include_internal, before=None, limit=40):
@@ -363,6 +396,7 @@ def get_room(name, before=None):
 		"name": room.name,
 		"customer": room.customer,
 		"unit": room.unit or "General",
+		"renewal": _renewal_info(room.customer),
 		"owner_user": room.owner_user,
 		"status": room.status,
 		"project": room.project,
@@ -563,7 +597,7 @@ def client_my_rooms():
 
 @frappe.whitelist()
 def client_get_room(before=None):
-	room = _client_room()
+	room = _client_room(allow_frozen=True)
 	member = frappe.db.exists(
 		"Client Room Member", {"room": room.name, "user": frappe.session.user}
 	)
@@ -576,6 +610,7 @@ def client_get_room(before=None):
 		"customer": room.customer,
 		"room": room.name,
 		"unit": room.unit or "General",
+		"renewal": _renewal_info(room.customer),
 		"manager_first": (
 			frappe.utils.get_fullname(room.owner_user).split(" ")[0]
 			if room.owner_user

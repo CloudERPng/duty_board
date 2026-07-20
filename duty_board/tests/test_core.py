@@ -540,6 +540,34 @@ class TestDutyBoardCore(FrappeTestCase):
 		with self.assertRaises(frappe.ValidationError):
 			client_room._meeting_caps_check(room2, [], "2026-08-06")
 
+	def test_renewal_math_and_freeze(self):
+		if not frappe.db.exists("Custom Field", {"dt": "Customer", "fieldname": "renewal_date"}):
+			frappe.get_doc({
+				"doctype": "Custom Field", "dt": "Customer",
+				"fieldname": "renewal_date", "label": "Renewal Date",
+				"fieldtype": "Date",
+			}).insert(ignore_permissions=True)
+		cust, room_name = self._fresh_room()
+		room = frappe.get_doc("Client Room", room_name)
+		self.assertIsNone(client_room._renewal_info(cust), "no date set → no renewal info")
+		frappe.db.set_value("Customer", cust, "renewal_date",
+			frappe.utils.add_days(frappe.utils.today(), 23))
+		info = client_room._renewal_info(cust)
+		self.assertEqual(info["days_left"], 23)
+		self.assertFalse(info["frozen"])
+		frappe.db.set_value("Customer", cust, "renewal_date",
+			frappe.utils.add_days(frappe.utils.today(), -10))
+		info = client_room._renewal_info(cust)
+		self.assertEqual(info["days_left"], -10)
+		self.assertFalse(info["frozen"], "inside grace — not frozen")
+		frappe.db.set_value("Customer", cust, "renewal_date",
+			frappe.utils.add_days(frappe.utils.today(), -15))
+		info = client_room._renewal_info(cust)
+		self.assertTrue(info["frozen"], "past grace — frozen")
+		with self.assertRaises(frappe.PermissionError):
+			client_room._renewal_gate(room, allow_frozen=False)
+		client_room._renewal_gate(room, allow_frozen=True)  # notice path passes
+
 	def test_move_task_rejects_unknown_column(self):
 		proj = projects.create_project("__Unit Test Project 2", customer=self._any_customer())
 		board = projects.create_task(proj, "Column guard")
