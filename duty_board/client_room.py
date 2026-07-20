@@ -578,9 +578,7 @@ def make_task_from_message(name, title, detail=None):
 	title = (title or "").strip()
 	if not title:
 		frappe.throw(_("Give the issue a title."))
-	if issue_type not in ISSUE_TYPES:
-		frappe.throw(_("Choose the request type."))
-	_new_client_issue(room, title, detail=detail, issue_type=issue_type)
+	_new_client_issue(room, title, detail=detail)
 	_post(room, _("⚠ Logged: “{0}” → Queued").format(title))
 	frappe.db.commit()
 	return get_room(name)
@@ -2811,8 +2809,11 @@ def client_request_task(title, detail=None, attachment_url=None, attachment_name
 			frappe.throw(
 				_("Urgent limit reached for today — please call your account manager for anything critical.")
 			)
+	if issue_type not in ISSUE_TYPES:
+		frappe.throw(_("Choose the request type."))
 	doc = _new_client_issue(
-		room, title, requested=1, raised_by=frappe.session.user, detail=detail
+		room, title, requested=1, raised_by=frappe.session.user,
+		detail=detail, issue_type=issue_type,
 	)
 	if cint(urgent):
 		frappe.db.set_value("Duty Issue", doc.name, "severity", "High", update_modified=False)
