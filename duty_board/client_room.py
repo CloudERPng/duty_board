@@ -539,12 +539,19 @@ def set_room_status(name, status):
 	return {"ok": True}
 
 
-def _new_client_issue(room, title, requested=0, raised_by=None, detail=None):
+ISSUE_TYPES = (
+	"Support", "Bug", "Feature Request", "Configuration", "Training",
+	"Data Correction", "Integration", "Billing", "Implementation",
+)
+
+
+def _new_client_issue(room, title, requested=0, raised_by=None, detail=None, issue_type=None):
 	doc = frappe.get_doc(
 		{
 			"doctype": "Duty Issue",
 			"title": title[:140],
 			"description": (detail or "").strip()[:2000] or None,
+			"issue_type": issue_type if issue_type in ISSUE_TYPES else "Support",
 			"customer": room.customer,
 			"severity": "Medium",
 			"status": "Open",
@@ -571,7 +578,7 @@ def make_task_from_message(name, title, detail=None):
 	title = (title or "").strip()
 	if not title:
 		frappe.throw(_("Give the issue a title."))
-	_new_client_issue(room, title, detail=detail)
+	_new_client_issue(room, title, detail=detail, issue_type=issue_type)
 	_post(room, _("⚠ Logged: “{0}” → Queued").format(title))
 	frappe.db.commit()
 	return get_room(name)
@@ -2771,7 +2778,7 @@ def reject_join(request_name):
 
 
 @frappe.whitelist()
-def client_request_task(title, detail=None, attachment_url=None, attachment_name=None, urgent=0):
+def client_request_task(title, detail=None, attachment_url=None, attachment_name=None, urgent=0, issue_type=None):
 	room = _client_room()
 	title = (title or "").strip()
 	if not title:
