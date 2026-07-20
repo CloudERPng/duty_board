@@ -350,6 +350,14 @@ def get_rooms():
 			r.health = _room_health(r.name)
 		except Exception:
 			r.health = None
+		try:
+			r.renewal = _renewal_info(r.customer)
+		except Exception:
+			r.renewal = None
+		try:
+			r.renewal = _renewal_info(r.customer)
+		except Exception:
+			r.renewal = None
 	rooms.sort(key=lambda r: (r.customer, (r.unit or "General") != "General", r.unit or ""))
 	return rooms
 

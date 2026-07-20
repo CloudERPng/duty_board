@@ -1056,6 +1056,7 @@ def _issue_payload(doc):
 		"title": doc.title,
 		"customer": doc.customer,
 		"severity": doc.severity,
+		"issue_type": doc.get("issue_type"),
 		"status": doc.status,
 		"due_date": str(doc.due_date) if doc.due_date else None,
 		"raised_by": doc.raised_by,
@@ -1080,6 +1081,7 @@ def create_issue(
 	source_type=None,
 	source=None,
 	attachments=None,
+	issue_type=None,
 ):
 	if not (title or "").strip():
 		frappe.throw(_("Please give the issue a title."))
@@ -1098,6 +1100,7 @@ def create_issue(
 			"title": title.strip(),
 			"customer": customer,
 			"severity": severity,
+			"issue_type": issue_type or "Support",
 			"status": "Open",
 			"due_date": due_date or None,
 			"description": (description or "").strip() or None,
@@ -1381,6 +1384,7 @@ def get_issues(scope="open"):
 			"raised_by",
 			"creation",
 			"resolved_at",
+			"issue_type",
 			"acknowledged_at",
 			"sla_ack_due",
 			"sla_res_due",

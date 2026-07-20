@@ -2090,7 +2090,7 @@ class DutyBoard {
 			if (folded) return;
 			$(`
 				<a class="duty-cr-item ${r.name === this._open_room ? "active" : ""} ${r.status !== "Active" ? "duty-cr-frozen" : ""}">
-					<b style="color:${this.proj_color(r.name)}">${r.health ? `<span class="duty-health duty-health-${r.health.state}" title="${frappe.utils.escape_html((r.health.reasons || []).join(" · ") || __("healthy"))}">●</span> ` : ""}${frappe.utils.escape_html(r.unit || "General")}${r.unread ? ` <span class="duty-cr-unread">${r.unread}</span>` : ""}${r.join_requests ? ` <span class="duty-cr-joinpill" title="${__("Join requests awaiting approval")}">🙋 ${r.join_requests}</span>` : ""}</b>
+					<b style="color:${this.proj_color(r.name)}">${r.health ? `<span class="duty-health duty-health-${r.health.state}" title="${frappe.utils.escape_html((r.health.reasons || []).join(" · ") || __("healthy"))}">●</span> ` : ""}${frappe.utils.escape_html(r.unit || "General")}${r.renewal ? (r.renewal.frozen ? ` <span class="duty-renew duty-renew-frozen">⏸</span>` : r.renewal.days_left < 0 ? ` <span class="duty-renew duty-renew-over">🔴 ${-r.renewal.days_left}d</span>` : r.renewal.days_left <= 30 ? ` <span class="duty-renew duty-renew-warn">⏳ ${r.renewal.days_left}d</span>` : "") : ""}${r.unread ? ` <span class="duty-cr-unread">${r.unread}</span>` : ""}${r.join_requests ? ` <span class="duty-cr-joinpill" title="${__("Join requests awaiting approval")}">🙋 ${r.join_requests}</span>` : ""}${r.renewal ? (r.renewal.frozen ? ` <span class="duty-renew duty-renew-frozen">⏸</span>` : r.renewal.days_left < 0 ? ` <span class="duty-renew duty-renew-over" title="${__("renewal overdue")}">🔴 ${-r.renewal.days_left}d</span>` : r.renewal.days_left <= 30 ? ` <span class="duty-renew duty-renew-warn" title="${__("renews soon")}">⏳ ${r.renewal.days_left}d</span>` : "") : ""}</b>
 					${r.status !== "Active" ? `<span class="duty-cr-status">${__(r.status)}</span>` : ""}
 					<span class="duty-cr-last">${frappe.utils.escape_html(r.last || "")}</span>
 					<span class="duty-cr-members">👥 ${r.members}</span>
@@ -3731,6 +3731,7 @@ class DutyBoard {
 					${names ? `<span class="duty-issue-who">→ ${names}</span>` : ""}
 					${x.status !== "Open" ? `<span class="duty-issue-status duty-ist-${x.status.replace(/ /g, "").toLowerCase()}">${__(x.status)}</span>` : ""}
 					${x.due_date && active ? `<span class="duty-issue-due ${overdue ? "duty-issue-overdue" : ""}">${overdue ? "⚠ " : ""}${__("due")} ${frappe.datetime.str_to_user(x.due_date)}</span>` : ""}
+					${x.issue_type && x.issue_type !== "Support" ? `<span class="duty-type-chip">${frappe.utils.escape_html(x.issue_type)}</span>` : ""}
 					${this.sla_chip(x)}
 					<span class="duty-issue-raised">${stamp}</span>
 				</div>`;
@@ -3866,6 +3867,13 @@ class DutyBoard {
 					reqd: 1,
 				},
 				{
+					fieldname: "issue_type",
+					fieldtype: "Select",
+					label: __("Type"),
+					options: "Support\nBug\nFeature Request\nConfiguration\nTraining\nData Correction\nIntegration\nBilling\nImplementation",
+					default: "Support",
+				},
+				{
 					fieldname: "due_date",
 					fieldtype: "Date",
 					label: __("Due Date"),
@@ -3910,6 +3918,7 @@ class DutyBoard {
 					args: {
 						title: v.title,
 						customer: v.customer,
+						issue_type: v.issue_type,
 						severity: v.severity,
 						due_date: v.due_date || null,
 						description: v.description || null,
@@ -5195,6 +5204,7 @@ class DutyBoard {
 			.duty-skill-add { cursor: pointer; font-size: var(--text-xs); font-weight: 700; }
 			.duty-sim-row { padding: 6px 4px; border-bottom: 1px dashed var(--border-color); font-size: var(--text-sm); display: flex; gap: 8px; flex-wrap: wrap; align-items: baseline; }
 			.duty-sim-row .text-muted { font-size: var(--text-xs); width: 100%; }
+			.duty-type-chip { font-size: var(--text-xs); background: #ede9fe; color: #5b21b6; border-radius: 99px; padding: 1px 8px; font-weight: 700; white-space: nowrap; }
 			.duty-sla { font-size: var(--text-xs); background: #fef3c7; color: #92400e; border-radius: 99px; padding: 1px 8px; font-weight: 700; white-space: nowrap; }
 			.duty-sla-over { background: #fee2e2; color: #b91c1c; }
 			.duty-sla-met { background: #dcfce7; color: #166534; }
