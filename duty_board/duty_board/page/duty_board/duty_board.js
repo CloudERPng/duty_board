@@ -4894,12 +4894,14 @@ class DutyBoard {
 			.duty-layout { display: flex; gap: 18px; align-items: flex-start; }
 			.duty-main { flex: 1 1 0; min-width: 0; }
 			.duty-issues {
-				background: var(--bg-light-gray, #f4f6f8); border: 1px solid var(--border-color);
+				background: #fbfbfa; border: 1px solid var(--border-color);
+				border-top: 4px solid #d97706;
 				border-radius: 14px; padding: 14px;
 			}
 			.duty-side {
 				flex: 0 0 33%; max-width: 33%; position: sticky; top: 56px;
-				background: #f0fdfa; border: 1px solid #99f6e4;
+				background: #fafcfc; border: 1px solid var(--border-color);
+				border-top: 4px solid #0F5C55;
 				border-radius: 14px; padding: 12px;
 			}
 			.duty-chat-collapsed .duty-side { flex: 0 0 auto; max-width: none; }
@@ -5122,7 +5124,8 @@ class DutyBoard {
 				height: calc(100vh - 140px); min-height: 320px;
 			}
 			.duty-issues-toolbar { display: flex; flex-direction: column; gap: 6px; margin-top: 8px; }
-			.duty-issues-toolbar-row { display: flex; gap: 8px; align-items: center; }
+			.duty-issue-scope { min-width: 108px; }
+			.duty-issues-toolbar-row { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
 			.duty-issues-toolbar-row .duty-issue-scope { flex: 1; }
 			.duty-ist-resolved { background: var(--green-100, #e8f5e9); color: var(--green-700, #2e7d32); }
 			.duty-ist-closed { background: var(--gray-200, #eeeeee); color: var(--gray-700, #616161); }
