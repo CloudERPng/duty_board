@@ -4646,11 +4646,19 @@ class DutyBoard {
 			$team.html(`<div class="text-muted">${__("No staff found.")}</div>`);
 			return;
 		}
+		let open_set;
+		try {
+			open_set = new Set(JSON.parse(localStorage.getItem("duty_staff_open") || "[]"));
+		} catch (e) {
+			open_set = new Set();
+		}
 		rows.forEach((r) => {
 			const s = this.status_meta(r.status);
+			const opened = open_set.has(r.user);
 			const $card = $(`
-				<div class="duty-card duty-card-click" title="${__("View {0}'s day", [frappe.utils.escape_html(r.full_name)])}">
+				<div class="duty-card duty-card-click ${opened ? "" : "collapsed"}">
 					<div class="duty-card-head">
+						<span class="duty-card-caret">${opened ? "▾" : "▸"}</span>
 						${frappe.avatar(r.user, "avatar-medium")}
 						<div class="duty-card-name">
 							<div class="duty-name-row">
@@ -4683,7 +4691,19 @@ class DutyBoard {
 					</div>
 				</div>
 			`).appendTo($team);
-			$card.on("click", () => this.show_member(r));
+			$card.find(".duty-card-head").on("click", (e) => {
+				if ($(e.target).closest(".duty-dm-btn").length) return;
+				const now_open = $card.hasClass("collapsed");
+				$card.toggleClass("collapsed", !now_open);
+				$card.find(".duty-card-caret").text(now_open ? "▾" : "▸");
+				if (now_open) open_set.add(r.user);
+				else open_set.delete(r.user);
+				localStorage.setItem("duty_staff_open", JSON.stringify([...open_set]));
+			});
+			$card.find(".duty-card-more").on("click", (e) => {
+				e.stopPropagation();
+				this.show_member(r);
+			});
 		});
 	}
 
@@ -5576,6 +5596,10 @@ class DutyBoard {
 				text-transform: uppercase; letter-spacing: 0.04em; color: var(--text-muted);
 			}
 			.duty-detail-tick { width: 22px; }
+			.duty-card.collapsed .duty-card-body { display: none; }
+			.duty-card-caret { color: var(--text-muted); font-size: var(--text-sm); width: 14px; flex: none; align-self: center; }
+			.duty-card-head { cursor: pointer; }
+			.duty-card.collapsed { padding-bottom: 10px; }
 			.duty-card-head { display: flex; align-items: center; gap: 10px; }
 			.duty-name { font-weight: 600; }
 			.duty-badge {
