@@ -578,6 +578,8 @@ def make_task_from_message(name, title, detail=None):
 	title = (title or "").strip()
 	if not title:
 		frappe.throw(_("Give the issue a title."))
+	if issue_type not in ISSUE_TYPES:
+		frappe.throw(_("Choose the request type."))
 	_new_client_issue(room, title, detail=detail, issue_type=issue_type)
 	_post(room, _("⚠ Logged: “{0}” → Queued").format(title))
 	frappe.db.commit()
@@ -709,7 +711,7 @@ def _client_issue_for_room(room, issue_name):
 			"name", "title", "status", "customer", "client_visible",
 			"client_requested", "description", "creation",
 			"work_started_at", "resolved_at", "acknowledged_by", "acknowledged_at",
-			"source_type", "source",
+			"source_type", "source", "issue_type",
 		],
 		as_dict=True,
 	)

@@ -276,6 +276,7 @@
 			<input id="reqtitle" maxlength="140" placeholder="Title — what do you need?">
 			<textarea id="reqbody" rows="3" maxlength="2000" placeholder="Describe it… paste screenshots right here. Enter makes a new line."></textarea>
 			<select id="reqtype" title="What kind of request is this?">
+				<option value="" selected>Type — choose one…</option>
 				<option value="Support">Type: Support</option>
 				<option value="Bug">Type: Bug</option>
 				<option value="Feature Request">Type: Feature Request</option>
@@ -363,7 +364,7 @@
 </div>
 <script>
 const esc = (s) => (s || "").replace(/[&<>"']/g, (c) => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
-const XLV = "2.52.2";
+const XLV = "2.52.3";
 document.getElementById("xlv").textContent = "v" + XLV;
 console.log("Xlevel portal", XLV);
 let ROOM = localStorage.getItem("xl_room") || null;
@@ -868,6 +869,7 @@ function openTask(id, kind) {
 					<b>✅ Done</b><span>${fdt(d.done)}</span>
 					<b>⏳ Time</b><span>${dd.txt}</span>
 					<b>👤 With</b><span>${esc(d.assignee_first || "—")}</span>
+					${d.issue_type ? `<b>🏷 Type</b><span>${esc(d.issue_type)}</span>` : ""}
 					${d.seen_by ? `<b>👀 Seen</b><span>${esc(d.seen_by)} · ${fdt(d.seen_at)}</span>` : ""}
 				</div>
 				${(d.sla_lines || []).map((l) => `<div class="slaline${l.ok === 1 ? " ok" : l.ok === 0 ? " bad" : ""}"><b>${esc(l.label)}:</b> ${esc(l.text)}${l.ok === 1 ? " ✓" : l.ok === 0 ? " ✗" : ""}</div>`).join("")}
@@ -1056,6 +1058,13 @@ function requestTask() {
 		setTimeout(() => (t.style.borderColor = ""), 2500);
 		return fail(new Error("Give your request a title."));
 	}
+	const ty = document.getElementById("reqtype");
+	if (!ty.value) {
+		ty.style.borderColor = "#b91c1c";
+		ty.focus();
+		setTimeout(() => (ty.style.borderColor = ""), 2500);
+		return fail(new Error("Choose the request type."));
+	}
 	(REQP ? uploadOne(REQP) : Promise.resolve(null))
 		.then((up) =>
 			api("client_request_task", {
@@ -1070,7 +1079,7 @@ function requestTask() {
 		.then((d) => {
 			t.value = "";
 			b.value = "";
-			document.getElementById("reqtype").value = "Support";
+			document.getElementById("reqtype").value = "";
 			document.getElementById("requrgent").checked = false;
 			REQP = null;
 			document.getElementById("reqpend").innerHTML = "";

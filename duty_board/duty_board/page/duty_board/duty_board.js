@@ -3701,6 +3701,9 @@ class DutyBoard {
 			this.issue_customer_filter = "";
 		}
 		let shown = cfilter ? items.filter((x) => x.customer === cfilter) : items;
+		if (this.issue_type_filter) {
+			shown = shown.filter((x) => (x.issue_type || "Support") === this.issue_type_filter);
+		}
 		if (ufilter === "__me__") {
 			shown = shown.filter((x) => (x.assignees || []).includes(frappe.session.user));
 		} else if (ufilter === "__none__") {
@@ -3776,6 +3779,10 @@ class DutyBoard {
 						<option value="closed" ${scope === "closed" ? "selected" : ""}>${__("Closed")}</option>
 						<option value="all" ${scope === "all" ? "selected" : ""}>${__("All")}</option>
 					</select>
+					<select class="form-control input-sm duty-issue-typefilter" title="${__("Filter by type")}">
+						<option value="">${__("All types")}</option>
+						${["Support", "Bug", "Feature Request", "Configuration", "Training", "Data Correction", "Integration", "Billing", "Implementation"].map((t) => `<option value="${t}" ${this.issue_type_filter === t ? "selected" : ""}>${__(t)}</option>`).join("")}
+					</select>
 					<select class="form-control input-sm duty-issue-filter" title="${__("Filter by customer")}">
 						<option value="">${__("All customers")}</option>
 						${customers
@@ -3803,6 +3810,10 @@ class DutyBoard {
 			this.issue_status_filter = e.target.value;
 			this._issues_alt = null;
 			this._issues_alt_scope = null;
+			this.render_issues(this._issues, this._issues_me);
+		});
+		$wrap.find(".duty-issue-typefilter").on("change", (e) => {
+			this.issue_type_filter = e.target.value || "";
 			this.render_issues(this._issues, this._issues_me);
 		});
 		$wrap.find(".duty-issue-filter").on("change", (e) => {
@@ -4013,6 +4024,7 @@ class DutyBoard {
 				<div class="duty-issue-detail">
 					<div class="duty-issue-detail-head">
 						<span class="duty-sev duty-sev-${(x.severity || "medium").toLowerCase()}">${__(x.severity)}</span>
+						${x.issue_type ? `<span class="duty-type-chip">${frappe.utils.escape_html(x.issue_type)}</span>` : ""}
 						<b>${frappe.utils.escape_html(x.title)}</b>
 						<span class="duty-task-customer">${frappe.utils.escape_html(x.customer || "")}</span>
 						<span class="duty-issue-status">${__(x.status)}</span>
