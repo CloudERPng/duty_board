@@ -2771,6 +2771,7 @@ def client_request_task(title, detail=None, attachment_url=None, attachment_name
 			{"attached_to_doctype": "Duty Issue", "attached_to_name": doc.name},
 			update_modified=False,
 		)
+	frappe.db.commit()  # release the naming-series lock before any network I/O
 	_post(
 		room,
 		(_("🔴 URGENT — ") if cint(urgent) else "")

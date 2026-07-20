@@ -896,11 +896,17 @@ def _bh_add(start, hours):
 	from datetime import timedelta
 
 	minutes = int(hours * 60)
-	cur = _bh_snap(start)
+	# whole-minute walker: strip seconds or the final partial minute of a day
+	# floors to zero available and the loop spins forever
+	cur = _bh_snap(start).replace(second=0, microsecond=0)
 	while minutes > 0:
 		eod = cur.replace(hour=BH_END, minute=0, second=0, microsecond=0)
 		avail = int((eod - cur).total_seconds() // 60)
 		chunk = min(minutes, avail)
+		if chunk <= 0:
+			# nothing usable left today — move to the next business morning
+			cur = _bh_snap(eod + timedelta(minutes=1))
+			continue
 		cur += timedelta(minutes=chunk)
 		minutes -= chunk
 		if minutes > 0:

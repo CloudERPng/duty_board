@@ -4891,9 +4891,17 @@ class DutyBoard {
 			.duty-plan-add { display: flex; gap: 8px; margin-top: 10px; }
 			.duty-plan-add .duty-todo-input { flex: 1; }
 			.duty-sessions-details { margin-top: 8px; font-size: var(--text-sm); }
-			.duty-layout { display: flex; gap: 16px; align-items: flex-start; }
+			.duty-layout { display: flex; gap: 18px; align-items: flex-start; }
 			.duty-main { flex: 1 1 0; min-width: 0; }
-			.duty-side { flex: 0 0 33%; max-width: 33%; position: sticky; top: 56px; }
+			.duty-issues {
+				background: var(--bg-light-gray, #f4f6f8); border: 1px solid var(--border-color);
+				border-radius: 14px; padding: 14px;
+			}
+			.duty-side {
+				flex: 0 0 33%; max-width: 33%; position: sticky; top: 56px;
+				background: #f0fdfa; border: 1px solid #99f6e4;
+				border-radius: 14px; padding: 12px;
+			}
 			.duty-chat-collapsed .duty-side { flex: 0 0 auto; max-width: none; }
 			.duty-chat-rail {
 				writing-mode: vertical-rl; cursor: pointer; user-select: none;

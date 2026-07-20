@@ -66,6 +66,7 @@ def push_to_user(user, title, body=""):
 	for s in subs:
 		try:
 			webpush(
+				timeout=5,
 				subscription_info={
 					"endpoint": s.endpoint,
 					"keys": json.loads(s.get("keys") or "{}"),
@@ -78,7 +79,7 @@ def push_to_user(user, title, body=""):
 				},
 			)
 		except Exception as e:
-			if "410" in str(e) or "404" in str(e):
+			if "410" in str(e) or "404" in str(e) or "400" in str(e):
 				dead.append(s.name)
 			else:
 				frappe.log_error(
