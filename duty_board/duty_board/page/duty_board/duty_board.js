@@ -1418,7 +1418,7 @@ class DutyBoard {
 						const $row = $(`
 							<div class="duty-session-row">
 								<span class="duty-session-activity">${frappe.utils.escape_html(x.activity)}</span>
-								${x.customer ? `<span class="duty-task-customer">${frappe.utils.escape_html(x.customer)}${x.unit && x.unit !== "General" ? ` <span class="duty-cr-unitchip">${frappe.utils.escape_html(x.unit)}</span>` : ""}${x.renewal ? (x.renewal.frozen ? ` <span class="duty-renew duty-renew-frozen">⏸ ${__("FROZEN — renewal overdue")}</span>` : x.renewal.days_left < 0 ? ` <span class="duty-renew duty-renew-over">🔴 ${__("expired")} ${-x.renewal.days_left}d</span>` : x.renewal.days_left <= 14 ? ` <span class="duty-renew duty-renew-warn">⏳ ${__("renews in")} ${x.renewal.days_left}d</span>` : "") : ""}</span>` : ""}
+								${x.customer ? `<span class="duty-task-customer">${frappe.utils.escape_html(x.customer)}${x.unit && x.unit !== "General" ? ` <span class="duty-cr-unitchip">${frappe.utils.escape_html(x.unit)}</span>` : ""}${x.renewal ? (x.renewal.frozen ? ` <span class="duty-renew duty-renew-frozen">⏸ ${__("FROZEN — renewal overdue")}</span>` : x.renewal.days_left < 0 ? ` <span class="duty-renew duty-renew-over">🔴 ${__("expired")} ${-x.renewal.days_left}d</span>` : x.renewal.days_left <= 14 ? ` <span class="duty-renew duty-renew-warn">⏳ ${__("renews in")} ${x.renewal.days_left}d</span>` : ` <span class="duty-renew duty-renew-calm" title="${frappe.utils.escape_html(x.renewal.date)}">🔄 ${__("renews in")} ${x.renewal.days_left}d</span>`) : ""}</span>` : ""}
 								<span class="duty-session-time text-muted">
 									${this.fmt_time(x.start_time)} – ${x.end_time ? this.fmt_time(x.end_time) : __("open")}
 									· ${this.fmt_duration(x.duration)}
@@ -5457,6 +5457,7 @@ class DutyBoard {
 			.duty-cr-cust:hover { color: var(--text-color); }
 			.duty-cr-caret { display: inline-block; width: 12px; color: var(--text-muted); }
 			.duty-renew { font-size: var(--text-xs); border-radius: 99px; padding: 2px 9px; font-weight: 700; white-space: nowrap; }
+			.duty-renew-calm { background: #f0fdfa; color: #0f766e; }
 			.duty-renew-warn { background: #fef3c7; color: #92400e; }
 			.duty-renew-over { background: #fee2e2; color: #b91c1c; }
 			.duty-renew-frozen { background: #b91c1c; color: #fff; }
