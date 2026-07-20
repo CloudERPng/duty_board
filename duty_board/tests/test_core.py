@@ -512,6 +512,34 @@ class TestDutyBoardCore(FrappeTestCase):
 		self.assertIn(h["state"], ("amber", "red"))
 		self.assertTrue(h["reasons"])
 
+	def test_meeting_caps(self):
+		cust, room_name = self._fresh_room()
+		room = frappe.get_doc("Client Room", room_name)
+		staff_user = frappe.session.user
+		# staff daily cap: two meetings on the date → third refused
+		for i in range(2):
+			frappe.get_doc({
+				"doctype": "Duty Meeting", "room": room_name, "customer": cust,
+				"topic": f"cap probe {i}", "meeting_date": "2026-08-03",
+				"start_time": f"1{i}:00:00", "duration_mins": 60, "status": "Confirmed",
+				"requested_by": "Administrator",
+				"attendees": [{"user": staff_user}],
+			}).insert(ignore_permissions=True)
+		with self.assertRaises(frappe.ValidationError):
+			client_room._meeting_caps_check(room, [staff_user], "2026-08-03")
+		# customer daily cap: today's request already exists → refused
+		cust2, room2_name = self._fresh_room()
+		room2 = frappe.get_doc("Client Room", room2_name)
+		frappe.get_doc({
+			"doctype": "Duty Meeting", "room": room2_name, "customer": cust2,
+			"topic": "today probe", "meeting_date": "2026-08-05",
+			"start_time": "10:00:00", "duration_mins": 60, "status": "Pending",
+			"requested_by": "Administrator",
+			"attendees": [{"user": staff_user}],
+		}).insert(ignore_permissions=True)
+		with self.assertRaises(frappe.ValidationError):
+			client_room._meeting_caps_check(room2, [], "2026-08-06")
+
 	def test_move_task_rejects_unknown_column(self):
 		proj = projects.create_project("__Unit Test Project 2", customer=self._any_customer())
 		board = projects.create_task(proj, "Column guard")

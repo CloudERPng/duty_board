@@ -210,7 +210,12 @@
 	.reqrow { display: flex; gap: 10px; align-items: center; }
 	.req input { flex: 1; border: 1px solid #d1d5db; border-radius: 10px; padding: 8px 12px; font-size: 16px; }
 	.muted { color: #6b7280; font-size: 13px; }
-	#err { color: #b91c1c; font-size: 13px; margin: 8px 0; display: none; }
+	#err {
+		display: none; position: fixed; left: 50%; bottom: 84px; transform: translateX(-50%);
+		background: #b91c1c; color: #fff; font-size: 14px; font-weight: 600;
+		padding: 12px 22px; border-radius: 99px; z-index: 999;
+		box-shadow: 0 6px 20px rgba(0,0,0,0.25); max-width: 90vw; text-align: center;
+	}
 	table.tt tr.row { cursor: pointer; }
 	table.tt tr.row:hover td { background: #f0fdf4; }
 	#ov { position: fixed; inset: 0; background: rgba(0,0,0,.45); display: none;
@@ -323,7 +328,7 @@
 </div>
 <script>
 const esc = (s) => (s || "").replace(/[&<>"']/g, (c) => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
-const XLV = "2.49.2";
+const XLV = "2.50.2";
 document.getElementById("xlv").textContent = "v" + XLV;
 console.log("Xlevel portal", XLV);
 let ROOM = localStorage.getItem("xl_room") || null;
@@ -984,7 +989,12 @@ function requestTask() {
 	const b = document.getElementById("reqbody");
 	const title = t.value.trim();
 	const body = b.value.trim();
-	if (!title && !REQP) return fail(new Error("Give your request a title."));
+	if (!title && !REQP) {
+		t.style.borderColor = "#b91c1c";
+		t.focus();
+		setTimeout(() => (t.style.borderColor = ""), 2500);
+		return fail(new Error("Give your request a title."));
+	}
 	(REQP ? uploadOne(REQP) : Promise.resolve(null))
 		.then((up) =>
 			api("client_request_task", {

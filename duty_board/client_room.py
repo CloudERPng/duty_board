@@ -2202,6 +2202,46 @@ def client_meeting_slots(date, staff):
 	return {"slots": _meeting_slots(ids, date)}
 
 
+def _meeting_caps_check(room, ids, date):
+	"""Customer: 1 request/day, 3/week. Staff: 2 client meetings/day across all customers."""
+	from datetime import timedelta
+
+	today_d = getdate(today())
+	rooms = frappe.get_all(
+		"Client Room", filters={"customer": room.customer}, pluck="name"
+	)
+	day_n = frappe.db.count(
+		"Duty Meeting", {"room": ["in", rooms], "creation": [">=", str(today_d)]}
+	)
+	if day_n >= 1:
+		frappe.throw(
+			_("You've already requested a meeting today — one request per day keeps our calendar fair for everyone.")
+		)
+	week_start = today_d - timedelta(days=today_d.weekday())
+	week_n = frappe.db.count(
+		"Duty Meeting", {"room": ["in", rooms], "creation": [">=", str(week_start)]}
+	)
+	if week_n >= 3:
+		frappe.throw(
+			_("You've reached this week's limit of three meeting requests — for anything urgent, message us right here.")
+		)
+	for u in ids:
+		busy = frappe.db.sql(
+			"""select count(*) from `tabDuty Meeting` m
+			join `tabDuty Meeting Attendee` a on a.parent = m.name
+			where a.user = %s and m.meeting_date = %s
+			and m.status in ('Pending', 'Confirmed')""",
+			(u, date),
+		)[0][0]
+		if busy >= 2:
+			first = frappe.utils.get_fullname(u).split(" ")[0]
+			frappe.throw(
+				_("{0} already has two client meetings on that day — choose another day or a different team member.").format(
+					first
+				)
+			)
+
+
 @frappe.whitelist()
 def client_request_meeting(date, time, staff, topic):
 	room = _client_room()
@@ -2217,6 +2257,7 @@ def client_request_meeting(date, time, staff, topic):
 		"Duty Meeting", {"room": room.name, "status": "Pending"}
 	) >= 3:
 		frappe.throw(_("You have several meetings awaiting confirmation already."))
+	_meeting_caps_check(room, ids, date)
 	if time not in _meeting_slots(ids, date):
 		frappe.throw(_("That slot just became unavailable — pick another."))
 	doc = frappe.get_doc(
