@@ -3764,17 +3764,17 @@ class DutyBoard {
 				</div>
 				<div class="duty-issues-toolbar">
 					<div class="duty-issues-toolbar-row">
-						<select class="form-control input-sm duty-issue-scope" title="${__("Status")}">
-							<option value="open" ${scope === "open" ? "selected" : ""}>${__("Open")}</option>
-							<option value="resolved" ${scope === "resolved" ? "selected" : ""}>${__("Resolved")}</option>
-							<option value="closed" ${scope === "closed" ? "selected" : ""}>${__("Closed")}</option>
-							<option value="all" ${scope === "all" ? "selected" : ""}>${__("All")}</option>
-						</select>
 						<a class="duty-oncall-chip" title="${__("On-call for out-of-hours urgents — click to change (System Manager)")}">${this._on_call ? `🌙 ${frappe.utils.escape_html(this._on_call.first)}` : `🌙 ${__("no on-call")}`}</a>
 						<button class="btn btn-xs btn-default duty-kb-open">📚 ${__("KB")}</button>
 						<button class="btn btn-xs btn-default duty-team-load">👥 ${__("Load")}</button>
 						<button class="btn btn-xs btn-default duty-issue-new">＋ ${__("New")}</button>
 					</div>
+					<select class="form-control input-sm duty-issue-scope" title="${__("Status")}">
+						<option value="open" ${scope === "open" ? "selected" : ""}>${__("Open")}</option>
+						<option value="resolved" ${scope === "resolved" ? "selected" : ""}>${__("Resolved")}</option>
+						<option value="closed" ${scope === "closed" ? "selected" : ""}>${__("Closed")}</option>
+						<option value="all" ${scope === "all" ? "selected" : ""}>${__("All")}</option>
+					</select>
 					<select class="form-control input-sm duty-issue-filter" title="${__("Filter by customer")}">
 						<option value="">${__("All customers")}</option>
 						${customers
@@ -4912,7 +4912,12 @@ class DutyBoard {
 			.duty-plan-add .duty-todo-input { flex: 1; }
 			.duty-sessions-details { margin-top: 8px; font-size: var(--text-sm); }
 			.duty-layout { display: flex; gap: 18px; align-items: flex-start; }
-			.duty-main { flex: 1 1 0; min-width: 0; }
+			.duty-main {
+				flex: 1 1 0; min-width: 0;
+				background: #fcfcfd; border: 1px solid var(--border-color);
+				border-top: 4px solid #2563eb;
+				border-radius: 14px; padding: 14px;
+			}
 			.duty-issues {
 				background: #fbfbfa; border: 1px solid var(--border-color);
 				border-top: 4px solid #d97706;
