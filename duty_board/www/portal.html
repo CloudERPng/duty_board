@@ -375,7 +375,7 @@
 </div>
 <script>
 const esc = (s) => (s || "").replace(/[&<>"']/g, (c) => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
-const XLV = "2.53.1";
+const XLV = "2.53.2";
 document.getElementById("xlv").textContent = "v" + XLV;
 console.log("Xlevel portal", XLV);
 let ROOM = localStorage.getItem("xl_room") || null;
@@ -910,13 +910,13 @@ function openTask(id, kind) {
 				</div>
 				${(d.sla_lines || []).map((l) => `<div class="slaline${l.ok === 1 ? " ok" : l.ok === 0 ? " bad" : ""}"><b>${esc(l.label)}:</b> ${esc(l.text)}${l.ok === 1 ? " ✓" : l.ok === 0 ? " ✗" : ""}</div>`).join("")}
 				${d.resolution && (d.status === "Resolved" || d.status === "Done" || d.status === "Closed") ? `<div class="resbox"><b>✅ How we resolved it</b><br>${esc(d.resolution)}</div>` : ""}
-				${String(d.name || "").indexOf("ISS-") === 0 && (d.status === "Resolved" || d.status === "Done" || d.status === "Closed") ? `
+				${kind === "issue" && (d.status === "Resolved" || d.status === "Done" || d.status === "Closed") ? `
 				<div class="ceremony">
-					<div class="stars" data-id="${esc(d.name)}">${[1, 2, 3, 4, 5].map((n) => `<span class="star ${d.client_stars >= n ? "lit" : ""}" data-n="${n}">★</span>`).join("")}<span class="starlbl">${d.client_stars ? "Thank you!" : "Rate our service"}</span></div>
+					<div class="stars" data-id="${esc(id)}">${[1, 2, 3, 4, 5].map((n) => `<span class="star ${d.client_stars >= n ? "lit" : ""}" data-n="${n}">★</span>`).join("")}<span class="starlbl">${d.client_stars ? "Thank you!" : "Rate our service"}</span></div>
 					${d.client_confirmed_at ? `<div class="confirmed">✅ You confirmed this resolution</div>` : `
 					<div class="cerbtns">
-						<button class="cbtn confirm" onclick="confirmRes('${esc(d.name)}')">✓ Confirm resolution</button>
-						<button class="cbtn notfixed" onclick="reopenTask('${esc(d.name)}')">✗ Not fixed — reopen</button>
+						<button class="cbtn confirm" onclick="confirmRes('${esc(id)}')">✓ Confirm resolution</button>
+						<button class="cbtn notfixed" onclick="reopenTask('${esc(id)}')">✗ Not fixed — reopen</button>
 					</div>`}
 				</div>` : ""}
 				${d.detail ? `<div class="det">${esc(d.detail)}</div>` : ""}

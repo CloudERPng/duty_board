@@ -235,7 +235,7 @@ def _work_rows(room):
 					"modified": t.modified,
 				}
 			)
-	out.sort(key=lambda x: str(x.get("creation") or x.get("modified") or ""), reverse=True)
+	out.sort(key=lambda x: str(x.get("reported") or x.get("modified") or ""), reverse=True)
 	for o in out:
 		del o["modified"]
 	return out[:100]
