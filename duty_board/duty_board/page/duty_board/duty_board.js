@@ -5219,9 +5219,11 @@ class DutyBoard {
 			}
 			.duty-issue-row {
 				display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
-				padding: 7px 4px; border-bottom: 1px solid var(--border-color); cursor: pointer;
+				padding: 10px 10px; cursor: pointer;
+				background: #fff; border: 1px solid #dfe3e8; border-radius: 10px;
+				margin-bottom: 10px; box-shadow: 0 1px 2px rgba(16, 24, 40, 0.05);
 			}
-			.duty-issue-row:hover { background: var(--gray-50, #fafafa); }
+			.duty-issue-row:hover { background: var(--gray-50, #fafafa); border-color: #c7ced6; }
 			.duty-issue-mine { border-left: 3px solid var(--blue-400, #60a5fa); padding-left: 8px; }
 			.duty-issue-title { font-weight: 600; flex: 1; min-width: 140px; }
 			.duty-issue-who, .duty-issue-meta { font-size: var(--text-xs); color: var(--text-muted); }
