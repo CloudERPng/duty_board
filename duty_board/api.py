@@ -1492,7 +1492,9 @@ def _open_issues():
 
 
 @frappe.whitelist()
-def get_issues(status="open"):
+def get_issues(status="open", scope=None):
+	if scope:
+		status = scope  # the staff page sends scope=; both names welcome
 	status_map = {
 		"open": None,
 		"resolved": ["Resolved"],
@@ -1503,7 +1505,7 @@ def get_issues(status="open"):
 		status = "open"
 	if status == "open":
 		return _open_issues()
-	return _fetch_issues(status_map[status], "modified desc")
+	return _fetch_issues(status_map[status], "creation desc")
 
 
 @frappe.whitelist()
