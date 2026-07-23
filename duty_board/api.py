@@ -1487,7 +1487,7 @@ def _fetch_issues(statuses, order_by):
 def _open_issues():
 	sev_order = {"Critical": 0, "High": 1, "Medium": 2, "Low": 3}
 	issues = _fetch_issues(["Open", "In Progress"], "creation asc")
-	issues.sort(key=lambda i: (sev_order.get(i.severity, 9), i.due_date or "9999-12-31"))
+	issues.sort(key=lambda i: str(i.creation), reverse=True)
 	return issues
 
 
