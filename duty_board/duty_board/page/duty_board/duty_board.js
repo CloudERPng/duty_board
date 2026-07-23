@@ -5406,8 +5406,8 @@ class DutyBoard {
 				.duty-cr-item { padding: 12px 12px; }
 				/* composer: message field full-width on top, controls beneath */
 				.duty-cr-compose { flex-wrap: wrap; gap: 8px 12px; }
-				.duty-cr-compose textarea { flex: 1 1 100%; order: -1; }
-				.duty-cr-send { margin-left: auto; }
+				.duty-cr-compose textarea.duty-cr-input { flex: 1 1 100%; width: 100%; order: -1; }
+				.duty-cr-compose button.duty-cr-send { margin-left: auto; }
 			}
 			.duty-cr-task {
 				display: flex; gap: 10px; align-items: center; padding: 5px 8px;
