@@ -2057,12 +2057,10 @@ def training_complete(record):
 	return _training_rows(room)
 
 
-@frappe.whitelist()
-def client_get_metrics():
-	"""The client's own numbers: last 30 days + the whole engagement."""
+def _room_metrics(room):
+	"""One room's numbers: last 30 days + the whole engagement."""
 	from datetime import timedelta
 
-	room = _client_room()
 	now = now_datetime()
 	s = _report_stats(room, now - timedelta(days=30), now + timedelta(days=1))
 	rated = frappe.get_all(
@@ -2089,6 +2087,17 @@ def client_get_metrics():
 		"ms_total": ms_total,
 		"ms_pct": round(ms_done * 100 / ms_total) if ms_total else None,
 	}
+
+
+@frappe.whitelist()
+def client_get_metrics():
+	return _room_metrics(_client_room())
+
+
+@frappe.whitelist()
+def room_metrics(name):
+	_staff_only()
+	return _room_metrics(frappe.get_doc("Client Room", name))
 
 
 @frappe.whitelist()

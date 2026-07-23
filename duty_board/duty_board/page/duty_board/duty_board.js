@@ -2151,6 +2151,7 @@ class DutyBoard {
 					return seen ? `<span class="duty-cr-lastseen">👀 ${__("client seen")} ${frappe.datetime.comment_when(seen)}</span>` : "";
 				})()}
 				<a class="duty-cr-academy" title="${__("Training Academy")}">🎓</a>
+				<a class="duty-cr-metrics" title="${__("Live metrics for this customer")}">📈</a>
 				<a class="duty-cr-report" title="${__("Generate last month's service report")}">📊</a>
 				<a class="duty-cr-rename" title="${__("Rename room")}">✏</a>
 				<a class="duty-cr-delete" title="${__("Delete room (System Manager)")}">🗑</a>
@@ -2493,6 +2494,31 @@ class DutyBoard {
 		$room.find(".duty-cr-shelfbtn").on("click", () => this.room_shelf_dialog(x));
 		$room.find(".duty-cr-back").on("click", () => this.$clients.removeClass("cr-room-open"));
 		$room.find(".duty-cr-academy").on("click", () => this.academy_dialog(x));
+		$room.find(".duty-cr-metrics").on("click", () =>
+			frappe.call({
+				method: "duty_board.client_room.room_metrics",
+				args: { name: x.name },
+				callback: (r) => {
+					const m = r.message || {};
+					const d = new frappe.ui.Dialog({ title: `📈 ${x.customer} — ${__("Live metrics")}` });
+					const tile = (v, l) => (v === null || v === undefined) ? "" : `<div class="duty-mtile"><b>${frappe.utils.escape_html(String(v))}</b><span>${frappe.utils.escape_html(l)}</span></div>`;
+					$(d.body).html(`<div class="duty-mtiles">
+						${tile(m.open_now, __("open now"))}
+						${tile(m.new_30, __("new · 30 days"))}
+						${tile(m.resolved_30, __("completed · 30 days"))}
+						${tile(m.avg_ack, __("avg response"))}
+						${tile(m.avg_res, __("avg resolution"))}
+						${tile(m.ack_pct !== null ? m.ack_pct + "%" : null, __("responded within SLA"))}
+						${tile(m.res_pct !== null ? m.res_pct + "%" : null, __("resolved within SLA"))}
+						${tile(m.avg_stars !== null ? "★ " + m.avg_stars : null, __("client rating") + ` (${m.rated_n})`)}
+						${tile(m.ms_pct !== null ? m.ms_pct + "%" : null, __("milestones approved") + ` (${m.ms_done}/${m.ms_total})`)}
+					</div>`);
+					if (!$(d.body).find(".duty-mtile").length)
+						$(d.body).html(`<div class="text-muted">${__("Numbers appear as work happens.")}</div>`);
+					d.show();
+				},
+			})
+		);
 		$room.find(".duty-cr-report").on("click", () =>
 			frappe.confirm(
 				__("Generate last month's service report and place it on this room's shelf? The client is notified."),
@@ -5465,7 +5491,11 @@ class DutyBoard {
 			.duty-cr-msg:hover .duty-cr-mktask { opacity: 1; }
 			.duty-cr-compose { display: flex; gap: 8px; align-items: flex-end; }
 			.duty-cr-compose textarea { flex: 1; resize: none; font-size: 16px; }
-			.duty-cr-int { font-size: var(--text-xs); font-weight: 700; align-self: center; white-space: nowrap; }
+			.duty-mtiles { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 10px; }
+			.duty-mtile { background: #f0fdfa; border-radius: 12px; padding: 14px 10px; text-align: center; }
+			.duty-mtile b { display: block; font-size: 22px; color: #0F5C55; }
+			.duty-mtile span { font-size: 11px; color: var(--text-muted); }
+						.duty-cr-int { font-size: var(--text-xs); font-weight: 700; align-self: center; white-space: nowrap; }
 			.duty-cr-composing-internal textarea { background: #fef9c3; border-color: #d97706; }
 			.duty-cr-mem { padding: 6px 0; border-bottom: 1px dashed var(--border-color); display: flex; gap: 8px; align-items: center; }
 			.duty-cr-mem a { margin-left: auto; cursor: pointer; font-size: var(--text-xs); }
