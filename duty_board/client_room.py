@@ -165,7 +165,7 @@ def _work_rows(room):
 		filters={"customer": room.customer, "client_visible": 1},
 		fields=[
 			"name", "title", "status", "client_requested", "modified",
-			"creation", "work_started_at", "resolved_at", "acknowledged_by",
+			"creation", "work_started_at", "resolved_at", "acknowledged_by", "client_confirmed_at", "client_stars",
 			"source_type", "source",
 		],
 		order_by="creation desc",
@@ -202,6 +202,8 @@ def _work_rows(room):
 				"started": str(i.work_started_at)[:16] if i.work_started_at else None,
 				"done": str(i.resolved_at)[:16] if i.resolved_at else None,
 				"seen": bool(i.acknowledged_by),
+				"confirmed": 1 if i.client_confirmed_at else 0,
+				"stars": cint(i.client_stars) or 0,
 				"modified": i.modified,
 			}
 		)
@@ -253,6 +255,9 @@ def _visible_tasks(room):
 			"reported": o.get("reported"),
 			"started": o.get("started"),
 			"done": o.get("done"),
+			"seen": o.get("seen"),
+			"confirmed": o.get("confirmed"),
+			"stars": o.get("stars"),
 		}
 		for o in _work_rows(room)
 	]

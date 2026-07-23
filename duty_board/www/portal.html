@@ -233,6 +233,9 @@
 		border-radius: 10px; padding: 9px 12px; font-size: 15px; font-family: inherit; resize: vertical; }
 	.reqrow { display: flex; gap: 10px; align-items: center; }
 	.req input { flex: 1; border: 1px solid #d1d5db; border-radius: 10px; padding: 8px 12px; font-size: 16px; }
+	.pill.pcta { background: #fef3c7; color: #92400e; animation: ctapulse 2.4s ease-in-out infinite; white-space: nowrap; }
+	@keyframes ctapulse { 0%, 100% { box-shadow: 0 0 0 0 rgba(217, 119, 6, 0.35); } 50% { box-shadow: 0 0 0 5px rgba(217, 119, 6, 0); } }
+	.ratecta { display: block; font-size: 11px; color: #0E7490; font-weight: 700; margin-top: 3px; cursor: pointer; }
 	#reqtype { width: 100%; box-sizing: border-box; border: 1px solid #d1d5db; border-radius: 10px; padding: 9px 12px; font-size: 14px; background: #fff; color: #374151; }
 	.muted { color: #6b7280; font-size: 13px; }
 	#err {
@@ -375,7 +378,7 @@
 </div>
 <script>
 const esc = (s) => (s || "").replace(/[&<>"']/g, (c) => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
-const XLV = "2.53.5";
+const XLV = "2.53.6";
 document.getElementById("xlv").textContent = "v" + XLV;
 console.log("Xlevel portal", XLV);
 let ROOM = localStorage.getItem("xl_room") || null;
@@ -495,7 +498,7 @@ function render(d) {
 			rows
 				.map((x) => {
 					const dd = dur(x);
-					return `<tr class="row" onclick="openTask('${esc(x.id)}','${esc(x.kind)}')"><td class="tt-title">${x.seen ? "👀 " : ""}${esc(x.title)}</td><td class="dt" data-l="📅 Reported">${fdt(x.reported)}</td><td class="dt" data-l="✅ Done">${fdt(x.done)}</td><td class="dur ${dd.cls}" data-l="⏳ Time">${dd.txt}</td><td class="who" data-l="👤 With">${esc(x.assignee_first || "—")}</td><td class="st"><span class="pill ${PILL[x.status]}">${esc(x.status)}</span></td></tr>`;
+					return `<tr class="row" onclick="openTask('${esc(x.id)}','${esc(x.kind)}')"><td class="tt-title">${x.seen ? "👀 " : ""}${esc(x.title)}</td><td class="dt" data-l="📅 Reported">${fdt(x.reported)}</td><td class="dt" data-l="✅ Done">${fdt(x.done)}</td><td class="dur ${dd.cls}" data-l="⏳ Time">${dd.txt}</td><td class="who" data-l="👤 With">${esc(x.assignee_first || "—")}</td><td class="st">${x.kind === "issue" && x.status === "Done" && !x.confirmed ? `<span class="pill pcta">Done — confirm? ›</span>` : `<span class="pill ${PILL[x.status]}">${esc(x.status)}${x.kind === "issue" && x.status === "Done" && x.confirmed ? " ✓" : ""}</span>`}${x.kind === "issue" && x.status === "Done" && x.confirmed && !x.stars ? `<a class="ratecta" onclick="event.stopPropagation();openTask('${esc(x.id)}','issue')">☆ rate</a>` : ""}</td></tr>`;
 				})
 				.join("") +
 			`</table>`
