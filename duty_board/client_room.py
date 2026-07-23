@@ -2058,6 +2058,40 @@ def training_complete(record):
 
 
 @frappe.whitelist()
+def client_get_metrics():
+	"""The client's own numbers: last 30 days + the whole engagement."""
+	from datetime import timedelta
+
+	room = _client_room()
+	now = now_datetime()
+	s = _report_stats(room, now - timedelta(days=30), now + timedelta(days=1))
+	rated = frappe.get_all(
+		"Duty Issue",
+		filters={"customer": room.customer, "client_visible": 1, "client_stars": [">", 0]},
+		fields=["client_stars", "source_type", "source"],
+		limit=200,
+	)
+	rated = [r for r in rated if _issue_in_room(r, room)]
+	avg_stars = round(sum(r.client_stars for r in rated) / len(rated), 1) if rated else None
+	ms_total = frappe.db.count("Duty Milestone", {"room": room.name})
+	ms_done = frappe.db.count("Duty Milestone", {"room": room.name, "status": "Approved"})
+	return {
+		"new_30": s["new"],
+		"resolved_30": s["resolved"],
+		"open_now": s["open_now"],
+		"avg_ack": s["avg_ack"],
+		"avg_res": s["avg_res"],
+		"ack_pct": s["ack_pct"],
+		"res_pct": s["res_pct"],
+		"avg_stars": avg_stars,
+		"rated_n": len(rated),
+		"ms_done": ms_done,
+		"ms_total": ms_total,
+		"ms_pct": round(ms_done * 100 / ms_total) if ms_total else None,
+	}
+
+
+@frappe.whitelist()
 def client_get_training():
 	room = _client_room()
 	rows = _training_rows(room)
