@@ -876,6 +876,11 @@ def client_task_detail(id, kind):
 				else None
 			),
 			"seen_at": str(row.acknowledged_at)[:16] if row.acknowledged_at else None,
+			"issue_type": row.get("issue_type"),
+			"sla_lines": row.get("sla_lines"),
+			"resolution": row.get("resolution"),
+			"client_stars": cint(row.get("client_stars")) or None,
+			"client_confirmed_at": str(row.client_confirmed_at)[:16] if row.get("client_confirmed_at") else None,
 			"attachments": atts,
 		}
 	if kind == "card":
