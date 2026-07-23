@@ -168,7 +168,7 @@ def _work_rows(room):
 			"creation", "work_started_at", "resolved_at", "acknowledged_by",
 			"source_type", "source",
 		],
-		order_by="modified desc",
+		order_by="creation desc",
 		limit=100,
 	)
 	issues = [i for i in issues if _issue_in_room(i, room)]
@@ -701,6 +701,74 @@ def _serve_file(fdoc, filename):
 	frappe.local.response.content_type = mimetype
 
 
+@frappe.whitelist()
+def client_rate_stars(id, stars):
+	room = _client_room()
+	row = _client_issue_for_room(room, id)
+	stars = cint(stars)
+	if stars < 1 or stars > 5:
+		frappe.throw(_("Rate between 1 and 5 stars."))
+	if row.status not in ("Resolved", "Closed"):
+		frappe.throw(_("You can rate once the work is resolved."))
+	frappe.db.set_value("Duty Issue", row.name, {
+		"client_stars": stars,
+		"client_rating": "Up" if stars >= 4 else "Down" if stars <= 2 else None,
+	}, update_modified=False)
+	frappe.db.commit()
+	_post(room, ("⭐" * stars) + _(" — rating for “{0}”").format(row.title))
+	return {"ok": True, "stars": stars}
+
+
+@frappe.whitelist()
+def client_confirm_resolution(id):
+	room = _client_room()
+	row = _client_issue_for_room(room, id)
+	if row.status not in ("Resolved", "Closed"):
+		frappe.throw(_("Nothing to confirm yet."))
+	if row.client_confirmed_at:
+		return {"ok": True}
+	frappe.db.set_value("Duty Issue", row.name, "client_confirmed_at", now_datetime(), update_modified=False)
+	frappe.db.commit()
+	full = frappe.utils.get_fullname(frappe.session.user)
+	_post(room, _("✅ Resolution confirmed by {0} — “{1}”").format(full, row.title))
+	try:
+		from duty_board.api import _notify_user
+
+		for u in frappe.get_all("User", filters={"enabled": 1, "user_type": "System User"}, pluck="name"):
+			if frappe.db.exists("Duty Push Subscription", {"user": u}):
+				_notify_user(u, _("✅ Confirmed · {0}").format(room.customer), row.title[:120])
+	except Exception:
+		pass
+	return {"ok": True}
+
+
+@frappe.whitelist()
+def client_reopen(id, comment):
+	room = _client_room()
+	row = _client_issue_for_room(room, id)
+	comment = (comment or "").strip()
+	if not comment:
+		frappe.throw(_("Tell us what still isn't right — it goes straight to the team."))
+	if row.status not in ("Resolved", "Closed"):
+		frappe.throw(_("This task is still open."))
+	doc = frappe.get_doc("Duty Issue", row.name)
+	doc.status = "In Progress"
+	doc.save(ignore_permissions=True)
+	frappe.db.set_value("Duty Issue", row.name, "client_confirmed_at", None, update_modified=False)
+	frappe.db.commit()
+	full = frappe.utils.get_fullname(frappe.session.user)
+	_post(room, _("↩️ Reopened by {0} — “{1}”: {2}").format(full, row.title, comment[:500]))
+	try:
+		from duty_board.api import _notify_user
+
+		for u in frappe.get_all("User", filters={"enabled": 1, "user_type": "System User"}, pluck="name"):
+			if frappe.db.exists("Duty Push Subscription", {"user": u}):
+				_notify_user(u, _("↩️ REOPENED · {0}").format(room.customer), row.title[:120])
+	except Exception:
+		pass
+	return {"ok": True}
+
+
 def _client_issue_for_room(room, issue_name):
 	row = frappe.db.get_value(
 		"Duty Issue",
@@ -710,6 +778,7 @@ def _client_issue_for_room(room, issue_name):
 			"client_requested", "description", "creation",
 			"work_started_at", "resolved_at", "acknowledged_by", "acknowledged_at",
 			"source_type", "source", "issue_type",
+			"resolution", "client_stars", "client_confirmed_at",
 		],
 		as_dict=True,
 	)

@@ -1013,6 +1013,35 @@ def sla_warnings():
 	frappe.db.commit()
 
 
+def _email_raiser_on_resolution(issue_name):
+	"""Email the client who raised it, once resolved/closed. Queued — never blocks."""
+	doc = frappe.db.get_value(
+		"Duty Issue",
+		issue_name,
+		["title", "resolution", "raised_by", "client_requested", "status", "customer"],
+		as_dict=True,
+	)
+	if not (doc and cint(doc.client_requested) and doc.raised_by):
+		return
+	u = frappe.db.get_value(
+		"User", doc.raised_by, ["enabled", "user_type", "first_name"], as_dict=True
+	)
+	if not (u and cint(u.enabled) and u.user_type == "Website User"):
+		return
+	portal = frappe.utils.get_url("/portal")
+	frappe.sendmail(
+		recipients=[doc.raised_by],
+		subject=_("✅ {0} — your request is {1}").format(doc.title[:80], _(doc.status.lower())),
+		message=f"""<p>Hello {frappe.utils.escape_html(u.first_name or "")},</p>
+<p>Your request <b>“{frappe.utils.escape_html(doc.title)}”</b> has been marked <b>{frappe.utils.escape_html(doc.status)}</b>.</p>
+{f'<p style="background:#f0fdfa;border-radius:10px;padding:12px 16px"><b>How we resolved it:</b><br>{frappe.utils.escape_html(doc.resolution)}</p>' if doc.resolution else ''}
+<p>Please open your portal to confirm the resolution and rate our service —
+or reopen it if anything still isn't right:</p>
+<p><a href="{portal}" style="background:#0F5C55;color:#fff;padding:10px 22px;border-radius:8px;text-decoration:none">Open your portal</a></p>
+<p style="color:#6b7280;font-size:12px">Xlevel Retail Systems · CloudERP.One</p>""",
+	)
+
+
 def _issue_payload(doc):
 	files = frappe.get_all(
 		"File",
@@ -1057,6 +1086,8 @@ def _issue_payload(doc):
 		"customer": doc.customer,
 		"severity": doc.severity,
 		"issue_type": doc.get("issue_type"),
+		"client_stars": doc.get("client_stars"),
+		"client_confirmed_at": str(doc.get("client_confirmed_at")) if doc.get("client_confirmed_at") else None,
 		"status": doc.status,
 		"due_date": str(doc.due_date) if doc.due_date else None,
 		"raised_by": doc.raised_by,
@@ -1192,6 +1223,10 @@ def acknowledge_issue(name):
 			vals["sla_ack_met"] = 1 if now <= frappe.utils.get_datetime(doc.sla_ack_due) else 0
 		frappe.db.set_value("Duty Issue", name, vals, update_modified=False)
 		frappe.db.commit()
+		try:
+			_email_raiser_on_resolution(name)
+		except Exception:
+			frappe.log_error(frappe.get_traceback(), "duty_board.resolution_email")
 		try:
 			from duty_board.client_room import narrate_issue
 

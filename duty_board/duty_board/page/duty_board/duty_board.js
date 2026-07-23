@@ -4039,7 +4039,7 @@ class DutyBoard {
 					${working_names ? `<div class="duty-issue-meta">⏱ ${__("Working on it now")}: ${working_names}</div>` : ""}
 					${this.sla_meta(x)}
 					<div class="duty-sim-host"></div>
-					<div class="duty-issue-meta"><a class="duty-issue-rca">📋 ${__("RCA report")}</a> · <a class="duty-issue-kb">📚 ${__("Promote to KB")}</a> · <a class="duty-issue-vis">${x.client_visible ? "👁 " + __("Client-visible — click to hide") : "🙈 " + __("Hidden from client — click to publish")}</a>${x.client_rating ? ` · ${x.client_rating === "Up" ? "👍 " + __("Client satisfied") : "👎 " + __("Client unhappy")}` : ""}${x.acknowledged_first ? ` · 👀 ${__("Acknowledged by")} ${frappe.utils.escape_html(x.acknowledged_first)}` : x.client_visible ? ` · <a class="duty-issue-ack">👀 ${__("Acknowledge")}</a>` : ""}</div>
+					<div class="duty-issue-meta"><a class="duty-issue-rca">📋 ${__("RCA report")}</a> · <a class="duty-issue-kb">📚 ${__("Promote to KB")}</a> · <a class="duty-issue-vis">${x.client_visible ? "👁 " + __("Client-visible — click to hide") : "🙈 " + __("Hidden from client — click to publish")}</a>${x.client_stars ? ` · <span class="duty-stars">${"★".repeat(x.client_stars)}${"☆".repeat(5 - x.client_stars)}</span>` : x.client_rating ? ` · ${x.client_rating === "Up" ? "👍 " + __("Client satisfied") : "👎 " + __("Client unhappy")}` : ""}${x.client_confirmed_at ? ` · <span class="duty-confirmed">✅ ${__("client confirmed")}</span>` : ""}${x.acknowledged_first ? ` · 👀 ${__("Acknowledged by")} ${frappe.utils.escape_html(x.acknowledged_first)}` : x.client_visible ? ` · <a class="duty-issue-ack">👀 ${__("Acknowledge")}</a>` : ""}</div>
 					${x.description ? `<div class="duty-issue-desc">${frappe.utils.escape_html(x.description)}</div>` : ""}
 					${
 						(x.attachments || []).length
@@ -5217,6 +5217,8 @@ class DutyBoard {
 			.duty-sim-row { padding: 6px 4px; border-bottom: 1px dashed var(--border-color); font-size: var(--text-sm); display: flex; gap: 8px; flex-wrap: wrap; align-items: baseline; }
 			.duty-sim-row .text-muted { font-size: var(--text-xs); width: 100%; }
 			.duty-type-chip { font-size: var(--text-xs); background: #ede9fe; color: #5b21b6; border-radius: 99px; padding: 1px 8px; font-weight: 700; white-space: nowrap; }
+			.duty-stars { color: #f59e0b; letter-spacing: 1px; }
+			.duty-confirmed { color: #166534; font-weight: 700; font-size: var(--text-xs); }
 			.duty-sla { font-size: var(--text-xs); background: #fef3c7; color: #92400e; border-radius: 99px; padding: 1px 8px; font-weight: 700; white-space: nowrap; }
 			.duty-sla-over { background: #fee2e2; color: #b91c1c; }
 			.duty-sla-met { background: #dcfce7; color: #166534; }
