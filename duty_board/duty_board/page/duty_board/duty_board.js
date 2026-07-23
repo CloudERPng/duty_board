@@ -2136,11 +2136,13 @@ class DutyBoard {
 	render_client_room(x) {
 		if (x.name !== this._open_room) return;
 		const $room = this.$clients.find(".duty-cr-room").show();
+		this.$clients.addClass("cr-room-open");
 		const counts = { Queued: 0, "In Progress": 0, Done: 0 };
 		(x.tasks || []).forEach((t) => (counts[t.status] = (counts[t.status] || 0) + 1));
 		$room.html(`
 			<div class="duty-cr-ribbon">🤝 ${__("{0} can read this room — whispers 🔒 excepted", [frappe.utils.escape_html(x.customer)])}</div>
 			<div class="duty-cr-head">
+				<a class="duty-cr-back">‹ ${__("Rooms")}</a>
 				<b>${frappe.utils.escape_html(x.customer)}</b>
 				<span class="duty-cr-taskchips">📋 ${counts.Queued} ${__("queued")} · ${counts["In Progress"]} ${__("in progress")} · ${counts.Done} ${__("done")}</span>
 				<span class="duty-cr-owner" title="${__("Account manager")}">★ ${x.owner_user ? frappe.utils.escape_html((this.name_map[x.owner_user] || x.owner_user).split(" ")[0]) : `<i>${__("unowned")}</i>`}</span>
@@ -2489,6 +2491,7 @@ class DutyBoard {
 			$mt.empty();
 		}
 		$room.find(".duty-cr-shelfbtn").on("click", () => this.room_shelf_dialog(x));
+		$room.find(".duty-cr-back").on("click", () => this.$clients.removeClass("cr-room-open"));
 		$room.find(".duty-cr-academy").on("click", () => this.academy_dialog(x));
 		$room.find(".duty-cr-report").on("click", () =>
 			frappe.confirm(
@@ -5369,11 +5372,38 @@ class DutyBoard {
 			.duty-cr-tasks { display: flex; flex-direction: column; gap: 4px; margin-bottom: 10px; border-bottom: 1px solid var(--border-color); padding-bottom: 8px; flex: none; }
 			.duty-sessions-details { margin-top: 8px; width: 100%; }
 			.duty-sessions-details > summary { cursor: pointer; font-weight: 600; }
+			.duty-cr-back { display: none; }
 			@media (max-width: 767px) {
+				/* two screens: the list OR the room, never the stack */
+				.duty-clients.cr-room-open .duty-cr-list { display: none; }
+				.duty-clients:not(.cr-room-open) .duty-cr-room { display: none !important; }
+				.duty-cr-back {
+					display: inline-block; font-weight: 700; font-size: var(--text-md);
+					color: var(--text-color); padding: 4px 10px 4px 0; white-space: nowrap;
+				}
+				/* conversation first; work folds beneath */
 				.duty-cr-main { flex-direction: column; }
-				.duty-cr-side { width: 100%; border-left: none; padding-left: 0; order: -1; }
+				.duty-cr-side {
+					width: 100%; border-left: none; border-top: 3px solid var(--border-color);
+					border-radius: 0; padding: 10px 4px 0; order: 1; margin-top: 10px;
+				}
 				.duty-cr-side.folded { width: 100%; }
-				.duty-cr-sidebody { max-height: 32vh; }
+				.duty-cr-sidebody { max-height: 38vh; }
+				/* calm header: name + essentials, tools scroll, counts retire */
+				.duty-cr-head {
+					position: sticky; top: 0; z-index: 6; background: var(--bg-color, #fff);
+					padding: 8px 0 6px; margin-bottom: 4px; flex-wrap: nowrap;
+					overflow-x: auto; -webkit-overflow-scrolling: touch; scrollbar-width: none;
+				}
+				.duty-cr-head::-webkit-scrollbar { display: none; }
+				.duty-cr-head > b { white-space: nowrap; }
+				.duty-cr-taskchips, .duty-cr-lastseen { display: none; }
+				.duty-cr-ribbon {
+					font-size: 11px; white-space: nowrap; overflow: hidden;
+					text-overflow: ellipsis; padding: 4px 10px;
+				}
+				/* room list rows: thumb-sized */
+				.duty-cr-item { padding: 12px 12px; }
 			}
 			.duty-cr-task {
 				display: flex; gap: 10px; align-items: center; padding: 5px 8px;
