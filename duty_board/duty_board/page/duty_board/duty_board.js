@@ -1630,25 +1630,63 @@ class DutyBoard {
 		if (face === "me") this.refresh_me();
 	}
 
+	_me_host() {
+		// DOM truth: exactly one .duty-me, attached, bound to this instance
+		const $all = $(".duty-me");
+		console.log("[duty-me] host nodes found:", $all.length, "| instance node attached:", !!(this.$me && this.$me[0] && document.body.contains(this.$me[0])));
+		let $host = $all.filter((i, el) => document.body.contains(el)).last();
+		if (!$host.length) {
+			$host = $('<div class="duty-me"></div>').appendTo(this.page && this.page.body ? this.page.body : document.body);
+			console.log("[duty-me] host rebuilt");
+		}
+		$(".duty-me").not($host[0]).remove();
+		this.$me = $host;
+		return $host;
+	}
+
 	refresh_me(month) {
-		this.$me.html(`<div class="text-muted" style="padding:30px">${__("Loading your dashboard…")}</div>`);
+		const V = "js v2.58.8";
+		console.log("[duty-me]", V, "refresh_me start, month:", month || "(current)");
+		this._me_host().show();
+		this.$me.html(`<div class="text-muted" style="padding:30px">${__("Loading your dashboard…")} <span style="opacity:.5">(${V})</span></div>`);
 		const url = "/api/method/duty_board.api.my_dashboard" + (month ? `?month=${encodeURIComponent(month)}` : "");
-		fetch(url, { credentials: "same-origin", headers: { "X-Frappe-CSRF-Token": frappe.csrf_token || "" } })
+		console.log("[duty-me] fetching", url);
+		fetch(url, { credentials: "same-origin" })
 			.then((res) => {
+				console.log("[duty-me] response status", res.status);
 				if (!res.ok) throw new Error(`HTTP ${res.status}`);
 				return res.json();
 			})
 			.then((j) => {
+				console.log("[duty-me] payload keys:", j && j.message ? Object.keys(j.message).join(",") : "NONE");
 				if (!j || !j.message) throw new Error("empty payload");
-				this.render_me(j.message);
+				console.log("[duty-me] render begin");
+				this._me_host();
+				this.render_my_dashboard(j.message);
+				const node = this.$me[0];
+				const rect = node.getBoundingClientRect();
+				console.log("[duty-me] painted:", this.$me.find(".duty-mtile").length, "tiles | innerHTML:", node.innerHTML.length, "chars | visible height:", Math.round(rect.height), "| offsetParent:", !!node.offsetParent);
+				if (rect.height < 60 || !node.offsetParent) {
+					console.warn("[duty-me] node invisible — escalating to overlay");
+					$(".duty-me-overlay").remove();
+					const $ov = $(`
+						<div class="duty-me-overlay">
+							<div class="duty-me-ovbar"><b>👤 ${__("My Dashboard")}</b><a class="duty-me-ovclose">✕</a></div>
+							<div class="duty-me-ovbody"></div>
+						</div>`).appendTo(document.body);
+					$ov.find(".duty-me-ovclose").on("click", () => $ov.remove());
+					this.$me = $ov.find(".duty-me-ovbody");
+					this.render_my_dashboard(j.message);
+					console.log("[duty-me] overlay tiles:", this.$me.find(".duty-mtile").length);
+				}
 			})
 			.catch((err) => {
-				console.error("my_dashboard fetch:", err);
-				this.$me.html(`<div style="color:#b91c1c;padding:30px;white-space:pre-wrap">Dashboard failed: ${frappe.utils.escape_html(err.message)}</div>`);
+				console.error("[duty-me] FAILED:", err);
+				this.$me.html(`<div style="color:#b91c1c;padding:30px;white-space:pre-wrap">Dashboard failed: ${frappe.utils.escape_html(err.message)}\n${frappe.utils.escape_html((err.stack || "").split("\n").slice(0, 4).join("\n"))}</div>`);
 			});
 	}
 
-	render_me(m) {
+	render_my_dashboard(m) {
 		const esc = frappe.utils.escape_html;
 		const t = m.tiles || {};
 		const tile = (v, l) => (v === null || v === undefined) ? "" : `<div class="duty-mtile"><b>${esc(String(v))}</b><span>${esc(l)}</span></div>`;
@@ -1718,7 +1756,7 @@ class DutyBoard {
 		mk(".duty-ch-cust", "bar", m.by_customer);
 		mk(".duty-ch-hours", "donut", m.hours_by_customer);
 		try {
-			this.render_me_cal(m);
+			this.render_my_dashboard_cal(m);
 		} catch (err) {
 			console.error("calendar:", err);
 			this.$me.find(".duty-cal-grid").html(`<div style="color:#b91c1c">calendar failed: ${frappe.utils.escape_html(err.message)}</div>`);
@@ -1726,7 +1764,7 @@ class DutyBoard {
 		this.$me.find(".duty-me-row").on("click", (e) => this.issue_detail_dialog($(e.currentTarget).data("name")));
 	}
 
-	render_me_cal(m) {
+	render_my_dashboard_cal(m) {
 		const [Y, M] = m.month.split("-").map(Number);
 		this.$me.find(".duty-cal-title").text(frappe.datetime.month_name ? m.month : new Date(Y, M - 1, 1).toLocaleString("default", { month: "long", year: "numeric" }));
 		const first = new Date(Y, M - 1, 1);
@@ -5664,6 +5702,17 @@ class DutyBoard {
 			.duty-cr-msg:hover .duty-cr-mktask { opacity: 1; }
 			.duty-cr-compose { display: flex; gap: 8px; align-items: flex-end; }
 			.duty-cr-compose textarea { flex: 1; resize: none; font-size: 16px; }
+			.duty-me-overlay {
+				position: fixed; inset: 0; z-index: 1200; background: var(--bg-color, #fff);
+				overflow-y: auto; padding: 0 16px 60px;
+			}
+			.duty-me-ovbar {
+				position: sticky; top: 0; background: inherit; z-index: 2;
+				display: flex; justify-content: space-between; align-items: center;
+				padding: 14px 4px 10px; font-size: var(--text-lg);
+			}
+			.duty-me-ovclose { cursor: pointer; font-size: 22px; color: var(--text-muted); padding: 4px 10px; }
+			.duty-me-ovbody { max-width: 1100px; margin: 0 auto; }
 			.duty-me { padding: 8px 4px 40px; max-width: 1100px; margin: 0 auto; }
 			.duty-me-head h2 { margin: 4px 0 2px; }
 			.duty-me .duty-mtiles { margin: 14px 0 18px; }
