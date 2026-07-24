@@ -1632,23 +1632,20 @@ class DutyBoard {
 
 	refresh_me(month) {
 		this.$me.html(`<div class="text-muted" style="padding:30px">${__("Loading your dashboard…")}</div>`);
-		frappe.call({
-			method: "duty_board.api.my_dashboard",
-			args: { month: month || null },
-			callback: (r) => {
-				try {
-					if (r.message) this.render_me(r.message);
-					else this.$me.html(`<div style="color:#b91c1c;padding:30px">${__("Dashboard returned no data.")}</div>`);
-				} catch (err) {
-					console.error("render_me:", err);
-					this.$me.html(`<div style="color:#b91c1c;padding:30px;white-space:pre-wrap">render_me failed: ${frappe.utils.escape_html(err.message)}
-${frappe.utils.escape_html((err.stack || "").split("\n").slice(0, 3).join("\n"))}</div>`);
-				}
-			},
-			error: (e) => {
-				this.$me.html(`<div style="color:#b91c1c;padding:30px">${__("Dashboard call failed — check the browser console.")}</div>`);
-			},
-		});
+		const url = "/api/method/duty_board.api.my_dashboard" + (month ? `?month=${encodeURIComponent(month)}` : "");
+		fetch(url, { credentials: "same-origin", headers: { "X-Frappe-CSRF-Token": frappe.csrf_token || "" } })
+			.then((res) => {
+				if (!res.ok) throw new Error(`HTTP ${res.status}`);
+				return res.json();
+			})
+			.then((j) => {
+				if (!j || !j.message) throw new Error("empty payload");
+				this.render_me(j.message);
+			})
+			.catch((err) => {
+				console.error("my_dashboard fetch:", err);
+				this.$me.html(`<div style="color:#b91c1c;padding:30px;white-space:pre-wrap">Dashboard failed: ${frappe.utils.escape_html(err.message)}</div>`);
+			});
 	}
 
 	render_me(m) {
