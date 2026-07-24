@@ -883,6 +883,7 @@ def client_task_detail(id, kind):
 			"seen_at": str(row.acknowledged_at)[:16] if row.acknowledged_at else None,
 			"issue_type": row.get("issue_type"),
 			"sla_lines": row.get("sla_lines"),
+			"updates": __import__("duty_board.api", fromlist=["x"])._issue_updates(row.name, 10),
 			"resolution": row.get("resolution"),
 			"client_stars": cint(row.get("client_stars")) or None,
 			"client_confirmed_at": str(row.client_confirmed_at)[:16] if row.get("client_confirmed_at") else None,

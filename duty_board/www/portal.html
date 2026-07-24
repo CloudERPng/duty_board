@@ -132,6 +132,10 @@
 	.mstoggle i { font-style: normal; }
 	.mstasks { display: none; width: 100%; margin: 4px 0 2px 24px; flex-direction: column; gap: 3px; }
 	.mstasks.open { display: flex; }
+	.updbox { background: #f8fafc; border-radius: 10px; padding: 10px 14px; margin: 8px 0; font-size: 13px; }
+	.updrow { padding: 6px 0; border-bottom: 1px dashed #e5e7eb; white-space: pre-wrap; }
+	.updrow:last-child { border-bottom: none; }
+	.updrow span { display: block; font-size: 11px; color: #6b7280; font-weight: 700; }
 	.resbox { background: #f0fdf4; border-radius: 10px; padding: 10px 14px; margin: 8px 0; font-size: 14px; line-height: 1.5; white-space: pre-wrap; }
 	.ceremony { border-top: 1px dashed #e5e7eb; margin-top: 10px; padding-top: 10px; }
 	.stars { font-size: 26px; display: flex; align-items: center; gap: 2px; }
@@ -386,7 +390,7 @@
 </div>
 <script>
 const esc = (s) => (s || "").replace(/[&<>"']/g, (c) => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
-const XLV = "2.56.0";
+const XLV = "2.57.0";
 document.getElementById("xlv").textContent = "v" + XLV;
 console.log("Xlevel portal", XLV);
 let ROOM = localStorage.getItem("xl_room") || null;
@@ -945,6 +949,7 @@ function openTask(id, kind) {
 					${d.seen_by ? `<b>👀 Seen</b><span>${esc(d.seen_by)} · ${fdt(d.seen_at)}</span>` : ""}
 				</div>
 				${(d.sla_lines || []).map((l) => `<div class="slaline${l.ok === 1 ? " ok" : l.ok === 0 ? " bad" : ""}"><b>${esc(l.label)}:</b> ${esc(l.text)}${l.ok === 1 ? " ✓" : l.ok === 0 ? " ✗" : ""}</div>`).join("")}
+				${(d.updates || []).length ? `<div class="updbox"><b>📝 Progress updates</b>${d.updates.map((u) => `<div class="updrow"><span>${esc(u.by)} · ${esc(u.when)}</span>${esc(u.note)}</div>`).join("")}</div>` : ""}
 				${d.resolution && (d.status === "Resolved" || d.status === "Done" || d.status === "Closed") ? `<div class="resbox"><b>✅ How we resolved it</b><br>${esc(d.resolution)}</div>` : ""}
 				${kind === "issue" && (d.status === "Resolved" || d.status === "Done" || d.status === "Closed") ? `
 				<div class="ceremony">

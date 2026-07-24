@@ -3613,6 +3613,39 @@ class DutyBoard {
 		d.show();
 	}
 
+	load_updates(x, $host) {
+		const render = (rows) => {
+			$host.html(`
+				<div class="duty-lead-section">📝 ${__("Updates")}</div>
+				${(rows || [])
+					.map(
+						(u) => `<div class="duty-upd-row"><span class="duty-upd-meta">${frappe.utils.escape_html(u.by)} · ${frappe.utils.escape_html(u.when)}</span>${frappe.utils.escape_html(u.note)}</div>`
+					)
+					.join("") || `<div class="text-muted" style="font-size:var(--text-xs)">${__("No updates yet — post progress and the client's room hears it.")}</div>`}
+				<div class="duty-upd-compose">
+					<input type="text" class="form-control input-sm duty-upd-in" placeholder="${__("Post a progress update…")}">
+					<button type="button" class="btn btn-xs btn-primary duty-upd-send">${__("Post")}</button>
+				</div>
+			`);
+			const post = () => {
+				const note = $host.find(".duty-upd-in").val().trim();
+				if (!note) return;
+				frappe.call({
+					method: "duty_board.api.issue_update_add",
+					args: { name: x.name, note },
+					callback: (r) => render(r.message),
+				});
+			};
+			$host.find(".duty-upd-send").on("click", post);
+			$host.find(".duty-upd-in").on("keydown", (e) => e.key === "Enter" && post());
+		};
+		frappe.call({
+			method: "duty_board.api.issue_updates",
+			args: { name: x.name },
+			callback: (r) => render(r.message),
+		});
+	}
+
 	load_similar(x, $host) {
 		frappe.call({
 			method: "duty_board.api.similar_issues",
@@ -4067,6 +4100,7 @@ class DutyBoard {
 					${names ? `<div class="duty-issue-meta">${__("Assigned to")}: ${names}</div>` : ""}
 					${working_names ? `<div class="duty-issue-meta">⏱ ${__("Working on it now")}: ${working_names}</div>` : ""}
 					${this.sla_meta(x)}
+					<div class="duty-upd-host"></div>
 					<div class="duty-sim-host"></div>
 					<div class="duty-issue-meta"><a class="duty-issue-rca">📋 ${__("RCA report")}</a> · <a class="duty-issue-kb">📚 ${__("Promote to KB")}</a> · <a class="duty-issue-vis">${x.client_visible ? "👁 " + __("Client-visible — click to hide") : "🙈 " + __("Hidden from client — click to publish")}</a>${x.client_stars ? ` · <span class="duty-stars">${"★".repeat(x.client_stars)}${"☆".repeat(5 - x.client_stars)}</span>` : x.client_rating ? ` · ${x.client_rating === "Up" ? "👍 " + __("Client satisfied") : "👎 " + __("Client unhappy")}` : ""}${x.client_confirmed_at ? ` · <span class="duty-confirmed">✅ ${__("client confirmed")}</span>` : ""}${x.acknowledged_first ? ` · 👀 ${__("Acknowledged by")} ${frappe.utils.escape_html(x.acknowledged_first)}` : x.client_visible ? ` · <a class="duty-issue-ack">👀 ${__("Acknowledge")}</a>` : ""}</div>
 					${x.description ? `<div class="duty-issue-desc">${frappe.utils.escape_html(x.description)}</div>` : ""}
@@ -4142,6 +4176,7 @@ class DutyBoard {
 					},
 				})
 			);
+			this.load_updates(x, $(d.body).find(".duty-upd-host"));
 			this.load_similar(x, $(d.body).find(".duty-sim-host"));
 			$(d.body).find(".duty-issue-kb").on("click", () =>
 				frappe.prompt(
@@ -5247,6 +5282,10 @@ class DutyBoard {
 			.duty-load-skills { display: flex; gap: 6px; flex-wrap: wrap; align-items: baseline; }
 			.duty-skill-x { cursor: pointer; margin-left: 3px; }
 			.duty-skill-add { cursor: pointer; font-size: var(--text-xs); font-weight: 700; }
+			.duty-upd-row { padding: 7px 4px; border-bottom: 1px dashed var(--border-color); font-size: var(--text-sm); white-space: pre-wrap; }
+			.duty-upd-meta { display: block; font-size: var(--text-xs); color: var(--text-muted); font-weight: 700; }
+			.duty-upd-compose { display: flex; gap: 8px; margin-top: 8px; }
+			.duty-upd-compose input { flex: 1; }
 			.duty-sim-row { padding: 6px 4px; border-bottom: 1px dashed var(--border-color); font-size: var(--text-sm); display: flex; gap: 8px; flex-wrap: wrap; align-items: baseline; }
 			.duty-sim-row .text-muted { font-size: var(--text-xs); width: 100%; }
 			.duty-type-chip { font-size: var(--text-xs); background: #ede9fe; color: #5b21b6; border-radius: 99px; padding: 1px 8px; font-weight: 700; white-space: nowrap; }

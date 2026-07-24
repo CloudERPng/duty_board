@@ -1042,6 +1042,57 @@ or reopen it if anything still isn't right:</p>
 	)
 
 
+def _issue_updates(issue, limit=20):
+	rows = frappe.get_all(
+		"Duty Issue Update",
+		filters={"issue": issue},
+		fields=["note", "owner", "creation"],
+		order_by="creation desc",
+		limit=limit,
+	)
+	return [
+		{
+			"note": r.note,
+			"by": frappe.utils.get_fullname(r.owner).split(" ")[0],
+			"when": str(r.creation)[:16],
+		}
+		for r in rows
+	]
+
+
+@frappe.whitelist()
+def issue_updates(name):
+	return _issue_updates(name)
+
+
+@frappe.whitelist()
+def issue_update_add(name, note):
+	note = (note or "").strip()
+	if not note:
+		frappe.throw(_("Write the update."))
+	doc = frappe.get_doc("Duty Issue", name)
+	frappe.get_doc(
+		{"doctype": "Duty Issue Update", "issue": name, "note": note[:2000]}
+	).insert(ignore_permissions=True)
+	frappe.db.commit()
+	try:
+		from duty_board.client_room import _issue_home_room, _post, _push_room_clients
+
+		row = frappe._dict(
+			customer=doc.customer, source_type=doc.source_type, source=doc.source
+		)
+		home = _issue_home_room(row)
+		if home and cint(doc.client_visible):
+			room = frappe.get_doc("Client Room", home.name)
+			_post(room, _("📝 Update on “{0}”: {1}").format(doc.title[:80], note[:400]))
+			_push_room_clients(
+				room, _("📝 Update · {0}").format(doc.customer), doc.title[:120]
+			)
+	except Exception:
+		frappe.log_error(frappe.get_traceback(), "duty_board.issue_update_narrate")
+	return _issue_updates(name)
+
+
 def _issue_payload(doc):
 	files = frappe.get_all(
 		"File",
