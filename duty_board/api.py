@@ -1151,6 +1151,42 @@ def my_dashboard(month=None):
 		if s.duration:
 			bump(s.start_time, "hrs", s.duration / 3600)
 
+	# meetings I'm part of, this month
+	my_meets = frappe.db.sql(
+		"""select distinct dm.name, dm.topic, dm.customer, dm.meeting_date,
+			dm.start_time, dm.status
+		from `tabDuty Meeting` dm
+		left join `tabDuty Meeting Attendee` a on a.parent = dm.name
+		where dm.meeting_date >= %(s)s and dm.meeting_date < %(e)s
+			and dm.status in ('Pending', 'Confirmed')
+			and (a.user = %(me)s or dm.requested_by = %(me)s or dm.confirmed_by = %(me)s)
+		order by dm.meeting_date, dm.start_time""",
+		{"s": str(mstart.date()), "e": str(nxt.date()), "me": me},
+		as_dict=True,
+	)
+	day_items = {}
+	for mt in my_meets:
+		k = str(mt.meeting_date)
+		days.setdefault(k, {"due": 0, "res": 0, "hrs": 0})
+		days[k]["meet"] = days[k].get("meet", 0) + 1
+		day_items.setdefault(k, {"meetings": [], "tasks": []})
+		day_items[k]["meetings"].append(
+			{
+				"name": mt.name,
+				"topic": mt.topic,
+				"customer": mt.customer,
+				"time": str(mt.start_time)[:5] if mt.start_time else "",
+				"status": mt.status,
+			}
+		)
+	for i in open_now:
+		if i.due_date and mstart.date() <= get_datetime(str(i.due_date)).date() < nxt.date():
+			k = str(i.due_date)
+			day_items.setdefault(k, {"meetings": [], "tasks": []})
+			day_items[k]["tasks"].append(
+				{"name": i.name, "title": i.title, "customer": i.customer, "severity": i.severity}
+			)
+
 	return {
 		"full_name": frappe.utils.get_fullname(me),
 		"tiles": {
@@ -1169,11 +1205,70 @@ def my_dashboard(month=None):
 		"hours_by_customer": top(hrs_cust),
 		"month": mstart.strftime("%Y-%m"),
 		"days": days,
+		"day_items": day_items,
 		"open_list": [
 			{"name": i.name, "title": i.title, "customer": i.customer, "severity": i.severity, "due": str(i.due_date) if i.due_date else None}
 			for i in sorted(open_now, key=lambda x: str(x.due_date or "9999"))[:12]
 		],
 	}
+
+
+@frappe.whitelist()
+def create_meeting(topic, meeting_date, start_time=None, duration_mins=30, customer=None, attendees=None):
+	from duty_board.client_room import _staff_only
+
+	_staff_only()
+	topic = (topic or "").strip()
+	if not topic:
+		frappe.throw(_("Give the meeting a topic."))
+	me = frappe.session.user
+	users = []
+	if attendees:
+		import json as _json
+
+		try:
+			users = _json.loads(attendees) if isinstance(attendees, str) else list(attendees)
+		except Exception:
+			users = []
+	if me not in users:
+		users.insert(0, me)
+	doc = frappe.get_doc(
+		{
+			"doctype": "Duty Meeting",
+			"topic": topic[:140],
+			"customer": customer or None,
+			"meeting_date": meeting_date,
+			"start_time": start_time or None,
+			"duration_mins": cint(duration_mins) or 30,
+			"status": "Confirmed",
+			"requested_by": me,
+			"confirmed_by": me,
+			"attendees": [{"user": u} for u in users],
+		}
+	)
+	doc.insert(ignore_permissions=True)
+	frappe.db.commit()
+	if customer:
+		try:
+			from duty_board.client_room import _post
+
+			rn = frappe.get_all(
+				"Client Room",
+				filters={"customer": customer, "status": ["!=", "Archived"]},
+				limit=1,
+				pluck="name",
+			)
+			if rn:
+				room = frappe.get_doc("Client Room", rn[0])
+				_post(
+					room,
+					_("📅 Meeting scheduled: “{0}” — {1} {2}").format(
+						topic[:80], meeting_date, str(start_time or "")[:5]
+					),
+				)
+		except Exception:
+			frappe.log_error(frappe.get_traceback(), "duty_board.meeting_narrate")
+	return {"name": doc.name}
 
 
 def _issue_updates(issue, limit=20):

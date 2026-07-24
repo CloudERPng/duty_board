@@ -1719,6 +1719,7 @@ class DutyBoard {
 				</div>
 				<div class="duty-cal-grid"></div>
 				<div class="duty-cal-legend">
+					<span><i class="cdot cmeet"></i> ${__("meetings")}</span>
 					<span><i class="cdot cdue"></i> ${__("due")}</span>
 					<span><i class="cdot cres"></i> ${__("resolved")}</span>
 					<span><i class="cdot chrs"></i> ${__("hours on duty")}</span>
@@ -1776,8 +1777,9 @@ class DutyBoard {
 		for (let d = 1; d <= dim; d++) {
 			const key = `${Y}-${String(M).padStart(2, "0")}-${String(d).padStart(2, "0")}`;
 			const info = (m.days || {})[key] || {};
-			cells += `<div class="duty-cal-cell${key === today ? " today" : ""}">
+			cells += `<div class="duty-cal-cell${key === today ? " today" : ""}" data-day="${key}">
 				<span class="dnum">${d}</span>
+				${info.meet ? `<span class="cbadge cmeet">📅${info.meet}</span>` : ""}
 				${info.due ? `<span class="cbadge cdue">${info.due}</span>` : ""}
 				${info.res ? `<span class="cbadge cres">${info.res}</span>` : ""}
 				${info.hrs ? `<span class="cbadge chrs">${info.hrs}h</span>` : ""}
@@ -1790,6 +1792,8 @@ class DutyBoard {
 		};
 		this.$me.find(".duty-cal-prev").off("click").on("click", () => shift(-1));
 		this.$me.find(".duty-cal-next").off("click").on("click", () => shift(1));
+		this._me_data = m;
+		this.$me.find(".duty-cal-cell:not(.empty)").on("click", (e) => this.me_day_dialog($(e.currentTarget).data("day")));
 	}
 
 	toggle_face() {
@@ -3779,6 +3783,86 @@ class DutyBoard {
 		d.show();
 	}
 
+	me_day_dialog(day) {
+		const m = this._me_data || {};
+		const items = (m.day_items || {})[day] || { meetings: [], tasks: [] };
+		const esc = frappe.utils.escape_html;
+		const d = new frappe.ui.Dialog({ title: `📆 ${day}` });
+		$(d.body).html(`
+			${items.meetings.length ? `<div class="duty-lead-section">📅 ${__("Meetings")}</div>` : ""}
+			${items.meetings.map((mt) => `
+				<div class="duty-day-row">
+					<b>${esc(mt.time || "")}</b> ${esc(mt.topic)}
+					${mt.customer ? `<span class="text-muted">· ${esc(mt.customer)}</span>` : ""}
+					${mt.status === "Pending" ? `<span class="duty-day-pending">${__("pending")}</span>` : ""}
+				</div>`).join("")}
+			${items.tasks.length ? `<div class="duty-lead-section">⚠ ${__("Tasks due")}</div>` : ""}
+			${items.tasks.map((t) => `
+				<div class="duty-day-row duty-day-task" data-name="${esc(t.name)}">
+					<span class="duty-sev duty-sev-${(t.severity || "medium").toLowerCase()}">${__(t.severity || "Medium")}</span>
+					${esc(t.title)} <span class="text-muted">· ${esc(t.customer || "")}</span>
+				</div>`).join("")}
+			${!items.meetings.length && !items.tasks.length ? `<div class="text-muted">${__("Nothing scheduled.")}</div>` : ""}
+			<div class="duty-day-actions">
+				<button class="btn btn-xs btn-default duty-day-newtask">＋ ${__("Task due this day")}</button>
+				<button class="btn btn-xs btn-primary duty-day-newmeet">＋ ${__("Meeting")}</button>
+			</div>
+		`);
+		$(d.body).find(".duty-day-task").on("click", (e) => {
+			d.hide();
+			this.issue_detail_dialog($(e.currentTarget).data("name"));
+		});
+		$(d.body).find(".duty-day-newtask").on("click", () => {
+			d.hide();
+			this.create_issue_dialog({ due_date: day });
+		});
+		$(d.body).find(".duty-day-newmeet").on("click", () => {
+			d.hide();
+			this.me_meeting_dialog(day);
+		});
+		d.show();
+	}
+
+	me_meeting_dialog(day) {
+		const md = new frappe.ui.Dialog({
+			title: __("📅 New Meeting"),
+			fields: [
+				{ fieldname: "topic", fieldtype: "Data", label: __("Topic"), reqd: 1 },
+				{ fieldname: "meeting_date", fieldtype: "Date", label: __("Date"), default: day, reqd: 1 },
+				{ fieldname: "start_time", fieldtype: "Time", label: __("Time") },
+				{ fieldname: "duration_mins", fieldtype: "Int", label: __("Duration (mins)"), default: 30 },
+				{ fieldname: "customer", fieldtype: "Link", options: "Customer", label: __("Customer (optional — the room hears about it)") },
+				{
+					fieldname: "attendees",
+					fieldtype: "MultiSelectList",
+					label: __("Attendees"),
+					get_data: () =>
+						this.team_members().map((t) => ({ value: t.user, description: t.full_name })),
+				},
+			],
+			primary_action_label: __("Schedule"),
+			primary_action: (v) => {
+				frappe.call({
+					method: "duty_board.api.create_meeting",
+					args: {
+						topic: v.topic,
+						meeting_date: v.meeting_date,
+						start_time: v.start_time || null,
+						duration_mins: v.duration_mins || 30,
+						customer: v.customer || null,
+						attendees: v.attendees && v.attendees.length ? JSON.stringify(v.attendees) : null,
+					},
+					callback: () => {
+						md.hide();
+						frappe.show_alert({ message: __("Meeting scheduled"), indicator: "green" });
+						this.refresh_me((this._me_data || {}).month);
+					},
+				});
+			},
+		});
+		md.show();
+	}
+
 	load_updates(x, $host) {
 		const render = (rows) => {
 			$host.html(`
@@ -4118,6 +4202,7 @@ class DutyBoard {
 					fieldname: "due_date",
 					fieldtype: "Date",
 					label: __("Due Date"),
+					default: prefill.due_date || undefined,
 				},
 				{
 					fieldname: "assignees",
@@ -5729,7 +5814,15 @@ class DutyBoard {
 			.duty-cal-cell.today { border-color: #0F5C55; box-shadow: inset 0 0 0 1px #0F5C55; }
 			.duty-cal-cell .dnum { font-size: var(--text-xs); color: var(--text-muted); font-weight: 700; }
 			.cbadge { display: inline-block; font-size: 10px; font-weight: 700; border-radius: 6px; padding: 0 5px; margin: 1px 2px 0 0; color: #fff; }
+			.cbadge.cmeet, .cdot.cmeet { background: #7c3aed; }
 			.cbadge.cdue, .cdot.cdue { background: #dc2626; }
+			.duty-cal-cell:not(.empty) { cursor: pointer; }
+			.duty-cal-cell:not(.empty):hover { background: var(--gray-50, #fafafa); }
+			.duty-day-row { padding: 8px 4px; border-bottom: 1px dashed var(--border-color); font-size: var(--text-sm); }
+			.duty-day-task { cursor: pointer; }
+			.duty-day-task:hover { background: var(--gray-50, #fafafa); }
+			.duty-day-pending { color: #b45309; font-size: var(--text-xs); font-weight: 700; margin-left: 6px; }
+			.duty-day-actions { display: flex; gap: 10px; margin-top: 12px; }
 			.cbadge.cres, .cdot.cres { background: #16a34a; }
 			.cbadge.chrs, .cdot.chrs { background: #2563eb; }
 			.duty-cal-legend { display: flex; gap: 16px; margin-top: 8px; font-size: var(--text-xs); color: var(--text-muted); }
