@@ -4243,7 +4243,9 @@ class DutyBoard {
 							fieldtype: "MultiSelectList",
 							label: __("Add assignees"),
 							get_data: () =>
-								this.team_members().map((t) => ({ value: t.user, description: t.full_name })),
+								[{ value: frappe.session.user, description: __("Me") }].concat(
+									this.team_members().map((t) => ({ value: t.user, description: t.full_name }))
+								),
 						},
 					],
 					primary_action_label: __("Save"),
