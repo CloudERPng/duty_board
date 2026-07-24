@@ -1645,7 +1645,7 @@ class DutyBoard {
 	}
 
 	refresh_me(month) {
-		const V = "js v2.59.2";
+		const V = "js v2.59.3";
 		console.log("[duty-me]", V, "refresh_me start, month:", month || "(current)");
 		this._me_host().show();
 		this.$me.html(`<div class="text-muted" style="padding:30px">${__("Loading your dashboard…")} <span style="opacity:.5">(${V})</span></div>`);
@@ -1692,8 +1692,17 @@ class DutyBoard {
 		const tile = (v, l) => (v === null || v === undefined) ? "" : `<div class="duty-mtile"><b>${esc(String(v))}</b><span>${esc(l)}</span></div>`;
 		this.$me.html(`
 			<div class="duty-me-head">
-				<h2>👤 ${esc(m.full_name)}</h2>
-				<span class="text-muted">${__("Your work, your numbers — visible to you alone on this view.")}</span>
+				<div>
+					<h2>👤 ${esc(m.full_name)}</h2>
+					<span class="text-muted">${__("Your work, your numbers — visible to you alone on this view.")}</span>
+				</div>
+				<div class="duty-me-clock">
+					<span class="duty-me-dot ${m.duty && m.duty.on ? "on" : "off"}">●</span>
+					<span>${m.duty && m.duty.on ? __("On duty") : __("Off duty")} · ${esc((m.duty || {}).today || "0h 0m")} ${__("today")}</span>
+					${m.duty && m.duty.on
+						? `<button class="btn btn-sm btn-default duty-me-clockout">${__("Clock Out")}</button>`
+						: `<button class="btn btn-sm btn-primary duty-me-clockin">${__("Clock In")}</button>`}
+				</div>
 			</div>
 			<div class="duty-mtiles">
 				${tile(t.open_now, __("open now"))}
@@ -1701,7 +1710,7 @@ class DutyBoard {
 				${tile(t.resolved_30, __("resolved · 30 days"))}
 				${tile(t.avg_res, __("avg resolution"))}
 				${tile(t.sla_pct !== null && t.sla_pct !== undefined ? t.sla_pct + "%" : null, __("within SLA"))}
-				${tile(t.my_stars ? "★ " + t.my_stars : null, __("client rating") + (t.my_rated_n ? ` (${t.my_rated_n})` : ""))}
+				${tile(t.my_stars !== null && t.my_stars !== undefined ? "★ " + t.my_stars : null, __("client rating") + ` (${t.my_rated_n || 0})`)}
 				${tile(t.hours_30, __("hours logged · 30d"))}
 				${tile(t.updates_30, __("updates posted · 30d"))}
 				${tile(t.messages_30, __("messages · 30d"))}
@@ -1741,13 +1750,17 @@ class DutyBoard {
 			</div>
 			<div class="duty-me-open">
 				<h4>${__("Your open queue")}</h4>
-				${(m.open_list || []).map((i) => `
+				${(m.open_list || []).map((i) => {
+					const today = frappe.datetime.get_today();
+					const dueCls = !i.due ? "" : i.due < today ? " overdue" : i.due === today ? " duetoday" : "";
+					return `
 					<div class="duty-me-row" data-name="${esc(i.name)}">
 						<span class="duty-sev duty-sev-${(i.severity || "medium").toLowerCase()}">${__(i.severity || "Medium")}</span>
-						<b>${esc(i.title)}</b>
-						<span class="text-muted">${esc(i.customer || "")}</span>
-						${i.due ? `<span class="duty-me-due">${__("due")} ${esc(i.due)}</span>` : ""}
-					</div>`).join("") || `<div class="text-muted">${__("Nothing assigned — enjoy it while it lasts.")}</div>`}
+						<span class="duty-me-title">${esc(i.title)}</span>
+						<span class="duty-me-cust">${esc(i.customer || "—")}</span>
+						<span class="duty-me-due${dueCls}">${i.due ? esc(i.due) : ""}</span>
+					</div>`;
+				}).join("") || `<div class="text-muted">${__("Nothing assigned — enjoy it while it lasts.")}</div>`}
 			</div>
 		`);
 		const mk = (sel, type, data, height = 190) => {
@@ -1776,6 +1789,24 @@ class DutyBoard {
 			this.$me.find(".duty-cal-grid").html(`<div style="color:#b91c1c">calendar failed: ${frappe.utils.escape_html(err.message)}</div>`);
 		}
 		this.$me.find(".duty-me-row").on("click", (e) => this.issue_detail_dialog($(e.currentTarget).data("name")));
+		this.$me.find(".duty-me-clockin").on("click", () =>
+			frappe.call({
+				method: "duty_board.api.clock_in",
+				callback: () => this.refresh_me((this._me_data || {}).month),
+			})
+		);
+		this.$me.find(".duty-me-clockout").on("click", () =>
+			frappe.prompt(
+				{ fieldname: "reason", fieldtype: "Small Text", label: __("Reason"), reqd: 1 },
+				(v) =>
+					frappe.call({
+						method: "duty_board.api.clock_out",
+						args: { reason: v.reason },
+						callback: () => this.refresh_me((this._me_data || {}).month),
+					}),
+				__("Clock Out")
+			)
+		);
 		this.$me.find(".duty-req-ok").on("click", (e) =>
 			frappe.call({
 				method: "duty_board.client_room.confirm_meeting",
@@ -3835,6 +3866,7 @@ class DutyBoard {
 					<b>${esc(mt.time || "")}</b> ${esc(mt.topic)}
 					${mt.customer ? `<span class="text-muted">· ${esc(mt.customer)}</span>` : ""}
 					${mt.status === "Pending" ? `<span class="duty-day-pending">${__("pending")}</span>` : ""}
+					<a class="duty-day-move" data-kind="meeting" data-name="${esc(mt.name)}" title="${__("Reschedule")}">✎</a>
 				</div>`).join("")}
 			${(items.todos || []).length ? `<div class="duty-lead-section">📋 ${__("Plan items")}</div>` : ""}
 			${(items.todos || []).map((td) => `
@@ -3842,12 +3874,14 @@ class DutyBoard {
 					<input type="checkbox" data-name="${esc(td.name)}" ${td.done ? "checked" : ""}>
 					<b>${esc(td.time || "")}</b> <span class="${td.done ? "duty-todo-done" : ""}">${esc(td.text)}</span>
 					${td.customer ? `<span class="text-muted">· ${esc(td.customer)}</span>` : ""}
+					<a class="duty-day-move" data-kind="todo" data-name="${esc(td.name)}" title="${__("Move")}">✎</a>
 				</div>`).join("")}
 			${items.tasks.length ? `<div class="duty-lead-section">⚠ ${__("Tasks due")}</div>` : ""}
 			${items.tasks.map((t) => `
 				<div class="duty-day-row duty-day-task" data-name="${esc(t.name)}">
 					<span class="duty-sev duty-sev-${(t.severity || "medium").toLowerCase()}">${__(t.severity || "Medium")}</span>
 					${esc(t.title)} <span class="text-muted">· ${esc(t.customer || "")}</span>
+					<a class="duty-day-move" data-kind="task" data-name="${esc(t.name)}" title="${__("Change due date")}">✎</a>
 				</div>`).join("")}
 			${!items.meetings.length && !items.tasks.length ? `<div class="text-muted">${__("Nothing scheduled.")}</div>` : ""}
 			<div class="duty-day-actions">
@@ -3856,6 +3890,26 @@ class DutyBoard {
 				<button class="btn btn-xs btn-primary duty-day-newmeet">＋ ${__("Meeting")}</button>
 			</div>
 		`);
+		$(d.body).find(".duty-day-move").on("click", (e) => {
+			e.stopPropagation();
+			const kind = $(e.currentTarget).data("kind");
+			const name = $(e.currentTarget).data("name");
+			d.hide();
+			const fields = [{ fieldname: "date", fieldtype: "Date", label: __("New date"), default: day, reqd: 1 }];
+			if (kind !== "task") fields.push({ fieldname: "time", fieldtype: "Time", label: __("Time") });
+			frappe.prompt(fields, (v) => {
+				const done = () => {
+					frappe.show_alert({ message: __("Moved"), indicator: "green" });
+					this.refresh_me((this._me_data || {}).month);
+				};
+				if (kind === "meeting")
+					frappe.call({ method: "duty_board.api.reschedule_meeting", args: { name, meeting_date: v.date, start_time: v.time || null }, callback: done });
+				else if (kind === "todo")
+					frappe.call({ method: "duty_board.api.update_todo", args: { name, date: v.date, due_time: v.time || null }, callback: done });
+				else
+					frappe.call({ method: "duty_board.api.update_issue", args: { name, due_date: v.date }, callback: done });
+			}, __("Reschedule"));
+		});
 		$(d.body).find(".duty-day-todo input").on("change", (e) => {
 			frappe.call({
 				method: "duty_board.api.toggle_todo",
@@ -5910,9 +5964,31 @@ class DutyBoard {
 			.cdot { display: inline-block; width: 10px; height: 10px; border-radius: 3px; vertical-align: -1px; }
 			.duty-me-open { background: #fff; border: 1px solid var(--border-color); border-radius: 12px; padding: 12px; }
 			.duty-me-open h4 { margin: 0 0 8px; }
-			.duty-me-row { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; padding: 8px 6px; border-bottom: 1px dashed var(--border-color); cursor: pointer; }
+			.duty-me-row {
+				display: grid; grid-template-columns: 74px minmax(0, 1fr) auto 96px;
+				align-items: center; gap: 10px; padding: 9px 6px;
+				border-bottom: 1px dashed var(--border-color); cursor: pointer;
+			}
 			.duty-me-row:hover { background: var(--gray-50, #fafafa); }
-			.duty-me-due { color: #b45309; font-size: var(--text-xs); font-weight: 700; margin-left: auto; }
+			.duty-me-title { font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+			.duty-me-cust {
+				font-size: var(--text-xs); background: #ede9fe; color: #5b21b6;
+				border-radius: 99px; padding: 2px 10px; font-weight: 700; white-space: nowrap;
+				max-width: 180px; overflow: hidden; text-overflow: ellipsis;
+			}
+			.duty-me-due { font-size: var(--text-xs); font-weight: 700; color: var(--text-muted); text-align: right; }
+			.duty-me-due.duetoday { color: #b45309; }
+			.duty-me-due.overdue { color: #dc2626; }
+			.duty-me-clock { display: flex; align-items: center; gap: 8px; font-size: var(--text-sm); }
+			.duty-me-dot.on { color: #16a34a; }
+			.duty-me-dot.off { color: #9ca3af; }
+			.duty-me-head { display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 10px; }
+			.duty-day-move { margin-left: auto; cursor: pointer; color: var(--text-muted); padding: 0 4px; }
+			.duty-day-move:hover { color: var(--text-color); }
+			@media (max-width: 767px) {
+				.duty-me-row { grid-template-columns: 64px minmax(0, 1fr) 84px; }
+				.duty-me-cust { display: none; }
+			}
 			@media (max-width: 767px) { .duty-cal-cell { min-height: 46px; } }
 			.duty-mtiles { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 10px; }
 			.duty-mtile { background: #f0fdfa; border-radius: 12px; padding: 14px 10px; text-align: center; }

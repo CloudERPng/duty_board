@@ -511,6 +511,8 @@ def _push_safe(user, title, body):
 @frappe.whitelist()
 def share_todo(name, users):
 	doc = frappe.get_doc("Daily Todo", name)
+	if date:
+		doc.date = date
 	_check_todo_owner(doc)
 	targets = _parse_targets(users) or []
 	if not targets:
@@ -524,7 +526,7 @@ def share_todo(name, users):
 
 
 @frappe.whitelist()
-def update_todo(name, description=None, customer=None, due_time=None):
+def update_todo(name, description=None, customer=None, due_time=None, date=None):
 	doc = frappe.get_doc("Daily Todo", name)
 	_check_todo_owner(doc)
 	if description is not None and description.strip():
@@ -1099,7 +1101,7 @@ def my_dashboard(month=None):
 	]
 	avg_res = round(sum(res_min) / len(res_min)) if res_min else None
 	rated = [cint(i.client_stars) for i in resolved if cint(i.client_stars) > 0]
-	my_stars = round(sum(rated) / len(rated), 1) if rated else None
+	my_stars = round(sum(rated) / len(rated), 1) if rated else 0
 	judged = [i for i in resolved if i.sla_res_met in (0, 1)]
 	sla_pct = round(sum(1 for i in judged if i.sla_res_met) * 100 / len(judged)) if judged else None
 
@@ -1224,8 +1226,30 @@ def my_dashboard(month=None):
 				{"name": i.name, "title": i.title, "customer": i.customer, "severity": i.severity}
 			)
 
+	logs_today = frappe.get_all(
+		"Duty Log",
+		filters={"user": me, "log_time": [">=", str(now.date())]},
+		fields=["log_type", "log_time"],
+		order_by="log_time asc",
+		ignore_permissions=True,
+	)
+	on_secs, open_in = 0, None
+	for lg in logs_today:
+		if lg.log_type == "Clock In":
+			open_in = lg.log_time
+		elif lg.log_type == "Clock Out" and open_in:
+			on_secs += (lg.log_time - open_in).total_seconds()
+			open_in = None
+	if open_in:
+		on_secs += (now - open_in).total_seconds()
+	duty = {
+		"on": bool(open_in),
+		"today": f"{int(on_secs // 3600)}h {int(on_secs % 3600 // 60)}m" if on_secs else "0h 0m",
+	}
+
 	return {
 		"full_name": frappe.utils.get_fullname(me),
+		"duty": duty,
 		"tiles": {
 			"open_now": len(open_now),
 			"in_progress": sum(1 for i in open_now if i.status == "In Progress"),
@@ -1325,6 +1349,37 @@ def create_meeting(topic, meeting_date, start_time=None, duration_mins=30, custo
 		except Exception:
 			frappe.log_error(frappe.get_traceback(), "duty_board.meeting_narrate")
 	return {"name": doc.name}
+
+
+@frappe.whitelist()
+def reschedule_meeting(name, meeting_date, start_time=None):
+	from duty_board.client_room import _staff_only
+
+	_staff_only()
+	doc = frappe.get_doc("Duty Meeting", name)
+	if doc.status not in ("Pending", "Confirmed"):
+		frappe.throw(_("This meeting is settled — schedule a new one instead."))
+	old_when = f"{doc.meeting_date} {str(doc.start_time or '')[:5]}".strip()
+	doc.meeting_date = meeting_date
+	doc.start_time = start_time or None
+	doc.reminded_morning = 0
+	doc.reminded_hour = 0
+	doc.save(ignore_permissions=True)
+	frappe.db.commit()
+	if doc.room:
+		try:
+			from duty_board.client_room import _post
+
+			room = frappe.get_doc("Client Room", doc.room)
+			_post(
+				room,
+				_("📅 Meeting moved: “{0}” — now {1} {2} (was {3})").format(
+					(doc.topic or "")[:80], meeting_date, str(start_time or "")[:5], old_when
+				),
+			)
+		except Exception:
+			frappe.log_error(frappe.get_traceback(), "duty_board.meeting_move_narrate")
+	return {"ok": True}
 
 
 def _issue_updates(issue, limit=20):
