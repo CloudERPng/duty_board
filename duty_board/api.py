@@ -1060,6 +1060,20 @@ def my_dashboard(month=None):
 		pluck="parent",
 		ignore_permissions=True,
 	)
+	raised = frappe.get_all(
+		"Duty Issue", filters={"raised_by": me}, pluck="name", ignore_permissions=True
+	)
+	if raised:
+		claimed = set(
+			frappe.get_all(
+				"Duty Issue Assignee",
+				filters={"parent": ["in", raised], "parenttype": "Duty Issue"},
+				pluck="parent",
+				ignore_permissions=True,
+			)
+		)
+		# what I created and nobody owns yet is mine until claimed
+		mine = list(set(mine) | (set(raised) - claimed))
 	issues = (
 		frappe.get_all(
 			"Duty Issue",
@@ -1067,6 +1081,7 @@ def my_dashboard(month=None):
 			fields=[
 				"name", "title", "status", "severity", "issue_type", "customer",
 				"creation", "resolved_at", "due_date", "sla_res_met", "sla_ack_met",
+				"client_stars",
 			],
 			ignore_permissions=True,
 		)
@@ -1083,6 +1098,8 @@ def my_dashboard(month=None):
 		if i.resolved_at and i.creation and i.resolved_at >= now - timedelta(days=90)
 	]
 	avg_res = round(sum(res_min) / len(res_min)) if res_min else None
+	rated = [cint(i.client_stars) for i in resolved if cint(i.client_stars) > 0]
+	my_stars = round(sum(rated) / len(rated), 1) if rated else None
 	judged = [i for i in resolved if i.sla_res_met in (0, 1)]
 	sla_pct = round(sum(1 for i in judged if i.sla_res_met) * 100 / len(judged)) if judged else None
 
@@ -1098,10 +1115,9 @@ def my_dashboard(month=None):
 		items = sorted(counter.items(), key=lambda x: -x[1])[:n]
 		return {"labels": [k for k, _ in items], "values": [v for _, v in items]}
 
-	by_type, by_cust = {}, {}
+	by_type = {}
 	for i in open_now:
 		by_type[i.issue_type or "Support"] = by_type.get(i.issue_type or "Support", 0) + 1
-		by_cust[i.customer or "—"] = by_cust.get(i.customer or "—", 0) + 1
 
 	sessions = frappe.get_all(
 		"Work Session",
@@ -1195,14 +1211,33 @@ def my_dashboard(month=None):
 			"resolved_30": len(res_30),
 			"avg_res": f"{avg_res // 60}h {avg_res % 60}m" if avg_res and avg_res >= 60 else (f"{avg_res}m" if avg_res else None),
 			"sla_pct": sla_pct,
+			"my_stars": my_stars,
+			"my_rated_n": len(rated),
 			"hours_30": hours_30 or None,
 			"updates_30": upd_30 or None,
 			"messages_30": msg_30 or None,
 		},
 		"weekly": {"labels": wl, "values": weeks},
 		"by_type": top(by_type),
-		"by_customer": top(by_cust),
 		"hours_by_customer": top(hrs_cust),
+		"pending_requests": [
+			{
+				"name": r.name,
+				"topic": r.topic,
+				"customer": r.customer,
+				"date": str(r.meeting_date),
+				"time": str(r.start_time)[:5] if r.start_time else "",
+				"by": frappe.utils.get_fullname(r.requested_by) if r.requested_by else "",
+			}
+			for r in frappe.get_all(
+				"Duty Meeting",
+				filters={"status": "Pending"},
+				fields=["name", "topic", "customer", "meeting_date", "start_time", "requested_by"],
+				order_by="meeting_date, start_time",
+				limit=20,
+				ignore_permissions=True,
+			)
+		],
 		"month": mstart.strftime("%Y-%m"),
 		"days": days,
 		"day_items": day_items,

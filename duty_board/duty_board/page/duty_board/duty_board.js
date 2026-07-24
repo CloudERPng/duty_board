@@ -1645,7 +1645,7 @@ class DutyBoard {
 	}
 
 	refresh_me(month) {
-		const V = "js v2.58.8";
+		const V = "js v2.59.1";
 		console.log("[duty-me]", V, "refresh_me start, month:", month || "(current)");
 		this._me_host().show();
 		this.$me.html(`<div class="text-muted" style="padding:30px">${__("Loading your dashboard…")} <span style="opacity:.5">(${V})</span></div>`);
@@ -1701,6 +1701,7 @@ class DutyBoard {
 				${tile(t.resolved_30, __("resolved · 30 days"))}
 				${tile(t.avg_res, __("avg resolution"))}
 				${tile(t.sla_pct !== null && t.sla_pct !== undefined ? t.sla_pct + "%" : null, __("within SLA"))}
+				${tile(t.my_stars ? "★ " + t.my_stars : null, __("client rating") + (t.my_rated_n ? ` (${t.my_rated_n})` : ""))}
 				${tile(t.hours_30, __("hours logged · 30d"))}
 				${tile(t.updates_30, __("updates posted · 30d"))}
 				${tile(t.messages_30, __("messages · 30d"))}
@@ -1708,9 +1709,21 @@ class DutyBoard {
 			<div class="duty-me-charts">
 				<div class="duty-me-chart"><h4>${__("Resolved per week")}</h4><div class="duty-ch-weekly"></div></div>
 				<div class="duty-me-chart"><h4>${__("Open workload by type")}</h4><div class="duty-ch-type"></div></div>
-				<div class="duty-me-chart"><h4>${__("Open workload by customer")}</h4><div class="duty-ch-cust"></div></div>
 				<div class="duty-me-chart"><h4>${__("Hours by customer · 30d")}</h4><div class="duty-ch-hours"></div></div>
 			</div>
+			${(m.pending_requests || []).length ? `
+			<div class="duty-me-reqs">
+				<h4>📨 ${__("Meeting requests awaiting approval")}</h4>
+				${m.pending_requests.map((r) => `
+					<div class="duty-req-row">
+						<b>${esc(r.date)}${r.time ? " · " + esc(r.time) : ""}</b> ${esc(r.topic)}
+						<span class="text-muted">· ${esc(r.customer || "")}${r.by ? " — " + esc(r.by) : ""}</span>
+						<span class="duty-req-btns">
+							<button class="btn btn-xs btn-primary duty-req-ok" data-id="${esc(r.name)}">✓ ${__("Confirm")}</button>
+							<button class="btn btn-xs btn-default duty-req-no" data-id="${esc(r.name)}">✗ ${__("Decline")}</button>
+						</span>
+					</div>`).join("")}
+			</div>` : ""}
 			<div class="duty-me-cal">
 				<div class="duty-me-calhead">
 					<button class="btn btn-xs duty-cal-prev">◀</button>
@@ -1754,7 +1767,6 @@ class DutyBoard {
 		};
 		mk(".duty-ch-weekly", "bar", m.weekly);
 		mk(".duty-ch-type", "donut", m.by_type);
-		mk(".duty-ch-cust", "bar", m.by_customer);
 		mk(".duty-ch-hours", "donut", m.hours_by_customer);
 		try {
 			this.render_my_dashboard_cal(m);
@@ -1763,6 +1775,32 @@ class DutyBoard {
 			this.$me.find(".duty-cal-grid").html(`<div style="color:#b91c1c">calendar failed: ${frappe.utils.escape_html(err.message)}</div>`);
 		}
 		this.$me.find(".duty-me-row").on("click", (e) => this.issue_detail_dialog($(e.currentTarget).data("name")));
+		this.$me.find(".duty-req-ok").on("click", (e) =>
+			frappe.call({
+				method: "duty_board.client_room.confirm_meeting",
+				args: { id: $(e.currentTarget).data("id") },
+				callback: () => {
+					frappe.show_alert({ message: __("Meeting confirmed"), indicator: "green" });
+					this.refresh_me((this._me_data || {}).month);
+				},
+			})
+		);
+		this.$me.find(".duty-req-no").on("click", (e) => {
+			const id = $(e.currentTarget).data("id");
+			frappe.prompt(
+				{ fieldname: "reason", fieldtype: "Small Text", label: __("Why not? (client sees this)") },
+				(v) =>
+					frappe.call({
+						method: "duty_board.client_room.decline_meeting",
+						args: { id, reason: v.reason || null },
+						callback: () => {
+							frappe.show_alert({ message: __("Declined"), indicator: "orange" });
+							this.refresh_me((this._me_data || {}).month);
+						},
+					}),
+				__("Decline meeting")
+			);
+		});
 	}
 
 	render_my_dashboard_cal(m) {
@@ -5804,6 +5842,10 @@ class DutyBoard {
 			.duty-me-charts { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 16px; margin-bottom: 20px; }
 			.duty-me-chart { background: #fff; border: 1px solid var(--border-color); border-radius: 12px; padding: 10px 12px 4px; }
 			.duty-me-chart h4 { margin: 2px 0 0; font-size: var(--text-sm); color: var(--text-muted); }
+			.duty-me-reqs { background: #fffbeb; border: 1px solid #fde68a; border-radius: 12px; padding: 12px; margin-bottom: 20px; }
+			.duty-me-reqs h4 { margin: 0 0 8px; }
+			.duty-req-row { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; padding: 7px 4px; border-bottom: 1px dashed #fde68a; font-size: var(--text-sm); }
+			.duty-req-btns { margin-left: auto; display: flex; gap: 6px; }
 			.duty-me-cal { background: #fff; border: 1px solid var(--border-color); border-radius: 12px; padding: 12px; margin-bottom: 20px; }
 			.duty-me-calhead { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; }
 			.duty-me-calhead h4 { margin: 0; }
