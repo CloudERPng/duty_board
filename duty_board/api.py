@@ -1042,6 +1042,133 @@ or reopen it if anything still isn't right:</p>
 	)
 
 
+@frappe.whitelist()
+def my_dashboard(month=None):
+	"""Everything one staff member is doing and has done — theirs alone."""
+	from datetime import datetime, timedelta
+
+	me = frappe.session.user
+	now = now_datetime()
+	d30 = now - timedelta(days=30)
+
+	mine = frappe.get_all(
+		"Duty Issue Assignee",
+		filters={"user": me, "parenttype": "Duty Issue"},
+		pluck="parent",
+	)
+	issues = (
+		frappe.get_all(
+			"Duty Issue",
+			filters={"name": ["in", mine]},
+			fields=[
+				"name", "title", "status", "severity", "issue_type", "customer",
+				"creation", "resolved_at", "due_date", "sla_res_met", "sla_ack_met",
+			],
+		)
+		if mine
+		else []
+	)
+	open_now = [i for i in issues if i.status in ("Open", "In Progress")]
+	resolved = [i for i in issues if i.resolved_at]
+	res_30 = [i for i in resolved if i.resolved_at >= d30]
+
+	res_min = [
+		(i.resolved_at - i.creation).total_seconds() / 60
+		for i in resolved
+		if i.resolved_at and i.creation and i.resolved_at >= now - timedelta(days=90)
+	]
+	avg_res = round(sum(res_min) / len(res_min)) if res_min else None
+	judged = [i for i in resolved if i.sla_res_met in (0, 1)]
+	sla_pct = round(sum(1 for i in judged if i.sla_res_met) * 100 / len(judged)) if judged else None
+
+	# weekly resolutions, last 8 weeks
+	weeks, wl = [], []
+	for k in range(7, -1, -1):
+		start = (now - timedelta(days=now.weekday())).replace(hour=0, minute=0, second=0, microsecond=0) - timedelta(weeks=k)
+		end = start + timedelta(weeks=1)
+		weeks.append(sum(1 for i in resolved if start <= i.resolved_at < end))
+		wl.append(start.strftime("%d %b"))
+
+	def top(counter, n=8):
+		items = sorted(counter.items(), key=lambda x: -x[1])[:n]
+		return {"labels": [k for k, _ in items], "values": [v for _, v in items]}
+
+	by_type, by_cust = {}, {}
+	for i in open_now:
+		by_type[i.issue_type or "Support"] = by_type.get(i.issue_type or "Support", 0) + 1
+		by_cust[i.customer or "—"] = by_cust.get(i.customer or "—", 0) + 1
+
+	sessions = frappe.get_all(
+		"Work Session",
+		filters={"user": me, "start_time": [">", d30]},
+		fields=["customer", "duration", "start_time"],
+	)
+	hrs_cust = {}
+	for s in sessions:
+		if s.duration:
+			hrs_cust[s.customer or "—"] = hrs_cust.get(s.customer or "—", 0) + s.duration / 3600
+	hrs_cust = {k: round(v, 1) for k, v in hrs_cust.items()}
+	hours_30 = round(sum(s.duration or 0 for s in sessions) / 3600, 1)
+
+	upd_30 = frappe.db.count("Duty Issue Update", {"owner": me, "creation": [">", d30]})
+	msg_30 = frappe.db.count("Client Room Message", {"owner": me, "creation": [">", d30]})
+
+	# calendar month
+	try:
+		mstart = datetime.strptime(month, "%Y-%m") if month else now.replace(day=1)
+	except Exception:
+		mstart = now.replace(day=1)
+	mstart = mstart.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
+	nxt = (mstart + timedelta(days=32)).replace(day=1)
+	days = {}
+
+	def bump(dt, key, amt=1):
+		if dt and mstart <= dt < nxt:
+			k = str(dt.date() if hasattr(dt, "date") else dt)
+			days.setdefault(k, {"due": 0, "res": 0, "hrs": 0})
+			days[k][key] = round(days[k][key] + amt, 1)
+
+	from frappe.utils import get_datetime
+
+	for i in open_now:
+		if i.due_date:
+			bump(get_datetime(str(i.due_date)), "due")
+	for i in resolved:
+		bump(i.resolved_at, "res")
+	msessions = frappe.get_all(
+		"Work Session",
+		filters={"user": me, "start_time": ["between", [str(mstart), str(nxt)]]},
+		fields=["start_time", "duration"],
+	)
+	for s in msessions:
+		if s.duration:
+			bump(s.start_time, "hrs", s.duration / 3600)
+
+	return {
+		"full_name": frappe.utils.get_fullname(me),
+		"tiles": {
+			"open_now": len(open_now),
+			"in_progress": sum(1 for i in open_now if i.status == "In Progress"),
+			"resolved_30": len(res_30),
+			"avg_res": f"{avg_res // 60}h {avg_res % 60}m" if avg_res and avg_res >= 60 else (f"{avg_res}m" if avg_res else None),
+			"sla_pct": sla_pct,
+			"hours_30": hours_30 or None,
+			"updates_30": upd_30 or None,
+			"messages_30": msg_30 or None,
+		},
+		"weekly": {"labels": wl, "values": weeks},
+		"by_type": top(by_type),
+		"by_customer": top(by_cust),
+		"hours_by_customer": top(hrs_cust),
+		"month": mstart.strftime("%Y-%m"),
+		"days": days,
+		"open_list": [
+			{"name": i.name, "title": i.title, "customer": i.customer, "severity": i.severity, "due": str(i.due_date) if i.due_date else None}
+			for i in sorted(open_now, key=lambda x: str(x.due_date or "9999"))[:12]
+		],
+	}
+
+
 def _issue_updates(issue, limit=20):
 	rows = frappe.get_all(
 		"Duty Issue Update",

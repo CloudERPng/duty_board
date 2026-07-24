@@ -26,6 +26,7 @@ frappe.pages["duty-board"].on_page_load = function (wrapper) {
 	page.add_inner_button(__("📁 Projects"), () => board.show_face("projects"), __("⇄ View"));
 	page.add_inner_button(__("💼 Sales"), () => board.show_face("sales"), __("⇄ View"));
 	page.add_inner_button(__("🤝 Clients"), () => board.show_face("clients"), __("⇄ View"));
+	page.add_inner_button(__("👤 My Dashboard"), () => board.show_face("me"), __("⇄ View"));
 	page.add_inner_button(__("📄 Document Hub"), () => frappe.set_route("List", "Client Document"));
 
 	board.timer = setInterval(() => {
@@ -103,6 +104,7 @@ class DutyBoard {
 				<div class="duty-cr-room" style="display:none"></div>
 			</div>
 		`).appendTo(page.body);
+		this.$me = $(`<div class="duty-me" style="display:none"></div>`).appendTo(page.body);
 		this.name_map = {};
 		this.inject_style();
 		this.setup_pwa();
@@ -1621,9 +1623,114 @@ class DutyBoard {
 		this.$projects.toggle(face === "projects");
 		this.$sales.toggle(face === "sales");
 		this.$clients.toggle(face === "clients");
+		this.$me.toggle(face === "me");
 		if (face === "projects") this.refresh_projects();
 		if (face === "sales") this.refresh_sales();
 		if (face === "clients") this.refresh_clients();
+		if (face === "me") this.refresh_me();
+	}
+
+	refresh_me(month) {
+		frappe.call({
+			method: "duty_board.api.my_dashboard",
+			args: { month: month || null },
+			callback: (r) => r.message && this.render_me(r.message),
+		});
+	}
+
+	render_me(m) {
+		const esc = frappe.utils.escape_html;
+		const t = m.tiles || {};
+		const tile = (v, l) => (v === null || v === undefined) ? "" : `<div class="duty-mtile"><b>${esc(String(v))}</b><span>${esc(l)}</span></div>`;
+		this.$me.html(`
+			<div class="duty-me-head">
+				<h2>👤 ${esc(m.full_name)}</h2>
+				<span class="text-muted">${__("Your work, your numbers — visible to you alone on this view.")}</span>
+			</div>
+			<div class="duty-mtiles">
+				${tile(t.open_now, __("open now"))}
+				${tile(t.in_progress, __("in progress"))}
+				${tile(t.resolved_30, __("resolved · 30 days"))}
+				${tile(t.avg_res, __("avg resolution"))}
+				${tile(t.sla_pct !== null && t.sla_pct !== undefined ? t.sla_pct + "%" : null, __("within SLA"))}
+				${tile(t.hours_30, __("hours logged · 30d"))}
+				${tile(t.updates_30, __("updates posted · 30d"))}
+				${tile(t.messages_30, __("messages · 30d"))}
+			</div>
+			<div class="duty-me-charts">
+				<div class="duty-me-chart"><h4>${__("Resolved per week")}</h4><div class="duty-ch-weekly"></div></div>
+				<div class="duty-me-chart"><h4>${__("Open workload by type")}</h4><div class="duty-ch-type"></div></div>
+				<div class="duty-me-chart"><h4>${__("Open workload by customer")}</h4><div class="duty-ch-cust"></div></div>
+				<div class="duty-me-chart"><h4>${__("Hours by customer · 30d")}</h4><div class="duty-ch-hours"></div></div>
+			</div>
+			<div class="duty-me-cal">
+				<div class="duty-me-calhead">
+					<button class="btn btn-xs duty-cal-prev">◀</button>
+					<h4 class="duty-cal-title"></h4>
+					<button class="btn btn-xs duty-cal-next">▶</button>
+				</div>
+				<div class="duty-cal-grid"></div>
+				<div class="duty-cal-legend">
+					<span><i class="cdot cdue"></i> ${__("due")}</span>
+					<span><i class="cdot cres"></i> ${__("resolved")}</span>
+					<span><i class="cdot chrs"></i> ${__("hours on duty")}</span>
+				</div>
+			</div>
+			<div class="duty-me-open">
+				<h4>${__("Your open queue")}</h4>
+				${(m.open_list || []).map((i) => `
+					<div class="duty-me-row" data-name="${esc(i.name)}">
+						<span class="duty-sev duty-sev-${(i.severity || "medium").toLowerCase()}">${__(i.severity || "Medium")}</span>
+						<b>${esc(i.title)}</b>
+						<span class="text-muted">${esc(i.customer || "")}</span>
+						${i.due ? `<span class="duty-me-due">${__("due")} ${esc(i.due)}</span>` : ""}
+					</div>`).join("") || `<div class="text-muted">${__("Nothing assigned — enjoy it while it lasts.")}</div>`}
+			</div>
+		`);
+		const mk = (sel, type, data, height = 190) => {
+			if (!data || !data.labels || !data.labels.length) {
+				this.$me.find(sel).html(`<div class="text-muted" style="padding:24px 0">${__("No data yet")}</div>`);
+				return;
+			}
+			new frappe.Chart(this.$me.find(sel)[0], {
+				data: { labels: data.labels, datasets: [{ values: data.values }] },
+				type, height, colors: ["#0F5C55", "#2563eb", "#d97706", "#7c3aed", "#dc2626", "#0e7490", "#65a30d", "#db2777"],
+			});
+		};
+		mk(".duty-ch-weekly", "bar", m.weekly);
+		mk(".duty-ch-type", "donut", m.by_type);
+		mk(".duty-ch-cust", "bar", m.by_customer);
+		mk(".duty-ch-hours", "donut", m.hours_by_customer);
+		this.render_me_cal(m);
+		this.$me.find(".duty-me-row").on("click", (e) => this.issue_detail_dialog($(e.currentTarget).data("name")));
+	}
+
+	render_me_cal(m) {
+		const [Y, M] = m.month.split("-").map(Number);
+		this.$me.find(".duty-cal-title").text(frappe.datetime.month_name ? m.month : new Date(Y, M - 1, 1).toLocaleString("default", { month: "long", year: "numeric" }));
+		const first = new Date(Y, M - 1, 1);
+		const startPad = (first.getDay() + 6) % 7; // Monday-first
+		const dim = new Date(Y, M, 0).getDate();
+		const today = frappe.datetime.get_today();
+		let cells = ["Mo", "Tu", "We", "Th", "Fr", "Sa", "Su"].map((d) => `<div class="duty-cal-dow">${d}</div>`).join("");
+		for (let i = 0; i < startPad; i++) cells += `<div class="duty-cal-cell empty"></div>`;
+		for (let d = 1; d <= dim; d++) {
+			const key = `${Y}-${String(M).padStart(2, "0")}-${String(d).padStart(2, "0")}`;
+			const info = (m.days || {})[key] || {};
+			cells += `<div class="duty-cal-cell${key === today ? " today" : ""}">
+				<span class="dnum">${d}</span>
+				${info.due ? `<span class="cbadge cdue">${info.due}</span>` : ""}
+				${info.res ? `<span class="cbadge cres">${info.res}</span>` : ""}
+				${info.hrs ? `<span class="cbadge chrs">${info.hrs}h</span>` : ""}
+			</div>`;
+		}
+		this.$me.find(".duty-cal-grid").html(cells);
+		const shift = (delta) => {
+			const nd = new Date(Y, M - 1 + delta, 1);
+			this.refresh_me(`${nd.getFullYear()}-${String(nd.getMonth() + 1).padStart(2, "0")}`);
+		};
+		this.$me.find(".duty-cal-prev").off("click").on("click", () => shift(-1));
+		this.$me.find(".duty-cal-next").off("click").on("click", () => shift(1));
 	}
 
 	toggle_face() {
@@ -5536,6 +5643,33 @@ class DutyBoard {
 			.duty-cr-msg:hover .duty-cr-mktask { opacity: 1; }
 			.duty-cr-compose { display: flex; gap: 8px; align-items: flex-end; }
 			.duty-cr-compose textarea { flex: 1; resize: none; font-size: 16px; }
+			.duty-me { padding: 8px 4px 40px; max-width: 1100px; margin: 0 auto; }
+			.duty-me-head h2 { margin: 4px 0 2px; }
+			.duty-me .duty-mtiles { margin: 14px 0 18px; }
+			.duty-me-charts { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 16px; margin-bottom: 20px; }
+			.duty-me-chart { background: #fff; border: 1px solid var(--border-color); border-radius: 12px; padding: 10px 12px 4px; }
+			.duty-me-chart h4 { margin: 2px 0 0; font-size: var(--text-sm); color: var(--text-muted); }
+			.duty-me-cal { background: #fff; border: 1px solid var(--border-color); border-radius: 12px; padding: 12px; margin-bottom: 20px; }
+			.duty-me-calhead { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; }
+			.duty-me-calhead h4 { margin: 0; }
+			.duty-cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; }
+			.duty-cal-dow { text-align: center; font-size: var(--text-xs); color: var(--text-muted); font-weight: 700; padding: 2px 0; }
+			.duty-cal-cell { min-height: 64px; border: 1px solid var(--border-color); border-radius: 8px; padding: 3px 4px; position: relative; }
+			.duty-cal-cell.empty { border: none; }
+			.duty-cal-cell.today { border-color: #0F5C55; box-shadow: inset 0 0 0 1px #0F5C55; }
+			.duty-cal-cell .dnum { font-size: var(--text-xs); color: var(--text-muted); font-weight: 700; }
+			.cbadge { display: inline-block; font-size: 10px; font-weight: 700; border-radius: 6px; padding: 0 5px; margin: 1px 2px 0 0; color: #fff; }
+			.cbadge.cdue, .cdot.cdue { background: #dc2626; }
+			.cbadge.cres, .cdot.cres { background: #16a34a; }
+			.cbadge.chrs, .cdot.chrs { background: #2563eb; }
+			.duty-cal-legend { display: flex; gap: 16px; margin-top: 8px; font-size: var(--text-xs); color: var(--text-muted); }
+			.cdot { display: inline-block; width: 10px; height: 10px; border-radius: 3px; vertical-align: -1px; }
+			.duty-me-open { background: #fff; border: 1px solid var(--border-color); border-radius: 12px; padding: 12px; }
+			.duty-me-open h4 { margin: 0 0 8px; }
+			.duty-me-row { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; padding: 8px 6px; border-bottom: 1px dashed var(--border-color); cursor: pointer; }
+			.duty-me-row:hover { background: var(--gray-50, #fafafa); }
+			.duty-me-due { color: #b45309; font-size: var(--text-xs); font-weight: 700; margin-left: auto; }
+			@media (max-width: 767px) { .duty-cal-cell { min-height: 46px; } }
 			.duty-mtiles { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 10px; }
 			.duty-mtile { background: #f0fdfa; border-radius: 12px; padding: 14px 10px; text-align: center; }
 			.duty-mtile b { display: block; font-size: 22px; color: #0F5C55; }
