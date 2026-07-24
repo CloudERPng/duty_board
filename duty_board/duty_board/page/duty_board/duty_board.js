@@ -1631,10 +1631,23 @@ class DutyBoard {
 	}
 
 	refresh_me(month) {
+		this.$me.html(`<div class="text-muted" style="padding:30px">${__("Loading your dashboard…")}</div>`);
 		frappe.call({
 			method: "duty_board.api.my_dashboard",
 			args: { month: month || null },
-			callback: (r) => r.message && this.render_me(r.message),
+			callback: (r) => {
+				try {
+					if (r.message) this.render_me(r.message);
+					else this.$me.html(`<div style="color:#b91c1c;padding:30px">${__("Dashboard returned no data.")}</div>`);
+				} catch (err) {
+					console.error("render_me:", err);
+					this.$me.html(`<div style="color:#b91c1c;padding:30px;white-space:pre-wrap">render_me failed: ${frappe.utils.escape_html(err.message)}
+${frappe.utils.escape_html((err.stack || "").split("\n").slice(0, 3).join("\n"))}</div>`);
+				}
+			},
+			error: (e) => {
+				this.$me.html(`<div style="color:#b91c1c;padding:30px">${__("Dashboard call failed — check the browser console.")}</div>`);
+			},
 		});
 	}
 
@@ -1688,20 +1701,31 @@ class DutyBoard {
 			</div>
 		`);
 		const mk = (sel, type, data, height = 190) => {
+			const $el = this.$me.find(sel);
 			if (!data || !data.labels || !data.labels.length) {
-				this.$me.find(sel).html(`<div class="text-muted" style="padding:24px 0">${__("No data yet")}</div>`);
+				$el.html(`<div class="text-muted" style="padding:24px 0">${__("No data yet")}</div>`);
 				return;
 			}
-			new frappe.Chart(this.$me.find(sel)[0], {
-				data: { labels: data.labels, datasets: [{ values: data.values }] },
-				type, height, colors: ["#0F5C55", "#2563eb", "#d97706", "#7c3aed", "#dc2626", "#0e7490", "#65a30d", "#db2777"],
-			});
+			try {
+				new frappe.Chart($el[0], {
+					data: { labels: data.labels, datasets: [{ values: data.values }] },
+					type, height, colors: ["#0F5C55", "#2563eb", "#d97706", "#7c3aed", "#dc2626", "#0e7490", "#65a30d", "#db2777"],
+				});
+			} catch (err) {
+				console.error("chart", sel, err);
+				$el.html(data.labels.map((l, i) => `<div style="display:flex;gap:8px;font-size:12px;padding:2px 0"><span style="flex:1">${frappe.utils.escape_html(String(l))}</span><b>${frappe.utils.escape_html(String(data.values[i]))}</b></div>`).join(""));
+			}
 		};
 		mk(".duty-ch-weekly", "bar", m.weekly);
 		mk(".duty-ch-type", "donut", m.by_type);
 		mk(".duty-ch-cust", "bar", m.by_customer);
 		mk(".duty-ch-hours", "donut", m.hours_by_customer);
-		this.render_me_cal(m);
+		try {
+			this.render_me_cal(m);
+		} catch (err) {
+			console.error("calendar:", err);
+			this.$me.find(".duty-cal-grid").html(`<div style="color:#b91c1c">calendar failed: ${frappe.utils.escape_html(err.message)}</div>`);
+		}
 		this.$me.find(".duty-me-row").on("click", (e) => this.issue_detail_dialog($(e.currentTarget).data("name")));
 	}
 
