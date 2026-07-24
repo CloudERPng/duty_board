@@ -1180,12 +1180,33 @@ def my_dashboard(month=None):
 		{"s": str(mstart.date()), "e": str(nxt.date()), "me": me},
 		as_dict=True,
 	)
+	my_todos = frappe.get_all(
+		"Daily Todo",
+		filters={"user": me, "date": ["between", [str(mstart.date()), str(nxt.date())]]},
+		fields=["name", "description", "date", "due_time", "status", "customer"],
+		order_by="date, due_time",
+		ignore_permissions=True,
+	)
 	day_items = {}
+	for td in my_todos:
+		k = str(td.date)
+		days.setdefault(k, {"due": 0, "res": 0, "hrs": 0})
+		days[k]["todo"] = days[k].get("todo", 0) + 1
+		day_items.setdefault(k, {"meetings": [], "tasks": [], "todos": []})
+		day_items[k]["todos"].append(
+			{
+				"name": td.name,
+				"text": td.description,
+				"time": str(td.due_time)[:5] if td.due_time else "",
+				"done": 1 if td.status == "Completed" else 0,
+				"customer": td.customer,
+			}
+		)
 	for mt in my_meets:
 		k = str(mt.meeting_date)
 		days.setdefault(k, {"due": 0, "res": 0, "hrs": 0})
 		days[k]["meet"] = days[k].get("meet", 0) + 1
-		day_items.setdefault(k, {"meetings": [], "tasks": []})
+		day_items.setdefault(k, {"meetings": [], "tasks": [], "todos": []})
 		day_items[k]["meetings"].append(
 			{
 				"name": mt.name,
@@ -1198,7 +1219,7 @@ def my_dashboard(month=None):
 	for i in open_now:
 		if i.due_date and mstart.date() <= get_datetime(str(i.due_date)).date() < nxt.date():
 			k = str(i.due_date)
-			day_items.setdefault(k, {"meetings": [], "tasks": []})
+			day_items.setdefault(k, {"meetings": [], "tasks": [], "todos": []})
 			day_items[k]["tasks"].append(
 				{"name": i.name, "title": i.title, "customer": i.customer, "severity": i.severity}
 			)

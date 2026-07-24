@@ -1645,7 +1645,7 @@ class DutyBoard {
 	}
 
 	refresh_me(month) {
-		const V = "js v2.59.1";
+		const V = "js v2.59.2";
 		console.log("[duty-me]", V, "refresh_me start, month:", month || "(current)");
 		this._me_host().show();
 		this.$me.html(`<div class="text-muted" style="padding:30px">${__("Loading your dashboard…")} <span style="opacity:.5">(${V})</span></div>`);
@@ -1733,6 +1733,7 @@ class DutyBoard {
 				<div class="duty-cal-grid"></div>
 				<div class="duty-cal-legend">
 					<span><i class="cdot cmeet"></i> ${__("meetings")}</span>
+					<span><i class="cdot ctodo"></i> ${__("plan items")}</span>
 					<span><i class="cdot cdue"></i> ${__("due")}</span>
 					<span><i class="cdot cres"></i> ${__("resolved")}</span>
 					<span><i class="cdot chrs"></i> ${__("hours on duty")}</span>
@@ -1818,6 +1819,7 @@ class DutyBoard {
 			cells += `<div class="duty-cal-cell${key === today ? " today" : ""}" data-day="${key}">
 				<span class="dnum">${d}</span>
 				${info.meet ? `<span class="cbadge cmeet">📅${info.meet}</span>` : ""}
+				${info.todo ? `<span class="cbadge ctodo">📋${info.todo}</span>` : ""}
 				${info.due ? `<span class="cbadge cdue">${info.due}</span>` : ""}
 				${info.res ? `<span class="cbadge cres">${info.res}</span>` : ""}
 				${info.hrs ? `<span class="cbadge chrs">${info.hrs}h</span>` : ""}
@@ -3834,6 +3836,13 @@ class DutyBoard {
 					${mt.customer ? `<span class="text-muted">· ${esc(mt.customer)}</span>` : ""}
 					${mt.status === "Pending" ? `<span class="duty-day-pending">${__("pending")}</span>` : ""}
 				</div>`).join("")}
+			${(items.todos || []).length ? `<div class="duty-lead-section">📋 ${__("Plan items")}</div>` : ""}
+			${(items.todos || []).map((td) => `
+				<div class="duty-day-row duty-day-todo">
+					<input type="checkbox" data-name="${esc(td.name)}" ${td.done ? "checked" : ""}>
+					<b>${esc(td.time || "")}</b> <span class="${td.done ? "duty-todo-done" : ""}">${esc(td.text)}</span>
+					${td.customer ? `<span class="text-muted">· ${esc(td.customer)}</span>` : ""}
+				</div>`).join("")}
 			${items.tasks.length ? `<div class="duty-lead-section">⚠ ${__("Tasks due")}</div>` : ""}
 			${items.tasks.map((t) => `
 				<div class="duty-day-row duty-day-task" data-name="${esc(t.name)}">
@@ -3842,13 +3851,40 @@ class DutyBoard {
 				</div>`).join("")}
 			${!items.meetings.length && !items.tasks.length ? `<div class="text-muted">${__("Nothing scheduled.")}</div>` : ""}
 			<div class="duty-day-actions">
+				<button class="btn btn-xs btn-default duty-day-newtodo">＋ ${__("To-do")}</button>
 				<button class="btn btn-xs btn-default duty-day-newtask">＋ ${__("Task due this day")}</button>
 				<button class="btn btn-xs btn-primary duty-day-newmeet">＋ ${__("Meeting")}</button>
 			</div>
 		`);
+		$(d.body).find(".duty-day-todo input").on("change", (e) => {
+			frappe.call({
+				method: "duty_board.api.toggle_todo",
+				args: { name: $(e.currentTarget).data("name"), done: e.currentTarget.checked ? 1 : 0 },
+				callback: () => this.refresh_me((this._me_data || {}).month),
+			});
+		});
 		$(d.body).find(".duty-day-task").on("click", (e) => {
 			d.hide();
 			this.issue_detail_dialog($(e.currentTarget).data("name"));
+		});
+		$(d.body).find(".duty-day-newtodo").on("click", () => {
+			d.hide();
+			frappe.prompt(
+				[
+					{ fieldname: "description", fieldtype: "Data", label: __("To-do"), reqd: 1 },
+					{ fieldname: "due_time", fieldtype: "Time", label: __("Time (optional)") },
+				],
+				(v) =>
+					frappe.call({
+						method: "duty_board.api.add_todo",
+						args: { description: v.description, date: day, due_time: v.due_time || null },
+						callback: () => {
+							frappe.show_alert({ message: __("Added to your plan"), indicator: "green" });
+							this.refresh_me((this._me_data || {}).month);
+						},
+					}),
+				`📋 ${day}`
+			);
 		});
 		$(d.body).find(".duty-day-newtask").on("click", () => {
 			d.hide();
@@ -5857,6 +5893,9 @@ class DutyBoard {
 			.duty-cal-cell .dnum { font-size: var(--text-xs); color: var(--text-muted); font-weight: 700; }
 			.cbadge { display: inline-block; font-size: 10px; font-weight: 700; border-radius: 6px; padding: 0 5px; margin: 1px 2px 0 0; color: #fff; }
 			.cbadge.cmeet, .cdot.cmeet { background: #7c3aed; }
+			.cbadge.ctodo, .cdot.ctodo { background: #0F5C55; }
+			.duty-day-todo input { margin-right: 6px; vertical-align: -1px; }
+			.duty-todo-done { text-decoration: line-through; color: var(--text-muted); }
 			.cbadge.cdue, .cdot.cdue { background: #dc2626; }
 			.duty-cal-cell:not(.empty) { cursor: pointer; }
 			.duty-cal-cell:not(.empty):hover { background: var(--gray-50, #fafafa); }
