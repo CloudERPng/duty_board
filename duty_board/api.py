@@ -1047,6 +1047,8 @@ def my_dashboard(month=None):
 	"""Everything one staff member is doing and has done — theirs alone."""
 	from datetime import datetime, timedelta
 
+	from duty_board.client_room import _staff_only
+
 	_staff_only()
 	me = frappe.session.user
 	now = now_datetime()
