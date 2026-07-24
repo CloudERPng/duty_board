@@ -3637,7 +3637,9 @@ class DutyBoard {
 				});
 			};
 			$host.find(".duty-upd-send").on("click", post);
-			$host.find(".duty-upd-in").on("keydown", (e) => e.key === "Enter" && post());
+			$host.find(".duty-upd-in").on("keydown", (e) => {
+				if (e.key === "Enter") post();
+			});
 		};
 		frappe.call({
 			method: "duty_board.api.issue_updates",
