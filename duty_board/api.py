@@ -1047,6 +1047,7 @@ def my_dashboard(month=None):
 	"""Everything one staff member is doing and has done — theirs alone."""
 	from datetime import datetime, timedelta
 
+	_staff_only()
 	me = frappe.session.user
 	now = now_datetime()
 	d30 = now - timedelta(days=30)
@@ -1055,6 +1056,7 @@ def my_dashboard(month=None):
 		"Duty Issue Assignee",
 		filters={"user": me, "parenttype": "Duty Issue"},
 		pluck="parent",
+		ignore_permissions=True,
 	)
 	issues = (
 		frappe.get_all(
@@ -1064,6 +1066,7 @@ def my_dashboard(month=None):
 				"name", "title", "status", "severity", "issue_type", "customer",
 				"creation", "resolved_at", "due_date", "sla_res_met", "sla_ack_met",
 			],
+			ignore_permissions=True,
 		)
 		if mine
 		else []
@@ -1102,6 +1105,7 @@ def my_dashboard(month=None):
 		"Work Session",
 		filters={"user": me, "start_time": [">", d30]},
 		fields=["customer", "duration", "start_time"],
+		ignore_permissions=True,
 	)
 	hrs_cust = {}
 	for s in sessions:
@@ -1139,6 +1143,7 @@ def my_dashboard(month=None):
 		"Work Session",
 		filters={"user": me, "start_time": ["between", [str(mstart), str(nxt)]]},
 		fields=["start_time", "duration"],
+		ignore_permissions=True,
 	)
 	for s in msessions:
 		if s.duration:
