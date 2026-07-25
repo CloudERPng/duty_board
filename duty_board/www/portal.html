@@ -404,6 +404,7 @@
 		<h3 class="foldh" onclick="fold(this,'mstones')"><span class="fc">▾</span> 🏁 <span class="t">Project milestones</span></h3>
 		<div id="msbarwrap" style="display:none"><div id="msbar"><i></i></div><div id="mscount" class="muted"></div></div>
 		<div id="mstones"><span class="muted">No project phases defined yet.</span></div>
+	</div>
 	<div class="card metrics">
 		<h3 class="foldh" onclick="fold(this,'metrics')"><span class="fc">▾</span> 📊 <span class="t">Your numbers</span></h3>
 		<div id="metrics"><span class="muted">Loading…</span></div>
@@ -411,7 +412,6 @@
 	<div class="card acad">
 		<h3 class="foldh" onclick="fold(this,'acad')"><span class="fc">▾</span> 🎓 <span class="t">Training</span></h3>
 		<div id="acad"><span class="muted">No training records yet.</span></div>
-	</div>
 	</div>
 	</div>
 	<p class="muted foot" style="text-align:center">Powered by Xlevel Retail Systems · CloudERP.One · <span id="xlv"></span></p>
@@ -424,7 +424,7 @@
 </div>
 <script>
 const esc = (s) => (s || "").replace(/[&<>"']/g, (c) => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
-const XLV = "2.60.1";
+const XLV = "2.60.2";
 document.getElementById("xlv").textContent = "v" + XLV;
 console.log("Xlevel portal", XLV);
 let ROOM = localStorage.getItem("xl_room") || null;
