@@ -1399,13 +1399,33 @@ def _milestone_rows(room):
 
 
 @frappe.whitelist()
-def milestones_seed(name):
+def milestones_seed(name, plan_type=None):
 	_staff_only()
 	room = frappe.get_doc("Client Room", name)
 	if frappe.db.count("Duty Milestone", {"room": room.name}):
 		frappe.throw(_("This room already has milestones."))
+
+	plan = None
+	if plan_type:
+		from duty_board.plan_templates import PLAN_TYPES
+
+		if plan_type not in PLAN_TYPES:
+			frappe.throw(_("Unknown plan type."))
+		plan = PLAN_TYPES[plan_type][1]
+		if not room.project:
+			from duty_board.projects import create_project
+
+			project_name = create_project(
+				f"{PLAN_TYPES[plan_type][0]} — {room.customer}"[:120], room.customer
+			)
+			room.db_set("project", project_name, update_modified=False)
+			room.reload()
+
+	from frappe.utils import add_days
+
 	for i, (title, desc) in enumerate(XLEVEL_METHOD):
-		frappe.get_doc(
+		phase_tasks = (plan or {}).get(title, [])
+		ms = frappe.get_doc(
 			{
 				"doctype": "Duty Milestone",
 				"room": room.name,
@@ -1413,8 +1433,25 @@ def milestones_seed(name):
 				"description": desc,
 				"sort_order": i,
 				"status": "Upcoming",
+				"project": room.project or None,
+				"target_date": add_days(today(), max(t[3] for t in phase_tasks))
+				if phase_tasks
+				else None,
 			}
 		).insert(ignore_permissions=True)
+		for t_title, t_desc, t_urg, t_off in phase_tasks:
+			frappe.get_doc(
+				{
+					"doctype": "Duty Project Task",
+					"project": room.project,
+					"title": t_title,
+					"column": "To Do",
+					"urgency": t_urg if t_urg in ("Low", "Medium", "High", "Critical") else "Medium",
+					"description": t_desc or None,
+					"due_date": add_days(today(), t_off) if t_off else None,
+					"milestone": ms.name,
+				}
+			).insert(ignore_permissions=True)
 	frappe.db.commit()
 	return get_room(name)
 

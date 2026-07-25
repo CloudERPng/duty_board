@@ -3037,7 +3037,30 @@ class DutyBoard {
 						}
 					},
 				});
-			$(d.body).find(".duty-cr-msseed").on("click", () => call("milestones_seed", { name: x.name }));
+			$(d.body).find(".duty-cr-msseed").on("click", () =>
+				frappe.prompt(
+					[
+						{
+							fieldname: "plan_type",
+							fieldtype: "Select",
+							label: __("Project plan"),
+							options: [
+								{ value: "standard", label: __("Standard CloudERP.One Implementation — 7 phases + 47 standard tasks") },
+								{ value: "crm", label: __("CRM on CloudERP.One Implementation — 7 phases + 35 standard tasks") },
+								{ value: "", label: __("Milestones only (no tasks)") },
+							],
+							default: "standard",
+						},
+					],
+					(v) => {
+						if (v.plan_type && !x.project)
+							frappe.show_alert({ message: __("Creating a project for this room…"), indicator: "blue" });
+						call("milestones_seed", { name: x.name, plan_type: v.plan_type || null });
+					},
+					__("Seed the project plan — tasks arrive unassigned in To Do, due dates paced from today"),
+					__("Seed")
+				)
+			);
 			$(d.body).find(".duty-ms-add").on("click", () => {
 				const t = $(d.body).find(".duty-ms-title").val().trim();
 				if (!t) return;
