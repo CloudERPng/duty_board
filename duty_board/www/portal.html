@@ -502,7 +502,7 @@
 </div>
 <script>
 const esc = (s) => (s || "").replace(/[&<>"']/g, (c) => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
-const XLV = "2.72.0";
+const XLV = "2.73.0";
 document.getElementById("xlv").textContent = "v" + XLV;
 console.log("Xlevel portal", XLV);
 let ROOM = localStorage.getItem("xl_room") || null;
@@ -1075,6 +1075,37 @@ function loadTraining() {
 				: "";
 		})
 		.catch(() => {});
+	api("client_get_tracks")
+		.then((tracks) => {
+			tracks = tracks || [];
+			let host = document.getElementById("mytracks");
+			if (!host) {
+				host = document.createElement("div");
+				host.id = "mytracks";
+				const acad = document.getElementById("acad");
+				acad.parentNode.insertBefore(host, acad);
+			}
+			host.innerHTML = tracks.length
+				? `<div style="font-weight:800;font-size:14px;margin:4px 0 8px">🎯 Certifications available to you</div>` +
+					tracks
+						.map(
+							(t) => `
+				<div style="border:1px solid #E7ECEA;border-radius:12px;padding:10px 13px;margin-bottom:8px;background:#fff">
+					<b>${esc(t.product)} — ${esc(t.title)}</b>
+					${t.certified ? `<span style="color:#0C4A43;font-weight:700;font-size:12px"> 🏅 certified</span>` : ""}
+					${t.description ? `<div class="muted" style="font-size:12px;margin:2px 0">${esc(t.description)}</div>` : ""}
+					<div class="muted" style="font-size:12px;margin:4px 0">📚 ${t.modules.map(esc).join(" · ")}</div>
+					${t.certified
+						? ""
+						: t.pursuing
+							? `<div style="font-size:12px;font-weight:700;color:#0F5C55">📖 In progress — ${t.done}/${t.total} courses complete</div>`
+							: `<button style="font-size:13px;padding:6px 14px" onclick="pursueTrack('${esc(t.name)}')">🎯 Start this track</button>`}
+				</div>`
+						)
+						.join("") + `<div style="height:6px"></div>`
+				: "";
+		})
+		.catch(() => {});
 	api("client_get_training")
 		.then((rows) => {
 			rows = rows || [];
@@ -1096,6 +1127,11 @@ function loadTraining() {
 				: '<span class="muted">No training records yet.</span>';
 		})
 		.catch((e) => console.warn("training:", e.message));
+}
+function pursueTrack(track) {
+	api("client_pursue_track", { track: track })
+		.then(() => loadTraining())
+		.catch(fail);
 }
 function openCourse(record) {
 	stopBeat();

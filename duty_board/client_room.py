@@ -413,6 +413,7 @@ def get_room(name, before=None):
 		"owner_user": room.owner_user,
 		"status": room.status,
 		"project": room.project,
+		"products": room.products,
 		"messages": messages,
 		"has_more": has_more,
 		"members": members,
@@ -3519,6 +3520,123 @@ def my_certificate_file(serial):
 def client_certificate_file(serial):
 	_client_room()
 	_serve_certificate(serial)
+
+
+# ---------------- certification: product inheritance & track pursuit ----------------
+
+
+def _room_products(room):
+	return {p.strip().lower() for p in (room.products or "").replace("\n", ",").split(",") if p.strip()}
+
+
+@frappe.whitelist()
+def room_set_products(name, products):
+	_staff_only()
+	room = frappe.get_doc("Client Room", name)
+	room.db_set("products", (products or "").strip()[:300] or None, update_modified=False)
+	frappe.db.commit()
+	return get_room(name)
+
+
+def _tracks_for_room(room, user):
+	prods = _room_products(room)
+	if not prods:
+		return []
+	tracks = frappe.get_all(
+		"Duty Certification Track",
+		filters={"active": 1, "audience": "Client"},
+		fields=["name", "title", "product", "description"],
+		order_by="product asc, title asc",
+	)
+	tracks = [t for t in tracks if (t.product or "").strip().lower() in prods]
+	out = []
+	for t in tracks:
+		mods = frappe.get_all(
+			"Duty Certification Track Module",
+			filters={"parent": t.name},
+			fields=["module"],
+			order_by="idx asc",
+		)
+		mod_names = [m.module for m in mods]
+		if not mod_names:
+			continue
+		titles = {
+			m.name: m.title
+			for m in frappe.get_all(
+				"Duty Training Module", filters={"name": ["in", mod_names]}, fields=["name", "title"]
+			)
+		}
+		recs = {
+			r.module: r.status
+			for r in frappe.get_all(
+				"Duty Training Record",
+				filters={"room": room.name, "trainee": user, "module": ["in", mod_names]},
+				fields=["module", "status"],
+			)
+		}
+		done = sum(1 for m in mod_names if recs.get(m) == "Completed")
+		out.append(
+			{
+				"name": t.name,
+				"title": t.title,
+				"product": t.product,
+				"description": t.description,
+				"modules": [titles.get(m, m) for m in mod_names],
+				"total": len(mod_names),
+				"pursuing": all(m in recs for m in mod_names),
+				"done": done,
+				"certified": bool(
+					frappe.db.exists("Duty Certificate", {"user": user, "track": t.name, "status": "Valid"})
+				),
+			}
+		)
+	return out
+
+
+@frappe.whitelist()
+def client_get_tracks():
+	room = _client_room()
+	return _tracks_for_room(room, frappe.session.user)
+
+
+@frappe.whitelist()
+def client_pursue_track(track):
+	room = _client_room()
+	user = frappe.session.user
+	t = frappe.db.get_value(
+		"Duty Certification Track", track, ["title", "product", "audience", "active"], as_dict=True
+	)
+	if not t or not cint(t.active) or t.audience != "Client":
+		frappe.throw(_("Not found."), frappe.PermissionError)
+	if (t.product or "").strip().lower() not in _room_products(room):
+		frappe.throw(_("This track is not part of your subscription."), frappe.PermissionError)
+	mods = frappe.get_all(
+		"Duty Certification Track Module", filters={"parent": track}, pluck="module"
+	)
+	created = 0
+	for m in mods:
+		if frappe.db.exists("Duty Training Record", {"room": room.name, "trainee": user, "module": m}):
+			continue
+		frappe.get_doc(
+			{
+				"doctype": "Duty Training Record",
+				"room": room.name,
+				"module": m,
+				"trainee": user,
+				"trainee_name": frappe.utils.get_fullname(user),
+				"status": "Assigned",
+			}
+		).insert(ignore_permissions=True)
+		created += 1
+	frappe.db.commit()
+	if created:
+		_post(
+			room,
+			_("🎓 {0} is now pursuing the {1} — {2} track.").format(
+				frappe.utils.get_fullname(user), t.product, t.title
+			),
+		)
+	return _tracks_for_room(room, user)
 
 
 # ---------------- rca: the post-incident report ----------------

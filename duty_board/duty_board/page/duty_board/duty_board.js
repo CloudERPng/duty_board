@@ -3208,6 +3208,11 @@ class DutyBoard {
 				(by_trainee[r.trainee_name] = by_trainee[r.trainee_name] || []).push(r);
 			});
 			$(d.body).html(`
+				<div class="duty-acad-row" style="background:var(--bg-light-gray,#F4F7F6);border-radius:8px;padding:7px 10px">
+					🛒 <b>${__("Products")}</b>
+					<span class="text-muted">${x.products ? frappe.utils.escape_html(x.products) : __("none — members inherit no certification tracks")}</span>
+					<a class="duty-acad-prods" style="margin-left:auto;cursor:pointer">✎ ${__("Edit")}</a>
+				</div>
 				${Object.keys(by_trainee)
 					.map(
 						(t) => `
@@ -3280,6 +3285,25 @@ class DutyBoard {
 				)
 			);
 		};
+		$(d.body).on("click", ".duty-acad-prods", () =>
+			frappe.prompt(
+				[{ fieldname: "products", fieldtype: "Small Text", label: __("Products (comma-separated, matching track product names)"), default: x.products || "" }],
+				(v) =>
+					frappe.call({
+						method: "duty_board.client_room.room_set_products",
+						args: { name: x.name, products: v.products || "" },
+						callback: (r) => {
+							if (r.message) {
+								x.products = r.message.products;
+								this.render_client_room(r.message);
+								load();
+							}
+						},
+					}),
+				__("Room products — members see and can pursue the client tracks of these products"),
+				__("Save")
+			)
+		);
 		load();
 		d.show();
 	}
