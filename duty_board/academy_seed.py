@@ -176,3 +176,32 @@ def seed_crm_foundations():
 		).insert(ignore_permissions=True)
 	frappe.db.commit()
 	print(f"Seeded '{MODULE_TITLE}' with {len(LESSONS)} lessons (module {mod.name}). Question bank ({len(QUESTIONS)} questions) staged for the quiz engine release.")
+
+
+def seed_crm_foundations_questions():
+	"""Load the Vol 1 question bank. Idempotent per module."""
+	mod = frappe.db.get_value("Duty Training Module", {"title": MODULE_TITLE}, "name")
+	if not mod:
+		print("Module not found — run seed_crm_foundations first.")
+		return
+	if frappe.db.count("Duty Quiz Question", {"module": mod}):
+		print("Question bank already loaded — nothing done.")
+		return
+	for q, opts, ans, why, src in QUESTIONS:
+		frappe.get_doc(
+			{
+				"doctype": "Duty Quiz Question",
+				"module": mod,
+				"question": q,
+				"opt_a": opts[0],
+				"opt_b": opts[1],
+				"opt_c": opts[2],
+				"opt_d": opts[3],
+				"correct": "ABCD"[ans],
+				"rationale": why,
+				"source": src,
+				"active": 1,
+			}
+		).insert(ignore_permissions=True)
+	frappe.db.commit()
+	print(f"Loaded {len(QUESTIONS)} questions for '{MODULE_TITLE}'.")

@@ -502,7 +502,7 @@
 </div>
 <script>
 const esc = (s) => (s || "").replace(/[&<>"']/g, (c) => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
-const XLV = "2.70.1";
+const XLV = "2.71.0";
 document.getElementById("xlv").textContent = "v" + XLV;
 console.log("Xlevel portal", XLV);
 let ROOM = localStorage.getItem("xl_room") || null;
@@ -1076,10 +1076,19 @@ function loadTraining() {
 function openCourse(record) {
 	stopBeat();
 	api("client_course", { record: record }).then((c) => {
+		const allRead = c.lessons.length && c.lessons.every((l) => l.done);
+		const qz = c.quiz || {};
 		document.getElementById("acad").innerHTML = `
 			<a style="cursor:pointer;font-size:13px;font-weight:700;color:#0F5C55" onclick="loadTraining()">← All training</a>
 			<h3 style="margin:8px 0 2px">📖 ${esc(c.title)}${c.product ? ` <span class="muted" style="font-size:13px;font-weight:400">· ${esc(c.product)}</span>` : ""}</h3>
 			${c.description ? `<div class="muted" style="font-size:13px;margin-bottom:8px">${esc(c.description)}</div>` : ""}
+			${c.status === "Completed" || qz.passed
+				? `<div style="background:#EDF7F5;border:1px solid #B7DFD6;border-radius:10px;padding:9px 13px;margin-bottom:10px;font-weight:700;color:#0C4A43">🏅 Certified · best score ${qz.best}%</div>`
+				: qz.bank >= 10
+					? allRead
+						? `<div style="display:flex;gap:10px;align-items:center;margin-bottom:10px;flex-wrap:wrap"><button onclick="startQuiz('${esc(c.record)}')">📝 Take the test</button><span class="muted" style="font-size:12px">${qz.attempts ? `best so far ${qz.best}% · ` : ""}10 questions · pass at 70% · unlimited retakes</span></div>`
+						: `<div class="muted" style="font-size:13px;margin-bottom:10px">📝 The test unlocks when every lesson is read.</div>`
+					: ""}
 			${c.lessons.length
 				? c.lessons
 						.map(
@@ -1128,6 +1137,61 @@ function openLesson(lesson, record) {
 			}, 20000);
 		}
 	}).catch(fail);
+}
+function startQuiz(record) {
+	stopBeat();
+	api("client_quiz_start", { record: record }).then((t) => {
+		window._quiz = { attempt: t.attempt, record: record };
+		document.getElementById("acad").innerHTML = `
+			<h3 style="margin:2px 0 10px">📝 Assessment — 10 questions</h3>
+			${t.questions
+				.map(
+					(q, i) => `
+			<div style="margin-bottom:16px" data-q="${esc(q.name)}">
+				<div style="font-weight:700;margin-bottom:6px;font-size:14px">${i + 1}. ${esc(q.question)}</div>
+				${q.options
+					.map(
+						(o, j) => `
+					<label style="display:flex;gap:8px;align-items:flex-start;padding:6px 9px;border-radius:8px;cursor:pointer;font-size:14px">
+						<input type="radio" name="qz_${i}" value="${j}" style="margin-top:3px">
+						<span>${esc(o)}</span>
+					</label>`
+					)
+					.join("")}
+			</div>`
+				)
+				.join("")}
+			<div class="muted" style="font-size:12px;margin-bottom:10px">Unanswered questions count as wrong. Unlimited retakes — your best score stands.</div>
+			<div style="display:flex;gap:10px"><button id="qzgo" onclick="submitQuiz()">Submit answers</button>
+			<button style="background:#e5e7eb;color:#374151" onclick="openCourse('${esc(record)}')">Cancel</button></div>`;
+		document.querySelector(".card.acad").scrollIntoView({ behavior: "smooth", block: "start" });
+	}).catch(fail);
+}
+function submitQuiz() {
+	const answers = {};
+	document.querySelectorAll("#acad [data-q]").forEach((el) => {
+		const chosen = el.querySelector("input:checked");
+		if (chosen) answers[el.getAttribute("data-q")] = parseInt(chosen.value, 10);
+	});
+	document.getElementById("qzgo").disabled = true;
+	api("client_quiz_submit", { attempt: window._quiz.attempt, answers: JSON.stringify(answers) })
+		.then((res) => {
+			const record = window._quiz.record;
+			document.getElementById("acad").innerHTML = `
+				<div style="text-align:center;padding:12px 0 6px">
+					<div style="font-size:46px;font-weight:800;color:${res.passed ? "#15803d" : "#b45309"}">${res.score}%</div>
+					<div class="muted">pass mark ${res.pass_mark}% · attempt ${res.attempts}${res.attempts > 1 ? ` · best ${res.best}%` : ""}</div>
+					${res.newly_certified ? `<div style="margin-top:8px;font-weight:700;color:#0C4A43">🎓 Course completed — your certificate is on its way to your Documents.</div>` : ""}
+				</div>
+				${!res.passed && (res.wrong || []).length
+					? `<div style="margin-top:8px"><b style="font-size:14px">Review these areas, then retake:</b>${res.wrong.map((w) => `<div class="muted" style="font-size:13px;margin:4px 0">• ${esc(w)}</div>`).join("")}</div>`
+					: ""}
+				<div style="display:flex;gap:10px;margin-top:14px">
+					${!res.passed ? `<button onclick="startQuiz('${esc(record)}')">↻ Retake now</button>` : ""}
+					<button style="background:#e5e7eb;color:#374151" onclick="openCourse('${esc(record)}');loadTraining()">Back to course</button>
+				</div>`;
+		})
+		.catch((e) => { document.getElementById("qzgo").disabled = false; fail(e); });
 }
 function markRead(lesson, record) {
 	api("client_lesson_done", { lesson: lesson })

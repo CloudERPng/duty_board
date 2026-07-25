@@ -1922,8 +1922,17 @@ class DutyBoard {
 				if (!c) return;
 				const d = new frappe.ui.Dialog({ title: `📖 ${c.title}`, size: "large" });
 				const render = (cc) => {
+					const allRead = cc.lessons.length && cc.lessons.every((l) => l.done);
+					const qz = cc.quiz || {};
 					$(d.body).html(`
 						${cc.description ? `<div class="text-muted" style="margin-bottom:10px">${frappe.utils.escape_html(cc.description)}</div>` : ""}
+						${cc.status === "Completed" || qz.passed
+							? `<div style="background:#EDF7F5;border:1px solid #B7DFD6;border-radius:10px;padding:9px 13px;margin-bottom:10px;font-weight:700;color:#0C4A43">🏅 ${__("Certified")} · ${__("best score")} ${qz.best}%${qz.attempts > 1 ? ` · ${qz.attempts} ${__("attempts")}` : ""}</div>`
+							: qz.bank >= 10
+								? allRead
+									? `<div style="display:flex;gap:10px;align-items:center;margin-bottom:10px"><button type="button" class="btn btn-sm btn-primary duty-me-quiz">📝 ${__("Take the test")}</button><span class="text-muted" style="font-size:var(--text-sm)">${qz.attempts ? `${__("best so far")} ${qz.best}% · ` : ""}10 ${__("questions, pass at 70%")}</span></div>`
+									: `<div class="text-muted" style="font-size:var(--text-sm);margin-bottom:10px">📝 ${__("The test unlocks when every lesson is read.")}</div>`
+								: ""}
 						${cc.lessons.length
 							? cc.lessons
 									.map(
@@ -1939,6 +1948,10 @@ class DutyBoard {
 					$(d.body).find("[data-lesson]").on("click", (e) => {
 						d.hide();
 						this.my_lesson_dialog($(e.currentTarget).data("lesson"), record);
+					});
+					$(d.body).find(".duty-me-quiz").on("click", () => {
+						d.hide();
+						this.my_quiz_dialog(record);
 					});
 				};
 				render(c);
@@ -2010,6 +2023,76 @@ class DutyBoard {
 				d.show();
 			},
 		});
+	}
+
+	my_quiz_dialog(record) {
+		frappe.call({
+			method: "duty_board.client_room.my_quiz_start",
+			args: { record: record },
+			callback: (r) => {
+				const t = r.message;
+				if (!t) return;
+				const d = new frappe.ui.Dialog({ title: `📝 ${__("Assessment")} — 10 ${__("questions")}`, size: "large" });
+				$(d.body).html(
+					t.questions
+						.map(
+							(q, i) => `
+					<div style="margin-bottom:16px" data-q="${q.name}">
+						<div style="font-weight:700;margin-bottom:6px">${i + 1}. ${frappe.utils.escape_html(q.question)}</div>
+						${q.options
+							.map(
+								(o, j) => `
+							<label style="display:flex;gap:8px;align-items:flex-start;padding:5px 8px;border-radius:8px;cursor:pointer">
+								<input type="radio" name="qz_${i}" value="${j}" style="margin-top:3px">
+								<span>${frappe.utils.escape_html(o)}</span>
+							</label>`
+							)
+							.join("")}
+					</div>`
+						)
+						.join("") + `<div class="text-muted" style="font-size:var(--text-sm)">${__("Unanswered questions count as wrong. Unlimited retakes — your best score stands.")}</div>`
+				);
+				d.set_primary_action(__("Submit answers"), () => {
+					const answers = {};
+					$(d.body).find("[data-q]").each(function () {
+						const chosen = $(this).find("input:checked").val();
+						if (chosen !== undefined) answers[$(this).data("q")] = parseInt(chosen, 10);
+					});
+					d.get_primary_btn().prop("disabled", true);
+					frappe.call({
+						method: "duty_board.client_room.my_quiz_submit",
+						args: { attempt: t.attempt, answers: JSON.stringify(answers) },
+						callback: (rr) => {
+							d.hide();
+							this.my_quiz_result_dialog(rr.message, record);
+						},
+					});
+				});
+				d.show();
+			},
+		});
+	}
+
+	my_quiz_result_dialog(res, record) {
+		if (!res) return;
+		const d = new frappe.ui.Dialog({ title: res.passed ? `🏅 ${__("Passed")}` : `📝 ${__("Not this time")}` });
+		$(d.body).html(`
+			<div style="text-align:center;padding:8px 0 4px">
+				<div style="font-size:44px;font-weight:800;color:${res.passed ? "#15803d" : "#b45309"}">${res.score}%</div>
+				<div class="text-muted">${__("pass mark")} ${res.pass_mark}% · ${__("attempt")} ${res.attempts}${res.attempts > 1 ? ` · ${__("best")} ${res.best}%` : ""}</div>
+				${res.newly_certified ? `<div style="margin-top:8px;font-weight:700;color:#0C4A43">🎓 ${__("Course completed — certified.")}</div>` : ""}
+			</div>
+			${!res.passed && (res.wrong || []).length
+				? `<div style="margin-top:10px"><b>${__("Review these areas, then retake:")}</b>${res.wrong.map((w) => `<div class="text-muted" style="font-size:var(--text-sm);margin:4px 0">• ${frappe.utils.escape_html(w)}</div>`).join("")}</div>`
+				: ""}
+			<div style="display:flex;gap:10px;justify-content:flex-end;margin-top:12px">
+				${!res.passed ? `<button type="button" class="btn btn-sm btn-primary" data-retake>↻ ${__("Retake now")}</button>` : ""}
+				<button type="button" class="btn btn-sm btn-default" data-close>${__("Close")}</button>
+			</div>
+		`);
+		$(d.body).find("[data-retake]").on("click", () => { d.hide(); this.my_quiz_dialog(record); });
+		$(d.body).find("[data-close]").on("click", () => { d.hide(); this.load_my_training(); this.my_course_dialog(record); });
+		d.show();
 	}
 
 	render_my_dashboard_cal(m) {

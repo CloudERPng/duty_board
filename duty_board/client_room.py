@@ -2677,53 +2677,60 @@ def _certificate_html(trainee_name, module_title, product, date_str):
 	</div></body></html>"""
 
 
+def _award_module_completion(rec, trained_by=None):
+	"""Mark a training record Completed. Roomed records also get the module
+	certificate on the room shelf + narration; room-less (consultant) records
+	just complete — track-level certificates come from the certification layer."""
+	mod = frappe.db.get_value(
+		"Duty Training Module", rec.module, ["title", "product"], as_dict=True
+	)
+	vals = {"status": "Completed", "completed_on": today()}
+	if trained_by:
+		vals["trained_by"] = trained_by
+	if rec.room:
+		room = frappe.get_doc("Client Room", rec.room)
+		date_str = frappe.utils.format_date(today(), "d MMMM yyyy")
+		pdf = frappe.utils.pdf.get_pdf(
+			_certificate_html(rec.trainee_name, mod.title, mod.product, date_str)
+		)
+		fname = f"Certificate_{rec.trainee_name.replace(' ', '_')}_{mod.title.replace(' ', '_')[:40]}.pdf"
+		f = frappe.get_doc(
+			{"doctype": "File", "file_name": fname, "content": pdf, "is_private": 1}
+		).insert(ignore_permissions=True)
+		shelf = frappe.get_doc(
+			{
+				"doctype": "Client Shelf Doc",
+				"room": room.name,
+				"title": _("Certificate — {0} · {1}").format(rec.trainee_name, mod.title),
+				"category": _("Certificate"),
+				"file_url": f.file_url,
+				"file_name": fname,
+				"active": 1,
+			}
+		).insert(ignore_permissions=True)
+		vals["certificate_shelf"] = shelf.name
+	rec.db_set(vals, update_modified=False)
+	frappe.db.commit()
+	if rec.room:
+		_post(
+			room,
+			_("🎓 {0} is now certified: “{1}” — the certificate is on your shelf. Congratulations!").format(
+				rec.trainee_name, mod.title
+			),
+		)
+		_push_room_clients(room, _("🎓 Certificate awarded · Xlevel"), _("{0} — {1}").format(rec.trainee_name, mod.title))
+
+
 @frappe.whitelist()
 def training_complete(record):
 	_staff_only()
 	rec = frappe.get_doc("Duty Training Record", record)
 	if rec.status == "Completed":
 		frappe.throw(_("Already completed."))
-	room = frappe.get_doc("Client Room", rec.room)
-	mod = frappe.db.get_value(
-		"Duty Training Module", rec.module, ["title", "product"], as_dict=True
-	)
-	date_str = frappe.utils.format_date(today(), "d MMMM yyyy")
-	pdf = frappe.utils.pdf.get_pdf(
-		_certificate_html(rec.trainee_name, mod.title, mod.product, date_str)
-	)
-	fname = f"Certificate_{rec.trainee_name.replace(' ', '_')}_{mod.title.replace(' ', '_')[:40]}.pdf"
-	f = frappe.get_doc(
-		{"doctype": "File", "file_name": fname, "content": pdf, "is_private": 1}
-	).insert(ignore_permissions=True)
-	shelf = frappe.get_doc(
-		{
-			"doctype": "Client Shelf Doc",
-			"room": room.name,
-			"title": _("Certificate — {0} · {1}").format(rec.trainee_name, mod.title),
-			"category": _("Certificate"),
-			"file_url": f.file_url,
-			"file_name": fname,
-			"active": 1,
-		}
-	).insert(ignore_permissions=True)
-	rec.db_set(
-		{
-			"status": "Completed",
-			"completed_on": today(),
-			"trained_by": frappe.session.user,
-			"certificate_shelf": shelf.name,
-		},
-		update_modified=False,
-	)
-	frappe.db.commit()
-	_post(
-		room,
-		_("🎓 {0} is now certified: “{1}” — the certificate is on your shelf. Congratulations!").format(
-			rec.trainee_name, mod.title
-		),
-	)
-	_push_room_clients(room, _("🎓 Certificate awarded · Xlevel"), _("{0} — {1}").format(rec.trainee_name, mod.title))
-	return _training_rows(room)
+	if not rec.room:
+		frappe.throw(_("Consultant records complete through the assessment."))
+	_award_module_completion(rec, trained_by=frappe.session.user)
+	return _training_rows(frappe.get_doc("Client Room", rec.room))
 
 
 def _room_metrics(room):
@@ -2852,6 +2859,8 @@ def client_course(record):
 		"title": mod.title,
 		"product": mod.product,
 		"description": mod.description,
+		"status": frappe.db.get_value("Duty Training Record", record, "status"),
+		"quiz": _quiz_state(rec.module, frappe.session.user),
 		"lessons": [
 			{"name": l.name, "title": l.title, "est_minutes": l.est_minutes or 5, "done": l.name in done}
 			for l in lessons
@@ -3076,6 +3085,8 @@ def my_course(record):
 		"title": mod.title,
 		"product": mod.product,
 		"description": mod.description,
+		"status": frappe.db.get_value("Duty Training Record", record, "status"),
+		"quiz": _quiz_state(rec.module, frappe.session.user),
 		"lessons": [
 			{"name": l.name, "title": l.title, "est_minutes": l.est_minutes or 5, "done": l.name in done}
 			for l in lessons
@@ -3168,6 +3179,171 @@ def my_lesson_done(lesson):
 		)
 		frappe.db.commit()
 	return my_course(rec.name)
+
+
+# ---------------- academy: assessment engine ----------------
+
+QUIZ_SIZE = 10
+
+
+def _quiz_state(module, user):
+	attempts = frappe.get_all(
+		"Duty Quiz Attempt",
+		filters={"user": user, "module": module, "finished_at": ["is", "set"]},
+		fields=["score", "passed"],
+	)
+	return {
+		"attempts": len(attempts),
+		"best": max((a.score for a in attempts), default=0),
+		"passed": any(a.passed for a in attempts),
+		"bank": frappe.db.count("Duty Quiz Question", {"module": module, "active": 1}),
+	}
+
+
+def _all_lessons_read(module, user):
+	total = frappe.db.count("Duty Lesson", {"module": module})
+	if not total:
+		return False, total, 0
+	done = frappe.db.count(
+		"Duty Lesson Progress",
+		{"user": user, "module": module, "completed_at": ["is", "set"]},
+	)
+	return done >= total, total, done
+
+
+def _quiz_start(rec_name, module):
+	import random
+
+	user = frappe.session.user
+	ok, total, done = _all_lessons_read(module, user)
+	if not ok:
+		frappe.throw(_("Finish reading first — {0} of {1} lessons read.").format(done, total))
+	bank = frappe.get_all(
+		"Duty Quiz Question",
+		filters={"module": module, "active": 1},
+		fields=["name", "question", "opt_a", "opt_b", "opt_c", "opt_d"],
+	)
+	if len(bank) < QUIZ_SIZE:
+		frappe.throw(_("The test for this course is still being prepared."))
+	picked = random.sample(bank, QUIZ_SIZE)
+	served, out = [], []
+	for q in picked:
+		order = [0, 1, 2, 3]
+		random.shuffle(order)
+		opts = [q.opt_a, q.opt_b, q.opt_c, q.opt_d]
+		served.append({"q": q.name, "order": order})
+		out.append({"name": q.name, "question": q.question, "options": [opts[i] for i in order]})
+	att = frappe.get_doc(
+		{
+			"doctype": "Duty Quiz Attempt",
+			"user": user,
+			"module": module,
+			"record": rec_name,
+			"started_at": now_datetime(),
+			"served": json.dumps(served),
+		}
+	).insert(ignore_permissions=True)
+	frappe.db.commit()
+	return {"attempt": att.name, "questions": out, "size": QUIZ_SIZE}
+
+
+def _quiz_submit(attempt, answers, rec):
+	att = frappe.get_doc("Duty Quiz Attempt", attempt)
+	if att.user != frappe.session.user or att.module != rec.module:
+		frappe.throw(_("Not found."), frappe.PermissionError)
+	if att.finished_at:
+		frappe.throw(_("This attempt is already submitted."))
+	if isinstance(answers, str):
+		answers = json.loads(answers)
+	served = json.loads(att.served or "[]")
+	correct_map = {
+		q.name: "ABCD".index(q.correct)
+		for q in frappe.get_all(
+			"Duty Quiz Question",
+			filters={"name": ["in", [s["q"] for s in served]]},
+			fields=["name", "correct"],
+		)
+	}
+	score_n, wrong = 0, []
+	for s in served:
+		chosen = answers.get(s["q"])
+		if chosen is None:
+			chosen = -1
+		chosen = cint(chosen)
+		real = s["order"][chosen] if 0 <= chosen < 4 else -1
+		if real == correct_map.get(s["q"]):
+			score_n += 1
+		else:
+			wrong.append(frappe.db.get_value("Duty Quiz Question", s["q"], "question"))
+	score = round(score_n * 100 / len(served))
+	pass_mark = cint(frappe.db.get_value("Duty Training Module", rec.module, "pass_mark")) or 70
+	passed = score >= pass_mark
+	att.db_set(
+		{
+			"finished_at": now_datetime(),
+			"score": score,
+			"passed": 1 if passed else 0,
+			"answers": json.dumps(answers),
+		},
+		update_modified=False,
+	)
+	frappe.db.commit()
+	newly_certified = False
+	if passed and rec.status != "Completed":
+		_award_module_completion(rec)
+		newly_certified = True
+	state = _quiz_state(rec.module, frappe.session.user)
+	return {
+		"score": score,
+		"passed": passed,
+		"pass_mark": pass_mark,
+		"wrong": wrong,
+		"attempts": state["attempts"],
+		"best": state["best"],
+		"newly_certified": newly_certified,
+	}
+
+
+@frappe.whitelist()
+def my_quiz_start(record):
+	_staff_only()
+	rec = frappe.db.get_value(
+		"Duty Training Record", record, ["name", "module", "trainee", "room"], as_dict=True
+	)
+	if not rec or rec.trainee != frappe.session.user or rec.room:
+		frappe.throw(_("Not found."), frappe.PermissionError)
+	return _quiz_start(rec.name, rec.module)
+
+
+@frappe.whitelist()
+def my_quiz_submit(attempt, answers):
+	_staff_only()
+	att_rec = frappe.db.get_value("Duty Quiz Attempt", attempt, "record")
+	rec = frappe.get_doc("Duty Training Record", att_rec)
+	if rec.trainee != frappe.session.user or rec.room:
+		frappe.throw(_("Not found."), frappe.PermissionError)
+	return _quiz_submit(attempt, answers, rec)
+
+
+@frappe.whitelist()
+def client_quiz_start(record):
+	room = _client_room()
+	rec = frappe.db.get_value(
+		"Duty Training Record", record, ["name", "module", "trainee", "room"], as_dict=True
+	)
+	if not rec or rec.trainee != frappe.session.user or rec.room != room.name:
+		frappe.throw(_("Not found."), frappe.PermissionError)
+	return _quiz_start(rec.name, rec.module)
+
+
+@frappe.whitelist()
+def client_quiz_submit(attempt, answers):
+	room = _client_room()
+	att_rec = frappe.db.get_value("Duty Quiz Attempt", attempt, "record")
+	rec = frappe.get_doc("Duty Training Record", att_rec)
+	if rec.trainee != frappe.session.user or rec.room != room.name:
+		frappe.throw(_("Not found."), frappe.PermissionError)
+	return _quiz_submit(attempt, answers, rec)
 
 
 # ---------------- rca: the post-incident report ----------------
