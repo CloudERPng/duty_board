@@ -59,6 +59,32 @@
 	td.dur { white-space: nowrap; font-weight: 600; font-size: 13px; }
 	td.dur.open { color: #b45309; } td.dur.closed { color: #15803d; }
 	.tabbar { display: none; }
+	@media (min-width: 900px) {
+		.tabbar {
+			display: flex; position: static; max-width: 1780px; margin: 4px auto 0;
+			padding: 0 14px; gap: 8px; background: none; border: none; box-shadow: none;
+		}
+		.tabbar a {
+			display: flex; flex-direction: row; gap: 6px; align-items: center;
+			padding: 8px 18px; border-radius: 99px; font-size: 14px; font-weight: 700;
+			color: #6b7280; cursor: pointer; text-decoration: none; background: #f3f4f6;
+		}
+		.tabbar a span { font-size: 16px; }
+		.tabbar a.active { background: #0F5C55; color: #fff; }
+		body[data-tab="home"] .card.docs,
+		body[data-tab="home"] .card.mstones,
+		body[data-tab="home"] .card.acad { display: none; }
+		body[data-tab="home"] .rightcol { width: 330px; }
+		body[data-tab="pm"] .wrap, body[data-tab="training"] .wrap, body[data-tab="docs"] .wrap {
+			display: block; max-width: 980px;
+		}
+		body[data-tab="pm"] .rightcol, body[data-tab="training"] .rightcol { width: auto; display: block; }
+		body[data-tab="pm"] .card:not(.mstones) { display: none; }
+		body[data-tab="training"] .card:not(.acad) { display: none; }
+		body[data-tab="docs"] .card:not(.docs) { display: none; }
+		body[data-tab="pm"] .card.mstones .foldh .fc,
+		body[data-tab="training"] .card.acad .foldh .fc { display: none; }
+	}
 	@media (max-width: 899px) {
 		body { padding-bottom: 64px; }
 		.rightcol { display: contents; }
@@ -73,11 +99,13 @@
 		}
 		.tabbar a span { font-size: 20px; }
 		.tabbar a.active { color: #0F5C55; }
-		body[data-tab="chat"] .card:not(.chat) { display: none; }
-		body[data-tab="tasks"] .card:not(.tasks):not(.meets) { display: none; }
-		body[data-tab="plan"] .card:not(.mstones):not(.acad):not(.metrics) { display: none; }
+		body[data-tab="home"] .card:not(.chat):not(.tasks):not(.meets):not(.metrics) { display: none; }
+		body[data-tab="home"] .wrap { display: flex; flex-direction: column; }
+		body[data-tab="home"] .card.chat { order: -1; }
+		body[data-tab="pm"] .card:not(.mstones) { display: none; }
+		body[data-tab="training"] .card:not(.acad) { display: none; }
 		body[data-tab="docs"] .card:not(.docs) { display: none; }
-		body[data-tab="chat"] .msgs { max-height: calc(100vh - 330px); }
+		body[data-tab="home"] .msgs { max-height: calc(100vh - 380px); }
 		table.tt, table.tt tbody { display: block; width: 100%; }
 		table.tt tr:first-child { display: none; } /* headers retire; labels take over */
 		table.tt tr.row {
@@ -378,10 +406,10 @@
 	<p class="muted foot" style="text-align:center">Powered by Xlevel Retail Systems · CloudERP.One · <span id="xlv"></span></p>
 </div>
 <div class="tabbar">
-	<a data-tab="tasks" onclick="setTab('tasks')"><span>📋</span>Tasks</a>
-	<a data-tab="chat" onclick="setTab('chat')"><span>💬</span>Chat</a>
-	<a data-tab="plan" onclick="setTab('plan')"><span>🏁</span>Plan</a>
-	<a data-tab="docs" onclick="setTab('docs')"><span>📚</span>Docs</a>
+	<a data-tab="home" onclick="setTab('home')"><span>🏠</span>Home</a>
+	<a data-tab="pm" onclick="setTab('pm')"><span>📁</span>Projects</a>
+	<a data-tab="training" onclick="setTab('training')"><span>🎓</span>Training</a>
+	<a data-tab="docs" onclick="setTab('docs')"><span>📚</span>Documents</a>
 </div>
 <div id="ov" onclick="if(event.target===this)this.style.display='none'">
 	<div class="box"><span class="close" onclick="document.getElementById('ov').style.display='none'">×</span><div id="ovbody"></div></div>
@@ -390,7 +418,7 @@
 </div>
 <script>
 const esc = (s) => (s || "").replace(/[&<>"']/g, (c) => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
-const XLV = "2.57.0";
+const XLV = "2.60.0";
 document.getElementById("xlv").textContent = "v" + XLV;
 console.log("Xlevel portal", XLV);
 let ROOM = localStorage.getItem("xl_room") || null;
@@ -525,7 +553,7 @@ function render(d) {
 	const seen_key = "xl_seen_" + (ROOM || d.room || "one");
 	if (latest && latest > (localStorage.getItem(seen_key) || "")) {
 		if (document.body.dataset.tab && document.body.dataset.tab !== "chat" && window.innerWidth < 900) {
-			document.querySelector('.tabbar a[data-tab="chat"]').classList.add("dot");
+			document.querySelector('.tabbar a[data-tab="home"]').classList.add("dot");
 		}
 	}
 	if (latest && (document.body.dataset.tab === "chat" || window.innerWidth >= 900)) {
@@ -650,7 +678,7 @@ function renderMilestones(rows) {
 		document.querySelector("#msbar i").style.width = Math.round((done / rows.length) * 100) + "%";
 		document.getElementById("mscount").textContent = `${done} of ${rows.length} phases approved`;
 	} else wrap.style.display = "none";
-	const tt = document.querySelector('.tabbar a[data-tab="tasks"]');
+	const tt = document.querySelector('.tabbar a[data-tab="home"]');
 	if (tt) tt.classList.toggle("dot", rows.some((m) => m.status === "Awaiting Approval"));
 	document.getElementById("mstones").innerHTML = rows.length
 		? rows
@@ -1003,10 +1031,10 @@ function setTab(t) {
 	document.querySelectorAll(".tabbar a").forEach((a) =>
 		a.classList.toggle("active", a.dataset.tab === t)
 	);
-	if (t === "chat") {
+	if (t === "home") {
 		const box = document.getElementById("msgs");
 		if (box) box.scrollTop = box.scrollHeight;
-		document.querySelector('.tabbar a[data-tab="chat"]').classList.remove("dot");
+		document.querySelector('.tabbar a[data-tab="home"]').classList.remove("dot");
 		if (LAST.messages && LAST.messages.length) {
 			localStorage.setItem(
 				"xl_seen_" + (ROOM || LAST.room || "one"),
@@ -1015,9 +1043,14 @@ function setTab(t) {
 		}
 	}
 }
-setTab(localStorage.getItem("xl_tab") || "chat");
+setTab((() => {
+	const t = localStorage.getItem("xl_tab");
+	if (t === "plan") return "pm";
+	if (!t || t === "chat" || t === "tasks") return "home";
+	return t;
+})());
 function jumpTo(name) {
-	if (window.innerWidth < 900) setTab("chat");
+	if (window.innerWidth < 900) setTab("home");
 	const el = document.querySelector(`.m[data-name="${CSS.escape(name)}"]`);
 	if (!el) return;
 	el.scrollIntoView({ behavior: "smooth", block: "center" });
