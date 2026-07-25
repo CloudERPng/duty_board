@@ -1,0 +1,75 @@
+{
+ "actions": [],
+ "autoname": "hash",
+ "creation": "2026-07-25 15:00:00.000000",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "title",
+  "product",
+  "serial_prefix",
+  "description",
+  "active",
+  "modules"
+ ],
+ "fields": [
+  {
+   "fieldname": "title",
+   "fieldtype": "Data",
+   "label": "Title",
+   "reqd": 1
+  },
+  {
+   "fieldname": "product",
+   "fieldtype": "Data",
+   "label": "Product Brand",
+   "reqd": 1,
+   "description": "Shown as the certificate's brand, e.g. ZhiftCRM"
+  },
+  {
+   "fieldname": "serial_prefix",
+   "fieldtype": "Data",
+   "label": "Serial Prefix",
+   "reqd": 1,
+   "description": "e.g. XLV-CRM-CLOSER"
+  },
+  {
+   "fieldname": "description",
+   "fieldtype": "Small Text",
+   "label": "Description"
+  },
+  {
+   "default": "1",
+   "fieldname": "active",
+   "fieldtype": "Check",
+   "label": "Active"
+  },
+  {
+   "fieldname": "modules",
+   "fieldtype": "Table",
+   "label": "Member Modules",
+   "options": "Duty Certification Track Module",
+   "reqd": 1
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "links": [],
+ "modified": "2026-07-25 15:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "Duty Board",
+ "name": "Duty Certification Track",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "write": 1
+  }
+ ],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}

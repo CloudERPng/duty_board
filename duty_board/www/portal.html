@@ -502,7 +502,7 @@
 </div>
 <script>
 const esc = (s) => (s || "").replace(/[&<>"']/g, (c) => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
-const XLV = "2.71.1";
+const XLV = "2.72.0";
 document.getElementById("xlv").textContent = "v" + XLV;
 console.log("Xlevel portal", XLV);
 let ROOM = localStorage.getItem("xl_room") || null;
@@ -1051,6 +1051,30 @@ function loadMetrics() {
 /* ---- academy ---- */
 function loadTraining() {
 	stopBeat();
+	api("client_get_certificates")
+		.then((certs) => {
+			certs = certs || [];
+			let host = document.getElementById("mycerts");
+			if (!host) {
+				host = document.createElement("div");
+				host.id = "mycerts";
+				document.getElementById("acad").parentNode.insertBefore(host, document.getElementById("acad"));
+			}
+			host.innerHTML = certs.length
+				? `<div style="margin-bottom:10px">${certs
+						.map(
+							(x) => `
+					<div style="background:#EDF7F5;border:1px solid #B7DFD6;border-radius:10px;padding:9px 13px;margin-bottom:6px">
+						<b>🏅 ${esc(x.product)} — ${esc(x.track_title)}</b>${x.status !== "Valid" ? ` <span style="color:#b45309;font-size:12px;font-weight:700">${esc(x.status)}</span>` : ""}
+						<div class="muted" style="font-size:12px;margin-top:2px">${esc(x.serial)} · ${esc(x.issued_on || "")}
+							· <a href="/api/method/duty_board.client_room.client_certificate_file?serial=${encodeURIComponent(x.serial)}" target="_blank">⬇ PDF</a>
+							· <a href="/verify?serial=${encodeURIComponent(x.serial)}" target="_blank">✓ verify</a></div>
+					</div>`
+						)
+						.join("")}</div>`
+				: "";
+		})
+		.catch(() => {});
 	api("client_get_training")
 		.then((rows) => {
 			rows = rows || [];

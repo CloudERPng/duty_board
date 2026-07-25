@@ -1,0 +1,107 @@
+{
+ "actions": [],
+ "autoname": "hash",
+ "creation": "2026-07-25 15:00:00.000000",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "serial",
+  "user",
+  "holder_name",
+  "track",
+  "track_title",
+  "product",
+  "issued_on",
+  "scores",
+  "file_url",
+  "status",
+  "status_note"
+ ],
+ "fields": [
+  {
+   "fieldname": "serial",
+   "fieldtype": "Data",
+   "label": "Serial",
+   "reqd": 1,
+   "unique": 1,
+   "search_index": 1
+  },
+  {
+   "fieldname": "user",
+   "fieldtype": "Link",
+   "label": "Holder",
+   "options": "User",
+   "reqd": 1,
+   "search_index": 1
+  },
+  {
+   "fieldname": "holder_name",
+   "fieldtype": "Data",
+   "label": "Holder Name"
+  },
+  {
+   "fieldname": "track",
+   "fieldtype": "Link",
+   "label": "Track",
+   "options": "Duty Certification Track",
+   "search_index": 1
+  },
+  {
+   "fieldname": "track_title",
+   "fieldtype": "Data",
+   "label": "Track Title"
+  },
+  {
+   "fieldname": "product",
+   "fieldtype": "Data",
+   "label": "Product"
+  },
+  {
+   "fieldname": "issued_on",
+   "fieldtype": "Date",
+   "label": "Issued On"
+  },
+  {
+   "fieldname": "scores",
+   "fieldtype": "Small Text",
+   "label": "Module Scores"
+  },
+  {
+   "fieldname": "file_url",
+   "fieldtype": "Data",
+   "label": "Certificate File"
+  },
+  {
+   "default": "Valid",
+   "fieldname": "status",
+   "fieldtype": "Select",
+   "label": "Status",
+   "options": "Valid\nRecertification Required\nRevoked"
+  },
+  {
+   "fieldname": "status_note",
+   "fieldtype": "Small Text",
+   "label": "Status Note"
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "links": [],
+ "modified": "2026-07-25 15:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "Duty Board",
+ "name": "Duty Certificate",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "write": 1
+  }
+ ],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}

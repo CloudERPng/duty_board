@@ -1846,6 +1846,31 @@ class DutyBoard {
 			method: "duty_board.client_room.my_training",
 			callback: (r) => this.render_my_training(r.message || []),
 		});
+		if (!this.$me.find(".duty-me-certs").length)
+			this.$me.append(`<div class="duty-me-certs" style="margin-top:14px"></div>`);
+		frappe.call({
+			method: "duty_board.client_room.my_certificates",
+			callback: (r) => {
+				const certs = r.message || [];
+				const $c = this.$me.find(".duty-me-certs");
+				if (!certs.length) return $c.empty();
+				$c.html(`
+					<div class="duty-lead-section">🎖 ${__("My certificates")}</div>
+					${certs
+						.map(
+							(x) => `
+					<div class="duty-cr-msrow">
+						<span>🏅 <b>${frappe.utils.escape_html(x.product)} — ${frappe.utils.escape_html(x.track_title)}</b>
+						${x.status !== "Valid" ? `<span class="duty-lead-chip" style="color:#b45309">${__(x.status)}</span>` : ""}</span>
+						<span class="text-muted" style="font-size:var(--text-sm)">${x.serial} · ${x.issued_on}
+							· <a href="/api/method/duty_board.client_room.my_certificate_file?serial=${encodeURIComponent(x.serial)}" target="_blank">⬇ ${__("PDF")}</a>
+							· <a href="/verify?serial=${encodeURIComponent(x.serial)}" target="_blank">✓ ${__("verify")}</a></span>
+					</div>`
+						)
+						.join("")}
+				`);
+			},
+		});
 	}
 
 	render_my_training(rows) {

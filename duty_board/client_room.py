@@ -2719,6 +2719,10 @@ def _award_module_completion(rec, trained_by=None):
 			),
 		)
 		_push_room_clients(room, _("🎓 Certificate awarded · Xlevel"), _("{0} — {1}").format(rec.trainee_name, mod.title))
+	try:
+		_evaluate_certifications(rec.trainee)
+	except Exception:
+		frappe.log_error(frappe.get_traceback(), "duty_board certification evaluation")
 
 
 @frappe.whitelist()
@@ -3322,6 +3326,199 @@ def client_quiz_submit(attempt, answers):
 	if rec.trainee != frappe.session.user or rec.room != room.name:
 		frappe.throw(_("Not found."), frappe.PermissionError)
 	return _quiz_submit(attempt, answers, rec)
+
+
+# ---------------- certification: tracks, registry, product-branded certs ----------------
+
+
+def _track_certificate_html(cert):
+	verify = f"{frappe.utils.get_url()}/verify?serial={cert.serial}"
+	return f"""
+<html><head><style>
+	@page {{ size: A4 landscape; margin: 0; }}
+	body {{ font-family: Helvetica, Arial, sans-serif; margin: 0; color: #16211F; }}
+	.cert {{ padding: 60px 80px; height: 100%; box-sizing: border-box;
+		border: 14px solid #0F5C55; position: relative; }}
+	.inner {{ border: 2px solid #B7DFD6; padding: 40px 50px; text-align: center; height: 100%; box-sizing: border-box; }}
+	.brand {{ font-size: 34px; font-weight: 800; color: #0F5C55; letter-spacing: 2px; }}
+	.certword {{ font-size: 15px; letter-spacing: 6px; color: #51605C; margin: 18px 0 6px; text-transform: uppercase; }}
+	.track {{ font-size: 30px; font-weight: 800; margin: 4px 0 22px; }}
+	.holder {{ font-size: 38px; font-weight: 700; color: #0C4A43; margin: 8px 0;
+		border-bottom: 2px solid #0F5C55; display: inline-block; padding: 0 30px 6px; }}
+	.line {{ font-size: 14px; color: #51605C; margin-top: 16px; line-height: 1.7; }}
+	.foot {{ position: absolute; bottom: 46px; left: 80px; right: 80px;
+		display: flex; justify-content: space-between; font-size: 12px; color: #51605C; }}
+	.sig {{ text-align: center; }}
+	.sig b {{ display: block; border-top: 1px solid #16211F; padding-top: 6px; font-size: 13px; color: #16211F; }}
+</style></head><body><div class="cert"><div class="inner">
+	<div class="brand">{frappe.utils.escape_html(cert.product)}</div>
+	<div class="certword">Certificate of Proficiency</div>
+	<div class="track">{frappe.utils.escape_html(cert.track_title)}</div>
+	<div class="line">This certifies that</div>
+	<div class="holder">{frappe.utils.escape_html(cert.holder_name)}</div>
+	<div class="line">has completed all required courses and passed the qualifying assessments<br>
+	{frappe.utils.escape_html(cert.scores or "")}</div>
+	<div class="foot">
+		<div>Serial: <b>{cert.serial}</b><br>Issued: {frappe.utils.format_date(cert.issued_on, "d MMMM yyyy")}<br>Verify: {verify}</div>
+		<div class="sig">Xlevel Retail Systems Ltd<b>Authorised — CloudERP.One Academy</b></div>
+	</div>
+</div></div></body></html>"""
+
+
+def _next_serial(prefix):
+	year = frappe.utils.today()[:4]
+	base = f"{prefix}-{year}-"
+	n = frappe.db.count("Duty Certificate", {"serial": ["like", f"{base}%"]}) + 1
+	return f"{base}{n:04d}"
+
+
+def _best_score(user, module):
+	rows = frappe.get_all(
+		"Duty Quiz Attempt",
+		filters={"user": user, "module": module, "passed": 1},
+		fields=["score"],
+	)
+	return max((r.score for r in rows), default=None)
+
+
+def _evaluate_certifications(user):
+	"""Called after any module completion: issue every track this user has
+	just fully satisfied. A Valid certificate blocks re-issue; a
+	Recertification Required one does not (the new pass supersedes it)."""
+	completed = {
+		r.module
+		for r in frappe.get_all(
+			"Duty Training Record",
+			filters={"trainee": user, "status": "Completed"},
+			fields=["module"],
+		)
+	}
+	if not completed:
+		return
+	for track in frappe.get_all(
+		"Duty Certification Track", filters={"active": 1}, fields=["name"]
+	):
+		t = frappe.get_doc("Duty Certification Track", track.name)
+		mods = [m.module for m in t.modules]
+		if not mods or not set(mods).issubset(completed):
+			continue
+		if frappe.db.exists("Duty Certificate", {"user": user, "track": t.name, "status": "Valid"}):
+			continue
+		_issue_certificate(user, t)
+
+
+def _issue_certificate(user, track):
+	holder = frappe.utils.get_fullname(user)
+	scores = []
+	for m in track.modules:
+		title = frappe.db.get_value("Duty Training Module", m.module, "title")
+		s = _best_score(user, m.module)
+		scores.append(f"{title}: {s}%" if s is not None else f"{title}: instructor certified")
+	cert = frappe.get_doc(
+		{
+			"doctype": "Duty Certificate",
+			"serial": _next_serial(track.serial_prefix),
+			"user": user,
+			"holder_name": holder,
+			"track": track.name,
+			"track_title": track.title,
+			"product": track.product,
+			"issued_on": today(),
+			"scores": " · ".join(scores),
+			"status": "Valid",
+		}
+	).insert(ignore_permissions=True)
+	pdf = frappe.utils.pdf.get_pdf(_track_certificate_html(cert))
+	fname = f"{cert.serial}_{holder.replace(' ', '_')}.pdf"
+	f = frappe.get_doc(
+		{
+			"doctype": "File",
+			"file_name": fname,
+			"content": pdf,
+			"is_private": 1,
+			"attached_to_doctype": "Duty Certificate",
+			"attached_to_name": cert.name,
+		}
+	).insert(ignore_permissions=True)
+	cert.db_set("file_url", f.file_url, update_modified=False)
+	# supersede any recert-flagged predecessor
+	for old in frappe.get_all(
+		"Duty Certificate",
+		filters={"user": user, "track": track.name, "status": "Recertification Required"},
+		pluck="name",
+	):
+		frappe.db.set_value("Duty Certificate", old, {"status": "Revoked", "status_note": f"Superseded by {cert.serial}"}, update_modified=False)
+	frappe.db.commit()
+	try:
+		frappe.sendmail(
+			recipients=[user],
+			subject=_("🎓 {0} — {1} awarded").format(track.product, track.title),
+			message=f"""<p>Congratulations, {frappe.utils.escape_html(holder)}!</p>
+<p>You have earned <b>{frappe.utils.escape_html(track.product)} — {frappe.utils.escape_html(track.title)}</b>,
+having completed every required course and passed the qualifying assessments.</p>
+<p>Serial: <b>{cert.serial}</b> · Issued {frappe.utils.format_date(cert.issued_on, "d MMMM yyyy")}<br>
+Anyone can verify this credential at: {frappe.utils.get_url()}/verify?serial={cert.serial}</p>
+<p>Your certificate is attached.</p>
+<p>— CloudERP.One Academy · Xlevel Retail Systems Ltd</p>""",
+			attachments=[{"fname": fname, "fcontent": pdf}],
+		)
+	except Exception:
+		frappe.log_error(frappe.get_traceback(), "duty_board certificate email")
+	try:
+		from duty_board.api import _notify_user
+
+		_notify_user(user, _("🎓 Certificate awarded"), f"{track.product} — {track.title}")
+	except Exception:
+		pass
+	return cert
+
+
+def _certs_for(user):
+	rows = frappe.get_all(
+		"Duty Certificate",
+		filters={"user": user, "status": ["!=", "Revoked"]},
+		fields=["name", "serial", "track_title", "product", "issued_on", "status"],
+		order_by="issued_on desc",
+	)
+	for r in rows:
+		r.issued_on = str(r.issued_on) if r.issued_on else None
+	return rows
+
+
+@frappe.whitelist()
+def my_certificates():
+	_staff_only()
+	return _certs_for(frappe.session.user)
+
+
+@frappe.whitelist()
+def client_get_certificates():
+	_client_room()
+	return _certs_for(frappe.session.user)
+
+
+def _serve_certificate(serial):
+	cert = frappe.db.get_value(
+		"Duty Certificate", {"serial": serial}, ["user", "file_url"], as_dict=True
+	)
+	if not cert or cert.user != frappe.session.user or not cert.file_url:
+		frappe.throw(_("Not found."), frappe.PermissionError)
+	fname = frappe.db.get_value("File", {"file_url": cert.file_url})
+	if not fname:
+		frappe.throw(_("File missing."))
+	_serve_file(frappe.get_doc("File", fname), f"{serial}.pdf")
+
+
+@frappe.whitelist()
+def my_certificate_file(serial):
+	_staff_only()
+	_serve_certificate(serial)
+
+
+@frappe.whitelist()
+def client_certificate_file(serial):
+	_client_room()
+	_serve_certificate(serial)
 
 
 # ---------------- rca: the post-incident report ----------------
