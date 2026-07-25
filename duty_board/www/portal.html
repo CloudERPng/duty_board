@@ -430,7 +430,7 @@
 </div>
 <script>
 const esc = (s) => (s || "").replace(/[&<>"']/g, (c) => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
-const XLV = "2.61.0";
+const XLV = "2.62.0";
 document.getElementById("xlv").textContent = "v" + XLV;
 console.log("Xlevel portal", XLV);
 let ROOM = localStorage.getItem("xl_room") || null;
@@ -745,8 +745,19 @@ function loadChreqs() {
 		.then(renderChreqs)
 		.catch((e) => console.warn("chreqs:", e.message));
 }
+function chreqPath(c) {
+	if (c.status === "Declined")
+		return `<div class="muted" style="font-size:12px;margin:2px 0">● Submitted → <b style="color:#dc2626">● Declined</b> — awaiting revision by Xlevel</div>`;
+	const steps = ["Awaiting Approval", "Approved", "In Delivery", "Delivered"];
+	const names = ["Submitted", "Approved", "In delivery", "Delivered"];
+	const at = steps.indexOf(c.status);
+	return `<div class="muted" style="font-size:12px;margin:2px 0">${names
+		.map((n, i) => `${i <= at ? "●" : "○"} ${i === at ? `<b style="color:#0F5C55">${n}</b>` : n}`)
+		.join(" → ")}</div>`;
+}
 function renderChreqs(rows) {
 	rows = rows || [];
+	window._chreqs = rows;
 	const DOTS = { "Awaiting Approval": "🟠", "Approved": "✅", "Declined": "↩", "In Delivery": "🚀", "Delivered": "📦" };
 	const pt = document.querySelector('.tabbar a[data-tab="pm"]');
 	if (pt) pt.classList.toggle("dot", rows.some((c) => c.status === "Awaiting Approval"));
@@ -762,19 +773,33 @@ function renderChreqs(rows) {
 				${c.timeline_impact ? `<span class="muted" style="font-size:12px">⏱ ${esc(c.timeline_impact)}</span>` : ""}
 				${["Approved", "In Delivery", "Delivered"].includes(c.status) ? `<span class="sig">Approved by ${esc(c.approved_full || "")} · ${esc(c.approved_at || "")}</span>` : ""}
 				${c.status === "Declined" ? `<span class="sig" style="color:#dc2626">Declined · ${esc(c.declined_at || "")}${c.decline_reason ? " · “" + esc(c.decline_reason) + "”" : ""}</span>` : ""}
-				${c.original_request ? `<div class="desc">🗣 ${esc(c.original_request)}</div>` : ""}
-				${c.scope_impact ? `<div class="desc">📐 ${esc(c.scope_impact)}</div>` : ""}
-				${c.risks ? `<div class="desc">⚠ ${esc(c.risks)}</div>` : ""}
+				${chreqPath(c)}
+				${c.original_request ? `<div class="desc">🗣 <b>Request:</b> ${esc(c.original_request)}</div>` : ""}
+				${c.reason ? `<div class="desc">💡 <b>Why:</b> ${esc(c.reason)}</div>` : ""}
+				${c.scope_impact ? `<div class="desc">📐 <b>Scope:</b> ${esc(c.scope_impact)}</div>` : ""}
+				${c.resource_impact ? `<div class="desc">👥 <b>Resources:</b> ${esc(c.resource_impact)}</div>` : ""}
+				${c.risks ? `<div class="desc">⚠ <b>Risks:</b> ${esc(c.risks)}</div>` : ""}
 				${["In Delivery", "Delivered"].includes(c.status) && c.cards_total ? `<span class="muted" style="font-size:12px">📋 ${c.cards_done} of ${c.cards_total} tasks complete</span>` : ""}
-				${c.status === "Awaiting Approval" ? `<div style="display:flex;gap:8px;margin-top:6px"><button onclick="approveChreq('${esc(c.name)}','${esc(c.title)}','${esc(c.cost_fmt || "")}')">✍ Approve</button><button style="background:#e5e7eb;color:#374151" onclick="declineChreq('${esc(c.name)}','${esc(c.title)}')">↩ Decline</button></div>` : ""}
+				${c.status === "Awaiting Approval" ? `<div style="display:flex;gap:8px;margin-top:6px"><button onclick="approveChreq('${esc(c.name)}')">✍ Approve</button><button style="background:#e5e7eb;color:#374151" onclick="declineChreq('${esc(c.name)}','${esc(c.title)}')">↩ Decline</button></div>` : ""}
 			</div>`
 				)
 				.join("")
 		: '<span class="muted">No change requests. Work beyond your subscription scope appears here for your formal approval.</span>';
 }
-function approveChreq(id, title, amt) {
+function approveChreq(id) {
+	const c = (window._chreqs || []).find((r) => r.name === id) || {};
+	const amt = c.cost_fmt || "";
+	const line = (icon, label, v) => (v ? `<div style="font-size:13px;line-height:1.5;margin:3px 0">${icon} <b>${label}:</b> ${esc(v)}</div>` : "");
 	document.getElementById("ovbody").innerHTML = `
-		<h2>✍ Approve “${esc(title)}”</h2>
+		<h2>✍ Approve “${esc(c.title || "")}”</h2>
+		<div style="border:1px solid #e5e7eb;border-radius:10px;padding:10px 12px;margin:8px 0;background:#f9fafb">
+			${line("📐", "Scope", c.scope_impact)}
+			${line("💡", "Why", c.reason)}
+			${line("⏱", "Timeline", c.timeline_impact)}
+			${line("👥", "Resources", c.resource_impact)}
+			${line("⚠", "Risks", c.risks)}
+			${amt ? `<div style="font-size:14px;margin:6px 0 0">💰 <b>Amount: ${esc(amt)}</b></div>` : ""}
+		</div>
 		<p style="font-size:14px;line-height:1.55">You are <b>formally approving this change request${amt ? ` at <b>${esc(amt)}</b>` : ""}</b>.
 		This authorises work beyond your subscription scope. Your sign-off is recorded permanently with
 		your name and today's date, and your Xlevel team is notified immediately.</p>

@@ -3161,8 +3161,18 @@ class DutyBoard {
 								${c.status === "In Delivery" ? `<a data-a="done" data-id="${c.name}">📦 ${__("Mark delivered")}</a>` : ""}
 								${["Draft", "Declined"].includes(c.status) ? `<a data-a="del" data-id="${c.name}" style="color:var(--red-600,#dc2626)">🗑</a>` : ""}
 							</span>
+							${(() => {
+								if (c.status === "Declined") return `<div class="duty-cr-msdesc text-muted">● Draft → ● Submitted → <b style="color:#dc2626">● Declined</b> → ↻ revise</div>`;
+								const steps = ["Draft", "Awaiting Approval", "Approved", "In Delivery", "Delivered"];
+								const names = ["Draft", "Submitted", "Approved", "In delivery", "Delivered"];
+								const at = steps.indexOf(c.status);
+								return `<div class="duty-cr-msdesc text-muted">${names.map((n, i) => `${i <= at ? "●" : "○"} ${i === at ? `<b>${n}</b>` : n}`).join(" → ")}</div>`;
+							})()}
 							${c.original_request ? `<div class="duty-cr-msdesc text-muted">🗣 ${frappe.utils.escape_html(c.original_request.slice(0, 220))}</div>` : ""}
+							${c.reason ? `<div class="duty-cr-msdesc text-muted">💡 ${frappe.utils.escape_html(c.reason.slice(0, 220))}</div>` : ""}
 							${c.scope_impact ? `<div class="duty-cr-msdesc text-muted">📐 ${frappe.utils.escape_html(c.scope_impact.slice(0, 220))}</div>` : ""}
+							${c.resource_impact ? `<div class="duty-cr-msdesc text-muted">👥 ${frappe.utils.escape_html(c.resource_impact.slice(0, 220))}</div>` : ""}
+							${c.risks ? `<div class="duty-cr-msdesc text-muted">⚠ ${frappe.utils.escape_html(c.risks.slice(0, 220))}</div>` : ""}
 						</div>`;
 						})
 						.join("") || `<div class="text-muted">${__("No change requests yet.")}</div>`}
