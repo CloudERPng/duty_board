@@ -2350,6 +2350,31 @@ class DutyBoard {
 		});
 	}
 
+	jump_to_msg(msg_id) {
+		const $t = $(`.duty-cr-msgs .duty-cr-msg[data-name="${msg_id}"]`);
+		if (!$t.length) {
+			frappe.show_alert(
+				{ message: __("The origin message is further up — load earlier messages, then try again."), indicator: "orange" },
+				4
+			);
+			return false;
+		}
+		$t[0].scrollIntoView({ behavior: "smooth", block: "center" });
+		$t.addClass("duty-msg-flash");
+		setTimeout(() => $t.removeClass("duty-msg-flash"), 2000);
+		return true;
+	}
+
+	view_origin(room_name, msg_id) {
+		if (this._open_room === room_name && $(".duty-cr-msgs").length) {
+			this.jump_to_msg(msg_id);
+			return;
+		}
+		this.show_face("clients");
+		this.open_client_room(room_name);
+		setTimeout(() => this.jump_to_msg(msg_id), 1300);
+	}
+
 	open_client_room(name) {
 		this._open_room = name;
 		frappe.call({
@@ -2378,7 +2403,7 @@ class DutyBoard {
 				<span class="duty-msg-text">${frappe.utils.escape_html(m.message)}</span>
 				${m.attachment_url ? `<span class="duty-cr-att">${m.is_image ? `<a href="/api/method/duty_board.client_room.room_file?msg=${m.name}" target="_blank"><img src="/api/method/duty_board.client_room.room_file?msg=${m.name}"></a>` : m.is_audio ? `<audio controls preload="none" src="/api/method/duty_board.client_room.room_file?msg=${m.name}" style="display:block;margin-top:6px;max-width:240px"></audio>` : `<a class="duty-issue-filelink" href="/api/method/duty_board.client_room.room_file?msg=${m.name}" target="_blank">📎 ${frappe.utils.escape_html(m.attachment_name || "file")}</a>`}</span>` : ""}
 				<span class="duty-msg-time">${frappe.datetime.str_to_user(m.creation)}</span>
-				${m.is_staff ? "" : `<a class="duty-cr-mktask" data-text="${frappe.utils.escape_html(m.message.slice(0, 120))}" title="${__("Make task from this")}">➕</a><a class="duty-cr-mkchreq" data-mid="${m.name}" data-text="${frappe.utils.escape_html(m.message.slice(0, 120))}" title="${__("Draft change request from this")}">💱</a>`}
+				${m.is_staff ? "" : `<a class="duty-cr-mktask" data-mid="${m.name}" data-text="${frappe.utils.escape_html(m.message.slice(0, 120))}" title="${__("Make task from this")}">➕</a><a class="duty-cr-mkchreq" data-mid="${m.name}" data-text="${frappe.utils.escape_html(m.message.slice(0, 120))}" title="${__("Draft change request from this")}">💱</a>`}
 			</div>`;
 	}
 
@@ -2608,6 +2633,7 @@ class DutyBoard {
 		});
 		$room.find(".duty-cr-mktask").on("click", (e) => {
 			const seed = $(e.currentTarget).data("text");
+			const mid = $(e.currentTarget).data("mid");
 			frappe.prompt(
 				[
 					{ fieldname: "title", fieldtype: "Data", label: __("Issue title"), default: seed, reqd: 1 },
@@ -2616,7 +2642,7 @@ class DutyBoard {
 				(v) =>
 					frappe.call({
 						method: "duty_board.client_room.make_task_from_message",
-						args: { name: x.name, title: v.title, detail: v.detail || null },
+						args: { name: x.name, title: v.title, detail: v.detail || null, msg: mid || null },
 						callback: (r) => r.message && this.render_client_room(r.message),
 					}),
 				__("Log client-visible issue"),
@@ -3185,6 +3211,7 @@ class DutyBoard {
 							<span class="duty-cr-msacts">
 								${!locked ? `<a data-a="edit" data-id="${c.name}">✎ ${__("Edit")}</a>` : ""}
 								<a data-a="tasks" data-id="${c.name}">📋 ${__("Tasks")}</a>
+								${c.source_message ? `<a data-a="origin" data-id="${c.name}">💬 ${__("Origin")}</a>` : ""}
 								${c.status === "Draft" ? `<a data-a="ask" data-id="${c.name}" class="duty-cr-msask">💱 ${__("Send for approval")}</a>` : ""}
 								${c.status === "Awaiting Approval" ? `<b class="duty-cr-mswait">${__("client's move")}</b> <a data-a="recall" data-id="${c.name}">↩ ${__("Recall")}</a>` : ""}
 								${c.status === "Declined" ? `<a data-a="reopen" data-id="${c.name}">✏️ ${__("Revise")}</a>` : ""}
@@ -3240,6 +3267,10 @@ class DutyBoard {
 						__("Send “{0}” to the client for formal approval? They will see the scope, cost and timeline impacts.", [frappe.utils.escape_html(c.title)]),
 						() => call("chreq_request_approval", { id: id })
 					);
+				if (a === "origin") {
+					d.hide();
+					return this.jump_to_msg(c.source_message);
+				}
 				if (a === "recall") return call("chreq_set_status", { id: id, status: "Draft" });
 				if (a === "deliver") return call("chreq_set_status", { id: id, status: "In Delivery" });
 				if (a === "done") return call("chreq_set_status", { id: id, status: "Delivered" });
@@ -4728,7 +4759,7 @@ class DutyBoard {
 					${this.sla_meta(x)}
 					<div class="duty-upd-host"></div>
 					<div class="duty-sim-host"></div>
-					<div class="duty-issue-meta"><a class="duty-issue-rca">📋 ${__("RCA report")}</a> · <a class="duty-issue-kb">📚 ${__("Promote to KB")}</a> · <a class="duty-issue-chreq">💱 ${__("To change request")}</a> · <a class="duty-issue-vis">${x.client_visible ? "👁 " + __("Client-visible — click to hide") : "🙈 " + __("Hidden from client — click to publish")}</a>${x.client_stars ? ` · <span class="duty-stars">${"★".repeat(x.client_stars)}${"☆".repeat(5 - x.client_stars)}</span>` : x.client_rating ? ` · ${x.client_rating === "Up" ? "👍 " + __("Client satisfied") : "👎 " + __("Client unhappy")}` : ""}${x.client_confirmed_at ? ` · <span class="duty-confirmed">✅ ${__("client confirmed")}</span>` : ""}${x.acknowledged_first ? ` · 👀 ${__("Acknowledged by")} ${frappe.utils.escape_html(x.acknowledged_first)}` : x.client_visible ? ` · <a class="duty-issue-ack">👀 ${__("Acknowledge")}</a>` : ""}</div>
+					<div class="duty-issue-meta"><a class="duty-issue-rca">📋 ${__("RCA report")}</a> · <a class="duty-issue-kb">📚 ${__("Promote to KB")}</a> · <a class="duty-issue-chreq">💱 ${__("To change request")}</a> ·${x.source_message && x.source_type === "Client Room" ? ` <a class="duty-issue-origin">💬 ${__("View origin")}</a> ·` : ""} <a class="duty-issue-vis">${x.client_visible ? "👁 " + __("Client-visible — click to hide") : "🙈 " + __("Hidden from client — click to publish")}</a>${x.client_stars ? ` · <span class="duty-stars">${"★".repeat(x.client_stars)}${"☆".repeat(5 - x.client_stars)}</span>` : x.client_rating ? ` · ${x.client_rating === "Up" ? "👍 " + __("Client satisfied") : "👎 " + __("Client unhappy")}` : ""}${x.client_confirmed_at ? ` · <span class="duty-confirmed">✅ ${__("client confirmed")}</span>` : ""}${x.acknowledged_first ? ` · 👀 ${__("Acknowledged by")} ${frappe.utils.escape_html(x.acknowledged_first)}` : x.client_visible ? ` · <a class="duty-issue-ack">👀 ${__("Acknowledge")}</a>` : ""}</div>
 					${x.description ? `<div class="duty-issue-desc">${frappe.utils.escape_html(x.description)}</div>` : ""}
 					${
 						(x.attachments || []).length
@@ -4804,6 +4835,10 @@ class DutyBoard {
 			);
 			this.load_updates(x, $(d.body).find(".duty-upd-host"));
 			this.load_similar(x, $(d.body).find(".duty-sim-host"));
+			$(d.body).find(".duty-issue-origin").on("click", () => {
+				d.hide();
+				this.view_origin(x.source, x.source_message);
+			});
 			$(d.body).find(".duty-issue-chreq").on("click", () =>
 				frappe.confirm(
 					__("Draft a change request from this ticket? Use this when the ask is new paid scope, not subscription support."),

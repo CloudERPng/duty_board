@@ -1487,6 +1487,7 @@ def _issue_payload(doc):
 		"resolved_at": str(doc.resolved_at) if doc.resolved_at else None,
 		"source_type": doc.source_type,
 		"source": doc.source,
+		"source_message": doc.get("source_message"),
 		"created": str(doc.creation),
 		"assignees": [a.user for a in (doc.assignees or [])],
 	}

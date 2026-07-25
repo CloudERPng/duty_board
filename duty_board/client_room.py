@@ -554,7 +554,7 @@ ISSUE_TYPES = (
 )
 
 
-def _new_client_issue(room, title, requested=0, raised_by=None, detail=None, issue_type=None):
+def _new_client_issue(room, title, requested=0, raised_by=None, detail=None, issue_type=None, source_message=None):
 	doc = frappe.get_doc(
 		{
 			"doctype": "Duty Issue",
@@ -567,6 +567,7 @@ def _new_client_issue(room, title, requested=0, raised_by=None, detail=None, iss
 			"raised_by": raised_by or frappe.session.user,
 			"source_type": "Client Room",
 			"source": room.name,
+			"source_message": source_message or None,
 			"client_visible": 1,
 			"client_requested": cint(requested),
 		}
@@ -581,13 +582,17 @@ def _new_client_issue(room, title, requested=0, raised_by=None, detail=None, iss
 
 
 @frappe.whitelist()
-def make_task_from_message(name, title, detail=None):
+def make_task_from_message(name, title, detail=None, msg=None):
 	_staff_only()
 	room = frappe.get_doc("Client Room", name)
 	title = (title or "").strip()
 	if not title:
 		frappe.throw(_("Give the issue a title."))
-	_new_client_issue(room, title, detail=detail)
+	if msg:
+		m_room = frappe.db.get_value("Client Room Message", msg, "room")
+		if m_room != room.name:
+			msg = None
+	_new_client_issue(room, title, detail=detail, source_message=msg)
 	_post(room, _("⚠ Logged: “{0}” → Queued").format(title))
 	frappe.db.commit()
 	return get_room(name)
