@@ -2823,12 +2823,6 @@ def _my_training_record(room, module):
 	return rec
 
 
-def _lesson_threshold(est_minutes):
-	"""Seconds of reading before 'Mark as read' is honoured: 40% of the
-	estimate, floored at 45s, capped at 180s."""
-	return max(45, min(180, int((est_minutes or 5) * 60 * 0.4)))
-
-
 @frappe.whitelist()
 def client_course(record):
 	room = _client_room()
@@ -2908,7 +2902,6 @@ def client_lesson(lesson):
 		"est_minutes": l.est_minutes or 5,
 		"seconds": prog.seconds or 0,
 		"done": bool(prog.completed_at),
-		"min_seconds": _lesson_threshold(l.est_minutes),
 	}
 
 
@@ -2937,13 +2930,6 @@ def client_lesson_done(lesson):
 	)
 	if not prog:
 		frappe.throw(_("Open the lesson first."))
-	need = _lesson_threshold(l.est_minutes)
-	if not prog.completed_at and (prog.seconds or 0) < need:
-		frappe.throw(
-			_("Give it a little longer — about {0} more seconds of reading.").format(
-				need - (prog.seconds or 0)
-			)
-		)
 	if not prog.completed_at:
 		frappe.db.set_value(
 			"Duty Lesson Progress", prog.name, "completed_at", now_datetime(), update_modified=False
@@ -3129,7 +3115,6 @@ def my_lesson(lesson):
 		"est_minutes": l.est_minutes or 5,
 		"seconds": prog.seconds or 0,
 		"done": bool(prog.completed_at),
-		"min_seconds": _lesson_threshold(l.est_minutes),
 	}
 
 
@@ -3166,13 +3151,6 @@ def my_lesson_done(lesson):
 	)
 	if not prog:
 		frappe.throw(_("Open the lesson first."))
-	need = _lesson_threshold(l.est_minutes)
-	if not prog.completed_at and (prog.seconds or 0) < need:
-		frappe.throw(
-			_("Give it a little longer — about {0} more seconds of reading.").format(
-				need - (prog.seconds or 0)
-			)
-		)
 	if not prog.completed_at:
 		frappe.db.set_value(
 			"Duty Lesson Progress", prog.name, "completed_at", now_datetime(), update_modified=False

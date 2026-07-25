@@ -502,7 +502,7 @@
 </div>
 <script>
 const esc = (s) => (s || "").replace(/[&<>"']/g, (c) => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
-const XLV = "2.71.0";
+const XLV = "2.71.1";
 document.getElementById("xlv").textContent = "v" + XLV;
 console.log("Xlevel portal", XLV);
 let ROOM = localStorage.getItem("xl_room") || null;
@@ -1118,22 +1118,14 @@ function openLesson(lesson, record) {
 			<div style="display:flex;gap:10px;align-items:center;margin-top:16px;border-top:1px solid #EEF2F0;padding-top:12px">
 				${l.done
 					? `<span class="acaddone">✓ You've read this lesson.</span>`
-					: `<button id="lread" onclick="markRead('${esc(lesson)}','${esc(record)}')">✓ Mark as read</button>
-						<span class="muted" id="lhint" style="font-size:12px"></span>`}
+					: `<button id="lread" onclick="markRead('${esc(lesson)}','${esc(record)}')">✓ Mark as read</button>`}
 			</div>`;
 		document.getElementById("lessonbody").innerHTML = l.html;
 		if (!l.done) {
-			const need = l.min_seconds || 45;
-			const hint = () => {
-				const el = document.getElementById("lhint");
-				if (el) el.textContent = secs < need ? `unlocks after ~${Math.max(0, need - secs)}s of reading` : "";
-			};
-			hint();
 			BEAT = setInterval(() => {
 				if (document.visibilityState !== "visible" || !document.getElementById("lessonbody")) return;
 				secs += 20;
 				api("client_lesson_beat", { lesson: lesson, secs: 20 }).catch(() => {});
-				hint();
 			}, 20000);
 		}
 	}).catch(fail);

@@ -1970,14 +1970,12 @@ class DutyBoard {
 				const d = new frappe.ui.Dialog({ title: frappe.utils.escape_html(l.title), size: "large" });
 				let secs = l.seconds || 0;
 				let beat = null;
-				const need = l.min_seconds || 45;
 				$(d.body).html(`
 					<div class="duty-me-lesson" style="font-size:16px;line-height:1.75;max-width:72ch"></div>
 					<div style="display:flex;gap:10px;align-items:center;margin-top:14px;border-top:1px solid var(--border-color);padding-top:10px">
 						${l.done
 							? `<span style="color:#15803d;font-weight:700">✓ ${__("You've read this lesson.")}</span>`
-							: `<button type="button" class="btn btn-sm btn-primary duty-me-lread">✓ ${__("Mark as read")}</button>
-								<span class="text-muted duty-me-lhint" style="font-size:var(--text-sm)"></span>`}
+							: `<button type="button" class="btn btn-sm btn-primary duty-me-lread">✓ ${__("Mark as read")}</button>`}
 						<button type="button" class="btn btn-sm btn-default" style="margin-left:auto" data-back>← ${__("Lessons")}</button>
 					</div>
 				`);
@@ -1987,17 +1985,11 @@ class DutyBoard {
 					"border-left": "3px solid #0F5C55", "border-radius": "0 10px 10px 0", "font-size": "14px",
 				});
 				$(d.body).find(".duty-me-lesson li").css({ margin: "5px 0" });
-				const hint = () => {
-					const $h = $(d.body).find(".duty-me-lhint");
-					if ($h.length) $h.text(secs < need ? __("unlocks after ~{0}s of reading", [Math.max(0, need - secs)]) : "");
-				};
 				if (!l.done) {
-					hint();
 					beat = setInterval(() => {
 						if (document.visibilityState !== "visible" || !$(d.body).is(":visible")) return;
 						secs += 20;
 						frappe.call({ method: "duty_board.client_room.my_lesson_beat", args: { lesson: lesson, secs: 20 } });
-						hint();
 					}, 20000);
 				}
 				d.onhide = () => {
