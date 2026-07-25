@@ -438,7 +438,7 @@
 </div>
 <script>
 const esc = (s) => (s || "").replace(/[&<>"']/g, (c) => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
-const XLV = "2.64.0";
+const XLV = "2.64.1";
 document.getElementById("xlv").textContent = "v" + XLV;
 console.log("Xlevel portal", XLV);
 let ROOM = localStorage.getItem("xl_room") || null;
@@ -1242,7 +1242,7 @@ async function uploadOne(f) {
 	const fd = new FormData();
 	fd.append("file", f, f.name);
 	fd.append("is_private", "1");
-	const r = await fetch("/api/method/upload_file", {
+	const r = await fetch("/api/method/duty_board.client_room.client_upload", {
 		method: "POST",
 		headers: { "X-Frappe-CSRF-Token": frappe_csrf() },
 		credentials: "same-origin",

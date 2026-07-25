@@ -2098,6 +2098,43 @@ def client_decline_chreq(id, reason):
 	return _chreq_client_rows(room)
 
 
+CLIENT_UPLOAD_EXTS = {
+	"png", "jpg", "jpeg", "gif", "webp", "pdf", "doc", "docx", "xls", "xlsx",
+	"csv", "txt", "zip", "webm", "mp4", "m4a", "mp3", "ogg", "wav", "ppt", "pptx",
+}
+
+
+@frappe.whitelist()
+def client_upload():
+	"""Portal file upload. Core upload_file now rejects unattached uploads from
+	Website Users, so the portal uploads here instead: session resolved through
+	the membrane first, size-capped, extension-whitelisted, and the File saved
+	attached to the caller's own room."""
+	room = _client_room()
+	f = frappe.request.files.get("file")
+	if not f:
+		frappe.throw(_("No file received."))
+	content = f.stream.read()
+	if len(content) > 15 * 1024 * 1024:
+		frappe.throw(_("File too large (max 15 MB)."))
+	fname = (f.filename or "upload").strip()[:140]
+	ext = fname.rsplit(".", 1)[1].lower() if "." in fname else ""
+	if ext not in CLIENT_UPLOAD_EXTS:
+		frappe.throw(_("File type .{0} is not allowed.").format(ext or "?"))
+	doc = frappe.get_doc(
+		{
+			"doctype": "File",
+			"file_name": fname,
+			"attached_to_doctype": "Client Room",
+			"attached_to_name": room.name,
+			"is_private": 1,
+			"content": content,
+		}
+	).insert(ignore_permissions=True)
+	frappe.db.commit()
+	return {"file_url": doc.file_url, "name": fname}
+
+
 # ---------------- client health: who's drifting ----------------
 
 
