@@ -11,6 +11,7 @@ import json
 import frappe
 from frappe import _
 from frappe.utils import cint, getdate, now_datetime, today
+from frappe.utils.pdf import get_pdf
 
 MSG_MAX = 2000
 CLIENT_STATUS = {"To Do": "Queued", "In Progress": "In Progress", "Completed": "Done"}
@@ -2495,7 +2496,7 @@ def _generate_room_report(room, start, end, label):
 	s = _report_stats(room, start, end)
 	if not s["activity"]:
 		return None
-	pdf = frappe.utils.pdf.get_pdf(_report_html(room, label, s))
+	pdf = get_pdf(_report_html(room, label, s))
 	fname = f"Xlevel_Service_Report_{label.replace(' ', '_')}.pdf"
 	f = frappe.get_doc(
 		{
@@ -2691,7 +2692,7 @@ def _award_module_completion(rec, trained_by=None):
 	if rec.room:
 		room = frappe.get_doc("Client Room", rec.room)
 		date_str = frappe.utils.format_date(today(), "d MMMM yyyy")
-		pdf = frappe.utils.pdf.get_pdf(
+		pdf = get_pdf(
 			_certificate_html(rec.trainee_name, mod.title, mod.product, date_str)
 		)
 		fname = f"Certificate_{rec.trainee_name.replace(' ', '_')}_{mod.title.replace(' ', '_')[:40]}.pdf"
@@ -3429,7 +3430,7 @@ def _issue_certificate(user, track):
 			"status": "Valid",
 		}
 	).insert(ignore_permissions=True)
-	pdf = frappe.utils.pdf.get_pdf(_track_certificate_html(cert))
+	pdf = get_pdf(_track_certificate_html(cert))
 	fname = f"{cert.serial}_{holder.replace(' ', '_')}.pdf"
 	f = frappe.get_doc(
 		{
@@ -3716,7 +3717,7 @@ def rca_publish(issue, what_happened=None, root_cause=None, resolution_action=No
 		(_("Work started"), fmt(doc.work_started_at)),
 		(_("Resolved"), fmt(doc.resolved_at)),
 	]
-	pdf = frappe.utils.pdf.get_pdf(_rca_html(doc, rca, timeline))
+	pdf = get_pdf(_rca_html(doc, rca, timeline))
 	fname = f"RCA_{doc.name}.pdf"
 	f = frappe.get_doc(
 		{"doctype": "File", "file_name": fname, "content": pdf, "is_private": 1}

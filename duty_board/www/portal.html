@@ -87,7 +87,7 @@
 			}
 			body[data-tab="pm"] .rightcol > .card { margin-bottom: 0; }
 		}
-		body[data-tab="training"] .rightcol { width: auto; display: block; }
+		body[data-tab="training"] .rightcol { width: auto; display: block; padding-bottom: 90px; }
 		body[data-tab="pm"] .card:not(.mstones):not(.chreqs) { display: none; }
 		body[data-tab="home"] .card.chreqs { display: none; }
 		body[data-tab="training"] .card:not(.acad) { display: none; }
@@ -519,7 +519,7 @@
 </div>
 <script>
 const esc = (s) => (s || "").replace(/[&<>"']/g, (c) => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
-const XLV = "2.76.0";
+const XLV = "2.76.1";
 document.getElementById("xlv").textContent = "v" + XLV;
 console.log("Xlevel portal", XLV);
 let ROOM = localStorage.getItem("xl_room") || null;
