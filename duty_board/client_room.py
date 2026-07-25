@@ -2574,7 +2574,7 @@ def _training_rows(room):
 	mods = {
 		m.name: m
 		for m in frappe.get_all(
-			"Duty Training Module", fields=["name", "title", "product"]
+			"Duty Training Module", fields=["name", "title", "product", "sort_order"]
 		)
 	}
 	for r in rows:
@@ -2582,6 +2582,7 @@ def _training_rows(room):
 		r.module_title = m.title if m else r.module
 		r.product = m.product if m else None
 		r.completed_on = str(r.completed_on) if r.completed_on else None
+	rows.sort(key=lambda r: (mods[r.module].sort_order or 999) if r.module in mods else 999)
 	return rows
 
 
@@ -3022,7 +3023,7 @@ def my_training():
 	)
 	mods = {
 		m.name: m
-		for m in frappe.get_all("Duty Training Module", fields=["name", "title", "product"])
+		for m in frappe.get_all("Duty Training Module", fields=["name", "title", "product", "sort_order"])
 	}
 	modules = [r.module for r in rows]
 	lesson_counts, done_counts = {}, {}
@@ -3044,6 +3045,7 @@ def my_training():
 		r.completed_on = str(r.completed_on) if r.completed_on else None
 		r.lessons_total = lesson_counts.get(r.module, 0)
 		r.lessons_done = done_counts.get(r.module, 0)
+	rows.sort(key=lambda r: (mods[r.module].sort_order or 999) if r.module in mods else 999)
 	return rows
 
 
