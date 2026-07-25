@@ -74,7 +74,8 @@
 		body[data-tab="home"] .card.docs,
 		body[data-tab="home"] .card.mstones,
 		body[data-tab="home"] .card.acad { display: none; }
-		body[data-tab="home"] .rightcol { width: 330px; }
+		body[data-tab="home"] .rightcol { width: 330px !important; }
+		body[data-tab="home"] .card.metrics { display: block !important; }
 		body[data-tab="pm"] .wrap, body[data-tab="training"] .wrap, body[data-tab="docs"] .wrap {
 			display: block; max-width: 980px;
 		}
@@ -230,7 +231,11 @@
 	.card.folded > *:not(h3):not(.thead) { display: none; }
 	@media (min-width: 900px) {
 		html, body { height: 100%; overflow: hidden; }
-		.wrap { height: calc(100vh - 96px); overflow: hidden; padding-bottom: 0; }
+		.wrap { height: calc(100vh - 148px); overflow: hidden; padding-bottom: 0; }
+		body[data-tab="pm"], body[data-tab="training"], body[data-tab="docs"] { overflow-y: auto; height: auto; }
+		body[data-tab="pm"] .wrap, body[data-tab="training"] .wrap, body[data-tab="docs"] .wrap {
+			height: auto; overflow: visible;
+		}
 		.leftcol { overflow-y: auto; height: 100%; min-height: 0; display: flex; flex-direction: column; gap: 16px; }
 		.leftcol .card { margin-bottom: 0; }
 		.leftcol .card.tasks { position: static; }
@@ -312,6 +317,12 @@
 		and will be right here the moment your renewal is processed.</p>
 		<p><b>To renew:</b> contact your account manager<span id="fzmgr"></span>, or call Xlevel Retail Systems.</p>
 	</div>
+</div>
+<div class="tabbar">
+	<a data-tab="home" onclick="setTab('home')"><span>🏠</span>Home</a>
+	<a data-tab="pm" onclick="setTab('pm')"><span>📁</span>Projects</a>
+	<a data-tab="training" onclick="setTab('training')"><span>🎓</span>Training</a>
+	<a data-tab="docs" onclick="setTab('docs')"><span>📚</span>Documents</a>
 </div>
 <div class="wrap">
 	<div id="err"></div>
@@ -405,12 +416,7 @@
 	</div>
 	<p class="muted foot" style="text-align:center">Powered by Xlevel Retail Systems · CloudERP.One · <span id="xlv"></span></p>
 </div>
-<div class="tabbar">
-	<a data-tab="home" onclick="setTab('home')"><span>🏠</span>Home</a>
-	<a data-tab="pm" onclick="setTab('pm')"><span>📁</span>Projects</a>
-	<a data-tab="training" onclick="setTab('training')"><span>🎓</span>Training</a>
-	<a data-tab="docs" onclick="setTab('docs')"><span>📚</span>Documents</a>
-</div>
+
 <div id="ov" onclick="if(event.target===this)this.style.display='none'">
 	<div class="box"><span class="close" onclick="document.getElementById('ov').style.display='none'">×</span><div id="ovbody"></div></div>
 </div>
@@ -418,7 +424,7 @@
 </div>
 <script>
 const esc = (s) => (s || "").replace(/[&<>"']/g, (c) => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
-const XLV = "2.60.0";
+const XLV = "2.60.1";
 document.getElementById("xlv").textContent = "v" + XLV;
 console.log("Xlevel portal", XLV);
 let ROOM = localStorage.getItem("xl_room") || null;
@@ -1032,6 +1038,8 @@ function setTab(t) {
 		a.classList.toggle("active", a.dataset.tab === t)
 	);
 	if (t === "home") {
+		const mc = document.querySelector(".card.metrics");
+		if (mc) mc.classList.remove("folded");
 		const box = document.getElementById("msgs");
 		if (box) box.scrollTop = box.scrollHeight;
 		document.querySelector('.tabbar a[data-tab="home"]').classList.remove("dot");
