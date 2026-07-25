@@ -421,6 +421,7 @@ def get_room(name, before=None):
 		"shelf": _shelf_rows(room),
 		"meetings": _meeting_rows(room),
 		"milestones": _milestone_rows(room),
+		"change_requests": _chreq_rows(room),
 		"unsettled": [
 			dict(
 				u,
@@ -1632,6 +1633,415 @@ def client_approve_milestone(id, note=None):
 		pass
 	frappe.publish_realtime("duty_client_room", {"room": room.name})
 	return _milestone_rows(room)
+
+
+# ---------------- change requests: paid scope governance ----------------
+
+
+def _chreq_locked(doc):
+	if doc.status in ("Approved", "In Delivery", "Delivered"):
+		frappe.throw(
+			_("“{0}” has been formally approved by the client and can no longer be edited.").format(
+				doc.title
+			)
+		)
+
+
+def _chreq_currency():
+	return frappe.db.get_default("currency") or "NGN"
+
+
+def _chreq_fmt(v):
+	if not v:
+		return None
+	return frappe.utils.fmt_money(v, currency=_chreq_currency())
+
+
+def _chreq_rows(room):
+	rows = frappe.get_all(
+		"Duty Change Request",
+		filters={"room": room.name},
+		fields=[
+			"name", "title", "status", "original_request", "reason", "scope_impact",
+			"timeline_impact", "cost_impact", "resource_impact", "risks", "quotation",
+			"approved_amount", "submitted_on", "approved_full", "approved_at",
+			"approval_note", "declined_at", "decline_reason", "delivered_at",
+			"source_type", "source_message", "source_issue",
+		],
+		order_by="creation desc",
+	)
+	for r in rows:
+		r.submitted_on = str(r.submitted_on)[:16] if r.submitted_on else None
+		r.approved_at = str(r.approved_at)[:16] if r.approved_at else None
+		r.declined_at = str(r.declined_at)[:16] if r.declined_at else None
+		r.delivered_at = str(r.delivered_at)[:16] if r.delivered_at else None
+		r.cost_fmt = _chreq_fmt(r.cost_impact)
+		r.approved_fmt = _chreq_fmt(r.approved_amount)
+		tasks = frappe.get_all(
+			"Duty Project Task",
+			filters={"change_request": r.name},
+			fields=["title", "column"],
+			order_by="creation asc",
+			limit=60,
+		)
+		r.tasks = [
+			{"title": t.title, "status": CLIENT_STATUS.get(t.column, "Queued")}
+			for t in tasks
+		]
+		r.cards_total = len(tasks)
+		r.cards_done = sum(1 for t in tasks if t.column == "Completed")
+	return rows
+
+
+@frappe.whitelist()
+def chreq_add(name, title, original_request=None):
+	_staff_only()
+	room = frappe.get_doc("Client Room", name)
+	title = (title or "").strip()
+	if not title:
+		frappe.throw(_("Give the change request a title."))
+	frappe.get_doc(
+		{
+			"doctype": "Duty Change Request",
+			"room": room.name,
+			"title": title[:140],
+			"status": "Draft",
+			"original_request": (original_request or "").strip() or None,
+			"source_type": "Manual",
+		}
+	).insert(ignore_permissions=True)
+	frappe.db.commit()
+	return get_room(name)
+
+
+@frappe.whitelist()
+def chreq_from_message(name, msg, title):
+	_staff_only()
+	room = frappe.get_doc("Client Room", name)
+	title = (title or "").strip()
+	if not title:
+		frappe.throw(_("Give the change request a title."))
+	m = frappe.db.get_value(
+		"Client Room Message", msg, ["room", "message"], as_dict=True
+	)
+	if not m or m.room != room.name:
+		frappe.throw(_("Message not found in this room."))
+	frappe.get_doc(
+		{
+			"doctype": "Duty Change Request",
+			"room": room.name,
+			"title": title[:140],
+			"status": "Draft",
+			"original_request": m.message,
+			"source_type": "Chat",
+			"source_message": msg,
+		}
+	).insert(ignore_permissions=True)
+	_post(room, _("💱 Change request drafted: “{0}”").format(title[:140]))
+	frappe.db.commit()
+	return get_room(name)
+
+
+@frappe.whitelist()
+def chreq_from_issue(issue):
+	_staff_only()
+	i = frappe.db.get_value(
+		"Duty Issue",
+		issue,
+		["title", "description", "customer", "source_type", "source"],
+		as_dict=True,
+	)
+	if not i:
+		frappe.throw(_("Issue not found."))
+	room_name = None
+	if i.source_type == "Client Room" and i.source and frappe.db.exists("Client Room", i.source):
+		room_name = i.source
+	else:
+		room_name = frappe.db.get_value(
+			"Client Room", {"customer": i.customer, "status": ["!=", "Archived"]}, "name"
+		)
+	if not room_name:
+		frappe.throw(_("No client room found for {0}.").format(i.customer))
+	room = frappe.get_doc("Client Room", room_name)
+	frappe.get_doc(
+		{
+			"doctype": "Duty Change Request",
+			"room": room.name,
+			"title": i.title[:140],
+			"status": "Draft",
+			"original_request": i.description or i.title,
+			"source_type": "Ticket",
+			"source_issue": issue,
+		}
+	).insert(ignore_permissions=True)
+	frappe.db.commit()
+	return get_room(room.name)
+
+
+@frappe.whitelist()
+def chreq_update(
+	id,
+	title=None,
+	reason=None,
+	scope_impact=None,
+	timeline_impact=None,
+	cost_impact=None,
+	resource_impact=None,
+	risks=None,
+	quotation=None,
+):
+	_staff_only()
+	doc = frappe.get_doc("Duty Change Request", id)
+	_chreq_locked(doc)
+	title = (title or "").strip()
+	if not title:
+		frappe.throw(_("Give the change request a title."))
+	if quotation and not frappe.db.exists("Quotation", quotation):
+		frappe.throw(_("Quotation {0} does not exist.").format(quotation))
+	frappe.db.set_value(
+		"Duty Change Request",
+		id,
+		{
+			"title": title[:140],
+			"reason": (reason or "").strip()[:500] or None,
+			"scope_impact": (scope_impact or "").strip() or None,
+			"timeline_impact": (timeline_impact or "").strip()[:140] or None,
+			"cost_impact": frappe.utils.flt(cost_impact) or 0,
+			"resource_impact": (resource_impact or "").strip()[:500] or None,
+			"risks": (risks or "").strip()[:500] or None,
+			"quotation": quotation or None,
+		},
+		update_modified=False,
+	)
+	frappe.db.commit()
+	return get_room(doc.room)
+
+
+@frappe.whitelist()
+def chreq_request_approval(id):
+	_staff_only()
+	doc = frappe.get_doc("Duty Change Request", id)
+	_chreq_locked(doc)
+	if not (doc.scope_impact or "").strip():
+		frappe.throw(_("Describe the scope impact before asking the client to approve."))
+	frappe.db.set_value(
+		"Duty Change Request",
+		id,
+		{"status": "Awaiting Approval", "submitted_on": now_datetime()},
+		update_modified=False,
+	)
+	frappe.db.commit()
+	room = frappe.get_doc("Client Room", doc.room)
+	amt = _chreq_fmt(doc.cost_impact)
+	_post(
+		room,
+		_("💱 Change request “{0}”{1} awaits your formal approval — open Projects on your portal.").format(
+			doc.title, f" ({amt})" if amt else ""
+		),
+	)
+	_push_room_clients(room, _("💱 Change request awaits your approval · Xlevel"), doc.title[:120])
+	return get_room(doc.room)
+
+
+@frappe.whitelist()
+def chreq_set_status(id, status):
+	_staff_only()
+	doc = frappe.get_doc("Duty Change Request", id)
+	allowed = {
+		"Approved": ["In Delivery"],
+		"In Delivery": ["Delivered"],
+		"Awaiting Approval": ["Draft"],
+	}
+	if status not in allowed.get(doc.status, []):
+		frappe.throw(_("Cannot move “{0}” from {1} to {2}.").format(doc.title, doc.status, status))
+	vals = {"status": status}
+	if status == "Delivered":
+		vals["delivered_at"] = now_datetime()
+	frappe.db.set_value("Duty Change Request", id, vals, update_modified=False)
+	frappe.db.commit()
+	room = frappe.get_doc("Client Room", doc.room)
+	if status == "In Delivery":
+		_post(room, _("🚀 Change request “{0}” is now in delivery.").format(doc.title))
+	elif status == "Delivered":
+		_post(room, _("📦 Change request “{0}” has been delivered.").format(doc.title))
+	return get_room(doc.room)
+
+
+@frappe.whitelist()
+def chreq_reopen(id):
+	_staff_only()
+	doc = frappe.get_doc("Duty Change Request", id)
+	if doc.status != "Declined":
+		frappe.throw(_("Only a declined change request can be reopened for revision."))
+	frappe.db.set_value(
+		"Duty Change Request",
+		id,
+		{"status": "Draft", "submitted_on": None},
+		update_modified=False,
+	)
+	frappe.db.commit()
+	return get_room(doc.room)
+
+
+@frappe.whitelist()
+def chreq_delete(id):
+	_staff_only()
+	doc = frappe.get_doc("Duty Change Request", id)
+	if doc.status not in ("Draft", "Declined"):
+		frappe.throw(_("Only draft or declined change requests can be deleted."))
+	room = doc.room
+	for t in frappe.get_all("Duty Project Task", filters={"change_request": id}, pluck="name"):
+		frappe.db.set_value("Duty Project Task", t, "change_request", None, update_modified=False)
+	frappe.delete_doc("Duty Change Request", id, ignore_permissions=True, force=True)
+	frappe.db.commit()
+	return get_room(room)
+
+
+@frappe.whitelist()
+def chreq_task_options(id):
+	_staff_only()
+	doc = frappe.get_doc("Duty Change Request", id)
+	room = frappe.get_doc("Client Room", doc.room)
+	if not room.project:
+		return {"project": None, "tasks": []}
+	tasks = frappe.get_all(
+		"Duty Project Task",
+		filters={"project": room.project},
+		fields=["name", "title", "column", "change_request"],
+		order_by="creation asc",
+	)
+	return {
+		"project": room.project,
+		"tasks": [
+			{
+				"name": t.name,
+				"title": t.title,
+				"column": t.column,
+				"checked": t.change_request == id,
+				"elsewhere": bool(t.change_request and t.change_request != id),
+			}
+			for t in tasks
+		],
+	}
+
+
+@frappe.whitelist()
+def chreq_set_tasks(id, tasks):
+	_staff_only()
+	doc = frappe.get_doc("Duty Change Request", id)
+	if isinstance(tasks, str):
+		tasks = json.loads(tasks)
+	current = set(
+		frappe.get_all("Duty Project Task", filters={"change_request": id}, pluck="name")
+	)
+	wanted = set(tasks or [])
+	for t in current - wanted:
+		frappe.db.set_value("Duty Project Task", t, "change_request", None, update_modified=False)
+	for t in wanted - current:
+		frappe.db.set_value("Duty Project Task", t, "change_request", id, update_modified=False)
+	frappe.db.commit()
+	return get_room(doc.room)
+
+
+def _chreq_client_rows(room):
+	"""Drafts stay behind the membrane — the client sees a CR only once staff submit it."""
+	return [
+		r for r in _chreq_rows(room)
+		if r.status in ("Awaiting Approval", "Approved", "Declined", "In Delivery", "Delivered")
+	]
+
+
+@frappe.whitelist()
+def client_get_chreqs():
+	return _chreq_client_rows(_client_room())
+
+
+def _chreq_notify_staff(room, text, body):
+	try:
+		from duty_board.api import _notify_user
+
+		for u in frappe.get_all(
+			"User", filters={"enabled": 1, "user_type": "System User"}, fields=["name"]
+		):
+			if frappe.db.exists("Duty Push Subscription", {"user": u.name}):
+				_notify_user(u.name, text, body)
+	except Exception:
+		pass
+
+
+@frappe.whitelist()
+def client_approve_chreq(id, note=None):
+	room = _client_room()
+	doc = frappe.get_doc("Duty Change Request", id)
+	if doc.room != room.name:
+		frappe.throw(_("Not found."), frappe.PermissionError)
+	if doc.status != "Awaiting Approval":
+		frappe.throw(_("This change request is not awaiting approval."))
+	full = frappe.utils.get_fullname(frappe.session.user)
+	frappe.db.set_value(
+		"Duty Change Request",
+		id,
+		{
+			"status": "Approved",
+			"approved_by": frappe.session.user,
+			"approved_full": full,
+			"approved_at": now_datetime(),
+			"approved_amount": doc.cost_impact or 0,
+			"approval_note": (note or "").strip()[:300] or None,
+		},
+		update_modified=False,
+	)
+	frappe.db.commit()
+	stamp = frappe.utils.format_datetime(now_datetime(), "d MMM yyyy HH:mm")
+	amt = _chreq_fmt(doc.cost_impact)
+	_post(
+		room,
+		_("✅ CHANGE REQUEST APPROVED: “{0}”{1} — formally signed off by {2} on {3}{4}").format(
+			doc.title, f" at {amt}" if amt else "", full, stamp,
+			f' — “{note.strip()[:200]}”' if note else "",
+		),
+	)
+	_chreq_notify_staff(
+		room, _("✅ {0} approved CR “{1}”").format(room.customer, doc.title), full
+	)
+	frappe.publish_realtime("duty_client_room", {"room": room.name})
+	return _chreq_client_rows(room)
+
+
+@frappe.whitelist()
+def client_decline_chreq(id, reason):
+	room = _client_room()
+	doc = frappe.get_doc("Duty Change Request", id)
+	if doc.room != room.name:
+		frappe.throw(_("Not found."), frappe.PermissionError)
+	if doc.status != "Awaiting Approval":
+		frappe.throw(_("This change request is not awaiting approval."))
+	reason = (reason or "").strip()
+	if not reason:
+		frappe.throw(_("Please tell us why you are declining, so we can revise it."))
+	full = frappe.utils.get_fullname(frappe.session.user)
+	frappe.db.set_value(
+		"Duty Change Request",
+		id,
+		{
+			"status": "Declined",
+			"declined_at": now_datetime(),
+			"decline_reason": reason[:500],
+		},
+		update_modified=False,
+	)
+	frappe.db.commit()
+	_post(
+		room,
+		_("↩ Change request “{0}” declined by {1} — “{2}”").format(
+			doc.title, full, reason[:200]
+		),
+	)
+	_chreq_notify_staff(
+		room, _("↩ {0} declined CR “{1}”").format(room.customer, doc.title), reason[:120]
+	)
+	frappe.publish_realtime("duty_client_room", {"room": room.name})
+	return _chreq_client_rows(room)
 
 
 # ---------------- client health: who's drifting ----------------

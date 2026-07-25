@@ -80,10 +80,12 @@
 			display: block; max-width: 980px;
 		}
 		body[data-tab="pm"] .rightcol, body[data-tab="training"] .rightcol { width: auto; display: block; }
-		body[data-tab="pm"] .card:not(.mstones) { display: none; }
+		body[data-tab="pm"] .card:not(.mstones):not(.chreqs) { display: none; }
+		body[data-tab="home"] .card.chreqs { display: none; }
 		body[data-tab="training"] .card:not(.acad) { display: none; }
 		body[data-tab="docs"] .card:not(.docs) { display: none; }
 		body[data-tab="pm"] .card.mstones .foldh .fc,
+		body[data-tab="pm"] .card.chreqs .foldh .fc,
 		body[data-tab="training"] .card.acad .foldh .fc { display: none; }
 	}
 	@media (max-width: 899px) {
@@ -103,7 +105,7 @@
 		body[data-tab="home"] .card:not(.chat):not(.tasks):not(.meets):not(.metrics) { display: none; }
 		body[data-tab="home"] .wrap { display: flex; flex-direction: column; }
 		body[data-tab="home"] .card.chat { order: -1; }
-		body[data-tab="pm"] .card:not(.mstones) { display: none; }
+		body[data-tab="pm"] .card:not(.mstones):not(.chreqs) { display: none; }
 		body[data-tab="training"] .card:not(.acad) { display: none; }
 		body[data-tab="docs"] .card:not(.docs) { display: none; }
 		body[data-tab="home"] .msgs { max-height: calc(100vh - 380px); }
@@ -405,6 +407,10 @@
 		<div id="msbarwrap" style="display:none"><div id="msbar"><i></i></div><div id="mscount" class="muted"></div></div>
 		<div id="mstones"><span class="muted">No project phases defined yet.</span></div>
 	</div>
+	<div class="card chreqs">
+		<h3 class="foldh" onclick="fold(this,'chreqs')"><span class="fc">▾</span> 💱 <span class="t">Change requests</span></h3>
+		<div id="chreqs"><span class="muted">No change requests. Work beyond your subscription scope appears here for your formal approval.</span></div>
+	</div>
 	<div class="card metrics">
 		<h3 class="foldh" onclick="fold(this,'metrics')"><span class="fc">▾</span> 📊 <span class="t">Your numbers</span></h3>
 		<div id="metrics"><span class="muted">Loading…</span></div>
@@ -424,7 +430,7 @@
 </div>
 <script>
 const esc = (s) => (s || "").replace(/[&<>"']/g, (c) => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
-const XLV = "2.60.2";
+const XLV = "2.61.0";
 document.getElementById("xlv").textContent = "v" + XLV;
 console.log("Xlevel portal", XLV);
 let ROOM = localStorage.getItem("xl_room") || null;
@@ -439,6 +445,7 @@ function setRoom(name) {
 	load();
 	loadMeetings();
 	loadMilestones();
+	loadChreqs();
 	loadTraining();
 	loadMetrics();
 }
@@ -453,6 +460,7 @@ function initRooms() {
 				load();
 				loadMeetings();
 				loadMilestones();
+				loadChreqs();
 				return;
 			}
 			const sw = document.getElementById("roomswitch");
@@ -731,6 +739,82 @@ function approveMilestone(id, title) {
 	};
 }
 
+/* ---- change requests ---- */
+function loadChreqs() {
+	api("client_get_chreqs")
+		.then(renderChreqs)
+		.catch((e) => console.warn("chreqs:", e.message));
+}
+function renderChreqs(rows) {
+	rows = rows || [];
+	const DOTS = { "Awaiting Approval": "🟠", "Approved": "✅", "Declined": "↩", "In Delivery": "🚀", "Delivered": "📦" };
+	const pt = document.querySelector('.tabbar a[data-tab="pm"]');
+	if (pt) pt.classList.toggle("dot", rows.some((c) => c.status === "Awaiting Approval"));
+	document.getElementById("chreqs").innerHTML = rows.length
+		? rows
+				.map(
+					(c) => `
+			<div class="ms">
+				<span class="dot">${DOTS[c.status] || ""}</span><b>${esc(c.title)}</b>
+				<span class="muted" style="font-size:12px">${esc(c.status)}</span>
+				${c.cost_fmt && c.status === "Awaiting Approval" ? `<span class="muted" style="font-size:12px">💰 ${esc(c.cost_fmt)}</span>` : ""}
+				${c.approved_fmt && c.status !== "Awaiting Approval" ? `<span class="muted" style="font-size:12px">💰 ${esc(c.approved_fmt)} approved</span>` : ""}
+				${c.timeline_impact ? `<span class="muted" style="font-size:12px">⏱ ${esc(c.timeline_impact)}</span>` : ""}
+				${["Approved", "In Delivery", "Delivered"].includes(c.status) ? `<span class="sig">Approved by ${esc(c.approved_full || "")} · ${esc(c.approved_at || "")}</span>` : ""}
+				${c.status === "Declined" ? `<span class="sig" style="color:#dc2626">Declined · ${esc(c.declined_at || "")}${c.decline_reason ? " · “" + esc(c.decline_reason) + "”" : ""}</span>` : ""}
+				${c.original_request ? `<div class="desc">🗣 ${esc(c.original_request)}</div>` : ""}
+				${c.scope_impact ? `<div class="desc">📐 ${esc(c.scope_impact)}</div>` : ""}
+				${c.risks ? `<div class="desc">⚠ ${esc(c.risks)}</div>` : ""}
+				${["In Delivery", "Delivered"].includes(c.status) && c.cards_total ? `<span class="muted" style="font-size:12px">📋 ${c.cards_done} of ${c.cards_total} tasks complete</span>` : ""}
+				${c.status === "Awaiting Approval" ? `<div style="display:flex;gap:8px;margin-top:6px"><button onclick="approveChreq('${esc(c.name)}','${esc(c.title)}','${esc(c.cost_fmt || "")}')">✍ Approve</button><button style="background:#e5e7eb;color:#374151" onclick="declineChreq('${esc(c.name)}','${esc(c.title)}')">↩ Decline</button></div>` : ""}
+			</div>`
+				)
+				.join("")
+		: '<span class="muted">No change requests. Work beyond your subscription scope appears here for your formal approval.</span>';
+}
+function approveChreq(id, title, amt) {
+	document.getElementById("ovbody").innerHTML = `
+		<h2>✍ Approve “${esc(title)}”</h2>
+		<p style="font-size:14px;line-height:1.55">You are <b>formally approving this change request${amt ? ` at <b>${esc(amt)}</b>` : ""}</b>.
+		This authorises work beyond your subscription scope. Your sign-off is recorded permanently with
+		your name and today's date, and your Xlevel team is notified immediately.</p>
+		<textarea id="cqnote" rows="3" maxlength="300" placeholder="Optional comment"
+			style="width:100%;box-sizing:border-box;border:1px solid #d1d5db;border-radius:10px;padding:9px 12px;font-size:14px;font-family:inherit;margin:8px 0 14px"></textarea>
+		<div style="display:flex;gap:10px;justify-content:flex-end">
+			<button style="background:#e5e7eb;color:#374151" onclick="closeOv()">Cancel</button>
+			<button id="cqgo" style="background:#0F5C55">✍ Approve this change</button>
+		</div>`;
+	document.getElementById("ov").style.display = "flex";
+	document.getElementById("cqgo").onclick = () => {
+		const note = document.getElementById("cqnote").value.trim();
+		document.getElementById("cqgo").disabled = true;
+		api("client_approve_chreq", { id: id, note: note || null })
+			.then((rows) => { closeOv(); renderChreqs(rows); })
+			.catch((e) => { closeOv(); fail(e); });
+	};
+}
+function declineChreq(id, title) {
+	document.getElementById("ovbody").innerHTML = `
+		<h2>↩ Decline “${esc(title)}”</h2>
+		<p style="font-size:14px;line-height:1.55">Tell us why, so the team can revise the scope,
+		price or timeline and resubmit for your approval.</p>
+		<textarea id="cqreason" rows="3" maxlength="500" placeholder="Required — e.g. “Cost too high, can we phase it?”"
+			style="width:100%;box-sizing:border-box;border:1px solid #d1d5db;border-radius:10px;padding:9px 12px;font-size:14px;font-family:inherit;margin:8px 0 14px"></textarea>
+		<div style="display:flex;gap:10px;justify-content:flex-end">
+			<button style="background:#e5e7eb;color:#374151" onclick="closeOv()">Cancel</button>
+			<button id="cqno" style="background:#b45309">↩ Decline</button>
+		</div>`;
+	document.getElementById("ov").style.display = "flex";
+	document.getElementById("cqno").onclick = () => {
+		const reason = document.getElementById("cqreason").value.trim();
+		if (!reason) { document.getElementById("cqreason").focus(); return; }
+		document.getElementById("cqno").disabled = true;
+		api("client_decline_chreq", { id: id, reason: reason })
+			.then((rows) => { closeOv(); renderChreqs(rows); })
+			.catch((e) => { closeOv(); fail(e); });
+	};
+}
+
 /* ---- resolution ceremony ---- */
 function closeOv() {
 	document.getElementById("ov").style.display = "none";
@@ -839,6 +923,7 @@ document.addEventListener("DOMContentLoaded", () => {
 	initRooms();
 	loadMeetings();
 	loadMilestones();
+	loadChreqs();
 	loadTraining();
 	loadMetrics();
 });
