@@ -1972,7 +1972,7 @@ class DutyBoard {
 					`);
 					$(d.body).find("[data-lesson]").on("click", (e) => {
 						d.hide();
-						this.my_lesson_dialog($(e.currentTarget).data("lesson"), record);
+						this.my_lesson_dialog($(e.currentTarget).data("lesson"), record, cc);
 					});
 					$(d.body).find(".duty-me-quiz").on("click", () => {
 						d.hide();
@@ -1985,31 +1985,78 @@ class DutyBoard {
 		});
 	}
 
-	my_lesson_dialog(lesson, record) {
+	my_lesson_dialog(lesson, record, course) {
 		frappe.call({
 			method: "duty_board.client_room.my_lesson",
 			args: { lesson: lesson },
 			callback: (r) => {
 				const l = r.message;
 				if (!l) return;
-				const d = new frappe.ui.Dialog({ title: frappe.utils.escape_html(l.title), size: "large" });
+				const lessons = (course && course.lessons) || [];
+				const idx = lessons.findIndex((x) => x.name === lesson);
+				const next = idx >= 0 ? lessons[idx + 1] : null;
+				const d = new frappe.ui.Dialog({ title: (course && course.title) || __("Lesson"), size: "extra-large" });
 				let secs = l.seconds || 0;
 				let beat = null;
 				$(d.body).html(`
-					<div class="duty-me-lesson" style="font-size:16px;line-height:1.75;max-width:72ch"></div>
-					<div style="display:flex;gap:10px;align-items:center;margin-top:14px;border-top:1px solid var(--border-color);padding-top:10px">
-						${l.done
-							? `<span style="color:#15803d;font-weight:700">✓ ${__("You've read this lesson.")}</span>`
-							: `<button type="button" class="btn btn-sm btn-primary duty-me-lread">✓ ${__("Mark as read")}</button>`}
-						<button type="button" class="btn btn-sm btn-default" style="margin-left:auto" data-back>← ${__("Lessons")}</button>
+					<style>
+						.duty-lw { max-width: 74ch; margin: 0 auto; }
+						.duty-lw-head { background: linear-gradient(120deg,#0A473F,#0F5C55 60%,#146B62); color: #fff;
+							border-radius: 12px; padding: 16px 22px; margin-bottom: 20px; }
+						.duty-lw-head .k { font-size: 11px; letter-spacing: 2px; text-transform: uppercase; opacity: .75; }
+						.duty-lw-head h2 { margin: 4px 0 0; font-size: 22px; color: #fff; }
+						.duty-lw-head .m { font-size: 12px; opacity: .85; margin-top: 6px; }
+						.duty-lw-body { font-family: Georgia, "Times New Roman", serif; font-size: 17px; line-height: 1.85; color: #1F2A28; }
+						.duty-lw-body p { margin: 0 0 14px; }
+						.duty-lw-body b { color: #0C4A43; }
+						.duty-lw-body ol { counter-reset: n; list-style: none; padding-left: 6px; }
+						.duty-lw-body ol li { counter-increment: n; position: relative; padding-left: 40px; margin: 10px 0; }
+						.duty-lw-body ol li:before { content: counter(n); position: absolute; left: 0; top: 2px;
+							width: 26px; height: 26px; border-radius: 50%; background: #0F5C55; color: #fff;
+							font-family: Inter, sans-serif; font-size: 13px; font-weight: 700;
+							display: flex; align-items: center; justify-content: center; }
+						.duty-lw-body ul { padding-left: 20px; }
+						.duty-lw-body ul li { margin: 8px 0; }
+						.duty-lw-body ul li::marker { color: #0F5C55; }
+						.duty-lw-body blockquote { margin: 18px 0; padding: 13px 16px 13px 46px; border-radius: 12px;
+							font-family: Inter, sans-serif; font-size: 14px; line-height: 1.6; position: relative; }
+						.duty-lw-body blockquote:before { position: absolute; left: 14px; top: 12px; font-size: 18px; }
+						.duty-lw-body blockquote.bq-note { background: #EEF7F4; border: 1px solid #CBE7DE; }
+						.duty-lw-body blockquote.bq-note:before { content: "📌"; }
+						.duty-lw-body blockquote.bq-tip { background: #FFF7E6; border: 1px solid #F3E0B5; }
+						.duty-lw-body blockquote.bq-tip:before { content: "💡"; }
+						.duty-lw-body blockquote.bq-warn { background: #FDECEA; border: 1px solid #F4C7C0; }
+						.duty-lw-body blockquote.bq-warn:before { content: "⚠️"; }
+						.duty-lw-foot { display: flex; gap: 12px; align-items: center; margin-top: 22px;
+							border-top: 1px solid var(--border-color,#E7ECEA); padding-top: 14px; }
+						.duty-lw-dots { display: flex; gap: 5px; margin-right: auto; }
+						.duty-lw-dots i { width: 9px; height: 9px; border-radius: 50%; background: #D9E4E0; }
+						.duty-lw-dots i.done { background: #0F5C55; }
+						.duty-lw-dots i.cur { outline: 2px solid #0F5C55; outline-offset: 2px; }
+					</style>
+					<div class="duty-lw">
+						<div class="duty-lw-head">
+							<div class="k">${frappe.utils.escape_html((course && course.product) || "")} · ${__("Lesson")} ${idx + 1} ${__("of")} ${lessons.length}</div>
+							<h2>${frappe.utils.escape_html(l.title)}</h2>
+							<div class="m">⏱ ~${l.est_minutes} ${__("min read")}</div>
+						</div>
+						<div class="duty-lw-body"></div>
+						<div class="duty-lw-foot">
+							<span class="duty-lw-dots">${lessons.map((x, k) => `<i class="${x.done || x.name === lesson && l.done ? "done" : ""} ${k === idx ? "cur" : ""}"></i>`).join("")}</span>
+							${l.done
+								? `<span style="color:#15803d;font-weight:700;font-family:Inter,sans-serif">✓ ${__("Read")}</span>`
+								: `<button type="button" class="btn btn-sm btn-primary duty-me-lread">✓ ${__("Mark as read")}${next ? " · " + __("next lesson") + " →" : ""}</button>`}
+							${l.done && next ? `<button type="button" class="btn btn-sm btn-primary" data-next>${__("Next lesson")} →</button>` : ""}
+							<button type="button" class="btn btn-sm btn-default" data-back>← ${__("Lessons")}</button>
+						</div>
 					</div>
 				`);
-				$(d.body).find(".duty-me-lesson").html(l.html);
-				$(d.body).find(".duty-me-lesson blockquote").css({
-					margin: "14px 0", padding: "10px 14px", background: "var(--bg-light-gray, #EEF7F4)",
-					"border-left": "3px solid #0F5C55", "border-radius": "0 10px 10px 0", "font-size": "14px",
+				const $b = $(d.body).find(".duty-lw-body");
+				$b.html(l.html);
+				$b.find("blockquote").each(function () {
+					const t = $(this).text();
+					$(this).addClass(t.indexOf("WATCH-OUT") === 0 ? "bq-warn" : t.indexOf("IMPLEMENTATION TIP") === 0 ? "bq-tip" : "bq-note");
 				});
-				$(d.body).find(".duty-me-lesson li").css({ margin: "5px 0" });
 				if (!l.done) {
 					beat = setInterval(() => {
 						if (document.visibilityState !== "visible" || !$(d.body).is(":visible")) return;
@@ -2020,19 +2067,27 @@ class DutyBoard {
 				d.onhide = () => {
 					if (beat) clearInterval(beat);
 				};
+				const go_next = () => {
+					d.hide();
+					if (next) this.my_lesson_dialog(next.name, record, course);
+					else {
+						this.load_my_training();
+						this.my_course_dialog(record);
+					}
+				};
 				$(d.body).find(".duty-me-lread").on("click", () =>
 					frappe.call({
 						method: "duty_board.client_room.my_lesson_done",
 						args: { lesson: lesson },
 						callback: (rr) => {
 							if (rr.message) {
-								d.hide();
-								this.load_my_training();
-								this.my_course_dialog(record);
+								course = rr.message;
+								go_next();
 							}
 						},
 					})
 				);
+				$(d.body).find("[data-next]").on("click", go_next);
 				$(d.body).find("[data-back]").on("click", () => {
 					d.hide();
 					this.my_course_dialog(record);

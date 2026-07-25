@@ -363,11 +363,28 @@
 		@keyframes msgin { from { opacity: 0; transform: translateY(3px); } to { opacity: 1; transform: none; } }
 		.m { animation: msgin .18s ease-out; }
 	}
-	#lessonbody blockquote { margin: 14px 0; padding: 11px 15px; background: var(--brand-50);
-		border-left: 3px solid var(--brand); border-radius: 0 10px 10px 0; font-size: 15px; }
-	#lessonbody ol, #lessonbody ul { padding-left: 24px; }
-	#lessonbody li { margin: 5px 0; }
-	#lessonbody p { margin: 0 0 12px; }
+	#lessonbody { font-family: Georgia, "Times New Roman", serif; font-size: 17px; line-height: 1.85;
+		color: #1F2A28; max-width: 70ch; }
+	#lessonbody p { margin: 0 0 14px; }
+	#lessonbody b { color: var(--brand-700); }
+	#lessonbody ol { counter-reset: n; list-style: none; padding-left: 6px; }
+	#lessonbody ol li { counter-increment: n; position: relative; padding-left: 38px; margin: 10px 0; }
+	#lessonbody ol li:before { content: counter(n); position: absolute; left: 0; top: 2px;
+		width: 25px; height: 25px; border-radius: 50%; background: var(--brand); color: #fff;
+		font-family: Inter, system-ui, sans-serif; font-size: 13px; font-weight: 700;
+		display: flex; align-items: center; justify-content: center; }
+	#lessonbody ul { padding-left: 20px; }
+	#lessonbody ul li { margin: 8px 0; }
+	#lessonbody ul li::marker { color: var(--brand); }
+	#lessonbody blockquote { margin: 18px 0; padding: 12px 15px 12px 44px; border-radius: 12px;
+		font-family: Inter, system-ui, sans-serif; font-size: 14px; line-height: 1.6; position: relative; }
+	#lessonbody blockquote:before { position: absolute; left: 13px; top: 11px; font-size: 17px; }
+	#lessonbody blockquote.bq-note { background: var(--brand-50); border: 1px solid #CBE7DE; }
+	#lessonbody blockquote.bq-note:before { content: "📌"; }
+	#lessonbody blockquote.bq-tip { background: #FFF7E6; border: 1px solid #F3E0B5; }
+	#lessonbody blockquote.bq-tip:before { content: "💡"; }
+	#lessonbody blockquote.bq-warn { background: #FDECEA; border: 1px solid #F4C7C0; }
+	#lessonbody blockquote.bq-warn:before { content: "⚠️"; }
 	@media (min-width: 900px) {
 		.tabbar a { border-radius: 99px; }
 		.tabbar a:hover:not(.active) { background: #E8EEEC; color: var(--brand-700); }
@@ -502,7 +519,7 @@
 </div>
 <script>
 const esc = (s) => (s || "").replace(/[&<>"']/g, (c) => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
-const XLV = "2.74.0";
+const XLV = "2.75.0";
 document.getElementById("xlv").textContent = "v" + XLV;
 console.log("Xlevel portal", XLV);
 let ROOM = localStorage.getItem("xl_room") || null;
@@ -1136,6 +1153,7 @@ function pursueTrack(track) {
 function openCourse(record) {
 	stopBeat();
 	api("client_course", { record: record }).then((c) => {
+		window._course = c;
 		const allRead = c.lessons.length && c.lessons.every((l) => l.done);
 		const qz = c.quiz || {};
 		document.getElementById("acad").innerHTML = `
@@ -1171,16 +1189,30 @@ function openLesson(lesson, record) {
 	stopBeat();
 	api("client_lesson", { lesson: lesson }).then((l) => {
 		let secs = l.seconds || 0;
+		const c = window._course || { lessons: [] };
+		const idx = c.lessons.findIndex((x) => x.name === lesson);
+		const next = idx >= 0 ? c.lessons[idx + 1] : null;
 		document.getElementById("acad").innerHTML = `
-			<a style="cursor:pointer;font-size:13px;font-weight:700;color:#0F5C55" onclick="openCourse('${esc(record)}')">← Lessons</a>
-			<h3 style="margin:8px 0 10px">${esc(l.title)}</h3>
-			<div id="lessonbody" style="font-size:17px;line-height:1.75;max-width:70ch"></div>
-			<div style="display:flex;gap:10px;align-items:center;margin-top:16px;border-top:1px solid #EEF2F0;padding-top:12px">
+			<div style="background:linear-gradient(120deg,#0A473F,#0F5C55 60%,#146B62);color:#fff;border-radius:12px;padding:14px 18px;margin-bottom:16px">
+				<div style="font-size:11px;letter-spacing:2px;text-transform:uppercase;opacity:.75">${esc(c.product || "")} · Lesson ${idx + 1} of ${c.lessons.length}</div>
+				<div style="font-size:20px;font-weight:800;margin-top:3px">${esc(l.title)}</div>
+				<div style="font-size:12px;opacity:.85;margin-top:5px">⏱ ~${l.est_minutes} min read</div>
+			</div>
+			<div id="lessonbody"></div>
+			<div style="display:flex;gap:10px;align-items:center;margin-top:18px;border-top:1px solid #EEF2F0;padding-top:12px;flex-wrap:wrap">
+				<span style="display:flex;gap:5px;margin-right:auto">${c.lessons.map((x, k) => `<i style="width:9px;height:9px;border-radius:50%;background:${x.done ? "#0F5C55" : "#D9E4E0"};${k === idx ? "outline:2px solid #0F5C55;outline-offset:2px" : ""}"></i>`).join("")}</span>
 				${l.done
-					? `<span class="acaddone">✓ You've read this lesson.</span>`
-					: `<button id="lread" onclick="markRead('${esc(lesson)}','${esc(record)}')">✓ Mark as read</button>`}
+					? `<span class="acaddone">✓ Read</span>${next ? `<button onclick="openLesson('${esc(next.name)}','${esc(record)}')">Next lesson →</button>` : ""}`
+					: `<button id="lread" onclick="markRead('${esc(lesson)}','${esc(record)}')">✓ Mark as read${next ? " · next →" : ""}</button>`}
+				<button style="background:#e5e7eb;color:#374151" onclick="openCourse('${esc(record)}')">← Lessons</button>
 			</div>`;
-		document.getElementById("lessonbody").innerHTML = l.html;
+		const bb = document.getElementById("lessonbody");
+		bb.innerHTML = l.html;
+		bb.querySelectorAll("blockquote").forEach((q) => {
+			const t = q.textContent;
+			q.className = t.indexOf("WATCH-OUT") === 0 ? "bq-warn" : t.indexOf("IMPLEMENTATION TIP") === 0 ? "bq-tip" : "bq-note";
+		});
+		document.querySelector(".card.acad").scrollIntoView({ behavior: "smooth", block: "start" });
 		if (!l.done) {
 			BEAT = setInterval(() => {
 				if (document.visibilityState !== "visible" || !document.getElementById("lessonbody")) return;
@@ -1247,7 +1279,13 @@ function submitQuiz() {
 }
 function markRead(lesson, record) {
 	api("client_lesson_done", { lesson: lesson })
-		.then(() => { stopBeat(); openCourse(record); })
+		.then((c) => {
+			stopBeat();
+			window._course = c;
+			const idx = c.lessons.findIndex((x) => !x.done);
+			if (idx >= 0) openLesson(c.lessons[idx].name, record);
+			else openCourse(record);
+		})
 		.catch(fail);
 }
 
