@@ -373,7 +373,7 @@
 <body>
 <div class="top">
 	<span><b id="brand">Xlevel</b> · <span id="cust"></span></span>
-	<span><a id="bell" style="cursor:pointer;margin-right:14px;display:none" title="Get notified when we reply">🔔 Notify me</a><span id="me" style="font-size:13px;color:#a7f3d0;margin-right:14px"></span><a href="/?cmd=web_logout">Log out</a></span>
+	<span><a onclick="openTeam()" style="cursor:pointer;margin-right:14px" title="Your team & administrators">👥 Team</a><a id="bell" style="cursor:pointer;margin-right:14px;display:none" title="Get notified when we reply">🔔 Notify me</a><span id="me" style="font-size:13px;color:#a7f3d0;margin-right:14px"></span><a href="/?cmd=web_logout">Log out</a></span>
 </div>
 <div id="roomswitch" style="display:none"></div>
 <div class="hours">🕘 We reply Mon–Fri, 9:00–18:00 WAT.<span id="mgr"></span></div>
@@ -497,7 +497,7 @@
 </div>
 <script>
 const esc = (s) => (s || "").replace(/[&<>"']/g, (c) => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
-const XLV = "2.65.0";
+const XLV = "2.66.0";
 document.getElementById("xlv").textContent = "v" + XLV;
 console.log("Xlevel portal", XLV);
 let ROOM = localStorage.getItem("xl_room") || null;
@@ -796,7 +796,7 @@ function renderMilestones(rows) {
 				${m.awaiting ? `<span class="pill pcta">⏳ ${m.awaiting} for you</span>` : ""}
 				${m.status === "Approved" ? `<span class="sig">Signed off by ${esc(m.approved_full || "")} · ${esc(m.approved_at || "")}</span>` : ""}
 				${m.status !== "Approved" && m.cards_total ? `<span class="muted" style="font-size:12px">📋 ${m.cards_done} of ${m.cards_total} tasks complete</span>` : ""}
-				${m.status === "Awaiting Approval" ? `<button onclick="approveMilestone('${esc(m.name)}','${esc(m.title)}')">✍ Approve this phase</button>` : ""}
+				${m.status === "Awaiting Approval" ? (m.can_approve === 0 ? `<span class="muted" style="font-size:13px">✋ Awaiting sign-off by your team administrator.</span>` : `<button onclick="approveMilestone('${esc(m.name)}','${esc(m.title)}')">✍ Approve this phase</button>`) : ""}
 				${m.description ? `<div class="desc">${esc(m.description)}</div>` : ""}
 				${(m.tasks || []).length ? `<a class="mstoggle" onclick="this.nextElementSibling.classList.toggle('open');this.querySelector('i').textContent=this.nextElementSibling.classList.contains('open')?'▾':'▸'">📋 ${m.tasks.filter((t) => t.status === "Done").length}/${m.tasks.length} tasks <i>${m.awaiting ? "▾" : "▸"}</i></a><div class="mstasks${m.awaiting ? " open" : ""}">${m.tasks.map(taskRow).join("")}</div>` : ""}
 			</div>`
@@ -846,6 +846,53 @@ function approveMilestone(id, title) {
 	};
 }
 
+/* ---- team & administrators ---- */
+function openTeam() {
+	api("client_get_team").then(renderTeam).catch(fail);
+}
+function renderTeam(t) {
+	window._TEAM = t;
+	const admin = t.me_admin;
+	document.getElementById("ovbody").innerHTML = `
+		<h2>👥 Your team</h2>
+		${t.members
+			.map(
+				(m) => `<div class="ms" style="align-items:center">
+			<span>${m.is_admin ? "★" : "👤"}</span><b>${esc(m.full_name)}</b>
+			<span class="muted" style="font-size:12px">${esc(m.user)}${m.is_admin ? " · administrator" : ""}${m.is_self ? " · you" : ""}</span>
+			${admin && !m.is_self
+				? `<span style="margin-left:auto;display:flex;gap:12px">
+					<a style="cursor:pointer;font-size:12px;font-weight:700;color:#0F5C55" onclick="teamAdmin('${esc(m.user)}',${m.is_admin ? 0 : 1})">${m.is_admin ? "☆ Demote" : "★ Make admin"}</a>
+					<a style="cursor:pointer;font-size:12px;font-weight:700;color:#b91c1c" onclick="teamRemove('${esc(m.user)}','${esc(m.full_name)}')">× Remove</a></span>`
+				: ""}
+		</div>`
+			)
+			.join("")}
+		${admin
+			? `<div style="display:flex;gap:8px;margin-top:14px;flex-wrap:wrap">
+				<input id="tmem" type="email" placeholder="colleague@company.com" style="flex:2;min-width:170px;border:1px solid #d1d5db;border-radius:10px;padding:8px 12px;font-size:14px">
+				<input id="tmn" type="text" placeholder="Full name" style="flex:1;min-width:130px;border:1px solid #d1d5db;border-radius:10px;padding:8px 12px;font-size:14px">
+				<button onclick="teamAdd()">＋ Invite</button></div>
+				<p class="muted" style="font-size:12px;line-height:1.5">New colleagues receive a welcome email with login details. Administrators (★) manage this list and sign approvals — change requests and project phases — on behalf of your company.</p>`
+			: `<p class="muted" style="font-size:13px;margin-top:12px">${t.restricted ? "Your administrator (★) manages this list and signs approvals for your company." : "No administrator has been appointed yet — your Xlevel account manager can set one."}</p>`}
+		<div style="display:flex;justify-content:flex-end;margin-top:8px"><button style="background:#e5e7eb;color:#374151" onclick="closeOv()">Close</button></div>`;
+	document.getElementById("ov").style.display = "flex";
+}
+function teamAdd() {
+	const em = document.getElementById("tmem").value.trim();
+	if (!em) return;
+	api("client_add_member", { email: em, full_name: document.getElementById("tmn").value.trim() || null })
+		.then(renderTeam)
+		.catch(fail);
+}
+function teamRemove(u, n) {
+	if (!confirm(`Remove ${n} from your team? They will lose portal access.`)) return;
+	api("client_remove_member", { user: u }).then(renderTeam).catch(fail);
+}
+function teamAdmin(u, on) {
+	api("client_set_admin", { user: u, on: on }).then(renderTeam).catch(fail);
+}
+
 /* ---- change requests ---- */
 function loadChreqs() {
 	api("client_get_chreqs")
@@ -888,7 +935,7 @@ function renderChreqs(rows) {
 				${c.resource_impact ? `<div class="desc">👥 <b>Resources:</b> ${esc(c.resource_impact)}</div>` : ""}
 				${c.risks ? `<div class="desc">⚠ <b>Risks:</b> ${esc(c.risks)}</div>` : ""}
 				${["In Delivery", "Delivered"].includes(c.status) && c.cards_total ? `<span class="muted" style="font-size:12px">📋 ${c.cards_done} of ${c.cards_total} tasks complete</span>` : ""}
-				${c.status === "Awaiting Approval" ? `<div style="display:flex;gap:8px;margin-top:6px"><button onclick="approveChreq('${esc(c.name)}')">✍ Approve</button><button style="background:#e5e7eb;color:#374151" onclick="declineChreq('${esc(c.name)}','${esc(c.title)}')">↩ Decline</button></div>` : ""}
+				${c.status === "Awaiting Approval" ? (c.can_approve === 0 ? `<div class="muted" style="font-size:13px;margin-top:6px">✋ Awaiting sign-off by your team administrator.</div>` : `<div style="display:flex;gap:8px;margin-top:6px"><button onclick="approveChreq('${esc(c.name)}')">✍ Approve</button><button style="background:#e5e7eb;color:#374151" onclick="declineChreq('${esc(c.name)}','${esc(c.title)}')">↩ Decline</button></div>`) : ""}
 			</div>`
 				)
 				.join("")

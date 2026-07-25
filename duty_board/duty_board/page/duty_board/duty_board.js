@@ -3399,7 +3399,7 @@ class DutyBoard {
 					${(data.members || [])
 						.map(
 							(m) =>
-								`<div class="duty-cr-mem"><b>${frappe.utils.escape_html(m.full_name)}</b> <span class="text-muted">${frappe.utils.escape_html(m.user)}</span> <a class="duty-cr-memrm" data-name="${m.name}">${__("Remove")}</a></div>`
+								`<div class="duty-cr-mem">${m.is_admin ? "★ " : ""}<b>${frappe.utils.escape_html(m.full_name)}</b> <span class="text-muted">${frappe.utils.escape_html(m.user)}${m.is_admin ? " · " + __("administrator") : ""}</span> <a class="duty-cr-memadmin" data-name="${m.name}" data-on="${m.is_admin ? 0 : 1}">${m.is_admin ? "☆ " + __("Demote") : "★ " + __("Make admin")}</a> <a class="duty-cr-memrm" data-name="${m.name}">${__("Remove")}</a></div>`
 						)
 						.join("") || `<div class="text-muted">${__("No client members yet.")}</div>`}
 				</div>
@@ -3483,6 +3483,18 @@ class DutyBoard {
 					method: "duty_board.client_room.reject_join",
 					args: { request_name: $(e.currentTarget).data("name") },
 					callback: (r) => r.message && render(r.message),
+				})
+			);
+			$(d.body).find(".duty-cr-memadmin").on("click", (e) =>
+				frappe.call({
+					method: "duty_board.client_room.member_set_admin",
+					args: { member_name: $(e.currentTarget).data("name"), on: $(e.currentTarget).data("on") },
+					callback: (r) => {
+						if (r.message) {
+							render(r.message);
+							this.render_client_room(r.message);
+						}
+					},
 				})
 			);
 			$(d.body).find(".duty-cr-memrm").on("click", (e) =>

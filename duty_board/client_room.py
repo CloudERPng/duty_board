@@ -392,7 +392,7 @@ def get_room(name, before=None):
 	members = frappe.get_all(
 		"Client Room Member",
 		filters={"room": name, "active": 1},
-		fields=["name", "user", "last_seen"],
+		fields=["name", "user", "last_seen", "is_admin"],
 	)
 	for m in members:
 		m.full_name = frappe.utils.get_fullname(m.user)
@@ -517,7 +517,10 @@ def add_member(name, email, full_name=None):
 				"send_welcome_email": 1,
 			}
 		).insert(ignore_permissions=True)
-	if not frappe.db.exists("Client Room Member", {"room": name, "user": email}):
+	existing = frappe.db.get_value("Client Room Member", {"room": name, "user": email}, "name")
+	if existing:
+		frappe.db.set_value("Client Room Member", existing, "active", 1, update_modified=False)
+	else:
 		frappe.get_doc(
 			{"doctype": "Client Room Member", "room": name, "user": email, "active": 1}
 		).insert(ignore_permissions=True)
@@ -1639,12 +1642,18 @@ def milestone_delete(id):
 @frappe.whitelist()
 def client_get_milestones():
 	room = _client_room()
-	return _milestone_rows(room)
+	rows = _milestone_rows(room)
+	gate = 1 if _client_can_approve(room) else 0
+	for r in rows:
+		r.can_approve = gate
+	return rows
 
 
 @frappe.whitelist()
 def client_approve_milestone(id, note=None):
 	room = _client_room()
+	if not _client_can_approve(room):
+		frappe.throw(_("Only your team's administrator can approve on behalf of your company."), frappe.PermissionError)
 	doc = frappe.get_doc("Duty Milestone", id)
 	if doc.room != room.name:
 		frappe.throw(_("Not found."), frappe.PermissionError)
@@ -1999,10 +2008,14 @@ def chreq_set_tasks(id, tasks):
 
 def _chreq_client_rows(room):
 	"""Drafts stay behind the membrane — the client sees a CR only once staff submit it."""
-	return [
+	gate = 1 if _client_can_approve(room) else 0
+	rows = [
 		r for r in _chreq_rows(room)
 		if r.status in ("Awaiting Approval", "Approved", "Declined", "In Delivery", "Delivered")
 	]
+	for r in rows:
+		r.can_approve = gate
+	return rows
 
 
 @frappe.whitelist()
@@ -2026,6 +2039,8 @@ def _chreq_notify_staff(room, text, body):
 @frappe.whitelist()
 def client_approve_chreq(id, note=None):
 	room = _client_room()
+	if not _client_can_approve(room):
+		frappe.throw(_("Only your team's administrator can approve on behalf of your company."), frappe.PermissionError)
 	doc = frappe.get_doc("Duty Change Request", id)
 	if doc.room != room.name:
 		frappe.throw(_("Not found."), frappe.PermissionError)
@@ -2065,6 +2080,8 @@ def client_approve_chreq(id, note=None):
 @frappe.whitelist()
 def client_decline_chreq(id, reason):
 	room = _client_room()
+	if not _client_can_approve(room):
+		frappe.throw(_("Only your team's administrator can approve on behalf of your company."), frappe.PermissionError)
 	doc = frappe.get_doc("Duty Change Request", id)
 	if doc.room != room.name:
 		frappe.throw(_("Not found."), frappe.PermissionError)
@@ -2133,6 +2150,151 @@ def client_upload():
 	).insert(ignore_permissions=True)
 	frappe.db.commit()
 	return {"file_url": doc.file_url, "name": fname}
+
+
+# ---------------- client administrators: who speaks for the customer ----------------
+
+
+def _room_admins(room):
+	return frappe.get_all(
+		"Client Room Member",
+		filters={"room": room.name, "active": 1, "is_admin": 1},
+		fields=["user"],
+	)
+
+
+def _client_can_approve(room):
+	"""Approvals lock to administrators once a room has any. Admin-less rooms
+	keep today's behaviour: any member may approve."""
+	admins = _room_admins(room)
+	if not admins:
+		return True
+	return frappe.session.user in {a.user for a in admins}
+
+
+def _client_admin_only(room):
+	if not _room_admins(room):
+		frappe.throw(
+			_("No administrator is set for your team yet — ask Xlevel to appoint one."),
+			frappe.PermissionError,
+		)
+	if not _client_can_approve(room):
+		frappe.throw(_("Only your team's administrator can do this."), frappe.PermissionError)
+
+
+@frappe.whitelist()
+def client_get_team():
+	room = _client_room()
+	members = frappe.get_all(
+		"Client Room Member",
+		filters={"room": room.name, "active": 1},
+		fields=["name", "user", "is_admin", "last_seen"],
+		order_by="is_admin desc, creation asc",
+	)
+	for m in members:
+		m.full_name = frappe.utils.get_fullname(m.user)
+		m.is_self = m.user == frappe.session.user
+		m.last_seen = str(m.last_seen)[:16] if m.last_seen else None
+	me_admin = any(m.is_admin and m.is_self for m in members)
+	return {
+		"members": members,
+		"me_admin": bool(me_admin),
+		"restricted": bool(any(m.is_admin for m in members)),
+	}
+
+
+@frappe.whitelist()
+def client_add_member(email, full_name=None):
+	room = _client_room()
+	_client_admin_only(room)
+	email = (email or "").strip().lower()
+	frappe.utils.validate_email_address(email, throw=True)
+	if frappe.db.count("Client Room Member", {"room": room.name, "active": 1}) >= 25:
+		frappe.throw(_("Member limit reached for this room — contact Xlevel."))
+	if frappe.db.exists("User", email):
+		if frappe.db.get_value("User", email, "user_type") != "Website User":
+			frappe.throw(_("{0} cannot be added to a client portal.").format(email))
+		frappe.db.set_value("User", email, "enabled", 1, update_modified=False)
+	else:
+		frappe.get_doc(
+			{
+				"doctype": "User",
+				"email": email,
+				"first_name": (full_name or email.split("@")[0]).strip()[:80],
+				"user_type": "Website User",
+				"send_welcome_email": 1,
+			}
+		).insert(ignore_permissions=True)
+	existing = frappe.db.get_value("Client Room Member", {"room": room.name, "user": email}, "name")
+	if existing:
+		frappe.db.set_value("Client Room Member", existing, "active", 1, update_modified=False)
+	else:
+		frappe.get_doc(
+			{"doctype": "Client Room Member", "room": room.name, "user": email, "active": 1}
+		).insert(ignore_permissions=True)
+	frappe.db.commit()
+	_post(
+		room,
+		_("👥 {0} added {1} to this room.").format(
+			frappe.utils.get_fullname(frappe.session.user), email
+		),
+	)
+	return client_get_team()
+
+
+@frappe.whitelist()
+def client_remove_member(user):
+	room = _client_room()
+	_client_admin_only(room)
+	row = frappe.db.get_value(
+		"Client Room Member", {"room": room.name, "user": user, "active": 1}, ["name", "is_admin"], as_dict=True
+	)
+	if not row:
+		frappe.throw(_("Not a member of your team."))
+	if row.is_admin and len(_room_admins(room)) <= 1:
+		frappe.throw(_("You cannot remove the only administrator."))
+	frappe.db.set_value("Client Room Member", row.name, "active", 0, update_modified=False)
+	frappe.db.commit()
+	_post(
+		room,
+		_("👥 {0} removed {1} from this room.").format(
+			frappe.utils.get_fullname(frappe.session.user), user
+		),
+	)
+	return client_get_team()
+
+
+@frappe.whitelist()
+def client_set_admin(user, on):
+	room = _client_room()
+	_client_admin_only(room)
+	row = frappe.db.get_value(
+		"Client Room Member", {"room": room.name, "user": user, "active": 1}, ["name", "is_admin"], as_dict=True
+	)
+	if not row:
+		frappe.throw(_("Not a member of your team."))
+	on = cint(on)
+	if not on and row.is_admin and len(_room_admins(room)) <= 1:
+		frappe.throw(_("You cannot demote the only administrator."))
+	frappe.db.set_value("Client Room Member", row.name, "is_admin", on, update_modified=False)
+	frappe.db.commit()
+	if on:
+		_post(
+			room,
+			_("★ {0} is now a team administrator, appointed by {1}.").format(
+				frappe.utils.get_fullname(user), frappe.utils.get_fullname(frappe.session.user)
+			),
+		)
+	return client_get_team()
+
+
+@frappe.whitelist()
+def member_set_admin(member_name, on):
+	_staff_only()
+	room_name = frappe.db.get_value("Client Room Member", member_name, "room")
+	frappe.db.set_value("Client Room Member", member_name, "is_admin", cint(on), update_modified=False)
+	frappe.db.commit()
+	return get_room(room_name)
 
 
 # ---------------- client health: who's drifting ----------------
