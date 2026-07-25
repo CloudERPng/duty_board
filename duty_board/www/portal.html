@@ -79,7 +79,15 @@
 		body[data-tab="pm"] .wrap, body[data-tab="training"] .wrap, body[data-tab="docs"] .wrap {
 			display: block; max-width: 980px;
 		}
-		body[data-tab="pm"] .rightcol, body[data-tab="training"] .rightcol { width: auto; display: block; }
+		body[data-tab="pm"] .wrap { max-width: 1560px; }
+		@media (min-width: 900px) {
+			body[data-tab="pm"] .rightcol {
+				display: grid !important; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+				gap: 18px; align-items: start; width: auto;
+			}
+			body[data-tab="pm"] .rightcol > .card { margin-bottom: 0; }
+		}
+		body[data-tab="training"] .rightcol { width: auto; display: block; }
 		body[data-tab="pm"] .card:not(.mstones):not(.chreqs) { display: none; }
 		body[data-tab="home"] .card.chreqs { display: none; }
 		body[data-tab="training"] .card:not(.acad) { display: none; }
@@ -430,7 +438,7 @@
 </div>
 <script>
 const esc = (s) => (s || "").replace(/[&<>"']/g, (c) => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
-const XLV = "2.62.0";
+const XLV = "2.63.0";
 document.getElementById("xlv").textContent = "v" + XLV;
 console.log("Xlevel portal", XLV);
 let ROOM = localStorage.getItem("xl_room") || null;
@@ -694,22 +702,62 @@ function renderMilestones(rows) {
 	} else wrap.style.display = "none";
 	const tt = document.querySelector('.tabbar a[data-tab="home"]');
 	if (tt) tt.classList.toggle("dot", rows.some((m) => m.status === "Awaiting Approval"));
-	document.getElementById("mstones").innerHTML = rows.length
+	window._pmdot = window._pmdot || {};
+	window._pmdot.tasks = rows.some((m) => (m.awaiting || 0) > 0);
+	updatePmDot();
+	const totalAwaiting = rows.reduce((n, m) => n + (m.awaiting || 0), 0);
+	const URG = { Critical: ["#fee2e2", "#b91c1c"], High: ["#fef3c7", "#92400e"], Medium: ["#e0f2fe", "#075985"], Low: ["#f3f4f6", "#4b5563"] };
+	const taskRow = (t) => {
+		const [ubg, ufg] = URG[t.urgency] || URG.Medium;
+		return `
+		<div class="mst" style="flex-direction:column;align-items:stretch;gap:2px;border:1px solid ${t.awaiting_client && t.status !== "Done" ? "#f59e0b" : "#f3f4f6"};border-radius:8px;padding:7px 9px;margin:2px 0;background:${t.awaiting_client && t.status !== "Done" ? "#fffbeb" : "#fff"}">
+			<div style="display:flex;gap:8px;align-items:baseline">
+				<span>${t.status === "Done" ? "✅" : t.status === "In Progress" ? "🔵" : "⚪"}</span>
+				<b style="font-size:13px">${esc(t.title)}</b>
+				<span class="pill" style="background:${ubg};color:${ufg};margin-left:auto">${esc(t.urgency || "Medium")}</span>
+				<span class="pill ${PILL[t.status]}">${esc(t.status)}</span>
+			</div>
+			<div class="muted" style="font-size:12px;display:flex;gap:12px;flex-wrap:wrap">
+				${t.assignee ? `<span>👤 ${esc(t.assignee)}</span>` : `<span>👤 Unassigned</span>`}
+				${t.due_date ? `<span style="${t.overdue ? "color:#dc2626;font-weight:700" : ""}">📅 ${t.overdue ? "⚠ " : ""}${esc(t.due_date)}</span>` : ""}
+			</div>
+			${t.description ? `<div class="muted" style="font-size:12px;line-height:1.45">${esc(t.description)}</div>` : ""}
+			${t.awaiting_client && t.status !== "Done" ? `<div style="display:flex;gap:8px;align-items:center;margin-top:2px"><span class="pill pcta">⏳ Your input needed</span><button style="font-size:12px;padding:4px 12px" onclick="respondTask('${esc(t.title).replace(/'/g, "&#39;")}')">💬 Respond</button></div>` : ""}
+		</div>`;
+	};
+	document.getElementById("mstones").innerHTML = (totalAwaiting
+		? `<div style="background:#fffbeb;border:1px solid #f59e0b;border-radius:10px;padding:8px 12px;margin:0 0 10px;font-size:13px;font-weight:700;color:#92400e">⏳ ${totalAwaiting} task${totalAwaiting > 1 ? "s" : ""} need${totalAwaiting > 1 ? "" : "s"} your input to keep the project moving</div>`
+		: "") + (rows.length
 		? rows
 				.map(
 					(m) => `
 			<div class="ms">
 				<span class="dot">${DOTS[m.status]}</span><b>${esc(m.title)}</b>
 				${m.target_date ? `<span class="muted" style="font-size:12px">🎯 ${esc(m.target_date)}</span>` : ""}
+				${m.awaiting ? `<span class="pill pcta">⏳ ${m.awaiting} for you</span>` : ""}
 				${m.status === "Approved" ? `<span class="sig">Signed off by ${esc(m.approved_full || "")} · ${esc(m.approved_at || "")}</span>` : ""}
 				${m.status !== "Approved" && m.cards_total ? `<span class="muted" style="font-size:12px">📋 ${m.cards_done} of ${m.cards_total} tasks complete</span>` : ""}
 				${m.status === "Awaiting Approval" ? `<button onclick="approveMilestone('${esc(m.name)}','${esc(m.title)}')">✍ Approve this phase</button>` : ""}
 				${m.description ? `<div class="desc">${esc(m.description)}</div>` : ""}
-				${(m.tasks || []).length ? `<a class="mstoggle" onclick="this.nextElementSibling.classList.toggle('open');this.querySelector('i').textContent=this.nextElementSibling.classList.contains('open')?'▾':'▸'">📋 ${m.tasks.filter((t) => t.status === "Done").length}/${m.tasks.length} tasks <i>▸</i></a><div class="mstasks">${m.tasks.map((t) => `<div class="mst"><span>${t.status === "Done" ? "✅" : t.status === "In Progress" ? "🔵" : "⚪"}</span>${esc(t.title)}<span class="pill ${PILL[t.status]}">${esc(t.status)}</span></div>`).join("")}</div>` : ""}
+				${(m.tasks || []).length ? `<a class="mstoggle" onclick="this.nextElementSibling.classList.toggle('open');this.querySelector('i').textContent=this.nextElementSibling.classList.contains('open')?'▾':'▸'">📋 ${m.tasks.filter((t) => t.status === "Done").length}/${m.tasks.length} tasks <i>${m.awaiting ? "▾" : "▸"}</i></a><div class="mstasks${m.awaiting ? " open" : ""}">${m.tasks.map(taskRow).join("")}</div>` : ""}
 			</div>`
 				)
 				.join("")
-		: '<span class="muted">No project phases in this room yet.</span>';
+		: '<span class="muted">No project phases in this room yet.</span>');
+}
+function updatePmDot() {
+	const pt = document.querySelector('.tabbar a[data-tab="pm"]');
+	const s = window._pmdot || {};
+	if (pt) pt.classList.toggle("dot", !!(s.cr || s.tasks));
+}
+function respondTask(title) {
+	setTab("home");
+	const box = document.getElementById("text");
+	if (box) {
+		box.value = `Re: "${title}" — `;
+		box.focus();
+		box.setSelectionRange(box.value.length, box.value.length);
+	}
 }
 function approveMilestone(id, title) {
 	document.getElementById("ovbody").innerHTML = `
@@ -759,8 +807,9 @@ function renderChreqs(rows) {
 	rows = rows || [];
 	window._chreqs = rows;
 	const DOTS = { "Awaiting Approval": "🟠", "Approved": "✅", "Declined": "↩", "In Delivery": "🚀", "Delivered": "📦" };
-	const pt = document.querySelector('.tabbar a[data-tab="pm"]');
-	if (pt) pt.classList.toggle("dot", rows.some((c) => c.status === "Awaiting Approval"));
+	window._pmdot = window._pmdot || {};
+	window._pmdot.cr = rows.some((c) => c.status === "Awaiting Approval");
+	updatePmDot();
 	document.getElementById("chreqs").innerHTML = rows.length
 		? rows
 				.map(

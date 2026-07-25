@@ -1365,19 +1365,36 @@ def _milestone_rows(room):
 		tasks = frappe.get_all(
 			"Duty Project Task",
 			filters={"milestone": r.name},
-			fields=["title", "column"],
+			fields=[
+				"name", "title", "column", "assignee", "due_date",
+				"urgency", "description", "awaiting_client",
+			],
 			order_by="creation asc",
 			limit=60,
 		)
+		fullnames = {}
+		for t in tasks:
+			if t.assignee and t.assignee not in fullnames:
+				fullnames[t.assignee] = frappe.utils.get_fullname(t.assignee)
 		r.tasks = [
 			{
+				"name": t.name,
 				"title": t.title,
 				"status": CLIENT_STATUS.get(t.column, "Queued"),
+				"assignee": fullnames.get(t.assignee),
+				"due_date": str(t.due_date) if t.due_date else None,
+				"overdue": bool(
+					t.due_date and t.column != "Completed" and getdate(t.due_date) < getdate(today())
+				),
+				"urgency": t.urgency,
+				"description": (t.description or "").strip()[:300] or None,
+				"awaiting_client": cint(t.awaiting_client),
 			}
 			for t in tasks
 		]
 		r.cards_total = len(tasks)
 		r.cards_done = sum(1 for t in tasks if t.column == "Completed")
+		r.awaiting = sum(1 for t in tasks if cint(t.awaiting_client) and t.column != "Completed")
 	return rows
 
 

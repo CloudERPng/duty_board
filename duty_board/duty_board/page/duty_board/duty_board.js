@@ -1956,6 +1956,7 @@ class DutyBoard {
 				<div class="duty-kb-meta">
 					${who}
 					<span class="duty-lead-badges">
+						${t.awaiting_client && t.column !== "Completed" ? `<span class="duty-cr-mswait">⏳ ${__("client")}</span>` : ""}
 						${(t.working || []).length ? `<span class="duty-kb-working">⏱ ${t.working.map((u) => `<b style="color:${this.user_color(u)}">${frappe.utils.escape_html((this.name_map[u] || u).split(" ")[0])}</b>`).join(", ")}</span>` : ""}
 						${t.stale_days >= 7 && t.column !== "Completed" ? `<span class="duty-stale ${t.stale_days >= 14 ? "duty-stale-red" : ""}">🕸 ${t.stale_days}d</span>` : ""}
 						${t.notes ? `<span>💬 ${t.notes}</span>` : ""}
@@ -2108,6 +2109,12 @@ class DutyBoard {
 					label: __("Visible to client (shows on their portal)"),
 					default: t.client_visible ? 1 : 0,
 				},
+				{
+					fieldname: "awaiting_client",
+					fieldtype: "Check",
+					label: __("⏳ Awaiting client action (nudges them on the portal)"),
+					default: t.awaiting_client ? 1 : 0,
+				},
 				{ fieldname: "description", fieldtype: "Small Text", label: __("Description"), default: t.description || "" },
 				{ fieldname: "extras", fieldtype: "HTML" },
 			],
@@ -2125,6 +2132,7 @@ class DutyBoard {
 						column: v.column,
 						description: v.description || null,
 						client_visible: v.client_visible ? 1 : 0,
+						awaiting_client: v.awaiting_client ? 1 : 0,
 					},
 					callback: (r) => {
 						if (r.message) this.render_kanban(project, r.message);

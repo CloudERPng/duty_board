@@ -92,7 +92,7 @@ def get_project_board(project):
 		filters={"project": project},
 		fields=[
 			"name", "title", "column", "assignee", "due_date",
-			"urgency", "linked_todo", "modified",
+			"urgency", "linked_todo", "modified", "awaiting_client",
 		],
 		order_by="sort_order asc, creation asc",
 	)
@@ -155,9 +155,12 @@ def create_task(project, title, column="To Do", assignee=None, due_date=None, ur
 
 
 @frappe.whitelist()
-def update_task(name, title=None, assignee=None, due_date=None, urgency=None, column=None, description=None, client_visible=None):
+def update_task(name, title=None, assignee=None, due_date=None, urgency=None, column=None, description=None, client_visible=None, awaiting_client=None):
 	doc = frappe.get_doc("Duty Project Task", name)
 	old_assignee = doc.assignee
+	was_awaiting = cint(doc.awaiting_client)
+	if awaiting_client is not None:
+		doc.awaiting_client = cint(awaiting_client)
 	if title and title.strip():
 		doc.title = title.strip()
 	doc.due_date = due_date or None
@@ -189,8 +192,31 @@ def update_task(name, title=None, assignee=None, due_date=None, urgency=None, co
 		if column == "Completed":
 			_stop_my_session_on(doc.name)
 
+	if awaiting_client is not None and cint(awaiting_client) and not was_awaiting:
+		_nudge_client(doc)
+
 	frappe.db.commit()
 	return get_project_board(doc.project)
+
+
+def _nudge_client(doc):
+	"""Task flagged as needing the client's input — tell them on their portal."""
+	try:
+		from duty_board.client_room import _post, _push_room_clients
+
+		room_name = frappe.db.get_value("Client Room", {"project": doc.project}, "name")
+		if not room_name:
+			return
+		room = frappe.get_doc("Client Room", room_name)
+		_post(
+			room,
+			_("⏳ We need your input to continue: “{0}” — see the Projects tab on your portal.").format(
+				doc.title
+			),
+		)
+		_push_room_clients(room, _("⏳ Your input is needed · Xlevel"), doc.title[:120])
+	except Exception:
+		frappe.log_error(frappe.get_traceback(), "duty_board nudge_client")
 
 
 @frappe.whitelist()
