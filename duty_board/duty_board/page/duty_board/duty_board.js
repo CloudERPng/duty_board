@@ -3272,7 +3272,7 @@ class DutyBoard {
 				frappe.prompt(
 					[
 						{ fieldname: "title", fieldtype: "Data", label: __("Module title"), reqd: 1 },
-						{ fieldname: "product", fieldtype: "Data", label: __("Product (e.g. ZhiftPOS)") },
+						{ fieldname: "product", fieldtype: "Link", options: "Duty Product", label: __("Product") },
 					],
 					(v) =>
 						frappe.call({

@@ -205,3 +205,26 @@ def seed_crm_foundations_questions():
 		).insert(ignore_permissions=True)
 	frappe.db.commit()
 	print(f"Loaded {len(QUESTIONS)} questions for '{MODULE_TITLE}'.")
+
+
+PRODUCTS = ["ZhiftERP", "ZhiftCRM", "ZhiftPOS", "ZhiftHR", "ZhiftHMS"]
+
+
+def seed_products():
+	"""Create the product masters, plus any distinct product strings already
+	in use on modules/tracks so no existing value orphans. Idempotent."""
+	wanted = set(PRODUCTS)
+	for dt in ("Duty Training Module", "Duty Certification Track"):
+		for p in frappe.get_all(dt, fields=["product"], pluck="product"):
+			if p and p.strip():
+				wanted.add(p.strip())
+	created = 0
+	for i, title in enumerate(sorted(wanted, key=lambda t: (t not in PRODUCTS, PRODUCTS.index(t) if t in PRODUCTS else 99, t))):
+		if frappe.db.exists("Duty Product", title):
+			continue
+		frappe.get_doc(
+			{"doctype": "Duty Product", "title": title, "active": 1, "sort_order": i}
+		).insert(ignore_permissions=True)
+		created += 1
+	frappe.db.commit()
+	print(f"Products ready: {created} created, {len(wanted) - created} already existed.")
