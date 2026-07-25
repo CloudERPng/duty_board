@@ -363,6 +363,11 @@
 		@keyframes msgin { from { opacity: 0; transform: translateY(3px); } to { opacity: 1; transform: none; } }
 		.m { animation: msgin .18s ease-out; }
 	}
+	#lessonbody blockquote { margin: 14px 0; padding: 11px 15px; background: var(--brand-50);
+		border-left: 3px solid var(--brand); border-radius: 0 10px 10px 0; font-size: 15px; }
+	#lessonbody ol, #lessonbody ul { padding-left: 24px; }
+	#lessonbody li { margin: 5px 0; }
+	#lessonbody p { margin: 0 0 12px; }
 	@media (min-width: 900px) {
 		.tabbar a { border-radius: 99px; }
 		.tabbar a:hover:not(.active) { background: #E8EEEC; color: var(--brand-700); }
@@ -497,7 +502,7 @@
 </div>
 <script>
 const esc = (s) => (s || "").replace(/[&<>"']/g, (c) => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
-const XLV = "2.70.0";
+const XLV = "2.70.1";
 document.getElementById("xlv").textContent = "v" + XLV;
 console.log("Xlevel portal", XLV);
 let ROOM = localStorage.getItem("xl_room") || null;
@@ -1100,7 +1105,7 @@ function openLesson(lesson, record) {
 		document.getElementById("acad").innerHTML = `
 			<a style="cursor:pointer;font-size:13px;font-weight:700;color:#0F5C55" onclick="openCourse('${esc(record)}')">← Lessons</a>
 			<h3 style="margin:8px 0 10px">${esc(l.title)}</h3>
-			<div id="lessonbody" style="font-size:15px;line-height:1.65;max-width:72ch"></div>
+			<div id="lessonbody" style="font-size:17px;line-height:1.75;max-width:70ch"></div>
 			<div style="display:flex;gap:10px;align-items:center;margin-top:16px;border-top:1px solid #EEF2F0;padding-top:12px">
 				${l.done
 					? `<span class="acaddone">✓ You've read this lesson.</span>`

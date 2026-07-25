@@ -481,6 +481,7 @@ class DutyBoard {
 				<a data-tab="projects"><span>📁</span>${__("Projects")}</a>
 				<a data-tab="sales"><span>💼</span>${__("Sales")}</a>
 				<a data-tab="clients"><span>🤝</span>${__("Clients")}<b class="duty-tab-badge duty-tab-clients" style="display:none"></b></a>
+				<a data-tab="me"><span>👤</span>${__("Me")}</a>
 			</div>
 		`).appendTo("body");
 		$bar.find("a").on("click", (e) => {
@@ -508,6 +509,8 @@ class DutyBoard {
 			this.show_face("sales");
 		} else if (tab === "clients") {
 			this.show_face("clients");
+		} else if (tab === "me") {
+			this.show_face("me");
 		} else {
 			this.show_face("board");
 			this.body.attr("data-mtab", tab);
@@ -1956,7 +1959,7 @@ class DutyBoard {
 				let beat = null;
 				const need = l.min_seconds || 45;
 				$(d.body).html(`
-					<div class="duty-me-lesson" style="font-size:var(--text-md);line-height:1.65;max-width:76ch"></div>
+					<div class="duty-me-lesson" style="font-size:16px;line-height:1.75;max-width:72ch"></div>
 					<div style="display:flex;gap:10px;align-items:center;margin-top:14px;border-top:1px solid var(--border-color);padding-top:10px">
 						${l.done
 							? `<span style="color:#15803d;font-weight:700">✓ ${__("You've read this lesson.")}</span>`
@@ -1966,6 +1969,11 @@ class DutyBoard {
 					</div>
 				`);
 				$(d.body).find(".duty-me-lesson").html(l.html);
+				$(d.body).find(".duty-me-lesson blockquote").css({
+					margin: "14px 0", padding: "10px 14px", background: "var(--bg-light-gray, #EEF7F4)",
+					"border-left": "3px solid #0F5C55", "border-radius": "0 10px 10px 0", "font-size": "14px",
+				});
+				$(d.body).find(".duty-me-lesson li").css({ margin: "5px 0" });
 				const hint = () => {
 					const $h = $(d.body).find(".duty-me-lhint");
 					if ($h.length) $h.text(secs < need ? __("unlocks after ~{0}s of reading", [Math.max(0, need - secs)]) : "");
