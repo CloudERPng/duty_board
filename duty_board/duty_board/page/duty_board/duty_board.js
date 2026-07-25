@@ -3286,23 +3286,42 @@ class DutyBoard {
 			);
 		};
 		$(d.body).on("click", ".duty-acad-prods", () =>
-			frappe.prompt(
-				[{ fieldname: "products", fieldtype: "Small Text", label: __("Products (comma-separated, matching track product names)"), default: x.products || "" }],
-				(v) =>
-					frappe.call({
-						method: "duty_board.client_room.room_set_products",
-						args: { name: x.name, products: v.products || "" },
-						callback: (r) => {
-							if (r.message) {
-								x.products = r.message.products;
-								this.render_client_room(r.message);
-								load();
-							}
-						},
-					}),
-				__("Room products — members see and can pursue the client tracks of these products"),
-				__("Save")
-			)
+			frappe.call({
+				method: "duty_board.client_room.product_options",
+				callback: (pr) => {
+					const opts = pr.message || [];
+					if (!opts.length)
+						return frappe.msgprint(
+							__("No products defined yet — product names come from your certification tracks and training modules in the desk.")
+						);
+					const current = (x.products || "").split(",").map((s) => s.trim()).filter(Boolean);
+					frappe.prompt(
+						[
+							{
+								fieldname: "products",
+								fieldtype: "MultiCheck",
+								label: __("Products"),
+								columns: 2,
+								options: opts.map((o) => ({ label: o, value: o, checked: current.includes(o) })),
+							},
+						],
+						(v) =>
+							frappe.call({
+								method: "duty_board.client_room.room_set_products",
+								args: { name: x.name, products: (v.products || []).join(", ") },
+								callback: (r) => {
+									if (r.message) {
+										x.products = r.message.products;
+										this.render_client_room(r.message);
+										load();
+									}
+								},
+							}),
+						__("Room products — members see and can pursue the client tracks of these products"),
+						__("Save")
+					);
+				},
+			})
 		);
 		load();
 		d.show();

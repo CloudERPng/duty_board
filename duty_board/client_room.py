@@ -3530,6 +3530,24 @@ def _room_products(room):
 
 
 @frappe.whitelist()
+def product_options():
+	"""The pickable product names — exactly what track inheritance matches on."""
+	_staff_only()
+	out = set()
+	for p in frappe.get_all(
+		"Duty Certification Track", filters={"active": 1}, fields=["product"], pluck="product"
+	):
+		if p and p.strip():
+			out.add(p.strip())
+	for p in frappe.get_all(
+		"Duty Training Module", filters={"active": 1}, fields=["product"], pluck="product"
+	):
+		if p and p.strip():
+			out.add(p.strip())
+	return sorted(out)
+
+
+@frappe.whitelist()
 def room_set_products(name, products):
 	_staff_only()
 	room = frappe.get_doc("Client Room", name)
