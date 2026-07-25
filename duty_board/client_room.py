@@ -2773,17 +2773,180 @@ def room_metrics(name):
 def client_get_training():
 	room = _client_room()
 	rows = _training_rows(room)
+	user = frappe.session.user
+	my_modules = [r.module for r in rows if r.trainee == user]
+	lesson_counts, done_counts = {}, {}
+	if my_modules:
+		for l in frappe.get_all(
+			"Duty Lesson", filters={"module": ["in", my_modules]}, fields=["name", "module"]
+		):
+			lesson_counts[l.module] = lesson_counts.get(l.module, 0) + 1
+		for p in frappe.get_all(
+			"Duty Lesson Progress",
+			filters={"user": user, "module": ["in", my_modules], "completed_at": ["is", "set"]},
+			fields=["module"],
+		):
+			done_counts[p.module] = done_counts.get(p.module, 0) + 1
 	return [
 		{
+			"record": r.name,
 			"trainee_name": r.trainee_name,
 			"module_title": r.module_title,
 			"product": r.product,
 			"status": r.status,
 			"completed_on": r.completed_on,
 			"cert": r.certificate_shelf,
+			"mine": r.trainee == user,
+			"lessons_total": lesson_counts.get(r.module, 0) if r.trainee == user else None,
+			"lessons_done": done_counts.get(r.module, 0) if r.trainee == user else None,
 		}
 		for r in rows
 	]
+
+
+def _my_training_record(room, module):
+	rec = frappe.db.get_value(
+		"Duty Training Record",
+		{"room": room.name, "module": module, "trainee": frappe.session.user},
+		["name", "status"],
+		as_dict=True,
+	)
+	if not rec:
+		frappe.throw(_("This course is not assigned to you."), frappe.PermissionError)
+	return rec
+
+
+def _lesson_threshold(est_minutes):
+	"""Seconds of reading before 'Mark as read' is honoured: 40% of the
+	estimate, floored at 45s, capped at 180s."""
+	return max(45, min(180, int((est_minutes or 5) * 60 * 0.4)))
+
+
+@frappe.whitelist()
+def client_course(record):
+	room = _client_room()
+	rec = frappe.db.get_value(
+		"Duty Training Record", record, ["room", "module", "trainee"], as_dict=True
+	)
+	if not rec or rec.room != room.name or rec.trainee != frappe.session.user:
+		frappe.throw(_("Not found."), frappe.PermissionError)
+	mod = frappe.db.get_value(
+		"Duty Training Module", rec.module, ["title", "product", "description"], as_dict=True
+	)
+	lessons = frappe.get_all(
+		"Duty Lesson",
+		filters={"module": rec.module},
+		fields=["name", "title", "est_minutes"],
+		order_by="sort_order asc, creation asc",
+	)
+	done = {
+		p.lesson
+		for p in frappe.get_all(
+			"Duty Lesson Progress",
+			filters={"user": frappe.session.user, "module": rec.module, "completed_at": ["is", "set"]},
+			fields=["lesson"],
+		)
+	}
+	return {
+		"record": record,
+		"title": mod.title,
+		"product": mod.product,
+		"description": mod.description,
+		"lessons": [
+			{"name": l.name, "title": l.title, "est_minutes": l.est_minutes or 5, "done": l.name in done}
+			for l in lessons
+		],
+	}
+
+
+def _lesson_access(lesson):
+	room = _client_room()
+	l = frappe.db.get_value(
+		"Duty Lesson", lesson, ["module", "title", "content", "est_minutes"], as_dict=True
+	)
+	if not l:
+		frappe.throw(_("Not found."), frappe.PermissionError)
+	rec = _my_training_record(room, l.module)
+	return room, l, rec
+
+
+@frappe.whitelist()
+def client_lesson(lesson):
+	room, l, rec = _lesson_access(lesson)
+	user = frappe.session.user
+	prog = frappe.db.get_value(
+		"Duty Lesson Progress", {"user": user, "lesson": lesson},
+		["name", "seconds", "completed_at"], as_dict=True,
+	)
+	if not prog:
+		frappe.get_doc(
+			{
+				"doctype": "Duty Lesson Progress",
+				"user": user,
+				"lesson": lesson,
+				"module": l.module,
+				"opened_at": now_datetime(),
+				"seconds": 0,
+			}
+		).insert(ignore_permissions=True)
+		prog = frappe._dict(seconds=0, completed_at=None)
+	if rec.status == "Assigned":
+		frappe.db.set_value("Duty Training Record", rec.name, "status", "Reading", update_modified=False)
+	frappe.db.commit()
+	return {
+		"title": l.title,
+		"html": frappe.utils.sanitize_html(l.content or ""),
+		"est_minutes": l.est_minutes or 5,
+		"seconds": prog.seconds or 0,
+		"done": bool(prog.completed_at),
+		"min_seconds": _lesson_threshold(l.est_minutes),
+	}
+
+
+@frappe.whitelist()
+def client_lesson_beat(lesson, secs):
+	_room, l, _rec = _lesson_access(lesson)
+	secs = max(0, min(40, cint(secs)))
+	name = frappe.db.get_value(
+		"Duty Lesson Progress", {"user": frappe.session.user, "lesson": lesson}, "name"
+	)
+	if name and secs:
+		frappe.db.sql(
+			"update `tabDuty Lesson Progress` set seconds = seconds + %s where name = %s",
+			(secs, name),
+		)
+		frappe.db.commit()
+	return {"ok": True}
+
+
+@frappe.whitelist()
+def client_lesson_done(lesson):
+	room, l, rec = _lesson_access(lesson)
+	prog = frappe.db.get_value(
+		"Duty Lesson Progress", {"user": frappe.session.user, "lesson": lesson},
+		["name", "seconds", "completed_at"], as_dict=True,
+	)
+	if not prog:
+		frappe.throw(_("Open the lesson first."))
+	need = _lesson_threshold(l.est_minutes)
+	if not prog.completed_at and (prog.seconds or 0) < need:
+		frappe.throw(
+			_("Give it a little longer — about {0} more seconds of reading.").format(
+				need - (prog.seconds or 0)
+			)
+		)
+	if not prog.completed_at:
+		frappe.db.set_value(
+			"Duty Lesson Progress", prog.name, "completed_at", now_datetime(), update_modified=False
+		)
+		frappe.db.commit()
+	return client_course(
+		frappe.db.get_value(
+			"Duty Training Record",
+			{"room": room.name, "module": l.module, "trainee": frappe.session.user},
+			"name",
+		)
+	)
 
 
 # ---------------- rca: the post-incident report ----------------

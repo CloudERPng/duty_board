@@ -497,7 +497,7 @@
 </div>
 <script>
 const esc = (s) => (s || "").replace(/[&<>"']/g, (c) => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
-const XLV = "2.67.0";
+const XLV = "2.68.0";
 document.getElementById("xlv").textContent = "v" + XLV;
 console.log("Xlevel portal", XLV);
 let ROOM = localStorage.getItem("xl_room") || null;
@@ -1045,6 +1045,7 @@ function loadMetrics() {
 
 /* ---- academy ---- */
 function loadTraining() {
+	stopBeat();
 	api("client_get_training")
 		.then((rows) => {
 			rows = rows || [];
@@ -1052,18 +1053,81 @@ function loadTraining() {
 				? rows
 						.map(
 							(r) => `
-					<div class="acadrow">
+					<div class="acadrow" ${r.mine ? `style="cursor:pointer" onclick="openCourse('${esc(r.record)}')"` : ""}>
 						${r.status === "Completed" ? "🏅" : "📖"} <b>${esc(r.trainee_name)}</b>
 						<span>${esc(r.module_title)}${r.product ? " · " + esc(r.product) : ""}</span>
 						${r.status === "Completed"
-							? `<span class="acaddone">✓ certified ${esc(r.completed_on || "")}${r.cert ? ` · <a href="/api/method/duty_board.client_room.client_shelf_file?id=${esc(r.cert)}" target="_blank">📜 certificate</a>` : ""}</span>`
-							: `<span class="muted" style="font-size:12px">in progress</span>`}
+							? `<span class="acaddone">✓ certified ${esc(r.completed_on || "")}${r.cert ? ` · <a href="/api/method/duty_board.client_room.client_shelf_file?id=${esc(r.cert)}" target="_blank" onclick="event.stopPropagation()">📜 certificate</a>` : ""}</span>`
+							: r.mine
+								? `<span class="muted" style="font-size:12px">${r.lessons_total ? `📚 ${r.lessons_done}/${r.lessons_total} lessons · ` : ""}${r.lessons_total && r.lessons_done === r.lessons_total ? "✓ all read" : "tap to study →"}</span>`
+								: `<span class="muted" style="font-size:12px">in progress</span>`}
 					</div>`
 						)
 						.join("")
 				: '<span class="muted">No training records yet.</span>';
 		})
 		.catch((e) => console.warn("training:", e.message));
+}
+function openCourse(record) {
+	stopBeat();
+	api("client_course", { record: record }).then((c) => {
+		document.getElementById("acad").innerHTML = `
+			<a style="cursor:pointer;font-size:13px;font-weight:700;color:#0F5C55" onclick="loadTraining()">← All training</a>
+			<h3 style="margin:8px 0 2px">📖 ${esc(c.title)}${c.product ? ` <span class="muted" style="font-size:13px;font-weight:400">· ${esc(c.product)}</span>` : ""}</h3>
+			${c.description ? `<div class="muted" style="font-size:13px;margin-bottom:8px">${esc(c.description)}</div>` : ""}
+			${c.lessons.length
+				? c.lessons
+						.map(
+							(l, i) => `
+				<div class="acadrow" style="cursor:pointer" onclick="openLesson('${esc(l.name)}','${esc(c.record)}')">
+					${l.done ? "✅" : "⚪"} <b>${i + 1}. ${esc(l.title)}</b>
+					<span class="muted" style="font-size:12px;margin-left:auto">~${l.est_minutes} min</span>
+				</div>`
+						)
+						.join("")
+				: '<span class="muted">Lessons are being prepared for this course.</span>'}
+		`;
+	}).catch(fail);
+}
+let BEAT = null;
+function stopBeat() {
+	if (BEAT) { clearInterval(BEAT); BEAT = null; }
+}
+function openLesson(lesson, record) {
+	stopBeat();
+	api("client_lesson", { lesson: lesson }).then((l) => {
+		let secs = l.seconds || 0;
+		document.getElementById("acad").innerHTML = `
+			<a style="cursor:pointer;font-size:13px;font-weight:700;color:#0F5C55" onclick="openCourse('${esc(record)}')">← Lessons</a>
+			<h3 style="margin:8px 0 10px">${esc(l.title)}</h3>
+			<div id="lessonbody" style="font-size:15px;line-height:1.65;max-width:72ch"></div>
+			<div style="display:flex;gap:10px;align-items:center;margin-top:16px;border-top:1px solid #EEF2F0;padding-top:12px">
+				${l.done
+					? `<span class="acaddone">✓ You've read this lesson.</span>`
+					: `<button id="lread" onclick="markRead('${esc(lesson)}','${esc(record)}')">✓ Mark as read</button>
+						<span class="muted" id="lhint" style="font-size:12px"></span>`}
+			</div>`;
+		document.getElementById("lessonbody").innerHTML = l.html;
+		if (!l.done) {
+			const need = l.min_seconds || 45;
+			const hint = () => {
+				const el = document.getElementById("lhint");
+				if (el) el.textContent = secs < need ? `unlocks after ~${Math.max(0, need - secs)}s of reading` : "";
+			};
+			hint();
+			BEAT = setInterval(() => {
+				if (document.visibilityState !== "visible" || !document.getElementById("lessonbody")) return;
+				secs += 20;
+				api("client_lesson_beat", { lesson: lesson, secs: 20 }).catch(() => {});
+				hint();
+			}, 20000);
+		}
+	}).catch(fail);
+}
+function markRead(lesson, record) {
+	api("client_lesson_done", { lesson: lesson })
+		.then(() => { stopBeat(); openCourse(record); })
+		.catch(fail);
 }
 
 /* ---- meetings ---- */
