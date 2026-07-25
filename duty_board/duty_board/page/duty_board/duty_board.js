@@ -1788,6 +1788,7 @@ class DutyBoard {
 			console.error("calendar:", err);
 			this.$me.find(".duty-cal-grid").html(`<div style="color:#b91c1c">calendar failed: ${frappe.utils.escape_html(err.message)}</div>`);
 		}
+		this.load_my_training();
 		this.$me.find(".duty-me-row").on("click", (e) => this.issue_detail_dialog($(e.currentTarget).data("name")));
 		this.$me.find(".duty-me-clockin").on("click", () =>
 			frappe.call({
@@ -1832,6 +1833,174 @@ class DutyBoard {
 					}),
 				__("Decline meeting")
 			);
+		});
+	}
+
+	load_my_training() {
+		if (!this.$me.find(".duty-me-training").length)
+			this.$me.append(`<div class="duty-me-training" style="margin-top:18px"></div>`);
+		frappe.call({
+			method: "duty_board.client_room.my_training",
+			callback: (r) => this.render_my_training(r.message || []),
+		});
+	}
+
+	render_my_training(rows) {
+		const $t = this.$me.find(".duty-me-training");
+		if (!$t.length) return;
+		$t.html(`
+			<div class="duty-lead-section">🎓 ${__("My training")} <a class="duty-me-trassign">＋ ${__("Assign to a colleague")}</a></div>
+			${rows.length
+				? rows
+						.map(
+							(r) => `
+				<div class="duty-cr-msrow" style="cursor:pointer" data-record="${r.name}">
+					<span>${r.status === "Completed" ? "🏅" : "📖"} <b>${frappe.utils.escape_html(r.module_title)}</b>${r.product ? ` <span class="text-muted">· ${frappe.utils.escape_html(r.product)}</span>` : ""}</span>
+					<span class="text-muted" style="font-size:var(--text-sm)">
+						${r.status === "Completed"
+							? `✓ ${__("certified")} ${r.completed_on || ""}`
+							: `📚 ${r.lessons_done}/${r.lessons_total} ${__("lessons")}${r.lessons_total && r.lessons_done === r.lessons_total ? " · ✓ " + __("all read") : ""}`}
+					</span>
+				</div>`
+						)
+						.join("")
+				: `<div class="text-muted" style="font-size:var(--text-sm)">${__("No training assigned to you yet.")}</div>`}
+		`);
+		$t.find("[data-record]").on("click", (e) => this.my_course_dialog($(e.currentTarget).data("record")));
+		$t.find(".duty-me-trassign").on("click", () =>
+			frappe.call({
+				method: "duty_board.client_room.training_modules_for_staff",
+				callback: (r) => {
+					const mods = r.message || [];
+					if (!mods.length)
+						return frappe.msgprint(
+							__("No consultant-facing courses yet. Create a Duty Training Module with audience Consultant or Both, and add its Duty Lessons in the desk.")
+						);
+					frappe.prompt(
+						[
+							{
+								fieldname: "module",
+								fieldtype: "Select",
+								label: __("Course"),
+								options: mods.map((m) => ({ value: m.name, label: `${m.title}${m.product ? " · " + m.product : ""}` })),
+								reqd: 1,
+							},
+							{
+								fieldname: "user",
+								fieldtype: "Autocomplete",
+								label: __("Consultant"),
+								options: this.staff_options(),
+								reqd: 1,
+							},
+						],
+						(v) =>
+							frappe.call({
+								method: "duty_board.client_room.training_assign_staff",
+								args: { module: v.module, user: v.user },
+								callback: (rr) => {
+									frappe.show_alert({ message: __("🎓 Assigned."), indicator: "green" });
+									if (v.user === frappe.session.user && rr.message) this.render_my_training(rr.message);
+								},
+							}),
+						__("Assign consultant training"),
+						__("Assign")
+					);
+				},
+			})
+		);
+	}
+
+	my_course_dialog(record) {
+		frappe.call({
+			method: "duty_board.client_room.my_course",
+			args: { record: record },
+			callback: (r) => {
+				const c = r.message;
+				if (!c) return;
+				const d = new frappe.ui.Dialog({ title: `📖 ${c.title}`, size: "large" });
+				const render = (cc) => {
+					$(d.body).html(`
+						${cc.description ? `<div class="text-muted" style="margin-bottom:10px">${frappe.utils.escape_html(cc.description)}</div>` : ""}
+						${cc.lessons.length
+							? cc.lessons
+									.map(
+										(l, i) => `
+							<div class="duty-cr-msrow" style="cursor:pointer" data-lesson="${l.name}">
+								<span>${l.done ? "✅" : "⚪"} <b>${i + 1}. ${frappe.utils.escape_html(l.title)}</b></span>
+								<span class="text-muted" style="font-size:var(--text-sm)">~${l.est_minutes} ${__("min")}</span>
+							</div>`
+									)
+									.join("")
+							: `<div class="text-muted">${__("Lessons are being prepared for this course.")}</div>`}
+					`);
+					$(d.body).find("[data-lesson]").on("click", (e) => {
+						d.hide();
+						this.my_lesson_dialog($(e.currentTarget).data("lesson"), record);
+					});
+				};
+				render(c);
+				d.show();
+			},
+		});
+	}
+
+	my_lesson_dialog(lesson, record) {
+		frappe.call({
+			method: "duty_board.client_room.my_lesson",
+			args: { lesson: lesson },
+			callback: (r) => {
+				const l = r.message;
+				if (!l) return;
+				const d = new frappe.ui.Dialog({ title: frappe.utils.escape_html(l.title), size: "large" });
+				let secs = l.seconds || 0;
+				let beat = null;
+				const need = l.min_seconds || 45;
+				$(d.body).html(`
+					<div class="duty-me-lesson" style="font-size:var(--text-md);line-height:1.65;max-width:76ch"></div>
+					<div style="display:flex;gap:10px;align-items:center;margin-top:14px;border-top:1px solid var(--border-color);padding-top:10px">
+						${l.done
+							? `<span style="color:#15803d;font-weight:700">✓ ${__("You've read this lesson.")}</span>`
+							: `<button type="button" class="btn btn-sm btn-primary duty-me-lread">✓ ${__("Mark as read")}</button>
+								<span class="text-muted duty-me-lhint" style="font-size:var(--text-sm)"></span>`}
+						<button type="button" class="btn btn-sm btn-default" style="margin-left:auto" data-back>← ${__("Lessons")}</button>
+					</div>
+				`);
+				$(d.body).find(".duty-me-lesson").html(l.html);
+				const hint = () => {
+					const $h = $(d.body).find(".duty-me-lhint");
+					if ($h.length) $h.text(secs < need ? __("unlocks after ~{0}s of reading", [Math.max(0, need - secs)]) : "");
+				};
+				if (!l.done) {
+					hint();
+					beat = setInterval(() => {
+						if (document.visibilityState !== "visible" || !$(d.body).is(":visible")) return;
+						secs += 20;
+						frappe.call({ method: "duty_board.client_room.my_lesson_beat", args: { lesson: lesson, secs: 20 } });
+						hint();
+					}, 20000);
+				}
+				d.onhide = () => {
+					if (beat) clearInterval(beat);
+				};
+				$(d.body).find(".duty-me-lread").on("click", () =>
+					frappe.call({
+						method: "duty_board.client_room.my_lesson_done",
+						args: { lesson: lesson },
+						callback: (rr) => {
+							if (rr.message) {
+								d.hide();
+								this.load_my_training();
+								this.my_course_dialog(record);
+							}
+						},
+					})
+				);
+				$(d.body).find("[data-back]").on("click", () => {
+					d.hide();
+					this.my_course_dialog(record);
+				});
+				d.show();
+			},
 		});
 	}
 
