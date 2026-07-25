@@ -309,6 +309,65 @@
 	#ov .atts { display: flex; flex-wrap: wrap; gap: 10px; }
 	#ov .atts img { max-width: 160px; max-height: 130px; border-radius: 10px; border: 1px solid #e5e7eb; }
 	#ov .close { float: right; cursor: pointer; font-size: 22px; color: #6b7280; line-height: 1; }
+	/* ---- v2.65 design system polish (appended layer: tokens + aesthetics only, no layout) ---- */
+	:root {
+		--brand-900:#083B36; --brand-700:#0C4A43; --brand:#0F5C55; --brand-500:#15756B;
+		--brand-100:#D7EFEA; --brand-50:#EEF7F4;
+		--ink:#16211F; --ink2:#51605C; --ink3:#93A19C;
+		--line:#E7ECEA; --bg:#F4F7F6; --card:#FFFFFF;
+		--r:12px; --r-lg:16px;
+		--sh1:0 1px 2px rgba(12,34,30,.06);
+		--sh2:0 6px 16px -4px rgba(12,34,30,.10), 0 2px 4px -2px rgba(12,34,30,.05);
+		--tr:.16s cubic-bezier(.4,0,.2,1);
+	}
+	body { background: linear-gradient(180deg,#EFF4F2 0,var(--bg) 260px); color: var(--ink);
+		font-family: "Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
+		-webkit-font-smoothing: antialiased; }
+	.top { background: linear-gradient(120deg,#0A473F,var(--brand) 55%,#146B62); box-shadow: 0 1px 0 rgba(255,255,255,.06) inset, var(--sh1); }
+	#roomswitch { background: linear-gradient(120deg,#0A473F,var(--brand) 55%,#146B62); }
+	.card { border-color: var(--line); border-radius: var(--r-lg); box-shadow: var(--sh1);
+		transition: box-shadow var(--tr); }
+	.card h3 { letter-spacing: -0.01em; }
+	button { background: linear-gradient(180deg,#137066,var(--brand)); box-shadow: var(--sh1), 0 1px 0 rgba(255,255,255,.15) inset;
+		transition: filter var(--tr), transform var(--tr), box-shadow var(--tr); }
+	button:hover { filter: brightness(1.07); box-shadow: var(--sh2); }
+	button:active { transform: scale(.97); }
+	.ms button { background: linear-gradient(180deg,#C05F0B,#B45309); }
+	.cbtn.confirm { background: linear-gradient(180deg,#137066,var(--brand)); }
+	.cbtn, .slot, .pill, .chip, .tabbar a, .mstoggle, .doc a, a { transition: filter var(--tr), background var(--tr), color var(--tr), box-shadow var(--tr); }
+	textarea, input, select { transition: border-color var(--tr), box-shadow var(--tr); }
+	textarea:focus, input:focus, select:focus { outline: none; border-color: var(--brand-500) !important;
+		box-shadow: 0 0 0 3px rgba(15,92,85,.13); }
+	:focus-visible { outline: 2px solid var(--brand-500); outline-offset: 2px; }
+	.pill { font-weight: 600; letter-spacing: .01em; }
+	.chip { background: var(--brand-50); color: var(--brand-700); }
+	.m.staff { background: #fff; border: 1px solid var(--line); box-shadow: var(--sh1); }
+	.m.me { background: linear-gradient(180deg,#E4F2EE,#D9ECE6); color: var(--brand-900); }
+	.ms, .meet, .doc, .acadrow { border-bottom-style: solid; border-bottom-color: #EEF2F0; }
+	.mst { border-color: #EEF2F0 !important; }
+	.mtile { background: linear-gradient(180deg,#F1FAF7,#E8F5F0); border: 1px solid #DFEEE8;
+		transition: transform var(--tr), box-shadow var(--tr); }
+	.mtile:hover { transform: translateY(-1px); box-shadow: var(--sh1); }
+	#msbar i { background: linear-gradient(90deg,var(--brand-500),var(--brand)); }
+	#ov { backdrop-filter: blur(5px); background: rgba(10,40,36,.45) !important; }
+	#ov > div, #ovbody { border-radius: var(--r-lg); }
+	.updbox, .resbox, #qres { border-radius: var(--r); }
+	.qt { border-radius: 8px; }
+	::-webkit-scrollbar { width: 9px; height: 9px; }
+	::-webkit-scrollbar-thumb { background: #C9D6D1; border-radius: 99px; border: 2px solid transparent; background-clip: content-box; }
+	::-webkit-scrollbar-thumb:hover { background-color: #AEBFB9; }
+	::-webkit-scrollbar-track { background: transparent; }
+	@media (prefers-reduced-motion: no-preference) {
+		@keyframes cardrise { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: none; } }
+		.card { animation: cardrise .28s cubic-bezier(.2,.7,.3,1); }
+		@keyframes msgin { from { opacity: 0; transform: translateY(3px); } to { opacity: 1; transform: none; } }
+		.m { animation: msgin .18s ease-out; }
+	}
+	@media (min-width: 900px) {
+		.tabbar a { border-radius: 99px; }
+		.tabbar a:hover:not(.active) { background: #E8EEEC; color: var(--brand-700); }
+		.tabbar a.active { background: linear-gradient(180deg,#137066,var(--brand)); box-shadow: var(--sh1); }
+	}
 </style>
 </head>
 <body>
@@ -438,7 +497,7 @@
 </div>
 <script>
 const esc = (s) => (s || "").replace(/[&<>"']/g, (c) => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
-const XLV = "2.64.1";
+const XLV = "2.65.0";
 document.getElementById("xlv").textContent = "v" + XLV;
 console.log("Xlevel portal", XLV);
 let ROOM = localStorage.getItem("xl_room") || null;
