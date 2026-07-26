@@ -519,7 +519,7 @@
 </div>
 <script>
 const esc = (s) => (s || "").replace(/[&<>"']/g, (c) => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
-const XLV = "2.76.2";
+const XLV = "2.77.0";
 document.getElementById("xlv").textContent = "v" + XLV;
 console.log("Xlevel portal", XLV);
 let ROOM = localStorage.getItem("xl_room") || null;
@@ -678,6 +678,30 @@ function render(d) {
 			}).join("")
 		: '<span class="muted">Say hello — the team is listening.</span>';
 	if (stick) box.scrollTop = box.scrollHeight;
+}
+function showAfterHours(a) {
+	if (!a) {
+		const ex = document.getElementById("ahnotice");
+		if (ex) ex.remove();
+		return;
+	}
+	let el = document.getElementById("ahnotice");
+	if (!el) {
+		el = document.createElement("div");
+		el.id = "ahnotice";
+		document.body.appendChild(el);
+	}
+	el.innerHTML = `
+		<div style="position:fixed;left:50%;transform:translateX(-50%);bottom:84px;z-index:9000;max-width:520px;width:calc(100% - 28px);
+			background:#FFF7E6;border:1px solid #F3C96B;border-radius:14px;padding:13px 40px 13px 16px;box-shadow:0 8px 28px rgba(60,40,0,.18);font-size:13.5px;line-height:1.55">
+			<a onclick="document.getElementById('ahnotice').remove()" style="position:absolute;top:8px;right:12px;cursor:pointer;font-weight:800;color:#92700a">✕</a>
+			<b>🕘 You've reached us outside our working hours</b> (Mon–Fri ${esc(a.start)}–${esc(a.end)} WAT).<br>
+			Your message has been received and logged — it will be addressed in the next work period.
+			${a.oncall_phone ? `<div style="margin-top:9px;padding-top:9px;border-top:1px dashed #F3C96B">
+				<b style="color:#b45309">🚨 System down?</b> For emergencies only, call our on-call engineer${a.oncall_name ? " " + esc(a.oncall_name) : ""}:
+				<a href="tel:${esc(a.oncall_phone)}" style="font-weight:800;color:#0F5C55;white-space:nowrap">📞 ${esc(a.oncall_phone)}</a>
+			</div>` : ""}
+		</div>`;
 }
 function fail(e) {
 	const el = document.getElementById("err");
@@ -1658,6 +1682,7 @@ function send() {
 		.then((d) => {
 			REPLY = null;
 			document.getElementById("replychip").innerHTML = "";
+			showAfterHours(d && d.after_hours);
 			return d;
 		})
 		.then(render)
@@ -1693,6 +1718,7 @@ function requestTask() {
 			})
 		)
 		.then((d) => {
+			showAfterHours(d && d.after_hours);
 			t.value = "";
 			b.value = "";
 			document.getElementById("reqtype").value = "";

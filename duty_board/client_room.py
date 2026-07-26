@@ -654,6 +654,26 @@ def client_get_room(before=None):
 	}
 
 
+def _after_hours_payload():
+	"""Non-None outside working hours (Mon-Fri, configured hours, site time).
+	The on-call number travels ONLY in this payload — the emergency channel."""
+	now = now_datetime()
+	try:
+		s = frappe.get_cached_doc("Duty Board Settings")
+		start, end = cint(s.work_start_hour) or 9, cint(s.work_end_hour) or 18
+		oncall_name, oncall_phone = (s.oncall_name or "").strip(), (s.oncall_phone or "").strip()
+	except Exception:
+		start, end, oncall_name, oncall_phone = 9, 18, "", ""
+	if now.weekday() < 5 and start <= now.hour < end:
+		return None
+	return {
+		"start": f"{start:02d}:00",
+		"end": f"{end:02d}:00",
+		"oncall_name": oncall_name,
+		"oncall_phone": oncall_phone,
+	}
+
+
 @frappe.whitelist()
 def client_post_message(message, attachment_url=None, attachment_name=None, ref=None):
 	room = _client_room()
@@ -701,7 +721,9 @@ def client_post_message(message, attachment_url=None, attachment_name=None, ref=
 				_email_mention(m, room, first, message)
 	except Exception:
 		pass
-	return client_get_room()
+	ret = client_get_room()
+	ret["after_hours"] = _after_hours_payload()
+	return ret
 
 
 def _serve_file(fdoc, filename):
@@ -4518,4 +4540,6 @@ def client_request_task(title, detail=None, attachment_url=None, attachment_name
 		except Exception:
 			pass
 	frappe.db.commit()
-	return client_get_room()
+	ret = client_get_room()
+	ret["after_hours"] = _after_hours_payload()
+	return ret
