@@ -271,7 +271,27 @@ def books_set(name, status=None, assigned_to=None, reviewer=None, notes=None):
 			frappe.throw(_("Unknown status."))
 		if status == "Acknowledged":
 			frappe.throw(_("Acknowledged is stamped by the client, not set by staff."))
+		if (
+			status == "Delivered"
+			and doc.reviewer
+			and frappe.session.user != doc.reviewer
+			and "System Manager" not in frappe.get_roles()
+		):
+			frappe.throw(
+				_("This deliverable has a reviewer — only {0} can mark it Delivered.").format(
+					frappe.utils.get_fullname(doc.reviewer)
+				)
+			)
 		vals["status"] = status
+		if status == "In Review" and doc.reviewer:
+			try:
+				from duty_board.api import _notify_user
+
+				t_title = frappe.db.get_value("Duty Service Deliverable Type", doc.deliverable_type, "title")
+				cust = frappe.db.get_value("Client Room", doc.room, "customer")
+				_notify_user(doc.reviewer, _("👁 Review requested"), f"{cust} · {t_title} · {doc.period}")
+			except Exception:
+				pass
 		if status == "Delivered":
 			vals["delivered_on"] = today()
 			t = frappe.db.get_value("Duty Service Deliverable Type", doc.deliverable_type, "title")
@@ -301,3 +321,82 @@ def books_set_room(name, bookkeeper=None, optionals=None):
 		frappe.db.set_value("Client Room", name, vals, update_modified=False)
 		frappe.db.commit()
 	return {"ok": True}
+
+
+# ---------------- client face: the deliverable ceremony ----------------
+
+
+def _client_deliverable_rows(room):
+	periods = sorted(
+		{d.period for d in frappe.get_all("Duty Service Deliverable", filters={"room": room.name}, fields=["period"])},
+		reverse=True,
+	)[:3]
+	if not periods:
+		return []
+	rows = frappe.get_all(
+		"Duty Service Deliverable",
+		filters={"room": room.name, "period": ["in", periods]},
+		fields=["name", "deliverable_type", "period", "due_date", "status", "delivered_on", "acknowledged_on", "acknowledged_by"],
+		order_by="period desc",
+	)
+	titles = {
+		t.name: t.title
+		for t in frappe.get_all("Duty Service Deliverable Type", fields=["name", "title"])
+	}
+	out = []
+	for r in rows:
+		out.append(
+			{
+				"name": r.name,
+				"title": titles.get(r.deliverable_type, r.deliverable_type),
+				"period": r.period,
+				"due_date": str(r.due_date) if r.due_date else None,
+				"delivered_on": str(r.delivered_on) if r.delivered_on else None,
+				"acknowledged_on": str(r.acknowledged_on)[:16] if r.acknowledged_on else None,
+				"acknowledged_by": r.acknowledged_by,
+				"status": "Acknowledged"
+				if r.status == "Acknowledged"
+				else ("Delivered" if r.status == "Delivered" else "In preparation"),
+			}
+		)
+	return out
+
+
+@frappe.whitelist()
+def client_get_deliverables():
+	from duty_board.client_room import _client_room
+
+	room = _client_room()
+	return _client_deliverable_rows(room)
+
+
+@frappe.whitelist()
+def client_ack_deliverable(name):
+	from duty_board.client_room import _client_room, _post
+
+	room = _client_room()
+	doc = frappe.db.get_value(
+		"Duty Service Deliverable", name, ["room", "status", "deliverable_type", "period", "assigned_to"], as_dict=True
+	)
+	if not doc or doc.room != room.name:
+		frappe.throw(_("Not found."), frappe.PermissionError)
+	if doc.status != "Delivered":
+		frappe.throw(_("Only delivered items can be acknowledged."))
+	who = frappe.utils.get_fullname(frappe.session.user)
+	frappe.db.set_value(
+		"Duty Service Deliverable",
+		name,
+		{"status": "Acknowledged", "acknowledged_on": frappe.utils.now_datetime(), "acknowledged_by": who},
+		update_modified=False,
+	)
+	frappe.db.commit()
+	t_title = frappe.db.get_value("Duty Service Deliverable Type", doc.deliverable_type, "title")
+	_post(room, _("✅ {0} acknowledged receipt of {1} — {2}.").format(who, t_title, doc.period))
+	if doc.assigned_to:
+		try:
+			from duty_board.api import _notify_user
+
+			_notify_user(doc.assigned_to, _("✅ Acknowledged"), f"{room.customer} · {t_title} · {doc.period}")
+		except Exception:
+			pass
+	return _client_deliverable_rows(room)

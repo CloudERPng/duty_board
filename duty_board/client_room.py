@@ -3693,6 +3693,20 @@ def client_pursue_track(track):
 	return _tracks_for_room(room, user)
 
 
+@frappe.whitelist()
+def client_get_deliverables():
+	from duty_board.accounting import client_get_deliverables as f
+
+	return f()
+
+
+@frappe.whitelist()
+def client_ack_deliverable(name):
+	from duty_board.accounting import client_ack_deliverable as f
+
+	return f(name)
+
+
 # ---------------- rca: the post-incident report ----------------
 
 

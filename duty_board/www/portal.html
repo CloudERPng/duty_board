@@ -110,7 +110,7 @@
 		}
 		.tabbar a span { font-size: 20px; }
 		.tabbar a.active { color: #0F5C55; }
-		body[data-tab="home"] .card:not(.chat):not(.tasks):not(.meets):not(.metrics) { display: none; }
+		body[data-tab="home"] .card:not(.chat):not(.tasks):not(.meets):not(.metrics):not(.books) { display: none; }
 		body[data-tab="home"] .wrap { display: flex; flex-direction: column; }
 		body[data-tab="home"] .card.chat { order: -1; }
 		body[data-tab="pm"] .card:not(.mstones):not(.chreqs) { display: none; }
@@ -504,6 +504,10 @@
 		<h3 class="foldh" onclick="fold(this,'metrics')"><span class="fc">▾</span> 📊 <span class="t">Your numbers</span></h3>
 		<div id="metrics"><span class="muted">Loading…</span></div>
 	</div>
+	<div class="card books" style="display:none">
+		<h3 class="foldh" onclick="fold(this,'books')"><span class="fc">▾</span> 📒 <span class="t">Your accounting</span></h3>
+		<div id="books"></div>
+	</div>
 	<div class="card acad">
 		<h3 class="foldh" onclick="fold(this,'acad')"><span class="fc">▾</span> 🎓 <span class="t">Training</span></h3>
 		<div id="acad"><span class="muted">No training records yet.</span></div>
@@ -519,7 +523,7 @@
 </div>
 <script>
 const esc = (s) => (s || "").replace(/[&<>"']/g, (c) => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
-const XLV = "2.78.0";
+const XLV = "2.79.0";
 document.getElementById("xlv").textContent = "v" + XLV;
 console.log("Xlevel portal", XLV);
 let ROOM = localStorage.getItem("xl_room") || null;
@@ -537,6 +541,7 @@ function setRoom(name) {
 	loadChreqs();
 	loadTraining();
 	loadMetrics();
+	loadBooks();
 }
 function initRooms() {
 	api("client_my_rooms")
@@ -1069,6 +1074,57 @@ document.addEventListener("click", (e) => {
 		.catch(fail);
 });
 
+/* ---- accounting deliverables: the ceremony ---- */
+function loadBooks() {
+	api("client_get_deliverables")
+		.then(renderBooks)
+		.catch(() => {});
+}
+function renderBooks(rows) {
+	rows = rows || [];
+	const card = document.querySelector(".card.books");
+	if (!card) return;
+	if (!rows.length) { card.style.display = "none"; return; }
+	card.style.display = "";
+	const periods = {};
+	rows.forEach((r) => (periods[r.period] = periods[r.period] || []).push(r));
+	document.getElementById("books").innerHTML = Object.keys(periods)
+		.sort()
+		.reverse()
+		.map(
+			(pd) => `
+		<div style="margin-bottom:8px">
+			<div class="muted" style="font-size:11px;font-weight:800;letter-spacing:1px;margin-bottom:4px">${esc(pd)}</div>
+			${periods[pd]
+				.map(
+					(r) => `
+			<div class="ms" style="align-items:center">
+				<span>${r.status === "Acknowledged" ? "✅" : r.status === "Delivered" ? "📬" : "🛠"}</span>
+				<b style="font-size:13px">${esc(r.title)}</b>
+				<span class="muted" style="font-size:11px;margin-left:auto;text-align:right">
+					${r.status === "Acknowledged"
+						? `received ${esc(r.acknowledged_on || "")}`
+						: r.status === "Delivered"
+							? `<button style="font-size:12px;padding:5px 11px" onclick="ackDeliverable('${esc(r.name)}','${esc(r.title)}','${esc(pd)}')">✓ Confirm receipt</button>`
+							: `in preparation${r.due_date ? " · due " + esc(r.due_date) : ""}`}
+				</span>
+			</div>`
+				)
+				.join("")}
+		</div>`
+		)
+		.join("");
+}
+function ackDeliverable(name, title, period) {
+	document.getElementById("ovbody").innerHTML = `
+		<h2>📬 ${esc(title)} — ${esc(period)}</h2>
+		<p style="font-size:14px;line-height:1.6">Your ${esc(title.toLowerCase())} for ${esc(period)} ${title.toLowerCase().indexOf("statement") >= 0 ? "are" : "is"} ready — find the documents in your <b>Documents</b> tab. Confirming receipt lets your accounting team know it reached you.</p>
+		<div style="display:flex;gap:10px;justify-content:flex-end;margin-top:14px">
+			<button style="background:#e5e7eb;color:#374151" onclick="closeOv()">Later</button>
+			<button onclick="api('client_ack_deliverable',{name:'${esc(name)}'}).then((rows)=>{closeOv();renderBooks(rows);}).catch(fail)">✅ Confirm receipt</button>
+		</div>`;
+	document.getElementById("ov").style.display = "flex";
+}
 /* ---- metrics: their numbers ---- */
 function loadMetrics() {
 	api("client_get_metrics")
