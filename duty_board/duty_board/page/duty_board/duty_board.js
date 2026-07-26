@@ -2098,6 +2098,99 @@ class DutyBoard {
 		});
 	}
 
+	books_round_dialog(back_period) {
+		frappe.call({
+			method: "duty_board.accounting.books_daily_round",
+			callback: (r) => {
+				const m = r.message;
+				if (!m) return;
+				const d = new frappe.ui.Dialog({ title: `📅 ${__("Today's round")} — ${m.date}`, size: "large" });
+				$(d.body).html(`
+					<div class="text-muted" style="font-size:12px;margin-bottom:10px">${__("Two taps per client: where are the books posted through, and anything worth noting. Sessions you've clocked already show as ●.")}</div>
+					${m.rows
+						.map(
+							(x, i) => `
+					<div style="border:1px solid var(--border-color,#E7ECEA);border-radius:10px;padding:10px 12px;margin-bottom:8px" data-row="${i}">
+						<div style="display:flex;gap:8px;align-items:center;margin-bottom:7px">
+							<b>${frappe.utils.escape_html(x.customer)}</b>
+							<span title="${__("worked today (session tagged)")}">${x.worked_today ? "●" : "○"}</span>
+							${x.logged_today ? `<span style="color:#15803d;font-size:11px;font-weight:700">✓ ${__("attested")}</span>` : ""}
+							<span style="margin-left:auto;font-size:11px;color:${x.lag === null ? "#94a3b8" : x.lag <= 1 ? "#15803d" : x.lag <= 3 ? "#b45309" : "#b91c1c"}">${x.posted_through ? __("posted thru {0} · lag {1}wd", [x.posted_through, x.lag]) : __("no attestation yet")}</span>
+						</div>
+						<div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+							<input type="date" class="form-control input-sm bk-pt" style="width:150px" value="${x.posted_through || ""}" max="${m.date}">
+							<input type="number" class="form-control input-sm bk-tx" style="width:90px" placeholder="${__("tx posted")}" value="${x.tx_posted ?? ""}">
+							<input type="number" class="form-control input-sm bk-q" style="width:90px" placeholder="${__("queries")}" value="${x.queries_raised ?? ""}">
+							<input type="text" class="form-control input-sm bk-note" style="flex:1;min-width:140px" placeholder="${__("note (optional)")}" value="${frappe.utils.escape_html(x.note || "")}">
+							<button class="btn btn-xs btn-primary bk-save" data-room="${x.room}">💾</button>
+						</div>
+					</div>`
+						)
+						.join("") || `<div class="text-muted">${__("No accounting clients assigned to you.")}</div>`}
+					<div style="display:flex;justify-content:flex-end;margin-top:6px"><button class="btn btn-sm btn-default" data-back>← ${__("Matrix")}</button></div>
+				`);
+				$(d.body).find(".bk-save").on("click", (e) => {
+					const $row = $(e.currentTarget).closest("[data-row]");
+					frappe.call({
+						method: "duty_board.accounting.books_log_day",
+						args: {
+							room: $(e.currentTarget).data("room"),
+							posted_through: $row.find(".bk-pt").val() || null,
+							tx_posted: $row.find(".bk-tx").val() || 0,
+							queries_raised: $row.find(".bk-q").val() || 0,
+							note: $row.find(".bk-note").val() || null,
+						},
+						callback: () => {
+							frappe.show_alert({ message: __("Attested"), indicator: "green" });
+							d.hide();
+							this.books_round_dialog(back_period);
+						},
+					});
+				});
+				$(d.body).find("[data-back]").on("click", () => { d.hide(); this.books_dialog(back_period); });
+				d.show();
+			},
+		});
+	}
+
+	books_register_dialog(period) {
+		frappe.call({
+			method: "duty_board.accounting.books_register",
+			args: { period: period || null },
+			callback: (r) => {
+				const m = r.message;
+				if (!m) return;
+				const d = new frappe.ui.Dialog({ title: `🗓 ${__("Daily register")} — ${m.period}`, size: "extra-large" });
+				const CELL = { both: ["●", "#0F5C55"], worked: ["◐", "#b45309"], logged: ["◔", "#7c3aed"], none: ["·", "#cbd5e1"], future: ["", "#fff"] };
+				const prevP = () => { const [y, mo] = m.period.split("-").map(Number); const dd = new Date(y, mo - 2, 1); return `${dd.getFullYear()}-${String(dd.getMonth() + 1).padStart(2, "0")}`; };
+				const nextP = () => { const [y, mo] = m.period.split("-").map(Number); const dd = new Date(y, mo, 1); return `${dd.getFullYear()}-${String(dd.getMonth() + 1).padStart(2, "0")}`; };
+				$(d.body).html(`
+					<div style="display:flex;gap:10px;align-items:center;margin-bottom:10px">
+						<button class="btn btn-xs btn-default" data-prev>‹</button><b>${m.period}</b><button class="btn btn-xs btn-default" data-next>›</button>
+					</div>
+					<div style="overflow-x:auto"><table class="table table-bordered" style="font-size:11px;margin:0">
+						<thead><tr><th style="min-width:150px">${__("Client")}</th>${m.days.map((ds) => `<th style="text-align:center;padding:4px 5px">${ds.slice(8)}</th>`).join("")}<th>${__("Lag")}</th></tr></thead>
+						<tbody>${m.rooms
+							.map(
+								(row) => `<tr ${row.neglected ? 'style="background:#FDECEA"' : ""}>
+							<td><b>${frappe.utils.escape_html(row.customer)}</b>${row.neglected ? ` <span style="color:#b91c1c;font-weight:800">⚠ ${row.streak}${__("wd")}</span>` : ""}</td>
+							${m.days.map((ds) => { const [ic, col] = CELL[row.cells[ds]] || CELL.none; return `<td style="text-align:center;color:${col};font-weight:800;padding:4px 5px">${ic}</td>`; }).join("")}
+							<td style="font-size:10px;font-weight:700;color:${row.lag === null ? "#94a3b8" : row.lag <= 1 ? "#15803d" : row.lag <= 3 ? "#b45309" : "#b91c1c"}">${row.posted_through ? row.lag + "wd" : "—"}</td>
+						</tr>`
+							)
+							.join("")}</tbody>
+					</table></div>
+					<div class="text-muted" style="font-size:11px;margin-top:8px">● ${__("worked + attested")} &nbsp; ◐ ${__("worked, no attestation")} &nbsp; ◔ ${__("attested, no session")} &nbsp; · ${__("untouched")} &nbsp; ${__("red row = {0}+ working days untouched", [m.neglect_days])}</div>
+					<div style="display:flex;justify-content:flex-end;margin-top:8px"><button class="btn btn-sm btn-default" data-back>← ${__("Matrix")}</button></div>
+				`);
+				$(d.body).find("[data-prev]").on("click", () => { d.hide(); this.books_register_dialog(prevP()); });
+				$(d.body).find("[data-next]").on("click", () => { d.hide(); this.books_register_dialog(nextP()); });
+				$(d.body).find("[data-back]").on("click", () => { d.hide(); this.books_dialog(m.period); });
+				d.show();
+			},
+		});
+	}
+
 	books_profit_dialog(period) {
 		frappe.call({
 			method: "duty_board.accounting.books_profitability",
@@ -2154,6 +2247,8 @@ class DutyBoard {
 						<b style="font-size:15px">${m.period}</b>
 						<button class="btn btn-xs btn-default" data-next>›</button>
 						<span style="margin-left:auto;display:flex;gap:8px">
+							<button class="btn btn-xs btn-primary" data-round>📅 ${__("Today's round")}</button>
+							<button class="btn btn-xs btn-default" data-register>🗓 ${__("Register")}</button>
 							${m.fees_visible ? `<button class="btn btn-xs btn-default" data-profit>₦ ${__("Profitability")}</button>` : ""}
 							<button class="btn btn-xs btn-default" data-sync>⟳ ${__("Sync clients")}</button>
 							<button class="btn btn-xs btn-primary" data-open>📂 ${__("Open period")}</button>
@@ -2165,7 +2260,9 @@ class DutyBoard {
 							<tbody>${m.rooms
 								.map(
 									(row) => `<tr>
-								<td><b>${frappe.utils.escape_html(row.customer)}</b>${row.fee ? `<br><span class="text-muted" style="font-size:11px">₦${Number(row.fee).toLocaleString()}/mo</span>` : ""}</td>
+								<td><b>${frappe.utils.escape_html(row.customer)}</b>
+									${row.posted_through ? `<br><span style="font-size:10px;font-weight:700;color:${row.lag <= 1 ? "#15803d" : row.lag <= 3 ? "#b45309" : "#b91c1c"}">📮 ${__("posted thru")} ${row.posted_through.slice(5)} · ${__("lag")} ${row.lag}wd</span>` : `<br><span style="font-size:10px;color:#94a3b8">📮 ${__("no attestation")}</span>`}
+									${row.fee ? `<br><span class="text-muted" style="font-size:11px">₦${Number(row.fee).toLocaleString()}/mo</span>` : ""}</td>
 								<td><a class="duty-bk-room" data-room="${row.room}" data-bk="${row.bookkeeper || ""}" data-opt="${frappe.utils.escape_html(row.optionals)}" style="cursor:pointer">${row.bookkeeper_name ? frappe.utils.escape_html(row.bookkeeper_name.split(" ")[0]) : "— " + __("set")}</a></td>
 								${m.types
 									.map((t) => {
@@ -2188,6 +2285,8 @@ class DutyBoard {
 				`);
 				$(d.body).find("[data-prev]").on("click", () => { d.hide(); this.books_dialog(prevP()); });
 				$(d.body).find("[data-next]").on("click", () => { d.hide(); this.books_dialog(nextP()); });
+				$(d.body).find("[data-round]").on("click", () => { d.hide(); this.books_round_dialog(m.period); });
+				$(d.body).find("[data-register]").on("click", () => { d.hide(); this.books_register_dialog(m.period); });
 				$(d.body).find("[data-profit]").on("click", () => {
 					d.hide();
 					this.books_profit_dialog(m.period);

@@ -252,6 +252,15 @@ def books_matrix(period=None):
 		],
 	)
 	fees_ok = _books_manager()
+	latest_pt = {}
+	if rooms:
+		for l in frappe.get_all(
+			"Duty Books Daily Log",
+			filters={"room": ["in", [r.name for r in rooms]], "posted_through": ["is", "set"]},
+			fields=["room", "posted_through"],
+			order_by="posted_through asc",
+		):
+			latest_pt[l.room] = l.posted_through
 	by_room = {}
 	tdy = getdate(today())
 	for i in insts:
@@ -268,6 +277,8 @@ def books_matrix(period=None):
 				"bookkeeper_name": frappe.utils.get_fullname(r.bookkeeper) if r.bookkeeper else None,
 				"optionals": r.books_optionals or "",
 				"fee": custs.get(r.customer, frappe._dict()).get("accounting_fees") if fees_ok else None,
+				"posted_through": str(latest_pt[r.name]) if r.name in latest_pt else None,
+				"lag": _working_days_between(getdate(latest_pt[r.name]), tdy) if r.name in latest_pt else None,
 				"cells": by_room.get(r.name, {}),
 			}
 		)
@@ -465,3 +476,241 @@ def books_profitability(period=None):
 		)
 	out.sort(key=lambda x: (x["rate"] is None, x["rate"] if x["rate"] is not None else 0))
 	return {"period": period, "rows": out}
+
+
+# ---------------- daily assurance: register, attestation, digest ----------------
+
+NEGLECT_DAYS = 2
+
+
+def _working_days_between(d1, d2):
+	"""Working days strictly after d1, up to and including d2."""
+	days = _workday_set()
+	if not d1 or d1 >= d2:
+		return 0
+	n, d = 0, d1
+	while d < d2:
+		d = d + timedelta(days=1)
+		if d.weekday() in days:
+			n += 1
+	return n
+
+
+def _sessions_by_room_day(customers, start, end):
+	if not customers:
+		return {}
+	rows = frappe.db.sql(
+		"""select customer, user, date(start_time) as d from `tabWork Session`
+		where customer in %(c)s and start_time >= %(s)s and start_time < %(e)s""",
+		{"c": tuple(customers), "s": start, "e": end},
+		as_dict=True,
+	)
+	out = {}
+	for r in rows:
+		out.setdefault((r.customer, str(r.d)), set()).add(r.user)
+	return out
+
+
+@frappe.whitelist()
+def books_daily_round():
+	"""The bookkeeper's two-tap evening ritual: my clients, today's state."""
+	_staff_only()
+	user = frappe.session.user
+	rooms, custs = _accounting_rooms()
+	mine = [r for r in rooms if r.bookkeeper == user] or rooms
+	tdy = today()
+	sessions = _sessions_by_room_day([r.customer for r in mine], tdy, str(getdate(tdy) + timedelta(days=1)))
+	logs = {
+		l.room: l
+		for l in frappe.get_all(
+			"Duty Books Daily Log",
+			filters={"user": user, "log_date": tdy, "room": ["in", [r.name for r in mine]]},
+			fields=["name", "room", "posted_through", "tx_posted", "queries_raised", "note"],
+		)
+	}
+	last_pt = {}
+	for l in frappe.get_all(
+		"Duty Books Daily Log",
+		filters={"room": ["in", [r.name for r in mine]], "posted_through": ["is", "set"]},
+		fields=["room", "posted_through"],
+		order_by="posted_through asc",
+	):
+		last_pt[l.room] = l.posted_through
+	out = []
+	for r in mine:
+		lg = logs.get(r.name)
+		pt = (lg and lg.posted_through) or last_pt.get(r.name)
+		out.append(
+			{
+				"room": r.name,
+				"customer": r.customer,
+				"worked_today": (r.customer, tdy) in sessions,
+				"logged_today": bool(lg),
+				"posted_through": str(pt) if pt else None,
+				"lag": _working_days_between(getdate(pt), getdate(tdy)) if pt else None,
+				"tx_posted": lg.tx_posted if lg else None,
+				"queries_raised": lg.queries_raised if lg else None,
+				"note": lg.note if lg else None,
+			}
+		)
+	return {"date": tdy, "rows": out}
+
+
+@frappe.whitelist()
+def books_log_day(room, posted_through=None, tx_posted=None, queries_raised=None, note=None):
+	_staff_only()
+	user = frappe.session.user
+	customer = frappe.db.get_value("Client Room", room, "customer")
+	if posted_through and getdate(posted_through) > getdate(today()):
+		frappe.throw(_("Books cannot be posted through a future date."))
+	existing = frappe.db.get_value(
+		"Duty Books Daily Log", {"user": user, "room": room, "log_date": today()}, "name"
+	)
+	vals = {
+		"posted_through": posted_through or None,
+		"tx_posted": cint(tx_posted) if tx_posted is not None else 0,
+		"queries_raised": cint(queries_raised) if queries_raised is not None else 0,
+		"note": (note or "").strip()[:300] or None,
+	}
+	if existing:
+		frappe.db.set_value("Duty Books Daily Log", existing, vals, update_modified=False)
+	else:
+		frappe.get_doc(
+			{
+				"doctype": "Duty Books Daily Log",
+				"room": room,
+				"customer": customer,
+				"user": user,
+				"log_date": today(),
+				**vals,
+			}
+		).insert(ignore_permissions=True)
+	frappe.db.commit()
+	return books_daily_round()
+
+
+def _register_data(period):
+	year, month = int(period[:4]), int(period[5:7])
+	rooms, custs = _accounting_rooms()
+	wds = _workday_set()
+	first = date(year, month, 1)
+	last = date(year, month, calendar.monthrange(year, month)[1])
+	days = []
+	d = first
+	while d <= last:
+		if d.weekday() in wds:
+			days.append(str(d))
+		d += timedelta(days=1)
+	sessions = _sessions_by_room_day([r.customer for r in rooms], str(first), str(last + timedelta(days=1)))
+	logs = frappe.get_all(
+		"Duty Books Daily Log",
+		filters={"room": ["in", [r.name for r in rooms]] if rooms else ["is", "set"], "log_date": ["between", [str(first), str(last)]]},
+		fields=["room", "customer", "log_date", "posted_through", "user"],
+	)
+	log_days = {}
+	for l in logs:
+		log_days.setdefault((l.room, str(l.log_date)), []).append(l)
+	latest_pt = {}
+	for l in frappe.get_all(
+		"Duty Books Daily Log",
+		filters={"room": ["in", [r.name for r in rooms]] if rooms else ["is", "set"], "posted_through": ["is", "set"]},
+		fields=["room", "posted_through"],
+		order_by="posted_through asc",
+	):
+		latest_pt[l.room] = l.posted_through
+	tdy = getdate(today())
+	out_rooms = []
+	for r in sorted(rooms, key=lambda x: x.customer or ""):
+		cells = {}
+		for ds in days:
+			if getdate(ds) > tdy:
+				cells[ds] = "future"
+			else:
+				worked = (r.customer, ds) in sessions
+				logged = (r.name, ds) in log_days
+				cells[ds] = "both" if worked and logged else ("worked" if worked else ("logged" if logged else "none"))
+		streak = 0
+		for ds in reversed([x for x in days if getdate(x) <= tdy]):
+			if cells[ds] == "none":
+				streak += 1
+			else:
+				break
+		pt = latest_pt.get(r.name)
+		out_rooms.append(
+			{
+				"room": r.name,
+				"customer": r.customer,
+				"bookkeeper": r.bookkeeper,
+				"cells": cells,
+				"streak": streak,
+				"neglected": streak >= NEGLECT_DAYS,
+				"posted_through": str(pt) if pt else None,
+				"lag": _working_days_between(getdate(pt), tdy) if pt else None,
+			}
+		)
+	return {"period": period, "days": days, "rooms": out_rooms, "neglect_days": NEGLECT_DAYS}
+
+
+@frappe.whitelist()
+def books_register(period=None):
+	_staff_only()
+	return _register_data((period or today()[:7]).strip()[:7])
+
+
+def _digest_recipients(rooms):
+	users = {r.bookkeeper for r in rooms if r.bookkeeper}
+	try:
+		raw = (frappe.get_cached_doc("Duty Settings").get("books_managers") or "")
+		users |= {e.strip() for e in raw.replace("\n", ",").split(",") if e.strip()}
+	except Exception:
+		pass
+	return {u for u in users if u and frappe.db.exists("User", u)}
+
+
+def books_evening_digest():
+	"""Cron (weekday evenings): the unit's day, told to the whole unit."""
+	frappe.set_user("Administrator")
+	tdy = getdate(today())
+	if tdy.weekday() not in _workday_set():
+		return
+	data = _register_data(today()[:7])
+	rooms = data["rooms"]
+	if not rooms:
+		return
+	ds = today()
+	covered, partial, untouched, neglected = [], [], [], []
+	for r in rooms:
+		state = r["cells"].get(ds, "none")
+		lagtxt = f" (posted through {r['posted_through']}, lag {r['lag']}wd)" if r["posted_through"] else " (no attestation yet)"
+		line = f"{r['customer']}{lagtxt}"
+		if r["neglected"]:
+			neglected.append(f"{r['customer']} — {r['streak']} working days untouched")
+		if state == "both":
+			covered.append(line)
+		elif state in ("worked", "logged"):
+			partial.append(f"{line} — {'worked, not attested' if state == 'worked' else 'attested, no session'}")
+		else:
+			untouched.append(line)
+	parts = [f"📒 Books daily digest — {ds}"]
+	if neglected:
+		parts.append("⚠ NEGLECT (≥2 working days): " + "; ".join(neglected))
+	parts.append(f"✅ Covered today ({len(covered)}): " + ("; ".join(covered) or "none"))
+	if partial:
+		parts.append(f"🟡 Partial ({len(partial)}): " + "; ".join(partial))
+	parts.append(f"🔴 Untouched today ({len(untouched)}): " + ("; ".join(untouched) or "none"))
+	body = "\n".join(parts)
+	recipients = _digest_recipients(
+		[frappe._dict(bookkeeper=r["bookkeeper"]) for r in rooms]
+	)
+	title = f"📒 Books digest {ds}: {len(covered)}✅ {len(partial)}🟡 {len(untouched)}🔴" + (f" · {len(neglected)}⚠" if neglected else "")
+	for u in recipients:
+		try:
+			from duty_board.api import _notify_user
+
+			_notify_user(u, title, body[:180])
+		except Exception:
+			pass
+	try:
+		frappe.sendmail(recipients=sorted(recipients), subject=title, message=body.replace("\n", "<br>"), delayed=False)
+	except Exception:
+		frappe.log_error(frappe.get_traceback(), "books digest mail")
