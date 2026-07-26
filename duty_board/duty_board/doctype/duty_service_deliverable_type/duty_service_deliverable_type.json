@@ -1,0 +1,81 @@
+{
+ "actions": [],
+ "autoname": "hash",
+ "creation": "2026-07-26 12:00:00.000000",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "title",
+  "frequency",
+  "due_basis",
+  "due_day",
+  "optional",
+  "active",
+  "sort_order"
+ ],
+ "fields": [
+  {
+   "fieldname": "title",
+   "fieldtype": "Data",
+   "label": "Title",
+   "reqd": 1
+  },
+  {
+   "default": "Monthly",
+   "fieldname": "frequency",
+   "fieldtype": "Select",
+   "label": "Frequency",
+   "options": "Monthly\nQuarterly"
+  },
+  {
+   "default": "Nth working day of next month",
+   "fieldname": "due_basis",
+   "fieldtype": "Select",
+   "label": "Due Basis",
+   "options": "Nth working day of next month\nNth working day of period\nLast working day of period"
+  },
+  {
+   "default": "5",
+   "fieldname": "due_day",
+   "fieldtype": "Int",
+   "label": "N (working day)"
+  },
+  {
+   "default": "0",
+   "fieldname": "optional",
+   "fieldtype": "Check",
+   "label": "Optional (enabled per room)"
+  },
+  {
+   "default": "1",
+   "fieldname": "active",
+   "fieldtype": "Check",
+   "label": "Active"
+  },
+  {
+   "fieldname": "sort_order",
+   "fieldtype": "Int",
+   "label": "Sort Order"
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "links": [],
+ "modified": "2026-07-26 12:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "Duty Board",
+ "name": "Duty Service Deliverable Type",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "write": 1
+  }
+ ],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}

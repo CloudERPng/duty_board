@@ -27,6 +27,7 @@ frappe.pages["duty-board"].on_page_load = function (wrapper) {
 	page.add_inner_button(__("💼 Sales"), () => board.show_face("sales"), __("⇄ View"));
 	page.add_inner_button(__("🤝 Clients"), () => board.show_face("clients"), __("⇄ View"));
 	page.add_inner_button(__("👤 My Dashboard"), () => board.show_face("me"), __("⇄ View"));
+	page.add_inner_button(__("📒 Books"), () => board.books_dialog(), __("⇄ View"));
 	page.add_inner_button(__("📄 Document Hub"), () => frappe.set_route("List", "Client Document"));
 
 	board.timer = setInterval(() => {
@@ -2091,6 +2092,103 @@ class DutyBoard {
 				$(d.body).find("[data-back]").on("click", () => {
 					d.hide();
 					this.my_course_dialog(record);
+				});
+				d.show();
+			},
+		});
+	}
+
+	books_dialog(period) {
+		frappe.call({
+			method: "duty_board.accounting.books_matrix",
+			args: { period: period || null },
+			callback: (r) => {
+				const m = r.message;
+				if (!m) return;
+				const d = new frappe.ui.Dialog({ title: `📒 ${__("Accounting — close matrix")}`, size: "extra-large" });
+				const STAT = { Pending: ["·", "#94a3b8"], "In Progress": ["◐", "#b45309"], "In Review": ["👁", "#7c3aed"], Delivered: ["✓", "#0F5C55"], Acknowledged: ["✓✓", "#15803d"] };
+				const prevP = () => { const [y, mo] = m.period.split("-").map(Number); const dd = new Date(y, mo - 2, 1); return `${dd.getFullYear()}-${String(dd.getMonth() + 1).padStart(2, "0")}`; };
+				const nextP = () => { const [y, mo] = m.period.split("-").map(Number); const dd = new Date(y, mo, 1); return `${dd.getFullYear()}-${String(dd.getMonth() + 1).padStart(2, "0")}`; };
+				$(d.body).html(`
+					<div style="display:flex;gap:10px;align-items:center;margin-bottom:12px;flex-wrap:wrap">
+						<button class="btn btn-xs btn-default" data-prev>‹</button>
+						<b style="font-size:15px">${m.period}</b>
+						<button class="btn btn-xs btn-default" data-next>›</button>
+						<span style="margin-left:auto;display:flex;gap:8px">
+							<button class="btn btn-xs btn-default" data-sync>⟳ ${__("Sync clients")}</button>
+							<button class="btn btn-xs btn-primary" data-open>📂 ${__("Open period")}</button>
+						</span>
+					</div>
+					${m.rooms.length
+						? `<div style="overflow-x:auto"><table class="table table-bordered" style="font-size:var(--text-sm);margin:0">
+							<thead><tr><th style="min-width:170px">${__("Client")}</th><th>${__("Bookkeeper")}</th>${m.types.map((t) => `<th style="min-width:110px">${frappe.utils.escape_html(t.title)}${t.optional ? " *" : ""}</th>`).join("")}</tr></thead>
+							<tbody>${m.rooms
+								.map(
+									(row) => `<tr>
+								<td><b>${frappe.utils.escape_html(row.customer)}</b>${row.fee ? `<br><span class="text-muted" style="font-size:11px">₦${Number(row.fee).toLocaleString()}/mo</span>` : ""}</td>
+								<td><a class="duty-bk-room" data-room="${row.room}" data-bk="${row.bookkeeper || ""}" data-opt="${frappe.utils.escape_html(row.optionals)}" style="cursor:pointer">${row.bookkeeper_name ? frappe.utils.escape_html(row.bookkeeper_name.split(" ")[0]) : "— " + __("set")}</a></td>
+								${m.types
+									.map((t) => {
+										const c = row.cells[t.name];
+										if (!c) return `<td class="text-muted" style="text-align:center">—</td>`;
+										const [ic, col] = STAT[c.status] || ["·", "#94a3b8"];
+										return `<td style="text-align:center;cursor:pointer;${c.late ? "background:#FDECEA;" : ""}" class="duty-bk-cell" data-name="${c.name}" title="${frappe.utils.escape_html((c.notes || "") + (c.assigned_to ? " · " + c.assigned_to : ""))}">
+											<span style="color:${col};font-weight:800">${ic}</span>
+											<div style="font-size:10px;color:${c.late ? "#b91c1c" : "#94a3b8"}">${c.due_date ? c.due_date.slice(5) : ""}${c.late ? " ⚠" : ""}</div>
+											${c.assigned_to ? `<div style="font-size:10px;color:#64748b">${frappe.utils.escape_html((c.assigned_to || "").split("@")[0])}</div>` : ""}
+										</td>`;
+									})
+									.join("")}
+							</tr>`
+								)
+								.join("")}</tbody>
+						</table></div>
+						<div class="text-muted" style="font-size:11px;margin-top:8px">· ${__("Pending")} &nbsp; ◐ ${__("In progress")} &nbsp; 👁 ${__("In review")} &nbsp; ✓ ${__("Delivered")} &nbsp; ✓✓ ${__("Acknowledged by client")} &nbsp; * ${__("optional per room")} &nbsp; ${__("red = past due")}</div>`
+						: `<div class="text-muted">${__("No accounting clients found — set accounting_services to 'On Board' on the Customer, then Sync.")}</div>`}
+				`);
+				$(d.body).find("[data-prev]").on("click", () => { d.hide(); this.books_dialog(prevP()); });
+				$(d.body).find("[data-next]").on("click", () => { d.hide(); this.books_dialog(nextP()); });
+				$(d.body).find("[data-sync]").on("click", () =>
+					frappe.call({ method: "duty_board.accounting.sync_accounting_clients", callback: (rr) => { frappe.show_alert({ message: __("Synced: {0} clients, {1} rooms created", [rr.message.customers, rr.message.rooms_created]), indicator: "green" }); d.hide(); this.books_dialog(m.period); } })
+				);
+				$(d.body).find("[data-open]").on("click", () =>
+					frappe.call({ method: "duty_board.accounting.books_open_period", args: { period: m.period }, callback: (rr) => { frappe.show_alert({ message: __("{0} deliverables opened", [rr.message.spawned]), indicator: "green" }); d.hide(); this.books_dialog(m.period); } })
+				);
+				$(d.body).find(".duty-bk-cell").on("click", (e) => {
+					const name = $(e.currentTarget).data("name");
+					frappe.prompt(
+						[
+							{ fieldname: "status", fieldtype: "Select", label: __("Status"), options: "Pending\nIn Progress\nIn Review\nDelivered" },
+							{ fieldname: "assigned_to", fieldtype: "Autocomplete", label: __("Assigned to"), options: this.staff_options() },
+							{ fieldname: "reviewer", fieldtype: "Autocomplete", label: __("Reviewer (split clients)"), options: this.staff_options() },
+							{ fieldname: "notes", fieldtype: "Small Text", label: __("Notes") },
+						],
+						(v) =>
+							frappe.call({
+								method: "duty_board.accounting.books_set",
+								args: { name: name, status: v.status || null, assigned_to: v.assigned_to || null, reviewer: v.reviewer || null, notes: v.notes || null },
+								callback: () => { d.hide(); this.books_dialog(m.period); },
+							}),
+						__("Update deliverable"),
+						__("Save")
+					);
+				});
+				$(d.body).find(".duty-bk-room").on("click", (e) => {
+					const room = $(e.currentTarget).data("room");
+					frappe.prompt(
+						[
+							{ fieldname: "bookkeeper", fieldtype: "Autocomplete", label: __("Bookkeeper (default owner)"), options: this.staff_options(), default: $(e.currentTarget).data("bk") || "" },
+							{ fieldname: "optionals", fieldtype: "Data", label: __("Optional deliverables (comma-separated titles, e.g. Stock take)"), default: $(e.currentTarget).data("opt") || "" },
+						],
+						(v) =>
+							frappe.call({
+								method: "duty_board.accounting.books_set_room",
+								args: { name: room, bookkeeper: v.bookkeeper || null, optionals: v.optionals || null },
+								callback: () => { d.hide(); this.books_dialog(m.period); },
+							}),
+						__("Client setup"),
+						__("Save")
+					);
 				});
 				d.show();
 			},
