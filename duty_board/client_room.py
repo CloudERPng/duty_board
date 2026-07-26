@@ -655,24 +655,44 @@ def client_get_room(before=None):
 
 
 def _after_hours_payload():
-	"""Non-None outside working hours (Mon-Fri, configured hours, site time).
-	The on-call number travels ONLY in this payload — the emergency channel."""
+	"""Non-None outside working hours (configured days/hours in Duty Settings,
+	site time). The emergency contact is the CURRENT on-call person from the
+	board's rota, their phone read from their User record — the number
+	travels ONLY in this payload."""
 	now = now_datetime()
+	day_idx = {"mon": 0, "tue": 1, "wed": 2, "thu": 3, "fri": 4, "sat": 5, "sun": 6}
+	start, end, days = 9, 18, {0, 1, 2, 3, 4}
 	try:
-		s = frappe.get_cached_doc("Duty Board Settings")
-		start, end = cint(s.work_start_hour) or 9, cint(s.work_end_hour) or 18
-		oncall_name, oncall_phone = (s.oncall_name or "").strip(), (s.oncall_phone or "").strip()
+		s = frappe.get_cached_doc("Duty Settings")
+		start = cint(s.get("work_start_hour")) or 9
+		end = cint(s.get("work_end_hour")) or 18
+		raw = (s.get("workdays") or "").strip()
+		if raw:
+			parsed = {day_idx[t.strip()[:3].lower()] for t in raw.split(",") if t.strip()[:3].lower() in day_idx}
+			if parsed:
+				days = parsed
 	except Exception:
-		start, end, oncall_name, oncall_phone = 9, 18, "", ""
-	if now.weekday() < 5 and start <= now.hour < end:
+		pass
+	if now.weekday() in days and start <= now.hour < end:
 		return None
+	oncall_name, oncall_phone = "", ""
+	try:
+		from duty_board.api import on_call_info
+
+		info = on_call_info()
+		if info:
+			u = frappe.db.get_value("User", info["user"], ["full_name", "mobile_no", "phone"], as_dict=True)
+			if u:
+				oncall_name = u.full_name or info["first"]
+				oncall_phone = (u.mobile_no or u.phone or "").strip()
+	except Exception:
+		pass
 	return {
 		"start": f"{start:02d}:00",
 		"end": f"{end:02d}:00",
 		"oncall_name": oncall_name,
 		"oncall_phone": oncall_phone,
 	}
-
 
 @frappe.whitelist()
 def client_post_message(message, attachment_url=None, attachment_name=None, ref=None):

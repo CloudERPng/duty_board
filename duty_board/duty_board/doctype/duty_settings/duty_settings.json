@@ -12,7 +12,10 @@
   "sla_medium_res_hours",
   "sla_low_ack_hours",
   "sla_low_res_hours",
-  "on_call_user"
+  "on_call_user",
+  "work_start_hour",
+  "work_end_hour",
+  "workdays"
  ],
  "fields": [
   {
@@ -68,6 +71,25 @@
    "fieldtype": "Link",
    "label": "On-Call (out-of-hours urgent escalations)",
    "options": "User"
+  },
+  {
+   "default": "9",
+   "fieldname": "work_start_hour",
+   "fieldtype": "Int",
+   "label": "Work Start Hour (0-23, site time)"
+  },
+  {
+   "default": "18",
+   "fieldname": "work_end_hour",
+   "fieldtype": "Int",
+   "label": "Work End Hour (0-23, site time)"
+  },
+  {
+   "default": "Mon,Tue,Wed,Thu,Fri",
+   "fieldname": "workdays",
+   "fieldtype": "Data",
+   "label": "Work Days",
+   "description": "Comma-separated: Mon,Tue,Wed,Thu,Fri,Sat,Sun"
   }
  ],
  "issingle": 1,
