@@ -1,0 +1,78 @@
+{
+ "actions": [],
+ "autoname": "hash",
+ "creation": "2026-07-26 15:00:00.000000",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "room",
+  "customer",
+  "access_type",
+  "detail",
+  "granted_on",
+  "last_reviewed",
+  "active"
+ ],
+ "fields": [
+  {
+   "fieldname": "room",
+   "fieldtype": "Link",
+   "label": "Room",
+   "options": "Client Room",
+   "search_index": 1
+  },
+  {
+   "fieldname": "customer",
+   "fieldtype": "Data",
+   "label": "Customer"
+  },
+  {
+   "fieldname": "access_type",
+   "fieldtype": "Data",
+   "label": "Access Type",
+   "reqd": 1,
+   "description": "e.g. Bank \u2014 read only \u00b7 ERP \u2014 Accounts role"
+  },
+  {
+   "fieldname": "detail",
+   "fieldtype": "Small Text",
+   "label": "Detail"
+  },
+  {
+   "fieldname": "granted_on",
+   "fieldtype": "Date",
+   "label": "Granted On"
+  },
+  {
+   "fieldname": "last_reviewed",
+   "fieldtype": "Date",
+   "label": "Last Reviewed"
+  },
+  {
+   "default": "1",
+   "fieldname": "active",
+   "fieldtype": "Check",
+   "label": "Active"
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "links": [],
+ "modified": "2026-07-26 15:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "Duty Board",
+ "name": "Duty Access Register",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "write": 1
+  }
+ ],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}

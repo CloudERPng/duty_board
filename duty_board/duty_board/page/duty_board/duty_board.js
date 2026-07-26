@@ -2098,6 +2098,45 @@ class DutyBoard {
 		});
 	}
 
+	books_profit_dialog(period) {
+		frappe.call({
+			method: "duty_board.accounting.books_profitability",
+			args: { period: period },
+			callback: (r) => {
+				const m = r.message;
+				if (!m) return;
+				const d = new frappe.ui.Dialog({ title: `₦ ${__("Engagement profitability")} — ${m.period}`, size: "large" });
+				const totF = m.rows.reduce((a, x) => a + (x.fee || 0), 0);
+				const totH = m.rows.reduce((a, x) => a + (x.hours || 0), 0);
+				$(d.body).html(`
+					${m.rows.length
+						? `<table class="table table-bordered" style="font-size:var(--text-sm);margin:0">
+							<thead><tr><th>${__("Client")}</th><th style="text-align:right">${__("Fee/mo")}</th><th style="text-align:right">${__("Hours")}</th><th style="text-align:right">₦/${__("hr")}</th><th>${__("Who worked it")}</th></tr></thead>
+							<tbody>
+								${m.rows
+									.map(
+										(x) => `<tr>
+									<td><b>${frappe.utils.escape_html(x.customer)}</b></td>
+									<td style="text-align:right">₦${Number(x.fee || 0).toLocaleString()}</td>
+									<td style="text-align:right">${x.hours}</td>
+									<td style="text-align:right;font-weight:800;${x.rate !== null && x.fee && x.rate < 5000 ? "color:#b91c1c" : "color:#0F5C55"}">${x.rate !== null ? "₦" + Number(x.rate).toLocaleString() : "—"}</td>
+									<td class="text-muted" style="font-size:11px">${x.team.map((t) => `${frappe.utils.escape_html(t.first)} ${t.hours}h`).join(" · ") || "—"}</td>
+								</tr>`
+									)
+									.join("")}
+								<tr style="background:var(--bg-light-gray,#F4F7F6)"><td><b>${__("Total")}</b></td><td style="text-align:right"><b>₦${Number(totF).toLocaleString()}</b></td><td style="text-align:right"><b>${Math.round(totH * 10) / 10}</b></td><td style="text-align:right"><b>${totH ? "₦" + Number(Math.round(totF / totH)).toLocaleString() : "—"}</b></td><td></td></tr>
+							</tbody>
+						</table>
+						<div class="text-muted" style="font-size:11px;margin-top:8px">${__("Sorted worst rate first. Hours from Work Sessions tagged to the customer; sessions without a customer are invisible here — tagging discipline is the price of this number.")}</div>`
+						: `<div class="text-muted">${__("No accounting clients for this period.")}</div>`}
+					<div style="display:flex;justify-content:flex-end;margin-top:10px"><button class="btn btn-sm btn-default" data-back>← ${__("Matrix")}</button></div>
+				`);
+				$(d.body).find("[data-back]").on("click", () => { d.hide(); this.books_dialog(m.period); });
+				d.show();
+			},
+		});
+	}
+
 	books_dialog(period) {
 		frappe.call({
 			method: "duty_board.accounting.books_matrix",
@@ -2115,6 +2154,7 @@ class DutyBoard {
 						<b style="font-size:15px">${m.period}</b>
 						<button class="btn btn-xs btn-default" data-next>›</button>
 						<span style="margin-left:auto;display:flex;gap:8px">
+							${m.fees_visible ? `<button class="btn btn-xs btn-default" data-profit>₦ ${__("Profitability")}</button>` : ""}
 							<button class="btn btn-xs btn-default" data-sync>⟳ ${__("Sync clients")}</button>
 							<button class="btn btn-xs btn-primary" data-open>📂 ${__("Open period")}</button>
 						</span>
@@ -2148,6 +2188,10 @@ class DutyBoard {
 				`);
 				$(d.body).find("[data-prev]").on("click", () => { d.hide(); this.books_dialog(prevP()); });
 				$(d.body).find("[data-next]").on("click", () => { d.hide(); this.books_dialog(nextP()); });
+				$(d.body).find("[data-profit]").on("click", () => {
+					d.hide();
+					this.books_profit_dialog(m.period);
+				});
 				$(d.body).find("[data-sync]").on("click", () =>
 					frappe.call({ method: "duty_board.accounting.sync_accounting_clients", callback: (rr) => { frappe.show_alert({ message: __("Synced: {0} clients, {1} rooms created", [rr.message.customers, rr.message.rooms_created]), indicator: "green" }); d.hide(); this.books_dialog(m.period); } })
 				);

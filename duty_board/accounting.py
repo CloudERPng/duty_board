@@ -20,11 +20,23 @@ from datetime import date, timedelta
 
 import frappe
 from frappe import _
-from frappe.utils import cint, getdate, today
+from frappe.utils import cint, flt, getdate, today
 
 from duty_board.client_room import _post, _staff_only
 
 SERVICE_PRODUCT = "Accounting Services"
+
+
+def _books_manager():
+	"""Fees and profitability are visible to System Managers and the users
+	listed in Duty Settings.books_managers — no one else."""
+	if "System Manager" in frappe.get_roles():
+		return True
+	try:
+		raw = (frappe.get_cached_doc("Duty Settings").get("books_managers") or "").lower()
+		return frappe.session.user.lower() in {e.strip() for e in raw.replace("\n", ",").split(",") if e.strip()}
+	except Exception:
+		return False
 
 SEED_TYPES = [
 	# (title, frequency, due_basis, due_day, optional, sort)
@@ -239,6 +251,7 @@ def books_matrix(period=None):
 			"assigned_to", "reviewer", "delivered_on", "notes",
 		],
 	)
+	fees_ok = _books_manager()
 	by_room = {}
 	tdy = getdate(today())
 	for i in insts:
@@ -254,11 +267,11 @@ def books_matrix(period=None):
 				"bookkeeper": r.bookkeeper,
 				"bookkeeper_name": frappe.utils.get_fullname(r.bookkeeper) if r.bookkeeper else None,
 				"optionals": r.books_optionals or "",
-				"fee": custs.get(r.customer, frappe._dict()).get("accounting_fees"),
+				"fee": custs.get(r.customer, frappe._dict()).get("accounting_fees") if fees_ok else None,
 				"cells": by_room.get(r.name, {}),
 			}
 		)
-	return {"period": period, "types": types, "rooms": out_rooms}
+	return {"period": period, "types": types, "rooms": out_rooms, "fees_visible": fees_ok}
 
 
 @frappe.whitelist()
@@ -400,3 +413,55 @@ def client_ack_deliverable(name):
 		except Exception:
 			pass
 	return _client_deliverable_rows(room)
+
+
+# ---------------- profitability: hours against the fee ----------------
+
+
+@frappe.whitelist()
+def books_profitability(period=None):
+	_staff_only()
+	if not _books_manager():
+		frappe.throw(_("Fees and profitability are restricted."), frappe.PermissionError)
+	period = (period or today()[:7]).strip()[:7]
+	year, month = int(period[:4]), int(period[5:7])
+	start = f"{period}-01"
+	ny, nm = (year + 1, 1) if month == 12 else (year, month + 1)
+	end = f"{ny:04d}-{nm:02d}-01"
+	rooms, custs = _accounting_rooms()
+	if not rooms:
+		return {"period": period, "rows": []}
+	sessions = frappe.db.sql(
+		"""select customer, user, coalesce(sum(duration), 0) as secs
+		from `tabWork Session`
+		where customer in %(custs)s and start_time >= %(s)s and start_time < %(e)s
+		group by customer, user""",
+		{"custs": tuple(custs.keys()), "s": start, "e": end},
+		as_dict=True,
+	)
+	by_cust = {}
+	for s in sessions:
+		by_cust.setdefault(s.customer, []).append(s)
+	out = []
+	for r in rooms:
+		fee = flt(custs.get(r.customer, frappe._dict()).get("accounting_fees"))
+		rows = by_cust.get(r.customer, [])
+		secs = sum(s.secs for s in rows)
+		hours = round(secs / 3600.0, 1)
+		out.append(
+			{
+				"customer": r.customer,
+				"fee": fee,
+				"hours": hours,
+				"rate": round(fee / hours, 0) if hours else None,
+				"team": sorted(
+					[
+						{"user": s.user, "first": frappe.utils.get_fullname(s.user).split(" ")[0], "hours": round(s.secs / 3600.0, 1)}
+						for s in rows
+					],
+					key=lambda x: -x["hours"],
+				),
+			}
+		)
+	out.sort(key=lambda x: (x["rate"] is None, x["rate"] if x["rate"] is not None else 0))
+	return {"period": period, "rows": out}
