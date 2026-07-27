@@ -2227,7 +2227,8 @@ class DutyBoard {
 								<td><b>${frappe.utils.escape_html(row.customer)}</b>
 									${row.posted_through ? `<br><span style="font-size:10px;font-weight:700;color:${row.lag <= 1 ? "#15803d" : row.lag <= 3 ? "#b45309" : "#b91c1c"}">📮 ${__("posted thru")} ${row.posted_through.slice(5)} · ${__("lag")} ${row.lag}wd</span>` : `<br><span style="font-size:10px;color:#94a3b8">📮 ${__("no attestation")}</span>`}
 									${row.fee ? `<br><span class="text-muted" style="font-size:11px">₦${Number(row.fee).toLocaleString()}/mo</span>` : ""}</td>
-								<td><a class="duty-bk-room" data-room="${row.room}" data-bk="${row.bookkeeper || ""}" data-opt="${frappe.utils.escape_html(row.optionals)}" style="cursor:pointer">${row.bookkeeper_name ? frappe.utils.escape_html(row.bookkeeper_name.split(" ")[0]) : "— " + __("set")}</a></td>
+								<td><a class="duty-bk-room" data-room="${row.room}" data-bk="${row.bookkeeper || ""}" data-opt="${frappe.utils.escape_html(row.optionals)}" style="cursor:pointer">${row.bookkeeper_name ? frappe.utils.escape_html(row.bookkeeper_name.split(" ")[0]) : "— " + __("set")}</a>
+									<a class="duty-bk-pb" data-room="${row.room}" title="${__("Client playbook")}" style="cursor:pointer;margin-left:6px">📖</a></td>
 								${m.types
 									.map((t) => {
 										const c = row.cells[t.name];
@@ -2263,6 +2264,7 @@ class DutyBoard {
 					frappe.call({ method: "duty_board.accounting.books_open_period", args: { period: this.books_period }, callback: (rr) => { frappe.show_alert({ message: __("{0} deliverables, {1} document requests opened", [rr.message.spawned, rr.message.requests || 0]), indicator: "green" }); this.render_books_shell(); } })
 				);
 				$p.find(".duty-bk-cell").on("click", (e) => this.books_cell_dialog($(e.currentTarget).data("name")));
+				$p.find(".duty-bk-pb").on("click", (e) => this.books_playbook_dialog($(e.currentTarget).data("room")));
 				$p.find(".duty-bk-room").on("click", (e) => {
 					const room = $(e.currentTarget).data("room");
 					const current = ($(e.currentTarget).data("opt") || "").split(",").map((s) => s.trim()).filter(Boolean);
@@ -2479,6 +2481,41 @@ class DutyBoard {
 		});
 	}
 
+	books_playbook_dialog(room) {
+		frappe.call({
+			method: "duty_board.accounting.books_playbook_get",
+			args: { room: room },
+			callback: (r) => {
+				const m = r.message;
+				if (!m) return;
+				const d = new frappe.ui.Dialog({
+					title: `📖 ${frappe.utils.escape_html(m.customer)} — ${__("playbook")}`,
+					size: "large",
+					fields: [
+						{
+							fieldname: "playbook",
+							fieldtype: "Text",
+							label: __("Everything a covering bookkeeper must know"),
+							default: m.playbook,
+						},
+					],
+					primary_action_label: __("Save"),
+					primary_action: (v) =>
+						frappe.call({
+							method: "duty_board.accounting.books_playbook_set",
+							args: { room: room, playbook: v.playbook || "" },
+							callback: () => {
+								frappe.show_alert({ message: __("Playbook saved"), indicator: "green" });
+								d.hide();
+							},
+						}),
+				});
+				d.$body.find("textarea").css({ "min-height": "320px", "font-family": "ui-monospace, monospace", "font-size": "13px" });
+				d.show();
+			},
+		});
+	}
+
 	books_cell_dialog(name) {
 		frappe.call({
 			method: "duty_board.accounting.books_cell",
@@ -2671,6 +2708,20 @@ class DutyBoard {
 								)
 								.join("")
 						: `<div class="text-muted" style="font-size:12px">${__("No clients flagged — every engagement is above the floor (or lacks 3 months of tagged hours).")}</div>`}
+					<div style="font-size:12px;font-weight:800;margin:14px 0 6px">👜 ${__("Capacity — who takes the next client?")}</div>
+					<table class="table table-bordered" style="font-size:var(--text-sm);margin:0;background:#fff">
+						<thead><tr><th>${__("Bookkeeper")}</th><th style="text-align:center">${__("Clients owned")}</th><th style="text-align:center">${__("Open this period")}</th><th style="text-align:center">${__("Avg hrs/mo (3mo)")}</th></tr></thead>
+						<tbody>${(m.capacity || [])
+							.map(
+								(c, i) => `<tr ${i === 0 ? 'style="background:#F4FBF8"' : ""}>
+							<td><b>${frappe.utils.escape_html(c.first)}</b>${i === 0 ? ` <span style="font-size:11px;font-weight:700;color:#15803d">← ${__("lightest load")}</span>` : ""}</td>
+							<td style="text-align:center">${c.clients}</td>
+							<td style="text-align:center">${c.open_now || ""}</td>
+							<td style="text-align:center">${c.hours3 || "—"}</td>
+						</tr>`
+							)
+							.join("") || `<tr><td colspan="4" class="text-muted">${__("No bookkeepers assigned yet.")}</td></tr>`}</tbody>
+					</table>
 					<div class="text-muted" style="font-size:11px;margin-top:8px">${__("Floor is configurable in Duty Settings. Lag and rates depend on attestations and customer-tagged sessions — the disciplines feed the numbers.")}</div>
 				`);
 			},

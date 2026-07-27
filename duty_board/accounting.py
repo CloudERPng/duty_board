@@ -1907,6 +1907,30 @@ def books_kpi(period=None):
 			rates.append(round(fee / h, 0) if h else None)
 		if all(x is not None and x < floor for x in rates):
 			fee_review.append({"customer": r.customer, "fee": fee, "rates": rates})
+	# capacity: who takes the next client?
+	cap = {}
+	for r in rooms:
+		if r.bookkeeper:
+			cap.setdefault(r.bookkeeper, {"user": r.bookkeeper, "clients": 0, "open_now": 0, "hours3": 0.0})["clients"] += 1
+	for x in dels:
+		if x.period == period and x.assigned_to and x.status not in ("Delivered", "Acknowledged"):
+			cap.setdefault(x.assigned_to, {"user": x.assigned_to, "clients": 0, "open_now": 0, "hours3": 0.0})["open_now"] += 1
+	if cap:
+		s3, _x3 = _period_bounds(last3[0])
+		_y3, e3 = _period_bounds(last3[-1])
+		urows = frappe.db.sql(
+			"""select user, coalesce(sum(duration), 0) as secs from `tabWork Session`
+			where user in %(u)s and customer in %(c)s and start_time >= %(s)s and start_time < %(e)s
+			group by user""",
+			{"u": tuple(cap.keys()), "c": tuple([r.customer for r in rooms]) or ("",), "s": str(s3), "e": str(e3 + timedelta(days=1))},
+			as_dict=True,
+		)
+		for u in urows:
+			if u.user in cap:
+				cap[u.user]["hours3"] = round(u.secs / 3600.0 / max(1, len(last3)), 1)
+	capacity = sorted(cap.values(), key=lambda x: (x["clients"], x["open_now"], x["hours3"]))
+	for c in capacity:
+		c["first"] = frappe.utils.get_fullname(c["user"]).split(" ")[0]
 	return {
 		"period": period,
 		"periods": periods,
@@ -1916,4 +1940,38 @@ def books_kpi(period=None):
 		"fee_review": fee_review,
 		"floor": floor,
 		"last3": last3,
+		"capacity": capacity,
 	}
+
+
+# ---------------- client playbooks + capacity ----------------
+
+PLAYBOOK_SKELETON = """BANKS & STATEMENTS
+- 
+
+KEY CONTACTS (who to call, for what)
+- 
+
+MONTH PECULIARITIES (recurring oddities, timing quirks)
+- 
+
+ACCESS NOTES (where credentials live, renewal dates)
+- 
+"""
+
+
+@frappe.whitelist()
+def books_playbook_get(room):
+	_staff_only()
+	d = frappe.db.get_value("Client Room", room, ["customer", "playbook"], as_dict=True)
+	if not d:
+		frappe.throw(_("Not found."))
+	return {"room": room, "customer": d.customer, "playbook": d.playbook or PLAYBOOK_SKELETON}
+
+
+@frappe.whitelist()
+def books_playbook_set(room, playbook):
+	_staff_only()
+	frappe.db.set_value("Client Room", room, "playbook", (playbook or "").strip()[:10000] or None, update_modified=False)
+	frappe.db.commit()
+	return {"ok": True}
