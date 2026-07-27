@@ -1,0 +1,85 @@
+{
+ "actions": [],
+ "autoname": "hash",
+ "creation": "2026-07-27 21:00:00.000000",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "room",
+  "customer",
+  "step",
+  "sort_order",
+  "status",
+  "done_on",
+  "done_by",
+  "note"
+ ],
+ "fields": [
+  {
+   "fieldname": "room",
+   "fieldtype": "Link",
+   "label": "Room",
+   "options": "Client Room",
+   "reqd": 1,
+   "search_index": 1
+  },
+  {
+   "fieldname": "customer",
+   "fieldtype": "Data",
+   "label": "Customer"
+  },
+  {
+   "fieldname": "step",
+   "fieldtype": "Data",
+   "label": "Step",
+   "reqd": 1
+  },
+  {
+   "fieldname": "sort_order",
+   "fieldtype": "Int",
+   "label": "Sort Order"
+  },
+  {
+   "default": "Open",
+   "fieldname": "status",
+   "fieldtype": "Select",
+   "label": "Status",
+   "options": "Open\nDone"
+  },
+  {
+   "fieldname": "done_on",
+   "fieldtype": "Datetime",
+   "label": "Done On"
+  },
+  {
+   "fieldname": "done_by",
+   "fieldtype": "Data",
+   "label": "Done By"
+  },
+  {
+   "fieldname": "note",
+   "fieldtype": "Small Text",
+   "label": "Note"
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "links": [],
+ "modified": "2026-07-27 21:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "Duty Board",
+ "name": "Duty Books Onboarding",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "write": 1
+  }
+ ],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}

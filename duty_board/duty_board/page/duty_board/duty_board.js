@@ -2135,6 +2135,7 @@ class DutyBoard {
 			["round", "📅 " + __("My round")],
 			["register", "🗓 " + __("Register")],
 			["followups", "📨 " + __("Follow-ups")],
+			["onboarding", "🚀 " + __("Onboarding")],
 		];
 		if (mgr) tabs.push(["profit", "₦ " + __("Profitability")]);
 		this.$books.html(`
@@ -2195,6 +2196,7 @@ class DutyBoard {
 			round: "_bpanel_round",
 			register: "_bpanel_register",
 			followups: "_bpanel_followups",
+			onboarding: "_bpanel_onboarding",
 			profit: "_bpanel_profit",
 		}[this.books_tab];
 		if (fn) this[fn]($p);
@@ -2487,6 +2489,62 @@ class DutyBoard {
 						__("Request a document"),
 						__("Send")
 					)
+				);
+			},
+		});
+	}
+
+	_bpanel_onboarding($p) {
+		frappe.call({
+			method: "duty_board.accounting.books_onboarding",
+			callback: (r) => {
+				const m = r.message;
+				if (!m) return;
+				const card = (v) => `
+					<div style="border:1px solid var(--border-color,#E7ECEA);border-radius:12px;padding:12px 14px;margin-bottom:10px;background:#fff">
+						<div style="display:flex;gap:10px;align-items:center;margin-bottom:8px">
+							<b style="font-size:14px">${frappe.utils.escape_html(v.customer)}</b>
+							<span style="font-size:12px;font-weight:700;color:${v.done === v.total ? "#15803d" : "#0F5C55"}">${v.done}/${v.total}</span>
+							<span style="flex:1;height:6px;background:#E7ECEA;border-radius:99px;overflow:hidden"><i style="display:block;height:100%;width:${v.total ? Math.round((v.done / v.total) * 100) : 0}%;background:#0F5C55"></i></span>
+						</div>
+						${v.steps
+							.map(
+								(s) => `
+						<div style="display:flex;gap:9px;align-items:baseline;padding:4px 0;border-top:1px dashed #EEF2F0">
+							<a class="duty-ob-tick" data-name="${s.name}" data-done="${s.status === "Done" ? 0 : 1}" style="cursor:pointer;font-size:15px">${s.status === "Done" ? "☑" : "☐"}</a>
+							<span style="font-size:13px;${s.status === "Done" ? "color:#94a3b8;text-decoration:line-through" : ""}">${frappe.utils.escape_html(s.step)}</span>
+							<span class="text-muted" style="font-size:10px;margin-left:auto;white-space:nowrap">${s.status === "Done" ? frappe.utils.escape_html((s.done_by || "").split(" ")[0]) + " · " + (s.done_on || "") : ""}</span>
+						</div>`
+							)
+							.join("")}
+					</div>`;
+				$p.html(`
+					${m.active.length ? m.active.map(card).join("") : `<div class="text-muted" style="margin-bottom:10px">${__("No clients mid-onboarding.")}</div>`}
+					${m.not_started.length
+						? `<div style="font-size:12px;font-weight:800;margin:6px 0">${__("Not started")}</div>` +
+							m.not_started
+								.map(
+									(x) => `<div style="display:flex;gap:8px;align-items:center;padding:6px 0"><span style="font-size:13px">${frappe.utils.escape_html(x.customer)}</span><button class="btn btn-xs btn-default duty-ob-start" data-room="${x.room}" style="margin-left:auto">🚀 ${__("Start onboarding")}</button></div>`
+								)
+								.join("")
+						: ""}
+					${m.complete.length
+						? `<details style="margin-top:10px"><summary class="text-muted" style="font-size:12px;cursor:pointer">✅ ${__("Completed")} (${m.complete.length})</summary>${m.complete.map(card).join("")}</details>`
+						: ""}
+				`);
+				$p.find(".duty-ob-tick").on("click", (e) =>
+					frappe.call({
+						method: "duty_board.accounting.books_tick_onboarding",
+						args: { name: $(e.currentTarget).data("name"), done: $(e.currentTarget).data("done") },
+						callback: () => this._bpanel_onboarding($p),
+					})
+				);
+				$p.find(".duty-ob-start").on("click", (e) =>
+					frappe.call({
+						method: "duty_board.accounting.books_start_onboarding",
+						args: { room: $(e.currentTarget).data("room") },
+						callback: () => this._bpanel_onboarding($p),
+					})
 				);
 			},
 		});

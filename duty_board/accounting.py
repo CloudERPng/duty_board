@@ -209,6 +209,7 @@ def _sync_accounting_clients():
 			_ensure_token(doc)
 			room_name = doc.name
 			created += 1
+			_spawn_onboarding(room_name, c.name)
 		prods = [p.strip() for p in (frappe.db.get_value("Client Room", room_name, "products") or "").split(",") if p.strip()]
 		if SERVICE_PRODUCT not in prods:
 			prods.append(SERVICE_PRODUCT)
@@ -1364,3 +1365,103 @@ def books_pulse(period=None):
 	if _books_manager():
 		out["fee_total"] = sum(flt(custs.get(r.customer, frappe._dict()).get("accounting_fees")) for r in rooms)
 	return out
+
+
+# ---------------- onboarding runbook ----------------
+
+DEFAULT_ONBOARDING = [
+	"Access collected — bank read-only confirmed working",
+	"Access Register populated (every access held, granted date)",
+	"ERP user & Accounts role provisioned on client site",
+	"Opening balances verified against last statements",
+	"Chart of accounts reviewed & aligned to templates",
+	"Prior-period documents collected to the Hub",
+	"Portal members invited (client admin named)",
+	"Service tier set (optionals ticked in client setup)",
+	"First close date agreed & communicated",
+]
+
+
+def _onboarding_steps_template():
+	try:
+		raw = (frappe.get_cached_doc("Duty Settings").get("books_onboarding_steps") or "").strip()
+		if raw:
+			return [l.strip() for l in raw.splitlines() if l.strip()]
+	except Exception:
+		pass
+	return DEFAULT_ONBOARDING
+
+
+def _spawn_onboarding(room_name, customer):
+	if frappe.db.exists("Duty Books Onboarding", {"room": room_name}):
+		return 0
+	for i, step in enumerate(_onboarding_steps_template()):
+		frappe.get_doc(
+			{
+				"doctype": "Duty Books Onboarding",
+				"room": room_name,
+				"customer": customer,
+				"step": step,
+				"sort_order": i,
+				"status": "Open",
+			}
+		).insert(ignore_permissions=True)
+	return 1
+
+
+@frappe.whitelist()
+def books_start_onboarding(room):
+	_staff_only()
+	customer = frappe.db.get_value("Client Room", room, "customer")
+	n = _spawn_onboarding(room, customer)
+	frappe.db.commit()
+	return {"started": n}
+
+
+@frappe.whitelist()
+def books_onboarding():
+	_staff_only()
+	rooms, _c = _accounting_rooms()
+	names = [r.name for r in rooms]
+	rows = frappe.get_all(
+		"Duty Books Onboarding",
+		filters={"room": ["in", names] if names else ["is", "set"]},
+		fields=["name", "room", "customer", "step", "sort_order", "status", "done_on", "done_by", "note"],
+		order_by="customer asc, sort_order asc",
+	)
+	by_room = {}
+	for r in rows:
+		r.done_on = str(r.done_on)[:16] if r.done_on else None
+		by_room.setdefault(r.room, {"room": r.room, "customer": r.customer, "steps": []})["steps"].append(r)
+	active, complete = [], []
+	for v in by_room.values():
+		total = len(v["steps"])
+		done = sum(1 for s in v["steps"] if s.status == "Done")
+		v["done"] = done
+		v["total"] = total
+		(complete if done == total else active).append(v)
+	not_started = [
+		{"room": r.name, "customer": r.customer}
+		for r in sorted(rooms, key=lambda x: x.customer or "")
+		if r.name not in by_room
+	]
+	return {"active": active, "complete": complete, "not_started": not_started}
+
+
+@frappe.whitelist()
+def books_tick_onboarding(name, done=1, note=None):
+	_staff_only()
+	doc = frappe.get_doc("Duty Books Onboarding", name)
+	vals = {
+		"status": "Done" if cint(done) else "Open",
+		"done_on": frappe.utils.now_datetime() if cint(done) else None,
+		"done_by": frappe.utils.get_fullname(frappe.session.user) if cint(done) else None,
+	}
+	if note is not None:
+		vals["note"] = (note or "").strip()[:300] or None
+	doc.db_set(vals, update_modified=False)
+	frappe.db.commit()
+	if cint(done) and not frappe.db.exists("Duty Books Onboarding", {"room": doc.room, "status": "Open"}):
+		room = frappe.get_doc("Client Room", doc.room)
+		_post(room, _("🚀 {0} is fully onboarded — welcome aboard!").format(room.customer))
+	return books_onboarding()
