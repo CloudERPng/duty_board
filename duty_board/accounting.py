@@ -762,9 +762,15 @@ def _mail_client(room, subject, body, ref_doctype=None, ref_name=None):
 	recipients = _room_client_emails(room.name)
 	if not recipients:
 		return
+	sender = frappe.db.get_value(
+		"Email Account", {"default_incoming": 1, "enable_incoming": 1}, "email_id"
+	)
 	try:
 		from frappe.core.doctype.communication.email import make
 
+		kwargs = {}
+		if sender:
+			kwargs["sender"] = sender
 		make(
 			doctype=ref_doctype,
 			name=ref_name,
@@ -774,6 +780,7 @@ def _mail_client(room, subject, body, ref_doctype=None, ref_name=None):
 			communication_medium="Email",
 			sent_or_received="Sent",
 			send_email=True,
+			**kwargs,
 		)
 	except Exception:
 		frappe.log_error(frappe.get_traceback(), "books client mail")
@@ -784,6 +791,7 @@ def _mail_client(room, subject, body, ref_doctype=None, ref_name=None):
 				message=body,
 				reference_doctype=ref_doctype,
 				reference_name=ref_name,
+				reply_to=sender or None,
 				delayed=False,
 			)
 		except Exception:
