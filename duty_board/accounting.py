@@ -288,7 +288,7 @@ def books_matrix(period=None):
 	types = frappe.get_all(
 		"Duty Service Deliverable Type",
 		filters={"active": 1},
-		fields=["name", "title", "optional"],
+		fields=["name", "title", "optional", "frequency"],
 		order_by="sort_order asc",
 	)
 	insts = frappe.get_all(

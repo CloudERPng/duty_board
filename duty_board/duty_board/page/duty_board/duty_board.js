@@ -2382,7 +2382,16 @@ class DutyBoard {
 								${m.types
 									.map((t) => {
 										const c = row.cells[t.name];
-										if (!c) return `<td class="text-muted" style="text-align:center">—</td>`;
+										if (!c) {
+											const enabled = !t.optional || (row.optionals || "").split(",").map((s) => s.trim()).some((s) => s === t.title || s === t.name);
+											if (enabled && t.frequency === "Quarterly") {
+												const mo = Number(m.period.slice(5, 7));
+												const qm = mo <= 3 ? 3 : mo <= 6 ? 6 : mo <= 9 ? 9 : 12;
+												const qname = ["", "", "", "Mar", "", "", "Jun", "", "", "Sep", "", "", "Dec"][qm];
+												return `<td class="text-muted" style="text-align:center;font-size:10px" title="${__("Quarterly — next occurrence opens with the {0} period", [qname])}">↻ ${qname}</td>`;
+											}
+											return `<td class="text-muted" style="text-align:center">—</td>`;
+										}
 										const [ic, col] = STAT[c.status] || ["·", "#94a3b8"];
 										return `<td style="text-align:center;cursor:pointer;${c.late ? "background:#FDECEA;" : ""}" class="duty-bk-cell" data-name="${c.name}" title="${frappe.utils.escape_html((c.notes || "") + (c.assigned_to ? " · " + c.assigned_to : ""))}">
 											<span style="color:${col};font-weight:800">${ic}</span>
