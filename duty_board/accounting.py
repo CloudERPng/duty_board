@@ -727,6 +727,53 @@ def books_evening_digest():
 CHASE_EVERY_WD = 2
 
 
+def _room_client_emails(room_name):
+	users = frappe.get_all(
+		"Client Room Member", filters={"room": room_name, "active": 1}, pluck="user"
+	)
+	out = []
+	for u in users:
+		if u and frappe.db.get_value("User", u, "enabled"):
+			out.append(u)
+	return out
+
+
+def _file_to_shelf(room_name, title, file_url, file_name):
+	if not file_url:
+		return None
+	doc = frappe.get_doc(
+		{
+			"doctype": "Client Shelf Doc",
+			"room": room_name,
+			"title": title[:140],
+			"category": "Accounting — received",
+			"file_url": file_url,
+			"file_name": (file_name or "")[:140] or None,
+			"active": 1,
+		}
+	).insert(ignore_permissions=True)
+	return doc.name
+
+
+def _mail_client(room, subject, body, ref_doctype=None, ref_name=None):
+	"""Email the room's client members, threaded to the reference document so
+	replies (via the site's incoming email account) attach back to it."""
+	recipients = _room_client_emails(room.name)
+	if not recipients:
+		return
+	try:
+		frappe.sendmail(
+			recipients=recipients,
+			subject=subject,
+			message=body,
+			reference_doctype=ref_doctype,
+			reference_name=ref_name,
+			delayed=False,
+		)
+	except Exception:
+		frappe.log_error(frappe.get_traceback(), "books client mail")
+
+
 def _spawn_period_requests(period):
 	"""Standard monthly document requests for every accounting room."""
 	try:
@@ -800,7 +847,16 @@ def books_followups(room=None):
 	for r in requests:
 		r.due_date = str(r.due_date) if r.due_date else None
 		r.overdue = bool(r.due_date and getdate(r.due_date) < tdy)
-	return {"rooms": [{"room": r.name, "customer": r.customer} for r in sorted(rooms, key=lambda x: x.customer or "")], "queries": queries, "requests": requests}
+	received = frappe.get_all(
+		"Duty Books Request",
+		filters={"room": ["in", names] if names else ["is", "set"], "status": "Received"},
+		fields=["name", "room", "customer", "title", "attachment_url", "attachment_name", "fulfilled_on", "fulfilled_by"],
+		order_by="fulfilled_on desc",
+		limit=10,
+	)
+	for r in received:
+		r.fulfilled_on = str(r.fulfilled_on)[:16] if r.fulfilled_on else None
+	return {"rooms": [{"room": r.name, "customer": r.customer} for r in sorted(rooms, key=lambda x: x.customer or "")], "queries": queries, "requests": requests, "received": received}
 
 
 @frappe.whitelist()
@@ -823,6 +879,25 @@ def books_add_query(room, question, ref_date=None, amount=None, reference=None):
 	frappe.db.commit()
 	roomdoc = frappe.get_doc("Client Room", room)
 	_post(roomdoc, _("❓ A question from your accounting team is waiting on the portal home."))
+	q = frappe.get_all(
+		"Duty Books Query",
+		filters={"room": room, "status": "Open", "asked_by": frappe.session.user},
+		fields=["name", "question", "ref_date", "amount", "reference"],
+		order_by="creation desc",
+		limit=1,
+	)
+	if q:
+		q = q[0]
+		ref_bits = " · ".join([str(x) for x in [q.ref_date, f"₦{q.amount:,.0f}" if q.amount else None, q.reference] if x])
+		_mail_client(
+			roomdoc,
+			f"❓ Question about a transaction — {roomdoc.customer}",
+			f"<p>Your accounting team asks:</p><blockquote>{frappe.utils.escape_html(q.question)}</blockquote>"
+			+ (f"<p style='color:#666'>{frappe.utils.escape_html(ref_bits)}</p>" if ref_bits else "")
+			+ "<p><b>Just reply to this email</b> and your answer will reach the team directly — or answer on your portal home.</p>",
+			"Duty Books Query",
+			q.name,
+		)
 	return books_followups(room)
 
 
@@ -845,6 +920,25 @@ def books_add_request(room, title, detail=None, due_date=None):
 	frappe.db.commit()
 	roomdoc = frappe.get_doc("Client Room", room)
 	_post(roomdoc, _("📎 Your accounting team has requested a document — see the portal home."))
+	rq = frappe.get_all(
+		"Duty Books Request",
+		filters={"room": room, "status": "Requested"},
+		fields=["name", "title", "detail", "due_date"],
+		order_by="creation desc",
+		limit=1,
+	)
+	if rq:
+		rq = rq[0]
+		_mail_client(
+			roomdoc,
+			f"📎 Document needed — {rq.title}",
+			f"<p>Your accounting team needs: <b>{frappe.utils.escape_html(rq.title)}</b></p>"
+			+ (f"<p>{frappe.utils.escape_html(rq.detail)}</p>" if rq.detail else "")
+			+ (f"<p>Due: {rq.due_date}</p>" if rq.due_date else "")
+			+ "<p><b>Reply to this email with the file attached</b> and it will be filed automatically — or upload on your portal home.</p>",
+			"Duty Books Request",
+			rq.name,
+		)
 	return books_followups(room)
 
 
@@ -945,7 +1039,8 @@ def client_fulfill_request(name, attachment_url=None, attachment_name=None):
 		update_modified=False,
 	)
 	frappe.db.commit()
-	_post(room, _("📎 {0} sent: {1}").format(who, doc.title))
+	shelf = _file_to_shelf(room.name, f"{doc.title} — {today()[:7]}", attachment_url, attachment_name)
+	_post(room, _("📎 {0} sent: {1} — filed to your Documents.").format(who, doc.title) if shelf else _("📎 {0} sent: {1}").format(who, doc.title))
 	return _client_followup_rows(room)
 
 
@@ -997,3 +1092,69 @@ def books_client_chase():
 			frappe.db.commit()
 		except Exception:
 			frappe.log_error(frappe.get_traceback(), "books chase")
+
+
+
+def handle_communication(doc, method=None):
+	"""doc_events hook (add manually to hooks.py):
+	doc_events = {"Communication": {"after_insert": "duty_board.accounting.handle_communication"}}
+	Email replies threaded to a query/request populate it. Requires an incoming
+	Email Account on the site."""
+	try:
+		if doc.communication_type != "Communication" or doc.sent_or_received != "Received":
+			return
+		if doc.reference_doctype == "Duty Books Query":
+			q = frappe.db.get_value(
+				"Duty Books Query", doc.reference_name, ["room", "status"], as_dict=True
+			)
+			if not q or q.status != "Open":
+				return
+			answer = (doc.text_content or frappe.utils.strip_html(doc.content or "")).strip()[:500]
+			if not answer:
+				return
+			who = doc.sender_full_name or doc.sender or "Client"
+			frappe.db.set_value(
+				"Duty Books Query",
+				doc.reference_name,
+				{"status": "Answered", "answer": answer, "answered_on": frappe.utils.now_datetime(), "answered_by": who},
+				update_modified=False,
+			)
+			room = frappe.get_doc("Client Room", q.room)
+			_post(room, "💬 {0} answered an accounting question by email: {1}".format(who, answer[:120]))
+			frappe.db.commit()
+		elif doc.reference_doctype == "Duty Books Request":
+			r = frappe.db.get_value(
+				"Duty Books Request", doc.reference_name, ["room", "status", "title"], as_dict=True
+			)
+			if not r or r.status != "Requested":
+				return
+			files = frappe.get_all(
+				"File",
+				filters={"attached_to_doctype": "Communication", "attached_to_name": doc.name},
+				fields=["file_url", "file_name"],
+			)
+			if not files:
+				return
+			who = doc.sender_full_name or doc.sender or "Client"
+			f = files[0]
+			frappe.db.set_value(
+				"Duty Books Request",
+				doc.reference_name,
+				{
+					"status": "Received",
+					"attachment_url": f.file_url,
+					"attachment_name": f.file_name,
+					"fulfilled_on": frappe.utils.now_datetime(),
+					"fulfilled_by": who,
+				},
+				update_modified=False,
+			)
+			shelf_title = "{0} — {1}".format(r.title, today()[:7])
+			_file_to_shelf(r.room, shelf_title, f.file_url, f.file_name)
+			for extra in files[1:]:
+				_file_to_shelf(r.room, shelf_title, extra.file_url, extra.file_name)
+			room = frappe.get_doc("Client Room", r.room)
+			_post(room, "📎 {0} sent {1} by email — filed to your Documents.".format(who, r.title))
+			frappe.db.commit()
+	except Exception:
+		frappe.log_error(frappe.get_traceback(), "books inbound mail")

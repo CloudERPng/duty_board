@@ -2145,6 +2145,20 @@ class DutyBoard {
 					</div>`
 						)
 						.join("") || `<div class="text-muted">${__("Nothing outstanding.")}</div>`}
+					${m.received && m.received.length
+						? `<div style="font-size:12px;font-weight:800;margin:10px 0 6px">📥 ${__("Recently received")}</div>` +
+							m.received
+								.map(
+									(x) => `
+					<div style="border:1px solid #CBE7DE;background:#F4FBF8;border-radius:10px;padding:8px 12px;margin-bottom:6px;display:flex;gap:8px;align-items:center">
+						<b style="font-size:13px">${frappe.utils.escape_html(roomName(x.room))}</b>
+						<span style="font-size:13px">${frappe.utils.escape_html(x.title)}</span>
+						<span class="text-muted" style="font-size:11px;margin-left:auto">${frappe.utils.escape_html(x.fulfilled_by || "")} · ${x.fulfilled_on || ""}</span>
+						${x.attachment_url ? `<a class="btn btn-xs btn-default" href="${frappe.utils.escape_html(x.attachment_url)}" target="_blank">📎 ${__("Open")}</a>` : ""}
+					</div>`
+								)
+								.join("")
+						: ""}
 				`);
 				const reload = (rm) => { d.hide(); this.books_followups_dialog(back_period, rm !== undefined ? rm : room_filter); };
 				$(d.body).find("[data-roomsel]").on("change", (e) => reload($(e.currentTarget).val() || null));
