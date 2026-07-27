@@ -2261,25 +2261,7 @@ class DutyBoard {
 				$p.find("[data-open]").on("click", () =>
 					frappe.call({ method: "duty_board.accounting.books_open_period", args: { period: this.books_period }, callback: (rr) => { frappe.show_alert({ message: __("{0} deliverables, {1} document requests opened", [rr.message.spawned, rr.message.requests || 0]), indicator: "green" }); this.render_books_shell(); } })
 				);
-				$p.find(".duty-bk-cell").on("click", (e) => {
-					const name = $(e.currentTarget).data("name");
-					frappe.prompt(
-						[
-							{ fieldname: "status", fieldtype: "Select", label: __("Status"), options: "Pending\nIn Progress\nIn Review\nDelivered" },
-							{ fieldname: "assigned_to", fieldtype: "Autocomplete", label: __("Assigned to"), options: this.staff_options() },
-							{ fieldname: "reviewer", fieldtype: "Autocomplete", label: __("Reviewer (split clients)"), options: this.staff_options() },
-							{ fieldname: "notes", fieldtype: "Small Text", label: __("Notes") },
-						],
-						(v) =>
-							frappe.call({
-								method: "duty_board.accounting.books_set",
-								args: { name: name, status: v.status || null, assigned_to: v.assigned_to || null, reviewer: v.reviewer || null, notes: v.notes || null },
-								callback: () => this.render_books_shell(),
-							}),
-						__("Update deliverable"),
-						__("Save")
-					);
-				});
+				$p.find(".duty-bk-cell").on("click", (e) => this.books_cell_dialog($(e.currentTarget).data("name")));
 				$p.find(".duty-bk-room").on("click", (e) => {
 					const room = $(e.currentTarget).data("room");
 					const current = ($(e.currentTarget).data("opt") || "").split(",").map((s) => s.trim()).filter(Boolean);
@@ -2492,6 +2474,79 @@ class DutyBoard {
 						__("Send")
 					)
 				);
+			},
+		});
+	}
+
+	books_cell_dialog(name) {
+		frappe.call({
+			method: "duty_board.accounting.books_cell",
+			args: { name: name },
+			callback: (r) => {
+				const c = r.message;
+				if (!c) return;
+				const d = new frappe.ui.Dialog({
+					title: `${frappe.utils.escape_html(c.customer)} — ${frappe.utils.escape_html(c.type_title)} · ${c.period}`,
+					size: "large",
+					fields: [
+						{ fieldname: "status", fieldtype: "Select", label: __("Status"), options: "Pending\nIn Progress\nIn Review\nDelivered", default: c.status === "Acknowledged" ? "Delivered" : c.status },
+						{ fieldname: "assigned_to", fieldtype: "Autocomplete", label: __("Assigned to"), options: this.staff_options(), default: c.assigned_to || "" },
+						{ fieldname: "reviewer", fieldtype: "Autocomplete", label: __("Reviewer (split clients)"), options: this.staff_options(), default: c.reviewer || "" },
+						{ fieldname: "notes", fieldtype: "Small Text", label: __("Notes"), default: c.notes || "" },
+					],
+					primary_action_label: __("Save"),
+					primary_action: (v) => {
+						const save = () =>
+							frappe.call({
+								method: "duty_board.accounting.books_set",
+								args: { name: name, status: v.status || null, assigned_to: v.assigned_to || null, reviewer: v.reviewer || null, notes: v.notes || null },
+								callback: () => {
+									d.hide();
+									this.render_books_shell();
+								},
+							});
+						if (v.status === "Delivered" && c.open_items > 0 && c.status !== "Delivered") {
+							frappe.confirm(
+								__("{0} checklist item(s) are still open — deliver anyway?", [c.open_items]),
+								save
+							);
+						} else save();
+					},
+				});
+				const done = c.items.filter((i) => i.status === "Done").length;
+				const $chk = $(`
+					<div style="margin-bottom:14px">
+						${c.due_date ? `<div class="text-muted" style="font-size:12px;margin-bottom:8px">📅 ${__("due")} ${c.due_date}${c.status === "Acknowledged" ? ` · <b style="color:#15803d">✓✓ ${__("acknowledged by client")}</b>` : ""}</div>` : ""}
+						${c.items.length
+							? `<div style="display:flex;gap:8px;align-items:center;margin-bottom:6px">
+									<b style="font-size:13px">${__("Close checklist")}</b>
+									<span style="font-size:12px;font-weight:700;color:${done === c.items.length ? "#15803d" : "#0F5C55"}">${done}/${c.items.length}</span>
+									<span style="flex:1;height:5px;background:#E7ECEA;border-radius:99px;overflow:hidden"><i style="display:block;height:100%;width:${c.items.length ? Math.round((done / c.items.length) * 100) : 0}%;background:#0F5C55"></i></span>
+								</div>` +
+								c.items
+									.map(
+										(i) => `
+							<div style="display:flex;gap:9px;align-items:baseline;padding:4px 0;border-top:1px dashed #EEF2F0">
+								<a class="duty-chk" data-name="${i.name}" data-done="${i.status === "Done" ? 0 : 1}" style="cursor:pointer;font-size:15px">${i.status === "Done" ? "☑" : "☐"}</a>
+								<span style="font-size:13px;${i.status === "Done" ? "color:#94a3b8;text-decoration:line-through" : ""}">${frappe.utils.escape_html(i.item)}</span>
+								<span class="text-muted" style="font-size:10px;margin-left:auto;white-space:nowrap">${i.status === "Done" ? frappe.utils.escape_html((i.done_by || "").split(" ")[0]) + " · " + (i.done_on || "") : ""}</span>
+							</div>`
+									)
+									.join("")
+							: `<div class="text-muted" style="font-size:12px">${__("No checklist for this deliverable type — add one on the type in the desk.")}</div>`}
+					</div>`);
+				$(d.body).prepend($chk);
+				$chk.find(".duty-chk").on("click", (e) =>
+					frappe.call({
+						method: "duty_board.accounting.books_tick_check",
+						args: { name: $(e.currentTarget).data("name"), done: $(e.currentTarget).data("done") },
+						callback: () => {
+							d.hide();
+							this.books_cell_dialog(name);
+						},
+					})
+				);
+				d.show();
 			},
 		});
 	}

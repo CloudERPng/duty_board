@@ -1617,3 +1617,116 @@ def books_billing(period=None):
 		"unpaid": unpaid,
 		"unpaid_total": sum(flt(u.outstanding_amount) for u in unpaid),
 	}
+
+
+# ---------------- close checklists ----------------
+
+DEFAULT_CHECKLISTS = {
+	"Bank journals posted & current": [
+		"All bank accounts posted to date",
+		"Cash & suspense entries resolved",
+		"Customer / supplier payments allocated",
+	],
+	"Bank reconciliation": [
+		"Statement balance agreed per account",
+		"Uncleared items listed & aged",
+		"Reconciliation sheets filed to the Hub",
+	],
+	"Financial statements": [
+		"Payroll booked",
+		"Accruals & prepayments posted",
+		"Depreciation posted",
+		"VAT / WHT control accounts reconciled",
+		"P&L flux review vs prior month",
+		"Statements PDF filed to the Hub",
+		"Reviewer pass complete",
+	],
+	"Stock take": [
+		"Count sheets collected & filed to the Hub",
+		"Variances computed & posted",
+		"Variance summary narrated to the client",
+	],
+}
+
+
+@frappe.whitelist()
+def seed_checklists():
+	"""Fill the checklist template on the standard types where empty."""
+	_staff_only()
+	filled = 0
+	for title, items in DEFAULT_CHECKLISTS.items():
+		name = frappe.db.get_value("Duty Service Deliverable Type", {"title": title}, "name")
+		if not name:
+			continue
+		if (frappe.db.get_value("Duty Service Deliverable Type", name, "checklist") or "").strip():
+			continue
+		frappe.db.set_value("Duty Service Deliverable Type", name, "checklist", "\n".join(items), update_modified=False)
+		filled += 1
+	frappe.db.commit()
+	return {"filled": filled}
+
+
+def _check_items(deliverable):
+	items = frappe.get_all(
+		"Duty Books Check Item",
+		filters={"deliverable": deliverable},
+		fields=["name", "item", "sort_order", "status", "done_on", "done_by"],
+		order_by="sort_order asc",
+	)
+	for i in items:
+		i.done_on = str(i.done_on)[:16] if i.done_on else None
+	return items
+
+
+@frappe.whitelist()
+def books_cell(name):
+	"""Full deliverable state for the cell dialog; spawns checklist items from
+	the type template on first open."""
+	_staff_only()
+	d = frappe.db.get_value(
+		"Duty Service Deliverable",
+		name,
+		["name", "room", "deliverable_type", "period", "due_date", "status", "assigned_to", "reviewer", "notes"],
+		as_dict=True,
+	)
+	if not d:
+		frappe.throw(_("Not found."))
+	t = frappe.db.get_value(
+		"Duty Service Deliverable Type", d.deliverable_type, ["title", "checklist"], as_dict=True
+	)
+	items = _check_items(name)
+	if not items and (t.checklist or "").strip():
+		for i, line in enumerate([l.strip() for l in t.checklist.splitlines() if l.strip()]):
+			frappe.get_doc(
+				{
+					"doctype": "Duty Books Check Item",
+					"deliverable": name,
+					"item": line,
+					"sort_order": i,
+					"status": "Open",
+				}
+			).insert(ignore_permissions=True)
+		frappe.db.commit()
+		items = _check_items(name)
+	d.due_date = str(d.due_date) if d.due_date else None
+	d.type_title = t.title
+	d.customer = frappe.db.get_value("Client Room", d.room, "customer")
+	d.items = items
+	d.open_items = sum(1 for i in items if i.status == "Open")
+	return d
+
+
+@frappe.whitelist()
+def books_tick_check(name, done=1):
+	_staff_only()
+	doc = frappe.get_doc("Duty Books Check Item", name)
+	doc.db_set(
+		{
+			"status": "Done" if cint(done) else "Open",
+			"done_on": frappe.utils.now_datetime() if cint(done) else None,
+			"done_by": frappe.utils.get_fullname(frappe.session.user) if cint(done) else None,
+		},
+		update_modified=False,
+	)
+	frappe.db.commit()
+	return books_cell(doc.deliverable)
