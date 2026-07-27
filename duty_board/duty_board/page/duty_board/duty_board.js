@@ -2434,15 +2434,23 @@ class DutyBoard {
 				});
 				$(d.body).find(".duty-bk-room").on("click", (e) => {
 					const room = $(e.currentTarget).data("room");
+					const current = ($(e.currentTarget).data("opt") || "").split(",").map((s) => s.trim()).filter(Boolean);
+					const opts = m.types.filter((t) => t.optional);
 					frappe.prompt(
 						[
 							{ fieldname: "bookkeeper", fieldtype: "Autocomplete", label: __("Bookkeeper (default owner)"), options: this.staff_options(), default: $(e.currentTarget).data("bk") || "" },
-							{ fieldname: "optionals", fieldtype: "Data", label: __("Optional deliverables (comma-separated titles, e.g. Stock take)"), default: $(e.currentTarget).data("opt") || "" },
+							{
+								fieldname: "optionals",
+								fieldtype: "MultiCheck",
+								label: __("Service tier — optional deliverables this client pays for"),
+								columns: 1,
+								options: opts.map((t) => ({ label: t.title, value: t.title, checked: current.includes(t.title) || current.includes(t.name) })),
+							},
 						],
 						(v) =>
 							frappe.call({
 								method: "duty_board.accounting.books_set_room",
-								args: { name: room, bookkeeper: v.bookkeeper || null, optionals: v.optionals || null },
+								args: { name: room, bookkeeper: v.bookkeeper || null, optionals: (v.optionals || []).join(", ") },
 								callback: () => { d.hide(); this.books_dialog(m.period); },
 							}),
 						__("Client setup"),

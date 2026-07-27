@@ -83,12 +83,24 @@ def last_working_day(year, month):
 	return d
 
 
+def _prev_working_day(d):
+	days = _workday_set()
+	while d.weekday() not in days:
+		d -= timedelta(days=1)
+	return d
+
+
 def _due_date(t, year, month):
 	if t.due_basis == "Nth working day of next month":
 		ny, nm = (year + 1, 1) if month == 12 else (year, month + 1)
 		return nth_working_day(ny, nm, max(1, cint(t.due_day)))
 	if t.due_basis == "Nth working day of period":
 		return nth_working_day(year, month, max(1, cint(t.due_day)))
+	if t.due_basis == "Fixed day of next month":
+		ny, nm = (year + 1, 1) if month == 12 else (year, month + 1)
+		day = min(max(1, cint(t.due_day)), calendar.monthrange(ny, nm)[1])
+		# statutory-safe: a deadline on a non-workday is met EARLY, never late
+		return _prev_working_day(date(ny, nm, day))
 	return last_working_day(year, month)
 
 
@@ -110,6 +122,40 @@ def _accounting_rooms():
 		fields=["name", "customer", "bookkeeper", "books_optionals", "products"],
 	)
 	return rooms, custs
+
+
+STATUTORY_TYPES = [
+	# (title, due day of next month — Nigerian monthly compliance calendar)
+	("PAYE remittance (state IRS)", 10),
+	("VAT return (FIRS)", 21),
+	("WHT remittance (FIRS)", 21),
+]
+
+
+@frappe.whitelist()
+def seed_statutory_types():
+	"""Nigeria monthly statutory set — seeded as OPTIONAL (tiered service):
+	enabled per client in the room setup, like Stock take."""
+	_staff_only()
+	created = 0
+	for i, (title, day) in enumerate(STATUTORY_TYPES):
+		if frappe.db.exists("Duty Service Deliverable Type", {"title": title}):
+			continue
+		frappe.get_doc(
+			{
+				"doctype": "Duty Service Deliverable Type",
+				"title": title,
+				"frequency": "Monthly",
+				"due_basis": "Fixed day of next month",
+				"due_day": day,
+				"optional": 1,
+				"active": 1,
+				"sort_order": 10 + i,
+			}
+		).insert(ignore_permissions=True)
+		created += 1
+	frappe.db.commit()
+	return {"created": created}
 
 
 @frappe.whitelist()
