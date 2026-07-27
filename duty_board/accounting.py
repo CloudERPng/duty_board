@@ -756,22 +756,38 @@ def _file_to_shelf(room_name, title, file_url, file_name):
 
 
 def _mail_client(room, subject, body, ref_doctype=None, ref_name=None):
-	"""Email the room's client members, threaded to the reference document so
-	replies (via the site's incoming email account) attach back to it."""
+	"""Email the room's client members via the Communication send path: this
+	stamps Reply-To from the default incoming Email Account and stores the
+	Message-ID, so replies thread back to the reference document reliably."""
 	recipients = _room_client_emails(room.name)
 	if not recipients:
 		return
 	try:
-		frappe.sendmail(
-			recipients=recipients,
+		from frappe.core.doctype.communication.email import make
+
+		make(
+			doctype=ref_doctype,
+			name=ref_name,
 			subject=subject,
-			message=body,
-			reference_doctype=ref_doctype,
-			reference_name=ref_name,
-			delayed=False,
+			content=body,
+			recipients=", ".join(recipients),
+			communication_medium="Email",
+			sent_or_received="Sent",
+			send_email=True,
 		)
 	except Exception:
 		frappe.log_error(frappe.get_traceback(), "books client mail")
+		try:
+			frappe.sendmail(
+				recipients=recipients,
+				subject=subject,
+				message=body,
+				reference_doctype=ref_doctype,
+				reference_name=ref_name,
+				delayed=False,
+			)
+		except Exception:
+			frappe.log_error(frappe.get_traceback(), "books client mail fallback")
 
 
 def _spawn_period_requests(period):
