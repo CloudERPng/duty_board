@@ -483,10 +483,15 @@ class DutyBoard {
 				<a data-tab="sales"><span>💼</span>${__("Sales")}</a>
 				<a data-tab="clients"><span>🤝</span>${__("Clients")}<b class="duty-tab-badge duty-tab-clients" style="display:none"></b></a>
 				<a data-tab="me"><span>👤</span>${__("Me")}</a>
+				<a data-tab="books"><span>📒</span>${__("Books")}</a>
 			</div>
 		`).appendTo("body");
 		$bar.find("a").on("click", (e) => {
 			const tab = $(e.currentTarget).data("tab");
+			if (tab === "books") {
+				this.books_dialog();
+				return;
+			}
 			if (frappe.get_route_str() !== "duty-board") {
 				localStorage.setItem("duty_mtab", tab);
 				frappe.set_route("duty-board").then(() => this.set_mtab(tab));
@@ -774,9 +779,7 @@ class DutyBoard {
 	append_message(m, is_new, in_search, $insert_after) {
 		const mine = m.user === frappe.session.user;
 		const mentioned = !mine && (m.mentions || []).includes(frappe.session.user);
-		const when = m.creation
-			? frappe.datetime.str_to_user(m.creation).split(" ").slice(1).join(" ")
-			: "";
+		const when = this.smart_time(m.creation);
 		let attach = "";
 		if (m.attachment) {
 			const url = frappe.utils.escape_html(m.attachment);
@@ -808,8 +811,7 @@ class DutyBoard {
 		}
 		if (is_new && !in_search) this.ensure_divider($row);
 		if (in_search) {
-			const day = m.creation ? frappe.datetime.str_to_user(m.creation).split(" ")[0] : "";
-			$row.find(".duty-msg-time").text(`${day} ${when}`);
+			$row.find(".duty-msg-time").text(when);
 			$row.find(".duty-msg-reply, .duty-msg-react, .duty-msg-issue, .duty-msg-del").remove();
 		} else {
 			$row.find(".duty-msg-reply").on("click", () => this.set_reply(m));
@@ -1451,7 +1453,7 @@ class DutyBoard {
 
 	dm_row(m) {
 		const mine = m.sender === frappe.session.user;
-		const when = m.creation ? frappe.datetime.str_to_user(m.creation) : "";
+		const when = this.smart_time(m.creation);
 		return `
 			<div class="duty-msg ${mine ? "duty-msg-mine" : ""}" data-name="${m.name}">
 				<span class="duty-msg-who" style="color:${this.user_color(m.sender)}">${mine ? __("You") : frappe.utils.escape_html((m.sender_name || m.sender).split(" ")[0])}</span>
@@ -6284,6 +6286,22 @@ class DutyBoard {
 		if (!dt) return "";
 		const p = frappe.datetime.str_to_user(dt).split(" ");
 		return p[0] + (p[1] ? " " + p[1].slice(0, 5) : "");
+	}
+
+	smart_time(s) {
+		if (!s) return "";
+		const d = new Date(s.replace(" ", "T"));
+		if (isNaN(d)) return s;
+		const hm = s.slice(11, 16);
+		const now = new Date();
+		const day0 = (x) => { const y = new Date(x.getFullYear(), x.getMonth(), x.getDate()); return y; };
+		const today = day0(now);
+		const that = day0(d);
+		if (that.getTime() === today.getTime()) return hm;
+		const monday = new Date(today);
+		monday.setDate(today.getDate() - ((today.getDay() + 6) % 7));
+		if (that >= monday && that < today) return d.toLocaleDateString(undefined, { weekday: "long" }) + " " + hm;
+		return d.toLocaleDateString(undefined, { day: "numeric", month: "short", year: "numeric" }) + ", " + hm;
 	}
 
 	fmt_time(dt) {

@@ -523,7 +523,7 @@
 </div>
 <script>
 const esc = (s) => (s || "").replace(/[&<>"']/g, (c) => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
-const XLV = "2.83.4";
+const XLV = "2.83.5";
 document.getElementById("xlv").textContent = "v" + XLV;
 console.log("Xlevel portal", XLV);
 let ROOM = localStorage.getItem("xl_room") || null;
@@ -613,6 +613,20 @@ function frappe_csrf() {
 }
 const PILL = { "Queued": "p-q", "In Progress": "p-i", "Done": "p-d" };
 let LAST = {};
+function smartTime(s) {
+	if (!s) return "";
+	const d = new Date(s.replace(" ", "T"));
+	if (isNaN(d)) return s;
+	const hm = s.slice(11, 16);
+	const now = new Date();
+	const day0 = (x) => new Date(x.getFullYear(), x.getMonth(), x.getDate());
+	const today = day0(now), that = day0(d);
+	if (that.getTime() === today.getTime()) return hm;
+	const monday = new Date(today);
+	monday.setDate(today.getDate() - ((today.getDay() + 6) % 7));
+	if (that >= monday && that < today) return d.toLocaleDateString(undefined, { weekday: "long" }) + " " + hm;
+	return d.toLocaleDateString(undefined, { day: "numeric", month: "short", year: "numeric" }) + ", " + hm;
+}
 function fdt(s) {
 	if (!s) return "—";
 	const d = new Date(s.replace(" ", "T"));
@@ -679,7 +693,7 @@ function render(d) {
 					window.SESSION_PREV && m.creation > window.SESSION_PREV && !window.DIVIDED
 						? ((window.DIVIDED = true), '<div class="newdiv">— new since your last visit —</div>')
 						: "";
-				return `${divider}<div class="m ${m.is_staff ? "staff" : "me"}" data-name="${esc(m.name)}"><a class="rep" onclick='setReply(${JSON.stringify({ name: m.name, who: m.who, text: (m.message || "📎").slice(0, 80) }).replace(/'/g, "&#39;")})'>↩ reply</a><span class="w">${esc(m.who)}</span>${qt}${esc(m.message)}${att}<span class="tm">${esc((m.creation || "").slice(0, 16))}</span></div>`;
+				return `${divider}<div class="m ${m.is_staff ? "staff" : "me"}" data-name="${esc(m.name)}"><a class="rep" onclick='setReply(${JSON.stringify({ name: m.name, who: m.who, text: (m.message || "📎").slice(0, 80) }).replace(/'/g, "&#39;")})'>↩ reply</a><span class="w">${esc(m.who)}</span>${qt}${esc(m.message)}${att}<span class="tm">${esc(smartTime(m.creation))}</span></div>`;
 			}).join("")
 		: '<span class="muted">Say hello — the team is listening.</span>';
 	if (stick) box.scrollTop = box.scrollHeight;
