@@ -1128,24 +1128,12 @@ def handle_communication(doc, method=None):
 		if doc.communication_type != "Communication" or doc.sent_or_received != "Received":
 			return
 		if doc.reference_doctype == "Duty Books Query":
-			q = frappe.db.get_value(
-				"Duty Books Query", doc.reference_name, ["room", "status"], as_dict=True
+			frappe.enqueue(
+				"duty_board.accounting._process_query_reply",
+				communication=doc.name,
+				queue="short",
+				enqueue_after_commit=True,
 			)
-			if not q or q.status != "Open":
-				return
-			answer = (doc.text_content or frappe.utils.strip_html(doc.content or "")).strip()[:500]
-			if not answer:
-				return
-			who = doc.sender_full_name or doc.sender or "Client"
-			frappe.db.set_value(
-				"Duty Books Query",
-				doc.reference_name,
-				{"status": "Answered", "answer": answer, "answered_on": frappe.utils.now_datetime(), "answered_by": who},
-				update_modified=False,
-			)
-			room = frappe.get_doc("Client Room", q.room)
-			_post(room, "💬 {0} answered an accounting question by email: {1}".format(who, answer[:120]))
-			frappe.db.commit()
 		elif doc.reference_doctype == "Duty Books Request":
 			# Attachments are saved AFTER the Communication is inserted, so
 			# processing must wait for the transaction to commit.
@@ -1157,6 +1145,55 @@ def handle_communication(doc, method=None):
 			)
 	except Exception:
 		frappe.log_error(frappe.get_traceback(), "books inbound mail")
+
+
+def _extract_reply_text(text_content, content):
+	txt = (text_content or "").strip() or frappe.utils.strip_html(content or "").strip()
+	if not txt:
+		return ""
+	lines = []
+	for line in txt.splitlines():
+		s = line.strip()
+		if s.startswith(">"):
+			break
+		if s.startswith("On ") and s.endswith("wrote:"):
+			break
+		if s.startswith("From:") or s.startswith("-----Original Message"):
+			break
+		lines.append(line)
+	out = "\n".join(lines).strip()
+	return (out or txt)[:500]
+
+
+def _process_query_reply(communication):
+	try:
+		doc = frappe.db.get_value(
+			"Communication",
+			communication,
+			["name", "reference_doctype", "reference_name", "sender", "sender_full_name", "text_content", "content"],
+			as_dict=True,
+		)
+		if not doc or doc.reference_doctype != "Duty Books Query" or not doc.reference_name:
+			return
+		q = frappe.db.get_value("Duty Books Query", doc.reference_name, ["room", "status"], as_dict=True)
+		if not q or q.status != "Open":
+			return
+		answer = _extract_reply_text(doc.text_content, doc.content)
+		if not answer:
+			frappe.log_error(f"Empty reply text for {communication}", "books query reply")
+			return
+		who = doc.sender_full_name or doc.sender or "Client"
+		frappe.db.set_value(
+			"Duty Books Query",
+			doc.reference_name,
+			{"status": "Answered", "answer": answer, "answered_on": frappe.utils.now_datetime(), "answered_by": who},
+			update_modified=False,
+		)
+		room = frappe.get_doc("Client Room", q.room)
+		_post(room, "💬 {0} answered an accounting question by email: {1}".format(who, answer[:120]))
+		frappe.db.commit()
+	except Exception:
+		frappe.log_error(frappe.get_traceback(), "books query reply")
 
 
 def _process_request_reply(communication):
@@ -1222,22 +1259,10 @@ def books_reprocess_inbound(days=30):
 	q_done = r_done = 0
 	for c in comms:
 		if c.reference_doctype == "Duty Books Query":
-			q = frappe.db.get_value("Duty Books Query", c.reference_name, ["room", "status"], as_dict=True)
-			if not q or q.status != "Open":
-				continue
-			answer = (c.text_content or frappe.utils.strip_html(c.content or "")).strip()[:500]
-			if not answer:
-				continue
-			who = c.sender_full_name or c.sender or "Client"
-			frappe.db.set_value(
-				"Duty Books Query",
-				c.reference_name,
-				{"status": "Answered", "answer": answer, "answered_on": frappe.utils.now_datetime(), "answered_by": who},
-				update_modified=False,
-			)
-			room = frappe.get_doc("Client Room", q.room)
-			_post(room, "💬 {0} answered an accounting question by email: {1}".format(who, answer[:120]))
-			q_done += 1
+			before = frappe.db.get_value("Duty Books Query", c.reference_name, "status")
+			_process_query_reply(c.name)
+			if before == "Open" and frappe.db.get_value("Duty Books Query", c.reference_name, "status") == "Answered":
+				q_done += 1
 		else:
 			before = frappe.db.get_value("Duty Books Request", c.reference_name, "status")
 			_process_request_reply(c.name)
