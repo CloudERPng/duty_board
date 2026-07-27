@@ -1316,3 +1316,51 @@ def books_reprocess_inbound(days=30):
 				r_done += 1
 	frappe.db.commit()
 	print(f"Reprocessed: {q_done} query answer(s), {r_done} request fulfilment(s) from {len(comms)} candidate communication(s).")
+
+
+# ---------------- the Books face: access + pulse ----------------
+
+
+@frappe.whitelist()
+def books_access():
+	"""Who sees the Books face, and where they land."""
+	_staff_only()
+	if _books_manager():
+		return {"allowed": 1, "manager": 1, "tab": "matrix"}
+	rooms, _c = _accounting_rooms()
+	if any(r.bookkeeper == frappe.session.user for r in rooms):
+		return {"allowed": 1, "manager": 0, "tab": "round"}
+	return {"allowed": 0}
+
+
+@frappe.whitelist()
+def books_pulse(period=None):
+	_staff_only()
+	period = (period or today()[:7]).strip()[:7]
+	rooms, custs = _accounting_rooms()
+	names = [r.name for r in rooms]
+	insts = frappe.get_all(
+		"Duty Service Deliverable",
+		filters={"period": period, "room": ["in", names] if names else ["is", "set"]},
+		fields=["status", "due_date"],
+	)
+	tdy = getdate(today())
+	done = sum(1 for i in insts if i.status in ("Delivered", "Acknowledged"))
+	late = sum(
+		1 for i in insts if i.due_date and getdate(i.due_date) < tdy and i.status not in ("Delivered", "Acknowledged")
+	)
+	reg = _register_data(period)
+	neglect = sum(1 for r in reg["rooms"] if r["neglected"])
+	out = {
+		"period": period,
+		"clients": len(rooms),
+		"done": done,
+		"total": len(insts),
+		"late": late,
+		"neglect": neglect,
+		"open_q": frappe.db.count("Duty Books Query", {"status": ["!=", "Resolved"], "room": ["in", names]}) if names else 0,
+		"open_r": frappe.db.count("Duty Books Request", {"status": "Requested", "room": ["in", names]}) if names else 0,
+	}
+	if _books_manager():
+		out["fee_total"] = sum(flt(custs.get(r.customer, frappe._dict()).get("accounting_fees")) for r in rooms)
+	return out

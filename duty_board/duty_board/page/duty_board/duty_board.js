@@ -27,7 +27,16 @@ frappe.pages["duty-board"].on_page_load = function (wrapper) {
 	page.add_inner_button(__("💼 Sales"), () => board.show_face("sales"), __("⇄ View"));
 	page.add_inner_button(__("🤝 Clients"), () => board.show_face("clients"), __("⇄ View"));
 	page.add_inner_button(__("👤 My Dashboard"), () => board.show_face("me"), __("⇄ View"));
-	page.add_inner_button(__("📒 Books"), () => board.books_dialog(), __("⇄ View"));
+	frappe.call({
+		method: "duty_board.accounting.books_access",
+		callback: (r) => {
+			board.books_acc = (r.message && r.message.allowed && r.message) || null;
+			if (board.books_acc) {
+				page.add_inner_button(__("📒 Books"), () => board.show_face("books"), __("⇄ View"));
+				$('.duty-tabbar a[data-tab="books"]').show();
+			}
+		},
+	});
 	page.add_inner_button(__("📄 Document Hub"), () => frappe.set_route("List", "Client Document"));
 
 	board.timer = setInterval(() => {
@@ -106,6 +115,7 @@ class DutyBoard {
 			</div>
 		`).appendTo(page.body);
 		this.$me = $(`<div class="duty-me" style="display:none"></div>`).appendTo(page.body);
+		this.$books = $(`<div class="duty-books" style="display:none"></div>`).appendTo(page.body);
 		this.name_map = {};
 		this.inject_style();
 		this.setup_pwa();
@@ -483,15 +493,11 @@ class DutyBoard {
 				<a data-tab="sales"><span>💼</span>${__("Sales")}</a>
 				<a data-tab="clients"><span>🤝</span>${__("Clients")}<b class="duty-tab-badge duty-tab-clients" style="display:none"></b></a>
 				<a data-tab="me"><span>👤</span>${__("Me")}</a>
-				<a data-tab="books"><span>📒</span>${__("Books")}</a>
+				<a data-tab="books" style="display:none"><span>📒</span>${__("Books")}</a>
 			</div>
 		`).appendTo("body");
 		$bar.find("a").on("click", (e) => {
 			const tab = $(e.currentTarget).data("tab");
-			if (tab === "books") {
-				this.books_dialog();
-				return;
-			}
 			if (frappe.get_route_str() !== "duty-board") {
 				localStorage.setItem("duty_mtab", tab);
 				frappe.set_route("duty-board").then(() => this.set_mtab(tab));
@@ -517,6 +523,8 @@ class DutyBoard {
 			this.show_face("clients");
 		} else if (tab === "me") {
 			this.show_face("me");
+		} else if (tab === "books") {
+			this.show_face("books");
 		} else {
 			this.show_face("board");
 			this.body.attr("data-mtab", tab);
@@ -1630,6 +1638,8 @@ class DutyBoard {
 		this.$sales.toggle(face === "sales");
 		this.$clients.toggle(face === "clients");
 		this.$me.toggle(face === "me");
+		this.$books.toggle(face === "books");
+		if (face === "books") this.refresh_books();
 		if (face === "projects") this.refresh_projects();
 		if (face === "sales") this.refresh_sales();
 		if (face === "clients") this.refresh_clients();
@@ -2100,274 +2110,108 @@ class DutyBoard {
 		});
 	}
 
-	books_followups_dialog(back_period, room_filter) {
-		frappe.call({
-			method: "duty_board.accounting.books_followups",
-			args: { room: room_filter || null },
-			callback: (r) => {
-				const m = r.message;
-				if (!m) return;
-				const d = new frappe.ui.Dialog({ title: `📨 ${__("Client follow-ups")}`, size: "large" });
-				const roomName = (rm) => { const x = m.rooms.find((y) => y.room === rm); return x ? x.customer : rm; };
-				$(d.body).html(`
-					<div style="display:flex;gap:8px;align-items:center;margin-bottom:10px;flex-wrap:wrap">
-						<select class="form-control input-sm" data-roomsel style="width:220px">
-							<option value="">${__("All clients")}</option>
-							${m.rooms.map((x) => `<option value="${x.room}" ${room_filter === x.room ? "selected" : ""}>${frappe.utils.escape_html(x.customer)}</option>`).join("")}
-						</select>
-						<span style="margin-left:auto;display:flex;gap:8px">
-							<button class="btn btn-xs btn-primary" data-addq>❓ ${__("New question")}</button>
-							<button class="btn btn-xs btn-default" data-addr>📎 ${__("New request")}</button>
-						</span>
-					</div>
-					<div style="font-size:12px;font-weight:800;margin-bottom:6px">❓ ${__("Questions")} (${m.queries.length})</div>
-					${m.queries
-						.map(
-							(q) => `
-					<div style="border:1px solid var(--border-color,#E7ECEA);border-radius:10px;padding:9px 12px;margin-bottom:7px;${q.status === "Answered" ? "background:#F4FBF8" : ""}">
-						<div style="display:flex;gap:8px;align-items:baseline;flex-wrap:wrap">
-							<b style="font-size:13px">${frappe.utils.escape_html(roomName(q.room))}</b>
-							<span class="text-muted" style="font-size:11px">${[q.ref_date, q.amount ? "₦" + Number(q.amount).toLocaleString() : null, q.reference].filter(Boolean).map(frappe.utils.escape_html).join(" · ")}</span>
-							<span style="margin-left:auto;font-size:11px;font-weight:700;color:${q.status === "Answered" ? "#15803d" : "#b45309"}">${q.status === "Answered" ? "💬 " + __("answered") : __("open") + " · " + q.age_wd + "wd"}</span>
-						</div>
-						<div style="font-size:13px;margin-top:3px">${frappe.utils.escape_html(q.question)}</div>
-						${q.answer ? `<div style="font-size:13px;margin-top:5px;padding:7px 10px;background:#fff;border:1px solid #CBE7DE;border-radius:8px">💬 <b>${frappe.utils.escape_html(q.answered_by || "")}</b>: ${frappe.utils.escape_html(q.answer)} <button class="btn btn-xs btn-primary" data-resolve="${q.name}" style="margin-left:8px">✓ ${__("Resolve")}</button></div>` : ""}
-					</div>`
-						)
-						.join("") || `<div class="text-muted" style="margin-bottom:8px">${__("No open questions.")}</div>`}
-					<div style="font-size:12px;font-weight:800;margin:10px 0 6px">📎 ${__("Document requests")} (${m.requests.length})</div>
-					${m.requests
-						.map(
-							(x) => `
-					<div style="border:1px solid var(--border-color,#E7ECEA);border-radius:10px;padding:8px 12px;margin-bottom:6px;display:flex;gap:8px;align-items:center;${x.overdue ? "background:#FDECEA" : ""}">
-						<b style="font-size:13px">${frappe.utils.escape_html(roomName(x.room))}</b>
-						<span style="font-size:13px">${frappe.utils.escape_html(x.title)}</span>
-						<span class="text-muted" style="font-size:11px;margin-left:auto">${x.due_date ? __("due") + " " + x.due_date + (x.overdue ? " ⚠" : "") : ""}</span>
-						<button class="btn btn-xs btn-default" data-waive="${x.name}">${__("Waive")}</button>
-					</div>`
-						)
-						.join("") || `<div class="text-muted">${__("Nothing outstanding.")}</div>`}
-					${m.received && m.received.length
-						? `<div style="font-size:12px;font-weight:800;margin:10px 0 6px">📥 ${__("Recently received")}</div>` +
-							m.received
-								.map(
-									(x) => `
-					<div style="border:1px solid #CBE7DE;background:#F4FBF8;border-radius:10px;padding:8px 12px;margin-bottom:6px;display:flex;gap:8px;align-items:center">
-						<b style="font-size:13px">${frappe.utils.escape_html(roomName(x.room))}</b>
-						<span style="font-size:13px">${frappe.utils.escape_html(x.title)}</span>
-						<span class="text-muted" style="font-size:11px;margin-left:auto">${frappe.utils.escape_html(x.fulfilled_by || "")} · ${x.fulfilled_on || ""}</span>
-						${x.attachment_url ? `<a class="btn btn-xs btn-default" href="${frappe.utils.escape_html(x.attachment_url)}" target="_blank">📎 ${__("Open")}</a>` : ""}
-					</div>`
-								)
-								.join("")
-						: ""}
-				`);
-				const reload = (rm) => { d.hide(); this.books_followups_dialog(back_period, rm !== undefined ? rm : room_filter); };
-				$(d.body).find("[data-roomsel]").on("change", (e) => reload($(e.currentTarget).val() || null));
-				$(d.body).find("[data-resolve]").on("click", (e) =>
-					frappe.call({ method: "duty_board.accounting.books_resolve_query", args: { name: $(e.currentTarget).data("resolve") }, callback: () => reload() })
-				);
-				$(d.body).find("[data-waive]").on("click", (e) =>
-					frappe.call({ method: "duty_board.accounting.books_waive_request", args: { name: $(e.currentTarget).data("waive") }, callback: () => reload() })
-				);
-				$(d.body).find("[data-addq]").on("click", () =>
-					frappe.prompt(
-						[
-							{ fieldname: "room", fieldtype: "Select", label: __("Client"), options: m.rooms.map((x) => ({ label: x.customer, value: x.room })), reqd: 1, default: room_filter || (m.rooms[0] && m.rooms[0].room) },
-							{ fieldname: "question", fieldtype: "Small Text", label: __("Question"), reqd: 1 },
-							{ fieldname: "ref_date", fieldtype: "Date", label: __("Transaction date") },
-							{ fieldname: "amount", fieldtype: "Currency", label: __("Amount") },
-							{ fieldname: "reference", fieldtype: "Data", label: __("Reference (narration, counterparty…)") },
-						],
-						(v) =>
-							frappe.call({
-								method: "duty_board.accounting.books_add_query",
-								args: { room: v.room, question: v.question, ref_date: v.ref_date || null, amount: v.amount || null, reference: v.reference || null },
-								callback: () => reload(),
-							}),
-						__("Ask the client"),
-						__("Send")
-					)
-				);
-				$(d.body).find("[data-addr]").on("click", () =>
-					frappe.prompt(
-						[
-							{ fieldname: "room", fieldtype: "Select", label: __("Client"), options: m.rooms.map((x) => ({ label: x.customer, value: x.room })), reqd: 1, default: room_filter || (m.rooms[0] && m.rooms[0].room) },
-							{ fieldname: "title", fieldtype: "Data", label: __("Document"), reqd: 1 },
-							{ fieldname: "detail", fieldtype: "Small Text", label: __("Detail") },
-							{ fieldname: "due_date", fieldtype: "Date", label: __("Due") },
-						],
-						(v) =>
-							frappe.call({
-								method: "duty_board.accounting.books_add_request",
-								args: { room: v.room, title: v.title, detail: v.detail || null, due_date: v.due_date || null },
-								callback: () => reload(),
-							}),
-						__("Request a document"),
-						__("Send")
-					)
-				);
-				d.show();
-			},
-		});
+	books_dialog() {
+		// legacy entry point — Books is a face now
+		this.show_face("books");
 	}
 
-	books_round_dialog(back_period) {
-		frappe.call({
-			method: "duty_board.accounting.books_daily_round",
-			callback: (r) => {
-				const m = r.message;
-				if (!m) return;
-				const d = new frappe.ui.Dialog({ title: `📅 ${__("Today's round")} — ${m.date}`, size: "large" });
-				$(d.body).html(`
-					<div class="text-muted" style="font-size:12px;margin-bottom:10px">${__("Two taps per client: where are the books posted through, and anything worth noting. Sessions you've clocked already show as ●.")}</div>
-					${m.rows
-						.map(
-							(x, i) => `
-					<div style="border:1px solid var(--border-color,#E7ECEA);border-radius:10px;padding:10px 12px;margin-bottom:8px" data-row="${i}">
-						<div style="display:flex;gap:8px;align-items:center;margin-bottom:7px">
-							<b>${frappe.utils.escape_html(x.customer)}</b>
-							<span title="${__("worked today (session tagged)")}">${x.worked_today ? "●" : "○"}</span>
-							${x.logged_today ? `<span style="color:#15803d;font-size:11px;font-weight:700">✓ ${__("attested")}</span>` : ""}
-							<span style="margin-left:auto;font-size:11px;color:${x.lag === null ? "#94a3b8" : x.lag <= 1 ? "#15803d" : x.lag <= 3 ? "#b45309" : "#b91c1c"}">${x.posted_through ? __("posted thru {0} · lag {1}wd", [x.posted_through, x.lag]) : __("no attestation yet")}</span>
-						</div>
-						<div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
-							<input type="date" class="form-control input-sm bk-pt" style="width:150px" value="${x.posted_through || ""}" max="${m.date}">
-							<input type="number" class="form-control input-sm bk-tx" style="width:90px" placeholder="${__("tx posted")}" value="${x.tx_posted ?? ""}">
-							<input type="number" class="form-control input-sm bk-q" style="width:90px" placeholder="${__("queries")}" value="${x.queries_raised ?? ""}">
-							<input type="text" class="form-control input-sm bk-note" style="flex:1;min-width:140px" placeholder="${__("note (optional)")}" value="${frappe.utils.escape_html(x.note || "")}">
-							<button class="btn btn-xs btn-primary bk-save" data-room="${x.room}">💾</button>
-						</div>
-					</div>`
-						)
-						.join("") || `<div class="text-muted">${__("No accounting clients assigned to you.")}</div>`}
-					<div style="display:flex;justify-content:flex-end;margin-top:6px"><button class="btn btn-sm btn-default" data-back>← ${__("Matrix")}</button></div>
-				`);
-				$(d.body).find(".bk-save").on("click", (e) => {
-					const $row = $(e.currentTarget).closest("[data-row]");
-					frappe.call({
-						method: "duty_board.accounting.books_log_day",
-						args: {
-							room: $(e.currentTarget).data("room"),
-							posted_through: $row.find(".bk-pt").val() || null,
-							tx_posted: $row.find(".bk-tx").val() || 0,
-							queries_raised: $row.find(".bk-q").val() || 0,
-							note: $row.find(".bk-note").val() || null,
-						},
-						callback: () => {
-							frappe.show_alert({ message: __("Attested"), indicator: "green" });
-							d.hide();
-							this.books_round_dialog(back_period);
-						},
-					});
-				});
-				$(d.body).find("[data-back]").on("click", () => { d.hide(); this.books_dialog(back_period); });
-				d.show();
-			},
-		});
+	refresh_books() {
+		if (!this.books_period) this.books_period = frappe.datetime.now_date().slice(0, 7);
+		if (!this.books_tab) this.books_tab = (this.books_acc && this.books_acc.tab) || "matrix";
+		this.render_books_shell();
 	}
 
-	books_register_dialog(period) {
-		frappe.call({
-			method: "duty_board.accounting.books_register",
-			args: { period: period || null },
-			callback: (r) => {
-				const m = r.message;
-				if (!m) return;
-				const d = new frappe.ui.Dialog({ title: `🗓 ${__("Daily register")} — ${m.period}`, size: "extra-large" });
-				const CELL = { both: ["●", "#0F5C55"], worked: ["◐", "#b45309"], logged: ["◔", "#7c3aed"], none: ["·", "#cbd5e1"], future: ["", "#fff"] };
-				const prevP = () => { const [y, mo] = m.period.split("-").map(Number); const dd = new Date(y, mo - 2, 1); return `${dd.getFullYear()}-${String(dd.getMonth() + 1).padStart(2, "0")}`; };
-				const nextP = () => { const [y, mo] = m.period.split("-").map(Number); const dd = new Date(y, mo, 1); return `${dd.getFullYear()}-${String(dd.getMonth() + 1).padStart(2, "0")}`; };
-				$(d.body).html(`
-					<div style="display:flex;gap:10px;align-items:center;margin-bottom:10px">
-						<button class="btn btn-xs btn-default" data-prev>‹</button><b>${m.period}</b><button class="btn btn-xs btn-default" data-next>›</button>
-					</div>
-					<div style="overflow-x:auto"><table class="table table-bordered" style="font-size:11px;margin:0">
-						<thead><tr><th style="min-width:150px">${__("Client")}</th>${m.days.map((ds) => `<th style="text-align:center;padding:4px 5px">${ds.slice(8)}</th>`).join("")}<th>${__("Lag")}</th></tr></thead>
-						<tbody>${m.rooms
-							.map(
-								(row) => `<tr ${row.neglected ? 'style="background:#FDECEA"' : ""}>
-							<td><b>${frappe.utils.escape_html(row.customer)}</b>${row.neglected ? ` <span style="color:#b91c1c;font-weight:800">⚠ ${row.streak}${__("wd")}</span>` : ""}</td>
-							${m.days.map((ds) => { const [ic, col] = CELL[row.cells[ds]] || CELL.none; return `<td style="text-align:center;color:${col};font-weight:800;padding:4px 5px">${ic}</td>`; }).join("")}
-							<td style="font-size:10px;font-weight:700;color:${row.lag === null ? "#94a3b8" : row.lag <= 1 ? "#15803d" : row.lag <= 3 ? "#b45309" : "#b91c1c"}">${row.posted_through ? row.lag + "wd" : "—"}</td>
-						</tr>`
-							)
-							.join("")}</tbody>
-					</table></div>
-					<div class="text-muted" style="font-size:11px;margin-top:8px">● ${__("worked + attested")} &nbsp; ◐ ${__("worked, no attestation")} &nbsp; ◔ ${__("attested, no session")} &nbsp; · ${__("untouched")} &nbsp; ${__("red row = {0}+ working days untouched", [m.neglect_days])}</div>
-					<div style="display:flex;justify-content:flex-end;margin-top:8px"><button class="btn btn-sm btn-default" data-back>← ${__("Matrix")}</button></div>
-				`);
-				$(d.body).find("[data-prev]").on("click", () => { d.hide(); this.books_register_dialog(prevP()); });
-				$(d.body).find("[data-next]").on("click", () => { d.hide(); this.books_register_dialog(nextP()); });
-				$(d.body).find("[data-back]").on("click", () => { d.hide(); this.books_dialog(m.period); });
-				d.show();
-			},
-		});
+	_books_shift_period(delta) {
+		const [y, mo] = this.books_period.split("-").map(Number);
+		const d = new Date(y, mo - 1 + delta, 1);
+		this.books_period = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
+		this.render_books_shell();
 	}
 
-	books_profit_dialog(period) {
+	render_books_shell() {
+		const mgr = this.books_acc && this.books_acc.manager;
+		const tabs = [
+			["matrix", "📊 " + __("Matrix")],
+			["round", "📅 " + __("My round")],
+			["register", "🗓 " + __("Register")],
+			["followups", "📨 " + __("Follow-ups")],
+		];
+		if (mgr) tabs.push(["profit", "₦ " + __("Profitability")]);
+		this.$books.html(`
+			<style>
+				.duty-books-head { display: flex; gap: 12px; align-items: center; flex-wrap: wrap;
+					background: linear-gradient(120deg,#0A473F,#0F5C55 60%,#146B62); color: #fff;
+					border-radius: 12px; padding: 12px 16px; margin-bottom: 10px; }
+				.duty-books-head b.per { font-size: 16px; }
+				.duty-books-pulse { display: flex; gap: 14px; margin-left: auto; flex-wrap: wrap; font-size: 12px; }
+				.duty-books-pulse span { opacity: .92; white-space: nowrap; }
+				.duty-books-tabs { display: flex; gap: 6px; overflow-x: auto; margin-bottom: 12px; padding-bottom: 2px; }
+				.duty-books-tabs a { padding: 7px 14px; border-radius: 999px; font-size: 13px; font-weight: 700;
+					background: var(--bg-light-gray,#F4F7F6); color: #334; cursor: pointer; white-space: nowrap; }
+				.duty-books-tabs a.on { background: #0F5C55; color: #fff; }
+				.duty-books-panel { padding-bottom: 90px; }
+				.duty-books-panel table { background: #fff; }
+			</style>
+			<div class="duty-books-head">
+				<button class="btn btn-xs btn-default" data-bprev>‹</button>
+				<b class="per">${this.books_period}</b>
+				<button class="btn btn-xs btn-default" data-bnext>›</button>
+				<span class="duty-books-pulse" data-pulse></span>
+			</div>
+			<div class="duty-books-tabs">
+				${tabs.map(([k, l]) => `<a data-btab="${k}" class="${this.books_tab === k ? "on" : ""}">${l}</a>`).join("")}
+			</div>
+			<div class="duty-books-panel"><div class="text-muted">${__("Loading…")}</div></div>
+		`);
+		this.$books.find("[data-bprev]").on("click", () => this._books_shift_period(-1));
+		this.$books.find("[data-bnext]").on("click", () => this._books_shift_period(1));
+		this.$books.find("[data-btab]").on("click", (e) => {
+			this.books_tab = $(e.currentTarget).data("btab");
+			this.render_books_shell();
+		});
 		frappe.call({
-			method: "duty_board.accounting.books_profitability",
-			args: { period: period },
+			method: "duty_board.accounting.books_pulse",
+			args: { period: this.books_period },
 			callback: (r) => {
-				const m = r.message;
-				if (!m) return;
-				const d = new frappe.ui.Dialog({ title: `₦ ${__("Engagement profitability")} — ${m.period}`, size: "large" });
-				const totF = m.rows.reduce((a, x) => a + (x.fee || 0), 0);
-				const totH = m.rows.reduce((a, x) => a + (x.hours || 0), 0);
-				$(d.body).html(`
-					${m.rows.length
-						? `<table class="table table-bordered" style="font-size:var(--text-sm);margin:0">
-							<thead><tr><th>${__("Client")}</th><th style="text-align:right">${__("Fee/mo")}</th><th style="text-align:right">${__("Hours")}</th><th style="text-align:right">₦/${__("hr")}</th><th>${__("Who worked it")}</th></tr></thead>
-							<tbody>
-								${m.rows
-									.map(
-										(x) => `<tr>
-									<td><b>${frappe.utils.escape_html(x.customer)}</b></td>
-									<td style="text-align:right">₦${Number(x.fee || 0).toLocaleString()}</td>
-									<td style="text-align:right">${x.hours}</td>
-									<td style="text-align:right;font-weight:800;${x.rate !== null && x.fee && x.rate < 5000 ? "color:#b91c1c" : "color:#0F5C55"}">${x.rate !== null ? "₦" + Number(x.rate).toLocaleString() : "—"}</td>
-									<td class="text-muted" style="font-size:11px">${x.team.map((t) => `${frappe.utils.escape_html(t.first)} ${t.hours}h`).join(" · ") || "—"}</td>
-								</tr>`
-									)
-									.join("")}
-								<tr style="background:var(--bg-light-gray,#F4F7F6)"><td><b>${__("Total")}</b></td><td style="text-align:right"><b>₦${Number(totF).toLocaleString()}</b></td><td style="text-align:right"><b>${Math.round(totH * 10) / 10}</b></td><td style="text-align:right"><b>${totH ? "₦" + Number(Math.round(totF / totH)).toLocaleString() : "—"}</b></td><td></td></tr>
-							</tbody>
-						</table>
-						<div class="text-muted" style="font-size:11px;margin-top:8px">${__("Sorted worst rate first. Hours from Work Sessions tagged to the customer; sessions without a customer are invisible here — tagging discipline is the price of this number.")}</div>`
-						: `<div class="text-muted">${__("No accounting clients for this period.")}</div>`}
-					<div style="display:flex;justify-content:flex-end;margin-top:10px"><button class="btn btn-sm btn-default" data-back>← ${__("Matrix")}</button></div>
+				const p = r.message;
+				if (!p) return;
+				this.$books.find("[data-pulse]").html(`
+					<span>🤝 ${p.clients} ${__("clients")}</span>
+					<span>✅ ${p.done}/${p.total} ${__("done")}</span>
+					${p.late ? `<span style="color:#FCA5A5">⏰ ${p.late} ${__("late")}</span>` : ""}
+					${p.neglect ? `<span style="color:#FCA5A5">⚠ ${p.neglect} ${__("neglected")}</span>` : ""}
+					${p.open_q || p.open_r ? `<span>📨 ${p.open_q}❓ ${p.open_r}📎</span>` : ""}
+					${p.fee_total ? `<span>₦${Number(p.fee_total).toLocaleString()}/mo</span>` : ""}
 				`);
-				$(d.body).find("[data-back]").on("click", () => { d.hide(); this.books_dialog(m.period); });
-				d.show();
 			},
 		});
+		this.render_books_panel();
 	}
 
-	books_dialog(period) {
+	render_books_panel() {
+		const $p = this.$books.find(".duty-books-panel");
+		const fn = {
+			matrix: "_bpanel_matrix",
+			round: "_bpanel_round",
+			register: "_bpanel_register",
+			followups: "_bpanel_followups",
+			profit: "_bpanel_profit",
+		}[this.books_tab];
+		if (fn) this[fn]($p);
+	}
+
+	_bpanel_matrix($p) {
 		frappe.call({
 			method: "duty_board.accounting.books_matrix",
-			args: { period: period || null },
+			args: { period: this.books_period },
 			callback: (r) => {
 				const m = r.message;
 				if (!m) return;
-				const d = new frappe.ui.Dialog({ title: `📒 ${__("Accounting — close matrix")}`, size: "extra-large" });
 				const STAT = { Pending: ["·", "#94a3b8"], "In Progress": ["◐", "#b45309"], "In Review": ["👁", "#7c3aed"], Delivered: ["✓", "#0F5C55"], Acknowledged: ["✓✓", "#15803d"] };
-				const prevP = () => { const [y, mo] = m.period.split("-").map(Number); const dd = new Date(y, mo - 2, 1); return `${dd.getFullYear()}-${String(dd.getMonth() + 1).padStart(2, "0")}`; };
-				const nextP = () => { const [y, mo] = m.period.split("-").map(Number); const dd = new Date(y, mo, 1); return `${dd.getFullYear()}-${String(dd.getMonth() + 1).padStart(2, "0")}`; };
-				$(d.body).html(`
-					<div style="display:flex;gap:10px;align-items:center;margin-bottom:12px;flex-wrap:wrap">
-						<button class="btn btn-xs btn-default" data-prev>‹</button>
-						<b style="font-size:15px">${m.period}</b>
-						<button class="btn btn-xs btn-default" data-next>›</button>
-						<span style="margin-left:auto;display:flex;gap:8px">
-							<button class="btn btn-xs btn-primary" data-round>📅 ${__("Today's round")}</button>
-							<button class="btn btn-xs btn-default" data-followups>📨 ${__("Follow-ups")}</button>
-							<button class="btn btn-xs btn-default" data-register>🗓 ${__("Register")}</button>
-							${m.fees_visible ? `<button class="btn btn-xs btn-default" data-profit>₦ ${__("Profitability")}</button>` : ""}
-							<button class="btn btn-xs btn-default" data-sync>⟳ ${__("Sync clients")}</button>
-							<button class="btn btn-xs btn-primary" data-open>📂 ${__("Open period")}</button>
-						</span>
+				$p.html(`
+					<div style="display:flex;gap:8px;justify-content:flex-end;margin-bottom:8px">
+						<button class="btn btn-xs btn-default" data-sync>⟳ ${__("Sync clients")}</button>
+						<button class="btn btn-xs btn-primary" data-open>📂 ${__("Open period")}</button>
 					</div>
 					${m.rooms.length
 						? `<div style="overflow-x:auto"><table class="table table-bordered" style="font-size:var(--text-sm);margin:0">
@@ -2407,22 +2251,13 @@ class DutyBoard {
 						<div class="text-muted" style="font-size:11px;margin-top:8px">· ${__("Pending")} &nbsp; ◐ ${__("In progress")} &nbsp; 👁 ${__("In review")} &nbsp; ✓ ${__("Delivered")} &nbsp; ✓✓ ${__("Acknowledged by client")} &nbsp; * ${__("optional per room")} &nbsp; ${__("red = past due")}</div>`
 						: `<div class="text-muted">${__("No accounting clients found — set accounting_services to 'On Board' on the Customer, then Sync.")}</div>`}
 				`);
-				$(d.body).find("[data-prev]").on("click", () => { d.hide(); this.books_dialog(prevP()); });
-				$(d.body).find("[data-next]").on("click", () => { d.hide(); this.books_dialog(nextP()); });
-				$(d.body).find("[data-round]").on("click", () => { d.hide(); this.books_round_dialog(m.period); });
-				$(d.body).find("[data-followups]").on("click", () => { d.hide(); this.books_followups_dialog(m.period); });
-				$(d.body).find("[data-register]").on("click", () => { d.hide(); this.books_register_dialog(m.period); });
-				$(d.body).find("[data-profit]").on("click", () => {
-					d.hide();
-					this.books_profit_dialog(m.period);
-				});
-				$(d.body).find("[data-sync]").on("click", () =>
-					frappe.call({ method: "duty_board.accounting.sync_accounting_clients", callback: (rr) => { frappe.show_alert({ message: __("Synced: {0} clients, {1} rooms created", [rr.message.customers, rr.message.rooms_created]), indicator: "green" }); d.hide(); this.books_dialog(m.period); } })
+				$p.find("[data-sync]").on("click", () =>
+					frappe.call({ method: "duty_board.accounting.sync_accounting_clients", callback: (rr) => { frappe.show_alert({ message: __("Synced: {0} clients, {1} rooms created", [rr.message.customers, rr.message.rooms_created]), indicator: "green" }); this.render_books_shell(); } })
 				);
-				$(d.body).find("[data-open]").on("click", () =>
-					frappe.call({ method: "duty_board.accounting.books_open_period", args: { period: m.period }, callback: (rr) => { frappe.show_alert({ message: __("{0} deliverables opened", [rr.message.spawned]), indicator: "green" }); d.hide(); this.books_dialog(m.period); } })
+				$p.find("[data-open]").on("click", () =>
+					frappe.call({ method: "duty_board.accounting.books_open_period", args: { period: this.books_period }, callback: (rr) => { frappe.show_alert({ message: __("{0} deliverables, {1} document requests opened", [rr.message.spawned, rr.message.requests || 0]), indicator: "green" }); this.render_books_shell(); } })
 				);
-				$(d.body).find(".duty-bk-cell").on("click", (e) => {
+				$p.find(".duty-bk-cell").on("click", (e) => {
 					const name = $(e.currentTarget).data("name");
 					frappe.prompt(
 						[
@@ -2435,13 +2270,13 @@ class DutyBoard {
 							frappe.call({
 								method: "duty_board.accounting.books_set",
 								args: { name: name, status: v.status || null, assigned_to: v.assigned_to || null, reviewer: v.reviewer || null, notes: v.notes || null },
-								callback: () => { d.hide(); this.books_dialog(m.period); },
+								callback: () => this.render_books_shell(),
 							}),
 						__("Update deliverable"),
 						__("Save")
 					);
 				});
-				$(d.body).find(".duty-bk-room").on("click", (e) => {
+				$p.find(".duty-bk-room").on("click", (e) => {
 					const room = $(e.currentTarget).data("room");
 					const current = ($(e.currentTarget).data("opt") || "").split(",").map((s) => s.trim()).filter(Boolean);
 					const opts = m.types.filter((t) => t.optional);
@@ -2460,13 +2295,234 @@ class DutyBoard {
 							frappe.call({
 								method: "duty_board.accounting.books_set_room",
 								args: { name: room, bookkeeper: v.bookkeeper || null, optionals: (v.optionals || []).join(", ") },
-								callback: () => { d.hide(); this.books_dialog(m.period); },
+								callback: () => this.render_books_shell(),
 							}),
 						__("Client setup"),
 						__("Save")
 					);
 				});
-				d.show();
+			},
+		});
+	}
+
+	_bpanel_round($p) {
+		frappe.call({
+			method: "duty_board.accounting.books_daily_round",
+			callback: (r) => {
+				const m = r.message;
+				if (!m) return;
+				$p.html(`
+					<div class="text-muted" style="font-size:12px;margin-bottom:10px">📅 ${m.date} — ${__("two taps per client: where are the books posted through, and anything worth noting. Sessions you've clocked already show as ●.")}</div>
+					${m.rows
+						.map(
+							(x, i) => `
+					<div style="border:1px solid var(--border-color,#E7ECEA);border-radius:10px;padding:10px 12px;margin-bottom:8px;background:#fff" data-row="${i}">
+						<div style="display:flex;gap:8px;align-items:center;margin-bottom:7px">
+							<b>${frappe.utils.escape_html(x.customer)}</b>
+							<span title="${__("worked today (session tagged)")}">${x.worked_today ? "●" : "○"}</span>
+							${x.logged_today ? `<span style="color:#15803d;font-size:11px;font-weight:700">✓ ${__("attested")}</span>` : ""}
+							<span style="margin-left:auto;font-size:11px;color:${x.lag === null ? "#94a3b8" : x.lag <= 1 ? "#15803d" : x.lag <= 3 ? "#b45309" : "#b91c1c"}">${x.posted_through ? __("posted thru {0} · lag {1}wd", [x.posted_through, x.lag]) : __("no attestation yet")}</span>
+						</div>
+						<div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+							<input type="date" class="form-control input-sm bk-pt" style="width:150px" value="${x.posted_through || ""}" max="${m.date}">
+							<input type="number" class="form-control input-sm bk-tx" style="width:90px" placeholder="${__("tx posted")}" value="${x.tx_posted ?? ""}">
+							<input type="number" class="form-control input-sm bk-q" style="width:90px" placeholder="${__("queries")}" value="${x.queries_raised ?? ""}">
+							<input type="text" class="form-control input-sm bk-note" style="flex:1;min-width:140px" placeholder="${__("note (optional)")}" value="${frappe.utils.escape_html(x.note || "")}">
+							<button class="btn btn-xs btn-primary bk-save" data-room="${x.room}">💾</button>
+						</div>
+					</div>`
+						)
+						.join("") || `<div class="text-muted">${__("No accounting clients assigned to you.")}</div>`}
+				`);
+				$p.find(".bk-save").on("click", (e) => {
+					const $row = $(e.currentTarget).closest("[data-row]");
+					frappe.call({
+						method: "duty_board.accounting.books_log_day",
+						args: {
+							room: $(e.currentTarget).data("room"),
+							posted_through: $row.find(".bk-pt").val() || null,
+							tx_posted: $row.find(".bk-tx").val() || 0,
+							queries_raised: $row.find(".bk-q").val() || 0,
+							note: $row.find(".bk-note").val() || null,
+						},
+						callback: () => {
+							frappe.show_alert({ message: __("Attested"), indicator: "green" });
+							this.render_books_shell();
+						},
+					});
+				});
+			},
+		});
+	}
+
+	_bpanel_register($p) {
+		frappe.call({
+			method: "duty_board.accounting.books_register",
+			args: { period: this.books_period },
+			callback: (r) => {
+				const m = r.message;
+				if (!m) return;
+				const CELL = { both: ["●", "#0F5C55"], worked: ["◐", "#b45309"], logged: ["◔", "#7c3aed"], none: ["·", "#cbd5e1"], future: ["", "#fff"] };
+				$p.html(`
+					<div style="overflow-x:auto"><table class="table table-bordered" style="font-size:11px;margin:0">
+						<thead><tr><th style="min-width:150px">${__("Client")}</th>${m.days.map((ds) => `<th style="text-align:center;padding:4px 5px">${ds.slice(8)}</th>`).join("")}<th>${__("Lag")}</th></tr></thead>
+						<tbody>${m.rooms
+							.map(
+								(row) => `<tr ${row.neglected ? 'style="background:#FDECEA"' : ""}>
+							<td><b>${frappe.utils.escape_html(row.customer)}</b>${row.neglected ? ` <span style="color:#b91c1c;font-weight:800">⚠ ${row.streak}${__("wd")}</span>` : ""}</td>
+							${m.days.map((ds) => { const [ic, col] = CELL[row.cells[ds]] || CELL.none; return `<td style="text-align:center;color:${col};font-weight:800;padding:4px 5px">${ic}</td>`; }).join("")}
+							<td style="font-size:10px;font-weight:700;color:${row.lag === null ? "#94a3b8" : row.lag <= 1 ? "#15803d" : row.lag <= 3 ? "#b45309" : "#b91c1c"}">${row.posted_through ? row.lag + "wd" : "—"}</td>
+						</tr>`
+							)
+							.join("")}</tbody>
+					</table></div>
+					<div class="text-muted" style="font-size:11px;margin-top:8px">● ${__("worked + attested")} &nbsp; ◐ ${__("worked, no attestation")} &nbsp; ◔ ${__("attested, no session")} &nbsp; · ${__("untouched")} &nbsp; ${__("red row = {0}+ working days untouched", [m.neglect_days])}</div>
+				`);
+			},
+		});
+	}
+
+	_bpanel_followups($p, room_filter) {
+		frappe.call({
+			method: "duty_board.accounting.books_followups",
+			args: { room: room_filter || null },
+			callback: (r) => {
+				const m = r.message;
+				if (!m) return;
+				const roomName = (rm) => { const x = m.rooms.find((y) => y.room === rm); return x ? x.customer : rm; };
+				$p.html(`
+					<div style="display:flex;gap:8px;align-items:center;margin-bottom:10px;flex-wrap:wrap">
+						<select class="form-control input-sm" data-roomsel style="width:220px">
+							<option value="">${__("All clients")}</option>
+							${m.rooms.map((x) => `<option value="${x.room}" ${room_filter === x.room ? "selected" : ""}>${frappe.utils.escape_html(x.customer)}</option>`).join("")}
+						</select>
+						<span style="margin-left:auto;display:flex;gap:8px">
+							<button class="btn btn-xs btn-primary" data-addq>❓ ${__("New question")}</button>
+							<button class="btn btn-xs btn-default" data-addr>📎 ${__("New request")}</button>
+						</span>
+					</div>
+					<div style="font-size:12px;font-weight:800;margin-bottom:6px">❓ ${__("Questions")} (${m.queries.length})</div>
+					${m.queries
+						.map(
+							(q) => `
+					<div style="border:1px solid var(--border-color,#E7ECEA);border-radius:10px;padding:9px 12px;margin-bottom:7px;background:${q.status === "Answered" ? "#F4FBF8" : "#fff"}">
+						<div style="display:flex;gap:8px;align-items:baseline;flex-wrap:wrap">
+							<b style="font-size:13px">${frappe.utils.escape_html(roomName(q.room))}</b>
+							<span class="text-muted" style="font-size:11px">${[q.ref_date, q.amount ? "₦" + Number(q.amount).toLocaleString() : null, q.reference].filter(Boolean).map(frappe.utils.escape_html).join(" · ")}</span>
+							<span style="margin-left:auto;font-size:11px;font-weight:700;color:${q.status === "Answered" ? "#15803d" : "#b45309"}">${q.status === "Answered" ? "💬 " + __("answered") : __("open") + " · " + q.age_wd + "wd"}</span>
+						</div>
+						<div style="font-size:13px;margin-top:3px">${frappe.utils.escape_html(q.question)}</div>
+						${q.answer ? `<div style="font-size:13px;margin-top:5px;padding:7px 10px;background:#fff;border:1px solid #CBE7DE;border-radius:8px">💬 <b>${frappe.utils.escape_html(q.answered_by || "")}</b>: ${frappe.utils.escape_html(q.answer)} <button class="btn btn-xs btn-primary" data-resolve="${q.name}" style="margin-left:8px">✓ ${__("Resolve")}</button></div>` : ""}
+					</div>`
+						)
+						.join("") || `<div class="text-muted" style="margin-bottom:8px">${__("No open questions.")}</div>`}
+					<div style="font-size:12px;font-weight:800;margin:10px 0 6px">📎 ${__("Document requests")} (${m.requests.length})</div>
+					${m.requests
+						.map(
+							(x) => `
+					<div style="border:1px solid var(--border-color,#E7ECEA);border-radius:10px;padding:8px 12px;margin-bottom:6px;display:flex;gap:8px;align-items:center;background:${x.overdue ? "#FDECEA" : "#fff"}">
+						<b style="font-size:13px">${frappe.utils.escape_html(roomName(x.room))}</b>
+						<span style="font-size:13px">${frappe.utils.escape_html(x.title)}</span>
+						<span class="text-muted" style="font-size:11px;margin-left:auto">${x.due_date ? __("due") + " " + x.due_date + (x.overdue ? " ⚠" : "") : ""}</span>
+						<button class="btn btn-xs btn-default" data-waive="${x.name}">${__("Waive")}</button>
+					</div>`
+						)
+						.join("") || `<div class="text-muted">${__("Nothing outstanding.")}</div>`}
+					${m.received && m.received.length
+						? `<div style="font-size:12px;font-weight:800;margin:10px 0 6px">📥 ${__("Recently received")}</div>` +
+							m.received
+								.map(
+									(x) => `
+					<div style="border:1px solid #CBE7DE;background:#F4FBF8;border-radius:10px;padding:8px 12px;margin-bottom:6px;display:flex;gap:8px;align-items:center">
+						<b style="font-size:13px">${frappe.utils.escape_html(roomName(x.room))}</b>
+						<span style="font-size:13px">${frappe.utils.escape_html(x.title)}</span>
+						<span class="text-muted" style="font-size:11px;margin-left:auto">${frappe.utils.escape_html(x.fulfilled_by || "")} · ${x.fulfilled_on || ""}</span>
+						${x.attachment_url ? `<a class="btn btn-xs btn-default" href="${frappe.utils.escape_html(x.attachment_url)}" target="_blank">📎 ${__("Open")}</a>` : ""}
+					</div>`
+								)
+								.join("")
+						: ""}
+				`);
+				const reload = (rm) => this._bpanel_followups($p, rm !== undefined ? rm : room_filter);
+				$p.find("[data-roomsel]").on("change", (e) => reload($(e.currentTarget).val() || null));
+				$p.find("[data-resolve]").on("click", (e) =>
+					frappe.call({ method: "duty_board.accounting.books_resolve_query", args: { name: $(e.currentTarget).data("resolve") }, callback: () => reload() })
+				);
+				$p.find("[data-waive]").on("click", (e) =>
+					frappe.call({ method: "duty_board.accounting.books_waive_request", args: { name: $(e.currentTarget).data("waive") }, callback: () => reload() })
+				);
+				$p.find("[data-addq]").on("click", () =>
+					frappe.prompt(
+						[
+							{ fieldname: "room", fieldtype: "Select", label: __("Client"), options: m.rooms.map((x) => ({ label: x.customer, value: x.room })), reqd: 1, default: room_filter || (m.rooms[0] && m.rooms[0].room) },
+							{ fieldname: "question", fieldtype: "Small Text", label: __("Question"), reqd: 1 },
+							{ fieldname: "ref_date", fieldtype: "Date", label: __("Transaction date") },
+							{ fieldname: "amount", fieldtype: "Currency", label: __("Amount") },
+							{ fieldname: "reference", fieldtype: "Data", label: __("Reference (narration, counterparty…)") },
+						],
+						(v) =>
+							frappe.call({
+								method: "duty_board.accounting.books_add_query",
+								args: { room: v.room, question: v.question, ref_date: v.ref_date || null, amount: v.amount || null, reference: v.reference || null },
+								callback: () => reload(),
+							}),
+						__("Ask the client"),
+						__("Send")
+					)
+				);
+				$p.find("[data-addr]").on("click", () =>
+					frappe.prompt(
+						[
+							{ fieldname: "room", fieldtype: "Select", label: __("Client"), options: m.rooms.map((x) => ({ label: x.customer, value: x.room })), reqd: 1, default: room_filter || (m.rooms[0] && m.rooms[0].room) },
+							{ fieldname: "title", fieldtype: "Data", label: __("Document"), reqd: 1 },
+							{ fieldname: "detail", fieldtype: "Small Text", label: __("Detail") },
+							{ fieldname: "due_date", fieldtype: "Date", label: __("Due") },
+						],
+						(v) =>
+							frappe.call({
+								method: "duty_board.accounting.books_add_request",
+								args: { room: v.room, title: v.title, detail: v.detail || null, due_date: v.due_date || null },
+								callback: () => reload(),
+							}),
+						__("Request a document"),
+						__("Send")
+					)
+				);
+			},
+		});
+	}
+
+	_bpanel_profit($p) {
+		frappe.call({
+			method: "duty_board.accounting.books_profitability",
+			args: { period: this.books_period },
+			callback: (r) => {
+				const m = r.message;
+				if (!m) return;
+				const totF = m.rows.reduce((a, x) => a + (x.fee || 0), 0);
+				const totH = m.rows.reduce((a, x) => a + (x.hours || 0), 0);
+				$p.html(`
+					${m.rows.length
+						? `<table class="table table-bordered" style="font-size:var(--text-sm);margin:0">
+							<thead><tr><th>${__("Client")}</th><th style="text-align:right">${__("Fee/mo")}</th><th style="text-align:right">${__("Hours")}</th><th style="text-align:right">₦/${__("hr")}</th><th>${__("Who worked it")}</th></tr></thead>
+							<tbody>
+								${m.rows
+									.map(
+										(x) => `<tr>
+									<td><b>${frappe.utils.escape_html(x.customer)}</b></td>
+									<td style="text-align:right">₦${Number(x.fee || 0).toLocaleString()}</td>
+									<td style="text-align:right">${x.hours}</td>
+									<td style="text-align:right;font-weight:800;${x.rate !== null && x.fee && x.rate < 5000 ? "color:#b91c1c" : "color:#0F5C55"}">${x.rate !== null ? "₦" + Number(x.rate).toLocaleString() : "—"}</td>
+									<td class="text-muted" style="font-size:11px">${x.team.map((t) => `${frappe.utils.escape_html(t.first)} ${t.hours}h`).join(" · ") || "—"}</td>
+								</tr>`
+									)
+									.join("")}
+								<tr style="background:var(--bg-light-gray,#F4F7F6)"><td><b>${__("Total")}</b></td><td style="text-align:right"><b>₦${Number(totF).toLocaleString()}</b></td><td style="text-align:right"><b>${Math.round(totH * 10) / 10}</b></td><td style="text-align:right"><b>${totH ? "₦" + Number(Math.round(totF / totH)).toLocaleString() : "—"}</b></td><td></td></tr>
+							</tbody>
+						</table>
+						<div class="text-muted" style="font-size:11px;margin-top:8px">${__("Sorted worst rate first. Hours from Work Sessions tagged to the customer; sessions without a customer are invisible here — tagging discipline is the price of this number.")}</div>`
+						: `<div class="text-muted">${__("No accounting clients for this period.")}</div>`}
+				`);
 			},
 		});
 	}
