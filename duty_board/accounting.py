@@ -524,7 +524,7 @@ def books_profitability(period=None):
 			}
 		)
 	out.sort(key=lambda x: (x["rate"] is None, x["rate"] if x["rate"] is not None else 0))
-	return {"period": period, "rows": out}
+	return {"period": period, "rows": out, "floor": _rate_floor()}
 
 
 # ---------------- daily assurance: register, attestation, digest ----------------
@@ -1730,3 +1730,190 @@ def books_tick_check(name, done=1):
 	)
 	frappe.db.commit()
 	return books_cell(doc.deliverable)
+
+
+# ---------------- KPIs: the quality numbers ----------------
+
+
+def _rate_floor():
+	try:
+		return cint(frappe.get_cached_doc("Duty Settings").get("books_rate_floor")) or 5000
+	except Exception:
+		return 5000
+
+
+def _trailing_periods(period, n=6):
+	year, month = int(period[:4]), int(period[5:7])
+	out = []
+	for i in range(n):
+		m = month - i
+		y = year
+		while m <= 0:
+			m += 12
+			y -= 1
+		out.append(f"{y:04d}-{m:02d}")
+	return list(reversed(out))
+
+
+def _period_bounds(p):
+	y, m = int(p[:4]), int(p[5:7])
+	start = date(y, m, 1)
+	end = date(y, m, calendar.monthrange(y, m)[1])
+	return start, end
+
+
+def _hours_by_customer_period(customers, periods):
+	if not customers or not periods:
+		return {}
+	start, _e = _period_bounds(periods[0])
+	_s, end = _period_bounds(periods[-1])
+	rows = frappe.db.sql(
+		"""select customer, date_format(start_time, '%%Y-%%m') as p, coalesce(sum(duration), 0) as secs
+		from `tabWork Session`
+		where customer in %(c)s and start_time >= %(s)s and start_time < %(e)s
+		group by customer, p""",
+		{"c": tuple(customers), "s": str(start), "e": str(end + timedelta(days=1))},
+		as_dict=True,
+	)
+	return {(r.customer, r.p): r.secs / 3600.0 for r in rows}
+
+
+@frappe.whitelist()
+def books_kpi(period=None):
+	_staff_only()
+	if not _books_manager():
+		frappe.throw(_("KPIs are restricted."), frappe.PermissionError)
+	period = (period or today()[:7]).strip()[:7]
+	periods = _trailing_periods(period, 6)
+	rooms, custs = _accounting_rooms()
+	names = [r.name for r in rooms]
+	room_cust = {r.name: r.customer for r in rooms}
+	fs_type = frappe.db.get_value("Duty Service Deliverable Type", {"title": "Financial statements"}, "name")
+
+	dels = frappe.get_all(
+		"Duty Service Deliverable",
+		filters={"room": ["in", names] if names else ["is", "set"], "period": ["in", periods]},
+		fields=["room", "deliverable_type", "period", "due_date", "status", "delivered_on", "acknowledged_on", "assigned_to"],
+	)
+	logs = []
+	if names:
+		s0, _x = _period_bounds(periods[0])
+		_y, e0 = _period_bounds(periods[-1])
+		logs = frappe.get_all(
+			"Duty Books Daily Log",
+			filters={"room": ["in", names], "log_date": ["between", [str(s0), str(e0)]], "posted_through": ["is", "set"]},
+			fields=["room", "log_date", "posted_through"],
+		)
+
+	def done(x):
+		return x.status in ("Delivered", "Acknowledged")
+
+	def on_time(x):
+		return done(x) and x.delivered_on and x.due_date and getdate(x.delivered_on) <= getdate(x.due_date)
+
+	# trend by period
+	trend = []
+	for p in periods:
+		pd = [x for x in dels if x.period == p]
+		dn = [x for x in pd if done(x)]
+		ot = [x for x in pd if on_time(x)]
+		fs = [x for x in dn if fs_type and x.deliverable_type == fs_type and x.delivered_on]
+		cycles = []
+		for x in fs:
+			_s, pend = _period_bounds(x.period)
+			cycles.append((getdate(x.delivered_on) - pend).days)
+		plogs = [l for l in logs if str(l.log_date)[:7] == p]
+		lags = [_working_days_between(getdate(l.posted_through), getdate(l.log_date)) for l in plogs]
+		trend.append(
+			{
+				"period": p,
+				"total": len(pd),
+				"done": len(dn),
+				"on_time_pct": round(100.0 * len(ot) / len(dn), 0) if dn else None,
+				"fs_cycle": round(sum(cycles) / len(cycles), 1) if cycles else None,
+				"avg_lag": round(sum(lags) / len(lags), 1) if lags else None,
+			}
+		)
+
+	# per client over the window
+	by_client = []
+	for r in sorted(rooms, key=lambda x: x.customer or ""):
+		cd = [x for x in dels if x.room == r.name]
+		dn = [x for x in cd if done(x)]
+		ot = [x for x in cd if on_time(x)]
+		fs = [x for x in dn if fs_type and x.deliverable_type == fs_type and x.delivered_on]
+		cycles = []
+		for x in fs:
+			_s, pend = _period_bounds(x.period)
+			cycles.append((getdate(x.delivered_on) - pend).days)
+		clogs = [l for l in logs if l.room == r.name]
+		lags = [_working_days_between(getdate(l.posted_through), getdate(l.log_date)) for l in clogs]
+		acks = [
+			(getdate(str(x.acknowledged_on)[:10]) - getdate(x.delivered_on)).days
+			for x in cd
+			if x.acknowledged_on and x.delivered_on
+		]
+		by_client.append(
+			{
+				"customer": r.customer,
+				"done": len(dn),
+				"total": len(cd),
+				"on_time_pct": round(100.0 * len(ot) / len(dn), 0) if dn else None,
+				"fs_cycle": round(sum(cycles) / len(cycles), 1) if cycles else None,
+				"avg_lag": round(sum(lags) / len(lags), 1) if lags else None,
+				"ack_days": round(sum(acks) / len(acks), 1) if acks else None,
+			}
+		)
+
+	# per bookkeeper over the window
+	by_user = {}
+	for x in dels:
+		if not x.assigned_to:
+			continue
+		u = by_user.setdefault(x.assigned_to, {"user": x.assigned_to, "total": 0, "done": 0, "on_time": 0, "open_now": 0})
+		u["total"] += 1
+		if done(x):
+			u["done"] += 1
+			if on_time(x):
+				u["on_time"] += 1
+		elif x.period == period:
+			u["open_now"] += 1
+	staff = []
+	for u in by_user.values():
+		staff.append(
+			{
+				"user": u["user"],
+				"first": frappe.utils.get_fullname(u["user"]).split(" ")[0],
+				"done": u["done"],
+				"total": u["total"],
+				"on_time_pct": round(100.0 * u["on_time"] / u["done"], 0) if u["done"] else None,
+				"open_now": u["open_now"],
+			}
+		)
+	staff.sort(key=lambda x: -(x["done"]))
+
+	# fee review: rate below floor 3 consecutive recent months
+	floor = _rate_floor()
+	last3 = periods[-3:]
+	hours = _hours_by_customer_period([r.customer for r in rooms], last3)
+	fee_review = []
+	for r in rooms:
+		fee = flt(custs.get(r.customer, frappe._dict()).get("accounting_fees"))
+		if not fee:
+			continue
+		rates = []
+		for p in last3:
+			h = hours.get((r.customer, p), 0)
+			rates.append(round(fee / h, 0) if h else None)
+		if all(x is not None and x < floor for x in rates):
+			fee_review.append({"customer": r.customer, "fee": fee, "rates": rates})
+	return {
+		"period": period,
+		"periods": periods,
+		"trend": trend,
+		"by_client": by_client,
+		"staff": staff,
+		"fee_review": fee_review,
+		"floor": floor,
+		"last3": last3,
+	}

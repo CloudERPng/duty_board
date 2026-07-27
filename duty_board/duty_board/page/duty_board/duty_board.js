@@ -2137,7 +2137,7 @@ class DutyBoard {
 			["followups", "📨 " + __("Follow-ups")],
 			["onboarding", "🚀 " + __("Onboarding")],
 		];
-		if (mgr) tabs.push(["profit", "₦ " + __("Profitability")], ["billing", "💰 " + __("Billing")]);
+		if (mgr) tabs.push(["profit", "₦ " + __("Profitability")], ["billing", "💰 " + __("Billing")], ["kpi", "📈 " + __("KPIs")]);
 		this.$books.html(`
 			<style>
 				.duty-books-head { display: flex; gap: 12px; align-items: center; flex-wrap: wrap;
@@ -2200,6 +2200,7 @@ class DutyBoard {
 			onboarding: "_bpanel_onboarding",
 			profit: "_bpanel_profit",
 			billing: "_bpanel_billing",
+			kpi: "_bpanel_kpi",
 		}[this.books_tab];
 		if (fn) this[fn]($p);
 	}
@@ -2607,6 +2608,75 @@ class DutyBoard {
 		});
 	}
 
+	_bpanel_kpi($p) {
+		frappe.call({
+			method: "duty_board.accounting.books_kpi",
+			args: { period: this.books_period },
+			callback: (r) => {
+				const m = r.message;
+				if (!m) return;
+				const pct = (v) => (v === null ? "—" : `<span style="font-weight:700;color:${v >= 90 ? "#15803d" : v >= 70 ? "#b45309" : "#b91c1c"}">${v}%</span>`);
+				const num = (v, unit) => (v === null ? "—" : `${v}${unit || ""}`);
+				$p.html(`
+					<div style="font-size:12px;font-weight:800;margin-bottom:6px">📈 ${__("Trend — last 6 periods")}</div>
+					<div style="overflow-x:auto"><table class="table table-bordered" style="font-size:var(--text-sm);margin:0;background:#fff">
+						<thead><tr><th></th>${m.trend.map((t) => `<th style="text-align:center">${t.period.slice(2)}</th>`).join("")}</tr></thead>
+						<tbody>
+							<tr><td>${__("Deliverables done")}</td>${m.trend.map((t) => `<td style="text-align:center">${t.done}/${t.total}</td>`).join("")}</tr>
+							<tr><td>${__("On-time rate")}</td>${m.trend.map((t) => `<td style="text-align:center">${pct(t.on_time_pct)}</td>`).join("")}</tr>
+							<tr><td>${__("FS close cycle (days after month end)")}</td>${m.trend.map((t) => `<td style="text-align:center">${num(t.fs_cycle, "d")}</td>`).join("")}</tr>
+							<tr><td>${__("Avg posting lag (wd, attested)")}</td>${m.trend.map((t) => `<td style="text-align:center">${num(t.avg_lag, "")}</td>`).join("")}</tr>
+						</tbody>
+					</table></div>
+					<div style="font-size:12px;font-weight:800;margin:14px 0 6px">🤝 ${__("Per client — 6-period window")}</div>
+					<div style="overflow-x:auto"><table class="table table-bordered" style="font-size:var(--text-sm);margin:0;background:#fff">
+						<thead><tr><th>${__("Client")}</th><th style="text-align:center">${__("Done")}</th><th style="text-align:center">${__("On-time")}</th><th style="text-align:center">${__("FS cycle")}</th><th style="text-align:center">${__("Posting lag")}</th><th style="text-align:center">${__("Client ack (days)")}</th></tr></thead>
+						<tbody>${m.by_client
+							.map(
+								(c) => `<tr>
+							<td><b>${frappe.utils.escape_html(c.customer)}</b></td>
+							<td style="text-align:center">${c.done}/${c.total}</td>
+							<td style="text-align:center">${pct(c.on_time_pct)}</td>
+							<td style="text-align:center">${num(c.fs_cycle, "d")}</td>
+							<td style="text-align:center">${num(c.avg_lag, "wd")}</td>
+							<td style="text-align:center">${num(c.ack_days, "d")}</td>
+						</tr>`
+							)
+							.join("")}</tbody>
+					</table></div>
+					<div style="font-size:12px;font-weight:800;margin:14px 0 6px">👥 ${__("Per bookkeeper — 6-period window")}</div>
+					<table class="table table-bordered" style="font-size:var(--text-sm);margin:0;background:#fff">
+						<thead><tr><th>${__("Bookkeeper")}</th><th style="text-align:center">${__("Delivered")}</th><th style="text-align:center">${__("On-time")}</th><th style="text-align:center">${__("Open this period")}</th></tr></thead>
+						<tbody>${m.staff
+							.map(
+								(s) => `<tr>
+							<td><b>${frappe.utils.escape_html(s.first)}</b> <span class="text-muted" style="font-size:11px">${frappe.utils.escape_html(s.user)}</span></td>
+							<td style="text-align:center">${s.done}/${s.total}</td>
+							<td style="text-align:center">${pct(s.on_time_pct)}</td>
+							<td style="text-align:center">${s.open_now || ""}</td>
+						</tr>`
+							)
+							.join("") || `<tr><td colspan="4" class="text-muted">${__("No assigned deliverables in the window.")}</td></tr>`}</tbody>
+					</table>
+					<div style="font-size:12px;font-weight:800;margin:14px 0 6px">🚩 ${__("Fee review — below ₦{0}/hr for 3 consecutive months", [Number(m.floor).toLocaleString()])}</div>
+					${m.fee_review.length
+						? m.fee_review
+								.map(
+									(f) => `
+					<div style="border:1px solid #F4C7C0;background:#FDECEA;border-radius:10px;padding:9px 12px;margin-bottom:6px;display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+						<b>${frappe.utils.escape_html(f.customer)}</b>
+						<span style="font-size:12px">₦${Number(f.fee).toLocaleString()}/mo</span>
+						<span style="font-size:12px;margin-left:auto">${m.last3.map((p, i) => `${p.slice(5)}: <b style="color:#b91c1c">₦${Number(f.rates[i]).toLocaleString()}/hr</b>`).join(" · ")}</span>
+					</div>`
+								)
+								.join("")
+						: `<div class="text-muted" style="font-size:12px">${__("No clients flagged — every engagement is above the floor (or lacks 3 months of tagged hours).")}</div>`}
+					<div class="text-muted" style="font-size:11px;margin-top:8px">${__("Floor is configurable in Duty Settings. Lag and rates depend on attestations and customer-tagged sessions — the disciplines feed the numbers.")}</div>
+				`);
+			},
+		});
+	}
+
 	_bpanel_billing($p) {
 		frappe.call({
 			method: "duty_board.accounting.books_billing",
@@ -2689,7 +2759,7 @@ class DutyBoard {
 									<td><b>${frappe.utils.escape_html(x.customer)}</b></td>
 									<td style="text-align:right">₦${Number(x.fee || 0).toLocaleString()}</td>
 									<td style="text-align:right">${x.hours}</td>
-									<td style="text-align:right;font-weight:800;${x.rate !== null && x.fee && x.rate < 5000 ? "color:#b91c1c" : "color:#0F5C55"}">${x.rate !== null ? "₦" + Number(x.rate).toLocaleString() : "—"}</td>
+									<td style="text-align:right;font-weight:800;${x.rate !== null && x.fee && x.rate < (m.floor || 5000) ? "color:#b91c1c" : "color:#0F5C55"}">${x.rate !== null ? "₦" + Number(x.rate).toLocaleString() : "—"}</td>
 									<td class="text-muted" style="font-size:11px">${x.team.map((t) => `${frappe.utils.escape_html(t.first)} ${t.hours}h`).join(" · ") || "—"}</td>
 								</tr>`
 									)

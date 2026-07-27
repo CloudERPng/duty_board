@@ -20,7 +20,8 @@
   "books_monthly_requests",
   "books_onboarding_steps",
   "books_invoice_item",
-  "books_invoice_due_days"
+  "books_invoice_due_days",
+  "books_rate_floor"
  ],
  "fields": [
   {
@@ -125,6 +126,13 @@
    "fieldname": "books_invoice_due_days",
    "fieldtype": "Int",
    "label": "Books Invoice Due (days)"
+  },
+  {
+   "default": "5000",
+   "fieldname": "books_rate_floor",
+   "fieldtype": "Int",
+   "label": "Books Rate Floor (\u20a6/hr)",
+   "description": "Effective hourly rate below this flags a client for fee review"
   }
  ],
  "issingle": 1,
