@@ -2137,7 +2137,7 @@ class DutyBoard {
 			["followups", "📨 " + __("Follow-ups")],
 			["onboarding", "🚀 " + __("Onboarding")],
 		];
-		if (mgr) tabs.push(["profit", "₦ " + __("Profitability")]);
+		if (mgr) tabs.push(["profit", "₦ " + __("Profitability")], ["billing", "💰 " + __("Billing")]);
 		this.$books.html(`
 			<style>
 				.duty-books-head { display: flex; gap: 12px; align-items: center; flex-wrap: wrap;
@@ -2183,6 +2183,7 @@ class DutyBoard {
 					${p.neglect ? `<span style="color:#FCA5A5">⚠ ${p.neglect} ${__("neglected")}</span>` : ""}
 					${p.open_q || p.open_r ? `<span>📨 ${p.open_q}❓ ${p.open_r}📎</span>` : ""}
 					${p.fee_total ? `<span>₦${Number(p.fee_total).toLocaleString()}/mo</span>` : ""}
+					${p.unpaid_count ? `<span style="color:#FCD34D">💰 ${p.unpaid_count} ${__("unpaid")} · ₦${Number(p.unpaid_total).toLocaleString()}</span>` : ""}
 				`);
 			},
 		});
@@ -2198,6 +2199,7 @@ class DutyBoard {
 			followups: "_bpanel_followups",
 			onboarding: "_bpanel_onboarding",
 			profit: "_bpanel_profit",
+			billing: "_bpanel_billing",
 		}[this.books_tab];
 		if (fn) this[fn]($p);
 	}
@@ -2544,6 +2546,68 @@ class DutyBoard {
 						method: "duty_board.accounting.books_start_onboarding",
 						args: { room: $(e.currentTarget).data("room") },
 						callback: () => this._bpanel_onboarding($p),
+					})
+				);
+			},
+		});
+	}
+
+	_bpanel_billing($p) {
+		frappe.call({
+			method: "duty_board.accounting.books_billing",
+			args: { period: this.books_period },
+			callback: (r) => {
+				const m = r.message;
+				if (!m) return;
+				const badge = (row) => {
+					if (!row.invoice) return `<span style="color:${row.fee ? "#b45309" : "#94a3b8"};font-weight:700">${frappe.utils.escape_html(row.status)}</span>`;
+					const col = row.docstatus === 0 ? "#7c3aed" : row.outstanding > 0 ? "#b91c1c" : "#15803d";
+					const label = row.docstatus === 0 ? __("Draft — review & submit") : row.outstanding > 0 ? __("Unpaid") : __("Paid");
+					return `<a href="/app/sales-invoice/${encodeURIComponent(row.invoice)}" style="color:${col};font-weight:700">${label} · ${frappe.utils.escape_html(row.invoice)}</a>`;
+				};
+				$p.html(`
+					<div style="display:flex;gap:8px;justify-content:flex-end;margin-bottom:8px">
+						<button class="btn btn-xs btn-primary" data-gen>🧾 ${__("Generate {0} invoices now", [m.period])}</button>
+					</div>
+					<table class="table table-bordered" style="font-size:var(--text-sm);margin:0;background:#fff">
+						<thead><tr><th>${__("Client")}</th><th style="text-align:right">${__("Fee/mo")}</th><th>${__("This period")} (${m.period})</th></tr></thead>
+						<tbody>${m.rows
+							.map(
+								(row) => `<tr>
+							<td><b>${frappe.utils.escape_html(row.customer)}</b></td>
+							<td style="text-align:right">${row.fee ? "₦" + Number(row.fee).toLocaleString() : `<span style="color:#b91c1c;font-weight:700">${__("no fee set")}</span>`}</td>
+							<td>${badge(row)}</td>
+						</tr>`
+							)
+							.join("")}</tbody>
+					</table>
+					<div style="font-size:12px;font-weight:800;margin:14px 0 6px">💰 ${__("Awaiting payment")} (${m.unpaid.length}) — ₦${Number(m.unpaid_total).toLocaleString()}</div>
+					${m.unpaid.length
+						? `<table class="table table-bordered" style="font-size:var(--text-sm);margin:0;background:#fff">
+							<thead><tr><th>${__("Client")}</th><th>${__("Invoice")}</th><th style="text-align:right">${__("Outstanding")}</th><th>${__("Due")}</th></tr></thead>
+							<tbody>${m.unpaid
+								.map(
+									(u) => `<tr ${u.days_overdue ? 'style="background:#FDECEA"' : ""}>
+								<td><b>${frappe.utils.escape_html(u.customer)}</b></td>
+								<td><a href="/app/sales-invoice/${encodeURIComponent(u.name)}">${frappe.utils.escape_html(u.name)}</a></td>
+								<td style="text-align:right;font-weight:700">₦${Number(u.outstanding_amount).toLocaleString()}</td>
+								<td style="font-size:12px;${u.days_overdue ? "color:#b91c1c;font-weight:700" : ""}">${u.due_date || "—"}${u.days_overdue ? ` · ${u.days_overdue}${__("d overdue")}` : ""}</td>
+							</tr>`
+								)
+								.join("")}</tbody>
+						</table>`
+						: `<div class="text-muted">${__("Nothing outstanding — everyone has paid.")}</div>`}
+					<div class="text-muted" style="font-size:11px;margin-top:8px">${__("Invoices auto-generate on the 28th as drafts; submit them in the desk. Payment status reads the ERP's outstanding amounts.")}</div>
+				`);
+				$p.find("[data-gen]").on("click", () =>
+					frappe.call({
+						method: "duty_board.accounting.books_generate_invoices",
+						args: { period: this.books_period },
+						callback: (rr) => {
+							const o = rr.message;
+							frappe.show_alert({ message: __("{0} created, {1} already existed{2}", [o.created, o.existing, o.no_fee.length ? ", no fee: " + o.no_fee.join(", ") : ""]), indicator: o.no_fee.length ? "orange" : "green" });
+							this.render_books_shell();
+						},
 					})
 				);
 			},

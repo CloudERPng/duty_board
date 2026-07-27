@@ -18,7 +18,9 @@
   "workdays",
   "books_managers",
   "books_monthly_requests",
-  "books_onboarding_steps"
+  "books_onboarding_steps",
+  "books_invoice_item",
+  "books_invoice_due_days"
  ],
  "fields": [
   {
@@ -111,6 +113,18 @@
    "fieldtype": "Small Text",
    "label": "Books Onboarding Steps",
    "description": "One step per line; spawned for newly on-boarded accounting clients. Leave empty to use the built-in default runbook."
+  },
+  {
+   "fieldname": "books_invoice_item",
+   "fieldtype": "Data",
+   "label": "Books Invoice Item Code",
+   "description": "Service Item used on auto-generated accounting invoices; created automatically as 'Accounting Services' if empty"
+  },
+  {
+   "default": "7",
+   "fieldname": "books_invoice_due_days",
+   "fieldtype": "Int",
+   "label": "Books Invoice Due (days)"
   }
  ],
  "issingle": 1,

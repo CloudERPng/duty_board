@@ -1364,6 +1364,14 @@ def books_pulse(period=None):
 	}
 	if _books_manager():
 		out["fee_total"] = sum(flt(custs.get(r.customer, frappe._dict()).get("accounting_fees")) for r in rooms)
+		custnames = [r.customer for r in rooms]
+		unpaid = frappe.get_all(
+			"Sales Invoice",
+			filters={"customer": ["in", custnames] if custnames else ["is", "set"], "docstatus": 1, "outstanding_amount": [">", 0]},
+			fields=["outstanding_amount"],
+		)
+		out["unpaid_count"] = len(unpaid)
+		out["unpaid_total"] = sum(flt(u.outstanding_amount) for u in unpaid)
 	return out
 
 
@@ -1465,3 +1473,147 @@ def books_tick_onboarding(name, done=1, note=None):
 		room = frappe.get_doc("Client Room", doc.room)
 		_post(room, _("🚀 {0} is fully onboarded — welcome aboard!").format(room.customer))
 	return books_onboarding()
+
+
+# ---------------- billing: auto-invoices + unpaid tracking ----------------
+
+
+def _invoice_settings():
+	item_code, due_days = "Accounting Services", 7
+	try:
+		s = frappe.get_cached_doc("Duty Settings")
+		item_code = (s.get("books_invoice_item") or "").strip() or item_code
+		due_days = cint(s.get("books_invoice_due_days")) or 7
+	except Exception:
+		pass
+	return item_code, due_days
+
+
+def _ensure_invoice_item(item_code):
+	if frappe.db.exists("Item", item_code):
+		return item_code
+	group = "Services" if frappe.db.exists("Item Group", "Services") else "All Item Groups"
+	frappe.get_doc(
+		{
+			"doctype": "Item",
+			"item_code": item_code,
+			"item_name": item_code,
+			"item_group": group,
+			"is_stock_item": 0,
+			"include_item_in_manufacturing": 0,
+		}
+	).insert(ignore_permissions=True)
+	return item_code
+
+
+def _period_marker(period):
+	return f"BOOKS-AUTO-{period}"
+
+
+def _generate_invoices(period):
+	item_code, due_days = _invoice_settings()
+	_ensure_invoice_item(item_code)
+	company = frappe.defaults.get_global_default("company")
+	rooms, custs = _accounting_rooms()
+	created, existing, no_fee = 0, 0, []
+	marker = _period_marker(period)
+	for r in rooms:
+		fee = flt(custs.get(r.customer, frappe._dict()).get("accounting_fees"))
+		if not fee:
+			no_fee.append(r.customer)
+			continue
+		if frappe.db.exists(
+			"Sales Invoice", {"customer": r.customer, "remarks": ["like", f"%{marker}%"], "docstatus": ["<", 2]}
+		):
+			existing += 1
+			continue
+		si = frappe.get_doc(
+			{
+				"doctype": "Sales Invoice",
+				"customer": r.customer,
+				"company": company,
+				"posting_date": today(),
+				"due_date": frappe.utils.add_days(today(), due_days),
+				"remarks": f"Accounting services — {period} · {marker}",
+				"items": [
+					{
+						"item_code": item_code,
+						"qty": 1,
+						"rate": fee,
+						"description": f"Accounting services — {period}",
+					}
+				],
+			}
+		)
+		si.insert(ignore_permissions=True)
+		created += 1
+	frappe.db.commit()
+	return {"period": period, "created": created, "existing": existing, "no_fee": no_fee}
+
+
+@frappe.whitelist()
+def books_generate_invoices(period=None):
+	_staff_only()
+	if not _books_manager():
+		frappe.throw(_("Billing is restricted."), frappe.PermissionError)
+	return _generate_invoices((period or today()[:7]).strip()[:7])
+
+
+def scheduled_generate_invoices():
+	"""Cron: 28th of the month — invoice every accounting client for the
+	current period, regardless of delivery status (per policy)."""
+	frappe.set_user("Administrator")
+	try:
+		out = _generate_invoices(today()[:7])
+		frappe.log_error(json.dumps(out), "books invoices generated")
+	except Exception:
+		frappe.log_error(frappe.get_traceback(), "books invoice generation")
+
+
+@frappe.whitelist()
+def books_billing(period=None):
+	_staff_only()
+	if not _books_manager():
+		frappe.throw(_("Billing is restricted."), frappe.PermissionError)
+	period = (period or today()[:7]).strip()[:7]
+	rooms, custs = _accounting_rooms()
+	marker = _period_marker(period)
+	rows = []
+	for r in sorted(rooms, key=lambda x: x.customer or ""):
+		fee = flt(custs.get(r.customer, frappe._dict()).get("accounting_fees"))
+		si = frappe.get_all(
+			"Sales Invoice",
+			filters={"customer": r.customer, "remarks": ["like", f"%{marker}%"], "docstatus": ["<", 2]},
+			fields=["name", "docstatus", "grand_total", "outstanding_amount", "due_date", "status"],
+			limit=1,
+		)
+		si = si[0] if si else None
+		rows.append(
+			{
+				"customer": r.customer,
+				"fee": fee,
+				"invoice": si.name if si else None,
+				"docstatus": si.docstatus if si else None,
+				"status": (si.status if si else ("No fee set" if not fee else "Not generated")),
+				"grand_total": flt(si.grand_total) if si else 0,
+				"outstanding": flt(si.outstanding_amount) if si else 0,
+			}
+		)
+	custnames = [r.customer for r in rooms]
+	unpaid = frappe.get_all(
+		"Sales Invoice",
+		filters={"customer": ["in", custnames] if custnames else ["is", "set"], "docstatus": 1, "outstanding_amount": [">", 0]},
+		fields=["name", "customer", "posting_date", "due_date", "grand_total", "outstanding_amount", "status"],
+		order_by="due_date asc",
+	)
+	tdy = getdate(today())
+	for u in unpaid:
+		u.posting_date = str(u.posting_date) if u.posting_date else None
+		u.due_date = str(u.due_date) if u.due_date else None
+		u.days_overdue = (tdy - getdate(u.due_date)).days if u.due_date and getdate(u.due_date) < tdy else 0
+	return {
+		"period": period,
+		"rows": rows,
+		"unpaid": unpaid,
+		"unpaid_total": sum(flt(u.outstanding_amount) for u in unpaid),
+	}
