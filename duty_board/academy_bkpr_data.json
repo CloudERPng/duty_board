@@ -1,0 +1,1446 @@
+{
+ "m1": {
+  "title": "Bookkeeper — The Service & The System",
+  "desc": "What we promise, what the board shows, and the disciplines that make both true: cadence, matrix, attestation, follow-ups, ceremony, checklists, playbooks, access.",
+  "lessons": [
+   {
+    "title": "What we sell, tiers, and what a promise costs",
+    "est": 6,
+    "html": "<p>We keep books for small businesses that run on <b>CloudERP.One</b> — only those. One platform means the skills you build on client one apply exactly to client forty; we sell depth, not adaptability. The work is remote: we hold <b>read-only bank access</b>, post into the client's own ERP site, reconcile, and deliver statements through their portal room.</p>\n<p>A client exists for us the moment <b>Customer.accounting_services = \"On Board\"</b>; the fee lives in <b>Customer.accounting_fees</b>. From that flag the system builds their room, their cadence, and their onboarding runbook overnight. There is no off-boarding state — engagements are built to last.</p>\n<p><b>The tier is the contract, rendered.</b> Core service (every client): postings current, bank reconciliation, monthly financial statements. Optional, per client, ticked in their setup: PAYE remittance, VAT return, WHT remittance, quarterly stock take. Read what the tier means commercially with three scenarios:</p>\n<ol>\n<li><i>Cascade Foods has VAT ticked; you're busy and their VAT cell goes red.</i> That's a paid, promised statutory filing missed — penalty exposure lands on the client, blame lands on us, and the red cell was visible to everyone for days beforehand. Tier items are not decorations.</li>\n<li><i>Harmattan Logistics has NO statutory ticks, and their MD emails asking you to \"quickly file our VAT\".</i> You do not quietly do it. Unpaid statutory work done once becomes expected forever, and worse — done without engagement terms, an error in it is our liability with no fee behind it. The answer: \"happy to — let me have our team add statutory filing to your service; it takes one setting and a fee adjustment.\" Then management decides.</li>\n<li><i>Bellamy Stores' cell shows ↻ Sep under Stock take in July.</i> Subscribed, dormant — quarterly items live only in Mar/Jun/Sep/Dec periods. Distinguish this from \"—\", which means <b>not in the tier at all</b>.</li>\n</ol>\n<p>Fees are visible only to books managers — the matrix shows you everything operational and nothing financial. That is deliberate; your job needs due dates, not price lists.</p>\n<blockquote><b>DRILL:</b> A prospect asks your colleague \"so you'll handle all our taxes?\" during onboarding. The tier picker shows nothing ticked. What's wrong with \"yes, of course\"? — It promises unpriced statutory liability; the correct move is the tier conversation, then the ticks, then the promise.</blockquote>"
+   },
+   {
+    "title": "The cadence and the calendar — computing what's due",
+    "est": 6,
+    "html": "<p>Every deliverable's due date is computed, not remembered, against our working calendar (Duty Settings: Mon–Fri unless changed). Learn the three bases by computing them:</p>\n<table border=\"1\" cellpadding=\"5\"><tr><th>Deliverable</th><th>Rule</th><th>July 2026 period → due</th></tr><tr><td>Bank journals posted &amp; current</td><td>Last working day of period</td><td>Fri 31 Jul</td></tr><tr><td>Bank reconciliation</td><td>3rd working day of next month</td><td>Wed 5 Aug (Mon 3rd = 1st wd, Tue = 2nd, Wed = 3rd)</td></tr><tr><td>Financial statements</td><td>5th working day of next month</td><td>Fri 7 Aug</td></tr><tr><td>PAYE remittance</td><td>Fixed day: 10th of next month, snap BACKWARD</td><td>Mon 10 Aug (a working day — stays)</td></tr><tr><td>VAT / WHT</td><td>Fixed day: 21st of next month, snap BACKWARD</td><td>Fri 21 Aug (stays)</td></tr></table>\n<p>The <b>snap-backward rule</b> is the one to internalise: when the 21st falls on a Saturday (Nov 2026), the due date becomes Friday the 20th — never Monday the 23rd. Statutory deadlines are met early; a weekend is never an excuse for late. Working-day rules (statements) count only workdays, so a public-holiday-heavy month genuinely moves the date — trust the matrix's computed date over your mental arithmetic.</p>\n<p><b>Spawning is automatic.</b> A daily job syncs newly on-boarded customers and opens the current period: every client × every core type + their ticked optionals, each instance pre-assigned to the client's default bookkeeper. You never create the month's work; you inherit it, dated.</p>\n<p><b>Late is computed too:</b> a cell whose due date has passed without Delivered goes red with ⚠ — on the matrix, in the pulse strip's count, and in the evening digest. There is no \"I'll mark it late\" and no \"nobody noticed\". The board notices structurally.</p>\n<blockquote><b>DRILL:</b> October 2026 — the 21st is a Wednesday, but suppose the 5th working day of November must be computed and Mon 2 Nov is a public holiday added to settings. Count it: Tue 3 = 1st, Wed 4 = 2nd, Thu 5 = 3rd, Fri 6 = 4th, Mon 9 = 5th. Statements due Mon 9 Nov. The matrix already knows; the drill is trusting why.</blockquote>"
+   },
+   {
+    "title": "Reading the matrix like a triage nurse",
+    "est": 5,
+    "html": "<p>The Matrix tab is one row per client, one column per deliverable, one period. Reading it fast is a skill; here is a full row, decoded:</p>\n<p><b>Bellamy Stores</b> · 📮 posted thru 07-24 · lag 2wd (amber) · Bank journals <b>◐</b> · Bank rec <b>·</b> due 08-05 · Financial statements <b>·</b> due 08-07 · PAYE <b>—</b> · VAT <b>✓</b> 08-21 · Stock take <b>↻ Sep</b></p>\n<ul>\n<li>The amber 📮 chip: the books trail reality by two working days — inside tolerance, worth closing today.</li>\n<li>◐ postings in progress; · rec and statements pending (normal mid-cycle); the dates under each cell are computed due dates.</li>\n<li>PAYE \"—\": <b>not in Bellamy's tier</b>. If Bellamy asks about PAYE, that's the Lesson-1 tier conversation.</li>\n<li>VAT ✓ already Delivered for the period — early, good.</li>\n<li>Red cell anywhere = past due; <b>👁</b> = sitting with a reviewer; <b>✓✓</b> = client has acknowledged receipt.</li>\n</ul>\n<p><b>Cells are doors.</b> Clicking one opens the deliverable: its close checklist with progress, and status / assignee / reviewer / notes, all prefilled. The client's name column carries the 📖 playbook and (for managers) the fee.</p>\n<p><b>The header serves every tab at once:</b> the period selector ‹ 2026-07 › drives Matrix, Register, Follow-ups and the manager tabs together — investigating May means setting May once. The pulse strip above is the unit's vital signs: clients · done/total · late · neglect · awaiting-clients — read it before your first click each morning; it tells you where today's triage is.</p>\n<blockquote><b>DRILL:</b> Pulse reads: 6 clients · 14/24 done · 1 late ⚠ · 1 neglected ⚠ · 📨 3❓ 2📎. In what order do you look? — Neglect first (a client nobody has touched), the late cell second (a broken promise aging), the follow-ups third (clients are waiting on us). Done-count last; it's yesterday's news.</blockquote>"
+   },
+   {
+    "title": "A week on the round — attestation and its ethics",
+    "est": 8,
+    "html": "<p>Once a day, per client, you make a small signed claim: <b>\"books posted through [date]\"</b> — with optional transaction and query counts and a note. Two taps in the 📅 tab. What follows is a realistic week; live it once here so you never live it badly in production.</p>\n<p><b>Setup:</b> you own Bellamy, Cascade, Harmattan. Monday the 14th: Bellamy posted through Fri 11th (lag 1, green), Cascade through Thu 10th (lag 2, amber), Harmattan through Wed 9th (lag 3, red — your leave cover attested nothing).</p>\n<p><b>Monday.</b> Worst first — the board is a triage list, not a menu. Session tagged Harmattan; post Thursday-through-today; attest \"posted through 14-07 · 41 tx · 1 query\". Register cell goes ●, chip green. Then Cascade, then Bellamy. 18:00 digest: all covered. Nobody thinks about you — that is the goal state.</p>\n<p><b>Tuesday — the trap.</b> Cascade's MD demands a creditor analysis; it eats the day. At 17:50 you consider skipping the round — \"nothing to attest\". Wrong twice. (1) You worked Cascade all day: attest Cascade with the <b>same posted-through as yesterday</b> plus a note: \"creditor analysis for MD; postings current to 14-07\". An unchanged date with a note is honest; a missing attestation is a hole. (2) Bellamy and Harmattan show · today — no flag yet, but streaks have started.</p>\n<p><b>Wednesday — the flag.</b> The MD found more questions; another Cascade-only day. By close, Bellamy and Harmattan each carry 2 silent working days: <b>both rows red, streak \"2wd\", named in the 18:00 digest to the whole unit.</b> No message arrives, no meeting is called — every colleague simply saw it. Visibility, not escalation, is the system's entire theory of accountability.</p>\n<p><b>Thursday — recovery, honestly.</b> You clear both backlogs through Wednesday and attest. Chips: posted \"through Wednesday\" on Thursday = lag 1, green. Note what you must NOT do: attest \"through Thursday\" to make the chip perfect when you've only posted through Wednesday. <b>The chip is allowed to be amber; the attestation is not allowed to be false.</b> An amber chip says \"a day behind\"; a false green says \"trust me\" to a system whose cross-checks (sessions vs claims, and one day the ledger itself) have a long memory.</p>\n<p><b>Friday — the habit.</b> Run the round at a fixed time (16:30 works) so it's a ritual, not a memory test. The week's register reads Mon ●●●, Tue ●··, Wed ●··, Thu ●●●, Fri ●●● — the Tuesday–Wednesday scar is permanent, honest history. Fine. The board doesn't demand perfection; it demands that <b>reality and the record never diverge</b>.</p>\n<p>Register glyphs, precisely: <b>●</b> worked (customer-tagged session) + attested · <b>◐</b> worked, no attestation (finish the ritual) · <b>◔</b> attested, no session (a claim without visible presence — expect the question) · <b>·</b> untouched. Future dates in the attestation box are refused outright: you cannot have posted tomorrow's transactions.</p>\n<blockquote><b>DRILL:</b> You attested \"through 22-07\" yesterday. Today the client sends Monday's missing statement page and you post 6 older transactions. Tonight's attestation? — Still \"through 23-07\" if today's lines are also in; the older insertions don't break the claim, they fulfil it. Add a note: \"6 late-arriving 21-07 tx posted on receipt of statement page.\"</blockquote>"
+   },
+   {
+    "title": "Follow-ups — the query lifecycle, end to end",
+    "est": 6,
+    "html": "<p>Bookkeeping stalls on unclassifiable transactions and missing documents. Follow-ups turns both into structured, chased, logged objects. Walk one full query lifecycle:</p>\n<p><b>Day 1, 10:15</b> — posting Bellamy, you hit \"CHQ 000451 MUSA ENT ₦230,000\", no supplier, no invoice. You post to suspense (M2a craft) and raise the query from 📨: date 09-07, amount 230,000, reference \"CHQ 000451 Musa Ent\", question: <i>\"Could you help us place this cheque to Musa Ent on the 9th — what was it for, and is Musa a supplier we should set up?\"</i> Note the shape: help-us-understand, never you-didn't-tell-us.</p>\n<p><b>What Bellamy sees:</b> an amber card on the portal home with an inline answer box, AND an email from <b>books@pangeasuite.com</b> — replying to that email IS answering; the system trims the quoted chain and files the reply as the answer, attributed. Clients who never open the portal can live entirely in email; everything still lands structured.</p>\n<p><b>Day 3, 09:30</b> — no answer yet. The morning chase notices the query is 2 working days stale and drops ONE gentle line in Bellamy's room chat: \"🔔 Gentle reminder: 1 question from your accounting team is awaiting your response.\" One per room per day, maximum, however many items wait — persistence without nagging, and none of it from your memory.</p>\n<p><b>Day 3, 14:00</b> — Mr Bellamy replies to the email: \"Generator repair, and yes set Musa up.\" The query flips to <b>Answered</b> (green in your Follow-ups, his name and timestamp on it), the room narrates it. You repost suspense → Repairs &amp; Maintenance, create the supplier, and click <b>✓ Resolve</b>. Lifecycle closed: Open → Answered → Resolved, every step logged.</p>\n<p><b>Documents run the same rails:</b> the standard monthly set (bank statements, payroll changes — whatever Settings lists) spawns at period open, due early; ad-hoc requests are two fields. Fulfilment by portal upload or email-reply-with-attachment lands identically: the file goes to the <b>Document Hub under \"Accounting — received\"</b>, the request closes, the room narrates. Your 📥 Recently-received list shows who sent what, when, with the file one click away.</p>\n<blockquote><b>DRILL:</b> It's the 26th and you're about to raise 14 queries you accumulated all month. What went wrong, and when? — The queries should have been raised the day each was hit (your daily round even counts queries-raised to encourage it). A query raised on the 5th is answered by the 8th; 14 on the 26th is a late close, self-inflicted.</blockquote>"
+   },
+   {
+    "title": "One close, walked — review gate and ceremony",
+    "est": 6,
+    "html": "<p>Follow Cascade Foods' July statements from last posting to ✓✓. Cascade is a split client: you prepare, Ade reviews.</p>\n<p><b>Aug 4 (2nd wd):</b> postings complete, reconciliation done and filed, suspense zero (the last query resolved Aug 1). You open the Financial statements cell: the checklist appears — payroll booked ☑, accruals ☑, depreciation ☑, VAT/WHT controls reconciled ☑, flux review ☑ (your notes: \"COGS +18% — new supplier pricing, MD aware\"), PDF to Hub ☑ — six of seven; the seventh is \"Reviewer pass complete\", which is not yours to tick.</p>\n<p><b>Aug 5:</b> you set the cell to <b>In Review</b>. Ade gets a 👁 push: \"Cascade Foods · Financial statements · 2026-07\". Your notes flag your one doubt: \"director loan repostings in week 3 — please eyeball.\" Surfacing your own doubts is what makes reviewers trust everything else.</p>\n<p><b>Aug 6:</b> Ade reviews substance — recs to statements, flux against what he knows of Cascade, controls to schedules, your flagged item. One finding comes back: \"rent release doubled — March's reversal missing; fix and re-lay the P&L.\" You fix it, re-file the PDF, note the correction. Ade ticks \"Reviewer pass complete\" and — because <b>only the reviewer can</b> — sets <b>Delivered</b>. If you'd tried, the system would have refused you by name: the review gate is structural, not courtesy. The room narrates: \"📒 Financial statements — 2026-07 is ready for Cascade Foods.\"</p>\n<p><b>Aug 6, evening:</b> Cascade's portal home shows the 📬 card. Their accountant taps <b>Confirm receipt</b> — the deliverable becomes <b>Acknowledged</b>, timestamped, named; the room narrates; you get the push; your matrix shows ✓✓, one day inside the 5th-working-day promise.</p>\n<p>Why each step exists: the checklist makes \"done\" mean something specific; the gate makes \"two people believe this\" a fact; the Hub-before-ceremony order means the client is never pointed at an empty shelf; and the acknowledgment timestamp ends every future \"we never received our statements\" before it begins. <b>Acknowledged can never be set by staff</b> — only the client's own tap creates it, which is exactly what makes it proof.</p>\n<blockquote><b>DRILL:</b> Deadline day, reviewer travelling, statements ready. May you deliver? — Not by yourself; the gate holds. Escalate to a books manager/System Manager early in the day — the override exists for genuine cases like this, and a pattern of overrides gets read for what it is. What you never do is quietly remove the reviewer from the cell to free the button; that edit is logged too, and it reads worse.</blockquote>"
+   },
+   {
+    "title": "Checklists as evidence — what each tick verifies",
+    "est": 5,
+    "html": "<p>A checklist tick is a small signed statement. Ticking without verifying is signing without reading. Here is the Financial statements checklist with what each tick actually asserts:</p>\n<table border=\"1\" cellpadding=\"5\"><tr><th>Item</th><th>Your tick asserts</th></tr><tr><td>Payroll booked</td><td>The month's payroll journal is posted and the net cleared against the salary payment; liability accounts agree to the payroll schedule.</td></tr><tr><td>Accruals &amp; prepayments posted</td><td>Recurring accruals raised, prior accruals reversed against actuals, prepayment releases per schedule — not \"probably\".</td></tr><tr><td>Depreciation posted</td><td>Asset-module run verified sane, or manual JE posted from the register — either way, checked.</td></tr><tr><td>VAT/WHT controls reconciled</td><td>Control movements agree to the period's invoice summaries and certificate schedules.</td></tr><tr><td>P&amp;L flux review</td><td>Every material month-on-month movement has a one-sentence explanation, written in the notes.</td></tr><tr><td>PDF filed to Hub</td><td>The pack the client will open is on the shelf, final version, before the ceremony points at it.</td></tr><tr><td>Reviewer pass</td><td>Reviewer's alone. Never yours.</td></tr></table>\n<p>Ticks are timestamped and named forever. Marking <b>Delivered with open items</b> triggers \"n items still open — deliver anyway?\" — the system permits the override, and the unticked items remain visible permanently with your name on the delivery. Sometimes the override is right (an item genuinely not applicable this month); when it is, say so in the notes, because silence next to an untick reads as haste.</p>\n<p>Statutory deliverables carry no checklist by design — a remittance is filed or it isn't; M3 covers the filing evidence discipline. Checklists are editable per type in the desk: when the unit learns a new failure mode, it becomes a line, and every future period inherits the lesson.</p>\n<blockquote><b>DRILL:</b> You inherit a client mid-month; the previous bookkeeper's June delivery shows 6/7 with \"controls reconciled\" unticked and no note. What does that tell you to do FIRST this month? — Reconcile June's controls before touching July; an unticked control item is a flagged inheritance, and July's numbers stand on June's.</blockquote>"
+   },
+   {
+    "title": "Playbooks, the access register, and the trust we hold",
+    "est": 5,
+    "html": "<p><b>The playbook is your duty to colleagues.</b> Every client's 📖 holds four sections; here is what a good one looks like (Bellamy's, abbreviated):</p>\n<p><i>BANKS &amp; STATEMENTS — GTB current (statement emailed by RM ~2nd; chase Tunde 0803… if absent); POS settles next-morning net, commission ~0.55%, clearing acct must zero within 2 days.<br>KEY CONTACTS — Mr Bellamy (owner; decisions, director-money questions); Chidinma (bookkeeper-side, sends Z-reports; WhatsApp is fine for her, but decisions go in the room).<br>MONTH PECULIARITIES — salaries 26th; owner pays suppliers personally then reimburses — watch TRF FRM MR BELLAMY both directions; December stock take includes the Surulere store.<br>ACCESS NOTES — bank read-only via corporate viewer, renewed annually Oct; ERP Accounts role; credentials in the access vault, never in chat.</i></p>\n<p>The test of a playbook: <b>could a competent colleague run this client tomorrow from what's written?</b> Update it the day you learn something a stand-in would need — after the fact means never.</p>\n<p><b>The Access Register</b> is the unit's security posture made showable: every access we hold, one record — type, detail, granted, last reviewed. When a prospect asks \"what exactly will you have access to?\", the answer is a filtered screen, not an assurance. Registering new access is an onboarding runbook step, and unreviewed entries age visibly.</p>\n<p><b>The trust itself, in rules:</b> read-only means read-only — we watch money move, we never move it; a client asking you to initiate a transfer gets a kind no and a same-day report to management, every time. Client data never leaves its room: no cross-client \"benchmarks\", no side-channel WhatsApp threads, no dinner stories however nameless. Exports live in the Hub, not in personal archives. The breach that ends a career is rarely dramatic — it's a screenshot to the wrong chat, a laptop left open, a story told well. Boring discipline is the whole game.</p>\n<blockquote><b>DRILL:</b> Write, from memory, the playbook entry your most complicated client would need for the one thing only you currently know about them. If you can't think of one, you've been updating properly — or you haven't been paying attention. Check which.</blockquote>"
+   }
+  ],
+  "questions": [
+   {
+    "q": "A client with no statutory ticks asks you to 'quickly file our VAT this once'. You:",
+    "opts": [
+     "File it — goodwill",
+     "Decline the quiet favour; route it as a tier addition with fee, via management",
+     "File it but invoice later",
+     "Tell them VAT is optional"
+    ],
+    "ans": 1,
+    "why": "Unpaid statutory work creates unpriced liability and permanent expectation.",
+    "src": "L1"
+   },
+   {
+    "q": "'↻ Sep' vs '—' in a Stock take cell:",
+    "opts": [
+     "Both mean not subscribed",
+     "↻ Sep = subscribed quarterly, dormant till September; — = not in the tier",
+     "Both mean overdue",
+     "↻ means review"
+    ],
+    "ans": 1,
+    "why": "Dormant-subscribed and not-subscribed must never be confused.",
+    "src": "L1, L3"
+   },
+   {
+    "q": "July 2026 statements (5th working day of August) are due:",
+    "opts": [
+     "Aug 5",
+     "Aug 7",
+     "Aug 3",
+     "Jul 31"
+    ],
+    "ans": 1,
+    "why": "Mon 3=1st wd … Fri 7=5th wd.",
+    "src": "L2"
+   },
+   {
+    "q": "The 21st falls on a Saturday. VAT is due:",
+    "opts": [
+     "Mon 23rd",
+     "Fri 20th — statutory deadlines snap backward",
+     "Sat 21st",
+     "The 28th"
+    ],
+    "ans": 1,
+    "why": "We file early; weekends never make us late.",
+    "src": "L2"
+   },
+   {
+    "q": "The month's deliverables are created by:",
+    "opts": [
+     "Each bookkeeper on the 1st",
+     "The daily job at period open — you inherit them, pre-assigned and dated",
+     "Managers weekly",
+     "The client"
+    ],
+    "ans": 1,
+    "why": "Spawning is automatic and idempotent.",
+    "src": "L2"
+   },
+   {
+    "q": "Pulse shows 1 late, 1 neglect, 3 open questions. First look goes to:",
+    "opts": [
+     "The done count",
+     "The neglected client",
+     "The late cell",
+     "The questions"
+    ],
+    "ans": 1,
+    "why": "Neglect (nobody touching a client) outranks a late deliverable being worked.",
+    "src": "L3"
+   },
+   {
+    "q": "A cell showing 👁 means:",
+    "opts": [
+     "Watched by management",
+     "Sitting with the reviewer",
+     "Client viewing",
+     "Late"
+    ],
+    "ans": 1,
+    "why": "In Review — the reviewer holds the Delivered key.",
+    "src": "L3, L6"
+   },
+   {
+    "q": "You analysed one client all day, posted nothing. Tonight you attest:",
+    "opts": [
+     "Nothing — nothing changed",
+     "The SAME posted-through as yesterday, with a note describing the day",
+     "Tomorrow's date",
+     "Only the session"
+    ],
+    "ans": 1,
+    "why": "Unchanged date + note is honest; a missing attestation is a hole.",
+    "src": "L4"
+   },
+   {
+    "q": "Posted through Wednesday, attesting Thursday. The date entered is:",
+    "opts": [
+     "Thursday — chips should be green",
+     "Wednesday — the chip may go amber; the claim stays true",
+     "Friday",
+     "Blank"
+    ],
+    "ans": 1,
+    "why": "The chip is allowed to be amber; the attestation is not allowed to be false.",
+    "src": "L4"
+   },
+   {
+    "q": "'◔' on the register means:",
+    "opts": [
+     "Worked and attested",
+     "Attested with no session — a claim without visible presence",
+     "Untouched",
+     "Leave"
+    ],
+    "ans": 1,
+    "why": "Expect the question it invites.",
+    "src": "L4"
+   },
+   {
+    "q": "Two clients silent 2 working days. The system has:",
+    "opts": [
+     "Reassigned them",
+     "Turned their rows red with streaks and named them in the unit-wide digest — nothing more, by design",
+     "Emailed the client",
+     "Locked your account"
+    ],
+    "ans": 1,
+    "why": "Visibility, not escalation, is the accountability model.",
+    "src": "L4"
+   },
+   {
+    "q": "Six late-arriving old transactions posted today. Your posted-through:",
+    "opts": [
+     "Rolls back to their date",
+     "Stays current (today), with a note about the late insertions",
+     "Splits into two claims",
+     "Is skipped"
+    ],
+    "ans": 1,
+    "why": "Old insertions fulfil the claim; they don't break it.",
+    "src": "L4"
+   },
+   {
+    "q": "A well-shaped query sounds like:",
+    "opts": [
+     "'You failed to explain this cheque'",
+     "'Could you help us place this cheque to Musa Ent on the 9th?'",
+     "'Explain within 24h'",
+     "'This is suspicious'"
+    ],
+    "ans": 1,
+    "why": "Help-us-understand, never accusation.",
+    "src": "L5"
+   },
+   {
+    "q": "A client replies to the query email instead of using the portal:",
+    "opts": [
+     "The answer is lost",
+     "The reply becomes the answer — trimmed, attributed, logged",
+     "They must repeat it in the portal",
+     "Staff retype it"
+    ],
+    "ans": 1,
+    "why": "The email loop is a first-class channel.",
+    "src": "L5"
+   },
+   {
+    "q": "The chase sends, at most:",
+    "opts": [
+     "One reminder per item per day",
+     "One reminder per ROOM per day, for items 2+ working days stale",
+     "Hourly nudges",
+     "Nothing"
+    ],
+    "ans": 1,
+    "why": "Persistence without nagging, from the system not your memory.",
+    "src": "L5"
+   },
+   {
+    "q": "A document sent by email reply with attachment:",
+    "opts": [
+     "Waits in the mailbox",
+     "Fulfils the request and files to the Hub under 'Accounting — received' automatically",
+     "Must be re-uploaded",
+     "Goes to the bookkeeper's drive"
+    ],
+    "ans": 1,
+    "why": "Portal and email land identically.",
+    "src": "L5"
+   },
+   {
+    "q": "14 queries raised on the 26th indicates:",
+    "opts": [
+     "A thorough bookkeeper",
+     "Queries hoarded instead of raised the day each was hit — a self-inflicted late close",
+     "A difficult client",
+     "Good batching"
+    ],
+    "ans": 1,
+    "why": "The round's queries-raised count exists to encourage same-day raising.",
+    "src": "L5"
+   },
+   {
+    "q": "On a split client, Delivered is clicked by:",
+    "opts": [
+     "The preparer, once confident",
+     "The reviewer only (or SM override) — the gate is structural",
+     "Either",
+     "The manager monthly"
+    ],
+    "ans": 1,
+    "why": "The reviewer's click is a signature.",
+    "src": "L6"
+   },
+   {
+    "q": "Deadline day, reviewer unreachable. You:",
+    "opts": [
+     "Remove the reviewer from the cell",
+     "Escalate early for a manager/SM decision — and never quietly free the button",
+     "Deliver anyway",
+     "Miss silently"
+    ],
+    "ans": 1,
+    "why": "Overrides exist for genuine cases and are read as the pattern they form.",
+    "src": "L6"
+   },
+   {
+    "q": "The PDF is filed to the Hub:",
+    "opts": [
+     "After the client asks",
+     "BEFORE Delivered — the ceremony must never point at an empty shelf",
+     "Only on request",
+     "Quarterly"
+    ],
+    "ans": 1,
+    "why": "Hub-before-ceremony, always.",
+    "src": "L6, L7"
+   },
+   {
+    "q": "'Acknowledged' is created by:",
+    "opts": [
+     "Staff after 48h",
+     "Only the client's own Confirm-receipt tap — which is what makes it proof",
+     "The scheduler",
+     "The reviewer"
+    ],
+    "ans": 1,
+    "why": "The timestamp ends 'we never received it' forever.",
+    "src": "L6"
+   },
+   {
+    "q": "Ticking 'controls reconciled' asserts:",
+    "opts": [
+     "The accounts exist",
+     "Control movements agree to invoice summaries and certificate schedules — verified, this month",
+     "Probably fine",
+     "The reviewer will check"
+    ],
+    "ans": 1,
+    "why": "A tick is a small signed statement.",
+    "src": "L7"
+   },
+   {
+    "q": "Delivering with an open checklist item:",
+    "opts": [
+     "Is impossible",
+     "Is permitted after confirmation — and the untick stays visible forever, so justify it in the notes",
+     "Deletes the item",
+     "Alerts the client"
+    ],
+    "ans": 1,
+    "why": "Sometimes right; never silent.",
+    "src": "L7"
+   },
+   {
+    "q": "An inherited client's prior month shows an unticked 'controls reconciled' with no note. First action:",
+    "opts": [
+     "Ignore — new month",
+     "Reconcile the PRIOR month's controls before this month's work — it's a flagged inheritance",
+     "Report the predecessor",
+     "Tick it now"
+    ],
+    "ans": 1,
+    "why": "This month's numbers stand on last month's.",
+    "src": "L7"
+   },
+   {
+    "q": "The test of a playbook:",
+    "opts": [
+     "Length and formality",
+     "Could a competent colleague run the client tomorrow from what's written?",
+     "Updated quarterly",
+     "Manager-approved"
+    ],
+    "ans": 1,
+    "why": "It is a duty to colleagues, not paperwork.",
+    "src": "L8"
+   },
+   {
+    "q": "A client asks you to initiate a transfer 'since you can see the account'. You:",
+    "opts": [
+     "Do it with them on the phone",
+     "Kind no — read-only means read-only — and report to management the same day",
+     "Ask a colleague",
+     "Do it under ₦50k"
+    ],
+    "ans": 1,
+    "why": "We never move money; the request itself escalates.",
+    "src": "L8"
+   },
+   {
+    "q": "Career-ending breaches usually look like:",
+    "opts": [
+     "Espionage",
+     "A screenshot to the wrong chat, an open laptop, a good story at dinner",
+     "Hacking",
+     "Court orders"
+    ],
+    "ans": 1,
+    "why": "Boring discipline is the whole game.",
+    "src": "L8"
+   }
+  ]
+ },
+ "m2a": {
+  "title": "Bookkeeper — Daily Posting Craft",
+  "desc": "Statement to ledger, line by line: the three documents, Nigerian statement anatomy, Payment Entries both directions, journal craft, the worked month, suspense, and clearing accounts.",
+  "lessons": [
+   {
+    "title": "The three documents and the decision tree",
+    "est": 6,
+    "html": "<p>Every bank line becomes exactly one of three ERPNext documents. The decision is mechanical once you ask the right first question: <b>is there a party (customer/supplier) whose ledger this must touch?</b></p>\n<table border=\"1\" cellpadding=\"5\"><tr><th>The line is…</th><th>Document</th><th>Why</th></tr><tr><td>Money from a customer / to a supplier</td><td><b>Payment Entry</b> (Receive / Pay), allocated to invoices</td><td>The party's ledger and aging must clear</td></tr><tr><td>Between the client's own accounts</td><td><b>Payment Entry — Internal Transfer</b></td><td>Two bank ledgers move; P&amp;L untouched</td></tr><tr><td>Everything else — charges, taxes paid, salaries clearing, corrections, unknowns</td><td><b>Journal Entry</b></td><td>Pure account-to-account movement</td></tr></table>\n<p>The full tree for a debit line: party payment? → Payment Entry (Pay). Own account? → Internal Transfer. Recognisable expense/statutory? → Journal Entry. Unrecognisable? → <b>Journal Entry to Suspense + query today</b> (Lesson 7). Mirror it for credits, with one extra rule: unidentified money in is NEVER Sales (Lesson 7 explains the damage).</p>\n<p><b>Two invariants regardless of document:</b> (1) <b>Posting Date = statement date</b>, never today's — the ledger reconstructs the month as it happened; posting July lines with August dates is how reconciliations die. (2) <b>Remarks reconstruct the transaction for a stranger</b>: date, counterparty, what-for, statement reference. House narration format: <i>\"[Counterparty] — [what] — [ref], stmt [dd-mm]\"</i>. \"Being payment\" is not a narration; your reviewer, your future reconciling self, and an eventual auditor are the audience.</p>\n<p>Work <b>account by account, date order, no gaps</b>. A line skipped \"for later\" is a reconciliation wound; a line you can't place goes to suspense with its query the same day — skipping and suspensing are opposites.</p>\n<blockquote><b>DRILL:</b> \"TRF TO ACCESS OWN ACCT ₦2,000,000\" — which document, and what does P&amp;L show after? Internal Transfer; P&amp;L shows nothing. If you feel the urge to touch an expense account, re-read the line.</blockquote>"
+   },
+   {
+    "title": "Reading a Nigerian bank statement — line anatomy",
+    "est": 6,
+    "html": "<p>Statement narrations are compressed telegrams. Learn the dialects:</p>\n<table border=\"1\" cellpadding=\"5\"><tr><th>Pattern</th><th>Usually means</th><th>Posting instinct</th></tr><tr><td>NIBSS/POS SETTLEMENT [date]</td><td>Previous day's card sales, net of commission</td><td>Clear POS clearing acct; commission to Bank Charges (L8)</td></tr><tr><td>TRF FRM / NIP FRM [name]/[ref]</td><td>Inward transfer; name + ref are your allocation clues</td><td>Payment Entry Receive if the name maps to a customer</td></tr><tr><td>TRF TO / NIP TO [name]</td><td>Outward transfer</td><td>Payment Entry Pay if supplier; else JE by nature</td></tr><tr><td>CHQ [number] [payee]</td><td>Cheque cleared</td><td>As outward; the cheque number goes in Reference No</td></tr><tr><td>USSD AIRTIME / [phone]</td><td>Airtime bought from the account</td><td>Expense JE — and if frequent/personal-looking, a query about policy</td></tr><tr><td>SMS ALERT / MAINT FEE / COT</td><td>Bank charges family</td><td>Bank Charges, the moment you meet them</td></tr><tr><td>STAMP DUTY</td><td>₦50 EMTL per qualifying credit</td><td>Stamp Duty/Charges expense; often many tiny lines — post, don't hoard</td></tr><tr><td>WHT ON INTEREST / VAT ON FEE</td><td>Tax the bank deducted at source</td><td>WHT: asset (credit vs tax); VAT on fees: part of the charge per convention</td></tr><tr><td>REVERSAL / RVSL [ref]</td><td>An earlier line undone</td><td>Find and reverse YOUR posting of the original — never post a reversal blind</td></tr><tr><td>LOAN REPAYMENT / PRINCIPAL+INT</td><td>Facility servicing</td><td>Split: principal to loan liability, interest to finance cost — the offer letter (playbook!) gives the split</td></tr></table>\n<p><b>Reversals deserve fear and respect:</b> a REVERSAL line means the bank undid something. If you already posted the original, post its mirror and cross-reference both remarks (\"reverses JE-00231\"). If the original AND its reversal both appear before you posted either, post neither — but note both on the reconciliation so the statement still walks.</p>\n<p><b>Names lie slightly:</b> transfers arrive under personal names for corporate customers (\"ADEBAYO OLUFEMI J\" paying for Adebayo Ventures), abbreviations, or the payer's BANK's shorthand. The playbook accumulates these aliases; when a name is genuinely new, it's a query, not a guess (L7).</p>\n<blockquote><b>DRILL:</b> \"NIP FRM OKONKWO C/INV0244PART ₦300,000\" — decode every element: NIP inward transfer, payer alias Okonkwo C (check playbook aliases), reference declares itself a PART payment of invoice 0244. Document: Payment Entry Receive, partial allocation, remarks noting 'part'.</blockquote>"
+   },
+   {
+    "title": "Payment Entry (Receive) — fields, and allocation with numbers",
+    "est": 7,
+    "html": "<p>The bread-and-butter document, field by field. Path: <i>Accounting → Payment Entry → New</i>.</p>\n<ol>\n<li><b>Payment Type:</b> Receive · <b>Party Type:</b> Customer · <b>Party:</b> Adebayo Ventures — on selection, the References table loads their outstanding invoices.</li>\n<li><b>Posting Date:</b> the statement date. <b>Account Paid To:</b> GTB Current (the ERP bank account mapped to the real one — the playbook lists the mapping).</li>\n<li><b>Paid Amount:</b> exactly the statement credit.</li>\n<li><b>References:</b> allocate to invoices until Allocated = Paid. <b>Reference No / Date:</b> the transfer ref and its date — reconciliation matches on these. <b>Remarks:</b> house format.</li>\n</ol>\n<p>Now the allocation cases, with numbers. Adebayo owes: INV-0231 ₦500,000 (May) · INV-0244 ₦800,000 (June) · INV-0252 ₦450,000 (July).</p>\n<p><b>Case 1 — referenced payment.</b> ₦500,000 arrives \"/INV 0231\". Allocate 500,000 to INV-0231 exactly, even though it's not the only old invoice. The reference is the customer's instruction; honour it.</p>\n<p><b>Case 2 — unreferenced lump.</b> ₦1,300,000 arrives, no reference. Oldest-first: 500,000 → 0231, 800,000 → 0244. Both close; 0252 stays open. Remarks name the rule used: \"unreferenced — allocated oldest-first per policy\".</p>\n<p><b>Case 3 — the shortfall.</b> ₦1,235,000 arrives \"/INV0231+0244\" — ₦65,000 short of the 1,300,000 those invoices total. Adebayo is a company: the first suspect is <b>WHT withheld at source (5% of the ₦1,300,000 service value = ₦65,000 — it fits)</b>. Allocate the full 1,300,000 across both invoices; the ₦65,000 difference posts in the same entry as a <b>deduction to the WHT receivable (asset) account</b> — pending the credit note/certificate, which becomes a document request. If the numbers DON'T fit a WHT rate, the shortfall is a dispute or error: allocate what the money truly covers and query the difference. <b>Never invent a discount or write-off to force a fit.</b></p>\n<p><b>Case 4 — the overpayment/deposit.</b> ₦2,000,000 arrives against ₦1,750,000 outstanding. Allocate 1,750,000; the ₦250,000 remainder stays as an <b>unallocated advance on Adebayo's ledger, by intention, with remarks saying so</b> (\"₦250,000 advance per MD — allocate to August order\"). An advance is a known thing awaiting its invoice — it is not suspense.</p>\n<p><b>Case 5 — bank charge netted.</b> Statement credit ₦498,950 for a ₦500,000 invoice; ₦1,050 was the payer-side charge passed on. The customer paid the gross: receive 500,000, allocate fully, and the 1,050 posts as Bank Charges in the entry's deductions — Adebayo's ledger must clear completely.</p>\n<blockquote><b>DRILL:</b> ₦940,500 arrives against a single ₦990,000 invoice from a corporate customer. Does WHT explain it? 5% of 990,000 = 49,500; 990,000 − 49,500 = 940,500. Yes — full allocation + ₦49,500 to WHT receivable + a request for the certificate.</blockquote>"
+   },
+   {
+    "title": "Payment Entry (Pay), on-account, and the missing-invoice stop rule",
+    "est": 5,
+    "html": "<p>The mirror direction: <b>Payment Type Pay</b>, Party a supplier, Account Paid From the bank, allocate against purchase invoices. Same fields, same invariants, one new discipline:</p>\n<p><b>The stop rule.</b> \"TRF TO KOLAWOLE DISTRIB/PO 118 ₦1,850,000\" — but no purchase invoice for PO 118 exists in the system. STOP. This is not a posting problem; it is a <b>missing-document problem</b>, and the two must never be confused. The moves, in order: (1) raise a document request for the supplier invoice, same day; (2) post the payment <b>on-account</b> to Kolawole (a Pay entry with no allocation), remarks naming PO 118; (3) when the invoice arrives and is entered, allocate the on-account payment against it. What you never do: fabricate a purchase invoice to allocate against, or dump the payment to an expense guess — both create a ledger that lies about what the client owes.</p>\n<p><b>Supplier-side WHT — the direction flips.</b> When the CLIENT withholds from a supplier's invoice: invoice ₦1,000,000, WHT 5%, cash out ₦950,000. The Pay entry allocates the full 1,000,000 against the invoice; the ₦50,000 difference posts to <b>WHT payable (liability)</b> — the client now holds government money until remittance (M3's territory to file; yours to hold correctly). Compare Lesson 3, Case 3: withheld FROM us = asset; withheld BY us = liability. Direction is everything; a bookkeeper who confuses them creates phantom income or phantom expense.</p>\n<p><b>Part-payments to suppliers</b> mirror customer partials: allocate exactly what was paid; the invoice stays open; remarks say \"part 1 of 2 per terms\" when you know the plan (playbook again).</p>\n<p><b>Recurring standing payments</b> (rent by standing order, loan direct debits): the playbook lists them with their split; posting is mechanical. A standing payment that STOPS appearing is also information — note it, and query if unexpected.</p>\n<blockquote><b>DRILL:</b> Payment ₦712,500 to a consultant whose invoice reads ₦750,000. The withholding rate implied? 37,500/750,000 = 5%... but consultants/professional services commonly withhold at a different rate — check the schedule in M3/house table before posting the split. The drill's real lesson: the ARITHMETIC identifies withholding; the RATE TABLE confirms it. When they disagree, query.</blockquote>"
+   },
+   {
+    "title": "Journal Entry craft — charges, statutory payments, corrections",
+    "est": 5,
+    "html": "<p>Everything party-less runs through Journal Entry: <i>Accounting → Journal Entry → New</i>, rows of account/debit/credit, total balanced, posting date = statement date, remarks per house format.</p>\n<p><b>The charges family</b> — post on sight, never hoard:</p>\n<table border=\"1\" cellpadding=\"5\"><tr><th>Line</th><th>Dr</th><th>Cr</th></tr><tr><td>SMS ALERT ₦1,254</td><td>Bank Charges 1,254</td><td>GTB Current 1,254</td></tr><tr><td>STAMP DUTY ₦50 (×many)</td><td>Stamp Duty/Charges 50</td><td>GTB Current 50</td></tr><tr><td>WHT ON INTEREST ₦2,100 (bank deducted)</td><td>WHT Receivable 2,100</td><td>Interest Income 2,100 (grossing up the credit you also received)</td></tr></table>\n<p><b>Statutory payments out</b> clear their control accounts, never expense: \"FIRS VAT PAYMENT JUN ₦861,000\" → Dr VAT Payable 861,000, Cr GTB Current 861,000. If the control didn't hold ₦861,000 the moment before, something upstream is wrong — that's an M2b controls investigation, not a plug. Same pattern for PAYE and pension remittances against their liability accounts.</p>\n<p><b>Corrections have one honest shape:</b> reverse the wrong entry (ERPNext: the entry's Reverse action, or a mirror JE cross-referencing it), then post the right one. Never \"fix\" by editing history that reconciliation already saw, and never post a net-difference adjustment that hides what happened — remarks on both entries tell the story: \"reverses JE-00231 (wrong account); correct posting JE-00232.\"</p>\n<p><b>Narration examples, good and bad:</b> ✗ \"Being bank charges\" · ✓ \"GTB SMS alert charges June, stmt 04-07\" · ✗ \"Correction\" · ✓ \"Reverses JE-00231 — generator repair posted to fuel in error; see JE-00232\". The good ones cost ten seconds and save an hour each at review, reconciliation, and audit.</p>\n<blockquote><b>DRILL:</b> Interest income line: statement shows CREDIT ₦39,900 and a separate DEBIT \"WHT ON INTEREST ₦2,100\". Post it as one economic event: Dr GTB 39,900 + Dr WHT Receivable 2,100, Cr Interest Income 42,000. The client earned 42,000; the statement just delivered it in two lines.</blockquote>"
+   },
+   {
+    "title": "The worked month — twelve lines of Bellamy Stores",
+    "est": 12,
+    "html": "<p>Bellamy Stores Ltd: retail, standard tier + VAT, one GTB current account. Playbook notes: salaries the 26th; the owner sometimes pays suppliers personally and reimburses himself; POS settles next-morning net. Twelve July lines — post them all, using everything so far.</p>\n<table border=\"1\" cellpadding=\"5\"><tr><th>#</th><th>Date</th><th>Description</th><th>Debit</th><th>Credit</th></tr><tr><td>1</td><td>03-07</td><td>NIBSS/POS SETTLEMENT 02JUL</td><td></td><td>412,350</td></tr><tr><td>2</td><td>03-07</td><td>TRF FRM ADEBAYO VENTURES/INV 0231</td><td></td><td>500,000</td></tr><tr><td>3</td><td>04-07</td><td>SMS ALERT CHARGE JUN</td><td>1,254</td><td></td></tr><tr><td>4</td><td>07-07</td><td>TRF TO KOLAWOLE DISTRIB/PO 118</td><td>1,850,000</td><td></td></tr><tr><td>5</td><td>09-07</td><td>CHQ 000451 MUSA ENT</td><td>230,000</td><td></td></tr><tr><td>6</td><td>11-07</td><td>TRF FRM UNKNOWN/REF 88203TX</td><td></td><td>150,000</td></tr><tr><td>7</td><td>14-07</td><td>TRF TO GTB OWN ACCT SAVINGS</td><td>1,000,000</td><td></td></tr><tr><td>8</td><td>15-07</td><td>STAMP DUTY</td><td>50</td><td></td></tr><tr><td>9</td><td>18-07</td><td>TRF FRM ADEBAYO VENTURES/PART INV 0244</td><td></td><td>300,000</td></tr><tr><td>10</td><td>21-07</td><td>FIRS VAT PAYMENT JUN</td><td>861,000</td><td></td></tr><tr><td>11</td><td>26-07</td><td>SALARIES JUL BATCH</td><td>1,420,000</td><td></td></tr><tr><td>12</td><td>28-07</td><td>TRF FRM MR BELLAMY</td><td></td><td>750,000</td></tr></table>\n<p><b>1 — POS settlement.</b> Daily sales already posted to POS Clearing when Z-reports were entered; the settlement clears it: Dr GTB 412,350, Cr POS Clearing 412,350. Short of the clearing balance? The gap is POS commission → Bank Charges in the same JE, clearing still zeroes. A clearing account that won't zero within 2 days = query (missing Z-report) or playbook gap (undocumented fee).</p>\n<p><b>2 — referenced receipt.</b> Payment Entry Receive, Adebayo, allocate 500,000 to INV-0231 exactly (L3 Case 1).</p>\n<p><b>3 — charge.</b> JE per L5. Post it now, not \"later\".</p>\n<p><b>4 — supplier payment, invoice present?</b> If the PO 118 purchase invoice is in: Pay + allocate. If not: <b>stop rule</b> (L4) — on-account + document request, never a fabricated invoice.</p>\n<p><b>5 — unknown payee.</b> No supplier, no invoice: Dr Suspense 230,000, Cr GTB — and the query goes out the same hour (L7 walks its life). </p>\n<p><b>6 — unknown money IN.</b> Dr GTB 150,000, Cr Suspense. Never Sales: if this is a customer deposit, crediting Sales corrupts VAT and the customer's ledger simultaneously. Query with the ref.</p>\n<p><b>7 — own-account move.</b> Internal Transfer, 1,000,000, both bank ledgers move, P&amp;L silent. The classic error is posting one side; the OTHER account's reconciliation fails next month — the expensive way to find out.</p>\n<p><b>8 — stamp duty.</b> JE, ₦50, on sight.</p>\n<p><b>9 — part payment.</b> Receive 300,000, allocate against INV-0244, invoice stays open, remarks say \"part\".</p>\n<p><b>10 — VAT paid.</b> Dr VAT Payable 861,000, Cr GTB. The control held exactly this; if it didn't, M2b's diagnosis lesson is your next stop before anything else.</p>\n<p><b>11 — salaries.</b> Dr Salaries Payable/net-pay control 1,420,000, Cr GTB. The 26th's payroll journal (M2b) already booked gross to expense and split the liabilities; the bank clears only the NET. If you feel the urge to debit Salary Expense here, the payroll journal is missing — different problem, fix that.</p>\n<p><b>12 — the owner's money.</b> Playbook warned you. ₦750,000 FROM Mr Bellamy could be: reimbursement flowing the wrong way (no — reimbursement would be a debit), capital introduced, or a director loan. The balance-sheet story differs completely between those; <b>directors' money is never guessed</b>: Dr GTB, Cr Suspense, query to Mr Bellamy naming the ref, repost on answer (capital → equity; loan → director loan liability).</p>\n<p><b>Count the craft:</b> 2 Receives, 1 Pay (or on-account), 1 Internal Transfer, 4 JEs, 3 suspense+query. Tonight's attestation \"posted through 28-07\" is TRUE — including the suspensed lines, because <b>suspense-with-query IS posted</b>.</p>\n<blockquote><b>DRILL:</b> Re-post line 12 assuming Mr Bellamy answers \"it's a loan, I'll take it back in October.\" Dr Suspense 750,000, Cr Director Loan — Mr Bellamy 750,000; remarks reference the query and his answer; October's repayment will clear the loan account, not expense.</blockquote>"
+   },
+   {
+    "title": "Suspense and the query — the honest parking bay, end to end",
+    "est": 5,
+    "html": "<p>Suspense holds a transaction <b>while its question is being answered</b> — nothing else. The lifecycle, using Bellamy line 5:</p>\n<ol>\n<li><b>Post to suspense the moment you meet the unknown</b> (Dr Suspense 230,000, Cr GTB) — the bank ledger stays current, which is what your attestation claims.</li>\n<li><b>Raise the query the same day</b> — date, amount, \"CHQ 000451 Musa Ent\", the help-shaped question. Suspense without a query is procrastination with an account code; the pairing is what makes it honest.</li>\n<li><b>The system chases</b> (one gentle room reminder per day once stale) — persistence is not your memory's job.</li>\n<li><b>Answer lands</b> (\"generator repair; set Musa up\") → <b>repost</b>: Dr Repairs &amp; Maintenance 230,000, Cr Suspense 230,000, remarks referencing the query; create the supplier; <b>Resolve</b> the query.</li>\n</ol>\n<p><b>The three iron rules:</b> suspense clears to ZERO before statements — the FS checklist cannot honestly complete over material unexplained balances; an item genuinely unresolvable by close despite the chase is an <b>explicit disclosed decision</b> with the reviewer (reclassify on best evidence with a note, or hold with the client informed) — never a silent rollover; and suspense is for <b>unknowns only</b> — a customer advance awaiting its invoice is a known thing on the customer's ledger, not suspense.</p>\n<p><b>Directionality:</b> unknown money OUT sits as a suspense debit; unknown money IN as a suspense credit. A suspense account carrying BOTH directions un-netted is normal mid-month and must be worked item by item — never net a debit-unknown against a credit-unknown to \"tidy\" the balance; they are different questions.</p>\n<p><b>The health read:</b> a growing suspense balance is the single clearest sign of an engagement drifting — visible to your reviewer, and honestly, the first thing a good reviewer checks. Keep the bay near-empty and the queries flowing daily, and month-end becomes a formality.</p>\n<blockquote><b>DRILL:</b> July 30th, statements due Aug 7. Suspense holds: ₦230,000 (answered yesterday — repost today), ₦150,000 (query 5 days old, chased twice, silent), ₦18,500 (met this morning, query just raised). What does honest close look like? Repost the first now; escalate the second to the client by name via the room + reviewer disclosure if still silent at close; the third will likely resolve in the chase window — and if not, it's small: reviewer decision with a note. Zero silent rollovers.</blockquote>"
+   },
+   {
+    "title": "Clearing accounts and cash businesses — POS, Z-reports, floats",
+    "est": 5,
+    "html": "<p>Retail clients live on card machines and cash tills; clearing accounts are how their sales meet their bank truthfully.</p>\n<p><b>The POS clearing pattern.</b> Sales day: the Z-report (till summary) posts Dr POS Clearing / Dr Cash-in-till, Cr Sales, Cr VAT Output — the day's revenue recognised on the day it happened. Settlement morning: the NIBSS batch arrives net; Dr GTB + Dr Bank Charges (commission), Cr POS Clearing — the clearing zeroes for that day. The clearing account is therefore a <b>timing device with a built-in alarm</b>: any balance older than ~2 settlement days is a missing Z-report (query the client), a failed settlement (query the bank narration), or an undocumented fee (update the playbook).</p>\n<p><b>Cash rounds:</b> till cash → banking. Z-report already debited Cash-in-till; the deposit line \"CASH DEP\" posts Dr GTB, Cr Cash-in-till. The till account's balance should equal the float plus undeposited takings — a persistent unexplained excess or shortage is a <b>variance</b>: post small ones to a Cash Over/Short expense per house threshold, and query patterns (same till, same day-of-week) because patterns are process problems or worse, and our statements shouldn't quietly absorb either.</p>\n<p><b>Multiple settlement channels</b> (POS terminal A, terminal B, transfer-on-delivery apps): one clearing account per channel if volumes justify — the alarm only works if channels don't muddy each other. The playbook lists the client's channels, their fee rates, and their settlement rhythms; when a new channel appears on the statement unannounced, that's a playbook update AND a query (\"we see settlements from X — new till?\").</p>\n<p><b>What this lesson protects:</b> revenue completeness. Sales recognised from Z-reports and PROVEN by settlements is an assertion chain an auditor can walk; sales recognised from \"whatever hit the bank\" undercounts card fees, miscounts VAT, and collapses the day cash goes missing. The clearing discipline is the difference.</p>\n<blockquote><b>DRILL:</b> POS Clearing shows ₦380,000 aged 4 days. The playbook says settlements are next-morning. Three hypotheses in order of likelihood, and the action for each? Missing Z-report (ask for it); settlement failure/hold (find the absent NIBSS line, query with dates); a new terminal settling elsewhere (ask, then playbook + possibly a new clearing account). All three start with a query TODAY — the alarm rang.</blockquote>"
+   }
+  ],
+  "questions": [
+   {
+    "q": "The first question for any statement line is:",
+    "opts": [
+     "Amount size",
+     "Is there a party whose ledger this must touch?",
+     "Debit or credit",
+     "Month position"
+    ],
+    "ans": 1,
+    "why": "Party → Payment Entry; own-account → transfer; else → JE.",
+    "src": "L1"
+   },
+   {
+    "q": "Posting Date on every entry is:",
+    "opts": [
+     "Today",
+     "The statement date — the ledger reconstructs the month as it happened",
+     "Month start",
+     "Due date"
+    ],
+    "ans": 1,
+    "why": "August-dated July lines kill reconciliations.",
+    "src": "L1"
+   },
+   {
+    "q": "'Being payment' as remarks is:",
+    "opts": [
+     "Fine for small items",
+     "Never acceptable — remarks must reconstruct the transaction for a stranger",
+     "Standard",
+     "Reviewer shorthand"
+    ],
+    "ans": 1,
+    "why": "House format: counterparty — what — ref, stmt date.",
+    "src": "L1"
+   },
+   {
+    "q": "'RVSL 88231' appears and you already posted the original. You:",
+    "opts": [
+     "Ignore it",
+     "Post the mirror of YOUR original, cross-referencing both",
+     "Delete the original",
+     "Post to suspense"
+    ],
+    "ans": 1,
+    "why": "Never post a reversal blind; find what it reverses.",
+    "src": "L2"
+   },
+   {
+    "q": "₦940,500 received against a single ₦990,000 corporate invoice most likely means:",
+    "opts": [
+     "A discount to invent",
+     "5% WHT withheld (49,500) — allocate 990,000 fully, 49,500 to WHT receivable, request the certificate",
+     "Short payment to chase",
+     "Bank error"
+    ],
+    "ans": 1,
+    "why": "The arithmetic identifies withholding; the certificate documents it.",
+    "src": "L3"
+   },
+   {
+    "q": "An unreferenced ₦1,300,000 against invoices of 500k(May)/800k(Jun)/450k(Jul):",
+    "opts": [
+     "Newest first",
+     "Oldest first: close May and June; remarks name the rule",
+     "Pro-rata",
+     "Hold unallocated"
+    ],
+    "ans": 1,
+    "why": "Oldest-first unless the customer's reference instructs otherwise.",
+    "src": "L3"
+   },
+   {
+    "q": "A ₦250,000 overpayment beyond all invoices:",
+    "opts": [
+     "Sales income",
+     "An intentional unallocated advance with explanatory remarks — allocated when its invoice exists",
+     "Suspense",
+     "Refund immediately"
+    ],
+    "ans": 1,
+    "why": "An advance is a KNOWN thing; suspense is for unknowns.",
+    "src": "L3, L7"
+   },
+   {
+    "q": "Payment made but the supplier's invoice isn't in the system:",
+    "opts": [
+     "Fabricate the invoice to allocate",
+     "STOP: on-account payment + same-day document request; allocate when it arrives",
+     "Expense it by guess",
+     "Skip the line"
+    ],
+    "ans": 1,
+    "why": "A missing-document problem, never a posting guess.",
+    "src": "L4"
+   },
+   {
+    "q": "WHT the client withholds from a supplier is posted to:",
+    "opts": [
+     "WHT receivable (asset)",
+     "WHT payable (liability) — government money held until remittance",
+     "Supplier discount",
+     "Expense"
+    ],
+    "ans": 1,
+    "why": "Withheld FROM us = asset; withheld BY us = liability.",
+    "src": "L4"
+   },
+   {
+    "q": "The consultant paid ₦712,500 on a ₦750,000 invoice — before posting the 37,500 as 5% WHT you:",
+    "opts": [
+     "Post it; arithmetic settles it",
+     "Confirm the professional-services rate in the schedule — arithmetic identifies, the rate table confirms; disagreement = query",
+     "Round it",
+     "Ask the consultant"
+    ],
+    "ans": 1,
+    "why": "Different supply types withhold at different rates.",
+    "src": "L4"
+   },
+   {
+    "q": "'FIRS VAT PAYMENT JUN ₦861,000' posts as:",
+    "opts": [
+     "Dr Tax Expense",
+     "Dr VAT Payable (control), Cr Bank — clearing what the control held",
+     "Dr Suspense",
+     "Dr VAT Receivable"
+    ],
+    "ans": 1,
+    "why": "Statutory payments clear controls, never expense.",
+    "src": "L5"
+   },
+   {
+    "q": "The honest shape of a correction is:",
+    "opts": [
+     "Edit the original entry",
+     "Reverse the wrong entry, post the right one, cross-referenced remarks on both",
+     "A net-difference adjustment",
+     "A note only"
+    ],
+    "ans": 1,
+    "why": "History that reconciliation saw is never silently rewritten.",
+    "src": "L5"
+   },
+   {
+    "q": "Interest ₦39,900 credited + ₦2,100 'WHT ON INTEREST' debited posts as:",
+    "opts": [
+     "Two unrelated JEs",
+     "One event: Dr GTB 39,900 + Dr WHT Receivable 2,100, Cr Interest Income 42,000",
+     "Cr Interest 39,900 only",
+     "Suspense"
+    ],
+    "ans": 1,
+    "why": "The client earned the gross; the statement delivered it in two lines.",
+    "src": "L5"
+   },
+   {
+    "q": "The POS settlement credit clears:",
+    "opts": [
+     "Sales",
+     "POS Clearing — sales were recognised from the Z-report on the day",
+     "Cash-in-till",
+     "Suspense"
+    ],
+    "ans": 1,
+    "why": "Settlement is a timing event, not revenue.",
+    "src": "L6, L8"
+   },
+   {
+    "q": "Unidentified money IN is never credited to Sales because:",
+    "opts": [
+     "Amounts are usually small",
+     "If it's a deposit, Sales AND VAT AND the customer ledger are all corrupted at once",
+     "Banks reverse it",
+     "Sales needs invoices"
+    ],
+    "ans": 1,
+    "why": "Cr Suspense + query; repost on answer.",
+    "src": "L6, L7"
+   },
+   {
+    "q": "The salaries bank line debits:",
+    "opts": [
+     "Salary Expense",
+     "The net-pay/salaries-payable control — the payroll journal already booked gross and split liabilities",
+     "Director's loan",
+     "PAYE"
+    ],
+    "ans": 1,
+    "why": "If you want to debit expense here, the payroll journal is missing.",
+    "src": "L6"
+   },
+   {
+    "q": "₦750,000 in from the owner posts, pending his answer, as:",
+    "opts": [
+     "Capital",
+     "Cr Suspense with a same-day query — capital vs director loan changes the balance-sheet story",
+     "Sales",
+     "Cr Director loan by default"
+    ],
+    "ans": 1,
+    "why": "Directors' money is never guessed.",
+    "src": "L6, L7"
+   },
+   {
+    "q": "Suspense without a query raised is:",
+    "opts": [
+     "Prudence",
+     "Procrastination with an account code — the pairing is what makes suspense honest",
+     "Reviewer's task",
+     "Fine under ₦50k"
+    ],
+    "ans": 1,
+    "why": "Same-day query is the rule.",
+    "src": "L7"
+   },
+   {
+    "q": "Netting an unknown-debit against an unknown-credit in suspense:",
+    "opts": [
+     "Tidies the ledger",
+     "Is forbidden — they are different questions, worked item by item",
+     "Is fine if equal",
+     "Speeds close"
+    ],
+    "ans": 1,
+    "why": "Suspense is worked, never groomed.",
+    "src": "L7"
+   },
+   {
+    "q": "At close, a 5-day-silent ₦150,000 suspense item gets:",
+    "opts": [
+     "Silent rollover",
+     "Escalation by name + explicit reviewer-disclosed decision — reclassify on evidence with a note, or hold with the client informed",
+     "Write-off",
+     "Split across expenses"
+    ],
+    "ans": 1,
+    "why": "Zero silent rollovers, ever.",
+    "src": "L7"
+   },
+   {
+    "q": "A clearing balance older than ~2 settlement days means:",
+    "opts": [
+     "Normal float",
+     "Missing Z-report, failed settlement, or undocumented fee — a query today, whichever",
+     "Extra profit",
+     "Ignore till month end"
+    ],
+    "ans": 1,
+    "why": "The clearing account is a timing device with an alarm.",
+    "src": "L8"
+   },
+   {
+    "q": "Recurring same-till Friday cash shortages are:",
+    "opts": [
+     "Cash Over/Short, posted and forgotten",
+     "A pattern — process problem or worse; posted AND queried, never quietly absorbed",
+     "Normal retail",
+     "The float"
+    ],
+    "ans": 1,
+    "why": "Patterns are information; statements shouldn't absorb them.",
+    "src": "L8"
+   },
+   {
+    "q": "Revenue completeness for a retail client rests on:",
+    "opts": [
+     "Whatever hit the bank",
+     "Z-report recognition PROVEN by settlements through clearing — a walkable assertion chain",
+     "The MD's word",
+     "Card statements alone"
+    ],
+    "ans": 1,
+    "why": "Bank-only revenue undercounts fees and miscounts VAT.",
+    "src": "L8"
+   },
+   {
+    "q": "A new, unannounced settlement channel on the statement triggers:",
+    "opts": [
+     "Nothing",
+     "A query ('new till?') + playbook update + possibly its own clearing account",
+     "Posting to the old clearing",
+     "Sales credit"
+    ],
+    "ans": 1,
+    "why": "The alarm only works when channels don't muddy each other.",
+    "src": "L8"
+   },
+   {
+    "q": "A line you can't finish today is:",
+    "opts": [
+     "Skipped for month end",
+     "Suspensed with its query — skipping and suspensing are opposites",
+     "Guessed",
+     "Deleted"
+    ],
+    "ans": 1,
+    "why": "The ledger stays current; the question travels.",
+    "src": "L1, L7"
+   },
+   {
+    "q": "One-sided internal transfers are usually caught by:",
+    "opts": [
+     "The client",
+     "The OTHER account's reconciliation failing next month — the expensive way",
+     "The bank",
+     "Nobody"
+    ],
+    "ans": 1,
+    "why": "Post both sides via Internal Transfer, always.",
+    "src": "L6"
+   },
+   {
+    "q": "The month's posting attestation is TRUE even with 3 suspensed lines because:",
+    "opts": [
+     "Nobody checks suspense",
+     "Suspense-with-query IS posted — the ledger is current and the questions are traveling",
+     "Suspense doesn't count",
+     "The amounts are small"
+    ],
+    "ans": 1,
+    "why": "That is precisely what the parking bay is for.",
+    "src": "L6, L7"
+   }
+  ]
+ },
+ "m2b": {
+  "title": "Bookkeeper — Month-End & the Close",
+  "desc": "Reconciliation with numbers, accruals and reversals, prepayment schedules, the full payroll journal, control accounts diagnosed, flux review, and the statements pack.",
+  "lessons": [
+   {
+    "title": "Bank reconciliation — a worked agreement",
+    "est": 7,
+    "html": "<p>Reconciliation proves the posting month worked: the bank's closing balance agreed to the ledger, every difference listed and explicable. Work one:</p>\n<p><b>Bellamy, GTB Current, 31 July.</b> Statement closing balance: <b>₦4,481,204</b>. ERP bank ledger balance: <b>₦4,213,450</b>. Difference: ₦267,754 — now we explain every kobo of it.</p>\n<p>ERPNext path: <i>Accounting → Bank Reconciliation Tool</i> — select the account, enter statement date and closing balance; the tool lists unreconciled ledger entries to match against statement lines (or clear by date). Working it produces:</p>\n<table border=\"1\" cellpadding=\"5\"><tr><th>Reconciling item</th><th>₦</th><th>Nature</th></tr><tr><td>Ledger balance per ERP</td><td>4,213,450</td><td></td></tr><tr><td>+ CHQ 000455 to Eze Bros, issued 29-07, not yet presented</td><td>310,000</td><td>Unpresented cheque — will clear in August</td></tr><tr><td>− Customer NIP received 31-07 20:41, posted by us, credited by bank 01-08</td><td>(41,000)</td><td>Timing: late-day value</td></tr><tr><td>− July COT-style maintenance fee on statement, not yet posted</td><td>(1,246)</td><td><b>Our miss</b> — post it NOW (Dr Bank Charges), then it stops reconciling</td></tr><tr><td>= Statement balance</td><td>4,481,204</td><td>Agreed ✓</td></tr></table>\n<p>Three of the four rows above teach the three species of difference: <b>genuine timing</b> (unpresented cheques, late-day credits — listed, aged, expected to self-clear), <b>our misses</b> (unposted lines discovered here — post them immediately; a reconciliation that \"carries\" postable items is a posting list wearing a reconciliation's clothes), and — not present this month, happily — <b>errors</b> (wrong amounts, one-sided transfers, duplicates: reverse-and-repost per M2a L5).</p>\n<p><b>The aging rule:</b> unpresented/uncleared items older than one month are not timing anymore — a 6-week-old cheque is stale-dating, a duplicate, or a payment the payee never got. Investigate, reverse, or query; never roll forward silently. And a difference you cannot explain is NEVER plugged — it goes to suspense with a query and a note on the reconciliation saying exactly that.</p>\n<p><b>Close the loop:</b> reconcile <b>per account</b>, every account in the tier; file the reconciliation to the Hub (the checklist tick's evidence); and read the meta-signal — if reconciliation keeps discovering unposted lines, your daily rhythm failed and your attested posting lag was overstated. Fix the habit, not just the month.</p>\n<blockquote><b>DRILL:</b> Statement ₦2,105,300; ledger ₦2,145,300; one unpresented cheque ₦65,000; one unposted charge you find, ₦X. Solve: ledger 2,145,300 + 65,000 unpresented should equal statement + X unposted... Work it: 2,145,300 − 2,105,300 = 40,000 gap; unpresented explains +65,000 the other way → the unposted charge X = 25,000 (Dr Bank Charges). Post it, re-run, agree.</blockquote>"
+   },
+   {
+    "title": "Accruals and reversals — two months, one truth",
+    "est": 6,
+    "html": "<p>Cash postings say what happened; accruals make the statements tell the truth about the <i>period</i>. The mechanism is a pair of entries across two months — walk one:</p>\n<p><b>July 31:</b> Bellamy's PHCN/IKEDC bill for July hasn't arrived (it never does before the 10th). Estimate from the playbook's pattern (last 3 months: 118k, 124k, 121k → accrue ₦121,000):</p>\n<table border=\"1\" cellpadding=\"5\"><tr><th>31-07 Journal</th><th>Dr</th><th>Cr</th></tr><tr><td>Electricity Expense</td><td>121,000</td><td></td></tr><tr><td>Accrued Expenses (liability)</td><td></td><td>121,000</td></tr></table>\n<p><b>August 1 (or on posting the actual):</b> the accrual REVERSES — ERPNext journal entries support reversal on a date; use it rather than remembering:</p>\n<table border=\"1\" cellpadding=\"5\"><tr><th>01-08 Reversal</th><th>Dr</th><th>Cr</th></tr><tr><td>Accrued Expenses</td><td>121,000</td><td></td></tr><tr><td>Electricity Expense</td><td></td><td>121,000</td></tr></table>\n<p><b>August 12:</b> the real bill lands: ₦126,300, paid by transfer. Post it normally (Dr Electricity 126,300, Cr Bank). Net effect across the two months: July shows 121,000 (the estimate — close enough, and honest), August shows 126,300 − 121,000 = 5,300 (the estimate's true-up). <b>Nothing doubled, nothing missed</b> — that is the whole choreography, and skipping the reversal is the classic way electricity appears twice in August.</p>\n<p><b>What gets accrued monthly</b> (the playbook lists each client's set): utilities billed in arrears, audit/professional fees relating to the year, interest on facilities between charge dates, salaries where the pay date crosses month end. <b>What does NOT:</b> amounts already invoiced (those are payables, not accruals) and wild guesses — an accrual needs a basis (pattern, contract, rate); \"roughly 200k\" with no basis is noise wearing a liability's clothes, and your reviewer will ask for the basis.</p>\n<p><b>Income accrues too</b> when the client has earned but not yet invoiced (rare in retail, common in services): Dr Accrued Income (asset), Cr Revenue — same reversal choreography when the invoice is raised.</p>\n<blockquote><b>DRILL:</b> You forgot July's reversal; August now shows Electricity 247,300. The flux review (L6) catches the doubling — what's the fix? Post the missed reversal dated in August with remarks explaining, bringing August to 126,300 − 121,000 = 5,300... wait — the reversal alone brings it to 126,300; the true-up view (5,300 above run-rate) is what flux then shows and explains. Fix, re-lay, note. The deeper fix: use dated auto-reversal so memory isn't a control.</blockquote>"
+   },
+   {
+    "title": "Prepayments — building and running the schedule",
+    "est": 5,
+    "html": "<p>Prepayments are accruals' mirror: cash left early; expense belongs to the future. The tool is a <b>schedule</b> — build one:</p>\n<p><b>March 1:</b> Bellamy pays annual rent ₦2,400,000 for Mar–Feb. The payment posts Dr Prepaid Rent (asset) 2,400,000, Cr Bank. The schedule (its home per house convention — a sheet filed to the Hub, referenced in the playbook):</p>\n<table border=\"1\" cellpadding=\"5\"><tr><th>Item</th><th>Paid</th><th>Total</th><th>Monthly</th><th>Released to date (Jul)</th><th>Balance</th></tr><tr><td>Rent Mar26–Feb27</td><td>01-03</td><td>2,400,000</td><td>200,000</td><td>5 × 200,000 = 1,000,000</td><td>1,400,000</td></tr><tr><td>Insurance Jun26–May27</td><td>05-06</td><td>360,000</td><td>30,000</td><td>2 × 30,000 = 60,000</td><td>300,000</td></tr></table>\n<p><b>Every month-end, one mechanical journal per schedule line:</b> Dr Rent Expense 200,000, Cr Prepaid Rent 200,000 (and Dr Insurance 30,000, Cr Prepaid Insurance 30,000). The month-end tick \"accruals &amp; prepayments posted\" asserts these releases ran <b>and the ledger's prepaid balances equal the schedule's balances</b> — that equality is the control; when they diverge, someone released twice, skipped a month, or posted a new prepayment without a schedule line.</p>\n<p><b>New prepayments join the schedule the day they're posted</b>, not at month end — the payment entry and the schedule line are one act. Part-year items pro-rate from their start date (insurance from 5 June still releases a full June month per house convention — red-pen this if the house pro-rates by days). And when a prepaid service is cancelled mid-term with a refund, the refund credits the prepaid asset, the schedule ends early, and remarks tell the story.</p>\n<p><b>Why the fuss for a retail client:</b> without releases, March shows rent of 2.4m and April–Feb show zero — every month's profit is fiction in a different direction, and the MD makes decisions on fiction. The schedule is ten minutes of setup buying twelve months of truth.</p>\n<blockquote><b>DRILL:</b> August's release runs, then you notice July's was never posted. August 31 now needs: the normal August release AND July's catch-up — two lines or one ₦400,000 journal with remarks itemising both months? House style says itemise: one journal, two remark lines, schedule annotated. The balance control (ledger = schedule) is what caught it; that's the control doing its job.</blockquote>"
+   },
+   {
+    "title": "The payroll journal — gross to net, in naira",
+    "est": 6,
+    "html": "<p>The salaries BANK line (M2a line 11) only clears net pay. The real event is the <b>payroll journal on pay day</b>, booking gross cost and splitting every deduction to its keeper. Bellamy, July: staff gross ₦1,800,000. From the payroll schedule: PAYE ₦162,000; pension — employee 8% ₦144,000, employer 10% ₦180,000; net pay ₦1,494,000. (Numbers illustrative — M3 owns the real computation rules; this lesson owns the POSTING.)</p>\n<table border=\"1\" cellpadding=\"5\"><tr><th>26-07 Payroll Journal</th><th>Dr</th><th>Cr</th></tr><tr><td>Salaries &amp; Wages (expense — gross)</td><td>1,800,000</td><td></td></tr><tr><td>Pension Expense (employer 10%)</td><td>180,000</td><td></td></tr><tr><td>PAYE Payable (control)</td><td></td><td>162,000</td></tr><tr><td>Pension Payable (control: 144,000 + 180,000)</td><td></td><td>324,000</td></tr><tr><td>Net Salaries Payable (control)</td><td></td><td>1,494,000</td></tr></table>\n<p>Check the shape: the P&amp;L carries the TRUE employment cost (1,800,000 + 180,000 = 1,980,000); the controls carry everyone who is owed: staff (net), the state (PAYE), the PFAs (pension both legs).</p>\n<p><b>Then the clearings, as the bank lines arrive:</b> salaries batch ₦1,494,000 → Dr Net Salaries Payable, Cr Bank (wait — the worked statement showed 1,420,000; a ₦74,000 gap means someone's net was held back or paid separately — reconcile the batch to the schedule, don't shrug); PAYE remittance by the 10th → Dr PAYE Payable 162,000, Cr Bank; pension remittance → Dr Pension Payable 324,000, Cr Bank.</p>\n<p><b>The monthly control check</b> (feeds the FS checklist's \"payroll booked\" tick): after all clearings, each payroll control holds <b>exactly the amounts not yet remitted</b> — reconciled to the schedule. PAYE Payable showing ₦162,000 on Aug 15 says July's PAYE wasn't remitted: that is an M3 deadline already missed or missing from the bank — either way, loud, today, not at close.</p>\n<p><b>Where the module runs payroll</b> (ERPNext HR/Payroll), the Salary Slips generate this journal — your job shifts to VERIFYING it against the schedule and chasing the clearings; where payroll is a spreadsheet schedule, you post the journal above by hand. Either way, the tick means checked, not assumed.</p>\n<blockquote><b>DRILL:</b> New hire mid-month; the schedule shows her gross ₦150,000 pro-rated to ₦75,000, PAYE ₦4,200, pension EE ₦6,000/ER ₦7,500. Extend each journal line mentally: gross +75,000; ER pension expense +7,500; PAYE control +4,200; pension control +13,500; net +64,800. If the bank batch didn't grow by exactly 64,800, the batch-to-schedule reconciliation finds who wasn't paid.</blockquote>"
+   },
+   {
+    "title": "Control accounts — reconciling, and diagnosing a broken one",
+    "est": 6,
+    "html": "<p>A control account's balance must always be DERIVABLE from a schedule outside the ledger. Monthly, you prove it. The VAT control, worked:</p>\n<table border=\"1\" cellpadding=\"5\"><tr><th>VAT Payable control — July</th><th>₦</th></tr><tr><td>Opening balance (June's net, remitted 21-07)</td><td>861,000 Cr</td></tr><tr><td>− Remittance 21-07 (M2a line 10)</td><td>861,000 Dr → 0</td></tr><tr><td>+ Output VAT on July sales (per sales/Z summary)</td><td>1,230,000 Cr</td></tr><tr><td>− Input VAT on eligible July purchases (per purchase summary)</td><td>340,000 Dr</td></tr><tr><td><b>= Closing balance — and August's return</b></td><td><b>890,000 Cr</b></td></tr></table>\n<p>The reconciliation: the LEDGER's control balance vs this DERIVED figure. Agreement → tick. Disagreement → diagnose before anything else ships. The diagnostic sequence for a control that's out by ₦37,500:</p>\n<ol>\n<li><b>Direction first:</b> control higher than derived = something credited VAT that shouldn't have (a receipt mis-split? unidentified income parked as sales+VAT?); lower = output missed (a Z-report day unposted?) or input overclaimed.</li>\n<li><b>Round-number instinct:</b> 37,500 = 7.5% of exactly 500,000 — hunt for a ₦500,000 transaction treated VAT-wrong: an exempt supply charged VAT, or a VATable sale posted VAT-free.</li>\n<li><b>Ledger walk:</b> filter the control's period entries; every line must trace to an invoice batch, Z-report, or the remittance. The stranger is usually visible in one pass.</li>\n<li><b>Fix by the honest shape</b> (reverse + repost, cross-referenced), re-derive, agree, THEN tick.</li>\n</ol>\n<p><b>The same discipline serves every control:</b> PAYE and pension to the payroll schedule (L4); <b>WHT both directions to their certificate schedules</b> — WHT receivable (withheld from us) grows with each shortfall-allocation (M2a L3) and shrinks when certificates are applied against tax; WHT payable (we withheld) grows with supplier splits (M2a L4) and zeroes at each remittance. A control that \"roughly agrees\" doesn't agree; and a control plugged to agree is a lie with compound interest — next month it's out by two mysteries instead of one.</p>\n<p><b>Why the client's life depends on this:</b> the money in these accounts is not the client's. A VAT control quietly treated as cash flow is how small businesses die owing FIRS money they already spent; our monthly reconciliation is the tripwire that keeps that truth visible in every pack.</p>\n<blockquote><b>DRILL:</b> Pension Payable shows ₦324,000 on Aug 20; the schedule says July's remittance was due and the bank shows no pension line. What do you do, in order? Flag to the client TODAY (a missed statutory remittance, penalties accruing), note it for the reviewer, and do NOT clear or adjust the control — it is correctly reporting an unpaid debt. The control being \"ugly\" is the control WORKING.</blockquote>"
+   },
+   {
+    "title": "Flux review — reading the month like a story",
+    "est": 5,
+    "html": "<p>After adjustments, before the pack: this month's P&amp;L against last month's, line by line, and every material movement earns a one-sentence explanation IN WRITING (the checklist notes). Bellamy, July vs June:</p>\n<table border=\"1\" cellpadding=\"5\"><tr><th>Line</th><th>June</th><th>July</th><th>Δ</th><th>Your sentence</th></tr><tr><td>Revenue</td><td>9,840,000</td><td>10,450,000</td><td>+6%</td><td>\"Two new corporate accounts (Adebayo scale-up) — consistent with receipts.\"</td></tr><tr><td>Cost of sales</td><td>5,610,000</td><td>6,620,000</td><td>+18%</td><td>\"Kolawole price increase from PO 118 + volume. Margin fell 3pts — flag to MD.\"</td></tr><tr><td>Electricity</td><td>124,000</td><td>247,300</td><td>+99%</td><td>STOP — investigate before writing anything.</td></tr><tr><td>Bank charges</td><td>18,900</td><td>31,400</td><td>+66%</td><td>\"POS commission scaling with card mix — playbook rate confirms.\"</td></tr><tr><td>Repairs</td><td>0</td><td>230,000</td><td>new</td><td>\"Generator repair (the Musa Ent query, resolved).\"</td></tr></table>\n<p>The electricity line demonstrates the method's value: 99% is not a story, it's an alarm. Investigation finds the missed accrual reversal (L2's drill) — fixed BEFORE delivery, cheaply. The flux is where wrong postings are caught while they cost a journal entry instead of a restatement and an awkward client call.</p>\n<p><b>What counts as material</b> is a house threshold (red-pen: suggest greater of ₦50,000 or 15% of the line) — but judgment overrides thresholds in both directions: a ₦20,000 movement in a line that should NEVER move (statutory penalties: any amount is a story) matters; a ₦300,000 swing in a line that always swings (fuel, for a logistics client) may need only \"seasonal, consistent with route volume\".</p>\n<p><b>Balance-sheet flux too, briefly:</b> receivables jumping while revenue is flat = collections slipping (aging schedule tells who); inventory climbing against flat sales = the stock-take conversation; director loan movements = are the L6/M2a-line-12 answers consistent with what the account now says? The balance sheet is where quiet problems live; give it five minutes of the same reading.</p>\n<p>Write the sentences INTO the checklist notes as you go — when the MD calls asking \"why is cost of sales up?\", the answer is already composed, calm, and consistent with what the reviewer read. A flux done in your head serves nobody at 5pm Friday.</p>\n<blockquote><b>DRILL:</b> Revenue +2%, receivables +34%, cash −20%. Compose the one sentence this pattern demands, and name who hears it first. \"Sales are steady but collections have slipped — top five aged debtors attached; suggest a collections push.\" The MD hears it — in the pack's cover note, flagged by the reviewer first.</blockquote>"
+   },
+   {
+    "title": "The pack — producing, filing, delivering",
+    "est": 5,
+    "html": "<p>With postings current (attested), banks reconciled (filed), suspense zero, adjustments in, controls agreed, flux written — the pack is a harvest. The standard monthly pack (identical structure every client; only numbers differ):</p>\n<ol>\n<li><b>Profit &amp; Loss</b> — the period, with prior-month comparative (ERPNext financial statements report: period July, comparison previous period; house template governs layout).</li>\n<li><b>Balance Sheet</b> — as at period end.</li>\n<li><b>Supporting schedules per house template</b> — receivables aging, payables aging, bank summary (per account: opening, movements, closing, reconciled ✓). [Red-pen: confirm the canonical schedule list.]</li>\n<li><b>The cover note</b> — five lines maximum: the month in one sentence, the two flux stories that matter, anything awaiting the client (open queries, the stock-take date). Written from the flux notes, not composed fresh.</li>\n</ol>\n<p><b>Production mechanics:</b> run the reports with the right dimensions/company, export to the house PDF template, and READ THE PDF — the render is what the client sees, and a truncated column or wrong comparative caught here costs a re-export; caught by the client, it costs credibility.</p>\n<p><b>The delivery sequence, exactly</b> (M1 L6 walked the ceremony; this is your checklist-side view): every checklist item ticked honestly → <b>PDF filed to the Hub first</b> (the ceremony must never point at an empty shelf) → In Review where a reviewer exists, with your doubts flagged in notes → the reviewer's Delivered → the client's 📬 → Acknowledged ✓✓. All inside the <b>5th working day</b>.</p>\n<p><b>When you'll miss the date</b> — a client's statement page still missing on the 4th working day despite chases: the bad-news protocol (M4) runs BEFORE the deadline: the client hears \"statements will be one day late because the GTB pages for the 28th–31st are outstanding — may we have them today?\" from you, with the date, before the matrix tells them with a red cell. A miss announced early with its cause attached costs a day; a silent miss costs the thing the pack exists to build.</p>\n<p>The pack that arrives on time, reconciled, with a cover note that answers the MD's question before it's asked, every single month — that is the entire brand of this unit. There is no marketing better than a client who has stopped checking whether the statements will come.</p>\n<blockquote><b>DRILL:</b> It's the 3rd working day. Checklist shows 6/7 (reviewer pending), Hub has the PDF, one query from the 28th sits Answered-unresolved. What's left, in order? Resolve the query (repost + resolve — it may touch the numbers!), re-check the affected statements, re-file the PDF if changed, THEN In Review. Answered-unresolved before a close is a landmine with a polite label.</blockquote>"
+   }
+  ],
+  "questions": [
+   {
+    "q": "Ledger ₦4,213,450; statement ₦4,481,204; unpresented cheque ₦310,000; late-day credit ₦41,000 (bank next month); one unposted fee. The fee is:",
+    "opts": [
+     "₦267,754",
+     "₦1,246",
+     "₦269,000",
+     "₦41,000"
+    ],
+    "ans": 1,
+    "why": "4,213,450 + 310,000 − 41,000 − X = 4,481,204 → X = 1,246. Post it now.",
+    "src": "L1"
+   },
+   {
+    "q": "An unposted line discovered at reconciliation is:",
+    "opts": [
+     "A reconciling item to carry",
+     "Posted immediately — carrying postables makes a posting list wear reconciliation's clothes",
+     "Suspense",
+     "Next month's problem"
+    ],
+    "ans": 1,
+    "why": "Our-miss items stop reconciling the moment they're posted.",
+    "src": "L1"
+   },
+   {
+    "q": "A 6-week-old unpresented cheque is:",
+    "opts": [
+     "Timing",
+     "Stale/duplicate/undelivered — investigate, reverse or query; never roll silently",
+     "The bank's issue",
+     "Immaterial"
+    ],
+    "ans": 1,
+    "why": "Older than a month is not timing anymore.",
+    "src": "L1"
+   },
+   {
+    "q": "Reconciliation repeatedly discovering unposted lines means:",
+    "opts": [
+     "The tool is broken",
+     "The daily rhythm failed and attested lag was overstated — fix the habit",
+     "Statements are late",
+     "Normal volume"
+    ],
+    "ans": 1,
+    "why": "The meta-signal matters more than the month.",
+    "src": "L1"
+   },
+   {
+    "q": "July's ₦121,000 electricity accrual exists because:",
+    "opts": [
+     "The bill arrived early",
+     "July consumed power whose bill arrives in August — the estimate has a basis (3-month pattern)",
+     "FIRS requires it",
+     "Cash left in July"
+    ],
+    "ans": 1,
+    "why": "Accruals put cost in the period that caused it.",
+    "src": "L2"
+   },
+   {
+    "q": "The accrual's reversal is dated:",
+    "opts": [
+     "Never — it nets later",
+     "August 1 (or at the actual's posting), via dated auto-reversal so memory isn't a control",
+     "July 1",
+     "Year end"
+    ],
+    "ans": 1,
+    "why": "Skip it and August doubles.",
+    "src": "L2"
+   },
+   {
+    "q": "Actual bill ₦126,300 after a ₦121,000 accrual: August's P&L shows:",
+    "opts": [
+     "126,300",
+     "5,300 — the estimate's true-up",
+     "247,300",
+     "0"
+    ],
+    "ans": 1,
+    "why": "Accrue-reverse-actual nets each month to its truth.",
+    "src": "L2"
+   },
+   {
+    "q": "'Accrue roughly ₦200k for stuff' fails because:",
+    "opts": [
+     "Too small",
+     "No basis — an accrual needs a pattern, contract, or rate behind it",
+     "Wrong account",
+     "Needs FIRS approval"
+    ],
+    "ans": 1,
+    "why": "Baseless accruals are noise wearing a liability's clothes.",
+    "src": "L2"
+   },
+   {
+    "q": "Annual rent ₦2,400,000 paid March posts as:",
+    "opts": [
+     "March expense",
+     "Dr Prepaid Rent 2,400,000; released ₦200,000/month by schedule",
+     "12 postdated entries",
+     "Equity"
+    ],
+    "ans": 1,
+    "why": "The schedule makes release mechanical.",
+    "src": "L3"
+   },
+   {
+    "q": "The prepayment control equality is:",
+    "opts": [
+     "Schedule ≥ ledger",
+     "Ledger prepaid balances = schedule balances — divergence means double/skipped/unscheduled",
+     "Bank = schedule",
+     "None needed"
+    ],
+    "ans": 1,
+    "why": "That equality is what catches the missed July release.",
+    "src": "L3"
+   },
+   {
+    "q": "A new prepayment joins the schedule:",
+    "opts": [
+     "At month end",
+     "The day it's posted — the payment and the schedule line are one act",
+     "At year end",
+     "When released"
+    ],
+    "ans": 1,
+    "why": "Otherwise the control equality breaks silently.",
+    "src": "L3"
+   },
+   {
+    "q": "Gross 1,800,000; PAYE 162,000; pension EE 144,000/ER 180,000. Net pay is:",
+    "opts": [
+     "1,494,000",
+     "1,314,000",
+     "1,638,000",
+     "1,674,000"
+    ],
+    "ans": 0,
+    "why": "1,800,000 − 162,000 − 144,000 (ER pension is cost, not deduction).",
+    "src": "L4"
+   },
+   {
+    "q": "The P&L's employment cost in that month is:",
+    "opts": [
+     "1,800,000",
+     "1,980,000 — gross + employer pension",
+     "1,494,000",
+     "2,124,000"
+    ],
+    "ans": 1,
+    "why": "ER contributions are expense above gross.",
+    "src": "L4"
+   },
+   {
+    "q": "The salaries BANK line clears:",
+    "opts": [
+     "Gross",
+     "Only the net-pay control — the payroll journal carried the rest",
+     "PAYE",
+     "Pension"
+    ],
+    "ans": 1,
+    "why": "Bank pays people their net; controls hold the rest.",
+    "src": "L4"
+   },
+   {
+    "q": "Bank batch ₦1,420,000 vs net control ₦1,494,000:",
+    "opts": [
+     "Ignore ₦74,000",
+     "Reconcile batch to schedule — someone's net was held or paid separately; find who",
+     "Plug to charges",
+     "Reverse payroll"
+    ],
+    "ans": 1,
+    "why": "Batch-to-schedule reconciliation names the person.",
+    "src": "L4"
+   },
+   {
+    "q": "PAYE Payable still showing July's ₦162,000 on Aug 15 means:",
+    "opts": [
+     "Healthy balance",
+     "July's remittance is missing — statutory deadline already passed; loud, today",
+     "Advance payment",
+     "Rounding"
+    ],
+    "ans": 1,
+    "why": "Controls reconcile to schedules AND to deadlines.",
+    "src": "L4, L5"
+   },
+   {
+    "q": "VAT control: opening 861,000 remitted; output 1,230,000; input 340,000. August remits:",
+    "opts": [
+     "890,000",
+     "1,230,000",
+     "29,000",
+     "1,751,000"
+    ],
+    "ans": 0,
+    "why": "0 + 1,230,000 − 340,000 = 890,000 — the derived figure the ledger must match.",
+    "src": "L5"
+   },
+   {
+    "q": "A control out by exactly 37,500 suggests hunting for:",
+    "opts": [
+     "A ₦37,500 invoice",
+     "A ₦500,000 transaction VAT-treated wrongly (37,500 = 7.5% of 500,000)",
+     "Bank fraud",
+     "A rounding rule"
+    ],
+    "ans": 1,
+    "why": "Round-number instinct is a diagnostic, not a proof — verify by ledger walk.",
+    "src": "L5"
+   },
+   {
+    "q": "A control plugged to agree is:",
+    "opts": [
+     "Pragmatism",
+     "A lie with compound interest — next month holds two mysteries",
+     "Standard at year end",
+     "Reviewer's call"
+    ],
+    "ans": 1,
+    "why": "Diagnose by direction, round-numbers, ledger walk; fix by reverse+repost.",
+    "src": "L5"
+   },
+   {
+    "q": "Pension due, unremitted, control 'ugly' at ₦324,000:",
+    "opts": [
+     "Adjust it away",
+     "Flag to client today + reviewer note; the control is correctly reporting an unpaid statutory debt",
+     "Move to suspense",
+     "Net against PAYE"
+    ],
+    "ans": 1,
+    "why": "An ugly control can be the control WORKING.",
+    "src": "L5"
+   },
+   {
+    "q": "Electricity +99% month-on-month at flux is:",
+    "opts": [
+     "A sentence: 'costs rose'",
+     "An alarm — investigate first (the missed reversal); fix BEFORE delivery",
+     "The MD's problem",
+     "Seasonal"
+    ],
+    "ans": 1,
+    "why": "Flux catches wrong postings while they cost a journal, not a restatement.",
+    "src": "L6"
+   },
+   {
+    "q": "₦20,000 appearing in 'statutory penalties' is:",
+    "opts": [
+     "Immaterial by threshold",
+     "Material by judgment — a line that should never move makes any amount a story",
+     "Ignored",
+     "Netted"
+    ],
+    "ans": 1,
+    "why": "Judgment overrides thresholds in both directions.",
+    "src": "L6"
+   },
+   {
+    "q": "Revenue +2%, receivables +34%, cash −20% reads as:",
+    "opts": [
+     "Growth",
+     "Collections slipping — aging attached, collections push suggested, MD told via the pack's cover note",
+     "Fraud",
+     "Inventory issues"
+    ],
+    "ans": 1,
+    "why": "The balance sheet is where quiet problems live.",
+    "src": "L6"
+   },
+   {
+    "q": "Flux sentences are written:",
+    "opts": [
+     "In your head",
+     "Into the checklist notes as you go — the MD's 'why' is pre-answered, consistently with what the reviewer read",
+     "After the client asks",
+     "By the reviewer"
+    ],
+    "ans": 1,
+    "why": "A flux done mentally serves nobody at 5pm Friday.",
+    "src": "L6"
+   },
+   {
+    "q": "The pack's cover note comes from:",
+    "opts": [
+     "Fresh composition",
+     "The flux notes — the month in a sentence, two stories, anything awaited",
+     "The template unedited",
+     "The MD"
+    ],
+    "ans": 1,
+    "why": "Five lines maximum, already composed.",
+    "src": "L7"
+   },
+   {
+    "q": "The PDF is read before delivery because:",
+    "opts": [
+     "Formality",
+     "The render is what the client sees — truncations caught here cost a re-export; caught by the client, credibility",
+     "The reviewer skips it",
+     "Hub requires it"
+    ],
+    "ans": 1,
+    "why": "Always read the artifact itself.",
+    "src": "L7"
+   },
+   {
+    "q": "On the 3rd working day, an Answered-unresolved query from the 28th is:",
+    "opts": [
+     "Fine — it's answered",
+     "A landmine: resolve (repost — it may touch the numbers), re-check statements, re-file if changed, THEN review",
+     "The reviewer's job",
+     "Next month's"
+    ],
+    "ans": 1,
+    "why": "Answered-unresolved before close is a polite label on a problem.",
+    "src": "L7"
+   }
+  ]
+ },
+ "m4": {
+  "title": "Bookkeeper — The Professional Bookkeeper",
+  "desc": "Confidentiality with scenarios, the client voice with verbatim rewrites, the bad-news protocol, both chairs of review, and reading your own numbers.",
+  "lessons": [
+   {
+    "title": "Confidentiality — the walls, tested",
+    "est": 5,
+    "html": "<p>Every client room is a sealed vessel; the rules are absolute because the temptations are ordinary. Four scenarios, decided:</p>\n<p><b>1. The benchmark request.</b> Cascade's MD, friendly, over a call: \"You do Bellamy too — what do retailers like them spend on POS charges? Just a range.\" The range IS Bellamy's data wearing a disguise. Answer from public knowledge only (\"card commissions in Nigeria typically run 0.5–0.75%; let's look at YOURS\") — and note the refusal shape: give something useful and general, so the no doesn't feel like a wall.</p>\n<p><b>2. The helpful shortcut.</b> Chidinma (Bellamy's bookkeeper-side contact) WhatsApps you asking for last month's P&amp;L \"quickly, the MD is asking\". The document is theirs; the CHANNEL is the breach. \"Sending it to your Documents now — it'll be in the portal in one minute.\" Client materials travel the logged rails even when the recipient is entitled to them; a personal-channel habit, once formed, will eventually carry something it must not.</p>\n<p><b>3. The dinner story.</b> A client's books contained something genuinely funny, no names needed. Not told. Lagos, at the level our clients live, is one degree of separation — and the storyteller who is careful with names is still teaching the table that our clients' insides are entertainment. The reputation cost lands on the unit, not the anecdote.</p>\n<p><b>4. The device.</b> Statements and exports on your laptop are transit, not archive: they live in the Hub, and local copies go when the task does. Screens lock when you stand; client tabs close before screen-shares; and the household rule applies — family seeing a client's name on your screen is already a leak, however loving the household.</p>\n<p>Confidentiality is not a policy we comply with; <b>it is the product</b>. Clients hand us the most private thing a business has, and the fee is paid because the handover is safe. The breach that ends a career is rarely dramatic — a screenshot to the wrong chat, an open laptop, a story told well. Boring discipline is the whole game.</p>\n<blockquote><b>DRILL:</b> A prospective client asks, as a test: \"Who else do you keep books for?\" What may you say? House policy [red-pen]: named references only with the referenced client's standing consent; otherwise sector-level (\"retail, food, logistics\") and the offer to arrange a reference call. The instinct to impress with names is the instinct to manage.</blockquote>"
+   },
+   {
+    "title": "The client voice — five rewrites, verbatim",
+    "est": 6,
+    "html": "<p>To your clients you ARE the firm; every message teaches them what the service is like. The register: warm, plain, unhurried, never defensive; help-shaped, never accusation-shaped. Five real situations, bad and good, word for word:</p>\n<p><b>1. The unexplained transaction.</b><br>✗ <i>\"You didn't tell us what the 230k cheque to Musa Ent was for. We can't do your books like this.\"</i><br>✓ <i>\"Could you help us place one item — a cheque to Musa Ent, ₦230,000, on the 9th? Once we know what it was for, July is fully posted.\"</i><br>The good version asks for help, names the specifics, and shows the payoff of answering.</p>\n<p><b>2. The chronically late statement.</b><br>✗ <i>\"As usual we still don't have your GTB statement.\"</i><br>✓ <i>\"We're one document away from starting your close — the GTB statement for July. Could Tunde send it today? The earlier it lands, the earlier your statements do.\"</i><br>\"As usual\" wins an argument and loses a client; the good version converts frustration into a deadline the client can act on.</p>\n<p><b>3. The client who wants the impossible.</b><br>✗ <i>\"That's not how accounting works.\"</i><br>✓ <i>\"There's a cleaner way to get what you're after. If we post it the way you've described, your VAT return overstates — which costs you real money. Here's what I'd suggest instead…\"</i><br>Never make the client feel foolish; make the better path feel like THEIR win (because it is).</p>\n<p><b>4. The scope drift.</b><br>✗ <i>\"We don't do that.\"</i><br>✓ <i>\"Happy to help with that — it sits outside your current service, so let me have our team add it properly with a small fee adjustment. That way it's covered every month, not just this once.\"</i><br>The no becomes a yes-with-structure; the tier conversation (M1) in its natural habitat.</p>\n<p><b>5. The angry message.</b> Client, 21:40: <i>\"Third time asking about this!!! Is anyone actually working on our account???\"</i><br>✗ (at 21:41) <i>\"We replied on Tuesday, please check your portal.\"</i><br>✓ (next working morning, 08:40) <i>\"You're right to expect better tracking from us, and I'm sorry this felt dropped. Here's where each of your three items stands: [three lines]. The second one is waiting on the bank's response — I'll chase them this morning and update you by noon.\"</i><br>Note everything the good version does: waits for working hours (the after-hours notice covered the night; answering at 21:41 teaches a service level we don't sell), opens with validation not evidence, itemises, owns the next action WITH a time. You may be right on the facts and still wrong in the reply.</p>\n<p><b>The channel rule underneath all five:</b> queries through Follow-ups, documents through requests, everything else in the room — and any material thing settled by voice gets a same-day room summary, because a decision that exists only in a phone call doesn't exist.</p>\n<blockquote><b>DRILL:</b> Rewrite this real specimen: \"We noticed you again mixed personal and business spending. This makes our work very difficult.\" — One good answer: \"A few July items look personal (list attached, ₦184,000 total) — should we treat these as drawings as before? If it helps, a separate card for business spend would make your statements cleaner and your tax position safer.\" Names the facts, offers the mechanism, gives the client a dignified path.</blockquote>"
+   },
+   {
+    "title": "Bad news — the protocol, walked",
+    "est": 4,
+    "html": "<p>Something will eventually go wrong: a statement will be late, an error will reach a delivered pack, a statutory date will be at risk. The protocol is identical for all three: <b>early, plainly, cause attached, path forward, before the system's surfaces tell them first.</b></p>\n<p><b>Walk the late statement.</b> It's the 4th working day; Bellamy's GTB pages for the 28th–31st are still missing despite two chases. The deadline is tomorrow and you will miss it. The message goes TODAY:</p>\n<p><i>\"Your July statements will be one day late — we're missing the GTB pages for the 28th–31st, which we've requested twice (most recently this morning). The moment they arrive we need about three hours; if Tunde can send them today, we may still make Friday. Everything else is closed and reviewed.\"</i></p>\n<p>Anatomy: the news first (no burying), the cause (specific, not defensive), the client's lever (Tunde, today), the honest new promise, and the reassurance that is TRUE (the rest is done). What it never contains: \"unfortunately due to circumstances\", blame theatrics, or a promise you can't keep to soften the moment.</p>\n<p><b>Walk the discovered error.</b> August 12th, you find July's delivered pack overstated repairs by ₦230,000 (a suspense repost missed the reversal). The instinct to quietly fix it in August is the career-shaping mistake. The sequence: reviewer first (same hour), agreed correction, then the client — <i>\"We found an error in July's delivered statements: repairs were overstated by ₦230,000, profit correspondingly understated. Corrected statements are in your Documents; the cause was a duplicated posting on our side, and we've added a check so it can't recur.\"</i> Clients forgive errors admitted at speed with corrections attached; they never forgive discovering one themselves.</p>\n<p><b>Walk the statutory risk.</b> The 19th, VAT due the 21st, and the client hasn't answered the query that determines ₦500,000 of output VAT. This one escalates INSIDE first (reviewer + books manager, today) because the decision — file on best evidence vs file late — is a management call with penalty mathematics attached; the client message then carries the firm's decision, not your improvisation.</p>\n<p><b>The invariant:</b> the client must never learn of a problem from a red cell, a silent gap, or their own discovery. The board's surfaces are fast; you must be faster, and the difference between \"they told me before I asked\" and \"I found out\" is, over a few years, the difference between a reference and a churn.</p>\n<blockquote><b>DRILL:</b> Which is worse: statements two days late and announced on day one, or one day late and silent? — Silent, and it isn't close. Lateness costs a day; silence costs the belief that you'd tell them. The entire acknowledgment/ceremony machinery is built on that belief.</blockquote>"
+   },
+   {
+    "title": "Review — both chairs, with a worked exchange",
+    "est": 5,
+    "html": "<p>On split clients one prepares, one signs. Here is a real review cycle done well, then the crafts named.</p>\n<p><b>The submission (you, preparer):</b> Cascade July → In Review, notes: <i>\"Checklist 6/7. Flux notes in the cell. Two things for your eye: (1) director loan repostings wk3 — I followed his email but the pattern's new; (2) COGS +18% — I've verified Kolawole's price letter, but the margin drop deserves your read before it reaches the MD.\"</i> — The craft: review-ready state (suspense zero, notes written) plus <b>your own doubts flagged, not buried</b>. A preparer who surfaces doubts is trusted more; a reviewer who finds an UNFLAGGED known-issue trusts everything less, permanently.</p>\n<p><b>The findings (Ade, reviewer):</b> <i>\"Two findings. (1) Rent release doubled — March's reversal missing; fix and re-lay the P&amp;L (this also resolves half your COGS-margin worry: ₦200k of it isn't COGS at all, it's the rent error's shadow in the comparative). (2) Director loan treatment is right, but add his email to the Hub as support. Everything else clean — the flux notes are exactly what the MD conversation needs.\"</i> — The craft: findings with REASONS and locations (\"March's reversal\"), teaching not verdicts; credit where due; the fix's downstream effect traced. Compare the useless version: \"redo the rent figures and tidy the loan section.\"</p>\n<p><b>The response (you):</b> fix, re-lay, re-file, one line back: <i>\"Both done — reversal posted (JE-00318), P&amp;L re-laid, email filed. Re-review when ready.\"</i> Never relitigate the fact of being checked; argue the ACCOUNTING when you disagree (\"I read the pro-ration differently — here's the contract clause\") and accept the outcome when the reviewer holds.</p>\n<p><b>The signature (Ade):</b> reviewer-pass tick, Delivered. That click means <i>\"I believe these statements\"</i> — which is why review is substance (recs to statements, controls to schedules, flux against knowledge of the client) and never a checklist skim. And it is PROMPT: work at In Review since the 3rd deserves better than a signature on the 7th; the 👁 push exists so the handover never waits on memory.</p>\n<p><b>The culture line:</b> the gate only works if being reviewed carries no shame and reviewing carries no superiority. The best pairs swap findings like colleagues sharpening each other — because that is what they are. And the SM override on the gate is for genuine emergencies; a pattern of overrides is a pattern management reads correctly.</p>\n<blockquote><b>DRILL:</b> As reviewer you find a third consecutive month of the same suspense-hygiene issue from the same preparer. The finding goes in the review — where else does the observation belong? A direct conversation (kind, specific, offline from the artifact) — findings fix statements; conversations fix patterns. If a third conversation doesn't, the books manager should hear it from you before the KPIs say it anyway.</blockquote>"
+   },
+   {
+    "title": "Your numbers — reading the board without flinching",
+    "est": 4,
+    "html": "<p>The board measures the work: on-time rate, posting lags, close cycles, register dots, and (for managers) each engagement's effective hourly rate. Professionals read their own numbers the way they read a client's: honestly, hunting the story. A sample read:</p>\n<p><i>Your six-month row: on-time 94% → 91% → 96% → 88% → 90% → 84%. FS cycle: 4.2d → 4.5d → 4.1d → 5.8d → 5.5d → 6.3d.</i> The story isn't \"getting worse at the job\" — cross-reference capacity: you went from 3 clients to 5 in month four. The honest conclusion is a LOAD conversation with the books manager, armed with the numbers (\"my cycle degraded exactly when the portfolio grew — I'm at capacity, or my rhythm needs redesign, or both\"). The board wrote your case for you; that is what it's for.</p>\n<p><b>The two corruptions, named:</b> <i>Gaming</i> — attesting optimistically, back-dating effort, ticking unverified — poisons the board for everyone and is a short strategy against a system whose cross-checks (sessions vs claims, batch vs schedule, and one day the ledger itself) have a long memory. <i>Despair</i> — treating an amber month as a verdict — misreads what the numbers are: descriptions of the service each client received, nothing more. The correct response to a bad number is curiosity (<i>what in my rhythm produced this?</i>) followed by a changed rhythm.</p>\n<p><b>The fee-review flag, understood precisely:</b> when an engagement runs below the rate floor three straight months, the CLIENT is flagged — <b>for repricing, not for blame</b>. It means the engagement is bigger than the fee assumed. Your honest hours are the evidence that makes the repricing case; understating hours to look efficient literally hides money the unit should be earning. The flag firing is the pricing system WORKING.</p>\n<p><b>Capacity and growth:</b> the lightest-honest-load table assigns the next client; disciplined numbers are how growth lands fairly, and how your advancement case gets written by the board instead of by adjectives. The closing loop of this whole track: <b>tag sessions, attest truly, raise queries the day you hit them, tick what you verified</b> — do the disciplines and the KPIs take care of themselves. That is the design.</p>\n<blockquote><b>DRILL:</b> Your Cascade rate reads ₦3,900/hr for the third month; the flag fires. A colleague suggests logging fewer Cascade hours \"so it looks better\". Name the three things wrong with that in one breath: it hides an underpriced engagement (unit loses money), corrupts capacity planning (you'll be assigned MORE work), and it's a falsified record in a system built on attestation. The right move: nothing — the flag is doing your negotiating for you.</blockquote>"
+   }
+  ],
+  "questions": [
+   {
+    "q": "Cascade's MD asks what 'retailers like Bellamy' spend on POS charges. You answer with:",
+    "opts": [
+     "Bellamy's range, no name",
+     "Public knowledge ('typically 0.5–0.75% in Nigeria') and pivot to THEIR numbers",
+     "A polite refusal only",
+     "An average of clients"
+    ],
+    "ans": 1,
+    "why": "A range IS the other client's data in disguise; refuse by being useful generally.",
+    "src": "L1"
+   },
+   {
+    "q": "A client contact WhatsApps asking for their own P&L. You:",
+    "opts": [
+     "Send it — it's theirs",
+     "Deliver via the portal/Hub — the document is theirs; the channel is the breach",
+     "Refuse entirely",
+     "Send a screenshot"
+    ],
+    "ans": 1,
+    "why": "Personal-channel habits eventually carry what they must not.",
+    "src": "L1"
+   },
+   {
+    "q": "Nameless client stories at dinner are:",
+    "opts": [
+     "Safe if funny",
+     "Not told — one degree of separation, and the teller teaches the table our clients are entertainment",
+     "Fine among accountants",
+     "Marketing"
+    ],
+    "ans": 1,
+    "why": "The reputation cost lands on the unit.",
+    "src": "L1"
+   },
+   {
+    "q": "Exports on your laptop are:",
+    "opts": [
+     "An archive",
+     "Transit — they live in the Hub; local copies go when the task does",
+     "Backups",
+     "Yours"
+    ],
+    "ans": 1,
+    "why": "Devices lock, tabs close, households don't read screens.",
+    "src": "L1"
+   },
+   {
+    "q": "A prospect asks 'who else do you keep books for?':",
+    "opts": [
+     "Name your best clients",
+     "Sector-level only, named references only with standing consent, offer a reference call",
+     "Show the matrix",
+     "Decline rudely"
+    ],
+    "ans": 1,
+    "why": "The instinct to impress with names is the instinct to manage.",
+    "src": "L1"
+   },
+   {
+    "q": "'You didn't tell us what this cheque was for' fails because:",
+    "opts": [
+     "Too short",
+     "Accusation-shaped — the help-shaped version names specifics and shows the payoff of answering",
+     "Wrong channel",
+     "Too polite"
+    ],
+    "ans": 1,
+    "why": "Help-us-place-this, always.",
+    "src": "L2"
+   },
+   {
+    "q": "'As usual we still don't have your statement' costs:",
+    "opts": [
+     "Nothing if true",
+     "The client — it wins an argument; the good version converts frustration into an actionable deadline",
+     "A day",
+     "The bank's goodwill"
+    ],
+    "ans": 1,
+    "why": "Being right and being effective are different sentences.",
+    "src": "L2"
+   },
+   {
+    "q": "A client requests posting that would overstate their VAT. You:",
+    "opts": [
+     "Refuse flatly",
+     "Show the cost to THEM and offer the cleaner path as their win",
+     "Do it with a note",
+     "Escalate to FIRS"
+    ],
+    "ans": 1,
+    "why": "Never make the client feel foolish; make the better path theirs.",
+    "src": "L2"
+   },
+   {
+    "q": "An angry triple-follow-up at 21:40 gets:",
+    "opts": [
+     "An instant factual rebuttal",
+     "A next-morning reply: validation first, itemised status, owned next action with a time",
+     "Silence",
+     "A call at 22:00"
+    ],
+    "ans": 1,
+    "why": "Right on facts can still be wrong in the reply — and midnight answers sell what we don't.",
+    "src": "L2"
+   },
+   {
+    "q": "A material decision settled on a call:",
+    "opts": [
+     "Exists",
+     "Gets a same-day room summary — voice-only decisions don't exist",
+     "Needs recording",
+     "Is the client's problem"
+    ],
+    "ans": 1,
+    "why": "The engagement lives where it's written.",
+    "src": "L2"
+   },
+   {
+    "q": "The late-statement message goes out:",
+    "opts": [
+     "After the deadline passes",
+     "Before it — news first, cause, the client's lever, an honest new promise, true reassurance",
+     "Only if the client asks",
+     "Via the reviewer"
+    ],
+    "ans": 1,
+    "why": "Faster than the board's surfaces, always.",
+    "src": "L3"
+   },
+   {
+    "q": "An error found in a DELIVERED pack is:",
+    "opts": [
+     "Quietly fixed in the next month",
+     "Reviewer same hour → agreed correction → client told with corrected statements attached and the recurrence-check named",
+     "Left — it nets over time",
+     "Blamed on software"
+    ],
+    "ans": 1,
+    "why": "Errors admitted at speed are forgiven; discovered ones never are.",
+    "src": "L3"
+   },
+   {
+    "q": "A statutory-deadline risk with penalty mathematics escalates:",
+    "opts": [
+     "To the client first",
+     "Inside first — reviewer + books manager — because file-on-best-evidence vs file-late is a management decision",
+     "To FIRS",
+     "Nowhere; file anything"
+    ],
+    "ans": 1,
+    "why": "The client message carries the firm's decision, not improvisation.",
+    "src": "L3"
+   },
+   {
+    "q": "The worse outcome is:",
+    "opts": [
+     "Two days late, announced day one",
+     "One day late, silent",
+     "Both equal",
+     "Depends on the client"
+    ],
+    "ans": 1,
+    "why": "Lateness costs a day; silence costs the belief that you'd tell them.",
+    "src": "L3"
+   },
+   {
+    "q": "Submitting to review, your two doubts are:",
+    "opts": [
+     "Buried — reviewers should find things",
+     "Flagged in the notes — surfaced doubts build trust; an unflagged known-issue destroys it permanently",
+     "Fixed by guessing",
+     "Saved for the call"
+    ],
+    "ans": 1,
+    "why": "Review-ready includes your honesty about the edges.",
+    "src": "L4"
+   },
+   {
+    "q": "Good findings look like:",
+    "opts": [
+     "'Redo the rent figures'",
+     "'Rent release doubled — March's reversal missing; fix and re-lay' — reasons, locations, downstream effects traced",
+     "'Be careful'",
+     "'Fine.'"
+    ],
+    "ans": 1,
+    "why": "Findings teach; verdicts don't.",
+    "src": "L4"
+   },
+   {
+    "q": "You disagree with a finding. You:",
+    "opts": [
+     "Accept silently",
+     "Argue the ACCOUNTING with evidence, accept the outcome — never relitigate being checked",
+     "Escalate immediately",
+     "Deliver anyway"
+    ],
+    "ans": 1,
+    "why": "The gate is structural; the accounting is debatable.",
+    "src": "L4"
+   },
+   {
+    "q": "The reviewer's Delivered click means:",
+    "opts": [
+     "The checklist looked full",
+     "'I believe these statements' — reviewed in substance: recs, controls, flux against client knowledge",
+     "The deadline arrived",
+     "The preparer is responsible"
+    ],
+    "ans": 1,
+    "why": "A signature, not a formality.",
+    "src": "L4"
+   },
+   {
+    "q": "A third consecutive month of the same preparer hygiene issue gets:",
+    "opts": [
+     "A third identical finding only",
+     "The finding PLUS a direct kind conversation — findings fix statements; conversations fix patterns",
+     "A KPI screenshot",
+     "Silence"
+    ],
+    "ans": 1,
+    "why": "And the books manager hears it before the KPIs say it anyway.",
+    "src": "L4"
+   },
+   {
+    "q": "On-time and cycle degrade exactly when your portfolio grew 3→5. The read is:",
+    "opts": [
+     "Getting worse at the job",
+     "A load conversation, armed with the numbers the board wrote for you",
+     "Hide it",
+     "Blame clients"
+    ],
+    "ans": 1,
+    "why": "Cross-reference capacity before concluding about skill.",
+    "src": "L5"
+   },
+   {
+    "q": "Gaming the board (optimistic attestations, unverified ticks) is:",
+    "opts": [
+     "Smart under pressure",
+     "A short strategy against long-memory cross-checks — and it poisons the board for everyone",
+     "Normal",
+     "Undetectable"
+    ],
+    "ans": 1,
+    "why": "Sessions vs claims, batch vs schedule, one day the ledger itself.",
+    "src": "L5"
+   },
+   {
+    "q": "An amber month is:",
+    "opts": [
+     "A verdict",
+     "A description of service received — met with curiosity and a changed rhythm",
+     "Grounds for despair",
+     "The client's fault"
+    ],
+    "ans": 1,
+    "why": "Numbers describe; they don't sentence.",
+    "src": "L5"
+   },
+   {
+    "q": "The fee-review flag firing means:",
+    "opts": [
+     "The bookkeeper failed",
+     "The engagement outgrew its fee — the pricing system working; honest hours made the case",
+     "The client leaves",
+     "Hours were over-logged"
+    ],
+    "ans": 1,
+    "why": "Repricing, not blame.",
+    "src": "L5"
+   },
+   {
+    "q": "Logging fewer hours to dodge the flag:",
+    "opts": [
+     "Looks efficient",
+     "Hides unit revenue, corrupts capacity (you get MORE work), and falsifies a record in an attestation system",
+     "Is harmless",
+     "Helps the client"
+    ],
+    "ans": 1,
+    "why": "Three wrongs in one keystroke.",
+    "src": "L5"
+   },
+   {
+    "q": "The track's closing loop is:",
+    "opts": [
+     "Work faster",
+     "Tag sessions, attest truly, raise queries same-day, tick what you verified — the KPIs take care of themselves",
+     "Watch the dashboard",
+     "Please the reviewer"
+    ],
+    "ans": 1,
+    "why": "Do the disciplines; the numbers follow. That is the design.",
+    "src": "L5"
+   }
+  ]
+ }
+}
