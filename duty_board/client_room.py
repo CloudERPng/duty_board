@@ -3707,6 +3707,27 @@ def client_ack_deliverable(name):
 	return f(name)
 
 
+@frappe.whitelist()
+def client_get_followups():
+	from duty_board.accounting import client_get_followups as f
+
+	return f()
+
+
+@frappe.whitelist()
+def client_answer_query(name, answer):
+	from duty_board.accounting import client_answer_query as f
+
+	return f(name, answer)
+
+
+@frappe.whitelist()
+def client_fulfill_request(name, attachment_url=None, attachment_name=None):
+	from duty_board.accounting import client_fulfill_request as f
+
+	return f(name, attachment_url, attachment_name)
+
+
 # ---------------- rca: the post-incident report ----------------
 
 

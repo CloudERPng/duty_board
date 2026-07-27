@@ -219,7 +219,8 @@ def _open_period(period):
 def books_open_period(period):
 	_staff_only()
 	n = _open_period(period)
-	return {"spawned": n, "period": period}
+	r = _spawn_period_requests(period)
+	return {"spawned": n, "requests": r, "period": period}
 
 
 def scheduled_open_period():
@@ -230,6 +231,7 @@ def scheduled_open_period():
 	except Exception:
 		frappe.log_error(frappe.get_traceback(), "accounting sync")
 	_open_period(today()[:7])
+	_spawn_period_requests(today()[:7])
 
 
 @frappe.whitelist()
@@ -698,6 +700,10 @@ def books_evening_digest():
 	if partial:
 		parts.append(f"🟡 Partial ({len(partial)}): " + "; ".join(partial))
 	parts.append(f"🔴 Untouched today ({len(untouched)}): " + ("; ".join(untouched) or "none"))
+	open_q = frappe.db.count("Duty Books Query", {"status": "Open", "room": ["in", [r["room"] for r in rooms]]})
+	open_r = frappe.db.count("Duty Books Request", {"status": "Requested", "room": ["in", [r["room"] for r in rooms]]})
+	if open_q or open_r:
+		parts.append(f"📨 Awaiting clients: {open_q} question(s), {open_r} document(s)")
 	body = "\n".join(parts)
 	recipients = _digest_recipients(
 		[frappe._dict(bookkeeper=r["bookkeeper"]) for r in rooms]
@@ -714,3 +720,280 @@ def books_evening_digest():
 		frappe.sendmail(recipients=sorted(recipients), subject=title, message=body.replace("\n", "<br>"), delayed=False)
 	except Exception:
 		frappe.log_error(frappe.get_traceback(), "books digest mail")
+
+
+# ---------------- client follow-ups: queries + document requests ----------------
+
+CHASE_EVERY_WD = 2
+
+
+def _spawn_period_requests(period):
+	"""Standard monthly document requests for every accounting room."""
+	try:
+		raw = (frappe.get_cached_doc("Duty Settings").get("books_monthly_requests") or "").strip()
+	except Exception:
+		raw = ""
+	if not raw:
+		return 0
+	year, month = int(period[:4]), int(period[5:7])
+	items = []
+	for line in raw.splitlines():
+		if "|" in line:
+			title, wd = line.rsplit("|", 1)
+			try:
+				wd = max(1, int(wd.strip()))
+			except ValueError:
+				wd = 2
+		else:
+			title, wd = line, 2
+		title = title.strip()
+		if title:
+			items.append((title, nth_working_day(year, month, wd)))
+	if not items:
+		return 0
+	rooms, _c = _accounting_rooms()
+	n = 0
+	for room in rooms:
+		for title, due in items:
+			if frappe.db.exists(
+				"Duty Books Request", {"room": room.name, "period": period, "title": title}
+			):
+				continue
+			frappe.get_doc(
+				{
+					"doctype": "Duty Books Request",
+					"room": room.name,
+					"customer": room.customer,
+					"period": period,
+					"title": title,
+					"due_date": due,
+					"status": "Requested",
+				}
+			).insert(ignore_permissions=True)
+			n += 1
+	frappe.db.commit()
+	return n
+
+
+@frappe.whitelist()
+def books_followups(room=None):
+	_staff_only()
+	rooms, _c = _accounting_rooms()
+	names = [r.name for r in rooms if not room or r.name == room]
+	queries = frappe.get_all(
+		"Duty Books Query",
+		filters={"room": ["in", names] if names else ["is", "set"], "status": ["!=", "Resolved"]},
+		fields=["name", "room", "customer", "ref_date", "amount", "reference", "question", "status", "answer", "answered_by", "answered_on", "creation"],
+		order_by="creation asc",
+	)
+	requests = frappe.get_all(
+		"Duty Books Request",
+		filters={"room": ["in", names] if names else ["is", "set"], "status": "Requested"},
+		fields=["name", "room", "customer", "period", "title", "detail", "due_date", "creation"],
+		order_by="due_date asc",
+	)
+	tdy = getdate(today())
+	for q in queries:
+		q.ref_date = str(q.ref_date) if q.ref_date else None
+		q.answered_on = str(q.answered_on)[:16] if q.answered_on else None
+		q.age_wd = _working_days_between(getdate(q.creation), tdy)
+	for r in requests:
+		r.due_date = str(r.due_date) if r.due_date else None
+		r.overdue = bool(r.due_date and getdate(r.due_date) < tdy)
+	return {"rooms": [{"room": r.name, "customer": r.customer} for r in sorted(rooms, key=lambda x: x.customer or "")], "queries": queries, "requests": requests}
+
+
+@frappe.whitelist()
+def books_add_query(room, question, ref_date=None, amount=None, reference=None):
+	_staff_only()
+	customer = frappe.db.get_value("Client Room", room, "customer")
+	frappe.get_doc(
+		{
+			"doctype": "Duty Books Query",
+			"room": room,
+			"customer": customer,
+			"ref_date": ref_date or None,
+			"amount": flt(amount) if amount else None,
+			"reference": (reference or "").strip()[:140] or None,
+			"question": (question or "").strip()[:500],
+			"status": "Open",
+			"asked_by": frappe.session.user,
+		}
+	).insert(ignore_permissions=True)
+	frappe.db.commit()
+	roomdoc = frappe.get_doc("Client Room", room)
+	_post(roomdoc, _("❓ A question from your accounting team is waiting on the portal home."))
+	return books_followups(room)
+
+
+@frappe.whitelist()
+def books_add_request(room, title, detail=None, due_date=None):
+	_staff_only()
+	customer = frappe.db.get_value("Client Room", room, "customer")
+	frappe.get_doc(
+		{
+			"doctype": "Duty Books Request",
+			"room": room,
+			"customer": customer,
+			"period": today()[:7],
+			"title": (title or "").strip()[:140],
+			"detail": (detail or "").strip()[:300] or None,
+			"due_date": due_date or None,
+			"status": "Requested",
+		}
+	).insert(ignore_permissions=True)
+	frappe.db.commit()
+	roomdoc = frappe.get_doc("Client Room", room)
+	_post(roomdoc, _("📎 Your accounting team has requested a document — see the portal home."))
+	return books_followups(room)
+
+
+@frappe.whitelist()
+def books_resolve_query(name):
+	_staff_only()
+	doc = frappe.get_doc("Duty Books Query", name)
+	doc.db_set({"status": "Resolved"}, update_modified=False)
+	frappe.db.commit()
+	return books_followups(doc.room)
+
+
+@frappe.whitelist()
+def books_waive_request(name):
+	_staff_only()
+	doc = frappe.get_doc("Duty Books Request", name)
+	doc.db_set({"status": "Waived"}, update_modified=False)
+	frappe.db.commit()
+	return books_followups(doc.room)
+
+
+# ---- client side (membrane-wrapped in client_room) ----
+
+
+def _client_followup_rows(room):
+	queries = frappe.get_all(
+		"Duty Books Query",
+		filters={"room": room.name, "status": "Open"},
+		fields=["name", "ref_date", "amount", "reference", "question"],
+		order_by="creation asc",
+	)
+	for q in queries:
+		q.ref_date = str(q.ref_date) if q.ref_date else None
+	requests = frappe.get_all(
+		"Duty Books Request",
+		filters={"room": room.name, "status": "Requested"},
+		fields=["name", "title", "detail", "due_date"],
+		order_by="due_date asc",
+	)
+	for r in requests:
+		r.due_date = str(r.due_date) if r.due_date else None
+	return {"queries": queries, "requests": requests}
+
+
+@frappe.whitelist()
+def client_get_followups():
+	from duty_board.client_room import _client_room
+
+	return _client_followup_rows(_client_room())
+
+
+@frappe.whitelist()
+def client_answer_query(name, answer):
+	from duty_board.client_room import _client_room, _post
+
+	room = _client_room()
+	doc = frappe.db.get_value("Duty Books Query", name, ["room", "status", "question"], as_dict=True)
+	if not doc or doc.room != room.name:
+		frappe.throw(_("Not found."), frappe.PermissionError)
+	if doc.status != "Open":
+		frappe.throw(_("This question is closed."))
+	answer = (answer or "").strip()[:500]
+	if not answer:
+		frappe.throw(_("Please write an answer."))
+	who = frappe.utils.get_fullname(frappe.session.user)
+	frappe.db.set_value(
+		"Duty Books Query",
+		name,
+		{"status": "Answered", "answer": answer, "answered_on": frappe.utils.now_datetime(), "answered_by": who},
+		update_modified=False,
+	)
+	frappe.db.commit()
+	_post(room, _("💬 {0} answered an accounting question: {1}").format(who, answer[:120]))
+	return _client_followup_rows(room)
+
+
+@frappe.whitelist()
+def client_fulfill_request(name, attachment_url=None, attachment_name=None):
+	from duty_board.client_room import _client_room, _post
+
+	room = _client_room()
+	doc = frappe.db.get_value("Duty Books Request", name, ["room", "status", "title"], as_dict=True)
+	if not doc or doc.room != room.name:
+		frappe.throw(_("Not found."), frappe.PermissionError)
+	if doc.status != "Requested":
+		frappe.throw(_("This request is closed."))
+	who = frappe.utils.get_fullname(frappe.session.user)
+	frappe.db.set_value(
+		"Duty Books Request",
+		name,
+		{
+			"status": "Received",
+			"attachment_url": attachment_url or None,
+			"attachment_name": (attachment_name or "").strip()[:140] or None,
+			"fulfilled_on": frappe.utils.now_datetime(),
+			"fulfilled_by": who,
+		},
+		update_modified=False,
+	)
+	frappe.db.commit()
+	_post(room, _("📎 {0} sent: {1}").format(who, doc.title))
+	return _client_followup_rows(room)
+
+
+# ---- the chase ----
+
+
+def books_client_chase():
+	"""Cron (workday mornings): one gentle reminder per room per day while
+	anything is outstanding and stale."""
+	frappe.set_user("Administrator")
+	tdy = getdate(today())
+	if tdy.weekday() not in _workday_set():
+		return
+	rooms, _c = _accounting_rooms()
+	for room in rooms:
+		qs = frappe.get_all(
+			"Duty Books Query",
+			filters={"room": room.name, "status": "Open"},
+			fields=["name", "creation", "last_reminded"],
+		)
+		rs = frappe.get_all(
+			"Duty Books Request",
+			filters={"room": room.name, "status": "Requested"},
+			fields=["name", "due_date", "creation", "last_reminded"],
+		)
+		due_q = [
+			q for q in qs
+			if _working_days_between(getdate(q.last_reminded or q.creation), tdy) >= CHASE_EVERY_WD
+		]
+		due_r = [
+			r for r in rs
+			if (r.due_date and getdate(r.due_date) <= tdy or _working_days_between(getdate(r.creation), tdy) >= CHASE_EVERY_WD)
+			and _working_days_between(getdate(r.last_reminded or r.creation), tdy) >= CHASE_EVERY_WD
+		]
+		if not due_q and not due_r:
+			continue
+		bits = []
+		if due_q:
+			bits.append(_("{0} question(s)").format(len(due_q)))
+		if due_r:
+			bits.append(_("{0} document(s)").format(len(due_r)))
+		try:
+			roomdoc = frappe.get_doc("Client Room", room.name)
+			_post(roomdoc, _("🔔 Gentle reminder: {0} from your accounting team are awaiting your response — see the portal home.").format(" and ".join(bits)))
+			for x in due_q:
+				frappe.db.set_value("Duty Books Query", x.name, "last_reminded", today(), update_modified=False)
+			for x in due_r:
+				frappe.db.set_value("Duty Books Request", x.name, "last_reminded", today(), update_modified=False)
+			frappe.db.commit()
+		except Exception:
+			frappe.log_error(frappe.get_traceback(), "books chase")

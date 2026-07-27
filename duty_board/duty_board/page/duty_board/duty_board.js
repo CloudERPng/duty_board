@@ -2098,6 +2098,104 @@ class DutyBoard {
 		});
 	}
 
+	books_followups_dialog(back_period, room_filter) {
+		frappe.call({
+			method: "duty_board.accounting.books_followups",
+			args: { room: room_filter || null },
+			callback: (r) => {
+				const m = r.message;
+				if (!m) return;
+				const d = new frappe.ui.Dialog({ title: `📨 ${__("Client follow-ups")}`, size: "large" });
+				const roomName = (rm) => { const x = m.rooms.find((y) => y.room === rm); return x ? x.customer : rm; };
+				$(d.body).html(`
+					<div style="display:flex;gap:8px;align-items:center;margin-bottom:10px;flex-wrap:wrap">
+						<select class="form-control input-sm" data-roomsel style="width:220px">
+							<option value="">${__("All clients")}</option>
+							${m.rooms.map((x) => `<option value="${x.room}" ${room_filter === x.room ? "selected" : ""}>${frappe.utils.escape_html(x.customer)}</option>`).join("")}
+						</select>
+						<span style="margin-left:auto;display:flex;gap:8px">
+							<button class="btn btn-xs btn-primary" data-addq>❓ ${__("New question")}</button>
+							<button class="btn btn-xs btn-default" data-addr>📎 ${__("New request")}</button>
+						</span>
+					</div>
+					<div style="font-size:12px;font-weight:800;margin-bottom:6px">❓ ${__("Questions")} (${m.queries.length})</div>
+					${m.queries
+						.map(
+							(q) => `
+					<div style="border:1px solid var(--border-color,#E7ECEA);border-radius:10px;padding:9px 12px;margin-bottom:7px;${q.status === "Answered" ? "background:#F4FBF8" : ""}">
+						<div style="display:flex;gap:8px;align-items:baseline;flex-wrap:wrap">
+							<b style="font-size:13px">${frappe.utils.escape_html(roomName(q.room))}</b>
+							<span class="text-muted" style="font-size:11px">${[q.ref_date, q.amount ? "₦" + Number(q.amount).toLocaleString() : null, q.reference].filter(Boolean).map(frappe.utils.escape_html).join(" · ")}</span>
+							<span style="margin-left:auto;font-size:11px;font-weight:700;color:${q.status === "Answered" ? "#15803d" : "#b45309"}">${q.status === "Answered" ? "💬 " + __("answered") : __("open") + " · " + q.age_wd + "wd"}</span>
+						</div>
+						<div style="font-size:13px;margin-top:3px">${frappe.utils.escape_html(q.question)}</div>
+						${q.answer ? `<div style="font-size:13px;margin-top:5px;padding:7px 10px;background:#fff;border:1px solid #CBE7DE;border-radius:8px">💬 <b>${frappe.utils.escape_html(q.answered_by || "")}</b>: ${frappe.utils.escape_html(q.answer)} <button class="btn btn-xs btn-primary" data-resolve="${q.name}" style="margin-left:8px">✓ ${__("Resolve")}</button></div>` : ""}
+					</div>`
+						)
+						.join("") || `<div class="text-muted" style="margin-bottom:8px">${__("No open questions.")}</div>`}
+					<div style="font-size:12px;font-weight:800;margin:10px 0 6px">📎 ${__("Document requests")} (${m.requests.length})</div>
+					${m.requests
+						.map(
+							(x) => `
+					<div style="border:1px solid var(--border-color,#E7ECEA);border-radius:10px;padding:8px 12px;margin-bottom:6px;display:flex;gap:8px;align-items:center;${x.overdue ? "background:#FDECEA" : ""}">
+						<b style="font-size:13px">${frappe.utils.escape_html(roomName(x.room))}</b>
+						<span style="font-size:13px">${frappe.utils.escape_html(x.title)}</span>
+						<span class="text-muted" style="font-size:11px;margin-left:auto">${x.due_date ? __("due") + " " + x.due_date + (x.overdue ? " ⚠" : "") : ""}</span>
+						<button class="btn btn-xs btn-default" data-waive="${x.name}">${__("Waive")}</button>
+					</div>`
+						)
+						.join("") || `<div class="text-muted">${__("Nothing outstanding.")}</div>`}
+				`);
+				const reload = (rm) => { d.hide(); this.books_followups_dialog(back_period, rm !== undefined ? rm : room_filter); };
+				$(d.body).find("[data-roomsel]").on("change", (e) => reload($(e.currentTarget).val() || null));
+				$(d.body).find("[data-resolve]").on("click", (e) =>
+					frappe.call({ method: "duty_board.accounting.books_resolve_query", args: { name: $(e.currentTarget).data("resolve") }, callback: () => reload() })
+				);
+				$(d.body).find("[data-waive]").on("click", (e) =>
+					frappe.call({ method: "duty_board.accounting.books_waive_request", args: { name: $(e.currentTarget).data("waive") }, callback: () => reload() })
+				);
+				$(d.body).find("[data-addq]").on("click", () =>
+					frappe.prompt(
+						[
+							{ fieldname: "room", fieldtype: "Select", label: __("Client"), options: m.rooms.map((x) => ({ label: x.customer, value: x.room })), reqd: 1, default: room_filter || (m.rooms[0] && m.rooms[0].room) },
+							{ fieldname: "question", fieldtype: "Small Text", label: __("Question"), reqd: 1 },
+							{ fieldname: "ref_date", fieldtype: "Date", label: __("Transaction date") },
+							{ fieldname: "amount", fieldtype: "Currency", label: __("Amount") },
+							{ fieldname: "reference", fieldtype: "Data", label: __("Reference (narration, counterparty…)") },
+						],
+						(v) =>
+							frappe.call({
+								method: "duty_board.accounting.books_add_query",
+								args: { room: v.room, question: v.question, ref_date: v.ref_date || null, amount: v.amount || null, reference: v.reference || null },
+								callback: () => reload(),
+							}),
+						__("Ask the client"),
+						__("Send")
+					)
+				);
+				$(d.body).find("[data-addr]").on("click", () =>
+					frappe.prompt(
+						[
+							{ fieldname: "room", fieldtype: "Select", label: __("Client"), options: m.rooms.map((x) => ({ label: x.customer, value: x.room })), reqd: 1, default: room_filter || (m.rooms[0] && m.rooms[0].room) },
+							{ fieldname: "title", fieldtype: "Data", label: __("Document"), reqd: 1 },
+							{ fieldname: "detail", fieldtype: "Small Text", label: __("Detail") },
+							{ fieldname: "due_date", fieldtype: "Date", label: __("Due") },
+						],
+						(v) =>
+							frappe.call({
+								method: "duty_board.accounting.books_add_request",
+								args: { room: v.room, title: v.title, detail: v.detail || null, due_date: v.due_date || null },
+								callback: () => reload(),
+							}),
+						__("Request a document"),
+						__("Send")
+					)
+				);
+				d.show();
+			},
+		});
+	}
+
 	books_round_dialog(back_period) {
 		frappe.call({
 			method: "duty_board.accounting.books_daily_round",
@@ -2248,6 +2346,7 @@ class DutyBoard {
 						<button class="btn btn-xs btn-default" data-next>›</button>
 						<span style="margin-left:auto;display:flex;gap:8px">
 							<button class="btn btn-xs btn-primary" data-round>📅 ${__("Today's round")}</button>
+							<button class="btn btn-xs btn-default" data-followups>📨 ${__("Follow-ups")}</button>
 							<button class="btn btn-xs btn-default" data-register>🗓 ${__("Register")}</button>
 							${m.fees_visible ? `<button class="btn btn-xs btn-default" data-profit>₦ ${__("Profitability")}</button>` : ""}
 							<button class="btn btn-xs btn-default" data-sync>⟳ ${__("Sync clients")}</button>
@@ -2286,6 +2385,7 @@ class DutyBoard {
 				$(d.body).find("[data-prev]").on("click", () => { d.hide(); this.books_dialog(prevP()); });
 				$(d.body).find("[data-next]").on("click", () => { d.hide(); this.books_dialog(nextP()); });
 				$(d.body).find("[data-round]").on("click", () => { d.hide(); this.books_round_dialog(m.period); });
+				$(d.body).find("[data-followups]").on("click", () => { d.hide(); this.books_followups_dialog(m.period); });
 				$(d.body).find("[data-register]").on("click", () => { d.hide(); this.books_register_dialog(m.period); });
 				$(d.body).find("[data-profit]").on("click", () => {
 					d.hide();

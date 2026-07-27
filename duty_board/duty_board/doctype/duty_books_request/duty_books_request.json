@@ -1,0 +1,110 @@
+{
+ "actions": [],
+ "autoname": "hash",
+ "creation": "2026-07-26 20:00:00.000000",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "room",
+  "customer",
+  "period",
+  "title",
+  "detail",
+  "due_date",
+  "status",
+  "attachment_url",
+  "attachment_name",
+  "fulfilled_on",
+  "fulfilled_by",
+  "last_reminded"
+ ],
+ "fields": [
+  {
+   "fieldname": "room",
+   "fieldtype": "Link",
+   "label": "Room",
+   "options": "Client Room",
+   "reqd": 1,
+   "search_index": 1
+  },
+  {
+   "fieldname": "customer",
+   "fieldtype": "Data",
+   "label": "Customer"
+  },
+  {
+   "fieldname": "period",
+   "fieldtype": "Data",
+   "label": "Period (YYYY-MM)",
+   "search_index": 1
+  },
+  {
+   "fieldname": "title",
+   "fieldtype": "Data",
+   "label": "Title",
+   "reqd": 1
+  },
+  {
+   "fieldname": "detail",
+   "fieldtype": "Small Text",
+   "label": "Detail"
+  },
+  {
+   "fieldname": "due_date",
+   "fieldtype": "Date",
+   "label": "Due Date"
+  },
+  {
+   "default": "Requested",
+   "fieldname": "status",
+   "fieldtype": "Select",
+   "label": "Status",
+   "options": "Requested\nReceived\nWaived"
+  },
+  {
+   "fieldname": "attachment_url",
+   "fieldtype": "Data",
+   "label": "Attachment URL"
+  },
+  {
+   "fieldname": "attachment_name",
+   "fieldtype": "Data",
+   "label": "Attachment Name"
+  },
+  {
+   "fieldname": "fulfilled_on",
+   "fieldtype": "Datetime",
+   "label": "Fulfilled On"
+  },
+  {
+   "fieldname": "fulfilled_by",
+   "fieldtype": "Data",
+   "label": "Fulfilled By"
+  },
+  {
+   "fieldname": "last_reminded",
+   "fieldtype": "Date",
+   "label": "Last Reminded"
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "links": [],
+ "modified": "2026-07-26 20:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "Duty Board",
+ "name": "Duty Books Request",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "write": 1
+  }
+ ],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}

@@ -523,7 +523,7 @@
 </div>
 <script>
 const esc = (s) => (s || "").replace(/[&<>"']/g, (c) => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
-const XLV = "2.81.0";
+const XLV = "2.82.0";
 document.getElementById("xlv").textContent = "v" + XLV;
 console.log("Xlevel portal", XLV);
 let ROOM = localStorage.getItem("xl_room") || null;
@@ -1079,6 +1079,58 @@ function loadBooks() {
 	api("client_get_deliverables")
 		.then(renderBooks)
 		.catch(() => {});
+	api("client_get_followups")
+		.then(renderFollowups)
+		.catch(() => {});
+}
+function renderFollowups(f) {
+	f = f || { queries: [], requests: [] };
+	window._fu = f;
+	const card = document.querySelector(".card.books");
+	if (!card) return;
+	let host = document.getElementById("followups");
+	if (!host) {
+		host = document.createElement("div");
+		host.id = "followups";
+		document.getElementById("books").parentNode.insertBefore(host, document.getElementById("books"));
+	}
+	if (!f.queries.length && !f.requests.length) { host.innerHTML = ""; return; }
+	card.style.display = "";
+	host.innerHTML = `
+		${f.queries.length ? `<div style="font-size:12px;font-weight:800;margin:2px 0 6px">❓ Questions from your accountant</div>` +
+			f.queries.map((q) => `
+			<div style="border:1px solid #F3C96B;background:#FFFBEF;border-radius:10px;padding:9px 11px;margin-bottom:7px">
+				<div style="font-size:12px" class="muted">${[q.ref_date, q.amount ? "₦" + Number(q.amount).toLocaleString() : null, q.reference].filter(Boolean).map(esc).join(" · ")}</div>
+				<div style="font-size:13.5px;margin:3px 0">${esc(q.question)}</div>
+				<div style="display:flex;gap:7px;margin-top:5px">
+					<input type="text" id="qa_${esc(q.name)}" placeholder="Your answer…" style="flex:1;font-size:13px;padding:7px 10px;border:1px solid #E2E8F0;border-radius:8px">
+					<button style="font-size:12px;padding:6px 12px" onclick="answerQuery('${esc(q.name)}')">Send</button>
+				</div>
+			</div>`).join("") : ""}
+		${f.requests.length ? `<div style="font-size:12px;font-weight:800;margin:8px 0 6px">📎 Documents we need from you</div>` +
+			f.requests.map((r) => `
+			<div style="border:1px solid #CBE7DE;background:#F4FBF8;border-radius:10px;padding:9px 11px;margin-bottom:7px;display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+				<div style="flex:1;min-width:150px"><b style="font-size:13px">${esc(r.title)}</b>
+					${r.detail ? `<div class="muted" style="font-size:12px">${esc(r.detail)}</div>` : ""}
+					${r.due_date ? `<div class="muted" style="font-size:11px">due ${esc(r.due_date)}</div>` : ""}</div>
+				<input type="file" id="rf_${esc(r.name)}" style="display:none" onchange="fulfillRequest('${esc(r.name)}')">
+				<button style="font-size:12px;padding:6px 12px" onclick="document.getElementById('rf_${esc(r.name)}').click()">📤 Upload</button>
+			</div>`).join("") : ""}
+		<div style="height:6px"></div>`;
+}
+function answerQuery(name) {
+	const v = document.getElementById("qa_" + name).value.trim();
+	if (!v) return;
+	api("client_answer_query", { name: name, answer: v }).then(renderFollowups).catch(fail);
+}
+function fulfillRequest(name) {
+	const inp = document.getElementById("rf_" + name);
+	const f = inp.files && inp.files[0];
+	if (!f) return;
+	uploadOne(f)
+		.then((up) => api("client_fulfill_request", { name: name, attachment_url: up ? up.url : null, attachment_name: f.name }))
+		.then(renderFollowups)
+		.catch(fail);
 }
 function renderBooks(rows) {
 	rows = rows || [];
