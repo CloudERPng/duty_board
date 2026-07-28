@@ -5,8 +5,11 @@ room is already tagged, so the course appears in their 🎯 catalogue on
 seeding, dormant until pursued. Light quiz (15 bank / 10 served / pass 70);
 no certificate track by design — module completion is the credential.
 
+The client catalogue is track-based, so the module ships inside a
+single-module track (XLV-READER) — completing it issues a small certificate.
+
 Run:  bench --site xlevel.clouderp.one execute duty_board.academy_seed_client_reports.seed_client_reports_course
-Idempotent.
+Idempotent; safe to rerun after v2.92.0 (module is kept, track is added).
 """
 
 import json
@@ -26,8 +29,10 @@ def seed_client_reports_course():
 	if not frappe.db.exists("Duty Product", "Accounting Services"):
 		print("Duty Product 'Accounting Services' missing — run accounting.sync_accounting_clients first.")
 		return
-	if frappe.db.get_value("Duty Training Module", {"title": m["title"]}, "name"):
+	mod_name = frappe.db.get_value("Duty Training Module", {"title": m["title"]}, "name")
+	if mod_name:
 		print(f"module exists: {m['title']}")
+		_ensure_track(mod_name)
 		return
 	mod = frappe.get_doc(
 		{
@@ -68,5 +73,27 @@ def seed_client_reports_course():
 				"active": 1,
 			}
 		).insert(ignore_permissions=True)
+	_ensure_track(mod.name)
 	frappe.db.commit()
 	print(f"seeded: {m['title']} ({len(m['lessons'])} lessons, {len(m['questions'])} questions) — audience Client, product Accounting Services")
+
+
+def _ensure_track(module_name):
+	title = "Understanding Your Monthly Reports"
+	if frappe.db.exists("Duty Certification Track", {"title": title}):
+		print("track exists: " + title)
+		return
+	frappe.get_doc(
+		{
+			"doctype": "Duty Certification Track",
+			"title": title,
+			"product": "Accounting Services",
+			"audience": "Client",
+			"serial_prefix": "XLV-READER",
+			"description": "For business owners: read the statements your accounting team sends every month — the reports, the five checks worth doing, and how to get the most from the service.",
+			"active": 1,
+			"modules": [{"module": module_name}],
+		}
+	).insert(ignore_permissions=True)
+	frappe.db.commit()
+	print("created track: " + title + " (XLV-READER, 1 module)")
