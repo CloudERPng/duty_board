@@ -2665,6 +2665,80 @@ def room_training(name):
 
 
 @frappe.whitelist()
+def room_tracks_for_assign(name):
+	"""Client-audience tracks matching this room's products, for the assign dialog."""
+	_staff_only()
+	room = frappe.get_doc("Client Room", name)
+	prods = _room_products(room)
+	out = []
+	for t in frappe.get_all(
+		"Duty Certification Track",
+		filters={"active": 1, "audience": "Client"},
+		fields=["name", "title", "product"],
+		order_by="product asc, title asc",
+	):
+		if (t.product or "").strip().lower() not in prods:
+			continue
+		n = frappe.db.count("Duty Certification Track Module", {"parent": t.name})
+		if n:
+			out.append({"name": t.name, "title": t.title, "product": t.product, "module_count": n})
+	return out
+
+
+@frappe.whitelist()
+def training_assign_track_room(name, track, user):
+	"""Assign every module of a client track to a room member at once.
+	Existing assignments kept, not duplicated; one room narration, one notification."""
+	_staff_only()
+	room = frappe.get_doc("Client Room", name)
+	if not frappe.db.exists("Client Room Member", {"room": room.name, "user": user, "active": 1}):
+		frappe.throw(_("That person is not a member of this room."))
+	t = frappe.db.get_value(
+		"Duty Certification Track", track, ["title", "product", "audience", "active"], as_dict=True
+	)
+	if not t or not cint(t.active) or t.audience != "Client":
+		frappe.throw(_("Not found."))
+	if (t.product or "").strip().lower() not in _room_products(room):
+		frappe.throw(_("This track is not part of this room's products."))
+	mods = frappe.get_all(
+		"Duty Certification Track Module", filters={"parent": track}, pluck="module", order_by="idx asc"
+	)
+	created, existing = 0, 0
+	for m in mods:
+		if frappe.db.exists("Duty Training Record", {"room": room.name, "module": m, "trainee": user}):
+			existing += 1
+			continue
+		frappe.get_doc(
+			{
+				"doctype": "Duty Training Record",
+				"room": room.name,
+				"module": m,
+				"trainee": user,
+				"trainee_name": frappe.utils.get_fullname(user),
+				"status": "Assigned",
+			}
+		).insert(ignore_permissions=True)
+		created += 1
+	frappe.db.commit()
+	if created:
+		_post(
+			room,
+			_("🎓 Track assigned: “{0}” for {1} ({2} course(s))").format(
+				t.title, frappe.utils.get_fullname(user), created
+			),
+		)
+		try:
+			from duty_board.api import _notify_user
+
+			_notify_user(
+				user, _("🎓 New training · Xlevel"), _("{0} — {1} course(s) assigned").format(t.title, created)
+			)
+		except Exception:
+			pass
+	return {"created": created, "existing": existing, "rows": _training_rows(room)}
+
+
+@frappe.whitelist()
 def training_assign(name, module, user):
 	_staff_only()
 	room = frappe.get_doc("Client Room", name)
@@ -3048,15 +3122,27 @@ def staff_tracks():
 	out = []
 	for t in frappe.get_all(
 		"Duty Certification Track",
-		filters={"active": 1, "audience": "Consultant"},
-		fields=["name", "title", "product"],
+		filters={"active": 1},
+		fields=["name", "title", "product", "audience"],
 		order_by="product asc, title asc",
 	):
 		mods = frappe.get_all(
 			"Duty Certification Track Module", filters={"parent": t.name}, pluck="module", order_by="idx asc"
 		)
-		if mods:
-			out.append({"name": t.name, "title": t.title, "product": t.product, "module_count": len(mods)})
+		assignable = [
+			m for m in mods
+			if frappe.db.get_value("Duty Training Module", m, "audience") in ("Consultant", "Both")
+		]
+		if assignable:
+			out.append(
+				{
+					"name": t.name,
+					"title": t.title,
+					"product": t.product,
+					"audience": t.audience,
+					"module_count": len(assignable),
+				}
+			)
 	return out
 
 
@@ -3070,7 +3156,7 @@ def training_assign_track(track, user):
 	t = frappe.db.get_value(
 		"Duty Certification Track", track, ["title", "audience", "active"], as_dict=True
 	)
-	if not t or not cint(t.active) or t.audience != "Consultant":
+	if not t or not cint(t.active):
 		frappe.throw(_("Not found."))
 	mods = frappe.get_all(
 		"Duty Certification Track Module", filters={"parent": track}, pluck="module", order_by="idx asc"

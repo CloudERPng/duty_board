@@ -1930,7 +1930,7 @@ class DutyBoard {
 										options: [{ value: "", label: __("— single course instead —") }].concat(
 											tracks.map((t) => ({
 												value: t.name,
-												label: `🎓 ${t.title} (${t.module_count} ${__("courses")})${t.product ? " · " + t.product : ""}`,
+												label: `🎓 ${t.title} (${t.module_count} ${__("courses")})${t.product ? " · " + t.product : ""}${t.audience === "Client" ? " · " + __("client track — product knowledge") : ""}`,
 											}))
 										),
 									},
@@ -4061,7 +4061,48 @@ class DutyBoard {
 					<button type="button" class="btn btn-sm btn-primary duty-acad-assign">＋</button>
 					<a class="duty-acad-newmod" style="cursor:pointer;font-size:var(--text-xs);align-self:center">＋ ${__("new module")}</a>
 				</div>
+				<div class="duty-cr-addmem duty-acad-trackrow" style="flex-wrap:wrap;margin-top:6px;display:none">
+					<select class="form-control input-sm duty-acad-track" style="flex:1"></select>
+					<button type="button" class="btn btn-sm btn-primary duty-acad-assigntrack">🎓 ${__("Assign whole track")}</button>
+				</div>
 			`);
+			frappe.call({
+				method: "duty_board.client_room.room_tracks_for_assign",
+				args: { name: x.name },
+				callback: (tr) => {
+					const tracks = tr.message || [];
+					if (!tracks.length) return;
+					const $row = $(d.body).find(".duty-acad-trackrow");
+					$row.find(".duty-acad-track").html(
+						tracks
+							.map(
+								(t) =>
+									`<option value="${t.name}">🎓 ${frappe.utils.escape_html((t.product ? t.product + " · " : "") + t.title)} (${t.module_count} ${__("courses")})</option>`
+							)
+							.join("")
+					);
+					$row.show();
+					$row.find(".duty-acad-assigntrack").on("click", () =>
+						frappe.call({
+							method: "duty_board.client_room.training_assign_track_room",
+							args: {
+								name: x.name,
+								track: $row.find(".duty-acad-track").val(),
+								user: $(d.body).find(".duty-acad-user").val(),
+							},
+							callback: (rr) => {
+								const m = rr.message || {};
+								frappe.show_alert({
+									message: __("🎓 Track assigned: {0} new, {1} already had.", [m.created || 0, m.existing || 0]),
+									indicator: "green",
+								});
+								d.hide();
+								this.academy_dialog(x);
+							},
+						})
+					);
+				},
+			});
 			$(d.body).find(".duty-acad-assign").on("click", () =>
 				frappe.call({
 					method: "duty_board.client_room.training_assign",
