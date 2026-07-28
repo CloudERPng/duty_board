@@ -128,53 +128,9 @@ def seed_closer_tracks():
 
 
 def seed_consultant_track():
-	"""ZhiftCRM Certified Consultant (audience Consultant): the five existing
-	modules; implementation/config modules join via rerun or desk when authored.
-	Run:  bench --site xlevel.clouderp.one execute duty_board.academy_seed_closer.seed_consultant_track
-	Idempotent; rerun syncs the track's module rows to the canonical list."""
-	foundations = frappe.db.get_value("Duty Training Module", {"title": FOUNDATIONS_TITLE}, "name")
-	if not foundations:
-		print("Foundations module not found — run seed_crm_foundations first.")
-		return
-	data = _data()
-	module_names = {"__foundations__": foundations}
-	missing = []
-	for key in CONSULTANT_TRACK["modules"]:
-		if key == "__foundations__":
-			continue
-		n = frappe.db.get_value("Duty Training Module", {"title": data[key]["title"]}, "name")
-		if n:
-			module_names[key] = n
-		else:
-			missing.append(key)
-	if missing:
-		print(f"missing modules {missing} — run seed_closer_tracks first.")
-		return
-	desired = [module_names[k] for k in CONSULTANT_TRACK["modules"]]
-	track_name = frappe.db.get_value("Duty Certification Track", {"title": CONSULTANT_TRACK["title"]}, "name")
-	if track_name:
-		tr = frappe.get_doc("Duty Certification Track", track_name)
-		if [r.module for r in tr.modules] != desired:
-			tr.modules = []
-			for mn in desired:
-				tr.append("modules", {"module": mn})
-			tr.save(ignore_permissions=True)
-			print(f"track updated: {CONSULTANT_TRACK['title']} → {len(desired)} modules in order")
-		else:
-			print(f"track exists: {CONSULTANT_TRACK['title']} (module rows already in order)")
-	else:
-		frappe.get_doc(
-			{
-				"doctype": "Duty Certification Track",
-				"title": CONSULTANT_TRACK["title"],
-				"product": "ZhiftCRM",
-				"audience": "Consultant",
-				"serial_prefix": CONSULTANT_TRACK["serial_prefix"],
-				"description": CONSULTANT_TRACK["description"],
-				"active": 1,
-				"modules": [{"module": mn} for mn in desired],
-			}
-		).insert(ignore_permissions=True)
-		print(f"created track: {CONSULTANT_TRACK['title']} ({CONSULTANT_TRACK['serial_prefix']}, {len(desired)} modules — implementation modules join when authored)")
-	frappe.db.commit()
-	print("Certified Consultant track ready.")
+	"""Deprecated interim seed (v2.98.0) — the track is now composed of the five
+	manual-distilled consultant modules. Delegates to the authoritative seed."""
+	from duty_board.academy_seed_consultant import seed_consultant_track as _seed
+
+	print("Delegating to duty_board.academy_seed_consultant.seed_consultant_track (v2.99.0 composition).")
+	_seed()

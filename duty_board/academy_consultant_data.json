@@ -1,0 +1,1805 @@
+{
+ "c1": {
+  "title": "ZhiftCRM Consultant — Platform & Dashboard Command",
+  "desc": "Access, sessions, and the dashboard mastered to the formula level: role-based views, every KPI card's calculation, timeframe mechanics, every chart — and what to train each client role to look at.",
+  "lessons": [
+   {
+    "title": "Access, credentials, and sessions — what you'll support daily",
+    "est": 5,
+    "html": "<p>Half of week-one support tickets are access. Know this cold.</p>\n<p><b>Login requirements:</b> an account (created by the admin — the user receives a welcome email or credentials from their manager), the tenant URL, a modern browser (Chrome 90+, Firefox 88+, Edge 90+, Safari 14+ — <b>Internet Explorer is not supported</b>), and internet. First login may force a temporary-password change, show a welcome tour, and prompt profile completion.</p>\n<p><b>The failure modes and their fixes:</b> \"Invalid email or password\" — typos, Caps Lock, or an old password; after repeated failures (typically 5) the account <b>locks for 15–30 minutes</b>, or an administrator unlocks it immediately. \"Session expired\" — inactivity timeout (typically 30 minutes–2 hours; 'Remember Me' extends to 7–30 days); just log in again, and warn users that <b>unsaved form data is lost</b> on expiry. Page won't load — connection, wrong URL, cache clear, or another browser, in that order.</p>\n<p><b>Forgot Password, precisely:</b> the reset link goes only to the exact email on the account; the system deliberately <b>never confirms whether an email exists</b> (anti-enumeration); the link <b>expires (typically 24h, sometimes 1h) and is single-use</b> — closing the page mid-reset means requesting a fresh link. Email not arriving: spam folder → wait 1–5 min → verify the address → IT mail logs → admin manual reset, in that order. Password policies commonly enforce 8+ characters, case + number variety, sometimes specials, no reuse of the last ~5, no dictionary words.</p>\n<p><b>Sessions and multi-device:</b> each device holds its own independent session; changes sync across them in real time; logging out on one does not log out others; concurrent-session caps (where configured) terminate the oldest. Some tenants expose <b>Active Sessions</b> under account/security settings — the \"terminate that device and change your password\" flow is your stolen-phone playbook. Password change keeps the current session alive; other sessions may die immediately or at natural expiry per configuration.</p>\n<blockquote><b>CONSULTANT DRILL:</b> A client's staffer calls: \"locked out, reset email never came.\" Give the five-step sequence you run before touching the admin panel — spam, wait, exact-address check, IT mail logs, then admin manual reset. And the question you ask FIRST: \"which email did you type?\" — the anti-enumeration design means a wrong address fails silently.</blockquote>"
+   },
+   {
+    "title": "The dashboard — layout, hierarchy, and role-based views",
+    "est": 5,
+    "html": "<p>The dashboard answers the critical questions within seconds of login: revenue, pipeline volume, channel performance, agent targets — one scrollable page, no report-hopping. Its structure, top to bottom: the <b>global timeframe filter</b> (controls every metric and chart on the page), the <b>KPI cards row</b> (4–6 headline numbers with comparison indicators), the <b>Revenue Trend</b> chart, the <b>Channel Mix</b> donut, the <b>Top Products</b> table, the <b>Agent Leaderboard</b>, and a <b>Recent Activity</b> feed (order status changes, new customers, campaign events — some elements live-update via WebSocket; otherwise refresh the page for fresh numbers).</p>\n<p><b>The dashboard is role-shaped, and you must know all four shapes because you will train all four:</b></p>\n<ol>\n<li><b>Closers</b> see only themselves: My Orders Today, My Delivered Orders, My Conversion Rate, My Revenue, personal trend and status distribution. No team data, no other agents — focus by design.</li>\n<li><b>Team Managers</b> see aggregates (Total Team Revenue/Orders, Team Conversion, AOV) plus the <b>Agent Leaderboard prominently</b>, Channel Mix, Top Products — the coaching and rebalancing view.</li>\n<li><b>Marketing</b> sees the funnel: Total Submissions, Campaign Conversion Rate, Cost Per Lead, ROAS, submission trends, channel attribution, and a Campaigns Summary table.</li>\n<li><b>Directors/Admins</b> see everything, with drill-down from any element.</li>\n</ol>\n<p><b>The dashboard is a navigation hub, not a poster:</b> clicking a KPI card opens the matching list pre-filtered to the same date range; clicking a trend bar filters orders to that day; clicking a leaderboard name opens that agent's profile. Teach clients the habit: red indicator → click it → investigate, instead of red indicator → meeting.</p>\n<p><b>The working rhythm to install at every client:</b> start each session on 'Today', switch to 'This Week'/'This Month' for trend; managers check first thing morning and last thing evening; leaderboard on screen during team meetings.</p>\n<blockquote><b>CONSULTANT DRILL:</b> A client's marketing lead complains \"the dashboard is useless — it's all sales numbers.\" Diagnosis? Their user carries the wrong role; the dashboard is role-shaped, so the fix is role assignment, not customization. Verify what role their account holds before anything else.</blockquote>"
+   },
+   {
+    "title": "KPI cards — every formula, and reading them as a set",
+    "est": 6,
+    "html": "<p>Each card: one bold number, a label, a comparison indicator vs. the equivalent previous period, sometimes a sparkline. The four core cards, at formula level:</p>\n<table border=\"1\" cellpadding=\"5\"><tr><th>Card</th><th>Formula / basis</th><th>The trap to teach</th></tr><tr><td><b>Total Revenue</b></td><td>Sum of orders reaching <b>Delivered</b> in the period; returns are subtracted</td><td>It is realized revenue only — in-progress and cancelled orders are excluded</td></tr><tr><td><b>Total Orders</b></td><td>Count of orders <b>created</b> in the period, ANY status</td><td>Volume, not success — read with Conversion and AOV, never alone</td></tr><tr><td><b>Conversion Rate</b></td><td>(Delivered ÷ Total Orders) × 100</td><td>60% = 6 of 10 delivered; the rest cancelled, failed, returned, or still moving</td></tr><tr><td><b>Average Order Value</b></td><td>Total Revenue ÷ Delivered Orders</td><td>Falling AOV with rising volume can mean discounting is buying the growth</td></tr></table>\n<p><b>The comparison indicator</b> always matches like with like: 'This Week' compares to last week, 'This Month' to last month — and mid-period it compares <b>equivalent elapsed spans</b> (Wednesday of this week vs. Monday–Wednesday of last week). Green +12% / red −5%. Early in a day or month, extreme percentages are normal — small denominators, teach calm.</p>\n<p><b>Worked read:</b> Revenue AED 125,000 (+8%), Orders 342 (+15%), Conversion (−4pts), AOV (−3%). The set says: volume is up strongly but conversion and value both slipped — marketing is buying more but weaker leads, or ops can't keep pace. Revenue's +8% alone would have said \"all good\"; the set says \"investigate lead quality.\" That is the reading discipline: <b>never one card in isolation</b>.</p>\n<p><b>Role-scoped cards:</b> managers may additionally see Pending (New Lead/Qualified/Confirmed awaiting processing), In Progress (Assigned/Processing/Delivery In Progress), Completed — pipeline-health at a glance; a swelling Pending card is a bottleneck announcement. Closers see the My-* variants of all four cores, scoped to their own orders.</p>\n<p><b>Interpretation heuristics to hand clients verbatim:</b> improving conversion from 55%→60% on 1,000 monthly orders at AED 300 AOV = 50 extra deliveries = AED 15,000/month — small percentage points are real money. All-green = healthy; mixed = targeted attention; all-red = immediate investigation.</p>\n<blockquote><b>CONSULTANT DRILL:</b> Client MD: \"revenue says 125k but my bank got 90k this month — your system is wrong.\" Name the two honest explanations before defending anything: Delivered-basis vs cash timing (COD collections and settlements lag), and returns subtracted after delivery. The card measures delivered order value, not bank receipts.</blockquote>"
+   },
+   {
+    "title": "Timeframes — the filter that rules the page",
+    "est": 4,
+    "html": "<p>The date selector sits top-right and drives <b>everything simultaneously</b> — cards, charts, leaderboard, feed. The presets and their exact behavior:</p>\n<table border=\"1\" cellpadding=\"5\"><tr><th>Preset</th><th>Window</th><th>Compares against</th><th>Trend granularity</th></tr><tr><td>Today</td><td>Midnight → now</td><td>Yesterday's equivalent</td><td>Hourly bars</td></tr><tr><td>Yesterday</td><td>Previous calendar day</td><td>Day before</td><td>Hourly</td></tr><tr><td>This Week (default at login)</td><td>Monday → today</td><td>Same days last week</td><td>Daily bars</td></tr><tr><td>Last Week</td><td>Full Mon–Sun</td><td>Week before</td><td>Daily</td></tr><tr><td>This Month</td><td>1st → today</td><td>Same dates last month</td><td>Daily</td></tr><tr><td>Last Month</td><td>Full previous month</td><td>Month before</td><td>Daily</td></tr><tr><td>This Quarter</td><td>Quarter start → today</td><td>Same span prior quarter</td><td>Weekly bars</td></tr><tr><td>This Year</td><td>Jan 1 → today</td><td>Same span last year</td><td>Monthly bars</td></tr><tr><td>Custom</td><td>Any start/end via picker</td><td>—</td><td>Varies</td></tr></table>\n<p>Two support-call facts: <b>very large custom ranges load slowly</b> (aggregation volume — steer long-range analysis to the Reports section instead), and 'Today' at 8am shows tiny numbers with wild comparison percentages — normal, not broken.</p>\n<p><b>Meeting rhythms to install:</b> weekly team meetings — 'This Week' for progress, then 'Last Week' for the complete picture; monthly reviews — 'This Month' progress + 'Last Month' completed. The mid-period equivalent-span comparison is what makes 'This Week on a Wednesday' honest — teach that explicitly, because managers who don't know it distrust the numbers.</p>\n<blockquote><b>CONSULTANT DRILL:</b> \"The dashboard was fine yesterday, today everything collapsed 80%!\" — First check before any escalation? The timeframe selector: they're on 'Today' at 9am comparing against a full yesterday, or someone switched the preset. The filter rules the page; verify it before believing the page.</blockquote>"
+   },
+   {
+    "title": "The charts — reading, interaction, cross-reads",
+    "est": 5,
+    "html": "<p><b>Revenue Trend</b> — the page's largest element: revenue over time, granularity per the timeframe (hourly→daily→weekly→monthly). Hover any bar for exact revenue + delivered count (\"AED 18,500 — 42 orders\"); click a bar to open orders filtered to that period. Read for pattern: steady bars = stability; left-to-right climb = growth; dips = holidays/weekends/ops issues; spikes = campaigns. Some configurations overlay the previous period as a lighter line — comparison without switching.</p>\n<p><b>Channel Mix</b> — donut of order distribution by acquisition channel (Phone, WhatsApp, Instagram, Facebook, Website, Referral, Walk-in, Other), total in the center, hover for exact counts (\"WhatsApp: 145 orders (38%)\"). The strategic read is the <b>shift over time</b>: Phone 60%→30% while WhatsApp 15%→45% across six months means the customer base migrated — processes and staffing should follow. Heavy ad spend on a channel showing a sliver = re-evaluate the spend.</p>\n<p><b>Top Products</b> — ranked by revenue (or units): name, units, revenue, share. New entrant in the top 5 = demand signal; a stalwart dropping off = stock, season, or competitor. Hover for average selling price and unique buyers; click for that product's orders.</p>\n<p><b>Agent Leaderboard</b> (managers+) — rank, name, total orders, delivered, conversion, revenue; medals for top three and rank-trend arrows in some configurations. Uses: recognition, coaching targets, and workload signals (one agent carrying double the orders = redistribute). Click a name → their profile/orders.</p>\n<p><b>Campaign Performance</b> (marketing view) — per campaign: submissions, orders, conversion, revenue, CPA where cost is entered. High-submission/low-conversion = targeting or offer problem; low-volume/high-conversion/high-revenue = efficient reach — scale it.</p>\n<p><b>Cross-reads to teach explicitly:</b> Trend + Channel Mix = how much AND from where; Top Products + Leaderboard = are the best agents selling different things (share the playbook); Campaign Summary + Channel Mix = does spend align with what actually drives orders. Empty chart = no records in the timeframe — widen the range before filing a bug.</p>\n<blockquote><b>CONSULTANT DRILL:</b> Design the five-minute Monday ritual you'd write into a client's SOP using only this page: This Week → cards as a set → trend vs overlay → channel shift vs last month → leaderboard extremes top and bottom → one drill-down on the worst indicator. Rituals, not features, are what make CRM adoption stick.</blockquote>"
+   }
+  ],
+  "questions": [
+   {
+    "q": "A user reports 'Invalid email or password' five times in a row. What has likely now happened?",
+    "opts": [
+     "Nothing — unlimited retries",
+     "The account is temporarily locked (15–30 min) — or an admin can unlock immediately",
+     "The account is deleted",
+     "The password auto-resets"
+    ],
+    "ans": 1,
+    "why": "Repeated failures trigger the security lock.",
+    "src": "L1"
+   },
+   {
+    "q": "The reset-password page says 'if an account exists, a link has been sent' because:",
+    "opts": [
+     "It's broken",
+     "Deliberate anti-enumeration — the system never confirms which emails have accounts",
+     "The mail server is slow",
+     "The user typed wrongly"
+    ],
+    "ans": 1,
+    "why": "Support implication: verify the exact address first.",
+    "src": "L1"
+   },
+   {
+    "q": "A reset link clicked, page closed before saving the new password:",
+    "opts": [
+     "Reopen the same link",
+     "Request a NEW link — reset links are single-use",
+     "Wait 24 hours",
+     "The old password returns"
+    ],
+    "ans": 1,
+    "why": "Single-use plus expiry (often 24h, sometimes 1h).",
+    "src": "L1"
+   },
+   {
+    "q": "Logging out on a phone:",
+    "opts": [
+     "Logs out all devices",
+     "Ends only that device's session — each device is independent",
+     "Locks the account",
+     "Requires admin"
+    ],
+    "ans": 1,
+    "why": "Lost device: change the password to invalidate sessions.",
+    "src": "L1"
+   },
+   {
+    "q": "Internet Explorer users:",
+    "opts": [
+     "Need a plugin",
+     "Are unsupported — move them to Chrome/Firefox/Edge/Safari modern versions",
+     "Get a lite mode",
+     "Work fine"
+    ],
+    "ans": 1,
+    "why": "Browser support is explicit.",
+    "src": "L1"
+   },
+   {
+    "q": "A closer's dashboard shows no leaderboard or team numbers. This is:",
+    "opts": [
+     "A bug",
+     "By design — closers see only their own scoped metrics",
+     "A caching issue",
+     "License-dependent"
+    ],
+    "ans": 1,
+    "why": "The dashboard is role-shaped; focus by design.",
+    "src": "L2"
+   },
+   {
+    "q": "'The dashboard is all sales numbers' from a marketing user means:",
+    "opts": [
+     "Customize the dashboard",
+     "Their account has the wrong role — marketing users get submissions/CPL/ROAS/campaign views",
+     "Marketing has no dashboard",
+     "Rebuild required"
+    ],
+    "ans": 1,
+    "why": "Fix the role, not the page.",
+    "src": "L2"
+   },
+   {
+    "q": "Clicking the Total Orders KPI card:",
+    "opts": [
+     "Nothing — cards are static",
+     "Opens the Orders list pre-filtered to the same date range — the dashboard is a navigation hub",
+     "Exports a report",
+     "Refreshes the page"
+    ],
+    "ans": 1,
+    "why": "Teach red-indicator → click → investigate.",
+    "src": "L2"
+   },
+   {
+    "q": "Total Revenue counts:",
+    "opts": [
+     "All orders created",
+     "Only orders that reached Delivered in the period, minus returns",
+     "Confirmed orders",
+     "Invoiced amounts"
+    ],
+    "ans": 1,
+    "why": "Realized revenue only.",
+    "src": "L3"
+   },
+   {
+    "q": "Total Orders counts:",
+    "opts": [
+     "Delivered only",
+     "Every order created in the period regardless of status — volume, not success",
+     "Non-cancelled orders",
+     "Paid orders"
+    ],
+    "ans": 1,
+    "why": "Which is why it's never read alone.",
+    "src": "L3"
+   },
+   {
+    "q": "Conversion Rate is:",
+    "opts": [
+     "Delivered ÷ Revenue",
+     "(Delivered ÷ Total Orders) × 100",
+     "Orders ÷ Leads",
+     "Delivered ÷ Confirmed"
+    ],
+    "ans": 1,
+    "why": "60% = 6 of 10 created orders delivered.",
+    "src": "L3"
+   },
+   {
+    "q": "Orders +15%, Conversion down, AOV down, Revenue +8%. The set reads:",
+    "opts": [
+     "Healthy growth",
+     "Volume is being bought with weaker leads or strained ops — investigate lead quality",
+     "A display bug",
+     "Seasonality only"
+    ],
+    "ans": 1,
+    "why": "Cards are read as a set, never alone.",
+    "src": "L3"
+   },
+   {
+    "q": "Improving conversion 55%→60% on 1,000 monthly orders at AED 300 AOV yields:",
+    "opts": [
+     "Negligible change",
+     "≈50 extra deliveries ≈ AED 15,000/month",
+     "AED 3,000",
+     "AED 150,000"
+    ],
+    "ans": 1,
+    "why": "Small points are real money — the pitch for process discipline.",
+    "src": "L3"
+   },
+   {
+    "q": "'Revenue says 125k, my bank got 90k' — the honest explanations:",
+    "opts": [
+     "The system is wrong",
+     "Delivered-basis vs cash timing (COD/settlement lag) and post-delivery returns subtracted",
+     "Fraud",
+     "Currency error"
+    ],
+    "ans": 1,
+    "why": "The card measures delivered order value, not receipts.",
+    "src": "L3"
+   },
+   {
+    "q": "'This Week' on a Wednesday compares against:",
+    "opts": [
+     "All of last week",
+     "Last Monday–Wednesday — equivalent elapsed spans",
+     "Last month",
+     "Nothing"
+    ],
+    "ans": 1,
+    "why": "Apples-to-apples mid-period comparison.",
+    "src": "L4"
+   },
+   {
+    "q": "Wild ±300% indicators at 8am on 'Today':",
+    "opts": [
+     "A data corruption",
+     "Normal — small denominators early in the window",
+     "Timezone failure",
+     "Cache issue"
+    ],
+    "ans": 1,
+    "why": "Teach calm about early-window extremes.",
+    "src": "L4"
+   },
+   {
+    "q": "Year-long analysis is best done in:",
+    "opts": [
+     "Dashboard custom range",
+     "The Reports section — huge dashboard ranges aggregate slowly",
+     "Exports",
+     "The activity feed"
+    ],
+    "ans": 1,
+    "why": "Steer long-range work off the dashboard.",
+    "src": "L4"
+   },
+   {
+    "q": "'Everything collapsed 80% overnight!' — first check:",
+    "opts": [
+     "Server logs",
+     "The timeframe selector — the filter rules the page",
+     "User permissions",
+     "The database"
+    ],
+    "ans": 1,
+    "why": "Verify the filter before believing the page.",
+    "src": "L4"
+   },
+   {
+    "q": "Trend granularity on 'This Quarter':",
+    "opts": [
+     "Daily",
+     "Weekly bars",
+     "Monthly",
+     "Hourly"
+    ],
+    "ans": 1,
+    "why": "Hourly→daily→weekly→monthly follows the window.",
+    "src": "L4, L5"
+   },
+   {
+    "q": "Hovering a Revenue Trend bar shows:",
+    "opts": [
+     "Only revenue",
+     "Exact revenue + delivered order count for that period",
+     "Agent names",
+     "Nothing"
+    ],
+    "ans": 1,
+    "why": "And clicking filters the orders list to it.",
+    "src": "L5"
+   },
+   {
+    "q": "Phone 60%→30% while WhatsApp 15%→45% over six months means:",
+    "opts": [
+     "A rendering issue",
+     "The customer base migrated channels — processes and staffing should follow",
+     "Phone is broken",
+     "Nothing actionable"
+    ],
+    "ans": 1,
+    "why": "The strategic read of Channel Mix is the shift.",
+    "src": "L5"
+   },
+   {
+    "q": "A product frequently in the top-5 suddenly drops off. Investigate:",
+    "opts": [
+     "Nothing — noise",
+     "Stock availability, seasonality, or competitive pressure",
+     "Delete the product",
+     "Agent fraud"
+    ],
+    "ans": 1,
+    "why": "Top Products is an inventory and strategy signal.",
+    "src": "L5"
+   },
+   {
+    "q": "One agent shows double everyone's order count on the leaderboard:",
+    "opts": [
+     "Reward and move on",
+     "A workload signal — consider redistribution alongside recognition",
+     "A data error",
+     "Ignore"
+    ],
+    "ans": 1,
+    "why": "The leaderboard serves coaching AND balancing.",
+    "src": "L5"
+   },
+   {
+    "q": "High submissions, low conversion on a campaign row means:",
+    "opts": [
+     "Scale it",
+     "A targeting or offer problem — volume without fit",
+     "Sales laziness only",
+     "Perfect campaign"
+    ],
+    "ans": 1,
+    "why": "Efficient campaigns show conversion, not just volume.",
+    "src": "L5"
+   },
+   {
+    "q": "An empty chart with 'No data for this period':",
+    "opts": [
+     "File a bug",
+     "No records match the timeframe — widen the range first",
+     "Reinstall",
+     "Clear cache"
+    ],
+    "ans": 1,
+    "why": "The most common false bug report.",
+    "src": "L5"
+   },
+   {
+    "q": "The consultant's real deliverable on this module is:",
+    "opts": [
+     "Feature tours",
+     "Installed rituals — role-appropriate daily/weekly reading habits per client role",
+     "Custom dashboards",
+     "Exports"
+    ],
+    "ans": 1,
+    "why": "Rituals, not features, make adoption stick.",
+    "src": "L2, L5"
+   },
+   {
+    "q": "Some dashboard elements update live via:",
+    "opts": [
+     "Polling every second",
+     "WebSocket connections (e.g., the Recent Activity feed); the rest refresh on page load",
+     "Email triggers",
+     "Manual sync"
+    ],
+    "ans": 1,
+    "why": "Set correct expectations about data freshness.",
+    "src": "L2"
+   }
+  ]
+ },
+ "c2": {
+  "title": "ZhiftCRM Consultant — Orders, Customers & Fulfilment",
+  "desc": "The order engine mastered: list operations, creation with duplicate detection, all thirteen statuses and their transitions, the details drawer, item rules by status, assignment logic, and the customer directory with its quick actions.",
+  "lessons": [
+   {
+    "title": "The orders list — search, filters, and who sees what",
+    "est": 5,
+    "html": "<p>Orders is the operational heart. Visibility is role-scoped from the first pixel: <b>closers see only their assigned orders; managers and directors see everything.</b> Teach that before any \"orders are missing\" ticket.</p>\n<p><b>Columns, left to right:</b> Order ID · Customer Name · Phone Number · Status (color-coded badge) · Channel (lead source) · Amount · Agent · Created Date. Column widths drag-resize.</p>\n<p><b>Search</b> matches multiple fields at once, live as you type, case-insensitive, no Enter needed: customer name (partial fine), phone (partial — '0551' matches any number containing it), order ID (jumps straight there), and city. It beats paging through results every time — teach search-first.</p>\n<p><b>The filters:</b> <b>Status</b> — multi-select across all thirteen statuses, with an active-count badge on the button; the classic triage combination is <b>New Lead + Not Reachable + Call Back</b> = the unresolved pipeline in one view. <b>Channel</b> — Phone, WhatsApp, Instagram, Facebook, Website, Referral, Walk-in, Other (marketing's evaluation lens). <b>Date</b> — presets or custom, on created date. <b>Agent</b> (managers only) — one agent's pipeline, for reviews and load checks. <b>Clear Filters/Reset</b> wipes everything including search.</p>\n<p><b>Sorting:</b> click any header — once ascending, again descending, arrow shows direction; default is Created Date descending. <b>Pagination:</b> 25 or 50 rows per page, total-matching count displayed beside the controls.</p>\n<blockquote><b>CONSULTANT DRILL:</b> Build the \"morning triage view\" you'd train every client team lead to open first: Status = New Lead + Not Reachable + Call Back, Date = This Week, sorted oldest-first. That one saved habit — oldest unresolved lead first — is worth more than an hour of feature demonstration.</blockquote>"
+   },
+   {
+    "title": "Creating an order — every field, and the duplicate check",
+    "est": 6,
+    "html": "<p>New Order (top-right of Orders) opens the creation dialog. Field by field, with the traps:</p>\n<ol>\n<li><b>Customer Name</b> — type and the system searches existing customers; selecting a match <b>auto-fills phone, email, and address</b>. Search-before-create is the iron rule: duplicate customer records fragment order history forever. Similar name in suggestions? Verify by phone number.</li>\n<li><b>Phone Number</b> — required, with country code, format-validated. An error here means an unreachable customer, a failed confirmation, a wasted delivery — the single most consequential field on the form.</li>\n<li><b>The duplicate check</b> — when focus leaves the phone field, the system quietly compares against prior orders inside the configured detection window. Numbers are <b>normalized to the last 10 digits</b>, so 08012345678 and +2348012345678 are the same customer. A match raises an <b>amber banner</b> — prior order's ID, date, items — <b>informational, not blocking</b>: legitimately new order → tick 'Proceed anyway' and continue; true duplicate → close and work the existing order. Note for setup: the check on manual orders only runs if <b>Settings → Duplicate Order Detection → 'Run on Manual Orders'</b> is enabled — a configuration item on your implementation checklist.</li>\n<li><b>Email</b> — optional but its absence disables email-based journey messages to this customer.</li>\n<li><b>Lead Channel</b> — the ORIGINAL source (Phone/WhatsApp/Instagram/Facebook/Website/Referral/Walk-in/Other), set once at creation and not changed after, even if later conversation moves channels. This field is what makes every attribution report true or false.</li>\n<li><b>Items</b> — Add Item → pick <b>Category first</b> (filters the product list) → Product (default price auto-fills, overridable for discounts) → Quantity; line total computes; repeat per product; order total sums live.</li>\n<li><b>Delivery Address</b> — Street + Country/State/City as searchable combo-boxes (type 'lag' → Lagos); countries without a state dataset fall back to free text; <b>selecting a country resets State and City</b>, selecting a State resets City. For COD, address precision is revenue protection — confirm building and apartment.</li>\n<li><b>Delivery Agent</b> — optional combo (sourced from the Agents directory; missing agent = add there first); assignable later from the drawer.</li>\n<li><b>Notes</b> — context visible to all agents and managers: \"morning delivery\", \"price-sensitive — no upsell\", \"Arabic only\".</li>\n</ol>\n<p><b>On Submit:</b> status <b>New Lead</b>; the customer record is created or updated; auto-assignment rules may fire; journeys with an Order-Created trigger enroll the customer; the order tops the list.</p>\n<blockquote><b>CONSULTANT DRILL:</b> A client complains \"the duplicate warning doesn't block anything — what's the point?\" Give the design answer: repeat purchases by the same customer are legitimate and common; blocking would break real business. The banner converts silent duplication into an informed decision, and 'Proceed anyway' leaves an audit trace of that decision.</blockquote>"
+   },
+   {
+    "title": "The thirteen statuses — lifecycle, owners, and transitions",
+    "est": 7,
+    "html": "<p>Status drives everything: visibility, responsibility, KPI math, journey automation. The happy path: <b>New Lead → Qualified → Confirmed → Assigned → Processing → Delivery In Progress → Delivered</b> — and the system <b>enforces valid transitions</b> (New Lead cannot jump to Delivered). Every status, with its owner and required action:</p>\n<table border=\"1\" cellpadding=\"4\"><tr><th>Status</th><th>Means</th><th>Owner / action</th></tr><tr><td><b>New Lead</b></td><td>Just created (manual, form, or API); unreviewed raw demand</td><td>Managers/leads (or auto-assignment): qualify or disqualify</td></tr><tr><td><b>Qualified</b></td><td>Reviewed: legitimate, contactable, products available, address serviceable</td><td>Qualification gate passed → contact for confirmation</td></tr><tr><td><b>Confirmed</b></td><td>Customer explicitly confirmed items, prices, address — serious buyer</td><td>The contacting agent updates it; order proceeds to assignment/fulfilment</td></tr><tr><td><b>Assigned</b></td><td>Allocated to a specific closer (manual or rules)</td><td>The assigned agent owns it end-to-end</td></tr><tr><td><b>Processing</b></td><td>Actively fulfilling: packing, labels, logistics coordination</td><td>Agent + fulfilment team → hand to delivery</td></tr><tr><td><b>Delivery In Progress</b></td><td>Physically dispatched, in transit</td><td>Courier; agent monitors → Delivered / Failed / Rescheduled</td></tr><tr><td><b>Delivered</b></td><td>The positive terminal: received, COD collected. <b>Counts as revenue</b>; triggers post-delivery journeys</td><td>Logistics or delivery-integration confirms</td></tr><tr><td><b>Cancelled</b></td><td>Deliberately terminated pre-delivery (mind change, stock-out, junk lead) — record the reason</td><td>No revenue; counts in volume → hurts conversion; high rates = lead-quality signal</td></tr><tr><td><b>Failed</b></td><td>Delivery ATTEMPTED and unsuccessful (absent, wrong address, refused, couldn't pay)</td><td>Investigate: recover via reschedule/address fix, or cancel</td></tr><tr><td><b>Returned</b></td><td>Accepted then sent back (defect, wrong item, remorse) — <b>revenue reversed</b></td><td>Process return, inspect, restock, refund/replace</td></tr><tr><td><b>On Hold</b></td><td>Temporarily paused (restock wait, payment verification, customer delay)</td><td>Resolve the reason; never a parking lot — flag for follow-up</td></tr><tr><td><b>Not Reachable</b></td><td>Contact attempted, no answer — NOT cancelled, awaiting retry</td><td>Retry policy: typically 3–5 attempts over 2–3 days, then cancel</td></tr><tr><td><b>Call Back</b></td><td>Reached; asked for a later call — still interested; note the preferred time</td><td>Call at the agreed time → Confirmed or Cancelled</td></tr><tr><td><b>Rescheduled</b></td><td>Delivery date must change (customer request, logistics, failed attempt)</td><td>Coordinate new date → back to Delivery In Progress on dispatch</td></tr></table>\n<p><b>Branch rules:</b> most pre-delivery stages can branch to Cancelled / On Hold / Not Reachable / Call Back; after Delivery In Progress the exits are Delivered / Failed / Rescheduled; after Delivered, only Returned. <b>The KPI mapping to keep straight:</b> Delivered = revenue; Returned = revenue reversed; Cancelled/Failed = no revenue but in the volume denominator, dragging conversion. That mapping is why status discipline IS reporting accuracy.</p>\n<blockquote><b>CONSULTANT DRILL:</b> Distinguish Cancelled vs Failed vs Not Reachable in one line each — terminated by decision pre-delivery / delivery attempted and unsuccessful / contact attempted and pending retry. Clients blur these three constantly, and every blur corrupts a different report.</blockquote>"
+   },
+   {
+    "title": "The details drawer — anatomy, timeline, and actions",
+    "est": 5,
+    "html": "<p>Click any order row → the drawer slides from the right, list still interactive behind it (click another row to switch orders; close via X, outside-click, or Escape).</p>\n<p><b>Top to bottom:</b> <b>Header</b> — Order ID, status badge (green = positive outcomes, yellow/orange = in motion, red = negative), creation date, channel icon. <b>Customer Information</b> — name (click → customer profile), phone (click → call/copy), email, city. <b>Order Items</b> — line table (product, category, unit price, qty, line total) with the Order Total beneath. <b>Delivery Address</b> — formatted block; some configurations add a map preview or Google-Maps link. <b>Agent Assignment</b> — current owner, or 'Unassigned' with an Assign control (managers reassign here). <b>Notes</b> — chronological, each with author and date. <b>Status Timeline</b> — every status change, newest at top: the status, the timestamp, and <b>who made the change</b> — the complete audit trail.</p>\n<p><b>Action buttons are context-sensitive</b>: Update Status (only valid next statuses offered), Assign/Reassign, Add Note, Edit Items, Print/Export — and a grayed button means <b>that transition is invalid from the current status</b>, not broken. Teach that sentence; it eliminates a whole ticket category.</p>\n<p><b>The timeline is the troubleshooting tool.</b> \"Customer says the order took two weeks\" — the timeline shows Confirmed on the 3rd, Assigned on the 3rd, Processing on the 4th, Delivery In Progress on the 11th: the bottleneck was fulfilment, not sales, with names and timestamps attached. Every escalation conversation starts there.</p>\n<blockquote><b>CONSULTANT DRILL:</b> A manager insists an agent \"never worked\" an order. Where's the objective answer, and what does it show? The Status Timeline — every transition, its time, and the person who made it. The drawer ends who-did-what arguments; train managers to open it before opening disputes.</blockquote>"
+   },
+   {
+    "title": "Editing items — recalculation, locks, and COD care",
+    "est": 4,
+    "html": "<p>In the drawer's Items section: <b>Add Item</b> (Category first → Product → price auto-fills → override if discounting → Quantity; line total live), <b>edit quantity</b> in place (totals recalc instantly), <b>delete</b> via the row's trash icon (brief confirm, totals recalc). Price overrides are <b>logged for audit</b>; significant discounts follow manager-approval policy — many organizations cap discount percentages.</p>\n<p><b>The status lock:</b> items edit freely in <b>New Lead, Qualified, Confirmed</b>. From <b>Processing / Delivery In Progress</b>, changes may require manager approval or be locked entirely — a physical shipment may already exist. The escape hatch for a genuine late change: move the order <b>On Hold</b> first, adjust, then resume. Removing items from confirmed orders = inform the customer first, always.</p>\n<p><b>The COD trap, explicitly:</b> any change to the total after confirmation means the courier will collect a different amount than the customer heard. Re-contact and re-confirm before dispatch, or the delivery fails at the door and the whole order circles through Failed. Item edits and customer communication are one motion on COD.</p>\n<blockquote><b>CONSULTANT DRILL:</b> Agent: \"the Edit Items button is grayed out — system bug.\" The two-step diagnosis: check the status (Processing+ locks are by design), and if a change is truly needed, the On-Hold-first route. The answer to most \"bug\" reports in this module is a status.</blockquote>"
+   },
+   {
+    "title": "Assignment — manual, rules, and permissions",
+    "est": 5,
+    "html": "<p><b>Manual assignment:</b> drawer → Agent section → dropdown of active closers, each showing <b>current load</b> (\"Ahmed — 15 active orders\") for balanced decisions. Selecting takes effect immediately: the Agent field updates, status may auto-advance to <b>Assigned</b> (from Confirmed/Qualified), the agent gets a notification, the order joins their personal list, and <b>the timeline records who assigned, when</b>. Reassignment is the same motion — old agent removed, new agent notified, timeline updated; but frequent reassignment confuses customers mid-conversation, so the new agent reads notes + timeline before making contact.</p>\n<p><b>Auto-assignment rules</b> (configured in Settings → Assignment Rules — an implementation-checklist item): <b>Round Robin</b> (even sequence), <b>Capacity-Based</b> (fewest active orders), <b>Channel-Based</b> (channel specialists), <b>Geographic</b> (city/region routing). Manual reassignment after auto-assignment always takes precedence — rules propose, humans dispose.</p>\n<p><b>Permissions:</b> closers cannot assign or reassign — they work what they're given; managers/team leads assign within their team; directors/admins across all teams. A disabled assign button = insufficient role, by design.</p>\n<p><b>Load-balancing craft to install:</b> check the load counts in the dropdown before every manual assignment; an agent at 30 active orders gives none of them the attention an agent at 10 gives each. Capacity discipline here connects forward to the Closer record's Max Assignment cap (Module C5) — the two mechanisms bound the same problem from both ends.</p>\n<blockquote><b>CONSULTANT DRILL:</b> Design the assignment scheme for a client with two brands, closers specialized per brand, and one supervisor who should absorb overflow: Channel/Category-appropriate auto-rules for the specialists + the supervisor flagged Always Available with a higher cap (C5's machinery) + manual override retained for managers. Name the principle: rules propose, humans dispose.</blockquote>"
+   },
+   {
+    "title": "Customers — directory, quick actions, and tag discipline",
+    "est": 5,
+    "html": "<p><b>The directory</b> (Customers in the sidebar; role-scoped like orders): Name · Phone · Email · City · Source Channel · <b>Total Orders</b> · <b>Total Spent</b> (cumulative delivered revenue) · Last Order Date · Created Date. Universal search across name/phone/email/city (partial, live, case-insensitive — last-4-digits phone lookups work). Filters: City, Source Channel, Date Range, <b>Tags</b>. The three sorts that answer real questions: <b>Total Spent desc</b> = your VIPs; <b>Last Order Date desc</b> = recently active; <b>Last Order Date asc</b> = dormant customers ripe for re-engagement campaigns.</p>\n<p><b>Quick actions on a profile</b> — the one-click bar that prevents both wasted clicks and data errors:</p>\n<ol>\n<li><b>New Order</b> — creation dialog pre-filled with name/phone/email/address. Always this route for existing customers — it structurally prevents duplicate customer records.</li>\n<li><b>WhatsApp</b> — opens WhatsApp Web (desktop) or the app (mobile) with the number pre-filled; requires a valid number with country code.</li>\n<li><b>Phone</b> — click-to-call via VoIP where integrated; otherwise copies the number / opens the native dialer.</li>\n<li><b>Add Note</b> — timestamped, attributed; the habit to train: after EVERY interaction, four lines — what they wanted, what was discussed, what was promised, next action.</li>\n<li><b>Tags</b> — chips added by typing + Enter, removed by X, saved instantly.</li>\n<li><b>Email / SMS</b> — individual sends (templates or custom), logged to the timeline; bulk goes through Marketing → Broadcasts, never here.</li>\n<li><b>View All Orders</b> — the Orders list pre-filtered to this customer.</li>\n</ol>\n<p><b>Tag discipline is a consulting deliverable, not a feature:</b> if half the team tags 'VIP' and half 'High Value', every tag filter lies. Facilitate an agreed vocabulary at implementation and write it down — the manual's own starter set: VIP, Wholesale, Repeat Buyer, Corporate, Influencer, Complaint, Do Not Call, Arabic Only, English Only.</p>\n<blockquote><b>CONSULTANT DRILL:</b> A client wants \"a re-engagement campaign for customers who've gone quiet.\" Which two directory operations produce the target list in under a minute? Sort Last Order Date ascending (dormant first) + filter by the relevant city/channel — then export or tag the result. The directory is a campaign tool wearing a table's clothes.</blockquote>"
+   }
+  ],
+  "questions": [
+   {
+    "q": "A closer insists 'half the orders are missing.' Most likely:",
+    "opts": [
+     "Data loss",
+     "Role-scoping — closers see only their assigned orders",
+     "A filter bug",
+     "Deleted orders"
+    ],
+    "ans": 1,
+    "why": "Managers see all; closers see theirs.",
+    "src": "L1"
+   },
+   {
+    "q": "Searching '0551' in the orders list:",
+    "opts": [
+     "Fails — full numbers only",
+     "Matches any phone containing those digits, live, no Enter needed",
+     "Searches IDs only",
+     "Needs quotes"
+    ],
+    "ans": 1,
+    "why": "Partial, multi-field, case-insensitive.",
+    "src": "L1"
+   },
+   {
+    "q": "The unresolved-pipeline triage view is Status =",
+    "opts": [
+     "Delivered + Returned",
+     "New Lead + Not Reachable + Call Back",
+     "All statuses",
+     "On Hold only"
+    ],
+    "ans": 1,
+    "why": "The morning habit worth more than a feature tour.",
+    "src": "L1"
+   },
+   {
+    "q": "08012345678 and +2348012345678 are treated as:",
+    "opts": [
+     "Different customers",
+     "The same customer — numbers normalize to the last 10 digits for duplicate detection",
+     "Invalid",
+     "Two countries"
+    ],
+    "ans": 1,
+    "why": "Normalization powers the duplicate check.",
+    "src": "L2"
+   },
+   {
+    "q": "The duplicate banner:",
+    "opts": [
+     "Blocks submission",
+     "Informs — tick 'Proceed anyway' for a legitimate repeat order, or close and work the existing one",
+     "Deletes the old order",
+     "Emails a manager"
+    ],
+    "ans": 1,
+    "why": "Repeat purchases are legitimate; the banner converts silence into decision.",
+    "src": "L2"
+   },
+   {
+    "q": "The duplicate check on manually created orders runs only if:",
+    "opts": [
+     "Always runs",
+     "Settings → Duplicate Order Detection → 'Run on Manual Orders' is enabled — an implementation checklist item",
+     "The customer exists",
+     "Phone has a country code"
+    ],
+    "ans": 1,
+    "why": "Configuration, not default.",
+    "src": "L2"
+   },
+   {
+    "q": "Lead Channel after creation:",
+    "opts": [
+     "Updates as conversations move channels",
+     "Stays as the ORIGINAL source — it anchors all attribution reporting",
+     "Is manager-editable weekly",
+     "Auto-detects"
+    ],
+    "ans": 1,
+    "why": "Change it and every channel report lies.",
+    "src": "L2"
+   },
+   {
+    "q": "Selecting a new Country in the address:",
+    "opts": [
+     "Keeps State and City",
+     "Resets State and City (and a new State resets City)",
+     "Fails validation",
+     "Auto-fills City"
+    ],
+    "ans": 1,
+    "why": "Cascade behavior of the combo-boxes.",
+    "src": "L2"
+   },
+   {
+    "q": "An order in New Lead can move directly to Delivered:",
+    "opts": [
+     "Yes, managers can",
+     "No — the system enforces valid transitions; verification and fulfilment steps can't be skipped",
+     "Yes via API",
+     "Only on weekends"
+    ],
+    "ans": 1,
+    "why": "Transition enforcement is structural.",
+    "src": "L3"
+   },
+   {
+    "q": "Cancelled vs Failed vs Not Reachable:",
+    "opts": [
+     "Synonyms",
+     "Terminated by decision pre-delivery / delivery attempted unsuccessfully / contact attempted, awaiting retry",
+     "All post-delivery",
+     "All count as revenue"
+    ],
+    "ans": 1,
+    "why": "Each blur corrupts a different report.",
+    "src": "L3"
+   },
+   {
+    "q": "Returned orders:",
+    "opts": [
+     "Keep their revenue",
+     "Reverse it — subtracted from revenue calculations",
+     "Count as Delivered",
+     "Are deleted"
+    ],
+    "ans": 1,
+    "why": "Delivered adds; Returned subtracts.",
+    "src": "L3"
+   },
+   {
+    "q": "A high cancellation rate signals:",
+    "opts": [
+     "Success",
+     "Lead-quality or confirmation-discipline problems — cancellations sit in the volume denominator and drag conversion",
+     "Fast agents",
+     "Nothing"
+    ],
+    "ans": 1,
+    "why": "Status discipline IS reporting accuracy.",
+    "src": "L3"
+   },
+   {
+    "q": "Not Reachable retry policy is typically:",
+    "opts": [
+     "One attempt then cancel",
+     "3–5 attempts over 2–3 days, then Cancelled",
+     "Unlimited",
+     "Automatic"
+    ],
+    "ans": 1,
+    "why": "It's a waiting status, not a terminal one.",
+    "src": "L3"
+   },
+   {
+    "q": "A grayed-out action button in the drawer means:",
+    "opts": [
+     "A bug",
+     "That transition is invalid from the current status — context-sensitive by design",
+     "Slow network",
+     "Missing license"
+    ],
+    "ans": 1,
+    "why": "The sentence that eliminates a ticket category.",
+    "src": "L4"
+   },
+   {
+    "q": "The objective record of who changed what, when, lives in:",
+    "opts": [
+     "Notes",
+     "The Status Timeline — every transition, timestamp, and person",
+     "The dashboard",
+     "Email"
+    ],
+    "ans": 1,
+    "why": "Open it before opening disputes.",
+    "src": "L4"
+   },
+   {
+    "q": "'Two-week delivery' complaints are diagnosed by:",
+    "opts": [
+     "Asking the agent",
+     "Reading the timeline for the stage gap — e.g., Processing on the 4th, Delivery In Progress on the 11th = fulfilment bottleneck",
+     "Refunding",
+     "Blaming the courier"
+    ],
+    "ans": 1,
+    "why": "The timeline names the bottleneck.",
+    "src": "L4"
+   },
+   {
+    "q": "Items edit freely in:",
+    "opts": [
+     "Any status",
+     "New Lead, Qualified, Confirmed — Processing+ may require approval or lock entirely",
+     "Delivered",
+     "On Hold only"
+    ],
+    "ans": 1,
+    "why": "A shipment may already physically exist.",
+    "src": "L5"
+   },
+   {
+    "q": "The route for a genuine change on a Processing order:",
+    "opts": [
+     "Force the edit",
+     "On Hold first → adjust → resume",
+     "Cancel and recreate",
+     "Edit the database"
+    ],
+    "ans": 1,
+    "why": "The designed escape hatch.",
+    "src": "L5"
+   },
+   {
+    "q": "Changing a COD order's total after confirmation without re-contacting:",
+    "opts": [
+     "Fine — the courier adapts",
+     "Invites a doorstep failure — the collection amount no longer matches what the customer heard",
+     "Impossible",
+     "Requires FIRS"
+    ],
+    "ans": 1,
+    "why": "Item edits and customer communication are one motion on COD.",
+    "src": "L5"
+   },
+   {
+    "q": "Price overrides are:",
+    "opts": [
+     "Untracked",
+     "Logged for audit — and significant discounts follow approval policy",
+     "Forbidden",
+     "Manager-only"
+    ],
+    "ans": 1,
+    "why": "Flexibility with accountability.",
+    "src": "L5"
+   },
+   {
+    "q": "The assignment dropdown shows each closer's:",
+    "opts": [
+     "Salary",
+     "Current active order load — for balanced decisions",
+     "Location",
+     "Rating"
+    ],
+    "ans": 1,
+    "why": "Check load before every manual assignment.",
+    "src": "L6"
+   },
+   {
+    "q": "Auto-assignment rule types are:",
+    "opts": [
+     "Random only",
+     "Round Robin, Capacity-Based, Channel-Based, Geographic — configured in Settings → Assignment Rules",
+     "Alphabetical",
+     "By seniority"
+    ],
+    "ans": 1,
+    "why": "Rules propose, humans dispose — manual override wins.",
+    "src": "L6"
+   },
+   {
+    "q": "Closers can reassign orders:",
+    "opts": [
+     "Freely",
+     "Never — assignment is manager/lead territory; closers work what they're given",
+     "With a reason",
+     "After 24h"
+    ],
+    "ans": 1,
+    "why": "Role-based permission by design.",
+    "src": "L6"
+   },
+   {
+    "q": "Before contacting a reassigned order's customer, the new agent:",
+    "opts": [
+     "Calls immediately",
+     "Reads the notes and timeline — context prevents the confusion reassignment creates",
+     "Waits a day",
+     "Emails the old agent"
+    ],
+    "ans": 1,
+    "why": "Reassignment hygiene.",
+    "src": "L6"
+   },
+   {
+    "q": "Dormant customers for re-engagement surface by sorting:",
+    "opts": [
+     "Total Spent desc",
+     "Last Order Date ascending",
+     "Name A-Z",
+     "Created Date desc"
+    ],
+    "ans": 1,
+    "why": "The directory is a campaign tool.",
+    "src": "L7"
+   },
+   {
+    "q": "New orders for existing customers are created from:",
+    "opts": [
+     "The Orders page fresh",
+     "The profile's New Order quick action — pre-filled, structurally preventing duplicate customer records",
+     "Import",
+     "WhatsApp"
+    ],
+    "ans": 1,
+    "why": "The route IS the data-quality control.",
+    "src": "L7"
+   },
+   {
+    "q": "Inconsistent tags ('VIP' vs 'High Value' vs 'Important'):",
+    "opts": [
+     "Add flavor",
+     "Break every tag filter — an agreed written vocabulary is an implementation deliverable",
+     "Auto-merge",
+     "Don't matter"
+    ],
+    "ans": 1,
+    "why": "Facilitate the vocabulary; document it.",
+    "src": "L7"
+   }
+  ]
+ },
+ "c3": {
+  "title": "ZhiftCRM Consultant — The Campaign Engine: Forms, Submissions & Carts",
+  "desc": "The lead-to-order machine at builder level: the three-step form wizard, category-first routing, packages and upsells, publishing and embedding, submission statuses and conversion, and the abandoned-cart lifecycle with its recovery craft.",
+  "lessons": [
+   {
+    "title": "Lead forms — what they are, end to end",
+    "est": 4,
+    "html": "<p>A lead form is a hosted page where a customer picks a product, enters contact and delivery details, and places an order <b>without speaking to an agent first</b>. It replaces the manual funnel (ads → phone/WhatsApp → agent transcribes basics) with structured capture: when the customer submits, the system already holds contact, product, quantity, and campaign source — agents confirm and close instead of collecting.</p>\n<p><b>The end-to-end flow, five steps:</b> (1) <b>Build</b> in the three-step wizard — Step 1 Basics (title, redirect, success message, button text, quantity display, preset country), Step 2 Builder (product category, linked products, offer packages, checkout fields, appearance), Step 3 Upsell (the optional one-more-offer screen). (2) <b>Publish</b> — generates a hosted link and an embed snippet. (3) <b>The customer orders.</b> (4) A <b>submission appears instantly</b> under Campaigns → Submissions, tagged with its form and any traffic-source parameters from the link. (5) <b>Convert</b> — an agent reviews, confirms, and one-clicks it into a CRM order that runs the normal fulfilment lifecycle.</p>\n<p><b>Where forms get shared:</b> Facebook/Instagram ads (destination URL), Google Ads (landing page), WhatsApp chats and broadcasts, SMS, email buttons, and any website page via the embed snippet.</p>\n<p><b>Attribution, built in:</b> every form is tied to the <b>digital marketer who built it</b> — submissions and resulting orders attribute automatically for reporting; and links carrying campaign tracking tags record the traffic source on the submission. This is the clean line from ad spend to orders that the ROAS report (C4) depends on.</p>\n<blockquote><b>CONSULTANT DRILL:</b> A client asks why they shouldn't just keep taking orders on WhatsApp. Give the three-part answer from the flow: structured capture (no transcription errors at scale), no missed leads in busy periods, and automatic attribution from ad to order — the thing manual channels can never provide.</blockquote>"
+   },
+   {
+    "title": "Step 1: Basics — every field, and why each converts",
+    "est": 4,
+    "html": "<p>Campaigns → Lead Forms shows the list (each form: default item, digital marketer, Draft/Published status, lead count, last submission). <b>New form</b> opens the wizard; you can move between steps freely and <b>Save draft</b> anytime, resuming later from the <b>Resume draft</b> dropdown at the top of the builder.</p>\n<ol>\n<li><b>Form title</b> — internal only; teach a naming convention ('Lagos Skincare Bundle - Instagram', 'March Restock Promo') so forms stay findable at fifty.</li>\n<li><b>Digital marketer</b> — auto-set to the signed-in ad buyer; every submission attributes to them. Regular users cannot change it; <b>administrators reassign by typing 4+ characters of the new owner's email</b>.</li>\n<li><b>Redirect URL</b> — optional post-submit destination (thank-you page, a WhatsApp chat link); blank = show the success message instead.</li>\n<li><b>Success message</b> — set the expectation explicitly ('Our team will call within 2 hours to confirm') so customers don't resubmit.</li>\n<li><b>Submit button text</b> — specific beats generic: 'Place my order' / 'Get this deal' outconverts 'Submit'.</li>\n<li><b>Quantity display</b> — Number input, Dropdown, or Radio buttons; pick whichever is clearest for the offer.</li>\n<li><b>Preset country</b> — 'Auto-detect from visitor IP' by default; fixing a country <b>hides the country field entirely</b> and records state/city under it. Fix it for single-market campaigns (e.g., Nigeria-only) — one less field is measurably fewer abandonments.</li>\n<li><b>Description</b> — a short line shown above the form, or an internal note.</li>\n</ol>\n<blockquote><b>CONSULTANT DRILL:</b> Rewrite this Step-1 setup for a Nigeria-only Instagram campaign: title 'form1', button 'Submit', success message 'Thanks', country auto-detect. — Title with market+offer+channel; button 'Order now' or offer-specific; success message with the callback promise and timeframe; preset country Nigeria to delete a field. Four edits, each one a conversion lever the manual names.</blockquote>"
+   },
+   {
+    "title": "Step 2: Builder — routing, products, packages, fields",
+    "est": 6,
+    "html": "<p><b>Order dimensions first, and it's structural:</b> choose one <b>Product Category — required before publish</b>. The <b>Resolved Brand and Resolved Cost Center fill automatically from the category and are read-only</b>: category-first routing is what tells the system how to file the resulting orders. (Older drafts with only a brand and no category must have a category selected to migrate.) This single dropdown is where form-building meets the client's org structure — get the category wrong and every downstream order files wrong.</p>\n<p><b>Linked products:</b> Add item → pick from the catalogue. Per product: <b>Default quantity</b>, one product markable as the <b>Default option</b> (pre-selected on open), optional image and product link. <b>Pricing comes from the catalogue for the buyer's country — you never type prices into the form.</b> Craft rule from the manual: best-selling or highest-margin product first, marked default.</p>\n<p><b>Offer packages — quantity offers, not bundles:</b> each package = a Package label + a <b>Buy quantity</b> + optional <b>Free quantity</b> (buy-X-get-Y-free) + either a <b>Fixed amount</b> or a <b>Discount amount</b>; one can be the default option. Built exactly for 'Buy 2, get 1 free' and 'Buy 3, save ₦2,000' — the average-order-value levers.</p>\n<p><b>Core field options</b> — every form carries the built-in checkout set: Full Name, Email, Phone, Address Line 1, Address Line 2, Country, State/Province, City, Postal Code, Notes. Per field you can <b>edit the label, toggle Required, toggle Visible</b>. The conversion law, verbatim from the source: <b>shorter forms convert better — only require what you truly need at submission; collect the rest on the confirmation call.</b></p>\n<p><b>Additional questions</b> — for anything the built-ins don't cover: label + field type (text, email, phone, dropdown, longer text area) + required toggle. The canonical use: 'How did you hear about us?'</p>\n<blockquote><b>CONSULTANT DRILL:</b> A client's form requires all ten core fields plus three custom questions, and its abandonment runs 65%. Which manual principles are being violated, and what's the redesign? Shorter-forms law (hide Address Line 2, Postal Code, Notes; unrequire Email), preset country if single-market, move the three questions to the confirmation call. Target: the fewest fields that let an agent complete the sale by phone.</blockquote>"
+   },
+   {
+    "title": "Appearance, preview, publish — and the upsell screen",
+    "est": 5,
+    "html": "<p><b>Appearance</b> (Step 2 panel): Button background/text colours, Page and Card backgrounds, Heading colour, Input border colour, <b>Input border radius</b> (e.g., 10px), Font family with preview. The trust principle: a form in the same colours as the ad the customer clicked converts better — <b>reuse the established brand palette</b>, keep text contrast readable.</p>\n<p><b>Live preview:</b> 'Open live preview' renders the real form in a separate tab from current builder settings; it updates as you edit (Refresh preview if not). Interact like a customer — select, adjust quantity, fill fields. And the mobile law: <b>most lead-form traffic is mobile — narrow the window to phone width</b> and confirm comfort before publishing.</p>\n<p><b>Step 3: Upsell</b> — the optional one-more-offer screen between the main order and final confirmation. Enable it, then configure: the <b>Upsell item</b> from the catalogue, an Upsell heading ('One more offer for your order'), description, optional uploaded image; presentation controls — form width, text colour, <b>Button text</b> ('YES, ADD TO MY ORDER'), <b>Decline text</b> ('No, I do not want this additional offer'), optional <b>Scarcity line</b> ('Only a few left'). Accept = item added to the order; decline = original stands; <b>the decision is recorded</b> so acceptance rates are measurable. Craft rule: a complementary add-on at a fair price is accepted far more often than an unrelated item.</p>\n<p><b>Publish:</b> requires a product category + at least one main product. Publishing makes the form live and generates the <b>hosted link</b> (ads, WhatsApp, SMS, email) and the <b>embed snippet</b> (paste into any page's HTML; builders that reject raw HTML take it via their Custom-HTML/Embed block — submissions flow identically either way). Final live-preview check of products, prices, fields, and button before every publish.</p>\n<blockquote><b>CONSULTANT DRILL:</b> Design the upsell for a form selling a skincare set: complementary (the matching night cream, not an unrelated gadget), fair price, heading naming the benefit, scarcity line only if true. Then name the metric that judges it: the recorded accept rate — upsells are an experiment with a built-in scoreboard.</blockquote>"
+   },
+   {
+    "title": "Submissions — the cards, five statuses, and the one-click convert",
+    "est": 5,
+    "html": "<p>Campaigns → Submissions: four <b>summary cards</b> — Total Submissions, Conversions, Conversion Rate, Top Form — over the table, newest first. The <b>timespan control</b> (Daily / Weekly / Monthly / Custom From-To) drives cards and table together. Filters: <b>Status</b> and <b>Lead Form</b> (essential when several campaigns run at once). Columns: customer + auto-generated reference, contact details, form, status badge, submitted time, <b>linked Order once converted</b>, and the Action button. Refresh pulls the latest; Previous/Next page through.</p>\n<p><b>The five statuses:</b></p>\n<ol>\n<li><b>New</b> — just arrived, unactioned; set automatically on submission. Highest priority: <b>leads contacted within the first few minutes convert far better</b> — and New is <b>the only status offering the one-click Convert</b>.</li>\n<li><b>Contacted</b> — reached out, awaiting a final answer; the in-progress marker.</li>\n<li><b>Converted</b> — turned into a CRM order (set automatically by the Convert action); the Order column links it; <b>all further work happens on the order</b>.</li>\n<li><b>Lost</b> — no order resulted. Also set <b>automatically when an order could not be created</b> from a submission — so Lost entries deserve review for manual handling.</li>\n<li><b>Duplicate</b> — flagged as a repeat, typically by phone match (optionally items) against recent orders in a short window; review against the original and work the accurate record.</li>\n</ol>\n<p><b>Convert mechanics:</b> glance-check the lead, click Convert — the system creates the order, copies customer and product details, links order↔submission, flips status to Converted, shows the new order number. <b>One-time per submission</b>: a customer's later additional purchase = a new order from Orders, never a re-convert. Post-conversion changes (items, address, cancellation) happen <b>on the order, not the submission</b> — the submission is a historical record; the order is the live one.</p>\n<p><b>Reading the numbers into action</b> (the manual's own decision table): low volume + high conversion = quality leads, buy more of them; high volume + low conversion = check lead quality, follow-up speed, price fit; <b>New leads accumulating = the team isn't working leads fast enough</b>; rising Lost/Duplicate = lead quality or forms inviting double-submission.</p>\n<blockquote><b>CONSULTANT DRILL:</b> Write the shift-start SOP line this lesson dictates: \"Set Status filter = New; work oldest first; speed of first contact is the single biggest driver of conversion.\" Then the follow-up habit: anything reached without an answer flips to Contacted so the New view stays a true to-do list.</blockquote>"
+   },
+   {
+    "title": "Abandoned carts — the lifecycle and what the list shows",
+    "est": 5,
+    "html": "<p>An abandoned cart = a visitor opened a form, <b>interacted</b> — chose a product, started typing details — and left without submitting. Page views alone create nothing; interaction starts the tracking, and <b>data captures progressively as they type</b>: product selections, quantity changes, cart value, contact fields, timestamps.</p>\n<p><b>The three-state lifecycle:</b> <b>Active</b> — the session is open or recent, still building. <b>Abandoned</b> — the session went quiet: marked in the background after roughly <b>30 minutes idle</b>, by a <b>scheduled periodic check</b> — so a just-closed tab takes a short while to appear; teach that before the \"carts are delayed\" ticket. <b>Submitted</b> — the cart became an order (the visitor returned, or your team recovered it) and leaves the follow-up queue.</p>\n<p><b>Which carts you see:</b> only those with <b>both a name AND a phone number</b> — actionable ones; nameless/phoneless sessions are cleared automatically rather than cluttering the list. <b>Digital marketers see carts from their own forms only.</b></p>\n<p><b>Resumes:</b> a visitor returning to the form reopens their cart and increments a Resumes counter. <b>Several resumes = a strong buying signal</b> — the customer keeps coming back; call them promptly.</p>\n<p><b>The table</b> (Campaigns → Abandoned Carts): Contact (name, phone, email where given), Items selected, Campaign form, Abandoned relative time ('2h ago'), Resumes, Actions (Convert / Delete). Filters: From/To dates (the daily last-24h routine) and Campaign Form; search by name, phone, or email — the \"customer just called about something they half-ordered\" lookup.</p>\n<p><b>Why recovery is the highest-ROI activity on the platform:</b> the ad money is already spent, the interest is already demonstrated on specific products, and recovery costs one call or message — no new spend. Speed rules: fresher interest recovers far better.</p>\n<blockquote><b>CONSULTANT DRILL:</b> A client checks the cart list at 9am and complains a cart their customer mentioned at 8:45 isn't there. Two explanations from the lifecycle: the ~30-minute idle threshold + periodic background check hasn't classified it yet (still Active), or the visitor never entered both name and phone so it will never appear. Neither is a bug.</blockquote>"
+   },
+   {
+    "title": "Cart recovery — prioritisation, outreach, conversion",
+    "est": 5,
+    "html": "<p><b>Prioritise by freshness and intent:</b> recent carts and multi-resume carts first — the manual's framework in full: P1 high value + phone + within 2 hours (drop everything); P2 any value + phone + within 24h; P3 high value + phone + 1–7 days (expect lower yield); P4 email-only → automated sequence territory; no contact info → analytics value only. The speed law, verbatim in spirit: <b>a follow-up within 15 minutes recovers 3–5× more than one after 24 hours</b> — and within the first hour beats a day later decisively.</p>\n<p><b>Prepare before contacting:</b> open the cart — exactly which products, the cart value, how far they got, which form and campaign brought them. The conversation should feel like help, not targeting.</p>\n<p><b>Channel craft:</b> <b>WhatsApp</b> for most Nigerian customers — 90%+ open rates, low friction; short message naming the specific product and offering to finish the order. <b>Phone</b> for high-value carts — brief, helpful, named product, offer to complete over the phone. <b>SMS</b> as fallback with a direct form link. And the respect rule: a customer who declines is thanked and never contacted about that cart again — aggressive follow-up damages the brand and can violate communication regulations.</p>\n<p><b>Converting:</b> click <b>Convert</b> on the cart — the Create Order dialog opens <b>pre-filled with name, phone, email, and the cart's items, already tagged as an abandoned-cart recovery</b>; confirm details, create; the cart moves to Submitted and links to the order. <b>Delete</b> clears carts you'll never work (clear mistakes, exhausted contacts) — and <b>a converted cart cannot be deleted</b>, so recovered records stay intact.</p>\n<p><b>The operating rhythm to install:</b> a fixed daily block (e.g., the first 30–45 minutes of a shift) filtering the last 24 hours; consistent follow-up produces consistent recovered revenue — sporadic effort produces sporadic results. Do the arithmetic with the client: 100 abandoned carts/week × ₦20,000 average × 15% recovery = ₦300,000/week that was already paid for.</p>\n<blockquote><b>CONSULTANT DRILL:</b> Draft the two-line WhatsApp recovery message for a cart holding 2× Vitamin C serum, abandoned 40 minutes ago: name the person, name the product, offer help finishing, add one honest sweetener if policy allows (\"free delivery today\"). Then name what you checked before sending: the Resumes count and the session detail — a three-resume cart gets a call, not a text.</blockquote>"
+   }
+  ],
+  "questions": [
+   {
+    "q": "A lead form's core promise over WhatsApp-only ordering is:",
+    "opts": [
+     "Prettier pages",
+     "Structured capture, no missed leads at scale, and automatic ad-to-order attribution",
+     "Cheaper hosting",
+     "Fewer products"
+    ],
+    "ans": 1,
+    "why": "Agents confirm and close instead of transcribing.",
+    "src": "L1"
+   },
+   {
+    "q": "Submissions attribute automatically to:",
+    "opts": [
+     "The last agent online",
+     "The digital marketer who built the form (admins can reassign by email search)",
+     "The team lead",
+     "Nobody"
+    ],
+    "ans": 1,
+    "why": "The clean line from ad spend to orders.",
+    "src": "L1, L2"
+   },
+   {
+    "q": "Setting a fixed Preset country:",
+    "opts": [
+     "Adds a field",
+     "Hides the country field entirely — one less field for single-market campaigns",
+     "Blocks foreign IPs",
+     "Changes currency only"
+    ],
+    "ans": 1,
+    "why": "Fewer fields, fewer abandonments.",
+    "src": "L2"
+   },
+   {
+    "q": "'Submit' as button text is:",
+    "opts": [
+     "Optimal",
+     "Outconverted by specific text like 'Place my order' or 'Get this deal'",
+     "Required",
+     "Invisible"
+    ],
+    "ans": 1,
+    "why": "Specific beats generic.",
+    "src": "L2"
+   },
+   {
+    "q": "The Resolved Brand and Cost Center on Step 2 are:",
+    "opts": [
+     "Typed manually",
+     "Auto-filled read-only from the chosen Product Category — category-first routing files the orders",
+     "Optional",
+     "Per-product"
+    ],
+    "ans": 1,
+    "why": "Wrong category = every downstream order files wrong.",
+    "src": "L3"
+   },
+   {
+    "q": "Prices on a lead form come from:",
+    "opts": [
+     "The form builder's price fields",
+     "The catalogue, per the buyer's country — never typed into the form",
+     "The ad",
+     "The agent"
+    ],
+    "ans": 1,
+    "why": "Catalogue-driven pricing.",
+    "src": "L3"
+   },
+   {
+    "q": "An offer package is:",
+    "opts": [
+     "A bundle of different products",
+     "A quantity offer: buy quantity + optional free quantity + fixed or discount amount",
+     "A shipping option",
+     "A form theme"
+    ],
+    "ans": 1,
+    "why": "Built for buy-2-get-1 and buy-3-save-₦2,000.",
+    "src": "L3"
+   },
+   {
+    "q": "The conversion law for form fields:",
+    "opts": [
+     "More data is better",
+     "Shorter forms convert better — require only what's needed at submission; collect the rest on the confirmation call",
+     "Always require email",
+     "Hide the phone"
+    ],
+    "ans": 1,
+    "why": "Every removed field reduces friction.",
+    "src": "L3"
+   },
+   {
+    "q": "The mobile preview habit exists because:",
+    "opts": [
+     "Desktop is rare",
+     "Most lead-form traffic is mobile — confirm phone-width comfort before publishing",
+     "It's faster",
+     "Colors differ"
+    ],
+    "ans": 1,
+    "why": "Narrow the preview to phone width.",
+    "src": "L4"
+   },
+   {
+    "q": "The upsell screen appears:",
+    "opts": [
+     "Before the main order",
+     "Between the main order and final confirmation — accept adds the item; decline keeps the original; the decision is recorded",
+     "In email",
+     "After delivery"
+    ],
+    "ans": 1,
+    "why": "An experiment with a built-in scoreboard.",
+    "src": "L4"
+   },
+   {
+    "q": "Publishing requires:",
+    "opts": [
+     "Only a title",
+     "A product category + at least one main product",
+     "Admin approval",
+     "An ad account"
+    ],
+    "ans": 1,
+    "why": "The two structural prerequisites.",
+    "src": "L4"
+   },
+   {
+    "q": "The embed snippet:",
+    "opts": [
+     "Requires a special server",
+     "Pastes into any page's HTML (or a builder's Custom-HTML block); submissions flow identically to the hosted link",
+     "Only works on WordPress",
+     "Duplicates leads"
+    ],
+    "ans": 1,
+    "why": "Two doors, one pipeline.",
+    "src": "L4"
+   },
+   {
+    "q": "The one-click Convert appears on submissions with status:",
+    "opts": [
+     "Any",
+     "New only",
+     "Contacted",
+     "Lost"
+    ],
+    "ans": 1,
+    "why": "Which is also why New leads are worked first.",
+    "src": "L5"
+   },
+   {
+    "q": "A customer wants a second purchase after their submission converted:",
+    "opts": [
+     "Re-convert the submission",
+     "Create a new order from Orders — conversion is one-time per submission",
+     "Edit the submission",
+     "New form required"
+    ],
+    "ans": 1,
+    "why": "Submission = historical record; order = live one.",
+    "src": "L5"
+   },
+   {
+    "q": "A submission marked Lost automatically may mean:",
+    "opts": [
+     "The customer refused",
+     "An order could not be created from it — review for manual handling",
+     "Spam",
+     "A duplicate"
+    ],
+    "ans": 1,
+    "why": "Auto-Lost entries deserve a look.",
+    "src": "L5"
+   },
+   {
+    "q": "Duplicates are typically flagged by:",
+    "opts": [
+     "Name match",
+     "Phone match (optionally items) against recent orders in a short window",
+     "IP address",
+     "Email domain"
+    ],
+    "ans": 1,
+    "why": "Review against the original; work the accurate record.",
+    "src": "L5"
+   },
+   {
+    "q": "Many New submissions accumulating means:",
+    "opts": [
+     "Great marketing, relax",
+     "The team isn't working leads fast enough — new leads age quickly",
+     "Forms are broken",
+     "Convert them in bulk"
+    ],
+    "ans": 1,
+    "why": "Speed of first contact drives conversion.",
+    "src": "L5"
+   },
+   {
+    "q": "A cart record is created when a visitor:",
+    "opts": [
+     "Views the form page",
+     "Interacts — selects a product or starts typing; data then captures progressively",
+     "Submits",
+     "Clicks the ad"
+    ],
+    "ans": 1,
+    "why": "Views alone create nothing.",
+    "src": "L6"
+   },
+   {
+    "q": "A cart shows as Abandoned:",
+    "opts": [
+     "The instant the tab closes",
+     "After ~30 minutes idle, via a periodic background check — a short delay is normal",
+     "After 24 hours",
+     "Only if manually marked"
+    ],
+    "ans": 1,
+    "why": "Pre-empt the 'carts are delayed' ticket.",
+    "src": "L6"
+   },
+   {
+    "q": "The abandoned list shows only carts with:",
+    "opts": [
+     "Any data",
+     "Both a name AND a phone number — actionable ones; the rest are cleared automatically",
+     "Email",
+     "High value"
+    ],
+    "ans": 1,
+    "why": "And marketers see their own forms' carts only.",
+    "src": "L6"
+   },
+   {
+    "q": "A cart with 3 Resumes is:",
+    "opts": [
+     "Stale",
+     "A strong buying signal — the customer keeps returning; call promptly",
+     "A bot",
+     "A duplicate"
+    ],
+    "ans": 1,
+    "why": "Resumes measure live intent.",
+    "src": "L6"
+   },
+   {
+    "q": "Recovery is the platform's highest-ROI activity because:",
+    "opts": [
+     "It's easy",
+     "Acquisition cost is already spent, interest already shown on specific products, and recovery needs only a message or call",
+     "Carts are numerous",
+     "It's automated"
+    ],
+    "ans": 1,
+    "why": "Already-paid-for demand.",
+    "src": "L6, L7"
+   },
+   {
+    "q": "The recovery speed law:",
+    "opts": [
+     "Timing barely matters",
+     "Within 15 minutes recovers 3–5× more than after 24 hours",
+     "Wait a day to seem casual",
+     "Weekly batches"
+    ],
+    "ans": 1,
+    "why": "Freshness rules; P1 = high value + phone + within 2 hours.",
+    "src": "L7"
+   },
+   {
+    "q": "Clicking Convert on a cart:",
+    "opts": [
+     "Creates a blank order",
+     "Opens Create Order pre-filled with the contact and the cart's items, tagged as a recovery",
+     "Emails the customer",
+     "Deletes the cart"
+    ],
+    "ans": 1,
+    "why": "Cart → Submitted, linked to the order.",
+    "src": "L7"
+   },
+   {
+    "q": "Converted carts:",
+    "opts": [
+     "Can be deleted",
+     "Cannot be deleted — recovered records stay intact",
+     "Auto-delete monthly",
+     "Revert if returned"
+    ],
+    "ans": 1,
+    "why": "Delete is for never-workable carts only.",
+    "src": "L7"
+   },
+   {
+    "q": "A customer declines the recovery offer. The rule:",
+    "opts": [
+     "Try twice more",
+     "Thank them and never contact them about that cart again",
+     "Escalate to a manager",
+     "Discount harder"
+    ],
+    "ans": 1,
+    "why": "Respect protects the brand and complies with regulations.",
+    "src": "L7"
+   },
+   {
+    "q": "The recovery habit that produces consistent revenue:",
+    "opts": [
+     "Ad-hoc enthusiasm",
+     "A fixed daily block filtering the last 24 hours — consistency, not sporadic effort",
+     "Monthly reviews",
+     "Automation only"
+    ],
+    "ans": 1,
+    "why": "100/wk × ₦20,000 × 15% = ₦300,000/wk already paid for.",
+    "src": "L7"
+   }
+  ]
+ },
+ "c4": {
+  "title": "ZhiftCRM Consultant — Reports & the Numbers",
+  "desc": "The report library at analyst level: the directory and role visibility, Closer Summary coaching reads, Team Performance fairness math, ROAS and the profitability threshold, product and channel analysis, and the cohort matrix.",
+  "lessons": [
+   {
+    "title": "The report directory — categories, roles, and the universal date filter",
+    "est": 4,
+    "html": "<p>Reports (left sidebar) opens the directory — every report as a card, grouped:</p>\n<table border=\"1\" cellpadding=\"4\"><tr><th>Category</th><th>Reports</th></tr><tr><td>Sales</td><td>Closer Summary · Team Performance · Orders Status</td></tr><tr><td>Marketing</td><td>ROAS · Channel Attribution · Campaign Form Funnel · Digital Marketer Leads</td></tr><tr><td>Product</td><td>Product Sales Analysis</td></tr><tr><td>Customer</td><td>Revenue Cohort Trends</td></tr><tr><td>Operations</td><td>Branch Performance · Fulfillment Health</td></tr><tr><td>After-Sales</td><td>After-Sales Summary · Upsell/Cross-Sell</td></tr></table>\n<p><b>Role-based visibility</b> — the answer to every \"report is missing\" ticket: closers typically see their own Closer Summary (and possibly Team Performance read-only); team leads see team-level with drill-down into their own team; sales managers see all sales + operations reports; marketing managers see the marketing set; operations managers see Fulfillment Health and Branch Performance; admins/executives see everything. Missing report = check the role before anything else.</p>\n<p><b>The universal date filter</b> tops every report: presets Today / Yesterday / This Week / Last Week / This Month / Last Month / This Quarter / Last Quarter / This Year / Last Year, plus custom start–end for precise windows (a promo period, exactly). <b>Comparison mode</b>, where offered, is a 'Compare' toggle that shows the period side-by-side against the previous one with percentage-change indicators — the difference between \"revenue was 4M\" and \"revenue was 4M, down 12%\".</p>\n<blockquote><b>CONSULTANT DRILL:</b> Map each client role to its two must-read reports and a cadence, as an implementation deliverable: closers — own Closer Summary weekly; team leads — Closer Summary daily + Team Performance weekly; marketing — ROAS weekly + Channel Attribution monthly; MD — Team Performance + Cohorts monthly. A report library without a reading schedule is furniture.</blockquote>"
+   },
+   {
+    "title": "Closer Summary — every column, the red flags, the coaching reads",
+    "est": 5,
+    "html": "<p>The go-to individual-performance report: daily for team leads, weekly/monthly for managers' reviews, coaching, and incentive calculations. One row per agent:</p>\n<table border=\"1\" cellpadding=\"4\"><tr><th>Column</th><th>Meaning / trap</th></tr><tr><td>Total Orders</td><td>Orders the agent created — raw activity. Low vs peers may be underperformance OR complex high-value accounts; context first</td></tr><tr><td>Delivered Orders</td><td>The true completed-sales count</td></tr><tr><td>Conversion Rate</td><td>(Delivered ÷ Total) × 100 — the headline efficiency metric; team average shown for comparison</td></tr><tr><td>Revenue</td><td>Delivered order value — the bottom line</td></tr><tr><td>AOV</td><td>Revenue ÷ Delivered — notably high AOV often marks upselling skill worth spreading</td></tr><tr><td>Cancellation Rate</td><td>(Cancelled ÷ Total) × 100 — <b>above 20–25% is a red flag</b>: likely creating orders without proper customer confirmation</td></tr><tr><td>Response Time</td><td>Average time to respond to new assignments/inquiries</td></tr></table>\n<p>Filters: date range, Branch (compare within a location), Team.</p>\n<p><b>The reading order the manual prescribes:</b> (1) sort by Conversion Rate — who converts efficiently; (2) cross-reference Total Orders — <b>90% on 10 orders is less impactful than 70% on 100</b>; (3) check Revenue for business impact; (4) hunt outliers both directions — high performers get recognized and their methods shared, low performers get coached.</p>\n<p><b>The four coaching diagnoses, verbatim craft:</b> high orders + low conversion → coach order quality (unconfirmed entries, overselling out-of-stock); low orders + high conversion → effective but under-active, push volume; low AOV → upsell/cross-sell training; high cancellation rate → audit their creation process, listen to call recordings where available.</p>\n<blockquote><b>CONSULTANT DRILL:</b> An agent shows 120 orders, 38% conversion, 31% cancellation, team-leading raw order count. Write the one-paragraph coaching brief: the volume is manufactured — orders entered without confirmation discipline; the 31% cancellation (red-flag threshold 20–25%) says so; the intervention is the confirmation checklist before entry, not a pep talk about closing.</blockquote>"
+   },
+   {
+    "title": "Team Performance — aggregates and the fairness metric",
+    "est": 4,
+    "html": "<p>Side-by-side comparison of teams/branches for managers, regional directors, and executives. Per row: Team/Branch · <b>Headcount</b> (the context column — a team of 20 naturally out-totals a team of 5) · Total Orders · Delivered · Total Revenue · <b>Revenue per Agent = Total Revenue ÷ Headcount</b> · Average Conversion Rate · Top Performer · Average AOV. Filters: date range, branch, metric focus.</p>\n<p><b>Revenue per Agent is the fairness metric</b> and the manual's worked example makes it vivid: 5 agents producing 100,000 (20,000 each) are outperforming 20 agents producing 300,000 (15,000 each) — the bigger absolute number is the weaker team. Compare per-agent first, always.</p>\n<p><b>The reading:</b> (1) Revenue per Agent across teams; (2) conversion outliers → investigate root cause (lead quality? training? regional stock?); (3) the Top Performer column → study what the best are doing differently.</p>\n<p><b>The three structural diagnoses:</b> one team consistently ahead → extract and share their methods (script? lead source?); large headcount + low per-agent → overstaffed or under-utilized, consider reallocation; small team + high performance → likely at capacity, the growth case for headcount.</p>\n<blockquote><b>CONSULTANT DRILL:</b> A client MD wants to reward \"the best team\" and points at the highest Total Revenue row. Make the fairness argument in two sentences using per-agent math, then name what you'd check next: whether the smaller high-per-agent team is capacity-constrained — that's where the next hire pays back fastest.</blockquote>"
+   },
+   {
+    "title": "ROAS — the formula, the profitability threshold, the budget loop",
+    "est": 5,
+    "html": "<p>The most critical marketing-budget report. Per campaign: Ad Spend (entered or imported) · Revenue Generated (delivered orders attributed via lead tracking) · <b>ROAS = Revenue ÷ Spend</b> · Leads Generated · <b>CPL = Spend ÷ Leads</b> · <b>Cost per Order = Spend ÷ Orders</b> (more meaningful than CPL because it prices the conversion, not the click) · Lead-to-Order Conversion = (Orders ÷ Leads) × 100. Filters: date, channel (Facebook/Google/Instagram/TikTok…), campaign type.</p>\n<p><b>The interpretation bands:</b> 1.0 = break-even on revenue — after product cost, fulfilment, and overheads, <b>losing money</b>; 2.0 = margin-dependent; 3.0–5.0 = good for most industries, typically profitable; &gt;5.0 = excellent, feed it budget; &lt;1.0 = losing on revenue itself — optimise or kill.</p>\n<p><b>The theorem to carry into every client conversation: ROAS measures revenue, not profit. Profitability requires ROAS &gt; 1 ÷ gross margin.</b> At 50% margins the threshold is 2.0 — a 2.0-ROAS campaign there merely broke even. At 30% margins the threshold is 3.33. Compute the client's own threshold in the first reporting session and write it on the report.</p>\n<p><b>The budget optimisation loop, verbatim:</b> sort by ROAS desc → identify the top 3–5 → consider raising their budgets → identify campaigns under the profitability threshold → optimise first (targeting, creative), and <b>if ROAS doesn't improve within 2 weeks, reduce or pause</b> → reallocate saved budget to the top performers. A standing loop, not a one-off exercise.</p>\n<blockquote><b>CONSULTANT DRILL:</b> Client at 40% gross margin celebrates a 2.2-ROAS campaign. Threshold = 1 ÷ 0.40 = 2.5 — the campaign is under water on profit despite positive-sounding revenue math. Show the calculation, then the loop: two weeks of optimisation, then reallocate.</blockquote>"
+   },
+   {
+    "title": "Product Sales & Channel Attribution — mix, pricing signals, channel truth",
+    "est": 4,
+    "html": "<p><b>Product Sales Analysis</b> — revenue by product: Name · Category · Units Sold (delivered) · Revenue · <b>% of Total Revenue</b> (concentration: one product at 40% = dependency risk; top-3 over 50% = diversification case) · <b>Average Selling Price</b> (ASP notably under list = agents discounting — investigate) · Trend arrow vs previous period · <b>Return Rate</b> (<b>above 10% needs attention</b>: quality, misleading descriptions, expectation gaps). Filters: date, category, branch (regional preferences). <b>Role note:</b> closers see this report restricted to orders they themselves closed — their own product mix; managers see all rows.</p>\n<p>Reads: sort by Revenue for the generators; Trend column — growing products need stock cover, decliners need a cause (season? competitor? price?); high-return products get description/image/feedback review; new products with low sales need visibility (marketing push, agent training) before judgment.</p>\n<p><b>Channel Attribution</b> — the channel truth table: per channel (Phone, WhatsApp, Instagram, Facebook, Website, Walk-in, Referral…): Orders · Revenue · <b>Conversion Rate</b> (many orders + low conversion = low-quality leads from that channel) · <b>AOV</b> (some channels attract higher-value customers) · Share of Total · <b>Growth Rate</b> vs previous period. Sort by Revenue for the value ranking, then read conversion and AOV to judge quality, not just quantity — a channel can dominate volume while a smaller one quietly delivers better customers.</p>\n<blockquote><b>CONSULTANT DRILL:</b> Product X: 22% of revenue, ASP 18% under list, 12% return rate. Three separate findings, three separate owners: concentration (strategy), discounting drift (sales management — audit the overrides), returns over the 10% line (product/description quality). One row, three workstreams — that's what reading a report at consultant level means.</blockquote>"
+   },
+   {
+    "title": "Revenue Cohorts — the matrix, healthy retention, warning signs",
+    "est": 5,
+    "html": "<p>The most powerful analytical tool in the library: customers grouped by <b>first-purchase month</b>, tracked across subsequent months — the long-term health X-ray. Used by marketing (retention campaigns, LTV), executives (customer-base health), product (do improvements move repeat purchase?), finance (forecasting from retention patterns).</p>\n<p><b>The matrix:</b> rows = cohorts ('January 2026 cohort' = everyone whose first-ever order was that month); columns = <b>Month 0</b> (the first-purchase month), Month 1, Month 2…; cells = revenue OR retention rate (a toggle), colour-coded dark-high → light-low as a heatmap.</p>\n<p><b>Two reading directions:</b> <b>left→right along a row</b> = one cohort's behaviour over time (Month 0 highest, then reasonable retention); <b>top→bottom down a column</b> = are recent cohorts better or worse than older ones at the same age — the trend-of-trends.</p>\n<p><b>Healthy benchmarks (of Month-0 revenue):</b> Month 1 — 20–30% for subscription-like businesses, 10–20% for occasional-purchase; Month 3 — 15–25% / 5–15%; Month 6+ — stabilisation into the loyal core.</p>\n<p><b>The two warning signs:</b> revenue near zero after Month 0 = buy-once-never-return — the post-purchase experience is failing; <b>each new cohort retaining worse than the last = something is deteriorating</b> (product quality, experience, competition) and compounding quietly.</p>\n<p><b>Actions:</b> poor Month-1 → automated follow-ups, thank-you offers, next-purchase codes, recommendation emails; recent cohorts worse → find what changed (price rise? quality? lead-source mix?); recent cohorts better → identify the cause and double down.</p>\n<blockquote><b>CONSULTANT DRILL:</b> A client's matrix shows every cohort collapsing to ~2% by Month 1 — but they sell bulk 3-month supplies. Before declaring a retention crisis, name the interpretive step: benchmark against the purchase cycle. A 3-month replenishment product should show its retention pulse at Month 3, not Month 1. Cohort reading is business-model-relative.</blockquote>"
+   }
+  ],
+  "questions": [
+   {
+    "q": "A team lead can't see the ROAS report. First check:",
+    "opts": [
+     "Server logs",
+     "Role — ROAS belongs to the marketing set; report visibility is role-based",
+     "The date filter",
+     "Reinstall"
+    ],
+    "ans": 1,
+    "why": "Missing report = check the role.",
+    "src": "L1"
+   },
+   {
+    "q": "The Compare toggle:",
+    "opts": [
+     "Compares two agents",
+     "Shows the period side-by-side vs the previous one with %-change indicators",
+     "Merges reports",
+     "Exports"
+    ],
+    "ans": 1,
+    "why": "'4M' vs '4M, down 12%' is the difference it makes.",
+    "src": "L1"
+   },
+   {
+    "q": "A reading schedule per role is:",
+    "opts": [
+     "Optional polish",
+     "An implementation deliverable — a report library without a cadence is furniture",
+     "Automatic",
+     "The vendor's job"
+    ],
+    "ans": 1,
+    "why": "Map roles to must-reads and rhythms.",
+    "src": "L1"
+   },
+   {
+    "q": "The Closer Summary cancellation red flag sits at:",
+    "opts": [
+     "Any cancellation",
+     "Above 20–25% — likely orders created without proper confirmation",
+     "50%",
+     "10%"
+    ],
+    "ans": 1,
+    "why": "The confirmation-discipline signal.",
+    "src": "L2"
+   },
+   {
+    "q": "90% conversion on 10 orders vs 70% on 100:",
+    "opts": [
+     "The 90% agent is better",
+     "The 70%-on-100 agent is more impactful — cross-reference conversion with volume",
+     "Equal",
+     "Neither matters"
+    ],
+    "ans": 1,
+    "why": "The prescribed reading order.",
+    "src": "L2"
+   },
+   {
+    "q": "High orders + low conversion coaches toward:",
+    "opts": [
+     "More calls",
+     "Order quality — unconfirmed entries or overselling; checklist before entry",
+     "New products",
+     "A raise"
+    ],
+    "ans": 1,
+    "why": "One of the four canonical diagnoses.",
+    "src": "L2"
+   },
+   {
+    "q": "Notably high AOV on one agent usually marks:",
+    "opts": [
+     "Fraud",
+     "Upselling skill — recognize it and spread the method",
+     "Lucky leads",
+     "Data error"
+    ],
+    "ans": 1,
+    "why": "Outliers in both directions get attention.",
+    "src": "L2"
+   },
+   {
+    "q": "The fairness metric across teams is:",
+    "opts": [
+     "Total Revenue",
+     "Revenue per Agent = Total Revenue ÷ Headcount",
+     "Order count",
+     "Top performer"
+    ],
+    "ans": 1,
+    "why": "5 agents at 20k each beat 20 at 15k each.",
+    "src": "L3"
+   },
+   {
+    "q": "Small team, very high per-agent revenue suggests:",
+    "opts": [
+     "Overstaffing",
+     "A capacity-constrained team — the strongest case for the next hire",
+     "Poor data",
+     "Luck"
+    ],
+    "ans": 1,
+    "why": "Growth math from the report.",
+    "src": "L3"
+   },
+   {
+    "q": "ROAS is:",
+    "opts": [
+     "Profit ÷ Spend",
+     "Revenue Generated ÷ Ad Spend",
+     "Leads ÷ Spend",
+     "Spend ÷ Revenue"
+    ],
+    "ans": 1,
+    "why": "Revenue, not profit — that distinction drives the threshold.",
+    "src": "L4"
+   },
+   {
+    "q": "The profitability threshold is:",
+    "opts": [
+     "Always 1.0",
+     "ROAS > 1 ÷ gross margin — at 50% margin, 2.0; at 30%, 3.33",
+     "Always 3.0",
+     "Set by the platform"
+    ],
+    "ans": 1,
+    "why": "Compute the client's own threshold and write it on the report.",
+    "src": "L4"
+   },
+   {
+    "q": "A 2.2-ROAS campaign at 40% gross margin is:",
+    "opts": [
+     "Profitable",
+     "Under water — the threshold is 2.5",
+     "Break-even",
+     "Excellent"
+    ],
+    "ans": 1,
+    "why": "1 ÷ 0.40 = 2.5.",
+    "src": "L4"
+   },
+   {
+    "q": "Cost per Order beats CPL because:",
+    "opts": [
+     "It's smaller",
+     "It prices the conversion, not the click — accounting for lead-to-order rates",
+     "CPL is deprecated",
+     "It includes VAT"
+    ],
+    "ans": 1,
+    "why": "Cheap leads that never convert are expensive.",
+    "src": "L4"
+   },
+   {
+    "q": "Underperforming campaigns get:",
+    "opts": [
+     "Instant kills",
+     "Optimisation first; if ROAS doesn't improve within 2 weeks, reduce or pause and reallocate to top performers",
+     "More budget",
+     "A rebrand"
+    ],
+    "ans": 1,
+    "why": "The standing budget loop.",
+    "src": "L4"
+   },
+   {
+    "q": "ASP notably below list price signals:",
+    "opts": [
+     "Bargains",
+     "Agent discounting — audit the price overrides",
+     "Inflation",
+     "A catalogue bug"
+    ],
+    "ans": 1,
+    "why": "The pricing-drift detector.",
+    "src": "L5"
+   },
+   {
+    "q": "The product return-rate attention line is:",
+    "opts": [
+     "1%",
+     "Above 10% — quality, description, or expectation issues",
+     "25%",
+     "50%"
+    ],
+    "ans": 1,
+    "why": "Description/image/feedback review follows.",
+    "src": "L5"
+   },
+   {
+    "q": "Top-3 products above 50% of revenue means:",
+    "opts": [
+     "Focus is working",
+     "Concentration risk — the diversification conversation",
+     "Nothing",
+     "Cut the tail"
+    ],
+    "ans": 1,
+    "why": "Dependency is fragility.",
+    "src": "L5"
+   },
+   {
+    "q": "Closers opening Product Sales Analysis see:",
+    "opts": [
+     "All company rows",
+     "Only orders they themselves closed — their own product mix; managers see all",
+     "Nothing",
+     "Last month only"
+    ],
+    "ans": 1,
+    "why": "Role-scoped rows in this report.",
+    "src": "L5"
+   },
+   {
+    "q": "A channel with huge order volume but low conversion:",
+    "opts": [
+     "Is the best channel",
+     "Delivers low-quality leads — volume without conversion quality",
+     "Should get all budget",
+     "Is broken"
+    ],
+    "ans": 1,
+    "why": "Read conversion and AOV, not just share.",
+    "src": "L5"
+   },
+   {
+    "q": "Cohort rows group customers by:",
+    "opts": [
+     "City",
+     "First-purchase month — 'January 2026 cohort' = first-ever order in that month",
+     "Channel",
+     "Agent"
+    ],
+    "ans": 1,
+    "why": "Month 0 is that first month.",
+    "src": "L6"
+   },
+   {
+    "q": "Reading DOWN a cohort column shows:",
+    "opts": [
+     "One cohort over time",
+     "Whether recent cohorts perform better or worse than older ones at the same age — the trend of trends",
+     "Revenue by product",
+     "Nothing"
+    ],
+    "ans": 1,
+    "why": "Left-right = one cohort; top-down = the comparison.",
+    "src": "L6"
+   },
+   {
+    "q": "Healthy Month-1 retention for a subscription-like business:",
+    "opts": [
+     "100%",
+     "20–30% of Month-0 revenue (10–20% for occasional-purchase businesses)",
+     "1–2%",
+     "75%"
+    ],
+    "ans": 1,
+    "why": "The manual's explicit benchmark bands.",
+    "src": "L6"
+   },
+   {
+    "q": "Each new cohort retaining worse than the last:",
+    "opts": [
+     "Seasonal noise",
+     "Deteriorating quality/experience/competitive position — compounding quietly",
+     "Better acquisition",
+     "Ignore"
+    ],
+    "ans": 1,
+    "why": "One of the two named warning signs.",
+    "src": "L6"
+   },
+   {
+    "q": "Near-zero revenue after Month 0 prescribes:",
+    "opts": [
+     "More ads",
+     "Post-purchase fixes — automated follow-ups, thank-you offers, recommendation emails",
+     "Price rises",
+     "New products"
+    ],
+    "ans": 1,
+    "why": "Buy-once-never-return is an experience failure.",
+    "src": "L6"
+   },
+   {
+    "q": "A 3-month-supply product showing 2% Month-1 retention:",
+    "opts": [
+     "Is in crisis",
+     "May be perfectly healthy — benchmark retention against the purchase cycle; expect the pulse at Month 3",
+     "Needs discounts",
+     "Has bad data"
+    ],
+    "ans": 1,
+    "why": "Cohort reading is business-model-relative.",
+    "src": "L6"
+   },
+   {
+    "q": "Attribution feeding the ROAS report originates in:",
+    "opts": [
+     "Manual tagging",
+     "Lead-form ownership and campaign tracking captured at submission (Module C3)",
+     "Guesswork",
+     "The bank"
+    ],
+    "ans": 1,
+    "why": "The modules interlock: C3's discipline makes C4's numbers true.",
+    "src": "L4, L1"
+   }
+  ]
+ },
+ "c5": {
+  "title": "ZhiftCRM Consultant — Administration: Closers & Shifts",
+  "desc": "The implementer's module: the Closer doctype end to end — the golden rule, all six blocks, creation, lifecycle, troubleshooting — and Shift Management from concept through setup, the coverage grid, the acceptance test, and rollout strategy.",
+  "lessons": [
+   {
+    "title": "The Closer record — what it is, and the golden rule",
+    "est": 4,
+    "html": "<p>A closer is the record representing a salesperson who works leads and orders — and almost everything revolves around it: auto-assignment targets closers, orders attribute to them, the follow-up pool draws from them, performance reports are built on them. <b>Creating a closer correctly at onboarding is one of the highest-leverage tasks a consultant performs on a tenant.</b></p>\n<p>Mechanics: doctype <b>Closer</b>, list at <b>/app/closer</b>, records auto-named <b>CRM-CS-######</b>, access requiring System Manager / CRM Manager. A closer record <b>does not stand alone — it layers on a User account</b>, adding the sales attributes (brand, categories, reporting line, capacity, availability) to a person who already has a login.</p>\n<p><b>THE GOLDEN RULE: a User must exist before you can create their Closer.</b> The first and required field on the form (\"Closer\") is a link that picks an <b>existing user by email</b> — no user account, no dropdown entry, no proceeding. The workflow is always: confirm/create the User first (Users & Permissions → User; New User with names, email, and the sales-closer role profile per standard onboarding), note the exact email, then open the Closer form.</p>\n<p><b>And its corollary: one person = one user = one closer.</b> The two steps are separate by design — the user gives identity and login; the closer gives a place in the sales structure. A duplicate closer for the same person is not allowed; if one exists, disable/merge to the correct record.</p>\n<blockquote><b>CONSULTANT DRILL:</b> Onboarding day, a new hire's name won't appear in the Closer field dropdown. State the diagnosis without opening a ticket: their User account doesn't exist yet — the dropdown lists existing users only. Create the user, reopen the Closer form. This is the single most common closer-setup confusion, and the golden rule answers it every time.</blockquote>"
+   },
+   {
+    "title": "Anatomy — the six blocks of a Closer",
+    "est": 5,
+    "html": "<p>The form is one scrolling page, best understood as six blocks:</p>\n<table border=\"1\" cellpadding=\"4\"><tr><th>Block</th><th>Fields & function</th></tr><tr><td><b>A · Identity</b></td><td><b>Closer</b> (required Link → User, by email — the golden-rule field) · Full Name (display name on leads, orders, reports) · Phone Number · <b>Enabled</b> (active and eligible for assignments; untick to deactivate without deleting)</td></tr><tr><td><b>B · Behaviour flags</b></td><td><b>Follow-Up Team Member</b> — when checked, this closer can claim and convert orders from the follow-up pool. <b>Always Available (ignore shifts)</b> — when Shift Management is on, receives auto-assigned leads at all times regardless of schedule; for supervisors / overflow closers, and the migration default</td></tr><tr><td><b>C · Placement</b></td><td>Country (Link) · Branch (Link) · <b>Brand (multi-select — a closer can serve several brands)</b>. Placement determines which leads and orders can flow to this closer</td></tr><tr><td><b>D · Reporting</b></td><td><b>Reports To</b> (Link → Closer, the direct manager) — setting it auto-fills Manager Full Name and the read-only <b>Reporting Chain</b>: Brand Manager, Team Manager, Cluster Manager, derived by walking up the hierarchy. <b>Never typed by hand</b></td></tr><tr><td><b>E · Categories</b></td><td>Child table: one row per product category the closer may work, each row tied to a brand — narrowing their remit within their brand(s). Add Row singly or Upload for bulk</td></tr><tr><td><b>F · Capacity</b></td><td><b>Max Assignment</b> — the cap on concurrent live assignments; the workload-balancing lever. <b>Current Assignment</b> — read-only live counter maintained by the system (0 for a new closer); never editable</td></tr></table>\n<p>Two blocks deserve emphasis. <b>Reporting (D):</b> the chain re-derives whenever Reports To changes anywhere up the tree — so a wrong-looking chain is fixed by correcting the manager link (on this record or above), never by editing chain fields. <b>Capacity (F):</b> Max Assignment is the structural end of the load-balancing you practise manually from the assignment dropdown (C2) — the cap holds even when nobody is watching the dropdown.</p>\n<blockquote><b>CONSULTANT DRILL:</b> A client asks you to \"just fix\" a closer whose Reporting Chain shows the wrong Team Manager. Name the only correct move and why: re-point Reports To (here or up the chain) and let the chain re-derive — the chain fields are computed, and hand-edits are impossible by design.</blockquote>"
+   },
+   {
+    "title": "Creating a closer — the eleven steps, and the recipes",
+    "est": 5,
+    "html": "<p>The creation sequence, in order — step 1 is the golden-rule prerequisite, never skipped:</p>\n<ol>\n<li><b>Confirm the user exists</b> (or create it first).</li>\n<li><b>Open a New Closer</b> — from the CRM workspace or /app/closer → + Add Closer; the form opens \"New Closer — Not Saved.\"</li>\n<li><b>Select the user</b> in the Closer field by typing their email. Not in the dropdown = stop, create the user.</li>\n<li><b>Full Name and Phone Number.</b></li>\n<li><b>Tick Enabled</b> — assignable from day one.</li>\n<li><b>Behaviour flags</b> — Follow-Up Team Member if they work the pool; Always Available for supervisors/overflow.</li>\n<li><b>Country, Branch, Brand(s).</b></li>\n<li><b>Reports To</b> — the manager; watch the chain auto-fill.</li>\n<li><b>Categories</b> — one row per category they handle.</li>\n<li><b>Max Assignment</b> — a sensible cap; leave Current Assignment alone.</li>\n<li><b>Save</b> (Ctrl+S) — auto-named CRM-CS-######.</li>\n</ol>\n<p><b>The batch trick from the manual:</b> onboarding several closers sharing branch/brand/manager/categories — build the first fully, then <b>duplicate it</b> and change only the Closer (user), Full Name, and Phone per person.</p>\n<p><b>The three worked recipes:</b> <b>Front-line closer</b> — Enabled ON, both behaviour flags OFF (they work shifts), placement + manager + categories + the standard front-line cap. <b>Supervisor/overflow</b> — same, plus <b>Always Available ON</b>, consider a higher Max Assignment and Follow-Up Team Member ON to absorb overflow and work the pool. <b>Offboarding</b> — open the closer → <b>untick Enabled → Save. Do not delete</b>; and re-point anyone who Reports To them to a new manager.</p>\n<p><b>The pre-save checklist</b> (the manual's own): user exists and selected · name + phone · Enabled ticked · flags correct · Country/Branch/Brand set · Reports To set, chain populated · ≥1 Category row · sensible Max Assignment · saved as CRM-CS-######.</p>\n<blockquote><b>CONSULTANT DRILL:</b> Write the two-line spec for a client's new overflow supervisor: Always Available ON (leads regardless of shifts), Follow-Up Team Member ON (works the pool), Max Assignment above the front-line cap, reporting straight to the sales head. Every choice traces to a field you can name.</blockquote>"
+   },
+   {
+    "title": "Lifecycle & troubleshooting — disable, adjust, diagnose",
+    "est": 4,
+    "html": "<p><b>Everyday management</b> from the /app/closer list (filterable by Full Name, Status, Enabled, Follow-Up membership, ID): toggle <b>Enabled</b> for leave/departures (stops new assignments, preserves all history); edit <b>Categories</b> rows as remits change; adjust <b>Max Assignment</b> — the engine respects the new cap immediately on save; re-point <b>Reports To</b> on manager moves (chain re-derives); update Country/Branch/Brand on transfers; tick <b>Follow-Up Team Member</b> to admit someone to the pool.</p>\n<p><b>The caution that protects clients from themselves: prefer disabling over deleting.</b> Deleting a closer can orphan the leads, orders, and reports attributed to them. Out of circulation = untick Enabled. Teach it as doctrine.</p>\n<p><b>The troubleshooting table, internalized:</b></p>\n<table border=\"1\" cellpadding=\"4\"><tr><th>Symptom</th><th>Diagnosis</th></tr><tr><td>Person missing from the Closer dropdown</td><td>No User account yet — create the user first, reopen the form</td></tr><tr><td>Two closer records for one person</td><td>Not allowed — one user = one closer; disable/merge to the correct record</td></tr><tr><td><b>Closer gets no auto-assigned leads</b></td><td>The four-point check, in order: <b>Enabled ON? Brand/Branch/Category match the incoming leads? On shift (or Always Available)? Max Assignment not already reached?</b></td></tr><tr><td>Reporting Chain looks wrong</td><td>Derived from Reports To — fix the manager link (here or up the chain), never the chain fields</td></tr><tr><td>Can't edit Current Assignment</td><td>By design — a live system counter; manage load through Max Assignment</td></tr></table>\n<p>That four-point no-leads check is the single most valuable diagnostic in this module — it resolves the majority of \"the system stopped giving X leads\" calls without an engineer.</p>\n<blockquote><b>CONSULTANT DRILL:</b> \"Chidi hasn't received a lead all morning.\" Run the four checks aloud in order — Enabled, placement/category match against what's actually arriving, shift status or the Always-Available flag, capacity vs cap — and name which one the morning's evidence already rules out. Systematic beats psychic.</blockquote>"
+   },
+   {
+    "title": "Shift Management — the concept and its rules",
+    "est": 5,
+    "html": "<p>Shift Management schedules <b>which closers are eligible for automatic assignment of new online leads</b>, so auto-assignment only reaches people actually on shift. Deliberately simple and self-contained — closers aren't necessarily staff with formal HR records. <b>Off by default:</b> until a manager enables it, assignment behaves exactly as before; turning it off again fully restores that behaviour — a true master switch.</p>\n<p><b>The operating rules, each one a support-call answer:</b></p>\n<ol>\n<li><b>Availability follows the schedule — there is no clock-in.</b> A closer is on shift when the current time falls inside an assigned shift for that day.</li>\n<li><b>Nobody on shift → the lead waits</b> as a New Lead, unassigned; a background job <b>re-checks about every ten minutes</b> and assigns the moment someone comes on shift. No lead is ever lost or discarded.</li>\n<li><b>Always Available closers</b> (the C5 flag) receive leads at all times regardless of schedule — supervisors and overflow.</li>\n<li><b>Overnight shifts:</b> end time earlier than start (22:00–06:00) is treated as spanning midnight into the next morning.</li>\n<li><b>Daily limits still apply, layered on top:</b> a closer must be BOTH on shift AND under their daily limit. And the subtlety worth teaching: <b>the daily limit resets at midnight server time, independently of shifts</b> — an overnight closer gets a fresh allowance mid-shift. A limit that follows the shift instead is a listed future enhancement.</li>\n<li><b>Online store orders are never held</b> — routed as before; a paid order never waits on a schedule.</li>\n<li><b>Manual assignment always works:</b> shifts never block a manager's hand-assignment; the closer list marks who's on shift and lists them first as a hint, but anyone remains choosable.</li>\n</ol>\n<blockquote><b>CONSULTANT DRILL:</b> Three rapid-fire client questions, one-line answers each: \"Do closers clock in?\" — no, availability follows the schedule. \"What happens to a lead at 3am with nobody scheduled?\" — it waits as New Lead; the ~10-minute catch-up job assigns it when a shift starts. \"Can I still give a lead to someone off-shift?\" — always; shifts constrain the robot, never the manager.</blockquote>"
+   },
+   {
+    "title": "Shifts — setup, the coverage grid, the acceptance test, rollout",
+    "est": 5,
+    "html": "<p><b>Setup, all on the Shifts page</b> (left menu, visible to managers): <b>Step 1</b> — switch <b>Enable Shift Management</b> on and leave <b>Auto catch-up unassigned leads</b> on (recommended — it is what picks up waiting leads). <b>Step 2</b> — Shift Templates tab → New shift: name (e.g., Morning), start and end times, tick the weekdays it runs, optional colour for the grid. <b>Step 3</b> — Assignments tab → Assign: pick the closer, the shift, the from-date, <b>leaving the to-date blank for an ongoing schedule</b>. <b>Step 4</b> (optional) — mark the Always-Available people on their closer records.</p>\n<p><b>Daily use — the coverage grid:</b> a weekly grid, rows = closers, columns = days, coloured blocks = shifts; a <b>green dot beside a name = on shift right now</b>; arrows move between weeks, 'Today' jumps back. On an order, the closer list marks and front-sorts the on-shift people — hint, not restriction.</p>\n<p><b>The nine-step acceptance test</b> — run it at every go-live, exactly as the manual specifies: enable the feature → create a shift covering right now (started an hour ago, ends hours ahead, today ticked) → assign one closer from today → verify their green dot (and nobody else's) → create a lead: it must go to the on-shift closer, never an off-shift one → cancel that assignment and create another lead: it must wait as New Lead → re-assign a closer to an active shift: <b>within about ten minutes the waiting lead is picked up</b> → confirm a manager can still hand-assign an off-shift closer → turn the feature off: behaviour returns to normal, every active closer eligible again. Expected result, verbatim in spirit: on = only on-shift or always-available closers are auto-reachable; off = exactly as before.</p>\n<p><b>The rollout strategy the manual recommends</b> — and it's pure change-management wisdom: <b>mark everyone Always Available first, then remove the flag person by person as you add their real shifts.</b> Nothing breaks on day one; the schedule tightens gradually. Housekeeping: <b>disable a shift rather than delete</b> (keeps history); <b>cancel an assignment</b> to remove it from coverage while keeping the audit record.</p>\n<p><b>The boundaries — say them before clients ask:</b> not included yet, planned separately: per-shift lead caps (the limit is per calendar day), shift-by-shift performance reporting, clock-in/attendance, and automatic hand-off of in-progress leads at shift end — <b>shifts affect new leads only; work already in a closer's hands stays with them.</b></p>\n<blockquote><b>CONSULTANT DRILL:</b> A client wants shifts live across 14 closers next Monday. Write the plan in four lines: (1) this week — templates + assignments entered, everyone flagged Always Available; (2) Monday — feature on, run the nine-step acceptance test with one volunteer's flag removed; (3) weeks 2–3 — remove flags team by team as confidence builds; (4) set expectations on the four not-yet boundaries in writing. Rollouts fail on surprise, not on software.</blockquote>"
+   }
+  ],
+  "questions": [
+   {
+    "q": "The golden rule of closer creation:",
+    "opts": [
+     "Phone number first",
+     "A User account must exist BEFORE the Closer — the required Closer field links to an existing user by email",
+     "Manager approval first",
+     "Categories first"
+    ],
+    "ans": 1,
+    "why": "No user, no dropdown entry, no proceeding.",
+    "src": "L1"
+   },
+   {
+    "q": "A new hire missing from the Closer field dropdown means:",
+    "opts": [
+     "A caching bug",
+     "Their User account doesn't exist yet — create it, then reopen the form",
+     "Wrong browser",
+     "License limit"
+    ],
+    "ans": 1,
+    "why": "The most common closer-setup confusion.",
+    "src": "L1"
+   },
+   {
+    "q": "One person may have:",
+    "opts": [
+     "Several closers across brands",
+     "Exactly one user and one closer — Brand is multi-select on the single record; duplicates get disabled/merged",
+     "Two if a supervisor",
+     "Unlimited"
+    ],
+    "ans": 1,
+    "why": "One person = one user = one closer.",
+    "src": "L1, L2"
+   },
+   {
+    "q": "Closer records are named:",
+    "opts": [
+     "By full name",
+     "Automatically as CRM-CS-######",
+     "By email",
+     "Manually"
+    ],
+    "ans": 1,
+    "why": "Auto-naming on save.",
+    "src": "L1, L3"
+   },
+   {
+    "q": "The Follow-Up Team Member flag:",
+    "opts": [
+     "Enables shifts",
+     "Lets the closer claim and convert orders from the follow-up pool",
+     "Makes them a manager",
+     "Doubles capacity"
+    ],
+    "ans": 1,
+    "why": "Verbatim help-text behaviour.",
+    "src": "L2"
+   },
+   {
+    "q": "Always Available (ignore shifts) is meant for:",
+    "opts": [
+     "Everyone",
+     "Supervisors / overflow closers — and as the migration default during rollout",
+     "New hires",
+     "Part-timers"
+    ],
+    "ans": 1,
+    "why": "Leads at all times regardless of schedule.",
+    "src": "L2, L5"
+   },
+   {
+    "q": "The Reporting Chain (Brand/Team/Cluster Manager) is:",
+    "opts": [
+     "Typed manually",
+     "Read-only, auto-derived by walking up Reports To — fixed by correcting manager links, never by editing chain fields",
+     "Optional",
+     "Set by HR"
+    ],
+    "ans": 1,
+    "why": "Computed, by design.",
+    "src": "L2, L4"
+   },
+   {
+    "q": "Brand on a closer is:",
+    "opts": [
+     "Single-select",
+     "Multi-select — a closer can serve several brands; placement gates which leads can reach them",
+     "Read-only",
+     "Derived"
+    ],
+    "ans": 1,
+    "why": "Placement determines flow.",
+    "src": "L2"
+   },
+   {
+    "q": "Current Assignment:",
+    "opts": [
+     "Is set at creation",
+     "Is a read-only live counter maintained by the system — load is managed via Max Assignment",
+     "Resets weekly",
+     "Is editable by admins"
+    ],
+    "ans": 1,
+    "why": "The can't-edit 'bug' that isn't.",
+    "src": "L2, L4"
+   },
+   {
+    "q": "Onboarding six closers with identical placement, the manual's trick:",
+    "opts": [
+     "A CSV import",
+     "Build the first fully, duplicate it, change only user, name, and phone per person",
+     "A script",
+     "One shared record"
+    ],
+    "ans": 1,
+    "why": "The template-duplicate recipe.",
+    "src": "L3"
+   },
+   {
+    "q": "An overflow supervisor's spec:",
+    "opts": [
+     "All flags off",
+     "Always Available ON, Follow-Up Team Member ON, higher Max Assignment",
+     "Disabled",
+     "No categories"
+    ],
+    "ans": 1,
+    "why": "The worked recipe, field by field.",
+    "src": "L3"
+   },
+   {
+    "q": "Offboarding a departed closer:",
+    "opts": [
+     "Delete the record",
+     "Untick Enabled and save — deletion can orphan their leads, orders, and reports; also re-point their reportees",
+     "Rename it",
+     "Zero the capacity"
+    ],
+    "ans": 1,
+    "why": "Disable-don't-delete is doctrine.",
+    "src": "L3, L4"
+   },
+   {
+    "q": "'Chidi gets no auto-assigned leads' — the four-point check:",
+    "opts": [
+     "Restart the server",
+     "Enabled ON → Brand/Branch/Category match → on shift or Always Available → Max Assignment not reached",
+     "Check his phone",
+     "Recreate the record"
+    ],
+    "ans": 1,
+    "why": "The module's most valuable diagnostic, run in order.",
+    "src": "L4"
+   },
+   {
+    "q": "Raising a closer's Max Assignment takes effect:",
+    "opts": [
+     "Next day",
+     "Immediately after saving — the engine respects the new cap at once",
+     "After re-login",
+     "Monthly"
+    ],
+    "ans": 1,
+    "why": "Live rebalancing lever.",
+    "src": "L4"
+   },
+   {
+    "q": "Shift Management is:",
+    "opts": [
+     "On by default",
+     "Off by default — a master switch; enabling changes behaviour, disabling fully restores it",
+     "Mandatory",
+     "Per-brand"
+    ],
+    "ans": 1,
+    "why": "Nothing changes until a manager turns it on.",
+    "src": "L5"
+   },
+   {
+    "q": "Closer availability under shifts is determined by:",
+    "opts": [
+     "Clock-in",
+     "The schedule — on shift when current time falls inside an assigned shift; there is no clock-in",
+     "GPS",
+     "Manager marking"
+    ],
+    "ans": 1,
+    "why": "Schedule-based by design.",
+    "src": "L5"
+   },
+   {
+    "q": "A 3am lead with nobody on shift:",
+    "opts": [
+     "Is discarded",
+     "Waits as New Lead; the catch-up job re-checks ~every ten minutes and assigns when a shift starts",
+     "Goes to the MD",
+     "Auto-cancels"
+    ],
+    "ans": 1,
+    "why": "No lead is ever lost.",
+    "src": "L5"
+   },
+   {
+    "q": "A 22:00–06:00 shift:",
+    "opts": [
+     "Is invalid",
+     "Spans midnight into the next morning — end-before-start is the overnight pattern",
+     "Runs 22:00–23:59 only",
+     "Needs two templates"
+    ],
+    "ans": 1,
+    "why": "Overnight handling is explicit.",
+    "src": "L5"
+   },
+   {
+    "q": "The daily assignment limit resets:",
+    "opts": [
+     "At shift end",
+     "At midnight server time, independently of shifts — an overnight closer gets a fresh allowance mid-shift",
+     "Weekly",
+     "Never"
+    ],
+    "ans": 1,
+    "why": "Per-shift caps are a listed future enhancement.",
+    "src": "L5"
+   },
+   {
+    "q": "Online store orders under shifts:",
+    "opts": [
+     "Wait like leads",
+     "Are never held — routed as before; a paid order never waits on a schedule",
+     "Go to supervisors",
+     "Are disabled"
+    ],
+    "ans": 1,
+    "why": "The paid-order exemption.",
+    "src": "L5"
+   },
+   {
+    "q": "Manual assignment when shifts are on:",
+    "opts": [
+     "Blocked to on-shift closers",
+     "Always works — the list marks and front-sorts on-shift people as a hint, but anyone is choosable",
+     "Requires override codes",
+     "Is disabled"
+    ],
+    "ans": 1,
+    "why": "Shifts constrain the robot, never the manager.",
+    "src": "L5, L6"
+   },
+   {
+    "q": "An ongoing shift assignment is created by:",
+    "opts": [
+     "Ticking 'forever'",
+     "Leaving the to-date blank",
+     "Setting to-date = 2099",
+     "Monthly renewal"
+    ],
+    "ans": 1,
+    "why": "Blank to-date = ongoing.",
+    "src": "L6"
+   },
+   {
+    "q": "A green dot beside a closer on the coverage grid means:",
+    "opts": [
+     "Enabled",
+     "On shift right now",
+     "Top performer",
+     "Online in the app"
+    ],
+    "ans": 1,
+    "why": "The live-coverage indicator.",
+    "src": "L6"
+   },
+   {
+    "q": "In the acceptance test, after re-assigning a closer to an active shift, the waiting lead:",
+    "opts": [
+     "Needs manual pickup",
+     "Is picked up automatically within about ten minutes",
+     "Is lost",
+     "Emails a manager"
+    ],
+    "ans": 1,
+    "why": "The catch-up job proving itself.",
+    "src": "L6"
+   },
+   {
+    "q": "The recommended rollout strategy:",
+    "opts": [
+     "Big-bang schedules day one",
+     "Everyone Always Available first, then remove the flag person by person as real shifts are added",
+     "Pilot one closer",
+     "Weekends only"
+    ],
+    "ans": 1,
+    "why": "Nothing breaks on day one; the schedule tightens gradually.",
+    "src": "L6"
+   },
+   {
+    "q": "Retiring a shift template correctly:",
+    "opts": [
+     "Delete it",
+     "Disable it — removed from scheduling, history kept; likewise cancel (not delete) assignments for audit",
+     "Rename it 'OLD'",
+     "Zero its hours"
+    ],
+    "ans": 1,
+    "why": "History-preserving housekeeping.",
+    "src": "L6"
+   },
+   {
+    "q": "Shifts' effect on work already in a closer's hands at shift end:",
+    "opts": [
+     "Auto-hands off",
+     "None — shifts affect new leads only; in-progress work stays with them (hand-off is a not-yet item)",
+     "Pauses it",
+     "Reassigns to supervisors"
+    ],
+    "ans": 1,
+    "why": "One of the four boundaries to state before clients ask.",
+    "src": "L6"
+   }
+  ]
+ }
+}
