@@ -279,6 +279,10 @@ def scheduled_open_period():
 		frappe.log_error(frappe.get_traceback(), "accounting sync")
 	_open_period(today()[:7])
 	_spawn_period_requests(today()[:7])
+	try:
+		_register_review_nudge()
+	except Exception:
+		frappe.log_error(frappe.get_traceback(), "access register nudge")
 
 
 @frappe.whitelist()
@@ -1146,16 +1150,26 @@ def books_client_chase():
 			if (r.due_date and getdate(r.due_date) <= tdy or _working_days_between(getdate(r.creation), tdy) >= CHASE_EVERY_WD)
 			and _working_days_between(getdate(r.last_reminded or r.creation), tdy) >= CHASE_EVERY_WD
 		]
-		if not due_q and not due_r:
+		due_i = _overdue_service_invoices(room.customer, tdy)
+		if not due_q and not due_r and not due_i:
 			continue
 		bits = []
 		if due_q:
 			bits.append(_("{0} question(s)").format(len(due_q)))
 		if due_r:
 			bits.append(_("{0} document(s)").format(len(due_r)))
+		msg = ""
+		if due_q or due_r:
+			msg = _("🔔 Gentle reminder: {0} from your accounting team are awaiting your response — see the portal home.").format(" and ".join(bits))
+		if due_i:
+			inv_line = _("💳 A kind reminder on your accounting service invoice{0}: {1} — we appreciate your prompt settlement.").format(
+				"s" if len(due_i) > 1 else "",
+				"; ".join([_("{0} (₦{1}, due {2})").format(x.name, f"{flt(x.outstanding_amount):,.0f}", frappe.utils.formatdate(x.due_date, "d MMM")) for x in due_i]),
+			)
+			msg = (msg + "\n" + inv_line) if msg else inv_line
 		try:
 			roomdoc = frappe.get_doc("Client Room", room.name)
-			_post(roomdoc, _("🔔 Gentle reminder: {0} from your accounting team are awaiting your response — see the portal home.").format(" and ".join(bits)))
+			_post(roomdoc, msg)
 			for x in due_q:
 				frappe.db.set_value("Duty Books Query", x.name, "last_reminded", today(), update_modified=False)
 			for x in due_r:
@@ -1998,3 +2012,90 @@ def books_playbook_set(room, playbook):
 	frappe.db.set_value("Client Room", room, "playbook", (playbook or "").strip()[:10000] or None, update_modified=False)
 	frappe.db.commit()
 	return {"ok": True}
+
+
+PAY_REMIND_EVERY_WD = 3
+
+
+def _overdue_service_invoices(customer, tdy):
+	"""Submitted service invoices (auto-marker) past due with balance, reminded
+	on working-day-overdue 1, then every PAY_REMIND_EVERY_WD."""
+	if not customer:
+		return []
+	out = []
+	for si in frappe.get_all(
+		"Sales Invoice",
+		filters={
+			"customer": customer,
+			"docstatus": 1,
+			"outstanding_amount": [">", 0],
+			"due_date": ["<", str(tdy)],
+			"remarks": ["like", "%BOOKS-AUTO-%"],
+		},
+		fields=["name", "outstanding_amount", "due_date"],
+	):
+		wd = _working_days_between(getdate(si.due_date), tdy)
+		if wd >= 1 and (wd - 1) % PAY_REMIND_EVERY_WD == 0:
+			out.append(si)
+	return out
+
+
+# ---------------- access register: quarterly review nudge ----------------
+
+REGISTER_REVIEW_DAYS = 90
+
+
+def _register_review_nudge():
+	"""First working day of Jan/Apr/Jul/Oct: tell books managers which active
+	access entries haven't been reviewed in REGISTER_REVIEW_DAYS."""
+	tdy = getdate(today())
+	if tdy.month not in (1, 4, 7, 10):
+		return
+	if str(_nth_working_day(tdy.year, tdy.month, 1)) != str(tdy):
+		return
+	stale = frappe.get_all(
+		"Duty Access Register",
+		filters={"active": 1},
+		fields=["name", "customer", "access_type", "detail", "granted_on", "last_reviewed"],
+	)
+	stale = [
+		s for s in stale
+		if not s.last_reviewed or (tdy - getdate(s.last_reviewed)).days > REGISTER_REVIEW_DAYS
+	]
+	if not stale:
+		return
+	lines = [
+		f"• {s.customer or '—'} · {s.access_type or ''} {('· ' + s.detail) if s.detail else ''} (last reviewed: {s.last_reviewed or 'never'})"
+		for s in stale[:30]
+	]
+	body = (
+		_("Quarterly access review: {0} active register entr{1} unreviewed for {2}+ days.").format(
+			len(stale), "y is" if len(stale) == 1 else "ies are", REGISTER_REVIEW_DAYS
+		)
+		+ "\n" + "\n".join(lines)
+		+ "\n" + _("Review each and stamp Last Reviewed in the Duty Access Register.")
+	)
+	from duty_board.api import _notify_user
+
+	for u in _books_manager_users():
+		_notify_user(u, "🔐 " + _("Quarterly access review due"), body)
+
+
+def _books_manager_users():
+	users = set()
+	try:
+		csv = (frappe.get_cached_doc("Duty Settings").get("books_managers") or "").strip()
+		users.update({u.strip() for u in csv.split(",") if u.strip()})
+	except Exception:
+		pass
+	if not users:
+		users.update(
+			frappe.get_all(
+				"Has Role",
+				filters={"role": "System Manager", "parenttype": "User"},
+				pluck="parent",
+			)
+		)
+		users.discard("Administrator")
+		users.discard("Guest")
+	return users
