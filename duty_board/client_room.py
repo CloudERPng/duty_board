@@ -3041,6 +3041,76 @@ def training_assign_staff(module, user):
 	return my_training()
 
 
+@frappe.whitelist()
+def staff_tracks():
+	"""Consultant-audience certification tracks, for the assign dialog."""
+	_staff_only()
+	out = []
+	for t in frappe.get_all(
+		"Duty Certification Track",
+		filters={"active": 1, "audience": "Consultant"},
+		fields=["name", "title", "product"],
+		order_by="product asc, title asc",
+	):
+		mods = frappe.get_all(
+			"Duty Certification Track Module", filters={"parent": t.name}, pluck="module", order_by="idx asc"
+		)
+		if mods:
+			out.append({"name": t.name, "title": t.title, "product": t.product, "module_count": len(mods)})
+	return out
+
+
+@frappe.whitelist()
+def training_assign_track(track, user):
+	"""Assign every module of a consultant track to a staff member at once.
+	Existing assignments are kept, not duplicated; one notification total."""
+	_staff_only()
+	if frappe.db.get_value("User", user, "user_type") != "System User":
+		frappe.throw(_("Consultant training is for staff accounts."))
+	t = frappe.db.get_value(
+		"Duty Certification Track", track, ["title", "audience", "active"], as_dict=True
+	)
+	if not t or not cint(t.active) or t.audience != "Consultant":
+		frappe.throw(_("Not found."))
+	mods = frappe.get_all(
+		"Duty Certification Track Module", filters={"parent": track}, pluck="module", order_by="idx asc"
+	)
+	created, existing = 0, 0
+	for m in mods:
+		aud = frappe.db.get_value("Duty Training Module", m, "audience")
+		if aud not in ("Consultant", "Both"):
+			continue
+		if frappe.db.exists(
+			"Duty Training Record", {"module": m, "trainee": user, "room": ["is", "not set"]}
+		):
+			existing += 1
+			continue
+		frappe.get_doc(
+			{
+				"doctype": "Duty Training Record",
+				"module": m,
+				"trainee": user,
+				"trainee_name": frappe.utils.get_fullname(user),
+				"status": "Assigned",
+				"trained_by": frappe.session.user,
+			}
+		).insert(ignore_permissions=True)
+		created += 1
+	frappe.db.commit()
+	if created:
+		try:
+			from duty_board.api import _notify_user
+
+			_notify_user(
+				user,
+				_("🎓 New training · Xlevel"),
+				_("{0} — {1} course(s) assigned").format(t.title, created),
+			)
+		except Exception:
+			pass
+	return {"created": created, "existing": existing, "records": my_training()}
+
+
 def _my_staff_record(module):
 	rec = frappe.db.get_value(
 		"Duty Training Record",

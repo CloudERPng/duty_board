@@ -1917,35 +1917,71 @@ class DutyBoard {
 						return frappe.msgprint(
 							__("No consultant-facing courses yet. Create a Duty Training Module with audience Consultant or Both, and add its Duty Lessons in the desk.")
 						);
-					frappe.prompt(
-						[
-							{
-								fieldname: "module",
-								fieldtype: "Select",
-								label: __("Course"),
-								options: mods.map((m) => ({ value: m.name, label: `${m.title}${m.product ? " · " + m.product : ""}` })),
-								reqd: 1,
-							},
-							{
-								fieldname: "user",
-								fieldtype: "Autocomplete",
-								label: __("Consultant"),
-								options: this.staff_options(),
-								reqd: 1,
-							},
-						],
-						(v) =>
-							frappe.call({
-								method: "duty_board.client_room.training_assign_staff",
-								args: { module: v.module, user: v.user },
-								callback: (rr) => {
-									frappe.show_alert({ message: __("🎓 Assigned."), indicator: "green" });
-									if (v.user === frappe.session.user && rr.message) this.render_my_training(rr.message);
+					frappe.call({
+						method: "duty_board.client_room.staff_tracks",
+						callback: (tr) => {
+							const tracks = tr.message || [];
+							frappe.prompt(
+								[
+									{
+										fieldname: "track",
+										fieldtype: "Select",
+										label: __("Whole track (assigns every course in it)"),
+										options: [{ value: "", label: __("— single course instead —") }].concat(
+											tracks.map((t) => ({
+												value: t.name,
+												label: `🎓 ${t.title} (${t.module_count} ${__("courses")})${t.product ? " · " + t.product : ""}`,
+											}))
+										),
+									},
+									{
+										fieldname: "module",
+										fieldtype: "Select",
+										label: __("Single course"),
+										options: [{ value: "", label: "" }].concat(
+											mods.map((m) => ({ value: m.name, label: `${m.title}${m.product ? " · " + m.product : ""}` }))
+										),
+									},
+									{
+										fieldname: "user",
+										fieldtype: "Autocomplete",
+										label: __("Consultant"),
+										options: this.staff_options(),
+										reqd: 1,
+									},
+								],
+								(v) => {
+									if (!v.track && !v.module)
+										return frappe.msgprint(__("Pick a whole track or a single course."));
+									if (v.track) {
+										frappe.call({
+											method: "duty_board.client_room.training_assign_track",
+											args: { track: v.track, user: v.user },
+											callback: (rr) => {
+												const m = rr.message || {};
+												frappe.show_alert({
+													message: __("🎓 Track assigned: {0} new, {1} already had.", [m.created || 0, m.existing || 0]),
+													indicator: "green",
+												});
+												if (v.user === frappe.session.user && m.records) this.render_my_training(m.records);
+											},
+										});
+									} else {
+										frappe.call({
+											method: "duty_board.client_room.training_assign_staff",
+											args: { module: v.module, user: v.user },
+											callback: (rr) => {
+												frappe.show_alert({ message: __("🎓 Assigned."), indicator: "green" });
+												if (v.user === frappe.session.user && rr.message) this.render_my_training(rr.message);
+											},
+										});
+									}
 								},
-							}),
-						__("Assign consultant training"),
-						__("Assign")
-					);
+								__("Assign consultant training"),
+								__("Assign")
+							);
+						},
+					});
 				},
 			})
 		);
