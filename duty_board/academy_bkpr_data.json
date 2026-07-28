@@ -1442,5 +1442,466 @@
     "src": "L5"
    }
   ]
+ },
+ "face": {
+  "title": "Bookkeeper — The Books Face — Screen by Screen",
+  "desc": "Every tab of 📒 Books, button by button: the header and periods, Matrix, My round, Register, Follow-ups, Onboarding — and the manager tabs (Profitability, Billing, KPIs) so you know what the numbers you generate become.",
+  "lessons": [
+   {
+    "title": "Getting in, the header, and what a period is",
+    "est": 6,
+    "html": "<p><b>Where the face lives.</b> On desktop, open Duty Board and click <b>📒 Books</b> in the face navigation. On a phone, it is the <b>📒 tab</b> in the bottom tab bar. You will see the face only if you are one of: a bookkeeper assigned to at least one accounting client, a books manager, or a System Manager. If you believe you should see it and don't, your name isn't set as any client's bookkeeper yet — that is a one-click fix by whoever manages the matrix (Lesson 2), not a bug.</p>\n<p><b>Where you land.</b> Bookkeepers land on <b>My round</b>; managers land on <b>Matrix</b>. The tab strip across the top reads: Matrix · My round · Register · Follow-ups · Onboarding — and, for managers only: ₦ Profitability · 💰 Billing · 📈 KPIs. If you don't see the last three, you are not missing anything broken; they are gated.</p>\n<p><b>The period selector.</b> In the header sits <b>‹ 2026-07 ›</b> — a month, in YYYY-MM form. This is the single most important control on the face: <b>every tab obeys it simultaneously</b>. Set it to June and the Matrix shows June's deliverables, the Register shows June's grid, Billing shows June's invoice run. You never set it per-tab. Investigating last month means clicking ‹ once, doing all your looking, then clicking › back. Forgetting you're parked on an old month is the #1 cause of \"the board looks wrong\" — check the selector before you panic.</p>\n<p><b>The pulse strip.</b> Under the header: <b>clients · done/total · late · neglected · 📨 (open questions/requests)</b> — and for managers, the month's fee total and <b>unpaid</b>. Read it left to right as triage: <i>neglected</i> first (a client nobody is touching), <i>late</i> second (a promise already broken), 📨 third (clients waiting on us). The done-count is yesterday's news; it needs no action.</p>\n<p><b>What a period actually is, and how it opens.</b> A period is one calendar month of obligations. When a period \"opens\", the system creates that month's deliverables for every client — the core set (bank journals, reconciliation, financial statements) plus whatever optional items each client's tier ticks (statutory, stock take in Mar/Jun/Sep/Dec only) — each pre-assigned to the client's default bookkeeper, each with its computed due date. It also spawns the month's standard document requests (bank statements etc.) to every client. <b>You never create the month's work; you inherit it.</b></p>\n<p>Opening happens <b>automatically, every day</b>: a scheduled job syncs any newly on-boarded customers and opens the current month — running daily makes it self-healing, so a client on-boarded on the 14th gets their July deliverables that same night. There are also two manual buttons on the Matrix, for staff, for the moments you can't wait for tonight: <b>Sync clients</b> (pull newly On-Board customers into rooms right now) and <b>Open period</b> (create any missing deliverables for the selected period right now). Both are <b>idempotent</b> — clicking them twice, or clicking them after the nightly job already ran, creates nothing twice, ever. So the rule is simple: mid-month new client, or a cell you expected is missing? Click Sync clients, then Open period, and the matrix fills in. Nothing bad can happen from these buttons.</p>\n<blockquote><b>DRILL:</b> It's 2 August. The matrix looks strangely finished and Billing shows nothing generated. Before reporting a bug — what do you check? The period selector: you are almost certainly still parked on July. Click › to August; the fresh month's pending cells appear. If August shows NO cells at all, the nightly open hasn't run yet — click Open period and watch them spawn.</blockquote>"
+   },
+   {
+    "title": "The Matrix — reading it, and the two dialogs behind it",
+    "est": 8,
+    "html": "<p>The Matrix is the unit's scoreboard: <b>one row per client, one column per deliverable type, one period at a time.</b> Proficiency means reading any cell in under a second and knowing exactly what clicking anything does.</p>\n<p><b>The client column</b> (leftmost) carries four things per row: the client's <b>name</b>; the <b>📮 chip</b> — \"posted thru 24-07 · lag 2wd\", colored green (lag ≤1 working day), amber (≤3), or red (beyond), or \"no attestation\" grey if the round has never been run for them; the <b>bookkeeper's first name</b> as a link (or \"— set\" if unassigned); and the <b>📖</b> playbook icon. Managers additionally see the monthly fee here; bookkeepers don't — deliberately.</p>\n<p><b>Clicking the bookkeeper name opens Client setup</b> — the dialog that defines the engagement: <b>Bookkeeper (default owner)</b> — who inherits every new deliverable for this client; and <b>Service tier — optional deliverables this client pays for</b> — a set of checkboxes (PAYE, VAT, WHT, Stock take…). Ticking a tier item means future periods spawn it; unticked means the column shows \"—\" for this client and it is <b>not our obligation</b>. Change either, Save, and the change applies from the next spawn — existing cells keep their current assignee until you change them individually.</p>\n<p><b>Clicking 📖 opens the playbook</b> — a monospace editor pre-loaded (first time) with four headings: banks &amp; statements, key contacts, month peculiarities, access notes. Read it before your first day on any client; update it the day you learn anything a covering colleague would need; Save. Every unit member can read every playbook — that is its entire purpose.</p>\n<p><b>The deliverable cells</b>, glyph by glyph: <b>·</b> Pending (spawned, untouched) · <b>◐</b> In progress · <b>👁</b> In review (sitting with the reviewer) · <b>✓</b> Delivered · <b>✓✓</b> Acknowledged by client · a <b>red cell with ⚠</b> is past its due date without Delivered — visible to everyone, counted in the pulse, named in the digest. Under each glyph sits the computed due date. Two special marks: <b>↻ Sep</b> in a quarterly column means subscribed-but-dormant (next live in September); <b>—</b> means not in this client's tier at all. Never confuse those two.</p>\n<p><b>Clicking any cell opens the deliverable dialog</b>, prefilled with current values:</p>\n<ol>\n<li><b>The checklist</b> (financial statements carry one; statutory items don't, by design): tick items as you verify them — each tick stamps your name and time permanently, and the progress bar updates. A tick is a signed statement that you <i>checked</i> that thing this month.</li>\n<li><b>Status</b> — Pending → In Progress → (In Review) → Delivered. Setting <b>In Review</b> pushes a 👁 notification to the reviewer. Setting <b>Delivered</b>: if a Reviewer is named on the cell, <b>only that reviewer (or a System Manager) can select it</b> — anyone else is refused by name. Delivered fires the ceremony: the client's room announces the deliverable, and their portal shows the 📬 Confirm-receipt card. If checklist items are still open, you'll be asked \"deliver anyway?\" — allowed, but the unticked items stay visible forever, so justify any override in Notes.</li>\n<li><b>Assigned to</b> — reassignable per cell (coverage, load-balancing) without touching the client's default.</li>\n<li><b>Reviewer (split clients)</b> — naming one arms the review gate on this cell.</li>\n<li><b>Notes</b> — flux sentences, doubts flagged for the reviewer, override justifications. Write here as if the reader is a stranger in six months, because eventually they will be.</li>\n</ol>\n<p><b>✓✓ can never be set by staff.</b> Acknowledged exists only when the client themselves taps Confirm receipt — which is exactly what makes it proof of delivery.</p>\n<blockquote><b>DRILL:</b> A cell shows 👁 and the due date is tomorrow. What do you (the preparer) do — and not do? Do: nothing to the cell; nudge the reviewer directly if the push hasn't moved them, and escalate to a manager early tomorrow if needed. Don't: change Status yourself, and never remove the Reviewer to free the Delivered option — that edit is logged and reads exactly as it is.</blockquote>"
+   },
+   {
+    "title": "My round — the daily attestation, field by field",
+    "est": 6,
+    "html": "<p>Once per working day, for each of your clients, you record where their books stand. The tab shows <b>one card per client assigned to you</b> (if it says \"No accounting clients assigned to you\", the Matrix's Client setup hasn't named you yet).</p>\n<p><b>Reading a card before you touch it:</b> the client's name; a <b>● or ○</b> — ● means a Work Session tagged to this customer exists today (you visibly worked them), ○ means none yet; a green <b>✓ attested</b> once you've saved today's entry; and on the right, the current claim — \"posted thru 2026-07-24 · lag 2wd\" in the same green/amber/red as the matrix chip, or \"no attestation yet\".</p>\n<p><b>The four fields and the save:</b></p>\n<ol>\n<li><b>The date picker</b> — the posted-through date: the latest date for which <i>every transaction dated up to and including it is in the client's ledger</i>. The picker physically stops at today, and the server refuses future dates independently — you cannot have posted tomorrow's transactions. If you posted through Wednesday and it's Thursday, you enter <b>Wednesday</b>: the lag chip may show amber, and that is fine. <b>The chip is allowed to be amber; the attestation is not allowed to be false.</b></li>\n<li><b>tx posted</b> — roughly how many transactions you posted today. An estimate is fine; it gives the digest texture.</li>\n<li><b>queries</b> — how many client questions you raised today. This field exists to remind you that raising queries the day you hit them is part of the day's work, not month-end's.</li>\n<li><b>note (optional)</b> — one line of context: \"creditor analysis for MD; postings current to 14-07\", \"6 late-arriving 21-07 tx posted on receipt of statement page\". Use it especially on days when the date <i>doesn't move</i> — an unchanged date with a note is honest; a skipped attestation is a hole.</li>\n</ol>\n<p>Press <b>💾</b>. You'll see the green \"Attested\" toast, the card gains ✓ attested, and the header pulse refreshes. Saving again the same day <b>updates</b> today's entry — posted further this afternoon? Re-attest with the later date; no duplicate is created.</p>\n<p><b>The three commandments of the round:</b> (1) run it for <b>every</b> client, <b>every</b> working day — including clients you didn't touch (their card simply keeps yesterday's date; the Register still needs the honesty of the gap, and Lesson 4 shows what two silent days look like); actually no — precisely: attest the clients you worked; the ones you didn't touch stay silent and the Register records that truthfully. What you never do is skip attesting a client you DID work. (2) Fixed time daily — 16:30 is a good ritual; a round run \"when I remember\" is a round not run. (3) The date is a claim with your name on it, forever. Nothing on this board matters more than that claim staying true.</p>\n<blockquote><b>DRILL:</b> Your card shows ○ (no session today) but you spent two hours on this client this morning. What went wrong, and why does it matter? You forgot to clock a Work Session tagged to the customer — so the Register will show ◔ (claim without visible presence) when you attest, profitability undercounts the engagement's hours, and capacity thinks you're free. Clock the session (even now), then attest. Untagged work might as well not have happened.</blockquote>"
+   },
+   {
+    "title": "The Register and the digest — how the unit sees itself",
+    "est": 5,
+    "html": "<p><b>🗓 Register</b> renders the selected month as a grid: <b>one row per client, one column per working day</b> (weekends and non-workdays simply absent). Each cell is one of four marks:</p>\n<ol>\n<li><b>●</b> — a customer-tagged Work Session exists that day <b>and</b> an attestation was saved. The complete day.</li>\n<li><b>◐</b> — worked (session exists) but no attestation. You did the job and skipped the ritual — finish it; today's entry can still be saved today.</li>\n<li><b>◔</b> — attested but no session. A claim with no visible presence behind it. Occasionally legitimate (you attested an unchanged date on a no-work day with a note); as a pattern, it invites exactly the question you'd expect.</li>\n<li><b>·</b> — untouched: no session, no attestation.</li>\n</ol>\n<p><b>The neglect rule:</b> a client with <b>2 or more consecutive silent working days</b> (no session, no attestation) turns the whole row red and shows the streak — \"3wd\" — beside the client's name. Nothing else happens automatically: no reassignment, no lock, no manager alarm. What happens instead is the digest.</p>\n<p><b>The 18:00 digest</b>, every working day, lands with <b>every bookkeeper and every books manager</b> — the same message for all: which clients were covered today (and by whom), which were partial (◐/◔), which untouched, <b>which are neglected with their streaks and names</b>, plus what's currently awaiting clients (open questions/documents). Read yours daily even when your rows are clean — it is how you know when a colleague needs cover before anyone has to ask.</p>\n<p><b>What this system is and isn't:</b> it is deliberate peer visibility — the theory is that a small professional unit keeps itself honest when everyone sees everything, so there is no escalation machinery hiding behind it. It is not surveillance: nobody is timing your keystrokes; the only thing measured is whether each client's books have a visible, attested heartbeat. Keep the heartbeat and the Register never thinks about you.</p>\n<blockquote><b>DRILL:</b> Thursday's digest shows Cascade at \"2wd\" under your name — you were consumed by a Bellamy fire Tuesday–Wednesday. What's the recovery, precisely? Thursday: clock a Cascade session, clear the backlog to wherever is TRUE (maybe only through Tuesday), attest that true date with a note. The streak clears; the lag chip may sit amber a day; the scar in the Register stays, honestly, and that's fine. What you don't do: attest \"through Thursday\" to make it all look green — the register would show ● but the claim would be false, and false is the one thing this board cannot absorb.</blockquote>"
+   },
+   {
+    "title": "Follow-ups — questions, documents, and everything the system chases for you",
+    "est": 7,
+    "html": "<p><b>📨 Follow-ups</b> is where you turn \"I can't post this\" and \"I don't have that\" into structured items the system tracks, chases, and files. The tab has a client filter (<b>All clients</b> dropdown — narrow it when working one client), two creation buttons, three lists.</p>\n<p><b>➕ New question</b> — for a transaction you can't classify. Fields: the client, the transaction <b>date</b>, the <b>amount</b>, the <b>reference</b> (the statement narration — \"CHQ 000451 MUSA ENT\"), and your <b>question</b>, phrased help-shaped: \"Could you help us place this cheque to Musa Ent on the 9th?\" On save, two things happen at once: an <b>amber card</b> appears on the client's portal home with an inline answer box, and an <b>email</b> goes to the client from the books mailbox. <b>The client can answer either way</b> — typing in the card, or simply replying to the email; a reply is captured, the quoted chain trimmed, and filed as the answer with their name on it. You do not care which path they choose; both land identically.</p>\n<p><b>➕ New request</b> — for a document you need. Fields: client, <b>title</b> (\"June GTB statement, pages 3–4\"), <b>due date</b>. The client sees a <b>green upload card</b> and gets the email; they fulfil by portal upload <b>or</b> by replying with the file attached — either way the file lands automatically in their Document Hub under <b>\"Accounting — received\"</b>, the request closes itself, and the room announces it. Note also: the standard monthly set (bank statements and whatever else is configured) is <b>raised automatically for every client when the period opens</b> — you only create requests for the ad-hoc extras.</p>\n<p><b>The Questions list</b> shows each item with its age in working days: <b>open</b> (amber — waiting on the client) or <b>answered</b> (green — the client has responded; their answer text is right there). Your move on green: act on the answer in the ledger (repost the suspense to its true account), then press <b>Resolve</b>. Open → Answered → Resolved is the full life; a query left at Answered is work you've forgotten, and Lesson M2b calls an Answered-unresolved item at close what it is — a landmine with a polite label.</p>\n<p><b>The Document requests list</b>: outstanding items with due dates (overdue in red). <b>Waive</b> is for requests genuinely no longer needed (the client sent it inside another file; the month closed without it mattering) — waiving records that decision rather than leaving a phantom chase running.</p>\n<p><b>📥 Recently received</b>: the latest documents clients have sent, newest first, each with an <b>Open</b> link — check it each morning; it is faster than asking \"did they send it yet\".</p>\n<p><b>The chase you never send:</b> every working morning at 9:30, any client with items stale 2+ working days (or requests past due) gets <b>one</b> gentle reminder in their room — one per client per day maximum, no matter how many items wait, and (since v2.94) the same single message also carries any overdue service-invoice reminder. Your persistence is automated, bounded, and polite; your job is only to <b>raise items the day you hit them</b> so the machine has something to chase early instead of everything to chase late.</p>\n<blockquote><b>DRILL:</b> Monday: you raise a question on a ₦150,000 unknown credit. Wednesday 9:30 passes. What has the client experienced, in order — and what have you had to remember? Monday: amber card + email. Wednesday morning: one room reminder (2wd stale). You have had to remember: nothing. Thursday the client replies to the email; the question turns green in your list with their answer attached; you repost Suspense → the true account and press Resolve. Total items tracked in your head across four days: zero.</blockquote>"
+   },
+   {
+    "title": "Onboarding — bringing a new client live",
+    "est": 4,
+    "html": "<p>When a new customer is marked On Board and the sync creates their room, the system also spawns their <b>onboarding runbook</b> — the step list that takes them from \"signed\" to \"first month running\". The <b>🚀 Onboarding</b> tab shows every client currently mid-runbook; clients with no started steps show <b>Not started</b> with a <b>Start onboarding</b> button.</p>\n<p><b>The steps</b> come from the configured template (or the 9-step default): the kickoff call, bank read-only access obtained <b>and registered in the Access Register</b>, ERP roles confirmed, opening balances agreed, the playbook's first draft written, the standard monthly requests explained to the client, the first period opened, tier confirmed against the signed engagement, and the welcome message in the room. Each step is a checkbox: <b>tick it when it is actually done</b> — every tick stamps your name and time, and the client's progress bar advances. The ticks are the audit trail of how the engagement began; eighteen months later, \"who obtained bank access and when\" is a lookup, not an archaeology dig.</p>\n<p><b>The final tick narrates</b> — the room announces onboarding complete, which the client sees. From that moment the client is simply a normal row on the Matrix with a normal monthly rhythm.</p>\n<p><b>Two disciplines while onboarding:</b> first, the access steps and the register are one motion — access obtained but unregistered is an audit finding waiting to happen (and the quarterly review will surface it). Second, the playbook step is not a formality: the person onboarding a client knows things — statement quirks discovered on the kickoff call, who the real decision-maker is — that will cost the next person days to rediscover. Write them down while they're cheap.</p>\n<blockquote><b>DRILL:</b> A new client's runbook shows 7/9 with \"bank access registered\" unticked, but you know access was obtained — you've been posting from their statements for a week. What's actually wrong, and what do you do? The access exists but was never entered in the Duty Access Register — the tick is unticked because the REGISTRATION is genuinely undone. Create the register entry (type, detail, granted date), then tick the step. The step was telling the truth; listen to it.</blockquote>"
+   },
+   {
+    "title": "Profitability (₦) — what managers see about each engagement",
+    "est": 4,
+    "html": "<p>The last three tabs are <b>manager-gated</b>: ₦ Profitability, 💰 Billing, 📈 KPIs. You may not see them today — this lesson and the next two exist so you understand what your daily discipline turns into, because <b>every number on these screens is built from what bookkeepers record</b>, and some of you will hold the manager view sooner than you think.</p>\n<p><b>What the tab shows:</b> one row per client for the selected period: the monthly <b>fee</b> (from the customer record), the <b>hours</b> of customer-tagged Work Sessions logged against them that month, and the division — the <b>effective hourly rate, ₦/hr</b>. Sorted worst-first, with rates below the configured floor (Duty Settings, default ₦5,000/hr) in red. A client with a fee but no tagged hours shows \"—\": unmeasurable, which is its own finding.</p>\n<p><b>What the number means — and doesn't.</b> A red rate does not say \"the bookkeeper is slow\". It says <b>the engagement consumes more hours than its fee assumed</b> — messy source documents, a chatty MD, a business that outgrew its price. The tab exists to surface repricing conversations while they're calm, not to grade people. Conversely, a suspiciously high rate with tiny hours usually means under-tagging, not efficiency — which starves this tab, the Register, and capacity planning all at once.</p>\n<p><b>Your part in it, as a bookkeeper:</b> exactly one thing — <b>tag every Work Session with its customer, honestly</b>. Log the real hours including the annoying parts; the annoying parts are precisely what justifies the repricing. Understating hours to look fast literally hides money the unit should be earning — the KPI lesson shows how the system eventually turns three months of honest hours into an automatic fee-review flag.</p>\n<blockquote><b>DRILL:</b> Your manager mentions your smallest client shows ₦12,000/hr while your biggest shows ₦3,800/hr. Translate both numbers into what they're actually saying. The small client is priced comfortably (or you under-tag them — check); the big one is consuming hours far beyond its fee — a repricing candidate. Neither number is about your speed; both are about the fee fitting the work.</blockquote>"
+   },
+   {
+    "title": "Billing (💰) — how the month becomes an invoice",
+    "est": 4,
+    "html": "<p><b>The automatic run:</b> on the <b>28th of each month at 07:00</b>, the system drafts one Sales Invoice per accounting client — the monthly fee as a line item, VAT applied from the configured tax template, due date per the configured terms. This happens <b>regardless of delivery status</b> — that is deliberate policy: the fee is for the service month, and delivery timing is a separate conversation. The drafts are exactly that — <b>drafts</b>: a human reviews and submits them in the Sales Invoice list; nothing is ever sent to a client unreviewed.</p>\n<p><b>The tab, top to bottom:</b> the period's run status — how many drafts await review (\"Draft — review &amp; submit\"), how many are Unpaid, Paid, or show \"no fee set\" (a client whose customer record lacks a fee: they were silently skipped, which is the first thing to fix); a <b>Generate now</b> button for running the current period manually (safe at any time — an idempotency marker means a client is never invoiced twice for the same period, so Generate now after the cron, or twice in a row, creates nothing extra); and the <b>Awaiting payment</b> table — client, invoice number, outstanding amount, due date, with days-overdue in red. The pulse strip's <b>unpaid</b> count and total come from here.</p>\n<p><b>The gentle collections you never do:</b> once an invoice is submitted and slips past due, the morning chase adds a courteous payment line to that client's single daily reminder — first working day overdue, then every third — scoped strictly to accounting-service invoices, never any other invoice the wider business raises. Managers watch the Awaiting table; nobody composes dunning messages.</p>\n<p><b>Your part as a bookkeeper:</b> almost nothing, by design — except understanding the client's view: on the 28th-ish they receive an invoice; if it goes unpaid past due they'll see soft reminders in the same room you work in. If a client mentions their invoice to you, the answer is warm and simple — \"our team handles billing; I'll flag it for them today\" — plus an actual flag to a manager. Never negotiate, discount, or explain fee structure yourself; that's a management lane.</p>\n<blockquote><b>DRILL:</b> It's the 29th; a manager says a client's draft never appeared. The two likeliest causes, in checking order? (1) No fee on the customer record — the tab's \"no fee set\" list confirms in one glance. (2) An invoice for this period already exists (draft or submitted) from an earlier manual run — the idempotency marker correctly refused a duplicate. Only after those: check the scheduler ran.</blockquote>"
+   },
+   {
+    "title": "KPIs (📈) — what six months of discipline looks like",
+    "est": 5,
+    "html": "<p>The KPI tab is the unit's memory: everything the daily rituals record, compounded into trend. Manager-gated — but the numbers are <b>about</b> the work you do, so know them.</p>\n<p><b>The trend table</b> — the last six periods as columns: <b>deliverables done/total</b>; <b>on-time rate</b> (delivered on or before due, as a % of delivered — green ≥90, amber ≥70, red below); <b>FS close cycle</b> — how many days after month-end the financial statements actually went out, the single number that summarises the practice (the promise is ≤5 working days); and <b>average posting lag</b> — the mean gap, in working days, between attested posted-through dates and the days they were attested. Every one of these is computed from cells you moved and attestations you saved.</p>\n<p><b>Per client</b> over the same window: done/total, on-time %, FS cycle, posting lag — plus <b>client ack latency</b>: how many days the client takes to tap Confirm receipt. That last one quietly identifies who actually reads what we send — useful before proposing anything to them.</p>\n<p><b>Per bookkeeper:</b> delivered count, on-time %, open-this-period. Yes, it is a comparison table; that is why it lives behind the gate. Read your own numbers the way you'd read a client's — as description, not verdict: a cycle that degraded exactly when your portfolio grew from three clients to five is a <b>load</b> story, and the numbers argue your case better than adjectives ever will.</p>\n<p><b>🚩 Fee review:</b> any client whose effective ₦/hr ran <b>below the floor for three consecutive months</b> is flagged automatically, all three rates shown. This is Profitability's snapshot become policy: the flag opens a repricing conversation with evidence attached. It fires because your tagged hours were honest — which is why gaming them backwards (fewer hours to \"look efficient\") sabotages the exact mechanism that right-sizes your workload's price.</p>\n<p><b>👜 Capacity:</b> per bookkeeper — clients owned, deliverables open now, average tagged hours/month over the trailing quarter — <b>sorted lightest-first, with the next-client suggestion highlighted</b>. When client #7 signs, this table decides who takes them. Honest numbers are how growth lands fairly; that is the closing loop of everything this track teaches: <b>tag sessions, attest truly, raise queries same-day, tick what you verified — and every screen in this lesson takes care of itself.</b></p>\n<blockquote><b>DRILL:</b> The trend shows on-time 96% but FS cycle drifting 4.1 → 5.2 → 5.9 days. What's the story, and why does it matter before it breaks? Deliveries are still inside the promise but each month closer to the edge — the buffer is eroding (rising volume, or a slow client's documents). It matters now because at 6.1 the on-time number cliff-drops; the drift was the warning, and drift is exactly what a six-column table exists to show.</blockquote>"
+   }
+  ],
+  "questions": [
+   {
+    "q": "You can't see the 📒 Books face at all. The most likely reason:",
+    "opts": [
+     "A bug to report",
+     "You aren't set as any client's bookkeeper (and aren't a books manager) — a one-click Client setup fix",
+     "Wrong browser",
+     "The face is manager-only"
+    ],
+    "ans": 1,
+    "why": "Access = bookkeeper on ≥1 room, books manager, or SM.",
+    "src": "L1"
+   },
+   {
+    "q": "The period selector in the header controls:",
+    "opts": [
+     "The Matrix only",
+     "Every tab simultaneously — one month at a time, set once",
+     "Your timezone",
+     "The current tab only"
+    ],
+    "ans": 1,
+    "why": "Parked-on-last-month is the #1 'board looks wrong' cause.",
+    "src": "L1"
+   },
+   {
+    "q": "Reading the pulse strip, the correct triage order is:",
+    "opts": [
+     "done → late → neglected",
+     "neglected → late → 📨 → (done needs nothing)",
+     "unpaid first always",
+     "left to right as written"
+    ],
+    "ans": 1,
+    "why": "Untouched client, broken promise, waiting clients — then history.",
+    "src": "L1"
+   },
+   {
+    "q": "The Open period and Sync clients buttons are safe to click repeatedly because:",
+    "opts": [
+     "They only preview",
+     "They're idempotent — existing deliverables and rooms are never duplicated",
+     "They need manager approval",
+     "They undo each other"
+    ],
+    "ans": 1,
+    "why": "Mid-month client or missing cell: Sync, then Open period. Nothing bad can happen.",
+    "src": "L1"
+   },
+   {
+    "q": "A client on-boarded on the 14th gets their current-month deliverables:",
+    "opts": [
+     "Next month",
+     "That night — the open-period job runs daily and is self-healing",
+     "Only via manager",
+     "After first invoice"
+    ],
+    "ans": 1,
+    "why": "You inherit the month's work; you never create it.",
+    "src": "L1"
+   },
+   {
+    "q": "'↻ Sep' vs '—' in a Stock take column:",
+    "opts": [
+     "Both mean overdue",
+     "↻ Sep = subscribed, dormant until September; — = not in the tier at all",
+     "↻ = review needed",
+     "Identical meaning"
+    ],
+    "ans": 1,
+    "why": "Dormant-subscribed and not-ours must never be confused.",
+    "src": "L2"
+   },
+   {
+    "q": "Clicking the bookkeeper's name in a client row opens:",
+    "opts": [
+     "Their profile",
+     "Client setup: default owner + the service-tier checkboxes",
+     "The playbook",
+     "A chat"
+    ],
+    "ans": 1,
+    "why": "Tier ticks control what future periods spawn.",
+    "src": "L2"
+   },
+   {
+    "q": "Ticking a checklist item in the cell dialog:",
+    "opts": [
+     "Is decorative",
+     "Stamps your name and time permanently — a signed statement you verified it this month",
+     "Notifies the client",
+     "Locks the cell"
+    ],
+    "ans": 1,
+    "why": "Tick what you checked, only.",
+    "src": "L2"
+   },
+   {
+    "q": "A cell has a Reviewer named. Delivered can be selected by:",
+    "opts": [
+     "Anyone once checklist is full",
+     "Only that reviewer (or a System Manager)",
+     "The preparer after 24h",
+     "The client"
+    ],
+    "ans": 1,
+    "why": "In Review pushes 👁; the reviewer's click is the signature.",
+    "src": "L2"
+   },
+   {
+    "q": "✓✓ on a cell was created by:",
+    "opts": [
+     "Staff, after delivery",
+     "The client's own Confirm-receipt tap — staff cannot set it, which is what makes it proof",
+     "The scheduler",
+     "The reviewer"
+    ],
+    "ans": 1,
+    "why": "Acknowledged is the client's act alone.",
+    "src": "L2"
+   },
+   {
+    "q": "Delivering with open checklist items:",
+    "opts": [
+     "Is blocked",
+     "Asks 'deliver anyway?' — allowed, with the unticked items visible forever, so justify in Notes",
+     "Clears the items",
+     "Emails the manager"
+    ],
+    "ans": 1,
+    "why": "Soft enforcement, permanent record.",
+    "src": "L2"
+   },
+   {
+    "q": "The date picker on My round stops at today because:",
+    "opts": [
+     "A display quirk",
+     "You cannot have posted tomorrow's transactions — the server refuses future dates too",
+     "Timezones",
+     "Weekend logic"
+    ],
+    "ans": 1,
+    "why": "The claim must be about completed reality.",
+    "src": "L3"
+   },
+   {
+    "q": "Posted through Wednesday, attesting Thursday — you enter:",
+    "opts": [
+     "Thursday, for a green chip",
+     "Wednesday — the chip may go amber; the attestation may not go false",
+     "Friday",
+     "Nothing"
+    ],
+    "ans": 1,
+    "why": "The chip is allowed to be amber; the claim is not allowed to lie.",
+    "src": "L3"
+   },
+   {
+    "q": "Saving the round twice in one day:",
+    "opts": [
+     "Creates a duplicate",
+     "Updates today's entry — re-attest with the later date after an afternoon of posting",
+     "Is blocked",
+     "Alerts managers"
+    ],
+    "ans": 1,
+    "why": "One entry per client per day, freely updatable today.",
+    "src": "L3"
+   },
+   {
+    "q": "Your round card shows ○ though you worked the client two hours this morning:",
+    "opts": [
+     "The board is broken",
+     "You didn't clock a customer-tagged Work Session — clock it, then attest, or the Register shows ◔ and every metric undercounts",
+     "○ is normal",
+     "Sessions are optional"
+    ],
+    "ans": 1,
+    "why": "Untagged work might as well not have happened.",
+    "src": "L3"
+   },
+   {
+    "q": "On the Register, ◐ means:",
+    "opts": [
+     "Attested, no session",
+     "Worked (session exists) but not attested — finish the ritual; today's entry can still be saved",
+     "Half a day",
+     "On leave"
+    ],
+    "ans": 1,
+    "why": "◔ is the reverse: claim without visible presence.",
+    "src": "L4"
+   },
+   {
+    "q": "The neglect flag (red row + streak) fires at:",
+    "opts": [
+     "1 silent working day",
+     "2+ consecutive silent working days — and the digest names it; nothing else happens automatically",
+     "5 days",
+     "Only month-end"
+    ],
+    "ans": 1,
+    "why": "Visibility, not escalation, is the design.",
+    "src": "L4"
+   },
+   {
+    "q": "The 18:00 digest goes to:",
+    "opts": [
+     "Managers only",
+     "Every bookkeeper and books manager — the same message; read it even when your rows are clean",
+     "The neglected client",
+     "System Managers"
+    ],
+    "ans": 1,
+    "why": "It's how you spot a colleague needing cover before they ask.",
+    "src": "L4"
+   },
+   {
+    "q": "Recovering a 2wd streak honestly means:",
+    "opts": [
+     "Attest 'through today' regardless",
+     "Clock a session, clear the backlog to wherever is TRUE, attest that true date with a note — the scar stays, honestly",
+     "Ask a manager to clear it",
+     "Delete the streak"
+    ],
+    "ans": 1,
+    "why": "False green is the one thing the board cannot absorb.",
+    "src": "L4"
+   },
+   {
+    "q": "A client can answer your question by:",
+    "opts": [
+     "Portal card only",
+     "Portal card OR replying to the email — both land identically, trimmed and attributed",
+     "Calling you",
+     "Editing their ledger"
+    ],
+    "ans": 1,
+    "why": "You don't care which path; the system captures both.",
+    "src": "L5"
+   },
+   {
+    "q": "A file the client sends by email reply:",
+    "opts": [
+     "Sits in the mailbox",
+     "Files itself to their Document Hub under 'Accounting — received', closes the request, and the room announces it",
+     "Needs re-upload",
+     "Goes to you personally"
+    ],
+    "ans": 1,
+    "why": "Portal upload and email attachment are equivalent.",
+    "src": "L5"
+   },
+   {
+    "q": "A question showing green 'answered' needs you to:",
+    "opts": [
+     "Nothing — it's done",
+     "Act on the answer in the ledger (repost), then press Resolve — Answered-unresolved is forgotten work",
+     "Thank the client",
+     "Waive it"
+    ],
+    "ans": 1,
+    "why": "Open → Answered → Resolved is the complete life.",
+    "src": "L5"
+   },
+   {
+    "q": "Waive on a document request is for:",
+    "opts": [
+     "Clients who complain",
+     "Requests genuinely no longer needed — recording the decision instead of leaving a phantom chase",
+     "Anything overdue",
+     "Manager use only"
+    ],
+    "ans": 1,
+    "why": "Waiving is a decision, not a shortcut.",
+    "src": "L5"
+   },
+   {
+    "q": "The morning chase sends, at most:",
+    "opts": [
+     "One reminder per item",
+     "ONE message per client per day covering all stale items (and any overdue service invoice)",
+     "Hourly nudges",
+     "Nothing without your click"
+    ],
+    "ans": 1,
+    "why": "Persistence is automated, bounded, polite — your job is raising items early.",
+    "src": "L5"
+   },
+   {
+    "q": "Standard monthly documents (bank statements etc.) are requested:",
+    "opts": [
+     "By you, each month, manually",
+     "Automatically for every client when the period opens — you only raise the ad-hoc extras",
+     "By the client",
+     "Quarterly"
+    ],
+    "ans": 1,
+    "why": "The machine does the routine; you do the exceptions.",
+    "src": "L1, L5"
+   },
+   {
+    "q": "An onboarding step 'bank access registered' stays unticked though you've been posting from their statements:",
+    "opts": [
+     "Tick it — access obviously exists",
+     "The Access Register entry was never created — create it, THEN tick; the step was telling the truth",
+     "Skip it",
+     "A sync bug"
+    ],
+    "ans": 1,
+    "why": "Access obtained and access registered are one motion, two artifacts.",
+    "src": "L6"
+   },
+   {
+    "q": "The final onboarding tick:",
+    "opts": [
+     "Archives the runbook silently",
+     "Narrates completion to the room — the client sees it, and they become a normal Matrix row",
+     "Emails FIRS",
+     "Generates the first invoice"
+    ],
+    "ans": 1,
+    "why": "Ceremony marks the transition to rhythm.",
+    "src": "L6"
+   },
+   {
+    "q": "A red ₦/hr on Profitability says:",
+    "opts": [
+     "The bookkeeper is slow",
+     "The engagement consumes more hours than its fee assumed — a repricing conversation, not a grade",
+     "Hours were over-logged",
+     "The client should be dropped"
+    ],
+    "ans": 1,
+    "why": "And suspiciously HIGH rates usually mean under-tagging.",
+    "src": "L7"
+   },
+   {
+    "q": "Auto-invoices generate on the 28th:",
+    "opts": [
+     "Only if everything was delivered",
+     "Regardless of delivery status — deliberate policy; drafts, submitted by humans after review",
+     "Only for on-time clients",
+     "When managers click"
+    ],
+    "ans": 1,
+    "why": "Fee is for the service month; delivery timing is a separate conversation.",
+    "src": "L8"
+   },
+   {
+    "q": "Generate now clicked twice creates:",
+    "opts": [
+     "Double invoices",
+     "Nothing extra — the per-period idempotency marker refuses duplicates",
+     "A warning only",
+     "Credit notes"
+    ],
+    "ans": 1,
+    "why": "Safe at any time, before or after the cron.",
+    "src": "L8"
+   },
+   {
+    "q": "A client asks you about their unpaid invoice. You:",
+    "opts": [
+     "Explain the fee structure",
+     "Warmly defer — 'our team handles billing; I'll flag it today' — and actually flag a manager",
+     "Offer a discount",
+     "Ignore it"
+    ],
+    "ans": 1,
+    "why": "Billing conversations are a management lane.",
+    "src": "L8"
+   },
+   {
+    "q": "On-time holds 96% while FS cycle drifts 4.1 → 5.9 days. The reading:",
+    "opts": [
+     "All fine — on-time is green",
+     "The buffer is eroding toward the 5-working-day edge — drift is the warning the trend table exists to show",
+     "The metric is broken",
+     "Clients got slower, nothing to do"
+    ],
+    "ans": 1,
+    "why": "Act on drift before the cliff, not after.",
+    "src": "L9"
+   },
+   {
+    "q": "The fee-review flag fires from:",
+    "opts": [
+     "Manager suspicion",
+     "Three consecutive months of honest tagged hours putting the rate below the floor — your honesty powers the repricing",
+     "Client complaints",
+     "Random audit"
+    ],
+    "ans": 1,
+    "why": "Under-logging hours sabotages your own workload's pricing.",
+    "src": "L7, L9"
+   },
+   {
+    "q": "The capacity table's purpose:",
+    "opts": [
+     "Ranking for its own sake",
+     "Deciding who takes the next client — lightest honest load first; honest numbers make growth land fairly",
+     "Overtime tracking",
+     "Leave planning"
+    ],
+    "ans": 1,
+    "why": "The closing loop: do the disciplines and every screen takes care of itself.",
+    "src": "L9"
+   }
+  ]
  }
 }
