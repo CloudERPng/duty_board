@@ -1478,6 +1478,14 @@ def books_tick_onboarding(name, done=1, note=None):
 # ---------------- billing: auto-invoices + unpaid tracking ----------------
 
 
+def _books_tax_template():
+	try:
+		t = (frappe.get_cached_doc("Duty Settings").get("books_tax_template") or "").strip()
+	except Exception:
+		t = ""
+	return t if t and frappe.db.exists("Sales Taxes and Charges Template", t) else None
+
+
 def _invoice_settings():
 	item_code, due_days = "Accounting Services", 7
 	try:
@@ -1527,6 +1535,7 @@ def _generate_invoices(period):
 		):
 			existing += 1
 			continue
+		tax_template = _books_tax_template()
 		si = frappe.get_doc(
 			{
 				"doctype": "Sales Invoice",
@@ -1534,6 +1543,7 @@ def _generate_invoices(period):
 				"company": company,
 				"posting_date": today(),
 				"due_date": frappe.utils.add_days(today(), due_days),
+				"taxes_and_charges": tax_template,
 				"remarks": f"Accounting services — {period} · {marker}",
 				"items": [
 					{
@@ -1545,6 +1555,19 @@ def _generate_invoices(period):
 				],
 			}
 		)
+		if tax_template:
+			for tx in frappe.get_doc("Sales Taxes and Charges Template", tax_template).taxes:
+				si.append(
+					"taxes",
+					{
+						"charge_type": tx.charge_type,
+						"account_head": tx.account_head,
+						"description": tx.description,
+						"rate": tx.rate,
+						"cost_center": tx.cost_center,
+						"included_in_print_rate": tx.included_in_print_rate,
+					},
+				)
 		si.insert(ignore_permissions=True)
 		created += 1
 	frappe.db.commit()
