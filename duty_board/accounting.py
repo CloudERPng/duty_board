@@ -1045,11 +1045,11 @@ def books_followups(room=None):
 		for mrow in frappe.get_all(
 			"Client Room Member",
 			filters={"room": ["in", names], "active": 1},
-			fields=["room", "user", "full_name"],
+			fields=["room", "user"],
 		):
 			if mrow.user and frappe.db.get_value("User", mrow.user, "enabled"):
 				members.setdefault(mrow.room, []).append(
-					{"user": mrow.user, "full_name": mrow.full_name or frappe.utils.get_fullname(mrow.user)}
+					{"user": mrow.user, "full_name": frappe.utils.get_fullname(mrow.user)}
 				)
 	return {"rooms": [{"room": r.name, "customer": r.customer} for r in sorted(rooms, key=lambda x: x.customer or "")], "members": members, "queries": queries, "requests": requests, "received": received}
 
