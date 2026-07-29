@@ -4224,7 +4224,7 @@ class DutyBoard {
 								<span>${z.status === "Completed" ? "✅" : z.lessons_done ? "▶" : "○"}</span>
 								<span style="flex:1;min-width:0">${frappe.utils.escape_html(z.title)}${z.product ? ` <span class="text-muted" style="font-size:11px">· ${frappe.utils.escape_html(z.product)}</span>` : ""}</span>
 								<span class="text-muted" style="font-size:11.5px;white-space:nowrap">${z.lessons_done}/${z.lessons_total} ${__("lessons")}</span>
-								${z.quiz_attempts ? `<span style="font-size:11.5px;white-space:nowrap;font-weight:700;color:${z.quiz_passed ? "#0E5A4A" : "#A96F1A"}">${__("quiz")} ${z.quiz_best}%${z.quiz_passed ? " ✓" : ` (${z.quiz_attempts}×)`}</span>` : ""}
+								${z.quiz_attempts ? `<span title="${z.quiz_attempts} ${__("attempt(s) in total")}" style="font-size:11.5px;white-space:nowrap;font-weight:700;color:${z.quiz_passed ? "#0E5A4A" : "#A96F1A"}">${__("quiz")} ${z.quiz_best}% ${z.quiz_passed ? `✓ ${z.quiz_to_pass === 1 ? __("first try") : __("passed on attempt {0}", [z.quiz_to_pass])}` : `${__("not passed")} · ${z.quiz_attempts}× ${__("so far")}`}</span>` : ""}
 								${z.completed_on ? `<span class="text-muted" style="font-size:11px;white-space:nowrap">${z.completed_on}</span>` : ""}
 							</div>`).join("")}
 						</div>

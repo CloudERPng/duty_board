@@ -3249,13 +3249,16 @@ def training_team_overview():
 		"Duty Quiz Attempt",
 		filters={"user": ["in", users], "finished_at": ["is", "set"]},
 		fields=["user", "module", "score", "passed"],
+		order_by="finished_at asc",
 		limit_page_length=0,
 	):
 		k = (q.user, q.module)
-		cur = quiz.get(k, {"attempts": 0, "best": 0, "passed": 0})
+		cur = quiz.get(k, {"attempts": 0, "best": 0, "passed": 0, "attempts_to_pass": 0})
 		cur["attempts"] += 1
 		cur["best"] = max(cur["best"], cint(q.score))
-		cur["passed"] = cur["passed"] or cint(q.passed)
+		if cint(q.passed) and not cur["passed"]:
+			cur["passed"] = 1
+			cur["attempts_to_pass"] = cur["attempts"]
 		quiz[k] = cur
 	certs = {}
 	for c in frappe.get_all(
@@ -3290,6 +3293,7 @@ def training_team_overview():
 					"quiz_attempts": q.get("attempts", 0),
 					"quiz_best": q.get("best", 0),
 					"quiz_passed": q.get("passed", 0),
+					"quiz_to_pass": q.get("attempts_to_pass", 0),
 				}
 			)
 		people.append(
