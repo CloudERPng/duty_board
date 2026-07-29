@@ -961,11 +961,15 @@ def client_task_detail(id, kind):
 		status = CLIENT_STATUS.get(t.column)
 		if not status:
 			frappe.throw(_("Not found."), frappe.PermissionError)
+		steps_total = frappe.db.count("Duty Project Subtask", {"parent": t.name})
+		steps_done = frappe.db.count("Duty Project Subtask", {"parent": t.name, "status": "Done"}) if steps_total else 0
 		return {
 			"kind": "card",
 			"title": t.title,
 			"status": status,
 			"client_requested": cint(t.client_requested),
+			"steps_done": steps_done,
+			"steps_total": steps_total,
 			"detail": t.description,
 			"reported": str(t.creation)[:16],
 			"started": None,

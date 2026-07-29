@@ -624,7 +624,7 @@ body[data-tab="home"] .foot{display:block!important;grid-area:foot}
 </div>
 <script>
 const esc = (s) => (s || "").replace(/[&<>"']/g, (c) => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
-const XLV = "3.6.2";
+const XLV = "3.7.0";
 document.getElementById("xlv").textContent = "v" + XLV;
 console.log("Xlevel portal", XLV);
 let ROOM = localStorage.getItem("xl_room") || null;
@@ -1762,6 +1762,7 @@ function openTask(id, kind) {
 				: "";
 			document.getElementById("ovbody").innerHTML = `
 				<h2>${d.client_requested ? "🙋 " : ""}${esc(d.title)} <span class="pill ${PILL[d.status]}">${esc(d.status)}</span></h2>
+				${d.steps_total ? `<div style="font-size:12.5px;color:#0A4238;background:#E4EEEA;border-radius:99px;display:inline-block;padding:4px 12px;font-weight:600;margin:2px 0 6px">${d.steps_done} of ${d.steps_total} steps done</div>` : ""}
 				<div class="grid">
 					<b>📅 Reported</b><span>${fdt(d.reported)}</span>
 					<b>▶ Started</b><span>${fdt(d.started)}</span>

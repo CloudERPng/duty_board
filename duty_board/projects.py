@@ -7,7 +7,7 @@ runs through doc_events (see hooks.py), from the card side inline here.
 
 import frappe
 from frappe import _
-from frappe.utils import cint, getdate, today
+from frappe.utils import cint, getdate, now_datetime, today
 from duty_board.permissions import require_staff
 
 COLUMNS = ["To Do", "In Progress", "Completed", "Suspended"]
@@ -102,7 +102,7 @@ def get_project_board(project):
 		order_by="sort_order asc, creation asc",
 	)
 	names = [r.name for r in rows]
-	note_counts, working = {}, {}
+	note_counts, working, sub_counts = {}, {}, {}
 	if names:
 		for n in frappe.get_all(
 			"Duty Project Note",
@@ -117,6 +117,13 @@ def get_project_board(project):
 			fields=["project_task", "user"],
 		):
 			working.setdefault(w.project_task, []).append(w.user)
+		for s in frappe.get_all(
+			"Duty Project Subtask",
+			filters={"parent": ["in", names]},
+			fields=["parent", "count(name) as total", "sum(case when status='Done' then 1 else 0 end) as done"],
+			group_by="parent",
+		):
+			sub_counts[s.parent] = (cint(s.done), cint(s.total))
 	tday = getdate(today())
 	now = frappe.utils.now_datetime()
 	tasks = {c: [] for c in COLUMNS}
@@ -129,6 +136,7 @@ def get_project_board(project):
 		del t["modified"]
 		t.notes = note_counts.get(t.name, 0)
 		t.working = working.get(t.name, [])
+		t.subs_done, t.subs_total = sub_counts.get(t.name, (0, 0))
 		tasks.setdefault(t.column, []).append(t)
 	return {"columns": COLUMNS, "tasks": tasks}
 
@@ -170,7 +178,25 @@ def update_task(name, title=None, assignee=None, due_date=None, urgency=None, co
 		doc.awaiting_client = cint(awaiting_client)
 	if title and title.strip():
 		doc.title = title.strip()
-	doc.due_date = due_date or None
+	_new_due = due_date or None
+	if _new_due and doc.get("subtasks"):
+		_nd = getdate(_new_due)
+		for _s in doc.subtasks:
+			if _s.due_date and getdate(_s.due_date) > _nd:
+				_s.due_date = _new_due
+				if _s.assignee and _s.status == "Open":
+					_notify(
+						_s.assignee,
+						_("📌 Subtask due date moved"),
+						_("“{0}” now due {1} (card date changed).").format(_s.title, _new_due),
+					)
+				if _s.todo and frappe.db.exists("Daily Todo", _s.todo):
+					if frappe.db.get_value("Daily Todo", _s.todo, "status") == "Open":
+						from duty_board.api import user_today as _ut
+
+						_t = _ut(_s.assignee or frappe.session.user)
+						frappe.db.set_value("Daily Todo", _s.todo, "date", _nd if _nd >= _t else _t, update_modified=False)
+	doc.due_date = _new_due
 	if urgency in URGENCIES:
 		doc.urgency = urgency
 	doc.description = description
@@ -194,6 +220,8 @@ def update_task(name, title=None, assignee=None, due_date=None, urgency=None, co
 		)
 
 	if column and column in COLUMNS and column != doc.column:
+		if column == "Completed":
+			_block_completion_on_open_subtasks(doc.name)
 		doc.db_set("column", column, update_modified=False)
 		_sync_todo_from_card(doc, column)
 		if column == "Completed":
@@ -232,6 +260,8 @@ def move_task(name, column):
 	if column not in COLUMNS:
 		frappe.throw(_("Unknown column."))
 	doc = frappe.get_doc("Duty Project Task", name)
+	if column == "Completed":
+		_block_completion_on_open_subtasks(name)
 	doc.db_set("column", column, update_modified=False)
 	_sync_todo_from_card(doc, column)
 	if column == "Completed":
@@ -331,6 +361,20 @@ def get_card(name):
 			fields=["user"],
 		)
 	]
+	subtasks = []
+	for s in doc.get("subtasks") or []:
+		subtasks.append(
+			{
+				"row": s.name,
+				"title": s.title,
+				"assignee": s.assignee,
+				"assignee_first": frappe.utils.get_fullname(s.assignee).split(" ")[0] if s.assignee else None,
+				"due_date": str(s.due_date) if s.due_date else None,
+				"status": s.status,
+				"note": s.note,
+				"done_by_first": frappe.utils.get_fullname(s.done_by).split(" ")[0] if s.done_by else None,
+			}
+		)
 	return {
 		"name": doc.name,
 		"project": doc.project,
@@ -338,6 +382,9 @@ def get_card(name):
 		"customer": proj.customer,
 		"title": doc.title,
 		"column": doc.column,
+		"subtasks": subtasks,
+		"subs_done": len([s for s in subtasks if s["status"] == "Done"]),
+		"subs_total": len(subtasks),
 		"assignee": doc.assignee,
 		"due_date": str(doc.due_date) if doc.due_date else None,
 		"urgency": doc.urgency,
@@ -463,3 +510,161 @@ def on_todo_trash(doc, method=None):
 		frappe.db.set_value(
 			"Duty Project Task", doc.project_task, "linked_todo", None, update_modified=False
 		)
+
+
+# ---------------- subtasks: delegation inside a card ----------------
+
+
+def _open_subtask_titles(task_name):
+	return frappe.get_all(
+		"Duty Project Subtask",
+		filters={"parent": task_name, "status": "Open"},
+		pluck="title",
+	)
+
+
+def _block_completion_on_open_subtasks(task_name):
+	open_t = _open_subtask_titles(task_name)
+	if open_t:
+		frappe.throw(
+			_("Can't complete this card — {0} open subtask(s): {1}").format(
+				len(open_t), ", ".join(open_t[:5]) + ("…" if len(open_t) > 5 else "")
+			)
+		)
+
+
+def _subtask_todo(card, row):
+	"""Daily Todo for a subtask assignee, clamped to their today like cards."""
+	from duty_board.api import user_today
+
+	target_today = user_today(row.assignee)
+	date = getdate(row.due_date) if row.due_date else target_today
+	if date < target_today:
+		date = target_today
+	todo = frappe.get_doc(
+		{
+			"doctype": "Daily Todo",
+			"user": row.assignee,
+			"date": date,
+			"description": f"📌 {row.title} · under “{card.title}”"[:140],
+			"status": "Open",
+			"assigned_by": frappe.session.user if frappe.session.user != row.assignee else None,
+		}
+	).insert(ignore_permissions=True)
+	return todo.name
+
+
+def _validate_subtask_due(card, due_date):
+	if due_date and card.due_date and getdate(due_date) > getdate(card.due_date):
+		frappe.throw(
+			_("A subtask can't be due after the card itself ({0}).").format(card.due_date)
+		)
+
+
+@frappe.whitelist()
+def subtask_add(task, title, assignee=None, due_date=None, note=None):
+	require_staff()
+	card = frappe.get_doc("Duty Project Task", task)
+	title = (title or "").strip()[:140]
+	if not title:
+		frappe.throw(_("Give the subtask a title."))
+	_validate_subtask_due(card, due_date)
+	row = card.append(
+		"subtasks",
+		{
+			"title": title,
+			"assignee": (assignee or "").strip() or None,
+			"due_date": due_date or None,
+			"note": (note or "").strip() or None,
+			"status": "Open",
+		},
+	)
+	card.save(ignore_permissions=True)
+	if row.assignee:
+		todo = _subtask_todo(card, row)
+		frappe.db.set_value("Duty Project Subtask", row.name, "todo", todo, update_modified=False)
+		if row.assignee != frappe.session.user:
+			_notify(row.assignee, _("📌 Subtask for you"), f"{row.title} · {card.title}")
+	frappe.db.commit()
+	return get_card(task)
+
+
+@frappe.whitelist()
+def subtask_update(task, row, title=None, assignee=None, due_date=None, note=None):
+	require_staff()
+	card = frappe.get_doc("Duty Project Task", task)
+	target = next((s for s in card.subtasks if s.name == row), None)
+	if not target:
+		frappe.throw(_("Subtask not found."))
+	if due_date is not None:
+		_validate_subtask_due(card, due_date or None)
+		target.due_date = due_date or None
+	if title and title.strip():
+		target.title = title.strip()[:140]
+	old_assignee = target.assignee
+	if assignee is not None:
+		target.assignee = (assignee or "").strip() or None
+	if note is not None:
+		target.note = (note or "").strip() or None
+	card.save(ignore_permissions=True)
+	if assignee is not None and target.assignee and target.assignee != old_assignee and target.status == "Open":
+		todo = _subtask_todo(card, target)
+		frappe.db.set_value("Duty Project Subtask", target.name, "todo", todo, update_modified=False)
+		if target.assignee != frappe.session.user:
+			_notify(target.assignee, _("📌 Subtask for you"), f"{target.title} · {card.title}")
+	elif target.todo and frappe.db.exists("Daily Todo", target.todo):
+		vals = {"description": f"📌 {target.title} · under “{card.title}”"[:140]}
+		if due_date is not None and target.due_date and frappe.db.get_value("Daily Todo", target.todo, "status") == "Open":
+			from duty_board.api import user_today
+
+			d = getdate(target.due_date)
+			t = user_today(target.assignee or frappe.session.user)
+			vals["date"] = d if d >= t else t
+		frappe.db.set_value("Daily Todo", target.todo, vals, update_modified=False)
+	frappe.db.commit()
+	return get_card(task)
+
+
+@frappe.whitelist()
+def subtask_toggle(task, row):
+	require_staff()
+	card = frappe.get_doc("Duty Project Task", task)
+	target = next((s for s in card.subtasks if s.name == row), None)
+	if not target:
+		frappe.throw(_("Subtask not found."))
+	if target.status == "Open":
+		target.status = "Done"
+		target.done_by = frappe.session.user
+		target.done_on = now_datetime()
+		if target.todo and frappe.db.exists("Daily Todo", target.todo):
+			if frappe.db.get_value("Daily Todo", target.todo, "status") == "Open":
+				frappe.db.set_value("Daily Todo", target.todo, "status", "Done", update_modified=False)
+	else:
+		target.status = "Open"
+		target.done_by = None
+		target.done_on = None
+		if target.todo and frappe.db.exists("Daily Todo", target.todo):
+			frappe.db.set_value("Daily Todo", target.todo, "status", "Open", update_modified=False)
+	card.save(ignore_permissions=True)
+	frappe.db.commit()
+	if target.status == "Done" and not _open_subtask_titles(task):
+		owner = card.assignee
+		if owner and owner != frappe.session.user:
+			_notify(owner, _("✅ All subtasks done"), _("“{0}” — ready to complete the card.").format(card.title))
+	return get_card(task)
+
+
+@frappe.whitelist()
+def subtask_delete(task, row):
+	require_staff()
+	card = frappe.get_doc("Duty Project Task", task)
+	target = next((s for s in card.subtasks if s.name == row), None)
+	if not target:
+		frappe.throw(_("Subtask not found."))
+	if target.todo and frappe.db.exists("Daily Todo", target.todo):
+		if frappe.db.get_value("Daily Todo", target.todo, "status") == "Open":
+			frappe.delete_doc("Daily Todo", target.todo, ignore_permissions=True, force=True)
+	card.remove(target)
+	card.save(ignore_permissions=True)
+	frappe.db.commit()
+	return get_card(task)

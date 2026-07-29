@@ -3109,6 +3109,7 @@ class DutyBoard {
 						${(t.working || []).length ? `<span class="duty-kb-working">⏱ ${t.working.map((u) => `<b style="color:${this.user_color(u)}">${frappe.utils.escape_html((this.name_map[u] || u).split(" ")[0])}</b>`).join(", ")}</span>` : ""}
 						${t.stale_days >= 7 && t.column !== "Completed" ? `<span class="duty-stale ${t.stale_days >= 14 ? "duty-stale-red" : ""}">🕸 ${t.stale_days}d</span>` : ""}
 						${t.notes ? `<span>💬 ${t.notes}</span>` : ""}
+						${t.subs_total ? `<span style="font-weight:700;color:${t.subs_done === t.subs_total ? "#15803d" : "#6B7772"}">☑ ${t.subs_done}/${t.subs_total}</span>` : ""}
 					</span>
 				</div>
 			</div>`;
@@ -3312,6 +3313,22 @@ class DutyBoard {
 				${t.column !== "Completed" && !me_working ? `<button type="button" class="btn btn-sm btn-default duty-card-start">▶ ${__("Start work")}</button>` : ""}
 				${me_working ? `<button type="button" class="btn btn-sm btn-default duty-card-stop">⏸ ${__("Stop work")}</button>` : ""}
 			</div>
+			<div class="duty-lead-section">☑ ${__("Subtasks")}${t.subs_total ? ` <span class="text-muted" style="font-weight:400">${t.subs_done}/${t.subs_total}</span>` : ""}</div>
+			<div class="duty-subs">
+				${(t.subtasks || []).map((s) => `
+				<div class="duty-sub" style="display:flex;gap:9px;align-items:center;padding:5px 0;border-bottom:1px solid #F0EEE8">
+					<input type="checkbox" data-sub="${s.row}" ${s.status === "Done" ? "checked" : ""}>
+					<span style="flex:1;min-width:0;${s.status === "Done" ? "text-decoration:line-through;color:#96A09B" : ""}">${frappe.utils.escape_html(s.title)}${s.note ? ` <span class="text-muted" title="${frappe.utils.escape_html(s.note)}">🗒</span>` : ""}</span>
+					${s.assignee_first ? `<span class="text-muted" style="font-size:11.5px;white-space:nowrap">${frappe.utils.escape_html(s.assignee_first)}</span>` : ""}
+					${s.due_date ? `<span class="text-muted" style="font-size:11.5px;white-space:nowrap">${s.due_date.slice(5)}</span>` : ""}
+					<a data-subedit="${s.row}" style="cursor:pointer;color:#96A09B" title="${__("Edit")}">✎</a>
+					<a data-subdel="${s.row}" style="cursor:pointer;color:#B0443C" title="${__("Remove")}">×</a>
+				</div>`).join("")}
+				<div style="display:flex;gap:7px;margin:8px 0 2px">
+					<input type="text" class="form-control input-sm duty-sub-new" placeholder="${__("Add a subtask…")}">
+					<button type="button" class="btn btn-sm btn-default duty-sub-add">＋</button>
+				</div>
+			</div>
 			<div class="duty-lead-section">💬 ${__("Chat")}</div>
 			<div class="duty-lead-notes">
 				${(t.notes_list || t.notes || []).map
@@ -3341,6 +3358,45 @@ class DutyBoard {
 			this.load_kanban(project);
 			if (this._open_room) this.load_client_room(this._open_room);
 		};
+		const subCall = (method, args) =>
+			frappe.call({ method: "duty_board.projects." + method, args: args, callback: (r) => reopen(r) });
+		$x.find("[data-sub]").on("change", (e) =>
+			subCall("subtask_toggle", { task: t.name, row: $(e.currentTarget).data("sub") })
+		);
+		$x.find("[data-subdel]").on("click", (e) =>
+			frappe.confirm(__("Remove this subtask?"), () =>
+				subCall("subtask_delete", { task: t.name, row: $(e.currentTarget).data("subdel") })
+			)
+		);
+		$x.find("[data-subedit]").on("click", (e) => {
+			const row = $(e.currentTarget).data("subedit");
+			const s = (t.subtasks || []).find((z) => z.row === row) || {};
+			frappe.prompt(
+				[
+					{ fieldname: "title", fieldtype: "Data", label: __("Subtask"), default: s.title, reqd: 1 },
+					{ fieldname: "assignee", fieldtype: "Autocomplete", label: __("Assignee"), options: this.staff_options(), default: s.assignee || "" },
+					{ fieldname: "due_date", fieldtype: "Date", label: __("Due (on or before the card due date)"), default: s.due_date || "" },
+					{ fieldname: "note", fieldtype: "Small Text", label: __("Note"), default: s.note || "" },
+				],
+				(v) => subCall("subtask_update", { task: t.name, row: row, title: v.title, assignee: v.assignee || "", due_date: v.due_date || "", note: v.note || "" }),
+				__("Edit subtask"), __("Save")
+			);
+		});
+		const addSub = () => {
+			const title = ($x.find(".duty-sub-new").val() || "").trim();
+			if (!title) return;
+			frappe.prompt(
+				[
+					{ fieldname: "assignee", fieldtype: "Autocomplete", label: __("Assignee"), options: this.staff_options() },
+					{ fieldname: "due_date", fieldtype: "Date", label: __("Due (on or before the card due date)") },
+					{ fieldname: "note", fieldtype: "Small Text", label: __("Note") },
+				],
+				(v) => subCall("subtask_add", { task: t.name, title: title, assignee: v.assignee || null, due_date: v.due_date || null, note: v.note || null }),
+				__("New subtask"), __("Add")
+			);
+		};
+		$x.find(".duty-sub-add").on("click", addSub);
+		$x.find(".duty-sub-new").on("keydown", (e) => { if (e.key === "Enter") { e.preventDefault(); addSub(); } });
 		$x.find(".duty-card-start").on("click", () =>
 			frappe.call({
 				method: "duty_board.projects.start_card_work",
