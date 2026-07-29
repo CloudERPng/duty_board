@@ -4537,102 +4537,183 @@ class DutyBoard {
 	}
 
 	chreqs_dialog(x) {
-		const d = new frappe.ui.Dialog({ title: `💱 ${x.customer} — ${__("Change Requests")}`, size: "extra-large" });
-		const CHIP = {
-			"Draft": ["✏️", "#6b7280"], "Awaiting Approval": ["🟠", "#b45309"],
-			"Approved": ["✅", "#15803d"], "Declined": ["↩", "#dc2626"],
-			"In Delivery": ["🚀", "#0E7490"], "Delivered": ["📦", "#15803d"],
+		if (!document.getElementById("xcr-css")) {
+			const f = document.createElement("link");
+			f.rel = "stylesheet";
+			f.href = "https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600&display=swap";
+			document.head.appendChild(f);
+			const s = document.createElement("style");
+			s.id = "xcr-css";
+			s.textContent = `
+			.xcr{--ink:#182420;--mut:#6B7772;--fnt:#96A09B;--ln:#E8E5DD;--soft:#EFEDE6;--brand:#0E5A4A;--bsoft:#E4EEEA;--amber:#A96F1A;--asoft:#FBF3E4;--red:#B0443C;--good:#2E7D5B;font-size:13.5px;color:var(--ink)}
+			.xcr-sum{font-size:12px;color:var(--mut);margin:0 2px 12px}
+			.xcr-row{display:flex;align-items:center;gap:12px;padding:12px 14px;border:1px solid var(--ln);border-radius:12px;margin-bottom:8px;cursor:pointer;background:#fff;transition:box-shadow .1s}
+			.xcr-row:hover{box-shadow:0 2px 10px -4px rgba(24,36,32,.18)}
+			.xcr-dot{width:10px;height:10px;border-radius:50%;flex:none}
+			.xcr-row .t{font-weight:600;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+			.xcr-row .s{font-size:12px;color:var(--fnt);margin-left:auto;white-space:nowrap;display:flex;gap:10px;align-items:center}
+			.xcr-chip{font-size:11px;font-weight:700;letter-spacing:.04em;border-radius:99px;padding:3px 10px;background:var(--soft);color:var(--mut);white-space:nowrap}
+			.xcr-chip.amber{background:var(--asoft);color:var(--amber)}
+			.xcr-chip.green{background:var(--bsoft);color:var(--brand)}
+			.xcr-chip.red{background:#FBEDEB;color:var(--red)}
+			.xcr-amt{font-family:'Fraunces',serif;font-weight:600;font-size:14px;color:var(--ink)}
+			.xcr-back{font-size:12.5px;font-weight:600;color:var(--mut);cursor:pointer;display:inline-block;margin-bottom:10px}
+			.xcr-back:hover{color:var(--ink)}
+			.xcr-h{font-family:'Fraunces',serif;font-weight:600;font-size:20px;letter-spacing:-.01em;margin:0 0 10px}
+			.xcr-steps{display:flex;gap:0;margin:14px 0 16px}
+			.xcr-step{flex:1;text-align:center;font-size:10.5px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--fnt);position:relative;padding-top:14px}
+			.xcr-step::before{content:"";position:absolute;top:4px;left:50%;transform:translateX(-50%);width:9px;height:9px;border-radius:50%;background:var(--ln)}
+			.xcr-step::after{content:"";position:absolute;top:8px;left:calc(50% + 8px);right:calc(-50% + 8px);height:2px;background:var(--ln)}
+			.xcr-step:last-child::after{display:none}
+			.xcr-step.on{color:var(--brand)}.xcr-step.on::before{background:var(--brand)}
+			.xcr-step.now{color:var(--ink)}.xcr-step.now::before{background:var(--brand);box-shadow:0 0 0 3px var(--bsoft)}
+			.xcr-step.bad{color:var(--red)}.xcr-step.bad::before{background:var(--red)}
+			.xcr-note{border-radius:10px;padding:9px 12px;font-size:12.5px;margin-bottom:12px}
+			.xcr-note.amber{background:var(--asoft);color:var(--amber)}
+			.xcr-note.green{background:var(--bsoft);color:var(--brand)}
+			.xcr-f{display:grid;grid-template-columns:110px 1fr;gap:7px 14px;margin:12px 0}
+			.xcr-f dt{font-size:10.5px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--fnt);padding-top:2px}
+			.xcr-f dd{margin:0;font-size:13px;color:var(--ink);white-space:pre-wrap}
+			.xcr-acts{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px;padding-top:12px;border-top:1px solid var(--ln)}
+			.xcr-acts button{border:0;border-radius:9px;padding:7px 14px;font-size:12.5px;font-weight:600;cursor:pointer;background:var(--soft);color:var(--ink)}
+			.xcr-acts button.pri{background:var(--brand);color:#fff}
+			.xcr-acts button.dngr{background:#FBEDEB;color:var(--red)}
+			.xcr-new{display:flex;gap:8px;margin-top:12px}
+			.xcr-new input{flex:1;border:1px solid var(--ln);border-radius:10px;padding:8px 12px;font-size:13px}
+			.xcr-new button{border:0;border-radius:10px;padding:8px 16px;background:var(--brand);color:#fff;font-weight:600;cursor:pointer}
+			.xcr-empty{color:var(--fnt);font-size:13px;padding:18px 4px}`;
+			document.head.appendChild(s);
+		}
+		const d = new frappe.ui.Dialog({ title: `${x.customer} — ${__("Change requests")}`, size: "large" });
+		let view = null;
+		const PRICE_CHIP = (c) => {
+			const ps = c.pricing_status || "Awaiting Pricing";
+			if (c.status === "Declined") return `<span class="xcr-chip red">${__("declined")}</span>`;
+			if (ps === "Awaiting Pricing") return `<span class="xcr-chip amber">${__("awaiting pricing")}</span>`;
+			if (ps === "Priced") return `<span class="xcr-amt">${frappe.utils.escape_html(c.cost_fmt || "")}</span>`;
+			if (ps === "Covered by Subscription") return `<span class="xcr-chip green">${__("covered")}</span>`;
+			if (ps === "Goodwill") return `<span class="xcr-chip green">${__("goodwill")}</span>`;
+			return `<span class="xcr-chip">${__(ps.toLowerCase())}</span>`;
+		};
+		const DOT = (c) =>
+			c.status === "Declined" ? "var(--red)"
+			: ["Approved", "Delivered"].includes(c.status) ? "var(--good)"
+			: c.status === "In Delivery" ? "#0E7490"
+			: (c.pricing_status || "Awaiting Pricing") === "Awaiting Pricing" || c.status === "Awaiting Approval" ? "var(--amber)"
+			: "var(--fnt)";
+		const call = (method, args) =>
+			frappe.call({
+				method: "duty_board.client_room." + method,
+				args: args,
+				callback: (r) => {
+					if (r.message) {
+						render(r.message);
+						this.render_client_room(r.message);
+					}
+				},
+			});
+		const stepper = (c) => {
+			const ps = c.pricing_status || "Awaiting Pricing";
+			const free = ["Covered by Subscription", "Goodwill"].includes(ps);
+			const steps = free
+				? [__("Drafted"), ps === "Goodwill" ? __("Goodwill") : __("Covered"), __("In delivery"), __("Delivered")]
+				: [__("Drafted"), __("Priced"), __("Client approval"), __("Approved"), __("In delivery"), __("Delivered")];
+			let idx = 0;
+			if (free) idx = c.status === "Delivered" ? 3 : c.status === "In Delivery" ? 2 : 1;
+			else if (c.status === "Delivered") idx = 5;
+			else if (c.status === "In Delivery") idx = 4;
+			else if (c.status === "Approved") idx = 3;
+			else if (c.status === "Awaiting Approval") idx = 2;
+			else idx = ps === "Priced" ? 1 : 0;
+			const bad = c.status === "Declined";
+			return `<div class="xcr-steps">${steps
+				.map((s, i) => `<div class="xcr-step ${bad && i === 2 ? "bad" : i < idx ? "on" : i === idx ? "now" : ""}">${s}</div>`)
+				.join("")}</div>`;
 		};
 		const render = (data) => {
 			const crs = data.change_requests || [];
-			$(d.body).html(`
-				<div class="duty-cr-mslist">
-					${crs
-						.map((c) => {
-							const [icon, color] = CHIP[c.status] || ["", "#6b7280"];
-							const locked = ["Approved", "In Delivery", "Delivered"].includes(c.status);
-							return `
-						<div class="duty-cr-msrow ${locked ? "locked" : ""}">
-							<span style="color:${color};white-space:nowrap">${icon} <b>${frappe.utils.escape_html(c.title)}</b> <span class="duty-lead-chip">${__(c.status)}</span></span>
-							${c.cost_fmt ? `<span class="text-muted">💰 ${c.cost_fmt}</span>` : ""}
-							${c.timeline_impact ? `<span class="text-muted">⏱ ${frappe.utils.escape_html(c.timeline_impact)}</span>` : ""}
-							${c.quotation ? `<span class="text-muted">📄 ${frappe.utils.escape_html(c.quotation)}</span>` : ""}
-							${c.cards_total ? `<span class="duty-cr-msev ${c.cards_done === c.cards_total ? "ready" : ""}">📋 ${c.cards_done}/${c.cards_total} ${__("tasks")}</span>` : ""}
-							${c.status === "Approved" || c.status === "In Delivery" || c.status === "Delivered"
-								? `<span class="duty-cr-mssig">${__("Approved by")} <b>${frappe.utils.escape_html(c.approved_full || "")}</b> · ${c.approved_at || ""}${c.approved_fmt ? ` · ${c.approved_fmt}` : ""}${c.approval_note ? ` · “${frappe.utils.escape_html(c.approval_note)}”` : ""}</span>`
-								: ""}
-							${c.status === "Declined" && c.decline_reason ? `<span class="duty-cr-mssig" style="color:#dc2626">↩ “${frappe.utils.escape_html(c.decline_reason)}” · ${c.declined_at || ""}</span>` : ""}
-							<span class="duty-cr-msacts">
-								${!locked ? `<a data-a="edit" data-id="${c.name}">✎ ${__("Edit")}</a>` : ""}
-								<a data-a="tasks" data-id="${c.name}">📋 ${__("Tasks")}</a>
-								${c.source_message ? `<a data-a="origin" data-id="${c.name}">💬 ${__("Origin")}</a>` : ""}
-								${c.status === "Draft" ? `<a data-a="ask" data-id="${c.name}" class="duty-cr-msask">💱 ${__("Send for approval")}</a>` : ""}
-								${c.status === "Awaiting Approval" ? `<b class="duty-cr-mswait">${__("client's move")}</b> <a data-a="recall" data-id="${c.name}">↩ ${__("Recall")}</a>` : ""}
-								${c.status === "Declined" ? `<a data-a="reopen" data-id="${c.name}">✏️ ${__("Revise")}</a>` : ""}
-								${c.status === "Approved" ? `<a data-a="deliver" data-id="${c.name}">🚀 ${__("Start delivery")}</a>` : ""}
-								${c.status === "In Delivery" ? `<a data-a="done" data-id="${c.name}">📦 ${__("Mark delivered")}</a>` : ""}
-								${["Draft", "Declined"].includes(c.status) ? `<a data-a="del" data-id="${c.name}" style="color:var(--red-600,#dc2626)">🗑</a>` : ""}
+			if (view && !crs.some((z) => z.name === view)) view = null;
+			if (!view) {
+				const waitP = crs.filter((z) => (z.pricing_status || "Awaiting Pricing") === "Awaiting Pricing" && z.status !== "Declined").length;
+				const waitC = crs.filter((z) => z.status === "Awaiting Approval").length;
+				$(d.body).html(`<div class="xcr">
+					<div class="xcr-sum">${crs.length} ${__("total")}${waitP ? ` · <b style="color:var(--amber)">${waitP} ${__("awaiting pricing")}</b>` : ""}${waitC ? ` · ${waitC} ${__("with the client")}` : ""}</div>
+					${crs.length ? crs.map((c) => `
+						<div class="xcr-row" data-open="${c.name}">
+							<span class="xcr-dot" style="background:${DOT(c)}"></span>
+							<span class="t">${frappe.utils.escape_html(c.title)}</span>
+							<span class="s">
+								${c.cards_total ? `<span>${c.cards_done}/${c.cards_total} ${__("tasks")}</span>` : ""}
+								${PRICE_CHIP(c)}
+								<span class="xcr-chip">${__(c.status)}</span>
+								<span style="color:var(--ln)">›</span>
 							</span>
-							${(() => {
-								if (c.status === "Declined") return `<div class="duty-cr-msdesc text-muted">● Draft → ● Submitted → <b style="color:#dc2626">● Declined</b> → ↻ revise</div>`;
-								const steps = ["Draft", "Awaiting Approval", "Approved", "In Delivery", "Delivered"];
-								const names = ["Draft", "Submitted", "Approved", "In delivery", "Delivered"];
-								const at = steps.indexOf(c.status);
-								return `<div class="duty-cr-msdesc text-muted">${names.map((n, i) => `${i <= at ? "●" : "○"} ${i === at ? `<b>${n}</b>` : n}`).join(" → ")}</div>`;
-							})()}
-							${c.original_request ? `<div class="duty-cr-msdesc text-muted">🗣 ${frappe.utils.escape_html(c.original_request.slice(0, 220))}</div>` : ""}
-							${c.reason ? `<div class="duty-cr-msdesc text-muted">💡 ${frappe.utils.escape_html(c.reason.slice(0, 220))}</div>` : ""}
-							${c.scope_impact ? `<div class="duty-cr-msdesc text-muted">📐 ${frappe.utils.escape_html(c.scope_impact.slice(0, 220))}</div>` : ""}
-							${c.resource_impact ? `<div class="duty-cr-msdesc text-muted">👥 ${frappe.utils.escape_html(c.resource_impact.slice(0, 220))}</div>` : ""}
-							${c.risks ? `<div class="duty-cr-msdesc text-muted">⚠ ${frappe.utils.escape_html(c.risks.slice(0, 220))}</div>` : ""}
-						</div>`;
-						})
-						.join("") || `<div class="text-muted">${__("No change requests yet.")}</div>`}
-				</div>
-				<div class="duty-lead-section">＋ ${__("New change request")}</div>
-				<div class="duty-cr-addmem" style="flex-wrap:wrap">
-					<input type="text" class="form-control input-sm duty-cq-title" placeholder="${__("Title")}" style="flex:2">
-					<button type="button" class="btn btn-sm btn-primary duty-cq-add">＋</button>
-				</div>
-				<p class="text-muted duty-attach-hint">${__("Approved change requests are the client's formal commercial sign-off — permanent and uneditable. Drafts are invisible to the client until sent for approval.")}</p>
-			`);
-			const call = (method, args) =>
-				frappe.call({
-					method: "duty_board.client_room." + method,
-					args: args,
-					callback: (r) => {
-						if (r.message) {
-							render(r.message);
-							this.render_client_room(r.message);
-						}
-					},
+						</div>`).join("") : `<div class="xcr-empty">${__("No change requests yet — work beyond the subscription starts its life here.")}</div>`}
+					<div class="xcr-new">
+						<input type="text" maxlength="140" placeholder="${__("New change request — title…")}">
+						<button>＋ ${__("Draft it")}</button>
+					</div>
+				</div>`);
+				$(d.body).find(".xcr-row").on("click", (e) => { view = $(e.currentTarget).data("open"); render(data); });
+				const $in = $(d.body).find(".xcr-new input");
+				$(d.body).find(".xcr-new button").on("click", () => {
+					const t = ($in.val() || "").trim();
+					if (t) call("chreq_add", { name: x.name, title: t });
 				});
-			$(d.body).find(".duty-cq-add").on("click", () => {
-				const t = $(d.body).find(".duty-cq-title").val().trim();
-				if (!t) return;
-				call("chreq_add", { name: x.name, title: t });
-			});
-			$(d.body).find(".duty-cr-msacts a").on("click", (e) => {
+				return;
+			}
+			const c = crs.find((z) => z.name === view);
+			const ps = c.pricing_status || "Awaiting Pricing";
+			const locked = ["Approved", "In Delivery", "Delivered"].includes(c.status);
+			const F = [
+				[__("Request"), c.original_request], [__("Why"), c.reason], [__("Scope"), c.scope_impact],
+				[__("Timeline"), c.timeline_impact], [__("Resources"), c.resource_impact], [__("Risks"), c.risks],
+			].filter((z) => (z[1] || "").trim());
+			$(d.body).html(`<div class="xcr">
+				<span class="xcr-back">‹ ${__("All change requests")}</span>
+				<div class="xcr-h">${frappe.utils.escape_html(c.title)}</div>
+				<div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+					${PRICE_CHIP(c)}<span class="xcr-chip">${__(c.status)}</span>
+					${c.invoice_status ? `<span class="xcr-chip ${c.invoice_status === "Paid" ? "green" : "amber"}">${__(c.invoice_status.toLowerCase())}</span>` : ""}
+					${c.cards_total ? `<span class="xcr-chip">${c.cards_done}/${c.cards_total} ${__("tasks")}</span>` : ""}
+				</div>
+				${stepper(c)}
+				${c.status === "Draft" && ps === "Awaiting Pricing" ? `<div class="xcr-note amber">⏳ ${__("In the pricing queue — it reaches the client once priced or covered.")}</div>` : ""}
+				${c.status === "Draft" && ps === "Priced" ? `<div class="xcr-note green">${__("Priced and ready — send it to the client for formal approval.")}</div>` : ""}
+				${["Covered by Subscription", "Goodwill"].includes(ps) && !locked && c.status !== "Declined" ? `<div class="xcr-note green">${__("No charge — work can proceed; start delivery when ready.")}</div>` : ""}
+				${c.status === "Awaiting Approval" ? `<div class="xcr-note amber">${__("With the client for sign-off.")}</div>` : ""}
+				${c.status === "Declined" ? `<div class="xcr-note amber">↩ ${frappe.utils.escape_html(c.decline_reason || __("Declined by the client."))}</div>` : ""}
+				${["Approved", "In Delivery", "Delivered"].includes(c.status) && c.approved_full ? `<div class="xcr-note green">✍ ${__("Approved by")} ${frappe.utils.escape_html(c.approved_full)} · ${frappe.utils.escape_html(c.approved_at || "")}</div>` : ""}
+				${F.length ? `<dl class="xcr-f">${F.map((z) => `<dt>${z[0]}</dt><dd>${frappe.utils.escape_html(z[1])}</dd>`).join("")}</dl>` : ""}
+				<div class="xcr-acts">
+					${!locked ? `<button data-a="edit">${__("Edit")}</button>` : ""}
+					<button data-a="tasks">${__("Tasks")}</button>
+					${c.source_message ? `<button data-a="origin">${__("Origin")}</button>` : ""}
+					${c.status === "Draft" && ps === "Priced" ? `<button data-a="ask" class="pri">${__("Send for approval")}</button>` : ""}
+					${!locked && ["Covered by Subscription", "Goodwill"].includes(ps) && c.status !== "Declined" ? `<button data-a="deliver" class="pri">${__("Start delivery")}</button>` : ""}
+					${c.status === "Awaiting Approval" ? `<button data-a="recall">${__("Recall")}</button>` : ""}
+					${c.status === "Declined" ? `<button data-a="reopen">${__("Revise")}</button>` : ""}
+					${c.status === "Approved" ? `<button data-a="deliver" class="pri">${__("Start delivery")}</button>` : ""}
+					${c.status === "In Delivery" ? `<button data-a="done" class="pri">${__("Mark delivered")}</button>` : ""}
+					${["Draft", "Declined"].includes(c.status) ? `<button data-a="del" class="dngr">${__("Delete")}</button>` : ""}
+				</div>
+			</div>`);
+			$(d.body).find(".xcr-back").on("click", () => { view = null; render(data); });
+			$(d.body).find(".xcr-acts button").on("click", (e) => {
 				const a = $(e.currentTarget).data("a");
-				const id = $(e.currentTarget).data("id");
-				const c = ((data.change_requests || []).find((z) => z.name === id)) || {};
+				const id = c.name;
 				if (a === "ask")
 					return frappe.confirm(
 						__("Send “{0}” to the client for formal approval? They will see the scope, cost and timeline impacts.", [frappe.utils.escape_html(c.title)]),
 						() => call("chreq_request_approval", { id: id })
 					);
-				if (a === "origin") {
-					d.hide();
-					return this.jump_to_msg(c.source_message);
-				}
+				if (a === "origin") { d.hide(); return this.jump_to_msg(c.source_message); }
 				if (a === "recall") return call("chreq_set_status", { id: id, status: "Draft" });
 				if (a === "deliver") return call("chreq_set_status", { id: id, status: "In Delivery" });
 				if (a === "done") return call("chreq_set_status", { id: id, status: "Delivered" });
 				if (a === "reopen") return call("chreq_reopen", { id: id });
 				if (a === "del")
-					return frappe.confirm(__("Delete this change request?"), () =>
-						call("chreq_delete", { id: id })
-					);
+					return frappe.confirm(__("Delete this change request?"), () => { view = null; call("chreq_delete", { id: id }); });
 				if (a === "tasks") {
 					return frappe.call({
 						method: "duty_board.client_room.chreq_task_options",
@@ -4643,16 +4724,16 @@ class DutyBoard {
 								frappe.msgprint(__("Link a project to this room first — tasks live on the project board."));
 								return;
 							}
-							const td = new frappe.ui.Dialog({ title: `📋 ${__("Tasks delivering")} “${c.title}”` });
+							const td = new frappe.ui.Dialog({ title: `${__("Tasks delivering")} “${c.title}”` });
 							$(td.body).html(
 								(opts.tasks || [])
 									.map(
 										(t) => `
-									<label class="duty-cr-mstask ${t.elsewhere ? "elsewhere" : ""}" style="display:flex;gap:8px;align-items:center;padding:4px 0">
-										<input type="checkbox" data-name="${t.name}" ${t.checked ? "checked" : ""} ${t.elsewhere ? "disabled" : ""}>
-										<span>${frappe.utils.escape_html(t.title)}</span>
-										<span class="text-muted" style="margin-left:auto">${__(t.column)}${t.elsewhere ? " · " + __("on another CR") : ""}</span>
-									</label>`
+								<label class="duty-cr-mstask ${t.elsewhere ? "elsewhere" : ""}" style="display:flex;gap:8px;align-items:center;padding:4px 0">
+									<input type="checkbox" data-name="${t.name}" ${t.checked ? "checked" : ""} ${t.elsewhere ? "disabled" : ""}>
+									<span>${frappe.utils.escape_html(t.title)}</span>
+									<span class="text-muted" style="margin-left:auto">${__(t.column)}${t.elsewhere ? " · " + __("on another CR") : ""}</span>
+								</label>`
 									)
 									.join("") || `<div class="text-muted">${__("No cards on this project board yet.")}</div>`
 							);
@@ -4664,11 +4745,11 @@ class DutyBoard {
 								frappe.call({
 									method: "duty_board.client_room.chreq_set_tasks",
 									args: { id: id, tasks: JSON.stringify(chosen) },
-									callback: (r) => {
+									callback: (r2) => {
 										td.hide();
-										if (r.message) {
-											render(r.message);
-											this.render_client_room(r.message);
+										if (r2.message) {
+											render(r2.message);
+											this.render_client_room(r2.message);
 										}
 									},
 								});
