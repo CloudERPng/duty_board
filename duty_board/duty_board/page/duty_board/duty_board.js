@@ -3633,6 +3633,7 @@ class DutyBoard {
 				<a class="duty-cr-deps" title="${__("Client dependencies — what we're waiting on")}">📋</a>
 				<a class="duty-cr-scope" title="${__("Room scope & support plan")}">⚖</a>
 				<a class="duty-cr-uat" title="${__("Acceptance testing (UAT)")}">🧪</a>
+				<a class="duty-cr-tl" title="${__("Delivery accountability timeline")}">📜</a>
 				<a class="duty-cr-metrics" title="${__("Live metrics for this customer")}">📈</a>
 				<a class="duty-cr-report" title="${__("Generate last month's service report")}">📊</a>
 				<a class="duty-cr-rename" title="${__("Rename room")}">✏</a>
@@ -4016,6 +4017,7 @@ class DutyBoard {
 		$room.find(".duty-cr-academy").on("click", () => this.academy_dialog(x));
 		$room.find(".duty-cr-deps").on("click", () => this.deps_dialog(x));
 		$room.find(".duty-cr-uat").on("click", () => this.uat_dialog(x));
+		$room.find(".duty-cr-tl").on("click", () => this.timeline_dialog(x));
 		$room.find(".duty-cr-scope").on("click", () => {
 			frappe.call({ method: "frappe.client.get_value", args: { doctype: "Client Room", filters: { name: x.name }, fieldname: ["scope_note", "support_plan", "project"] }, callback: (rv) => {
 				const cur = rv.message || {};
@@ -4195,6 +4197,48 @@ class DutyBoard {
 					</tr>`).join("")}</table>
 					<p class="text-muted" style="font-size:11px">${__("Hours from work sessions with a customer; fee shown where known (accounting fee today). Red rows: attention cost exceeds known fee — a renewal-conversation list, not an invoice list.")}</p>
 				`);
+				d.show();
+			},
+		});
+	}
+
+	timeline_dialog(x) {
+		frappe.call({
+			method: "duty_board.timeline.timeline",
+			args: { room: x.name },
+			callback: (r) => {
+				const t = r.message || { events: [], summary: {} };
+				const d = new frappe.ui.Dialog({ title: __("📜 {0} — Delivery timeline", [x.customer]), size: "extra-large" });
+				const CHIP = { client: ["CLIENT", "#A96F1A", "#FBF3E4"], xlevel: ["XLEVEL", "#0E5A4A", "#E4EEEA"], info: ["", "", ""] };
+				$(d.body).html(`
+					<div style="border:1px solid #E8E5DD;border-radius:10px;padding:10px 14px;margin-bottom:12px;font-size:13px">
+						<b>${__("Attributed waiting time")}</b> — ${__("client")}: <b style="color:#A96F1A">${t.summary.client_days || 0} ${__("day(s)")}</b> ·
+						Xlevel: <b style="color:#0E5A4A">${t.summary.xlevel_days || 0} ${__("day(s)")}</b>
+						<div class="text-muted" style="font-size:11.5px;margin-top:3px">${__("Client days = dependency lateness + CR approval waits · Xlevel days = acceptance-defect open time. Every line is a recorded system event.")}</div>
+					</div>
+					<div style="max-height:55vh;overflow-y:auto">
+						${(t.events || []).map((e) => {
+							const c = CHIP[e.who] || CHIP.info;
+							return `<div style="display:flex;gap:10px;align-items:baseline;padding:5px 2px;border-bottom:1px solid #F0EEE8;font-size:12.5px">
+								<span class="text-muted" style="white-space:nowrap;font-size:11.5px">${e.when}</span>
+								<span>${e.icon}</span>
+								<span style="flex:1">${frappe.utils.escape_html(e.text)}</span>
+								${c[0] ? `<span style="font-size:9px;font-weight:800;letter-spacing:1px;color:${c[1]};background:${c[2]};border-radius:99px;padding:2px 8px">${c[0]}</span>` : ""}
+							</div>`;
+						}).join("") || `<div class="text-muted">${__("Nothing recorded yet.")}</div>`}
+					</div>
+					<button class="btn btn-sm btn-default" data-pdf style="margin-top:10px">📄 ${__("Export as PDF")}</button>`);
+				$(d.body).find("[data-pdf]").on("click", (e) => {
+					$(e.currentTarget).prop("disabled", true).text(__("Generating…"));
+					frappe.call({
+						method: "duty_board.timeline.timeline_pdf",
+						args: { room: x.name },
+						callback: (rr) => {
+							if (rr.message && rr.message.file_url) window.open(rr.message.file_url, "_blank");
+							$(e.currentTarget).prop("disabled", false).text("📄 " + __("Export as PDF"));
+						},
+					});
+				});
 				d.show();
 			},
 		});

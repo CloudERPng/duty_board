@@ -88,7 +88,7 @@
 			body[data-tab="pm"] .rightcol > .card { margin-bottom: 0; }
 		}
 		body[data-tab="training"] .rightcol { width: auto; display: block; padding-bottom: 90px; }
-		body[data-tab="pm"] .card:not(.mstones):not(.chreqs):not(.uatx) { display: none; }
+		body[data-tab="pm"] .card:not(.mstones):not(.chreqs):not(.uatx):not(.tlx) { display: none; }
 		body[data-tab="home"] .card.chreqs { display: none; }
 		body[data-tab="training"] .card:not(.acad) { display: none; }
 		body[data-tab="docs"] .card:not(.docs) { display: none; }
@@ -113,7 +113,7 @@
 		body[data-tab="home"] .card:not(.chat):not(.tasks):not(.meets):not(.metrics):not(.books) { display: none; }
 		body[data-tab="home"] .wrap { display: flex; flex-direction: column; }
 		body[data-tab="home"] .card.chat { order: -1; }
-		body[data-tab="pm"] .card:not(.mstones):not(.chreqs):not(.uatx) { display: none; }
+		body[data-tab="pm"] .card:not(.mstones):not(.chreqs):not(.uatx):not(.tlx) { display: none; }
 		body[data-tab="training"] .card:not(.acad) { display: none; }
 		body[data-tab="docs"] .card:not(.docs) { display: none; }
 		body[data-tab="home"] .msgs { max-height: calc(100vh - 380px); }
@@ -605,6 +605,10 @@ body[data-tab="home"] .foot{display:block!important;grid-area:foot}
 		<h3>🧪 Acceptance testing</h3>
 		<div id="uatx"></div>
 	</div>
+	<div class="card tlx" style="display:none">
+		<h3>📜 Delivery timeline</h3>
+		<div id="tlx"></div>
+	</div>
 	<div class="card metrics">
 		<h3 class="foldh" onclick="fold(this,'metrics')"><span class="fc">▾</span> 📊 <span class="t">Your numbers</span></h3>
 		<div id="metrics"><span class="muted">Loading…</span></div>
@@ -628,7 +632,7 @@ body[data-tab="home"] .foot{display:block!important;grid-area:foot}
 </div>
 <script>
 const esc = (s) => (s || "").replace(/[&<>"']/g, (c) => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
-const XLV = "3.9.0";
+const XLV = "3.10.0";
 document.getElementById("xlv").textContent = "v" + XLV;
 console.log("Xlevel portal", XLV);
 let ROOM = localStorage.getItem("xl_room") || null;
@@ -1233,6 +1237,7 @@ function loadBooks() {
 		.then(renderDeps)
 		.catch(() => {});
 	loadUat();
+	loadTimeline();
 }
 function renderDeps(rows) {
 	rows = rows || [];
@@ -2130,6 +2135,33 @@ function renderQueue(){
 		</div>`).join("")}</div>`;
 	host.style.display = "";
 	} catch (e) { console.error("queue render", e); host.style.display = "none"; }
+}
+function loadTimeline() {
+	api("client_get_timeline").then(renderTimeline).catch(() => {});
+}
+function renderTimeline(t) {
+	t = t || { events: [] };
+	const card = document.querySelector(".card.tlx");
+	const host = document.getElementById("tlx");
+	if (!card || !host) return;
+	if (!(t.events || []).length) { card.style.display = "none"; return; }
+	card.style.display = "";
+	const CHIP = { client: ["YOU", "#A96F1A", "#FBF3E4"], xlevel: ["XLEVEL", "#0F5C55", "#E4EEEA"], info: ["", "", ""] };
+	host.innerHTML = `
+		<div style="font-size:12.5px;margin-bottom:8px;color:#6B7772">The full record of this engagement — every step, dated, and who it sat with.
+			<b style="color:#A96F1A">${t.summary.client_days || 0}d</b> with you ·
+			<b style="color:#0F5C55">${t.summary.xlevel_days || 0}d</b> with Xlevel</div>
+		<div style="max-height:420px;overflow-y:auto">
+		${t.events.map((e) => {
+			const c = CHIP[e.who] || CHIP.info;
+			return `<div style="display:flex;gap:9px;align-items:baseline;padding:5px 0;border-bottom:1px solid #F0EEE8;font-size:12.5px">
+				<span class="muted" style="white-space:nowrap;font-size:11px">${esc(e.d)}</span>
+				<span>${esc(e.icon)}</span>
+				<span style="flex:1">${esc(e.text)}</span>
+				${c[0] ? `<span style="font-size:9px;font-weight:800;letter-spacing:1px;color:${c[1]};background:${c[2]};border-radius:99px;padding:2px 8px">${c[0]}</span>` : ""}
+			</div>`;
+		}).join("")}
+		</div>`;
 }
 function loadUat() {
 	api("client_get_uat").then(renderUat).catch(() => {});

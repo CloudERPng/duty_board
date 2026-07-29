@@ -23,6 +23,7 @@ NON_STAFF = {
 	"duty_board.dm": set(),
 	"duty_board.commercial": set(),
 	"duty_board.uat": set(),
+	"duty_board.timeline": set(),
 	"duty_board.accounting": {
 		# client portal endpoints, guarded by room membership resolution
 		"client_get_deliverables",
@@ -102,6 +103,9 @@ class TestStaffEndpointsDenyClients(FrappeTestCase):
 
 	def test_uat_denies_clients(self):
 		self._assert_denied("duty_board.uat")
+
+	def test_timeline_denies_clients(self):
+		self._assert_denied("duty_board.timeline")
 
 	def test_document_hub_denies_clients(self):
 		self._assert_denied(

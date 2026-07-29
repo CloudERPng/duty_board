@@ -4634,6 +4634,14 @@ def room_file(msg):
 
 
 @frappe.whitelist()
+def client_get_timeline():
+	room = _client_room()
+	from duty_board.timeline import client_timeline
+
+	return client_timeline(room.name)
+
+
+@frappe.whitelist()
 def client_get_uat():
 	room = _client_room()
 	from duty_board.uat import client_state
