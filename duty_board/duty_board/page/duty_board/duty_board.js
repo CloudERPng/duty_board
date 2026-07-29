@@ -4215,6 +4215,7 @@ class DutyBoard {
 				const secs = {};
 				rows.forEach((z) => (secs[z.section || "General"] = secs[z.section || "General"] || []).push(z));
 				$(d.body).html(`
+					${m.uat_due && !m.signoff ? `<div class="text-muted" style="font-size:12px;margin-bottom:6px">🗓 ${__("Window ends")} ${m.uat_due}</div>` : ""}
 					${m.signoff ? `<div style="background:#E4EEEA;border-radius:10px;padding:9px 12px;font-size:13px;margin-bottom:10px">✍ <b>${__("Signed off")}</b> ${__("by")} ${frappe.utils.escape_html(m.signoff.signed_full)} · ${m.signoff.signed_at} · ${m.signoff.passed}/${m.signoff.total} ${__("passed")}${m.signoff.exceptions ? `<br><span class="text-muted" style="font-size:12px">${__("Exceptions")}: ${frappe.utils.escape_html(m.signoff.exceptions)}</span>` : ""}</div>` : ""}
 					${rows.length ? `<div style="font-size:12.5px;margin-bottom:8px"><b>${p.passed || 0}</b>/${p.total || 0} ${__("passed")}${p.failed ? ` · <b style="color:#b91c1c">${p.failed} ${__("failed")}</b>` : ""}${p.blocked ? ` · ${p.blocked} ${__("blocked")}` : ""}${p.waived ? ` · ${p.waived} ${__("waived")}` : ""}${p.awaiting ? ` · ${p.awaiting} ${__("awaiting client")}` : ""}</div>` : ""}
 					${!rows.length ? `
@@ -4225,7 +4226,7 @@ class DutyBoard {
 						${secs[s].map((z) => `
 						<div style="border:1px solid #E8E5DD;border-radius:10px;padding:8px 11px;margin-bottom:6px;display:flex;gap:9px;align-items:center;flex-wrap:wrap">
 							<span>${CH[z.status] || ""}</span>
-							<b style="font-size:13px;flex:1;min-width:180px">${frappe.utils.escape_html(z.title)}</b>
+							<b style="font-size:13px;flex:1;min-width:180px">${z.code ? `<span class="text-muted" style="font-weight:600;font-size:11px">${frappe.utils.escape_html(z.code)}</span> ` : ""}${frappe.utils.escape_html(z.title)}</b>
 							<span class="text-muted" style="font-size:11.5px">${z.attempts.length ? z.attempts.length + "× " + __("tested") : ""}</span>
 							<span class="text-muted" style="font-size:11.5px;font-weight:700">${__(z.status)}</span>
 							${z.issue ? `<a style="font-size:11.5px" onclick="frappe.set_route('Form','Duty Issue','${z.issue}')">🔧 ${z.issue}</a>` : ""}
@@ -4245,7 +4246,7 @@ class DutyBoard {
 				const roomProds = (m.room_products || "").toLowerCase();
 				$(d.body).find("[data-seed]").on("click", () =>
 					frappe.prompt(
-						{
+						[{
 							fieldname: "templates", fieldtype: "MultiCheck", label: __("Template banks to seed"), columns: 2,
 							options: (m.templates || []).map((t) => ({
 								label: seededFrom[t] ? t + " (" + __("already seeded") + ")" : t,
@@ -4253,10 +4254,11 @@ class DutyBoard {
 								checked: !seededFrom[t] && roomProds.indexOf(t.toLowerCase()) >= 0 ? 1 : 0,
 							})),
 						},
+						{ fieldname: "due", fieldtype: "Date", label: __("Testing window ends (optional — drives client reminders)") }],
 						(v) => {
 							const chosen = v.templates || [];
 							if (!chosen.length) return;
-							call("uat_seed", { room: x.name, templates: chosen.join(",") });
+							call("uat_seed", { room: x.name, templates: chosen.join(","), due: v.due || null });
 						},
 						__("Seed acceptance tests"), __("Seed")
 					)

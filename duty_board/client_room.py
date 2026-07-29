@@ -4433,6 +4433,12 @@ def decline_meeting(id, reason=None):
 
 
 def meeting_reminders():
+	try:
+		from duty_board.uat import heartbeat
+
+		heartbeat()
+	except Exception:
+		frappe.log_error(frappe.get_traceback()[:2000], "uat heartbeat")
 	"""Hourly: morning-of and hour-before pushes to the client. Staff already
 	ride the todo alert machinery."""
 	now = now_datetime()

@@ -628,7 +628,7 @@ body[data-tab="home"] .foot{display:block!important;grid-area:foot}
 </div>
 <script>
 const esc = (s) => (s || "").replace(/[&<>"']/g, (c) => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
-const XLV = "3.8.2";
+const XLV = "3.9.0";
 document.getElementById("xlv").textContent = "v" + XLV;
 console.log("Xlevel portal", XLV);
 let ROOM = localStorage.getItem("xl_room") || null;
@@ -2148,6 +2148,7 @@ function renderUat(u) {
 	const secs = {};
 	u.rows.forEach((r) => (secs[r.section || "General"] = secs[r.section || "General"] || []).push(r));
 	host.innerHTML = `
+		${u.uat_due && !u.signoff ? (() => { const dl = Math.ceil((new Date(u.uat_due) - new Date()) / 86400000); return `<div style="font-size:12px;margin-bottom:6px;font-weight:600;color:${dl < 0 ? "#B0443C" : dl <= 3 ? "#A96F1A" : "#6B7772"}">🗓 Testing runs until ${esc(u.uat_due)}${dl >= 0 ? ` · ${dl} day${dl === 1 ? "" : "s"} left` : " · target date passed"}</div>`; })() : ""}
 		<div style="font-size:12.5px;margin-bottom:8px"><b>${p.passed || 0}</b> of ${p.total || 0} passed${p.waived ? ` · ${p.waived} waived` : ""}${p.blocked ? ` · <b style="color:#b45309">${p.blocked} being fixed</b>` : ""}${p.awaiting ? ` · ${p.awaiting} await you` : ""}</div>
 		${u.signoff ? `<div style="background:#E4EEEA;border-radius:10px;padding:9px 12px;font-size:13px;margin-bottom:8px">✍ <b>Signed off</b> by ${esc(u.signoff.signed_full)} · ${esc(u.signoff.signed_at)}${u.signoff.exceptions ? `<br><span class="muted" style="font-size:12px">With exceptions: ${esc(u.signoff.exceptions)}</span>` : ""}</div>` : ""}
 		${Object.keys(secs).map((s) => `
@@ -2156,7 +2157,7 @@ function renderUat(u) {
 			<div style="border:1px solid #E8E5DD;border-radius:10px;padding:9px 11px;margin-bottom:7px">
 				<div style="display:flex;gap:8px;align-items:center">
 					<span>${(CH[r.status] || ["", ""])[0]}</span>
-					<b style="font-size:13px;flex:1">${esc(r.title)}</b>
+					<b style="font-size:13px;flex:1">${r.code ? `<span style="color:#96A09B;font-weight:600;font-size:11.5px">${esc(r.code)}</span> ` : ""}${esc(r.title)}</b>
 					<span style="font-size:11px;font-weight:700;color:${(CH[r.status] || ["", "#666"])[1]}">${r.status === "Blocked by Issue" ? "being fixed" : r.status === "Awaiting Client" ? "your test" : esc(r.status.toLowerCase())}</span>
 				</div>
 				${r.steps || r.expected ? `<details style="margin:4px 0 0"><summary class="muted" style="font-size:12px;cursor:pointer">Steps &amp; expected result</summary>
@@ -2177,6 +2178,7 @@ function renderUat(u) {
 					</div>
 				</div>` : ""}
 			</div>`).join("")}`).join("")}
+		${!u.signoff && (p.awaiting || 0) > 0 ? `<button style="width:100%;margin-top:8px;background:#EFEDE6;color:#182420" onclick="uatMeeting()">🗓 Request a UAT walkthrough session</button>` : ""}
 		${!u.signoff && u.signable ? (u.can_sign
 			? `<button style="width:100%;margin-top:6px" onclick="uatSign()">✍ Sign off acceptance testing</button>`
 			: `<div class="muted" style="font-size:12.5px;margin-top:6px">✋ Sign-off awaits your team administrator.</div>`) : ""}`;
@@ -2202,6 +2204,13 @@ function uatFail(name) {
 			.then(renderUat).catch(fail);
 	if (f) uploadOne(f).then(send).catch(fail);
 	else send(null);
+}
+function uatMeeting() {
+	setTab("home");
+	setTimeout(() => {
+		const t = document.getElementById("mtopic");
+		if (t) { t.value = "UAT walkthrough session"; t.closest(".card")?.scrollIntoView({ behavior: "smooth" }); t.focus(); }
+	}, 150);
 }
 function uatSign() {
 	const note = prompt("Optional comment for the record (or leave empty):") || "";

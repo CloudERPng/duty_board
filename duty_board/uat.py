@@ -17,6 +17,25 @@ from duty_board.permissions import require_staff
 TERMINAL = ("Passed", "Waived")
 
 
+def _code_prefix(template):
+	base = (template or "").replace("Zhift", "").replace("zhift", "").strip()
+	base = "".join(ch for ch in base if ch.isalnum()).upper()
+	return (base or "UAT")[:4]
+
+
+def _next_code(room, prefix):
+	existing = frappe.get_all(
+		"Duty UAT Case", filters={"room": room, "code": ["like", prefix + "-%"]}, pluck="code"
+	)
+	n = 0
+	for c in existing:
+		try:
+			n = max(n, int(str(c).split("-")[-1]))
+		except Exception:
+			pass
+	return f"{prefix}-{n + 1:02d}"
+
+
 def _is_manager():
 	if "System Manager" in frappe.get_roles():
 		return True
@@ -47,7 +66,7 @@ def _rows(room):
 	rows = frappe.get_all(
 		"Duty UAT Case",
 		filters={"room": room},
-		fields=["name", "section", "title", "steps", "expected", "status", "issue", "waive_reason", "sort_order", "template"],
+		fields=["name", "section", "title", "steps", "expected", "status", "issue", "waive_reason", "sort_order", "template", "code"],
 		order_by="sort_order asc, creation asc",
 		limit_page_length=0,
 	)
@@ -125,11 +144,12 @@ def uat_state(room):
 			"Duty UAT Template", filters={"active": 1}, pluck="product", order_by="product asc"
 		),
 		"room_products": frappe.db.get_value("Client Room", room, "products") or "",
+		"uat_due": str(frappe.db.get_value("Client Room", room, "uat_due") or "") or None,
 	}
 
 
 @frappe.whitelist()
-def uat_seed(room, templates=None):
+def uat_seed(room, templates=None, due=None):
 	"""Copy chosen template banks into this engagement. `templates` is a csv
 	of Duty UAT Template names — the staff picker supplies it. Templates
 	already seeded into this room are skipped, so a second product's bank
@@ -159,12 +179,16 @@ def uat_seed(room, templates=None):
 			skipped.append(tpl)
 			continue
 		doc = frappe.get_doc("Duty UAT Template", tpl)
+		prefix = _code_prefix(tpl)
+		seq = 0
 		for c in doc.cases:
 			order += 10
+			seq += 1
 			frappe.get_doc(
 				{
 					"doctype": "Duty UAT Case",
 					"room": room,
+					"code": f"{prefix}-{seq:02d}",
 					"template": tpl,
 					"section": c.section or doc.product,
 					"title": c.title,
@@ -176,8 +200,12 @@ def uat_seed(room, templates=None):
 			).insert(ignore_permissions=True)
 			made += 1
 	frappe.db.commit()
+	if due:
+		frappe.db.set_value("Client Room", room, "uat_due", due, update_modified=False)
 	if made:
-		_post_room(room, _("🧪 Acceptance testing is ready: {0} scenario(s) await your testing — see Projects on your portal.").format(made))
+		_d = due or frappe.db.get_value("Client Room", room, "uat_due")
+		_post_room(room, _("🧪 Acceptance testing is ready: {0} scenario(s) await your testing{1} — see Projects on your portal.").format(
+			made, _(" · target: {0}").format(_d) if _d else ""))
 		_push_clients(room, _("🧪 Your acceptance tests are ready · Xlevel"), _("{0} scenarios to test").format(made))
 	if skipped:
 		frappe.msgprint(_("Already seeded, skipped: {0}").format(", ".join(skipped)))
@@ -215,6 +243,7 @@ def uat_case_add(room, title, section=None, steps=None, expected=None):
 		{
 			"doctype": "Duty UAT Case",
 			"room": room,
+			"code": _next_code(room, "ADD"),
 			"section": (section or "").strip() or "General",
 			"title": (title or "").strip()[:140],
 			"steps": (steps or "").strip() or None,
@@ -318,7 +347,7 @@ def _spawn_defect(case):
 	)
 	issue = _new_client_issue(
 		room,
-		_("UAT: {0}").format(case.title)[:200],
+		_("UAT {0}: {1}").format(case.code or case.name, case.title)[:200],
 		requested=0,
 		raised_by=frappe.session.user,
 		detail=detail,
@@ -332,6 +361,7 @@ def _spawn_defect(case):
 				{"attached_to_doctype": "Duty Issue", "attached_to_name": issue.name},
 				update_modified=False,
 			)
+	frappe.db.set_value("Duty Issue", issue.name, "severity", "High", update_modified=False)
 	case.db_set("issue", issue.name, update_modified=False)
 	case.db_set("status", "Blocked by Issue", update_modified=False)
 	frappe.db.commit()
@@ -359,7 +389,7 @@ def client_state(room_name):
 	rows = _rows(room_name)
 	out_rows = [
 		{
-			"name": r["name"], "section": r["section"], "title": r["title"], "steps": r["steps"],
+			"name": r["name"], "code": r["code"], "section": r["section"], "title": r["title"], "steps": r["steps"],
 			"expected": r["expected"], "status": r["status"], "waive_reason": r["waive_reason"],
 			"attempts": len(r["attempts"]),
 			"last_observed": (r["attempts"][-1]["observed"] if r["attempts"] else None),
@@ -369,7 +399,13 @@ def client_state(room_name):
 	prog = _progress(rows)
 	testable = [r for r in rows if r["status"] not in TERMINAL]
 	signable = bool(rows) and not any(r["status"] == "Awaiting Client" for r in rows)
-	return {"rows": out_rows, "progress": prog, "signoff": _signoff(room_name), "signable": 1 if signable else 0}
+	return {
+		"rows": out_rows,
+		"progress": prog,
+		"signoff": _signoff(room_name),
+		"signable": 1 if signable else 0,
+		"uat_due": str(frappe.db.get_value("Client Room", room_name, "uat_due") or "") or None,
+	}
 
 
 def client_result(room_name, name, result, observed=None, evidence_url=None, evidence_name=None):
@@ -410,6 +446,10 @@ def client_sign(room_name, user, note=None):
 		}
 	).insert(ignore_permissions=True)
 	frappe.db.commit()
+	try:
+		_issue_certificate(room_name, user, full, note, exceptions, prog, rows)
+	except Exception:
+		frappe.log_error(frappe.get_traceback()[:3000], "uat certificate")
 	_post_room(
 		room_name,
 		_("🧪✍ UAT SIGNED OFF by {0} — {1}/{2} passed{3}{4}").format(
@@ -419,3 +459,140 @@ def client_sign(room_name, user, note=None):
 		),
 	)
 	return client_state(room_name)
+
+
+def heartbeat():
+	"""Hourly-called, daily-acting: nudge rooms whose UAT has stalled —
+	open cases, no result recorded for 3+ days, not nudged in 3+ days."""
+	from frappe.utils import add_days, getdate, today
+
+	tdy = getdate(today())
+	rooms = frappe.get_all(
+		"Duty UAT Case", filters={"status": "Awaiting Client"}, pluck="room", distinct=True
+	)
+	for room in rooms:
+		nudged = frappe.db.get_value("Client Room", room, "uat_nudged_on")
+		if nudged and (tdy - getdate(nudged)).days < 3:
+			continue
+		last = frappe.db.sql(
+			"""select max(r.`on`) from `tabDuty UAT Result` r
+			join `tabDuty UAT Case` c on c.name = r.parent where c.room = %s""",
+			(room,),
+		)[0][0]
+		anchor = getdate(str(last)[:10]) if last else None
+		if anchor is None:
+			first = frappe.db.get_value(
+				"Duty UAT Case", {"room": room}, "min(creation)"
+			)
+			anchor = getdate(str(first)[:10]) if first else tdy
+		if (tdy - anchor).days < 3:
+			continue
+		n = frappe.db.count("Duty UAT Case", {"room": room, "status": "Awaiting Client"})
+		due = frappe.db.get_value("Client Room", room, "uat_due")
+		left = (getdate(due) - tdy).days if due else None
+		_post_room(
+			room,
+			_("🧪 A gentle reminder — {0} test scenario(s) still await you{1}. Stuck on any? Request a walkthrough from the testing card.").format(
+				n, _(" · {0} day(s) to your target of {1}").format(left, due) if due and left is not None and left >= 0 else (_(" · your target date {0} has passed").format(due) if due else "")
+			),
+		)
+		_push_clients(room, _("🧪 Your tests are waiting · Xlevel"), _("{0} scenarios still to go").format(n))
+		frappe.db.set_value("Client Room", room, "uat_nudged_on", tdy, update_modified=False)
+	frappe.db.commit()
+
+
+def _issue_certificate(room_name, user, full, note, exceptions, prog, rows):
+	from frappe.utils.pdf import get_pdf
+
+	room = frappe.get_doc("Client Room", room_name)
+	when = now_datetime().strftime("%d %B %Y, %H:%M")
+	defects = frappe.get_all(
+		"Duty UAT Case",
+		filters={"room": room_name, "issue": ["is", "set"]},
+		fields=["code", "title", "issue", "status"],
+	)
+	def row(r):
+		res = {"Passed": "PASS", "Waived": "WAIVED", "Failed": "FAIL", "Blocked": "BLOCKED", "Blocked by Issue": "DEFECT OPEN"}.get(r["status"], r["status"])
+		col = {"Passed": "#2E7D5B", "Waived": "#6b7280"}.get(r["status"], "#B0443C")
+		return (
+			f"<tr><td style='color:#96A09B'>{frappe.utils.escape_html(r.get('code') or '')}</td>"
+			f"<td>{frappe.utils.escape_html(r['title'])}</td>"
+			f"<td style='color:#96A09B'>{len(r['attempts'])}×</td>"
+			f"<td style='font-weight:700;color:{col}'>{res}</td></tr>"
+		)
+	sections = {}
+	for r in rows:
+		sections.setdefault(r["section"] or "General", []).append(r)
+	body_rows = ""
+	for s, rs in sections.items():
+		body_rows += f"<tr><td colspan='4' style='padding-top:12px;font-size:9px;letter-spacing:2px;color:#0E5A4A;font-weight:700'>{frappe.utils.escape_html(s.upper())}</td></tr>"
+		body_rows += "".join(row(r) for r in rs)
+	html = f"""<html><head><style>
+		body {{ font-family: Georgia, 'Times New Roman', serif; color: #182420; margin: 40px 46px; }}
+		.top {{ border-bottom: 3px solid #0E5A4A; padding-bottom: 14px; }}
+		.brand {{ font-size: 20px; font-weight: bold; color: #0E5A4A; }}
+		h1 {{ font-size: 26px; margin: 26px 0 4px; font-weight: normal; }}
+		.mut {{ color: #6B7772; font-size: 12px; }}
+		table {{ width: 100%; border-collapse: collapse; font-size: 12px; margin-top: 10px; }}
+		td {{ padding: 5px 6px; border-bottom: 1px solid #E8E5DD; vertical-align: top; }}
+		.box {{ border: 1px solid #E8E5DD; padding: 12px 14px; margin-top: 16px; font-size: 12.5px; }}
+		.sig {{ margin-top: 30px; border-top: 1px solid #182420; display: inline-block; padding-top: 6px; font-size: 13px; }}
+	</style></head><body>
+	<div class="top"><span class="brand">Xlevel Retail Systems</span>
+	<span style="float:right" class="mut">CloudERP.One · xlevel.clouderp.one</span></div>
+	<h1>Certificate of User Acceptance</h1>
+	<div class="mut">{frappe.utils.escape_html(room.customer)} · {frappe.utils.escape_html(room.unit or "General")} · issued {when} (WAT)</div>
+	<div class="box"><b>{prog["passed"]} of {prog["total"]}</b> scenarios passed{f" · {prog['waived']} waived by agreement" if prog["waived"] else ""}{f" · {len(defects)} defect(s) were raised and worked during testing" if defects else ""}.</div>
+	<table><tr style="font-size:9px;letter-spacing:1px;color:#6B7772"><td>CODE</td><td>SCENARIO</td><td>TESTED</td><td>RESULT</td></tr>{body_rows}</table>
+	{f'<div class="box" style="border-color:#A96F1A"><b>Accepted with exceptions:</b> {frappe.utils.escape_html("; ".join(exceptions))}</div>' if exceptions else ""}
+	{f'<div class="box"><b>Client note:</b> {frappe.utils.escape_html(note)}</div>' if (note or "").strip() else ""}
+	<p style="font-size:13px;margin-top:22px">The undersigned confirms, on behalf of {frappe.utils.escape_html(room.customer)},
+	that the system behaves as agreed for the scenarios above and formally accepts the implementation
+	{"subject to the exceptions listed" if exceptions else "without exception"}.</p>
+	<div class="sig"><b>{frappe.utils.escape_html(full)}</b><br><span class="mut">{when} · recorded electronically on the Xlevel Client Portal</span></div>
+	</body></html>"""
+	pdf = get_pdf(html)
+	fname = f"UAT-Acceptance-{room.customer.replace(' ', '-')[:40]}-{now_datetime().strftime('%Y%m%d-%H%M')}.pdf"
+	fdoc = frappe.get_doc(
+		{
+			"doctype": "File",
+			"file_name": fname,
+			"is_private": 1,
+			"content": pdf,
+			"attached_to_doctype": "Client Room",
+			"attached_to_name": room.name,
+		}
+	).insert(ignore_permissions=True)
+	frappe.get_doc(
+		{
+			"doctype": "Client Shelf Doc",
+			"room": room.name,
+			"title": _("Certificate of User Acceptance"),
+			"category": "Certificates",
+			"file_url": fdoc.file_url,
+			"file_name": fname,
+			"active": 1,
+		}
+	).insert(ignore_permissions=True)
+	frappe.db.commit()
+	admins = [
+		m.user
+		for m in frappe.get_all(
+			"Client Room Member", filters={"room": room.name, "active": 1, "is_admin": 1}, fields=["user"]
+		)
+		if m.user
+	]
+	if admins:
+		try:
+			frappe.sendmail(
+				recipients=admins,
+				subject=_("Certificate of User Acceptance — {0}").format(room.customer),
+				message=_(
+					"<p>Dear {0},</p><p>Thank you — your acceptance testing is formally signed off. "
+					"Your Certificate of User Acceptance is attached, and a copy lives permanently in "
+					"the <b>Documents</b> tab of your portal.</p><p>Warm regards,<br>Xlevel Retail Systems</p>"
+				).format(frappe.utils.get_fullname(admins[0]).split(" ")[0]),
+				attachments=[{"fname": fname, "fcontent": pdf}],
+			)
+		except Exception:
+			frappe.log_error(frappe.get_traceback()[:2000], "uat certificate mail")
