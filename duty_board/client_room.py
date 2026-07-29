@@ -2057,7 +2057,7 @@ def chreq_new_task(id, title, assignee=None, due_date=None):
 	_staff_only()
 	doc = frappe.get_doc("Duty Change Request", id)
 	room = frappe.get_doc("Client Room", doc.room)
-	project = _room_project(room)
+	project = _ensure_project(room)
 	title = (title or "").strip()[:140]
 	if not title:
 		frappe.throw(_("Give the task a title."))
