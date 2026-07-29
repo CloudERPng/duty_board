@@ -44,6 +44,7 @@ frappe.pages["duty-board"].on_page_load = function (wrapper) {
 		method: "duty_board.commercial.pricing_queue",
 		callback: (r) => {
 			const q = r.message || {};
+			board.is_pricer = !!q.pricer;
 			if (q.pricer) {
 				page.add_inner_button(__("💼 CR pricing ({0})", [(q.queue || []).length]), () => board.pricing_dialog(), __("⇄ View"));
 			}
@@ -4678,7 +4679,7 @@ class DutyBoard {
 					${c.cards_total ? `<span class="xcr-chip">${c.cards_done}/${c.cards_total} ${__("tasks")}</span>` : ""}
 				</div>
 				${stepper(c)}
-				${c.status === "Draft" && ps === "Awaiting Pricing" ? `<div class="xcr-note amber">⏳ ${__("In the pricing queue — it reaches the client once priced or covered.")}</div>` : ""}
+				${c.status === "Draft" && ps === "Awaiting Pricing" ? `<div class="xcr-note amber">⏳ ${this.is_pricer ? __("In YOUR pricing queue — decide below and it moves.") : __("In the pricing queue — it reaches the client once priced or covered.")}</div>` : ""}
 				${c.status === "Draft" && ps === "Priced" ? `<div class="xcr-note green">${__("Priced and ready — send it to the client for formal approval.")}</div>` : ""}
 				${["Covered by Subscription", "Goodwill"].includes(ps) && !locked && c.status !== "Declined" ? `<div class="xcr-note green">${__("No charge — work can proceed; start delivery when ready.")}</div>` : ""}
 				${c.status === "Awaiting Approval" ? `<div class="xcr-note amber">${__("With the client for sign-off.")}</div>` : ""}
@@ -4686,6 +4687,7 @@ class DutyBoard {
 				${["Approved", "In Delivery", "Delivered"].includes(c.status) && c.approved_full ? `<div class="xcr-note green">✍ ${__("Approved by")} ${frappe.utils.escape_html(c.approved_full)} · ${frappe.utils.escape_html(c.approved_at || "")}</div>` : ""}
 				${F.length ? `<dl class="xcr-f">${F.map((z) => `<dt>${z[0]}</dt><dd>${frappe.utils.escape_html(z[1])}</dd>`).join("")}</dl>` : ""}
 				<div class="xcr-acts">
+					${ps === "Awaiting Pricing" && c.status !== "Declined" && this.is_pricer ? `<button data-a="price" class="pri">${__("Price now")}</button>` : ""}
 					${!locked ? `<button data-a="edit">${__("Edit")}</button>` : ""}
 					<button data-a="tasks">${__("Tasks")}</button>
 					${c.source_message ? `<button data-a="origin">${__("Origin")}</button>` : ""}
@@ -4702,6 +4704,33 @@ class DutyBoard {
 			$(d.body).find(".xcr-acts button").on("click", (e) => {
 				const a = $(e.currentTarget).data("a");
 				const id = c.name;
+				if (a === "price")
+					return frappe.prompt(
+						[
+							{ fieldname: "decision", fieldtype: "Select", label: __("Decision"), options: ["Priced", "Covered by Subscription", "Goodwill", "Rejected", "Deferred"], reqd: 1 },
+							{ fieldname: "price", fieldtype: "Currency", label: __("Price (₦, for Priced)") },
+							{ fieldname: "estimate_hours", fieldtype: "Float", label: __("Estimated hours") },
+							{ fieldname: "note", fieldtype: "Small Text", label: __("Note (kept on the CR)") },
+						],
+						(v) =>
+							frappe.call({
+								method: "duty_board.commercial.chreq_price",
+								args: { name: id, decision: v.decision, price: v.price || 0, estimate_hours: v.estimate_hours || 0, note: v.note || null },
+								callback: () =>
+									frappe.call({
+										method: "duty_board.client_room.get_room",
+										args: { name: x.name },
+										callback: (rr) => {
+											if (rr.message) {
+												render(rr.message);
+												this.render_client_room(rr.message);
+											}
+										},
+									}),
+							}),
+						__("Price this CR"),
+						__("Apply")
+					);
 				if (a === "ask")
 					return frappe.confirm(
 						__("Send “{0}” to the client for formal approval? They will see the scope, cost and timeline impacts.", [frappe.utils.escape_html(c.title)]),
