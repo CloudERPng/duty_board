@@ -2457,6 +2457,7 @@ class DutyBoard {
 						<div style="display:flex;gap:8px;align-items:baseline;flex-wrap:wrap">
 							<b style="font-size:13px">${frappe.utils.escape_html(roomName(q.room))}</b>
 							<span class="text-muted" style="font-size:11px">${[q.ref_date, q.amount ? "₦" + Number(q.amount).toLocaleString() : null, q.reference].filter(Boolean).map(frappe.utils.escape_html).join(" · ")}</span>
+							${q.recipients ? `<span style="font-size:11px;color:#0e7490;font-weight:700">👤 ${frappe.utils.escape_html(q.recipients.split(",").map((s) => s.trim().split("@")[0]).join(", "))}</span>` : ""}
 							<span style="margin-left:auto;font-size:11px;font-weight:700;color:${q.status === "Answered" ? "#15803d" : "#b45309"}">${q.status === "Answered" ? "💬 " + __("answered") : __("open") + " · " + q.age_wd + "wd"}</span>
 						</div>
 						<div style="font-size:13px;margin-top:3px">${frappe.utils.escape_html(q.question)}</div>
@@ -2471,6 +2472,7 @@ class DutyBoard {
 					<div style="border:1px solid var(--border-color,#E7ECEA);border-radius:10px;padding:8px 12px;margin-bottom:6px;display:flex;gap:8px;align-items:center;background:${x.overdue ? "#FDECEA" : "#fff"}">
 						<b style="font-size:13px">${frappe.utils.escape_html(roomName(x.room))}</b>
 						<span style="font-size:13px">${frappe.utils.escape_html(x.title)}</span>
+						${x.recipients ? `<span style="font-size:11px;color:#0e7490;font-weight:700">👤 ${frappe.utils.escape_html(x.recipients.split(",").map((s) => s.trim().split("@")[0]).join(", "))}</span>` : ""}
 						<span class="text-muted" style="font-size:11px;margin-left:auto">${x.due_date ? __("due") + " " + x.due_date + (x.overdue ? " ⚠" : "") : ""}</span>
 						<button class="btn btn-xs btn-default" data-waive="${x.name}">${__("Waive")}</button>
 					</div>`
@@ -2485,7 +2487,7 @@ class DutyBoard {
 						<b style="font-size:13px">${frappe.utils.escape_html(roomName(x.room))}</b>
 						<span style="font-size:13px">${frappe.utils.escape_html(x.title)}</span>
 						<span class="text-muted" style="font-size:11px;margin-left:auto">${frappe.utils.escape_html(x.fulfilled_by || "")} · ${x.fulfilled_on || ""}</span>
-						${x.attachment_url ? `<a class="btn btn-xs btn-default" href="${frappe.utils.escape_html(x.attachment_url)}" target="_blank">📎 ${__("Open")}</a>` : ""}
+						${x.attachment_url ? `<a class="btn btn-xs btn-default" href="/api/method/duty_board.accounting.books_request_file?name=${encodeURIComponent(x.name)}" target="_blank">📎 ${__("Open")}</a>` : ""}
 					</div>`
 								)
 								.join("")
@@ -2499,10 +2501,22 @@ class DutyBoard {
 				$p.find("[data-waive]").on("click", (e) =>
 					frappe.call({ method: "duty_board.accounting.books_waive_request", args: { name: $(e.currentTarget).data("waive") }, callback: () => reload() })
 				);
-				$p.find("[data-addq]").on("click", () =>
-					frappe.prompt(
+				const memOpts = (rm, sel) => ((m.members || {})[rm] || []).map((u) => ({ label: u.full_name || u.user, value: u.user, checked: (sel || []).includes(u.user) }));
+				const bindMembers = (dlg) => {
+					const refresh = () => {
+						const mc = dlg.fields_dict.recipients;
+						if (!mc) return;
+						mc.df.options = memOpts(dlg.get_value("room"));
+						mc.refresh();
+					};
+					dlg.fields_dict.room.df.onchange = refresh;
+					refresh();
+				};
+				$p.find("[data-addq]").on("click", () => {
+					const dlg = frappe.prompt(
 						[
 							{ fieldname: "room", fieldtype: "Select", label: __("Client"), options: m.rooms.map((x) => ({ label: x.customer, value: x.room })), reqd: 1, default: room_filter || (m.rooms[0] && m.rooms[0].room) },
+							{ fieldname: "recipients", fieldtype: "MultiCheck", label: __("Send to (none checked = everyone in the room)"), columns: 2, options: [] },
 							{ fieldname: "question", fieldtype: "Small Text", label: __("Question"), reqd: 1 },
 							{ fieldname: "ref_date", fieldtype: "Date", label: __("Transaction date") },
 							{ fieldname: "amount", fieldtype: "Currency", label: __("Amount") },
@@ -2511,17 +2525,19 @@ class DutyBoard {
 						(v) =>
 							frappe.call({
 								method: "duty_board.accounting.books_add_query",
-								args: { room: v.room, question: v.question, ref_date: v.ref_date || null, amount: v.amount || null, reference: v.reference || null },
+								args: { room: v.room, question: v.question, ref_date: v.ref_date || null, amount: v.amount || null, reference: v.reference || null, recipients: (v.recipients || []).join(", ") },
 								callback: () => reload(),
 							}),
 						__("Ask the client"),
 						__("Send")
-					)
-				);
-				$p.find("[data-addr]").on("click", () =>
-					frappe.prompt(
+					);
+					bindMembers(dlg);
+				});
+				$p.find("[data-addr]").on("click", () => {
+					const dlg = frappe.prompt(
 						[
 							{ fieldname: "room", fieldtype: "Select", label: __("Client"), options: m.rooms.map((x) => ({ label: x.customer, value: x.room })), reqd: 1, default: room_filter || (m.rooms[0] && m.rooms[0].room) },
+							{ fieldname: "recipients", fieldtype: "MultiCheck", label: __("Send to (none checked = everyone in the room)"), columns: 2, options: [] },
 							{ fieldname: "title", fieldtype: "Data", label: __("Document"), reqd: 1 },
 							{ fieldname: "detail", fieldtype: "Small Text", label: __("Detail") },
 							{ fieldname: "due_date", fieldtype: "Date", label: __("Due") },
@@ -2529,13 +2545,14 @@ class DutyBoard {
 						(v) =>
 							frappe.call({
 								method: "duty_board.accounting.books_add_request",
-								args: { room: v.room, title: v.title, detail: v.detail || null, due_date: v.due_date || null },
+								args: { room: v.room, title: v.title, detail: v.detail || null, due_date: v.due_date || null, recipients: (v.recipients || []).join(", ") },
 								callback: () => reload(),
 							}),
 						__("Request a document"),
 						__("Send")
-					)
-				);
+					);
+					bindMembers(dlg);
+				});
 			},
 		});
 	}

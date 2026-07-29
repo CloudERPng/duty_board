@@ -665,7 +665,16 @@ def books_daily_round():
 	user = frappe.session.user
 	rooms, custs = _accounting_rooms()
 	rooms = [r for r in rooms if "Bookkeeping" in _room_lines(r)]
-	mine = [r for r in rooms if r.bookkeeper == user] or rooms
+	assigned = set(
+		frappe.get_all(
+			"Duty Service Deliverable",
+			filters={"period": today()[:7], "assigned_to": user},
+			pluck="room",
+		)
+	)
+	mine = [r for r in rooms if r.bookkeeper == user or r.name in assigned]
+	if not mine and _books_manager():
+		mine = rooms
 	tdy = today()
 	sessions = _sessions_by_room_day([r.customer for r in mine], tdy, str(getdate(tdy) + timedelta(days=1)))
 	logs = {
@@ -902,11 +911,15 @@ def _file_to_shelf(room_name, title, file_url, file_name):
 	return doc.name
 
 
-def _mail_client(room, subject, body, ref_doctype=None, ref_name=None):
+def _mail_client(room, subject, body, ref_doctype=None, ref_name=None, only=None):
 	"""Email the room's client members via the Communication send path: this
 	stamps Reply-To from the default incoming Email Account and stores the
-	Message-ID, so replies thread back to the reference document reliably."""
+	Message-ID, so replies thread back to the reference document reliably.
+	`only` (list of emails) narrows delivery to specific onboarded members."""
 	recipients = _room_client_emails(room.name)
+	if only:
+		wanted = {e.strip().lower() for e in only if e and e.strip()}
+		recipients = [r for r in recipients if r.lower() in wanted] or recipients
 	if not recipients:
 		return
 	sender = frappe.db.get_value(
@@ -1001,13 +1014,13 @@ def books_followups(room=None):
 	queries = frappe.get_all(
 		"Duty Books Query",
 		filters={"room": ["in", names] if names else ["is", "set"], "status": ["!=", "Resolved"]},
-		fields=["name", "room", "customer", "ref_date", "amount", "reference", "question", "status", "answer", "answered_by", "answered_on", "creation"],
+		fields=["name", "room", "customer", "ref_date", "amount", "reference", "question", "status", "answer", "answered_by", "answered_on", "creation", "recipients"],
 		order_by="creation asc",
 	)
 	requests = frappe.get_all(
 		"Duty Books Request",
 		filters={"room": ["in", names] if names else ["is", "set"], "status": "Requested"},
-		fields=["name", "room", "customer", "period", "title", "detail", "due_date", "creation"],
+		fields=["name", "room", "customer", "period", "title", "detail", "due_date", "creation", "recipients"],
 		order_by="due_date asc",
 	)
 	tdy = getdate(today())
@@ -1027,13 +1040,58 @@ def books_followups(room=None):
 	)
 	for r in received:
 		r.fulfilled_on = str(r.fulfilled_on)[:16] if r.fulfilled_on else None
-	return {"rooms": [{"room": r.name, "customer": r.customer} for r in sorted(rooms, key=lambda x: x.customer or "")], "queries": queries, "requests": requests, "received": received}
+	members = {}
+	if names:
+		for mrow in frappe.get_all(
+			"Client Room Member",
+			filters={"room": ["in", names], "active": 1},
+			fields=["room", "user", "full_name"],
+		):
+			if mrow.user and frappe.db.get_value("User", mrow.user, "enabled"):
+				members.setdefault(mrow.room, []).append(
+					{"user": mrow.user, "full_name": mrow.full_name or frappe.utils.get_fullname(mrow.user)}
+				)
+	return {"rooms": [{"room": r.name, "customer": r.customer} for r in sorted(rooms, key=lambda x: x.customer or "")], "members": members, "queries": queries, "requests": requests, "received": received}
+
+
+def _clean_recipients(room, recipients):
+	"""csv → validated list of active room members; ([], "") when blank."""
+	raw = [e.strip() for e in (recipients or "").split(",") if e.strip()]
+	if not raw:
+		return [], ""
+	members = {u.lower(): u for u in _room_client_emails(room)}
+	picked = [members[e.lower()] for e in raw if e.lower() in members]
+	names = ", ".join(frappe.utils.get_fullname(u).split(" ")[0] for u in picked)
+	return picked, names
 
 
 @frappe.whitelist()
-def books_add_query(room, question, ref_date=None, amount=None, reference=None):
+def books_request_file(name):
+	"""Serve a fulfilled request's attachment to any staff member. Client
+	uploads are private Files owned by the client user, so direct
+	/private/files links 403 for staff without doctype read perms — this
+	endpoint applies the staff check and streams the file itself."""
+	_staff_only()
+	req = frappe.db.get_value(
+		"Duty Books Request", name, ["attachment_url", "attachment_name"], as_dict=True
+	)
+	if not req or not req.attachment_url:
+		frappe.throw(_("No attachment on this request."))
+	fname = frappe.db.get_value(
+		"File", {"file_url": req.attachment_url, "attached_to_doctype": "Duty Books Request", "attached_to_name": name}, "name"
+	) or frappe.db.get_value("File", {"file_url": req.attachment_url}, "name")
+	if not fname:
+		frappe.throw(_("File record not found."))
+	from duty_board.client_room import _serve_file
+
+	_serve_file(frappe.get_doc("File", fname), req.attachment_name)
+
+
+@frappe.whitelist()
+def books_add_query(room, question, ref_date=None, amount=None, reference=None, recipients=None):
 	_staff_only()
 	customer = frappe.db.get_value("Client Room", room, "customer")
+	picked, picked_names = _clean_recipients(room, recipients)
 	frappe.get_doc(
 		{
 			"doctype": "Duty Books Query",
@@ -1045,11 +1103,17 @@ def books_add_query(room, question, ref_date=None, amount=None, reference=None):
 			"question": (question or "").strip()[:500],
 			"status": "Open",
 			"asked_by": frappe.session.user,
+			"recipients": ", ".join(picked) or None,
 		}
 	).insert(ignore_permissions=True)
 	frappe.db.commit()
 	roomdoc = frappe.get_doc("Client Room", room)
-	_post(roomdoc, _("❓ A question from your accounting team is waiting on the portal home."))
+	_post(
+		roomdoc,
+		_("❓ A question from your accounting team is waiting on the portal home{0}.").format(
+			_(" — for {0}").format(picked_names) if picked_names else ""
+		),
+	)
 	q = frappe.get_all(
 		"Duty Books Query",
 		filters={"room": room, "status": "Open", "asked_by": frappe.session.user},
@@ -1068,14 +1132,16 @@ def books_add_query(room, question, ref_date=None, amount=None, reference=None):
 			+ "<p><b>Just reply to this email</b> and your answer will reach the team directly — or answer on your portal home.</p>",
 			"Duty Books Query",
 			q.name,
+			only=picked,
 		)
 	return books_followups(room)
 
 
 @frappe.whitelist()
-def books_add_request(room, title, detail=None, due_date=None):
+def books_add_request(room, title, detail=None, due_date=None, recipients=None):
 	_staff_only()
 	customer = frappe.db.get_value("Client Room", room, "customer")
+	picked, picked_names = _clean_recipients(room, recipients)
 	frappe.get_doc(
 		{
 			"doctype": "Duty Books Request",
@@ -1086,11 +1152,17 @@ def books_add_request(room, title, detail=None, due_date=None):
 			"detail": (detail or "").strip()[:300] or None,
 			"due_date": due_date or None,
 			"status": "Requested",
+			"recipients": ", ".join(picked) or None,
 		}
 	).insert(ignore_permissions=True)
 	frappe.db.commit()
 	roomdoc = frappe.get_doc("Client Room", room)
-	_post(roomdoc, _("📎 Your accounting team has requested a document — see the portal home."))
+	_post(
+		roomdoc,
+		_("📎 Your accounting team has requested a document — see the portal home{0}.").format(
+			_(" — for {0}").format(picked_names) if picked_names else ""
+		),
+	)
 	rq = frappe.get_all(
 		"Duty Books Request",
 		filters={"room": room, "status": "Requested"},
@@ -1109,6 +1181,7 @@ def books_add_request(room, title, detail=None, due_date=None):
 			+ "<p><b>Reply to this email with the file attached</b> and it will be filed automatically — or upload on your portal home.</p>",
 			"Duty Books Request",
 			rq.name,
+			only=picked,
 		)
 	return books_followups(room)
 
@@ -1434,14 +1507,19 @@ def books_reprocess_inbound(days=30):
 
 @frappe.whitelist()
 def books_access():
-	"""Who sees the Books face, and where they land."""
+	"""Who sees the Books face, and where they land. All staff are allowed:
+	managers land on the matrix; bookkeepers and deliverable assignees land
+	on My round; everyone else lands on Follow ups."""
 	_staff_only()
 	if _books_manager():
 		return {"allowed": 1, "manager": 1, "tab": "matrix"}
 	rooms, _c = _accounting_rooms()
-	if any(r.bookkeeper == frappe.session.user for r in rooms):
+	user = frappe.session.user
+	if any(r.bookkeeper == user for r in rooms):
 		return {"allowed": 1, "manager": 0, "tab": "round"}
-	return {"allowed": 0}
+	if frappe.db.exists("Duty Service Deliverable", {"period": today()[:7], "assigned_to": user}):
+		return {"allowed": 1, "manager": 0, "tab": "round"}
+	return {"allowed": 1, "manager": 0, "tab": "followups"}
 
 
 @frappe.whitelist()
