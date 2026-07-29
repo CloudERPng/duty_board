@@ -391,11 +391,75 @@
 		.tabbar a.active { background: linear-gradient(180deg,#137066,var(--brand)); box-shadow: var(--sh1); }
 	}
 </style>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600&family=Instrument+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style id="skin2">
+:root{--ink:#182420;--mut:#6B7772;--fnt:#96A09B;--paper:#F6F5F1;--srf:#fff;--ln:#E8E5DD;--soft:#EFEDE6;
+--brand:#0E5A4A;--brandink:#0A4238;--brandsoft:#E4EEEA;--amber:#A96F1A;--red:#B0443C;--good:#2E7D5B;
+--r:14px;--sh:0 1px 2px rgba(24,36,32,.05),0 8px 24px -12px rgba(24,36,32,.12)}
+body{background:var(--paper)!important;color:var(--ink)!important;font-family:'Instrument Sans',system-ui,sans-serif!important}
+body .card{background:var(--srf)!important;border:0!important;border-radius:var(--r)!important;box-shadow:var(--sh)!important}
+body .card h3,body .card .thead h3{font-size:12px!important;font-weight:700!important;letter-spacing:.09em!important;
+text-transform:uppercase!important;color:var(--mut)!important}
+body button{border-radius:10px!important;font-weight:600!important;font-family:inherit!important;background:var(--brand);color:#fff}
+body button:hover{filter:brightness(1.06)}
+body input[type=text],body input[type=email],body input[type=date],body textarea,body select{border:1px solid var(--ln)!important;
+border-radius:10px!important;background:var(--paper)!important;font-family:inherit!important}
+body input:focus,body textarea:focus{outline:2px solid var(--brandsoft)!important;border-color:var(--brand)!important}
+.top,body>.top{background:var(--srf)!important;color:var(--ink)!important;border-bottom:1px solid var(--ln)}
+.top a,.top span{color:var(--mut)!important}
+.top b#brand{color:var(--brand)!important;font-weight:700}
+.top #me{color:var(--fnt)!important}
+.hours{background:var(--soft)!important;color:var(--mut)!important;border:0!important;font-size:12px!important}
+#roomswitch{background:var(--srf)!important;border-bottom:1px solid var(--ln)}
+#roomswitch a{color:var(--mut)!important;border:0!important;background:transparent!important;border-radius:99px!important;font-weight:600}
+#roomswitch a.on{background:var(--brandsoft)!important;color:var(--brandink)!important}
+.tabbar{background:transparent!important;border:0!important;gap:4px}
+.tabbar a{border-radius:99px!important;font-weight:600!important;color:var(--mut)!important;background:transparent!important;border:0!important}
+.tabbar a svg{width:17px;height:17px;stroke:currentColor;vertical-align:-3px;margin-right:5px}
+.tabbar a.active{background:var(--brandsoft)!important;color:var(--brandink)!important}
+body .m{border:0!important;border-radius:14px!important;box-shadow:0 1px 2px rgba(24,36,32,.06)!important}
+body .m.staff{background:var(--srf)!important}
+body .m.me{background:var(--brandsoft)!important}
+body .m .w{color:var(--brandink)!important;font-weight:700!important}
+body .muted{color:var(--fnt)!important}
+#renewbar.calm{background:var(--brandsoft)!important;color:var(--brandink)!important;border:0!important}
+#ov .box{border-radius:16px!important;box-shadow:var(--sh)!important;border:0!important}
+/* hero + queue (non-card so tab rules leave them alone) */
+body:not([data-tab="home"]) #xlhello,body:not([data-tab="home"]) #xlqueue{display:none!important}
+#xlhello{flex-basis:100%;padding:6px 4px 0}
+#xlhello h1{font-family:'Fraunces',serif;font-weight:600;font-size:25px;letter-spacing:-.01em;color:var(--ink)}
+#xlhello p{color:var(--mut);font-size:13.5px;margin:3px 0 0}
+#xlhello .plan{display:inline-flex;gap:6px;margin-top:9px;font-size:12px;font-weight:600;color:var(--brandink);
+background:var(--brandsoft);border-radius:99px;padding:5px 12px}
+#xlqueue{flex-basis:100%;margin:8px 0 14px}
+#xlqueue .qh{font-size:12px;font-weight:700;letter-spacing:.09em;text-transform:uppercase;color:var(--mut);margin:6px 4px 10px}
+.qspine{position:relative;padding-left:24px}
+.qspine::before{content:"";position:absolute;left:7px;top:14px;bottom:14px;width:2px;background:var(--ln);border-radius:2px}
+.qi{position:relative;background:var(--srf);border-radius:var(--r);box-shadow:var(--sh);padding:14px 15px;margin-bottom:11px}
+.qi::before{content:"";position:absolute;left:-22px;top:18px;width:11px;height:11px;border-radius:50%;
+background:var(--srf);border:3px solid var(--amber)}
+.qi.late::before{border-color:var(--red)}
+.qi.info::before{border-color:var(--brand)}
+.qi .eb{display:flex;gap:8px;font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--amber)}
+.qi.late .eb{color:var(--red)}.qi.info .eb{color:var(--brand)}
+.qi .eb .du{margin-left:auto;font-weight:600;letter-spacing:0;text-transform:none;color:var(--fnt)}
+.qi .eb .du.l8{color:var(--red);font-weight:700}
+.qi .t{font-size:15px;font-weight:600;margin-top:4px}
+.qi .s{font-size:13px;color:var(--mut);margin-top:2px}
+.qi .amt{font-family:'Fraunces',serif;font-weight:600;font-size:16px;color:var(--ink)}
+.qi .act{display:flex;gap:8px;margin-top:10px;flex-wrap:wrap}
+.qi .act input[type=text]{flex:1;min-width:150px;padding:8px 12px;font-size:13.5px}
+.qi .act button{padding:8px 14px;font-size:13px}
+.qi .act .gh{background:var(--soft)!important;color:var(--ink)!important}
+@media(max-width:900px){.tabbar a svg{display:block;margin:0 auto 2px}.tabbar{background:var(--srf)!important;border-top:1px solid var(--ln)!important}}
+</style>
+
 </head>
 <body>
 <div class="top">
 	<span><b id="brand">Xlevel</b> · <span id="cust"></span></span>
-	<span><a onclick="openTeam()" style="cursor:pointer;margin-right:14px" title="Your team & administrators">👥 Team</a><a id="bell" style="cursor:pointer;margin-right:14px;display:none" title="Get notified when we reply">🔔 Notify me</a><span id="me" style="font-size:13px;color:#a7f3d0;margin-right:14px"></span><a href="/?cmd=web_logout">Log out</a></span>
+	<span><a onclick="openTeam()" style="cursor:pointer;margin-right:14px" title="Your team & administrators">Team</a><a id="bell" style="cursor:pointer;margin-right:14px;display:none" title="Get notified when we reply">Notifications</a><span id="me" style="font-size:13px;color:#a7f3d0;margin-right:14px"></span><a href="/?cmd=web_logout">Log out</a></span>
 </div>
 <div id="roomswitch" style="display:none"></div>
 <div class="hours">🕘 We reply Mon–Fri, 9:00–18:00 WAT.<span id="mgr"></span></div>
@@ -410,13 +474,15 @@
 	</div>
 </div>
 <div class="tabbar">
-	<a data-tab="home" onclick="setTab('home')"><span>🏠</span>Home</a>
-	<a data-tab="pm" onclick="setTab('pm')"><span>📁</span>Projects</a>
-	<a data-tab="training" onclick="setTab('training')"><span>🎓</span>Training</a>
-	<a data-tab="docs" onclick="setTab('docs')"><span>📚</span>Documents</a>
+	<a data-tab="home" onclick="setTab('home')"><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="m3 10 9-7 9 7v10a1 1 0 0 1-1 1h-5v-6h-6v6H4a1 1 0 0 1-1-1Z"/></svg>Home</a>
+	<a data-tab="pm" onclick="setTab('pm')"><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M3 7h5l2 3h11v9a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1Z"/><path d="M3 7V5a1 1 0 0 1 1-1h4l2 3"/></svg>Projects</a>
+	<a data-tab="training" onclick="setTab('training')"><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="m2 9 10-5 10 5-10 5Z"/><path d="M6 11.5V16c0 1.6 2.7 3 6 3s6-1.4 6-3v-4.5"/></svg>Training</a>
+	<a data-tab="docs" onclick="setTab('docs')"><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8Z"/><path d="M14 2v6h6"/></svg>Documents</a>
 </div>
 <div class="wrap">
 	<div id="err"></div>
+	<div id="xlhello"></div>
+	<div id="xlqueue" style="display:none"></div>
 	<div class="leftcol">
 	<div class="card tasks">
 		<div class="thead">
@@ -523,7 +589,7 @@
 </div>
 <script>
 const esc = (s) => (s || "").replace(/[&<>"']/g, (c) => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
-const XLV = "3.3.1";
+const XLV = "3.4.0";
 document.getElementById("xlv").textContent = "v" + XLV;
 console.log("Xlevel portal", XLV);
 let ROOM = localStorage.getItem("xl_room") || null;
@@ -1945,6 +2011,87 @@ ta.addEventListener("keydown", (e) => {
 });
 load();
 setInterval(load, 15000);
+</script>
+
+<script>
+/* ---- v3.4 needs-you queue: unifies deps, queries, doc requests, CR approvals, deliverable acks ---- */
+window.QS = { deps: [], queries: [], reqs: [], crs: [], acks: [] };
+function qEsc(s){ return esc(String(s == null ? "" : s)); }
+function renderQueue(){
+	const host = document.getElementById("xlqueue");
+	const hello = document.getElementById("xlhello");
+	if (!host || !hello) return;
+	const items = [];
+	QS.deps.forEach((r) => items.push({ k: r.overdue ? "late" : "", eb: "Awaiting from you",
+		du: r.due_date ? (r.overdue ? "due " + r.due_date + " · overdue" : "due " + r.due_date) : "", l8: r.overdue,
+		t: r.title, s: r.detail || "", act: r.status === "Awaiting"
+			? `<input type="text" id="dp_${qEsc(r.name)}" placeholder="Optional note — how you've sent it…"><button onclick="provideDep('${qEsc(r.name)}')">I've provided this</button>`
+			: `<span class="s">📨 marked provided — being checked</span>` }));
+	QS.crs.forEach((c) => items.push({ k: "", eb: "Approval · change request", du: "awaiting you",
+		t: c.title, s: (c.cost_fmt ? `<span class="amt">${qEsc(c.cost_fmt)}</span>` : "") + (c.timeline_impact ? " &nbsp;·&nbsp; " + qEsc(c.timeline_impact) : ""),
+		raw: 1, act: c.can_approve === 0
+			? `<span class="s">✋ awaiting sign-off by your team administrator</span>`
+			: `<button onclick="approveChreq('${qEsc(c.name)}')">Review &amp; approve</button><button class="gh" onclick="declineChreq('${qEsc(c.name)}','${qEsc(c.title)}')">Decline</button>` }));
+	QS.queries.forEach((q) => items.push({ k: "", eb: "Question · from your accountant",
+		du: [q.ref_date, q.amount ? "₦" + Number(q.amount).toLocaleString() : null].filter(Boolean).join(" · "),
+		t: q.question, s: q.reference || "",
+		act: `<input type="text" id="qa_${qEsc(q.name)}" placeholder="Type your answer…"><button onclick="answerQuery('${qEsc(q.name)}')">Answer</button>` }));
+	QS.reqs.forEach((r) => items.push({ k: "", eb: "Document needed", du: r.due_date ? "due " + r.due_date : "",
+		t: r.title, s: r.detail || "PDF or photos are fine.",
+		act: `<input type="file" id="rf_${qEsc(r.name)}" style="display:none" onchange="fulfillRequest('${qEsc(r.name)}')"><button onclick="document.getElementById('rf_${qEsc(r.name)}').click()">Upload</button>` }));
+	QS.acks.forEach((r) => items.push({ k: "info", eb: "Sign-off", du: r.period,
+		t: r.title, s: "Prepared and reviewed — one tap records your acknowledgement.",
+		act: `<button onclick="ackDeliverable('${qEsc(r.name)}','${qEsc(r.title)}','${qEsc(r.period)}')">View &amp; acknowledge</button>` }));
+	const first = ((LAST && LAST.me) || "").split(" ")[0];
+	const h = new Date().getHours();
+	const greet = h < 12 ? "Good morning" : h < 17 ? "Good afternoon" : "Good evening";
+	const plan = (LAST && LAST.support_plan) || "";
+	hello.innerHTML = `<h1>${greet}${first ? ", " + qEsc(first) : ""}.</h1>
+		<p>${items.length ? items.length + (items.length === 1 ? " thing needs" : " things need") + " you today — about " + Math.max(2, Math.round(items.length * 1.5)) + " minutes altogether." : "Nothing needs you right now — everything is with us."}</p>
+		${plan ? `<span class="plan">✓ ${qEsc(plan)}</span>` : ""}`;
+	if (!items.length) { host.style.display = "none"; return; }
+	host.style.display = "";
+	host.innerHTML = `<div class="qh">Needs your attention</div><div class="qspine">${items.map((i) => `
+		<div class="qi ${i.k}">
+			<div class="eb">${i.eb}<span class="du ${i.l8 ? "l8" : ""}">${qEsc(i.du || "")}</span></div>
+			<div class="t">${i.raw ? i.t.startsWith("<") ? i.t : qEsc(i.t) : qEsc(i.t)}</div>
+			${i.s ? `<div class="s">${i.raw ? i.s : qEsc(i.s)}</div>` : ""}
+			<div class="act">${i.act}</div>
+		</div>`).join("")}</div>`;
+}
+/* feeders: wrap the existing renderers; their action functions and element ids are reused untouched */
+(function () {
+	const _deps = renderDeps;
+	renderDeps = function (rows) {
+		rows = rows || [];
+		QS.deps = rows.filter((r) => r.status === "Awaiting" || r.status === "Provided");
+		const host = document.getElementById("deps");
+		if (host) host.innerHTML = "";
+		renderQueue();
+	};
+	const _fu = renderFollowups;
+	renderFollowups = function (f) {
+		f = f || { queries: [], requests: [] };
+		window._fu = f;
+		QS.queries = (f.queries || []).filter((q) => q.status !== "Answered");
+		QS.reqs = f.requests || [];
+		const host = document.getElementById("followups");
+		if (host) host.innerHTML = "";
+		renderQueue();
+	};
+	const _cr = renderChreqs;
+	renderChreqs = function (rows) {
+		_cr(rows);
+		QS.crs = (rows || []).filter((c) => c.status === "Awaiting Approval");
+		renderQueue();
+	};
+	const _bk = renderBooks;
+	renderBooks = function (rows) {
+		_bk(rows);
+		QS.acks = (rows || []).filter((r) => r.status === "Delivered");
+		renderQueue();
+	};
+})();
 </script>
 </body>
 </html>
