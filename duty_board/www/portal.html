@@ -523,7 +523,7 @@
 </div>
 <script>
 const esc = (s) => (s || "").replace(/[&<>"']/g, (c) => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
-const XLV = "3.2.0";
+const XLV = "3.3.0";
 document.getElementById("xlv").textContent = "v" + XLV;
 console.log("Xlevel portal", XLV);
 let ROOM = localStorage.getItem("xl_room") || null;
@@ -583,6 +583,22 @@ const api = (method, args) =>
 		return j.message;
 	});
 let FROZEN = false;
+function renderPlan(plan, scope) {
+	if (!plan && !scope) return;
+	let host = document.getElementById("planbar");
+	if (!host) {
+		host = document.createElement("div");
+		host.id = "planbar";
+		const ren = document.getElementById("renewal") || document.querySelector(".card");
+		if (!ren || !ren.parentNode) return;
+		ren.parentNode.insertBefore(host, ren.nextSibling);
+	}
+	host.innerHTML = `<div style="border:1px solid #E2E8F0;background:#FAFBFF;border-radius:10px;padding:8px 12px;margin:8px 0;font-size:12px">
+		${plan ? `<b>🤝 ${esc(plan)}</b>` : ""}
+		${plan && scope ? "<br>" : ""}
+		${scope ? `<span class="muted">Scope: ${esc(scope)}</span>` : ""}
+	</div>`;
+}
 function renderRenewal(r, mgr) {
 	const bar = document.getElementById("renewbar");
 	if (!r) { bar.style.display = "none"; return; }
@@ -649,6 +665,7 @@ function render(d) {
 	document.getElementById("me").textContent = d.me ? "👤 " + d.me : "";
 	if (d.room && !ROOM) ROOM = d.room;
 	renderRenewal(d.renewal, d.manager_first);
+	renderPlan(d.support_plan, d.scope_note);
 	document.title = d.unit && d.unit !== "General" ? `Xlevel — ${d.unit}` : "Xlevel Client Portal";
 	document.getElementById("mgr").textContent = d.manager_first
 		? " Your account manager: " + d.manager_first + "."
@@ -1096,6 +1113,41 @@ function loadBooks() {
 	api("client_get_followups")
 		.then(renderFollowups)
 		.catch(() => {});
+	api("client_get_dependencies")
+		.then(renderDeps)
+		.catch(() => {});
+}
+function renderDeps(rows) {
+	rows = rows || [];
+	let host = document.getElementById("deps");
+	if (!host) {
+		host = document.createElement("div");
+		host.id = "deps";
+		const anchor = document.getElementById("followups") || document.getElementById("books");
+		if (!anchor) return;
+		anchor.parentNode.insertBefore(host, anchor);
+	}
+	const open = rows.filter((r) => r.status === "Awaiting" || r.status === "Provided");
+	if (!open.length) { host.innerHTML = ""; return; }
+	host.innerHTML = `
+		<div style="font-size:12px;font-weight:800;margin:2px 0 6px">📋 Awaiting from you</div>
+		${open.map((r) => `
+		<div style="border:1px solid ${r.overdue ? "#F5B5B5" : "#D6D3F0"};background:${r.overdue ? "#FEF6F6" : "#F8F7FE"};border-radius:10px;padding:9px 11px;margin-bottom:7px">
+			<b style="font-size:13px">${esc(r.title)}</b>
+			${r.status === "Provided" ? ` <span style="font-size:11px;color:#7C6FCF;font-weight:700">📨 marked provided — being checked</span>` : ""}
+			${r.detail ? `<div class="muted" style="font-size:12px">${esc(r.detail)}</div>` : ""}
+			${r.due_date ? `<div class="muted" style="font-size:11px">due ${esc(r.due_date)}${r.overdue ? ` · <b style="color:#B04444">overdue</b>` : ""}</div>` : ""}
+			${r.status === "Awaiting" ? `
+			<div style="display:flex;gap:7px;margin-top:5px">
+				<input type="text" id="dp_${esc(r.name)}" placeholder="Optional note — how / where you've sent it…" style="flex:1;font-size:13px;padding:7px 10px;border:1px solid #E2E8F0;border-radius:8px">
+				<button style="font-size:12px;padding:6px 12px" onclick="provideDep('${esc(r.name)}')">✓ I've provided this</button>
+			</div>` : ""}
+		</div>`).join("")}
+		<div style="height:6px"></div>`;
+}
+function provideDep(name) {
+	const v = (document.getElementById("dp_" + name) || { value: "" }).value.trim();
+	api("client_provide_dependency", { name: name, note: v || null }).then(renderDeps).catch(fail);
 }
 function renderFollowups(f) {
 	f = f || { queries: [], requests: [] };

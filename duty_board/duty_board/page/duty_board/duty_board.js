@@ -34,6 +34,18 @@ frappe.pages["duty-board"].on_page_load = function (wrapper) {
 			if (board.books_acc) {
 				page.add_inner_button(__("📒 Books"), () => board.show_face("books"), __("⇄ View"));
 				$('.duty-tabbar a[data-tab="books"]').show();
+				if (board.books_acc.manager) {
+					page.add_inner_button(__("💰 Cost to serve"), () => board.cost_dialog(), __("⇄ View"));
+				}
+			}
+		},
+	});
+	frappe.call({
+		method: "duty_board.commercial.pricing_queue",
+		callback: (r) => {
+			const q = r.message || {};
+			if (q.pricer) {
+				page.add_inner_button(__("💼 CR pricing ({0})", [(q.queue || []).length]), () => board.pricing_dialog(), __("⇄ View"));
 			}
 		},
 	});
@@ -3561,6 +3573,8 @@ class DutyBoard {
 					return seen ? `<span class="duty-cr-lastseen">👀 ${__("client seen")} ${frappe.datetime.comment_when(seen)}</span>` : "";
 				})()}
 				<a class="duty-cr-academy" title="${__("Training Academy")}">🎓</a>
+				<a class="duty-cr-deps" title="${__("Client dependencies — what we're waiting on")}">📋</a>
+				<a class="duty-cr-scope" title="${__("Room scope & support plan")}">⚖</a>
 				<a class="duty-cr-metrics" title="${__("Live metrics for this customer")}">📈</a>
 				<a class="duty-cr-report" title="${__("Generate last month's service report")}">📊</a>
 				<a class="duty-cr-rename" title="${__("Rename room")}">✏</a>
@@ -3942,6 +3956,20 @@ class DutyBoard {
 		$room.find(".duty-cr-shelfbtn").on("click", () => this.room_shelf_dialog(x));
 		$room.find(".duty-cr-back").on("click", () => this.$clients.removeClass("cr-room-open"));
 		$room.find(".duty-cr-academy").on("click", () => this.academy_dialog(x));
+		$room.find(".duty-cr-deps").on("click", () => this.deps_dialog(x));
+		$room.find(".duty-cr-scope").on("click", () => {
+			frappe.call({ method: "frappe.client.get_value", args: { doctype: "Client Room", filters: { name: x.name }, fieldname: ["scope_note", "support_plan"] }, callback: (rv) => {
+				const cur = rv.message || {};
+				frappe.prompt(
+					[
+						{ fieldname: "support_plan", fieldtype: "Data", label: __("Support plan (shown to client, e.g. 'Unlimited support · changes quoted via CR')"), default: cur.support_plan || "" },
+						{ fieldname: "scope_note", fieldtype: "Small Text", label: __("Contract scope — supported modules & boundaries"), default: cur.scope_note || "" },
+					],
+					(v) => frappe.call({ method: "duty_board.commercial.set_room_scope", args: { name: x.name, scope_note: v.scope_note || "", support_plan: v.support_plan || "" }, callback: () => frappe.show_alert({ message: __("⚖ Scope saved"), indicator: "green" }) }),
+					__("Room scope"), __("Save")
+				);
+			}});
+		});
 		$room.find(".duty-cr-metrics").on("click", () =>
 			frappe.call({
 				method: "duty_board.client_room.room_metrics",
@@ -4046,6 +4074,112 @@ class DutyBoard {
 				callback: () => this.load_client_room(x.name),
 			})
 		);
+	}
+
+	pricing_dialog() {
+		frappe.call({
+			method: "duty_board.commercial.pricing_queue",
+			callback: (r) => {
+				const q = (r.message || {}).queue || [];
+				const d = new frappe.ui.Dialog({ title: __("💼 CRs awaiting your pricing"), size: "large" });
+				$(d.body).html(
+					q.length
+						? q.map((z) => `<div style="border:1px solid #e2e8f0;border-radius:8px;padding:8px;margin-bottom:8px${z.age_days > 2 ? ";background:#fffbeb" : ""}">
+							<b>${frappe.utils.escape_html(z.customer)}</b> · ${frappe.utils.escape_html(z.title)}
+							<span style="float:right;font-size:11px;font-weight:700;color:${z.age_days > 2 ? "#b45309" : "#64748b"}">${z.age_days}d ${__("waiting")}</span>
+							<div class="text-muted" style="font-size:12px;margin:4px 0">${frappe.utils.escape_html((z.original_request || z.reason || "").slice(0, 300))}</div>
+							<button class="btn btn-xs btn-primary" data-price="${z.name}">${__("Decide")}</button>
+						</div>`).join("")
+						: `<p class="text-muted">${__("Queue clear — nothing awaiting pricing.")}</p>`
+				);
+				$(d.body).find("[data-price]").on("click", (e) => {
+					const id = $(e.currentTarget).data("price");
+					frappe.prompt(
+						[
+							{ fieldname: "decision", fieldtype: "Select", label: __("Decision"), options: ["Priced", "Covered by Subscription", "Goodwill", "Rejected", "Deferred"], reqd: 1 },
+							{ fieldname: "price", fieldtype: "Currency", label: __("Price (₦, for Priced)") },
+							{ fieldname: "estimate_hours", fieldtype: "Float", label: __("Estimated hours") },
+							{ fieldname: "note", fieldtype: "Small Text", label: __("Note (kept on the CR)") },
+						],
+						(v) => frappe.call({
+							method: "duty_board.commercial.chreq_price",
+							args: { name: id, decision: v.decision, price: v.price || 0, estimate_hours: v.estimate_hours || 0, note: v.note || null },
+							callback: () => { d.hide(); this.pricing_dialog(); },
+						}),
+						__("Price this CR"), __("Apply")
+					);
+				});
+				d.show();
+			},
+		});
+	}
+
+	cost_dialog() {
+		frappe.call({
+			method: "duty_board.commercial.cost_to_serve",
+			args: { months: 1 },
+			callback: (r) => {
+				const m = r.message || {};
+				const d = new frappe.ui.Dialog({ title: __("💰 Cost to serve — last {0} month(s)", [m.months]), size: "extra-large" });
+				const naira = (v) => (v || v === 0 ? "₦" + Number(v).toLocaleString() : "—");
+				$(d.body).html(`
+					${!m.rate ? `<div style="background:#fffbeb;border-radius:8px;padding:8px;font-size:12px;margin-bottom:8px">⚠ ${__("Set the blended staff cost rate in Duty Settings to see costs and margins.")}</div>` : ""}
+					<table class="table table-sm" style="font-size:12px"><tr><th>${__("Customer")}</th><th>${__("Hours")}</th><th>${__("Support")}</th><th>${__("Delivery")}</th><th>${__("Cost")}</th><th>${__("Known fee/mo")}</th><th></th></tr>
+					${(m.rows || []).map((z) => `<tr style="${z.fee_covers === false ? "background:#fef2f2" : ""}">
+						<td><b>${frappe.utils.escape_html(z.customer)}</b><br><span class="text-muted">${z.staff_count} ${__("staff")}</span></td>
+						<td><b>${z.hours}</b></td><td>${z.support_hours}</td><td>${z.delivery_hours}</td>
+						<td>${naira(z.cost)}</td><td>${naira(z.monthly_fee)}</td>
+						<td>${z.fee_covers === false ? `<b style="color:#b91c1c">${__("under water")}</b>` : z.fee_covers ? `<span style="color:#15803d">✓</span>` : ""}</td>
+					</tr>`).join("")}</table>
+					<p class="text-muted" style="font-size:11px">${__("Hours from work sessions with a customer; fee shown where known (accounting fee today). Red rows: attention cost exceeds known fee — a renewal-conversation list, not an invoice list.")}</p>
+				`);
+				d.show();
+			},
+		});
+	}
+
+	deps_dialog(x) {
+		frappe.call({
+			method: "duty_board.commercial.deps_list",
+			args: { room: x.name },
+			callback: (r) => {
+				const rows = r.message || [];
+				const d = new frappe.ui.Dialog({ title: __("📋 Awaiting from {0}", [x.customer]), size: "large" });
+				const badge = (s, o) => s === "Received" ? "✅" : s === "Waived" ? "⚪" : s === "Provided" ? "📨" : o ? "🔴" : "🕐";
+				$(d.body).html(`
+					${rows.length ? `<table class="table table-sm" style="font-size:12px"><tr><th></th><th>${__("Item")}</th><th>${__("Due")}</th><th>${__("Age")}</th><th>${__("Blocks")}</th><th></th></tr>
+					${rows.map((z) => `<tr style="${z.overdue ? "background:#fef2f2" : ""}">
+						<td>${badge(z.status, z.overdue)}</td>
+						<td><b>${frappe.utils.escape_html(z.title)}</b><br><span class="text-muted">${frappe.utils.escape_html(z.category || "")}${z.provided_note ? " · 💬 " + frappe.utils.escape_html(z.provided_note) : ""}</span></td>
+						<td>${z.due_date || "—"}${z.overdue ? `<br><b style="color:#b91c1c">${z.days_late}d ${__("late")}</b>` : ""}</td>
+						<td>${z.age_days}d${z.remind_count ? `<br>🔔×${z.remind_count}` : ""}</td>
+						<td style="max-width:140px">${frappe.utils.escape_html(z.blocks || "")}</td>
+						<td style="white-space:nowrap">
+							${z.status === "Awaiting" || z.status === "Provided" ? `<button class="btn btn-xs btn-success" data-recv="${z.name}">✓ ${__("received")}</button> <button class="btn btn-xs btn-default" data-rem="${z.name}">🔔</button>` : ""}
+							${z.status === "Provided" ? `<button class="btn btn-xs btn-default" data-back="${z.name}" title="${__("not usable — reopen")}">↩</button>` : ""}
+							${z.status === "Awaiting" ? `<button class="btn btn-xs btn-default" data-waive="${z.name}">${__("waive")}</button>` : ""}
+						</td></tr>`).join("")}</table>` : `<p class="text-muted">${__("Nothing awaited from this client.")}</p>`}
+					<button class="btn btn-sm btn-primary" data-adddep>＋ ${__("New dependency")}</button>
+				`);
+				const reload = () => { d.hide(); this.deps_dialog(x); };
+				$(d.body).find("[data-recv]").on("click", (e) => frappe.call({ method: "duty_board.commercial.dep_receive", args: { name: $(e.currentTarget).data("recv") }, callback: reload }));
+				$(d.body).find("[data-rem]").on("click", (e) => frappe.call({ method: "duty_board.commercial.dep_remind", args: { name: $(e.currentTarget).data("rem") }, callback: () => frappe.show_alert({ message: __("🔔 Reminder posted to the room"), indicator: "blue" }) }));
+				$(d.body).find("[data-back]").on("click", (e) => frappe.prompt({ fieldname: "note", fieldtype: "Data", label: __("Why isn't it usable?") }, (v) => frappe.call({ method: "duty_board.commercial.dep_reopen", args: { name: $(e.currentTarget).data("back"), note: v.note }, callback: reload }), __("Reopen"), __("Reopen")));
+				$(d.body).find("[data-waive]").on("click", (e) => frappe.prompt({ fieldname: "reason", fieldtype: "Data", label: __("Reason") }, (v) => frappe.call({ method: "duty_board.commercial.dep_waive", args: { name: $(e.currentTarget).data("waive"), reason: v.reason }, callback: reload }), __("Waive"), __("Waive")));
+				$(d.body).find("[data-adddep]").on("click", () => frappe.prompt(
+					[
+						{ fieldname: "title", fieldtype: "Data", label: __("What do we need?"), reqd: 1 },
+						{ fieldname: "category", fieldtype: "Select", label: __("Category"), options: ["Data / Template", "Opening Balances", "Master Data", "Approval / Sign-off", "Credentials / Access", "Process Decision", "Test Results / UAT", "Training Attendance", "Document", "Payment", "Named Staff", "Other"], default: "Other" },
+						{ fieldname: "detail", fieldtype: "Small Text", label: __("Detail / format expected") },
+						{ fieldname: "due_date", fieldtype: "Date", label: __("Due") },
+						{ fieldname: "blocks", fieldtype: "Data", label: __("What this blocks (shown to management)") },
+					],
+					(v) => frappe.call({ method: "duty_board.commercial.dep_add", args: { room: x.name, title: v.title, category: v.category, detail: v.detail || null, due_date: v.due_date || null, blocks: v.blocks || null }, callback: reload }),
+					__("New dependency"), __("Request")
+				));
+				d.show();
+			},
+		});
 	}
 
 	academy_dialog(x) {

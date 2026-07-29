@@ -742,6 +742,8 @@ def client_post_message(message, attachment_url=None, attachment_name=None, ref=
 		pass
 	ret = client_get_room()
 	ret["after_hours"] = _after_hours_payload()
+	ret["scope_note"] = frappe.db.get_value("Client Room", ret.get("room"), "scope_note") if ret.get("room") else ""
+	ret["support_plan"] = frappe.db.get_value("Client Room", ret.get("room"), "support_plan") if ret.get("room") else ""
 	return ret
 
 
@@ -1778,6 +1780,7 @@ def _chreq_rows(room):
 			"approved_amount", "submitted_on", "approved_full", "approved_at",
 			"approval_note", "declined_at", "decline_reason", "delivered_at",
 			"source_type", "source_message", "source_issue",
+			"released", "pricing_status", "estimate_hours", "invoice_status",
 		],
 		order_by="creation desc",
 	)
@@ -1822,6 +1825,12 @@ def chreq_add(name, title, original_request=None):
 		}
 	).insert(ignore_permissions=True)
 	frappe.db.commit()
+	try:
+		from duty_board.commercial import notify_pricer_new_cr
+
+		notify_pricer_new_cr(doc)
+	except Exception:
+		pass
 	return get_room(name)
 
 
@@ -1957,6 +1966,16 @@ def chreq_request_approval(id):
 @frappe.whitelist()
 def chreq_set_status(id, status):
 	_staff_only()
+	if status in ("In Progress", "In Delivery", "Delivered"):
+		from duty_board.commercial import work_may_proceed
+
+		_doc = frappe.get_doc("Duty Change Request", id)
+		if not work_may_proceed(_doc):
+			frappe.throw(
+				_("Work can't start on this CR yet — it needs pricing (and client approval if priced). Current: {0}").format(
+					_doc.get("pricing_status") or "Awaiting Pricing"
+				)
+			)
 	doc = frappe.get_doc("Duty Change Request", id)
 	allowed = {
 		"Approved": ["In Delivery"],
@@ -2060,6 +2079,7 @@ def _chreq_client_rows(room):
 	rows = [
 		r for r in _chreq_rows(room)
 		if r.status in ("Awaiting Approval", "Approved", "Declined", "In Delivery", "Delivered")
+		and cint(r.get("released"))
 	]
 	for r in rows:
 		r.can_approve = gate
@@ -4538,6 +4558,22 @@ def room_file(msg):
 
 
 @frappe.whitelist()
+def client_get_dependencies():
+	room = _client_room()
+	from duty_board.commercial import client_deps
+
+	return client_deps(room.name)
+
+
+@frappe.whitelist()
+def client_provide_dependency(name, note=None):
+	room = _client_room()
+	from duty_board.commercial import client_provide
+
+	return client_provide(room.name, name, note)
+
+
+@frappe.whitelist()
 def client_push_ping():
 	_client_room()
 	from duty_board.push import push_to_user
@@ -4777,4 +4813,6 @@ def client_request_task(title, detail=None, attachment_url=None, attachment_name
 	frappe.db.commit()
 	ret = client_get_room()
 	ret["after_hours"] = _after_hours_payload()
+	ret["scope_note"] = frappe.db.get_value("Client Room", ret.get("room"), "scope_note") if ret.get("room") else ""
+	ret["support_plan"] = frappe.db.get_value("Client Room", ret.get("room"), "support_plan") if ret.get("room") else ""
 	return ret

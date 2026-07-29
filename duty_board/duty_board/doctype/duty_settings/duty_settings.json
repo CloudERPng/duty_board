@@ -22,7 +22,10 @@
   "books_invoice_item",
   "books_invoice_due_days",
   "books_rate_floor",
-  "books_tax_template"
+  "books_tax_template",
+  "cr_pricer",
+  "cr_pricer_deputy",
+  "staff_cost_rate"
  ],
  "fields": [
   {
@@ -141,6 +144,22 @@
    "options": "Sales Taxes and Charges Template",
    "label": "Books Invoice Tax Template",
    "description": "Applied to auto-generated accounting invoices (e.g. your 7.5% VAT template)"
+  },
+  {
+   "fieldname": "cr_pricer",
+   "fieldtype": "Data",
+   "label": "CR Pricer (only this user prices/releases change requests)",
+   "default": "olamide@xlevelretail.com"
+  },
+  {
+   "fieldname": "cr_pricer_deputy",
+   "fieldtype": "Data",
+   "label": "CR Pricer Deputy (optional fallback)"
+  },
+  {
+   "fieldname": "staff_cost_rate",
+   "fieldtype": "Currency",
+   "label": "Blended Staff Cost Rate (\u20a6/hour, for cost-to-serve)"
   }
  ],
  "issingle": 1,

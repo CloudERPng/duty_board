@@ -1,0 +1,39 @@
+{
+ "actions": [],
+ "allow_rename": 0,
+ "autoname": "format:DEP-{YYYY}-{#####}",
+ "creation": "2026-07-29 12:00:00",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": ["room", "title", "category", "status", "detail", "client_owner", "due_date", "requested_by", "provided_on", "provided_note", "received_on", "waived_reason", "reminded_on", "remind_count", "blocks"],
+ "fields": [
+  {"fieldname": "room", "fieldtype": "Link", "label": "Client Room", "options": "Client Room", "reqd": 1, "in_list_view": 1},
+  {"fieldname": "title", "fieldtype": "Data", "label": "Needed From Client", "reqd": 1, "in_list_view": 1},
+  {"fieldname": "category", "fieldtype": "Select", "label": "Category", "options": "Data / Template\nOpening Balances\nMaster Data\nApproval / Sign-off\nCredentials / Access\nProcess Decision\nTest Results / UAT\nTraining Attendance\nDocument\nPayment\nNamed Staff\nOther", "default": "Other"},
+  {"fieldname": "status", "fieldtype": "Select", "label": "Status", "options": "Awaiting\nProvided\nReceived\nWaived", "default": "Awaiting", "in_list_view": 1},
+  {"fieldname": "detail", "fieldtype": "Small Text", "label": "Detail / Format Expected"},
+  {"fieldname": "client_owner", "fieldtype": "Data", "label": "Client Owner (member email)"},
+  {"fieldname": "due_date", "fieldtype": "Date", "label": "Due Date", "in_list_view": 1},
+  {"fieldname": "requested_by", "fieldtype": "Data", "label": "Requested By (staff)"},
+  {"fieldname": "provided_on", "fieldtype": "Datetime", "label": "Client Marked Provided On"},
+  {"fieldname": "provided_note", "fieldtype": "Small Text", "label": "Client Note"},
+  {"fieldname": "received_on", "fieldtype": "Datetime", "label": "Confirmed Received On"},
+  {"fieldname": "waived_reason", "fieldtype": "Data", "label": "Waived Reason"},
+  {"fieldname": "reminded_on", "fieldtype": "Date", "label": "Last Reminder"},
+  {"fieldname": "remind_count", "fieldtype": "Int", "label": "Reminders Sent"},
+  {"fieldname": "blocks", "fieldtype": "Small Text", "label": "What This Blocks"}
+ ],
+ "index_web_pages_for_search": 0,
+ "links": [],
+ "modified": "2026-07-29 12:00:00",
+ "modified_by": "Administrator",
+ "module": "Duty Board",
+ "name": "Duty Client Dependency",
+ "owner": "Administrator",
+ "permissions": [
+  {"create": 1, "delete": 1, "email": 1, "export": 1, "print": 1, "read": 1, "report": 1, "role": "System Manager", "share": 1, "write": 1}
+ ],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}
