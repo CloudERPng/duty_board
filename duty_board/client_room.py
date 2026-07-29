@@ -2130,11 +2130,18 @@ def chreq_set_tasks(id, tasks):
 def _chreq_client_rows(room):
 	"""Drafts stay behind the membrane — the client sees a CR only once staff submit it."""
 	gate = 1 if _client_can_approve(room) else 0
-	rows = [
-		r for r in _chreq_rows(room)
-		if r.status in ("Awaiting Approval", "Approved", "Declined", "In Delivery", "Delivered")
-		and cint(r.get("released"))
-	]
+	rows = []
+	for r in _chreq_rows(room):
+		if not cint(r.get("released")):
+			continue
+		free = (r.get("pricing_status") or "") in ("Covered by Subscription", "Goodwill")
+		if r.status in ("Awaiting Approval", "Approved", "Declined", "In Delivery", "Delivered") or free:
+			r.no_charge = (
+				(_("Covered by your subscription") if r.get("pricing_status") == "Covered by Subscription" else _("Approved by Xlevel as goodwill"))
+				if free
+				else None
+			)
+			rows.append(r)
 	for r in rows:
 		r.can_approve = gate
 	return rows

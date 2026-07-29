@@ -624,7 +624,7 @@ body[data-tab="home"] .foot{display:block!important;grid-area:foot}
 </div>
 <script>
 const esc = (s) => (s || "").replace(/[&<>"']/g, (c) => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
-const XLV = "3.7.0";
+const XLV = "3.7.1";
 document.getElementById("xlv").textContent = "v" + XLV;
 console.log("Xlevel portal", XLV);
 let ROOM = localStorage.getItem("xl_room") || null;
@@ -1085,6 +1085,14 @@ function loadChreqs() {
 function chreqPath(c) {
 	if (c.status === "Declined")
 		return `<div class="muted" style="font-size:12px;margin:2px 0">● Submitted → <b style="color:#dc2626">● Declined</b> — awaiting revision by Xlevel</div>`;
+	if (c.no_charge) {
+		const fsteps = ["Draft", "In Delivery", "Delivered"];
+		const fnames = ["Agreed — no charge", "In delivery", "Delivered"];
+		const fat = Math.max(0, fsteps.indexOf(c.status));
+		return `<div class="muted" style="font-size:12px;margin:2px 0">${fnames
+			.map((n, i) => `${i <= fat ? "●" : "○"} ${i === fat ? `<b style="color:#0F5C55">${n}</b>` : n}`)
+			.join(" → ")}</div>`;
+	}
 	const steps = ["Awaiting Approval", "Approved", "In Delivery", "Delivered"];
 	const names = ["Submitted", "Approved", "In delivery", "Delivered"];
 	const at = steps.indexOf(c.status);
@@ -1095,7 +1103,7 @@ function chreqPath(c) {
 function renderChreqs(rows) {
 	rows = rows || [];
 	window._chreqs = rows;
-	const DOTS = { "Awaiting Approval": "🟠", "Approved": "✅", "Declined": "↩", "In Delivery": "🚀", "Delivered": "📦" };
+	const DOTS = { "Draft": "🤝", "Awaiting Approval": "🟠", "Approved": "✅", "Declined": "↩", "In Delivery": "🚀", "Delivered": "📦" };
 	window._pmdot = window._pmdot || {};
 	window._pmdot.cr = rows.some((c) => c.status === "Awaiting Approval");
 	updatePmDot();
@@ -1105,7 +1113,8 @@ function renderChreqs(rows) {
 					(c) => `
 			<div class="ms">
 				<span class="dot">${DOTS[c.status] || ""}</span><b>${esc(c.title)}</b>
-				<span class="muted" style="font-size:12px">${esc(c.status)}</span>
+				<span class="muted" style="font-size:12px">${c.no_charge && c.status === "Draft" ? "Agreed" : esc(c.status)}</span>
+				${c.no_charge ? `<span style="font-size:11px;font-weight:700;color:#0F5C55;background:#E4EEEA;border-radius:99px;padding:2px 9px">🤝 ${esc(c.no_charge)}</span>` : ""}
 				${c.cost_fmt && c.status === "Awaiting Approval" ? `<span class="muted" style="font-size:12px">💰 ${esc(c.cost_fmt)}</span>` : ""}
 				${c.approved_fmt && c.status !== "Awaiting Approval" ? `<span class="muted" style="font-size:12px">💰 ${esc(c.approved_fmt)} approved</span>` : ""}
 				${c.timeline_impact ? `<span class="muted" style="font-size:12px">⏱ ${esc(c.timeline_impact)}</span>` : ""}
