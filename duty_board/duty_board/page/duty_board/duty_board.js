@@ -45,6 +45,7 @@ frappe.pages["duty-board"].on_page_load = function (wrapper) {
 		callback: (r) => {
 			const q = r.message || {};
 			board.is_pricer = !!q.pricer;
+			page.add_inner_button(__("🎓 Team training"), () => board.team_training_dialog(), __("⇄ View"));
 			if (q.pricer) {
 				page.add_inner_button(__("💼 CR pricing ({0})", [(q.queue || []).length]), () => board.pricing_dialog(), __("⇄ View"));
 			}
@@ -4197,6 +4198,38 @@ class DutyBoard {
 					</tr>`).join("")}</table>
 					<p class="text-muted" style="font-size:11px">${__("Hours from work sessions with a customer; fee shown where known (accounting fee today). Red rows: attention cost exceeds known fee — a renewal-conversation list, not an invoice list.")}</p>
 				`);
+				d.show();
+			},
+		});
+	}
+
+	team_training_dialog() {
+		frappe.call({
+			method: "duty_board.client_room.training_team_overview",
+			callback: (r) => {
+				const m = r.message || { people: [] };
+				const d = new frappe.ui.Dialog({ title: __("🎓 Team training & certification"), size: "extra-large" });
+				$(d.body).html(
+					(m.people || []).map((p) => `
+					<div style="border:1px solid #E8E5DD;border-radius:12px;padding:11px 14px;margin-bottom:10px">
+						<div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+							<b style="font-size:14px">${frappe.utils.escape_html(p.name)}</b>
+							<span style="font-size:11.5px;font-weight:700;border-radius:99px;padding:3px 10px;background:${p.completed === p.assigned ? "#E4EEEA" : "#FBF3E4"};color:${p.completed === p.assigned ? "#0E5A4A" : "#A96F1A"}">${p.completed}/${p.assigned} ${__("courses complete")}</span>
+							${(p.certificates || []).map((c) => `<span title="${frappe.utils.escape_html(c.title)} · ${c.on}" style="font-size:11.5px;background:#EFEDE6;border-radius:99px;padding:3px 10px">🎓 ${frappe.utils.escape_html(c.product || c.title)}</span>`).join("")}
+							<span class="text-muted" style="font-size:11.5px;margin-left:auto">${p.last_active ? __("last active") + " " + p.last_active : __("no activity yet")}</span>
+						</div>
+						<div style="margin-top:7px">
+							${(p.rows || []).map((z) => `
+							<div style="display:flex;gap:9px;align-items:center;padding:4px 0;border-bottom:1px solid #F5F3EE;font-size:12.5px">
+								<span>${z.status === "Completed" ? "✅" : z.lessons_done ? "▶" : "○"}</span>
+								<span style="flex:1;min-width:0">${frappe.utils.escape_html(z.title)}${z.product ? ` <span class="text-muted" style="font-size:11px">· ${frappe.utils.escape_html(z.product)}</span>` : ""}</span>
+								<span class="text-muted" style="font-size:11.5px;white-space:nowrap">${z.lessons_done}/${z.lessons_total} ${__("lessons")}</span>
+								${z.quiz_attempts ? `<span style="font-size:11.5px;white-space:nowrap;font-weight:700;color:${z.quiz_passed ? "#0E5A4A" : "#A96F1A"}">${__("quiz")} ${z.quiz_best}%${z.quiz_passed ? " ✓" : ` (${z.quiz_attempts}×)`}</span>` : ""}
+								${z.completed_on ? `<span class="text-muted" style="font-size:11px;white-space:nowrap">${z.completed_on}</span>` : ""}
+							</div>`).join("")}
+						</div>
+					</div>`).join("") || `<div class="text-muted">${__("No staff training assignments yet — assign tracks from the Me face (My training → Assign to a colleague).")}</div>`
+				);
 				d.show();
 			},
 		});

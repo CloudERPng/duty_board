@@ -3205,6 +3205,109 @@ def training_assign_staff(module, user):
 
 
 @frappe.whitelist()
+def training_team_overview():
+	"""Managers: every staff member's academy position — modules assigned/
+	completed, lessons done, quiz results, certificates, last activity."""
+	_staff_only()
+	from duty_board.uat import _is_manager
+
+	if not _is_manager():
+		frappe.throw(_("The team training overview is for managers."), frappe.PermissionError)
+
+	recs = frappe.get_all(
+		"Duty Training Record",
+		filters={"room": ["is", "not set"]},
+		fields=["trainee", "trainee_name", "module", "status", "completed_on"],
+		order_by="trainee asc, creation asc",
+		limit_page_length=0,
+	)
+	if not recs:
+		return {"people": []}
+	mods = {
+		m.name: m
+		for m in frappe.get_all("Duty Training Module", fields=["name", "title", "product"])
+	}
+	lesson_totals = {}
+	for l in frappe.get_all("Duty Lesson", fields=["module"], limit_page_length=0):
+		lesson_totals[l.module] = lesson_totals.get(l.module, 0) + 1
+	users = sorted({r.trainee for r in recs})
+	done = {}
+	last_active = {}
+	for p in frappe.get_all(
+		"Duty Lesson Progress",
+		filters={"user": ["in", users]},
+		fields=["user", "module", "completed_at", "modified"],
+		limit_page_length=0,
+	):
+		if p.completed_at:
+			done[(p.user, p.module)] = done.get((p.user, p.module), 0) + 1
+		la = last_active.get(p.user)
+		if not la or str(p.modified) > str(la):
+			last_active[p.user] = p.modified
+	quiz = {}
+	for q in frappe.get_all(
+		"Duty Quiz Attempt",
+		filters={"user": ["in", users], "finished_at": ["is", "set"]},
+		fields=["user", "module", "score", "passed"],
+		limit_page_length=0,
+	):
+		k = (q.user, q.module)
+		cur = quiz.get(k, {"attempts": 0, "best": 0, "passed": 0})
+		cur["attempts"] += 1
+		cur["best"] = max(cur["best"], cint(q.score))
+		cur["passed"] = cur["passed"] or cint(q.passed)
+		quiz[k] = cur
+	certs = {}
+	for c in frappe.get_all(
+		"Duty Certificate",
+		filters={"user": ["in", users], "status": "Issued"},
+		fields=["user", "track_title", "product", "issued_on"],
+		order_by="issued_on asc",
+		limit_page_length=0,
+	):
+		certs.setdefault(c.user, []).append(
+			{"title": c.track_title, "product": c.product, "on": str(c.issued_on)[:10]}
+		)
+	people = []
+	for u in users:
+		mine = [r for r in recs if r.trainee == u]
+		rows = []
+		completed = 0
+		for r in mine:
+			m = mods.get(r.module) or frappe._dict()
+			q = quiz.get((u, r.module), {})
+			if r.status == "Completed":
+				completed += 1
+			rows.append(
+				{
+					"module": r.module,
+					"title": m.get("title") or r.module,
+					"product": m.get("product"),
+					"status": r.status,
+					"completed_on": str(r.completed_on)[:10] if r.completed_on else None,
+					"lessons_done": done.get((u, r.module), 0),
+					"lessons_total": lesson_totals.get(r.module, 0),
+					"quiz_attempts": q.get("attempts", 0),
+					"quiz_best": q.get("best", 0),
+					"quiz_passed": q.get("passed", 0),
+				}
+			)
+		people.append(
+			{
+				"user": u,
+				"name": (mine[0].trainee_name or frappe.utils.get_fullname(u)) if mine else u,
+				"assigned": len(mine),
+				"completed": completed,
+				"certificates": certs.get(u, []),
+				"last_active": str(last_active.get(u) or "")[:10] or None,
+				"rows": rows,
+			}
+		)
+	people.sort(key=lambda p: (-(p["assigned"] - p["completed"]), p["name"]))
+	return {"people": people}
+
+
+@frappe.whitelist()
 def staff_tracks():
 	"""Consultant-audience certification tracks, for the assign dialog."""
 	_staff_only()
