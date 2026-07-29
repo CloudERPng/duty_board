@@ -467,7 +467,7 @@ white-space:nowrap;font-size:12px!important;font-weight:600}
 html,body[data-tab="home"]{height:auto!important;overflow:visible!important}
 body[data-tab="home"]{overflow-y:auto!important}
 body[data-tab="home"] .wrap{display:grid!important;grid-template-columns:minmax(0,1fr) 330px;
-grid-template-areas:"err err" "hello hello" "queue rail" "left rail";gap:0 22px;align-items:start;
+grid-template-areas:"err err" "hello hello" "queue rail" "chat rail" "left rail";gap:0 22px;align-items:start;
 height:auto!important;overflow:visible!important;padding-bottom:40px!important}
 body[data-tab="home"] #err{grid-area:err}
 body[data-tab="home"] #xlhello{grid-area:hello;margin-bottom:14px;order:0}
@@ -475,7 +475,7 @@ body[data-tab="home"] #xlqueue{grid-area:queue;margin:0 0 16px;order:0}
 body[data-tab="home"] .leftcol{grid-area:left;height:auto!important;overflow:visible!important;min-height:0!important}
 body[data-tab="home"] .rightcol{grid-area:rail;width:auto!important;height:auto!important;overflow:visible!important}
 body[data-tab="home"] .leftcol .card{margin-bottom:16px!important}
-body[data-tab="home"] .card.chat{height:auto!important;order:-1}
+body[data-tab="home"] .card.chat{grid-area:chat;height:auto!important;margin-bottom:16px!important}
 body[data-tab="home"] .card.chat .msgs{max-height:440px!important;flex:0 1 auto!important;overflow-y:auto!important}
 body[data-tab="home"] .foot{display:block!important}
 }
@@ -615,7 +615,7 @@ body[data-tab="home"] .foot{display:block!important}
 </div>
 <script>
 const esc = (s) => (s || "").replace(/[&<>"']/g, (c) => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
-const XLV = "3.4.2";
+const XLV = "3.4.3";
 document.getElementById("xlv").textContent = "v" + XLV;
 console.log("Xlevel portal", XLV);
 let ROOM = localStorage.getItem("xl_room") || null;
