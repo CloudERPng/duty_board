@@ -4291,7 +4291,7 @@ def confirm_meeting(id):
 				"doctype": "Daily Todo",
 				"user": u,
 				"date": doc.meeting_date,
-				"description": f"📅 {doc.customer}: {doc.topic}",
+				"description": f"📅 {doc.customer}: {doc.topic}"[:140],
 				"status": "Open",
 				"due_time": doc.start_time,
 				"assigned_by": me if me != u else None,
