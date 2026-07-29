@@ -255,6 +255,10 @@ def chreq_price(name, decision, price=None, estimate_hours=None, note=None):
 		doc.quotation = flt(price)
 		doc.released = 1
 		doc.invoice_status = "To Invoice"
+		# releasing IS the submission: put it in front of the client formally
+		if doc.status in ("Draft",):
+			doc.status = "Awaiting Approval"
+			doc.submitted_on = now_datetime()
 	elif decision in ("Covered by Subscription", "Goodwill"):
 		doc.released = 1
 		doc.quotation = 0
@@ -267,6 +271,16 @@ def chreq_price(name, decision, price=None, estimate_hours=None, note=None):
 	frappe.db.commit()
 	if decision == "Priced":
 		_post_room(doc.room, _("💼 Change request “{0}” has been quoted — please review and approve on your portal.").format(doc.title))
+		try:
+			from duty_board.client_room import _push_room_clients
+
+			_push_room_clients(
+				frappe.get_doc("Client Room", doc.room),
+				_("💼 Change request awaits your approval · Xlevel"),
+				doc.title[:120],
+			)
+		except Exception:
+			pass
 	elif decision in ("Covered by Subscription", "Goodwill"):
 		_post_room(doc.room, _("💼 Change request “{0}”: {1} — no charge; work can proceed.").format(
 			doc.title, _("covered by your subscription") if decision == "Covered by Subscription" else _("approved as goodwill")))

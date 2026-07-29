@@ -1942,6 +1942,15 @@ def chreq_request_approval(id):
 	_staff_only()
 	doc = frappe.get_doc("Duty Change Request", id)
 	_chreq_locked(doc)
+	ps = doc.get("pricing_status") or "Awaiting Pricing"
+	if ps == "Awaiting Pricing":
+		frappe.throw(_("This CR is in the pricing queue — it goes to the client once it has been priced."))
+	if ps in ("Covered by Subscription", "Goodwill"):
+		frappe.throw(_("No client approval needed — this CR is {0} and work can proceed.").format(ps.lower()))
+	if ps in ("Rejected", "Deferred"):
+		frappe.throw(_("This CR was {0} at pricing.").format(ps.lower()))
+	if not cint(doc.get("released")):
+		frappe.db.set_value("Duty Change Request", id, "released", 1, update_modified=False)
 	if not (doc.scope_impact or "").strip():
 		frappe.throw(_("Describe the scope impact before asking the client to approve."))
 	frappe.db.set_value(
