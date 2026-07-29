@@ -2037,6 +2037,47 @@ def chreq_delete(id):
 
 
 @frappe.whitelist()
+def room_set_project(name, project=None):
+	"""Link a room to an existing Duty Project (or clear the link). The lazy
+	'{Customer} — Requests' auto-project remains the default path; this is
+	for pointing a room at a real implementation project."""
+	_staff_only()
+	if project and not frappe.db.exists("Duty Project", project):
+		frappe.throw(_("Unknown project."))
+	frappe.db.set_value("Client Room", name, "project", project or None, update_modified=False)
+	frappe.db.commit()
+	return get_room(name)
+
+
+@frappe.whitelist()
+def chreq_new_task(id, title, assignee=None, due_date=None):
+	"""Spawn a delivery card from a CR: ensures the room has a project
+	(lazy-creating the requests project if none), creates the card in
+	To Do already linked to this change request."""
+	_staff_only()
+	doc = frappe.get_doc("Duty Change Request", id)
+	room = frappe.get_doc("Client Room", doc.room)
+	project = _room_project(room)
+	title = (title or "").strip()[:140]
+	if not title:
+		frappe.throw(_("Give the task a title."))
+	frappe.get_doc(
+		{
+			"doctype": "Duty Project Task",
+			"project": project,
+			"title": title,
+			"column": "To Do",
+			"assignee": (assignee or "").strip() or None,
+			"due_date": due_date or None,
+			"urgency": "Medium",
+			"change_request": id,
+		}
+	).insert(ignore_permissions=True)
+	frappe.db.commit()
+	return get_room(doc.room)
+
+
+@frappe.whitelist()
 def chreq_task_options(id):
 	_staff_only()
 	doc = frappe.get_doc("Duty Change Request", id)

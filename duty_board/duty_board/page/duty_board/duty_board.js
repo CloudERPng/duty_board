@@ -3959,14 +3959,17 @@ class DutyBoard {
 		$room.find(".duty-cr-academy").on("click", () => this.academy_dialog(x));
 		$room.find(".duty-cr-deps").on("click", () => this.deps_dialog(x));
 		$room.find(".duty-cr-scope").on("click", () => {
-			frappe.call({ method: "frappe.client.get_value", args: { doctype: "Client Room", filters: { name: x.name }, fieldname: ["scope_note", "support_plan"] }, callback: (rv) => {
+			frappe.call({ method: "frappe.client.get_value", args: { doctype: "Client Room", filters: { name: x.name }, fieldname: ["scope_note", "support_plan", "project"] }, callback: (rv) => {
 				const cur = rv.message || {};
 				frappe.prompt(
 					[
 						{ fieldname: "support_plan", fieldtype: "Data", label: __("Support plan (shown to client, e.g. 'Unlimited support · changes quoted via CR')"), default: cur.support_plan || "" },
 						{ fieldname: "scope_note", fieldtype: "Small Text", label: __("Contract scope — supported modules & boundaries"), default: cur.scope_note || "" },
+						{ fieldname: "project", fieldtype: "Link", options: "Duty Project", label: __("Project board for this room (tasks, milestones, CR delivery)"), default: cur.project || "" },
 					],
-					(v) => frappe.call({ method: "duty_board.commercial.set_room_scope", args: { name: x.name, scope_note: v.scope_note || "", support_plan: v.support_plan || "" }, callback: () => frappe.show_alert({ message: __("⚖ Scope saved"), indicator: "green" }) }),
+					(v) => frappe.call({ method: "duty_board.commercial.set_room_scope", args: { name: x.name, scope_note: v.scope_note || "", support_plan: v.support_plan || "" }, callback: () =>
+						frappe.call({ method: "duty_board.client_room.room_set_project", args: { name: x.name, project: v.project || null }, callback: () => frappe.show_alert({ message: __("⚖ Scope & project saved"), indicator: "green" }) })
+					}),
 					__("Room scope"), __("Save")
 				);
 			}});
@@ -4690,6 +4693,7 @@ class DutyBoard {
 					${ps === "Awaiting Pricing" && c.status !== "Declined" && this.is_pricer ? `<button data-a="price" class="pri">${__("Price now")}</button>` : ""}
 					${!locked ? `<button data-a="edit">${__("Edit")}</button>` : ""}
 					<button data-a="tasks">${__("Tasks")}</button>
+					<button data-a="newtask">＋ ${__("New task")}</button>
 					${c.source_message ? `<button data-a="origin">${__("Origin")}</button>` : ""}
 					${c.status === "Draft" && ps === "Priced" ? `<button data-a="ask" class="pri">${__("Send for approval")}</button>` : ""}
 					${!locked && ["Covered by Subscription", "Goodwill"].includes(ps) && c.status !== "Declined" ? `<button data-a="deliver" class="pri">${__("Start delivery")}</button>` : ""}
@@ -4735,6 +4739,17 @@ class DutyBoard {
 					return frappe.confirm(
 						__("Send “{0}” to the client for formal approval? They will see the scope, cost and timeline impacts.", [frappe.utils.escape_html(c.title)]),
 						() => call("chreq_request_approval", { id: id })
+					);
+				if (a === "newtask")
+					return frappe.prompt(
+						[
+							{ fieldname: "title", fieldtype: "Data", label: __("Task title"), reqd: 1 },
+							{ fieldname: "assignee", fieldtype: "Autocomplete", label: __("Assignee"), options: this.staff_options() },
+							{ fieldname: "due_date", fieldtype: "Date", label: __("Due") },
+						],
+						(v) => call("chreq_new_task", { id: id, title: v.title, assignee: v.assignee || null, due_date: v.due_date || null }),
+						__("New delivery task for this CR"),
+						__("Create")
 					);
 				if (a === "origin") { d.hide(); return this.jump_to_msg(c.source_message); }
 				if (a === "recall") return call("chreq_set_status", { id: id, status: "Draft" });
