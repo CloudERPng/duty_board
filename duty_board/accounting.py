@@ -101,6 +101,9 @@ def _due_date(t, year, month):
 		day = min(max(1, cint(t.due_day)), calendar.monthrange(ny, nm)[1])
 		# statutory-safe: a deadline on a non-workday is met EARLY, never late
 		return _prev_working_day(date(ny, nm, day))
+	if t.due_basis == "Fixed day of period":
+		day = min(max(1, cint(t.due_day)), calendar.monthrange(year, month)[1])
+		return _prev_working_day(date(year, month, day))
 	return last_working_day(year, month)
 
 
@@ -119,7 +122,7 @@ def _accounting_rooms():
 	rooms = frappe.get_all(
 		"Client Room",
 		filters={"customer": ["in", list(custs)], "status": ["!=", "Archived"]},
-		fields=["name", "customer", "bookkeeper", "books_optionals", "products"],
+		fields=["name", "customer", "bookkeeper", "books_optionals", "books_scope", "books_fye_month", "products"],
 	)
 	return rooms, custs
 
@@ -130,6 +133,77 @@ STATUTORY_TYPES = [
 	("VAT return (FIRS)", 21),
 	("WHT remittance (FIRS)", 21),
 ]
+
+
+SERVICE_LINES = ["Bookkeeping", "Payroll & HR", "Tax"]
+
+# (title, service_line, frequency, due_basis, due_day, due_month, optional, sort)
+LINE_TYPES = [
+	("Payroll input collected & variances confirmed", "Payroll & HR", "Monthly", "Fixed day of period", 25, 0, 0, 20),
+	("Payroll run approved & posted", "Payroll & HR", "Monthly", "Last working day of period", 0, 0, 0, 21),
+	("Payslips issued", "Payroll & HR", "Monthly", "Nth working day of next month", 1, 0, 0, 22),
+	("Pension remitted (PFA)", "Payroll & HR", "Monthly", "Fixed day of next month", 7, 0, 0, 23),
+	("NHF remitted", "Payroll & HR", "Monthly", "Fixed day of next month", 10, 0, 1, 24),
+	("NSITF (ECS) remitted", "Payroll & HR", "Monthly", "Fixed day of next month", 10, 0, 1, 25),
+	("Staff records & contracts current", "Payroll & HR", "Monthly", "Last working day of period", 0, 0, 1, 26),
+	("WHT remittance (state, individuals)", "Tax", "Monthly", "Fixed day of next month", 30, 0, 1, 30),
+	("Tax correspondence & queries cleared", "Tax", "Monthly", "Last working day of period", 0, 0, 1, 31),
+	("Annual: PAYE employer return (Form H1)", "Tax", "Annual", "Fixed day of period", 31, 1, 1, 32),
+	("Annual: CIT / annual returns filed", "Tax", "Annual", "Last working day of period", 0, 0, 0, 33),
+	("Annual: ITF contribution", "Tax", "Annual", "Fixed day of period", 1, 4, 1, 34),
+]
+
+# existing types → their lines (core four default to Bookkeeping)
+LINE_ASSIGN = {
+	"PAYE remittance (state IRS)": "Payroll & HR",
+	"VAT return (FIRS)": "Tax",
+	"WHT remittance (FIRS)": "Tax",
+}
+
+
+def _room_lines(room):
+	"""Room's active service lines. Blank books_scope = Full Books = all lines."""
+	raw = (room.get("books_scope") or "").strip()
+	if not raw:
+		return set(SERVICE_LINES)
+	return {s.strip() for s in raw.split(",") if s.strip() in SERVICE_LINES} or set(SERVICE_LINES)
+
+
+@frappe.whitelist()
+def seed_service_line_types():
+	"""Payroll & HR + Tax deliverable types, and line assignments for existing
+	types. Idempotent; rerun-safe."""
+	_staff_only()
+	created, assigned = 0, 0
+	for title, line, freq, basis, day, dmonth, opt, so in LINE_TYPES:
+		if frappe.db.exists("Duty Service Deliverable Type", {"title": title}):
+			continue
+		frappe.get_doc(
+			{
+				"doctype": "Duty Service Deliverable Type",
+				"title": title,
+				"service_line": line,
+				"frequency": freq,
+				"due_basis": basis,
+				"due_day": day,
+				"due_month": dmonth,
+				"optional": opt,
+				"active": 1,
+				"sort_order": so,
+			}
+		).insert(ignore_permissions=True)
+		created += 1
+	for title, line in LINE_ASSIGN.items():
+		name = frappe.db.get_value("Duty Service Deliverable Type", {"title": title}, "name")
+		if name and frappe.db.get_value("Duty Service Deliverable Type", name, "service_line") != line:
+			frappe.db.set_value("Duty Service Deliverable Type", name, "service_line", line, update_modified=False)
+			assigned += 1
+	# core four (and anything unset) → Bookkeeping
+	for t in frappe.get_all("Duty Service Deliverable Type", filters={"service_line": ["in", ["", None]]}, pluck="name"):
+		frappe.db.set_value("Duty Service Deliverable Type", t, "service_line", "Bookkeeping", update_modified=False)
+		assigned += 1
+	frappe.db.commit()
+	return {"created": created, "line_assigned": assigned}
 
 
 @frappe.whitelist()
@@ -230,15 +304,27 @@ def _open_period(period):
 	types = frappe.get_all(
 		"Duty Service Deliverable Type",
 		filters={"active": 1},
-		fields=["name", "title", "frequency", "due_basis", "due_day", "optional"],
+		fields=["name", "title", "frequency", "due_basis", "due_day", "due_month", "optional", "service_line"],
 		order_by="sort_order asc",
 	)
 	spawned = 0
 	for room in rooms:
 		optionals = {t.strip() for t in (room.books_optionals or "").split(",") if t.strip()}
+		lines = _room_lines(room)
 		for t in types:
+			if (t.service_line or "Bookkeeping") not in lines:
+				continue
 			if t.frequency == "Quarterly" and not _quarter_end_month(month):
 				continue
+			if t.frequency == "Annual":
+				dm = cint(t.due_month)
+				if dm == 0:
+					fye = cint(room.get("books_fye_month"))
+					if not fye:
+						continue
+					dm = (fye + 6 - 1) % 12 + 1
+				if month != dm:
+					continue
 			if cint(t.optional) and t.name not in optionals and t.title not in optionals:
 				continue
 			if frappe.db.exists(
@@ -293,7 +379,7 @@ def books_matrix(period=None):
 	types = frappe.get_all(
 		"Duty Service Deliverable Type",
 		filters={"active": 1},
-		fields=["name", "title", "optional", "frequency"],
+		fields=["name", "title", "optional", "frequency", "service_line"],
 		order_by="sort_order asc",
 	)
 	insts = frappe.get_all(
@@ -329,6 +415,8 @@ def books_matrix(period=None):
 				"bookkeeper": r.bookkeeper,
 				"bookkeeper_name": frappe.utils.get_fullname(r.bookkeeper) if r.bookkeeper else None,
 				"optionals": r.books_optionals or "",
+				"scope": r.books_scope or "",
+				"fye_month": cint(r.books_fye_month) or None,
 				"fee": custs.get(r.customer, frappe._dict()).get("accounting_fees") if fees_ok else None,
 				"posted_through": str(latest_pt[r.name]) if r.name in latest_pt else None,
 				"lag": _working_days_between(getdate(latest_pt[r.name]), tdy) if r.name in latest_pt else None,
@@ -387,13 +475,19 @@ def books_set(name, status=None, assigned_to=None, reviewer=None, notes=None):
 
 
 @frappe.whitelist()
-def books_set_room(name, bookkeeper=None, optionals=None):
+def books_set_room(name, bookkeeper=None, optionals=None, scope=None, fye_month=None):
 	_staff_only()
 	vals = {}
 	if bookkeeper is not None:
 		vals["bookkeeper"] = bookkeeper or None
 	if optionals is not None:
 		vals["books_optionals"] = (optionals or "").strip()[:300] or None
+	if scope is not None:
+		cleaned = [s.strip() for s in (scope or "").split(",") if s.strip() in SERVICE_LINES]
+		# all lines selected = Full Books = stored blank
+		vals["books_scope"] = None if (not cleaned or set(cleaned) == set(SERVICE_LINES)) else ", ".join(cleaned)
+	if fye_month is not None:
+		vals["books_fye_month"] = cint(fye_month) or None
 	if vals:
 		frappe.db.set_value("Client Room", name, vals, update_modified=False)
 		frappe.db.commit()
@@ -570,6 +664,7 @@ def books_daily_round():
 	_staff_only()
 	user = frappe.session.user
 	rooms, custs = _accounting_rooms()
+	rooms = [r for r in rooms if "Bookkeeping" in _room_lines(r)]
 	mine = [r for r in rooms if r.bookkeeper == user] or rooms
 	tdy = today()
 	sessions = _sessions_by_room_day([r.customer for r in mine], tdy, str(getdate(tdy) + timedelta(days=1)))
@@ -645,6 +740,7 @@ def books_log_day(room, posted_through=None, tx_posted=None, queries_raised=None
 def _register_data(period):
 	year, month = int(period[:4]), int(period[5:7])
 	rooms, custs = _accounting_rooms()
+	rooms = [r for r in rooms if "Bookkeeping" in _room_lines(r)]
 	wds = _workday_set()
 	first = date(year, month, 1)
 	last = date(year, month, calendar.monthrange(year, month)[1])

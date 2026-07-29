@@ -2261,14 +2261,19 @@ class DutyBoard {
 								.map(
 									(row) => `<tr>
 								<td><b>${frappe.utils.escape_html(row.customer)}</b>
-									${row.posted_through ? `<br><span style="font-size:10px;font-weight:700;color:${row.lag <= 1 ? "#15803d" : row.lag <= 3 ? "#b45309" : "#b91c1c"}">📮 ${__("posted thru")} ${row.posted_through.slice(5)} · ${__("lag")} ${row.lag}wd</span>` : `<br><span style="font-size:10px;color:#94a3b8">📮 ${__("no attestation")}</span>`}
+									${row.scope ? `<br><span style="font-size:10px;font-weight:700;color:#0e7490">◳ ${frappe.utils.escape_html(row.scope)}</span>` : ""}
+									${(!row.scope || row.scope.includes("Bookkeeping")) && row.posted_through ? `<br><span style="font-size:10px;font-weight:700;color:${row.lag <= 1 ? "#15803d" : row.lag <= 3 ? "#b45309" : "#b91c1c"}">📮 ${__("posted thru")} ${row.posted_through.slice(5)} · ${__("lag")} ${row.lag}wd</span>` : (!row.scope || row.scope.includes("Bookkeeping") ? `<br><span style="font-size:10px;color:#94a3b8">📮 ${__("no attestation")}</span>` : "")}
 									${row.fee ? `<br><span class="text-muted" style="font-size:11px">₦${Number(row.fee).toLocaleString()}/mo</span>` : ""}</td>
-								<td><a class="duty-bk-room" data-room="${row.room}" data-bk="${row.bookkeeper || ""}" data-opt="${frappe.utils.escape_html(row.optionals)}" style="cursor:pointer">${row.bookkeeper_name ? frappe.utils.escape_html(row.bookkeeper_name.split(" ")[0]) : "— " + __("set")}</a>
+								<td><a class="duty-bk-room" data-room="${row.room}" data-bk="${row.bookkeeper || ""}" data-opt="${frappe.utils.escape_html(row.optionals)}" data-scope="${frappe.utils.escape_html(row.scope || "")}" data-fye="${row.fye_month || ""}" style="cursor:pointer">${row.bookkeeper_name ? frappe.utils.escape_html(row.bookkeeper_name.split(" ")[0]) : "— " + __("set")}</a>
 									<a class="duty-bk-pb" data-room="${row.room}" title="${__("Client playbook")}" style="cursor:pointer;margin-left:6px">📖</a></td>
 								${m.types
 									.map((t) => {
 										const c = row.cells[t.name];
 										if (!c) {
+											const lines = (row.scope || "").split(",").map((s) => s.trim()).filter(Boolean);
+											if (lines.length && t.service_line && !lines.includes(t.service_line)) {
+												return `<td class="text-muted" style="text-align:center;opacity:.35" title="${__("Outside this client's service scope")}">·</td>`;
+											}
 											const enabled = !t.optional || (row.optionals || "").split(",").map((s) => s.trim()).some((s) => s === t.title || s === t.name);
 											if (enabled && t.frequency === "Quarterly") {
 												const mo = Number(m.period.slice(5, 7));
@@ -2305,21 +2310,39 @@ class DutyBoard {
 					const room = $(e.currentTarget).data("room");
 					const current = ($(e.currentTarget).data("opt") || "").split(",").map((s) => s.trim()).filter(Boolean);
 					const opts = m.types.filter((t) => t.optional);
+					const LINES = ["Bookkeeping", "Payroll & HR", "Tax"];
+					const curScope = ($(e.currentTarget).data("scope") || "").split(",").map((s) => s.trim()).filter(Boolean);
+					const scopeSel = curScope.length ? curScope : LINES;
 					frappe.prompt(
 						[
 							{ fieldname: "bookkeeper", fieldtype: "Autocomplete", label: __("Bookkeeper (default owner)"), options: this.staff_options(), default: $(e.currentTarget).data("bk") || "" },
+							{
+								fieldname: "scope",
+								fieldtype: "MultiCheck",
+								label: __("Service scope — all three checked = Full Books"),
+								columns: 3,
+								options: LINES.map((l) => ({ label: l, value: l, checked: scopeSel.includes(l) })),
+							},
+							{
+								fieldname: "fye_month",
+								fieldtype: "Select",
+								label: __("Financial year end month (annual tax deliverables)"),
+								options: ["", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12"],
+								default: String($(e.currentTarget).data("fye") || ""),
+								description: __("CIT / annual returns spawn 6 months after this month; blank = skipped"),
+							},
 							{
 								fieldname: "optionals",
 								fieldtype: "MultiCheck",
 								label: __("Service tier — optional deliverables this client pays for"),
 								columns: 1,
-								options: opts.map((t) => ({ label: t.title, value: t.title, checked: current.includes(t.title) || current.includes(t.name) })),
+								options: opts.map((t) => ({ label: t.title + (t.service_line && t.service_line !== "Bookkeeping" ? " · " + t.service_line : ""), value: t.title, checked: current.includes(t.title) || current.includes(t.name) })),
 							},
 						],
 						(v) =>
 							frappe.call({
 								method: "duty_board.accounting.books_set_room",
-								args: { name: room, bookkeeper: v.bookkeeper || null, optionals: (v.optionals || []).join(", ") },
+								args: { name: room, bookkeeper: v.bookkeeper || null, optionals: (v.optionals || []).join(", "), scope: (v.scope || []).join(", "), fye_month: v.fye_month || 0 },
 								callback: () => this.render_books_shell(),
 							}),
 						__("Client setup"),
