@@ -4218,8 +4218,8 @@ class DutyBoard {
 					${m.signoff ? `<div style="background:#E4EEEA;border-radius:10px;padding:9px 12px;font-size:13px;margin-bottom:10px">✍ <b>${__("Signed off")}</b> ${__("by")} ${frappe.utils.escape_html(m.signoff.signed_full)} · ${m.signoff.signed_at} · ${m.signoff.passed}/${m.signoff.total} ${__("passed")}${m.signoff.exceptions ? `<br><span class="text-muted" style="font-size:12px">${__("Exceptions")}: ${frappe.utils.escape_html(m.signoff.exceptions)}</span>` : ""}</div>` : ""}
 					${rows.length ? `<div style="font-size:12.5px;margin-bottom:8px"><b>${p.passed || 0}</b>/${p.total || 0} ${__("passed")}${p.failed ? ` · <b style="color:#b91c1c">${p.failed} ${__("failed")}</b>` : ""}${p.blocked ? ` · ${p.blocked} ${__("blocked")}` : ""}${p.waived ? ` · ${p.waived} ${__("waived")}` : ""}${p.awaiting ? ` · ${p.awaiting} ${__("awaiting client")}` : ""}</div>` : ""}
 					${!rows.length ? `
-						<p class="text-muted">${__("No acceptance cases yet. Seeding pulls the template bank matching this room's products")} (<b>${frappe.utils.escape_html(m.room_products || __("none set"))}</b>)${__("; templates available")}: ${(m.templates || []).map(frappe.utils.escape_html).join(", ") || __("none — a manager creates them under Duty UAT Template")}.</p>
-						<button class="btn btn-sm btn-primary" data-seed ${(m.templates || []).length ? "" : "disabled"}>🧪 ${__("Seed UAT from templates")}</button>`
+						<p class="text-muted">${__("No acceptance cases yet — pick which template bank(s) to seed for this engagement.")} ${(m.templates || []).length ? "" : __("None exist yet — a manager creates them under Duty UAT Template.")}</p>
+						<button class="btn btn-sm btn-primary" data-seed ${(m.templates || []).length ? "" : "disabled"}>🧪 ${__("Seed UAT…")}</button>`
 					: Object.keys(secs).map((s) => `
 						<div style="font-size:11px;font-weight:800;letter-spacing:1px;margin:10px 0 4px;color:#6B7772;text-transform:uppercase">${frappe.utils.escape_html(s)}</div>
 						${secs[s].map((z) => `
@@ -4236,9 +4236,38 @@ class DutyBoard {
 								<button class="btn btn-xs btn-default" data-del="${z.name}" style="color:#B0443C">×</button>
 							</span>
 						</div>`).join("")}`).join("") + `
-						<button class="btn btn-sm btn-primary" data-addcase style="margin-top:6px">＋ ${__("Add a case for this engagement")}</button>`}
+						<button class="btn btn-sm btn-primary" data-addcase style="margin-top:6px">＋ ${__("Add a case for this engagement")}</button>
+						${!m.signoff ? `<button class="btn btn-sm btn-default" data-seed style="margin-top:6px">🧪 ${__("Seed another template…")}</button>` : ""}
+						${m.manager && Object.keys(rows.reduce((a, z) => { if (z.template) a[z.template] = 1; return a; }, {})).length && !m.signoff ? `<button class="btn btn-sm btn-default" data-unseed style="margin-top:6px;color:#B0443C">${__("Unseed a template…")}</button>` : ""}`}
 				`);
-				$(d.body).find("[data-seed]").on("click", () => call("uat_seed", { room: x.name }));
+				const seededFrom = {};
+				rows.forEach((z) => { if (z.template) seededFrom[z.template] = 1; });
+				const roomProds = (m.room_products || "").toLowerCase();
+				$(d.body).find("[data-seed]").on("click", () =>
+					frappe.prompt(
+						{
+							fieldname: "templates", fieldtype: "MultiCheck", label: __("Template banks to seed"), columns: 2,
+							options: (m.templates || []).map((t) => ({
+								label: seededFrom[t] ? t + " (" + __("already seeded") + ")" : t,
+								value: t,
+								checked: !seededFrom[t] && roomProds.indexOf(t.toLowerCase()) >= 0 ? 1 : 0,
+							})),
+						},
+						(v) => {
+							const chosen = v.templates || [];
+							if (!chosen.length) return;
+							call("uat_seed", { room: x.name, templates: chosen.join(",") });
+						},
+						__("Seed acceptance tests"), __("Seed")
+					)
+				);
+				$(d.body).find("[data-unseed]").on("click", () =>
+					frappe.prompt(
+						{ fieldname: "template", fieldtype: "Select", label: __("Remove untested cases seeded from"), options: Object.keys(seededFrom), reqd: 1 },
+						(v) => call("uat_unseed", { room: x.name, template: v.template }),
+						__("Unseed template"), __("Remove")
+					)
+				);
 				$(d.body).find("[data-addcase]").on("click", () => frappe.prompt(
 					[
 						{ fieldname: "section", fieldtype: "Data", label: __("Section"), default: "General" },

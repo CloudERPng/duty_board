@@ -47,7 +47,7 @@ def _rows(room):
 	rows = frappe.get_all(
 		"Duty UAT Case",
 		filters={"room": room},
-		fields=["name", "section", "title", "steps", "expected", "status", "issue", "waive_reason", "sort_order"],
+		fields=["name", "section", "title", "steps", "expected", "status", "issue", "waive_reason", "sort_order", "template"],
 		order_by="sort_order asc, creation asc",
 		limit_page_length=0,
 	)
@@ -129,21 +129,35 @@ def uat_state(room):
 
 
 @frappe.whitelist()
-def uat_seed(room):
-	"""Copy matching template cases into this engagement. Matches template
-	products against the room's products (csv, case-insensitive); with no
-	match it seeds every active template so nothing silently seeds empty."""
+def uat_seed(room, templates=None):
+	"""Copy chosen template banks into this engagement. `templates` is a csv
+	of Duty UAT Template names — the staff picker supplies it. Templates
+	already seeded into this room are skipped, so a second product's bank
+	can be added later without duplicating the first."""
 	require_staff()
-	if frappe.db.count("Duty UAT Case", {"room": room}):
-		frappe.throw(_("This room already has UAT cases — add more individually instead of reseeding."))
-	products = [p.strip().lower() for p in (frappe.db.get_value("Client Room", room, "products") or "").split(",") if p.strip()]
-	templates = frappe.get_all("Duty UAT Template", filters={"active": 1}, pluck="name")
-	chosen = [t for t in templates if t.lower() in products] or templates
+	import json as _json
+
+	if isinstance(templates, str) and templates.strip().startswith("["):
+		chosen = [t for t in _json.loads(templates) if t]
+	else:
+		chosen = [t.strip() for t in (templates or "").split(",") if t.strip()]
 	if not chosen:
-		frappe.throw(_("No active UAT templates exist yet — a manager can create them under Duty UAT Template."))
-	order = 0
-	made = 0
+		frappe.throw(_("Pick at least one template to seed."))
+	already = set(
+		frappe.get_all(
+			"Duty UAT Case", filters={"room": room, "template": ["is", "set"]}, pluck="template", distinct=True
+		)
+	)
+	order = cint(
+		frappe.get_all("Duty UAT Case", filters={"room": room}, fields=["max(sort_order) as m"])[0].m or 0
+	)
+	made, skipped = 0, []
 	for tpl in chosen:
+		if not frappe.db.exists("Duty UAT Template", tpl):
+			frappe.throw(_("Unknown template: {0}").format(tpl))
+		if tpl in already:
+			skipped.append(tpl)
+			continue
 		doc = frappe.get_doc("Duty UAT Template", tpl)
 		for c in doc.cases:
 			order += 10
@@ -151,6 +165,7 @@ def uat_seed(room):
 				{
 					"doctype": "Duty UAT Case",
 					"room": room,
+					"template": tpl,
 					"section": c.section or doc.product,
 					"title": c.title,
 					"steps": c.steps,
@@ -161,8 +176,34 @@ def uat_seed(room):
 			).insert(ignore_permissions=True)
 			made += 1
 	frappe.db.commit()
-	_post_room(room, _("🧪 Acceptance testing is ready: {0} scenario(s) await your testing — see Projects on your portal.").format(made))
-	_push_clients(room, _("🧪 Your acceptance tests are ready · Xlevel"), _("{0} scenarios to test").format(made))
+	if made:
+		_post_room(room, _("🧪 Acceptance testing is ready: {0} scenario(s) await your testing — see Projects on your portal.").format(made))
+		_push_clients(room, _("🧪 Your acceptance tests are ready · Xlevel"), _("{0} scenarios to test").format(made))
+	if skipped:
+		frappe.msgprint(_("Already seeded, skipped: {0}").format(", ".join(skipped)))
+	return uat_state(room)
+
+
+@frappe.whitelist()
+def uat_unseed(room, template):
+	"""Manager undo: remove a template's UNTESTED cases from a room (cases
+	with recorded attempts are kept — history is never deleted)."""
+	require_staff()
+	if not _is_manager():
+		frappe.throw(_("Only managers can unseed."), frappe.PermissionError)
+	victims = frappe.get_all(
+		"Duty UAT Case", filters={"room": room, "template": template}, fields=["name"]
+	)
+	removed, kept = 0, 0
+	for v in victims:
+		if frappe.db.count("Duty UAT Result", {"parent": v.name}):
+			kept += 1
+			continue
+		frappe.delete_doc("Duty UAT Case", v.name, ignore_permissions=True, force=True)
+		removed += 1
+	frappe.db.commit()
+	if kept:
+		frappe.msgprint(_("{0} tested case(s) kept — attempt history is never deleted.").format(kept))
 	return uat_state(room)
 
 
