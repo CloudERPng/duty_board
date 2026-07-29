@@ -624,7 +624,7 @@ body[data-tab="home"] .foot{display:block!important;grid-area:foot}
 </div>
 <script>
 const esc = (s) => (s || "").replace(/[&<>"']/g, (c) => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
-const XLV = "3.5.1";
+const XLV = "3.5.2";
 document.getElementById("xlv").textContent = "v" + XLV;
 console.log("Xlevel portal", XLV);
 let ROOM = localStorage.getItem("xl_room") || null;
@@ -1131,11 +1131,13 @@ function approveChreq(id) {
 	document.getElementById("ovbody").innerHTML = `
 		<h2>✍ Approve “${esc(c.title || "")}”</h2>
 		<div style="border:1px solid #e5e7eb;border-radius:10px;padding:10px 12px;margin:8px 0;background:#f9fafb">
+			${line("🗣", "Request", c.original_request)}
 			${line("📐", "Scope", c.scope_impact)}
 			${line("💡", "Why", c.reason)}
 			${line("⏱", "Timeline", c.timeline_impact)}
 			${line("👥", "Resources", c.resource_impact)}
 			${line("⚠", "Risks", c.risks)}
+			${c.estimate_hours ? line("⏳", "Estimated effort", c.estimate_hours + " hours") : ""}
 			${amt ? `<div style="font-size:14px;margin:6px 0 0">💰 <b>Amount: ${esc(amt)}</b></div>` : ""}
 		</div>
 		<p style="font-size:14px;line-height:1.55">You are <b>formally approving this change request${amt ? ` at <b>${esc(amt)}</b>` : ""}</b>.
