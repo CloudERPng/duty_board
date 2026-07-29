@@ -3632,6 +3632,7 @@ class DutyBoard {
 				<a class="duty-cr-academy" title="${__("Training Academy")}">🎓</a>
 				<a class="duty-cr-deps" title="${__("Client dependencies — what we're waiting on")}">📋</a>
 				<a class="duty-cr-scope" title="${__("Room scope & support plan")}">⚖</a>
+				<a class="duty-cr-uat" title="${__("Acceptance testing (UAT)")}">🧪</a>
 				<a class="duty-cr-metrics" title="${__("Live metrics for this customer")}">📈</a>
 				<a class="duty-cr-report" title="${__("Generate last month's service report")}">📊</a>
 				<a class="duty-cr-rename" title="${__("Rename room")}">✏</a>
@@ -4014,6 +4015,7 @@ class DutyBoard {
 		$room.find(".duty-cr-back").on("click", () => this.$clients.removeClass("cr-room-open"));
 		$room.find(".duty-cr-academy").on("click", () => this.academy_dialog(x));
 		$room.find(".duty-cr-deps").on("click", () => this.deps_dialog(x));
+		$room.find(".duty-cr-uat").on("click", () => this.uat_dialog(x));
 		$room.find(".duty-cr-scope").on("click", () => {
 			frappe.call({ method: "frappe.client.get_value", args: { doctype: "Client Room", filters: { name: x.name }, fieldname: ["scope_note", "support_plan", "project"] }, callback: (rv) => {
 				const cur = rv.message || {};
@@ -4193,6 +4195,93 @@ class DutyBoard {
 					</tr>`).join("")}</table>
 					<p class="text-muted" style="font-size:11px">${__("Hours from work sessions with a customer; fee shown where known (accounting fee today). Red rows: attention cost exceeds known fee — a renewal-conversation list, not an invoice list.")}</p>
 				`);
+				d.show();
+			},
+		});
+	}
+
+	uat_dialog(x) {
+		frappe.call({
+			method: "duty_board.uat.uat_state",
+			args: { room: x.name },
+			callback: (r) => {
+				const m = r.message || {};
+				const rows = m.rows || [];
+				const p = m.progress || {};
+				const d = new frappe.ui.Dialog({ title: __("🧪 {0} — Acceptance testing", [x.customer]), size: "extra-large" });
+				const CH = { "Passed": "✅", "Failed": "❌", "Blocked": "⛔", "Blocked by Issue": "🔧", "Waived": "⚪", "Awaiting Client": "🕐" };
+				const reload = () => { d.hide(); this.uat_dialog(x); };
+				const call = (method, args) => frappe.call({ method: "duty_board.uat." + method, args: args, callback: reload });
+				const secs = {};
+				rows.forEach((z) => (secs[z.section || "General"] = secs[z.section || "General"] || []).push(z));
+				$(d.body).html(`
+					${m.signoff ? `<div style="background:#E4EEEA;border-radius:10px;padding:9px 12px;font-size:13px;margin-bottom:10px">✍ <b>${__("Signed off")}</b> ${__("by")} ${frappe.utils.escape_html(m.signoff.signed_full)} · ${m.signoff.signed_at} · ${m.signoff.passed}/${m.signoff.total} ${__("passed")}${m.signoff.exceptions ? `<br><span class="text-muted" style="font-size:12px">${__("Exceptions")}: ${frappe.utils.escape_html(m.signoff.exceptions)}</span>` : ""}</div>` : ""}
+					${rows.length ? `<div style="font-size:12.5px;margin-bottom:8px"><b>${p.passed || 0}</b>/${p.total || 0} ${__("passed")}${p.failed ? ` · <b style="color:#b91c1c">${p.failed} ${__("failed")}</b>` : ""}${p.blocked ? ` · ${p.blocked} ${__("blocked")}` : ""}${p.waived ? ` · ${p.waived} ${__("waived")}` : ""}${p.awaiting ? ` · ${p.awaiting} ${__("awaiting client")}` : ""}</div>` : ""}
+					${!rows.length ? `
+						<p class="text-muted">${__("No acceptance cases yet. Seeding pulls the template bank matching this room's products")} (<b>${frappe.utils.escape_html(m.room_products || __("none set"))}</b>)${__("; templates available")}: ${(m.templates || []).map(frappe.utils.escape_html).join(", ") || __("none — a manager creates them under Duty UAT Template")}.</p>
+						<button class="btn btn-sm btn-primary" data-seed ${(m.templates || []).length ? "" : "disabled"}>🧪 ${__("Seed UAT from templates")}</button>`
+					: Object.keys(secs).map((s) => `
+						<div style="font-size:11px;font-weight:800;letter-spacing:1px;margin:10px 0 4px;color:#6B7772;text-transform:uppercase">${frappe.utils.escape_html(s)}</div>
+						${secs[s].map((z) => `
+						<div style="border:1px solid #E8E5DD;border-radius:10px;padding:8px 11px;margin-bottom:6px;display:flex;gap:9px;align-items:center;flex-wrap:wrap">
+							<span>${CH[z.status] || ""}</span>
+							<b style="font-size:13px;flex:1;min-width:180px">${frappe.utils.escape_html(z.title)}</b>
+							<span class="text-muted" style="font-size:11.5px">${z.attempts.length ? z.attempts.length + "× " + __("tested") : ""}</span>
+							<span class="text-muted" style="font-size:11.5px;font-weight:700">${__(z.status)}</span>
+							${z.issue ? `<a style="font-size:11.5px" onclick="frappe.set_route('Form','Duty Issue','${z.issue}')">🔧 ${z.issue}</a>` : ""}
+							<span style="white-space:nowrap">
+								${z.status !== "Waived" && !m.signoff ? `<button class="btn btn-xs btn-default" data-rec="${z.name}" title="${__("Record a result on the client's behalf")}">✍ ${__("record")}</button>` : ""}
+								<button class="btn btn-xs btn-default" data-edit="${z.name}">✎</button>
+								${m.manager && z.status !== "Waived" && !m.signoff ? `<button class="btn btn-xs btn-default" data-waive="${z.name}">${__("waive")}</button>` : ""}
+								<button class="btn btn-xs btn-default" data-del="${z.name}" style="color:#B0443C">×</button>
+							</span>
+						</div>`).join("")}`).join("") + `
+						<button class="btn btn-sm btn-primary" data-addcase style="margin-top:6px">＋ ${__("Add a case for this engagement")}</button>`}
+				`);
+				$(d.body).find("[data-seed]").on("click", () => call("uat_seed", { room: x.name }));
+				$(d.body).find("[data-addcase]").on("click", () => frappe.prompt(
+					[
+						{ fieldname: "section", fieldtype: "Data", label: __("Section"), default: "General" },
+						{ fieldname: "title", fieldtype: "Data", label: __("Scenario"), reqd: 1 },
+						{ fieldname: "steps", fieldtype: "Small Text", label: __("Steps") },
+						{ fieldname: "expected", fieldtype: "Small Text", label: __("Expected result") },
+					],
+					(v) => call("uat_case_add", { room: x.name, title: v.title, section: v.section, steps: v.steps || null, expected: v.expected || null }),
+					__("New acceptance case"), __("Add")
+				));
+				$(d.body).find("[data-edit]").on("click", (e) => {
+					const id = $(e.currentTarget).data("edit");
+					const z = rows.find((q) => q.name === id) || {};
+					frappe.prompt(
+						[
+							{ fieldname: "section", fieldtype: "Data", label: __("Section"), default: z.section },
+							{ fieldname: "title", fieldtype: "Data", label: __("Scenario"), default: z.title, reqd: 1 },
+							{ fieldname: "steps", fieldtype: "Small Text", label: __("Steps"), default: z.steps },
+							{ fieldname: "expected", fieldtype: "Small Text", label: __("Expected result"), default: z.expected },
+						],
+						(v) => call("uat_case_update", { name: id, title: v.title, section: v.section, steps: v.steps || "", expected: v.expected || "" }),
+						__("Edit case"), __("Save")
+					);
+				});
+				$(d.body).find("[data-rec]").on("click", (e) => {
+					const id = $(e.currentTarget).data("rec");
+					frappe.prompt(
+						[
+							{ fieldname: "result", fieldtype: "Select", label: __("Result"), options: ["Pass", "Fail", "Blocked"], reqd: 1 },
+							{ fieldname: "observed", fieldtype: "Small Text", label: __("What happened (required for Fail/Blocked)") },
+						],
+						(v) => call("uat_record", { name: id, result: v.result, observed: v.observed || null }),
+						__("Record on client's behalf"), __("Record")
+					);
+				});
+				$(d.body).find("[data-waive]").on("click", (e) => frappe.prompt(
+					{ fieldname: "reason", fieldtype: "Data", label: __("Waived because"), reqd: 1 },
+					(v) => call("uat_waive", { name: $(e.currentTarget).data("waive"), reason: v.reason }),
+					__("Waive case"), __("Waive")
+				));
+				$(d.body).find("[data-del]").on("click", (e) => frappe.confirm(__("Delete this case (and its attempt history)?"), () =>
+					call("uat_case_delete", { name: $(e.currentTarget).data("del") })
+				));
 				d.show();
 			},
 		});

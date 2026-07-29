@@ -1644,6 +1644,12 @@ def milestone_move(id, direction):
 @frappe.whitelist()
 def milestone_set_status(id, status):
 	_staff_only()
+	if status == "Completed":
+		_m = frappe.db.get_value("Duty Milestone", id, ["room", "title"], as_dict=True)
+		if _m:
+			from duty_board.uat import uat_gate_check
+
+			uat_gate_check(_m.room, _m.title)
 	if status not in ("Upcoming", "In Progress"):
 		frappe.throw(_("Use Request approval for that."))
 	doc = frappe.get_doc("Duty Milestone", id)
@@ -1709,6 +1715,9 @@ def client_approve_milestone(id, note=None):
 	if not _client_can_approve(room):
 		frappe.throw(_("Only your team's administrator can approve on behalf of your company."), frappe.PermissionError)
 	doc = frappe.get_doc("Duty Milestone", id)
+	from duty_board.uat import uat_gate_check
+
+	uat_gate_check(doc.room, doc.title)
 	if doc.room != room.name:
 		frappe.throw(_("Not found."), frappe.PermissionError)
 	if doc.status != "Awaiting Approval":
@@ -4616,6 +4625,34 @@ def room_file(msg):
 		frappe.throw(_("File missing."))
 	fdoc = frappe.get_doc("File", fname)
 	_serve_file(fdoc, m.attachment_name or fdoc.file_name)
+
+
+@frappe.whitelist()
+def client_get_uat():
+	room = _client_room()
+	from duty_board.uat import client_state
+
+	state = client_state(room.name)
+	state["can_sign"] = 1 if _client_can_approve(room) else 0
+	return state
+
+
+@frappe.whitelist()
+def client_uat_result(name, result, observed=None, evidence_url=None, evidence_name=None):
+	room = _client_room()
+	from duty_board.uat import client_result
+
+	return client_result(room.name, name, result, observed, evidence_url, evidence_name)
+
+
+@frappe.whitelist()
+def client_uat_sign(note=None):
+	room = _client_room()
+	if not _client_can_approve(room):
+		frappe.throw(_("Only your team administrator can sign off acceptance testing."), frappe.PermissionError)
+	from duty_board.uat import client_sign
+
+	return client_sign(room.name, frappe.session.user, note)
 
 
 @frappe.whitelist()

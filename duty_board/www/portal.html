@@ -88,7 +88,7 @@
 			body[data-tab="pm"] .rightcol > .card { margin-bottom: 0; }
 		}
 		body[data-tab="training"] .rightcol { width: auto; display: block; padding-bottom: 90px; }
-		body[data-tab="pm"] .card:not(.mstones):not(.chreqs) { display: none; }
+		body[data-tab="pm"] .card:not(.mstones):not(.chreqs):not(.uatx) { display: none; }
 		body[data-tab="home"] .card.chreqs { display: none; }
 		body[data-tab="training"] .card:not(.acad) { display: none; }
 		body[data-tab="docs"] .card:not(.docs) { display: none; }
@@ -113,7 +113,7 @@
 		body[data-tab="home"] .card:not(.chat):not(.tasks):not(.meets):not(.metrics):not(.books) { display: none; }
 		body[data-tab="home"] .wrap { display: flex; flex-direction: column; }
 		body[data-tab="home"] .card.chat { order: -1; }
-		body[data-tab="pm"] .card:not(.mstones):not(.chreqs) { display: none; }
+		body[data-tab="pm"] .card:not(.mstones):not(.chreqs):not(.uatx) { display: none; }
 		body[data-tab="training"] .card:not(.acad) { display: none; }
 		body[data-tab="docs"] .card:not(.docs) { display: none; }
 		body[data-tab="home"] .msgs { max-height: calc(100vh - 380px); }
@@ -601,6 +601,10 @@ body[data-tab="home"] .foot{display:block!important;grid-area:foot}
 		<h3 class="foldh" onclick="fold(this,'chreqs')"><span class="fc">▾</span> 💱 <span class="t">Change requests</span></h3>
 		<div id="chreqs"><span class="muted">No change requests. Work beyond your subscription scope appears here for your formal approval.</span></div>
 	</div>
+	<div class="card uatx" style="display:none">
+		<h3>🧪 Acceptance testing</h3>
+		<div id="uatx"></div>
+	</div>
 	<div class="card metrics">
 		<h3 class="foldh" onclick="fold(this,'metrics')"><span class="fc">▾</span> 📊 <span class="t">Your numbers</span></h3>
 		<div id="metrics"><span class="muted">Loading…</span></div>
@@ -624,7 +628,7 @@ body[data-tab="home"] .foot{display:block!important;grid-area:foot}
 </div>
 <script>
 const esc = (s) => (s || "").replace(/[&<>"']/g, (c) => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
-const XLV = "3.7.1";
+const XLV = "3.8.0";
 document.getElementById("xlv").textContent = "v" + XLV;
 console.log("Xlevel portal", XLV);
 let ROOM = localStorage.getItem("xl_room") || null;
@@ -1228,6 +1232,7 @@ function loadBooks() {
 	api("client_get_dependencies")
 		.then(renderDeps)
 		.catch(() => {});
+	loadUat();
 }
 function renderDeps(rows) {
 	rows = rows || [];
@@ -2097,6 +2102,13 @@ function renderQueue(){
 	QS.reqs.forEach((r) => items.push({ k: "", eb: "Document needed", du: r.due_date ? "due " + r.due_date : "",
 		t: r.title, s: r.detail || "PDF or photos are fine.",
 		act: `<input type="file" id="rf_${qEsc(r.name)}" style="display:none" onchange="fulfillRequest('${qEsc(r.name)}')"><button onclick="document.getElementById('rf_${qEsc(r.name)}').click()">Upload</button>` }));
+	(QS.uatq || []).forEach((q) => items.push(q.sign
+		? { k: "info", eb: "Sign-off · acceptance testing", du: "all scenarios settled",
+			t: "UAT is ready for your formal sign-off", s: "Your signature records acceptance of the implementation.",
+			act: `<button onclick="setTab('pm');document.querySelector('.card.uatx')?.scrollIntoView({behavior:'smooth'})">Review &amp; sign</button>` }
+		: { k: "", eb: "Acceptance testing", du: q.n + (q.n === 1 ? " scenario" : " scenarios"),
+			t: "Test scenarios await you", s: "Walk through each one and tell us pass or fail — failures go straight to the fix queue.",
+			act: `<button onclick="setTab('pm');document.querySelector('.card.uatx')?.scrollIntoView({behavior:'smooth'})">Start testing</button>` }));
 	QS.acks.forEach((r) => items.push({ k: "info", eb: "Sign-off", du: r.period,
 		t: r.title, s: "Prepared and reviewed — one tap records your acknowledgement.",
 		act: `<button onclick="ackDeliverable('${qEsc(r.name)}','${qEsc(r.title)}','${qEsc(r.period)}')">View &amp; acknowledge</button>` }));
@@ -2118,6 +2130,82 @@ function renderQueue(){
 		</div>`).join("")}</div>`;
 	host.style.display = "";
 	} catch (e) { console.error("queue render", e); host.style.display = "none"; }
+}
+function loadUat() {
+	api("client_get_uat").then(renderUat).catch(() => {});
+}
+function renderUat(u) {
+	u = u || { rows: [] };
+	window._uat = u;
+	const card = document.querySelector(".card.uatx");
+	const host = document.getElementById("uatx");
+	if (!card || !host) return;
+	if (!u.rows.length) { card.style.display = "none"; QS.uatq = []; renderQueue(); return; }
+	card.style.display = "";
+	const p = u.progress || {};
+	const CH = { "Passed": ["✅", "#15803d"], "Failed": ["❌", "#b91c1c"], "Blocked": ["⛔", "#b45309"],
+		"Blocked by Issue": ["🔧", "#b45309"], "Waived": ["⚪", "#6b7280"], "Awaiting Client": ["🕐", "#0F5C55"] };
+	const secs = {};
+	u.rows.forEach((r) => (secs[r.section || "General"] = secs[r.section || "General"] || []).push(r));
+	host.innerHTML = `
+		<div style="font-size:12.5px;margin-bottom:8px"><b>${p.passed || 0}</b> of ${p.total || 0} passed${p.waived ? ` · ${p.waived} waived` : ""}${p.blocked ? ` · <b style="color:#b45309">${p.blocked} being fixed</b>` : ""}${p.awaiting ? ` · ${p.awaiting} await you` : ""}</div>
+		${u.signoff ? `<div style="background:#E4EEEA;border-radius:10px;padding:9px 12px;font-size:13px;margin-bottom:8px">✍ <b>Signed off</b> by ${esc(u.signoff.signed_full)} · ${esc(u.signoff.signed_at)}${u.signoff.exceptions ? `<br><span class="muted" style="font-size:12px">With exceptions: ${esc(u.signoff.exceptions)}</span>` : ""}</div>` : ""}
+		${Object.keys(secs).map((s) => `
+			<div style="font-size:11px;font-weight:800;letter-spacing:1px;margin:10px 0 4px;color:#6B7772;text-transform:uppercase">${esc(s)}</div>
+			${secs[s].map((r) => `
+			<div style="border:1px solid #E8E5DD;border-radius:10px;padding:9px 11px;margin-bottom:7px">
+				<div style="display:flex;gap:8px;align-items:center">
+					<span>${(CH[r.status] || ["", ""])[0]}</span>
+					<b style="font-size:13px;flex:1">${esc(r.title)}</b>
+					<span style="font-size:11px;font-weight:700;color:${(CH[r.status] || ["", "#666"])[1]}">${r.status === "Blocked by Issue" ? "being fixed" : r.status === "Awaiting Client" ? "your test" : esc(r.status.toLowerCase())}</span>
+				</div>
+				${r.steps || r.expected ? `<details style="margin:4px 0 0"><summary class="muted" style="font-size:12px;cursor:pointer">Steps &amp; expected result</summary>
+					${r.steps ? `<div style="font-size:12.5px;white-space:pre-wrap;margin:4px 0">${esc(r.steps)}</div>` : ""}
+					${r.expected ? `<div style="font-size:12.5px;color:#0A4238"><b>Expect:</b> ${esc(r.expected)}</div>` : ""}</details>` : ""}
+				${r.status === "Waived" && r.waive_reason ? `<div class="muted" style="font-size:12px">Waived: ${esc(r.waive_reason)}</div>` : ""}
+				${r.status === "Awaiting Client" ? `
+				<div style="display:flex;gap:7px;margin-top:7px;flex-wrap:wrap">
+					<button style="font-size:12px;padding:6px 12px" onclick="uatPass('${esc(r.name)}')">✓ It works</button>
+					<button style="font-size:12px;padding:6px 12px;background:#FBEDEB;color:#B0443C" onclick="uatShowFail('${esc(r.name)}')">✗ It failed</button>
+					<button style="font-size:12px;padding:6px 12px;background:#EFEDE6;color:#182420" onclick="uatShowFail('${esc(r.name)}','Blocked')">⊘ Can't test</button>
+				</div>
+				<div id="uf_${esc(r.name)}" style="display:none;margin-top:7px">
+					<input type="text" id="ufo_${esc(r.name)}" placeholder="What happened? (required)" style="width:100%;box-sizing:border-box;font-size:13px;padding:7px 10px;border:1px solid #E2E8F0;border-radius:8px">
+					<div style="display:flex;gap:7px;margin-top:6px;align-items:center">
+						<input type="file" id="uff_${esc(r.name)}" style="font-size:11px;flex:1">
+						<button style="font-size:12px;padding:6px 12px" onclick="uatFail('${esc(r.name)}')">Send</button>
+					</div>
+				</div>` : ""}
+			</div>`).join("")}`).join("")}
+		${!u.signoff && u.signable ? (u.can_sign
+			? `<button style="width:100%;margin-top:6px" onclick="uatSign()">✍ Sign off acceptance testing</button>`
+			: `<div class="muted" style="font-size:12.5px;margin-top:6px">✋ Sign-off awaits your team administrator.</div>`) : ""}`;
+	QS.uatq = (p.awaiting ? [{ n: p.awaiting }] : (!u.signoff && u.signable && u.can_sign ? [{ sign: 1 }] : []));
+	renderQueue();
+}
+window._uatMode = {};
+function uatShowFail(name, mode) {
+	window._uatMode[name] = mode || "Fail";
+	const d = document.getElementById("uf_" + name);
+	if (d) { d.style.display = ""; document.getElementById("ufo_" + name).focus(); }
+}
+function uatPass(name) {
+	api("client_uat_result", { name: name, result: "Pass" }).then(renderUat).catch(fail);
+}
+function uatFail(name) {
+	const obs = (document.getElementById("ufo_" + name) || { value: "" }).value.trim();
+	if (!obs) return;
+	const inp = document.getElementById("uff_" + name);
+	const f = inp && inp.files && inp.files[0];
+	const send = (up) =>
+		api("client_uat_result", { name: name, result: window._uatMode[name] || "Fail", observed: obs, evidence_url: up ? up.url : null, evidence_name: f ? f.name : null })
+			.then(renderUat).catch(fail);
+	if (f) uploadOne(f).then(send).catch(fail);
+	else send(null);
+}
+function uatSign() {
+	const note = prompt("Optional comment for the record (or leave empty):") || "";
+	api("client_uat_sign", { note: note }).then(renderUat).catch(fail);
 }
 /* feeders: wrap the existing renderers; their action functions and element ids are reused untouched */
 (function () {

@@ -1756,6 +1756,12 @@ def update_issue_status(name, status, resolution=None):
 	doc.save(ignore_permissions=True)
 	frappe.db.commit()
 	if status in ("Resolved", "Closed"):
+		try:
+			from duty_board.uat import on_issue_resolved
+
+			on_issue_resolved(name)
+		except Exception:
+			pass
 		fresh = frappe.db.get_value(
 			"Duty Issue", name, ["resolved_at", "sla_res_due"], as_dict=True
 		)

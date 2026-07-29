@@ -1,0 +1,107 @@
+{
+ "actions": [],
+ "creation": "2026-07-29 20:00:00",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "room",
+  "section",
+  "title",
+  "steps",
+  "expected",
+  "status",
+  "sort_order",
+  "issue",
+  "waive_reason",
+  "results"
+ ],
+ "fields": [
+  {
+   "fieldname": "room",
+   "fieldtype": "Link",
+   "label": "Client Room",
+   "options": "Client Room",
+   "reqd": 1,
+   "in_list_view": 1
+  },
+  {
+   "fieldname": "section",
+   "fieldtype": "Data",
+   "label": "Section",
+   "in_list_view": 1
+  },
+  {
+   "fieldname": "title",
+   "fieldtype": "Data",
+   "label": "Scenario",
+   "reqd": 1,
+   "in_list_view": 1
+  },
+  {
+   "fieldname": "steps",
+   "fieldtype": "Small Text",
+   "label": "Steps"
+  },
+  {
+   "fieldname": "expected",
+   "fieldtype": "Small Text",
+   "label": "Expected Result"
+  },
+  {
+   "fieldname": "status",
+   "fieldtype": "Select",
+   "label": "Status",
+   "in_list_view": 1,
+   "options": "Awaiting Client\nPassed\nFailed\nBlocked\nBlocked by Issue\nWaived",
+   "default": "Awaiting Client"
+  },
+  {
+   "fieldname": "sort_order",
+   "fieldtype": "Int",
+   "label": "Order"
+  },
+  {
+   "fieldname": "issue",
+   "fieldtype": "Link",
+   "label": "Defect Issue",
+   "options": "Duty Issue"
+  },
+  {
+   "fieldname": "waive_reason",
+   "fieldtype": "Data",
+   "label": "Waived Because"
+  },
+  {
+   "fieldname": "results",
+   "fieldtype": "Table",
+   "label": "Attempts",
+   "options": "Duty UAT Result"
+  }
+ ],
+ "index_web_pages_for_search": 0,
+ "istable": 0,
+ "links": [],
+ "modified": "2026-07-29 20:00:00",
+ "modified_by": "Administrator",
+ "module": "Duty Board",
+ "name": "Duty UAT Case",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [],
+ "autoname": "format:UAT-{YYYY}-{#####}"
+}
