@@ -462,17 +462,22 @@ white-space:nowrap;font-size:12px!important;font-weight:600}
 #xlbars #renewbar.calm{color:var(--brandink)!important}
 #xlbars #renewbar.warn{color:var(--amber)!important}
 #xlbars #renewbar.over{color:var(--red)!important}
-/* desktop home: real grid — hero spans, queue + columns beneath, rail right */
-@media(min-width:901px){
-body[data-tab="home"] .wrap{display:grid!important;grid-template-columns:minmax(0,1fr) 330px;gap:0 22px;align-items:start;height:auto!important}
-body[data-tab="home"]{overflow-y:auto!important;height:auto!important}
-body[data-tab="home"] #err,body[data-tab="home"] #xlhello{grid-column:1/-1}
-body[data-tab="home"] #xlhello{margin-bottom:14px}
-body[data-tab="home"] #xlqueue{grid-column:1;grid-row:3;margin:0 0 16px}
-body[data-tab="home"] .leftcol{grid-column:1;grid-row:4;height:auto!important;overflow:visible!important}
-body[data-tab="home"] .rightcol{grid-column:2;grid-row:3 / span 2;width:auto!important;height:auto!important;overflow:visible!important}
+/* desktop home: named-area grid — hero spans, queue+content main, rail right */
+@media(min-width:900px){
+html,body[data-tab="home"]{height:auto!important;overflow:visible!important}
+body[data-tab="home"]{overflow-y:auto!important}
+body[data-tab="home"] .wrap{display:grid!important;grid-template-columns:minmax(0,1fr) 330px;
+grid-template-areas:"err err" "hello hello" "queue rail" "left rail";gap:0 22px;align-items:start;
+height:auto!important;overflow:visible!important;padding-bottom:40px!important}
+body[data-tab="home"] #err{grid-area:err}
+body[data-tab="home"] #xlhello{grid-area:hello;margin-bottom:14px;order:0}
+body[data-tab="home"] #xlqueue{grid-area:queue;margin:0 0 16px;order:0}
+body[data-tab="home"] .leftcol{grid-area:left;height:auto!important;overflow:visible!important;min-height:0!important}
+body[data-tab="home"] .rightcol{grid-area:rail;width:auto!important;height:auto!important;overflow:visible!important}
 body[data-tab="home"] .leftcol .card{margin-bottom:16px!important}
-body[data-tab="home"] .msgs{max-height:420px!important}
+body[data-tab="home"] .card.chat{height:auto!important;order:-1}
+body[data-tab="home"] .card.chat .msgs{max-height:440px!important;flex:0 1 auto!important;overflow-y:auto!important}
+body[data-tab="home"] .foot{display:block!important}
 }
 </style>
 
@@ -610,7 +615,7 @@ body[data-tab="home"] .msgs{max-height:420px!important}
 </div>
 <script>
 const esc = (s) => (s || "").replace(/[&<>"']/g, (c) => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
-const XLV = "3.4.1";
+const XLV = "3.4.2";
 document.getElementById("xlv").textContent = "v" + XLV;
 console.log("Xlevel portal", XLV);
 let ROOM = localStorage.getItem("xl_room") || null;
@@ -2082,7 +2087,7 @@ function renderQueue(){
 		<p>${items.length ? items.length + (items.length === 1 ? " thing needs" : " things need") + " you today — about " + Math.max(2, Math.round(items.length * 1.5)) + " minutes altogether." : "Nothing needs you right now — everything is with us."}</p>
 		${plan ? `<span class="plan">✓ ${qEsc(plan)}</span>` : ""}`;
 	if (!items.length) { host.style.display = "none"; return; }
-	host.style.display = "";
+	try {
 	host.innerHTML = `<div class="qh">Needs your attention</div><div class="qspine">${items.map((i) => `
 		<div class="qi ${i.k}">
 			<div class="eb">${i.eb}<span class="du ${i.l8 ? "l8" : ""}">${qEsc(i.du || "")}</span></div>
@@ -2090,6 +2095,8 @@ function renderQueue(){
 			${i.s ? `<div class="s">${i.raw ? i.s : qEsc(i.s)}</div>` : ""}
 			<div class="act">${i.act}</div>
 		</div>`).join("")}</div>`;
+	host.style.display = "";
+	} catch (e) { console.error("queue render", e); host.style.display = "none"; }
 }
 /* feeders: wrap the existing renderers; their action functions and element ids are reused untouched */
 (function () {
