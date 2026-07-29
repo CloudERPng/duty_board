@@ -453,7 +453,16 @@ background:var(--srf);border:3px solid var(--amber)}
 .qi .act button{padding:8px 14px;font-size:13px}
 .qi .act .gh{background:var(--soft)!important;color:var(--ink)!important}
 @media(max-width:900px){.tabbar a svg{display:block;margin:0 auto 2px}.tabbar{background:var(--srf)!important;border-top:1px solid var(--ln)!important}
-#xlhello{order:-3}#xlqueue{order:-2}}
+#xlhello{order:-3}#xlqueue{order:-2}
+#xlbars{flex-direction:column;align-items:flex-start;gap:0;padding:6px 16px}
+#xlbars .hours{white-space:normal;font-size:11.5px!important;padding:2px 0!important}
+#xlbars #renewbar{white-space:normal;padding:2px 0!important}
+.top{display:flex;flex-wrap:wrap;align-items:center;gap:4px 10px;padding:10px 14px!important}
+.top>span{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.top #me{display:none}
+#roomswitch{display:flex!important;overflow-x:auto;white-space:nowrap;gap:6px;padding:8px 12px!important;-webkit-overflow-scrolling:touch;scrollbar-width:none}
+#roomswitch::-webkit-scrollbar{display:none}
+#roomswitch a{flex:none}}
 /* one service bar: hours left, renewal right */
 #xlbars{display:flex;align-items:center;background:var(--soft);padding:0 20px;gap:16px}
 #xlbars .hours{flex:1;background:transparent!important;padding-left:0!important;margin:0!important}
@@ -467,8 +476,8 @@ white-space:nowrap;font-size:12px!important;font-weight:600}
 html,body[data-tab="home"]{height:auto!important;overflow:visible!important}
 body[data-tab="home"]{overflow-y:auto!important}
 body[data-tab="home"] .wrap{display:grid!important;grid-template-columns:minmax(0,1fr) 330px;
-grid-template-areas:"err err" "hello hello" "queue rail" "chat rail" "left rail";gap:0 22px;align-items:start;
-height:auto!important;overflow:visible!important;padding-bottom:40px!important}
+grid-template-areas:"err err" "hello hello" "queue rail" "chat rail" "left rail" "foot foot";gap:0 22px;align-items:start;
+height:auto!important;overflow:visible!important;padding-bottom:40px!important;max-width:1280px;margin:0 auto!important}
 body[data-tab="home"] #err{grid-area:err}
 body[data-tab="home"] #xlhello{grid-area:hello;margin-bottom:14px;order:0}
 body[data-tab="home"] #xlqueue{grid-area:queue;margin:0 0 16px;order:0}
@@ -477,7 +486,7 @@ body[data-tab="home"] .rightcol{grid-area:rail;width:auto!important;height:auto!
 body[data-tab="home"] .leftcol .card{margin-bottom:16px!important}
 body[data-tab="home"] .card.chat{grid-area:chat;height:auto!important;margin-bottom:16px!important}
 body[data-tab="home"] .card.chat .msgs{max-height:440px!important;flex:0 1 auto!important;overflow-y:auto!important}
-body[data-tab="home"] .foot{display:block!important}
+body[data-tab="home"] .foot{display:block!important;grid-area:foot}
 }
 </style>
 
@@ -615,7 +624,7 @@ body[data-tab="home"] .foot{display:block!important}
 </div>
 <script>
 const esc = (s) => (s || "").replace(/[&<>"']/g, (c) => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
-const XLV = "3.4.3";
+const XLV = "3.4.4";
 document.getElementById("xlv").textContent = "v" + XLV;
 console.log("Xlevel portal", XLV);
 let ROOM = localStorage.getItem("xl_room") || null;
