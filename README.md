@@ -1,49 +1,67 @@
-# Duty Board
+# Duty Board — Xlevel Service Delivery Platform
 
-A minimal Frappe/ERPNext app for remote teams: staff clock in when they start the day,
-clock out (with a reason) whenever they step away, and clock back in when they return.
-A single live board shows who is On Duty, Away, or Off Duty at a glance, and a script
-report gives per-day hours.
+A Frappe/ERPNext v15 app that runs Xlevel's service-delivery operation end to
+end: staff attendance and daily planning, team chat and DMs, project boards,
+support issues with SLAs, client collaboration rooms, a controlled document
+hub, a training academy with certification tracks, and a full accounting-
+services unit — one connected workflow from client request to delivered,
+attested, invoiced work.
 
-## What's inside
+**One relationship, one thread:** client request → issue/task → assigned
+consultant → tracked work session → client-visible progress → resolution →
+SLA/RCA → report → acknowledgement → invoice.
 
-| Piece | Name | Purpose |
+## Surfaces
+
+| Surface | Route | Audience |
 |---|---|---|
-| DocType | **Duty Log** | One row per clock in/out event (user, type, time, reason) |
-| Page | **Duty Board** (`/app/duty-board`) | Big Clock In / Clock Out button + live team status grid, auto-refreshes every 60s |
-| Report | **Daily Duty Summary** | Per staff per day: first in, last out, breaks, total hours on duty |
+| Staff SPA | `/app/duty-board` | System Users — board, plan, chat, projects, clients, Books, academy |
+| Client portal | `/portal` | Website Users — room, deliverables, follow-ups, documents, meetings, training |
+| Join flow | portal join/verify pages | Guests — request access, staff approve |
+
+Installable on mobile via Add to Home Screen (PWA manifest + service worker +
+web push included).
+
+## Modules
+
+- **Attendance & plan** — server-side clock in/out, work sessions, Daily
+  Todos synced two-way with project tasks, weekly digests
+- **Projects** — boards, cards, milestones with client approval, change
+  requests
+- **Support** — issues, SLA warnings, RCA, knowledge base
+- **Client rooms** — the staff↔client membrane: messaging with an internal
+  side, document shelves, meetings with ICS invites, metrics, renewals
+- **Document Hub** — check-out/check-in, immutable versions, stale-lock
+  alerts
+- **Academy** — training modules, question banks, certification tracks
+  (staff and client audiences), certificates
+- **Accounting Services** — client cadence matrix by service line
+  (Bookkeeping / Payroll & HR / Tax), daily attestation, statutory and
+  annual deliverables, follow-ups, auto-invoicing with VAT, payment chase,
+  profitability and KPIs
+
+## Security model
+
+See [SECURITY.md](SECURITY.md). Every whitelisted endpoint declares its
+audience via `duty_board/permissions.py`; negative permission tests enforce
+that portal users are denied on all staff endpoints:
+
+```bash
+bench --site <site> run-tests --module duty_board.tests.test_permissions
+```
 
 ## Install
 
 ```bash
 cd ~/frappe-bench
-bench get-app /path/to/duty_board        # or push to git and: bench get-app <repo-url>
-bench --site yoursite.clouderp.one install-app duty_board
-bench --site yoursite.clouderp.one migrate
-bench build --app duty_board
-bench restart
+bench get-app https://github.com/CloudERPng/duty_board.git
+bench --site <site> install-app duty_board
+bench --site <site> migrate && bench build --app duty_board
 ```
 
-Works on Frappe/ERPNext v14 and v15. No dependency on the HR module — it links to
-**User**, so any enabled System User appears on the board automatically.
+Scheduler jobs (digests, chase, invoicing, SLA warnings) are declared in
+`hooks.py`; a server-side cron review after install is recommended.
 
-## Daily flow for staff
+## License
 
-1. Open **Duty Board** (type "Duty Board" in the awesomebar, or bookmark `/app/duty-board`).
-2. Tap **Clock In** to start the day.
-3. Stepping away? Tap **Clock Out** and pick a reason (Lunch, Power outage, Errand, ... or **End of day**).
-4. Back at your desk? Tap **Clock In** again.
-
-## For the manager
-
-- The same **Duty Board** page shows everyone: green = On Duty, amber = Away (with reason),
-  blue = Done for the Day, grey = not clocked in.
-- **Daily Duty Summary** report gives hours per person per day, exportable to Excel.
-- Only System Managers can edit or back-date Duty Logs; staff entries are always
-  timestamped server-side and can only be created for themselves.
-
-## Notes
-
-- Board shows all enabled System Users except Administrator. To hide service accounts,
-  disable them or change the filter in `duty_board/api.py` → `get_board()`.
-- The "End of day" reason is treated as ending the day (not counted as a break).
+MIT — see [LICENSE](LICENSE).

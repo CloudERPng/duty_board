@@ -8,6 +8,7 @@ runs through doc_events (see hooks.py), from the card side inline here.
 import frappe
 from frappe import _
 from frappe.utils import cint, getdate, today
+from duty_board.permissions import require_staff
 
 COLUMNS = ["To Do", "In Progress", "Completed", "Suspended"]
 URGENCIES = ["Low", "Medium", "High", "Critical"]
@@ -24,6 +25,7 @@ def _notify(user, title, body):
 
 @frappe.whitelist()
 def get_projects():
+	require_staff()
 	projects = frappe.get_all(
 		"Duty Project",
 		filters={"status": "Active"},
@@ -58,6 +60,7 @@ def get_projects():
 
 @frappe.whitelist()
 def create_project(project_name, customer=None, target_date=None):
+	require_staff()
 	project_name = (project_name or "").strip()
 	if not project_name:
 		frappe.throw(_("Give the project a name."))
@@ -80,6 +83,7 @@ def create_project(project_name, customer=None, target_date=None):
 
 @frappe.whitelist()
 def archive_project(name):
+	require_staff()
 	frappe.db.set_value("Duty Project", name, "status", "Archived", update_modified=False)
 	frappe.db.commit()
 	return {"ok": True}
@@ -87,6 +91,7 @@ def archive_project(name):
 
 @frappe.whitelist()
 def get_project_board(project):
+	require_staff()
 	rows = frappe.get_all(
 		"Duty Project Task",
 		filters={"project": project},
@@ -130,6 +135,7 @@ def get_project_board(project):
 
 @frappe.whitelist()
 def create_task(project, title, column="To Do", assignee=None, due_date=None, urgency="Medium"):
+	require_staff()
 	title = (title or "").strip()
 	if not title:
 		frappe.throw(_("Give the task a title."))
@@ -156,6 +162,7 @@ def create_task(project, title, column="To Do", assignee=None, due_date=None, ur
 
 @frappe.whitelist()
 def update_task(name, title=None, assignee=None, due_date=None, urgency=None, column=None, description=None, client_visible=None, awaiting_client=None):
+	require_staff()
 	doc = frappe.get_doc("Duty Project Task", name)
 	old_assignee = doc.assignee
 	was_awaiting = cint(doc.awaiting_client)
@@ -221,6 +228,7 @@ def _nudge_client(doc):
 
 @frappe.whitelist()
 def move_task(name, column):
+	require_staff()
 	if column not in COLUMNS:
 		frappe.throw(_("Unknown column."))
 	doc = frappe.get_doc("Duty Project Task", name)
@@ -234,6 +242,7 @@ def move_task(name, column):
 
 @frappe.whitelist()
 def delete_task(name):
+	require_staff()
 	doc = frappe.get_doc("Duty Project Task", name)
 	project = doc.project
 	if doc.linked_todo and frappe.db.exists("Daily Todo", doc.linked_todo):
@@ -300,6 +309,7 @@ def _stop_my_session_on(card_name):
 
 @frappe.whitelist()
 def get_card(name):
+	require_staff()
 	doc = frappe.get_doc("Duty Project Task", name)
 	proj = frappe.db.get_value(
 		"Duty Project", doc.project, ["project_name", "customer"], as_dict=True
@@ -340,6 +350,7 @@ def get_card(name):
 
 @frappe.whitelist()
 def add_card_note(name, note):
+	require_staff()
 	note = (note or "").strip()
 	if not note:
 		frappe.throw(_("Empty note."))
@@ -378,6 +389,7 @@ def add_card_note(name, note):
 
 @frappe.whitelist()
 def start_card_work(name):
+	require_staff()
 	from duty_board.api import _is_clocked_in, _stop_running_session
 	from frappe.utils import now_datetime
 
@@ -415,6 +427,7 @@ def start_card_work(name):
 
 @frappe.whitelist()
 def stop_card_work(name):
+	require_staff()
 	_stop_my_session_on(name)
 	frappe.db.commit()
 	return get_card(name)

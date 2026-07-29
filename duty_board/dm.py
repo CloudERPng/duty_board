@@ -9,6 +9,7 @@ is a party to.
 import frappe
 from frappe import _
 from frappe.utils import cint
+from duty_board.permissions import require_staff
 
 MAX_LENGTH = 1000
 
@@ -24,6 +25,7 @@ def _validate_recipient(to):
 
 @frappe.whitelist()
 def send_dm(to, message):
+	require_staff()
 	me = frappe.session.user
 	message = (message or "").strip()
 	if not message:
@@ -66,6 +68,7 @@ def send_dm(to, message):
 
 @frappe.whitelist()
 def get_dm_thread(with_user, before=None, limit=30):
+	require_staff()
 	me = frappe.session.user
 	if with_user == me:
 		frappe.throw(_("That's you."))
@@ -100,6 +103,7 @@ def get_dm_thread(with_user, before=None, limit=30):
 
 @frappe.whitelist()
 def mark_dm_seen(with_user):
+	require_staff()
 	frappe.db.sql(
 		"""update `tabDuty DM` set seen = 1
 		where recipient = %s and sender = %s and seen = 0""",

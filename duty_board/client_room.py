@@ -10,7 +10,7 @@ import json
 
 import frappe
 from frappe import _
-from frappe.utils import cint, getdate, now_datetime, today
+from frappe.utils import cint, get_datetime, getdate, now_datetime, today
 from frappe.utils.pdf import get_pdf
 
 MSG_MAX = 2000
@@ -21,10 +21,9 @@ CLIENT_STATUS = {"To Do": "Queued", "In Progress": "In Progress", "Completed": "
 
 
 def _staff_only():
-	if frappe.session.user == "Guest":
-		frappe.throw(_("Not permitted."), frappe.PermissionError)
-	if frappe.db.get_value("User", frappe.session.user, "user_type") != "System User":
-		frappe.throw(_("Not permitted."), frappe.PermissionError)
+	from duty_board.permissions import require_staff
+
+	require_staff()
 
 
 RENEWAL_GRACE_DAYS = 14
@@ -4378,10 +4377,16 @@ def meeting_reminders():
 	frappe.db.commit()
 
 
+MEETING_MINUTES = 60
+
+
 def _meeting_ics(doc):
-	start = f"{str(doc.meeting_date).replace('-', '')}T{str(doc.start_time).replace(':', '')[:6]}"
-	end_hour = int(str(doc.start_time)[:2]) + 1
-	end = f"{str(doc.meeting_date).replace('-', '')}T{end_hour:02d}{str(doc.start_time)[3:5]}00"
+	from datetime import timedelta
+
+	start_dt = get_datetime(f"{doc.meeting_date} {doc.start_time}")
+	end_dt = start_dt + timedelta(minutes=MEETING_MINUTES)
+	start = start_dt.strftime("%Y%m%dT%H%M%S")
+	end = end_dt.strftime("%Y%m%dT%H%M%S")
 	firsts = ", ".join(
 		frappe.utils.get_fullname(a.user).split(" ")[0] for a in (doc.attendees or [])
 	)
@@ -4547,15 +4552,34 @@ def client_push_ping():
 
 @frappe.whitelist()
 def client_get_staff():
+	"""Names a client may address: their own service team, not the whole
+	company roster — room owner, bookkeeper, configured meeting staff, and
+	staff who have actually spoken in this room."""
 	room = _client_room()
-	out = []
-	for u in frappe.get_all(
-		"User",
-		filters={"enabled": 1, "user_type": "System User"},
-		fields=["full_name"],
+	staff_users = set()
+	for field in ("owner_user", "bookkeeper", "meeting_staff"):
+		v = room.get(field)
+		if v:
+			staff_users.update(s.strip() for s in str(v).split(",") if s.strip())
+	for owner in frappe.get_all(
+		"Client Room Message",
+		filters={"room": room.name, "internal": 0},
+		pluck="owner",
+		distinct=True,
+		limit_page_length=0,
 	):
-		if u.full_name and u.full_name != "Administrator":
-			out.append({"first": u.full_name.split(" ")[0], "full": u.full_name, "kind": "staff"})
+		if frappe.db.get_value("User", owner, "user_type") == "System User":
+			staff_users.add(owner)
+	out = []
+	seen = set()
+	for su in staff_users:
+		if not su or not frappe.db.get_value("User", su, "enabled"):
+			continue
+		full = frappe.utils.get_fullname(su)
+		if not full or full == "Administrator" or full in seen:
+			continue
+		seen.add(full)
+		out.append({"first": full.split(" ")[0], "full": full, "kind": "staff"})
 	me = frappe.session.user
 	for m in frappe.get_all(
 		"Client Room Member", filters={"room": room.name, "active": 1}, fields=["user"]

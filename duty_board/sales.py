@@ -8,6 +8,7 @@ leads off the board without deleting anything.
 import frappe
 from frappe import _
 from frappe.utils import cint, flt, getdate, today
+from duty_board.permissions import require_staff
 
 STAGES = ["New", "Contacted", "Qualified", "Proposal", "Negotiation"]
 
@@ -28,6 +29,7 @@ def _notify(user, title, body):
 
 @frappe.whitelist()
 def get_pipeline():
+	require_staff()
 	leads = frappe.get_all(
 		"Duty Lead",
 		filters={"status": "Open"},
@@ -86,6 +88,7 @@ def get_pipeline():
 
 @frappe.whitelist()
 def create_lead(company, lead_owner, value=None, contact_name=None, email=None, phone=None, description=None, expected_close=None, source=None):
+	require_staff()
 	company = (company or "").strip()
 	if not company:
 		frappe.throw(_("Give the prospect a name."))
@@ -116,6 +119,7 @@ def create_lead(company, lead_owner, value=None, contact_name=None, email=None, 
 
 @frappe.whitelist()
 def update_lead(name, company=None, lead_owner=None, value=None, contact_name=None, email=None, phone=None, description=None, expected_close=None, source=None):
+	require_staff()
 	doc = frappe.get_doc("Duty Lead", name)
 	old_owner = doc.lead_owner
 	if company and company.strip():
@@ -149,6 +153,7 @@ def _auto_note(lead, text):
 
 @frappe.whitelist()
 def move_lead(name, stage):
+	require_staff()
 	if stage not in STAGES:
 		frappe.throw(_("Unknown stage."))
 	old_stage = frappe.db.get_value("Duty Lead", name, "stage")
@@ -161,6 +166,7 @@ def move_lead(name, stage):
 
 @frappe.whitelist()
 def close_lead(name, outcome):
+	require_staff()
 	if outcome not in ("Won", "Lost"):
 		frappe.throw(_("Outcome must be Won or Lost."))
 	doc = frappe.get_doc("Duty Lead", name)
@@ -179,6 +185,7 @@ def close_lead(name, outcome):
 
 @frappe.whitelist()
 def reopen_lead(name):
+	require_staff()
 	frappe.db.set_value(
 		"Duty Lead", name, {"status": "Open", "closed_on": None}, update_modified=True
 	)
@@ -189,6 +196,7 @@ def reopen_lead(name):
 
 @frappe.whitelist()
 def get_closed_leads(outcome):
+	require_staff()
 	if outcome not in ("Won", "Lost"):
 		frappe.throw(_("Outcome must be Won or Lost."))
 	rows = frappe.get_all(
@@ -207,6 +215,7 @@ def get_closed_leads(outcome):
 
 @frappe.whitelist()
 def get_lead(name):
+	require_staff()
 	doc = frappe.get_doc("Duty Lead", name)
 	tasks = frappe.get_all(
 		"Daily Todo",
@@ -249,6 +258,7 @@ def get_lead(name):
 
 @frappe.whitelist()
 def add_lead_task(lead, description, date=None, time=None, assignee=None):
+	require_staff()
 	description = (description or "").strip()
 	if not description:
 		frappe.throw(_("Describe the task."))
@@ -282,6 +292,7 @@ def add_lead_task(lead, description, date=None, time=None, assignee=None):
 
 @frappe.whitelist()
 def toggle_lead_task(name, done):
+	require_staff()
 	doc = frappe.get_doc("Daily Todo", name)
 	if not doc.get("lead"):
 		frappe.throw(_("Not a lead task."))
@@ -293,6 +304,7 @@ def toggle_lead_task(name, done):
 
 @frappe.whitelist()
 def add_lead_note(lead, note):
+	require_staff()
 	note = (note or "").strip()
 	if not note:
 		frappe.throw(_("Empty note."))

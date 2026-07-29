@@ -4,6 +4,7 @@ import pytz
 
 import frappe
 from frappe import _
+from duty_board.permissions import require_staff
 from frappe.utils import (
 	add_days,
 	cint,
@@ -79,12 +80,14 @@ def _is_break(reason):
 
 @frappe.whitelist()
 def clock_in():
+	require_staff()
 	_make_log("Clock In")
 	return get_board()
 
 
 @frappe.whitelist()
 def clock_out(reason=None, summary=None):
+	require_staff()
 	if not reason:
 		frappe.throw(_("Please give a reason for clocking out."))
 	_stop_running_session(frappe.session.user)
@@ -204,6 +207,7 @@ def send_message(
 	attachment_name=None,
 	attachment_type=None,
 ):
+	require_staff()
 	mention_list = []
 	if mentions:
 		try:
@@ -260,6 +264,7 @@ def send_message(
 
 @frappe.whitelist()
 def get_messages(limit=50, before=None, after=None):
+	require_staff()
 	filters = {}
 	if before:
 		filters["creation"] = ["<", before]
@@ -300,6 +305,7 @@ def get_messages(limit=50, before=None, after=None):
 
 @frappe.whitelist()
 def search_messages(query):
+	require_staff()
 	query = (query or "").strip()
 	if len(query) < 2:
 		frappe.throw(_("Type at least 2 characters to search."))
@@ -329,6 +335,7 @@ def search_messages(query):
 
 @frappe.whitelist()
 def set_chat_seen():
+	require_staff()
 	user = frappe.session.user
 	now = now_datetime()
 	name = frappe.db.exists("Chat Seen", {"user": user})
@@ -347,6 +354,7 @@ def set_chat_seen():
 
 @frappe.whitelist()
 def toggle_reaction(message, emoji):
+	require_staff()
 	if emoji not in ALLOWED_EMOJIS:
 		frappe.throw(_("That reaction is not available."))
 	if not frappe.db.exists("Team Message", message):
@@ -418,6 +426,7 @@ def _message_payload(r, reactions):
 
 @frappe.whitelist()
 def add_todo(description, customer=None, for_user=None, for_users=None, date=None, due_time=None):
+	require_staff()
 	session = frappe.session.user
 	if not (description or "").strip():
 		frappe.throw(_("Please type the to-do first."))
@@ -509,24 +518,25 @@ def _push_safe(user, title, body):
 
 
 @frappe.whitelist()
-def share_todo(name, users):
+def share_todo(name, users, date=None):
+	require_staff()
 	doc = frappe.get_doc("Daily Todo", name)
-	if date:
-		doc.date = date
 	_check_todo_owner(doc)
+	share_date = date or doc.date
 	targets = _parse_targets(users) or []
 	if not targets:
 		frappe.throw(_("Pick at least one colleague."))
 	for target in targets:
 		if target == doc.user:
 			continue
-		_create_todo_for(target, doc.description, doc.customer, doc.date, doc.due_time)
+		_create_todo_for(target, doc.description, doc.customer, share_date, doc.due_time)
 	frappe.db.commit()
 	return get_board()
 
 
 @frappe.whitelist()
 def update_todo(name, description=None, customer=None, due_time=None, date=None):
+	require_staff()
 	doc = frappe.get_doc("Daily Todo", name)
 	_check_todo_owner(doc)
 	if description is not None and description.strip():
@@ -540,6 +550,7 @@ def update_todo(name, description=None, customer=None, due_time=None, date=None)
 
 @frappe.whitelist()
 def invite_to_task(users):
+	require_staff()
 	user = frappe.session.user
 	running = _get_running_session(user)
 	if not running:
@@ -559,6 +570,7 @@ def invite_to_task(users):
 
 @frappe.whitelist()
 def set_task_customer(customer=None):
+	require_staff()
 	user = frappe.session.user
 	running = _get_running_session(user)
 	if not running:
@@ -572,6 +584,7 @@ def set_task_customer(customer=None):
 
 @frappe.whitelist()
 def add_task_note(session, note):
+	require_staff()
 	if not (note or "").strip():
 		frappe.throw(_("Note is empty."))
 	owner = frappe.db.get_value("Work Session", session, "user")
@@ -594,6 +607,7 @@ def add_task_note(session, note):
 @frappe.whitelist()
 def get_task_history(before=None, limit=60):
 	"""The current user's past work sessions (before their local today), newest first."""
+	require_staff()
 	user = frappe.session.user
 	start_today, _end = user_day_window(user)
 	cutoff = before or str(start_today)
@@ -630,6 +644,7 @@ def get_task_history(before=None, limit=60):
 
 @frappe.whitelist()
 def get_task_notes(session):
+	require_staff()
 	rows = frappe.get_all(
 		"Task Note",
 		filters={"work_session": session},
@@ -662,6 +677,7 @@ def _issue_member_check(doc):
 
 @frappe.whitelist()
 def kb_promote(issue, title=None, problem=None, solution=None, product=None):
+	require_staff()
 	doc = frappe.get_doc("Duty Issue", issue)
 	solution = (solution or doc.resolution or "").strip()
 	if not solution:
@@ -683,6 +699,7 @@ def kb_promote(issue, title=None, problem=None, solution=None, product=None):
 
 @frappe.whitelist()
 def kb_search(query):
+	require_staff()
 	query = (query or "").strip()
 	if len(query) < 2:
 		return []
@@ -716,6 +733,7 @@ def _title_tokens(title):
 
 @frappe.whitelist()
 def similar_issues(name):
+	require_staff()
 	doc = frappe.get_doc("Duty Issue", name)
 	tokens = _title_tokens(doc.title)
 	if not tokens:
@@ -746,6 +764,7 @@ def similar_issues(name):
 
 @frappe.whitelist()
 def staff_workload():
+	require_staff()
 	staff = frappe.get_all(
 		"User",
 		filters={"enabled": 1, "user_type": "System User"},
@@ -786,6 +805,7 @@ def staff_workload():
 
 @frappe.whitelist()
 def skill_add(user, skill):
+	require_staff()
 	skill = (skill or "").strip()[:60]
 	if not skill:
 		frappe.throw(_("Name the skill."))
@@ -801,6 +821,7 @@ def skill_add(user, skill):
 
 @frappe.whitelist()
 def skill_remove(name):
+	require_staff()
 	row = frappe.get_doc("Duty Staff Skill", name)
 	if row.user != frappe.session.user and "System Manager" not in frappe.get_roles():
 		frappe.throw(_("You can only edit your own skills."))
@@ -811,6 +832,7 @@ def skill_remove(name):
 
 @frappe.whitelist()
 def set_on_call(user):
+	require_staff()
 	if "System Manager" not in frappe.get_roles():
 		frappe.throw(_("Only a System Manager can set the on-call person."))
 	frappe.db.set_value("Duty Settings", "Duty Settings", "on_call_user", user or None)
@@ -1402,11 +1424,13 @@ def _issue_updates(issue, limit=20):
 
 @frappe.whitelist()
 def issue_updates(name):
+	require_staff()
 	return _issue_updates(name)
 
 
 @frappe.whitelist()
 def issue_update_add(name, note):
+	require_staff()
 	note = (note or "").strip()
 	if not note:
 		frappe.throw(_("Write the update."))
@@ -1506,6 +1530,7 @@ def create_issue(
 	attachments=None,
 	issue_type=None,
 ):
+	require_staff()
 	if not (title or "").strip():
 		frappe.throw(_("Please give the issue a title."))
 	if not customer:
@@ -1562,6 +1587,7 @@ def create_issue(
 
 @frappe.whitelist()
 def get_issue(name):
+	require_staff()
 	doc = frappe.get_doc("Duty Issue", name)
 	return _issue_payload(doc)
 
@@ -1587,6 +1613,7 @@ def _link_upload_to_issue(file_url, issue_name):
 
 @frappe.whitelist()
 def attach_to_issue(name, file_url):
+	require_staff()
 	doc = frappe.get_doc("Duty Issue", name)
 	_issue_member_check(doc)
 	if not _link_upload_to_issue(file_url, doc.name):
@@ -1597,6 +1624,7 @@ def attach_to_issue(name, file_url):
 
 @frappe.whitelist()
 def set_issue_visibility(name, visible):
+	require_staff()
 	doc = frappe.get_doc("Duty Issue", name)
 	_issue_member_check(doc)
 	frappe.db.set_value("Duty Issue", name, "client_visible", cint(visible), update_modified=False)
@@ -1606,6 +1634,7 @@ def set_issue_visibility(name, visible):
 
 @frappe.whitelist()
 def acknowledge_issue(name):
+	require_staff()
 	doc = frappe.get_doc("Duty Issue", name)
 	_issue_member_check(doc)
 	if not doc.acknowledged_by:
@@ -1630,6 +1659,7 @@ def acknowledge_issue(name):
 
 @frappe.whitelist()
 def duty_typing():
+	require_staff()
 	first = frappe.utils.get_fullname(frappe.session.user).split(" ")[0]
 	frappe.publish_realtime("duty_board_typing", {"who": first, "user": frappe.session.user})
 	return {"ok": True}
@@ -1637,6 +1667,7 @@ def duty_typing():
 
 @frappe.whitelist()
 def start_issue_work(name):
+	require_staff()
 	user = frappe.session.user
 	doc = frappe.get_doc("Duty Issue", name)
 	if doc.status not in ("Open", "In Progress"):
@@ -1685,6 +1716,7 @@ def start_issue_work(name):
 
 @frappe.whitelist()
 def stop_issue_work(name):
+	require_staff()
 	user = frappe.session.user
 	doc = frappe.get_doc("Duty Issue", name)
 
@@ -1707,6 +1739,7 @@ def stop_issue_work(name):
 
 @frappe.whitelist()
 def update_issue_status(name, status, resolution=None):
+	require_staff()
 	if status not in ISSUE_STATUSES:
 		frappe.throw(_("Unknown status."))
 	doc = frappe.get_doc("Duty Issue", name)
@@ -1762,6 +1795,7 @@ def update_issue_status(name, status, resolution=None):
 
 @frappe.whitelist()
 def update_issue(name, severity=None, due_date=None, add_assignees=None):
+	require_staff()
 	doc = frappe.get_doc("Duty Issue", name)
 	_issue_member_check(doc)
 	if severity and severity in SEVERITIES:
@@ -1788,6 +1822,7 @@ def update_issue(name, severity=None, due_date=None, add_assignees=None):
 
 @frappe.whitelist()
 def get_issues(scope="open"):
+	require_staff()
 	filters = {}
 	if scope == "resolved":
 		filters["status"] = "Resolved"
@@ -1885,6 +1920,7 @@ def _open_issues():
 
 @frappe.whitelist()
 def get_issues(status="open", scope=None):
+	require_staff()
 	if scope:
 		status = scope  # the staff page sends scope=; both names welcome
 	status_map = {
@@ -1902,6 +1938,7 @@ def get_issues(status="open", scope=None):
 
 @frappe.whitelist()
 def toggle_todo(name, done):
+	require_staff()
 	doc = frappe.get_doc("Daily Todo", name)
 	_check_todo_owner(doc)
 	doc.status = "Done" if cint(done) else "Open"
@@ -1912,6 +1949,7 @@ def toggle_todo(name, done):
 
 @frappe.whitelist()
 def remove_todo(name):
+	require_staff()
 	doc = frappe.get_doc("Daily Todo", name)
 	_check_todo_owner(doc)
 	frappe.delete_doc("Daily Todo", name, ignore_permissions=True)
@@ -1921,6 +1959,7 @@ def remove_todo(name):
 
 @frappe.whitelist()
 def carry_todo(name):
+	require_staff()
 	doc = frappe.get_doc("Daily Todo", name)
 	_check_todo_owner(doc)
 	if doc.status == "Done":
@@ -1934,6 +1973,7 @@ def carry_todo(name):
 
 @frappe.whitelist()
 def carry_all():
+	require_staff()
 	user = frappe.session.user
 	names = frappe.get_all(
 		"Daily Todo",
@@ -1952,6 +1992,7 @@ def carry_all():
 
 @frappe.whitelist()
 def bring_old_todos():
+	require_staff()
 	user = frappe.session.user
 	names = frappe.get_all(
 		"Daily Todo",
@@ -1990,6 +2031,7 @@ def _sorted_todos(rows):
 
 @frappe.whitelist()
 def start_task(activity, customer=None, todo=None, complete_previous=0):
+	require_staff()
 	user = frappe.session.user
 	if not (activity or "").strip():
 		frappe.throw(_("Please describe what you are working on."))
@@ -2016,6 +2058,7 @@ def start_task(activity, customer=None, todo=None, complete_previous=0):
 
 @frappe.whitelist()
 def stop_task(completed=0):
+	require_staff()
 	user = frappe.session.user
 	stopped = _stop_running_session(user)
 	if cint(completed) and stopped and stopped.daily_todo:
@@ -2116,6 +2159,7 @@ def _users_on_leave(user_ids):
 def delete_message(name):
 	"""System Managers only: remove a Duty Room message everywhere.
 	Cascades attached files and reactions, then tells every open client."""
+	require_staff()
 	if "System Manager" not in frappe.get_roles():
 		frappe.throw(_("Only System Managers can delete messages."))
 	if not frappe.db.exists("Team Message", name):
@@ -2157,6 +2201,7 @@ def _dm_unread_safe(user):
 @frappe.whitelist()
 def get_board():
 	"""Current status of every enabled System User, each in their own local day."""
+	require_staff()
 	now = now_datetime()
 	session = frappe.session.user
 

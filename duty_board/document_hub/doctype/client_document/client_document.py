@@ -5,6 +5,7 @@ import frappe
 from frappe import _
 from frappe.model.document import Document
 from frappe.utils import now_datetime, time_diff_in_hours
+from duty_board.permissions import require_staff
 
 FORCE_RELEASE_ROLES = {"System Manager", "Duty Board Manager"}
 
@@ -34,6 +35,7 @@ class ClientDocument(Document):
 @frappe.whitelist()
 def checkout(name):
     """Lock the document for the current user."""
+    require_staff()
     doc = frappe.get_doc("Client Document", name)
 
     if doc.status == "Checked Out":
@@ -69,6 +71,7 @@ def checkout(name):
 @frappe.whitelist()
 def checkin(name, file_url, change_note):
     """Upload a new version and release the lock."""
+    require_staff()
     doc = frappe.get_doc("Client Document", name)
 
     if doc.status != "Checked Out":
@@ -123,6 +126,7 @@ def checkin(name, file_url, change_note):
 @frappe.whitelist()
 def force_release(name, reason=None):
     """Manager override: release a stuck checkout without a new version."""
+    require_staff()
     if not (FORCE_RELEASE_ROLES & set(frappe.get_roles())):
         frappe.throw(_("Only a manager can force-release a document."))
 
@@ -158,6 +162,7 @@ def force_release(name, reason=None):
 @frappe.whitelist()
 def restore_version(name, version_no):
     """Promote an old version's file as a brand-new version (non-destructive)."""
+    require_staff()
     doc = frappe.get_doc("Client Document", name)
 
     if doc.status == "Checked Out":
@@ -193,6 +198,7 @@ def restore_version(name, version_no):
 @frappe.whitelist()
 def log_download(name):
     """Called from the client when a user downloads the latest file."""
+    require_staff()
     log_activity(name, "Downloaded")
     return True
 
