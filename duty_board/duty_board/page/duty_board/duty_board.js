@@ -7959,9 +7959,9 @@ class DutyBoard {
 			.duty-cal-head { display: flex; gap: 10px; align-items: center; margin: 8px 0; }
 			.duty-cal-nav, .duty-cal-today { cursor: pointer; padding: 2px 8px; border-radius: 6px; background: #f0efe9; text-decoration: none; color: #182420; font-size: 12.5px; }
 			.duty-cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); border: 1px solid #e5e7eb; border-radius: 10px; overflow: hidden; }
-			.duty-cal-dow { font-size: 10.5px; font-weight: 800; letter-spacing: .05em; text-transform: uppercase; color: #6B7772; padding: 6px 8px; background: #faf9f6; border-bottom: 1px solid #e5e7eb; }
+			.duty-cal-dow { font-size: 10.5px; font-weight: 800; letter-spacing: .05em; text-transform: uppercase; color: #1a1a1a; padding: 6px 8px; background: #faf9f6; border-bottom: 1px solid #e5e7eb; }
 			.duty-cal-cell { min-height: 92px; border-right: 1px solid #f0eee8; border-bottom: 1px solid #f0eee8; padding: 4px 5px; }
-			.duty-cal-cell .d { font-size: 11px; color: #96A09B; display: flex; justify-content: space-between; align-items: center; }
+			.duty-cal-cell .d { font-size: 11.5px; color: #000; font-weight: 700; display: flex; justify-content: space-between; align-items: center; }
 			.duty-cal-add { visibility: hidden; cursor: pointer; color: #0E5A4A; font-weight: 700; text-decoration: none; padding: 0 3px; }
 			.duty-cal-cell:hover .duty-cal-add { visibility: visible; }
 			.duty-cal-cell:not(.duty-cal-pad) { cursor: pointer; }
@@ -7969,7 +7969,7 @@ class DutyBoard {
 			.duty-cal-cell.today .d { color: #0E5A4A; font-weight: 800; }
 			.duty-cal-cell.over { background: #e4eeea; }
 			.duty-cal-pad { background: #fbfaf7; }
-			.duty-cal-task { font-size: 11px; background: #fff; border: 1px solid #eceae4; border-radius: 6px; padding: 2px 5px; margin-top: 3px; cursor: pointer; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+			.duty-cal-task { font-size: 11.5px; color: #000; font-weight: 500; background: #fff; border: 1px solid #eceae4; border-radius: 6px; padding: 2px 5px; margin-top: 3px; cursor: pointer; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 			.duty-cal-task.done { text-decoration: line-through; color: #96A09B; }
 			.duty-proj-tabs { display: block; }
 			.duty-proj-tab {
