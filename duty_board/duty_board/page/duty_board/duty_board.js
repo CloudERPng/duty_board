@@ -46,7 +46,7 @@ frappe.pages["duty-board"].on_page_load = function (wrapper) {
 			const q = r.message || {};
 			board.is_pricer = !!q.pricer;
 			page.add_inner_button(__("🎓 Team training"), () => board.team_training_dialog(), __("⇄ View"));
-			page.add_inner_button(__("📚 Library"), () => board.library_dialog(), __("⇄ View"));
+			page.add_inner_button(__("📚 Library"), () => board.show_face("library"), __("⇄ View"));
 			if (q.pricer) {
 				page.add_inner_button(__("💼 CR pricing ({0})", [(q.queue || []).length]), () => board.pricing_dialog(), __("⇄ View"));
 			}
@@ -112,6 +112,7 @@ class DutyBoard {
 			</div>
 		`).appendTo(page.body);
 		this.$projects.find(".duty-proj-new").on("click", () => this.new_project_dialog());
+		this.$library = $(`<div class="duty-library" style="display:none"></div>`).appendTo(page.body);
 		this.$projects.find(".duty-pj-filter").on("input", (e) => {
 			this._pj_filter = e.target.value;
 			this.render_project_tabs();
@@ -1672,6 +1673,8 @@ class DutyBoard {
 		this.$clients.toggle(face === "clients");
 		this.$me.toggle(face === "me");
 		this.$books.toggle(face === "books");
+		if (this.$library) this.$library.toggle(face === "library");
+		if (face === "library") this.refresh_library();
 		if (face === "books") this.refresh_books();
 		if (face === "projects") this.refresh_projects();
 		if (face === "sales") this.refresh_sales();
@@ -4358,62 +4361,90 @@ class DutyBoard {
 		});
 	}
 
-	library_dialog() {
+	refresh_library() {
 		frappe.call({
 			method: "duty_board.library.library",
 			callback: (r) => {
 				const m0 = r.message || {};
 				const books = m0.books || [];
 				const mgr = !!m0.manager;
-				const d = new frappe.ui.Dialog({ title: __("📚 Library"), size: "large" });
-				$(d.body).html(
-					books.length
-						? books.map((b) => `
-						<div class="duty-bk" data-book="${b.name}" style="border:1px solid #E8E5DD;border-radius:12px;padding:12px 14px;margin-bottom:10px;cursor:pointer">
-							<div style="display:flex;gap:10px;align-items:baseline;flex-wrap:wrap">
-								<b style="font-size:14.5px">${frappe.utils.escape_html(b.title)}</b>
-								${b.author ? `<span class="text-muted" style="font-size:12px">${frappe.utils.escape_html(b.author)}</span>` : ""}
-								<span style="margin-left:auto;font-size:11.5px;font-weight:700;border-radius:99px;padding:3px 10px;background:${b.pct >= 100 ? "#E4EEEA" : b.pct ? "#FBF3E4" : "#EFEDE6"};color:${b.pct >= 100 ? "#0E5A4A" : b.pct ? "#A96F1A" : "#6B7772"}">${b.pct >= 100 ? __("finished") : b.pct ? b.pct + "%" : __("not started")}</span>
+				this._lib_mgr = mgr;
+				const $L = this.$library.empty();
+				const STARS = (v) => "★".repeat(Math.round(v)) + "☆".repeat(5 - Math.round(v));
+				const groups = {};
+				books.forEach((b) => (groups[b.category || __("Uncategorised")] = groups[b.category || __("Uncategorised")] || []).push(b));
+				const cats = Object.keys(groups).sort((a, b2) => (a === __("Uncategorised")) - (b2 === __("Uncategorised")) || a.localeCompare(b2));
+				$L.append(`<div style="display:flex;align-items:center;gap:12px;margin:4px 0 14px">
+					<h3 style="margin:0">📚 ${__("Library")}</h3>
+					${mgr ? `<span style="margin-left:auto"><input type="file" accept=".pdf,.epub" class="duty-bk-file" style="font-size:12px">
+					<button class="btn btn-sm btn-primary duty-bk-up">📚 ${__("Convert & add")}</button></span>` : ""}
+				</div>`);
+				if (!books.length) $L.append(`<div class="text-muted">${__("No books on the shelf yet.")}</div>`);
+				cats.forEach((cat) => {
+					$L.append(`<div style="font-size:11px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:#6B7772;margin:16px 0 8px">${frappe.utils.escape_html(cat)} <span style="color:#b3b8b5">${groups[cat].length}</span></div>`);
+					const $row = $(`<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(290px,1fr));gap:12px"></div>`).appendTo($L);
+					groups[cat].forEach((b) => {
+						$(`<div class="duty-bk" data-book="${b.name}" style="border:1px solid #E8E5DD;border-radius:12px;padding:12px 14px;cursor:pointer;background:#fff">
+							<div style="display:flex;gap:8px;align-items:baseline">
+								<b style="font-size:14px;flex:1">${frappe.utils.escape_html(b.title)}</b>
+								<span style="font-size:11.5px;font-weight:700;border-radius:99px;padding:2px 9px;background:${b.pct >= 100 ? "#E4EEEA" : b.pct ? "#FBF3E4" : "#EFEDE6"};color:${b.pct >= 100 ? "#0E5A4A" : b.pct ? "#A96F1A" : "#6B7772"}">${b.pct >= 100 ? __("finished") : b.pct ? b.pct + "%" : __("new")}</span>
 							</div>
-							${b.description ? `<div class="text-muted" style="font-size:12.5px;margin-top:3px">${frappe.utils.escape_html(b.description)}</div>` : ""}
-							${mgr ? `<a class="duty-bk-del" data-book="${b.name}" style="float:right;font-size:11px;color:#B0443C;cursor:pointer">${__("remove")}</a>` : ""}
-							<div class="text-muted" style="font-size:11.5px;margin-top:4px">${b.chapter_count} ${__("chapters")}${b.words ? ` · ~${Math.round(b.words / 200)} ${__("min read")}` : ""}${b.last_read_at ? ` · ${__("last read")} ${b.last_read_at}` : ""}</div>
+							${b.author ? `<div class="text-muted" style="font-size:12px">${frappe.utils.escape_html(b.author)}</div>` : ""}
+							<div style="font-size:12px;margin-top:4px;color:#A96F1A">${b.rating_n ? `${STARS(b.rating_avg)} <span class="text-muted">${b.rating_avg} · ${b.rating_n}</span>` : `<span class="text-muted">${__("no ratings yet")}</span>`}</div>
+							${b.description ? `<div class="text-muted" style="font-size:12px;margin-top:4px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden">${frappe.utils.escape_html(b.description)}</div>` : ""}
+							<div class="text-muted" style="font-size:11px;margin-top:6px">${b.chapter_count} ${__("chapters")}${b.words ? ` · ~${Math.round(b.words / 200)} ${__("min")}` : ""}${b.last_read_at ? ` · ${__("read")} ${b.last_read_at.slice(0, 10)}` : ""}
+								${mgr ? `<a class="duty-bk-edit" data-book="${b.name}" style="float:right;color:#6B7772;margin-left:8px">${__("edit")}</a><a class="duty-bk-del" data-book="${b.name}" style="float:right;color:#B0443C">${__("remove")}</a>` : ""}</div>
 							<div style="height:4px;background:#EFEDE6;border-radius:99px;margin-top:8px"><div style="height:4px;width:${b.pct}%;background:#0E5A4A;border-radius:99px"></div></div>
-						</div>`).join("")
-						: `<div class="text-muted">${__("No books on the shelf yet.")}</div>`
-				);
+						</div>`).appendTo($row);
+					});
+				});
+				$L.find(".duty-bk").on("click", (e) => {
+					if ($(e.target).is(".duty-bk-del,.duty-bk-edit")) return;
+					this.open_reader($(e.currentTarget).data("book"));
+				});
+				$L.find(".duty-bk-del").on("click", (e) => {
+					e.stopPropagation();
+					const bk = $(e.currentTarget).data("book");
+					frappe.confirm(__("Remove this book and everyone's reading progress in it?"), () =>
+						frappe.call({ method: "duty_board.library.delete_book", args: { book: bk }, callback: () => this.refresh_library() })
+					);
+				});
+				$L.find(".duty-bk-edit").on("click", (e) => {
+					e.stopPropagation();
+					const bk = $(e.currentTarget).data("book");
+					const b = books.find((x) => x.name === bk) || {};
+					frappe.prompt(
+						[
+							{ fieldname: "title", fieldtype: "Data", label: __("Title"), default: b.title, reqd: 1 },
+							{ fieldname: "author", fieldtype: "Data", label: __("Author"), default: b.author || "" },
+							{ fieldname: "category", fieldtype: "Data", label: __("Category"), default: b.category || "" },
+							{ fieldname: "description", fieldtype: "Small Text", label: __("Description"), default: b.description || "" },
+						],
+						(v) => frappe.call({ method: "duty_board.library.update_book", args: { book: bk, title: v.title, author: v.author || "", category: v.category || "", description: v.description || "" }, callback: () => this.refresh_library() }),
+						__("Edit book"), __("Save")
+					);
+				});
 				if (mgr) {
-					$(`<div style="margin-top:10px;padding-top:10px;border-top:1px solid #E8E5DD">
-						<input type="file" accept=".pdf,.epub" class="duty-bk-file" style="font-size:12px">
-						<button class="btn btn-sm btn-primary duty-bk-up" style="margin-left:6px">📚 ${__("Convert & add to Library")}</button>
-						<div class="text-muted" style="font-size:11.5px;margin-top:4px">${__("ePubs convert near-losslessly (own chapters, images kept). Text PDFs convert well; scanned page-image PDFs are refused (they need OCR).")}</div>
-					</div>`).appendTo(d.body);
-					$(d.body).find(".duty-bk-up").on("click", () => {
-						const f = $(d.body).find(".duty-bk-file")[0].files[0];
+					$L.find(".duty-bk-up").on("click", () => {
+						const f = $L.find(".duty-bk-file")[0].files[0];
 						if (!f) return;
 						frappe.prompt(
 							[
 								{ fieldname: "title", fieldtype: "Data", label: __("Title"), default: f.name.replace(/\.(pdf|epub)$/i, ""), reqd: 1 },
 								{ fieldname: "author", fieldtype: "Data", label: __("Author") },
+								{ fieldname: "category", fieldtype: "Data", label: __("Category (shelf section, e.g. Leadership, ERP, Sales)") },
 								{ fieldname: "description", fieldtype: "Small Text", label: __("Why the team should read it") },
 							],
 							(v) => {
 								const fd = new FormData();
 								fd.append("file", f);
 								fd.append("is_private", "1");
-								fetch("/api/method/upload_file", {
-									method: "POST",
-									headers: { "X-Frappe-CSRF-Token": frappe.csrf_token },
-									body: fd,
-								})
+								fetch("/api/method/upload_file", { method: "POST", headers: { "X-Frappe-CSRF-Token": frappe.csrf_token }, body: fd })
 									.then((res) => res.json())
 									.then((j) => {
 										const url = j.message && j.message.file_url;
 										if (!url) throw new Error("upload failed");
-										return frappe.call({
-											method: "duty_board.library.convert_pdf",
-											args: { file_url: url, title: v.title, author: v.author || null, description: v.description || null },
-										});
+										return frappe.call({ method: "duty_board.library.convert_pdf", args: { file_url: url, title: v.title, author: v.author || null, category: v.category || null, description: v.description || null } });
 									})
 									.then(() => frappe.show_alert({ message: __("📚 Converting in the background — you'll be notified when it's on the shelf."), indicator: "blue" }))
 									.catch(() => frappe.msgprint(__("Upload failed — try again.")));
@@ -4422,53 +4453,42 @@ class DutyBoard {
 						);
 					});
 				}
-				$(d.body).find(".duty-bk").on("click", (e) => {
-					if ($(e.target).hasClass("duty-bk-del")) return;
-					d.hide();
-					this.reader_dialog($(e.currentTarget).data("book"));
-				});
-				$(d.body).find(".duty-bk-del").on("click", (e) => {
-					e.stopPropagation();
-					const bk = $(e.currentTarget).data("book");
-					frappe.confirm(__("Remove this book and everyone's reading progress in it?"), () =>
-						frappe.call({
-							method: "duty_board.library.delete_book",
-							args: { book: bk },
-							callback: () => { d.hide(); this.library_dialog(); },
-						})
-					);
-				});
-				d.show();
 			},
 		});
 	}
 
-	reader_dialog(book) {
+	open_reader(book) {
 		frappe.call({
 			method: "duty_board.library.open_book",
 			args: { book: book },
 			callback: (r) => {
 				const m = r.message;
 				if (!m) return;
-				const d = new frappe.ui.Dialog({ title: `📖 ${m.title}`, size: "extra-large" });
-				d.$wrapper.find(".modal-dialog").css("max-width", "1100px");
+				const $L = this.$library.empty();
 				let cur = m.current;
 				let opened_at = Date.now();
 				const doneSet = new Set(m.done || []);
-				$(d.body).html(`
-					<div style="display:flex;gap:16px;min-height:60vh">
-						<div class="duty-rd-toc" style="width:230px;flex:none;overflow-y:auto;max-height:70vh;border-right:1px solid #E8E5DD;padding-right:8px"></div>
-						<div style="flex:1;min-width:0;display:flex;flex-direction:column">
-							<div class="duty-rd-body" style="flex:1;overflow-y:auto;max-height:70vh;padding:4px 14px 40px 2px;font-size:15px;line-height:1.75;color:#182420"></div>
-							<div style="display:flex;gap:8px;padding-top:10px;border-top:1px solid #E8E5DD">
+				$L.append(`
+					<div style="display:flex;align-items:center;gap:12px;margin:4px 0 10px">
+						<a class="duty-rd-back" style="cursor:pointer;font-weight:600;color:#6B7772">‹ ${__("Library")}</a>
+						<b style="font-size:16px">${frappe.utils.escape_html(m.title)}</b>
+						${m.author ? `<span class="text-muted" style="font-size:12.5px">${frappe.utils.escape_html(m.author)}</span>` : ""}
+						<span style="margin-left:auto" class="duty-rd-stars"></span>
+						<a class="duty-rd-revs" style="cursor:pointer;font-size:12.5px;color:#0E5A4A"></a>
+					</div>
+					<div class="duty-rd-revpanel" style="display:none;border:1px solid #E8E5DD;border-radius:12px;padding:12px 14px;margin-bottom:10px"></div>
+					<div style="display:flex;gap:20px">
+						<div class="duty-rd-toc" style="width:250px;flex:none;position:sticky;top:60px;align-self:flex-start;max-height:calc(100vh - 140px);overflow-y:auto;border-right:1px solid #E8E5DD;padding-right:10px"></div>
+						<div style="flex:1;min-width:0">
+							<div class="duty-rd-body" style="max-width:840px;font-size:16px;line-height:1.8;color:#182420"></div>
+							<div style="max-width:840px;display:flex;gap:8px;padding:16px 0 40px;border-top:1px solid #E8E5DD;margin-top:24px">
 								<button class="btn btn-sm btn-default duty-rd-prev">‹ ${__("Previous")}</button>
-								<span class="duty-rd-pos text-muted" style="font-size:12px;align-self:center"></span>
 								<button class="btn btn-sm btn-primary duty-rd-next" style="margin-left:auto">${__("Finish chapter & continue")} ›</button>
 							</div>
 						</div>
 					</div>`);
-				const $toc = $(d.body).find(".duty-rd-toc");
-				const $bd = $(d.body).find(".duty-rd-body");
+				const $toc = $L.find(".duty-rd-toc");
+				const $bd = $L.find(".duty-rd-body");
 				const chIdx = (name) => m.chapters.findIndex((c) => c.name === name);
 				const renderToc = () => {
 					$toc.empty();
@@ -4478,25 +4498,53 @@ class DutyBoard {
 							.on("click", () => go(c.name, 0));
 					});
 				};
+				const loadReviews = () =>
+					frappe.call({
+						method: "duty_board.library.book_reviews",
+						args: { book: book },
+						callback: (rr) => {
+							const rv = rr.message || { rows: [], avg: 0, n: 0 };
+							const mine = rv.rows.find((z) => z.mine) || {};
+							const stars = mine.stars || 0;
+							$L.find(".duty-rd-stars").html(
+								[1, 2, 3, 4, 5].map((i) => `<a data-s="${i}" style="cursor:pointer;font-size:17px;color:${i <= stars ? "#A96F1A" : "#D8D4C8"};text-decoration:none">★</a>`).join("")
+							);
+							$L.find(".duty-rd-stars a").on("click", (e) => {
+								const s = $(e.currentTarget).data("s");
+								frappe.prompt(
+									{ fieldname: "review", fieldtype: "Small Text", label: __("A line for your colleagues (optional)"), default: mine.review || "" },
+									(v) => frappe.call({ method: "duty_board.library.rate_book", args: { book: book, stars: s, review: v.review || "" }, callback: loadReviews }),
+									__("Rate “{0}” — {1}★", [m.title, s]), __("Save")
+								);
+							});
+							$L.find(".duty-rd-revs").text(rv.n ? `💬 ${rv.n} ${__("review(s)")} · ${rv.avg}★` : __("be the first to review"));
+							$L.find(".duty-rd-revpanel").html(
+								rv.rows.filter((z) => z.stars || z.review).map((z) => `
+								<div style="padding:7px 0;border-bottom:1px solid #F0EEE8;font-size:13px">
+									<b>${frappe.utils.escape_html(z.who)}</b>
+									<span style="color:#A96F1A">${"★".repeat(z.stars || 0)}</span>
+									<span class="text-muted" style="font-size:11px;float:right">${z.when}</span>
+									${z.review ? `<div style="margin-top:2px">${frappe.utils.escape_html(z.review)}</div>` : ""}
+								</div>`).join("") || `<div class="text-muted">${__("No reviews yet.")}</div>`
+							);
+						},
+					});
+				$L.find(".duty-rd-revs").on("click", () => $L.find(".duty-rd-revpanel").slideToggle(120));
 				const save = (donech) => {
-					const el = $bd[0];
-					const pct = el.scrollHeight > el.clientHeight ? Math.round((el.scrollTop / (el.scrollHeight - el.clientHeight)) * 100) : 100;
+					const pct = document.documentElement.scrollHeight > window.innerHeight
+						? Math.round((window.scrollY / (document.documentElement.scrollHeight - window.innerHeight)) * 100)
+						: 100;
 					const mins = Math.round((Date.now() - opened_at) / 60000);
 					opened_at = Date.now();
-					frappe.call({
-						method: "duty_board.library.mark",
-						args: { book: book, chapter: cur, scroll_pct: pct, minutes: mins, done: donech || null },
-						callback: () => {},
-					});
+					frappe.call({ method: "duty_board.library.mark", args: { book: book, chapter: cur, scroll_pct: pct, minutes: mins, done: donech || null }, callback: () => {} });
 				};
 				let scrollT = null;
-				$bd.on("scroll", () => {
+				this._rd_scroll = () => {
 					clearTimeout(scrollT);
-					scrollT = setTimeout(() => save(null), 1200);
-					const el = $bd[0];
-					const pct = el.scrollHeight > el.clientHeight ? Math.round((el.scrollTop / (el.scrollHeight - el.clientHeight)) * 100) : 100;
-					$(d.body).find(".duty-rd-pos").text(`${m.chapters[chIdx(cur)] ? m.chapters[chIdx(cur)].title : ""} · ${pct}%`);
-				});
+					scrollT = setTimeout(() => { if (this.face === "library" && this._reading === book) save(null); }, 1500);
+				};
+				$(window).off("scroll.dutyrd").on("scroll.dutyrd", this._rd_scroll);
+				this._reading = book;
 				const go = (name, scrollPct) => {
 					frappe.call({
 						method: "duty_board.library.chapter",
@@ -4506,34 +4554,28 @@ class DutyBoard {
 							$bd.html(rr.message.content || `<p class="text-muted">${__("Empty chapter.")}</p>`);
 							renderToc();
 							requestAnimationFrame(() => {
-								const el = $bd[0];
-								el.scrollTop = scrollPct ? ((el.scrollHeight - el.clientHeight) * scrollPct) / 100 : 0;
+								const h = document.documentElement.scrollHeight - window.innerHeight;
+								window.scrollTo(0, scrollPct ? (h * scrollPct) / 100 : 0);
 							});
 							save(null);
 						},
 					});
 				};
-				$(d.body).find(".duty-rd-prev").on("click", () => {
-					const i = chIdx(cur);
-					if (i > 0) go(m.chapters[i - 1].name, 0);
-				});
-				$(d.body).find(".duty-rd-next").on("click", () => {
+				$L.find(".duty-rd-back").on("click", () => { save(null); this._reading = null; this.refresh_library(); });
+				$L.find(".duty-rd-prev").on("click", () => { const i = chIdx(cur); if (i > 0) go(m.chapters[i - 1].name, 0); });
+				$L.find(".duty-rd-next").on("click", () => {
 					doneSet.add(cur);
 					save(cur);
 					const i = chIdx(cur);
 					if (i < m.chapters.length - 1) go(m.chapters[i + 1].name, 0);
-					else {
-						renderToc();
-						frappe.show_alert({ message: __("📚 Book finished — well read!"), indicator: "green" });
-					}
+					else { renderToc(); frappe.show_alert({ message: __("📚 Book finished — rate it for the team!"), indicator: "green" }); }
 				});
-				d.on_hide = () => save(null);
-				d.show();
 				$bd.html(m.content || "");
 				renderToc();
+				loadReviews();
 				requestAnimationFrame(() => {
-					const el = $bd[0];
-					el.scrollTop = m.scroll_pct ? ((el.scrollHeight - el.clientHeight) * m.scroll_pct) / 100 : 0;
+					const h = document.documentElement.scrollHeight - window.innerHeight;
+					window.scrollTo(0, m.scroll_pct ? (h * m.scroll_pct) / 100 : 0);
 				});
 			},
 		});

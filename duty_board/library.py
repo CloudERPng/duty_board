@@ -66,8 +66,11 @@ def library():
 	books = frappe.get_all(
 		"Duty Book",
 		filters={"active": 1},
-		fields=["name", "title", "author", "description", "chapter_count"],
+		fields=["name", "title", "author", "description", "category", "chapter_count"],
 		order_by="creation desc",
+	)
+	all_reviews = frappe.get_all(
+		"Duty Book Review", fields=["book", "user", "stars"], limit_page_length=0
 	)
 	for b in books:
 		b.words = cint(
@@ -81,6 +84,11 @@ def library():
 		b.pct = int(done * 100 / b.chapter_count) if b.chapter_count else 0
 		b.last_read_at = str(p.last_read_at)[:16] if p and p.last_read_at else None
 		b.resume_chapter = p.chapter if p else None
+		rv = [r for r in all_reviews if r.book == b.name and cint(r.stars)]
+		b.rating_n = len(rv)
+		b.rating_avg = round(sum(cint(r.stars) for r in rv) / len(rv), 1) if rv else 0
+		mine = next((r for r in all_reviews if r.book == b.name and r.user == user), None)
+		b.my_stars = cint(mine.stars) if mine else 0
 	return {"books": books, "manager": 1 if manager else 0}
 
 
@@ -304,7 +312,7 @@ def _pdf_to_chapters(content_bytes):
 	return out, method
 
 
-def _convert_job(file_url, title, author, description, requested_by):
+def _convert_job(file_url, title, author, description, requested_by, category=None):
 	fname = frappe.db.get_value("File", {"file_url": file_url}, "name")
 	fdoc = frappe.get_doc("File", fname)
 	if (fdoc.file_name or "").lower().endswith(".epub"):
@@ -319,6 +327,7 @@ def _convert_job(file_url, title, author, description, requested_by):
 			"title": (title or fdoc.file_name.rsplit(".", 1)[0])[:140],
 			"author": (author or "")[:140] or None,
 			"description": (description or "")[:500] or None,
+			"category": (category or "")[:80] or None,
 			"active": 1,
 			"chapter_count": len(chapters),
 		}
@@ -348,7 +357,7 @@ def _convert_job(file_url, title, author, description, requested_by):
 
 
 @frappe.whitelist()
-def convert_pdf(file_url, title=None, author=None, description=None):
+def convert_pdf(file_url, title=None, author=None, description=None, category=None):
 	"""Managers: turn an uploaded PDF into a Library book (background job)."""
 	require_staff()
 	from duty_board.uat import _is_manager
@@ -363,6 +372,7 @@ def convert_pdf(file_url, title=None, author=None, description=None):
 		title=title,
 		author=author,
 		description=description,
+		category=category,
 		requested_by=frappe.session.user,
 	)
 	return {"queued": 1}
@@ -521,3 +531,67 @@ def _epub_to_chapters(content_bytes):
 	if not chapters:
 		frappe.throw(_("No readable chapters found in this ePub."))
 	return chapters, meta_title, meta_author
+
+
+@frappe.whitelist()
+def rate_book(book, stars, review=None):
+	require_staff()
+	stars = cint(stars)
+	if stars < 1 or stars > 5:
+		frappe.throw(_("Stars must be 1–5."))
+	user = frappe.session.user
+	name = frappe.db.exists("Duty Book Review", {"book": book, "user": user})
+	doc = frappe.get_doc("Duty Book Review", name) if name else frappe.get_doc(
+		{"doctype": "Duty Book Review", "book": book, "user": user}
+	)
+	doc.stars = stars
+	if review is not None:
+		doc.review = (review or "").strip()[:1000] or None
+	doc.updated_at = now_datetime()
+	doc.save(ignore_permissions=True) if name else doc.insert(ignore_permissions=True)
+	frappe.db.commit()
+	return book_reviews(book)
+
+
+@frappe.whitelist()
+def book_reviews(book):
+	require_staff()
+	rows = frappe.get_all(
+		"Duty Book Review",
+		filters={"book": book},
+		fields=["user", "stars", "review", "updated_at"],
+		order_by="updated_at desc",
+		limit_page_length=0,
+	)
+	for r in rows:
+		r.who = frappe.utils.get_fullname(r.user)
+		r.when = str(r.updated_at)[:10] if r.updated_at else ""
+		r.mine = 1 if r.user == frappe.session.user else 0
+	rated = [r for r in rows if cint(r.stars)]
+	return {
+		"rows": rows,
+		"avg": round(sum(cint(r.stars) for r in rated) / len(rated), 1) if rated else 0,
+		"n": len(rated),
+	}
+
+
+@frappe.whitelist()
+def update_book(book, title=None, author=None, category=None, description=None):
+	require_staff()
+	from duty_board.uat import _is_manager
+
+	if not _is_manager():
+		frappe.throw(_("Only managers manage the Library."), frappe.PermissionError)
+	vals = {}
+	if title and title.strip():
+		vals["title"] = title.strip()[:140]
+	if author is not None:
+		vals["author"] = (author or "").strip()[:140] or None
+	if category is not None:
+		vals["category"] = (category or "").strip()[:80] or None
+	if description is not None:
+		vals["description"] = (description or "").strip()[:500] or None
+	if vals:
+		frappe.db.set_value("Duty Book", book, vals, update_modified=False)
+		frappe.db.commit()
+	return {"ok": 1}
