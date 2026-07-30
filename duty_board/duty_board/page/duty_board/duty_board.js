@@ -1646,15 +1646,17 @@ class DutyBoard {
 	}
 
 	show_face(face) {
-		this.face = face;
-		this.body.toggle(face === "board");
-		this.$projects.toggle(face === "projects");
-		this.$sales.toggle(face === "sales");
-		if (this.face === "clients" && face !== "clients") {
+		const prev_face = this.face;
+		if (face === "clients" && prev_face !== "clients") {
+			this._cr_open = {};
 			Object.keys(localStorage)
 				.filter((k) => k.indexOf("duty_cr_fold_") === 0)
 				.forEach((k) => localStorage.removeItem(k));
 		}
+		this.face = face;
+		this.body.toggle(face === "board");
+		this.$projects.toggle(face === "projects");
+		this.$sales.toggle(face === "sales");
 		this.$clients.toggle(face === "clients");
 		this.$me.toggle(face === "me");
 		this.$books.toggle(face === "books");
@@ -3536,16 +3538,15 @@ class DutyBoard {
 		$(".duty-tab-clients").text(cr_attn2).toggle(cr_attn2 > 0);
 		let prev_cust = null;
 		this._rooms.forEach((r) => {
-			const folded = localStorage.getItem("duty_cr_fold_" + r.customer) !== "0";
+			const folded = !(this._cr_open || {})[r.customer];
 			if (r.customer !== prev_cust) {
 				prev_cust = r.customer;
 				$(`<div class="duty-cr-cust"><span class="duty-cr-caret">${folded ? "▸" : "▾"}</span> ${frappe.utils.escape_html(r.customer)}${folded && cust_unread[r.customer] ? ` <span class="duty-cr-unread" title="${__("new client message(s)")}">${cust_unread[r.customer]}</span>` : ""}${folded && cust_unread_sys[r.customer] ? ` <span class="duty-cr-unread duty-cr-unread-sys" title="${__("system & colleague message(s)")}">${cust_unread_sys[r.customer]}</span>` : ""}${folded && cust_joins[r.customer] ? ` <span class="duty-cr-joinpill">🙋 ${cust_joins[r.customer]}</span>` : ""}</div>`)
 					.appendTo($list)
 					.on("click", () => {
-						localStorage.setItem(
-							"duty_cr_fold_" + r.customer,
-							folded ? "0" : "1"
-						);
+						this._cr_open = this._cr_open || {};
+						if (folded) this._cr_open[r.customer] = 1;
+						else delete this._cr_open[r.customer];
 						this.render_room_list();
 					});
 			}
