@@ -202,16 +202,18 @@ class DutyBoard {
 				<div class="duty-attach-bar" style="display:none"></div>
 				<div class="duty-chat-typing" style="display:none"></div>
 				<div class="duty-tc-emojis" style="display:none"></div>
-				<div class="duty-chat-send">
-					<label class="btn btn-default btn-sm duty-attach-btn" title="${__("Attach file, image or video (max 25 MB)")}">📎<input type="file" class="duty-file-input" hidden></label>
-					<a class="duty-tc-emojibtn" title="${__("Emoji")}">😊</a>
-					<a class="duty-tc-mic" title="${__("Hold to record a voice note")}">🎙</a>
+				<div class="duty-chat-send" style="display:block">
 					<div class="duty-chat-input-wrap">
-						<textarea rows="1" class="form-control duty-chat-input" maxlength="1000"
+						<textarea rows="2" class="form-control duty-chat-input" maxlength="1000"
 							placeholder="${__("Message the team — @ to mention, Shift+Enter for a new line...")}"></textarea>
 						<div class="duty-mention-menu" style="display:none"></div>
 					</div>
-					<button class="btn btn-primary btn-sm duty-chat-btn">${__("Send")}</button>
+					<div class="duty-chat-toolbar" style="display:flex;align-items:center;gap:8px;margin-top:6px">
+						<label class="btn btn-default btn-sm duty-attach-btn" style="margin:0" title="${__("Attach file, image or video (max 25 MB)")}">📎<input type="file" class="duty-file-input" hidden></label>
+						<a class="duty-tc-emojibtn" title="${__("Emoji")}">😊</a>
+						<a class="duty-tc-mic" title="${__("Hold to record a voice note")}">🎙</a>
+						<button class="btn btn-primary btn-sm duty-chat-btn" style="margin-left:auto">${__("Send")}</button>
+					</div>
 				</div>
 			</div>
 		`);
