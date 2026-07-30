@@ -4362,7 +4362,9 @@ class DutyBoard {
 		frappe.call({
 			method: "duty_board.library.library",
 			callback: (r) => {
-				const books = r.message || [];
+				const m0 = r.message || {};
+				const books = m0.books || [];
+				const mgr = !!m0.manager;
 				const d = new frappe.ui.Dialog({ title: __("📚 Library"), size: "large" });
 				$(d.body).html(
 					books.length
@@ -4374,14 +4376,67 @@ class DutyBoard {
 								<span style="margin-left:auto;font-size:11.5px;font-weight:700;border-radius:99px;padding:3px 10px;background:${b.pct >= 100 ? "#E4EEEA" : b.pct ? "#FBF3E4" : "#EFEDE6"};color:${b.pct >= 100 ? "#0E5A4A" : b.pct ? "#A96F1A" : "#6B7772"}">${b.pct >= 100 ? __("finished") : b.pct ? b.pct + "%" : __("not started")}</span>
 							</div>
 							${b.description ? `<div class="text-muted" style="font-size:12.5px;margin-top:3px">${frappe.utils.escape_html(b.description)}</div>` : ""}
+							${mgr ? `<a class="duty-bk-del" data-book="${b.name}" style="float:right;font-size:11px;color:#B0443C;cursor:pointer">${__("remove")}</a>` : ""}
 							<div class="text-muted" style="font-size:11.5px;margin-top:4px">${b.chapter_count} ${__("chapters")}${b.words ? ` · ~${Math.round(b.words / 200)} ${__("min read")}` : ""}${b.last_read_at ? ` · ${__("last read")} ${b.last_read_at}` : ""}</div>
 							<div style="height:4px;background:#EFEDE6;border-radius:99px;margin-top:8px"><div style="height:4px;width:${b.pct}%;background:#0E5A4A;border-radius:99px"></div></div>
 						</div>`).join("")
-						: `<div class="text-muted">${__("No books yet — Olamide is stocking the shelves.")}</div>`
+						: `<div class="text-muted">${__("No books on the shelf yet.")}</div>`
 				);
+				if (mgr) {
+					$(`<div style="margin-top:10px;padding-top:10px;border-top:1px solid #E8E5DD">
+						<input type="file" accept="application/pdf" class="duty-bk-file" style="font-size:12px">
+						<button class="btn btn-sm btn-primary duty-bk-up" style="margin-left:6px">📚 ${__("Convert & add to Library")}</button>
+						<div class="text-muted" style="font-size:11.5px;margin-top:4px">${__("Text-based PDFs convert automatically; scanned page-image PDFs are refused (they need OCR).")}</div>
+					</div>`).appendTo(d.body);
+					$(d.body).find(".duty-bk-up").on("click", () => {
+						const f = $(d.body).find(".duty-bk-file")[0].files[0];
+						if (!f) return;
+						frappe.prompt(
+							[
+								{ fieldname: "title", fieldtype: "Data", label: __("Title"), default: f.name.replace(/\.pdf$/i, ""), reqd: 1 },
+								{ fieldname: "author", fieldtype: "Data", label: __("Author") },
+								{ fieldname: "description", fieldtype: "Small Text", label: __("Why the team should read it") },
+							],
+							(v) => {
+								const fd = new FormData();
+								fd.append("file", f);
+								fd.append("is_private", "1");
+								fetch("/api/method/upload_file", {
+									method: "POST",
+									headers: { "X-Frappe-CSRF-Token": frappe.csrf_token },
+									body: fd,
+								})
+									.then((res) => res.json())
+									.then((j) => {
+										const url = j.message && j.message.file_url;
+										if (!url) throw new Error("upload failed");
+										return frappe.call({
+											method: "duty_board.library.convert_pdf",
+											args: { file_url: url, title: v.title, author: v.author || null, description: v.description || null },
+										});
+									})
+									.then(() => frappe.show_alert({ message: __("📚 Converting in the background — you'll be notified when it's on the shelf."), indicator: "blue" }))
+									.catch(() => frappe.msgprint(__("Upload failed — try again.")));
+							},
+							__("New book"), __("Convert")
+						);
+					});
+				}
 				$(d.body).find(".duty-bk").on("click", (e) => {
+					if ($(e.target).hasClass("duty-bk-del")) return;
 					d.hide();
 					this.reader_dialog($(e.currentTarget).data("book"));
+				});
+				$(d.body).find(".duty-bk-del").on("click", (e) => {
+					e.stopPropagation();
+					const bk = $(e.currentTarget).data("book");
+					frappe.confirm(__("Remove this book and everyone's reading progress in it?"), () =>
+						frappe.call({
+							method: "duty_board.library.delete_book",
+							args: { book: bk },
+							callback: () => { d.hide(); this.library_dialog(); },
+						})
+					);
 				});
 				d.show();
 			},

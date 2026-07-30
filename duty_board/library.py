@@ -60,6 +60,9 @@ def library():
 	"""All active books with the caller's progress."""
 	require_staff()
 	user = frappe.session.user
+	from duty_board.uat import _is_manager
+
+	manager = _is_manager()
 	books = frappe.get_all(
 		"Duty Book",
 		filters={"active": 1},
@@ -78,7 +81,7 @@ def library():
 		b.pct = int(done * 100 / b.chapter_count) if b.chapter_count else 0
 		b.last_read_at = str(p.last_read_at)[:16] if p and p.last_read_at else None
 		b.resume_chapter = p.chapter if p else None
-	return books
+	return {"books": books, "manager": 1 if manager else 0}
 
 
 @frappe.whitelist()
@@ -177,3 +180,200 @@ def reading_overview():
 			}
 		)
 	return out
+
+
+# ---------------- in-app PDF conversion ----------------
+
+
+def _pdf_to_chapters(content_bytes):
+	"""Extract chaptered HTML from a PDF. Prefers pdfminer.six (font-size
+	heading detection); falls back to pypdf plain text with heuristics.
+	Returns (chapters, method) or throws for scanned/imageonly PDFs."""
+	import io
+	import re
+
+	chapters = []
+	method = None
+	try:
+		from pdfminer.high_level import extract_pages
+		from pdfminer.layout import LTTextContainer, LTChar
+
+		sizes = {}
+		lines = []  # (size, text)
+		for page in extract_pages(io.BytesIO(content_bytes)):
+			for el in page:
+				if isinstance(el, LTTextContainer):
+					for line in el:
+						if not hasattr(line, "get_text"):
+							continue
+						txt = line.get_text().strip()
+						if not txt:
+							continue
+						sz = 0
+						for ch in line:
+							if isinstance(ch, LTChar):
+								sz = max(sz, round(ch.size, 1))
+						lines.append((sz, txt))
+						sizes[sz] = sizes.get(sz, 0) + len(txt)
+		if not lines:
+			raise ValueError("no text")
+		body_size = max(sizes, key=sizes.get)
+		heading_min = body_size * 1.18
+		method = "pdfminer"
+		cur = {"title": None, "paras": []}
+		buf = []
+
+		def flush_para():
+			if buf:
+				cur["paras"].append(" ".join(buf))
+				buf.clear()
+
+		def flush_ch():
+			flush_para()
+			if cur["paras"] or cur["title"]:
+				chapters.append(dict(cur))
+			cur["title"] = None
+			cur["paras"] = []
+
+		for sz, txt in lines:
+			if sz >= heading_min and len(txt) < 120:
+				flush_ch()
+				cur["title"] = txt
+			else:
+				buf.append(txt)
+				if txt.endswith((".", "?", "!", ":", "”", '"')):
+					flush_para()
+		flush_ch()
+	except Exception:
+		# ---- fallback: pypdf ----
+		from pypdf import PdfReader
+
+		reader = PdfReader(io.BytesIO(content_bytes))
+		pages = [p.extract_text() or "" for p in reader.pages]
+		total_chars = sum(len(p) for p in pages)
+		if total_chars < 40 * max(len(pages), 1):
+			frappe.throw(
+				_("This PDF looks scanned (page images, not text) — it needs OCR. Send it to Claude for conversion instead.")
+			)
+		method = "pypdf"
+		text = "\n".join(pages)
+		raw_lines = [l.strip() for l in text.split("\n")]
+		ch_re = re.compile(r"^(chapter|part|section)\s+([0-9ivxlc]+|one|two|three|four|five|six|seven|eight|nine|ten)\b[\s:.\-—]*(.*)$", re.I)
+		cur = {"title": None, "paras": []}
+		buf = []
+
+		def flush_para():
+			if buf:
+				cur["paras"].append(" ".join(buf))
+				buf.clear()
+
+		def flush_ch():
+			flush_para()
+			if cur["paras"] or cur["title"]:
+				chapters.append(dict(cur))
+			cur["title"] = None
+			cur["paras"] = []
+
+		for l in raw_lines:
+			m = ch_re.match(l)
+			if m and len(l) < 90:
+				flush_ch()
+				cur["title"] = l
+			elif not l:
+				flush_para()
+			else:
+				buf.append(l)
+		flush_ch()
+	# no structure found → paginate into parts
+	if len(chapters) <= 1:
+		paras = chapters[0]["paras"] if chapters else []
+		chapters = []
+		per = 60
+		for i in range(0, len(paras), per):
+			chapters.append({"title": _("Part {0}").format(i // per + 1), "paras": paras[i : i + per]})
+	out = []
+	for i, ch in enumerate(chapters, start=1):
+		title = (ch["title"] or _("Chapter {0}").format(i)).strip()[:140]
+		paras = [p for p in ch["paras"] if p.strip()]
+		html = f"<h2>{frappe.utils.escape_html(title)}</h2>" + "".join(
+			f"<p>{frappe.utils.escape_html(p)}</p>" for p in paras
+		)
+		out.append({"title": title, "content": html, "words": sum(len(p.split()) for p in paras)})
+	if not out:
+		frappe.throw(_("No readable text found in this PDF."))
+	return out, method
+
+
+def _convert_job(file_url, title, author, description, requested_by):
+	fname = frappe.db.get_value("File", {"file_url": file_url}, "name")
+	fdoc = frappe.get_doc("File", fname)
+	chapters, method = _pdf_to_chapters(fdoc.get_content())
+	book = frappe.get_doc(
+		{
+			"doctype": "Duty Book",
+			"title": (title or fdoc.file_name.rsplit(".", 1)[0])[:140],
+			"author": (author or "")[:140] or None,
+			"description": (description or "")[:500] or None,
+			"active": 1,
+			"chapter_count": len(chapters),
+		}
+	).insert(ignore_permissions=True)
+	for i, ch in enumerate(chapters, start=1):
+		frappe.get_doc(
+			{
+				"doctype": "Duty Book Chapter",
+				"book": book.name,
+				"idx_no": i,
+				"title": ch["title"],
+				"content": ch["content"],
+				"words": ch["words"],
+			}
+		).insert(ignore_permissions=True)
+	frappe.db.commit()
+	try:
+		from duty_board.api import _notify_user
+
+		_notify_user(
+			requested_by,
+			_("📚 Book ready"),
+			_("“{0}” — {1} chapters, on the shelf.").format(book.title, len(chapters)),
+		)
+	except Exception:
+		pass
+
+
+@frappe.whitelist()
+def convert_pdf(file_url, title=None, author=None, description=None):
+	"""Managers: turn an uploaded PDF into a Library book (background job)."""
+	require_staff()
+	from duty_board.uat import _is_manager
+
+	if not _is_manager():
+		frappe.throw(_("Only managers stock the Library."), frappe.PermissionError)
+	frappe.enqueue(
+		"duty_board.library._convert_job",
+		queue="long",
+		timeout=1200,
+		file_url=file_url,
+		title=title,
+		author=author,
+		description=description,
+		requested_by=frappe.session.user,
+	)
+	return {"queued": 1}
+
+
+@frappe.whitelist()
+def delete_book(book):
+	require_staff()
+	from duty_board.uat import _is_manager
+
+	if not _is_manager():
+		frappe.throw(_("Only managers manage the Library."), frappe.PermissionError)
+	for c in frappe.get_all("Duty Book Chapter", filters={"book": book}, pluck="name"):
+		frappe.delete_doc("Duty Book Chapter", c, ignore_permissions=True, force=True)
+	for p in frappe.get_all("Duty Book Progress", filters={"book": book}, pluck="name"):
+		frappe.delete_doc("Duty Book Progress", p, ignore_permissions=True, force=True)
+	frappe.delete_doc("Duty Book", book, ignore_permissions=True, force=True)
+	frappe.db.commit()
+	return {"ok": 1}
