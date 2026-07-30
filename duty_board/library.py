@@ -619,23 +619,32 @@ def apply_book_meta(book, title=None, author=None, description=None, category=No
 
 @frappe.whitelist()
 def search_books(query):
-	"""Top matches from Google Books: title, authors, description,
-	categories, year, publisher, pages, thumbnail."""
+	"""Book metadata search: Google Books first, Open Library fallback
+	(Google's keyless API is often blocked/empty from datacenter IPs)."""
 	require_staff()
-	import requests
-
 	q = (query or "").strip()
 	if not q:
 		return []
+	hits = _google_books(q)
+	if not hits:
+		hits = _open_library(q)
+	return hits
+
+
+def _google_books(q):
+	import requests
+
 	try:
 		r = requests.get(
 			"https://www.googleapis.com/books/v1/volumes",
 			params={"q": q, "maxResults": 6, "printType": "books"},
 			timeout=8,
 		)
+		if r.status_code != 200:
+			return []
 		items = (r.json() or {}).get("items") or []
 	except Exception:
-		frappe.throw(_("Book search is unreachable right now — fill the details by hand."))
+		return []
 	out = []
 	for it in items:
 		v = it.get("volumeInfo") or {}
@@ -651,6 +660,50 @@ def search_books(query):
 				"publisher": v.get("publisher") or "",
 				"pages": v.get("pageCount") or 0,
 				"thumbnail": img.replace("http://", "https://"),
+			}
+		)
+	return out
+
+
+def _open_library(q):
+	import requests
+
+	try:
+		r = requests.get(
+			"https://openlibrary.org/search.json",
+			params={
+				"q": q,
+				"limit": 6,
+				"fields": "key,title,subtitle,author_name,first_publish_year,publisher,number_of_pages_median,cover_i,subject",
+			},
+			timeout=8,
+		)
+		if r.status_code != 200:
+			return []
+		docs = (r.json() or {}).get("docs") or []
+	except Exception:
+		return []
+	out = []
+	for i, d in enumerate(docs):
+		desc = ""
+		if i < 3 and d.get("key"):
+			try:
+				w = requests.get(f"https://openlibrary.org{d['key']}.json", timeout=5).json()
+				dd = w.get("description")
+				desc = (dd.get("value") if isinstance(dd, dict) else dd or "")[:800]
+			except Exception:
+				pass
+		out.append(
+			{
+				"title": d.get("title") or "",
+				"subtitle": d.get("subtitle") or "",
+				"authors": ", ".join(d.get("author_name") or []),
+				"description": desc,
+				"categories": ", ".join((d.get("subject") or [])[:3]),
+				"year": str(d.get("first_publish_year") or ""),
+				"publisher": ", ".join((d.get("publisher") or [])[:1]),
+				"pages": d.get("number_of_pages_median") or 0,
+				"thumbnail": f"https://covers.openlibrary.org/b/id/{d['cover_i']}-M.jpg" if d.get("cover_i") else "",
 			}
 		)
 	return out
