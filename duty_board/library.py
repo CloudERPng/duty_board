@@ -66,7 +66,7 @@ def library():
 	books = frappe.get_all(
 		"Duty Book",
 		filters={"active": 1},
-		fields=["name", "title", "author", "description", "category", "chapter_count"],
+		fields=["name", "title", "author", "description", "category", "cover", "chapter_count"],
 		order_by="creation desc",
 	)
 	all_reviews = frappe.get_all(
@@ -312,7 +312,7 @@ def _pdf_to_chapters(content_bytes):
 	return out, method
 
 
-def _convert_job(file_url, title, author, description, requested_by, category=None):
+def _convert_job(file_url, title, author, description, requested_by, category=None, cover_url=None):
 	fname = frappe.db.get_value("File", {"file_url": file_url}, "name")
 	fdoc = frappe.get_doc("File", fname)
 	if (fdoc.file_name or "").lower().endswith(".epub"):
@@ -344,6 +344,8 @@ def _convert_job(file_url, title, author, description, requested_by, category=No
 			}
 		).insert(ignore_permissions=True)
 	frappe.db.commit()
+	_save_cover(book.name, cover_url)
+	frappe.db.commit()
 	try:
 		from duty_board.api import _notify_user
 
@@ -357,7 +359,7 @@ def _convert_job(file_url, title, author, description, requested_by, category=No
 
 
 @frappe.whitelist()
-def convert_pdf(file_url, title=None, author=None, description=None, category=None):
+def convert_pdf(file_url, title=None, author=None, description=None, category=None, cover_url=None):
 	"""Managers: turn an uploaded PDF into a Library book (background job)."""
 	require_staff()
 	from duty_board.uat import _is_manager
@@ -373,6 +375,7 @@ def convert_pdf(file_url, title=None, author=None, description=None, category=No
 		author=author,
 		description=description,
 		category=category,
+		cover_url=cover_url,
 		requested_by=frappe.session.user,
 	)
 	return {"queued": 1}
@@ -595,3 +598,83 @@ def update_book(book, title=None, author=None, category=None, description=None):
 		frappe.db.set_value("Duty Book", book, vals, update_modified=False)
 		frappe.db.commit()
 	return {"ok": 1}
+
+
+@frappe.whitelist()
+def apply_book_meta(book, title=None, author=None, description=None, category=None, cover_url=None):
+	"""Enrich an existing shelved book from a picked search match."""
+	require_staff()
+	from duty_board.uat import _is_manager
+
+	if not _is_manager():
+		frappe.throw(_("Only managers manage the Library."), frappe.PermissionError)
+	update_book(book, title=title, author=author, category=category, description=description)
+	_save_cover(book, cover_url)
+	frappe.db.commit()
+	return {"ok": 1}
+
+
+# ---------------- external metadata (Google Books) ----------------
+
+
+@frappe.whitelist()
+def search_books(query):
+	"""Top matches from Google Books: title, authors, description,
+	categories, year, publisher, pages, thumbnail."""
+	require_staff()
+	import requests
+
+	q = (query or "").strip()
+	if not q:
+		return []
+	try:
+		r = requests.get(
+			"https://www.googleapis.com/books/v1/volumes",
+			params={"q": q, "maxResults": 6, "printType": "books"},
+			timeout=8,
+		)
+		items = (r.json() or {}).get("items") or []
+	except Exception:
+		frappe.throw(_("Book search is unreachable right now — fill the details by hand."))
+	out = []
+	for it in items:
+		v = it.get("volumeInfo") or {}
+		img = (v.get("imageLinks") or {}).get("thumbnail") or ""
+		out.append(
+			{
+				"title": v.get("title") or "",
+				"subtitle": v.get("subtitle") or "",
+				"authors": ", ".join(v.get("authors") or []),
+				"description": (v.get("description") or "")[:800],
+				"categories": ", ".join(v.get("categories") or []),
+				"year": (v.get("publishedDate") or "")[:4],
+				"publisher": v.get("publisher") or "",
+				"pages": v.get("pageCount") or 0,
+				"thumbnail": img.replace("http://", "https://"),
+			}
+		)
+	return out
+
+
+def _save_cover(book_name, cover_url):
+	if not cover_url or not cover_url.startswith("https://"):
+		return
+	import requests
+
+	try:
+		r = requests.get(cover_url, timeout=10)
+		if r.status_code != 200 or len(r.content) > 2 * 1024 * 1024:
+			return
+		f = frappe.get_doc(
+			{
+				"doctype": "File",
+				"file_name": f"cover-{book_name}.jpg",
+				"is_private": 0,
+				"content": r.content,
+				"attached_to_doctype": "Duty Book",
+				"attached_to_name": book_name,
+			}
+		).insert(ignore_permissions=True)
+		frappe.db.set_value("Duty Book", book_name, "cover", f.file_url, update_modified=False)
+	except Exception:
+		pass

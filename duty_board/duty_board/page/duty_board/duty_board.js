@@ -4361,6 +4361,34 @@ class DutyBoard {
 		});
 	}
 
+	book_matcher(query, cb) {
+		frappe.call({
+			method: "duty_board.library.search_books",
+			args: { query: query },
+			callback: (r) => {
+				const hits = r.message || [];
+				if (!hits.length) { cb(null); return; }
+				const d = new frappe.ui.Dialog({ title: __("🔎 Is it one of these?"), size: "large" });
+				$(d.body).html(
+					hits.map((h, i) => `
+					<div class="duty-bkm" data-i="${i}" style="display:flex;gap:12px;border:1px solid #E8E5DD;border-radius:10px;padding:10px 12px;margin-bottom:8px;cursor:pointer">
+						${h.thumbnail ? `<img src="${h.thumbnail}" style="width:52px;height:78px;object-fit:cover;border-radius:6px;flex:none">` : `<div style="width:52px;height:78px;background:#EFEDE6;border-radius:6px;flex:none"></div>`}
+						<div style="min-width:0">
+							<b style="font-size:13.5px">${frappe.utils.escape_html(h.title)}${h.subtitle ? `: ${frappe.utils.escape_html(h.subtitle)}` : ""}</b>
+							<div class="text-muted" style="font-size:12px">${frappe.utils.escape_html(h.authors)}${h.year ? ` · ${h.year}` : ""}${h.publisher ? ` · ${frappe.utils.escape_html(h.publisher)}` : ""}${h.pages ? ` · ${h.pages}p` : ""}</div>
+							${h.description ? `<div class="text-muted" style="font-size:11.5px;margin-top:3px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden">${frappe.utils.escape_html(h.description)}</div>` : ""}
+						</div>
+					</div>`).join("") +
+					`<a class="duty-bkm-none" style="cursor:pointer;font-size:12.5px;color:#6B7772">${__("None of these — fill details by hand")}</a>`
+				);
+				$(d.body).find(".duty-bkm").on("click", (e) => { d.hide(); cb(hits[$(e.currentTarget).data("i")]); });
+				$(d.body).find(".duty-bkm-none").on("click", () => { d.hide(); cb(null); });
+				d.show();
+			},
+			error: () => cb(null),
+		});
+	}
+
 	refresh_library() {
 		frappe.call({
 			method: "duty_board.library.library",
@@ -4384,7 +4412,9 @@ class DutyBoard {
 					$L.append(`<div style="font-size:11px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:#6B7772;margin:16px 0 8px">${frappe.utils.escape_html(cat)} <span style="color:#b3b8b5">${groups[cat].length}</span></div>`);
 					const $row = $(`<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(290px,1fr));gap:12px"></div>`).appendTo($L);
 					groups[cat].forEach((b) => {
-						$(`<div class="duty-bk" data-book="${b.name}" style="border:1px solid #E8E5DD;border-radius:12px;padding:12px 14px;cursor:pointer;background:#fff">
+						$(`<div class="duty-bk" data-book="${b.name}" style="border:1px solid #E8E5DD;border-radius:12px;padding:12px 14px;cursor:pointer;background:#fff;display:flex;gap:12px">
+							${b.cover ? `<img src="${b.cover}" style="width:56px;height:84px;object-fit:cover;border-radius:6px;flex:none;align-self:flex-start">` : ""}
+							<div style="min-width:0;flex:1">
 							<div style="display:flex;gap:8px;align-items:baseline">
 								<b style="font-size:14px;flex:1">${frappe.utils.escape_html(b.title)}</b>
 								<span style="font-size:11.5px;font-weight:700;border-radius:99px;padding:2px 9px;background:${b.pct >= 100 ? "#E4EEEA" : b.pct ? "#FBF3E4" : "#EFEDE6"};color:${b.pct >= 100 ? "#0E5A4A" : b.pct ? "#A96F1A" : "#6B7772"}">${b.pct >= 100 ? __("finished") : b.pct ? b.pct + "%" : __("new")}</span>
@@ -4393,13 +4423,27 @@ class DutyBoard {
 							<div style="font-size:12px;margin-top:4px;color:#A96F1A">${b.rating_n ? `${STARS(b.rating_avg)} <span class="text-muted">${b.rating_avg} · ${b.rating_n}</span>` : `<span class="text-muted">${__("no ratings yet")}</span>`}</div>
 							${b.description ? `<div class="text-muted" style="font-size:12px;margin-top:4px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden">${frappe.utils.escape_html(b.description)}</div>` : ""}
 							<div class="text-muted" style="font-size:11px;margin-top:6px">${b.chapter_count} ${__("chapters")}${b.words ? ` · ~${Math.round(b.words / 200)} ${__("min")}` : ""}${b.last_read_at ? ` · ${__("read")} ${b.last_read_at.slice(0, 10)}` : ""}
-								${mgr ? `<a class="duty-bk-edit" data-book="${b.name}" style="float:right;color:#6B7772;margin-left:8px">${__("edit")}</a><a class="duty-bk-del" data-book="${b.name}" style="float:right;color:#B0443C">${__("remove")}</a>` : ""}</div>
+								${mgr ? `<a class="duty-bk-fetch" data-book="${b.name}" style="float:right;color:#0E5A4A;margin-left:8px">🔎 ${__("fetch")}</a><a class="duty-bk-edit" data-book="${b.name}" style="float:right;color:#6B7772;margin-left:8px">${__("edit")}</a><a class="duty-bk-del" data-book="${b.name}" style="float:right;color:#B0443C">${__("remove")}</a>` : ""}</div>
 							<div style="height:4px;background:#EFEDE6;border-radius:99px;margin-top:8px"><div style="height:4px;width:${b.pct}%;background:#0E5A4A;border-radius:99px"></div></div>
+							</div>
 						</div>`).appendTo($row);
 					});
 				});
+				$L.find(".duty-bk-fetch").on("click", (e) => {
+					e.stopPropagation();
+					const bk = $(e.currentTarget).data("book");
+					const b = books.find((x) => x.name === bk) || {};
+					this.book_matcher(b.title + " " + (b.author || ""), (meta) => {
+						if (!meta) return;
+						frappe.call({
+							method: "duty_board.library.apply_book_meta",
+							args: { book: bk, title: meta.title, author: meta.authors || "", description: meta.description || "", category: b.category || meta.categories || "", cover_url: meta.thumbnail || null },
+							callback: () => this.refresh_library(),
+						});
+					});
+				});
 				$L.find(".duty-bk").on("click", (e) => {
-					if ($(e.target).is(".duty-bk-del,.duty-bk-edit")) return;
+					if ($(e.target).is(".duty-bk-del,.duty-bk-edit,.duty-bk-fetch")) return;
 					this.open_reader($(e.currentTarget).data("book"));
 				});
 				$L.find(".duty-bk-del").on("click", (e) => {
@@ -4428,14 +4472,17 @@ class DutyBoard {
 					$L.find(".duty-bk-up").on("click", () => {
 						const f = $L.find(".duty-bk-file")[0].files[0];
 						if (!f) return;
+						const guess = f.name.replace(/\.(pdf|epub)$/i, "").replace(/[_\-]+/g, " ").replace(/\(z-lib[^)]*\)|z-?library|1lib\.\w+/gi, "").trim();
+						this.book_matcher(guess, (meta) =>
 						frappe.prompt(
 							[
-								{ fieldname: "title", fieldtype: "Data", label: __("Title"), default: f.name.replace(/\.(pdf|epub)$/i, ""), reqd: 1 },
-								{ fieldname: "author", fieldtype: "Data", label: __("Author") },
-								{ fieldname: "category", fieldtype: "Data", label: __("Category (shelf section, e.g. Leadership, ERP, Sales)") },
-								{ fieldname: "description", fieldtype: "Small Text", label: __("Why the team should read it") },
+								{ fieldname: "title", fieldtype: "Data", label: __("Title"), default: (meta && meta.title) || guess, reqd: 1 },
+								{ fieldname: "author", fieldtype: "Data", label: __("Author"), default: (meta && meta.authors) || "" },
+								{ fieldname: "category", fieldtype: "Data", label: __("Category (shelf section, e.g. Leadership, ERP, Sales)"), default: (meta && meta.categories) || "" },
+								{ fieldname: "description", fieldtype: "Small Text", label: __("Why the team should read it"), default: (meta && meta.description) || "" },
 							],
 							(v) => {
+								v.cover_url = (meta && meta.thumbnail) || null;
 								const fd = new FormData();
 								fd.append("file", f);
 								fd.append("is_private", "1");
@@ -4444,13 +4491,13 @@ class DutyBoard {
 									.then((j) => {
 										const url = j.message && j.message.file_url;
 										if (!url) throw new Error("upload failed");
-										return frappe.call({ method: "duty_board.library.convert_pdf", args: { file_url: url, title: v.title, author: v.author || null, category: v.category || null, description: v.description || null } });
+										return frappe.call({ method: "duty_board.library.convert_pdf", args: { file_url: url, title: v.title, author: v.author || null, category: v.category || null, description: v.description || null, cover_url: v.cover_url } });
 									})
 									.then(() => frappe.show_alert({ message: __("📚 Converting in the background — you'll be notified when it's on the shelf."), indicator: "blue" }))
 									.catch(() => frappe.msgprint(__("Upload failed — try again.")));
 							},
 							__("New book"), __("Convert")
-						);
+						));
 					});
 				}
 			},
