@@ -818,9 +818,17 @@ class DutyBoard {
 		frappe.call({ method: "duty_board.api.send_message", args: args });
 	}
 
+	linkify(escaped) {
+		return (escaped || "").replace(/(https?:\/\/[^\s<]+)/g, (u) => {
+			const trail = (u.match(/[).,;!?]+$/) || [""])[0];
+			const core = trail ? u.slice(0, -trail.length) : u;
+			return `<a href="${core}" target="_blank" rel="noopener noreferrer">${core}</a>${trail}`;
+		});
+	}
+
 	format_message_text(m) {
-		let html = frappe.utils.escape_html(m.message || "");
-		return html.replace(/@([\w-]+)/g, '<span class="duty-mention">@$1</span>');
+		let html = this.linkify(frappe.utils.escape_html(m.message || ""));
+		return html.replace(/@([\w-]+)(?![^<]*<\/a>)/g, '<span class="duty-mention">@$1</span>');
 	}
 
 	append_message(m, is_new, in_search, $insert_after) {
@@ -1504,7 +1512,7 @@ class DutyBoard {
 		return `
 			<div class="duty-msg ${mine ? "duty-msg-mine" : ""}" data-name="${m.name}">
 				<span class="duty-msg-who" style="color:${this.user_color(m.sender)}">${mine ? __("You") : frappe.utils.escape_html((m.sender_name || m.sender).split(" ")[0])}</span>
-				<span class="duty-msg-text">${frappe.utils.escape_html(m.message || "")}</span>
+				<span class="duty-msg-text">${this.linkify(frappe.utils.escape_html(m.message || ""))}</span>
 				<span class="duty-msg-time">${when}</span>
 			</div>`;
 	}
@@ -3778,7 +3786,7 @@ class DutyBoard {
 				<a class="duty-cr-reply" title="${__("Reply")}">↩</a>
 				<span class="duty-msg-who" style="color:${this.user_color(m.owner)}">${m.internal ? "🔒 " : ""}${frappe.utils.escape_html((m.who || m.owner).split(" ")[0])}${m.is_staff ? "" : ` · ${__("client")}`}</span>
 				${m.ref ? `<a class="duty-cr-quote" data-target="${m.ref}"><b>${frappe.utils.escape_html(m.ref_who || "")}</b>: ${frappe.utils.escape_html(m.ref_text || "")}</a>` : ""}
-				<span class="duty-msg-text">${frappe.utils.escape_html(m.message)}</span>
+				<span class="duty-msg-text">${this.linkify(frappe.utils.escape_html(m.message))}</span>
 				${m.attachment_url ? `<span class="duty-cr-att">${m.is_image ? `<a href="/api/method/duty_board.client_room.room_file?msg=${m.name}" target="_blank"><img src="/api/method/duty_board.client_room.room_file?msg=${m.name}"></a>` : m.is_audio ? `<audio controls preload="none" src="/api/method/duty_board.client_room.room_file?msg=${m.name}" style="display:block;margin-top:6px;max-width:240px"></audio>` : `<a class="duty-issue-filelink" href="/api/method/duty_board.client_room.room_file?msg=${m.name}" target="_blank">📎 ${frappe.utils.escape_html(m.attachment_name || "file")}</a>`}</span>` : ""}
 				<span class="duty-msg-time">${frappe.datetime.str_to_user(m.creation)}</span>
 				${m.is_staff ? "" : `<a class="duty-cr-mktask" data-mid="${m.name}" data-text="${frappe.utils.escape_html(m.message.slice(0, 120))}" title="${__("Make task from this")}">➕</a><a class="duty-cr-mkchreq" data-mid="${m.name}" data-text="${frappe.utils.escape_html(m.message.slice(0, 120))}" title="${__("Draft change request from this")}">💱</a>`}

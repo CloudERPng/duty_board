@@ -634,7 +634,7 @@ body[data-tab="home"] .foot{display:block!important;grid-area:foot}
 </div>
 <script>
 const esc = (s) => (s || "").replace(/[&<>"']/g, (c) => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
-const XLV = "3.15.3";
+const XLV = "3.15.4";
 document.getElementById("xlv").textContent = "v" + XLV;
 console.log("Xlevel portal", XLV);
 let ROOM = localStorage.getItem("xl_room") || null;
@@ -740,6 +740,13 @@ function frappe_csrf() {
 }
 const PILL = { "Queued": "p-q", "In Progress": "p-i", "Done": "p-d" };
 let LAST = {};
+function linkify(escaped) {
+	return (escaped || "").replace(/(https?:\/\/[^\s<]+)/g, (u) => {
+		const trail = (u.match(/[).,;!?]+$/) || [""])[0];
+		const core = trail ? u.slice(0, -trail.length) : u;
+		return `<a href="${core}" target="_blank" rel="noopener noreferrer" style="color:#0E5A4A;text-decoration:underline">${core}</a>${trail}`;
+	});
+}
 function smartTime(s) {
 	if (!s) return "";
 	const d = new Date(s.replace(" ", "T"));
@@ -821,7 +828,7 @@ function render(d) {
 					window.SESSION_PREV && m.creation > window.SESSION_PREV && !window.DIVIDED
 						? ((window.DIVIDED = true), '<div class="newdiv">— new since your last visit —</div>')
 						: "";
-				return `${divider}<div class="m ${m.mine ? "me" : m.is_staff ? "staff" : "peer"}" data-name="${esc(m.name)}"><a class="rep" onclick='setReply(${JSON.stringify({ name: m.name, who: m.who, text: (m.message || "📎").slice(0, 80) }).replace(/'/g, "&#39;")})'>↩ reply</a><span class="w">${esc(m.who)}</span>${qt}${esc(m.message)}${att}<span class="tm">${esc(smartTime(m.creation))}</span></div>`;
+				return `${divider}<div class="m ${m.mine ? "me" : m.is_staff ? "staff" : "peer"}" data-name="${esc(m.name)}"><a class="rep" onclick='setReply(${JSON.stringify({ name: m.name, who: m.who, text: (m.message || "📎").slice(0, 80) }).replace(/'/g, "&#39;")})'>↩ reply</a><span class="w">${esc(m.who)}</span>${qt}${linkify(esc(m.message))}${att}<span class="tm">${esc(smartTime(m.creation))}</span></div>`;
 			}).join("")
 		: '<span class="muted">Say hello — the team is listening.</span>';
 	if (stick) box.scrollTop = box.scrollHeight;
