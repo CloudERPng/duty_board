@@ -46,6 +46,7 @@ frappe.pages["duty-board"].on_page_load = function (wrapper) {
 			const q = r.message || {};
 			board.is_pricer = !!q.pricer;
 			page.add_inner_button(__("🎓 Team training"), () => board.team_training_dialog(), __("⇄ View"));
+			page.add_inner_button(__("📚 Library"), () => board.library_dialog(), __("⇄ View"));
 			if (q.pricer) {
 				page.add_inner_button(__("💼 CR pricing ({0})", [(q.queue || []).length]), () => board.pricing_dialog(), __("⇄ View"));
 			}
@@ -4353,6 +4354,132 @@ class DutyBoard {
 					<p class="text-muted" style="font-size:11px">${__("Hours from work sessions with a customer; fee shown where known (accounting fee today). Red rows: attention cost exceeds known fee — a renewal-conversation list, not an invoice list.")}</p>
 				`);
 				d.show();
+			},
+		});
+	}
+
+	library_dialog() {
+		frappe.call({
+			method: "duty_board.library.library",
+			callback: (r) => {
+				const books = r.message || [];
+				const d = new frappe.ui.Dialog({ title: __("📚 Library"), size: "large" });
+				$(d.body).html(
+					books.length
+						? books.map((b) => `
+						<div class="duty-bk" data-book="${b.name}" style="border:1px solid #E8E5DD;border-radius:12px;padding:12px 14px;margin-bottom:10px;cursor:pointer">
+							<div style="display:flex;gap:10px;align-items:baseline;flex-wrap:wrap">
+								<b style="font-size:14.5px">${frappe.utils.escape_html(b.title)}</b>
+								${b.author ? `<span class="text-muted" style="font-size:12px">${frappe.utils.escape_html(b.author)}</span>` : ""}
+								<span style="margin-left:auto;font-size:11.5px;font-weight:700;border-radius:99px;padding:3px 10px;background:${b.pct >= 100 ? "#E4EEEA" : b.pct ? "#FBF3E4" : "#EFEDE6"};color:${b.pct >= 100 ? "#0E5A4A" : b.pct ? "#A96F1A" : "#6B7772"}">${b.pct >= 100 ? __("finished") : b.pct ? b.pct + "%" : __("not started")}</span>
+							</div>
+							${b.description ? `<div class="text-muted" style="font-size:12.5px;margin-top:3px">${frappe.utils.escape_html(b.description)}</div>` : ""}
+							<div class="text-muted" style="font-size:11.5px;margin-top:4px">${b.chapter_count} ${__("chapters")}${b.words ? ` · ~${Math.round(b.words / 200)} ${__("min read")}` : ""}${b.last_read_at ? ` · ${__("last read")} ${b.last_read_at}` : ""}</div>
+							<div style="height:4px;background:#EFEDE6;border-radius:99px;margin-top:8px"><div style="height:4px;width:${b.pct}%;background:#0E5A4A;border-radius:99px"></div></div>
+						</div>`).join("")
+						: `<div class="text-muted">${__("No books yet — Olamide is stocking the shelves.")}</div>`
+				);
+				$(d.body).find(".duty-bk").on("click", (e) => {
+					d.hide();
+					this.reader_dialog($(e.currentTarget).data("book"));
+				});
+				d.show();
+			},
+		});
+	}
+
+	reader_dialog(book) {
+		frappe.call({
+			method: "duty_board.library.open_book",
+			args: { book: book },
+			callback: (r) => {
+				const m = r.message;
+				if (!m) return;
+				const d = new frappe.ui.Dialog({ title: `📖 ${m.title}`, size: "extra-large" });
+				d.$wrapper.find(".modal-dialog").css("max-width", "1100px");
+				let cur = m.current;
+				let opened_at = Date.now();
+				const doneSet = new Set(m.done || []);
+				$(d.body).html(`
+					<div style="display:flex;gap:16px;min-height:60vh">
+						<div class="duty-rd-toc" style="width:230px;flex:none;overflow-y:auto;max-height:70vh;border-right:1px solid #E8E5DD;padding-right:8px"></div>
+						<div style="flex:1;min-width:0;display:flex;flex-direction:column">
+							<div class="duty-rd-body" style="flex:1;overflow-y:auto;max-height:70vh;padding:4px 14px 40px 2px;font-size:15px;line-height:1.75;color:#182420"></div>
+							<div style="display:flex;gap:8px;padding-top:10px;border-top:1px solid #E8E5DD">
+								<button class="btn btn-sm btn-default duty-rd-prev">‹ ${__("Previous")}</button>
+								<span class="duty-rd-pos text-muted" style="font-size:12px;align-self:center"></span>
+								<button class="btn btn-sm btn-primary duty-rd-next" style="margin-left:auto">${__("Finish chapter & continue")} ›</button>
+							</div>
+						</div>
+					</div>`);
+				const $toc = $(d.body).find(".duty-rd-toc");
+				const $bd = $(d.body).find(".duty-rd-body");
+				const chIdx = (name) => m.chapters.findIndex((c) => c.name === name);
+				const renderToc = () => {
+					$toc.empty();
+					m.chapters.forEach((c) => {
+						$(`<a style="display:block;padding:6px 8px;border-radius:8px;margin:1px 0;cursor:pointer;font-size:12.5px;${c.name === cur ? "background:#eef2f0;font-weight:700" : ""};color:#182420;text-decoration:none">${doneSet.has(c.name) ? "✅ " : ""}${c.idx_no}. ${frappe.utils.escape_html(c.title)}</a>`)
+							.appendTo($toc)
+							.on("click", () => go(c.name, 0));
+					});
+				};
+				const save = (donech) => {
+					const el = $bd[0];
+					const pct = el.scrollHeight > el.clientHeight ? Math.round((el.scrollTop / (el.scrollHeight - el.clientHeight)) * 100) : 100;
+					const mins = Math.round((Date.now() - opened_at) / 60000);
+					opened_at = Date.now();
+					frappe.call({
+						method: "duty_board.library.mark",
+						args: { book: book, chapter: cur, scroll_pct: pct, minutes: mins, done: donech || null },
+						callback: () => {},
+					});
+				};
+				let scrollT = null;
+				$bd.on("scroll", () => {
+					clearTimeout(scrollT);
+					scrollT = setTimeout(() => save(null), 1200);
+					const el = $bd[0];
+					const pct = el.scrollHeight > el.clientHeight ? Math.round((el.scrollTop / (el.scrollHeight - el.clientHeight)) * 100) : 100;
+					$(d.body).find(".duty-rd-pos").text(`${m.chapters[chIdx(cur)] ? m.chapters[chIdx(cur)].title : ""} · ${pct}%`);
+				});
+				const go = (name, scrollPct) => {
+					frappe.call({
+						method: "duty_board.library.chapter",
+						args: { name: name },
+						callback: (rr) => {
+							cur = name;
+							$bd.html(rr.message.content || `<p class="text-muted">${__("Empty chapter.")}</p>`);
+							renderToc();
+							requestAnimationFrame(() => {
+								const el = $bd[0];
+								el.scrollTop = scrollPct ? ((el.scrollHeight - el.clientHeight) * scrollPct) / 100 : 0;
+							});
+							save(null);
+						},
+					});
+				};
+				$(d.body).find(".duty-rd-prev").on("click", () => {
+					const i = chIdx(cur);
+					if (i > 0) go(m.chapters[i - 1].name, 0);
+				});
+				$(d.body).find(".duty-rd-next").on("click", () => {
+					doneSet.add(cur);
+					save(cur);
+					const i = chIdx(cur);
+					if (i < m.chapters.length - 1) go(m.chapters[i + 1].name, 0);
+					else {
+						renderToc();
+						frappe.show_alert({ message: __("📚 Book finished — well read!"), indicator: "green" });
+					}
+				});
+				d.on_hide = () => save(null);
+				d.show();
+				$bd.html(m.content || "");
+				renderToc();
+				requestAnimationFrame(() => {
+					const el = $bd[0];
+					el.scrollTop = m.scroll_pct ? ((el.scrollHeight - el.clientHeight) * m.scroll_pct) / 100 : 0;
+				});
 			},
 		});
 	}
