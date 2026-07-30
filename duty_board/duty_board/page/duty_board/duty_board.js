@@ -3123,8 +3123,7 @@ class DutyBoard {
 			const target = cur.target_date
 				? ` <span class="duty-proj-target ${cur.days_left != null && cur.days_left < 0 ? "duty-lead-over" : ""}">🎯 ${frappe.datetime.str_to_user(cur.target_date)}${cur.days_left != null ? ` (${cur.days_left}d)` : ""}</span>`
 				: "";
-			$t.html(`<b style="color:${this.proj_color(cur.name)}">${frappe.utils.escape_html(cur.project_name)}</b>${cur.customer ? ` <span class="text-muted">· ${frappe.utils.escape_html(cur.customer)}</span>` : ""}${target} <a class="duty-pj-archive text-muted" style="float:right;font-size:12px;cursor:pointer">${__("Archive project")}</a>`);
-			$t.find(".duty-pj-archive").on("click", () => this.archive_project(cur.name));
+			$t.html(target ? `<span class="text-muted" style="font-size:12.5px">${target}</span>` : "");
 		} else $t.empty();
 	}
 
