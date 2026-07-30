@@ -398,11 +398,20 @@ def _sanitize_html(raw, images):
 
 	class S(HTMLParser):
 		def handle_starttag(self, tag, attrs):
+			a = dict(attrs)
+			if tag == "image":  # svg-wrapped figure: <svg><image xlink:href=…>
+				href = a.get("xlink:href") or a.get("href") or ""
+				srcd = images.get(href.split("/")[-1])
+				if srcd:
+					out.append(f'<img src="{srcd}" style="max-width:100%">')
+				return
 			if tag not in _OK_TAGS:
 				return
-			a = dict(attrs)
 			if tag == "img":
-				srcd = images.get((a.get("src") or "").split("/")[-1])
+				src_att = a.get("src") or ""
+				srcd = images.get(src_att.split("/")[-1])
+				if not srcd and src_att.startswith("https://"):
+					srcd = frappe.utils.escape_html(src_att)
 				if srcd:
 					out.append(f'<img src="{srcd}" style="max-width:100%">')
 				return
