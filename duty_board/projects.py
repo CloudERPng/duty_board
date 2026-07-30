@@ -168,16 +168,9 @@ def create_task(project, title, column="To Do", assignee=None, due_date=None, ur
 	return get_project_board(project)
 
 
-@frappe.whitelist()
-def update_task(name, title=None, assignee=None, due_date=None, urgency=None, column=None, description=None, client_visible=None, awaiting_client=None):
-	require_staff()
-	doc = frappe.get_doc("Duty Project Task", name)
-	old_assignee = doc.assignee
-	was_awaiting = cint(doc.awaiting_client)
-	if awaiting_client is not None:
-		doc.awaiting_client = cint(awaiting_client)
-	if title and title.strip():
-		doc.title = title.strip()
+def _apply_due(doc, due_date):
+	"""Set a card's due date, clamping later subtasks (rule 1) and syncing
+	their open todos; notifies affected subtask assignees."""
 	_new_due = due_date or None
 	if _new_due and doc.get("subtasks"):
 		_nd = getdate(_new_due)
@@ -197,6 +190,31 @@ def update_task(name, title=None, assignee=None, due_date=None, urgency=None, co
 						_t = _ut(_s.assignee or frappe.session.user)
 						frappe.db.set_value("Daily Todo", _s.todo, "date", _nd if _nd >= _t else _t, update_modified=False)
 	doc.due_date = _new_due
+
+
+@frappe.whitelist()
+def reschedule_task(name, due_date=None):
+	"""Calendar drag: change ONLY the due date (update_task would null
+	unsent fields). Clamp rules and todo sync apply."""
+	require_staff()
+	doc = frappe.get_doc("Duty Project Task", name)
+	_apply_due(doc, due_date)
+	doc.save(ignore_permissions=True)
+	frappe.db.commit()
+	return get_project_board(doc.project)
+
+
+@frappe.whitelist()
+def update_task(name, title=None, assignee=None, due_date=None, urgency=None, column=None, description=None, client_visible=None, awaiting_client=None):
+	require_staff()
+	doc = frappe.get_doc("Duty Project Task", name)
+	old_assignee = doc.assignee
+	was_awaiting = cint(doc.awaiting_client)
+	if awaiting_client is not None:
+		doc.awaiting_client = cint(awaiting_client)
+	if title and title.strip():
+		doc.title = title.strip()
+	_apply_due(doc, due_date)
 	if urgency in URGENCIES:
 		doc.urgency = urgency
 	doc.description = description

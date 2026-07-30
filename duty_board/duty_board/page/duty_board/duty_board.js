@@ -3127,6 +3127,85 @@ class DutyBoard {
 		} else $t.empty();
 	}
 
+	render_calendar(project, data, $wrap) {
+		const tasks = [];
+		Object.keys(data.tasks || {}).forEach((col) =>
+			(data.tasks[col] || []).forEach((t) => tasks.push(Object.assign({ column: col }, t)))
+		);
+		const base = this._cal_base ? new Date(this._cal_base) : new Date();
+		base.setDate(1);
+		const y = base.getFullYear();
+		const mo = base.getMonth();
+		const monthName = base.toLocaleString("default", { month: "long", year: "numeric" });
+		const first = (base.getDay() + 6) % 7; // Monday-first
+		const dim = new Date(y, mo + 1, 0).getDate();
+		const byday = {};
+		let undated = 0;
+		tasks.forEach((t) => {
+			if (!t.due_date) { undated++; return; }
+			(byday[t.due_date] = byday[t.due_date] || []).push(t);
+		});
+		const URG = { Critical: "#B0443C", High: "#A96F1A", Medium: "#0E5A4A", Low: "#6B7772" };
+		const today = frappe.datetime.get_today();
+		let cells = "";
+		for (let i = 0; i < first; i++) cells += `<div class="duty-cal-cell duty-cal-pad"></div>`;
+		for (let d = 1; d <= dim; d++) {
+			const iso = `${y}-${String(mo + 1).padStart(2, "0")}-${String(d).padStart(2, "0")}`;
+			const items = (byday[iso] || [])
+				.map(
+					(t) => `<div class="duty-cal-task ${t.column === "Completed" ? "done" : ""}" draggable="true" data-name="${t.name}" style="border-left:3px solid ${URG[t.urgency] || "#6B7772"}" title="${frappe.utils.escape_html(t.title)}${t.assignee ? " · " + frappe.utils.escape_html((this.name_map[t.assignee] || t.assignee).split(" ")[0]) : ""}">${frappe.utils.escape_html(t.title)}</div>`
+				)
+				.join("");
+			cells += `<div class="duty-cal-cell ${iso === today ? "today" : ""}" data-day="${iso}"><span class="d">${d}</span>${items}</div>`;
+		}
+		$wrap.append(`
+			<div class="duty-cal-head">
+				<a class="duty-cal-nav" data-n="-1">‹</a>
+				<b>${monthName}</b>
+				<a class="duty-cal-nav" data-n="1">›</a>
+				<a class="duty-cal-today">${__("Today")}</a>
+				${undated ? `<span class="text-muted" style="margin-left:auto;font-size:12px">${undated} ${__("task(s) without a date — visible on the board")}</span>` : ""}
+			</div>
+			<div class="duty-cal-grid">
+				${["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"].map((w) => `<div class="duty-cal-dow">${__(w)}</div>`).join("")}
+				${cells}
+			</div>`);
+		$wrap.find(".duty-cal-nav").on("click", (e) => {
+			const b = new Date(y, mo + parseInt($(e.currentTarget).data("n"), 10), 1);
+			this._cal_base = b.toISOString();
+			this.render_kanban(project, data);
+		});
+		$wrap.find(".duty-cal-today").on("click", () => {
+			this._cal_base = null;
+			this.render_kanban(project, data);
+		});
+		$wrap.find(".duty-cal-task").each((_, el) => {
+			el.addEventListener("dragstart", (e) => e.dataTransfer.setData("text", $(el).data("name")));
+			$(el).on("click", () =>
+				frappe.call({
+					method: "duty_board.projects.get_card",
+					args: { name: $(el).data("name") },
+					callback: (r) => r.message && this.task_dialog(project, r.message),
+				})
+			);
+		});
+		$wrap.find(".duty-cal-cell:not(.duty-cal-pad)").each((_, el) => {
+			el.addEventListener("dragover", (e) => { e.preventDefault(); el.classList.add("over"); });
+			el.addEventListener("dragleave", () => el.classList.remove("over"));
+			el.addEventListener("drop", (e) => {
+				e.preventDefault();
+				el.classList.remove("over");
+				const name = e.dataTransfer.getData("text");
+				if (!name) return;
+				frappe.call({
+					method: "duty_board.projects.reschedule_task",
+					args: { name: name, due_date: $(el).data("day") },
+					callback: (r) => r.message && this.render_kanban(project, r.message),
+				});
+			});
+		});
+	}
+
 	load_kanban(project) {
 		frappe.call({
 			method: "duty_board.projects.get_project_board",
@@ -3170,9 +3249,17 @@ class DutyBoard {
 					<b style="color:${this._kb_color}">${frappe.utils.escape_html(proj ? proj.project_name : project)}</b>
 					${proj && proj.customer ? `<span class="duty-proj-cust-inline">· ${frappe.utils.escape_html(proj.customer)}</span>` : ""}
 				</span>
+				<span class="duty-pj-views">
+					<a class="duty-pj-v ${(this._pj_view || "board") === "board" ? "on" : ""}" data-v="board">▦ ${__("Board")}</a>
+					<a class="duty-pj-v ${this._pj_view === "cal" ? "on" : ""}" data-v="cal">📅 ${__("Calendar")}</a>
+				</span>
 				<a class="duty-proj-archive">${__("Archive project")}</a>
 			</div>
 		`).appendTo($wrap);
+		$bar.find(".duty-pj-v").on("click", (e) => {
+			this._pj_view = $(e.currentTarget).data("v");
+			this.render_kanban(project, data);
+		});
 		$bar.find(".duty-proj-archive").on("click", () =>
 			frappe.confirm(__("Archive this project? Its board disappears from the tabs (nothing is deleted)."), () =>
 				frappe.call({
@@ -3185,6 +3272,10 @@ class DutyBoard {
 				})
 			)
 		);
+		if ((this._pj_view || "board") === "cal") {
+			this.render_calendar(project, data, $wrap);
+			return;
+		}
 		const $board = $(`<div class="duty-kanban"></div>`).appendTo($wrap);
 		(data.columns || []).forEach((col) => {
 			const cards = (data.tasks && data.tasks[col]) || [];
@@ -7843,6 +7934,21 @@ class DutyBoard {
 			.duty-pj-item.active { background: #eef2f0; }
 			.duty-pj-item .t { display: block; font-weight: 600; font-size: 12.5px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 			.duty-pj-item .s { display: block; font-size: 11px; color: #8a938f; }
+			.duty-pj-views { display: inline-flex; gap: 2px; margin-left: 14px; background: #f0efe9; border-radius: 8px; padding: 2px; }
+			.duty-pj-v { font-size: 12px; padding: 3px 10px; border-radius: 6px; cursor: pointer; color: #6B7772; text-decoration: none; }
+			.duty-pj-v.on { background: #fff; color: #182420; font-weight: 600; box-shadow: 0 1px 2px rgba(0,0,0,.08); }
+			.duty-cal-head { display: flex; gap: 10px; align-items: center; margin: 8px 0; }
+			.duty-cal-nav, .duty-cal-today { cursor: pointer; padding: 2px 8px; border-radius: 6px; background: #f0efe9; text-decoration: none; color: #182420; font-size: 12.5px; }
+			.duty-cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); border: 1px solid #e5e7eb; border-radius: 10px; overflow: hidden; }
+			.duty-cal-dow { font-size: 10.5px; font-weight: 800; letter-spacing: .05em; text-transform: uppercase; color: #6B7772; padding: 6px 8px; background: #faf9f6; border-bottom: 1px solid #e5e7eb; }
+			.duty-cal-cell { min-height: 92px; border-right: 1px solid #f0eee8; border-bottom: 1px solid #f0eee8; padding: 4px 5px; }
+			.duty-cal-cell .d { font-size: 11px; color: #96A09B; display: block; text-align: right; }
+			.duty-cal-cell.today { background: #f2f7f4; }
+			.duty-cal-cell.today .d { color: #0E5A4A; font-weight: 800; }
+			.duty-cal-cell.over { background: #e4eeea; }
+			.duty-cal-pad { background: #fbfaf7; }
+			.duty-cal-task { font-size: 11px; background: #fff; border: 1px solid #eceae4; border-radius: 6px; padding: 2px 5px; margin-top: 3px; cursor: pointer; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+			.duty-cal-task.done { text-decoration: line-through; color: #96A09B; }
 			.duty-proj-tabs { display: block; }
 			.duty-proj-tab {
 				border: 1px solid var(--border-color); border-radius: 10px; padding: 8px 14px;
