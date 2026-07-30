@@ -119,6 +119,7 @@ def _room_payload(room, include_internal, before=None, limit=40):
 			r.owner, frappe.utils.get_fullname(r.owner) or r.owner
 		)
 		r.is_staff = frappe.db.get_value("User", r.owner, "user_type") == "System User"
+		r.mine = 1 if r.owner == frappe.session.user else 0
 		ext = (r.attachment_name or "").lower().rsplit(".", 1)[-1]
 		r.is_image = ext in ("png", "jpg", "jpeg", "gif", "webp")
 		r.is_audio = ext in ("webm", "ogg", "mp3", "m4a", "wav")
@@ -757,6 +758,7 @@ def _serve_file(fdoc, filename):
 	frappe.local.response.filename = filename or fdoc.file_name
 	frappe.local.response.filecontent = fdoc.get_content()
 	frappe.local.response.type = "binary"
+	frappe.local.response.display_content_as = "inline"
 	frappe.local.response.content_type = mimetype
 
 
@@ -4842,7 +4844,10 @@ def client_get_staff():
 		if m.user == me:
 			continue
 		full = frappe.utils.get_fullname(m.user) or m.user
-		out.append({"first": full.split(" ")[0], "full": full, "kind": "colleague"})
+		if "@" in full:
+			full = full.split("@")[0]
+		first = full.split(" ")[0]
+		out.append({"first": first, "full": full, "kind": "colleague"})
 	return out
 
 

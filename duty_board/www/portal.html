@@ -221,6 +221,8 @@
 		overflow-wrap: break-word; word-break: normal; }
 	.m .w { white-space: nowrap; }
 	.m.me { margin-left: auto; }
+	.m.peer { margin-left: auto; background: #F2EEE3; }
+	.m.peer .w { color: #8A7B4F; }
 	.m.staff { margin-right: auto; }
 	.newdiv { text-align: center; color: #0F5C55; font-size: 12px; font-weight: 700; margin: 8px 0; }
 	.tabbar a.dot span::after { content: " •"; color: #ef4444; font-size: 18px; }
@@ -632,7 +634,7 @@ body[data-tab="home"] .foot{display:block!important;grid-area:foot}
 </div>
 <script>
 const esc = (s) => (s || "").replace(/[&<>"']/g, (c) => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
-const XLV = "3.10.2";
+const XLV = "3.10.3";
 document.getElementById("xlv").textContent = "v" + XLV;
 console.log("Xlevel portal", XLV);
 let ROOM = localStorage.getItem("xl_room") || null;
@@ -819,7 +821,7 @@ function render(d) {
 					window.SESSION_PREV && m.creation > window.SESSION_PREV && !window.DIVIDED
 						? ((window.DIVIDED = true), '<div class="newdiv">— new since your last visit —</div>')
 						: "";
-				return `${divider}<div class="m ${m.is_staff ? "staff" : "me"}" data-name="${esc(m.name)}"><a class="rep" onclick='setReply(${JSON.stringify({ name: m.name, who: m.who, text: (m.message || "📎").slice(0, 80) }).replace(/'/g, "&#39;")})'>↩ reply</a><span class="w">${esc(m.who)}</span>${qt}${esc(m.message)}${att}<span class="tm">${esc(smartTime(m.creation))}</span></div>`;
+				return `${divider}<div class="m ${m.mine ? "me" : m.is_staff ? "staff" : "peer"}" data-name="${esc(m.name)}"><a class="rep" onclick='setReply(${JSON.stringify({ name: m.name, who: m.who, text: (m.message || "📎").slice(0, 80) }).replace(/'/g, "&#39;")})'>↩ reply</a><span class="w">${esc(m.who)}</span>${qt}${esc(m.message)}${att}<span class="tm">${esc(smartTime(m.creation))}</span></div>`;
 			}).join("")
 		: '<span class="muted">Say hello — the team is listening.</span>';
 	if (stick) box.scrollTop = box.scrollHeight;
@@ -2038,7 +2040,7 @@ function frag() {
 function pickerRender() {
 	const f = frag();
 	if (!f) { mdd.style.display = "none"; return; }
-	const opts = STAFF.filter((s) => s.first.toLowerCase().startsWith(f.q)).slice(0, 6);
+	const opts = STAFF.filter((s) => s.first.toLowerCase().startsWith(f.q)).slice(0, 8);
 	if (!opts.length) { mdd.style.display = "none"; return; }
 	mdd.innerHTML = opts.map((s) => `<a data-f="${esc(s.first)}">${esc(s.full)}${s.kind === "colleague" ? ' <span style="color:#9ca3af;font-weight:400">· your team</span>' : ' <span style="color:#9ca3af;font-weight:400">· Xlevel</span>'}</a>`).join("");
 	mdd.style.display = "flex";

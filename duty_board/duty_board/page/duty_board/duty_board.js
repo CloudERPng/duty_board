@@ -3602,7 +3602,7 @@ class DutyBoard {
 
 	cr_msg(m) {
 		return `
-			<div class="duty-cr-msg ${m.internal ? "duty-cr-internal" : m.is_staff ? "duty-cr-staff" : "duty-cr-client"}" data-name="${m.name}">
+			<div class="duty-cr-msg ${m.internal ? "duty-cr-internal" : m.mine ? "duty-cr-mine" : m.is_staff ? "duty-cr-staff" : "duty-cr-client"}" data-name="${m.name}">
 				<a class="duty-cr-reply" title="${__("Reply")}">↩</a>
 				<span class="duty-msg-who" style="color:${this.user_color(m.owner)}">${m.internal ? "🔒 " : ""}${frappe.utils.escape_html((m.who || m.owner).split(" ")[0])}${m.is_staff ? "" : ` · ${__("client")}`}</span>
 				${m.ref ? `<a class="duty-cr-quote" data-target="${m.ref}"><b>${frappe.utils.escape_html(m.ref_who || "")}</b>: ${frappe.utils.escape_html(m.ref_text || "")}</a>` : ""}
@@ -7551,6 +7551,7 @@ class DutyBoard {
 			.duty-load-earlier a:hover { color: var(--text-color); }
 			.duty-msg { padding: 4px 2px; font-size: var(--text-sm); line-height: 1.5; }
 			.duty-msg-who { font-weight: 700; color: var(--text-color); margin-right: 6px; }
+			.duty-msg-mine { background: #e7f4ec; border-radius: 10px; padding: 4px 8px; }
 			.duty-msg-mine .duty-msg-who { color: var(--green-600, #2e7d32); }
 			.duty-msg-time { margin-left: 8px; font-size: var(--text-xs); color: var(--text-muted); }
 			.duty-chat-send { display: flex; gap: 8px; align-items: flex-end; }
@@ -7953,6 +7954,7 @@ class DutyBoard {
 			.duty-cr-emojis a:hover { background: var(--gray-100, #f5f5f5); }
 			.duty-cr-emojibtn { cursor: pointer; align-self: center; font-size: 18px; text-decoration: none; }
 			.duty-cr-staff { background: #ecfdf5; align-self: flex-end; }
+			.duty-cr-mine { background: #cdeedd; align-self: flex-end; border: 1px solid #b5e3cd; }
 			.duty-cr-client { background: var(--gray-100, #f3f4f6); align-self: flex-start; }
 			.duty-cr-internal { background: #fef9c3; border: 1px dashed #d97706; align-self: flex-end; }
 			.duty-cr-msg .duty-msg-who { display: block; font-size: var(--text-xs); font-weight: 700; }
