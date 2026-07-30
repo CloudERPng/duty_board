@@ -3156,7 +3156,7 @@ class DutyBoard {
 					(t) => `<div class="duty-cal-task ${t.column === "Completed" ? "done" : ""}" draggable="true" data-name="${t.name}" style="border-left:3px solid ${URG[t.urgency] || "#6B7772"}" title="${frappe.utils.escape_html(t.title)}${t.assignee ? " · " + frappe.utils.escape_html((this.name_map[t.assignee] || t.assignee).split(" ")[0]) : ""}">${frappe.utils.escape_html(t.title)}</div>`
 				)
 				.join("");
-			cells += `<div class="duty-cal-cell ${iso === today ? "today" : ""}" data-day="${iso}"><span class="d">${d}</span>${items}</div>`;
+			cells += `<div class="duty-cal-cell ${iso === today ? "today" : ""}" data-day="${iso}"><span class="d"><a class="duty-cal-add" title="${__("Add a task on this day")}">＋</a>${d}</span>${items}</div>`;
 		}
 		$wrap.append(`
 			<div class="duty-cal-head">
@@ -3190,6 +3190,25 @@ class DutyBoard {
 			);
 		});
 		$wrap.find(".duty-cal-cell:not(.duty-cal-pad)").each((_, el) => {
+			$(el).on("click", (e) => {
+				if ($(e.target).closest(".duty-cal-task").length) return;
+				const day = $(el).data("day");
+				frappe.prompt(
+					[
+						{ fieldname: "title", fieldtype: "Data", label: __("Task"), reqd: 1 },
+						{ fieldname: "assignee", fieldtype: "Autocomplete", label: __("Assignee"), options: this.staff_options() },
+						{ fieldname: "urgency", fieldtype: "Select", label: __("Urgency"), options: ["Low", "Medium", "High", "Critical"], default: "Medium" },
+					],
+					(v) =>
+						frappe.call({
+							method: "duty_board.projects.create_task",
+							args: { project: project, title: v.title, column: "To Do", assignee: v.assignee || null, due_date: day, urgency: v.urgency },
+							callback: (r) => r.message && this.render_kanban(project, r.message),
+						}),
+					__("New task · {0}", [frappe.datetime.str_to_user(day)]),
+					__("Add")
+				);
+			});
 			el.addEventListener("dragover", (e) => { e.preventDefault(); el.classList.add("over"); });
 			el.addEventListener("dragleave", () => el.classList.remove("over"));
 			el.addEventListener("drop", (e) => {
@@ -7942,7 +7961,10 @@ class DutyBoard {
 			.duty-cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); border: 1px solid #e5e7eb; border-radius: 10px; overflow: hidden; }
 			.duty-cal-dow { font-size: 10.5px; font-weight: 800; letter-spacing: .05em; text-transform: uppercase; color: #6B7772; padding: 6px 8px; background: #faf9f6; border-bottom: 1px solid #e5e7eb; }
 			.duty-cal-cell { min-height: 92px; border-right: 1px solid #f0eee8; border-bottom: 1px solid #f0eee8; padding: 4px 5px; }
-			.duty-cal-cell .d { font-size: 11px; color: #96A09B; display: block; text-align: right; }
+			.duty-cal-cell .d { font-size: 11px; color: #96A09B; display: flex; justify-content: space-between; align-items: center; }
+			.duty-cal-add { visibility: hidden; cursor: pointer; color: #0E5A4A; font-weight: 700; text-decoration: none; padding: 0 3px; }
+			.duty-cal-cell:hover .duty-cal-add { visibility: visible; }
+			.duty-cal-cell:not(.duty-cal-pad) { cursor: pointer; }
 			.duty-cal-cell.today { background: #f2f7f4; }
 			.duty-cal-cell.today .d { color: #0E5A4A; font-weight: 800; }
 			.duty-cal-cell.over { background: #e4eeea; }
