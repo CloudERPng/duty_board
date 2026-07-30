@@ -4479,6 +4479,8 @@ class DutyBoard {
 							<a class="duty-rd-opt" data-o="toc" title="${__("Show/hide contents")}">☰</a>
 							<a class="duty-rd-opt" data-o="two" title="${__("Two-page spread")}">▥</a>
 							<a class="duty-rd-opt" data-o="just" title="${__("Justify text")}">≣</a>
+							<a class="duty-rd-fs" data-d="-1" title="${__("Smaller text")}" style="padding:3px 8px;cursor:pointer;text-decoration:none;color:#6B7772">A−</a>
+							<a class="duty-rd-fs" data-d="1" title="${__("Larger text")}" style="padding:3px 8px;cursor:pointer;text-decoration:none;color:#182420;font-weight:700">A＋</a>
 						</span>
 					</div>
 					<div class="duty-rd-revpanel" style="display:none;border:1px solid #E8E5DD;border-radius:12px;padding:12px 14px;margin-bottom:10px"></div>
@@ -4500,7 +4502,8 @@ class DutyBoard {
 				const $bd = $L.find(".duty-rd-body");
 				const $sc = $L.find(".duty-rd-scroller");
 				const chIdx = (name) => m.chapters.findIndex((c) => c.name === name);
-				const prefs = Object.assign({ toc: 1, two: 0, just: 1 }, JSON.parse(localStorage.getItem("duty_rd_prefs") || "{}"));
+				const prefs = Object.assign({ toc: 1, two: 0, just: 1, fs: 16 }, JSON.parse(localStorage.getItem("duty_rd_prefs") || "{}"));
+				const GAP = 56;
 				const applyPrefs = () => {
 					localStorage.setItem("duty_rd_prefs", JSON.stringify(prefs));
 					$L.find(".duty-rd-opt").each((_, el) => {
@@ -4510,24 +4513,26 @@ class DutyBoard {
 							"box-shadow": on ? "0 1px 2px rgba(0,0,0,.08)" : "none", "font-weight": on ? "700" : "400" });
 					});
 					$toc.toggle(!!prefs.toc);
-					$bd.css("text-align", prefs.just ? "justify" : "left").css("hyphens", prefs.just ? "auto" : "none");
+					$bd.css({ "font-size": prefs.fs + "px", "line-height": "1.8",
+						"text-align": prefs.just ? "justify" : "left", hyphens: prefs.just ? "auto" : "none" });
 					$L.find(".duty-rd-pgbtns").toggle(!!prefs.two);
 					if (prefs.two) {
-						const w = $L.find(".duty-rd-col")[0].clientWidth;
-						const colw = Math.floor((Math.min(w, 1240) - 64) / 2);
-						$sc.css({ height: "calc(100vh - 250px)", "overflow-x": "auto", "overflow-y": "hidden",
-							"scroll-snap-type": "x mandatory", "max-width": "1240px" });
-						$bd.css({ "max-width": "none", height: "100%", columns: colw + "px auto", "column-gap": "64px",
-							"column-fill": "auto", "padding-right": "2px" });
+						$sc.css({ height: "calc(100vh - 250px)", "overflow-x": "auto", "overflow-y": "hidden" });
+						$bd.css({ "max-width": "none" });
+						requestAnimationFrame(() => {
+							const w = $sc[0].clientWidth;
+							const colw = Math.floor((w - GAP) / 2);
+							$bd.css({ height: "100%", "column-width": colw + "px", "column-gap": GAP + "px", "column-fill": "auto" });
+						});
 					} else {
-						$sc.css({ height: "", "overflow-x": "", "overflow-y": "", "scroll-snap-type": "", "max-width": "" });
-						$bd.css({ "max-width": "840px", height: "", columns: "", "column-gap": "", "column-fill": "", "padding-right": "" });
+						$sc.css({ height: "", "overflow-x": "", "overflow-y": "" });
+						$bd.css({ "max-width": "840px", height: "", "column-width": "", "column-gap": "", "column-fill": "" });
 						$L.find(".duty-rd-nav").css("max-width", "840px");
 					}
 				};
 				const pageBy = (dir) => {
 					const el = $sc[0];
-					el.scrollBy({ left: dir * (el.clientWidth + 0), behavior: "smooth" });
+					el.scrollBy({ left: dir * (el.clientWidth + GAP), behavior: "smooth" });
 				};
 				const renderToc = () => {
 					$toc.empty();
@@ -4616,6 +4621,10 @@ class DutyBoard {
 				$L.find(".duty-rd-opt").on("click", (e) => {
 					const o = $(e.currentTarget).data("o");
 					prefs[o] = prefs[o] ? 0 : 1;
+					applyPrefs();
+				});
+				$L.find(".duty-rd-fs").on("click", (e) => {
+					prefs.fs = Math.min(22, Math.max(13, (prefs.fs || 16) + parseInt($(e.currentTarget).data("d"), 10)));
 					applyPrefs();
 				});
 				$L.find(".duty-rd-pgprev").on("click", () => pageBy(-1));
