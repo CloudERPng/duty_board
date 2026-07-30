@@ -4362,31 +4362,52 @@ class DutyBoard {
 	}
 
 	book_matcher(query, cb) {
-		frappe.call({
-			method: "duty_board.library.search_books",
-			args: { query: query },
-			callback: (r) => {
-				const hits = r.message || [];
-				if (!hits.length) { cb(null); return; }
-				const d = new frappe.ui.Dialog({ title: __("🔎 Is it one of these?"), size: "large" });
-				$(d.body).html(
-					hits.map((h, i) => `
-					<div class="duty-bkm" data-i="${i}" style="display:flex;gap:12px;border:1px solid #E8E5DD;border-radius:10px;padding:10px 12px;margin-bottom:8px;cursor:pointer">
-						${h.thumbnail ? `<img src="${h.thumbnail}" style="width:52px;height:78px;object-fit:cover;border-radius:6px;flex:none">` : `<div style="width:52px;height:78px;background:#EFEDE6;border-radius:6px;flex:none"></div>`}
-						<div style="min-width:0">
-							<b style="font-size:13.5px">${frappe.utils.escape_html(h.title)}${h.subtitle ? `: ${frappe.utils.escape_html(h.subtitle)}` : ""}</b>
-							<div class="text-muted" style="font-size:12px">${frappe.utils.escape_html(h.authors)}${h.year ? ` · ${h.year}` : ""}${h.publisher ? ` · ${frappe.utils.escape_html(h.publisher)}` : ""}${h.pages ? ` · ${h.pages}p` : ""}</div>
-							${h.description ? `<div class="text-muted" style="font-size:11.5px;margin-top:3px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden">${frappe.utils.escape_html(h.description)}</div>` : ""}
-						</div>
-					</div>`).join("") +
-					`<a class="duty-bkm-none" style="cursor:pointer;font-size:12.5px;color:#6B7772">${__("None of these — fill details by hand")}</a>`
-				);
-				$(d.body).find(".duty-bkm").on("click", (e) => { d.hide(); cb(hits[$(e.currentTarget).data("i")]); });
-				$(d.body).find(".duty-bkm-none").on("click", () => { d.hide(); cb(null); });
-				d.show();
-			},
-			error: () => cb(null),
-		});
+		const d = new frappe.ui.Dialog({ title: __("🔎 Find the book"), size: "large" });
+		let settled = false;
+		const done = (meta) => { if (!settled) { settled = true; d.hide(); cb(meta); } };
+		$(d.body).html(`
+			<div style="display:flex;gap:8px;margin-bottom:10px">
+				<input type="text" class="form-control input-sm duty-bkm-q">
+				<button class="btn btn-sm btn-primary duty-bkm-go">${__("Search")}</button>
+			</div>
+			<div class="duty-bkm-res"><div class="text-muted">${__("Searching…")}</div></div>
+			<a class="duty-bkm-none" style="cursor:pointer;font-size:12.5px;color:#6B7772;display:inline-block;margin-top:8px">${__("Skip — fill details by hand")}</a>`);
+		const $res = $(d.body).find(".duty-bkm-res");
+		const run = (q) => {
+			$res.html(`<div class="text-muted">${__("Searching…")}</div>`);
+			frappe.call({
+				method: "duty_board.library.search_books",
+				args: { query: q },
+				callback: (r) => {
+					const hits = r.message || [];
+					if (!hits.length) {
+						$res.html(`<div class="text-muted">${__("No matches for")} “${frappe.utils.escape_html(q)}” — ${__("try fewer or different words.")}</div>`);
+						return;
+					}
+					$res.html(
+						hits.map((h, i) => `
+						<div class="duty-bkm" data-i="${i}" style="display:flex;gap:12px;border:1px solid #E8E5DD;border-radius:10px;padding:10px 12px;margin-bottom:8px;cursor:pointer">
+							${h.thumbnail ? `<img src="${h.thumbnail}" style="width:52px;height:78px;object-fit:cover;border-radius:6px;flex:none">` : `<div style="width:52px;height:78px;background:#EFEDE6;border-radius:6px;flex:none"></div>`}
+							<div style="min-width:0">
+								<b style="font-size:13.5px">${frappe.utils.escape_html(h.title)}${h.subtitle ? `: ${frappe.utils.escape_html(h.subtitle)}` : ""}</b>
+								<div class="text-muted" style="font-size:12px">${frappe.utils.escape_html(h.authors)}${h.year ? ` · ${h.year}` : ""}${h.publisher ? ` · ${frappe.utils.escape_html(h.publisher)}` : ""}${h.pages ? ` · ${h.pages}p` : ""}</div>
+								${h.description ? `<div class="text-muted" style="font-size:11.5px;margin-top:3px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden">${frappe.utils.escape_html(h.description)}</div>` : ""}
+							</div>
+						</div>`).join("")
+					);
+					$res.find(".duty-bkm").on("click", (e) => done(hits[$(e.currentTarget).data("i")]));
+				},
+				error: () => {
+					$res.html(`<div style="color:#B0443C;font-size:12.5px">${__("Book search is unreachable from the server (outbound access to googleapis.com). You can still fill details by hand.")}</div>`);
+				},
+			});
+		};
+		$(d.body).find(".duty-bkm-q").val(query).on("keydown", (e) => { if (e.key === "Enter") run($(e.currentTarget).val()); });
+		$(d.body).find(".duty-bkm-go").on("click", () => run($(d.body).find(".duty-bkm-q").val()));
+		$(d.body).find(".duty-bkm-none").on("click", () => done(null));
+		d.on_hide = () => { if (!settled) { settled = true; cb(null); } };
+		d.show();
+		run(query);
 	}
 
 	refresh_library() {
