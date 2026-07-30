@@ -97,14 +97,24 @@ class DutyBoard {
 		this.face = "board";
 		this.$projects = $(`
 			<div class="duty-projects" style="display:none">
-				<div class="duty-proj-head">
+				<div class="duty-pj-side">
+					<div class="duty-pj-sidehead">
+						<input type="text" class="form-control input-sm duty-pj-filter" placeholder="${__("Filter projects…")}">
+						<button class="btn btn-sm btn-default duty-proj-new" title="${__("New Project")}">＋</button>
+					</div>
 					<div class="duty-proj-tabs"></div>
-					<button class="btn btn-sm btn-default duty-proj-new">＋ ${__("New Project")}</button>
 				</div>
-				<div class="duty-kanban-wrap"></div>
+				<div class="duty-pj-main">
+					<div class="duty-pj-title"></div>
+					<div class="duty-kanban-wrap"></div>
+				</div>
 			</div>
 		`).appendTo(page.body);
 		this.$projects.find(".duty-proj-new").on("click", () => this.new_project_dialog());
+		this.$projects.find(".duty-pj-filter").on("input", (e) => {
+			this._pj_filter = e.target.value;
+			this.render_project_tabs();
+		});
 		this.$sales = $(`
 			<div class="duty-sales" style="display:none">
 				<div class="duty-sales-head">
@@ -1647,6 +1657,7 @@ class DutyBoard {
 
 	show_face(face) {
 		const prev_face = this.face;
+		if (face === "projects" && prev_face !== "projects") this._pj_open = {};
 		if (face === "clients" && prev_face !== "clients") {
 			this._cr_open = {};
 			Object.keys(localStorage)
@@ -3064,31 +3075,57 @@ class DutyBoard {
 
 	render_project_tabs() {
 		const $tabs = this.$projects.find(".duty-proj-tabs").empty();
-		(this._projects || []).forEach((p) => {
-			const bits = [`${p.total} ${__("tasks")}`, `✓ ${p.done}`];
-			if (p.overdue) bits.push(`<span class="duty-proj-over">⚠ ${p.overdue}</span>`);
-			if (p.suspended) bits.push(`⏸ ${p.suspended}`);
-			const pc = this.proj_color(p.name);
-			const target = p.target_date
-				? `<span class="duty-proj-target ${p.days_left != null && p.days_left < 0 ? "duty-lead-over" : ""}">🎯 ${frappe.datetime.str_to_user(p.target_date)}${p.days_left != null ? ` (${p.days_left}d)` : ""}</span>`
-				: "";
-			$(`
-				<a class="duty-proj-tab ${p.name === this.current_project ? "active" : ""}" data-name="${p.name}" style="border-left: 4px solid ${pc}">
-					<span class="duty-proj-name" style="color:${pc}">${frappe.utils.escape_html(p.project_name)}</span>
-					${p.customer ? `<span class="duty-proj-cust">${frappe.utils.escape_html(p.customer)}</span>` : ""}
-					<span class="duty-proj-stats">${bits.join(" · ")}</span>
-					<span class="duty-proj-bar"><span style="width:${p.pct || 0}%; background:${pc}"></span></span>
-					${target}
-				</a>
-			`)
-				.appendTo($tabs)
-				.on("click", () => {
-					this.current_project = p.name;
-					localStorage.setItem("duty_proj", p.name);
-					this.render_project_tabs();
-					this.load_kanban(p.name);
+		const q = ((this._pj_filter || "") + "").toLowerCase();
+		const list = (this._projects || []).filter(
+			(p) => !q || (p.project_name + " " + (p.customer || "")).toLowerCase().indexOf(q) >= 0
+		);
+		const groups = {};
+		list.forEach((p) => (groups[p.customer || __("Internal")] = groups[p.customer || __("Internal")] || []).push(p));
+		this._pj_open = this._pj_open || {};
+		const active = this.current_project;
+		Object.keys(groups)
+			.sort()
+			.forEach((cust) => {
+				const ps = groups[cust];
+				const has_active = ps.some((p) => p.name === active);
+				const open = q ? true : has_active || this._pj_open[cust];
+				const over = ps.reduce((a, p) => a + (p.overdue || 0), 0);
+				$(`<div class="duty-pj-cust"><span class="duty-cr-caret">${open ? "▾" : "▸"}</span> ${frappe.utils.escape_html(cust)} <span class="duty-pj-count">${ps.length}</span>${!open && over ? ` <span class="duty-proj-over">⚠ ${over}</span>` : ""}</div>`)
+					.appendTo($tabs)
+					.on("click", () => {
+						if (open) delete this._pj_open[cust];
+						else this._pj_open[cust] = 1;
+						this.render_project_tabs();
+					});
+				if (!open) return;
+				ps.forEach((p) => {
+					const pc = this.proj_color(p.name);
+					$(`
+					<a class="duty-pj-item ${p.name === active ? "active" : ""}" data-name="${p.name}" style="border-left:3px solid ${pc}">
+						<span class="t">${frappe.utils.escape_html(p.project_name)}</span>
+						<span class="s">✓ ${p.done}/${p.total}${p.overdue ? ` <span class="duty-proj-over">⚠ ${p.overdue}</span>` : ""}${p.suspended ? " ⏸" : ""}</span>
+						<span class="duty-proj-bar"><span style="width:${p.pct || 0}%;background:${pc}"></span></span>
+					</a>`)
+						.appendTo($tabs)
+						.on("click", () => {
+							this.current_project = p.name;
+							localStorage.setItem("duty_proj", p.name);
+							this.render_project_tabs();
+							this.load_kanban(p.name);
+						});
 				});
-		});
+			});
+		if (!list.length)
+			$tabs.append(`<div class="text-muted" style="padding:10px;font-size:12.5px">${q ? __("No projects match.") : __("No projects yet.")}</div>`);
+		const cur = (this._projects || []).find((p) => p.name === active);
+		const $t = this.$projects.find(".duty-pj-title");
+		if (cur) {
+			const target = cur.target_date
+				? ` <span class="duty-proj-target ${cur.days_left != null && cur.days_left < 0 ? "duty-lead-over" : ""}">🎯 ${frappe.datetime.str_to_user(cur.target_date)}${cur.days_left != null ? ` (${cur.days_left}d)` : ""}</span>`
+				: "";
+			$t.html(`<b style="color:${this.proj_color(cur.name)}">${frappe.utils.escape_html(cur.project_name)}</b>${cur.customer ? ` <span class="text-muted">· ${frappe.utils.escape_html(cur.customer)}</span>` : ""}${target} <a class="duty-pj-archive text-muted" style="float:right;font-size:12px;cursor:pointer">${__("Archive project")}</a>`);
+			$t.find(".duty-pj-archive").on("click", () => this.archive_project(cur.name));
+		} else $t.empty();
 	}
 
 	load_kanban(project) {
@@ -7795,7 +7832,19 @@ class DutyBoard {
 			}
 			.duty-projects { padding-bottom: 76px; }
 			.duty-proj-head { display: flex; gap: 12px; align-items: flex-start; flex-wrap: wrap; margin-bottom: 12px; }
-			.duty-proj-tabs { display: flex; gap: 8px; flex-wrap: wrap; flex: 1; }
+			.duty-projects { display: flex; gap: 0; align-items: stretch; min-height: calc(100vh - 120px); }
+			.duty-pj-side { width: 250px; flex: none; border-right: 1px solid #e5e7eb; padding: 8px 8px 8px 0; overflow-y: auto; max-height: calc(100vh - 110px); }
+			.duty-pj-sidehead { display: flex; gap: 6px; margin-bottom: 8px; }
+			.duty-pj-main { flex: 1; min-width: 0; padding-left: 14px; }
+			.duty-pj-title { font-size: 15px; padding: 2px 0 10px; }
+			.duty-pj-cust { font-size: 11px; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; color: #6B7772; padding: 7px 4px 4px; cursor: pointer; user-select: none; }
+			.duty-pj-count { color: #b3b8b5; font-weight: 600; }
+			.duty-pj-item { display: block; padding: 6px 8px; border-radius: 8px; margin: 2px 0; cursor: pointer; text-decoration: none; color: inherit; }
+			.duty-pj-item:hover { background: #f5f4f0; text-decoration: none; color: inherit; }
+			.duty-pj-item.active { background: #eef2f0; }
+			.duty-pj-item .t { display: block; font-weight: 600; font-size: 12.5px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+			.duty-pj-item .s { display: block; font-size: 11px; color: #8a938f; }
+			.duty-proj-tabs { display: block; }
 			.duty-proj-tab {
 				border: 1px solid var(--border-color); border-radius: 10px; padding: 8px 14px;
 				background: var(--card-bg); cursor: pointer; text-decoration: none;
