@@ -4475,21 +4475,60 @@ class DutyBoard {
 						${m.author ? `<span class="text-muted" style="font-size:12.5px">${frappe.utils.escape_html(m.author)}</span>` : ""}
 						<span style="margin-left:auto" class="duty-rd-stars"></span>
 						<a class="duty-rd-revs" style="cursor:pointer;font-size:12.5px;color:#0E5A4A"></a>
+						<span class="duty-rd-opts" style="display:inline-flex;gap:2px;background:#f0efe9;border-radius:8px;padding:2px;margin-left:6px">
+							<a class="duty-rd-opt" data-o="toc" title="${__("Show/hide contents")}">☰</a>
+							<a class="duty-rd-opt" data-o="two" title="${__("Two-page spread")}">▥</a>
+							<a class="duty-rd-opt" data-o="just" title="${__("Justify text")}">≣</a>
+						</span>
 					</div>
 					<div class="duty-rd-revpanel" style="display:none;border:1px solid #E8E5DD;border-radius:12px;padding:12px 14px;margin-bottom:10px"></div>
 					<div style="display:flex;gap:20px">
 						<div class="duty-rd-toc" style="width:250px;flex:none;position:sticky;top:60px;align-self:flex-start;max-height:calc(100vh - 140px);overflow-y:auto;border-right:1px solid #E8E5DD;padding-right:10px"></div>
-						<div style="flex:1;min-width:0">
-							<div class="duty-rd-body" style="max-width:840px;font-size:16px;line-height:1.8;color:#182420"></div>
-							<div style="max-width:840px;display:flex;gap:8px;padding:16px 0 40px;border-top:1px solid #E8E5DD;margin-top:24px">
+						<div class="duty-rd-col" style="flex:1;min-width:0">
+							<div class="duty-rd-scroller"><div class="duty-rd-body" style="font-size:16px;line-height:1.8;color:#182420"></div></div>
+							<div class="duty-rd-nav" style="display:flex;gap:8px;padding:16px 0 40px;border-top:1px solid #E8E5DD;margin-top:18px;align-items:center">
 								<button class="btn btn-sm btn-default duty-rd-prev">‹ ${__("Previous")}</button>
+								<span class="duty-rd-pgbtns" style="display:none;margin:0 auto">
+									<button class="btn btn-sm btn-default duty-rd-pgprev">‹ ${__("Page")}</button>
+									<button class="btn btn-sm btn-default duty-rd-pgnext">${__("Page")} ›</button>
+								</span>
 								<button class="btn btn-sm btn-primary duty-rd-next" style="margin-left:auto">${__("Finish chapter & continue")} ›</button>
 							</div>
 						</div>
 					</div>`);
 				const $toc = $L.find(".duty-rd-toc");
 				const $bd = $L.find(".duty-rd-body");
+				const $sc = $L.find(".duty-rd-scroller");
 				const chIdx = (name) => m.chapters.findIndex((c) => c.name === name);
+				const prefs = Object.assign({ toc: 1, two: 0, just: 1 }, JSON.parse(localStorage.getItem("duty_rd_prefs") || "{}"));
+				const applyPrefs = () => {
+					localStorage.setItem("duty_rd_prefs", JSON.stringify(prefs));
+					$L.find(".duty-rd-opt").each((_, el) => {
+						const on = prefs[$(el).data("o")];
+						$(el).css({ padding: "3px 9px", "border-radius": "6px", cursor: "pointer", "text-decoration": "none",
+							background: on ? "#fff" : "transparent", color: on ? "#182420" : "#6B7772",
+							"box-shadow": on ? "0 1px 2px rgba(0,0,0,.08)" : "none", "font-weight": on ? "700" : "400" });
+					});
+					$toc.toggle(!!prefs.toc);
+					$bd.css("text-align", prefs.just ? "justify" : "left").css("hyphens", prefs.just ? "auto" : "none");
+					$L.find(".duty-rd-pgbtns").toggle(!!prefs.two);
+					if (prefs.two) {
+						const w = $L.find(".duty-rd-col")[0].clientWidth;
+						const colw = Math.floor((Math.min(w, 1240) - 64) / 2);
+						$sc.css({ height: "calc(100vh - 250px)", "overflow-x": "auto", "overflow-y": "hidden",
+							"scroll-snap-type": "x mandatory", "max-width": "1240px" });
+						$bd.css({ "max-width": "none", height: "100%", columns: colw + "px auto", "column-gap": "64px",
+							"column-fill": "auto", "padding-right": "2px" });
+					} else {
+						$sc.css({ height: "", "overflow-x": "", "overflow-y": "", "scroll-snap-type": "", "max-width": "" });
+						$bd.css({ "max-width": "840px", height: "", columns: "", "column-gap": "", "column-fill": "", "padding-right": "" });
+						$L.find(".duty-rd-nav").css("max-width", "840px");
+					}
+				};
+				const pageBy = (dir) => {
+					const el = $sc[0];
+					el.scrollBy({ left: dir * (el.clientWidth + 0), behavior: "smooth" });
+				};
 				const renderToc = () => {
 					$toc.empty();
 					m.chapters.forEach((c) => {
@@ -4531,9 +4570,15 @@ class DutyBoard {
 					});
 				$L.find(".duty-rd-revs").on("click", () => $L.find(".duty-rd-revpanel").slideToggle(120));
 				const save = (donech) => {
-					const pct = document.documentElement.scrollHeight > window.innerHeight
-						? Math.round((window.scrollY / (document.documentElement.scrollHeight - window.innerHeight)) * 100)
-						: 100;
+					let pct;
+					if (prefs.two) {
+						const el = $sc[0];
+						pct = el.scrollWidth > el.clientWidth ? Math.round((el.scrollLeft / (el.scrollWidth - el.clientWidth)) * 100) : 100;
+					} else {
+						pct = document.documentElement.scrollHeight > window.innerHeight
+							? Math.round((window.scrollY / (document.documentElement.scrollHeight - window.innerHeight)) * 100)
+							: 100;
+					}
 					const mins = Math.round((Date.now() - opened_at) / 60000);
 					opened_at = Date.now();
 					frappe.call({ method: "duty_board.library.mark", args: { book: book, chapter: cur, scroll_pct: pct, minutes: mins, done: donech || null }, callback: () => {} });
@@ -4553,15 +4598,33 @@ class DutyBoard {
 							cur = name;
 							$bd.html(rr.message.content || `<p class="text-muted">${__("Empty chapter.")}</p>`);
 							renderToc();
+							applyPrefs();
 							requestAnimationFrame(() => {
-								const h = document.documentElement.scrollHeight - window.innerHeight;
-								window.scrollTo(0, scrollPct ? (h * scrollPct) / 100 : 0);
+								if (prefs.two) {
+									const el = $sc[0];
+									el.scrollLeft = scrollPct ? ((el.scrollWidth - el.clientWidth) * scrollPct) / 100 : 0;
+								} else {
+									const h = document.documentElement.scrollHeight - window.innerHeight;
+									window.scrollTo(0, scrollPct ? (h * scrollPct) / 100 : 0);
+								}
 							});
 							save(null);
 						},
 					});
 				};
-				$L.find(".duty-rd-back").on("click", () => { save(null); this._reading = null; this.refresh_library(); });
+				$L.find(".duty-rd-back").on("click", () => { save(null); this._reading = null; $(document).off("keydown.dutyrd"); this.refresh_library(); });
+				$L.find(".duty-rd-opt").on("click", (e) => {
+					const o = $(e.currentTarget).data("o");
+					prefs[o] = prefs[o] ? 0 : 1;
+					applyPrefs();
+				});
+				$L.find(".duty-rd-pgprev").on("click", () => pageBy(-1));
+				$L.find(".duty-rd-pgnext").on("click", () => pageBy(1));
+				$(document).off("keydown.dutyrd").on("keydown.dutyrd", (e) => {
+					if (this.face !== "library" || !this._reading || !prefs.two) return;
+					if (e.key === "ArrowRight") pageBy(1);
+					if (e.key === "ArrowLeft") pageBy(-1);
+				});
 				$L.find(".duty-rd-prev").on("click", () => { const i = chIdx(cur); if (i > 0) go(m.chapters[i - 1].name, 0); });
 				$L.find(".duty-rd-next").on("click", () => {
 					doneSet.add(cur);
@@ -4573,9 +4636,17 @@ class DutyBoard {
 				$bd.html(m.content || "");
 				renderToc();
 				loadReviews();
+				applyPrefs();
+				$sc.on("scroll", () => { if (prefs.two) this._rd_scroll(); });
+				$(window).off("resize.dutyrd").on("resize.dutyrd", () => { if (this._reading) applyPrefs(); });
 				requestAnimationFrame(() => {
-					const h = document.documentElement.scrollHeight - window.innerHeight;
-					window.scrollTo(0, m.scroll_pct ? (h * m.scroll_pct) / 100 : 0);
+					if (prefs.two) {
+						const el = $sc[0];
+						el.scrollLeft = m.scroll_pct ? ((el.scrollWidth - el.clientWidth) * m.scroll_pct) / 100 : 0;
+					} else {
+						const h = document.documentElement.scrollHeight - window.innerHeight;
+						window.scrollTo(0, m.scroll_pct ? (h * m.scroll_pct) / 100 : 0);
+					}
 				});
 			},
 		});
