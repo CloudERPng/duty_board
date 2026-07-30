@@ -307,7 +307,12 @@ def _pdf_to_chapters(content_bytes):
 def _convert_job(file_url, title, author, description, requested_by):
 	fname = frappe.db.get_value("File", {"file_url": file_url}, "name")
 	fdoc = frappe.get_doc("File", fname)
-	chapters, method = _pdf_to_chapters(fdoc.get_content())
+	if (fdoc.file_name or "").lower().endswith(".epub"):
+		chapters, meta_title, meta_author = _epub_to_chapters(fdoc.get_content())
+		title = title or meta_title
+		author = author or meta_author
+	else:
+		chapters, method = _pdf_to_chapters(fdoc.get_content())
 	book = frappe.get_doc(
 		{
 			"doctype": "Duty Book",
@@ -377,3 +382,133 @@ def delete_book(book):
 	frappe.delete_doc("Duty Book", book, ignore_permissions=True, force=True)
 	frappe.db.commit()
 	return {"ok": 1}
+
+
+# ---------------- epub conversion (stdlib only, near-lossless) ----------------
+
+_OK_TAGS = {"h1", "h2", "h3", "h4", "p", "ul", "ol", "li", "b", "strong", "i", "em",
+	"blockquote", "br", "hr", "table", "thead", "tbody", "tr", "td", "th", "img", "a", "sub", "sup"}
+
+
+def _sanitize_html(raw, images):
+	"""Whitelist tags, strip attributes (keep img src via provided map, a href)."""
+	from html.parser import HTMLParser
+
+	out = []
+
+	class S(HTMLParser):
+		def handle_starttag(self, tag, attrs):
+			if tag not in _OK_TAGS:
+				return
+			a = dict(attrs)
+			if tag == "img":
+				srcd = images.get((a.get("src") or "").split("/")[-1])
+				if srcd:
+					out.append(f'<img src="{srcd}" style="max-width:100%">')
+				return
+			if tag == "a" and a.get("href", "").startswith("http"):
+				out.append(f'<a href="{frappe.utils.escape_html(a["href"])}" target="_blank">')
+				return
+			out.append(f"<{tag}>")
+
+		def handle_endtag(self, tag):
+			if tag in _OK_TAGS and tag not in ("img", "br", "hr"):
+				out.append(f"</{tag}>")
+
+		def handle_data(self, data):
+			out.append(frappe.utils.escape_html(data))
+
+	S().feed(raw)
+	html = "".join(out)
+	# collapse pathological whitespace
+	import re
+
+	return re.sub(r"(\s*<p>\s*</p>\s*)+", "", html)
+
+
+def _epub_to_chapters(content_bytes):
+	import io
+	import posixpath
+	import re
+	import zipfile
+	from xml.etree import ElementTree as ET
+
+	z = zipfile.ZipFile(io.BytesIO(content_bytes))
+	container = ET.fromstring(z.read("META-INF/container.xml"))
+	opf_path = container.find(".//{*}rootfile").get("full-path")
+	opf_dir = posixpath.dirname(opf_path)
+	opf = ET.fromstring(z.read(opf_path))
+	manifest = {}
+	for item in opf.findall(".//{*}manifest/{*}item"):
+		manifest[item.get("id")] = {
+			"href": item.get("href"),
+			"type": item.get("media-type") or "",
+		}
+	spine = [it.get("idref") for it in opf.findall(".//{*}spine/{*}itemref")]
+	meta_title = (opf.findtext(".//{*}metadata/{*}title") or "").strip()
+	meta_author = (opf.findtext(".//{*}metadata/{*}creator") or "").strip()
+
+	def zread(href):
+		p = posixpath.normpath(posixpath.join(opf_dir, href))
+		return z.read(p)
+
+	# small images → data URIs
+	import base64
+
+	images = {}
+	for it in manifest.values():
+		if it["type"].startswith("image/"):
+			try:
+				raw = zread(it["href"])
+				if len(raw) <= 300 * 1024:
+					images[it["href"].split("/")[-1]] = (
+						f"data:{it['type']};base64," + base64.b64encode(raw).decode()
+					)
+			except Exception:
+				pass
+
+	# toc titles (ncx or nav)
+	toc = {}
+	for it in manifest.values():
+		if it["href"].endswith(".ncx"):
+			try:
+				ncx = ET.fromstring(zread(it["href"]))
+				for np in ncx.findall(".//{*}navPoint"):
+					lbl = (np.findtext(".//{*}text") or "").strip()
+					srcel = np.find(".//{*}content")
+					if lbl and srcel is not None:
+						toc[srcel.get("src").split("#")[0].split("/")[-1]] = lbl
+			except Exception:
+				pass
+
+	chapters = []
+	for idref in spine:
+		it = manifest.get(idref)
+		if not it or "html" not in it["type"]:
+			continue
+		try:
+			raw = zread(it["href"]).decode("utf-8", "ignore")
+		except Exception:
+			continue
+		body = re.search(r"<body[^>]*>(.*)</body>", raw, re.S | re.I)
+		body = body.group(1) if body else raw
+		html = _sanitize_html(body, images)
+		text = re.sub(r"<[^>]+>", " ", html)
+		words = len(text.split())
+		if words < 15 and "<img" not in html:
+			continue  # cover pages, blank separators
+		fname = it["href"].split("/")[-1]
+		title = toc.get(fname)
+		if not title:
+			m = re.search(r"<h[12]>(.*?)</h[12]>", html, re.S)
+			title = re.sub(r"<[^>]+>", "", m.group(1)).strip() if m else None
+		chapters.append(
+			{
+				"title": (title or _("Chapter {0}").format(len(chapters) + 1))[:140],
+				"content": html,
+				"words": words,
+			}
+		)
+	if not chapters:
+		frappe.throw(_("No readable chapters found in this ePub."))
+	return chapters, meta_title, meta_author

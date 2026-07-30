@@ -4384,16 +4384,16 @@ class DutyBoard {
 				);
 				if (mgr) {
 					$(`<div style="margin-top:10px;padding-top:10px;border-top:1px solid #E8E5DD">
-						<input type="file" accept="application/pdf" class="duty-bk-file" style="font-size:12px">
+						<input type="file" accept=".pdf,.epub" class="duty-bk-file" style="font-size:12px">
 						<button class="btn btn-sm btn-primary duty-bk-up" style="margin-left:6px">📚 ${__("Convert & add to Library")}</button>
-						<div class="text-muted" style="font-size:11.5px;margin-top:4px">${__("Text-based PDFs convert automatically; scanned page-image PDFs are refused (they need OCR).")}</div>
+						<div class="text-muted" style="font-size:11.5px;margin-top:4px">${__("ePubs convert near-losslessly (own chapters, images kept). Text PDFs convert well; scanned page-image PDFs are refused (they need OCR).")}</div>
 					</div>`).appendTo(d.body);
 					$(d.body).find(".duty-bk-up").on("click", () => {
 						const f = $(d.body).find(".duty-bk-file")[0].files[0];
 						if (!f) return;
 						frappe.prompt(
 							[
-								{ fieldname: "title", fieldtype: "Data", label: __("Title"), default: f.name.replace(/\.pdf$/i, ""), reqd: 1 },
+								{ fieldname: "title", fieldtype: "Data", label: __("Title"), default: f.name.replace(/\.(pdf|epub)$/i, ""), reqd: 1 },
 								{ fieldname: "author", fieldtype: "Data", label: __("Author") },
 								{ fieldname: "description", fieldtype: "Small Text", label: __("Why the team should read it") },
 							],
