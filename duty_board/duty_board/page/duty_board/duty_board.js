@@ -22,6 +22,18 @@ frappe.pages["duty-board"].on_page_load = function (wrapper) {
 
 	board.face_btn = null;
 	board.sales_btn = null;
+	board.$facebar = $('<div class="duty-facebar"></div>').prependTo(page.body);
+	board.face_chip = (label, face) => {
+		$(`<a class="duty-facechip" data-face="${face}">${label}</a>`)
+			.appendTo(board.$facebar)
+			.on("click", () => board.show_face(face));
+	};
+	board.face_chip("🏠", "board");
+	board.face_chip("📁", "projects");
+	board.face_chip("💼", "sales");
+	board.face_chip("🤝", "clients");
+	board.face_chip("👤", "me");
+	board.face_chip("📚", "library");
 	page.add_inner_button(__("🏠 Board"), () => board.show_face("board"), __("⇄ View"));
 	page.add_inner_button(__("📁 Projects"), () => board.show_face("projects"), __("⇄ View"));
 	page.add_inner_button(__("💼 Sales"), () => board.show_face("sales"), __("⇄ View"));
@@ -33,6 +45,7 @@ frappe.pages["duty-board"].on_page_load = function (wrapper) {
 			board.books_acc = (r.message && r.message.allowed && r.message) || null;
 			if (board.books_acc) {
 				page.add_inner_button(__("📒 Books"), () => board.show_face("books"), __("⇄ View"));
+				board.face_chip("📒", "books");
 				$('.duty-tabbar a[data-tab="books"]').show();
 				if (board.books_acc.manager) {
 					page.add_inner_button(__("💰 Cost to serve"), () => board.cost_dialog(), __("⇄ View"));
@@ -1667,6 +1680,7 @@ class DutyBoard {
 				.forEach((k) => localStorage.removeItem(k));
 		}
 		this.face = face;
+		if (this.$facebar) this.$facebar.find(".duty-facechip").removeClass("on").filter(`[data-face="${face}"]`).addClass("on");
 		this.body.toggle(face === "board");
 		this.$projects.toggle(face === "projects");
 		this.$sales.toggle(face === "sales");
@@ -8512,6 +8526,17 @@ class DutyBoard {
 			.duty-cr-staff { background: #ecfdf5; align-self: flex-end; }
 			.duty-cr-mine { background: #cdeedd; align-self: flex-end; border: 1px solid #b5e3cd; }
 			.duty-cr-unread-sys { background: #eceae4 !important; color: #6B7772 !important; }
+			.duty-facebar { display: none; }
+			@media (max-width: 767px) {
+				.duty-library > div[style*="display:flex"] { flex-direction: column; }
+				.duty-rd-toc { width: 100% !important; position: static !important; max-height: 200px !important; border-right: none !important; border-bottom: 1px solid #E8E5DD; padding-bottom: 8px; }
+				.duty-pj-side { width: 190px; }
+			}
+			@media (max-width: 991px) {
+				.duty-facebar { display: flex; gap: 6px; overflow-x: auto; padding: 8px 4px; position: sticky; top: 0; z-index: 6; background: var(--bg-color, #fff); border-bottom: 1px solid #eceae4; -webkit-overflow-scrolling: touch; }
+				.duty-facechip { flex: none; font-size: 17px; padding: 6px 13px; border-radius: 99px; background: #f0efe9; cursor: pointer; text-decoration: none; line-height: 1; }
+				.duty-facechip.on { background: #0E5A4A; }
+			}
 			.duty-cr-client { background: var(--gray-100, #f3f4f6); align-self: flex-start; }
 			.duty-cr-internal { background: #fef9c3; border: 1px dashed #d97706; align-self: flex-end; }
 			.duty-cr-msg .duty-msg-who { display: block; font-size: var(--text-xs); font-weight: 700; }
