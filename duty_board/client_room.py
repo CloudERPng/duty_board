@@ -348,7 +348,10 @@ def get_rooms():
 		r.last = last[0].message[:60] if last else ""
 		r.last_when = str(last[0].creation) if last else None
 		r.members = frappe.db.count("Client Room Member", {"room": r.name, "active": 1})
-		r.unread = _room_unread(r.name, frappe.session.user)
+		_u = _room_unread(r.name, frappe.session.user)
+		r.unread = _u["total"]
+		r.unread_client = _u["client"]
+		r.unread_other = _u["other"]
 		r.join_requests = frappe.db.count(
 			"Client Join Request", {"room": r.name, "status": "Pending"}
 		)
@@ -1246,14 +1249,30 @@ def _rooms_unread_safe(user):
 		return 0
 
 
+_UTYPE_CACHE = {}
+
+
+def _utype(user):
+	if user not in _UTYPE_CACHE:
+		_UTYPE_CACHE[user] = frappe.db.get_value("User", user, "user_type")
+	return _UTYPE_CACHE[user]
+
+
 def _room_unread(room_name, user):
+	"""Unseen messages split: client-authored (a human on the client side
+	wrote something) vs everything else (staff colleagues, system
+	narrations). Returns {total, client, other}."""
 	seen = frappe.db.get_value(
 		"Client Room Seen", {"room": room_name, "user": user}, "last_seen"
 	)
 	filters = {"room": room_name, "owner": ["!=", user]}
 	if seen:
 		filters["creation"] = [">", seen]
-	return frappe.db.count("Client Room Message", filters)
+	owners = frappe.get_all(
+		"Client Room Message", filters=filters, pluck="owner", limit_page_length=0
+	)
+	client = sum(1 for o in owners if _utype(o) == "Website User")
+	return {"total": len(owners), "client": client, "other": len(owners) - client}
 
 
 @frappe.whitelist()
