@@ -201,8 +201,11 @@ class DutyBoard {
 				<div class="duty-reply-bar" style="display:none"></div>
 				<div class="duty-attach-bar" style="display:none"></div>
 				<div class="duty-chat-typing" style="display:none"></div>
+				<div class="duty-tc-emojis" style="display:none"></div>
 				<div class="duty-chat-send">
 					<label class="btn btn-default btn-sm duty-attach-btn" title="${__("Attach file, image or video (max 25 MB)")}">📎<input type="file" class="duty-file-input" hidden></label>
+					<a class="duty-tc-emojibtn" title="${__("Emoji")}">😊</a>
+					<a class="duty-tc-mic" title="${__("Hold to record a voice note")}">🎙</a>
 					<div class="duty-chat-input-wrap">
 						<textarea rows="1" class="form-control duty-chat-input" maxlength="1000"
 							placeholder="${__("Message the team — @ to mention, Shift+Enter for a new line...")}"></textarea>
@@ -368,6 +371,22 @@ class DutyBoard {
 		$c.find(".duty-file-input").on("change", (e) => {
 			if (e.target.files[0]) this.set_file(e.target.files[0]);
 			e.target.value = "";
+		});
+		const TC_EMOJIS = ["😀","😂","🙏","👍","👌","🙌","🎉","❤️","🔥","💯","😅","😢","😡","🤔","👀","✅","❌","⏳","📌","💡","📞","🤝","🚀","🙈"];
+		const $tce = $c.find(".duty-tc-emojis");
+		$c.find(".duty-tc-emojibtn").on("click", () => {
+			if ($tce.is(":visible")) return $tce.hide();
+			if (!$tce.children().length)
+				TC_EMOJIS.forEach((em) =>
+					$(`<a style="font-size:19px;padding:2px 5px;cursor:pointer;text-decoration:none">${em}</a>`)
+						.appendTo($tce)
+						.on("click", () => { this.$input.val(this.$input.val() + em).focus(); })
+				);
+			$tce.css({ display: "flex", "flex-wrap": "wrap", gap: "2px", padding: "4px 6px" }).show();
+		});
+		this.bind_recorder($c.find(".duty-tc-mic"), (file) => {
+			this.set_file(file);
+			this.send_chat();
 		});
 
 		document.addEventListener("visibilitychange", () => {
@@ -737,6 +756,43 @@ class DutyBoard {
 		this.$input.focus();
 	}
 
+	bind_recorder($btn, on_done) {
+		let rec = null, chunks = [], stream = null, started = 0;
+		const stop = () => {
+			if (rec && rec.state !== "inactive") rec.stop();
+			$btn.removeClass("rec").css("animation", "");
+		};
+		const start = async (e) => {
+			e.preventDefault();
+			if (rec && rec.state === "recording") return;
+			try {
+				stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+			} catch {
+				frappe.show_alert({ message: __("Microphone permission denied."), indicator: "red" });
+				return;
+			}
+			chunks = [];
+			started = Date.now();
+			rec = new MediaRecorder(stream);
+			rec.ondataavailable = (ev) => ev.data.size && chunks.push(ev.data);
+			rec.onstop = () => {
+				stream.getTracks().forEach((t) => t.stop());
+				const dur = Date.now() - started;
+				if (dur < 600 || !chunks.length) return;
+				const blob = new Blob(chunks, { type: "audio/webm" });
+				if (blob.size > 25 * 1024 * 1024) {
+					frappe.show_alert({ message: __("Voice note too large."), indicator: "red" });
+					return;
+				}
+				on_done(new File([blob], `voice-note-${Date.now()}.webm`, { type: "audio/webm" }));
+			};
+			rec.start();
+			$btn.addClass("rec").css("animation", "duty-pulse 1s infinite");
+		};
+		$btn.on("pointerdown", start);
+		$btn.on("pointerup pointerleave", stop);
+	}
+
 	set_file(f) {
 		const MAX = 25 * 1024 * 1024;
 		if (f.size > MAX) {
@@ -842,6 +898,8 @@ class DutyBoard {
 				attach = `<div class="duty-msg-attach"><a href="${url}" target="_blank"><img src="${url}"></a></div>`;
 			} else if (m.attachment_type === "video") {
 				attach = `<div class="duty-msg-attach"><video src="${url}" controls preload="metadata"></video></div>`;
+			} else if (m.attachment_type === "audio" || /\.(webm|ogg|mp3|m4a|wav)$/i.test(m.attachment_name || "")) {
+				attach = `<div class="duty-msg-attach"><audio controls preload="none" src="${url}" style="max-width:240px"></audio></div>`;
 			} else {
 				attach = `<div class="duty-msg-attach"><a href="${url}" target="_blank">📎 ${frappe.utils.escape_html(m.attachment_name || "file")}</a></div>`;
 			}
@@ -3836,6 +3894,7 @@ class DutyBoard {
 				<label class="duty-cr-int"><input type="checkbox" class="duty-cr-internal-toggle"> 🔒 ${__("Internal")}</label>
 				<label class="duty-cr-attach" title="${__("Attach image / file")}">📎<input type="file" hidden></label>
 				<a class="duty-cr-emojibtn" title="${__("Emoji")}">😊</a>
+				<a class="duty-cr-mic" title="${__("Hold to record a voice note")}">🎙</a>
 				<textarea rows="2" class="form-control duty-cr-input" placeholder="${__("Message {0}... Enter to send", [frappe.utils.escape_html(x.customer)])}"></textarea>
 				<button type="button" class="btn btn-primary btn-sm duty-cr-send">${__("Send")}</button>
 			</div>
@@ -3966,6 +4025,7 @@ class DutyBoard {
 			take_file(e.target.files[0]);
 			e.target.value = "";
 		});
+		this.bind_recorder($room.find(".duty-cr-mic"), (file) => take_file(file));
 		$input.on("paste", (e) => {
 			for (const it of (e.originalEvent.clipboardData || {}).items || []) {
 				if (it.kind === "file") {
@@ -8100,6 +8160,8 @@ class DutyBoard {
 			.duty-msg { padding: 4px 2px; font-size: var(--text-sm); line-height: 1.5; }
 			.duty-msg-who { font-weight: 700; color: var(--text-color); margin-right: 6px; }
 			.duty-msg-mine { background: #e7f4ec; border-radius: 10px; padding: 4px 8px; }
+			.duty-tc-emojibtn, .duty-tc-mic, .duty-cr-mic { cursor: pointer; font-size: 18px; align-self: center; padding: 0 4px; text-decoration: none; user-select: none; }
+			@keyframes duty-pulse { 0% { opacity: 1; } 50% { opacity: .35; } 100% { opacity: 1; } }
 			.duty-msg-mine .duty-msg-who { color: var(--green-600, #2e7d32); }
 			.duty-msg-time { margin-left: 8px; font-size: var(--text-xs); color: var(--text-muted); }
 			.duty-chat-send { display: flex; gap: 8px; align-items: flex-end; }
