@@ -1650,6 +1650,11 @@ class DutyBoard {
 		this.body.toggle(face === "board");
 		this.$projects.toggle(face === "projects");
 		this.$sales.toggle(face === "sales");
+		if (this.face === "clients" && face !== "clients") {
+			Object.keys(localStorage)
+				.filter((k) => k.indexOf("duty_cr_fold_") === 0)
+				.forEach((k) => localStorage.removeItem(k));
+		}
 		this.$clients.toggle(face === "clients");
 		this.$me.toggle(face === "me");
 		this.$books.toggle(face === "books");
@@ -3513,13 +3518,15 @@ class DutyBoard {
 			return;
 		}
 		const cust_unread = {};
+		const cust_unread_sys = {};
 		const cust_joins = {};
 		let total_unread = 0;
 		let total_joins = 0;
 		this._rooms.forEach((r) => {
-			cust_unread[r.customer] = (cust_unread[r.customer] || 0) + (r.unread || 0);
+			cust_unread[r.customer] = (cust_unread[r.customer] || 0) + (r.unread_client || 0);
+			cust_unread_sys[r.customer] = (cust_unread_sys[r.customer] || 0) + (r.unread_other || 0);
 			cust_joins[r.customer] = (cust_joins[r.customer] || 0) + (r.join_requests || 0);
-			total_unread += r.unread ? 1 : 0;
+			total_unread += r.unread_client ? 1 : 0;
 			total_joins += r.join_requests || 0;
 		});
 		$(".duty-cr-barjoins").html(
@@ -3529,10 +3536,10 @@ class DutyBoard {
 		$(".duty-tab-clients").text(cr_attn2).toggle(cr_attn2 > 0);
 		let prev_cust = null;
 		this._rooms.forEach((r) => {
-			const folded = localStorage.getItem("duty_cr_fold_" + r.customer) === "1";
+			const folded = localStorage.getItem("duty_cr_fold_" + r.customer) !== "0";
 			if (r.customer !== prev_cust) {
 				prev_cust = r.customer;
-				$(`<div class="duty-cr-cust"><span class="duty-cr-caret">${folded ? "▸" : "▾"}</span> ${frappe.utils.escape_html(r.customer)}${folded && cust_unread[r.customer] ? ` <span class="duty-cr-unread">${cust_unread[r.customer]}</span>` : ""}${folded && cust_joins[r.customer] ? ` <span class="duty-cr-joinpill">🙋 ${cust_joins[r.customer]}</span>` : ""}</div>`)
+				$(`<div class="duty-cr-cust"><span class="duty-cr-caret">${folded ? "▸" : "▾"}</span> ${frappe.utils.escape_html(r.customer)}${folded && cust_unread[r.customer] ? ` <span class="duty-cr-unread" title="${__("new client message(s)")}">${cust_unread[r.customer]}</span>` : ""}${folded && cust_unread_sys[r.customer] ? ` <span class="duty-cr-unread duty-cr-unread-sys" title="${__("system & colleague message(s)")}">${cust_unread_sys[r.customer]}</span>` : ""}${folded && cust_joins[r.customer] ? ` <span class="duty-cr-joinpill">🙋 ${cust_joins[r.customer]}</span>` : ""}</div>`)
 					.appendTo($list)
 					.on("click", () => {
 						localStorage.setItem(
@@ -3545,7 +3552,7 @@ class DutyBoard {
 			if (folded) return;
 			$(`
 				<a class="duty-cr-item ${r.name === this._open_room ? "active" : ""} ${r.status !== "Active" ? "duty-cr-frozen" : ""}">
-					<b style="color:${this.proj_color(r.name)}">${r.health ? `<span class="duty-health duty-health-${r.health.state}" title="${frappe.utils.escape_html((r.health.reasons || []).join(" · ") || __("healthy"))}">●</span> ` : ""}${frappe.utils.escape_html(r.unit || "General")}${r.renewal ? (r.renewal.frozen ? ` <span class="duty-renew duty-renew-frozen">⏸</span>` : r.renewal.days_left < 0 ? ` <span class="duty-renew duty-renew-over">🔴 ${-r.renewal.days_left}d</span>` : r.renewal.days_left <= 30 ? ` <span class="duty-renew duty-renew-warn">⏳ ${r.renewal.days_left}d</span>` : "") : ""}${r.unread ? ` <span class="duty-cr-unread">${r.unread}</span>` : ""}${r.join_requests ? ` <span class="duty-cr-joinpill" title="${__("Join requests awaiting approval")}">🙋 ${r.join_requests}</span>` : ""}${r.renewal ? (r.renewal.frozen ? ` <span class="duty-renew duty-renew-frozen">⏸</span>` : r.renewal.days_left < 0 ? ` <span class="duty-renew duty-renew-over" title="${__("renewal overdue")}">🔴 ${-r.renewal.days_left}d</span>` : r.renewal.days_left <= 30 ? ` <span class="duty-renew duty-renew-warn" title="${__("renews soon")}">⏳ ${r.renewal.days_left}d</span>` : "") : ""}</b>
+					<b style="color:${this.proj_color(r.name)}">${r.health ? `<span class="duty-health duty-health-${r.health.state}" title="${frappe.utils.escape_html((r.health.reasons || []).join(" · ") || __("healthy"))}">●</span> ` : ""}${frappe.utils.escape_html(r.unit || "General")}${r.renewal ? (r.renewal.frozen ? ` <span class="duty-renew duty-renew-frozen">⏸</span>` : r.renewal.days_left < 0 ? ` <span class="duty-renew duty-renew-over">🔴 ${-r.renewal.days_left}d</span>` : r.renewal.days_left <= 30 ? ` <span class="duty-renew duty-renew-warn">⏳ ${r.renewal.days_left}d</span>` : "") : ""}${r.unread_client ? ` <span class="duty-cr-unread" title="${__("new client message(s)")}">${r.unread_client}</span>` : ""}${r.unread_other ? ` <span class="duty-cr-unread duty-cr-unread-sys" title="${__("system & colleague message(s)")}">${r.unread_other}</span>` : ""}${r.join_requests ? ` <span class="duty-cr-joinpill" title="${__("Join requests awaiting approval")}">🙋 ${r.join_requests}</span>` : ""}${r.renewal ? (r.renewal.frozen ? ` <span class="duty-renew duty-renew-frozen">⏸</span>` : r.renewal.days_left < 0 ? ` <span class="duty-renew duty-renew-over" title="${__("renewal overdue")}">🔴 ${-r.renewal.days_left}d</span>` : r.renewal.days_left <= 30 ? ` <span class="duty-renew duty-renew-warn" title="${__("renews soon")}">⏳ ${r.renewal.days_left}d</span>` : "") : ""}</b>
 					${r.status !== "Active" ? `<span class="duty-cr-status">${__(r.status)}</span>` : ""}
 					<span class="duty-cr-last">${frappe.utils.escape_html(r.last || "")}</span>
 					<span class="duty-cr-members">👥 ${r.members}</span>
@@ -7955,6 +7962,7 @@ class DutyBoard {
 			.duty-cr-emojibtn { cursor: pointer; align-self: center; font-size: 18px; text-decoration: none; }
 			.duty-cr-staff { background: #ecfdf5; align-self: flex-end; }
 			.duty-cr-mine { background: #cdeedd; align-self: flex-end; border: 1px solid #b5e3cd; }
+			.duty-cr-unread-sys { background: #eceae4 !important; color: #6B7772 !important; }
 			.duty-cr-client { background: var(--gray-100, #f3f4f6); align-self: flex-start; }
 			.duty-cr-internal { background: #fef9c3; border: 1px dashed #d97706; align-self: flex-end; }
 			.duty-cr-msg .duty-msg-who { display: block; font-size: var(--text-xs); font-weight: 700; }
