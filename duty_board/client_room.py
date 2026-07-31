@@ -4485,6 +4485,80 @@ def _settle_meeting(doc, status):
 
 
 @frappe.whitelist()
+def _meeting_ics(doc, method="REQUEST"):
+	"""RFC 5545 invite for a Duty Meeting. Gmail/Outlook auto-surface it;
+	SEQUENCE bumps on every re-send so updates replace, not duplicate."""
+	from datetime import timedelta
+
+	from frappe.utils import get_datetime, get_url
+
+	seq = cint(doc.ics_seq or 0)
+	start = get_datetime(f"{doc.meeting_date} {doc.start_time}")
+	end = start + timedelta(minutes=cint(doc.duration_mins) or 30)
+	fmt = "%Y%m%dT%H%M%S"
+	organizer = frappe.db.get_single_value("Duty Settings", "meeting_organizer_email") or "no-reply@xlevelretail.com"
+	attendees = []
+	for a in doc.attendees:
+		full = frappe.utils.get_fullname(a.user)
+		attendees.append(f"ATTENDEE;CN={full};RSVP=TRUE:mailto:{a.user}")
+	desc = _("Meeting on your Xlevel client workspace — {0}").format(get_url("/portal"))
+	lines = [
+		"BEGIN:VCALENDAR",
+		"PRODID:-//Xlevel Retail Systems//Duty Board//EN",
+		"VERSION:2.0",
+		f"METHOD:{method}",
+		"BEGIN:VEVENT",
+		f"UID:{doc.name}@xlevel.clouderp.one",
+		f"SEQUENCE:{seq}",
+		f"DTSTAMP:{frappe.utils.now_datetime().strftime(fmt)}",
+		f"DTSTART;TZID=Africa/Lagos:{start.strftime(fmt)}",
+		f"DTEND;TZID=Africa/Lagos:{end.strftime(fmt)}",
+		f"SUMMARY:{(doc.topic or 'Meeting').replace(chr(10), ' ')[:200]}" + (" (CANCELLED)" if method == "CANCEL" else ""),
+		f"DESCRIPTION:{desc}",
+		f"ORGANIZER;CN=Xlevel Retail Systems:mailto:{organizer}",
+		f"STATUS:{'CANCELLED' if method == 'CANCEL' else 'CONFIRMED'}",
+	] + attendees + [
+		"BEGIN:VALARM",
+		"TRIGGER:-PT30M",
+		"ACTION:DISPLAY",
+		f"DESCRIPTION:{(doc.topic or 'Meeting')[:100]}",
+		"END:VALARM",
+		"END:VEVENT",
+		"END:VCALENDAR",
+	]
+	return "\r\n".join(lines)
+
+
+def _send_meeting_invite(doc, method="REQUEST"):
+	"""Email the .ics to every attendee so the meeting lands on their own
+	calendar (Google, Outlook, Apple). Never raises — invites are a
+	courtesy layer over the booking, not part of it."""
+	try:
+		recipients = [a.user for a in doc.attendees if a.user and "@" in a.user]
+		if not recipients:
+			return
+		ics = _meeting_ics(doc, method)
+		verb = _("cancelled") if method == "CANCEL" else (_("updated") if cint(doc.ics_seq) else _("confirmed"))
+		frappe.sendmail(
+			recipients=recipients,
+			subject=_("📅 {0} — {1} {2}").format(doc.topic or _("Meeting"), doc.meeting_date, str(doc.start_time)[:5]),
+			message=_(
+				"<p>Your meeting <b>{0}</b> with {1} has been {2}:</p>"
+				"<p><b>{3} at {4}</b> ({5} minutes, WAT)</p>"
+				"<p>The attached invite adds it to your calendar automatically.</p>"
+			).format(
+				frappe.utils.escape_html(doc.topic or _("Meeting")),
+				frappe.utils.escape_html(doc.customer or "Xlevel"),
+				verb, doc.meeting_date, str(doc.start_time)[:5], cint(doc.duration_mins) or 30,
+			),
+			attachments=[{"fname": "invite.ics", "fcontent": ics.encode()}],
+			delayed=False,
+		)
+		doc.db_set("ics_seq", cint(doc.ics_seq) + 1, update_modified=False)
+	except Exception:
+		frappe.log_error(frappe.get_traceback()[:2000], "meeting ics invite")
+
+
 def confirm_meeting(id):
 	_staff_only()
 	doc = frappe.get_doc("Duty Meeting", id)
@@ -4497,6 +4571,9 @@ def confirm_meeting(id):
 	slot = str(doc.start_time)[:5]
 	# recheck against everything EXCEPT this meeting's own pending hold
 	doc.db_set("status", "Cancelled", update_modified=False)
+	if cint(doc.ics_seq):
+		doc.reload()
+		_send_meeting_invite(doc, "CANCEL")
 	ok = slot in _meeting_slots(attendee_ids, str(doc.meeting_date))
 	doc.db_set("status", "Pending", update_modified=False)
 	if not ok:
@@ -4518,6 +4595,8 @@ def confirm_meeting(id):
 	doc.db_set("created_todos", json.dumps(todos), update_modified=False)
 	doc.db_set("status", "Confirmed", update_modified=False)
 	doc.db_set("confirmed_by", me, update_modified=False)
+	doc.reload()
+	_send_meeting_invite(doc, "REQUEST")
 	frappe.db.commit()
 	room = frappe.get_doc("Client Room", doc.room)
 	firsts = ", ".join(frappe.utils.get_fullname(u).split(" ")[0] for u in attendee_ids)
