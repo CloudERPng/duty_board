@@ -221,6 +221,12 @@
 		overflow-wrap: break-word; word-break: normal; }
 	.m .w { white-space: nowrap; }
 	.m.me { margin-left: auto; }
+	@media (max-width: 767px) {
+		.m { margin: 4px 0; padding: 8px 11px; }
+		.m .w { font-size: 11px; }
+		#msg, textarea#msg { min-height: 42px; height: 42px; max-height: 120px; border-radius: 21px; padding: 10px 14px; }
+		.msgs { max-height: none; }
+	}
 	.m.peer { margin-left: auto; background: #F2EEE3; }
 	.m.peer .w { color: #8A7B4F; }
 	.m.staff { margin-right: auto; }
@@ -634,7 +640,7 @@ body[data-tab="home"] .foot{display:block!important;grid-area:foot}
 </div>
 <script>
 const esc = (s) => (s || "").replace(/[&<>"']/g, (c) => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
-const XLV = "3.16.2";
+const XLV = "3.16.3";
 document.getElementById("xlv").textContent = "v" + XLV;
 console.log("Xlevel portal", XLV);
 let ROOM = localStorage.getItem("xl_room") || null;
@@ -740,6 +746,14 @@ function frappe_csrf() {
 }
 const PILL = { "Queued": "p-q", "In Progress": "p-i", "Done": "p-d" };
 let LAST = {};
+(function(){
+	document.addEventListener("input", (e) => {
+		if (e.target && e.target.id === "msg" && window.matchMedia("(max-width: 767px)").matches) {
+			e.target.style.height = "42px";
+			e.target.style.height = Math.min(e.target.scrollHeight, 120) + "px";
+		}
+	});
+})();
 function linkify(escaped) {
 	return (escaped || "").replace(/(https?:\/\/[^\s<]+)/g, (u) => {
 		const trail = (u.match(/[).,;!?]+$/) || [""])[0];
