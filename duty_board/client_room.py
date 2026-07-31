@@ -4248,55 +4248,6 @@ def _staff_hour_load(user, date):
 	return busy, count
 
 
-def _google_busy(user, date):
-	"""Busy windows for a user on a date, read from Events pulled by
-	Frappe's Google Calendar integration. Returns [(start, end, subject)].
-	All-day events (≥18h) are ignored — they'd wrongly kill whole days.
-	Never raises: no calendars linked → empty."""
-	try:
-		cals = frappe.get_all(
-			"Google Calendar", filters={"user": user, "enable": 1}, pluck="name"
-		)
-		if not cals:
-			return []
-		from frappe.utils import get_datetime
-
-		day_start = get_datetime(f"{date} 00:00:00")
-		day_end = get_datetime(f"{date} 23:59:59")
-		rows = frappe.get_all(
-			"Event",
-			filters={
-				"google_calendar": ["in", cals],
-				"starts_on": ["<=", day_end],
-				"ends_on": [">=", day_start],
-				"status": ["!=", "Cancelled"],
-			},
-			fields=["subject", "starts_on", "ends_on"],
-			limit_page_length=50,
-		)
-		out = []
-		for r in rows:
-			s, e = get_datetime(r.starts_on), get_datetime(r.ends_on or r.starts_on)
-			if (e - s).total_seconds() >= 18 * 3600:
-				continue
-			out.append((s, e, r.subject or _("Busy")))
-		return out
-	except Exception:
-		return []
-
-
-def _google_busy_hours(user, date):
-	"""Hour strings ('09','14') on `date` overlapped by Google events."""
-	hours = set()
-	for s, e, _t in _google_busy(user, date):
-		h = s.replace(minute=0, second=0, microsecond=0)
-		while h < e:
-			if str(h.date()) == str(date):
-				hours.add(f"{h.hour:02d}")
-			h = h + __import__("datetime").timedelta(hours=1)
-	return hours
-
-
 def _meeting_slots(staff_list, date):
 	d = getdate(date)
 	if d < getdate(frappe.utils.today()):
@@ -4309,7 +4260,6 @@ def _meeting_slots(staff_list, date):
 		if count >= MEETING_DAY_CAP:
 			return []  # someone is fully booked that day
 		blocked |= busy
-		blocked |= _google_busy_hours(u, date)
 	now = frappe.utils.now_datetime()
 	out = []
 	for s in MEETING_SLOTS:
@@ -4609,35 +4559,12 @@ def _send_meeting_invite(doc, method="REQUEST"):
 		frappe.log_error(frappe.get_traceback()[:2000], "meeting ics invite")
 
 
-def confirm_meeting(id, force=0):
+def confirm_meeting(id):
 	_staff_only()
 	doc = frappe.get_doc("Duty Meeting", id)
 	if doc.status != "Pending":
 		frappe.throw(_("Already settled."))
 	attendee_ids = [a.user for a in doc.attendees]
-	if not cint(force):
-		from frappe.utils import get_datetime
-		from datetime import timedelta as _td
-
-		m_start = get_datetime(f"{doc.meeting_date} {doc.start_time}")
-		m_end = m_start + _td(minutes=cint(doc.duration_mins) or 30)
-		conflicts = []
-		for u in attendee_ids:
-			if frappe.db.get_value("User", u, "user_type") != "System User":
-				continue
-			for s, e, title in _google_busy(u, doc.meeting_date):
-				if s < m_end and e > m_start:
-					conflicts.append(
-						{
-							"who": frappe.utils.get_fullname(u).split(" ")[0],
-							"title": title[:80],
-							"from": s.strftime("%H:%M"),
-							"to": e.strftime("%H:%M"),
-						}
-					)
-		if conflicts:
-			return {"conflict": conflicts}
-
 	me = frappe.session.user
 	if me not in attendee_ids and "System Manager" not in frappe.get_roles():
 		frappe.throw(_("Only a requested attendee can confirm."))
@@ -4719,17 +4646,6 @@ def meeting_reminders():
 		heartbeat()
 	except Exception:
 		frappe.log_error(frappe.get_traceback()[:2000], "uat heartbeat")
-	try:
-		from frappe.integrations.doctype.google_calendar import google_calendar as _gc
-
-		if hasattr(_gc, "sync"):
-			for c in frappe.get_all("Google Calendar", filters={"enable": 1}, pluck="name"):
-				try:
-					_gc.sync(c)
-				except Exception:
-					pass
-	except Exception:
-		pass
 	"""Hourly: morning-of and hour-before pushes to the client. Staff already
 	ride the todo alert machinery."""
 	now = now_datetime()
