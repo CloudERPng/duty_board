@@ -22,18 +22,6 @@ frappe.pages["duty-board"].on_page_load = function (wrapper) {
 
 	board.face_btn = null;
 	board.sales_btn = null;
-	board.$facebar = $('<div class="duty-facebar"></div>').prependTo(page.body);
-	board.face_chip = (label, face) => {
-		$(`<a class="duty-facechip" data-face="${face}">${label}</a>`)
-			.appendTo(board.$facebar)
-			.on("click", () => board.show_face(face));
-	};
-	board.face_chip("🏠", "board");
-	board.face_chip("📁", "projects");
-	board.face_chip("💼", "sales");
-	board.face_chip("🤝", "clients");
-	board.face_chip("👤", "me");
-	board.face_chip("📚", "library");
 	page.add_inner_button(__("🏠 Board"), () => board.show_face("board"), __("⇄ View"));
 	page.add_inner_button(__("📁 Projects"), () => board.show_face("projects"), __("⇄ View"));
 	page.add_inner_button(__("💼 Sales"), () => board.show_face("sales"), __("⇄ View"));
@@ -45,10 +33,12 @@ frappe.pages["duty-board"].on_page_load = function (wrapper) {
 			board.books_acc = (r.message && r.message.allowed && r.message) || null;
 			if (board.books_acc) {
 				page.add_inner_button(__("📒 Books"), () => board.show_face("books"), __("⇄ View"));
-				board.face_chip("📒", "books");
-				$('.duty-tabbar a[data-tab="books"]').show();
+				board._more_extra = board._more_extra || [];
+				board._more_extra.push({ icon: "📒", label: __("Books"), go: () => board.set_mtab("books") });
 				if (board.books_acc.manager) {
 					page.add_inner_button(__("💰 Cost to serve"), () => board.cost_dialog(), __("⇄ View"));
+					board._more_extra = board._more_extra || [];
+					board._more_extra.push({ icon: "💰", label: __("Cost to serve"), go: () => board.cost_dialog() });
 				}
 			}
 		},
@@ -60,8 +50,12 @@ frappe.pages["duty-board"].on_page_load = function (wrapper) {
 			board.is_pricer = !!q.pricer;
 			page.add_inner_button(__("🎓 Team training"), () => board.team_training_dialog(), __("⇄ View"));
 			page.add_inner_button(__("📚 Library"), () => board.show_face("library"), __("⇄ View"));
+			board._more_extra = board._more_extra || [];
+			board._more_extra.push({ icon: "🎓", label: __("Team training"), go: () => board.team_training_dialog() });
 			if (q.pricer) {
 				page.add_inner_button(__("💼 CR pricing ({0})", [(q.queue || []).length]), () => board.pricing_dialog(), __("⇄ View"));
+				board._more_extra = board._more_extra || [];
+				board._more_extra.push({ icon: "💼", label: __("CR pricing"), go: () => board.pricing_dialog() });
 			}
 		},
 	});
@@ -536,40 +530,85 @@ class DutyBoard {
 		});
 	}
 
+	_badge_more() {
+		const total = (this.unread || 0) + (this._issues_open || 0);
+		$(".duty-tabbar .duty-tab-more").text(total).toggle(total > 0);
+	}
+
+	refresh_sheet_badges() {
+		$(".duty-sheet .duty-tab-chat").text(this.unread || 0).toggle((this.unread || 0) > 0);
+		$(".duty-sheet .duty-tab-issues").text(this._issues_open || 0).toggle((this._issues_open || 0) > 0);
+	}
+
 	is_mobile() {
 		return window.matchMedia("(max-width: 767px)").matches;
 	}
 
 	setup_mobile_tabs() {
-		if (!this.is_mobile()) return;
+		if (!window.matchMedia("(max-width: 991px)").matches) return;
 		$("body").addClass("duty-mobile");
+		this._more_extra = this._more_extra || [];
 		const $bar = $(`
 			<div class="duty-tabbar">
-				<a data-tab="board"><span>🏠</span>${__("Board")}</a>
-				<a data-tab="plan"><span>✓</span>${__("Plan")}</a>
-				<a data-tab="issues"><span>⚠</span>${__("Issues")}<b class="duty-tab-badge duty-tab-issues" style="display:none"></b></a>
-				<a data-tab="chat"><span>💬</span>${__("Chat")}<b class="duty-tab-badge duty-tab-chat" style="display:none"></b></a>
-				<a data-tab="projects"><span>📁</span>${__("Projects")}</a>
-				<a data-tab="sales"><span>💼</span>${__("Sales")}</a>
+				<a data-tab="me"><span>🏠</span>${__("Today")}</a>
 				<a data-tab="clients"><span>🤝</span>${__("Clients")}<b class="duty-tab-badge duty-tab-clients" style="display:none"></b></a>
-				<a data-tab="me"><span>👤</span>${__("Me")}</a>
-				<a data-tab="books" style="display:none"><span>📒</span>${__("Books")}</a>
+				<a data-tab="projects"><span>📁</span>${__("Projects")}</a>
+				<a data-tab="library"><span>📚</span>${__("Library")}</a>
+				<a data-tab="more"><span>⋯</span>${__("More")}<b class="duty-tab-badge duty-tab-more" style="display:none"></b></a>
 			</div>
 		`).appendTo("body");
 		$bar.find("a").on("click", (e) => {
 			const tab = $(e.currentTarget).data("tab");
+			const go = () => (tab === "more" ? this.more_sheet() : this.set_mtab(tab));
 			if (frappe.get_route_str() !== "duty-board") {
-				localStorage.setItem("duty_mtab", tab);
-				frappe.set_route("duty-board").then(() => this.set_mtab(tab));
+				if (tab !== "more") localStorage.setItem("duty_mtab", tab);
+				frappe.set_route("duty-board").then(go);
 				return;
 			}
-			this.set_mtab(tab);
+			go();
 		});
-		this.set_mtab(localStorage.getItem("duty_mtab") || "board");
-		// dim the bar when the user wanders off to other desk screens
-		const sync_bar = () => $bar.toggleClass("duty-tabbar-away", frappe.get_route_str() !== "duty-board");
+		this.set_mtab(localStorage.getItem("duty_mtab") || "me");
+		const sync_bar = () => {
+			const here = frappe.get_route_str() === "duty-board";
+			$bar.toggleClass("duty-tabbar-away", !here);
+			$("body").toggleClass("duty-immersive", here);
+		};
 		frappe.router.on("change", sync_bar);
 		sync_bar();
+	}
+
+	more_sheet() {
+		const items = [
+			{ icon: "📋", label: __("Team board"), go: () => this.set_mtab("board") },
+			{ icon: "✓", label: __("My plan"), go: () => this.set_mtab("plan") },
+			{ icon: "⚠", label: __("Issues"), badge: "duty-tab-issues", go: () => this.set_mtab("issues") },
+			{ icon: "💬", label: __("Team chat"), badge: "duty-tab-chat", go: () => this.set_mtab("chat") },
+			{ icon: "💼", label: __("Sales"), go: () => this.set_mtab("sales") },
+		].concat(this._more_extra || []);
+		this.sheet(__("More"), items);
+	}
+
+	sheet(title, items) {
+		$(".duty-sheet-wrap").remove();
+		const $w = $(`
+			<div class="duty-sheet-wrap">
+				<div class="duty-sheet-ovl"></div>
+				<div class="duty-sheet">
+					<div class="duty-sheet-grip"></div>
+					<div class="duty-sheet-title">${frappe.utils.escape_html(title)}</div>
+					<div class="duty-sheet-items"></div>
+				</div>
+			</div>`).appendTo("body");
+		const close = () => $w.remove();
+		$w.find(".duty-sheet-ovl").on("click", close);
+		const $it = $w.find(".duty-sheet-items");
+		items.forEach((i) => {
+			const $row = $(`<a class="duty-sheet-item"><span class="i">${i.icon}</span><span class="l">${frappe.utils.escape_html(i.label)}</span>${i.badge ? `<b class="duty-tab-badge ${i.badge}" style="position:static;display:none;margin-left:auto"></b>` : ""}</a>`)
+				.appendTo($it)
+				.on("click", () => { close(); i.go(); });
+		});
+		this.refresh_sheet_badges && this.refresh_sheet_badges();
+		requestAnimationFrame(() => $w.addClass("open"));
 	}
 
 	set_mtab(tab) {
@@ -585,13 +624,16 @@ class DutyBoard {
 			this.show_face("me");
 		} else if (tab === "books") {
 			this.show_face("books");
+		} else if (tab === "library") {
+			this.show_face("library");
 		} else {
 			this.show_face("board");
 			this.body.attr("data-mtab", tab);
 		}
+		const primary = ["me", "clients", "projects", "library"];
 		$(".duty-tabbar a")
 			.removeClass("active")
-			.filter(`[data-tab="${tab}"]`)
+			.filter(`[data-tab="${primary.indexOf(tab) >= 0 ? tab : "more"}"]`)
 			.addClass("active");
 		if (tab === "chat") {
 			this.mark_caught_up();
@@ -1187,6 +1229,7 @@ class DutyBoard {
 		this.$badge.text(this.unread).show();
 		this.$rail.find(".duty-rail-badge").text(this.unread).show();
 		$(".duty-tab-chat").text(this.unread).show();
+		this._badge_more();
 		document.title = `(${this.unread}) ${this.base_title}`;
 		this.start_title_flash();
 	}
@@ -1210,6 +1253,7 @@ class DutyBoard {
 		this.$badge.hide();
 		this.$rail.find(".duty-rail-badge").hide();
 		$(".duty-tab-chat").hide();
+		this._badge_more();
 		this.stop_title_flash();
 		document.title = this.base_title;
 	}
@@ -1748,7 +1792,6 @@ class DutyBoard {
 				.forEach((k) => localStorage.removeItem(k));
 		}
 		this.face = face;
-		if (this.$facebar) this.$facebar.find(".duty-facechip").removeClass("on").filter(`[data-face="${face}"]`).addClass("on");
 		this.body.toggle(face === "board");
 		this.$projects.toggle(face === "projects");
 		this.$sales.toggle(face === "sales");
@@ -6711,7 +6754,9 @@ class DutyBoard {
 		this.issue_status_filter = this.issue_status_filter || "open";
 
 		$rail.find(".duty-issues-rail-badge").text(issues.length).toggle(issues.length > 0);
+		this._issues_open = issues.length;
 		$(".duty-tab-issues").text(issues.length).toggle(issues.length > 0);
+		this._badge_more();
 		this.body.toggleClass("duty-issues-collapsed", !this.issues_open);
 		$wrap.toggle(this.issues_open);
 		$rail.toggle(!this.issues_open);
@@ -8093,13 +8138,40 @@ class DutyBoard {
 			}
 			@media (max-width: 767px) {
 				body.duty-mobile .page-head { display: none; }
-				body.duty-mobile .duty-board { padding-bottom: 76px; }
+				body.duty-mobile.duty-immersive header.navbar { display: none; }
+				body.duty-mobile.duty-immersive .main-section { padding-top: 0; }
+				body.duty-mobile.duty-immersive .page-body { margin-top: 0; }
+				body.duty-mobile { background: #F3F4F1; }
+				body.duty-mobile .duty-board { padding-bottom: 88px; }
+				body.duty-mobile .duty-projects, body.duty-mobile .duty-library,
+				body.duty-mobile .duty-clients, body.duty-mobile .duty-sales,
+				body.duty-mobile .duty-me, body.duty-mobile .duty-books { padding-bottom: 88px; }
+				body.duty-mobile .duty-card, body.duty-mobile .duty-bk,
+				body.duty-mobile .duty-chat-card { border-radius: 16px; border: none; box-shadow: 0 1px 2px rgba(16,24,40,.06), 0 1px 3px rgba(16,24,40,.05); }
+				body.duty-mobile input.form-control, body.duty-mobile textarea.form-control,
+				body.duty-mobile select.form-control { font-size: 16px; border-radius: 12px; }
+				body.duty-mobile .btn { border-radius: 10px; }
+				body.duty-mobile a[class*="-edit"], body.duty-mobile a[class*="-del"],
+				body.duty-mobile a[class*="-fetch"], body.duty-mobile .duty-cr-caret { padding: 8px 6px; display: inline-block; }
+				@media (hover: none) { .duty-cal-add { visibility: visible !important; } }
+				.duty-sheet-wrap { position: fixed; inset: 0; z-index: 1055; }
+				.duty-sheet-ovl { position: absolute; inset: 0; background: rgba(16,24,40,.4); opacity: 0; transition: opacity .18s; }
+				.duty-sheet { position: absolute; left: 0; right: 0; bottom: 0; background: #fff; border-radius: 20px 20px 0 0; padding: 8px 16px calc(16px + env(safe-area-inset-bottom)); transform: translateY(100%); transition: transform .22s cubic-bezier(.32,.72,.32,1); box-shadow: 0 -8px 32px rgba(16,24,40,.16); }
+				.duty-sheet-wrap.open .duty-sheet-ovl { opacity: 1; }
+				.duty-sheet-wrap.open .duty-sheet { transform: none; }
+				.duty-sheet-grip { width: 38px; height: 4px; border-radius: 99px; background: #E3E4E0; margin: 4px auto 10px; }
+				.duty-sheet-title { font-size: 12px; font-weight: 800; letter-spacing: .07em; text-transform: uppercase; color: #6B7772; margin-bottom: 6px; }
+				.duty-sheet-item { display: flex; align-items: center; gap: 14px; padding: 13px 6px; border-radius: 12px; font-size: 15px; color: #101828; text-decoration: none; cursor: pointer; }
+				.duty-sheet-item:active { background: #F3F4F1; }
+				.duty-sheet-item .i { font-size: 21px; width: 28px; text-align: center; }
+				body.duty-mobile .modal .modal-dialog { position: fixed; left: 0; right: 0; bottom: 0; top: auto; margin: 0; width: 100%; max-width: 100% !important; }
+				body.duty-mobile .modal .modal-content { border-radius: 20px 20px 0 0; max-height: 92vh; overflow-y: auto; padding-bottom: env(safe-area-inset-bottom); }
 				.duty-tabbar {
 					position: fixed; left: 0; right: 0; bottom: 0; z-index: 100;
-					display: flex; background: var(--card-bg, #fff);
-					border-top: 1px solid var(--border-color);
-					padding: 6px 0 calc(6px + env(safe-area-inset-bottom));
-					box-shadow: 0 -2px 10px rgba(0,0,0,0.06);
+					display: flex; background: rgba(255,255,255,.88);
+					backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
+					border-top: 1px solid rgba(16,24,40,.07);
+					padding: 8px 6px calc(8px + env(safe-area-inset-bottom));
 				}
 				.duty-tabbar a {
 					flex: 1; text-align: center; font-size: 11px; color: var(--text-muted);
@@ -8107,7 +8179,8 @@ class DutyBoard {
 					align-items: center; gap: 2px; position: relative;
 				}
 				.duty-tabbar a span { font-size: 20px; line-height: 1; filter: grayscale(1); opacity: 0.75; }
-				.duty-tabbar a.active { color: #0F5C55; font-weight: 700; }
+				.duty-tabbar a { padding: 4px 0 2px; border-radius: 12px; margin: 0 3px; }
+				.duty-tabbar a.active { color: #0E5A4A; font-weight: 700; background: #E4EEEA; }
 			.duty-tabbar-away { opacity: 0.92; box-shadow: 0 -2px 10px rgba(15, 92, 85, 0.25); }
 			.duty-tabbar-away a.active { color: inherit; font-weight: 500; }
 				.duty-tabbar a.active span { filter: none; opacity: 1; }
@@ -8598,17 +8671,12 @@ class DutyBoard {
 			.duty-cr-staff { background: #ecfdf5; align-self: flex-end; }
 			.duty-cr-mine { background: #cdeedd; align-self: flex-end; border: 1px solid #b5e3cd; }
 			.duty-cr-unread-sys { background: #eceae4 !important; color: #6B7772 !important; }
-			.duty-facebar { display: none; }
 			@media (max-width: 767px) {
 				.duty-library > div[style*="display:flex"] { flex-direction: column; }
 				.duty-rd-toc { width: 100% !important; position: static !important; max-height: 200px !important; border-right: none !important; border-bottom: 1px solid #E8E5DD; padding-bottom: 8px; }
 				.duty-pj-side { width: 190px; }
 			}
-			@media (max-width: 991px) {
-				.duty-facebar { display: flex; gap: 6px; overflow-x: auto; padding: 8px 4px; position: sticky; top: 0; z-index: 6; background: var(--bg-color, #fff); border-bottom: 1px solid #eceae4; -webkit-overflow-scrolling: touch; }
-				.duty-facechip { flex: none; font-size: 17px; padding: 6px 13px; border-radius: 99px; background: #f0efe9; cursor: pointer; text-decoration: none; line-height: 1; }
-				.duty-facechip.on { background: #0E5A4A; }
-			}
+
 			.duty-cr-client { background: var(--gray-100, #f3f4f6); align-self: flex-start; }
 			.duty-cr-internal { background: #fef9c3; border: 1px dashed #d97706; align-self: flex-end; }
 			.duty-cr-msg .duty-msg-who { display: block; font-size: var(--text-xs); font-weight: 700; }
