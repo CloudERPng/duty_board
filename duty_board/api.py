@@ -1838,6 +1838,45 @@ def update_issue(name, severity=None, due_date=None, add_assignees=None):
 	return _issue_payload(doc)
 
 
+def _fetch_issues(statuses, order_by):
+	issues = frappe.get_all(
+		"Duty Issue",
+		filters={"status": ["in", statuses]},
+		fields=[
+			"name",
+			"title",
+			"customer",
+			"severity",
+			"status",
+			"due_date",
+			"raised_by",
+			"creation",
+		],
+		order_by=order_by,
+		limit=200,
+	)
+	if issues:
+		rows = frappe.get_all(
+			"Duty Issue Assignee",
+			filters={"parenttype": "Duty Issue", "parent": ["in", [i.name for i in issues]]},
+			fields=["parent", "user"],
+		)
+		by_issue = {}
+		for r in rows:
+			by_issue.setdefault(r.parent, []).append(r.user)
+		for i in issues:
+			i.assignees = by_issue.get(i.name, [])
+			i.due_date = str(i.due_date) if i.due_date else None
+			i.creation = str(i.creation)
+	return issues
+
+
+def _open_issues():
+	issues = _fetch_issues(["Open", "In Progress"], "creation asc")
+	issues.sort(key=lambda i: str(i.creation), reverse=True)
+	return issues
+
+
 @frappe.whitelist()
 def get_issues(status="open", scope=None):
 	require_staff()
