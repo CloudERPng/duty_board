@@ -531,12 +531,11 @@ class DutyBoard {
 	}
 
 	_badge_more() {
-		const total = (this.unread || 0) + (this._issues_open || 0);
+		const total = this._issues_open || 0;
 		$(".duty-tabbar .duty-tab-more").text(total).toggle(total > 0);
 	}
 
 	refresh_sheet_badges() {
-		$(".duty-sheet .duty-tab-chat").text(this.unread || 0).toggle((this.unread || 0) > 0);
 		$(".duty-sheet .duty-tab-issues").text(this._issues_open || 0).toggle((this._issues_open || 0) > 0);
 	}
 
@@ -551,6 +550,7 @@ class DutyBoard {
 		const $bar = $(`
 			<div class="duty-tabbar">
 				<a data-tab="me"><span>🏠</span>${__("Today")}</a>
+				<a data-tab="chat"><span>💬</span>${__("Chat")}<b class="duty-tab-badge duty-tab-chat" style="display:none"></b></a>
 				<a data-tab="clients"><span>🤝</span>${__("Clients")}<b class="duty-tab-badge duty-tab-clients" style="display:none"></b></a>
 				<a data-tab="projects"><span>📁</span>${__("Projects")}</a>
 				<a data-tab="library"><span>📚</span>${__("Library")}</a>
@@ -582,7 +582,6 @@ class DutyBoard {
 			{ icon: "📋", label: __("Team board"), go: () => this.set_mtab("board") },
 			{ icon: "✓", label: __("My plan"), go: () => this.set_mtab("plan") },
 			{ icon: "⚠", label: __("Issues"), badge: "duty-tab-issues", go: () => this.set_mtab("issues") },
-			{ icon: "💬", label: __("Team chat"), badge: "duty-tab-chat", go: () => this.set_mtab("chat") },
 			{ icon: "💼", label: __("Sales"), go: () => this.set_mtab("sales") },
 		].concat(this._more_extra || []);
 		this.sheet(__("More"), items);
@@ -630,7 +629,7 @@ class DutyBoard {
 			this.show_face("board");
 			this.body.attr("data-mtab", tab);
 		}
-		const primary = ["me", "clients", "projects", "library"];
+		const primary = ["me", "chat", "clients", "projects", "library"];
 		$(".duty-tabbar a")
 			.removeClass("active")
 			.filter(`[data-tab="${primary.indexOf(tab) >= 0 ? tab : "more"}"]`)
@@ -1784,7 +1783,10 @@ class DutyBoard {
 
 	show_face(face) {
 		const prev_face = this.face;
-		if (face === "projects" && prev_face !== "projects") this._pj_open = {};
+		if (face === "projects" && prev_face !== "projects") {
+			this._pj_open = {};
+			if (this.is_mobile()) this.$projects.removeClass("pj-detail");
+		}
 		if (face === "clients" && prev_face !== "clients") {
 			this._cr_open = {};
 			Object.keys(localStorage)
@@ -3239,6 +3241,7 @@ class DutyBoard {
 						.on("click", () => {
 							this.current_project = p.name;
 							localStorage.setItem("duty_proj", p.name);
+							if (this.is_mobile()) this.$projects.addClass("pj-detail");
 							this.render_project_tabs();
 							this.load_kanban(p.name);
 						});
@@ -3393,6 +3396,7 @@ class DutyBoard {
 		this._kb_color = this.proj_color(project);
 		const $bar = $(`
 			<div class="duty-kb-bar">
+				<a class="duty-pj-back">‹ ${__("Projects")}</a>
 				<span>
 					<b style="color:${this._kb_color}">${frappe.utils.escape_html(proj ? proj.project_name : project)}</b>
 					${proj && proj.customer ? `<span class="duty-proj-cust-inline">· ${frappe.utils.escape_html(proj.customer)}</span>` : ""}
@@ -3404,6 +3408,7 @@ class DutyBoard {
 				<a class="duty-proj-archive">${__("Archive project")}</a>
 			</div>
 		`).appendTo($wrap);
+		$bar.find(".duty-pj-back").on("click", () => this.$projects.removeClass("pj-detail"));
 		$bar.find(".duty-pj-v").on("click", (e) => {
 			this._pj_view = $(e.currentTarget).data("v");
 			this.render_kanban(project, data);
@@ -3904,6 +3909,7 @@ class DutyBoard {
 		(x.tasks || []).forEach((t) => (counts[t.status] = (counts[t.status] || 0) + 1));
 		$room.html(`
 			<div class="duty-cr-ribbon">🤝 ${__("{0} can read this room — whispers 🔒 excepted", [frappe.utils.escape_html(x.customer)])}</div>
+			<div class="duty-cr-mtabs"><a data-rt="chat" class="on">💬 ${__("Chat")}</a><a data-rt="tasks">📋 ${__("Tasks")}</a></div>
 			<div class="duty-cr-head">
 				<a class="duty-cr-back">‹ ${__("Rooms")}</a>
 				<b>${frappe.utils.escape_html(x.customer)}</b>
@@ -4066,6 +4072,12 @@ class DutyBoard {
 			this._cr_pending = f;
 			show_pending();
 		};
+		$room.find(".duty-cr-mtabs a").on("click", (e) => {
+			const rt = $(e.currentTarget).data("rt");
+			$room.find(".duty-cr-mtabs a").removeClass("on");
+			$(e.currentTarget).addClass("on");
+			$room.toggleClass("rt-tasks", rt === "tasks");
+		});
 		$room.find(".duty-cr-attach input").on("change", (e) => {
 			take_file(e.target.files[0]);
 			e.target.value = "";
@@ -8164,6 +8176,27 @@ class DutyBoard {
 				.duty-sheet-item { display: flex; align-items: center; gap: 14px; padding: 13px 6px; border-radius: 12px; font-size: 15px; color: #101828; text-decoration: none; cursor: pointer; }
 				.duty-sheet-item:active { background: #F3F4F1; }
 				.duty-sheet-item .i { font-size: 21px; width: 28px; text-align: center; }
+				.duty-cr-mtabs { display: none; }
+				body.duty-mobile .duty-cr-mtabs { display: flex; gap: 6px; margin: 2px 0 8px; background: #EFF0ED; border-radius: 12px; padding: 3px; }
+				body.duty-mobile .duty-cr-mtabs a { flex: 1; text-align: center; padding: 8px 0; border-radius: 10px; font-size: 13.5px; font-weight: 600; color: #6B7772; text-decoration: none; cursor: pointer; }
+				body.duty-mobile .duty-cr-mtabs a.on { background: #fff; color: #101828; box-shadow: 0 1px 2px rgba(16,24,40,.08); }
+				body.duty-mobile .duty-cr-side { display: none; }
+				body.duty-mobile .rt-tasks .duty-cr-side { display: block; width: 100%; border: none; padding: 0; }
+				body.duty-mobile .rt-tasks .duty-cr-msgs, body.duty-mobile .rt-tasks .duty-cr-compose,
+				body.duty-mobile .rt-tasks .duty-cr-typing, body.duty-mobile .rt-tasks .duty-cr-replychip,
+				body.duty-mobile .rt-tasks .duty-cr-pending, body.duty-mobile .rt-tasks .duty-cr-emojis { display: none !important; }
+				body.duty-mobile .duty-cr-head { overflow-x: auto; white-space: nowrap; -webkit-overflow-scrolling: touch; }
+				body.duty-mobile .duty-cr-msgs { max-height: calc(100vh - 350px); }
+				body.duty-mobile .duty-projects { display: block; }
+				body.duty-mobile .duty-pj-side { width: 100%; border-right: none; max-height: none; padding: 0; }
+				body.duty-mobile .duty-pj-main { display: none; padding-left: 0; }
+				body.duty-mobile .duty-projects.pj-detail .duty-pj-side { display: none; }
+				body.duty-mobile .duty-projects.pj-detail .duty-pj-main { display: block; }
+				body.duty-mobile .duty-pj-item { padding: 12px 10px; }
+				.duty-pj-back { display: none; }
+				body.duty-mobile .duty-pj-back { display: inline-block; cursor: pointer; font-weight: 700; color: #0E5A4A; margin-right: 10px; text-decoration: none; font-size: 14px; }
+				body.duty-mobile .duty-kanban { display: flex; flex-wrap: nowrap; overflow-x: auto; scroll-snap-type: x mandatory; gap: 12px; -webkit-overflow-scrolling: touch; padding-bottom: 8px; }
+				body.duty-mobile .duty-kanban .duty-kb-col { flex: 0 0 86vw; scroll-snap-align: start; }
 				body.duty-mobile .modal .modal-dialog { position: fixed; left: 0; right: 0; bottom: 0; top: auto; margin: 0; width: 100%; max-width: 100% !important; }
 				body.duty-mobile .modal .modal-content { border-radius: 20px 20px 0 0; max-height: 92vh; overflow-y: auto; padding-bottom: env(safe-area-inset-bottom); }
 				.duty-tabbar {
@@ -8189,6 +8222,19 @@ class DutyBoard {
 					background: var(--red-500, #ef4444); color: #fff; border-radius: 99px;
 					min-width: 16px; padding: 0 4px; font-size: 10px; line-height: 16px; font-style: normal;
 				}
+				body.duty-mobile .duty-board[data-mtab="chat"] .duty-chat-card {
+					position: fixed; left: 0; right: 0; top: 0;
+					bottom: calc(58px + env(safe-area-inset-bottom));
+					z-index: 50; display: flex; flex-direction: column;
+					border-radius: 0; margin: 0; box-shadow: none; background: #fff;
+				}
+				body.duty-mobile .duty-board[data-mtab="chat"] .duty-chat-head { padding: 10px 14px calc(6px); border-bottom: 1px solid #EEEFEC; }
+				body.duty-mobile .duty-board[data-mtab="chat"] .duty-chat-collapse { display: none; }
+				body.duty-mobile .duty-board[data-mtab="chat"] .duty-chat-list { flex: 1; overflow-y: auto; max-height: none; padding: 10px 12px; }
+				body.duty-mobile .duty-board[data-mtab="chat"] .duty-chat-send { padding: 8px 12px calc(8px + env(safe-area-inset-bottom)); border-top: 1px solid #EEEFEC; background: #fff; }
+				body.duty-mobile .duty-board[data-mtab="chat"] .duty-msg { max-width: 82%; }
+				body.duty-mobile .duty-board[data-mtab="chat"] .duty-msg-mine { margin-left: auto; }
+				body.duty-mobile .duty-tabbar { z-index: 60; }
 				.duty-board[data-mtab] .duty-left, .duty-board[data-mtab] .duty-side,
 				.duty-board[data-mtab] .duty-plan, .duty-board[data-mtab] .duty-my-sessions,
 				.duty-board[data-mtab] .duty-me, .duty-board[data-mtab] .duty-task,
