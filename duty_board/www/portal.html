@@ -224,7 +224,7 @@
 	@media (max-width: 767px) {
 		.m { margin: 4px 0; padding: 8px 11px; }
 		.m .w { font-size: 11px; }
-		#msg, textarea#msg { min-height: 42px; height: 42px; max-height: 120px; border-radius: 21px; padding: 10px 14px; }
+		#text, textarea#text { min-height: 42px; height: 42px; max-height: 120px; border-radius: 21px; padding: 10px 14px; }
 		.msgs { max-height: none; }
 	}
 	.m.peer { margin-left: auto; background: #F2EEE3; }
@@ -748,7 +748,7 @@ const PILL = { "Queued": "p-q", "In Progress": "p-i", "Done": "p-d" };
 let LAST = {};
 (function(){
 	document.addEventListener("input", (e) => {
-		if (e.target && e.target.id === "msg" && window.matchMedia("(max-width: 767px)").matches) {
+		if (e.target && e.target.id === "text" && window.matchMedia("(max-width: 767px)").matches) {
 			e.target.style.height = "42px";
 			e.target.style.height = Math.min(e.target.scrollHeight, 120) + "px";
 		}
