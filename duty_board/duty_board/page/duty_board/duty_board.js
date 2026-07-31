@@ -8225,7 +8225,8 @@ class DutyBoard {
 				.duty-side { position: static; flex: 1 1 auto; max-width: 100%; width: 100%; }
 				.duty-left { position: static; flex: 1 1 auto; max-width: 100%; width: 100%; order: 2; }
 				.duty-issues-card { height: auto; }
-				.duty-issues-list { max-height: 300px; }
+				.duty-issues-list { max-height: calc(100vh - 250px); max-height: calc(100dvh - 250px); overflow-y: auto; }
+				.duty-board[data-mtab="issues"] { padding-bottom: 0 !important; }
 				.duty-issues-rail { writing-mode: horizontal-tb; justify-content: center; padding: 8px 14px; width: 100%; }
 				.duty-chat-card { height: auto; }
 				.duty-chat-list { max-height: 260px; }
@@ -8363,6 +8364,7 @@ class DutyBoard {
 				.duty-chat-collapse, .duty-issues-collapse { display: none; }
 				.duty-chat-input, .duty-todo-input, .duty-search-input { font-size: 16px; }
 				.duty-tabbar a, .duty-todo-row, .duty-issue-row, .duty-msg { -webkit-tap-highlight-color: rgba(15,92,85,0.1); }
+				body.duty-mobile .duty-issue-title { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
 			}
 			.duty-chat-badge {
 				display: inline-block; min-width: 20px; text-align: center; padding: 1px 7px;
