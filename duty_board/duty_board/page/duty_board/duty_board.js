@@ -1993,13 +1993,9 @@ class DutyBoard {
 			)
 		);
 		this.$me.find(".duty-req-ok").on("click", (e) =>
-			frappe.call({
-				method: "duty_board.client_room.confirm_meeting",
-				args: { id: $(e.currentTarget).data("id") },
-				callback: () => {
-					frappe.show_alert({ message: __("Meeting confirmed"), indicator: "green" });
-					this.refresh_me((this._me_data || {}).month);
-				},
+			this.confirm_with_conflicts($(e.currentTarget).data("id"), () => {
+				frappe.show_alert({ message: __("Meeting confirmed"), indicator: "green" });
+				this.refresh_me((this._me_data || {}).month);
 			})
 		);
 		this.$me.find(".duty-req-no").on("click", (e) => {
@@ -4363,11 +4359,7 @@ class DutyBoard {
 						.join("")
 			);
 			$mt.find(".duty-cr-mconfirm").on("click", (e) =>
-				frappe.call({
-					method: "duty_board.client_room.confirm_meeting",
-					args: { id: $(e.currentTarget).data("id") },
-					callback: (r) => r.message && this.render_client_room(r.message),
-				})
+				this.confirm_with_conflicts($(e.currentTarget).data("id"), (m) => m && this.render_client_room(m))
 			);
 			$mt.find(".duty-cr-mdecline").on("click", (e) => {
 				const id = $(e.currentTarget).data("id");
@@ -4974,6 +4966,27 @@ class DutyBoard {
 				d.show();
 			},
 		});
+	}
+
+	confirm_with_conflicts(id, done) {
+		const attempt = (force) =>
+			frappe.call({
+				method: "duty_board.client_room.confirm_meeting",
+				args: { id: id, force: force ? 1 : 0 },
+				callback: (r) => {
+					const m = r.message;
+					if (m && m.conflict) {
+						const lines = m.conflict.map((c) => `• ${c.who}: “${frappe.utils.escape_html(c.title)}” ${c.from}–${c.to}`).join("<br>");
+						frappe.confirm(
+							`${__("⚠ Overlaps Google Calendar:")}<br>${lines}<br><br>${__("Confirm anyway?")}`,
+							() => attempt(true)
+						);
+						return;
+					}
+					done(m);
+				},
+			});
+		attempt(false);
 	}
 
 	timeline_dialog(x) {
