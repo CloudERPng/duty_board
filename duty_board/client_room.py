@@ -4484,7 +4484,6 @@ def _settle_meeting(doc, status):
 			pass
 
 
-@frappe.whitelist()
 def _meeting_ics(doc, method="REQUEST"):
 	"""RFC 5545 invite for a Duty Meeting. Gmail/Outlook auto-surface it;
 	SEQUENCE bumps on every re-send so updates replace, not duplicate."""
@@ -4535,6 +4534,15 @@ def _send_meeting_invite(doc, method="REQUEST"):
 	courtesy layer over the booking, not part of it."""
 	try:
 		recipients = [a.user for a in doc.attendees if a.user and "@" in a.user]
+		if doc.room:
+			recipients += [
+				m.user
+				for m in frappe.get_all(
+					"Client Room Member", filters={"room": doc.room, "active": 1}, fields=["user"]
+				)
+				if "@" in (m.user or "")
+			]
+		recipients = list(dict.fromkeys(recipients))
 		if not recipients:
 			return
 		ics = _meeting_ics(doc, method)
@@ -4559,6 +4567,7 @@ def _send_meeting_invite(doc, method="REQUEST"):
 		frappe.log_error(frappe.get_traceback()[:2000], "meeting ics invite")
 
 
+@frappe.whitelist()
 def confirm_meeting(id):
 	_staff_only()
 	doc = frappe.get_doc("Duty Meeting", id)
@@ -4614,7 +4623,6 @@ def confirm_meeting(id):
 		_("📅 Meeting confirmed · Xlevel"),
 		f"{doc.topic} — {frappe.utils.formatdate(doc.meeting_date, 'd MMM')} {str(doc.start_time)[:5]}",
 	)
-	_email_meeting_invite(doc, room)
 	return get_room(doc.room)
 
 
@@ -4681,68 +4689,6 @@ def meeting_reminders():
 
 
 MEETING_MINUTES = 60
-
-
-def _meeting_ics(doc):
-	from datetime import timedelta
-
-	start_dt = get_datetime(f"{doc.meeting_date} {doc.start_time}")
-	end_dt = start_dt + timedelta(minutes=MEETING_MINUTES)
-	start = start_dt.strftime("%Y%m%dT%H%M%S")
-	end = end_dt.strftime("%Y%m%dT%H%M%S")
-	firsts = ", ".join(
-		frappe.utils.get_fullname(a.user).split(" ")[0] for a in (doc.attendees or [])
-	)
-	return "\r\n".join(
-		[
-			"BEGIN:VCALENDAR",
-			"VERSION:2.0",
-			"PRODID:-//Xlevel Retail Systems//Duty Board//EN",
-			"METHOD:PUBLISH",
-			"BEGIN:VEVENT",
-			f"UID:{doc.name}@xlevel.clouderp.one",
-			f"DTSTART;TZID=Africa/Lagos:{start}",
-			f"DTEND;TZID=Africa/Lagos:{end}",
-			f"SUMMARY:Xlevel meeting: {doc.topic}",
-			f"DESCRIPTION:With {firsts}. Manage this meeting on your portal.",
-			"END:VEVENT",
-			"END:VCALENDAR",
-		]
-	)
-
-
-def _email_meeting_invite(doc, room):
-	try:
-		emails = [
-			mm.user
-			for mm in frappe.get_all(
-				"Client Room Member",
-				filters={"room": room.name, "active": 1},
-				fields=["user"],
-			)
-			if "@" in (mm.user or "")
-		]
-		if not emails:
-			return
-		slot = str(doc.start_time)[:5]
-		frappe.sendmail(
-			recipients=emails,
-			subject=_("📅 Confirmed: {0} — {1} {2}").format(
-				doc.topic, frappe.utils.formatdate(doc.meeting_date, "d MMM"), slot
-			),
-			message=_(
-				"Your meeting is confirmed.<br><b>{0}</b><br>{1} at {2} (WAT)<br><br>"
-				"The attached invite adds it to your calendar."
-			).format(
-				frappe.utils.escape_html(doc.topic),
-				frappe.utils.formatdate(doc.meeting_date, "EEEE, d MMMM"),
-				slot,
-			),
-			attachments=[{"fname": "xlevel-meeting.ics", "fcontent": _meeting_ics(doc)}],
-			delayed=True,
-		)
-	except Exception:
-		pass
 
 
 @frappe.whitelist()
