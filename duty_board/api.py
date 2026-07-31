@@ -1334,10 +1334,16 @@ def create_meeting(topic, meeting_date, start_time=None, duration_mins=30, custo
 			users = []
 	if me not in users:
 		users.insert(0, me)
+	room_name = None
+	if customer:
+		room_name = frappe.db.get_value(
+			"Client Room", {"customer": customer, "status": ["!=", "Archived"]}, "name"
+		)
 	doc = frappe.get_doc(
 		{
 			"doctype": "Duty Meeting",
 			"topic": topic[:140],
+			"room": room_name,
 			"customer": customer or None,
 			"meeting_date": meeting_date,
 			"start_time": start_time or None,
@@ -1350,6 +1356,12 @@ def create_meeting(topic, meeting_date, start_time=None, duration_mins=30, custo
 	)
 	doc.insert(ignore_permissions=True)
 	frappe.db.commit()
+	try:
+		from duty_board.client_room import _send_meeting_invite
+
+		_send_meeting_invite(doc, "REQUEST")
+	except Exception:
+		pass
 	if customer:
 		try:
 			from duty_board.client_room import _post

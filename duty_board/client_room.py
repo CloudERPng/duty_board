@@ -4664,6 +4664,8 @@ def meeting_reminders():
 		fields=["name", "room", "topic", "start_time", "reminded_morning", "reminded_hour"],
 	):
 		try:
+			if not m.room:
+				continue
 			room = frappe.get_doc("Client Room", m.room)
 		except Exception:
 			continue
