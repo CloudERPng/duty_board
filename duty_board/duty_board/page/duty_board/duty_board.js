@@ -3259,7 +3259,78 @@ class DutyBoard {
 		} else $t.empty();
 	}
 
+	render_agenda(project, data, $wrap) {
+		const tasks = [];
+		Object.keys(data.tasks || {}).forEach((col) =>
+			(data.tasks[col] || []).forEach((t) => tasks.push(Object.assign({ column: col }, t)))
+		);
+		const open = tasks.filter((t) => t.column !== "Completed");
+		const doneN = tasks.length - open.length;
+		const today = frappe.datetime.get_today();
+		const URG = { Critical: "#B0443C", High: "#A96F1A", Medium: "#0E5A4A", Low: "#6B7772" };
+		const groups = {};
+		const overdue = [];
+		const undated = [];
+		open.forEach((t) => {
+			if (!t.due_date) undated.push(t);
+			else if (t.due_date < today) overdue.push(t);
+			else (groups[t.due_date] = groups[t.due_date] || []).push(t);
+		});
+		const row = (t) => `
+			<div class="duty-ag-row" data-name="${t.name}" style="display:flex;gap:10px;align-items:center;background:#fff;border-radius:12px;padding:11px 12px;margin-bottom:7px;border-left:3px solid ${URG[t.urgency] || "#6B7772"};box-shadow:0 1px 2px rgba(16,24,40,.05)">
+				<div style="flex:1;min-width:0">
+					<div style="font-size:13.5px;font-weight:600;color:#101828;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${frappe.utils.escape_html(t.title)}</div>
+					${t.assignee ? `<div style="font-size:11.5px;color:#6B7772">${frappe.utils.escape_html((this.name_map[t.assignee] || t.assignee).split(" ")[0])}</div>` : ""}
+				</div>
+				<span style="font-size:11px;color:#96A09B;white-space:nowrap">${t.column === "In Progress" ? "▶" : ""}</span>
+			</div>`;
+		const section = (label, list, color) =>
+			list.length
+				? `<div style="font-size:11px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;color:${color || "#6B7772"};margin:14px 0 7px">${label} · ${list.length}</div>` + list.map(row).join("")
+				: "";
+		let daysHtml = "";
+		Object.keys(groups).sort().forEach((d) => {
+			const dt = frappe.datetime.str_to_obj(d);
+			const label = d === today ? __("Today") : dt.toLocaleDateString("default", { weekday: "short", day: "numeric", month: "short" });
+			daysHtml += section(label, groups[d], d === today ? "#0E5A4A" : null);
+		});
+		$wrap.append(`
+			<div class="duty-agenda">
+				<button class="btn btn-sm btn-primary duty-ag-add" style="width:100%;border-radius:12px;margin:4px 0 6px">＋ ${__("Add a task")}</button>
+				${section(__("Overdue"), overdue, "#B0443C")}
+				${daysHtml}
+				${section(__("No date"), undated)}
+				${doneN ? `<div class="text-muted" style="font-size:12px;margin-top:12px;text-align:center">✅ ${doneN} ${__("completed — see the board")}</div>` : ""}
+				${!open.length ? `<div class="text-muted" style="padding:20px;text-align:center">${__("Nothing open — clean slate.")}</div>` : ""}
+			</div>`);
+		$wrap.find(".duty-ag-row").on("click", (e) =>
+			frappe.call({
+				method: "duty_board.projects.get_card",
+				args: { name: $(e.currentTarget).data("name") },
+				callback: (r) => r.message && this.task_dialog(project, r.message),
+			})
+		);
+		$wrap.find(".duty-ag-add").on("click", () =>
+			frappe.prompt(
+				[
+					{ fieldname: "title", fieldtype: "Data", label: __("Task"), reqd: 1 },
+					{ fieldname: "due", fieldtype: "Date", label: __("Due"), default: today },
+					{ fieldname: "assignee", fieldtype: "Autocomplete", label: __("Assignee"), options: this.staff_options() },
+					{ fieldname: "urgency", fieldtype: "Select", label: __("Urgency"), options: ["Low", "Medium", "High", "Critical"], default: "Medium" },
+				],
+				(v) =>
+					frappe.call({
+						method: "duty_board.projects.create_task",
+						args: { project: project, title: v.title, column: "To Do", assignee: v.assignee || null, due_date: v.due || null, urgency: v.urgency },
+						callback: (r) => r.message && this.render_kanban(project, r.message),
+					}),
+				__("New task"), __("Add")
+			)
+		);
+	}
+
 	render_calendar(project, data, $wrap) {
+		if (this.is_mobile()) return this.render_agenda(project, data, $wrap);
 		const tasks = [];
 		Object.keys(data.tasks || {}).forEach((col) =>
 			(data.tasks[col] || []).forEach((t) => tasks.push(Object.assign({ column: col }, t)))
@@ -6889,7 +6960,9 @@ class DutyBoard {
 						<button class="btn btn-xs btn-default duty-kb-open">📚 ${__("KB")}</button>
 						<button class="btn btn-xs btn-default duty-team-load">👥 ${__("Load")}</button>
 						<button class="btn btn-xs btn-default duty-issue-new">＋ ${__("New")}</button>
+						<button class="btn btn-xs btn-default duty-iss-ftoggle">⚲ ${__("Filters")}${((scope !== "open" ? 1 : 0) + (this.issue_type_filter ? 1 : 0) + (cfilter ? 1 : 0) + (this.issue_user_filter ? 1 : 0)) ? ` <b style="color:#B0443C">${(scope !== "open" ? 1 : 0) + (this.issue_type_filter ? 1 : 0) + (cfilter ? 1 : 0) + (this.issue_user_filter ? 1 : 0)}</b>` : ""}</button>
 					</div>
+					<div class="duty-iss-filters" style="display:${this._iss_f ? "flex" : "none"}">
 					<select class="form-control input-sm duty-issue-scope" title="${__("Status")}">
 						<option value="open" ${scope === "open" ? "selected" : ""}>${__("Open")}</option>
 						<option value="resolved" ${scope === "resolved" ? "selected" : ""}>${__("Resolved")}</option>
@@ -6912,12 +6985,17 @@ class DutyBoard {
 					<select class="form-control input-sm duty-issue-user" title="${__("Filter by assignee")}">
 						${staff_opts}
 					</select>
+					</div>
 				</div>
 				<div class="duty-issues-list">
 					${rows || `<div class="text-muted duty-plan-empty">${__("Nothing here with these filters.")}</div>`}
 				</div>
 			</div>
 		`);
+		$wrap.find(".duty-iss-ftoggle").on("click", () => {
+			this._iss_f = !this._iss_f;
+			$wrap.find(".duty-iss-filters").toggle(this._iss_f);
+		});
 		$wrap.find(".duty-issues-collapse").on("click", () => {
 			this.issues_open = false;
 			localStorage.setItem("duty_issues_side", "0");
@@ -8222,15 +8300,16 @@ class DutyBoard {
 					background: var(--red-500, #ef4444); color: #fff; border-radius: 99px;
 					min-width: 16px; padding: 0 4px; font-size: 10px; line-height: 16px; font-style: normal;
 				}
+				body.duty-mobile .duty-board[data-mtab="chat"] { padding-bottom: 0 !important; }
 				body.duty-mobile .duty-board[data-mtab="chat"] .duty-chat-card {
-					position: fixed; left: 0; right: 0; top: 0;
-					bottom: calc(58px + env(safe-area-inset-bottom));
-					z-index: 50; display: flex; flex-direction: column;
-					border-radius: 0; margin: 0; box-shadow: none; background: #fff;
+					display: flex; flex-direction: column;
+					height: calc(100vh - 150px);
+					height: calc(100dvh - 150px);
+					margin-bottom: 0; background: #fff;
 				}
 				body.duty-mobile .duty-board[data-mtab="chat"] .duty-chat-head { padding: 10px 14px calc(6px); border-bottom: 1px solid #EEEFEC; }
 				body.duty-mobile .duty-board[data-mtab="chat"] .duty-chat-collapse { display: none; }
-				body.duty-mobile .duty-board[data-mtab="chat"] .duty-chat-list { flex: 1; overflow-y: auto; max-height: none; padding: 10px 12px; }
+				body.duty-mobile .duty-board[data-mtab="chat"] .duty-chat-list { flex: 1 1 auto; min-height: 0; overflow-y: auto; max-height: none !important; padding: 10px 12px; }
 				body.duty-mobile .duty-board[data-mtab="chat"] .duty-chat-send { padding: 8px 12px calc(8px + env(safe-area-inset-bottom)); border-top: 1px solid #EEEFEC; background: #fff; }
 				body.duty-mobile .duty-board[data-mtab="chat"] .duty-msg { max-width: 82%; }
 				body.duty-mobile .duty-board[data-mtab="chat"] .duty-msg-mine { margin-left: auto; }
@@ -8393,6 +8472,8 @@ class DutyBoard {
 				padding: 10px 16px; display: flex; flex-direction: column;
 				height: calc(100vh - 140px); min-height: 320px;
 			}
+			.duty-iss-filters { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px; }
+			.duty-iss-filters select { flex: 1 1 45%; min-width: 130px; width: auto !important; }
 			.duty-issues-toolbar { display: flex; flex-direction: column; gap: 6px; margin-top: 8px; }
 			.duty-issue-scope { min-width: 108px; }
 			.duty-issues-toolbar-row { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
