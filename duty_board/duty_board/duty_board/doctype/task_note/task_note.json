@@ -1,0 +1,28 @@
+{
+ "actions": [],
+ "autoname": "hash",
+ "creation": "2026-07-09 09:00:00.000000",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": ["work_session", "user", "full_name", "note"],
+ "fields": [
+  {"fieldname": "work_session", "fieldtype": "Data", "label": "Work Session", "reqd": 1, "search_index": 1},
+  {"fieldname": "user", "fieldtype": "Link", "label": "User", "options": "User", "reqd": 1},
+  {"fetch_from": "user.full_name", "fieldname": "full_name", "fieldtype": "Data", "label": "Full Name", "read_only": 1},
+  {"fieldname": "note", "fieldtype": "Small Text", "label": "Note", "reqd": 1}
+ ],
+ "links": [],
+ "modified": "2026-07-09 09:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "Duty Board",
+ "name": "Task Note",
+ "naming_rule": "Random",
+ "owner": "Administrator",
+ "permissions": [
+  {"create": 1, "delete": 1, "email": 1, "export": 1, "print": 1, "read": 1, "report": 1, "role": "System Manager", "share": 1, "write": 1},
+  {"create": 1, "read": 1, "role": "All"}
+ ],
+ "sort_field": "creation",
+ "sort_order": "ASC",
+ "states": []
+}

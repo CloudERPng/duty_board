@@ -27,7 +27,13 @@
   "delivered_at",
   "source_type",
   "source_message",
-  "source_issue"
+  "source_issue",
+  "pricing_status",
+  "estimate_hours",
+  "priced_by",
+  "priced_on",
+  "released",
+  "invoice_status"
  ],
  "fields": [
   {
@@ -153,6 +159,41 @@
    "fieldname": "source_issue",
    "fieldtype": "Data",
    "label": "Source Issue"
+  },
+  {
+   "fieldname": "pricing_status",
+   "fieldtype": "Select",
+   "label": "Pricing Status",
+   "options": "Awaiting Pricing\nPriced\nCovered by Subscription\nGoodwill\nRejected\nDeferred",
+   "default": "Awaiting Pricing"
+  },
+  {
+   "fieldname": "estimate_hours",
+   "fieldtype": "Float",
+   "label": "Estimated Hours"
+  },
+  {
+   "fieldname": "priced_by",
+   "fieldtype": "Data",
+   "label": "Priced By"
+  },
+  {
+   "fieldname": "priced_on",
+   "fieldtype": "Datetime",
+   "label": "Priced On"
+  },
+  {
+   "fieldname": "released",
+   "fieldtype": "Check",
+   "label": "Released to Client",
+   "default": "0"
+  },
+  {
+   "fieldname": "invoice_status",
+   "fieldtype": "Select",
+   "label": "Invoice Status",
+   "options": "\nTo Invoice\nInvoiced\nPaid",
+   "default": ""
   }
  ],
  "index_web_pages_for_search": 1,

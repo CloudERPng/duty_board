@@ -1,0 +1,29 @@
+{
+ "actions": [],
+ "creation": "2026-07-29 18:00:00",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": ["title", "assignee", "due_date", "status", "note", "done_by", "done_on", "todo"],
+ "fields": [
+  {"fieldname": "title", "fieldtype": "Data", "label": "Subtask", "reqd": 1, "in_list_view": 1},
+  {"fieldname": "assignee", "fieldtype": "Link", "label": "Assignee", "options": "User", "in_list_view": 1},
+  {"fieldname": "due_date", "fieldtype": "Date", "label": "Due", "in_list_view": 1},
+  {"fieldname": "status", "fieldtype": "Select", "label": "Status", "options": "Open\nDone", "default": "Open", "in_list_view": 1},
+  {"fieldname": "note", "fieldtype": "Small Text", "label": "Note"},
+  {"fieldname": "done_by", "fieldtype": "Data", "label": "Done By"},
+  {"fieldname": "done_on", "fieldtype": "Datetime", "label": "Done On"},
+  {"fieldname": "todo", "fieldtype": "Data", "label": "Linked Daily Todo"}
+ ],
+ "index_web_pages_for_search": 0,
+ "istable": 1,
+ "links": [],
+ "modified": "2026-07-29 18:00:00",
+ "modified_by": "Administrator",
+ "module": "Duty Board",
+ "name": "Duty Project Subtask",
+ "owner": "Administrator",
+ "permissions": [],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}

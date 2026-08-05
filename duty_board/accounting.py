@@ -101,6 +101,9 @@ def _due_date(t, year, month):
 		day = min(max(1, cint(t.due_day)), calendar.monthrange(ny, nm)[1])
 		# statutory-safe: a deadline on a non-workday is met EARLY, never late
 		return _prev_working_day(date(ny, nm, day))
+	if t.due_basis == "Fixed day of period":
+		day = min(max(1, cint(t.due_day)), calendar.monthrange(year, month)[1])
+		return _prev_working_day(date(year, month, day))
 	return last_working_day(year, month)
 
 
@@ -112,15 +115,47 @@ def _onboard_customers():
 	)
 
 
+def _books_room(customer):
+	"""THE one room that carries a customer's books cadence. Preference:
+	the Financial Room flag → existing books machinery (bookkeeper, then
+	books scope, then existing deliverables) → the sole room."""
+	rooms = frappe.get_all(
+		"Client Room",
+		filters={"customer": customer, "status": ["!=", "Archived"]},
+		fields=["name", "is_financial_room", "bookkeeper", "books_scope"],
+	)
+	if not rooms:
+		return None
+	if len(rooms) == 1:
+		return rooms[0].name
+	for r in rooms:
+		if cint(r.is_financial_room):
+			return r.name
+	for r in rooms:
+		if r.bookkeeper:
+			return r.name
+	for r in rooms:
+		if r.books_scope:
+			return r.name
+	with_deliv = frappe.get_all(
+		"Duty Service Deliverable",
+		filters={"room": ["in", [r.name for r in rooms]]},
+		fields=["room"],
+		limit_page_length=1,
+	)
+	return with_deliv[0].room if with_deliv else rooms[0].name
+
+
 def _accounting_rooms():
 	custs = {c.name: c for c in _onboard_customers()}
 	if not custs:
 		return [], {}
+	names = [n for n in (_books_room(c) for c in custs) if n]
 	rooms = frappe.get_all(
 		"Client Room",
-		filters={"customer": ["in", list(custs)], "status": ["!=", "Archived"]},
-		fields=["name", "customer", "bookkeeper", "books_optionals", "products"],
-	)
+		filters={"name": ["in", names]},
+		fields=["name", "customer", "bookkeeper", "books_optionals", "books_scope", "books_fye_month", "products"],
+	) if names else []
 	return rooms, custs
 
 
@@ -130,6 +165,77 @@ STATUTORY_TYPES = [
 	("VAT return (FIRS)", 21),
 	("WHT remittance (FIRS)", 21),
 ]
+
+
+SERVICE_LINES = ["Bookkeeping", "Payroll & HR", "Tax"]
+
+# (title, service_line, frequency, due_basis, due_day, due_month, optional, sort)
+LINE_TYPES = [
+	("Payroll input collected & variances confirmed", "Payroll & HR", "Monthly", "Fixed day of period", 25, 0, 0, 20),
+	("Payroll run approved & posted", "Payroll & HR", "Monthly", "Last working day of period", 0, 0, 0, 21),
+	("Payslips issued", "Payroll & HR", "Monthly", "Nth working day of next month", 1, 0, 0, 22),
+	("Pension remitted (PFA)", "Payroll & HR", "Monthly", "Fixed day of next month", 7, 0, 0, 23),
+	("NHF remitted", "Payroll & HR", "Monthly", "Fixed day of next month", 10, 0, 1, 24),
+	("NSITF (ECS) remitted", "Payroll & HR", "Monthly", "Fixed day of next month", 10, 0, 1, 25),
+	("Staff records & contracts current", "Payroll & HR", "Monthly", "Last working day of period", 0, 0, 1, 26),
+	("WHT remittance (state, individuals)", "Tax", "Monthly", "Fixed day of next month", 30, 0, 1, 30),
+	("Tax correspondence & queries cleared", "Tax", "Monthly", "Last working day of period", 0, 0, 1, 31),
+	("Annual: PAYE employer return (Form H1)", "Tax", "Annual", "Fixed day of period", 31, 1, 1, 32),
+	("Annual: CIT / annual returns filed", "Tax", "Annual", "Last working day of period", 0, 0, 0, 33),
+	("Annual: ITF contribution", "Tax", "Annual", "Fixed day of period", 1, 4, 1, 34),
+]
+
+# existing types → their lines (core four default to Bookkeeping)
+LINE_ASSIGN = {
+	"PAYE remittance (state IRS)": "Payroll & HR",
+	"VAT return (FIRS)": "Tax",
+	"WHT remittance (FIRS)": "Tax",
+}
+
+
+def _room_lines(room):
+	"""Room's active service lines. Blank books_scope = Full Books = all lines."""
+	raw = (room.get("books_scope") or "").strip()
+	if not raw:
+		return set(SERVICE_LINES)
+	return {s.strip() for s in raw.split(",") if s.strip() in SERVICE_LINES} or set(SERVICE_LINES)
+
+
+@frappe.whitelist()
+def seed_service_line_types():
+	"""Payroll & HR + Tax deliverable types, and line assignments for existing
+	types. Idempotent; rerun-safe."""
+	_staff_only()
+	created, assigned = 0, 0
+	for title, line, freq, basis, day, dmonth, opt, so in LINE_TYPES:
+		if frappe.db.exists("Duty Service Deliverable Type", {"title": title}):
+			continue
+		frappe.get_doc(
+			{
+				"doctype": "Duty Service Deliverable Type",
+				"title": title,
+				"service_line": line,
+				"frequency": freq,
+				"due_basis": basis,
+				"due_day": day,
+				"due_month": dmonth,
+				"optional": opt,
+				"active": 1,
+				"sort_order": so,
+			}
+		).insert(ignore_permissions=True)
+		created += 1
+	for title, line in LINE_ASSIGN.items():
+		name = frappe.db.get_value("Duty Service Deliverable Type", {"title": title}, "name")
+		if name and frappe.db.get_value("Duty Service Deliverable Type", name, "service_line") != line:
+			frappe.db.set_value("Duty Service Deliverable Type", name, "service_line", line, update_modified=False)
+			assigned += 1
+	# core four (and anything unset) → Bookkeeping
+	for t in frappe.get_all("Duty Service Deliverable Type", filters={"service_line": ["in", ["", None]]}, pluck="name"):
+		frappe.db.set_value("Duty Service Deliverable Type", t, "service_line", "Bookkeeping", update_modified=False)
+		assigned += 1
+	frappe.db.commit()
+	return {"created": created, "line_assigned": assigned}
 
 
 @frappe.whitelist()
@@ -197,9 +303,7 @@ def _sync_accounting_clients():
 		).insert(ignore_permissions=True)
 	created, tagged = 0, 0
 	for c in _onboard_customers():
-		room_name = frappe.db.get_value(
-			"Client Room", {"customer": c.name, "status": ["!=", "Archived"]}, "name"
-		)
+		room_name = _books_room(c.name)
 		if not room_name:
 			from duty_board.client_room import _ensure_token
 
@@ -230,15 +334,27 @@ def _open_period(period):
 	types = frappe.get_all(
 		"Duty Service Deliverable Type",
 		filters={"active": 1},
-		fields=["name", "title", "frequency", "due_basis", "due_day", "optional"],
+		fields=["name", "title", "frequency", "due_basis", "due_day", "due_month", "optional", "service_line"],
 		order_by="sort_order asc",
 	)
 	spawned = 0
 	for room in rooms:
 		optionals = {t.strip() for t in (room.books_optionals or "").split(",") if t.strip()}
+		lines = _room_lines(room)
 		for t in types:
+			if (t.service_line or "Bookkeeping") not in lines:
+				continue
 			if t.frequency == "Quarterly" and not _quarter_end_month(month):
 				continue
+			if t.frequency == "Annual":
+				dm = cint(t.due_month)
+				if dm == 0:
+					fye = cint(room.get("books_fye_month"))
+					if not fye:
+						continue
+					dm = (fye + 6 - 1) % 12 + 1
+				if month != dm:
+					continue
 			if cint(t.optional) and t.name not in optionals and t.title not in optionals:
 				continue
 			if frappe.db.exists(
@@ -279,6 +395,10 @@ def scheduled_open_period():
 		frappe.log_error(frappe.get_traceback(), "accounting sync")
 	_open_period(today()[:7])
 	_spawn_period_requests(today()[:7])
+	try:
+		_register_review_nudge()
+	except Exception:
+		frappe.log_error(frappe.get_traceback(), "access register nudge")
 
 
 @frappe.whitelist()
@@ -289,7 +409,7 @@ def books_matrix(period=None):
 	types = frappe.get_all(
 		"Duty Service Deliverable Type",
 		filters={"active": 1},
-		fields=["name", "title", "optional", "frequency"],
+		fields=["name", "title", "optional", "frequency", "service_line"],
 		order_by="sort_order asc",
 	)
 	insts = frappe.get_all(
@@ -325,6 +445,8 @@ def books_matrix(period=None):
 				"bookkeeper": r.bookkeeper,
 				"bookkeeper_name": frappe.utils.get_fullname(r.bookkeeper) if r.bookkeeper else None,
 				"optionals": r.books_optionals or "",
+				"scope": r.books_scope or "",
+				"fye_month": cint(r.books_fye_month) or None,
 				"fee": custs.get(r.customer, frappe._dict()).get("accounting_fees") if fees_ok else None,
 				"posted_through": str(latest_pt[r.name]) if r.name in latest_pt else None,
 				"lag": _working_days_between(getdate(latest_pt[r.name]), tdy) if r.name in latest_pt else None,
@@ -383,13 +505,19 @@ def books_set(name, status=None, assigned_to=None, reviewer=None, notes=None):
 
 
 @frappe.whitelist()
-def books_set_room(name, bookkeeper=None, optionals=None):
+def books_set_room(name, bookkeeper=None, optionals=None, scope=None, fye_month=None):
 	_staff_only()
 	vals = {}
 	if bookkeeper is not None:
 		vals["bookkeeper"] = bookkeeper or None
 	if optionals is not None:
 		vals["books_optionals"] = (optionals or "").strip()[:300] or None
+	if scope is not None:
+		cleaned = [s.strip() for s in (scope or "").split(",") if s.strip() in SERVICE_LINES]
+		# all lines selected = Full Books = stored blank
+		vals["books_scope"] = None if (not cleaned or set(cleaned) == set(SERVICE_LINES)) else ", ".join(cleaned)
+	if fye_month is not None:
+		vals["books_fye_month"] = cint(fye_month)
 	if vals:
 		frappe.db.set_value("Client Room", name, vals, update_modified=False)
 		frappe.db.commit()
@@ -566,7 +694,17 @@ def books_daily_round():
 	_staff_only()
 	user = frappe.session.user
 	rooms, custs = _accounting_rooms()
-	mine = [r for r in rooms if r.bookkeeper == user] or rooms
+	rooms = [r for r in rooms if "Bookkeeping" in _room_lines(r)]
+	assigned = set(
+		frappe.get_all(
+			"Duty Service Deliverable",
+			filters={"period": today()[:7], "assigned_to": user},
+			pluck="room",
+		)
+	)
+	mine = [r for r in rooms if r.bookkeeper == user or r.name in assigned]
+	if not mine and _books_manager():
+		mine = rooms
 	tdy = today()
 	sessions = _sessions_by_room_day([r.customer for r in mine], tdy, str(getdate(tdy) + timedelta(days=1)))
 	logs = {
@@ -641,6 +779,7 @@ def books_log_day(room, posted_through=None, tx_posted=None, queries_raised=None
 def _register_data(period):
 	year, month = int(period[:4]), int(period[5:7])
 	rooms, custs = _accounting_rooms()
+	rooms = [r for r in rooms if "Bookkeeping" in _room_lines(r)]
 	wds = _workday_set()
 	first = date(year, month, 1)
 	last = date(year, month, calendar.monthrange(year, month)[1])
@@ -802,11 +941,15 @@ def _file_to_shelf(room_name, title, file_url, file_name):
 	return doc.name
 
 
-def _mail_client(room, subject, body, ref_doctype=None, ref_name=None):
+def _mail_client(room, subject, body, ref_doctype=None, ref_name=None, only=None):
 	"""Email the room's client members via the Communication send path: this
 	stamps Reply-To from the default incoming Email Account and stores the
-	Message-ID, so replies thread back to the reference document reliably."""
+	Message-ID, so replies thread back to the reference document reliably.
+	`only` (list of emails) narrows delivery to specific onboarded members."""
 	recipients = _room_client_emails(room.name)
+	if only:
+		wanted = {e.strip().lower() for e in only if e and e.strip()}
+		recipients = [r for r in recipients if r.lower() in wanted] or recipients
 	if not recipients:
 		return
 	sender = frappe.db.get_value(
@@ -901,13 +1044,13 @@ def books_followups(room=None):
 	queries = frappe.get_all(
 		"Duty Books Query",
 		filters={"room": ["in", names] if names else ["is", "set"], "status": ["!=", "Resolved"]},
-		fields=["name", "room", "customer", "ref_date", "amount", "reference", "question", "status", "answer", "answered_by", "answered_on", "creation"],
+		fields=["name", "room", "customer", "ref_date", "amount", "reference", "question", "status", "answer", "answered_by", "answered_on", "creation", "recipients"],
 		order_by="creation asc",
 	)
 	requests = frappe.get_all(
 		"Duty Books Request",
 		filters={"room": ["in", names] if names else ["is", "set"], "status": "Requested"},
-		fields=["name", "room", "customer", "period", "title", "detail", "due_date", "creation"],
+		fields=["name", "room", "customer", "period", "title", "detail", "due_date", "creation", "recipients"],
 		order_by="due_date asc",
 	)
 	tdy = getdate(today())
@@ -927,13 +1070,58 @@ def books_followups(room=None):
 	)
 	for r in received:
 		r.fulfilled_on = str(r.fulfilled_on)[:16] if r.fulfilled_on else None
-	return {"rooms": [{"room": r.name, "customer": r.customer} for r in sorted(rooms, key=lambda x: x.customer or "")], "queries": queries, "requests": requests, "received": received}
+	members = {}
+	if names:
+		for mrow in frappe.get_all(
+			"Client Room Member",
+			filters={"room": ["in", names], "active": 1},
+			fields=["room", "user"],
+		):
+			if mrow.user and frappe.db.get_value("User", mrow.user, "enabled"):
+				members.setdefault(mrow.room, []).append(
+					{"user": mrow.user, "full_name": frappe.utils.get_fullname(mrow.user)}
+				)
+	return {"rooms": [{"room": r.name, "customer": r.customer} for r in sorted(rooms, key=lambda x: x.customer or "")], "members": members, "queries": queries, "requests": requests, "received": received}
+
+
+def _clean_recipients(room, recipients):
+	"""csv → validated list of active room members; ([], "") when blank."""
+	raw = [e.strip() for e in (recipients or "").split(",") if e.strip()]
+	if not raw:
+		return [], ""
+	members = {u.lower(): u for u in _room_client_emails(room)}
+	picked = [members[e.lower()] for e in raw if e.lower() in members]
+	names = ", ".join(frappe.utils.get_fullname(u).split(" ")[0] for u in picked)
+	return picked, names
 
 
 @frappe.whitelist()
-def books_add_query(room, question, ref_date=None, amount=None, reference=None):
+def books_request_file(name):
+	"""Serve a fulfilled request's attachment to any staff member. Client
+	uploads are private Files owned by the client user, so direct
+	/private/files links 403 for staff without doctype read perms — this
+	endpoint applies the staff check and streams the file itself."""
+	_staff_only()
+	req = frappe.db.get_value(
+		"Duty Books Request", name, ["attachment_url", "attachment_name"], as_dict=True
+	)
+	if not req or not req.attachment_url:
+		frappe.throw(_("No attachment on this request."))
+	fname = frappe.db.get_value(
+		"File", {"file_url": req.attachment_url, "attached_to_doctype": "Duty Books Request", "attached_to_name": name}, "name"
+	) or frappe.db.get_value("File", {"file_url": req.attachment_url}, "name")
+	if not fname:
+		frappe.throw(_("File record not found."))
+	from duty_board.client_room import _serve_file
+
+	_serve_file(frappe.get_doc("File", fname), req.attachment_name)
+
+
+@frappe.whitelist()
+def books_add_query(room, question, ref_date=None, amount=None, reference=None, recipients=None):
 	_staff_only()
 	customer = frappe.db.get_value("Client Room", room, "customer")
+	picked, picked_names = _clean_recipients(room, recipients)
 	frappe.get_doc(
 		{
 			"doctype": "Duty Books Query",
@@ -945,11 +1133,17 @@ def books_add_query(room, question, ref_date=None, amount=None, reference=None):
 			"question": (question or "").strip()[:500],
 			"status": "Open",
 			"asked_by": frappe.session.user,
+			"recipients": ", ".join(picked) or None,
 		}
 	).insert(ignore_permissions=True)
 	frappe.db.commit()
 	roomdoc = frappe.get_doc("Client Room", room)
-	_post(roomdoc, _("❓ A question from your accounting team is waiting on the portal home."))
+	_post(
+		roomdoc,
+		_("❓ A question from your accounting team is waiting on the portal home{0}.").format(
+			_(" — for {0}").format(picked_names) if picked_names else ""
+		),
+	)
 	q = frappe.get_all(
 		"Duty Books Query",
 		filters={"room": room, "status": "Open", "asked_by": frappe.session.user},
@@ -968,14 +1162,16 @@ def books_add_query(room, question, ref_date=None, amount=None, reference=None):
 			+ "<p><b>Just reply to this email</b> and your answer will reach the team directly — or answer on your portal home.</p>",
 			"Duty Books Query",
 			q.name,
+			only=picked,
 		)
 	return books_followups(room)
 
 
 @frappe.whitelist()
-def books_add_request(room, title, detail=None, due_date=None):
+def books_add_request(room, title, detail=None, due_date=None, recipients=None):
 	_staff_only()
 	customer = frappe.db.get_value("Client Room", room, "customer")
+	picked, picked_names = _clean_recipients(room, recipients)
 	frappe.get_doc(
 		{
 			"doctype": "Duty Books Request",
@@ -986,11 +1182,17 @@ def books_add_request(room, title, detail=None, due_date=None):
 			"detail": (detail or "").strip()[:300] or None,
 			"due_date": due_date or None,
 			"status": "Requested",
+			"recipients": ", ".join(picked) or None,
 		}
 	).insert(ignore_permissions=True)
 	frappe.db.commit()
 	roomdoc = frappe.get_doc("Client Room", room)
-	_post(roomdoc, _("📎 Your accounting team has requested a document — see the portal home."))
+	_post(
+		roomdoc,
+		_("📎 Your accounting team has requested a document — see the portal home{0}.").format(
+			_(" — for {0}").format(picked_names) if picked_names else ""
+		),
+	)
 	rq = frappe.get_all(
 		"Duty Books Request",
 		filters={"room": room, "status": "Requested"},
@@ -1009,6 +1211,7 @@ def books_add_request(room, title, detail=None, due_date=None):
 			+ "<p><b>Reply to this email with the file attached</b> and it will be filed automatically — or upload on your portal home.</p>",
 			"Duty Books Request",
 			rq.name,
+			only=picked,
 		)
 	return books_followups(room)
 
@@ -1146,16 +1349,26 @@ def books_client_chase():
 			if (r.due_date and getdate(r.due_date) <= tdy or _working_days_between(getdate(r.creation), tdy) >= CHASE_EVERY_WD)
 			and _working_days_between(getdate(r.last_reminded or r.creation), tdy) >= CHASE_EVERY_WD
 		]
-		if not due_q and not due_r:
+		due_i = _overdue_service_invoices(room.customer, tdy)
+		if not due_q and not due_r and not due_i:
 			continue
 		bits = []
 		if due_q:
 			bits.append(_("{0} question(s)").format(len(due_q)))
 		if due_r:
 			bits.append(_("{0} document(s)").format(len(due_r)))
+		msg = ""
+		if due_q or due_r:
+			msg = _("🔔 Gentle reminder: {0} from your accounting team are awaiting your response — see the portal home.").format(" and ".join(bits))
+		if due_i:
+			inv_line = _("💳 A kind reminder on your accounting service invoice{0}: {1} — we appreciate your prompt settlement.").format(
+				"s" if len(due_i) > 1 else "",
+				"; ".join([_("{0} (₦{1}, due {2})").format(x.name, f"{flt(x.outstanding_amount):,.0f}", frappe.utils.formatdate(x.due_date, "d MMM")) for x in due_i]),
+			)
+			msg = (msg + "\n" + inv_line) if msg else inv_line
 		try:
 			roomdoc = frappe.get_doc("Client Room", room.name)
-			_post(roomdoc, _("🔔 Gentle reminder: {0} from your accounting team are awaiting your response — see the portal home.").format(" and ".join(bits)))
+			_post(roomdoc, msg)
 			for x in due_q:
 				frappe.db.set_value("Duty Books Query", x.name, "last_reminded", today(), update_modified=False)
 			for x in due_r:
@@ -1324,14 +1537,19 @@ def books_reprocess_inbound(days=30):
 
 @frappe.whitelist()
 def books_access():
-	"""Who sees the Books face, and where they land."""
+	"""Who sees the Books face, and where they land. All staff are allowed:
+	managers land on the matrix; bookkeepers and deliverable assignees land
+	on My round; everyone else lands on Follow ups."""
 	_staff_only()
 	if _books_manager():
 		return {"allowed": 1, "manager": 1, "tab": "matrix"}
 	rooms, _c = _accounting_rooms()
-	if any(r.bookkeeper == frappe.session.user for r in rooms):
+	user = frappe.session.user
+	if any(r.bookkeeper == user for r in rooms):
 		return {"allowed": 1, "manager": 0, "tab": "round"}
-	return {"allowed": 0}
+	if frappe.db.exists("Duty Service Deliverable", {"period": today()[:7], "assigned_to": user}):
+		return {"allowed": 1, "manager": 0, "tab": "round"}
+	return {"allowed": 1, "manager": 0, "tab": "followups"}
 
 
 @frappe.whitelist()
@@ -1478,6 +1696,14 @@ def books_tick_onboarding(name, done=1, note=None):
 # ---------------- billing: auto-invoices + unpaid tracking ----------------
 
 
+def _books_tax_template():
+	try:
+		t = (frappe.get_cached_doc("Duty Settings").get("books_tax_template") or "").strip()
+	except Exception:
+		t = ""
+	return t if t and frappe.db.exists("Sales Taxes and Charges Template", t) else None
+
+
 def _invoice_settings():
 	item_code, due_days = "Accounting Services", 7
 	try:
@@ -1527,6 +1753,7 @@ def _generate_invoices(period):
 		):
 			existing += 1
 			continue
+		tax_template = _books_tax_template()
 		si = frappe.get_doc(
 			{
 				"doctype": "Sales Invoice",
@@ -1534,6 +1761,7 @@ def _generate_invoices(period):
 				"company": company,
 				"posting_date": today(),
 				"due_date": frappe.utils.add_days(today(), due_days),
+				"taxes_and_charges": tax_template,
 				"remarks": f"Accounting services — {period} · {marker}",
 				"items": [
 					{
@@ -1545,6 +1773,19 @@ def _generate_invoices(period):
 				],
 			}
 		)
+		if tax_template:
+			for tx in frappe.get_doc("Sales Taxes and Charges Template", tax_template).taxes:
+				si.append(
+					"taxes",
+					{
+						"charge_type": tx.charge_type,
+						"account_head": tx.account_head,
+						"description": tx.description,
+						"rate": tx.rate,
+						"cost_center": tx.cost_center,
+						"included_in_print_rate": tx.included_in_print_rate,
+					},
+				)
 		si.insert(ignore_permissions=True)
 		created += 1
 	frappe.db.commit()
@@ -1975,3 +2216,168 @@ def books_playbook_set(room, playbook):
 	frappe.db.set_value("Client Room", room, "playbook", (playbook or "").strip()[:10000] or None, update_modified=False)
 	frappe.db.commit()
 	return {"ok": True}
+
+
+PAY_REMIND_EVERY_WD = 3
+
+
+def _overdue_service_invoices(customer, tdy):
+	"""Submitted service invoices (auto-marker) past due with balance, reminded
+	on working-day-overdue 1, then every PAY_REMIND_EVERY_WD."""
+	if not customer:
+		return []
+	out = []
+	for si in frappe.get_all(
+		"Sales Invoice",
+		filters={
+			"customer": customer,
+			"docstatus": 1,
+			"outstanding_amount": [">", 0],
+			"due_date": ["<", str(tdy)],
+			"remarks": ["like", "%BOOKS-AUTO-%"],
+		},
+		fields=["name", "outstanding_amount", "due_date"],
+	):
+		wd = _working_days_between(getdate(si.due_date), tdy)
+		if wd >= 1 and (wd - 1) % PAY_REMIND_EVERY_WD == 0:
+			out.append(si)
+	return out
+
+
+# ---------------- access register: quarterly review nudge ----------------
+
+REGISTER_REVIEW_DAYS = 90
+
+
+def _register_review_nudge():
+	"""First working day of Jan/Apr/Jul/Oct: tell books managers which active
+	access entries haven't been reviewed in REGISTER_REVIEW_DAYS."""
+	tdy = getdate(today())
+	if tdy.month not in (1, 4, 7, 10):
+		return
+	if str(_nth_working_day(tdy.year, tdy.month, 1)) != str(tdy):
+		return
+	stale = frappe.get_all(
+		"Duty Access Register",
+		filters={"active": 1},
+		fields=["name", "customer", "access_type", "detail", "granted_on", "last_reviewed"],
+	)
+	stale = [
+		s for s in stale
+		if not s.last_reviewed or (tdy - getdate(s.last_reviewed)).days > REGISTER_REVIEW_DAYS
+	]
+	if not stale:
+		return
+	lines = [
+		f"• {s.customer or '—'} · {s.access_type or ''} {('· ' + s.detail) if s.detail else ''} (last reviewed: {s.last_reviewed or 'never'})"
+		for s in stale[:30]
+	]
+	body = (
+		_("Quarterly access review: {0} active register entr{1} unreviewed for {2}+ days.").format(
+			len(stale), "y is" if len(stale) == 1 else "ies are", REGISTER_REVIEW_DAYS
+		)
+		+ "\n" + "\n".join(lines)
+		+ "\n" + _("Review each and stamp Last Reviewed in the Duty Access Register.")
+	)
+	from duty_board.api import _notify_user
+
+	for u in _books_manager_users():
+		_notify_user(u, "🔐 " + _("Quarterly access review due"), body)
+
+
+def _books_manager_users():
+	users = set()
+	try:
+		csv = (frappe.get_cached_doc("Duty Settings").get("books_managers") or "").strip()
+		users.update({u.strip() for u in csv.split(",") if u.strip()})
+	except Exception:
+		pass
+	if not users:
+		users.update(
+			frappe.get_all(
+				"Has Role",
+				filters={"role": "System Manager", "parenttype": "User"},
+				pluck="parent",
+			)
+		)
+		users.discard("Administrator")
+		users.discard("Guest")
+	return users
+
+
+def converge_financial_rooms(dry_run=1):
+	"""One-time convergence after Finance rooms were created: move the books
+	cadence (config + history) from each customer's old books room onto the
+	Financial Room, and remove the duplicate deliverables spawned onto the
+	then-empty Finance rooms. Run via:
+	  bench --site <site> execute duty_board.accounting.converge_financial_rooms            (plan only)
+	  bench --site <site> execute duty_board.accounting.converge_financial_rooms --kwargs "{'dry_run':0}"
+	"""
+	dry = cint(dry_run)
+	moves = []
+	for c in _onboard_customers():
+		rooms = frappe.get_all(
+			"Client Room",
+			filters={"customer": c.name, "status": ["!=", "Archived"]},
+			fields=["name", "is_financial_room", "bookkeeper", "books_scope", "books_optionals", "books_fye_month", "products"],
+		)
+		if len(rooms) < 2:
+			continue
+		fin = next((r for r in rooms if cint(r.is_financial_room)), None)
+		if not fin:
+			print(f"SKIP {c.name}: multiple rooms, none flagged Financial Room")
+			continue
+		old = next(
+			(r for r in rooms if r.name != fin.name and (r.bookkeeper or r.books_scope)),
+			None,
+		)
+		if not old:
+			continue
+		moves.append((c.name, old, fin))
+	for cust, old, fin in moves:
+		print(f"\n=== {cust}: {old.name} → {fin.name}")
+		# a) duplicate deliverables spawned on the finance room: delete untouched ones
+		dups = frappe.get_all(
+			"Duty Service Deliverable",
+			filters={"room": fin.name, "status": "Pending", "delivered_on": ["is", "not set"]},
+			pluck="name",
+		)
+		print(f"  delete {len(dups)} untouched duplicate deliverables on finance room")
+		# b) history re-point
+		counts = {}
+		for dt in ["Duty Service Deliverable", "Duty Books Request", "Duty Books Daily Log", "Duty Books Query", "Duty Books Onboarding"]:
+			n = frappe.db.count(dt, {"room": old.name})
+			counts[dt] = n
+			print(f"  re-point {n} × {dt}")
+		# c) config copy
+		print(f"  copy config: bookkeeper={old.bookkeeper}, scope={'set' if old.books_scope else '—'}, fye={old.books_fye_month or '—'}; clear on old room")
+		if dry:
+			continue
+		for name in dups:
+			frappe.delete_doc("Duty Service Deliverable", name, ignore_permissions=True, force=True)
+		for dt in counts:
+			frappe.db.sql(
+				"update `tab{0}` set room=%s where room=%s".format(dt.replace(" ", " ")),
+				(fin.name, old.name),
+			)
+		vals = {}
+		for f in ["bookkeeper", "books_scope", "books_optionals", "books_fye_month"]:
+			if old.get(f) and not fin.get(f):
+				vals[f] = old.get(f)
+		prods = [p.strip() for p in (fin.products or "").split(",") if p.strip()]
+		oldprods = [p.strip() for p in (old.products or "").split(",") if p.strip()]
+		if SERVICE_PRODUCT in oldprods and SERVICE_PRODUCT not in prods:
+			prods.append(SERVICE_PRODUCT)
+			vals["products"] = ", ".join(prods)
+		if vals:
+			frappe.db.set_value("Client Room", fin.name, vals, update_modified=False)
+		frappe.db.set_value(
+			"Client Room", old.name,
+			{"bookkeeper": None, "books_scope": None, "books_optionals": None, "books_fye_month": 0},
+			update_modified=False,
+		)
+		frappe.db.commit()
+		print("  APPLIED")
+	if dry:
+		print("\nDRY RUN — nothing changed. Re-run with --kwargs \"{'dry_run':0}\" to apply.")
+	return {"customers": len(moves), "applied": 0 if dry else len(moves)}

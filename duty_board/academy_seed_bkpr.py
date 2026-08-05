@@ -1,8 +1,11 @@
 """CloudERP.One Certified Bookkeeper track seed — approved content (27-07-2026).
 
-Content lives in academy_bkpr_data.json (4 modules: M1 The Service & The
-System, M2a Daily Posting Craft, M2b Month-End & the Close, M4 The
-Professional Bookkeeper — 28 lessons, 106 questions). M3 The Nigerian
+Content lives in academy_bkpr_data.json (5 modules: M1 The Service & The
+System, M1b The Books Face Screen by Screen, M2a Daily Posting Craft,
+M2b Month-End & the Close, M4 The Professional Bookkeeper — 37 lessons,
+140 questions). Rerunning after an earlier seed keeps existing modules,
+adds new ones, renumbers sort_order, and syncs the track's module rows
+to ORDER. M3 The Nigerian
 Statutory Month is deliberately absent pending the authoritative Taxation
 manual; add it to the track via desk when seeded.
 
@@ -18,7 +21,7 @@ import os
 
 import frappe
 
-ORDER = ["m1", "m2a", "m2b", "m4"]
+ORDER = ["m1", "face", "m2a", "m2b", "m4"]
 
 TRACK = {
 	"title": "CloudERP.One Certified Bookkeeper",
@@ -55,7 +58,7 @@ def seed_bookkeeper_track():
 				"description": m["desc"],
 				"active": 1,
 				"audience": "Consultant",
-				"sort_order": 20 + i,
+				"sort_order": 20,
 				"pass_mark": 70,
 			}
 		).insert(ignore_permissions=True)
@@ -89,8 +92,23 @@ def seed_bookkeeper_track():
 			).insert(ignore_permissions=True)
 		print(f"seeded module: {m['title']} ({len(m['lessons'])} lessons, {len(m['questions'])} questions)")
 
-	if frappe.db.exists("Duty Certification Track", {"title": TRACK["title"]}):
-		print(f"track exists: {TRACK['title']}")
+	# sort_order follows ORDER regardless of seeding history
+	for i, key in enumerate(ORDER):
+		frappe.db.set_value("Duty Training Module", module_names[key], "sort_order", 20 + i, update_modified=False)
+
+	track_name = frappe.db.get_value("Duty Certification Track", {"title": TRACK["title"]}, "name")
+	if track_name:
+		tr = frappe.get_doc("Duty Certification Track", track_name)
+		desired = [module_names[k] for k in ORDER]
+		current = [row.module for row in tr.modules]
+		if current != desired:
+			tr.modules = []
+			for mn in desired:
+				tr.append("modules", {"module": mn})
+			tr.save(ignore_permissions=True)
+			print(f"track updated: {TRACK['title']} → {len(desired)} modules in order")
+		else:
+			print(f"track exists: {TRACK['title']} (module rows already in order)")
 	else:
 		frappe.get_doc(
 			{

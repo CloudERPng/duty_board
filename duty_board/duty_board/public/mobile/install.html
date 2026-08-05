@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Duty Board — Xlevel</title>
+<link rel="manifest" href="/assets/duty_board/mobile/manifest.webmanifest">
+<meta name="theme-color" content="#0F5C55">
+<link rel="icon" href="/assets/duty_board/mobile/icon-192.png">
+<link rel="apple-touch-icon" href="/assets/duty_board/mobile/icon-192.png">
+<style>
+	body { margin:0; font-family:system-ui,-apple-system,sans-serif; background:#0F5C55; color:#fff;
+		display:flex; min-height:100vh; align-items:center; justify-content:center; text-align:center; }
+	.card { padding:32px; }
+	img.logo { width:96px; height:96px; border-radius:22px; }
+	h1 { margin:16px 0 4px; }
+	p { opacity:.85; margin:6px 0; }
+	a.btn { display:inline-block; margin-top:20px; background:#fff; color:#0F5C55;
+		font-weight:700; padding:12px 28px; border-radius:99px; text-decoration:none; }
+	.hint { font-size:13px; margin-top:18px; }
+</style>
+</head>
+<body>
+<div class="card">
+	<img class="logo" src="/assets/duty_board/mobile/icon-192.png" alt="Duty Board">
+	<h1>Duty Board</h1>
+	<p>Xlevel team — daily operations</p>
+	<a class="btn" href="/app/duty-board">Open Duty Board</a>
+	<p class="hint">On Android Chrome: menu ⋮ → <b>Install app</b> for the full experience.</p>
+</div>
+<script>
+	if ("serviceWorker" in navigator) {
+		navigator.serviceWorker.register("/duty_sw.js", { scope: "/" }).catch(function () {});
+	}
+</script>
+</body>
+</html>

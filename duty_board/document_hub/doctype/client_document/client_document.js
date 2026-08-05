@@ -2,6 +2,64 @@
 
 frappe.ui.form.on("Client Document", {
     refresh(frm) {
+		if (frm.doc.is_financial_statement && !frm.is_new()) {
+			if (!frm.doc.published) {
+				frm.add_custom_button(__("⏰ Declare delay"), () => {
+					frappe.prompt(
+						[
+							{ fieldname: "new_date", fieldtype: "Date", label: __("New delivery date"), reqd: 1 },
+							{ fieldname: "reason", fieldtype: "Small Text", label: __("Reason (the client will see this)"), reqd: 1 },
+						],
+						(v) =>
+							frappe.call({
+								method: "duty_board.document_hub.doctype.client_document.client_document.declare_delay",
+								args: { name: frm.doc.name, new_date: v.new_date, reason: v.reason },
+								callback: (r) => {
+									if (r.message && r.message.ok) {
+										frappe.show_alert({ message: __("Client informed of the new date"), indicator: "orange" });
+										frm.reload_doc();
+									}
+								},
+							}),
+						__("Declare a delay — honesty beats silence"),
+						__("Tell the client")
+					);
+				});
+			}
+
+			const label = frm.doc.published ? __("Republish to Client") : __("Approve for Client");
+			frm.add_custom_button(label, () => {
+				frappe.prompt(
+					[
+						{
+							fieldname: "note",
+							fieldtype: "Small Text",
+							label: __("Note to the client (optional — e.g. what changed)"),
+						},
+						{
+							fieldname: "highlights",
+							fieldtype: "Small Text",
+							label: __("Highlights — one per line, max 5 (e.g. Revenue: ₦48.2m (+12%))"),
+							default: frm.doc.highlights || "",
+						},
+					],
+					(v) =>
+						frappe.call({
+							method: "duty_board.document_hub.doctype.client_document.client_document.publish_statement",
+							args: { name: frm.doc.name, note: v.note || null, highlights: v.highlights !== undefined ? v.highlights : null },
+							callback: (r) => {
+								if (r.message && r.message.ok) {
+									frappe.show_alert({ message: __("📊 {0} published to the client portal", [r.message.label]), indicator: "green" });
+									frm.reload_doc();
+								}
+							},
+						}),
+					__("Publish v{0} — the client sees a frozen snapshot", [frm.doc.current_version || 1]),
+					label
+				);
+			}).addClass("btn-primary");
+		}
+
         if (frm.is_new()) return;
 
         frm.page.clear_actions_menu();

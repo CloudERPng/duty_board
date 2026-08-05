@@ -4,6 +4,7 @@ import pytz
 
 import frappe
 from frappe import _
+from duty_board.permissions import require_staff
 from frappe.utils import (
 	add_days,
 	cint,
@@ -79,12 +80,14 @@ def _is_break(reason):
 
 @frappe.whitelist()
 def clock_in():
+	require_staff()
 	_make_log("Clock In")
 	return get_board()
 
 
 @frappe.whitelist()
 def clock_out(reason=None, summary=None):
+	require_staff()
 	if not reason:
 		frappe.throw(_("Please give a reason for clocking out."))
 	_stop_running_session(frappe.session.user)
@@ -204,6 +207,7 @@ def send_message(
 	attachment_name=None,
 	attachment_type=None,
 ):
+	require_staff()
 	mention_list = []
 	if mentions:
 		try:
@@ -260,6 +264,7 @@ def send_message(
 
 @frappe.whitelist()
 def get_messages(limit=50, before=None, after=None):
+	require_staff()
 	filters = {}
 	if before:
 		filters["creation"] = ["<", before]
@@ -287,10 +292,15 @@ def get_messages(limit=50, before=None, after=None):
 	has_more = len(rows) >= min(cint(limit) or 50, 200)
 	rows.reverse()
 	reactions = _reactions_for([r.name for r in rows])
-	seen = {
-		s.user: str(s.last_seen)
-		for s in frappe.get_all("Chat Seen", fields=["user", "last_seen"])
-	}
+	rows_seen = frappe.get_all("Chat Seen", fields=["user", "last_seen"])
+	alive = set(
+		frappe.get_all(
+			"User",
+			filters={"name": ["in", [s.user for s in rows_seen]], "enabled": 1},
+			pluck="name",
+		)
+	) if rows_seen else set()
+	seen = {s.user: str(s.last_seen) for s in rows_seen if s.user in alive}
 	return {
 		"messages": [_message_payload(r, reactions) for r in rows],
 		"seen": seen,
@@ -300,6 +310,7 @@ def get_messages(limit=50, before=None, after=None):
 
 @frappe.whitelist()
 def search_messages(query):
+	require_staff()
 	query = (query or "").strip()
 	if len(query) < 2:
 		frappe.throw(_("Type at least 2 characters to search."))
@@ -328,25 +339,41 @@ def search_messages(query):
 
 
 @frappe.whitelist()
-def set_chat_seen():
+def set_chat_seen(upto=None):
+	"""Advance the caller's seen watermark. With `upto` (a message creation
+	timestamp) this is a WITNESSED mark — the client sends it only after
+	the message was actually on screen; the mark is monotonic and clamped
+	to now, so it can neither retreat nor time-travel. Without `upto` it
+	behaves as before (stamp now) for backward compatibility."""
+	require_staff()
 	user = frappe.session.user
 	now = now_datetime()
+	target = now
+	if upto:
+		try:
+			target = min(frappe.utils.get_datetime(str(upto)), now)
+		except Exception:
+			target = now
 	name = frappe.db.exists("Chat Seen", {"user": user})
 	if name:
-		frappe.db.set_value("Chat Seen", name, "last_seen", now, update_modified=False)
+		existing = frappe.db.get_value("Chat Seen", name, "last_seen")
+		if existing and frappe.utils.get_datetime(existing) >= target:
+			return {"user": user, "last_seen": str(existing)}
+		frappe.db.set_value("Chat Seen", name, "last_seen", target, update_modified=False)
 	else:
 		frappe.get_doc(
-			{"doctype": "Chat Seen", "user": user, "last_seen": now}
+			{"doctype": "Chat Seen", "user": user, "last_seen": target}
 		).insert(ignore_permissions=True)
 	frappe.db.commit()
 	frappe.publish_realtime(
-		"duty_board_seen", {"user": user, "last_seen": str(now)}
+		"duty_board_seen", {"user": user, "last_seen": str(target)}
 	)
-	return {"user": user, "last_seen": str(now)}
+	return {"user": user, "last_seen": str(target)}
 
 
 @frappe.whitelist()
 def toggle_reaction(message, emoji):
+	require_staff()
 	if emoji not in ALLOWED_EMOJIS:
 		frappe.throw(_("That reaction is not available."))
 	if not frappe.db.exists("Team Message", message):
@@ -418,6 +445,7 @@ def _message_payload(r, reactions):
 
 @frappe.whitelist()
 def add_todo(description, customer=None, for_user=None, for_users=None, date=None, due_time=None):
+	require_staff()
 	session = frappe.session.user
 	if not (description or "").strip():
 		frappe.throw(_("Please type the to-do first."))
@@ -509,24 +537,25 @@ def _push_safe(user, title, body):
 
 
 @frappe.whitelist()
-def share_todo(name, users):
+def share_todo(name, users, date=None):
+	require_staff()
 	doc = frappe.get_doc("Daily Todo", name)
-	if date:
-		doc.date = date
 	_check_todo_owner(doc)
+	share_date = date or doc.date
 	targets = _parse_targets(users) or []
 	if not targets:
 		frappe.throw(_("Pick at least one colleague."))
 	for target in targets:
 		if target == doc.user:
 			continue
-		_create_todo_for(target, doc.description, doc.customer, doc.date, doc.due_time)
+		_create_todo_for(target, doc.description, doc.customer, share_date, doc.due_time)
 	frappe.db.commit()
 	return get_board()
 
 
 @frappe.whitelist()
 def update_todo(name, description=None, customer=None, due_time=None, date=None):
+	require_staff()
 	doc = frappe.get_doc("Daily Todo", name)
 	_check_todo_owner(doc)
 	if description is not None and description.strip():
@@ -540,6 +569,7 @@ def update_todo(name, description=None, customer=None, due_time=None, date=None)
 
 @frappe.whitelist()
 def invite_to_task(users):
+	require_staff()
 	user = frappe.session.user
 	running = _get_running_session(user)
 	if not running:
@@ -559,6 +589,7 @@ def invite_to_task(users):
 
 @frappe.whitelist()
 def set_task_customer(customer=None):
+	require_staff()
 	user = frappe.session.user
 	running = _get_running_session(user)
 	if not running:
@@ -572,6 +603,7 @@ def set_task_customer(customer=None):
 
 @frappe.whitelist()
 def add_task_note(session, note):
+	require_staff()
 	if not (note or "").strip():
 		frappe.throw(_("Note is empty."))
 	owner = frappe.db.get_value("Work Session", session, "user")
@@ -594,6 +626,7 @@ def add_task_note(session, note):
 @frappe.whitelist()
 def get_task_history(before=None, limit=60):
 	"""The current user's past work sessions (before their local today), newest first."""
+	require_staff()
 	user = frappe.session.user
 	start_today, _end = user_day_window(user)
 	cutoff = before or str(start_today)
@@ -630,6 +663,7 @@ def get_task_history(before=None, limit=60):
 
 @frappe.whitelist()
 def get_task_notes(session):
+	require_staff()
 	rows = frappe.get_all(
 		"Task Note",
 		filters={"work_session": session},
@@ -662,6 +696,7 @@ def _issue_member_check(doc):
 
 @frappe.whitelist()
 def kb_promote(issue, title=None, problem=None, solution=None, product=None):
+	require_staff()
 	doc = frappe.get_doc("Duty Issue", issue)
 	solution = (solution or doc.resolution or "").strip()
 	if not solution:
@@ -683,6 +718,7 @@ def kb_promote(issue, title=None, problem=None, solution=None, product=None):
 
 @frappe.whitelist()
 def kb_search(query):
+	require_staff()
 	query = (query or "").strip()
 	if len(query) < 2:
 		return []
@@ -716,6 +752,7 @@ def _title_tokens(title):
 
 @frappe.whitelist()
 def similar_issues(name):
+	require_staff()
 	doc = frappe.get_doc("Duty Issue", name)
 	tokens = _title_tokens(doc.title)
 	if not tokens:
@@ -746,6 +783,7 @@ def similar_issues(name):
 
 @frappe.whitelist()
 def staff_workload():
+	require_staff()
 	staff = frappe.get_all(
 		"User",
 		filters={"enabled": 1, "user_type": "System User"},
@@ -786,6 +824,7 @@ def staff_workload():
 
 @frappe.whitelist()
 def skill_add(user, skill):
+	require_staff()
 	skill = (skill or "").strip()[:60]
 	if not skill:
 		frappe.throw(_("Name the skill."))
@@ -801,6 +840,7 @@ def skill_add(user, skill):
 
 @frappe.whitelist()
 def skill_remove(name):
+	require_staff()
 	row = frappe.get_doc("Duty Staff Skill", name)
 	if row.user != frappe.session.user and "System Manager" not in frappe.get_roles():
 		frappe.throw(_("You can only edit your own skills."))
@@ -811,6 +851,7 @@ def skill_remove(name):
 
 @frappe.whitelist()
 def set_on_call(user):
+	require_staff()
 	if "System Manager" not in frappe.get_roles():
 		frappe.throw(_("Only a System Manager can set the on-call person."))
 	frappe.db.set_value("Duty Settings", "Duty Settings", "on_call_user", user or None)
@@ -1049,9 +1090,9 @@ def my_dashboard(month=None):
 	"""Everything one staff member is doing and has done — theirs alone."""
 	from datetime import datetime, timedelta
 
-	from duty_board.client_room import _staff_only
+	from duty_board.permissions import require_staff_or_consultant
 
-	_staff_only()
+	require_staff_or_consultant()
 	me = frappe.session.user
 	now = now_datetime()
 	d30 = now - timedelta(days=30)
@@ -1312,10 +1353,16 @@ def create_meeting(topic, meeting_date, start_time=None, duration_mins=30, custo
 			users = []
 	if me not in users:
 		users.insert(0, me)
+	room_name = None
+	if customer:
+		room_name = frappe.db.get_value(
+			"Client Room", {"customer": customer, "status": ["!=", "Archived"]}, "name"
+		)
 	doc = frappe.get_doc(
 		{
 			"doctype": "Duty Meeting",
 			"topic": topic[:140],
+			"room": room_name,
 			"customer": customer or None,
 			"meeting_date": meeting_date,
 			"start_time": start_time or None,
@@ -1328,6 +1375,12 @@ def create_meeting(topic, meeting_date, start_time=None, duration_mins=30, custo
 	)
 	doc.insert(ignore_permissions=True)
 	frappe.db.commit()
+	try:
+		from duty_board.client_room import _send_meeting_invite
+
+		_send_meeting_invite(doc, "REQUEST")
+	except Exception:
+		pass
 	if customer:
 		try:
 			from duty_board.client_room import _post
@@ -1386,15 +1439,32 @@ def _issue_updates(issue, limit=20):
 	rows = frappe.get_all(
 		"Duty Issue Update",
 		filters={"issue": issue},
-		fields=["note", "owner", "creation"],
+		fields=["name", "note", "owner", "creation"],
 		order_by="creation desc",
 		limit=limit,
 	)
+	kmap = {}
+	kmine = set()
+	if rows:
+		names = [r.name for r in rows]
+		for k in frappe.get_all(
+			"Duty Kudos",
+			filters={"ref_name": ["in", names]},
+			fields=["ref_name", "from_user"],
+		):
+			kmap[k.ref_name] = kmap.get(k.ref_name, 0) + 1
+			if k.from_user == frappe.session.user:
+				kmine.add(k.ref_name)
 	return [
 		{
+			"row": r.name,
 			"note": r.note,
 			"by": frappe.utils.get_fullname(r.owner).split(" ")[0],
+			"owner": r.owner,
 			"when": str(r.creation)[:16],
+			"kudos": kmap.get(r.name, 0),
+			"mine": 1 if r.name in kmine else 0,
+			"self": 1 if r.owner == frappe.session.user else 0,
 		}
 		for r in rows
 	]
@@ -1402,11 +1472,19 @@ def _issue_updates(issue, limit=20):
 
 @frappe.whitelist()
 def issue_updates(name):
+	from duty_board.permissions import require_staff_or_consultant
+	_is_c = require_staff_or_consultant()
+	if _is_c:
+		_consultant_issue_check(frappe.get_doc("Duty Issue", name))
 	return _issue_updates(name)
 
 
 @frappe.whitelist()
 def issue_update_add(name, note):
+	from duty_board.permissions import require_staff_or_consultant
+	_is_c = require_staff_or_consultant()
+	if _is_c:
+		_consultant_issue_check(frappe.get_doc("Duty Issue", name))
 	note = (note or "").strip()
 	if not note:
 		frappe.throw(_("Write the update."))
@@ -1477,6 +1555,18 @@ def _issue_payload(doc):
 		"customer": doc.customer,
 		"severity": doc.severity,
 		"issue_type": doc.get("issue_type"),
+		"change_request": _issue_cr(doc),
+		"checklist": [
+			{
+				"row": c.name,
+				"item": c.item,
+				"done": cint(c.done),
+				"done_by": c.done_by,
+				"assignee": c.get("assignee"),
+				"due_date": str(c.get("due_date")) if c.get("due_date") else None,
+			}
+			for c in (doc.checklist or [])
+		],
 		"client_stars": doc.get("client_stars"),
 		"client_confirmed_at": str(doc.get("client_confirmed_at")) if doc.get("client_confirmed_at") else None,
 		"status": doc.status,
@@ -1506,6 +1596,13 @@ def create_issue(
 	attachments=None,
 	issue_type=None,
 ):
+	from duty_board.permissions import require_staff_or_consultant
+	_is_c = require_staff_or_consultant()
+	if _is_c and customer:
+		from duty_board.permissions import consultant_customers
+
+		if customer not in consultant_customers():
+			frappe.throw(_("Not permitted."), frappe.PermissionError)
 	if not (title or "").strip():
 		frappe.throw(_("Please give the issue a title."))
 	if not customer:
@@ -1562,7 +1659,11 @@ def create_issue(
 
 @frappe.whitelist()
 def get_issue(name):
+	from duty_board.permissions import require_staff_or_consultant
+	_is_c = require_staff_or_consultant()
 	doc = frappe.get_doc("Duty Issue", name)
+	if _is_c:
+		_consultant_issue_check(doc)
 	return _issue_payload(doc)
 
 
@@ -1587,6 +1688,7 @@ def _link_upload_to_issue(file_url, issue_name):
 
 @frappe.whitelist()
 def attach_to_issue(name, file_url):
+	require_staff()
 	doc = frappe.get_doc("Duty Issue", name)
 	_issue_member_check(doc)
 	if not _link_upload_to_issue(file_url, doc.name):
@@ -1597,6 +1699,7 @@ def attach_to_issue(name, file_url):
 
 @frappe.whitelist()
 def set_issue_visibility(name, visible):
+	require_staff()
 	doc = frappe.get_doc("Duty Issue", name)
 	_issue_member_check(doc)
 	frappe.db.set_value("Duty Issue", name, "client_visible", cint(visible), update_modified=False)
@@ -1606,6 +1709,7 @@ def set_issue_visibility(name, visible):
 
 @frappe.whitelist()
 def acknowledge_issue(name):
+	require_staff()
 	doc = frappe.get_doc("Duty Issue", name)
 	_issue_member_check(doc)
 	if not doc.acknowledged_by:
@@ -1630,6 +1734,7 @@ def acknowledge_issue(name):
 
 @frappe.whitelist()
 def duty_typing():
+	require_staff()
 	first = frappe.utils.get_fullname(frappe.session.user).split(" ")[0]
 	frappe.publish_realtime("duty_board_typing", {"who": first, "user": frappe.session.user})
 	return {"ok": True}
@@ -1637,11 +1742,15 @@ def duty_typing():
 
 @frappe.whitelist()
 def start_issue_work(name):
+	from duty_board.permissions import require_staff_or_consultant
+	_is_c = require_staff_or_consultant()
 	user = frappe.session.user
 	doc = frappe.get_doc("Duty Issue", name)
+	if _is_c:
+		_consultant_issue_check(doc)
 	if doc.status not in ("Open", "In Progress"):
 		frappe.throw(_("This issue is already {0}.").format(_(doc.status)))
-	if not _is_clocked_in(user):
+	if not _is_c and not _is_clocked_in(user):
 		frappe.throw(_("Clock in first before starting work on an issue."))
 
 	# picking up an issue assigns you to it
@@ -1685,6 +1794,8 @@ def start_issue_work(name):
 
 @frappe.whitelist()
 def stop_issue_work(name):
+	from duty_board.permissions import require_staff_or_consultant
+	_is_c = require_staff_or_consultant()
 	user = frappe.session.user
 	doc = frappe.get_doc("Duty Issue", name)
 
@@ -1706,10 +1817,33 @@ def stop_issue_work(name):
 
 
 @frappe.whitelist()
-def update_issue_status(name, status, resolution=None):
+def update_issue_status(name, status, resolution=None, hours=None):
+	from duty_board.permissions import require_staff_or_consultant
+	from frappe.utils import flt
+	_is_c = require_staff_or_consultant()
 	if status not in ISSUE_STATUSES:
 		frappe.throw(_("Unknown status."))
 	doc = frappe.get_doc("Duty Issue", name)
+	if status in ("Resolved", "Closed") and (doc.checklist or []):
+		open_items = [c.item for c in doc.checklist if not cint(c.done)]
+		if open_items:
+			frappe.throw(
+				_("The checklist is not complete — {0} item(s) remain: {1}").format(
+					len(open_items), "; ".join(open_items[:5])
+				)
+			)
+	if _is_c:
+		_consultant_issue_check(doc)
+		if status in ("Resolved", "Closed"):
+			if not flt(hours) > 0:
+				frappe.throw(_("Enter the hours spent before closing this issue."))
+			_retro_session(hours, doc.title, doc.customer, duty_issue=name)
+			try:
+				from duty_board.notify import closure_email
+
+				closure_email(doc, hours)
+			except Exception:
+				frappe.log_error(frappe.get_traceback()[-1200:], "closure email")
 	_issue_member_check(doc)
 	if status in ("Resolved", "Closed"):
 		running = _get_running_session(frappe.session.user)
@@ -1723,6 +1857,12 @@ def update_issue_status(name, status, resolution=None):
 	doc.save(ignore_permissions=True)
 	frappe.db.commit()
 	if status in ("Resolved", "Closed"):
+		try:
+			from duty_board.uat import on_issue_resolved
+
+			on_issue_resolved(name)
+		except Exception:
+			pass
 		fresh = frappe.db.get_value(
 			"Duty Issue", name, ["resolved_at", "sla_res_due"], as_dict=True
 		)
@@ -1761,9 +1901,18 @@ def update_issue_status(name, status, resolution=None):
 
 
 @frappe.whitelist()
-def update_issue(name, severity=None, due_date=None, add_assignees=None):
+def update_issue(name, severity=None, due_date=None, add_assignees=None, issue_type=None):
+	from duty_board.permissions import require_staff_or_consultant
+	_is_c = require_staff_or_consultant()
 	doc = frappe.get_doc("Duty Issue", name)
+	if _is_c:
+		_consultant_issue_check(doc)
 	_issue_member_check(doc)
+	if issue_type and issue_type in (
+		"Support", "Bug", "Feature Request", "Configuration", "Training", "Enablement",
+		"Data Correction", "Integration", "Billing", "Implementation",
+	):
+		doc.issue_type = issue_type
 	if severity and severity in SEVERITIES:
 		doc.severity = severity
 	doc.due_date = due_date or None
@@ -1783,64 +1932,15 @@ def update_issue(name, severity=None, due_date=None, add_assignees=None):
 			)
 	doc.save(ignore_permissions=True)
 	frappe.db.commit()
+	added = [t for t in new_targets if t not in existing]
+	if added:
+		try:
+			from duty_board.notify import assignment_email
+
+			assignment_email(doc, added)
+		except Exception:
+			frappe.log_error(frappe.get_traceback()[-1200:], "assign email")
 	return _issue_payload(doc)
-
-
-@frappe.whitelist()
-def get_issues(scope="open"):
-	filters = {}
-	if scope == "resolved":
-		filters["status"] = "Resolved"
-	elif scope == "closed":
-		filters["status"] = "Closed"
-	elif scope == "all":
-		pass
-	else:
-		filters["status"] = ["in", ["Open", "In Progress"]]
-
-	issues = frappe.get_all(
-		"Duty Issue",
-		filters=filters,
-		fields=[
-			"name",
-			"title",
-			"customer",
-			"severity",
-			"status",
-			"due_date",
-			"raised_by",
-			"creation",
-			"resolved_at",
-			"issue_type",
-			"acknowledged_at",
-			"sla_ack_due",
-			"sla_res_due",
-			"sla_ack_met",
-			"sla_res_met",
-		],
-		order_by="creation desc",
-		limit=200,
-	)
-	for r in issues:
-		r["sla"] = {
-			"ack": dict(zip(("state", "detail"), _sla_state(r.get("sla_ack_due"), r.get("acknowledged_at"), r.get("sla_ack_met")))),
-			"res": dict(zip(("state", "detail"), _sla_state(r.get("sla_res_due"), r.get("resolved_at"), r.get("sla_res_met")))),
-		}
-	if issues:
-		rows = frappe.get_all(
-			"Duty Issue Assignee",
-			filters={"parenttype": "Duty Issue", "parent": ["in", [i.name for i in issues]]},
-			fields=["parent", "user"],
-		)
-		by_issue = {}
-		for r in rows:
-			by_issue.setdefault(r.parent, []).append(r.user)
-		for i in issues:
-			i.assignees = by_issue.get(i.name, [])
-			i.due_date = str(i.due_date) if i.due_date else None
-			i.creation = str(i.creation)
-			i.resolved_at = str(i.resolved_at) if i.resolved_at else None
-	return issues
 
 
 def _fetch_issues(statuses, order_by):
@@ -1852,6 +1952,8 @@ def _fetch_issues(statuses, order_by):
 			"title",
 			"customer",
 			"severity",
+			"issue_type",
+			"from_change_request",
 			"status",
 			"due_date",
 			"raised_by",
@@ -1861,6 +1963,19 @@ def _fetch_issues(statuses, order_by):
 		limit=200,
 	)
 	if issues:
+		wk = {
+			r.parent: r
+			for r in frappe.get_all(
+				"Duty Issue Checklist Item",
+				filters={"parenttype": "Duty Issue", "parent": ["in", [i.name for i in issues]]},
+				fields=["parent", "count(name) as total", "sum(done) as done"],
+				group_by="parent",
+			)
+		}
+		for i in issues:
+			w = wk.get(i.name)
+			i.wk_total = cint(w.total) if w else 0
+			i.wk_done = cint(w.done) if w else 0
 		rows = frappe.get_all(
 			"Duty Issue Assignee",
 			filters={"parenttype": "Duty Issue", "parent": ["in", [i.name for i in issues]]},
@@ -1873,11 +1988,11 @@ def _fetch_issues(statuses, order_by):
 			i.assignees = by_issue.get(i.name, [])
 			i.due_date = str(i.due_date) if i.due_date else None
 			i.creation = str(i.creation)
+		_attach_cr_tags(issues)
 	return issues
 
 
 def _open_issues():
-	sev_order = {"Critical": 0, "High": 1, "Medium": 2, "Low": 3}
 	issues = _fetch_issues(["Open", "In Progress"], "creation asc")
 	issues.sort(key=lambda i: str(i.creation), reverse=True)
 	return issues
@@ -1885,6 +2000,8 @@ def _open_issues():
 
 @frappe.whitelist()
 def get_issues(status="open", scope=None):
+	from duty_board.permissions import require_staff_or_consultant
+	_is_c = require_staff_or_consultant()
 	if scope:
 		status = scope  # the staff page sends scope=; both names welcome
 	status_map = {
@@ -1895,13 +2012,16 @@ def get_issues(status="open", scope=None):
 	}
 	if status not in status_map:
 		status = "open"
-	if status == "open":
-		return _open_issues()
-	return _fetch_issues(status_map[status], "creation desc")
+	rows = _open_issues() if status == "open" else _fetch_issues(status_map[status], "creation desc")
+	if _is_c:
+		me = frappe.session.user
+		rows = [r for r in rows if me in (r.get("assignees") or [])]
+	return rows
 
 
 @frappe.whitelist()
 def toggle_todo(name, done):
+	require_staff()
 	doc = frappe.get_doc("Daily Todo", name)
 	_check_todo_owner(doc)
 	doc.status = "Done" if cint(done) else "Open"
@@ -1912,6 +2032,7 @@ def toggle_todo(name, done):
 
 @frappe.whitelist()
 def remove_todo(name):
+	require_staff()
 	doc = frappe.get_doc("Daily Todo", name)
 	_check_todo_owner(doc)
 	frappe.delete_doc("Daily Todo", name, ignore_permissions=True)
@@ -1921,6 +2042,7 @@ def remove_todo(name):
 
 @frappe.whitelist()
 def carry_todo(name):
+	require_staff()
 	doc = frappe.get_doc("Daily Todo", name)
 	_check_todo_owner(doc)
 	if doc.status == "Done":
@@ -1934,6 +2056,7 @@ def carry_todo(name):
 
 @frappe.whitelist()
 def carry_all():
+	require_staff()
 	user = frappe.session.user
 	names = frappe.get_all(
 		"Daily Todo",
@@ -1952,6 +2075,7 @@ def carry_all():
 
 @frappe.whitelist()
 def bring_old_todos():
+	require_staff()
 	user = frappe.session.user
 	names = frappe.get_all(
 		"Daily Todo",
@@ -1990,6 +2114,7 @@ def _sorted_todos(rows):
 
 @frappe.whitelist()
 def start_task(activity, customer=None, todo=None, complete_previous=0):
+	require_staff()
 	user = frappe.session.user
 	if not (activity or "").strip():
 		frappe.throw(_("Please describe what you are working on."))
@@ -2016,6 +2141,7 @@ def start_task(activity, customer=None, todo=None, complete_previous=0):
 
 @frappe.whitelist()
 def stop_task(completed=0):
+	require_staff()
 	user = frappe.session.user
 	stopped = _stop_running_session(user)
 	if cint(completed) and stopped and stopped.daily_todo:
@@ -2116,6 +2242,7 @@ def _users_on_leave(user_ids):
 def delete_message(name):
 	"""System Managers only: remove a Duty Room message everywhere.
 	Cascades attached files and reactions, then tells every open client."""
+	require_staff()
 	if "System Manager" not in frappe.get_roles():
 		frappe.throw(_("Only System Managers can delete messages."))
 	if not frappe.db.exists("Team Message", name):
@@ -2157,6 +2284,10 @@ def _dm_unread_safe(user):
 @frappe.whitelist()
 def get_board():
 	"""Current status of every enabled System User, each in their own local day."""
+	from duty_board.permissions import require_staff_or_consultant
+
+	if require_staff_or_consultant():
+		return _consultant_board()
 	now = now_datetime()
 	session = frappe.session.user
 
@@ -2386,3 +2517,422 @@ def get_board():
 		"on_call": on_call_info(),
 		"server_time": str(now),
 	}
+
+
+@frappe.whitelist()
+def consultant_gate():
+	"""The one endpoint a consultant may always call: identifies the
+	principal so the client can render the right shell instead of frappe's
+	generic permission modal. Returns consultant=False for staff."""
+	from duty_board.permissions import require_staff_or_consultant
+
+	is_c = require_staff_or_consultant()
+	return {
+		"consultant": bool(is_c),
+		"full_name": frappe.utils.get_fullname(frappe.session.user),
+	}
+
+
+def _consultant_issue_check(doc):
+	"""A consultant may touch only issues they are assigned to."""
+	if frappe.session.user not in [a.user for a in (doc.assignees or [])]:
+		frappe.throw(_("Not permitted."), frappe.PermissionError)
+
+
+def _consultant_board():
+	"""Minimal board payload for external consultants: their assigned open
+	issues plus the people directory (name visibility approved). No team
+	presence, plans, chat, or attendance."""
+	user = frappe.session.user
+	rows = [r for r in _open_issues() if user in (r.get("assignees") or [])]
+	today = frappe.utils.today()
+	overdue = len([r for r in rows if r.get("due_date") and str(r["due_date"]) < today])
+	mine_all = frappe.get_all(
+		"Duty Issue Assignee", filters={"user": user}, pluck="parent"
+	)
+	resolved30 = frappe.db.count(
+		"Duty Issue",
+		{
+			"name": ["in", mine_all or [""]],
+			"status": ["in", ["Resolved", "Closed"]],
+			"modified": [">", frappe.utils.add_days(today, -30)],
+		},
+	)
+	week_secs = 0
+	for s in frappe.get_all(
+		"Work Session",
+		filters={"user": user, "start_time": [">", frappe.utils.add_days(today, -7)]},
+		fields=["start_time", "end_time"],
+	):
+		if s.end_time:
+			week_secs += (s.end_time - s.start_time).total_seconds()
+	people = frappe.get_all(
+		"User",
+		filters={
+			"enabled": 1,
+			"user_type": "System User",
+			"name": ["not in", ["Guest", "Administrator"]],
+		},
+		fields=["name as user", "full_name"],
+	)
+	return {
+		"consultant": 1,
+		"stats": {
+			"open": len(rows),
+			"overdue": overdue,
+			"resolved30": resolved30,
+			"week_hours": round(week_secs / 3600, 1),
+		},
+		"me": {"user": user, "full_name": frappe.utils.get_fullname(user)},
+		"issues": rows,
+		"people": people,
+		"board": [],
+		"my_todos": [],
+		"my_upcoming": [],
+		"overdue_count": 0,
+	}
+
+
+@frappe.whitelist()
+def remove_assignee(name, user):
+	"""Take one user off an issue's assignee list. Consultants may reshape
+	the roster only on issues they are themselves assigned to."""
+	from duty_board.permissions import require_staff_or_consultant
+
+	_is_c = require_staff_or_consultant()
+	doc = frappe.get_doc("Duty Issue", name)
+	if _is_c:
+		_consultant_issue_check(doc)
+	before = len(doc.assignees or [])
+	doc.assignees = [a for a in (doc.assignees or []) if a.user != user]
+	if len(doc.assignees) == before:
+		frappe.throw(_("Not an assignee."))
+	doc.save(ignore_permissions=True)
+	frappe.db.commit()
+	return _issue_payload(doc)
+
+
+def _retro_session(hours, activity, customer=None, duty_issue=None, project_task=None):
+	"""Backdated Work Session for a consultant's retrospective time entry:
+	ends now, starts hours ago. Duration feeds cost-to-serve like any
+	live-timed session."""
+	from frappe.utils import flt, now_datetime
+	from datetime import timedelta
+
+	hours = flt(hours)
+	end = now_datetime()
+	frappe.get_doc({
+		"doctype": "Work Session",
+		"user": frappe.session.user,
+		"full_name": frappe.utils.get_fullname(frappe.session.user),
+		"activity": (activity or "")[:140],
+		"customer": customer,
+		"duty_issue": duty_issue,
+		"project_task": project_task,
+		"start_time": end - timedelta(hours=hours),
+		"end_time": end,
+		"duration": int(hours * 3600),
+	}).insert(ignore_permissions=True)
+
+
+def _issue_cr(doc):
+	"""The linked change request from either direction, with its chip."""
+	from duty_board.commercial import cr_chip
+
+	fields = ["name", "title", "status", "pricing_status", "approved_at"]
+	cr = None
+	if doc.get("from_change_request"):
+		cr = frappe.db.get_value(
+			"Duty Change Request", doc.from_change_request, fields, as_dict=True
+		)
+	if not cr:
+		cr = frappe.db.get_value(
+			"Duty Change Request", {"source_issue": doc.name}, fields, as_dict=True
+		)
+	if not cr:
+		return None
+	chip = cr_chip(cr)
+	cr["chip"] = chip["label"]
+	cr["go"] = chip["go"]
+	cr["approved_at"] = str(cr["approved_at"]) if cr.get("approved_at") else None
+	return cr
+
+
+def _attach_cr_tags(issues):
+	"""Batch chip attachment for list rows: CRs linked by either direction."""
+	from duty_board.commercial import cr_chip
+
+	names = [i.name for i in issues]
+	rev = [i.from_change_request for i in issues if i.get("from_change_request")]
+	crs = frappe.get_all(
+		"Duty Change Request",
+		filters={"source_issue": ["in", names or [""]]},
+		fields=["name", "source_issue", "status", "pricing_status", "approved_at"],
+	)
+	by_issue = {c.source_issue: c for c in crs}
+	by_name = {}
+	if rev:
+		for c in frappe.get_all(
+			"Duty Change Request",
+			filters={"name": ["in", rev]},
+			fields=["name", "status", "pricing_status", "approved_at"],
+		):
+			by_name[c.name] = c
+	for i in issues:
+		cr = by_name.get(i.get("from_change_request")) or by_issue.get(i.name)
+		if cr:
+			chip = cr_chip(cr)
+			i.cr_chip = chip["label"]
+			i.cr_go = chip["go"]
+
+
+@frappe.whitelist()
+def cr_accept(name):
+	"""The consultant's (or staff's) explicit 'I have seen the approval and
+	I am starting': moves an Open issue to In Progress and records the
+	acceptance in the updates thread. Only when the linked CR says work
+	may proceed."""
+	from duty_board.permissions import require_staff_or_consultant
+
+	_is_c = require_staff_or_consultant()
+	doc = frappe.get_doc("Duty Issue", name)
+	if _is_c:
+		_consultant_issue_check(doc)
+	cr = _issue_cr(doc)
+	if not (cr and cr.get("go")):
+		frappe.throw(_("The change request is not yet approved for work."))
+	if doc.status == "Open":
+		doc.status = "In Progress"
+		doc.save(ignore_permissions=True)
+	frappe.get_doc({
+		"doctype": "Duty Issue Update",
+		"issue": name,
+		"note": _("✅ Change request accepted — work starting."),
+	}).insert(ignore_permissions=True)
+	frappe.db.commit()
+	return _issue_payload(doc)
+
+
+@frappe.whitelist()
+def my_customer_options():
+	"""Customer picker source for the new-issue dialog. Staff get every
+	non-disabled customer; consultants get exactly their rooms' customers —
+	the same fence create_issue enforces on the way in."""
+	from duty_board.permissions import require_staff_or_consultant, consultant_customers
+
+	if require_staff_or_consultant():
+		return sorted(consultant_customers())
+	return frappe.get_all(
+		"Customer", filters={"disabled": 0}, pluck="name", order_by="name asc"
+	)
+
+
+def _checklist_door(name):
+	from duty_board.permissions import require_staff_or_consultant
+
+	# the wall answers BEFORE the document is touched — a stranger probing
+	# with a junk name must meet PermissionError, never DoesNotExist
+	_is_c = require_staff_or_consultant()
+	doc = frappe.get_doc("Duty Issue", name)
+	if _is_c:
+		_consultant_issue_check(doc)
+	_issue_member_check(doc)
+	return doc
+
+
+@frappe.whitelist()
+def checklist_add(name, item, assignee=None, due_date=None):
+	"""Append a checklist item to an issue."""
+	doc = _checklist_door(name)
+	item = (item or "").strip()
+	if not item:
+		frappe.throw(_("Say what needs doing."))
+	doc.append("checklist", {"item": item[:140], "done": 0, "assignee": assignee or None, "due_date": due_date or None})
+	doc.save(ignore_permissions=True)
+	frappe.db.commit()
+	return _issue_payload(doc)
+
+
+@frappe.whitelist()
+def checklist_toggle(name, row, done):
+	"""Tick or untick one checklist item; stamps who and when."""
+	doc = _checklist_door(name)
+	for c in doc.checklist or []:
+		if c.name == row:
+			c.done = cint(done)
+			c.done_by = frappe.session.user if cint(done) else None
+			c.done_at = now_datetime() if cint(done) else None
+			break
+	else:
+		frappe.throw(_("Checklist item not found."))
+	doc.save(ignore_permissions=True)
+	frappe.db.commit()
+	return _issue_payload(doc)
+
+
+@frappe.whitelist()
+def checklist_remove(name, row):
+	"""Delete one checklist item."""
+	doc = _checklist_door(name)
+	before = len(doc.checklist or [])
+	doc.checklist = [c for c in (doc.checklist or []) if c.name != row]
+	if len(doc.checklist) == before:
+		frappe.throw(_("Checklist item not found."))
+	doc.save(ignore_permissions=True)
+	frappe.db.commit()
+	return _issue_payload(doc)
+
+
+# ─────────────── Enablements: more than a task, less than a project ───────────────
+
+@frappe.whitelist()
+def checklist_assign(name, row, assignee=None, due_date=None):
+	"""Give a workplan step an owner and a date — staff only; the
+	workplan's shape is a delivery decision."""
+	require_staff()
+	doc = frappe.get_doc("Duty Issue", name)
+	for c in doc.checklist or []:
+		if c.name == row:
+			c.assignee = assignee or None
+			c.due_date = due_date or None
+			doc.save(ignore_permissions=True)
+			frappe.db.commit()
+			return _issue_payload(doc)
+	frappe.throw(_("Step not found."))
+
+
+def _parse_enablement_templates():
+	raw = frappe.db.get_single_value("Duty Settings", "enablement_templates") or ""
+	out = []
+	cur = None
+	for line in raw.splitlines():
+		line = line.strip()
+		if line.startswith("[") and line.endswith("]"):
+			cur = {"name": line[1:-1].strip(), "steps": []}
+			out.append(cur)
+		elif line and cur is not None:
+			cur["steps"].append(line[:140])
+	return [t for t in out if t["name"] and t["steps"]]
+
+
+@frappe.whitelist()
+def enablement_templates():
+	require_staff()
+	return _parse_enablement_templates()
+
+
+@frappe.whitelist()
+def enablement_create(customer, title, template=None, description=None, assignees=None, due_date=None):
+	"""One call: an Enablement ticket with its workplan pre-loaded."""
+	require_staff()
+	name = create_issue(
+		title=title,
+		customer=customer,
+		severity="Medium",
+		due_date=due_date,
+		description=description,
+		assignees=assignees,
+		issue_type="Enablement",
+	)["name"]
+	doc = frappe.get_doc("Duty Issue", name)
+	if template:
+		for t in _parse_enablement_templates():
+			if t["name"] == template:
+				for step in t["steps"]:
+					doc.append("checklist", {"item": step, "done": 0})
+				doc.save(ignore_permissions=True)
+				frappe.db.commit()
+				break
+	return _issue_payload(doc)
+
+
+@frappe.whitelist()
+def promote_to_project(name):
+	"""The judgment call made real: an Enablement that grew milestones
+	becomes a Duty Project. Open workplan steps become project tasks
+	(assignee and due carried); the ticket closes with a paper trail."""
+	require_staff()
+	doc = frappe.get_doc("Duty Issue", name)
+	if doc.get("issue_type") != "Enablement":
+		frappe.throw(_("Only Enablements promote to projects."))
+	if doc.status in ("Resolved", "Closed"):
+		frappe.throw(_("This enablement is already {0}.").format(doc.status.lower()))
+	from duty_board.projects import create_project, create_task
+
+	proj = create_project(project_name=doc.title[:120], customer=doc.customer)
+	proj_name = proj["name"] if isinstance(proj, dict) else proj
+	carried = 0
+	for c in doc.checklist or []:
+		if not cint(c.done):
+			create_task(
+				project=proj_name,
+				title=c.item,
+				column="To Do",
+				assignee=c.get("assignee") or None,
+				due_date=str(c.get("due_date")) if c.get("due_date") else None,
+			)
+			carried += 1
+	first = frappe.utils.get_fullname(frappe.session.user).split(" ")[0]
+	frappe.get_doc({
+		"doctype": "Duty Issue Update",
+		"issue": doc.name,
+		"note": _("⤴ Promoted to project by {0} — {1} open step(s) carried to {2}.").format(first, carried, proj_name),
+	}).insert(ignore_permissions=True)
+	doc.db_set("status", "Closed", update_modified=True)
+	doc.db_set("resolution", _("Promoted to project {0}").format(proj_name), update_modified=False)
+	frappe.db.commit()
+	return {"project": proj_name, "carried": carried}
+
+
+@frappe.whitelist()
+def enablement_apply(name, template):
+	"""Pre-load a workplan template onto an existing Enablement ticket."""
+	require_staff()
+	doc = frappe.get_doc("Duty Issue", name)
+	for t in _parse_enablement_templates():
+		if t["name"] == template:
+			for step in t["steps"]:
+				doc.append("checklist", {"item": step, "done": 0})
+			doc.save(ignore_permissions=True)
+			frappe.db.commit()
+			return _issue_payload(doc)
+	frappe.throw(_("Template not found — check Duty Settings."))
+
+
+@frappe.whitelist()
+def merge_issue(source, target):
+	"""Fold a duplicate into the real ticket: updates, assignees,
+	checklist steps, work sessions and attachments all move; the
+	duplicate closes with a paper trail on both sides."""
+	require_staff()
+	if source == target:
+		frappe.throw(_("A ticket cannot merge into itself."))
+	src = frappe.get_doc("Duty Issue", source)
+	tgt = frappe.get_doc("Duty Issue", target)
+	if tgt.status in ("Closed",):
+		frappe.throw(_("Target {0} is closed — merge into a living ticket.").format(target))
+	frappe.db.sql("update `tabDuty Issue Update` set issue=%s where issue=%s", (target, source))
+	frappe.db.sql("update `tabWork Session` set duty_issue=%s where duty_issue=%s", (target, source))
+	frappe.db.sql(
+		"update `tabFile` set attached_to_name=%s where attached_to_doctype='Duty Issue' and attached_to_name=%s",
+		(target, source),
+	)
+	have = {a.user for a in (tgt.assignees or [])}
+	for a in src.assignees or []:
+		if a.user not in have:
+			tgt.append("assignees", {"user": a.user})
+	for c in src.checklist or []:
+		tgt.append("checklist", {
+			"item": c.item, "done": c.done, "done_by": c.done_by,
+			"assignee": c.get("assignee"), "due_date": c.get("due_date"),
+		})
+	if src.description and src.description not in (tgt.description or ""):
+		tgt.description = ((tgt.description or "") + "\n\n— " + _("From merged {0}").format(source) + " —\n" + src.description).strip()
+	tgt.save(ignore_permissions=True)
+	first = frappe.utils.get_fullname(frappe.session.user).split(" ")[0]
+	frappe.get_doc({"doctype": "Duty Issue Update", "issue": target,
+		"note": _("⇄ {0} merged {1} into this ticket.").format(first, source)}).insert(ignore_permissions=True)
+	src.db_set("status", "Closed", update_modified=True)
+	src.db_set("resolution", _("Merged into {0}").format(target), update_modified=False)
+	frappe.db.commit()
+	return _issue_payload(tgt)

@@ -1,0 +1,92 @@
+{
+ "actions": [],
+ "autoname": "format:DACT-{#####}",
+ "creation": "2026-07-11 10:00:00.000000",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "document",
+  "action",
+  "column_break_1",
+  "user",
+  "timestamp",
+  "details_section",
+  "details"
+ ],
+ "fields": [
+  {
+   "fieldname": "document",
+   "fieldtype": "Link",
+   "label": "Document",
+   "options": "Client Document",
+   "reqd": 1,
+   "in_list_view": 1,
+   "in_standard_filter": 1
+  },
+  {
+   "fieldname": "action",
+   "fieldtype": "Select",
+   "label": "Action",
+   "options": "Created\nChecked Out\nChecked In\nForce Released\nVersion Restored\nDownloaded",
+   "reqd": 1,
+   "in_list_view": 1,
+   "in_standard_filter": 1
+  },
+  {
+   "fieldname": "column_break_1",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "user",
+   "fieldtype": "Link",
+   "label": "User",
+   "options": "User",
+   "in_list_view": 1,
+   "in_standard_filter": 1
+  },
+  {
+   "fieldname": "timestamp",
+   "fieldtype": "Datetime",
+   "label": "Timestamp",
+   "in_list_view": 1
+  },
+  {
+   "fieldname": "details_section",
+   "fieldtype": "Section Break",
+   "label": "Details"
+  },
+  {
+   "fieldname": "details",
+   "fieldtype": "Small Text",
+   "label": "Details"
+  }
+ ],
+ "in_create": 1,
+ "links": [],
+ "modified": "2026-07-11 10:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "Document Hub",
+ "name": "Document Activity",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager"
+  },
+  {
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Duty Board User"
+  }
+ ],
+ "sort_field": "timestamp",
+ "sort_order": "DESC",
+ "states": []
+}

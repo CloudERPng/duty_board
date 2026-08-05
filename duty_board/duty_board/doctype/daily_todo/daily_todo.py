@@ -31,7 +31,11 @@ class DailyTodo(Document):
 
 @frappe.whitelist()
 def get_events(start, end, filters=None):
-	"""Feed for the Daily Todo calendar view."""
+	"""Feed for the Daily Todo calendar view. Staff only — consultants are
+	System Users and must not read the team's day."""
+	from duty_board.permissions import require_staff
+
+	require_staff()
 	from frappe.desk.calendar import get_event_conditions
 
 	conditions = get_event_conditions("Daily Todo", filters)

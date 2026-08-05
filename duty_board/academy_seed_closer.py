@@ -16,6 +16,13 @@ from duty_board.academy_seed import MODULE_TITLE as FOUNDATIONS_TITLE
 
 ORDER = ["orders_pipeline", "closer_workflow", "reports_analytics", "team_workflow"]
 
+CONSULTANT_TRACK = {
+	"title": "ZhiftCRM Certified Consultant",
+	"serial_prefix": "ZCRM-CONSULT",
+	"description": "The implementer's certification: complete command of every ZhiftCRM workflow — foundations, orders & pipeline, closer workflow, reports & analytics, and team & workflow management. Implementation & configuration modules join the track when seeded.",
+	"modules": ["__foundations__", "orders_pipeline", "closer_workflow", "reports_analytics", "team_workflow"],
+}
+
 TRACKS = [
 	{
 		"title": "ZhiftCRM Certified Closer",
@@ -118,3 +125,12 @@ def seed_closer_tracks():
 
 	frappe.db.commit()
 	print("Closer & Closer Manager tracks ready.")
+
+
+def seed_consultant_track():
+	"""Deprecated interim seed (v2.98.0) — the track is now composed of the five
+	manual-distilled consultant modules. Delegates to the authoritative seed."""
+	from duty_board.academy_seed_consultant import seed_consultant_track as _seed
+
+	print("Delegating to duty_board.academy_seed_consultant.seed_consultant_track (v2.99.0 composition).")
+	_seed()

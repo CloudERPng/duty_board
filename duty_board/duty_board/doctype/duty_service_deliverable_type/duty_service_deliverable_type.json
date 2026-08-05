@@ -6,13 +6,15 @@
  "engine": "InnoDB",
  "field_order": [
   "title",
+  "service_line",
   "frequency",
   "due_basis",
   "due_day",
   "optional",
   "active",
   "sort_order",
-  "checklist"
+  "checklist",
+  "due_month"
  ],
  "fields": [
   {
@@ -22,18 +24,26 @@
    "reqd": 1
   },
   {
+   "fieldname": "service_line",
+   "fieldtype": "Select",
+   "label": "Service Line",
+   "options": "Bookkeeping\nPayroll & HR\nTax",
+   "default": "Bookkeeping",
+   "in_list_view": 1
+  },
+  {
    "default": "Monthly",
    "fieldname": "frequency",
    "fieldtype": "Select",
    "label": "Frequency",
-   "options": "Monthly\nQuarterly"
+   "options": "Monthly\nQuarterly\nAnnual"
   },
   {
    "default": "Nth working day of next month",
    "fieldname": "due_basis",
    "fieldtype": "Select",
    "label": "Due Basis",
-   "options": "Nth working day of next month\nNth working day of period\nLast working day of period\nFixed day of next month"
+   "options": "Nth working day of next month\nNth working day of period\nLast working day of period\nFixed day of next month\nFixed day of period"
   },
   {
    "default": "5",
@@ -63,6 +73,12 @@
    "fieldtype": "Small Text",
    "label": "Close Checklist",
    "description": "One item per line; spawned onto each period's deliverable the first time it is opened"
+  },
+  {
+   "fieldname": "due_month",
+   "fieldtype": "Int",
+   "label": "Due Month (Annual: 1-12; 0 = room FYE + 6)",
+   "depends_on": "eval:doc.frequency=='Annual'"
   }
  ],
  "index_web_pages_for_search": 1,

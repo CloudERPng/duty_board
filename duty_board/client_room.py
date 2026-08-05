@@ -10,7 +10,7 @@ import json
 
 import frappe
 from frappe import _
-from frappe.utils import cint, getdate, now_datetime, today
+from frappe.utils import cint, get_datetime, getdate, now_datetime, today
 from frappe.utils.pdf import get_pdf
 
 MSG_MAX = 2000
@@ -21,10 +21,9 @@ CLIENT_STATUS = {"To Do": "Queued", "In Progress": "In Progress", "Completed": "
 
 
 def _staff_only():
-	if frappe.session.user == "Guest":
-		frappe.throw(_("Not permitted."), frappe.PermissionError)
-	if frappe.db.get_value("User", frappe.session.user, "user_type") != "System User":
-		frappe.throw(_("Not permitted."), frappe.PermissionError)
+	from duty_board.permissions import require_staff
+
+	require_staff()
 
 
 RENEWAL_GRACE_DAYS = 14
@@ -120,6 +119,7 @@ def _room_payload(room, include_internal, before=None, limit=40):
 			r.owner, frappe.utils.get_fullname(r.owner) or r.owner
 		)
 		r.is_staff = frappe.db.get_value("User", r.owner, "user_type") == "System User"
+		r.mine = 1 if r.owner == frappe.session.user else 0
 		ext = (r.attachment_name or "").lower().rsplit(".", 1)[-1]
 		r.is_image = ext in ("png", "jpg", "jpeg", "gif", "webp")
 		r.is_audio = ext in ("webm", "ogg", "mp3", "m4a", "wav")
@@ -330,13 +330,20 @@ def _post(room, text, internal=0, attachment_url=None, attachment_name=None, ref
 
 @frappe.whitelist()
 def get_rooms():
-	_staff_only()
+	from duty_board.permissions import require_staff_or_consultant, consultant_room_names
+	_is_c = require_staff_or_consultant()
 	rooms = frappe.get_all(
 		"Client Room",
 		filters={"status": ["!=", "Archived"]},
-		fields=["name", "customer", "unit", "status", "project"],
+		fields=["name", "customer", "unit", "status", "project", "staff_users", "owner_user"],
 		order_by="modified desc",
 	)
+	if _is_c:
+		_memb = consultant_room_names()
+		rooms = [r for r in rooms if r.name in _memb]
+	elif "System Manager" not in frappe.get_roles():
+		_me = frappe.session.user
+		rooms = [r for r in rooms if _staff_sees_room(r, _me)]
 	for r in rooms:
 		last = frappe.get_all(
 			"Client Room Message",
@@ -348,7 +355,10 @@ def get_rooms():
 		r.last = last[0].message[:60] if last else ""
 		r.last_when = str(last[0].creation) if last else None
 		r.members = frappe.db.count("Client Room Member", {"room": r.name, "active": 1})
-		r.unread = _room_unread(r.name, frappe.session.user)
+		_u = _room_unread(r.name, frappe.session.user)
+		r.unread = _u["total"]
+		r.unread_client = _u["client"]
+		r.unread_other = _u["other"]
 		r.join_requests = frappe.db.count(
 			"Client Join Request", {"room": r.name, "status": "Pending"}
 		)
@@ -387,13 +397,22 @@ def create_room(customer, unit=None):
 
 @frappe.whitelist()
 def get_room(name, before=None):
-	_staff_only()
+	from duty_board.permissions import require_staff_or_consultant, consultant_room_names
+	_is_c = require_staff_or_consultant()
 	room = frappe.get_doc("Client Room", name)
-	messages, has_more = _room_payload(room, include_internal=True, before=before)
+	if _is_c:
+		if name not in consultant_room_names():
+			frappe.throw(_("Not permitted."), frappe.PermissionError)
+	elif "System Manager" not in frappe.get_roles() and not _staff_sees_room(room, frappe.session.user):
+		frappe.throw(_("Not permitted."), frappe.PermissionError)
+		_incl = bool(cint(room.get("allow_consultant_internal")))
+	else:
+		_incl = True
+	messages, has_more = _room_payload(room, include_internal=_incl, before=before)
 	members = frappe.get_all(
 		"Client Room Member",
 		filters={"room": name, "active": 1},
-		fields=["name", "user", "last_seen", "is_admin"],
+		fields=["name", "user", "last_seen", "is_admin", "member_type"],
 	)
 	for m in members:
 		m.full_name = frappe.utils.get_fullname(m.user)
@@ -406,7 +425,7 @@ def get_room(name, before=None):
 	)
 	for q in requests:
 		q.creation = str(q.creation)
-	return {
+	ret = {
 		"name": room.name,
 		"customer": room.customer,
 		"unit": room.unit or "General",
@@ -446,12 +465,29 @@ def get_room(name, before=None):
 		"meeting_staff": json.loads(room.meeting_staff or "[]") if room.meeting_staff else [],
 		"tasks": _staff_tasks(room),
 	}
+	if _is_c:
+		# a consultant gets the conversation, not the commercials
+		ret["renewal"] = None
+		ret["join_url"] = ""
+		for k in (
+			"requests", "change_requests", "unsettled", "meetings",
+			"meeting_staff", "milestones", "shelf",
+		):
+			ret[k] = []
+	return ret
 
 
 @frappe.whitelist()
 def post_message(name, message, internal=0, attachment_url=None, attachment_name=None, ref=None):
-	_staff_only()
+	from duty_board.permissions import require_staff_or_consultant, consultant_room_names
+	_is_c = require_staff_or_consultant()
 	room = frappe.get_doc("Client Room", name)
+	if _is_c:
+		if name not in consultant_room_names():
+			frappe.throw(_("Not permitted."), frappe.PermissionError)
+	elif "System Manager" not in frappe.get_roles() and not _staff_sees_room(room, frappe.session.user):
+		frappe.throw(_("Not permitted."), frappe.PermissionError)
+		internal = 0  # consultants never write internal notes, even where they may read them
 	if room.status != "Active" and not cint(internal):
 		frappe.throw(_("Room is frozen — only internal notes allowed."))
 	_post(room, message, internal, attachment_url, attachment_name, ref)
@@ -743,17 +779,31 @@ def client_post_message(message, attachment_url=None, attachment_name=None, ref=
 		pass
 	ret = client_get_room()
 	ret["after_hours"] = _after_hours_payload()
+	ret["scope_note"] = frappe.db.get_value("Client Room", ret.get("room"), "scope_note") if ret.get("room") else ""
+	ret["support_plan"] = frappe.db.get_value("Client Room", ret.get("room"), "support_plan") if ret.get("room") else ""
 	return ret
 
 
 def _serve_file(fdoc, filename):
+	"""Images, PDFs and plain text display INLINE (a real werkzeug
+	Response — frappe's binary builder ignores display_content_as);
+	everything else downloads as before."""
 	import mimetypes
 
-	mimetype = (
-		mimetypes.guess_type(filename or fdoc.file_name or "")[0]
-		or "application/octet-stream"
-	)
-	frappe.local.response.filename = filename or fdoc.file_name
+	fname = (filename or fdoc.file_name or "file").replace('"', "")
+	mimetype = mimetypes.guess_type(fname)[0] or "application/octet-stream"
+	if mimetype.startswith("image/") or mimetype in ("application/pdf", "text/plain"):
+		from werkzeug.wrappers import Response
+
+		return Response(
+			fdoc.get_content(),
+			mimetype=mimetype,
+			headers={
+				"Content-Disposition": 'inline; filename="{0}"'.format(fname),
+				"Cache-Control": "private, max-age=300",
+			},
+		)
+	frappe.local.response.filename = fname
 	frappe.local.response.filecontent = fdoc.get_content()
 	frappe.local.response.type = "binary"
 	frappe.local.response.content_type = mimetype
@@ -960,11 +1010,15 @@ def client_task_detail(id, kind):
 		status = CLIENT_STATUS.get(t.column)
 		if not status:
 			frappe.throw(_("Not found."), frappe.PermissionError)
+		steps_total = frappe.db.count("Duty Project Subtask", {"parent": t.name})
+		steps_done = frappe.db.count("Duty Project Subtask", {"parent": t.name, "status": "Done"}) if steps_total else 0
 		return {
 			"kind": "card",
 			"title": t.title,
 			"status": status,
 			"client_requested": cint(t.client_requested),
+			"steps_done": steps_done,
+			"steps_total": steps_total,
 			"detail": t.description,
 			"reported": str(t.creation)[:16],
 			"started": None,
@@ -984,20 +1038,281 @@ def client_issue_file(fid):
 	if fdoc.attached_to_doctype != "Duty Issue" or not fdoc.attached_to_name:
 		frappe.throw(_("Not permitted."), frappe.PermissionError)
 	_client_issue_for_room(room, fdoc.attached_to_name)
-	_serve_file(fdoc, fdoc.file_name)
+	return _serve_file(fdoc, fdoc.file_name)
 
 
 def _shelf_rows(room):
 	rows = frappe.get_all(
 		"Client Shelf Doc",
 		filters={"room": room.name, "active": 1},
-		fields=["name", "title", "category", "file_name", "creation"],
+		fields=["name", "title", "category", "file_name", "creation", "owner"],
 		order_by="creation desc",
 		limit=200,
 	)
 	for r in rows:
 		r.creation = str(r.creation)[:10]
+		try:
+			r.by = (frappe.utils.get_fullname(r.owner) or "").split(" ")[0]
+		except Exception:
+			r.by = ""
+		r.pop("owner", None)
 	return rows
+
+
+def _financial_room(customer):
+	"""THE room that carries a customer's financial data. Resolution:
+	explicit Financial Room flag → room with a bookkeeper → room with
+	books scope → the sole active room. None if unresolvable."""
+	rooms = frappe.get_all(
+		"Client Room",
+		filters={"customer": customer, "status": ["!=", "Archived"]},
+		fields=["name", "is_financial_room", "bookkeeper", "books_scope"],
+	)
+	if not rooms:
+		return None
+	for r in rooms:
+		if cint(r.is_financial_room):
+			return r.name
+	for r in rooms:
+		if r.bookkeeper:
+			return r.name
+	for r in rooms:
+		if r.books_scope:
+			return r.name
+	return rooms[0].name if len(rooms) == 1 else None
+
+
+def _statement_rows(room):
+	"""Financial statements for this room's customer, from the Document Hub.
+	Served ONLY in the customer's Financial Room."""
+	if not room.customer:
+		return []
+	if _financial_room(room.customer) != room.name:
+		return []
+	rows = frappe.get_all(
+		"Client Document",
+		filters={"client": room.customer, "is_financial_statement": 1},
+		fields=[
+			"name", "statement_type", "period_month", "period_year",
+			"published", "published_on", "publish_seq",
+			"review_status", "approved_on", "approved_version",
+			"due_date", "delayed_until", "delay_reason", "highlights",
+		],
+		limit_page_length=100,
+	)
+	threads = {}
+	if rows:
+		for t in frappe.get_all(
+			"Statement Review Entry",
+			filters={"parenttype": "Client Document", "parent": ["in", [r.name for r in rows]]},
+			fields=["parent", "entry_type", "user", "when", "at_version", "note"],
+			order_by="idx asc",
+			limit_page_length=500,
+		):
+			t.when = str(t.when)[:16]
+			threads.setdefault(t.parent, []).append(t)
+	month_no = {m: i for i, m in enumerate(
+		["January", "February", "March", "April", "May", "June", "July",
+		 "August", "September", "October", "November", "December"], 1)}
+	for r in rows:
+		if r.statement_type == "Annual Report":
+			r.label = _("{0} Annual Report").format(r.period_year)
+		else:
+			r.label = _("{0} {1} Management Account").format(r.period_month or "", r.period_year).strip()
+		r.month_no = month_no.get(r.period_month, 0)
+		r.published_on = str(r.published_on)[:10] if r.published_on else None
+		r.approved_on = str(r.approved_on)[:10] if r.approved_on else None
+		r.due_date = str(r.due_date) if r.due_date else None
+		r.thread = threads.get(r.name, [])
+		r.highlight_lines = [l.strip() for l in (r.highlights or "").splitlines() if l.strip()][:5]
+		if not r.published:
+			from duty_board.document_hub.doctype.client_document.client_document import statement_state
+
+			st = statement_state(r) or {}
+			r.state = st.get("state")
+			r.state_label = st.get("label")
+			if r.month_no and r.period_year:
+				pkey = f"{r.period_year}-{r.month_no:02d}"
+				delivs = frappe.get_all(
+					"Duty Service Deliverable",
+					filters={"room": room.name, "period": pkey},
+					fields=["name", "deliverable_type", "status", "due_date"],
+					order_by="due_date asc, creation asc",
+					limit_page_length=6,
+				)
+				if delivs:
+					titles = {
+						t.name: t.title
+						for t in frappe.get_all(
+							"Duty Service Deliverable Type",
+							filters={"name": ["in", [x.deliverable_type for x in delivs]]},
+							fields=["name", "title"],
+						)
+					}
+					r.progress = [
+						{
+							"label": (titles.get(x.deliverable_type) or x.deliverable_type or "")[:22],
+							"done": 1 if x.status in ("Delivered", "Acknowledged") else 0,
+							"active": 1 if x.status in ("In Progress", "In Review") else 0,
+						}
+						for x in delivs[:5]
+					]
+				blockers = frappe.get_all(
+					"Duty Books Request",
+					filters={"room": room.name, "period": pkey, "status": "Requested"},
+					fields=["title"],
+					limit_page_length=5,
+				)
+				r.blocked_count = len(blockers)
+				r.blocked_titles = [b.title for b in blockers[:3]]
+	rows.sort(key=lambda r: (r.period_year or 0, r.month_no), reverse=True)
+	return rows
+
+
+@frappe.whitelist()
+def client_statement_feedback(id, text):
+	"""Extensive client feedback on a published statement → thread on the
+	Client Document, state → Changes Requested, staff notified."""
+	room = _client_room()
+	text = (text or "").strip()
+	if not text:
+		frappe.throw(_("Write the feedback first."))
+	doc = frappe.get_doc("Client Document", id)
+	if doc.client != room.customer or not cint(doc.is_financial_statement) or not cint(doc.published):
+		frappe.throw(_("Not found."), frappe.PermissionError)
+	_fr = _financial_room(d.client)
+	if _fr and _fr != room.name:
+		frappe.throw(_("Not found."), frappe.PermissionError)
+	from duty_board.document_hub.doctype.client_document.client_document import (
+		_notify_statement_staff,
+		_thread_add,
+		statement_label,
+	)
+
+	_thread_add(doc, "Feedback", text)
+	doc.db_set("review_status", "Changes Requested", update_modified=False)
+	frappe.db.commit()
+	label = statement_label(doc)
+	try:
+		frappe.get_doc(
+			{
+				"doctype": "Document Activity",
+				"document": doc.name,
+				"activity": "Client feedback received",
+				"user": frappe.session.user,
+			}
+		).insert(ignore_permissions=True)
+		frappe.db.commit()
+	except Exception:
+		pass
+	_notify_statement_staff(doc, _("📊 Feedback on {0}").format(label), text[:140])
+	try:
+		_post(room, _("📊 Feedback received on {0} — we're on it.").format(label))
+	except Exception:
+		pass
+	return {"ok": 1}
+
+
+@frappe.whitelist()
+def client_statement_approve(id):
+	"""Client approves the published statement — terminal until republished."""
+	room = _client_room()
+	doc = frappe.get_doc("Client Document", id)
+	if doc.client != room.customer or not cint(doc.is_financial_statement) or not cint(doc.published):
+		frappe.throw(_("Not found."), frappe.PermissionError)
+	_fr = _financial_room(d.client)
+	if _fr and _fr != room.name:
+		frappe.throw(_("Not found."), frappe.PermissionError)
+	if doc.review_status == "Approved":
+		return {"ok": 1, "already": 1}
+	from duty_board.document_hub.doctype.client_document.client_document import (
+		_notify_statement_staff,
+		_thread_add,
+		statement_label,
+	)
+
+	_thread_add(doc, "Approval", _("Approved"))
+	doc.db_set("review_status", "Approved", update_modified=False)
+	doc.db_set("approved_by", frappe.session.user, update_modified=False)
+	doc.db_set("approved_on", frappe.utils.now_datetime(), update_modified=False)
+	doc.db_set("approved_version", cint(doc.publish_seq), update_modified=False)
+	frappe.db.commit()
+	label = statement_label(doc)
+	try:
+		frappe.get_doc(
+			{
+				"doctype": "Document Activity",
+				"document": doc.name,
+				"activity": "Approved by client (v{0})".format(cint(doc.publish_seq)),
+				"user": frappe.session.user,
+			}
+		).insert(ignore_permissions=True)
+		frappe.db.commit()
+	except Exception:
+		pass
+	_notify_statement_staff(doc, _("✅ {0} approved by the client").format(label), _("Approved by {0}").format(frappe.session.user))
+	try:
+		_post(room, _("✅ {0} approved — thank you!").format(label))
+	except Exception:
+		pass
+	return {"ok": 1}
+
+
+@frappe.whitelist()
+def client_statement_file(id):
+	"""Clients download ONLY the published snapshot of a hub statement."""
+	room = _client_room()
+	d = frappe.db.get_value(
+		"Client Document", id,
+		["client", "is_financial_statement", "published", "published_file_url", "published_file_name",
+			"review_status", "approved_on", "approved_version", "publish_seq"],
+		as_dict=True,
+	)
+	if (
+		not d
+		or d.client != room.customer
+		or not cint(d.is_financial_statement)
+		or not cint(d.published)
+	):
+		frappe.throw(_("Not found."), frappe.PermissionError)
+	_fr = _financial_room(d.client)
+	if _fr and _fr != room.name:
+		frappe.throw(_("Not found."), frappe.PermissionError)
+	fname = frappe.db.get_value("File", {"file_url": d.published_file_url})
+	if not fname:
+		frappe.throw(_("File missing."))
+	fdoc = frappe.get_doc("File", fname)
+	approved = d.review_status == "Approved" and cint(d.approved_version or 0) == cint(d.publish_seq or 1)
+	if approved and (d.published_file_name or "").lower().endswith(".pdf"):
+		try:
+			import io
+
+			from pypdf import PdfReader, PdfWriter
+			from pypdf.annotations import FreeText
+
+			reader = PdfReader(io.BytesIO(fdoc.get_content()))
+			writer = PdfWriter()
+			writer.append(reader)
+			box = reader.pages[0].mediabox
+			note = FreeText(
+				text="APPROVED — {0}".format(str(d.approved_on)[:10]),
+				rect=(float(box.width) - 235, float(box.height) - 52, float(box.width) - 25, float(box.height) - 20),
+				font="Helvetica-Bold",
+				font_size="13pt",
+				font_color="0b6b4f",
+				border_color="0b6b4f",
+				background_color="e4f3ec",
+			)
+			writer.add_annotation(page_number=0, annotation=note)
+			buf = io.BytesIO()
+			writer.write(buf)
+			frappe.local.response.filename = d.published_file_name
+			frappe.local.response.filecontent = buf.getvalue()
+			frappe.local.response.type = "download"
+			return
+		except Exception:
+			frappe.log_error(frappe.get_traceback()[-1200:], "stamp statement")
+	return _serve_file(fdoc, d.published_file_name)
 
 
 @frappe.whitelist()
@@ -1035,10 +1350,50 @@ def shelf_remove(doc_name):
 	return {"ok": True}
 
 
+def _statement_year_strip(rows):
+	"""Current-year on-time record for Management Accounts: per-month state
+	(ontime/late/pending/none) judged against the ORIGINAL due date, plus
+	counts and the current consecutive on-time streak."""
+	from frappe.utils import getdate, today
+
+	year = getdate(today()).year
+	this_month = getdate(today()).month
+	months = []
+	by_no = {}
+	for r in rows:
+		if r.statement_type == "Management Account" and cint(r.period_year) == year and r.month_no:
+			by_no[r.month_no] = r
+	for n in range(1, 13):
+		r = by_no.get(n)
+		if not r:
+			months.append({"m": n, "state": "none" if n > this_month else "none"})
+			continue
+		if not r.published:
+			months.append({"m": n, "state": "pending"})
+			continue
+		ontime = (not r.due_date) or (r.published_on and str(r.published_on) <= str(r.due_date))
+		months.append({"m": n, "state": "ontime" if ontime else "late"})
+	pub = [m for m in months if m["state"] in ("ontime", "late")]
+	streak = 0
+	for m in reversed(pub):
+		if m["state"] == "ontime":
+			streak += 1
+		else:
+			break
+	return {
+		"year": year,
+		"months": months,
+		"published": len(pub),
+		"ontime": len([m for m in pub if m["state"] == "ontime"]),
+		"streak": streak,
+	}
+
+
 @frappe.whitelist()
 def client_get_documents():
 	room = _client_room()
-	return _shelf_rows(room)
+	stm = _statement_rows(room)
+	return {"docs": _shelf_rows(room), "statements": stm, "year_strip": _statement_year_strip(stm)}
 
 
 @frappe.whitelist()
@@ -1052,7 +1407,7 @@ def client_shelf_file(id):
 	fname = frappe.db.get_value("File", {"file_url": d.file_url})
 	if not fname:
 		frappe.throw(_("File missing."))
-	_serve_file(frappe.get_doc("File", fname), d.file_name)
+	return _serve_file(frappe.get_doc("File", fname), d.file_name)
 
 
 @frappe.whitelist()
@@ -1066,7 +1421,7 @@ def staff_shelf_file(id):
 	fname = frappe.db.get_value("File", {"file_url": d.file_url})
 	if not fname:
 		frappe.throw(_("File missing."))
-	_serve_file(frappe.get_doc("File", fname), d.file_name)
+	return _serve_file(frappe.get_doc("File", fname), d.file_name)
 
 
 @frappe.whitelist()
@@ -1239,19 +1594,38 @@ def _rooms_unread_safe(user):
 		return 0
 
 
+_UTYPE_CACHE = {}
+
+
+def _utype(user):
+	if user not in _UTYPE_CACHE:
+		_UTYPE_CACHE[user] = frappe.db.get_value("User", user, "user_type")
+	return _UTYPE_CACHE[user]
+
+
 def _room_unread(room_name, user):
+	"""Unseen messages split: client-authored (a human on the client side
+	wrote something) vs everything else (staff colleagues, system
+	narrations). Returns {total, client, other}."""
 	seen = frappe.db.get_value(
 		"Client Room Seen", {"room": room_name, "user": user}, "last_seen"
 	)
 	filters = {"room": room_name, "owner": ["!=", user]}
 	if seen:
 		filters["creation"] = [">", seen]
-	return frappe.db.count("Client Room Message", filters)
+	owners = frappe.get_all(
+		"Client Room Message", filters=filters, pluck="owner", limit_page_length=0
+	)
+	client = sum(1 for o in owners if _utype(o) == "Website User")
+	return {"total": len(owners), "client": client, "other": len(owners) - client}
 
 
 @frappe.whitelist()
 def mark_room_seen(name):
-	_staff_only()
+	from duty_board.permissions import require_staff_or_consultant, consultant_room_names
+
+	if require_staff_or_consultant() and name not in consultant_room_names():
+		frappe.throw(_("Not permitted."), frappe.PermissionError)
 	user = frappe.session.user
 	existing = frappe.db.exists("Client Room Seen", {"room": name, "user": user})
 	if existing:
@@ -1324,7 +1698,10 @@ def set_room_owner(name, owner):
 
 @frappe.whitelist()
 def staff_typing(name):
-	_staff_only()
+	from duty_board.permissions import require_staff_or_consultant, consultant_room_names
+
+	if require_staff_or_consultant() and name not in consultant_room_names():
+		frappe.throw(_("Not permitted."), frappe.PermissionError)
 	first = frappe.utils.get_fullname(frappe.session.user).split(" ")[0]
 	frappe.publish_realtime(
 		"duty_client_typing", {"room": name, "who": first, "staff": 1}
@@ -1639,6 +2016,12 @@ def milestone_move(id, direction):
 @frappe.whitelist()
 def milestone_set_status(id, status):
 	_staff_only()
+	if status == "Completed":
+		_m = frappe.db.get_value("Duty Milestone", id, ["room", "title"], as_dict=True)
+		if _m:
+			from duty_board.uat import uat_gate_check
+
+			uat_gate_check(_m.room, _m.title)
 	if status not in ("Upcoming", "In Progress"):
 		frappe.throw(_("Use Request approval for that."))
 	doc = frappe.get_doc("Duty Milestone", id)
@@ -1695,7 +2078,10 @@ def client_get_milestones():
 	gate = 1 if _client_can_approve(room) else 0
 	for r in rows:
 		r.can_approve = gate
-	return rows
+	pm = None
+	if room.get("owner_user"):
+		pm = frappe.utils.get_fullname(room.owner_user)
+	return {"rows": rows, "pm": pm}
 
 
 @frappe.whitelist()
@@ -1704,6 +2090,9 @@ def client_approve_milestone(id, note=None):
 	if not _client_can_approve(room):
 		frappe.throw(_("Only your team's administrator can approve on behalf of your company."), frappe.PermissionError)
 	doc = frappe.get_doc("Duty Milestone", id)
+	from duty_board.uat import uat_gate_check
+
+	uat_gate_check(doc.room, doc.title)
 	if doc.room != room.name:
 		frappe.throw(_("Not found."), frappe.PermissionError)
 	if doc.status != "Awaiting Approval":
@@ -1779,6 +2168,7 @@ def _chreq_rows(room):
 			"approved_amount", "submitted_on", "approved_full", "approved_at",
 			"approval_note", "declined_at", "decline_reason", "delivered_at",
 			"source_type", "source_message", "source_issue",
+			"released", "pricing_status", "estimate_hours", "invoice_status",
 		],
 		order_by="creation desc",
 	)
@@ -1823,12 +2213,21 @@ def chreq_add(name, title, original_request=None):
 		}
 	).insert(ignore_permissions=True)
 	frappe.db.commit()
+	try:
+		from duty_board.commercial import notify_pricer_new_cr
+
+		notify_pricer_new_cr(doc)
+	except Exception:
+		pass
 	return get_room(name)
 
 
 @frappe.whitelist()
 def chreq_from_message(name, msg, title):
-	_staff_only()
+	from duty_board.permissions import require_staff_or_consultant, consultant_room_names
+
+	if require_staff_or_consultant() and name not in consultant_room_names():
+		frappe.throw(_("Not permitted."), frappe.PermissionError)
 	room = frappe.get_doc("Client Room", name)
 	title = (title or "").strip()
 	if not title:
@@ -1838,7 +2237,7 @@ def chreq_from_message(name, msg, title):
 	)
 	if not m or m.room != room.name:
 		frappe.throw(_("Message not found in this room."))
-	frappe.get_doc(
+	_cr = frappe.get_doc(
 		{
 			"doctype": "Duty Change Request",
 			"room": room.name,
@@ -1851,12 +2250,20 @@ def chreq_from_message(name, msg, title):
 	).insert(ignore_permissions=True)
 	_post(room, _("💱 Change request drafted: “{0}”").format(title[:140]))
 	frappe.db.commit()
-	return get_room(name)
+	ret = get_room(name)
+	ret["new_cr"] = _cr.name
+	ret["new_cr_title"] = _cr.title
+	return ret
 
 
 @frappe.whitelist()
 def chreq_from_issue(issue):
-	_staff_only()
+	from duty_board.permissions import require_staff_or_consultant
+
+	if require_staff_or_consultant():
+		from duty_board.api import _consultant_issue_check
+
+		_consultant_issue_check(frappe.get_doc("Duty Issue", issue))
 	i = frappe.db.get_value(
 		"Duty Issue",
 		issue,
@@ -1875,7 +2282,7 @@ def chreq_from_issue(issue):
 	if not room_name:
 		frappe.throw(_("No client room found for {0}.").format(i.customer))
 	room = frappe.get_doc("Client Room", room_name)
-	frappe.get_doc(
+	cr = frappe.get_doc(
 		{
 			"doctype": "Duty Change Request",
 			"room": room.name,
@@ -1887,7 +2294,10 @@ def chreq_from_issue(issue):
 		}
 	).insert(ignore_permissions=True)
 	frappe.db.commit()
-	return get_room(room.name)
+	ret = get_room(room.name)
+	ret["new_cr"] = cr.name
+	ret["new_cr_title"] = cr.title
+	return ret
 
 
 @frappe.whitelist()
@@ -1902,8 +2312,26 @@ def chreq_update(
 	risks=None,
 	quotation=None,
 ):
-	_staff_only()
+	from duty_board.permissions import require_staff_or_consultant
+
+	_is_c = require_staff_or_consultant()
 	doc = frappe.get_doc("Duty Change Request", id)
+	if _is_c:
+		from duty_board.permissions import consultant_room_names
+
+		ok = False
+		if doc.source_issue:
+			from duty_board.api import _consultant_issue_check
+
+			try:
+				_consultant_issue_check(frappe.get_doc("Duty Issue", doc.source_issue))
+				ok = True
+			except frappe.PermissionError:
+				ok = False
+		if not ok and doc.room in consultant_room_names():
+			ok = True
+		if not ok or quotation:
+			frappe.throw(_("Not permitted."), frappe.PermissionError)
 	_chreq_locked(doc)
 	title = (title or "").strip()
 	if not title:
@@ -1934,6 +2362,15 @@ def chreq_request_approval(id):
 	_staff_only()
 	doc = frappe.get_doc("Duty Change Request", id)
 	_chreq_locked(doc)
+	ps = doc.get("pricing_status") or "Awaiting Pricing"
+	if ps == "Awaiting Pricing":
+		frappe.throw(_("This CR is in the pricing queue — it goes to the client once it has been priced."))
+	if ps in ("Covered by Subscription", "Goodwill"):
+		frappe.throw(_("No client approval needed — this CR is {0} and work can proceed.").format(ps.lower()))
+	if ps in ("Rejected", "Deferred"):
+		frappe.throw(_("This CR was {0} at pricing.").format(ps.lower()))
+	if not cint(doc.get("released")):
+		frappe.db.set_value("Duty Change Request", id, "released", 1, update_modified=False)
 	if not (doc.scope_impact or "").strip():
 		frappe.throw(_("Describe the scope impact before asking the client to approve."))
 	frappe.db.set_value(
@@ -1958,6 +2395,16 @@ def chreq_request_approval(id):
 @frappe.whitelist()
 def chreq_set_status(id, status):
 	_staff_only()
+	if status in ("In Progress", "In Delivery", "Delivered"):
+		from duty_board.commercial import work_may_proceed
+
+		_doc = frappe.get_doc("Duty Change Request", id)
+		if not work_may_proceed(_doc):
+			frappe.throw(
+				_("Work can't start on this CR yet — it needs pricing (and client approval if priced). Current: {0}").format(
+					_doc.get("pricing_status") or "Awaiting Pricing"
+				)
+			)
 	doc = frappe.get_doc("Duty Change Request", id)
 	allowed = {
 		"Approved": ["In Delivery"],
@@ -2010,6 +2457,47 @@ def chreq_delete(id):
 
 
 @frappe.whitelist()
+def room_set_project(name, project=None):
+	"""Link a room to an existing Duty Project (or clear the link). The lazy
+	'{Customer} — Requests' auto-project remains the default path; this is
+	for pointing a room at a real implementation project."""
+	_staff_only()
+	if project and not frappe.db.exists("Duty Project", project):
+		frappe.throw(_("Unknown project."))
+	frappe.db.set_value("Client Room", name, "project", project or None, update_modified=False)
+	frappe.db.commit()
+	return get_room(name)
+
+
+@frappe.whitelist()
+def chreq_new_task(id, title, assignee=None, due_date=None):
+	"""Spawn a delivery card from a CR: ensures the room has a project
+	(lazy-creating the requests project if none), creates the card in
+	To Do already linked to this change request."""
+	_staff_only()
+	doc = frappe.get_doc("Duty Change Request", id)
+	room = frappe.get_doc("Client Room", doc.room)
+	project = _ensure_project(room)
+	title = (title or "").strip()[:140]
+	if not title:
+		frappe.throw(_("Give the task a title."))
+	frappe.get_doc(
+		{
+			"doctype": "Duty Project Task",
+			"project": project,
+			"title": title,
+			"column": "To Do",
+			"assignee": (assignee or "").strip() or None,
+			"due_date": due_date or None,
+			"urgency": "Medium",
+			"change_request": id,
+		}
+	).insert(ignore_permissions=True)
+	frappe.db.commit()
+	return get_room(doc.room)
+
+
+@frappe.whitelist()
 def chreq_task_options(id):
 	_staff_only()
 	doc = frappe.get_doc("Duty Change Request", id)
@@ -2058,10 +2546,18 @@ def chreq_set_tasks(id, tasks):
 def _chreq_client_rows(room):
 	"""Drafts stay behind the membrane — the client sees a CR only once staff submit it."""
 	gate = 1 if _client_can_approve(room) else 0
-	rows = [
-		r for r in _chreq_rows(room)
-		if r.status in ("Awaiting Approval", "Approved", "Declined", "In Delivery", "Delivered")
-	]
+	rows = []
+	for r in _chreq_rows(room):
+		if not cint(r.get("released")):
+			continue
+		free = (r.get("pricing_status") or "") in ("Covered by Subscription", "Goodwill")
+		if r.status in ("Awaiting Approval", "Approved", "Declined", "In Delivery", "Delivered") or free:
+			r.no_charge = (
+				(_("Covered by your subscription") if r.get("pricing_status") == "Covered by Subscription" else _("Approved by Xlevel as goodwill"))
+				if free
+				else None
+			)
+			rows.append(r)
 	for r in rows:
 		r.can_approve = gate
 	return rows
@@ -2122,6 +2618,12 @@ def client_approve_chreq(id, note=None):
 	_chreq_notify_staff(
 		room, _("✅ {0} approved CR “{1}”").format(room.customer, doc.title), full
 	)
+	try:
+		from duty_board.commercial import _spawn_cr_issue
+
+		_spawn_cr_issue(frappe.get_doc("Duty Change Request", id))
+	except Exception:
+		frappe.log_error(frappe.get_traceback()[-1200:], "cr spawn on approval")
 	frappe.publish_realtime("duty_client_room", {"room": room.name})
 	return _chreq_client_rows(room)
 
@@ -2665,6 +3167,80 @@ def room_training(name):
 
 
 @frappe.whitelist()
+def room_tracks_for_assign(name):
+	"""Client-audience tracks matching this room's products, for the assign dialog."""
+	_staff_only()
+	room = frappe.get_doc("Client Room", name)
+	prods = _room_products(room)
+	out = []
+	for t in frappe.get_all(
+		"Duty Certification Track",
+		filters={"active": 1, "audience": "Client"},
+		fields=["name", "title", "product"],
+		order_by="product asc, title asc",
+	):
+		if (t.product or "").strip().lower() not in prods:
+			continue
+		n = frappe.db.count("Duty Certification Track Module", {"parent": t.name})
+		if n:
+			out.append({"name": t.name, "title": t.title, "product": t.product, "module_count": n})
+	return out
+
+
+@frappe.whitelist()
+def training_assign_track_room(name, track, user):
+	"""Assign every module of a client track to a room member at once.
+	Existing assignments kept, not duplicated; one room narration, one notification."""
+	_staff_only()
+	room = frappe.get_doc("Client Room", name)
+	if not frappe.db.exists("Client Room Member", {"room": room.name, "user": user, "active": 1}):
+		frappe.throw(_("That person is not a member of this room."))
+	t = frappe.db.get_value(
+		"Duty Certification Track", track, ["title", "product", "audience", "active"], as_dict=True
+	)
+	if not t or not cint(t.active) or t.audience != "Client":
+		frappe.throw(_("Not found."))
+	if (t.product or "").strip().lower() not in _room_products(room):
+		frappe.throw(_("This track is not part of this room's products."))
+	mods = frappe.get_all(
+		"Duty Certification Track Module", filters={"parent": track}, pluck="module", order_by="idx asc"
+	)
+	created, existing = 0, 0
+	for m in mods:
+		if frappe.db.exists("Duty Training Record", {"room": room.name, "module": m, "trainee": user}):
+			existing += 1
+			continue
+		frappe.get_doc(
+			{
+				"doctype": "Duty Training Record",
+				"room": room.name,
+				"module": m,
+				"trainee": user,
+				"trainee_name": frappe.utils.get_fullname(user),
+				"status": "Assigned",
+			}
+		).insert(ignore_permissions=True)
+		created += 1
+	frappe.db.commit()
+	if created:
+		_post(
+			room,
+			_("🎓 Track assigned: “{0}” for {1} ({2} course(s))").format(
+				t.title, frappe.utils.get_fullname(user), created
+			),
+		)
+		try:
+			from duty_board.api import _notify_user
+
+			_notify_user(
+				user, _("🎓 New training · Xlevel"), _("{0} — {1} course(s) assigned").format(t.title, created)
+			)
+		except Exception:
+			pass
+	return {"created": created, "existing": existing, "rows": _training_rows(room)}
+
+
+@frappe.whitelist()
 def training_assign(name, module, user):
 	_staff_only()
 	room = frappe.get_doc("Client Room", name)
@@ -3039,6 +3615,195 @@ def training_assign_staff(module, user):
 	except Exception:
 		pass
 	return my_training()
+
+
+@frappe.whitelist()
+def training_team_overview():
+	"""Managers: every staff member's academy position — modules assigned/
+	completed, lessons done, quiz results, certificates, last activity."""
+	_staff_only()
+	from duty_board.uat import _is_manager
+
+	if not _is_manager():
+		frappe.throw(_("The team training overview is for managers."), frappe.PermissionError)
+
+	recs = frappe.get_all(
+		"Duty Training Record",
+		filters={"room": ["is", "not set"]},
+		fields=["trainee", "trainee_name", "module", "status", "completed_on"],
+		order_by="trainee asc, creation asc",
+		limit_page_length=0,
+	)
+	if not recs:
+		return {"people": []}
+	mods = {
+		m.name: m
+		for m in frappe.get_all("Duty Training Module", fields=["name", "title", "product"])
+	}
+	lesson_totals = {}
+	for l in frappe.get_all("Duty Lesson", fields=["module"], limit_page_length=0):
+		lesson_totals[l.module] = lesson_totals.get(l.module, 0) + 1
+	users = sorted({r.trainee for r in recs})
+	done = {}
+	last_active = {}
+	for p in frappe.get_all(
+		"Duty Lesson Progress",
+		filters={"user": ["in", users]},
+		fields=["user", "module", "completed_at", "modified"],
+		limit_page_length=0,
+	):
+		if p.completed_at:
+			done[(p.user, p.module)] = done.get((p.user, p.module), 0) + 1
+		la = last_active.get(p.user)
+		if not la or str(p.modified) > str(la):
+			last_active[p.user] = p.modified
+	quiz = {}
+	for q in frappe.get_all(
+		"Duty Quiz Attempt",
+		filters={"user": ["in", users], "finished_at": ["is", "set"]},
+		fields=["user", "module", "score", "passed"],
+		order_by="finished_at asc",
+		limit_page_length=0,
+	):
+		k = (q.user, q.module)
+		cur = quiz.get(k, {"attempts": 0, "best": 0, "passed": 0, "attempts_to_pass": 0})
+		cur["attempts"] += 1
+		cur["best"] = max(cur["best"], cint(q.score))
+		if cint(q.passed) and not cur["passed"]:
+			cur["passed"] = 1
+			cur["attempts_to_pass"] = cur["attempts"]
+		quiz[k] = cur
+	certs = {}
+	for c in frappe.get_all(
+		"Duty Certificate",
+		filters={"user": ["in", users], "status": "Issued"},
+		fields=["user", "track_title", "product", "issued_on"],
+		order_by="issued_on asc",
+		limit_page_length=0,
+	):
+		certs.setdefault(c.user, []).append(
+			{"title": c.track_title, "product": c.product, "on": str(c.issued_on)[:10]}
+		)
+	people = []
+	for u in users:
+		mine = [r for r in recs if r.trainee == u]
+		rows = []
+		completed = 0
+		for r in mine:
+			m = mods.get(r.module) or frappe._dict()
+			q = quiz.get((u, r.module), {})
+			if r.status == "Completed":
+				completed += 1
+			rows.append(
+				{
+					"module": r.module,
+					"title": m.get("title") or r.module,
+					"product": m.get("product"),
+					"status": r.status,
+					"completed_on": str(r.completed_on)[:10] if r.completed_on else None,
+					"lessons_done": done.get((u, r.module), 0),
+					"lessons_total": lesson_totals.get(r.module, 0),
+					"quiz_attempts": q.get("attempts", 0),
+					"quiz_best": q.get("best", 0),
+					"quiz_passed": q.get("passed", 0),
+					"quiz_to_pass": q.get("attempts_to_pass", 0),
+				}
+			)
+		people.append(
+			{
+				"user": u,
+				"name": (mine[0].trainee_name or frappe.utils.get_fullname(u)) if mine else u,
+				"assigned": len(mine),
+				"completed": completed,
+				"certificates": certs.get(u, []),
+				"last_active": str(last_active.get(u) or "")[:10] or None,
+				"rows": rows,
+			}
+		)
+	people.sort(key=lambda p: (-(p["assigned"] - p["completed"]), p["name"]))
+	return {"people": people}
+
+
+@frappe.whitelist()
+def staff_tracks():
+	"""Consultant-audience certification tracks, for the assign dialog."""
+	_staff_only()
+	out = []
+	for t in frappe.get_all(
+		"Duty Certification Track",
+		filters={"active": 1},
+		fields=["name", "title", "product", "audience"],
+		order_by="product asc, title asc",
+	):
+		mods = frappe.get_all(
+			"Duty Certification Track Module", filters={"parent": t.name}, pluck="module", order_by="idx asc"
+		)
+		assignable = [
+			m for m in mods
+			if frappe.db.get_value("Duty Training Module", m, "audience") in ("Consultant", "Both")
+		]
+		if assignable:
+			out.append(
+				{
+					"name": t.name,
+					"title": t.title,
+					"product": t.product,
+					"audience": t.audience,
+					"module_count": len(assignable),
+				}
+			)
+	return out
+
+
+@frappe.whitelist()
+def training_assign_track(track, user):
+	"""Assign every module of a consultant track to a staff member at once.
+	Existing assignments are kept, not duplicated; one notification total."""
+	_staff_only()
+	if frappe.db.get_value("User", user, "user_type") != "System User":
+		frappe.throw(_("Consultant training is for staff accounts."))
+	t = frappe.db.get_value(
+		"Duty Certification Track", track, ["title", "audience", "active"], as_dict=True
+	)
+	if not t or not cint(t.active):
+		frappe.throw(_("Not found."))
+	mods = frappe.get_all(
+		"Duty Certification Track Module", filters={"parent": track}, pluck="module", order_by="idx asc"
+	)
+	created, existing = 0, 0
+	for m in mods:
+		aud = frappe.db.get_value("Duty Training Module", m, "audience")
+		if aud not in ("Consultant", "Both"):
+			continue
+		if frappe.db.exists(
+			"Duty Training Record", {"module": m, "trainee": user, "room": ["is", "not set"]}
+		):
+			existing += 1
+			continue
+		frappe.get_doc(
+			{
+				"doctype": "Duty Training Record",
+				"module": m,
+				"trainee": user,
+				"trainee_name": frappe.utils.get_fullname(user),
+				"status": "Assigned",
+				"trained_by": frappe.session.user,
+			}
+		).insert(ignore_permissions=True)
+		created += 1
+	frappe.db.commit()
+	if created:
+		try:
+			from duty_board.api import _notify_user
+
+			_notify_user(
+				user,
+				_("🎓 New training · Xlevel"),
+				_("{0} — {1} course(s) assigned").format(t.title, created),
+			)
+		except Exception:
+			pass
+	return {"created": created, "existing": existing, "records": my_training()}
 
 
 def _my_staff_record(module):
@@ -3552,7 +4317,7 @@ def _serve_certificate(serial):
 	fname = frappe.db.get_value("File", {"file_url": cert.file_url})
 	if not fname:
 		frappe.throw(_("File missing."))
-	_serve_file(frappe.get_doc("File", fname), f"{serial}.pdf")
+	return _serve_file(frappe.get_doc("File", fname), f"{serial}.pdf")
 
 
 @frappe.whitelist()
@@ -3993,12 +4758,20 @@ def _meeting_caps_check(room, ids, date):
 	rooms = frappe.get_all(
 		"Client Room", filters={"customer": room.customer}, pluck="name"
 	)
+	target_d = getdate(date) if date else today_d
 	day_n = frappe.db.count(
-		"Duty Meeting", {"room": ["in", rooms], "creation": [">=", str(today_d)]}
+		"Duty Meeting",
+		{
+			"room": ["in", rooms],
+			"meeting_date": target_d,
+			"status": ["!=", "Cancelled"],
+		},
 	)
 	if day_n >= 1:
 		frappe.throw(
-			_("You've already requested a meeting today — one request per day keeps our calendar fair for everyone.")
+			_("There's already a meeting scheduled for {0} — one meeting per day keeps our calendar fair. Pick another day.").format(
+				frappe.utils.formatdate(target_d, "d MMM")
+			)
 		)
 	week_start = today_d - timedelta(days=today_d.weekday())
 	week_n = frappe.db.count(
@@ -4111,6 +4884,89 @@ def _settle_meeting(doc, status):
 			pass
 
 
+def _meeting_ics(doc, method="REQUEST"):
+	"""RFC 5545 invite for a Duty Meeting. Gmail/Outlook auto-surface it;
+	SEQUENCE bumps on every re-send so updates replace, not duplicate."""
+	from datetime import timedelta
+
+	from frappe.utils import get_datetime, get_url
+
+	seq = cint(doc.ics_seq or 0)
+	start = get_datetime(f"{doc.meeting_date} {doc.start_time}")
+	end = start + timedelta(minutes=cint(doc.duration_mins) or 30)
+	fmt = "%Y%m%dT%H%M%S"
+	organizer = frappe.db.get_single_value("Duty Settings", "meeting_organizer_email") or "no-reply@xlevelretail.com"
+	attendees = []
+	for a in doc.attendees:
+		full = frappe.utils.get_fullname(a.user)
+		attendees.append(f"ATTENDEE;CN={full};RSVP=TRUE:mailto:{a.user}")
+	desc = _("Meeting on your Xlevel client workspace — {0}").format(get_url("/portal"))
+	lines = [
+		"BEGIN:VCALENDAR",
+		"PRODID:-//Xlevel Retail Systems//Duty Board//EN",
+		"VERSION:2.0",
+		f"METHOD:{method}",
+		"BEGIN:VEVENT",
+		f"UID:{doc.name}@xlevel.clouderp.one",
+		f"SEQUENCE:{seq}",
+		f"DTSTAMP:{frappe.utils.now_datetime().strftime(fmt)}",
+		f"DTSTART;TZID=Africa/Lagos:{start.strftime(fmt)}",
+		f"DTEND;TZID=Africa/Lagos:{end.strftime(fmt)}",
+		f"SUMMARY:{(doc.topic or 'Meeting').replace(chr(10), ' ')[:200]}" + (" (CANCELLED)" if method == "CANCEL" else ""),
+		f"DESCRIPTION:{desc}",
+		f"ORGANIZER;CN=Xlevel Retail Systems:mailto:{organizer}",
+		f"STATUS:{'CANCELLED' if method == 'CANCEL' else 'CONFIRMED'}",
+	] + attendees + [
+		"BEGIN:VALARM",
+		"TRIGGER:-PT30M",
+		"ACTION:DISPLAY",
+		f"DESCRIPTION:{(doc.topic or 'Meeting')[:100]}",
+		"END:VALARM",
+		"END:VEVENT",
+		"END:VCALENDAR",
+	]
+	return "\r\n".join(lines)
+
+
+def _send_meeting_invite(doc, method="REQUEST"):
+	"""Email the .ics to every attendee so the meeting lands on their own
+	calendar (Google, Outlook, Apple). Never raises — invites are a
+	courtesy layer over the booking, not part of it."""
+	try:
+		recipients = [a.user for a in doc.attendees if a.user and "@" in a.user]
+		if doc.room:
+			recipients += [
+				m.user
+				for m in frappe.get_all(
+					"Client Room Member", filters={"room": doc.room, "active": 1}, fields=["user"]
+				)
+				if "@" in (m.user or "")
+			]
+		recipients = list(dict.fromkeys(recipients))
+		if not recipients:
+			return
+		ics = _meeting_ics(doc, method)
+		verb = _("cancelled") if method == "CANCEL" else (_("updated") if cint(doc.ics_seq) else _("confirmed"))
+		frappe.sendmail(
+			recipients=recipients,
+			subject=_("📅 {0} — {1} {2}").format(doc.topic or _("Meeting"), doc.meeting_date, str(doc.start_time)[:5]),
+			message=_(
+				"<p>Your meeting <b>{0}</b> with {1} has been {2}:</p>"
+				"<p><b>{3} at {4}</b> ({5} minutes, WAT)</p>"
+				"<p>The attached invite adds it to your calendar automatically.</p>"
+			).format(
+				frappe.utils.escape_html(doc.topic or _("Meeting")),
+				frappe.utils.escape_html(doc.customer or "Xlevel"),
+				verb, doc.meeting_date, str(doc.start_time)[:5], cint(doc.duration_mins) or 30,
+			),
+			attachments=[{"fname": "invite.ics", "fcontent": ics.encode()}],
+			delayed=False,
+		)
+		doc.db_set("ics_seq", cint(doc.ics_seq) + 1, update_modified=False)
+	except Exception:
+		frappe.log_error(frappe.get_traceback()[:2000], "meeting ics invite")
+
+
 @frappe.whitelist()
 def confirm_meeting(id):
 	_staff_only()
@@ -4124,6 +4980,9 @@ def confirm_meeting(id):
 	slot = str(doc.start_time)[:5]
 	# recheck against everything EXCEPT this meeting's own pending hold
 	doc.db_set("status", "Cancelled", update_modified=False)
+	if cint(doc.ics_seq):
+		doc.reload()
+		_send_meeting_invite(doc, "CANCEL")
 	ok = slot in _meeting_slots(attendee_ids, str(doc.meeting_date))
 	doc.db_set("status", "Pending", update_modified=False)
 	if not ok:
@@ -4135,7 +4994,7 @@ def confirm_meeting(id):
 				"doctype": "Daily Todo",
 				"user": u,
 				"date": doc.meeting_date,
-				"description": f"📅 {doc.customer}: {doc.topic}",
+				"description": f"📅 {doc.customer}: {doc.topic}"[:140],
 				"status": "Open",
 				"due_time": doc.start_time,
 				"assigned_by": me if me != u else None,
@@ -4145,6 +5004,8 @@ def confirm_meeting(id):
 	doc.db_set("created_todos", json.dumps(todos), update_modified=False)
 	doc.db_set("status", "Confirmed", update_modified=False)
 	doc.db_set("confirmed_by", me, update_modified=False)
+	doc.reload()
+	_send_meeting_invite(doc, "REQUEST")
 	frappe.db.commit()
 	room = frappe.get_doc("Client Room", doc.room)
 	firsts = ", ".join(frappe.utils.get_fullname(u).split(" ")[0] for u in attendee_ids)
@@ -4162,7 +5023,6 @@ def confirm_meeting(id):
 		_("📅 Meeting confirmed · Xlevel"),
 		f"{doc.topic} — {frappe.utils.formatdate(doc.meeting_date, 'd MMM')} {str(doc.start_time)[:5]}",
 	)
-	_email_meeting_invite(doc, room)
 	return get_room(doc.room)
 
 
@@ -4187,7 +5047,54 @@ def decline_meeting(id, reason=None):
 	return get_room(doc.room)
 
 
+def _statement_review_nudges():
+	"""Published statements awaiting review ≥7 days get a gentle client
+	nudge, at most once per 7 days per statement."""
+	from frappe.utils import add_days, getdate, today
+
+	cutoff = add_days(today(), -7)
+	rows = frappe.get_all(
+		"Client Document",
+		filters={
+			"is_financial_statement": 1,
+			"published": 1,
+			"review_status": "Awaiting Client Review",
+			"published_on": ["<=", cutoff],
+		},
+		fields=["name", "client", "statement_type", "period_month", "period_year", "stmt_nudged_on"],
+		limit_page_length=50,
+	)
+	for r in rows:
+		if r.stmt_nudged_on and str(r.stmt_nudged_on) > str(cutoff):
+			continue
+		room_name = _financial_room(r.client)
+		if not room_name:
+			continue
+		if r.statement_type == "Annual Report":
+			label = _("{0} Annual Report").format(r.period_year)
+		else:
+			label = _("{0} {1} Management Account").format(r.period_month or "", r.period_year).strip()
+		try:
+			room = frappe.get_doc("Client Room", room_name)
+			_post(room, _("📊 Gentle reminder: {0} is awaiting your review — approve it or send feedback from your portal.").format(label))
+			_push_room_clients(room, _("📊 Awaiting your review · Xlevel"), label)
+			frappe.db.set_value("Client Document", r.name, "stmt_nudged_on", today(), update_modified=False)
+			frappe.db.commit()
+		except Exception:
+			continue
+
+
 def meeting_reminders():
+	try:
+		from duty_board.uat import heartbeat
+
+		heartbeat()
+	except Exception:
+		frappe.log_error(frappe.get_traceback()[:2000], "uat heartbeat")
+	try:
+		_statement_review_nudges()
+	except Exception:
+		frappe.log_error(frappe.get_traceback()[:2000], "statement nudges")
 	"""Hourly: morning-of and hour-before pushes to the client. Staff already
 	ride the todo alert machinery."""
 	now = now_datetime()
@@ -4198,6 +5105,8 @@ def meeting_reminders():
 		fields=["name", "room", "topic", "start_time", "reminded_morning", "reminded_hour"],
 	):
 		try:
+			if not m.room:
+				continue
 			room = frappe.get_doc("Client Room", m.room)
 		except Exception:
 			continue
@@ -4222,63 +5131,7 @@ def meeting_reminders():
 	frappe.db.commit()
 
 
-def _meeting_ics(doc):
-	start = f"{str(doc.meeting_date).replace('-', '')}T{str(doc.start_time).replace(':', '')[:6]}"
-	end_hour = int(str(doc.start_time)[:2]) + 1
-	end = f"{str(doc.meeting_date).replace('-', '')}T{end_hour:02d}{str(doc.start_time)[3:5]}00"
-	firsts = ", ".join(
-		frappe.utils.get_fullname(a.user).split(" ")[0] for a in (doc.attendees or [])
-	)
-	return "\r\n".join(
-		[
-			"BEGIN:VCALENDAR",
-			"VERSION:2.0",
-			"PRODID:-//Xlevel Retail Systems//Duty Board//EN",
-			"METHOD:PUBLISH",
-			"BEGIN:VEVENT",
-			f"UID:{doc.name}@xlevel.clouderp.one",
-			f"DTSTART;TZID=Africa/Lagos:{start}",
-			f"DTEND;TZID=Africa/Lagos:{end}",
-			f"SUMMARY:Xlevel meeting: {doc.topic}",
-			f"DESCRIPTION:With {firsts}. Manage this meeting on your portal.",
-			"END:VEVENT",
-			"END:VCALENDAR",
-		]
-	)
-
-
-def _email_meeting_invite(doc, room):
-	try:
-		emails = [
-			mm.user
-			for mm in frappe.get_all(
-				"Client Room Member",
-				filters={"room": room.name, "active": 1},
-				fields=["user"],
-			)
-			if "@" in (mm.user or "")
-		]
-		if not emails:
-			return
-		slot = str(doc.start_time)[:5]
-		frappe.sendmail(
-			recipients=emails,
-			subject=_("📅 Confirmed: {0} — {1} {2}").format(
-				doc.topic, frappe.utils.formatdate(doc.meeting_date, "d MMM"), slot
-			),
-			message=_(
-				"Your meeting is confirmed.<br><b>{0}</b><br>{1} at {2} (WAT)<br><br>"
-				"The attached invite adds it to your calendar."
-			).format(
-				frappe.utils.escape_html(doc.topic),
-				frappe.utils.formatdate(doc.meeting_date, "EEEE, d MMMM"),
-				slot,
-			),
-			attachments=[{"fname": "xlevel-meeting.ics", "fcontent": _meeting_ics(doc)}],
-			delayed=True,
-		)
-	except Exception:
-		pass
+MEETING_MINUTES = 60
 
 
 @frappe.whitelist()
@@ -4356,9 +5209,14 @@ def room_file(msg):
 	m = frappe.get_doc("Client Room Message", msg)
 	user = frappe.session.user
 	utype = frappe.db.get_value("User", user, "user_type")
-	if utype == "System User":
+	from duty_board.permissions import is_consultant
+
+	if utype == "System User" and not is_consultant(user):
 		pass
-	elif utype == "Website User":
+	elif utype in ("System User", "Website User"):
+		# portal client OR external consultant: active membership required;
+		# internal-note attachments barred (consultant per-room override is
+		# a later, deliberate wiring — never a default)
 		if m.internal:
 			frappe.throw(_("Not permitted."), frappe.PermissionError)
 		if not frappe.db.exists(
@@ -4373,7 +5231,59 @@ def room_file(msg):
 	if not fname:
 		frappe.throw(_("File missing."))
 	fdoc = frappe.get_doc("File", fname)
-	_serve_file(fdoc, m.attachment_name or fdoc.file_name)
+	return _serve_file(fdoc, m.attachment_name or fdoc.file_name)
+
+
+@frappe.whitelist()
+def client_get_timeline():
+	room = _client_room()
+	from duty_board.timeline import client_timeline
+
+	return client_timeline(room.name)
+
+
+@frappe.whitelist()
+def client_get_uat():
+	room = _client_room()
+	from duty_board.uat import client_state
+
+	state = client_state(room.name)
+	state["can_sign"] = 1 if _client_can_approve(room) else 0
+	return state
+
+
+@frappe.whitelist()
+def client_uat_result(name, result, observed=None, evidence_url=None, evidence_name=None):
+	room = _client_room()
+	from duty_board.uat import client_result
+
+	return client_result(room.name, name, result, observed, evidence_url, evidence_name)
+
+
+@frappe.whitelist()
+def client_uat_sign(note=None):
+	room = _client_room()
+	if not _client_can_approve(room):
+		frappe.throw(_("Only your team administrator can sign off acceptance testing."), frappe.PermissionError)
+	from duty_board.uat import client_sign
+
+	return client_sign(room.name, frappe.session.user, note)
+
+
+@frappe.whitelist()
+def client_get_dependencies():
+	room = _client_room()
+	from duty_board.commercial import client_deps
+
+	return client_deps(room.name)
+
+
+@frappe.whitelist()
+def client_provide_dependency(name, note=None):
+	room = _client_room()
+	from duty_board.commercial import client_provide
+
+	return client_provide(room.name, name, note)
 
 
 @frappe.whitelist()
@@ -4391,15 +5301,34 @@ def client_push_ping():
 
 @frappe.whitelist()
 def client_get_staff():
+	"""Names a client may address: their own service team, not the whole
+	company roster — room owner, bookkeeper, configured meeting staff, and
+	staff who have actually spoken in this room."""
 	room = _client_room()
-	out = []
-	for u in frappe.get_all(
-		"User",
-		filters={"enabled": 1, "user_type": "System User"},
-		fields=["full_name"],
+	staff_users = set()
+	for field in ("owner_user", "bookkeeper", "meeting_staff"):
+		v = room.get(field)
+		if v:
+			staff_users.update(s.strip() for s in str(v).split(",") if s.strip())
+	for owner in frappe.get_all(
+		"Client Room Message",
+		filters={"room": room.name, "internal": 0},
+		pluck="owner",
+		distinct=True,
+		limit_page_length=0,
 	):
-		if u.full_name and u.full_name != "Administrator":
-			out.append({"first": u.full_name.split(" ")[0], "full": u.full_name, "kind": "staff"})
+		if frappe.db.get_value("User", owner, "user_type") == "System User":
+			staff_users.add(owner)
+	out = []
+	seen = set()
+	for su in staff_users:
+		if not su or not frappe.db.get_value("User", su, "enabled"):
+			continue
+		full = frappe.utils.get_fullname(su)
+		if not full or full == "Administrator" or full in seen:
+			continue
+		seen.add(full)
+		out.append({"first": full.split(" ")[0], "full": full, "kind": "staff"})
 	me = frappe.session.user
 	for m in frappe.get_all(
 		"Client Room Member", filters={"room": room.name, "active": 1}, fields=["user"]
@@ -4407,7 +5336,10 @@ def client_get_staff():
 		if m.user == me:
 			continue
 		full = frappe.utils.get_fullname(m.user) or m.user
-		out.append({"first": full.split(" ")[0], "full": full, "kind": "colleague"})
+		if "@" in full:
+			full = full.split("@")[0]
+		first = full.split(" ")[0]
+		out.append({"first": first, "full": full, "kind": "colleague"})
 	return out
 
 
@@ -4478,6 +5410,51 @@ def submit_join_request(token, full_name, email, phone=None, password=None):
 	return {"ok": True}
 
 
+def _send_join_approved_email(req):
+	"""Welcome the approved member: portal link + a set-password link when
+	they have never signed in. Courtesy layer — never raises."""
+	try:
+		from frappe.utils import get_url
+
+		portal = get_url("/portal")
+		customer = frappe.db.get_value("Client Room", req.room, "customer") or "your company"
+		needs_password = not frappe.db.get_value("User", req.email, "last_login")
+		reset_link = None
+		if needs_password:
+			try:
+				user = frappe.get_doc("User", req.email)
+				reset_link = user.reset_password(send_email=False)
+			except Exception:
+				reset_link = None
+		first = (req.full_name or "").split(" ")[0] or _("there")
+		body = _(
+			"<p>Hello {0},</p>"
+			"<p>Your request to join the <b>{1}</b> workspace on the Xlevel Client Portal has been <b>approved</b>. 🎉</p>"
+			"<p><b>Sign in here:</b> <a href=\"{2}\">{2}</a></p>"
+		).format(frappe.utils.escape_html(first), frappe.utils.escape_html(customer), portal)
+		if reset_link:
+			body += _(
+				"<p><b>First, set your password:</b> <a href=\"{0}\">Choose your password</a> — then sign in with your email <b>{1}</b>.</p>"
+			).format(reset_link, frappe.utils.escape_html(req.email))
+		else:
+			body += _("<p>Sign in with your email <b>{0}</b> and your existing password.</p>").format(
+				frappe.utils.escape_html(req.email)
+			)
+		body += _(
+			"<p>Tip: open the link on your phone and use “Add to Home Screen” to install the portal as an app, "
+			"then allow notifications so nothing waits for you.</p>"
+			"<p>See you inside,<br>The Xlevel Team</p>"
+		)
+		frappe.sendmail(
+			recipients=[req.email],
+			subject=_("✅ Your Xlevel Client Portal access is approved"),
+			message=body,
+			delayed=False,
+		)
+	except Exception:
+		frappe.log_error(frappe.get_traceback()[:2000], "join approval email")
+
+
 @frappe.whitelist()
 def approve_join(request_name):
 	_staff_only()
@@ -4489,6 +5466,7 @@ def approve_join(request_name):
 		frappe.db.set_value("User", req.email, "enabled", 1, update_modified=False)
 	req.db_set("status", "Approved", update_modified=False)
 	frappe.db.commit()
+	_send_join_approved_email(req)
 	frappe.publish_realtime("duty_client_room", {"room": req.room})
 	return get_room(req.room)
 
@@ -4597,4 +5575,261 @@ def client_request_task(title, detail=None, attachment_url=None, attachment_name
 	frappe.db.commit()
 	ret = client_get_room()
 	ret["after_hours"] = _after_hours_payload()
+	ret["scope_note"] = frappe.db.get_value("Client Room", ret.get("room"), "scope_note") if ret.get("room") else ""
+	ret["support_plan"] = frappe.db.get_value("Client Room", ret.get("room"), "support_plan") if ret.get("room") else ""
 	return ret
+
+
+@frappe.whitelist()
+def meeting_slots_staff(id, date):
+	"""Free slots for this meeting's requested attendees on a given day."""
+	_staff_only()
+	doc = frappe.get_doc("Duty Meeting", id)
+	return _meeting_slots([a.user for a in doc.attendees], str(date))
+
+
+@frappe.whitelist()
+def suggest_meeting_time(id, date, time):
+	"""Staff counter-proposal: move a Pending meeting to a verified-free
+	slot and tell the client in their room. Confirmation stays a separate,
+	deliberate act."""
+	_staff_only()
+	doc = frappe.get_doc("Duty Meeting", id)
+	if doc.status != "Pending":
+		frappe.throw(_("Already settled."))
+	attendee_ids = [a.user for a in doc.attendees]
+	me = frappe.session.user
+	if me not in attendee_ids and "System Manager" not in frappe.get_roles():
+		frappe.throw(_("Only a requested attendee can suggest a new time."))
+	slot = str(time)[:5]
+	if slot not in _meeting_slots(attendee_ids, str(date)):
+		frappe.throw(_("That slot is no longer free for the team — pick another."))
+	old = f"{frappe.utils.formatdate(doc.meeting_date)} {str(doc.start_time)[:5]}"
+	doc.db_set("meeting_date", date, update_modified=False)
+	doc.db_set("start_time", slot + ":00", update_modified=False)
+	frappe.db.commit()
+	room = frappe.get_doc("Client Room", doc.room)
+	_post(
+		room,
+		_("📅 About “{0}”: {1} doesn't work for the team — could we do {2} at {3} instead? If that suits, no reply is needed and we'll confirm it shortly. If not, tell us a better time right here.").format(
+			doc.topic, old, frappe.utils.formatdate(date), slot
+		),
+	)
+	_push_room_clients(room, _("📅 New time suggested · Xlevel"), doc.topic[:120])
+	return get_room(doc.room)
+
+
+@frappe.whitelist()
+def client_shelf_preview(id):
+	"""Inline-rendering variant of client_shelf_file for the Documents
+	workspace preview pane. Returns a raw werkzeug Response with an
+	explicit inline disposition, since frappe's binary response path
+	does not reliably honour display_content_as."""
+	room = _client_room()
+	d = frappe.db.get_value(
+		"Client Shelf Doc", id, ["room", "file_url", "file_name", "active"], as_dict=True
+	)
+	if not d or d.room != room.name or not cint(d.active):
+		frappe.throw(_("Not found."), frappe.PermissionError)
+	fname = frappe.db.get_value("File", {"file_url": d.file_url})
+	if not fname:
+		frappe.throw(_("File missing."))
+	fdoc = frappe.get_doc("File", fname)
+	import mimetypes
+
+	mt = (
+		mimetypes.guess_type(d.file_name or fdoc.file_name or "")[0]
+		or "application/octet-stream"
+	)
+	from werkzeug.wrappers import Response
+
+	resp = Response(fdoc.get_content(), mimetype=mt)
+	safe_name = (d.file_name or "file").replace('"', "")
+	resp.headers["Content-Disposition"] = f'inline; filename="{safe_name}"'
+	resp.headers["Cache-Control"] = "private, max-age=300"
+	return resp
+
+
+@frappe.whitelist()
+def invite_consultant(room, email, full_name=None):
+	"""One-stroke consultant onboarding: create (or reuse) the System User
+	with the Duty Consultant role, add active room membership, send
+	frappe's welcome email on creation, and leave an internal note in the
+	room. Staff only. Refuses to touch an existing STAFF user — adding the
+	consultant role would demote them (require_staff rejects it)."""
+	_staff_only()
+	from duty_board.permissions import CONSULTANT_ROLE, is_consultant
+
+	email = (email or "").strip().lower()
+	frappe.utils.validate_email_address(email, throw=True)
+	r = frappe.get_doc("Client Room", room)
+	created = 0
+	if frappe.db.exists("User", email):
+		u = frappe.get_doc("User", email)
+		if u.user_type != "System User":
+			frappe.throw(_("That email belongs to a client portal user — use the client member flow instead."))
+		if not is_consultant(email):
+			frappe.throw(_("That email belongs to a staff member. Adding the consultant role would lock them out of the staff app."))
+	else:
+		if not frappe.db.exists("Role", CONSULTANT_ROLE):
+			frappe.get_doc({"doctype": "Role", "role_name": CONSULTANT_ROLE, "desk_access": 1}).insert(ignore_permissions=True)
+		names = (full_name or email.split("@")[0]).strip().split(" ", 1)
+		u = frappe.get_doc({
+			"doctype": "User",
+			"email": email,
+			"first_name": names[0],
+			"last_name": names[1] if len(names) > 1 else "",
+			"user_type": "System User",
+			"enabled": 1,
+			"send_welcome_email": 1,
+			"roles": [{"role": CONSULTANT_ROLE}],
+		}).insert(ignore_permissions=True)
+		created = 1
+	existing = frappe.db.get_value(
+		"Client Room Member", {"room": room, "user": email}, ["name", "active"], as_dict=True
+	)
+	# tidy desk: module profile + landing workspace, when the site has them
+	try:
+		updates = {}
+		if frappe.db.exists("Module Profile", "External Consultant") and not u.module_profile:
+			updates["module_profile"] = "External Consultant"
+		if frappe.db.has_column("User", "default_workspace") and not u.get("default_workspace"):
+			updates["default_workspace"] = "Home"
+		if updates:
+			frappe.db.set_value("User", u.name, updates, update_modified=False)
+	except Exception:
+		pass  # cosmetic only — never block an invite on desk tidying
+	if existing:
+		frappe.db.set_value("Client Room Member", existing.name, {
+			"active": 1, "member_type": "Consultant"
+		}, update_modified=False)
+	else:
+		frappe.get_doc({
+			"doctype": "Client Room Member",
+			"room": room,
+			"user": email,
+			"active": 1,
+			"member_type": "Consultant",
+		}).insert(ignore_permissions=True)
+	first = frappe.utils.get_fullname(email).split(" ")[0]
+	_post(r, _("👷 Consultant {0} ({1}) was added to this room.").format(first, email), 1, None, None, None)
+	frappe.db.commit()
+	return {"ok": 1, "created": created, "user": email}
+
+
+@frappe.whitelist()
+def chreq_get(id):
+	"""Fetch a change request for the update dialog. Staff freely;
+	consultants only for CRs from their assigned issues or their rooms."""
+	from duty_board.permissions import require_staff_or_consultant, consultant_room_names
+
+	_is_c = require_staff_or_consultant()
+	doc = frappe.get_doc("Duty Change Request", id)
+	if _is_c:
+		ok = False
+		if doc.source_issue:
+			from duty_board.api import _consultant_issue_check
+
+			try:
+				_consultant_issue_check(frappe.get_doc("Duty Issue", doc.source_issue))
+				ok = True
+			except frappe.PermissionError:
+				ok = False
+		if not ok and doc.room in consultant_room_names():
+			ok = True
+		if not ok:
+			frappe.throw(_("Not permitted."), frappe.PermissionError)
+	locked = False
+	try:
+		_chreq_locked(doc)
+	except Exception:
+		locked = True
+	return {
+		"name": doc.name,
+		"title": doc.title,
+		"status": doc.status,
+		"pricing_status": doc.get("pricing_status"),
+		"reason": doc.reason,
+		"scope_impact": doc.scope_impact,
+		"timeline_impact": doc.timeline_impact,
+		"cost_impact": doc.cost_impact,
+		"resource_impact": doc.resource_impact,
+		"risks": doc.risks,
+		"locked": int(locked),
+	}
+
+
+def _staff_sees_room(room, user):
+	"""Empty staff_users = open to all staff; else listed users + the
+	room owner (System Managers bypass at the call sites)."""
+	su = (room.get("staff_users") or "").strip()
+	if not su:
+		return True
+	if user == room.get("owner_user"):
+		return True
+	listed = [x.strip().lower() for x in su.replace("\n", ",").split(",") if x.strip()]
+	return user.lower() in listed
+
+
+@frappe.whitelist()
+def my_rooms_summary():
+	"""For the dashboard: rooms I own and rooms I'm named into."""
+	from duty_board.permissions import require_staff_or_consultant, consultant_room_names
+
+	_is_c = require_staff_or_consultant()
+	me = frappe.session.user
+	rooms = frappe.get_all(
+		"Client Room",
+		filters={"status": ["!=", "Archived"]},
+		fields=["name", "customer", "unit", "owner_user", "staff_users"],
+	)
+	if _is_c:
+		memb = consultant_room_names()
+		return {"owned": [], "member": [{"name": r.name, "customer": r.customer, "unit": r.unit} for r in rooms if r.name in memb]}
+	owned = [r for r in rooms if r.owner_user == me]
+	member = [
+		r for r in rooms
+		if r.owner_user != me
+		and me.lower() in [x.strip().lower() for x in (r.staff_users or "").replace("\n", ",").split(",") if x.strip()]
+	]
+	slim = lambda rs: [{"name": r.name, "customer": r.customer, "unit": r.unit} for r in rs]
+	return {"owned": slim(owned), "member": slim(member)}
+
+
+@frappe.whitelist()
+def room_staff_access(name):
+	"""Read the room's staff shortlist — System Manager or room owner."""
+	from duty_board.permissions import require_staff
+
+	require_staff()
+	room = frappe.get_doc("Client Room", name)
+	me = frappe.session.user
+	can_edit = "System Manager" in frappe.get_roles() or room.get("owner_user") == me
+	return {
+		"users": [x.strip() for x in (room.get("staff_users") or "").replace("\n", ",").split(",") if x.strip()],
+		"owner": room.get("owner_user"),
+		"can_edit": can_edit,
+	}
+
+
+@frappe.whitelist()
+def set_room_staff_access(name, users=None, owner=None):
+	"""Write the shortlist and/or owner — System Manager or current owner
+	only. Empty shortlist restores everyone-sees-it."""
+	from duty_board.permissions import require_staff
+
+	require_staff()
+	room = frappe.get_doc("Client Room", name)
+	me = frappe.session.user
+	if "System Manager" not in frappe.get_roles() and room.get("owner_user") != me:
+		frappe.throw(_("Only the room owner or a System Manager curates access."), frappe.PermissionError)
+	if isinstance(users, str):
+		try:
+			users = frappe.parse_json(users)
+		except Exception:
+			users = [x.strip() for x in users.split(",") if x.strip()]
+	room.db_set("staff_users", ", ".join(sorted(set(users or []))) or None, update_modified=False)
+	if owner is not None:
+		room.db_set("owner_user", owner or None, update_modified=False)
+	frappe.db.commit()
+	return room_staff_access(name)

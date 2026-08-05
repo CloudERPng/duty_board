@@ -21,7 +21,34 @@
   "details_section",
   "description",
   "versions_section",
-  "versions"
+  "versions",
+  "statement_section",
+  "is_financial_statement",
+  "statement_type",
+  "column_break_fs",
+  "period_month",
+  "period_year",
+  "publish_section",
+  "published",
+  "published_on",
+  "published_by",
+  "column_break_pub",
+  "published_file_url",
+  "published_file_name",
+  "publish_seq",
+  "review_status",
+  "approved_by",
+  "approved_on",
+  "approved_version",
+  "review_section",
+  "review_thread",
+  "due_date",
+  "delayed_until",
+  "delay_reason",
+  "delay_declared_by",
+  "delay_declared_on",
+  "highlights",
+  "stmt_nudged_on"
  ],
  "fields": [
   {
@@ -130,6 +157,183 @@
    "label": "Versions",
    "options": "Document Version",
    "read_only": 1
+  },
+  {
+   "fieldname": "statement_section",
+   "fieldtype": "Section Break",
+   "label": "Financial Statement"
+  },
+  {
+   "fieldname": "is_financial_statement",
+   "fieldtype": "Check",
+   "label": "This is a Financial Statement"
+  },
+  {
+   "fieldname": "statement_type",
+   "fieldtype": "Select",
+   "label": "Statement Type",
+   "options": "\nManagement Account\nAnnual Report",
+   "depends_on": "eval:doc.is_financial_statement",
+   "mandatory_depends_on": "eval:doc.is_financial_statement"
+  },
+  {
+   "fieldname": "column_break_fs",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "period_month",
+   "fieldtype": "Select",
+   "label": "Period Month",
+   "options": "\nJanuary\nFebruary\nMarch\nApril\nMay\nJune\nJuly\nAugust\nSeptember\nOctober\nNovember\nDecember",
+   "depends_on": "eval:doc.is_financial_statement && doc.statement_type=='Management Account'",
+   "mandatory_depends_on": "eval:doc.is_financial_statement && doc.statement_type=='Management Account'"
+  },
+  {
+   "fieldname": "period_year",
+   "fieldtype": "Int",
+   "label": "Period Year",
+   "depends_on": "eval:doc.is_financial_statement",
+   "mandatory_depends_on": "eval:doc.is_financial_statement"
+  },
+  {
+   "fieldname": "publish_section",
+   "fieldtype": "Section Break",
+   "label": "Client Publication",
+   "depends_on": "eval:doc.is_financial_statement"
+  },
+  {
+   "fieldname": "published",
+   "fieldtype": "Check",
+   "label": "Published to Client",
+   "read_only": 1
+  },
+  {
+   "fieldname": "published_on",
+   "fieldtype": "Datetime",
+   "label": "Published On",
+   "read_only": 1
+  },
+  {
+   "fieldname": "published_by",
+   "fieldtype": "Data",
+   "label": "Published By",
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_pub",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "published_file_url",
+   "fieldtype": "Data",
+   "label": "Published Snapshot",
+   "read_only": 1,
+   "hidden": 1
+  },
+  {
+   "fieldname": "published_file_name",
+   "fieldtype": "Data",
+   "label": "Published File Name",
+   "read_only": 1,
+   "hidden": 1
+  },
+  {
+   "fieldname": "publish_seq",
+   "fieldtype": "Int",
+   "label": "Published Version Count",
+   "read_only": 1
+  },
+  {
+   "fieldname": "review_status",
+   "fieldtype": "Select",
+   "label": "Client Review",
+   "options": "\nAwaiting Client Review\nChanges Requested\nApproved",
+   "read_only": 1,
+   "depends_on": "eval:doc.is_financial_statement",
+   "in_list_view": 0
+  },
+  {
+   "fieldname": "approved_by",
+   "fieldtype": "Data",
+   "label": "Approved By",
+   "read_only": 1,
+   "depends_on": "eval:doc.review_status=='Approved'"
+  },
+  {
+   "fieldname": "approved_on",
+   "fieldtype": "Datetime",
+   "label": "Approved On",
+   "read_only": 1,
+   "depends_on": "eval:doc.review_status=='Approved'"
+  },
+  {
+   "fieldname": "approved_version",
+   "fieldtype": "Int",
+   "label": "Approved Version",
+   "read_only": 1,
+   "depends_on": "eval:doc.review_status=='Approved'"
+  },
+  {
+   "fieldname": "review_section",
+   "fieldtype": "Section Break",
+   "label": "Review Thread",
+   "depends_on": "eval:doc.is_financial_statement"
+  },
+  {
+   "fieldname": "review_thread",
+   "fieldtype": "Table",
+   "label": "Review Thread",
+   "options": "Statement Review Entry",
+   "read_only": 1
+  },
+  {
+   "fieldname": "due_date",
+   "fieldtype": "Date",
+   "label": "Delivery Due",
+   "depends_on": "eval:doc.is_financial_statement",
+   "description": "Auto-set to the 6th working day of the next month for Management Accounts; editable."
+  },
+  {
+   "fieldname": "delayed_until",
+   "fieldtype": "Date",
+   "label": "New Delivery Date",
+   "read_only": 1,
+   "depends_on": "eval:doc.delayed_until"
+  },
+  {
+   "fieldname": "delay_reason",
+   "fieldtype": "Small Text",
+   "label": "Delay Reason",
+   "read_only": 1,
+   "depends_on": "eval:doc.delayed_until"
+  },
+  {
+   "fieldname": "delay_declared_by",
+   "fieldtype": "Data",
+   "label": "Delay Declared By",
+   "read_only": 1,
+   "hidden": 1
+  },
+  {
+   "fieldname": "delay_declared_on",
+   "fieldtype": "Datetime",
+   "label": "Delay Declared On",
+   "read_only": 1,
+   "hidden": 1
+  },
+  {
+   "fieldname": "highlights",
+   "fieldtype": "Small Text",
+   "label": "Published Highlights",
+   "description": "One per line, shown to the client on the portal entry (e.g. Revenue: \u20a648.2m (+12%))",
+   "depends_on": "eval:doc.is_financial_statement"
+  },
+  {
+   "fieldname": "stmt_nudged_on",
+   "fieldtype": "Date",
+   "label": "Review Nudged On",
+   "read_only": 1,
+   "hidden": 1
   }
  ],
  "index_web_pages_for_search": 0,

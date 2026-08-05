@@ -1,0 +1,120 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "autoname": "hash",
+ "creation": "2026-08-02 18:14:43.233579",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "company",
+  "sector",
+  "heat",
+  "status",
+  "column_break_1",
+  "trigger",
+  "est_worth",
+  "link",
+  "section_break_1",
+  "angle",
+  "notes",
+  "drop_reason",
+  "promoted_lead"
+ ],
+ "fields": [
+  {
+   "fieldname": "company",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Company",
+   "reqd": 1
+  },
+  {
+   "fieldname": "sector",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Sector"
+  },
+  {
+   "fieldname": "heat",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "Heat",
+   "options": "Hot\nWarm\nCool",
+   "default": "Warm"
+  },
+  {
+   "fieldname": "status",
+   "fieldtype": "Select",
+   "label": "Status",
+   "options": "Watching\nPromoted\nDropped",
+   "default": "Watching"
+  },
+  {
+   "fieldname": "column_break_1",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "trigger",
+   "fieldtype": "Data",
+   "label": "Trigger (what opens the door)",
+   "length": 300
+  },
+  {
+   "fieldname": "est_worth",
+   "fieldtype": "Currency",
+   "label": "Estimated Worth (if landed)"
+  },
+  {
+   "fieldname": "link",
+   "fieldtype": "Data",
+   "label": "Source Link",
+   "length": 500
+  },
+  {
+   "fieldname": "section_break_1",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "angle",
+   "fieldtype": "Small Text",
+   "label": "The Angle (why we're watching)"
+  },
+  {
+   "fieldname": "notes",
+   "fieldtype": "Long Text",
+   "label": "Signals Log"
+  },
+  {
+   "fieldname": "drop_reason",
+   "fieldtype": "Data",
+   "label": "Drop Reason"
+  },
+  {
+   "fieldname": "promoted_lead",
+   "fieldtype": "Link",
+   "label": "Promoted Lead",
+   "options": "Duty Lead"
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "istable": 0,
+ "links": [],
+ "modified": "2026-08-02 18:14:43.233579",
+ "modified_by": "Administrator",
+ "module": "Duty Board",
+ "name": "Duty Prospect",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "role": "System Manager",
+   "read": 1,
+   "write": 1,
+   "create": 1,
+   "delete": 1
+  }
+ ],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}

@@ -2,6 +2,7 @@ import json
 
 import frappe
 from frappe import _
+from duty_board.permissions import require_authenticated
 
 
 def _vapid():
@@ -10,12 +11,14 @@ def _vapid():
 
 @frappe.whitelist()
 def get_push_config():
+	require_authenticated()
 	pub, _priv = _vapid()
 	return {"public_key": pub}
 
 
 @frappe.whitelist()
 def save_push_subscription(subscription):
+	require_authenticated()
 	sub = frappe.parse_json(subscription)
 	endpoint = (sub or {}).get("endpoint")
 	if not endpoint:

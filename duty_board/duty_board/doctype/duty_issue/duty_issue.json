@@ -34,7 +34,9 @@
   "sla_ack_warned",
   "sla_res_warned",
   "client_stars",
-  "client_confirmed_at"
+  "client_confirmed_at",
+  "from_change_request",
+  "checklist"
  ],
  "fields": [
   {
@@ -217,7 +219,7 @@
    "in_list_view": 1,
    "label": "Type",
    "search_index": 1,
-   "options": "Support\nBug\nFeature Request\nConfiguration\nTraining\nData Correction\nIntegration\nBilling\nImplementation"
+   "options": "Support\nBug\nFeature Request\nConfiguration\nTraining\nData Correction\nIntegration\nBilling\nImplementation\nChange Request\nEnablement"
   },
   {
    "fieldname": "client_stars",
@@ -230,10 +232,23 @@
    "fieldtype": "Datetime",
    "label": "Client Confirmed At",
    "read_only": 1
+  },
+  {
+   "fieldname": "from_change_request",
+   "fieldtype": "Link",
+   "label": "From Change Request",
+   "options": "Duty Change Request",
+   "read_only": 1
+  },
+  {
+   "fieldname": "checklist",
+   "fieldtype": "Table",
+   "label": "Checklist",
+   "options": "Duty Issue Checklist Item"
   }
  ],
  "links": [],
- "modified": "2026-07-09 09:00:00.000000",
+ "modified": "2026-08-02 19:23:18.538617",
  "modified_by": "Administrator",
  "module": "Duty Board",
  "name": "Duty Issue",

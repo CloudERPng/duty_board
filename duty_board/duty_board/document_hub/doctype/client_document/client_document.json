@@ -1,0 +1,175 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "autoname": "naming_series:",
+ "creation": "2026-07-11 10:00:00.000000",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "naming_series",
+  "title",
+  "client",
+  "category",
+  "column_break_main",
+  "status",
+  "current_version",
+  "latest_file",
+  "checkout_section",
+  "checked_out_by",
+  "column_break_co",
+  "checked_out_at",
+  "details_section",
+  "description",
+  "versions_section",
+  "versions"
+ ],
+ "fields": [
+  {
+   "fieldname": "naming_series",
+   "fieldtype": "Select",
+   "label": "Series",
+   "options": "CDOC-.YYYY.-",
+   "default": "CDOC-.YYYY.-",
+   "hidden": 1
+  },
+  {
+   "fieldname": "title",
+   "fieldtype": "Data",
+   "label": "Document Title",
+   "reqd": 1,
+   "in_list_view": 1,
+   "in_standard_filter": 1
+  },
+  {
+   "fieldname": "client",
+   "fieldtype": "Link",
+   "label": "Client",
+   "options": "Customer",
+   "reqd": 1,
+   "in_list_view": 1,
+   "in_standard_filter": 1
+  },
+  {
+   "fieldname": "category",
+   "fieldtype": "Select",
+   "label": "Category",
+   "options": "Proposal\nConfig Workbook\nTraining Manual\nSLA / MOU\nReport\nRequirements\nMeeting Notes\nOther",
+   "reqd": 1,
+   "in_list_view": 1,
+   "in_standard_filter": 1
+  },
+  {
+   "fieldname": "column_break_main",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "status",
+   "fieldtype": "Select",
+   "label": "Status",
+   "options": "Available\nChecked Out",
+   "default": "Available",
+   "read_only": 1,
+   "in_list_view": 1,
+   "in_standard_filter": 1
+  },
+  {
+   "fieldname": "current_version",
+   "fieldtype": "Int",
+   "label": "Current Version",
+   "default": "0",
+   "read_only": 1
+  },
+  {
+   "fieldname": "latest_file",
+   "fieldtype": "Attach",
+   "label": "Latest File",
+   "read_only": 1
+  },
+  {
+   "fieldname": "checkout_section",
+   "fieldtype": "Section Break",
+   "label": "Checkout Status",
+   "depends_on": "eval:doc.status=='Checked Out'"
+  },
+  {
+   "fieldname": "checked_out_by",
+   "fieldtype": "Link",
+   "label": "Checked Out By",
+   "options": "User",
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_co",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "checked_out_at",
+   "fieldtype": "Datetime",
+   "label": "Checked Out At",
+   "read_only": 1
+  },
+  {
+   "fieldname": "details_section",
+   "fieldtype": "Section Break",
+   "label": "Details",
+   "collapsible": 1
+  },
+  {
+   "fieldname": "description",
+   "fieldtype": "Small Text",
+   "label": "Description"
+  },
+  {
+   "fieldname": "versions_section",
+   "fieldtype": "Section Break",
+   "label": "Version History"
+  },
+  {
+   "fieldname": "versions",
+   "fieldtype": "Table",
+   "label": "Versions",
+   "options": "Document Version",
+   "read_only": 1
+  }
+ ],
+ "index_web_pages_for_search": 0,
+ "links": [],
+ "modified": "2026-07-11 10:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "Document Hub",
+ "name": "Client Document",
+ "naming_rule": "By \"Naming Series\" field",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Duty Board User",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "search_fields": "title,client,category",
+ "show_title_field_in_link": 1,
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [],
+ "title_field": "title",
+ "track_changes": 1
+}

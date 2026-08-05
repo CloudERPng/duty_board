@@ -22,18 +22,78 @@ frappe.pages["duty-board"].on_page_load = function (wrapper) {
 
 	board.face_btn = null;
 	board.sales_btn = null;
-	page.add_inner_button(__("🏠 Board"), () => board.show_face("board"), __("⇄ View"));
-	page.add_inner_button(__("📁 Projects"), () => board.show_face("projects"), __("⇄ View"));
-	page.add_inner_button(__("💼 Sales"), () => board.show_face("sales"), __("⇄ View"));
-	page.add_inner_button(__("🤝 Clients"), () => board.show_face("clients"), __("⇄ View"));
-	page.add_inner_button(__("👤 My Dashboard"), () => board.show_face("me"), __("⇄ View"));
-	frappe.call({
+	const RSVG = {
+		day: '<path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><path d="M9 22V12h6v10"/>',
+		proj: '<rect width="7" height="9" x="3" y="3" rx="1"/><rect width="7" height="5" x="14" y="3" rx="1"/><rect width="7" height="9" x="14" y="12" rx="1"/><rect width="7" height="5" x="3" y="16" rx="1"/>',
+		sales: '<path d="M12 2v20"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>',
+		rooms: '<path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>',
+		me: '<circle cx="12" cy="8" r="5"/><path d="M20 21a8 8 0 0 0-16 0"/>',
+		lib: '<path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1 0-5H20"/>',
+		books: '<path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/>',
+		coin: '<circle cx="12" cy="12" r="10"/><path d="M16 8h-6a2 2 0 1 0 0 4h4a2 2 0 1 1 0 4H8"/><path d="M12 18V6"/>',
+		cap: '<path d="M21.42 10.92a2 2 0 0 0 0-3.84L12.83 3.5a2 2 0 0 0-1.66 0L2.58 7.08a2 2 0 0 0 0 3.84l8.59 3.58a2 2 0 0 0 1.66 0z"/><path d="M22 10v6"/><path d="M6 12.5V16a6 3 0 0 0 12 0v-3.5"/>',
+		tag: '<path d="M12.586 2.586A2 2 0 0 0 11.172 2H4a2 2 0 0 0-2 2v7.172a2 2 0 0 0 .586 1.414l8.704 8.704a2.426 2.426 0 0 0 3.42 0l6.58-6.58a2.426 2.426 0 0 0 0-3.42z"/><circle cx="7.5" cy="7.5" r=".5" fill="currentColor"/>',
+	};
+	RSVG.warn = '<path d="m21.73 18-8-14a2 2 0 0 0-3.46 0l-8 14A2 2 0 0 0 4 20h16a2 2 0 0 0 1.73-2Z"/><path d="M12 9v4"/><path d="M12 17h.01"/>';
+	board.rail = [
+		{ id: "board", ic: RSVG.day, label: __("My Day"), go: () => board.show_face("board") },
+		{ id: "issues", ic: RSVG.warn, label: __("Issues"), go: () => board.show_face("issues") },
+		{ id: "projects", ic: RSVG.proj, label: __("Projects"), go: () => board.show_face("projects") },
+		{ id: "sales", ic: RSVG.sales, label: __("Sales"), go: () => board.show_face("sales") },
+		{ id: "clients", ic: RSVG.rooms, label: __("Client Rooms"), go: () => board.show_face("clients") },
+		{ id: "me", ic: RSVG.me, label: __("My Dashboard"), go: () => board.show_face("me") },
+		{ id: "news", ic: '<path d="M4 22h16a2 2 0 0 0 2-2V4a2 2 0 0 0-2-2H8a2 2 0 0 0-2 2v16a2 2 0 0 1-2 2Zm0 0a2 2 0 0 1-2-2v-9c0-1.1.9-2 2-2h2"/><path d="M18 14h-8"/><path d="M15 18h-5"/><path d="M10 6h8v4h-8V6Z"/>', label: __("News"), go: () => board.show_face("news") },
+	];
+	board._rsvg = RSVG;
+	board._is_consultant = localStorage.getItem("duty_cons") === "1";
+	if (board._is_consultant) {
+		$("body").addClass("duty-consultant");
+		if (!window._duty_msg_wrap) {
+			window._duty_msg_wrap = 1;
+			const _mp = frappe.msgprint;
+			frappe.msgprint = function (msg, ...rest) {
+				const txt = typeof msg === "string" ? msg : (msg && (msg.message || "")) || "";
+				if (board._is_consultant && /not permitted/i.test(String(txt))) return;
+				return _mp.call(this, msg, ...rest);
+			};
+		}
+	}
+	board.build_rail();
+	if (!board._is_consultant) frappe.call({
 		method: "duty_board.accounting.books_access",
+		error: () => {},
 		callback: (r) => {
 			board.books_acc = (r.message && r.message.allowed && r.message) || null;
 			if (board.books_acc) {
-				page.add_inner_button(__("📒 Books"), () => board.show_face("books"), __("⇄ View"));
-				$('.duty-tabbar a[data-tab="books"]').show();
+				board.rail.push({ id: "books", ic: board._rsvg.books, label: __("Books"), go: () => board.show_face("books") });
+				if (board.books_acc.manager) board.rail.push({ id: "cost", ic: board._rsvg.coin, label: __("Cost to serve"), go: () => board.cost_dialog() });
+				board.build_rail();
+				board._more_extra = board._more_extra || [];
+				board._more_extra.push({ icon: "📒", label: __("Books"), go: () => board.set_mtab("books") });
+				if (board.books_acc.manager) {
+					board._more_extra = board._more_extra || [];
+					board._more_extra.push({ icon: "💰", label: __("Cost to serve"), go: () => board.cost_dialog() });
+				}
+			}
+		},
+	});
+	if (!board._is_consultant) frappe.call({
+		method: "duty_board.commercial.pricing_queue",
+		error: () => {},
+		callback: (r) => {
+			const q = r.message || {};
+			board.is_pricer = !!q.pricer;
+			board.rail.splice(5, 0, { id: "library", ic: board._rsvg.lib, label: __("Library"), go: () => board.show_face("library") });
+			board.rail.push({ id: "training", ic: board._rsvg.cap, label: __("Team training"), go: () => board.team_training_dialog() });
+			if (q.pricer) board.rail.push({ id: "pricing", ic: board._rsvg.tag, label: __("CR pricing"), go: () => board.pricing_dialog() });
+			board.build_rail();
+			page.add_menu_item(__("🎓 Team training"), () => board.team_training_dialog());
+			board._more_extra = board._more_extra || [];
+			board._more_extra.push({ icon: "🎓", label: __("Team training"), go: () => board.team_training_dialog() });
+			if (q.pricer) {
+				page.add_menu_item(__("💼 CR pricing ({0})", [(q.queue || []).length]), () => board.pricing_dialog());
+				board._more_extra = board._more_extra || [];
+				board._more_extra.push({ icon: "💼", label: __("CR pricing"), go: () => board.pricing_dialog() });
 			}
 		},
 	});
@@ -55,13 +115,6 @@ class DutyBoard {
 		this.page = page;
 		this.body = $(`
 			<div class="duty-board duty-layout">
-				<div class="duty-left">
-					<div class="duty-issues"></div>
-					<div class="duty-issues-rail" style="display:none" title="${__("Open Issues")}">
-						<span class="duty-rail-badge duty-issues-rail-badge" style="display:none"></span>
-						<span class="duty-rail-label">⚠ ${__("Issues")}</span>
-					</div>
-				</div>
 				<div class="duty-main">
 					<div class="duty-me"></div>
 					<div class="duty-task"></div>
@@ -81,16 +134,33 @@ class DutyBoard {
 			</div>
 		`).appendTo(page.body);
 		this.face = "board";
+		this.$issues = $(`
+			<div class="duty-issues-face" style="display:none">
+				<div class="duty-issues"></div>
+				<div class="duty-issues-rail" style="display:none"></div>
+			</div>`).appendTo(page.body);
 		this.$projects = $(`
 			<div class="duty-projects" style="display:none">
-				<div class="duty-proj-head">
+				<div class="duty-pj-side">
+					<div class="duty-pj-sidehead">
+						<input type="text" class="form-control input-sm duty-pj-filter" placeholder="${__("Filter projects…")}">
+						<button class="btn btn-sm btn-default duty-proj-new" title="${__("New Project")}">＋</button>
+					</div>
 					<div class="duty-proj-tabs"></div>
-					<button class="btn btn-sm btn-default duty-proj-new">＋ ${__("New Project")}</button>
 				</div>
-				<div class="duty-kanban-wrap"></div>
+				<div class="duty-pj-main">
+					<div class="duty-pj-title"></div>
+					<div class="duty-kanban-wrap"></div>
+				</div>
 			</div>
 		`).appendTo(page.body);
 		this.$projects.find(".duty-proj-new").on("click", () => this.new_project_dialog());
+		this.$library = $(`<div class="duty-library" style="display:none"></div>`).appendTo(page.body);
+		this.$news = $(`<div class="duty-news" style="display:none"></div>`).appendTo(page.body);
+		this.$projects.find(".duty-pj-filter").on("input", (e) => {
+			this._pj_filter = e.target.value;
+			this.render_project_tabs();
+		});
 		this.$sales = $(`
 			<div class="duty-sales" style="display:none">
 				<div class="duty-sales-head">
@@ -162,14 +232,19 @@ class DutyBoard {
 				<div class="duty-reply-bar" style="display:none"></div>
 				<div class="duty-attach-bar" style="display:none"></div>
 				<div class="duty-chat-typing" style="display:none"></div>
-				<div class="duty-chat-send">
-					<label class="btn btn-default btn-sm duty-attach-btn" title="${__("Attach file, image or video (max 25 MB)")}">📎<input type="file" class="duty-file-input" hidden></label>
+				<div class="duty-tc-emojis" style="display:none"></div>
+				<div class="duty-chat-send" style="display:block">
 					<div class="duty-chat-input-wrap">
-						<textarea rows="1" class="form-control duty-chat-input" maxlength="1000"
+						<textarea rows="2" class="form-control duty-chat-input" maxlength="1000"
 							placeholder="${__("Message the team — @ to mention, Shift+Enter for a new line...")}"></textarea>
 						<div class="duty-mention-menu" style="display:none"></div>
 					</div>
-					<button class="btn btn-primary btn-sm duty-chat-btn">${__("Send")}</button>
+					<div class="duty-chat-toolbar" style="display:flex;align-items:center;gap:8px;margin-top:6px">
+						<label class="btn btn-default btn-sm duty-attach-btn" style="margin:0" title="${__("Attach file, image or video (max 25 MB)")}">📎<input type="file" class="duty-file-input" hidden></label>
+						<a class="duty-tc-emojibtn" title="${__("Emoji")}">😊</a>
+						<a class="duty-tc-mic" title="${__("Hold to record a voice note")}">🎙</a>
+						<button class="btn btn-primary btn-sm duty-chat-btn" style="margin-left:auto">${__("Send")}</button>
+					</div>
 				</div>
 			</div>
 		`);
@@ -185,6 +260,11 @@ class DutyBoard {
 		this.$list = $c.find(".duty-chat-list");
 		this.$badge = $c.find(".duty-chat-badge");
 		this.$input = $c.find(".duty-chat-input");
+		this.$input.on("input", function () {
+			if (!window.matchMedia("(max-width: 991px)").matches) return;
+			this.style.height = "42px";
+			this.style.height = Math.min(this.scrollHeight, 120) + "px";
+		});
 		this._last_typing = 0;
 		this.$input.on("input", () => {
 			const now = Date.now();
@@ -329,6 +409,22 @@ class DutyBoard {
 		$c.find(".duty-file-input").on("change", (e) => {
 			if (e.target.files[0]) this.set_file(e.target.files[0]);
 			e.target.value = "";
+		});
+		const TC_EMOJIS = ["😀","😂","🙏","👍","👌","🙌","🎉","❤️","🔥","💯","😅","😢","😡","🤔","👀","✅","❌","⏳","📌","💡","📞","🤝","🚀","🙈"];
+		const $tce = $c.find(".duty-tc-emojis");
+		$c.find(".duty-tc-emojibtn").on("click", () => {
+			if ($tce.is(":visible")) return $tce.hide();
+			if (!$tce.children().length)
+				TC_EMOJIS.forEach((em) =>
+					$(`<a style="font-size:19px;padding:2px 5px;cursor:pointer;text-decoration:none">${em}</a>`)
+						.appendTo($tce)
+						.on("click", () => { this.$input.val(this.$input.val() + em).focus(); })
+				);
+			$tce.css({ display: "flex", "flex-wrap": "wrap", gap: "2px", padding: "4px 6px" }).show();
+		});
+		this.bind_recorder($c.find(".duty-tc-mic"), (file) => {
+			this.set_file(file);
+			this.send_chat();
 		});
 
 		document.addEventListener("visibilitychange", () => {
@@ -476,40 +572,84 @@ class DutyBoard {
 		});
 	}
 
+	_badge_more() {
+		const total = this._issues_open || 0;
+		$(".duty-tabbar .duty-tab-more").text(total).toggle(total > 0);
+	}
+
+	refresh_sheet_badges() {
+		$(".duty-sheet .duty-tab-issues").text(this._issues_open || 0).toggle((this._issues_open || 0) > 0);
+	}
+
 	is_mobile() {
 		return window.matchMedia("(max-width: 767px)").matches;
 	}
 
 	setup_mobile_tabs() {
-		if (!this.is_mobile()) return;
+		if (!window.matchMedia("(max-width: 991px)").matches) return;
 		$("body").addClass("duty-mobile");
+		this._more_extra = this._more_extra || [];
 		const $bar = $(`
 			<div class="duty-tabbar">
-				<a data-tab="board"><span>🏠</span>${__("Board")}</a>
-				<a data-tab="plan"><span>✓</span>${__("Plan")}</a>
-				<a data-tab="issues"><span>⚠</span>${__("Issues")}<b class="duty-tab-badge duty-tab-issues" style="display:none"></b></a>
+				<a data-tab="me"><span>🏠</span>${__("Today")}</a>
 				<a data-tab="chat"><span>💬</span>${__("Chat")}<b class="duty-tab-badge duty-tab-chat" style="display:none"></b></a>
-				<a data-tab="projects"><span>📁</span>${__("Projects")}</a>
-				<a data-tab="sales"><span>💼</span>${__("Sales")}</a>
 				<a data-tab="clients"><span>🤝</span>${__("Clients")}<b class="duty-tab-badge duty-tab-clients" style="display:none"></b></a>
-				<a data-tab="me"><span>👤</span>${__("Me")}</a>
-				<a data-tab="books" style="display:none"><span>📒</span>${__("Books")}</a>
+				<a data-tab="projects"><span>📁</span>${__("Projects")}</a>
+				<a data-tab="library"><span>📚</span>${__("Library")}</a>
+				<a data-tab="more"><span>⋯</span>${__("More")}<b class="duty-tab-badge duty-tab-more" style="display:none"></b></a>
 			</div>
 		`).appendTo("body");
 		$bar.find("a").on("click", (e) => {
 			const tab = $(e.currentTarget).data("tab");
+			const go = () => (tab === "more" ? this.more_sheet() : this.set_mtab(tab));
 			if (frappe.get_route_str() !== "duty-board") {
-				localStorage.setItem("duty_mtab", tab);
-				frappe.set_route("duty-board").then(() => this.set_mtab(tab));
+				if (tab !== "more") localStorage.setItem("duty_mtab", tab);
+				frappe.set_route("duty-board").then(go);
 				return;
 			}
-			this.set_mtab(tab);
+			go();
 		});
-		this.set_mtab(localStorage.getItem("duty_mtab") || "board");
-		// dim the bar when the user wanders off to other desk screens
-		const sync_bar = () => $bar.toggleClass("duty-tabbar-away", frappe.get_route_str() !== "duty-board");
+		this.set_mtab(localStorage.getItem("duty_mtab") || "me");
+		const sync_bar = () => {
+			const here = frappe.get_route_str() === "duty-board";
+			$bar.toggleClass("duty-tabbar-away", !here);
+			$("body").toggleClass("duty-immersive", here);
+		};
 		frappe.router.on("change", sync_bar);
 		sync_bar();
+	}
+
+	more_sheet() {
+		const items = [
+			{ icon: "📋", label: __("Team board"), go: () => this.set_mtab("board") },
+			{ icon: "✓", label: __("My plan"), go: () => this.set_mtab("plan") },
+			{ icon: "⚠", label: __("Issues"), badge: "duty-tab-issues", go: () => this.set_mtab("issues") },
+			{ icon: "💼", label: __("Sales"), go: () => this.set_mtab("sales") },
+		].concat(this._more_extra || []);
+		this.sheet(__("More"), items);
+	}
+
+	sheet(title, items) {
+		$(".duty-sheet-wrap").remove();
+		const $w = $(`
+			<div class="duty-sheet-wrap">
+				<div class="duty-sheet-ovl"></div>
+				<div class="duty-sheet">
+					<div class="duty-sheet-grip"></div>
+					<div class="duty-sheet-title">${frappe.utils.escape_html(title)}</div>
+					<div class="duty-sheet-items"></div>
+				</div>
+			</div>`).appendTo("body");
+		const close = () => $w.remove();
+		$w.find(".duty-sheet-ovl").on("click", close);
+		const $it = $w.find(".duty-sheet-items");
+		items.forEach((i) => {
+			const $row = $(`<a class="duty-sheet-item"><span class="i">${i.icon}</span><span class="l">${frappe.utils.escape_html(i.label)}</span>${i.badge ? `<b class="duty-tab-badge ${i.badge}" style="position:static;display:none;margin-left:auto"></b>` : ""}</a>`)
+				.appendTo($it)
+				.on("click", () => { close(); i.go(); });
+		});
+		this.refresh_sheet_badges && this.refresh_sheet_badges();
+		requestAnimationFrame(() => $w.addClass("open"));
 	}
 
 	set_mtab(tab) {
@@ -525,13 +665,18 @@ class DutyBoard {
 			this.show_face("me");
 		} else if (tab === "books") {
 			this.show_face("books");
+		} else if (tab === "library") {
+			this.show_face("library");
+		} else if (tab === "issues") {
+			this.show_face("issues");
 		} else {
 			this.show_face("board");
 			this.body.attr("data-mtab", tab);
 		}
+		const primary = ["me", "chat", "clients", "projects", "library"];
 		$(".duty-tabbar a")
 			.removeClass("active")
-			.filter(`[data-tab="${tab}"]`)
+			.filter(`[data-tab="${primary.indexOf(tab) >= 0 ? tab : "more"}"]`)
 			.addClass("active");
 		if (tab === "chat") {
 			this.mark_caught_up();
@@ -698,6 +843,43 @@ class DutyBoard {
 		this.$input.focus();
 	}
 
+	bind_recorder($btn, on_done) {
+		let rec = null, chunks = [], stream = null, started = 0;
+		const stop = () => {
+			if (rec && rec.state !== "inactive") rec.stop();
+			$btn.removeClass("rec").css("animation", "");
+		};
+		const start = async (e) => {
+			e.preventDefault();
+			if (rec && rec.state === "recording") return;
+			try {
+				stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+			} catch {
+				frappe.show_alert({ message: __("Microphone permission denied."), indicator: "red" });
+				return;
+			}
+			chunks = [];
+			started = Date.now();
+			rec = new MediaRecorder(stream);
+			rec.ondataavailable = (ev) => ev.data.size && chunks.push(ev.data);
+			rec.onstop = () => {
+				stream.getTracks().forEach((t) => t.stop());
+				const dur = Date.now() - started;
+				if (dur < 600 || !chunks.length) return;
+				const blob = new Blob(chunks, { type: "audio/webm" });
+				if (blob.size > 25 * 1024 * 1024) {
+					frappe.show_alert({ message: __("Voice note too large."), indicator: "red" });
+					return;
+				}
+				on_done(new File([blob], `voice-note-${Date.now()}.webm`, { type: "audio/webm" }));
+			};
+			rec.start();
+			$btn.addClass("rec").css("animation", "duty-pulse 1s infinite");
+		};
+		$btn.on("pointerdown", start);
+		$btn.on("pointerup pointerleave", stop);
+	}
+
 	set_file(f) {
 		const MAX = 25 * 1024 * 1024;
 		if (f.size > MAX) {
@@ -779,9 +961,17 @@ class DutyBoard {
 		frappe.call({ method: "duty_board.api.send_message", args: args });
 	}
 
+	linkify(escaped) {
+		return (escaped || "").replace(/(https?:\/\/[^\s<]+)/g, (u) => {
+			const trail = (u.match(/[).,;!?]+$/) || [""])[0];
+			const core = trail ? u.slice(0, -trail.length) : u;
+			return `<a href="${core}" target="_blank" rel="noopener noreferrer">${core}</a>${trail}`;
+		});
+	}
+
 	format_message_text(m) {
-		let html = frappe.utils.escape_html(m.message || "");
-		return html.replace(/@([\w-]+)/g, '<span class="duty-mention">@$1</span>');
+		let html = this.linkify(frappe.utils.escape_html(m.message || ""));
+		return html.replace(/@([\w-]+)(?![^<]*<\/a>)/g, '<span class="duty-mention">@$1</span>');
 	}
 
 	append_message(m, is_new, in_search, $insert_after) {
@@ -795,6 +985,8 @@ class DutyBoard {
 				attach = `<div class="duty-msg-attach"><a href="${url}" target="_blank"><img src="${url}"></a></div>`;
 			} else if (m.attachment_type === "video") {
 				attach = `<div class="duty-msg-attach"><video src="${url}" controls preload="metadata"></video></div>`;
+			} else if (m.attachment_type === "audio" || /\.(webm|ogg|mp3|m4a|wav)$/i.test(m.attachment_name || "")) {
+				attach = `<div class="duty-msg-attach"><audio controls preload="none" src="${url}" style="max-width:240px"></audio></div>`;
 			} else {
 				attach = `<div class="duty-msg-attach"><a href="${url}" target="_blank">📎 ${frappe.utils.escape_html(m.attachment_name || "file")}</a></div>`;
 			}
@@ -866,6 +1058,7 @@ class DutyBoard {
 			const $rows = this.$list.find(".duty-msg");
 			if ($rows.length > 400) $rows.slice(0, $rows.length - 400).remove();
 		}
+		this.witness_observe($row, m);
 		return $row;
 	}
 
@@ -1057,13 +1250,72 @@ class DutyBoard {
 		return $last.data("creation") || "";
 	}
 
+	witness_ok() {
+		return this.chat_open && !document.hidden && (!this.is_mobile() || this.mtab === "chat");
+	}
+
+	witness_observe($row, m) {
+		if (!window.IntersectionObserver || !$row || !$row.length) return;
+		if (m.user === frappe.session.user) return; // your own words need no witness
+		if (!this._witness_io) {
+			this._witness_pending = {}; // name → timer
+			this._witness_visible = {}; // name → creation (currently ≥50% on screen)
+			this._witness_hwm = "";
+			this._witness_synced = "";
+			this._witness_io = new IntersectionObserver(
+				(entries) => {
+					entries.forEach((en) => {
+						const name = en.target.getAttribute("data-name");
+						const creation = $(en.target).data("creation");
+						if (!name) return;
+						if (en.isIntersecting && en.intersectionRatio >= 0.5) {
+							this._witness_visible[name] = creation;
+							this.witness_arm(name, creation, en.target);
+						} else {
+							delete this._witness_visible[name];
+							clearTimeout(this._witness_pending[name]);
+							delete this._witness_pending[name];
+						}
+					});
+				},
+				{ threshold: [0.5] }
+			);
+			document.addEventListener("visibilitychange", () => {
+				if (document.hidden) {
+					Object.keys(this._witness_pending || {}).forEach((n) => clearTimeout(this._witness_pending[n]));
+					this._witness_pending = {};
+				} else {
+					Object.keys(this._witness_visible || {}).forEach((n) => this.witness_arm(n, this._witness_visible[n]));
+				}
+			});
+		}
+		this._witness_io.observe($row[0]);
+	}
+
+	witness_arm(name, creation, el) {
+		if (!this.witness_ok() || this._witness_pending[name]) return;
+		if (creation && this._witness_hwm && creation <= this._witness_hwm) return; // already witnessed past it
+		this._witness_pending[name] = setTimeout(() => {
+			delete this._witness_pending[name];
+			if (!this.witness_ok() || !this._witness_visible[name]) return;
+			if (creation > (this._witness_hwm || "")) {
+				this._witness_hwm = creation;
+				clearTimeout(this._witness_sync_t);
+				this._witness_sync_t = setTimeout(() => {
+					if (this._witness_hwm && this._witness_hwm !== this._witness_synced) {
+						this._witness_synced = this._witness_hwm;
+						frappe.call({ method: "duty_board.api.set_chat_seen", args: { upto: this._witness_hwm } });
+					}
+				}, 1200);
+			}
+		}, 1000);
+	}
+
 	mark_caught_up(creation) {
 		this.set_seen(creation || this.latest_creation());
 		this.clear_unread();
-		clearTimeout(this._seen_t);
-		this._seen_t = setTimeout(() => {
-			frappe.call({ method: "duty_board.api.set_chat_seen" });
-		}, 800);
+		// server receipts now come ONLY from witnessing — re-arm what's on screen
+		Object.keys(this._witness_visible || {}).forEach((n) => this.witness_arm(n, this._witness_visible[n]));
 		clearTimeout(this._divider_t);
 		this._divider_t = setTimeout(() => {
 			this.$list.find(".duty-new-divider").remove();
@@ -1080,6 +1332,7 @@ class DutyBoard {
 		this.$badge.text(this.unread).show();
 		this.$rail.find(".duty-rail-badge").text(this.unread).show();
 		$(".duty-tab-chat").text(this.unread).show();
+		this._badge_more();
 		document.title = `(${this.unread}) ${this.base_title}`;
 		this.start_title_flash();
 	}
@@ -1103,6 +1356,7 @@ class DutyBoard {
 		this.$badge.hide();
 		this.$rail.find(".duty-rail-badge").hide();
 		$(".duty-tab-chat").hide();
+		this._badge_more();
 		this.stop_title_flash();
 		document.title = this.base_title;
 	}
@@ -1155,11 +1409,75 @@ class DutyBoard {
 			freeze: !silent,
 			error: () => {
 				this._fail_count = (this._fail_count || 0) + 1;
+				if (this._fail_count === 1) this.consultant_check();
 				if (this._fail_count >= 3) this.halt_polling();
 			},
 			callback: (r) => {
 				this._fail_count = 0;
 				if (r.message) this.render(r.message);
+			},
+		});
+	}
+
+	consultant_cr_edit(cr, vals) {
+		vals = vals || {};
+		if (vals.locked) {
+			frappe.msgprint(__("💱 {0} — {1}. This change request is with Xlevel now and can no longer be edited.", [frappe.utils.escape_html(vals.title || cr), __(vals.pricing_status || vals.status || "")]));
+			return;
+		}
+		const pd = new frappe.ui.Dialog({
+			title: __("💱 Change request — detail it for pricing"),
+			fields: [
+				{ fieldname: "title", fieldtype: "Data", label: __("Title"), default: vals.title || "", reqd: 1 },
+				{ fieldname: "reason", fieldtype: "Small Text", label: __("Why this is new scope"), default: vals.reason || "" },
+				{ fieldname: "scope_impact", fieldtype: "Small Text", label: __("Scope impact"), default: vals.scope_impact || "" },
+				{ fieldname: "timeline_impact", fieldtype: "Data", label: __("Timeline impact"), default: vals.timeline_impact || "" },
+				{ fieldname: "resource_impact", fieldtype: "Data", label: __("Resource impact"), default: vals.resource_impact || "" },
+				{ fieldname: "risks", fieldtype: "Small Text", label: __("Risks"), default: vals.risks || "" },
+			],
+			primary_action_label: __("Send for pricing"),
+			primary_action: (v) => {
+				pd.hide();
+				frappe.call({
+					method: "duty_board.client_room.chreq_update",
+					args: Object.assign({ id: cr }, v),
+					callback: () => frappe.show_alert({ message: __("💱 Sent — Xlevel will price it and release it to the client."), indicator: "green" }),
+				});
+			},
+		});
+		pd.show();
+	}
+
+	open_cr_editor(cr) {
+		frappe.call({
+			method: "duty_board.client_room.chreq_get",
+			args: { id: cr },
+			callback: (r) => r.message && this.consultant_cr_edit(cr, r.message),
+		});
+	}
+
+	consultant_shell() {
+		this.rail = (this.rail || []).filter((r) => ["issues", "clients", "projects", "me", "news"].includes(r.id));
+		if (!this.rail.some((r) => r.id === "library")) {
+			this.rail.splice(this.rail.length - 1, 0, { id: "library", ic: this._rsvg.lib, label: __("Library"), go: () => this.show_face("library") });
+		}
+		this.build_rail();
+		$(".duty-strip").remove();
+		this.show_face("issues");
+	}
+
+	consultant_check() {
+		frappe.call({
+			method: "duty_board.api.consultant_gate",
+			error: () => {},
+			callback: (r) => {
+				if (!(r.message && r.message.consultant)) return;
+				this._is_consultant = true;
+				$("body").addClass("duty-consultant");
+				$(".modal:visible .btn-modal-close, .modal:visible .close").click();
+				this._fail_count = 0;
+				this.consultant_shell();
+				this.refresh();
 			},
 		});
 	}
@@ -1339,8 +1657,58 @@ class DutyBoard {
 	}
 
 	render(data) {
+		if (data && data.consultant) {
+			this._is_consultant = true;
+			localStorage.setItem("duty_cons", "1");
+			$("body").addClass("duty-consultant");
+			this._cons_people = data.people || [];
+			this.name_map = {};
+			this._cons_people.forEach((r) => (this.name_map[r.user] = r.full_name));
+			const st = data.stats || {};
+			let $cs = this.$issues.find(".duty-cons-stats");
+			if (!$cs.length) $cs = $('<div class="duty-cons-stats"></div>').prependTo(this.$issues);
+			$cs.html(`
+				<div class="duty-cs-tile"><b>${st.open || 0}</b><span>${__("Assigned open")}</span></div>
+				<div class="duty-cs-tile ${st.overdue ? "duty-cs-warn" : ""}"><b>${st.overdue || 0}</b><span>${__("Overdue")}</span></div>
+				<div class="duty-cs-tile"><b>${st.resolved30 || 0}</b><span>${__("Resolved · 30d")}</span></div>
+				<div class="duty-cs-tile"><b>${st.week_hours || 0}h</b><span>${__("Logged · 7d")}</span></div>`);
+			this.render_issues(data.issues || [], data.me || {});
+			if (!this._cons_boot) {
+				this._cons_boot = 1;
+				this.consultant_shell();
+			}
+			return;
+		}
+		if (localStorage.getItem("duty_cons")) {
+			localStorage.removeItem("duty_cons");
+			this._is_consultant = false;
+			$("body").removeClass("duty-consultant");
+		}
 		if (data.day_summary) {
 			this.show_day_summary(data.day_summary);
+		}
+		if (!this._pulse_at || Date.now() - this._pulse_at > 120000) {
+			this._pulse_at = Date.now();
+			frappe.call({
+				method: "duty_board.gamify.team_pulse",
+				error: () => {},
+				callback: (r) => {
+					const p = r.message;
+					if (!p) return;
+					$(".duty-pulse").remove();
+					const pct = Math.min(100, Math.round((p.resolved / (p.target || 1)) * 100));
+					const hit = p.resolved >= p.target;
+					$(`
+					<div class="duty-pulse ${hit ? "duty-pulse-hit" : ""}">
+						<span class="duty-pl-label">⚡ ${__("Team pulse")}</span>
+						<div class="duty-pl-bar"><i style="width:${pct}%"></i></div>
+						<span class="duty-pl-num">${p.resolved} / ${p.target} ${__("resolved this week")}</span>
+						<span class="duty-pl-breach ${p.breaches ? "duty-pl-bad" : ""}">${p.breaches ? `⚠ ${p.breaches} ${__("SLA breach(es)")}` : `🛡 ${__("zero breaches")}`}</span>
+						${(p.applauded || []).length ? `<span class="duty-pl-app">👏 ${p.applauded.map((a) => `${frappe.utils.escape_html(a.name)} ${a.n}`).join(" · ")}</span>` : ""}
+					</div>`).insertBefore(this.body);
+					$(".duty-pulse").toggle(this.face === "board");
+				},
+			});
 		}
 		this.dm_unread = data.dm_unread || this.dm_unread || {};
 		this._on_call = data.on_call || null;
@@ -1358,6 +1726,8 @@ class DutyBoard {
 		this.current_task = data.me && data.me.task;
 		this.name_map = {};
 		(data.board || []).forEach((r) => (this.name_map[r.user] = r.full_name));
+		this._me = data.me;
+		this.render_strip();
 		this.render_me(data.me);
 		this.render_task(data.me);
 		this.render_plan(data.me);
@@ -1465,7 +1835,7 @@ class DutyBoard {
 		return `
 			<div class="duty-msg ${mine ? "duty-msg-mine" : ""}" data-name="${m.name}">
 				<span class="duty-msg-who" style="color:${this.user_color(m.sender)}">${mine ? __("You") : frappe.utils.escape_html((m.sender_name || m.sender).split(" ")[0])}</span>
-				<span class="duty-msg-text">${frappe.utils.escape_html(m.message || "")}</span>
+				<span class="duty-msg-text">${this.linkify(frappe.utils.escape_html(m.message || ""))}</span>
 				<span class="duty-msg-time">${when}</span>
 			</div>`;
 	}
@@ -1632,13 +2002,37 @@ class DutyBoard {
 	}
 
 	show_face(face) {
+		if (this._idshim) this._idshim.hide();
+		if (this._$tdrawer) this._$tdrawer.hide();
+		if (this._$ndrawer) this._$ndrawer.hide();
+		if (face !== "library" && this._rd_stop) this._rd_stop();
+		if (this._$ldrawer) this._$ldrawer.hide();
+		$("body").removeClass("duty-idrawer-open");
+		const prev_face = this.face;
+		setTimeout(() => { this.render_strip(); this.rail_sync(face); }, 0);
+		if (face === "projects" && prev_face !== "projects") {
+			this._pj_open = {};
+			if (this.is_mobile()) this.$projects.removeClass("pj-detail");
+		}
+		if (face === "clients" && prev_face !== "clients") {
+			this._cr_open = {};
+			Object.keys(localStorage)
+				.filter((k) => k.indexOf("duty_cr_fold_") === 0)
+				.forEach((k) => localStorage.removeItem(k));
+		}
 		this.face = face;
 		this.body.toggle(face === "board");
+		$(".duty-pulse").toggle(face === "board");
+		this.$issues.toggle(face === "issues");
 		this.$projects.toggle(face === "projects");
 		this.$sales.toggle(face === "sales");
 		this.$clients.toggle(face === "clients");
 		this.$me.toggle(face === "me");
 		this.$books.toggle(face === "books");
+		if (this.$library) this.$library.toggle(face === "library");
+		if (this.$news) this.$news.toggle(face === "news");
+		if (face === "news") this.refresh_news(this._news_cat);
+		if (face === "library") this.refresh_library();
 		if (face === "books") this.refresh_books();
 		if (face === "projects") this.refresh_projects();
 		if (face === "sales") this.refresh_sales();
@@ -1660,6 +2054,160 @@ class DutyBoard {
 		return $host;
 	}
 
+	refresh_news(cat) {
+		this._news_cat = cat || "All";
+		if (!this.$news.find(".duty-nw-grid").length) {
+			this.$news.html(`<div class="duty-nw-load">📰 ${__("Opening the newsstand…")}</div>`);
+		}
+		frappe.call({
+			method: "duty_board.news.get_news",
+			args: { category: this._news_cat === "All" ? null : this._news_cat },
+			error: () => this.$news.html(`<div class="duty-nw-load">${__("The newsstand is unreachable right now.")}</div>`),
+			callback: (r) => {
+				const data = r.message || { items: [], categories: [] };
+				const items = data.items || [];
+				const esc = frappe.utils.escape_html;
+				const chip = (c) => `<a class="duty-nw-chip ${this._news_cat === c ? "on" : ""}" data-cat="${esc(c)}">${esc(__(c))}</a>`;
+				const card = (x) => `
+					<a class="duty-nw-card" data-name="${x.name}">
+						${x.image ? `<span class="duty-nw-img" style="background-image:url('${esc(x.image)}')"></span>` : `<span class="duty-nw-img duty-nw-noimg">${esc((x.source || "N")[0])}</span>`}
+						<span class="duty-nw-body">
+							<span class="duty-nw-src">${esc(x.source || "")} <i class="duty-nw-cat">${esc(x.category || "")}</i></span>
+							<span class="duty-nw-title">${esc(x.title)}</span>
+							<span class="duty-nw-when">${esc((x.published || "").slice(0, 10))}${(x.published || "").slice(0, 10) === frappe.datetime.get_today() ? ` <b class="duty-nw-new">${__("today")}</b>` : ""}</span>
+						</span>
+					</a>`;
+				const hero = items[0];
+				this.$news.html(`
+					<div class="duty-nw-head">
+						<h3>📰 ${__("The Stand")}</h3>
+						<div class="duty-nw-chips">${chip("All")}${(data.categories || []).map(chip).join("")}</div>
+						<a class="duty-nw-refresh" title="${__("Harvest the next feeds now")}">↻</a>
+					</div>
+					${hero ? `
+					<a class="duty-nw-hero" data-name="${hero.name}" style="background-image:url('${esc(hero.image || "")}')">
+						<span class="duty-nw-hgrad"></span>
+						<span class="duty-nw-htxt">
+							<i>${esc(hero.source || "")} · ${esc(hero.category || "")}</i>
+							<b>${esc(hero.title)}</b>
+						</span>
+					</a>` : `<div class="duty-nw-load">${__("Nothing on the stand yet — feeds refresh every half hour.")}</div>`}
+					<div class="duty-nw-grid">${items.slice(1).map(card).join("")}</div>
+				`);
+				this._news_items = {};
+				items.forEach((x) => (this._news_items[x.name] = x));
+				this.$news.find(".duty-nw-chip").on("click", (e) => this.refresh_news($(e.currentTarget).data("cat")));
+				this.$news.find(".duty-nw-refresh").on("click", () => {
+					frappe.call({
+						method: "duty_board.news.get_news",
+						args: { force: 1, category: this._news_cat === "All" ? null : this._news_cat },
+						callback: () => {
+							frappe.show_alert({ message: __("📰 Harvest running — fresh stories in a minute."), indicator: "green" });
+							setTimeout(() => this.refresh_news(this._news_cat), 45000);
+						},
+					});
+				});
+				this.$news.find(".duty-nw-card, .duty-nw-hero").on("click", (e) => {
+					e.preventDefault();
+					const x = this._news_items[$(e.currentTarget).data("name")];
+					if (x) this.news_reader(x);
+				});
+			},
+		});
+	}
+
+	news_reader(x) {
+		const esc = frappe.utils.escape_html;
+		if (!this._$ndrawer) {
+			this._$ndrawer = $(`
+				<div class="duty-idrawer duty-ndrawer" style="display:none">
+					<div class="duty-id-head"><b>📰 ${__("Reading")}</b><a class="duty-nd-x">✕</a></div>
+					<div class="duty-id-body duty-nd-body"></div>
+				</div>`).appendTo(document.body);
+			this._$ndrawer.find(".duty-nd-x").on("click", () => {
+				this._$ndrawer.hide();
+				$("body").removeClass("duty-idrawer-open");
+			});
+		}
+		const paras = (x.summary || "").split(/(?<=[.!?])\s+(?=[A-Z0-9"'])/).reduce((acc, s) => {
+			if (!acc.length || acc[acc.length - 1].length > 260) acc.push(s);
+			else acc[acc.length - 1] += " " + s;
+			return acc;
+		}, []);
+		this._$ndrawer.find(".duty-nd-body").html(`
+			${x.image ? `<div class="duty-nd-hero" style="background-image:url('${esc(x.image)}')"></div>` : ""}
+			<h3 class="duty-nd-title">${esc(x.title)}</h3>
+			<div class="duty-nd-meta">${esc(x.source || "")} · ${esc(x.category || "")} · ${esc((x.published || "").slice(0, 16))}</div>
+			${paras.map((s) => `<p class="duty-nd-p">${esc(s)}</p>`).join("")}
+			${(x.extra_images || []).map((u) => `<div class="duty-nd-extra" style="background-image:url('${esc(u)}')"></div>`).join("")}
+			<a class="btn btn-sm btn-primary duty-nd-src" href="${esc(x.link)}" target="_blank" rel="noopener noreferrer">${__("Read full article at source")} ↗</a>
+		`);
+		this._$ndrawer.show();
+		$("body").addClass("duty-idrawer-open");
+	}
+
+	confetti() {
+		const COLORS = ["#0E8A63", "#123C35", "#FFC53D", "#E2620E", "#7BE3B0", "#B27409", "#fff"];
+		const $sky = $('<div class="duty-confetti"></div>').appendTo(document.body);
+		for (let i = 0; i < 140; i++) {
+			const size = 6 + Math.random() * 7;
+			const $p = $('<i></i>').css({
+				left: Math.random() * 100 + "vw",
+				width: size + "px",
+				height: size * (0.4 + Math.random() * 0.9) + "px",
+				background: COLORS[(Math.random() * COLORS.length) | 0],
+				"animation-duration": 3 + Math.random() * 2.5 + "s",
+				"animation-delay": Math.random() * 0.9 + "s",
+				"border-radius": Math.random() < 0.3 ? "50%" : "2px",
+				"--sway": (Math.random() * 120 - 60).toFixed(0) + "px",
+				"--spin": ((Math.random() * 720 - 360) | 0) + "deg",
+			});
+			$sky.append($p);
+		}
+		frappe.show_alert({ message: __("🎉 Resolved — take the applause."), indicator: "green" });
+		setTimeout(() => $sky.remove(), 6600);
+	}
+
+	render_gamify() {
+		frappe.call({
+			method: "duty_board.gamify.my_gamify",
+			error: () => {},
+			callback: (r) => {
+				const g = r.message;
+				if (!g || !this.$me || !this.$me.length) return;
+				this.$me.find(".duty-gamify").remove();
+				const t = g.streak.today;
+				const chk = (on, label) => `<span class="duty-gm-chk ${on ? "duty-gm-on" : ""}">${on ? "✔" : "○"} ${label}</span>`;
+				const earned = g.badges.filter((b) => b.earned);
+				const locked = g.badges.filter((b) => !b.earned);
+				$(`
+				<div class="duty-gamify">
+					<div class="duty-gm-card duty-gm-streak">
+						<div class="duty-gm-flame">🔥</div>
+						<div class="duty-gm-nums"><b>${g.streak.current}</b><span>${__("day streak")}</span><i>${__("best")} · ${g.streak.best}</i></div>
+						<div class="duty-gm-today">${chk(t.clock, __("Clocked in"))}${chk(t.plan, __("Plan set"))}${chk(t.update, __("Update posted"))}</div>
+					</div>
+					<div class="duty-gm-card duty-gm-week">
+						<b>${__("This week")}</b>
+						<div class="duty-gm-wrow"><span>${g.week.resolved}</span> ${__("resolved")}</div>
+						<div class="duty-gm-wrow"><span>${g.week.hours}h</span> ${__("logged")}</div>
+						${g.week.avg_rating ? `<div class="duty-gm-wrow"><span>★ ${g.week.avg_rating}</span> ${__("avg rating")}</div>` : ""}
+						${g.week.kudos ? `<div class="duty-gm-wrow"><span>👏 ${g.week.kudos}</span> ${__("kudos")}</div>` : ""}
+					</div>
+					${g.memory ? `<div class="duty-gm-card duty-gm-memory"><b>📜 ${__("From your margins")}</b><q>“${frappe.utils.escape_html(g.memory.text.slice(0, 150))}${g.memory.text.length > 150 ? "…" : ""}”</q><i>— ${frappe.utils.escape_html(g.memory.book_title)}</i></div>` : ""}
+					<div class="duty-gm-card duty-gm-badges">
+						<b>${__("Badges")} · ${earned.length}</b>
+						<div class="duty-gm-brow">
+							${earned.map((b) => `<span class="duty-gm-badge" title="${frappe.utils.escape_html(b.label)} — ${frappe.utils.escape_html(b.desc)}">${b.icon}</span>`).join("")}
+							${locked.map((b) => `<span class="duty-gm-badge duty-gm-locked" title="${frappe.utils.escape_html(b.label)} — ${frappe.utils.escape_html(b.desc)}">${b.icon}</span>`).join("")}
+						</div>
+					</div>
+				</div>`).prependTo(this.$me);
+				this.render_radar_today();
+			},
+		});
+	}
+
 	refresh_me(month) {
 		const V = "js v2.59.3";
 		console.log("[duty-me]", V, "refresh_me start, month:", month || "(current)");
@@ -1679,6 +2227,7 @@ class DutyBoard {
 				console.log("[duty-me] render begin");
 				this._me_host();
 				this.render_my_dashboard(j.message);
+				if (!this._is_consultant) this.render_gamify();
 				const node = this.$me[0];
 				const rect = node.getBoundingClientRect();
 				console.log("[duty-me] painted:", this.$me.find(".duty-mtile").length, "tiles | innerHTML:", node.innerHTML.length, "chars | visible height:", Math.round(rect.height), "| offsetParent:", !!node.offsetParent);
@@ -1705,7 +2254,7 @@ class DutyBoard {
 	render_my_dashboard(m) {
 		const esc = frappe.utils.escape_html;
 		const t = m.tiles || {};
-		const tile = (v, l) => (v === null || v === undefined) ? "" : `<div class="duty-mtile"><b>${esc(String(v))}</b><span>${esc(l)}</span></div>`;
+		const tile = (v, l, act) => (v === null || v === undefined) ? "" : `<div class="duty-mtile ${act ? "duty-mtile-act" : ""}" ${act ? `data-act="${act}"` : ""}><b>${esc(String(v))}</b><span>${esc(l)}</span></div>`;
 		this.$me.html(`
 			<div class="duty-me-head">
 				<div>
@@ -1721,9 +2270,9 @@ class DutyBoard {
 				</div>
 			</div>
 			<div class="duty-mtiles">
-				${tile(t.open_now, __("open now"))}
-				${tile(t.in_progress, __("in progress"))}
-				${tile(t.resolved_30, __("resolved · 30 days"))}
+				${tile(t.open_now, __("open now"), "open")}
+				${tile(t.in_progress, __("in progress"), "open")}
+				${tile(t.resolved_30, __("resolved · 30 days"), "resolved")}
 				${tile(t.avg_res, __("avg resolution"))}
 				${tile(t.sla_pct !== null && t.sla_pct !== undefined ? t.sla_pct + "%" : null, __("within SLA"))}
 				${tile(t.my_stars !== null && t.my_stars !== undefined ? "★ " + t.my_stars : null, __("client rating") + ` (${t.my_rated_n || 0})`)}
@@ -1745,6 +2294,7 @@ class DutyBoard {
 						<span class="text-muted">· ${esc(r.customer || "")}${r.by ? " — " + esc(r.by) : ""}</span>
 						<span class="duty-req-btns">
 							<button class="btn btn-xs btn-primary duty-req-ok" data-id="${esc(r.name)}">✓ ${__("Confirm")}</button>
+							<button class="btn btn-xs btn-default duty-req-sg" data-id="${esc(r.name)}" data-topic="${esc(r.topic)}">↷ ${__("Suggest time")}</button>
 							<button class="btn btn-xs btn-default duty-req-no" data-id="${esc(r.name)}">✗ ${__("Decline")}</button>
 						</span>
 					</div>`).join("")}
@@ -1812,6 +2362,15 @@ class DutyBoard {
 				callback: () => this.refresh_me((this._me_data || {}).month),
 			})
 		);
+		this.$me.find(".duty-mtile-act").on("click", (e) => {
+			const act = $(e.currentTarget).data("act");
+			this.issue_user_filter = "__me__";
+			this._iss_overdue = false;
+			this.issue_status_filter = act === "resolved" ? "resolved" : "open";
+			localStorage.setItem("duty_iv", "mine");
+			this.issues_open = true;
+			this.show_face("issues");
+		});
 		this.$me.find(".duty-me-clockout").on("click", () =>
 			frappe.prompt(
 				{ fieldname: "reason", fieldtype: "Small Text", label: __("Reason"), reqd: 1 },
@@ -1824,7 +2383,10 @@ class DutyBoard {
 				__("Clock Out")
 			)
 		);
-		this.$me.find(".duty-req-ok").on("click", (e) =>
+		this.$me.find(".duty-req-sg").on("click", (e) =>
+			this.suggest_meeting_dialog($(e.currentTarget).data("id"), $(e.currentTarget).data("topic"), () => this.show_face("me"))
+		);
+this.$me.find(".duty-req-ok").on("click", (e) =>
 			frappe.call({
 				method: "duty_board.client_room.confirm_meeting",
 				args: { id: $(e.currentTarget).data("id") },
@@ -1917,35 +2479,71 @@ class DutyBoard {
 						return frappe.msgprint(
 							__("No consultant-facing courses yet. Create a Duty Training Module with audience Consultant or Both, and add its Duty Lessons in the desk.")
 						);
-					frappe.prompt(
-						[
-							{
-								fieldname: "module",
-								fieldtype: "Select",
-								label: __("Course"),
-								options: mods.map((m) => ({ value: m.name, label: `${m.title}${m.product ? " · " + m.product : ""}` })),
-								reqd: 1,
-							},
-							{
-								fieldname: "user",
-								fieldtype: "Autocomplete",
-								label: __("Consultant"),
-								options: this.staff_options(),
-								reqd: 1,
-							},
-						],
-						(v) =>
-							frappe.call({
-								method: "duty_board.client_room.training_assign_staff",
-								args: { module: v.module, user: v.user },
-								callback: (rr) => {
-									frappe.show_alert({ message: __("🎓 Assigned."), indicator: "green" });
-									if (v.user === frappe.session.user && rr.message) this.render_my_training(rr.message);
+					frappe.call({
+						method: "duty_board.client_room.staff_tracks",
+						callback: (tr) => {
+							const tracks = tr.message || [];
+							frappe.prompt(
+								[
+									{
+										fieldname: "track",
+										fieldtype: "Select",
+										label: __("Whole track (assigns every course in it)"),
+										options: [{ value: "", label: __("— single course instead —") }].concat(
+											tracks.map((t) => ({
+												value: t.name,
+												label: `🎓 ${t.title} (${t.module_count} ${__("courses")})${t.product ? " · " + t.product : ""}${t.audience === "Client" ? " · " + __("client track — product knowledge") : ""}`,
+											}))
+										),
+									},
+									{
+										fieldname: "module",
+										fieldtype: "Select",
+										label: __("Single course"),
+										options: [{ value: "", label: "" }].concat(
+											mods.map((m) => ({ value: m.name, label: `${m.title}${m.product ? " · " + m.product : ""}` }))
+										),
+									},
+									{
+										fieldname: "user",
+										fieldtype: "Autocomplete",
+										label: __("Consultant"),
+										options: this.staff_options(),
+										reqd: 1,
+									},
+								],
+								(v) => {
+									if (!v.track && !v.module)
+										return frappe.msgprint(__("Pick a whole track or a single course."));
+									if (v.track) {
+										frappe.call({
+											method: "duty_board.client_room.training_assign_track",
+											args: { track: v.track, user: v.user },
+											callback: (rr) => {
+												const m = rr.message || {};
+												frappe.show_alert({
+													message: __("🎓 Track assigned: {0} new, {1} already had.", [m.created || 0, m.existing || 0]),
+													indicator: "green",
+												});
+												if (v.user === frappe.session.user && m.records) this.render_my_training(m.records);
+											},
+										});
+									} else {
+										frappe.call({
+											method: "duty_board.client_room.training_assign_staff",
+											args: { module: v.module, user: v.user },
+											callback: (rr) => {
+												frappe.show_alert({ message: __("🎓 Assigned."), indicator: "green" });
+												if (v.user === frappe.session.user && rr.message) this.render_my_training(rr.message);
+											},
+										});
+									}
 								},
-							}),
-						__("Assign consultant training"),
-						__("Assign")
-					);
+								__("Assign consultant training"),
+								__("Assign")
+							);
+						},
+					});
 				},
 			})
 		);
@@ -2225,14 +2823,19 @@ class DutyBoard {
 								.map(
 									(row) => `<tr>
 								<td><b>${frappe.utils.escape_html(row.customer)}</b>
-									${row.posted_through ? `<br><span style="font-size:10px;font-weight:700;color:${row.lag <= 1 ? "#15803d" : row.lag <= 3 ? "#b45309" : "#b91c1c"}">📮 ${__("posted thru")} ${row.posted_through.slice(5)} · ${__("lag")} ${row.lag}wd</span>` : `<br><span style="font-size:10px;color:#94a3b8">📮 ${__("no attestation")}</span>`}
+									${row.scope ? `<br><span style="font-size:10px;font-weight:700;color:#0e7490">◳ ${frappe.utils.escape_html(row.scope)}</span>` : ""}
+									${(!row.scope || row.scope.includes("Bookkeeping")) && row.posted_through ? `<br><span style="font-size:10px;font-weight:700;color:${row.lag <= 1 ? "#15803d" : row.lag <= 3 ? "#b45309" : "#b91c1c"}">📮 ${__("posted thru")} ${row.posted_through.slice(5)} · ${__("lag")} ${row.lag}wd</span>` : (!row.scope || row.scope.includes("Bookkeeping") ? `<br><span style="font-size:10px;color:#94a3b8">📮 ${__("no attestation")}</span>` : "")}
 									${row.fee ? `<br><span class="text-muted" style="font-size:11px">₦${Number(row.fee).toLocaleString()}/mo</span>` : ""}</td>
-								<td><a class="duty-bk-room" data-room="${row.room}" data-bk="${row.bookkeeper || ""}" data-opt="${frappe.utils.escape_html(row.optionals)}" style="cursor:pointer">${row.bookkeeper_name ? frappe.utils.escape_html(row.bookkeeper_name.split(" ")[0]) : "— " + __("set")}</a>
+								<td><a class="duty-bk-room" data-room="${row.room}" data-bk="${row.bookkeeper || ""}" data-opt="${frappe.utils.escape_html(row.optionals)}" data-scope="${frappe.utils.escape_html(row.scope || "")}" data-fye="${row.fye_month || ""}" style="cursor:pointer">${row.bookkeeper_name ? frappe.utils.escape_html(row.bookkeeper_name.split(" ")[0]) : "— " + __("set")}</a>
 									<a class="duty-bk-pb" data-room="${row.room}" title="${__("Client playbook")}" style="cursor:pointer;margin-left:6px">📖</a></td>
 								${m.types
 									.map((t) => {
 										const c = row.cells[t.name];
 										if (!c) {
+											const lines = (row.scope || "").split(",").map((s) => s.trim()).filter(Boolean);
+											if (lines.length && t.service_line && !lines.includes(t.service_line)) {
+												return `<td class="text-muted" style="text-align:center;opacity:.35" title="${__("Outside this client's service scope")}">·</td>`;
+											}
 											const enabled = !t.optional || (row.optionals || "").split(",").map((s) => s.trim()).some((s) => s === t.title || s === t.name);
 											if (enabled && t.frequency === "Quarterly") {
 												const mo = Number(m.period.slice(5, 7));
@@ -2269,21 +2872,39 @@ class DutyBoard {
 					const room = $(e.currentTarget).data("room");
 					const current = ($(e.currentTarget).data("opt") || "").split(",").map((s) => s.trim()).filter(Boolean);
 					const opts = m.types.filter((t) => t.optional);
+					const LINES = ["Bookkeeping", "Payroll & HR", "Tax"];
+					const curScope = ($(e.currentTarget).data("scope") || "").split(",").map((s) => s.trim()).filter(Boolean);
+					const scopeSel = curScope.length ? curScope : LINES;
 					frappe.prompt(
 						[
 							{ fieldname: "bookkeeper", fieldtype: "Autocomplete", label: __("Bookkeeper (default owner)"), options: this.staff_options(), default: $(e.currentTarget).data("bk") || "" },
+							{
+								fieldname: "scope",
+								fieldtype: "MultiCheck",
+								label: __("Service scope — all three checked = Full Books"),
+								columns: 3,
+								options: LINES.map((l) => ({ label: l, value: l, checked: scopeSel.includes(l) })),
+							},
+							{
+								fieldname: "fye_month",
+								fieldtype: "Select",
+								label: __("Financial year end month (annual tax deliverables)"),
+								options: ["", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12"],
+								default: String($(e.currentTarget).data("fye") || ""),
+								description: __("CIT / annual returns spawn 6 months after this month; blank = skipped"),
+							},
 							{
 								fieldname: "optionals",
 								fieldtype: "MultiCheck",
 								label: __("Service tier — optional deliverables this client pays for"),
 								columns: 1,
-								options: opts.map((t) => ({ label: t.title, value: t.title, checked: current.includes(t.title) || current.includes(t.name) })),
+								options: opts.map((t) => ({ label: t.title + (t.service_line && t.service_line !== "Bookkeeping" ? " · " + t.service_line : ""), value: t.title, checked: current.includes(t.title) || current.includes(t.name) })),
 							},
 						],
 						(v) =>
 							frappe.call({
 								method: "duty_board.accounting.books_set_room",
-								args: { name: room, bookkeeper: v.bookkeeper || null, optionals: (v.optionals || []).join(", ") },
+								args: { name: room, bookkeeper: v.bookkeeper || null, optionals: (v.optionals || []).join(", "), scope: (v.scope || []).join(", "), fye_month: v.fye_month || 0 },
 								callback: () => this.render_books_shell(),
 							}),
 						__("Client setup"),
@@ -2398,6 +3019,7 @@ class DutyBoard {
 						<div style="display:flex;gap:8px;align-items:baseline;flex-wrap:wrap">
 							<b style="font-size:13px">${frappe.utils.escape_html(roomName(q.room))}</b>
 							<span class="text-muted" style="font-size:11px">${[q.ref_date, q.amount ? "₦" + Number(q.amount).toLocaleString() : null, q.reference].filter(Boolean).map(frappe.utils.escape_html).join(" · ")}</span>
+							${q.recipients ? `<span style="font-size:11px;color:#0e7490;font-weight:700">👤 ${frappe.utils.escape_html(q.recipients.split(",").map((s) => s.trim().split("@")[0]).join(", "))}</span>` : ""}
 							<span style="margin-left:auto;font-size:11px;font-weight:700;color:${q.status === "Answered" ? "#15803d" : "#b45309"}">${q.status === "Answered" ? "💬 " + __("answered") : __("open") + " · " + q.age_wd + "wd"}</span>
 						</div>
 						<div style="font-size:13px;margin-top:3px">${frappe.utils.escape_html(q.question)}</div>
@@ -2412,6 +3034,7 @@ class DutyBoard {
 					<div style="border:1px solid var(--border-color,#E7ECEA);border-radius:10px;padding:8px 12px;margin-bottom:6px;display:flex;gap:8px;align-items:center;background:${x.overdue ? "#FDECEA" : "#fff"}">
 						<b style="font-size:13px">${frappe.utils.escape_html(roomName(x.room))}</b>
 						<span style="font-size:13px">${frappe.utils.escape_html(x.title)}</span>
+						${x.recipients ? `<span style="font-size:11px;color:#0e7490;font-weight:700">👤 ${frappe.utils.escape_html(x.recipients.split(",").map((s) => s.trim().split("@")[0]).join(", "))}</span>` : ""}
 						<span class="text-muted" style="font-size:11px;margin-left:auto">${x.due_date ? __("due") + " " + x.due_date + (x.overdue ? " ⚠" : "") : ""}</span>
 						<button class="btn btn-xs btn-default" data-waive="${x.name}">${__("Waive")}</button>
 					</div>`
@@ -2426,7 +3049,7 @@ class DutyBoard {
 						<b style="font-size:13px">${frappe.utils.escape_html(roomName(x.room))}</b>
 						<span style="font-size:13px">${frappe.utils.escape_html(x.title)}</span>
 						<span class="text-muted" style="font-size:11px;margin-left:auto">${frappe.utils.escape_html(x.fulfilled_by || "")} · ${x.fulfilled_on || ""}</span>
-						${x.attachment_url ? `<a class="btn btn-xs btn-default" href="${frappe.utils.escape_html(x.attachment_url)}" target="_blank">📎 ${__("Open")}</a>` : ""}
+						${x.attachment_url ? `<a class="btn btn-xs btn-default" href="/api/method/duty_board.accounting.books_request_file?name=${encodeURIComponent(x.name)}" target="_blank">📎 ${__("Open")}</a>` : ""}
 					</div>`
 								)
 								.join("")
@@ -2440,10 +3063,22 @@ class DutyBoard {
 				$p.find("[data-waive]").on("click", (e) =>
 					frappe.call({ method: "duty_board.accounting.books_waive_request", args: { name: $(e.currentTarget).data("waive") }, callback: () => reload() })
 				);
-				$p.find("[data-addq]").on("click", () =>
-					frappe.prompt(
+				const memOpts = (rm, sel) => ((m.members || {})[rm] || []).map((u) => ({ label: u.full_name || u.user, value: u.user, checked: (sel || []).includes(u.user) }));
+				const bindMembers = (dlg) => {
+					const refresh = () => {
+						const mc = dlg.fields_dict.recipients;
+						if (!mc) return;
+						mc.df.options = memOpts(dlg.get_value("room"));
+						mc.refresh();
+					};
+					dlg.fields_dict.room.df.onchange = refresh;
+					refresh();
+				};
+				$p.find("[data-addq]").on("click", () => {
+					const dlg = frappe.prompt(
 						[
 							{ fieldname: "room", fieldtype: "Select", label: __("Client"), options: m.rooms.map((x) => ({ label: x.customer, value: x.room })), reqd: 1, default: room_filter || (m.rooms[0] && m.rooms[0].room) },
+							{ fieldname: "recipients", fieldtype: "MultiCheck", label: __("Send to (none checked = everyone in the room)"), columns: 2, options: [] },
 							{ fieldname: "question", fieldtype: "Small Text", label: __("Question"), reqd: 1 },
 							{ fieldname: "ref_date", fieldtype: "Date", label: __("Transaction date") },
 							{ fieldname: "amount", fieldtype: "Currency", label: __("Amount") },
@@ -2452,17 +3087,19 @@ class DutyBoard {
 						(v) =>
 							frappe.call({
 								method: "duty_board.accounting.books_add_query",
-								args: { room: v.room, question: v.question, ref_date: v.ref_date || null, amount: v.amount || null, reference: v.reference || null },
+								args: { room: v.room, question: v.question, ref_date: v.ref_date || null, amount: v.amount || null, reference: v.reference || null, recipients: (v.recipients || []).join(", ") },
 								callback: () => reload(),
 							}),
 						__("Ask the client"),
 						__("Send")
-					)
-				);
-				$p.find("[data-addr]").on("click", () =>
-					frappe.prompt(
+					);
+					bindMembers(dlg);
+				});
+				$p.find("[data-addr]").on("click", () => {
+					const dlg = frappe.prompt(
 						[
 							{ fieldname: "room", fieldtype: "Select", label: __("Client"), options: m.rooms.map((x) => ({ label: x.customer, value: x.room })), reqd: 1, default: room_filter || (m.rooms[0] && m.rooms[0].room) },
+							{ fieldname: "recipients", fieldtype: "MultiCheck", label: __("Send to (none checked = everyone in the room)"), columns: 2, options: [] },
 							{ fieldname: "title", fieldtype: "Data", label: __("Document"), reqd: 1 },
 							{ fieldname: "detail", fieldtype: "Small Text", label: __("Detail") },
 							{ fieldname: "due_date", fieldtype: "Date", label: __("Due") },
@@ -2470,13 +3107,14 @@ class DutyBoard {
 						(v) =>
 							frappe.call({
 								method: "duty_board.accounting.books_add_request",
-								args: { room: v.room, title: v.title, detail: v.detail || null, due_date: v.due_date || null },
+								args: { room: v.room, title: v.title, detail: v.detail || null, due_date: v.due_date || null, recipients: (v.recipients || []).join(", ") },
 								callback: () => reload(),
 							}),
 						__("Request a document"),
 						__("Send")
-					)
-				);
+					);
+					bindMembers(dlg);
+				});
 			},
 		});
 	}
@@ -2967,30 +3605,225 @@ class DutyBoard {
 
 	render_project_tabs() {
 		const $tabs = this.$projects.find(".duty-proj-tabs").empty();
-		(this._projects || []).forEach((p) => {
-			const bits = [`${p.total} ${__("tasks")}`, `✓ ${p.done}`];
-			if (p.overdue) bits.push(`<span class="duty-proj-over">⚠ ${p.overdue}</span>`);
-			if (p.suspended) bits.push(`⏸ ${p.suspended}`);
-			const pc = this.proj_color(p.name);
-			const target = p.target_date
-				? `<span class="duty-proj-target ${p.days_left != null && p.days_left < 0 ? "duty-lead-over" : ""}">🎯 ${frappe.datetime.str_to_user(p.target_date)}${p.days_left != null ? ` (${p.days_left}d)` : ""}</span>`
-				: "";
-			$(`
-				<a class="duty-proj-tab ${p.name === this.current_project ? "active" : ""}" data-name="${p.name}" style="border-left: 4px solid ${pc}">
-					<span class="duty-proj-name" style="color:${pc}">${frappe.utils.escape_html(p.project_name)}</span>
-					${p.customer ? `<span class="duty-proj-cust">${frappe.utils.escape_html(p.customer)}</span>` : ""}
-					<span class="duty-proj-stats">${bits.join(" · ")}</span>
-					<span class="duty-proj-bar"><span style="width:${p.pct || 0}%; background:${pc}"></span></span>
-					${target}
-				</a>
-			`)
-				.appendTo($tabs)
-				.on("click", () => {
-					this.current_project = p.name;
-					localStorage.setItem("duty_proj", p.name);
-					this.render_project_tabs();
-					this.load_kanban(p.name);
+		const q = ((this._pj_filter || "") + "").toLowerCase();
+		const list = (this._projects || []).filter(
+			(p) => !q || (p.project_name + " " + (p.customer || "")).toLowerCase().indexOf(q) >= 0
+		);
+		const groups = {};
+		list.forEach((p) => (groups[p.customer || __("Internal")] = groups[p.customer || __("Internal")] || []).push(p));
+		this._pj_open = this._pj_open || {};
+		const active = this.current_project;
+		Object.keys(groups)
+			.sort()
+			.forEach((cust) => {
+				const ps = groups[cust];
+				const has_active = ps.some((p) => p.name === active);
+				const open = q ? true : has_active || this._pj_open[cust];
+				const over = ps.reduce((a, p) => a + (p.overdue || 0), 0);
+				$(`<div class="duty-pj-cust"><span class="duty-cr-caret">${open ? "▾" : "▸"}</span> ${frappe.utils.escape_html(cust)} <span class="duty-pj-count">${ps.length}</span>${!open && over ? ` <span class="duty-proj-over">⚠ ${over}</span>` : ""}</div>`)
+					.appendTo($tabs)
+					.on("click", () => {
+						if (open) delete this._pj_open[cust];
+						else this._pj_open[cust] = 1;
+						this.render_project_tabs();
+					});
+				if (!open) return;
+				ps.forEach((p) => {
+					const pc = this.proj_color(p.name);
+					$(`
+					<a class="duty-pj-item ${p.name === active ? "active" : ""}" data-name="${p.name}" style="border-left:3px solid ${pc}">
+						<span class="t">${frappe.utils.escape_html(p.project_name)}</span>
+						<span class="s">✓ ${p.done}/${p.total}${p.overdue ? ` <span class="duty-proj-over">⚠ ${p.overdue}</span>` : ""}${p.suspended ? " ⏸" : ""}</span>
+						<span class="duty-proj-bar"><span style="width:${p.pct || 0}%;background:${pc}"></span></span>
+					</a>`)
+						.appendTo($tabs)
+						.on("click", () => {
+							this.current_project = p.name;
+							localStorage.setItem("duty_proj", p.name);
+							if (this.is_mobile()) this.$projects.addClass("pj-detail");
+							this.render_project_tabs();
+							this.load_kanban(p.name);
+						});
 				});
+			});
+		if (!list.length)
+			$tabs.append(`<div class="text-muted" style="padding:10px;font-size:12.5px">${q ? __("No projects match.") : __("No projects yet.")}</div>`);
+		const cur = (this._projects || []).find((p) => p.name === active);
+		const $t = this.$projects.find(".duty-pj-title");
+		if (cur) {
+			const target = cur.target_date
+				? ` <span class="duty-proj-target ${cur.days_left != null && cur.days_left < 0 ? "duty-lead-over" : ""}">🎯 ${frappe.datetime.str_to_user(cur.target_date)}${cur.days_left != null ? ` (${cur.days_left}d)` : ""}</span>`
+				: "";
+			$t.html(target ? `<span class="text-muted" style="font-size:12.5px">${target}</span>` : "");
+		} else $t.empty();
+	}
+
+	render_agenda(project, data, $wrap) {
+		const tasks = [];
+		Object.keys(data.tasks || {}).forEach((col) =>
+			(data.tasks[col] || []).forEach((t) => tasks.push(Object.assign({ column: col }, t)))
+		);
+		const open = tasks.filter((t) => t.column !== "Completed");
+		const doneN = tasks.length - open.length;
+		const today = frappe.datetime.get_today();
+		const URG = { Critical: "#B0443C", High: "#A96F1A", Medium: "#0E5A4A", Low: "#6B7772" };
+		const groups = {};
+		const overdue = [];
+		const undated = [];
+		open.forEach((t) => {
+			if (!t.due_date) undated.push(t);
+			else if (t.due_date < today) overdue.push(t);
+			else (groups[t.due_date] = groups[t.due_date] || []).push(t);
+		});
+		const row = (t) => `
+			<div class="duty-ag-row" data-name="${t.name}" style="display:flex;gap:10px;align-items:center;background:#fff;border-radius:12px;padding:11px 12px;margin-bottom:7px;border-left:3px solid ${URG[t.urgency] || "#6B7772"};box-shadow:0 1px 2px rgba(16,24,40,.05)">
+				<div style="flex:1;min-width:0">
+					<div style="font-size:13.5px;font-weight:600;color:#101828;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${frappe.utils.escape_html(t.title)}</div>
+					${t.assignee ? `<div style="font-size:11.5px;color:#6B7772">${frappe.utils.escape_html((this.name_map[t.assignee] || t.assignee).split(" ")[0])}</div>` : ""}
+				</div>
+				<span style="font-size:11px;color:#96A09B;white-space:nowrap">${t.column === "In Progress" ? "▶" : ""}</span>
+			</div>`;
+		const section = (label, list, color) =>
+			list.length
+				? `<div style="font-size:11px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;color:${color || "#6B7772"};margin:14px 0 7px">${label} · ${list.length}</div>` + list.map(row).join("")
+				: "";
+		let daysHtml = "";
+		Object.keys(groups).sort().forEach((d) => {
+			const dt = frappe.datetime.str_to_obj(d);
+			const label = d === today ? __("Today") : dt.toLocaleDateString("default", { weekday: "short", day: "numeric", month: "short" });
+			daysHtml += section(label, groups[d], d === today ? "#0E5A4A" : null);
+		});
+		$wrap.append(`
+			<div class="duty-agenda">
+				<button class="btn btn-sm btn-primary duty-ag-add" style="width:100%;border-radius:12px;margin:4px 0 6px">＋ ${__("Add a task")}</button>
+				${section(__("Overdue"), overdue, "#B0443C")}
+				${daysHtml}
+				${section(__("No date"), undated)}
+				${doneN ? `<div class="text-muted" style="font-size:12px;margin-top:12px;text-align:center">✅ ${doneN} ${__("completed — see the board")}</div>` : ""}
+				${!open.length ? `<div class="text-muted" style="padding:20px;text-align:center">${__("Nothing open — clean slate.")}</div>` : ""}
+			</div>`);
+		$wrap.find(".duty-ag-row").on("click", (e) =>
+			frappe.call({
+				method: "duty_board.projects.get_card",
+				args: { name: $(e.currentTarget).data("name") },
+				callback: (r) => r.message && this.task_dialog(project, r.message),
+			})
+		);
+		$wrap.find(".duty-ag-add").on("click", () =>
+			frappe.prompt(
+				[
+					{ fieldname: "title", fieldtype: "Data", label: __("Task"), reqd: 1 },
+					{ fieldname: "due", fieldtype: "Date", label: __("Due"), default: today },
+					{ fieldname: "assignee", fieldtype: "Autocomplete", label: __("Assignee"), options: this.staff_options() },
+					{ fieldname: "urgency", fieldtype: "Select", label: __("Urgency"), options: ["Low", "Medium", "High", "Critical"], default: "Medium" },
+				],
+				(v) =>
+					frappe.call({
+						method: "duty_board.projects.create_task",
+						args: { project: project, title: v.title, column: "To Do", assignee: v.assignee || null, due_date: v.due || null, urgency: v.urgency },
+						callback: (r) => r.message && this.render_kanban(project, r.message),
+					}),
+				__("New task"), __("Add")
+			)
+		);
+	}
+
+	render_calendar(project, data, $wrap) {
+		if (this.is_mobile()) return this.render_agenda(project, data, $wrap);
+		const tasks = [];
+		Object.keys(data.tasks || {}).forEach((col) =>
+			(data.tasks[col] || []).forEach((t) => tasks.push(Object.assign({ column: col }, t)))
+		);
+		const base = this._cal_base ? new Date(this._cal_base) : new Date();
+		base.setDate(1);
+		const y = base.getFullYear();
+		const mo = base.getMonth();
+		const monthName = base.toLocaleString("default", { month: "long", year: "numeric" });
+		const first = (base.getDay() + 6) % 7; // Monday-first
+		const dim = new Date(y, mo + 1, 0).getDate();
+		const byday = {};
+		let undated = 0;
+		tasks.forEach((t) => {
+			if (!t.due_date) { undated++; return; }
+			(byday[t.due_date] = byday[t.due_date] || []).push(t);
+		});
+		const URG = { Critical: "#B0443C", High: "#A96F1A", Medium: "#0E5A4A", Low: "#6B7772" };
+		const today = frappe.datetime.get_today();
+		let cells = "";
+		for (let i = 0; i < first; i++) cells += `<div class="duty-cal-cell duty-cal-pad"></div>`;
+		for (let d = 1; d <= dim; d++) {
+			const iso = `${y}-${String(mo + 1).padStart(2, "0")}-${String(d).padStart(2, "0")}`;
+			const items = (byday[iso] || [])
+				.map(
+					(t) => `<div class="duty-cal-task ${t.column === "Completed" ? "done" : ""}" draggable="true" data-name="${t.name}" style="border-left:3px solid ${URG[t.urgency] || "#6B7772"}" title="${frappe.utils.escape_html(t.title)}${t.assignee ? " · " + frappe.utils.escape_html((this.name_map[t.assignee] || t.assignee).split(" ")[0]) : ""}">${frappe.utils.escape_html(t.title)}</div>`
+				)
+				.join("");
+			cells += `<div class="duty-cal-cell ${iso === today ? "today" : ""}" data-day="${iso}"><span class="d"><a class="duty-cal-add" title="${__("Add a task on this day")}">＋</a>${d}</span>${items}</div>`;
+		}
+		$wrap.append(`
+			<div class="duty-cal-head">
+				<a class="duty-cal-nav" data-n="-1">‹</a>
+				<b>${monthName}</b>
+				<a class="duty-cal-nav" data-n="1">›</a>
+				<a class="duty-cal-today">${__("Today")}</a>
+				${undated ? `<span class="text-muted" style="margin-left:auto;font-size:12px">${undated} ${__("task(s) without a date — visible on the board")}</span>` : ""}
+			</div>
+			<div class="duty-cal-grid">
+				${["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"].map((w) => `<div class="duty-cal-dow">${__(w)}</div>`).join("")}
+				${cells}
+			</div>`);
+		$wrap.find(".duty-cal-nav").on("click", (e) => {
+			const b = new Date(y, mo + parseInt($(e.currentTarget).data("n"), 10), 1);
+			this._cal_base = b.toISOString();
+			this.render_kanban(project, data);
+		});
+		$wrap.find(".duty-cal-today").on("click", () => {
+			this._cal_base = null;
+			this.render_kanban(project, data);
+		});
+		$wrap.find(".duty-cal-task").each((_, el) => {
+			el.addEventListener("dragstart", (e) => e.dataTransfer.setData("text", $(el).data("name")));
+			$(el).on("click", () =>
+				frappe.call({
+					method: "duty_board.projects.get_card",
+					args: { name: $(el).data("name") },
+					callback: (r) => r.message && this.task_dialog(project, r.message),
+				})
+			);
+		});
+		$wrap.find(".duty-cal-cell:not(.duty-cal-pad)").each((_, el) => {
+			$(el).on("click", (e) => {
+				if ($(e.target).closest(".duty-cal-task").length) return;
+				const day = $(el).data("day");
+				frappe.prompt(
+					[
+						{ fieldname: "title", fieldtype: "Data", label: __("Task"), reqd: 1 },
+						{ fieldname: "assignee", fieldtype: "Autocomplete", label: __("Assignee"), options: this.staff_options() },
+						{ fieldname: "urgency", fieldtype: "Select", label: __("Urgency"), options: ["Low", "Medium", "High", "Critical"], default: "Medium" },
+					],
+					(v) =>
+						frappe.call({
+							method: "duty_board.projects.create_task",
+							args: { project: project, title: v.title, column: "To Do", assignee: v.assignee || null, due_date: day, urgency: v.urgency },
+							callback: (r) => r.message && this.render_kanban(project, r.message),
+						}),
+					__("New task · {0}", [frappe.datetime.str_to_user(day)]),
+					__("Add")
+				);
+			});
+			el.addEventListener("dragover", (e) => { e.preventDefault(); el.classList.add("over"); });
+			el.addEventListener("dragleave", () => el.classList.remove("over"));
+			el.addEventListener("drop", (e) => {
+				e.preventDefault();
+				el.classList.remove("over");
+				const name = e.dataTransfer.getData("text");
+				if (!name) return;
+				frappe.call({
+					method: "duty_board.projects.reschedule_task",
+					args: { name: name, due_date: $(el).data("day") },
+					callback: (r) => r.message && this.render_kanban(project, r.message),
+				});
+			});
 		});
 	}
 
@@ -3020,6 +3853,7 @@ class DutyBoard {
 						${(t.working || []).length ? `<span class="duty-kb-working">⏱ ${t.working.map((u) => `<b style="color:${this.user_color(u)}">${frappe.utils.escape_html((this.name_map[u] || u).split(" ")[0])}</b>`).join(", ")}</span>` : ""}
 						${t.stale_days >= 7 && t.column !== "Completed" ? `<span class="duty-stale ${t.stale_days >= 14 ? "duty-stale-red" : ""}">🕸 ${t.stale_days}d</span>` : ""}
 						${t.notes ? `<span>💬 ${t.notes}</span>` : ""}
+						${t.subs_total ? `<span style="font-weight:700;color:${t.subs_done === t.subs_total ? "#15803d" : "#6B7772"}">☑ ${t.subs_done}/${t.subs_total}</span>` : ""}
 					</span>
 				</div>
 			</div>`;
@@ -3032,13 +3866,59 @@ class DutyBoard {
 		this._kb_color = this.proj_color(project);
 		const $bar = $(`
 			<div class="duty-kb-bar">
+				<a class="duty-pj-back">‹ ${__("Projects")}</a>
 				<span>
 					<b style="color:${this._kb_color}">${frappe.utils.escape_html(proj ? proj.project_name : project)}</b>
 					${proj && proj.customer ? `<span class="duty-proj-cust-inline">· ${frappe.utils.escape_html(proj.customer)}</span>` : ""}
 				</span>
+				<span class="duty-pj-views">
+					<a class="duty-pj-v ${(this._pj_view || "board") === "board" ? "on" : ""}" data-v="board">▦ ${__("Board")}</a>
+					<a class="duty-pj-v ${this._pj_view === "cal" ? "on" : ""}" data-v="cal">📅 ${__("Calendar")}</a>
+					<a class="duty-kb-dense" title="${__("Toggle density")}">${(localStorage.getItem("duty_kb_density") || "comfortable") === "compact" ? "▤ " + __("Compact") : "▢ " + __("Comfortable")}</a>
+				</span>
+				<a class="duty-proj-cons">👷 ${__("Consultants")}${(data.consultants || []).length ? ` <b>${data.consultants.length}</b>` : ""}</a>
 				<a class="duty-proj-archive">${__("Archive project")}</a>
 			</div>
 		`).appendTo($wrap);
+		$bar.find(".duty-pj-back").on("click", () => this.$projects.removeClass("pj-detail"));
+		$bar.find(".duty-pj-v").on("click", (e) => {
+			this._pj_view = $(e.currentTarget).data("v");
+			this.render_kanban(project, data);
+		});
+		$bar.find(".duty-proj-cons").on("click", () => {
+			frappe.call({
+				method: "duty_board.projects.list_consultants",
+				callback: (r) => {
+					const all = r.message || [];
+					if (!all.length) {
+						frappe.msgprint(__("No consultants exist yet — invite one from a client room's Members panel first."));
+						return;
+					}
+					const pd = new frappe.ui.Dialog({
+						title: __("Project consultants"),
+						fields: [{
+							fieldname: "users", fieldtype: "MultiSelectList", label: __("Granted consultants"),
+							get_data: () => all.map((c) => ({ value: c.user, description: c.full_name })),
+						}],
+						primary_action_label: __("Save"),
+						primary_action: (v) => {
+							pd.hide();
+							frappe.call({
+								method: "duty_board.projects.set_project_consultants",
+								args: { project: project, users: JSON.stringify(v.users || []) },
+								callback: () => {
+									frappe.show_alert({ message: __("Consultant access saved."), indicator: "green" });
+									this.load_kanban(project);
+								},
+							});
+						},
+					});
+					pd.show();
+					(data.consultants || []).forEach((u) => pd.fields_dict.users.set_value ? null : null);
+					try { pd.fields_dict.users.set_value(data.consultants || []); } catch (e) { /* older control */ }
+				},
+			});
+		});
 		$bar.find(".duty-proj-archive").on("click", () =>
 			frappe.confirm(__("Archive this project? Its board disappears from the tabs (nothing is deleted)."), () =>
 				frappe.call({
@@ -3051,9 +3931,24 @@ class DutyBoard {
 				})
 			)
 		);
-		const $board = $(`<div class="duty-kanban"></div>`).appendTo($wrap);
+		if ((this._pj_view || "board") === "cal") {
+			this.render_calendar(project, data, $wrap);
+			return;
+		}
+		const dense = (localStorage.getItem("duty_kb_density") || "comfortable") === "compact";
+		$bar.find(".duty-kb-dense").on("click", () => {
+			localStorage.setItem("duty_kb_density", dense ? "comfortable" : "compact");
+			this.render_kanban(project, data);
+		});
+		const $board = $(`<div class="duty-kanban ${dense ? "duty-kb-compact" : ""}"></div>`).appendTo($wrap);
+		this._kb_expand = this._kb_expand || {};
 		(data.columns || []).forEach((col) => {
 			const cards = (data.tasks && data.tasks[col]) || [];
+			if (!cards.length && col !== "To Do" && !this._kb_expand[col]) {
+				const $slim = $(`<div class="duty-kb-col duty-kb-colslim" data-col="${col}" title="${__("Show {0}", [__(col)])}"><span>${__(col)} · 0</span></div>`).appendTo($board);
+				$slim.on("click", () => { this._kb_expand[col] = 1; this.render_kanban(project, data); });
+				return;
+			}
 			const $col = $(`
 				<div class="duty-kb-col" data-col="${col}">
 					<div class="duty-kb-col-head">${__(col)} <span class="duty-kb-count">${cards.length}</span></div>
@@ -3085,6 +3980,22 @@ class DutyBoard {
 				e.preventDefault();
 				const name = e.originalEvent.dataTransfer.getData("text");
 				if (!name) return;
+				if (this._is_consultant && col === "Completed") {
+					frappe.prompt(
+						{ fieldname: "hours", fieldtype: "Float", label: __("Hours spent on this task"), reqd: 1 },
+						(v) => frappe.call({
+							method: "duty_board.projects.move_task",
+							args: { name: name, column: col, hours: v.hours },
+							callback: (r) => {
+								if (r.message) this.render_kanban(project, r.message);
+								this.refresh_projects_counts();
+							},
+						}),
+						__("Log your time"),
+						__("Complete task")
+					);
+					return;
+				}
 				frappe.call({
 					method: "duty_board.projects.move_task",
 					args: { name: name, column: col },
@@ -3136,85 +4047,112 @@ class DutyBoard {
 
 	task_dialog(project, t) {
 		if (!t) return;
-		const d = new frappe.ui.Dialog({
-			title: frappe.utils.escape_html(t.title.slice(0, 50)),
-			fields: [
-				{ fieldname: "title", fieldtype: "Data", label: __("Task"), default: t.title, reqd: 1 },
-				{
-					fieldname: "assignee",
-					fieldtype: "Autocomplete",
-					label: __("Assign to"),
-					options: this.staff_options(),
-					default: t.assignee || "",
-					description: __("Assigning puts this on their daily plan — done there is done here."),
+		const esc = frappe.utils.escape_html;
+		if (!this._$tdrawer) {
+			this._$tdrawer = $(`
+				<div class="duty-idrawer duty-tdrawer" style="display:none">
+					<div class="duty-id-head"><b class="duty-id-title"></b><a class="duty-td-x">✕</a></div>
+					<div class="duty-id-body"><div class="duty-td-form"></div><div class="duty-td-extras"></div></div>
+					<div class="duty-ld-bar duty-td-bar"></div>
+				</div>`).appendTo(document.body);
+		}
+		const $dw = this._$tdrawer;
+		$dw.find(".duty-id-title").text(t.title.slice(0, 50));
+		const d = {
+			fields_dict: { extras: { wrapper: $dw.find(".duty-td-extras")[0] } },
+			show: () => {
+				$dw.show();
+				$("body").addClass("duty-idrawer-open");
+			},
+			hide: () => {
+				$dw.hide();
+				$("body").removeClass("duty-idrawer-open");
+			},
+		};
+		$dw.find(".duty-td-x").off("click").on("click", () => d.hide());
+		$dw.find(".duty-td-form").html(`
+			<div class="duty-ld-form">
+				<label class="duty-ld-f duty-ld-wide"><span>${__("Task")}</span><input type="text" data-f="title" value="${esc(t.title)}"></label>
+				<label class="duty-ld-f"><span>${__("Assign to")}</span><select data-f="assignee"><option value=""></option>${this.staff_options().filter((o) => o.value).map((o) => `<option value="${o.value}" ${o.value === (t.assignee || "") ? "selected" : ""}>${esc(o.label)}</option>`).join("")}</select></label>
+				<label class="duty-ld-f"><span>${__("Due Date")}</span><input type="date" data-f="due_date" value="${t.due_date || ""}"></label>
+				<label class="duty-ld-f"><span>${__("Urgency")}</span><select data-f="urgency">${["Low", "Medium", "High", "Critical"].map((s) => `<option ${(t.urgency || "Medium") === s ? "selected" : ""}>${s}</option>`).join("")}</select></label>
+				<label class="duty-ld-f"><span>${__("Column")}</span><select data-f="column">${["To Do", "In Progress", "Completed", "Suspended"].map((s) => `<option ${t.column === s ? "selected" : ""}>${s}</option>`).join("")}</select></label>
+				<label class="duty-td-chk"><input type="checkbox" data-f="client_visible" ${t.client_visible ? "checked" : ""}> ${__("Visible to client (shows on their portal)")}</label>
+				<label class="duty-td-chk"><input type="checkbox" data-f="awaiting_client" ${t.awaiting_client ? "checked" : ""}> ⏳ ${__("Awaiting client action (nudges them on the portal)")}</label>
+				<label class="duty-ld-f duty-ld-wide"><span>${__("Description")}</span><textarea data-f="description" rows="3">${esc(t.description || "")}</textarea></label>
+			</div>`);
+		$dw.find(".duty-td-bar").html(`
+			<button class="btn btn-sm btn-primary duty-td-save">${__("Save")}</button>
+			<button class="btn btn-sm btn-default duty-td-del">${__("Delete")}</button>`);
+		$dw.find(".duty-td-save").off("click").on("click", () => {
+			const v = {};
+			$dw.find(".duty-td-form [data-f]").each((_, el) => {
+				v[$(el).data("f")] = el.type === "checkbox" ? (el.checked ? 1 : 0) : $(el).val();
+			});
+			if (this._is_consultant && v.column === "Completed" && t.column !== "Completed" && !v.hours) {
+				frappe.prompt(
+					{ fieldname: "hours", fieldtype: "Float", label: __("Hours spent on this task"), reqd: 1 },
+					(pv) => {
+						v.hours = pv.hours;
+						$dw.find(".duty-td-save").trigger("saveWith", [v]);
+					},
+					__("Log your time"),
+					__("Save")
+				);
+				return;
+			}
+			d.hide();
+			frappe.call({
+				method: "duty_board.projects.update_task",
+				args: {
+					name: t.name,
+					title: v.title,
+					assignee: v.assignee || null,
+					due_date: v.due_date || null,
+					urgency: v.urgency,
+					column: v.column,
+					description: v.description || null,
+					client_visible: v.client_visible ? 1 : 0,
+					awaiting_client: v.awaiting_client ? 1 : 0,
+					hours: v.hours || null,
 				},
-				{ fieldname: "due_date", fieldtype: "Date", label: __("Due Date"), default: t.due_date || "" },
-				{
-					fieldname: "urgency",
-					fieldtype: "Select",
-					label: __("Urgency"),
-					options: "Low\nMedium\nHigh\nCritical",
-					default: t.urgency || "Medium",
+				callback: (r) => {
+					if (r.message) this.render_kanban(project, r.message);
+					this.refresh_projects_counts();
+					if (this._open_room) this.load_client_room(this._open_room);
 				},
-				{
-					fieldname: "column",
-					fieldtype: "Select",
-					label: __("Column"),
-					options: "To Do\nIn Progress\nCompleted\nSuspended",
-					default: t.column,
+			});
+		});
+		$dw.off("saveWith").on("saveWith", ".duty-td-save", (e, v2) => {
+			d.hide();
+			frappe.call({
+				method: "duty_board.projects.update_task",
+				args: {
+					name: t.name, title: v2.title, assignee: v2.assignee || null,
+					due_date: v2.due_date || null, urgency: v2.urgency, column: v2.column,
+					description: v2.description || null,
+					client_visible: v2.client_visible ? 1 : 0,
+					awaiting_client: v2.awaiting_client ? 1 : 0, hours: v2.hours,
 				},
-				{
-					fieldname: "client_visible",
-					fieldtype: "Check",
-					label: __("Visible to client (shows on their portal)"),
-					default: t.client_visible ? 1 : 0,
+				callback: (r) => {
+					if (r.message) this.render_kanban(project, r.message);
+					this.refresh_projects_counts();
+					if (this._open_room) this.load_client_room(this._open_room);
 				},
-				{
-					fieldname: "awaiting_client",
-					fieldtype: "Check",
-					label: __("⏳ Awaiting client action (nudges them on the portal)"),
-					default: t.awaiting_client ? 1 : 0,
-				},
-				{ fieldname: "description", fieldtype: "Small Text", label: __("Description"), default: t.description || "" },
-				{ fieldname: "extras", fieldtype: "HTML" },
-			],
-			primary_action_label: __("Save"),
-			primary_action: (v) => {
+			});
+		});
+		$dw.find(".duty-td-del").off("click").on("click", () => {
+			frappe.confirm(__("Delete this task?"), () => {
 				d.hide();
 				frappe.call({
-					method: "duty_board.projects.update_task",
-					args: {
-						name: t.name,
-						title: v.title,
-						assignee: v.assignee || null,
-						due_date: v.due_date || null,
-						urgency: v.urgency,
-						column: v.column,
-						description: v.description || null,
-						client_visible: v.client_visible ? 1 : 0,
-						awaiting_client: v.awaiting_client ? 1 : 0,
-					},
+					method: "duty_board.projects.delete_task",
+					args: { name: t.name },
 					callback: (r) => {
 						if (r.message) this.render_kanban(project, r.message);
 						this.refresh_projects_counts();
-						if (this._open_room) this.load_client_room(this._open_room);
 					},
 				});
-			},
-			secondary_action_label: __("Delete"),
-			secondary_action: () => {
-				frappe.confirm(__("Delete this task?"), () => {
-					d.hide();
-					frappe.call({
-						method: "duty_board.projects.delete_task",
-						args: { name: t.name },
-						callback: (r) => {
-							if (r.message) this.render_kanban(project, r.message);
-							this.refresh_projects_counts();
-						},
-					});
-				});
-			},
+			});
 		});
 		const me_working = (t.working || []).includes(frappe.session.user);
 		const $x = $(d.fields_dict.extras.wrapper).html(`
@@ -3222,6 +4160,22 @@ class DutyBoard {
 			<div class="duty-lead-close" style="justify-content:flex-start; margin-top:8px">
 				${t.column !== "Completed" && !me_working ? `<button type="button" class="btn btn-sm btn-default duty-card-start">▶ ${__("Start work")}</button>` : ""}
 				${me_working ? `<button type="button" class="btn btn-sm btn-default duty-card-stop">⏸ ${__("Stop work")}</button>` : ""}
+			</div>
+			<div class="duty-lead-section">☑ ${__("Subtasks")}${t.subs_total ? ` <span class="text-muted" style="font-weight:400">${t.subs_done}/${t.subs_total}</span>` : ""}</div>
+			<div class="duty-subs">
+				${(t.subtasks || []).map((s) => `
+				<div class="duty-sub" style="display:flex;gap:9px;align-items:center;padding:5px 0;border-bottom:1px solid #F0EEE8">
+					<input type="checkbox" data-sub="${s.row}" ${s.status === "Done" ? "checked" : ""}>
+					<span style="flex:1;min-width:0;${s.status === "Done" ? "text-decoration:line-through;color:#96A09B" : ""}">${frappe.utils.escape_html(s.title)}${s.note ? ` <span class="text-muted" title="${frappe.utils.escape_html(s.note)}">🗒</span>` : ""}</span>
+					${s.assignee_first ? `<span class="text-muted" style="font-size:11.5px;white-space:nowrap">${frappe.utils.escape_html(s.assignee_first)}</span>` : ""}
+					${s.due_date ? `<span class="text-muted" style="font-size:11.5px;white-space:nowrap">${s.due_date.slice(5)}</span>` : ""}
+					<a data-subedit="${s.row}" style="cursor:pointer;color:#96A09B" title="${__("Edit")}">✎</a>
+					<a data-subdel="${s.row}" style="cursor:pointer;color:#B0443C" title="${__("Remove")}">×</a>
+				</div>`).join("")}
+				<div style="display:flex;gap:7px;margin:8px 0 2px">
+					<input type="text" class="form-control input-sm duty-sub-new" placeholder="${__("Add a subtask…")}">
+					<button type="button" class="btn btn-sm btn-default duty-sub-add">＋</button>
+				</div>
 			</div>
 			<div class="duty-lead-section">💬 ${__("Chat")}</div>
 			<div class="duty-lead-notes">
@@ -3252,6 +4206,45 @@ class DutyBoard {
 			this.load_kanban(project);
 			if (this._open_room) this.load_client_room(this._open_room);
 		};
+		const subCall = (method, args) =>
+			frappe.call({ method: "duty_board.projects." + method, args: args, callback: (r) => reopen(r) });
+		$x.find("[data-sub]").on("change", (e) =>
+			subCall("subtask_toggle", { task: t.name, row: $(e.currentTarget).data("sub") })
+		);
+		$x.find("[data-subdel]").on("click", (e) =>
+			frappe.confirm(__("Remove this subtask?"), () =>
+				subCall("subtask_delete", { task: t.name, row: $(e.currentTarget).data("subdel") })
+			)
+		);
+		$x.find("[data-subedit]").on("click", (e) => {
+			const row = $(e.currentTarget).data("subedit");
+			const s = (t.subtasks || []).find((z) => z.row === row) || {};
+			frappe.prompt(
+				[
+					{ fieldname: "title", fieldtype: "Data", label: __("Subtask"), default: s.title, reqd: 1 },
+					{ fieldname: "assignee", fieldtype: "Autocomplete", label: __("Assignee"), options: this.staff_options(), default: s.assignee || "" },
+					{ fieldname: "due_date", fieldtype: "Date", label: __("Due (on or before the card due date)"), default: s.due_date || "" },
+					{ fieldname: "note", fieldtype: "Small Text", label: __("Note"), default: s.note || "" },
+				],
+				(v) => subCall("subtask_update", { task: t.name, row: row, title: v.title, assignee: v.assignee || "", due_date: v.due_date || "", note: v.note || "" }),
+				__("Edit subtask"), __("Save")
+			);
+		});
+		const addSub = () => {
+			const title = ($x.find(".duty-sub-new").val() || "").trim();
+			if (!title) return;
+			frappe.prompt(
+				[
+					{ fieldname: "assignee", fieldtype: "Autocomplete", label: __("Assignee"), options: this.staff_options() },
+					{ fieldname: "due_date", fieldtype: "Date", label: __("Due (on or before the card due date)") },
+					{ fieldname: "note", fieldtype: "Small Text", label: __("Note") },
+				],
+				(v) => subCall("subtask_add", { task: t.name, title: title, assignee: v.assignee || null, due_date: v.due_date || null, note: v.note || null }),
+				__("New subtask"), __("Add")
+			);
+		};
+		$x.find(".duty-sub-add").on("click", addSub);
+		$x.find(".duty-sub-new").on("keydown", (e) => { if (e.key === "Enter") { e.preventDefault(); addSub(); } });
 		$x.find(".duty-card-start").on("click", () =>
 			frappe.call({
 				method: "duty_board.projects.start_card_work",
@@ -3367,13 +4360,15 @@ class DutyBoard {
 			return;
 		}
 		const cust_unread = {};
+		const cust_unread_sys = {};
 		const cust_joins = {};
 		let total_unread = 0;
 		let total_joins = 0;
 		this._rooms.forEach((r) => {
-			cust_unread[r.customer] = (cust_unread[r.customer] || 0) + (r.unread || 0);
+			cust_unread[r.customer] = (cust_unread[r.customer] || 0) + (r.unread_client || 0);
+			cust_unread_sys[r.customer] = (cust_unread_sys[r.customer] || 0) + (r.unread_other || 0);
 			cust_joins[r.customer] = (cust_joins[r.customer] || 0) + (r.join_requests || 0);
-			total_unread += r.unread ? 1 : 0;
+			total_unread += r.unread_client ? 1 : 0;
 			total_joins += r.join_requests || 0;
 		});
 		$(".duty-cr-barjoins").html(
@@ -3381,25 +4376,55 @@ class DutyBoard {
 		);
 		const cr_attn2 = total_unread + total_joins;
 		$(".duty-tab-clients").text(cr_attn2).toggle(cr_attn2 > 0);
+		const _q = (this._cr_q || "").toLowerCase();
+		const _match = (r) => !_q || (r.customer || "").toLowerCase().includes(_q) || (r.unit || "").toLowerCase().includes(_q);
+		const $sr = $(`<div class="duty-cr-search"><input type="text" class="form-control input-sm" placeholder="${__("Search clients & rooms…")}" value="${frappe.utils.escape_html(this._cr_q || "")}"></div>`).appendTo($list);
+		$sr.find("input").on("input", frappe.utils.debounce((e) => {
+			this._cr_q = e.target.value;
+			this.render_room_list();
+		}, 250)).on("keydown", (e) => { if (e.key === "Escape") { e.target.value = ""; this._cr_q = ""; this.refresh_clients(); } });
+		const room_row = (r) => `
+			<a class="duty-cr-secrow" data-room="${r.name}">
+				<span class="duty-cr-secmain"><b>${frappe.utils.escape_html(r.customer)}</b><span class="duty-cr-secunit">${frappe.utils.escape_html(r.unit || "General")}</span>
+				${r.unread_client ? `<span class="duty-cr-unread">${r.unread_client}</span>` : ""}${r.unread_other ? `<span class="duty-cr-unread duty-cr-unread-sys">${r.unread_other}</span>` : ""}</span>
+				${r.last ? `<span class="duty-cr-secprev">${frappe.utils.escape_html(r.last)}</span>` : ""}
+				${r.last_when ? `<span class="duty-cr-sectime">${this.fmt_stamp(r.last_when)}</span>` : ""}
+			</a>`;
+		const unread_rooms = (this._rooms || []).filter((r) => _match(r) && (r.unread_client || r.unread_other));
+		const recent_rooms = (this._rooms || [])
+			.filter((r) => _match(r) && r.last_when && !(r.unread_client || r.unread_other))
+			.sort((a, b) => (b.last_when || "").localeCompare(a.last_when || ""))
+			.slice(0, 6);
+		if (unread_rooms.length) {
+			$list.append(`<div class="duty-cr-sech">${__("Unread")}</div>`);
+			const $u = $(`<div></div>`).appendTo($list);
+			$u.html(unread_rooms.map(room_row).join(""));
+		}
+		if (recent_rooms.length && !_q) {
+			$list.append(`<div class="duty-cr-sech">${__("Recent")}</div>`);
+			const $rc = $(`<div></div>`).appendTo($list);
+			$rc.html(recent_rooms.map(room_row).join(""));
+		}
+		$list.find(".duty-cr-secrow").on("click", (e) => this.open_client_room($(e.currentTarget).data("room")));
+		$list.append(`<div class="duty-cr-sech">${__("All clients")}</div>`);
 		let prev_cust = null;
-		this._rooms.forEach((r) => {
-			const folded = localStorage.getItem("duty_cr_fold_" + r.customer) === "1";
+		this._rooms.filter(_match).forEach((r) => {
+			const folded = !(this._cr_open || {})[r.customer];
 			if (r.customer !== prev_cust) {
 				prev_cust = r.customer;
-				$(`<div class="duty-cr-cust"><span class="duty-cr-caret">${folded ? "▸" : "▾"}</span> ${frappe.utils.escape_html(r.customer)}${folded && cust_unread[r.customer] ? ` <span class="duty-cr-unread">${cust_unread[r.customer]}</span>` : ""}${folded && cust_joins[r.customer] ? ` <span class="duty-cr-joinpill">🙋 ${cust_joins[r.customer]}</span>` : ""}</div>`)
+				$(`<div class="duty-cr-cust"><span class="duty-cr-caret">${folded ? "▸" : "▾"}</span> ${frappe.utils.escape_html(r.customer)}${folded && cust_unread[r.customer] ? ` <span class="duty-cr-unread" title="${__("new client message(s)")}">${cust_unread[r.customer]}</span>` : ""}${folded && cust_unread_sys[r.customer] ? ` <span class="duty-cr-unread duty-cr-unread-sys" title="${__("system & colleague message(s)")}">${cust_unread_sys[r.customer]}</span>` : ""}${folded && cust_joins[r.customer] ? ` <span class="duty-cr-joinpill">🙋 ${cust_joins[r.customer]}</span>` : ""}</div>`)
 					.appendTo($list)
 					.on("click", () => {
-						localStorage.setItem(
-							"duty_cr_fold_" + r.customer,
-							folded ? "0" : "1"
-						);
+						this._cr_open = this._cr_open || {};
+						if (folded) this._cr_open[r.customer] = 1;
+						else delete this._cr_open[r.customer];
 						this.render_room_list();
 					});
 			}
 			if (folded) return;
 			$(`
 				<a class="duty-cr-item ${r.name === this._open_room ? "active" : ""} ${r.status !== "Active" ? "duty-cr-frozen" : ""}">
-					<b style="color:${this.proj_color(r.name)}">${r.health ? `<span class="duty-health duty-health-${r.health.state}" title="${frappe.utils.escape_html((r.health.reasons || []).join(" · ") || __("healthy"))}">●</span> ` : ""}${frappe.utils.escape_html(r.unit || "General")}${r.renewal ? (r.renewal.frozen ? ` <span class="duty-renew duty-renew-frozen">⏸</span>` : r.renewal.days_left < 0 ? ` <span class="duty-renew duty-renew-over">🔴 ${-r.renewal.days_left}d</span>` : r.renewal.days_left <= 30 ? ` <span class="duty-renew duty-renew-warn">⏳ ${r.renewal.days_left}d</span>` : "") : ""}${r.unread ? ` <span class="duty-cr-unread">${r.unread}</span>` : ""}${r.join_requests ? ` <span class="duty-cr-joinpill" title="${__("Join requests awaiting approval")}">🙋 ${r.join_requests}</span>` : ""}${r.renewal ? (r.renewal.frozen ? ` <span class="duty-renew duty-renew-frozen">⏸</span>` : r.renewal.days_left < 0 ? ` <span class="duty-renew duty-renew-over" title="${__("renewal overdue")}">🔴 ${-r.renewal.days_left}d</span>` : r.renewal.days_left <= 30 ? ` <span class="duty-renew duty-renew-warn" title="${__("renews soon")}">⏳ ${r.renewal.days_left}d</span>` : "") : ""}</b>
+					<b style="color:${this.proj_color(r.name)}">${r.health ? `<span class="duty-health duty-health-${r.health.state}" title="${frappe.utils.escape_html((r.health.reasons || []).join(" · ") || __("healthy"))}">●</span> ` : ""}${frappe.utils.escape_html(r.unit || "General")}${r.renewal ? (r.renewal.frozen ? ` <span class="duty-renew duty-renew-frozen">⏸</span>` : r.renewal.days_left < 0 ? ` <span class="duty-renew duty-renew-over">🔴 ${-r.renewal.days_left}d</span>` : r.renewal.days_left <= 30 ? ` <span class="duty-renew duty-renew-warn">⏳ ${r.renewal.days_left}d</span>` : "") : ""}${r.unread_client ? ` <span class="duty-cr-unread" title="${__("new client message(s)")}">${r.unread_client}</span>` : ""}${r.unread_other ? ` <span class="duty-cr-unread duty-cr-unread-sys" title="${__("system & colleague message(s)")}">${r.unread_other}</span>` : ""}${r.join_requests ? ` <span class="duty-cr-joinpill" title="${__("Join requests awaiting approval")}">🙋 ${r.join_requests}</span>` : ""}${r.renewal ? (r.renewal.frozen ? ` <span class="duty-renew duty-renew-frozen">⏸</span>` : r.renewal.days_left < 0 ? ` <span class="duty-renew duty-renew-over" title="${__("renewal overdue")}">🔴 ${-r.renewal.days_left}d</span>` : r.renewal.days_left <= 30 ? ` <span class="duty-renew duty-renew-warn" title="${__("renews soon")}">⏳ ${r.renewal.days_left}d</span>` : "") : ""}</b>
 					${r.status !== "Active" ? `<span class="duty-cr-status">${__(r.status)}</span>` : ""}
 					<span class="duty-cr-last">${frappe.utils.escape_html(r.last || "")}</span>
 					<span class="duty-cr-members">👥 ${r.members}</span>
@@ -3456,11 +4481,11 @@ class DutyBoard {
 
 	cr_msg(m) {
 		return `
-			<div class="duty-cr-msg ${m.internal ? "duty-cr-internal" : m.is_staff ? "duty-cr-staff" : "duty-cr-client"}" data-name="${m.name}">
+			<div class="duty-cr-msg ${m.internal ? "duty-cr-internal" : m.mine ? "duty-cr-mine" : m.is_staff ? "duty-cr-staff" : "duty-cr-client"}" data-name="${m.name}">
 				<a class="duty-cr-reply" title="${__("Reply")}">↩</a>
 				<span class="duty-msg-who" style="color:${this.user_color(m.owner)}">${m.internal ? "🔒 " : ""}${frappe.utils.escape_html((m.who || m.owner).split(" ")[0])}${m.is_staff ? "" : ` · ${__("client")}`}</span>
 				${m.ref ? `<a class="duty-cr-quote" data-target="${m.ref}"><b>${frappe.utils.escape_html(m.ref_who || "")}</b>: ${frappe.utils.escape_html(m.ref_text || "")}</a>` : ""}
-				<span class="duty-msg-text">${frappe.utils.escape_html(m.message)}</span>
+				<span class="duty-msg-text">${this.linkify(frappe.utils.escape_html(m.message))}</span>
 				${m.attachment_url ? `<span class="duty-cr-att">${m.is_image ? `<a href="/api/method/duty_board.client_room.room_file?msg=${m.name}" target="_blank"><img src="/api/method/duty_board.client_room.room_file?msg=${m.name}"></a>` : m.is_audio ? `<audio controls preload="none" src="/api/method/duty_board.client_room.room_file?msg=${m.name}" style="display:block;margin-top:6px;max-width:240px"></audio>` : `<a class="duty-issue-filelink" href="/api/method/duty_board.client_room.room_file?msg=${m.name}" target="_blank">📎 ${frappe.utils.escape_html(m.attachment_name || "file")}</a>`}</span>` : ""}
 				<span class="duty-msg-time">${frappe.datetime.str_to_user(m.creation)}</span>
 				${m.is_staff ? "" : `<a class="duty-cr-mktask" data-mid="${m.name}" data-text="${frappe.utils.escape_html(m.message.slice(0, 120))}" title="${__("Make task from this")}">➕</a><a class="duty-cr-mkchreq" data-mid="${m.name}" data-text="${frappe.utils.escape_html(m.message.slice(0, 120))}" title="${__("Draft change request from this")}">💱</a>`}
@@ -3475,6 +4500,7 @@ class DutyBoard {
 		(x.tasks || []).forEach((t) => (counts[t.status] = (counts[t.status] || 0) + 1));
 		$room.html(`
 			<div class="duty-cr-ribbon">🤝 ${__("{0} can read this room — whispers 🔒 excepted", [frappe.utils.escape_html(x.customer)])}</div>
+			<div class="duty-cr-mtabs"><a data-rt="chat" class="on">💬 ${__("Chat")}</a><a data-rt="tasks">📋 ${__("Tasks")}</a></div>
 			<div class="duty-cr-head">
 				<a class="duty-cr-back">‹ ${__("Rooms")}</a>
 				<b>${frappe.utils.escape_html(x.customer)}</b>
@@ -3485,13 +4511,17 @@ class DutyBoard {
 					return seen ? `<span class="duty-cr-lastseen">👀 ${__("client seen")} ${frappe.datetime.comment_when(seen)}</span>` : "";
 				})()}
 				<a class="duty-cr-academy" title="${__("Training Academy")}">🎓</a>
+				<a class="duty-cr-deps" title="${__("Client dependencies — what we're waiting on")}">📋</a>
+				<a class="duty-cr-scope" title="${__("Room scope & support plan")}">⚖</a>
+				<a class="duty-cr-uat" title="${__("Acceptance testing (UAT)")}">🧪</a>
+				<a class="duty-cr-tl" title="${__("Delivery accountability timeline")}">📜</a>
 				<a class="duty-cr-metrics" title="${__("Live metrics for this customer")}">📈</a>
 				<a class="duty-cr-report" title="${__("Generate last month's service report")}">📊</a>
 				<a class="duty-cr-rename" title="${__("Rename room")}">✏</a>
 				<a class="duty-cr-delete" title="${__("Delete room (System Manager)")}">🗑</a>
 				<span class="duty-cr-tools">
 					<a class="duty-cr-shelfbtn">📚 ${__("Shelf")}</a>
-					<a class="duty-cr-membersbtn">👥 ${__("Members")}${(x.requests || []).length ? ` <b class="duty-cr-reqbadge">${x.requests.length}</b>` : ""}</a>
+					<a class="duty-cr-membersbtn">👥 ${__("Members")}${(x.requests || []).length ? ` <b class="duty-cr-reqbadge">${x.requests.length}</b>` : ""}</a>${this._is_consultant ? "" : `<a class="duty-cr-accessbtn" title="${__("Which staff see this room")}">🔑</a>`}
 					${frappe.user.has_role("System Manager") ? `<a class="duty-cr-freeze">${x.status === "Active" ? "🧊 " + __("Freeze") : "▶ " + __("Unfreeze")}</a>` : ""}
 				</span>
 			</div>
@@ -3502,10 +4532,13 @@ class DutyBoard {
 			<div class="duty-cr-replychip"></div>
 			<div class="duty-cr-pending"></div>
 			<div class="duty-cr-emojis" style="display:none"></div>
+			<div class="duty-cr-intbanner" style="display:none">🔒 ${__("Internal note — only Xlevel staff can see this")}</div>
 			<div class="duty-cr-compose">
-				<label class="duty-cr-int"><input type="checkbox" class="duty-cr-internal-toggle"> 🔒 ${__("Internal")}</label>
+				<span class="duty-md"><a class="duty-md-c on">${__("Client reply")}</a><a class="duty-md-i">🔒 ${__("Internal")}</a></span>
+				<input type="checkbox" class="duty-cr-internal-toggle" hidden>
 				<label class="duty-cr-attach" title="${__("Attach image / file")}">📎<input type="file" hidden></label>
 				<a class="duty-cr-emojibtn" title="${__("Emoji")}">😊</a>
+				<a class="duty-cr-mic" title="${__("Hold to record a voice note")}">🎙</a>
 				<textarea rows="2" class="form-control duty-cr-input" placeholder="${__("Message {0}... Enter to send", [frappe.utils.escape_html(x.customer)])}"></textarea>
 				<button type="button" class="btn btn-primary btn-sm duty-cr-send">${__("Send")}</button>
 			</div>
@@ -3548,7 +4581,20 @@ class DutyBoard {
 		$msgs.scrollTop($msgs[0].scrollHeight);
 		const $input = $room.find(".duty-cr-input");
 		const $int = $room.find(".duty-cr-internal-toggle");
-		const restyle = () => $room.find(".duty-cr-compose").toggleClass("duty-cr-composing-internal", $int.is(":checked"));
+		const restyle = () => {
+			const on = $int.is(":checked");
+			$room.find(".duty-cr-compose").toggleClass("duty-cr-composing-internal", on);
+			$room.find(".duty-md-c").toggleClass("on", !on);
+			$room.find(".duty-md-i").toggleClass("on", on);
+			$room.find(".duty-cr-intbanner").toggle(on);
+			$room.find(".duty-cr-send").text(on ? __("Post internal note") : __("Send"))
+				.toggleClass("duty-send-internal", on);
+			$input.attr("placeholder", on
+				? __("Internal note — invisible to the client…")
+				: __("Message {0}... Enter to send", [frappe.utils.escape_html(x.customer)]));
+		};
+		$room.find(".duty-md-c").on("click", () => { $int.prop("checked", false); restyle(); $input.focus(); });
+		$room.find(".duty-md-i").on("click", () => { $int.prop("checked", true); restyle(); $input.focus(); });
 		$int.on("change", restyle);
 		this._cr_reply = null;
 		const show_reply = () => {
@@ -3632,10 +4678,17 @@ class DutyBoard {
 			this._cr_pending = f;
 			show_pending();
 		};
+		$room.find(".duty-cr-mtabs a").on("click", (e) => {
+			const rt = $(e.currentTarget).data("rt");
+			$room.find(".duty-cr-mtabs a").removeClass("on");
+			$(e.currentTarget).addClass("on");
+			$room.toggleClass("rt-tasks", rt === "tasks");
+		});
 		$room.find(".duty-cr-attach input").on("change", (e) => {
 			take_file(e.target.files[0]);
 			e.target.value = "";
 		});
+		this.bind_recorder($room.find(".duty-cr-mic"), (file) => take_file(file));
 		$input.on("paste", (e) => {
 			for (const it of (e.originalEvent.clipboardData || {}).items || []) {
 				if (it.kind === "file") {
@@ -3677,6 +4730,28 @@ class DutyBoard {
 			});
 		};
 		$room.find(".duty-cr-send").on("click", send);
+		if (!this._draft_guard) {
+			this._draft_guard = 1;
+			this._drafts = {};
+			this._draft_intent = 0;
+			$(document).on("input.dutydraft", ".duty-cr-input, .duty-chat-input, textarea", (e) => {
+				const k = e.currentTarget.className + (this._room_open || "");
+				this._drafts[k] = $(e.currentTarget).val();
+			});
+			$(document).on("click.dutydraft keydown.dutydraft", (e) => {
+				if (e.type === "click" || e.key === "Enter") this._draft_intent = Date.now();
+			});
+			setInterval(() => {
+				$(".duty-cr-input, .duty-chat-input").each((_, el) => {
+					const k = el.className + (this._room_open || "");
+					const d3 = this._drafts[k];
+					if (!d3 || $(el).val() || document.activeElement === el) return;
+					if (Date.now() - this._draft_intent < 2500) delete this._drafts[k]; // sent or cleared on purpose
+					else $(el).val(d3); // wiped by a re-render — bring it back
+				});
+			}, 800);
+		}
+		this._room_open = x.name;
 		this.attach_mention_picker(
 			$input,
 			() =>
@@ -3721,7 +4796,11 @@ class DutyBoard {
 						callback: (r) => {
 							if (r.message) {
 								this.render_client_room(r.message);
-								this.chreqs_dialog(r.message);
+								if (this._is_consultant && r.message.new_cr) {
+									this.consultant_cr_edit(r.message.new_cr, { title: r.message.new_cr_title });
+								} else {
+									this.chreqs_dialog(r.message);
+								}
 							}
 						},
 					}),
@@ -3753,8 +4832,7 @@ class DutyBoard {
 			this._force_cfilter = true;
 			this.issue_customer_filter = x.customer;
 			this.issues_open = true;
-			localStorage.setItem("duty_issues_side", "1");
-			this.show_face("board");
+			this.show_face("issues");
 			this.refresh(true);
 		});
 		const $us = $room.find(".duty-cr-unsettled");
@@ -3834,7 +4912,7 @@ class DutyBoard {
 						<span class="duty-cr-mstatus ${m.status === "Confirmed" ? "ok" : "wait"}">${m.status === "Confirmed" ? "✅" : "⏳"}</span>
 						<b>${frappe.utils.escape_html(m.topic)}</b>
 						<span>${frappe.datetime.str_to_user(m.meeting_date).slice(0, 5)} ${m.start_time} · ${m.staff.map(frappe.utils.escape_html).join(", ")}${m.requested_first ? ` · 🙋 ${frappe.utils.escape_html(m.requested_first)}` : ""}</span>
-						${m.status === "Pending" ? `<a class="duty-cr-mconfirm" data-id="${m.name}">✔ ${__("Confirm")}</a><a class="duty-cr-mdecline" data-id="${m.name}">✖</a>` : ""}
+						${m.status === "Pending" ? `<a class="duty-cr-mconfirm" data-id="${m.name}">✔ ${__("Confirm")}</a><a class="duty-cr-msuggest" data-id="${m.name}" data-topic="${frappe.utils.escape_html(m.topic)}" title="${__("Suggest another time")}">↷</a><a class="duty-cr-mdecline" data-id="${m.name}">✖</a>` : ""}
 					</div>`
 						)
 						.join("")
@@ -3845,6 +4923,13 @@ class DutyBoard {
 					args: { id: $(e.currentTarget).data("id") },
 					callback: (r) => r.message && this.render_client_room(r.message),
 				})
+			);
+			$mt.find(".duty-cr-msuggest").on("click", (e) =>
+				this.suggest_meeting_dialog(
+					$(e.currentTarget).data("id"),
+					$(e.currentTarget).data("topic"),
+					(r) => r.message && this.render_client_room(r.message)
+				)
 			);
 			$mt.find(".duty-cr-mdecline").on("click", (e) => {
 				const id = $(e.currentTarget).data("id");
@@ -3866,6 +4951,26 @@ class DutyBoard {
 		$room.find(".duty-cr-shelfbtn").on("click", () => this.room_shelf_dialog(x));
 		$room.find(".duty-cr-back").on("click", () => this.$clients.removeClass("cr-room-open"));
 		$room.find(".duty-cr-academy").on("click", () => this.academy_dialog(x));
+		$room.find(".duty-cr-deps").on("click", () => this.deps_dialog(x));
+		$room.find(".duty-cr-uat").on("click", () => this.uat_dialog(x));
+		$room.find(".duty-cr-tl").on("click", () => this.timeline_dialog(x));
+		$room.find(".duty-cr-scope").on("click", () => {
+			frappe.call({ method: "frappe.client.get_value", args: { doctype: "Client Room", filters: { name: x.name }, fieldname: ["scope_note", "support_plan", "project", "is_financial_room"] }, callback: (rv) => {
+				const cur = rv.message || {};
+				frappe.prompt(
+					[
+						{ fieldname: "support_plan", fieldtype: "Data", label: __("Support plan (shown to client, e.g. 'Unlimited support · changes quoted via CR')"), default: cur.support_plan || "" },
+						{ fieldname: "scope_note", fieldtype: "Small Text", label: __("Contract scope — supported modules & boundaries"), default: cur.scope_note || "" },
+						{ fieldname: "project", fieldtype: "Link", options: "Duty Project", label: __("Project board for this room (tasks, milestones, CR delivery)"), default: cur.project || "" },
+						{ fieldname: "is_financial_room", fieldtype: "Check", label: __("📊 Financial Room — statements, announcements & review actions for this customer live here (one per customer)"), default: cur.is_financial_room || 0 },
+					],
+					(v) => frappe.call({ method: "duty_board.commercial.set_room_scope", args: { name: x.name, scope_note: v.scope_note || "", support_plan: v.support_plan || "", is_financial_room: v.is_financial_room ? 1 : 0 }, callback: () =>
+						frappe.call({ method: "duty_board.client_room.room_set_project", args: { name: x.name, project: v.project || null }, callback: () => frappe.show_alert({ message: __("⚖ Scope & project saved"), indicator: "green" }) })
+					}),
+					__("Room scope"), __("Save")
+				);
+			}});
+		});
 		$room.find(".duty-cr-metrics").on("click", () =>
 			frappe.call({
 				method: "duty_board.client_room.room_metrics",
@@ -3963,6 +5068,38 @@ class DutyBoard {
 			)
 		);
 		$room.find(".duty-cr-membersbtn").on("click", () => this.room_members_dialog(x));
+		$room.find(".duty-cr-accessbtn").on("click", () => {
+			frappe.call({
+				method: "duty_board.client_room.room_staff_access",
+				args: { name: x.name },
+				callback: (r) => {
+					const a = r.message || {};
+					if (!a.can_edit) {
+						frappe.msgprint(__("Only the room owner{0} or a System Manager can curate staff access.", [a.owner ? ` (${frappe.utils.escape_html(this.name_map[a.owner] || a.owner)})` : ""]));
+						return;
+					}
+					const staff = Object.keys(this.name_map || {}).map((u) => ({ value: u, description: this.name_map[u] }));
+					const d2 = new frappe.ui.Dialog({
+						title: __("🔑 Staff access — {0}", [frappe.utils.escape_html(x.customer)]),
+						fields: [
+							{ fieldname: "note", fieldtype: "HTML", options: `<p style="font-size:12px;color:#65736F">${__("Leave EMPTY and every staff member sees this room (the default). Add names and only they, the owner, and System Managers see it. Consultants are governed separately by Members.")}</p>` },
+							{ fieldname: "users", fieldtype: "MultiSelectPills", label: __("Staff who see this room"), get_data: () => staff, default: a.users || [] },
+							{ fieldname: "owner", fieldtype: "Autocomplete", label: __("Room owner"), options: staff.map((s) => ({ value: s.value, label: s.description })), default: a.owner || "" },
+						],
+						primary_action_label: __("Save"),
+						primary_action: (v) => {
+							d2.hide();
+							frappe.call({
+								method: "duty_board.client_room.set_room_staff_access",
+								args: { name: x.name, users: v.users || [], owner: v.owner || "" },
+								callback: () => frappe.show_alert({ message: __("🔑 Access updated."), indicator: "green" }),
+							});
+						},
+					});
+					d2.show();
+				},
+			});
+		});
 		$room.find(".duty-cr-freeze").on("click", () =>
 			frappe.call({
 				method: "duty_board.client_room.set_room_status",
@@ -3970,6 +5107,1392 @@ class DutyBoard {
 				callback: () => this.load_client_room(x.name),
 			})
 		);
+	}
+
+	pricing_dialog() {
+		frappe.call({
+			method: "duty_board.commercial.pricing_queue",
+			callback: (r) => {
+				const q = (r.message || {}).queue || [];
+				const d = new frappe.ui.Dialog({ title: __("💼 CRs awaiting your pricing"), size: "large" });
+				$(d.body).html(
+					q.length
+						? q.map((z) => `<div style="border:1px solid #e2e8f0;border-radius:8px;padding:8px;margin-bottom:8px${z.age_days > 2 ? ";background:#fffbeb" : ""}">
+							<b>${frappe.utils.escape_html(z.customer)}</b> · ${frappe.utils.escape_html(z.title)}
+							<span style="float:right;font-size:11px;font-weight:700;color:${z.age_days > 2 ? "#b45309" : "#64748b"}">${z.age_days}d ${__("waiting")}</span>
+							<div class="text-muted" style="font-size:12px;margin:4px 0">${frappe.utils.escape_html((z.original_request || z.reason || "").slice(0, 300))}</div>
+							<button class="btn btn-xs btn-primary" data-price="${z.name}">${__("Decide")}</button>
+						</div>`).join("")
+						: `<p class="text-muted">${__("Queue clear — nothing awaiting pricing.")}</p>`
+				);
+				$(d.body).find("[data-price]").on("click", (e) => {
+					const id = $(e.currentTarget).data("price");
+					frappe.prompt(
+						[
+							{ fieldname: "decision", fieldtype: "Select", label: __("Decision"), options: ["Priced", "Covered by Subscription", "Goodwill", "Rejected", "Deferred"], reqd: 1 },
+							{ fieldname: "price", fieldtype: "Currency", label: __("Price (₦, for Priced)") },
+							{ fieldname: "estimate_hours", fieldtype: "Float", label: __("Estimated hours") },
+							{ fieldname: "note", fieldtype: "Small Text", label: __("Note (kept on the CR)") },
+						],
+						(v) => frappe.call({
+							method: "duty_board.commercial.chreq_price",
+							args: { name: id, decision: v.decision, price: v.price || 0, estimate_hours: v.estimate_hours || 0, note: v.note || null },
+							callback: () => { d.hide(); this.pricing_dialog(); },
+						}),
+						__("Price this CR"), __("Apply")
+					);
+				});
+				d.show();
+			},
+		});
+	}
+
+	cost_dialog() {
+		frappe.call({
+			method: "duty_board.commercial.cost_to_serve",
+			args: { months: 1 },
+			callback: (r) => {
+				const m = r.message || {};
+				const d = new frappe.ui.Dialog({ title: __("💰 Cost to serve — last {0} month(s)", [m.months]), size: "extra-large" });
+				const naira = (v) => (v || v === 0 ? "₦" + Number(v).toLocaleString() : "—");
+				$(d.body).html(`
+					${!m.rate ? `<div style="background:#fffbeb;border-radius:8px;padding:8px;font-size:12px;margin-bottom:8px">⚠ ${__("Set the blended staff cost rate in Duty Settings to see costs and margins.")}</div>` : ""}
+					<table class="table table-sm" style="font-size:12px"><tr><th>${__("Customer")}</th><th>${__("Hours")}</th><th>${__("Support")}</th><th>${__("Delivery")}</th><th>${__("Cost")}</th><th>${__("Known fee/mo")}</th><th></th></tr>
+					${(m.rows || []).map((z) => `<tr style="${z.fee_covers === false ? "background:#fef2f2" : ""}">
+						<td><b>${frappe.utils.escape_html(z.customer)}</b><br><span class="text-muted">${z.staff_count} ${__("staff")}</span></td>
+						<td><b>${z.hours}</b></td><td>${z.support_hours}</td><td>${z.delivery_hours}</td>
+						<td>${naira(z.cost)}</td><td>${naira(z.monthly_fee)}</td>
+						<td>${z.fee_covers === false ? `<b style="color:#b91c1c">${__("under water")}</b>` : z.fee_covers ? `<span style="color:#15803d">✓</span>` : ""}</td>
+					</tr>`).join("")}</table>
+					<p class="text-muted" style="font-size:11px">${__("Hours from work sessions with a customer; fee shown where known (accounting fee today). Red rows: attention cost exceeds known fee — a renewal-conversation list, not an invoice list.")}</p>
+				`);
+				d.show();
+			},
+		});
+	}
+
+	book_matcher(query, cb) {
+		const d = new frappe.ui.Dialog({ title: __("🔎 Find the book"), size: "large" });
+		let settled = false;
+		const done = (meta) => { if (!settled) { settled = true; d.hide(); cb(meta); } };
+		$(d.body).html(`
+			<div style="display:flex;gap:8px;margin-bottom:10px">
+				<input type="text" class="form-control input-sm duty-bkm-q">
+				<button class="btn btn-sm btn-primary duty-bkm-go">${__("Search")}</button>
+			</div>
+			<div class="duty-bkm-res"><div class="text-muted">${__("Searching…")}</div></div>
+			<a class="duty-bkm-none" style="cursor:pointer;font-size:12.5px;color:#6B7772;display:inline-block;margin-top:8px">${__("Skip — fill details by hand")}</a>`);
+		const $res = $(d.body).find(".duty-bkm-res");
+		const run = (q) => {
+			$res.html(`<div class="text-muted">${__("Searching…")}</div>`);
+			frappe.call({
+				method: "duty_board.library.search_books",
+				args: { query: q },
+				callback: (r) => {
+					const hits = r.message || [];
+					if (!hits.length) {
+						$res.html(`<div class="text-muted">${__("No matches for")} “${frappe.utils.escape_html(q)}” — ${__("try fewer or different words.")}</div>`);
+						return;
+					}
+					$res.html(
+						hits.map((h, i) => `
+						<div class="duty-bkm" data-i="${i}" style="display:flex;gap:12px;border:1px solid #E8E5DD;border-radius:10px;padding:10px 12px;margin-bottom:8px;cursor:pointer">
+							${h.thumbnail ? `<img src="${h.thumbnail}" style="width:52px;height:78px;object-fit:cover;border-radius:6px;flex:none">` : `<div style="width:52px;height:78px;background:#EFEDE6;border-radius:6px;flex:none"></div>`}
+							<div style="min-width:0">
+								<b style="font-size:13.5px">${frappe.utils.escape_html(h.title)}${h.subtitle ? `: ${frappe.utils.escape_html(h.subtitle)}` : ""}</b>
+								<div class="text-muted" style="font-size:12px">${frappe.utils.escape_html(h.authors)}${h.year ? ` · ${h.year}` : ""}${h.publisher ? ` · ${frappe.utils.escape_html(h.publisher)}` : ""}${h.pages ? ` · ${h.pages}p` : ""}</div>
+								${h.description ? `<div class="text-muted" style="font-size:11.5px;margin-top:3px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden">${frappe.utils.escape_html(h.description)}</div>` : ""}
+							</div>
+						</div>`).join("")
+					);
+					$res.find(".duty-bkm").on("click", (e) => done(hits[$(e.currentTarget).data("i")]));
+				},
+				error: () => {
+					$res.html(`<div style="color:#B0443C;font-size:12.5px">${__("Book search is unreachable from the server (outbound access to googleapis.com). You can still fill details by hand.")}</div>`);
+				},
+			});
+		};
+		$(d.body).find(".duty-bkm-q").val(query).on("keydown", (e) => { if (e.key === "Enter") run($(e.currentTarget).val()); });
+		$(d.body).find(".duty-bkm-go").on("click", () => run($(d.body).find(".duty-bkm-q").val()));
+		$(d.body).find(".duty-bkm-none").on("click", () => done(null));
+		d.on_hide = () => { if (!settled) { settled = true; cb(null); } };
+		d.show();
+		run(query);
+	}
+
+	refresh_library() {
+		frappe.call({
+			method: "duty_board.library.library",
+			callback: (r) => {
+				const m0 = r.message || {};
+				this._lib_books = m0.books || [];
+				this._lib_mgr = !!m0.manager;
+				this._lib_render();
+			},
+		});
+	}
+
+	_lib_grad(seed) {
+		const G = [
+			["#123C35", "#0E8A63"], ["#1C2E4A", "#3D6B9E"], ["#4A1C3A", "#9E3D6B"],
+			["#4A3A1C", "#B27409"], ["#233229", "#5C8A6E"], ["#2F1C4A", "#6B3D9E"],
+		];
+		let h = 0;
+		for (const c of seed || "x") h = (h * 31 + c.charCodeAt(0)) | 0;
+		const g = G[Math.abs(h) % G.length];
+		return `linear-gradient(150deg, ${g[0]}, ${g[1]})`;
+	}
+
+	_lib_render() {
+		const esc = frappe.utils.escape_html;
+		const books = this._lib_books || [];
+		const mgr = this._lib_mgr;
+		const q = (this._lib_q || "").toLowerCase();
+		const cat = this._lib_cat || "All";
+		const $L = this.$library.empty();
+		const counts = {};
+		books.forEach((b) => {
+			const c = b.category || __("Uncategorised");
+			counts[c] = (counts[c] || 0) + 1;
+		});
+		const cats = Object.keys(counts).sort((a, b2) => (a === __("Uncategorised")) - (b2 === __("Uncategorised")) || a.localeCompare(b2));
+		const visible = books.filter((b) =>
+			(cat === "All" || (b.category || __("Uncategorised")) === cat) &&
+			(!q || (b.title + " " + (b.author || "")).toLowerCase().includes(q))
+		);
+		const chip = (c, n) => `<a class="duty-lb-chip ${cat === c ? "on" : ""}" data-cat="${esc(c)}">${esc(__(c))}${n != null ? ` <i>${n}</i>` : ""}</a>`;
+		$L.append(`
+			<div class="duty-lb-head">
+				<h3>📚 ${__("Library")}</h3>
+				<input type="text" class="duty-lb-search" placeholder="🔎 ${__("Search title or author…")}" value="${esc(this._lib_q || "")}">
+				${mgr ? `<span class="duty-lb-admin"><input type="file" accept=".pdf,.epub" class="duty-bk-file"><button class="btn btn-sm btn-primary duty-bk-up">＋ ${__("Add book")}</button></span>` : ""}
+			</div>
+			<div class="duty-lb-chips">${chip("All", books.length)}${cats.map((c) => chip(c, counts[c])).join("")}</div>`);
+
+		const TILE = (b, mini) => {
+			const done = b.pct >= 100;
+			const cover = b.cover
+				? `<span class="duty-lb-cover" style="background-image:url('${esc(b.cover)}')"></span>`
+				: `<span class="duty-lb-cover duty-lb-fallback" style="background:${this._lib_grad(b.title)}"><i>${esc(b.title)}</i></span>`;
+			const ring = b.pct > 0 && !done
+				? `<span class="duty-lb-ring" style="background:conic-gradient(#FFC53D ${b.pct * 3.6}deg, rgba(255,255,255,.28) 0)"><i>${b.pct}%</i></span>`
+				: done ? `<span class="duty-lb-ring duty-lb-done">✓</span>`
+				: `<span class="duty-lb-newtag">${__("new")}</span>`;
+			const stars = b.rating_n ? `★ ${b.rating_avg}` : "";
+			return `
+			<a class="duty-lb-tile ${mini ? "duty-lb-mini" : ""}" data-book="${b.name}">
+				<span class="duty-lb-coverwrap">${cover}${ring}${mgr && !mini ? `<span class="duty-lb-menu" data-book="${b.name}">⋯</span>` : ""}</span>
+				<span class="duty-lb-title">${esc(b.title)}</span>
+				<span class="duty-lb-meta">${esc(b.author || "")}</span>
+				<span class="duty-lb-meta2">${b.chapter_count} ${__("ch")}${b.words ? ` · ${Math.round(b.words / 200)}m` : ""}${stars ? ` · <b>${stars}</b>` : ""}</span>
+			</a>`;
+		};
+
+		const reading = visible.filter((b) => b.pct > 0 && b.pct < 100)
+			.sort((a, b2) => (b2.last_read_at || "").localeCompare(a.last_read_at || ""));
+		if (reading.length && !q) {
+			$L.append(`
+				<div class="duty-lb-cat"><b>🔥 ${__("Continue reading")}</b></div>
+				<div class="duty-lb-shelf">${reading.map((b) => TILE(b, true)).join("")}</div>`);
+		}
+		if (!visible.length) {
+			$L.append(`<div class="duty-lb-empty">${q ? __("Nothing matches — try fewer letters.") : __("No books on this shelf yet.")}</div>`);
+		}
+		cats.filter((c) => cat === "All" || c === cat).forEach((c) => {
+			const shelf = visible.filter((b) => (b.category || __("Uncategorised")) === c)
+				.sort((a, b2) => (b2.pct > 0 && b2.pct < 100) - (a.pct > 0 && a.pct < 100) || a.title.localeCompare(b2.title));
+			if (!shelf.length) return;
+			$L.append(`
+				<div class="duty-lb-cat"><b>${esc(c)}</b><span>${shelf.length}</span></div>
+				<div class="duty-lb-shelf">${shelf.map((b) => TILE(b)).join("")}</div>`);
+		});
+
+		// ── bindings ──
+		$L.find(".duty-lb-search").on("input", (e) => {
+			this._lib_q = $(e.currentTarget).val();
+			clearTimeout(this._lib_t);
+			this._lib_t = setTimeout(() => {
+				const pos = $L.find(".duty-lb-search")[0];
+				this._lib_render();
+				const el = this.$library.find(".duty-lb-search")[0];
+				el.focus();
+				el.setSelectionRange(el.value.length, el.value.length);
+			}, 180);
+		});
+		$L.find(".duty-lb-chip").on("click", (e) => {
+			this._lib_cat = $(e.currentTarget).data("cat");
+			this._lib_render();
+		});
+		$L.find(".duty-lb-tile").on("click", (e) => {
+			if ($(e.target).is(".duty-lb-menu")) return;
+			e.preventDefault();
+			this.open_reader($(e.currentTarget).data("book"));
+		});
+		$L.find(".duty-lb-menu").on("click", (e) => {
+			e.preventDefault();
+			e.stopPropagation();
+			$(".duty-lb-pop").remove();
+			const bk = $(e.currentTarget).data("book");
+			const $pop = $(`
+				<div class="duty-lb-pop">
+					<a class="duty-bk-edit" data-book="${bk}">✎ ${__("Edit")}</a>
+					<a class="duty-bk-fetch" data-book="${bk}">🔎 ${__("Fetch cover & info")}</a>
+					<a class="duty-bk-del" data-book="${bk}">🗑 ${__("Remove")}</a>
+				</div>`).appendTo(document.body);
+			const r2 = e.currentTarget.getBoundingClientRect();
+			$pop.css({ top: r2.bottom + 4 + "px", left: Math.max(8, r2.right - 170) + "px" });
+			setTimeout(() => $(document).one("click.dutylbpop", () => $pop.remove()), 0);
+			this._lib_bind_admin($pop);
+		});
+		this._lib_bind_admin($L);
+		if (mgr) {
+			$L.find(".duty-bk-up").on("click", () => {
+				const f = $L.find(".duty-bk-file")[0].files[0];
+				if (!f) {
+					$L.find(".duty-bk-file").trigger("click");
+					return;
+				}
+				const guess = f.name.replace(/\.(pdf|epub)$/i, "").replace(/[_\-]+/g, " ").replace(/\(z-lib[^)]*\)|z-?library|1lib\.\w+/gi, "").trim();
+				this.book_matcher(guess, (meta) =>
+				frappe.prompt(
+					[
+						{ fieldname: "title", fieldtype: "Data", label: __("Title"), default: (meta && meta.title) || guess, reqd: 1 },
+						{ fieldname: "author", fieldtype: "Data", label: __("Author"), default: (meta && meta.authors) || "" },
+						{ fieldname: "category", fieldtype: "Data", label: __("Category (shelf section, e.g. Leadership, ERP, Sales)"), default: (meta && meta.categories) || "" },
+						{ fieldname: "description", fieldtype: "Small Text", label: __("Why the team should read it"), default: (meta && meta.description) || "" },
+					],
+					(v) => {
+						v.cover_url = (meta && meta.thumbnail) || null;
+						const fd = new FormData();
+						fd.append("file", f);
+						fd.append("is_private", "1");
+						fetch("/api/method/upload_file", { method: "POST", headers: { "X-Frappe-CSRF-Token": frappe.csrf_token }, body: fd })
+							.then((res) => res.json())
+							.then((j) => {
+								const url = j.message && j.message.file_url;
+								if (!url) throw new Error("upload failed");
+								return frappe.call({ method: "duty_board.library.convert_pdf", args: { file_url: url, title: v.title, author: v.author || null, category: v.category || null, description: v.description || null, cover_url: v.cover_url } });
+							})
+							.then(() => frappe.show_alert({ message: __("📚 Converting in the background — you'll be notified when it's on the shelf."), indicator: "blue" }))
+							.catch(() => frappe.msgprint(__("Upload failed — try again.")));
+					},
+					__("New book"), __("Convert")
+				));
+			});
+		}
+	}
+
+	_lib_bind_admin($host) {
+		const books = this._lib_books || [];
+		$host.find(".duty-bk-fetch").off("click").on("click", (e) => {
+			e.stopPropagation();
+			$(".duty-lb-pop").remove();
+			const bk = $(e.currentTarget).data("book");
+			const b = books.find((x) => x.name === bk) || {};
+			this.book_matcher(b.title + " " + (b.author || ""), (meta) => {
+				if (!meta) return;
+				frappe.call({
+					method: "duty_board.library.apply_book_meta",
+					args: { book: bk, title: meta.title, author: meta.authors || "", description: meta.description || "", category: b.category || meta.categories || "", cover_url: meta.thumbnail || null },
+					callback: () => this.refresh_library(),
+				});
+			});
+		});
+		$host.find(".duty-bk-del").off("click").on("click", (e) => {
+			e.stopPropagation();
+			$(".duty-lb-pop").remove();
+			const bk = $(e.currentTarget).data("book");
+			frappe.confirm(__("Remove this book and everyone's reading progress in it?"), () =>
+				frappe.call({ method: "duty_board.library.delete_book", args: { book: bk }, callback: () => this.refresh_library() })
+			);
+		});
+		$host.find(".duty-bk-edit").off("click").on("click", (e) => {
+			e.stopPropagation();
+			$(".duty-lb-pop").remove();
+			const bk = $(e.currentTarget).data("book");
+			const b = books.find((x) => x.name === bk) || {};
+			frappe.prompt(
+				[
+					{ fieldname: "title", fieldtype: "Data", label: __("Title"), default: b.title, reqd: 1 },
+					{ fieldname: "author", fieldtype: "Data", label: __("Author"), default: b.author || "" },
+					{ fieldname: "category", fieldtype: "Data", label: __("Category"), default: b.category || "" },
+					{ fieldname: "description", fieldtype: "Small Text", label: __("Description"), default: b.description || "" },
+				],
+				(v) => frappe.call({ method: "duty_board.library.update_book", args: { book: bk, title: v.title, author: v.author || "", category: v.category || "", description: v.description || "" }, callback: () => this.refresh_library() }),
+				__("Edit book"), __("Save")
+			);
+		});
+	}
+
+	open_reader(book) {
+		frappe.call({
+			method: "duty_board.library.open_book",
+			args: { book: book },
+			callback: (r) => {
+				const m = r.message;
+				if (!m) return;
+				const $L = this.$library.empty();
+				let cur = m.current;
+				let opened_at = Date.now();
+				const doneSet = new Set(m.done || []);
+				$L.append(`
+					<div class="duty-rd-head" style="display:flex;align-items:center;gap:12px;margin:4px 0 10px;flex-wrap:wrap">
+						<a class="duty-rd-back" style="cursor:pointer;font-weight:600;color:#6B7772">‹ ${__("Library")}</a>
+						<b style="font-size:16px">${frappe.utils.escape_html(m.title)}</b>
+						${m.author ? `<span class="text-muted" style="font-size:12.5px">${frappe.utils.escape_html(m.author)}</span>` : ""}
+						<span style="margin-left:auto" class="duty-rd-stars"></span>
+						<a class="duty-rd-revs" style="cursor:pointer;font-size:12.5px;color:#0E5A4A"></a>
+						<span class="duty-rd-opts" style="display:inline-flex;gap:2px;background:#f0efe9;border-radius:8px;padding:2px;margin-left:6px">
+							<a class="duty-rd-opt" data-o="toc" title="${__("Show/hide contents")}">☰</a>
+							<a class="duty-rd-opt" data-o="two" title="${__("Two-page spread")}">▥</a>
+							<a class="duty-rd-opt" data-o="just" title="${__("Justify text")}">≣</a>
+							<a class="duty-rd-aa" title="${__("Appearance")}">⚙ Aa</a>
+							<a class="duty-rd-bmk" title="${__("Bookmark this spot")}">🔖</a>
+							<a class="duty-rd-zenbtn" title="${__("Immersive mode")}">⛶</a>
+							<a class="duty-rd-listen" title="${__("Listen to this chapter")}">🔊</a>
+							<a class="duty-rd-marks" title="${__("Highlights & bookmarks")}">🖍</a>
+							<a class="duty-rd-find" title="${__("Search inside this book")}">🔎</a>
+						</span>
+					</div>
+					<div class="duty-rd-revpanel" style="display:none;border:1px solid #E8E5DD;border-radius:12px;padding:12px 14px;margin-bottom:10px"></div>
+					<div class="duty-rd-hlpanel" style="display:none"></div>
+					<div class="duty-rd-findpanel" style="display:none"></div>
+					<div class="duty-rd-prog">
+						<input type="range" class="duty-rd-scrub" min="0" max="1000" value="0" list="duty-rd-ticks">
+						<datalist id="duty-rd-ticks"></datalist>
+						<span></span>
+					</div>
+					<div style="display:flex;gap:20px">
+						<div class="duty-rd-toc" style="width:250px;flex:none;position:sticky;top:60px;align-self:flex-start;max-height:calc(100vh - 140px);overflow-y:auto;border-right:1px solid #E8E5DD;padding-right:10px"></div>
+						<div class="duty-rd-col" style="flex:1;min-width:0">
+							<div class="duty-rd-scroller"><div class="duty-rd-body" style="font-size:16px;line-height:1.8;color:#182420"></div></div>
+							<div class="duty-rd-nav" style="display:flex;gap:8px;padding:16px 0 40px;border-top:1px solid #E8E5DD;margin-top:18px;align-items:center">
+								<button class="btn btn-sm btn-default duty-rd-prev">‹ ${__("Previous")}</button>
+								<span class="duty-rd-pgbtns" style="display:none;margin:0 auto">
+									<button class="btn btn-sm btn-default duty-rd-pgprev">‹ ${__("Page")}</button>
+									<button class="btn btn-sm btn-default duty-rd-pgnext">${__("Page")} ›</button>
+								</span>
+								<button class="btn btn-sm btn-primary duty-rd-next" style="margin-left:auto">${__("Finish chapter & continue")} ›</button>
+							</div>
+						</div>
+					</div>`);
+				const $toc = $L.find(".duty-rd-toc");
+				const $bd = $L.find(".duty-rd-body");
+				const $sc = $L.find(".duty-rd-scroller");
+				const chIdx = (name) => m.chapters.findIndex((c) => c.name === name);
+				const prefs = Object.assign({ toc: 1, two: 0, just: 1, fs: 16, serif: 0, lh: 0, theme: "paper", rate: 1, ls: 0, ps: 0, mg: 0, dys: 0, flip: 1 }, JSON.parse(localStorage.getItem("duty_rd_prefs") || "{}"));
+				const GAP = 56;
+				const applyPrefs = () => {
+					localStorage.setItem("duty_rd_prefs", JSON.stringify(prefs));
+					$L.find(".duty-rd-opt").each((_, el) => {
+						const on = prefs[$(el).data("o")];
+						$(el).css({ padding: "3px 9px", "border-radius": "6px", cursor: "pointer", "text-decoration": "none",
+							background: on ? "#fff" : "transparent", color: on ? "#182420" : "#6B7772",
+							"box-shadow": on ? "0 1px 2px rgba(0,0,0,.08)" : "none", "font-weight": on ? "700" : "400" });
+					});
+					$toc.toggle(!!prefs.toc);
+					let th = prefs.theme || "paper";
+					if (th === "auto") th = window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches ? "night" : "paper";
+					this.$library.removeClass("duty-th-paper duty-th-sepia duty-th-night").addClass("duty-th-" + th);
+					if (prefs.dys && !document.getElementById("duty-dys-font")) {
+						$('<link id="duty-dys-font" rel="stylesheet" href="https://fonts.cdnfonts.com/css/open-dyslexic">').appendTo("head");
+					}
+					const fam = prefs.dys ? "'Open-Dyslexic', 'OpenDyslexic', sans-serif" : prefs.serif ? "Georgia, 'Times New Roman', serif" : "";
+					$bd.css({ "font-size": prefs.fs + "px", "line-height": prefs.lh ? "2.02" : "1.78",
+						"font-family": fam, "letter-spacing": (prefs.ls || 0) + "px",
+						"text-align": prefs.just ? "justify" : "left", hyphens: prefs.just ? "auto" : "none" });
+					let $dyn = $("#duty-rd-dyn");
+					if (!$dyn.length) $dyn = $('<style id="duty-rd-dyn"></style>').appendTo("head");
+					$dyn.text(`.duty-rd-body p { margin-bottom: ${(0.9 + (prefs.ps || 0)).toFixed(2)}em; } .duty-rd-col { padding: 0 ${prefs.mg || 0}px; }`);
+					$L.find(".duty-rd-pgbtns").toggle(!!prefs.two);
+					if (prefs.two) {
+						$sc.css({ height: "calc(100vh - 250px)", "overflow-x": "auto", "overflow-y": "hidden" });
+						$bd.css({ "max-width": "none" });
+						requestAnimationFrame(() => {
+							const w = $sc[0].clientWidth;
+							const colw = Math.floor((w - GAP) / 2);
+							$bd.css({ height: "100%", "column-width": colw + "px", "column-gap": GAP + "px", "column-fill": "auto" });
+							const el = $sc[0];
+							const step = el.clientWidth + GAP;
+							el.scrollLeft = Math.round(el.scrollLeft / step) * step;
+						});
+					} else {
+						$sc.css({ height: "", "overflow-x": "", "overflow-y": "" });
+						$bd.css({ "max-width": "68ch", height: "", "column-width": "", "column-gap": "", "column-fill": "" });
+						$L.find(".duty-rd-nav").css("max-width", "68ch");
+					}
+				};
+				const pgSnap = () => {
+					const el = $sc[0];
+					const step = el.clientWidth + GAP;
+					el.scrollLeft = Math.round(el.scrollLeft / step) * step;
+				};
+				const pageBy = (dir) => {
+					const el = $sc[0];
+					if (prefs.flip && prefs.two) {
+						const $t = $(`<div class="duty-rd-turn ${dir > 0 ? "duty-turn-fwd" : "duty-turn-bck"}"></div>`).appendTo($sc.parent().css("position", "relative"));
+						setTimeout(() => $t.remove(), 560);
+					}
+					pgSnap();
+					el.scrollBy({ left: dir * (el.clientWidth + GAP), behavior: "smooth" });
+				};
+				const renderToc = () => {
+					$toc.empty();
+					m.chapters.forEach((c) => {
+						$(`<a style="display:block;padding:6px 8px;border-radius:8px;margin:1px 0;cursor:pointer;font-size:12.5px;${c.name === cur ? "background:#eef2f0;font-weight:700" : ""};color:#182420;text-decoration:none">${doneSet.has(c.name) ? "✅ " : ""}${c.idx_no}. ${frappe.utils.escape_html(c.title)}</a>`)
+							.appendTo($toc)
+							.on("click", () => go(c.name, 0));
+					});
+				};
+				const loadReviews = () =>
+					frappe.call({
+						method: "duty_board.library.book_reviews",
+						args: { book: book },
+						callback: (rr) => {
+							const rv = rr.message || { rows: [], avg: 0, n: 0 };
+							const mine = rv.rows.find((z) => z.mine) || {};
+							const stars = mine.stars || 0;
+							$L.find(".duty-rd-stars").html(
+								[1, 2, 3, 4, 5].map((i) => `<a data-s="${i}" style="cursor:pointer;font-size:17px;color:${i <= stars ? "#A96F1A" : "#D8D4C8"};text-decoration:none">★</a>`).join("")
+							);
+							$L.find(".duty-rd-stars a").on("click", (e) => {
+								const s = $(e.currentTarget).data("s");
+								frappe.prompt(
+									{ fieldname: "review", fieldtype: "Small Text", label: __("A line for your colleagues (optional)"), default: mine.review || "" },
+									(v) => frappe.call({ method: "duty_board.library.rate_book", args: { book: book, stars: s, review: v.review || "" }, callback: loadReviews }),
+									__("Rate “{0}” — {1}★", [m.title, s]), __("Save")
+								);
+							});
+							$L.find(".duty-rd-revs").text(rv.n ? `💬 ${rv.n} ${__("review(s)")} · ${rv.avg}★` : __("be the first to review"));
+							$L.find(".duty-rd-revpanel").html(
+								rv.rows.filter((z) => z.stars || z.review).map((z) => `
+								<div style="padding:7px 0;border-bottom:1px solid #F0EEE8;font-size:13px">
+									<b>${frappe.utils.escape_html(z.who)}</b>
+									<span style="color:#A96F1A">${"★".repeat(z.stars || 0)}</span>
+									<span class="text-muted" style="font-size:11px;float:right">${z.when}</span>
+									${z.review ? `<div style="margin-top:2px">${frappe.utils.escape_html(z.review)}</div>` : ""}
+								</div>`).join("") || `<div class="text-muted">${__("No reviews yet.")}</div>`
+							);
+						},
+					});
+				$L.find(".duty-rd-revs").on("click", () => $L.find(".duty-rd-revpanel").slideToggle(120));
+				const save = (donech) => {
+					let pct;
+					if (prefs.two) {
+						const el = $sc[0];
+						pct = el.scrollWidth > el.clientWidth ? Math.round((el.scrollLeft / (el.scrollWidth - el.clientWidth)) * 100) : 100;
+					} else {
+						pct = document.documentElement.scrollHeight > window.innerHeight
+							? Math.round((window.scrollY / (document.documentElement.scrollHeight - window.innerHeight)) * 100)
+							: 100;
+					}
+					const mins = Math.round((Date.now() - opened_at) / 60000);
+					opened_at = Date.now();
+					frappe.call({ method: "duty_board.library.mark", args: { book: book, chapter: cur, scroll_pct: pct, minutes: mins, done: donech || null }, callback: () => {} });
+				};
+				const curPct = () => {
+					if (prefs.two) {
+						const el = $sc[0];
+						return el.scrollWidth > el.clientWidth ? Math.round((el.scrollLeft / (el.scrollWidth - el.clientWidth)) * 100) : 100;
+					}
+					return document.documentElement.scrollHeight > window.innerHeight
+						? Math.round((window.scrollY / (document.documentElement.scrollHeight - window.innerHeight)) * 100) : 100;
+				};
+				const N = m.chapters.length || 1;
+				const updProg = () => {
+					const pct = curPct();
+					const words = ($bd.text() || "").split(/\s+/).length;
+					const left = Math.max(0, Math.ceil((words * (1 - pct / 100)) / 220));
+					if (!this._scrub_drag) $L.find(".duty-rd-scrub").val(Math.round(((chIdx(cur) + pct / 100) / N) * 1000));
+					$L.find(".duty-rd-prog span").text(left > 0 ? __("≈ {0} min left in this chapter", [left]) : __("chapter end"));
+				};
+				$L.find("#duty-rd-ticks").html(m.chapters.map((_, i2) => `<option value="${Math.round((i2 / N) * 1000)}"></option>`).join(""));
+				$L.find(".duty-rd-scrub")
+					.on("input", (e) => {
+						this._scrub_drag = 1;
+						const v = parseInt($(e.currentTarget).val(), 10) / 1000;
+						const ci = Math.min(N - 1, Math.floor(v * N));
+						$L.find(".duty-rd-prog span").text("→ " + (ci + 1) + ". " + (m.chapters[ci] || {}).title);
+					})
+					.on("change", (e) => {
+						this._scrub_drag = 0;
+						const v = parseInt($(e.currentTarget).val(), 10) / 1000;
+						const ci = Math.min(N - 1, Math.floor(v * N));
+						const inPct = Math.round((v * N - ci) * 100);
+						go(m.chapters[ci].name, inPct);
+					});
+				const zen = (on) => {
+					this.$library.toggleClass("duty-rd-zenmode", on === undefined ? !this.$library.hasClass("duty-rd-zenmode") : !!on);
+					if (this.$library.hasClass("duty-rd-zenmode") && !$L.find(".duty-rd-zenx").length)
+						$(`<a class="duty-rd-zenx">✕</a>`).appendTo($L).on("click", () => zen(0));
+					if (!this.$library.hasClass("duty-rd-zenmode")) $L.find(".duty-rd-zenx").remove();
+				};
+				$L.find(".duty-rd-zenbtn").on("click", () => zen());
+				const applyKeep = () => {
+					const pct0 = curPct();
+					applyPrefs();
+					requestAnimationFrame(() => {
+						if (!prefs.two) {
+							const h = document.documentElement.scrollHeight - window.innerHeight;
+							window.scrollTo(0, (h * pct0) / 100);
+						}
+						updProg();
+					});
+				};
+				$L.find(".duty-rd-aa").on("click", (e) => {
+					e.stopPropagation();
+					$(".duty-rd-aapanel").remove();
+					const seg = (f, opts) => opts.map(([v, l]) => `<a class="duty-aa-seg ${String(prefs[f]) === String(v) ? "on" : ""}" data-f="${f}" data-v="${v}">${l}</a>`).join("");
+					const slid = (f, min, max, step, label) => `<label class="duty-aa-row"><span>${label}</span><input type="range" data-f="${f}" min="${min}" max="${max}" step="${step}" value="${prefs[f] || 0}"></label>`;
+					const $pn = $(`
+						<div class="duty-rd-aapanel">
+							<div class="duty-aa-row"><span>${__("Theme")}</span><span class="duty-aa-segs">${seg("theme", [["paper", "☀"], ["sepia", "🟤"], ["night", "🌙"], ["auto", "A"]])}</span></div>
+							<div class="duty-aa-row"><span>${__("Size")}</span><span class="duty-aa-segs"><a class="duty-aa-fs" data-d="-1">A−</a><b class="duty-aa-fsv">${prefs.fs}</b><a class="duty-aa-fs" data-d="1">A＋</a></span></div>
+							<div class="duty-aa-row"><span>${__("Font")}</span><span class="duty-aa-segs">${seg("serif", [[0, "Sans"], [1, "Serif"]])}<a class="duty-aa-seg ${prefs.dys ? "on" : ""}" data-f="dys" data-v="${prefs.dys ? 0 : 1}">${__("Dyslexic")}</a></span></div>
+							<details ${prefs.ls || prefs.ps || prefs.mg ? "open" : ""}><summary>${__("Advanced")}</summary>
+								${slid("ls", 0, 1.5, 0.1, __("Letter spacing"))}
+								${slid("ps", 0, 1.2, 0.1, __("Paragraph gap"))}
+								${slid("mg", 0, 90, 6, __("Margins"))}
+								<div class="duty-aa-row"><span>${__("Line height")}</span><span class="duty-aa-segs">${seg("lh", [[0, __("Normal")], [1, __("Loose")]])}</span></div>
+								<div class="duty-aa-row"><span>${__("Page turn")}</span><span class="duty-aa-segs">${seg("flip", [[1, __("Flip")], [0, __("Plain")]])}</span></div>
+							</details>
+						</div>`).appendTo($L.find(".duty-rd-head"));
+					const persist = () => { localStorage.setItem("duty_rd_prefs", JSON.stringify(prefs)); applyKeep(); };
+					$pn.find(".duty-aa-seg").on("click", (e2) => {
+						const f = $(e2.currentTarget).data("f");
+						let v = $(e2.currentTarget).data("v");
+						prefs[f] = f === "theme" ? String(v) : parseFloat(v);
+						persist();
+						$pn.remove();
+						$L.find(".duty-rd-aa").trigger("click");
+					});
+					$pn.find(".duty-aa-fs").on("click", (e2) => {
+						prefs.fs = Math.min(23, Math.max(13, prefs.fs + parseInt($(e2.currentTarget).data("d"), 10)));
+						$pn.find(".duty-aa-fsv").text(prefs.fs);
+						persist();
+					});
+					$pn.find("input[type=range]").on("input", (e2) => {
+						prefs[$(e2.currentTarget).data("f")] = parseFloat($(e2.currentTarget).val());
+						persist();
+					});
+					setTimeout(() => $(document).one("click.dutyaa", (e2) => { if (!$(e2.target).closest(".duty-rd-aapanel").length) $pn.remove(); }), 0);
+				});
+				// ── bookmarks ──
+				let bmk_rows = [];
+				const bmkLoad = (cb) => frappe.call({ method: "duty_board.library.bookmarks", args: { book: book }, callback: (rr) => { bmk_rows = rr.message || []; cb && cb(); } });
+				$L.find(".duty-rd-bmk").on("click", () => {
+					frappe.prompt({ fieldname: "note", fieldtype: "Data", label: __("A word to remember this spot (optional)") },
+						(v) => frappe.call({
+							method: "duty_board.library.bookmark_add",
+							args: { book: book, chapter: cur, scroll_pct: curPct(), note: v.note || null },
+							callback: (rr) => { bmk_rows = rr.message || []; frappe.show_alert({ message: __("🔖 Bookmarked"), indicator: "green" }); },
+						}), __("🔖 Bookmark this spot"), __("Save"));
+				});
+				bmkLoad();
+				// ── welcome back ──
+				if (m.last_read_at) {
+					const away = Math.floor((Date.now() - new Date(m.last_read_at.replace(" ", "T")).getTime()) / 86400000);
+					if (away >= 14) {
+						frappe.call({
+							method: "duty_board.library.my_highlights",
+							args: { book: book },
+							callback: (rr) => {
+								const hls = (rr.message || []).filter((h) => h.chapter === cur).slice(0, 3);
+								const $wb = $(`
+									<div class="duty-rd-wb">
+										<b>👋 ${__("Welcome back — it's been {0} days.", [away])}</b>
+										<span>${__("You left off here in")} “${frappe.utils.escape_html((m.chapters[chIdx(cur)] || {}).title || "")}”.</span>
+										${hls.length ? `<i>${__("Your marks from this chapter")}:</i>` + hls.map((h) => `<q>“${frappe.utils.escape_html(h.text.slice(0, 120))}…”</q>`).join("") : ""}
+										<a class="duty-wb-x">✕</a>
+									</div>`).insertAfter($L.find(".duty-rd-prog"));
+								$wb.find(".duty-wb-x").on("click", () => $wb.slideUp(140));
+							},
+						});
+					}
+				}
+				// ── listen mode ──
+				const spk = { on: 0, i: 0, units: [], paused: 0 };
+				const spkStop = () => {
+					spk.on = 0; spk.paused = 0;
+					try { window.speechSynthesis.cancel(); } catch (e) {}
+					$bd.find(".duty-rd-speaking").removeClass("duty-rd-speaking");
+					$L.find(".duty-rd-audio").remove();
+					$L.find(".duty-rd-listen").removeClass("on");
+				};
+				this._rd_stop = spkStop;
+				const spkUnits = () => {
+					const out = [];
+					$bd.find("p, li, h1, h2, h3, h4, blockquote").each((_, el) => {
+						const t = $(el).text().trim();
+						if (!t) return;
+						(t.match(/[^.!?]+[.!?]+["')\]]*|[^.!?]+$/g) || [t]).forEach((sent) => {
+							if (sent.trim()) out.push({ el, text: sent.trim() });
+						});
+					});
+					return out;
+				};
+				const spkNext = () => {
+					if (!spk.on || spk.paused) return;
+					if (spk.i >= spk.units.length) {
+						const i2 = chIdx(cur);
+						if (i2 < m.chapters.length - 1) {
+							doneSet.add(cur); save(cur);
+							go(m.chapters[i2 + 1].name, 0);
+							setTimeout(() => { if (spk.on) { spk.units = spkUnits(); spk.i = 0; spkNext(); } }, 900);
+						} else spkStop();
+						return;
+					}
+					const u = spk.units[spk.i];
+					$bd.find(".duty-rd-speaking").removeClass("duty-rd-speaking");
+					$(u.el).addClass("duty-rd-speaking");
+					if (spk.i % 3 === 0) u.el.scrollIntoView({ block: "center", behavior: "smooth" });
+					const utt = new SpeechSynthesisUtterance(u.text);
+					utt.rate = prefs.rate || 1;
+					if (spk.voice) utt.voice = spk.voice;
+					utt.onend = () => { spk.i++; spkNext(); };
+					utt.onerror = () => { spk.i++; spkNext(); };
+					window.speechSynthesis.speak(utt);
+				};
+				const spkBar = () => {
+					const $b = $(`
+						<div class="duty-rd-audio">
+							<a class="duty-au-skip" data-d="-3">⏪</a>
+							<a class="duty-au-pp">⏸</a>
+							<a class="duty-au-skip" data-d="3">⏩</a>
+							<a class="duty-au-stop">⏹</a>
+							<select class="duty-au-sleep"><option value="0">💤 ${__("Off")}</option><option value="10">10m</option><option value="20">20m</option><option value="30">30m</option></select>
+							<select class="duty-au-rate">${[0.8, 0.9, 1, 1.1, 1.2, 1.35, 1.5].map((x) => `<option value="${x}" ${x === (prefs.rate || 1) ? "selected" : ""}>${x}×</option>`).join("")}</select>
+							<select class="duty-au-voice"><option value="">${__("Device voice")}</option></select>
+						</div>`).appendTo($L);
+					const fillVoices = () => {
+						const vs = window.speechSynthesis.getVoices().filter((v) => v.lang && v.lang.startsWith("en"));
+						const $v = $b.find(".duty-au-voice");
+						$v.find("option:not(:first)").remove();
+						vs.forEach((v, i2) => $v.append(`<option value="${i2}">${v.name.replace(/(Microsoft |Google )/, "")}</option>`));
+						$v.data("voices", vs);
+					};
+					fillVoices();
+					window.speechSynthesis.onvoiceschanged = fillVoices;
+					$b.find(".duty-au-pp").on("click", (e) => {
+						spk.paused = !spk.paused;
+						$(e.currentTarget).text(spk.paused ? "⏵" : "⏸");
+						if (spk.paused) window.speechSynthesis.cancel();
+						else spkNext();
+					});
+					$b.find(".duty-au-stop").on("click", spkStop);
+					$b.find(".duty-au-skip").on("click", (e) => {
+						spk.i = Math.max(0, Math.min(spk.units.length - 1, spk.i + parseInt($(e.currentTarget).data("d"), 10)));
+						if (spk.on && !spk.paused) { window.speechSynthesis.cancel(); spkNext(); }
+					});
+					$b.find(".duty-au-sleep").on("change", (e) => {
+						clearTimeout(this._au_sleep);
+						const mins2 = parseInt($(e.currentTarget).val(), 10);
+						if (mins2) this._au_sleep = setTimeout(() => { spkStop(); frappe.show_alert({ message: __("💤 Sleep timer — the voice rests."), indicator: "blue" }); }, mins2 * 60000);
+					});
+					$b.find(".duty-au-rate").on("change", (e) => {
+						prefs.rate = parseFloat($(e.currentTarget).val());
+						localStorage.setItem("duty_rd_prefs", JSON.stringify(prefs));
+						if (spk.on && !spk.paused) { window.speechSynthesis.cancel(); spkNext(); }
+					});
+					$b.find(".duty-au-voice").on("change", (e) => {
+						const vs = $(e.currentTarget).data("voices") || [];
+						spk.voice = vs[parseInt($(e.currentTarget).val(), 10)] || null;
+						if (spk.on && !spk.paused) { window.speechSynthesis.cancel(); spkNext(); }
+					});
+				};
+				$L.find(".duty-rd-listen").on("click", () => {
+					if (spk.on) return spkStop();
+					if (!window.speechSynthesis) return frappe.msgprint(__("This browser can't speak — try Chrome or Safari."));
+					spk.on = 1; spk.paused = 0;
+					spk.units = spkUnits();
+					// start from roughly where the eye is
+					spk.i = Math.floor(spk.units.length * (curPct() / 100) * 0.98);
+					$L.find(".duty-rd-listen").addClass("on");
+					spkBar();
+					spkNext();
+				});
+				// ── highlights: mark, render, share ──
+				let hl_rows = [];
+				const hlWrap = (g) => {
+					// wrap the first in-node occurrence of g.text; cross-node
+					// passages fall back to a paragraph edge-mark
+					const norm = (t) => t.replace(/\s+/g, " ");
+					const target = norm(g.text);
+					const walker = document.createTreeWalker($bd[0], NodeFilter.SHOW_TEXT);
+					let node;
+					while ((node = walker.nextNode())) {
+						const i = norm(node.nodeValue).indexOf(target);
+						if (i < 0) continue;
+						// map normalized index back to the raw string
+						let raw = 0, seen = 0;
+						const rawNorm = norm(node.nodeValue);
+						while (seen < i && raw < node.nodeValue.length) {
+							if (!/\s/.test(node.nodeValue[raw]) || !/\s/.test(node.nodeValue[raw + 1] || "x")) seen++;
+							raw++;
+						}
+						try {
+							const r2 = document.createRange();
+							r2.setStart(node, Math.min(raw, node.nodeValue.length));
+							r2.setEnd(node, Math.min(raw + g.text.length, node.nodeValue.length));
+							const mk = document.createElement("mark");
+							mk.className = "duty-hl" + (g.mine ? " duty-hl-mine" : "") + (g.n > 1 ? " duty-hl-shared" : "");
+							mk.dataset.mine = g.mine || "";
+							mk.dataset.n = g.n;
+							mk.dataset.users = (g.users || []).join(", ");
+							mk.dataset.notes = JSON.stringify(g.notes || []);
+							mk.title = g.n > 1 ? __("{0} colleagues highlighted this", [g.n]) : (g.users || [])[0] || "";
+							r2.surroundContents(mk);
+							return true;
+						} catch (e2) { return false; }
+					}
+					// fallback: edge-mark the containing paragraph
+					const probe = target.slice(0, 40).toLowerCase();
+					const $p2 = $bd.find("p, li, blockquote").filter((_, el) => $(el).text().replace(/\s+/g, " ").toLowerCase().includes(probe)).first();
+					if ($p2.length) $p2.addClass("duty-hl-para").attr("title", (g.users || []).join(", "));
+					return false;
+				};
+				const hlRender = () => {
+					$bd.find("mark.duty-hl").each((_, el) => { $(el).replaceWith($(el).text()); });
+					$bd.find(".duty-hl-para").removeClass("duty-hl-para");
+					hl_rows.forEach(hlWrap);
+					$bd[0].normalize();
+				};
+				const hlLoad = () =>
+					frappe.call({
+						method: "duty_board.library.highlights",
+						args: { chapter: cur },
+						callback: (rr) => { hl_rows = rr.message || []; hlRender(); },
+					});
+				const hlAdd = (text, note) =>
+					frappe.call({
+						method: "duty_board.library.highlight_add",
+						args: { book: book, chapter: cur, text: text, note: note || null },
+						callback: (rr) => {
+							hl_rows = rr.message || [];
+							hlRender();
+							frappe.show_alert({ message: __("🖍 Highlighted — the team can see your marks."), indicator: "green" });
+						},
+					});
+				const $selbar = $(`<div class="duty-rd-selbar" style="display:none"><a class="duty-sb-hl">🖍 ${__("Highlight")}</a><a class="duty-sb-note">📝 ${__("Note")}</a></div>`).appendTo(document.body);
+				const selText = () => String(window.getSelection() || "").replace(/\s+/g, " ").trim();
+				$bd.on("mouseup.dutyhl touchend.dutyhl", () => {
+					setTimeout(() => {
+						const t = selText();
+						if (t.length < 3 || t.length > 500) { $selbar.hide(); return; }
+						try {
+							const rect = window.getSelection().getRangeAt(0).getBoundingClientRect();
+							$selbar.css({ top: Math.max(8, rect.top - 40) + "px", left: Math.max(8, rect.left + rect.width / 2 - 70) + "px" }).show();
+						} catch (e2) {}
+					}, 10);
+				});
+				$(document).on("mousedown.dutyhl", (e) => { if (!$(e.target).closest(".duty-rd-selbar").length) $selbar.hide(); });
+				$selbar.find(".duty-sb-hl").on("click", () => { const t = selText(); $selbar.hide(); window.getSelection().removeAllRanges(); if (t) hlAdd(t); });
+				$selbar.find(".duty-sb-note").on("click", () => {
+					const t = selText();
+					$selbar.hide(); window.getSelection().removeAllRanges();
+					if (!t) return;
+					frappe.prompt({ fieldname: "note", fieldtype: "Small Text", label: __("Your note on this passage"), reqd: 1 },
+						(v) => hlAdd(t, v.note), __("📝 Note"), __("Save"));
+				});
+				$bd.on("click.dutyhl", "mark.duty-hl", (e) => {
+					e.stopPropagation();
+					const $m = $(e.currentTarget);
+					const notes = JSON.parse($m.data("notes") || "[]");
+					$(".duty-lb-pop").remove();
+					const $pop = $(`
+						<div class="duty-lb-pop duty-hl-pop">
+							<div class="duty-hl-who">🖍 ${frappe.utils.escape_html($m.data("users") || "")}</div>
+							${notes.map((z) => `<div class="duty-hl-note"><b>${frappe.utils.escape_html(z.who)}:</b> ${frappe.utils.escape_html(z.note)}</div>`).join("")}
+							<a class="duty-hl-qcbtn">🖼 ${__("Make a quote card")}</a>
+							${$m.data("mine") ? `<a class="duty-hl-rm">🗑 ${__("Remove my highlight")}</a>` : ""}
+						</div>`).appendTo(document.body);
+					const rc = e.currentTarget.getBoundingClientRect();
+					$pop.css({ top: rc.bottom + 6 + "px", left: Math.max(8, Math.min(window.innerWidth - 260, rc.left)) + "px", width: "250px" });
+					setTimeout(() => $(document).one("click.dutyhlpop", () => $pop.remove()), 0);
+					$pop.find(".duty-hl-qcbtn").on("click", () => { $pop.remove(); quoteCard($m.text(), null); });
+					$pop.find(".duty-hl-rm").on("click", () => {
+						$pop.remove();
+						const stash = { text: $m.text(), note: (JSON.parse($m.data("notes") || "[]").find((z) => true) || {}).note };
+						frappe.call({
+							method: "duty_board.library.highlight_remove",
+							args: { name: $m.data("mine") },
+							callback: (rr) => {
+								hl_rows = rr.message || [];
+								hlRender();
+								const $u = $(`<div class="duty-rd-undo">${__("Highlight removed")} · <a>${__("Undo")}</a></div>`).appendTo(document.body);
+								const t2 = setTimeout(() => $u.remove(), 6000);
+								$u.find("a").on("click", () => { clearTimeout(t2); $u.remove(); hlAdd(stash.text, stash.note); });
+							},
+						});
+					});
+				});
+				const quoteCard = (text, note) => {
+					const cv = document.createElement("canvas");
+					cv.width = 1080; cv.height = 1080;
+					const cx = cv.getContext("2d");
+					const grad = cx.createLinearGradient(0, 0, 1080, 1080);
+					grad.addColorStop(0, "#123C35"); grad.addColorStop(1, "#0A211C");
+					cx.fillStyle = grad; cx.fillRect(0, 0, 1080, 1080);
+					cx.fillStyle = "rgba(255,197,61,.9)"; cx.font = "220px Georgia"; cx.fillText("“", 60, 240);
+					cx.fillStyle = "#F2F6F4"; cx.font = "600 46px Georgia";
+					const words2 = text.split(" ");
+					let line = "", y = 330;
+					const lines = [];
+					words2.forEach((w) => {
+						if (cx.measureText(line + " " + w).width > 880) { lines.push(line); line = w; } else line = line ? line + " " + w : w;
+					});
+					lines.push(line);
+					lines.slice(0, 10).forEach((l2) => { cx.fillText(l2, 100, y); y += 66; });
+					if (lines.length > 10) { cx.fillText("…", 100, y); y += 66; }
+					cx.fillStyle = "#7BE3B0"; cx.font = "700 34px Segoe UI, Arial";
+					cx.fillText("— " + (m.author || m.title).slice(0, 44), 100, Math.min(940, y + 60));
+					cx.fillStyle = "rgba(231,240,236,.75)"; cx.font = "600 26px Segoe UI, Arial";
+					cx.fillText(m.title.slice(0, 52), 100, Math.min(980, y + 104));
+					cx.fillStyle = "rgba(255,197,61,.85)"; cx.font = "800 22px Segoe UI, Arial";
+					cx.fillText("XLEVEL · LIBRARY", 100, 1030);
+					const url = cv.toDataURL("image/png");
+					const d2 = new frappe.ui.Dialog({ title: __("🖼 Quote card"), fields: [{ fieldname: "h", fieldtype: "HTML" }], primary_action_label: __("📣 Share to team room"),
+						primary_action: () => {
+							d2.hide();
+							fetch(url).then((r3) => r3.blob()).then((bl) => {
+								const fd = new FormData();
+								fd.append("file", bl, "quote.png");
+								fd.append("is_private", "0");
+								return fetch("/api/method/upload_file", { method: "POST", headers: { "X-Frappe-CSRF-Token": frappe.csrf_token }, body: fd });
+							}).then((r3) => r3.json()).then((j2) => {
+								const furl = j2.message && j2.message.file_url;
+								return frappe.call({ method: "duty_board.api.send_message", args: { message: `📚 “${text.slice(0, 180)}” — ${m.title}`, attachment: furl, attachment_name: "quote.png" } });
+							}).then(() => frappe.show_alert({ message: __("📣 Shared with the team."), indicator: "green" }));
+						} });
+					d2.show();
+					$(d2.body).find('[data-fieldname="h"]').html(`<img src="${url}" style="width:100%;border-radius:14px"><a class="btn btn-sm btn-default" download="quote.png" href="${url}" style="margin-top:8px">⬇ ${__("Download")}</a>`);
+				};
+				$L.find(".duty-rd-marks").on("click", () => {
+					const $pn = $L.find(".duty-rd-hlpanel");
+					if ($pn.is(":visible")) return $pn.slideUp(120);
+					frappe.call({
+						method: "duty_board.library.my_highlights",
+						args: { book: book },
+						callback: (rr) => {
+							const rows2 = rr.message || [];
+							bmkLoad(() => {
+								$pn.html(`
+									${bmk_rows.length ? `<div class="duty-hl-sect">🔖 ${__("Bookmarks")}</div>` + bmk_rows.map((bm) => `
+										<a class="duty-hl-row duty-bm-row" data-ch="${bm.chapter}" data-pct="${bm.scroll_pct}">
+											<i>${bm.idx_no}. ${frappe.utils.escape_html(bm.ch_title)} · ${Math.round(bm.scroll_pct)}%</i>
+											${bm.note ? `<span>${frappe.utils.escape_html(bm.note)}</span>` : ""}
+											<em class="duty-bm-rm" data-n="${bm.name}">✕</em>
+										</a>`).join("") : ""}
+									<div class="duty-hl-sect">🖍 ${__("Highlights")} ${rows2.length ? `<em class="duty-hl-md">⬇ ${__("Export .md")}</em>` : ""}</div>
+									${rows2.length ? rows2.map((h, i3) => `
+									<a class="duty-hl-row" data-ch="${h.chapter}" data-i="${i3}">
+										<i>${h.idx_no}. ${frappe.utils.escape_html(h.ch_title)}</i>
+										<span>“${frappe.utils.escape_html(h.text.slice(0, 140))}${h.text.length > 140 ? "…" : ""}”</span>
+										${h.note ? `<b>📝 ${frappe.utils.escape_html(h.note)}</b>` : ""}
+										<em class="duty-hl-qc" data-i="${i3}">🖼</em>
+									</a>`).join("") : `<div class="text-muted" style="padding:8px">${__("No highlights yet — select any passage to mark it.")}</div>`}`).slideDown(120);
+								$pn.find(".duty-hl-row").on("click", (e) => {
+									if ($(e.target).is(".duty-hl-qc,.duty-bm-rm")) return;
+									$pn.slideUp(120);
+									go($(e.currentTarget).data("ch"), $(e.currentTarget).data("pct") || 0);
+								});
+								$pn.find(".duty-hl-qc").on("click", (e) => {
+									e.stopPropagation();
+									const h = rows2[$(e.currentTarget).data("i")];
+									quoteCard(h.text, h.note);
+								});
+								$pn.find(".duty-bm-rm").on("click", (e) => {
+									e.stopPropagation();
+									frappe.call({ method: "duty_board.library.bookmark_remove", args: { name: $(e.currentTarget).data("n") },
+										callback: (rr2) => { bmk_rows = rr2.message || []; $pn.slideUp(80); $L.find(".duty-rd-marks").trigger("click"); } });
+								});
+								$pn.find(".duty-hl-md").on("click", (e) => {
+									e.stopPropagation();
+									const md = `# ${m.title}\n${m.author ? "*" + m.author + "*\n" : ""}\n` + rows2.map((h) => `> ${h.text}\n${h.note ? "\n📝 " + h.note + "\n" : ""}\n— ${h.idx_no}. ${h.ch_title}\n`).join("\n");
+									const a2 = document.createElement("a");
+									a2.href = URL.createObjectURL(new Blob([md], { type: "text/markdown" }));
+									a2.download = m.title.replace(/[^\w ]+/g, "").slice(0, 50) + " - highlights.md";
+									a2.click();
+								});
+							});
+						},
+					});
+				});
+				$L.find(".duty-rd-find").on("click", () => {
+					frappe.prompt({ fieldname: "q", fieldtype: "Data", label: __("Find in this book"), reqd: 1 },
+						(v) => frappe.call({
+							method: "duty_board.library.search_in_book",
+							args: { book: book, q: v.q },
+							callback: (rr) => {
+								const res = rr.message || [];
+								const $pn = $L.find(".duty-rd-findpanel");
+								const bold = (s2) => frappe.utils.escape_html(s2).replace(new RegExp("(" + v.q.replace(/[.*+?^${}()|[\]\\]/g, "\\$&") + ")", "ig"), "<b>$1</b>");
+								$pn.html(res.length ? res.map((z) => `
+									<a class="duty-hl-row" data-ch="${z.chapter}"><i>${z.idx_no}. ${frappe.utils.escape_html(z.title)}</i><span>${bold(z.snippet)}</span></a>`).join("")
+									: `<div class="text-muted" style="padding:8px">${__("“{0}” isn't in this book.", [frappe.utils.escape_html(v.q)])}</div>`).slideDown(120);
+								$pn.find(".duty-hl-row").on("click", (e) => {
+									$pn.slideUp(120);
+									go($(e.currentTarget).data("ch"), 0);
+									setTimeout(() => {
+										const probe = v.q.toLowerCase();
+										const $p3 = $bd.find("p, li, blockquote").filter((_, el) => $(el).text().toLowerCase().includes(probe)).first();
+										if ($p3.length) { $p3[0].scrollIntoView({ block: "center", behavior: "smooth" }); $p3.addClass("duty-hl-flash"); setTimeout(() => $p3.removeClass("duty-hl-flash"), 2600); }
+									}, 700);
+								});
+							},
+						}), __("🔎 Search inside the book"), __("Find"));
+				});
+				let scrollT = null;
+				this._rd_scroll = () => {
+					clearTimeout(scrollT);
+					scrollT = setTimeout(() => { if (this.face === "library" && this._reading === book) { save(null); updProg(); } }, 1500);
+				};
+				$(window).off("scroll.dutyrd").on("scroll.dutyrd", this._rd_scroll);
+				this._reading = book;
+				const wake = async () => {
+					try { this._wakelock = await navigator.wakeLock.request("screen"); } catch (e2) {}
+				};
+				if (navigator.wakeLock) {
+					wake();
+					$(document).off("visibilitychange.dutywake").on("visibilitychange.dutywake", () => {
+						if (document.visibilityState === "visible" && this._reading) wake();
+					});
+				}
+				const go = (name, scrollPct) => {
+					frappe.call({
+						method: "duty_board.library.chapter",
+						args: { name: name },
+						callback: (rr) => {
+							cur = name;
+							if (spk.on) { try { window.speechSynthesis.cancel(); } catch (e2) {} spk.units = []; spk.i = 0; }
+							$bd.html(rr.message.content || `<p class="text-muted">${__("Empty chapter.")}</p>`);
+							renderToc();
+							applyPrefs();
+							hlLoad();
+							setTimeout(updProg, 300);
+							requestAnimationFrame(() => {
+								if (prefs.two) {
+									const el = $sc[0];
+									const step = el.clientWidth + GAP;
+									const raw = scrollPct ? ((el.scrollWidth - el.clientWidth) * scrollPct) / 100 : 0;
+									el.scrollLeft = Math.round(raw / step) * step;
+								} else {
+									const h = document.documentElement.scrollHeight - window.innerHeight;
+									window.scrollTo(0, scrollPct ? (h * scrollPct) / 100 : 0);
+								}
+							});
+							save(null);
+						},
+					});
+				};
+				$L.find(".duty-rd-back").on("click", () => { spkStop(); clearTimeout(this._au_sleep); save(null); this._reading = null; this._rd_stop = null; try { this._wakelock && this._wakelock.release(); } catch (e2) {} $(document).off("keydown.dutyrd visibilitychange.dutywake"); this.refresh_library(); });
+				$L.find(".duty-rd-opt").on("click", (e) => {
+					const o = $(e.currentTarget).data("o");
+					prefs[o] = prefs[o] ? 0 : 1;
+					applyPrefs();
+				});
+				$L.find(".duty-rd-fs").on("click", (e) => {
+					prefs.fs = Math.min(22, Math.max(13, (prefs.fs || 16) + parseInt($(e.currentTarget).data("d"), 10)));
+					applyPrefs();
+				});
+				$L.find(".duty-rd-pgprev").on("click", () => pageBy(-1));
+				$L.find(".duty-rd-pgnext").on("click", () => pageBy(1));
+				$(document).off("keydown.dutyrd").on("keydown.dutyrd", (e) => {
+					if (this.face !== "library" || !this._reading) return;
+					const tag = (document.activeElement || {}).tagName || "";
+					if (/INPUT|TEXTAREA|SELECT/.test(tag) || $(".modal:visible").length) return;
+					if (e.key === "Escape") { zen(0); return; }
+					if (prefs.two) {
+						if (!e.shiftKey && ["Enter", "PageDown", " ", "ArrowRight"].includes(e.key)) { e.preventDefault(); pageBy(1); }
+						else if (["PageUp", "ArrowLeft"].includes(e.key) || (e.shiftKey && ["Enter", " "].includes(e.key))) { e.preventDefault(); pageBy(-1); }
+					} else if (e.key === "Enter") {
+						e.preventDefault();
+						window.scrollBy({ top: (e.shiftKey ? -1 : 1) * window.innerHeight * 0.85, behavior: "smooth" });
+					}
+				});
+				$L.find(".duty-rd-prev").on("click", () => { const i = chIdx(cur); if (i > 0) go(m.chapters[i - 1].name, 0); });
+				$L.find(".duty-rd-next").on("click", () => {
+					doneSet.add(cur);
+					save(cur);
+					const i = chIdx(cur);
+					const done_title = (m.chapters[i] || {}).title || "";
+					if (i < m.chapters.length - 1) {
+						go(m.chapters[i + 1].name, 0);
+						frappe.show_alert({ message: __("✓ “{0}” done — next: {1}", [done_title.slice(0, 40), (m.chapters[i + 1].title || "").slice(0, 40)]), indicator: "green" });
+					} else {
+						renderToc();
+						this.confetti();
+						frappe.show_alert({ message: __("📚 Book finished — rate it for the team!"), indicator: "green" });
+					}
+				});
+				$bd.html(m.content || "");
+				renderToc();
+				loadReviews();
+				applyPrefs();
+				hlLoad();
+				requestAnimationFrame(() => {
+					const sp = m.scroll_pct || 0;
+					if (sp > 1 && !prefs.two) {
+						const h = document.documentElement.scrollHeight - window.innerHeight;
+						window.scrollTo(0, (h * sp) / 100);
+					}
+					updProg();
+				});
+				$sc.off("click.dutyzone").on("click.dutyzone", (e) => {
+					if ($(e.target).closest("a, mark, button, input, select, .duty-rd-nav, .duty-rd-audio").length) return;
+					if (window.getSelection && String(window.getSelection())) return;
+					const mob = $("body").hasClass("duty-mobile");
+					const x = e.clientX / window.innerWidth;
+					const Lz = mob ? 0.3 : 0.15;
+					const Rz = mob ? 0.7 : 0.85;
+					if (x < Lz) prefs.two ? pageBy(-1) : window.scrollBy({ top: -window.innerHeight * 0.85, behavior: "smooth" });
+					else if (x > Rz) prefs.two ? pageBy(1) : window.scrollBy({ top: window.innerHeight * 0.85, behavior: "smooth" });
+					else if (mob) zen();
+				});
+				let tX = null;
+				$sc.off("touchstart.dutyzone touchend.dutyzone")
+					.on("touchstart.dutyzone", (e) => { tX = e.originalEvent.touches[0].clientX; })
+					.on("touchend.dutyzone", (e) => {
+						if (tX === null) return;
+						const dx = e.originalEvent.changedTouches[0].clientX - tX;
+						tX = null;
+						if (Math.abs(dx) < 70) return;
+						if (dx < 0) $L.find(".duty-rd-next").trigger("click");
+						else $L.find(".duty-rd-prev").trigger("click");
+					});
+				$sc.on("scroll", () => { if (prefs.two) this._rd_scroll(); });
+				$(window).off("resize.dutyrd").on("resize.dutyrd", () => { if (this._reading) applyPrefs(); });
+				requestAnimationFrame(() => {
+					if (prefs.two) {
+						const el = $sc[0];
+						el.scrollLeft = m.scroll_pct ? ((el.scrollWidth - el.clientWidth) * m.scroll_pct) / 100 : 0;
+					} else {
+						const h = document.documentElement.scrollHeight - window.innerHeight;
+						window.scrollTo(0, m.scroll_pct ? (h * m.scroll_pct) / 100 : 0);
+					}
+				});
+			},
+		});
+	}
+
+	suggest_meeting_dialog(id, topic, after) {
+		this._sg_slot = null;
+		const d = new frappe.ui.Dialog({
+			title: __("↷ Suggest another time — {0}", [topic || __("meeting")]),
+			fields: [
+				{ fieldname: "date", fieldtype: "Date", label: __("Day"), reqd: 1, change: () => load() },
+				{ fieldname: "slots", fieldtype: "HTML" },
+			],
+			primary_action_label: __("Send suggestion"),
+			primary_action: (v) => {
+				if (!this._sg_slot) return frappe.msgprint(__("Pick one of the free slots."));
+				frappe.call({
+					method: "duty_board.client_room.suggest_meeting_time",
+					args: { id: id, date: v.date, time: this._sg_slot },
+					callback: (r) => {
+						d.hide();
+						frappe.show_alert({ message: __("Suggestion posted in the client's room."), indicator: "green" });
+						after && after(r);
+					},
+				});
+			},
+		});
+		const load = () => {
+			const dt = d.get_value("date");
+			if (!dt) return;
+			d.fields_dict.slots.$wrapper.html(`<div class="text-muted">${__("Checking the team's calendar…")}</div>`);
+			frappe.call({
+				method: "duty_board.client_room.meeting_slots_staff",
+				args: { id: id, date: dt },
+				callback: (r) => {
+					const slots = r.message || [];
+					this._sg_slot = null;
+					d.fields_dict.slots.$wrapper.html(
+						slots.length
+							? `<div class="duty-sg-slots">${slots.map((s) => `<a class="duty-sg-slot" data-s="${s}">${s}</a>`).join("")}</div>`
+							: `<div class="text-muted">${__("No free slots that day — try another.")}</div>`
+					);
+					d.fields_dict.slots.$wrapper.find(".duty-sg-slot").on("click", (e) => {
+						this._sg_slot = $(e.currentTarget).data("s");
+						d.fields_dict.slots.$wrapper.find(".duty-sg-slot").removeClass("on");
+						$(e.currentTarget).addClass("on");
+					});
+				},
+			});
+		};
+		d.show();
+		d.fields_dict.date.$input && d.fields_dict.date.$input.attr("min", frappe.datetime.get_today());
+	}
+
+	team_training_dialog() {
+		frappe.call({
+			method: "duty_board.client_room.training_team_overview",
+			callback: (r) => {
+				const m = r.message || { people: [] };
+				const d = new frappe.ui.Dialog({ title: __("🎓 Team training & certification"), size: "extra-large" });
+				const detail_html = (
+					(m.people || []).map((p) => `
+					<div style="border:1px solid #E8E5DD;border-radius:12px;padding:11px 14px;margin-bottom:10px">
+						<div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+							<b style="font-size:14px">${frappe.utils.escape_html(p.name)}</b>
+							<span style="font-size:11.5px;font-weight:700;border-radius:99px;padding:3px 10px;background:${p.completed === p.assigned ? "#E4EEEA" : "#FBF3E4"};color:${p.completed === p.assigned ? "#0E5A4A" : "#A96F1A"}">${p.completed}/${p.assigned} ${__("courses complete")}</span>
+							${(p.certificates || []).map((c) => `<span title="${frappe.utils.escape_html(c.title)} · ${c.on}" style="font-size:11.5px;background:#EFEDE6;border-radius:99px;padding:3px 10px">🎓 ${frappe.utils.escape_html(c.product || c.title)}</span>`).join("")}
+							<span class="text-muted" style="font-size:11.5px;margin-left:auto">${p.last_active ? __("last active") + " " + p.last_active : __("no activity yet")}</span>
+						</div>
+						<div style="margin-top:7px">
+							${(p.rows || []).map((z) => `
+							<div style="display:flex;gap:9px;align-items:center;padding:4px 0;border-bottom:1px solid #F5F3EE;font-size:12.5px">
+								<span>${z.status === "Completed" ? "✅" : z.lessons_done ? "▶" : "○"}</span>
+								<span style="flex:1;min-width:0">${frappe.utils.escape_html(z.title)}${z.product ? ` <span class="text-muted" style="font-size:11px">· ${frappe.utils.escape_html(z.product)}</span>` : ""}</span>
+								<span class="text-muted" style="font-size:11.5px;white-space:nowrap">${z.lessons_done}/${z.lessons_total} ${__("lessons")}</span>
+								${z.quiz_attempts ? `<span title="${z.quiz_attempts} ${__("attempt(s) in total")}" style="font-size:11.5px;white-space:nowrap;font-weight:700;color:${z.quiz_passed ? "#0E5A4A" : "#A96F1A"}">${__("quiz")} ${z.quiz_best}% ${z.quiz_passed ? `✓ ${z.quiz_to_pass === 1 ? __("first try") : __("passed on attempt {0}", [z.quiz_to_pass])}` : `${__("not passed")} · ${z.quiz_attempts}× ${__("so far")}`}</span>` : ""}
+								${z.completed_on ? `<span class="text-muted" style="font-size:11px;white-space:nowrap">${z.completed_on}</span>` : ""}
+							</div>`).join("")}
+						</div>
+					</div>`).join("") || `<div class="text-muted">${__("No staff training assignments yet — assign tracks from the Me face (My training → Assign to a colleague).")}</div>`
+				);
+				const esc = frappe.utils.escape_html;
+				const people = m.people || [];
+				const ckeys = [];
+				const seen = {};
+				people.forEach((p) => (p.rows || []).forEach((z) => {
+					const k = z.title + (z.product ? " · " + z.product : "");
+					if (!seen[k]) { seen[k] = 1; ckeys.push({ k: k, title: z.title }); }
+				}));
+				const cell = (z) => {
+					if (!z) return `<td class="tm-c tm-none">—</td>`;
+					const tip = `${esc(z.title)} · ${z.lessons_done}/${z.lessons_total} ${__("lessons")}${z.quiz_attempts ? ` · ${__("quiz best")} ${z.quiz_best}%${z.quiz_passed ? " ✓" : ` (${z.quiz_attempts}×)`}` : ""}`;
+					if (z.status === "Completed") return `<td class="tm-c tm-done" title="${tip}">✓</td>`;
+					if (z.quiz_attempts && !z.quiz_passed) return `<td class="tm-c tm-fail" title="${tip}">${z.quiz_best}%</td>`;
+					if (z.lessons_done) return `<td class="tm-c tm-prog" title="${tip}">${z.lessons_done}/${z.lessons_total}</td>`;
+					return `<td class="tm-c tm-zero" title="${tip}">○</td>`;
+				};
+				const matrix_html = people.length && ckeys.length
+					? `<div class="tm-wrap"><table class="tm">
+						<thead><tr><th>${__("Staff")}</th>${ckeys.map((c) => `<th title="${esc(c.k)}">${esc(c.title)}</th>`).join("")}</tr></thead>
+						<tbody>${people.map((p) => {
+							const map = {};
+							(p.rows || []).forEach((z) => (map[z.title + (z.product ? " · " + z.product : "")] = z));
+							return `<tr><th>${esc(p.name)}</th>${ckeys.map((c) => cell(map[c.k])).join("")}</tr>`;
+						}).join("")}</tbody></table></div>
+						<div class="tm-legend"><span class="tm-done">✓</span> ${__("completed")} · <span class="tm-prog">n/n</span> ${__("in progress")} · <span class="tm-fail">%</span> ${__("quiz not yet passed")} · ○ ${__("not started")} · — ${__("not assigned")}</div>`
+					: detail_html;
+				$(d.body).html(`
+					<div class="tm-tabs"><a class="on" data-t="matrix">▦ ${__("Matrix")}</a><a data-t="detail">☰ ${__("Detail")}</a></div>
+					<div class="tm-body"></div>`);
+				const show_t = (t) => {
+					$(d.body).find(".tm-tabs a").removeClass("on").filter(`[data-t="${t}"]`).addClass("on");
+					$(d.body).find(".tm-body").html(t === "matrix" ? matrix_html : detail_html);
+				};
+				$(d.body).find(".tm-tabs a").on("click", (e) => show_t($(e.currentTarget).data("t")));
+				show_t("matrix");
+				d.show();
+			},
+		});
+	}
+
+	timeline_dialog(x) {
+		frappe.call({
+			method: "duty_board.timeline.timeline",
+			args: { room: x.name },
+			callback: (r) => {
+				const t = r.message || { events: [], summary: {} };
+				const d = new frappe.ui.Dialog({ title: __("📜 {0} — Delivery timeline", [x.customer]), size: "extra-large" });
+				const CHIP = { client: ["CLIENT", "#A96F1A", "#FBF3E4"], xlevel: ["XLEVEL", "#0E5A4A", "#E4EEEA"], info: ["", "", ""] };
+				$(d.body).html(`
+					<div style="border:1px solid #E8E5DD;border-radius:10px;padding:10px 14px;margin-bottom:12px;font-size:13px">
+						<b>${__("Attributed waiting time")}</b> — ${__("client")}: <b style="color:#A96F1A">${t.summary.client_days || 0} ${__("day(s)")}</b> ·
+						Xlevel: <b style="color:#0E5A4A">${t.summary.xlevel_days || 0} ${__("day(s)")}</b>
+						<div class="text-muted" style="font-size:11.5px;margin-top:3px">${__("Client days = dependency lateness + CR approval waits · Xlevel days = acceptance-defect open time. Every line is a recorded system event.")}</div>
+					</div>
+					<div style="max-height:55vh;overflow-y:auto">
+						${(t.events || []).map((e) => {
+							const c = CHIP[e.who] || CHIP.info;
+							return `<div style="display:flex;gap:10px;align-items:baseline;padding:5px 2px;border-bottom:1px solid #F0EEE8;font-size:12.5px">
+								<span class="text-muted" style="white-space:nowrap;font-size:11.5px">${e.when}</span>
+								<span>${e.icon}</span>
+								<span style="flex:1">${frappe.utils.escape_html(e.text)}</span>
+								${c[0] ? `<span style="font-size:9px;font-weight:800;letter-spacing:1px;color:${c[1]};background:${c[2]};border-radius:99px;padding:2px 8px">${c[0]}</span>` : ""}
+							</div>`;
+						}).join("") || `<div class="text-muted">${__("Nothing recorded yet.")}</div>`}
+					</div>
+					<button class="btn btn-sm btn-default" data-pdf style="margin-top:10px">📄 ${__("Export as PDF")}</button>`);
+				$(d.body).find("[data-pdf]").on("click", (e) => {
+					$(e.currentTarget).prop("disabled", true).text(__("Generating…"));
+					frappe.call({
+						method: "duty_board.timeline.timeline_pdf",
+						args: { room: x.name },
+						callback: (rr) => {
+							if (rr.message && rr.message.file_url) window.open(rr.message.file_url, "_blank");
+							$(e.currentTarget).prop("disabled", false).text("📄 " + __("Export as PDF"));
+						},
+					});
+				});
+				d.show();
+			},
+		});
+	}
+
+	uat_dialog(x) {
+		frappe.call({
+			method: "duty_board.uat.uat_state",
+			args: { room: x.name },
+			callback: (r) => {
+				const m = r.message || {};
+				const rows = m.rows || [];
+				const p = m.progress || {};
+				const d = new frappe.ui.Dialog({ title: __("🧪 {0} — Acceptance testing", [x.customer]), size: "extra-large" });
+				const CH = { "Passed": "✅", "Failed": "❌", "Blocked": "⛔", "Blocked by Issue": "🔧", "Waived": "⚪", "Awaiting Client": "🕐" };
+				const reload = () => { d.hide(); this.uat_dialog(x); };
+				const call = (method, args) => frappe.call({ method: "duty_board.uat." + method, args: args, callback: reload });
+				const secs = {};
+				rows.forEach((z) => (secs[z.section || "General"] = secs[z.section || "General"] || []).push(z));
+				$(d.body).html(`
+					${m.uat_due && !m.signoff ? `<div class="text-muted" style="font-size:12px;margin-bottom:6px">🗓 ${__("Window ends")} ${m.uat_due}</div>` : ""}
+					${m.signoff ? `<div style="background:#E4EEEA;border-radius:10px;padding:9px 12px;font-size:13px;margin-bottom:10px">✍ <b>${__("Signed off")}</b> ${__("by")} ${frappe.utils.escape_html(m.signoff.signed_full)} · ${m.signoff.signed_at} · ${m.signoff.passed}/${m.signoff.total} ${__("passed")}${m.signoff.exceptions ? `<br><span class="text-muted" style="font-size:12px">${__("Exceptions")}: ${frappe.utils.escape_html(m.signoff.exceptions)}</span>` : ""}</div>` : ""}
+					${rows.length ? `<div style="font-size:12.5px;margin-bottom:8px"><b>${p.passed || 0}</b>/${p.total || 0} ${__("passed")}${p.failed ? ` · <b style="color:#b91c1c">${p.failed} ${__("failed")}</b>` : ""}${p.blocked ? ` · ${p.blocked} ${__("blocked")}` : ""}${p.waived ? ` · ${p.waived} ${__("waived")}` : ""}${p.awaiting ? ` · ${p.awaiting} ${__("awaiting client")}` : ""}</div>` : ""}
+					${!rows.length ? `
+						<p class="text-muted">${__("No acceptance cases yet — pick which template bank(s) to seed for this engagement.")} ${(m.templates || []).length ? "" : __("None exist yet — a manager creates them under Duty UAT Template.")}</p>
+						<button class="btn btn-sm btn-primary" data-seed ${(m.templates || []).length ? "" : "disabled"}>🧪 ${__("Seed UAT…")}</button>`
+					: Object.keys(secs).map((s) => `
+						<div style="font-size:11px;font-weight:800;letter-spacing:1px;margin:10px 0 4px;color:#6B7772;text-transform:uppercase">${frappe.utils.escape_html(s)}</div>
+						${secs[s].map((z) => `
+						<div style="border:1px solid #E8E5DD;border-radius:10px;padding:8px 11px;margin-bottom:6px;display:flex;gap:9px;align-items:center;flex-wrap:wrap">
+							<span>${CH[z.status] || ""}</span>
+							<b style="font-size:13px;flex:1;min-width:180px">${z.code ? `<span class="text-muted" style="font-weight:600;font-size:11px">${frappe.utils.escape_html(z.code)}</span> ` : ""}${frappe.utils.escape_html(z.title)}</b>
+							<span class="text-muted" style="font-size:11.5px">${z.attempts.length ? z.attempts.length + "× " + __("tested") : ""}</span>
+							<span class="text-muted" style="font-size:11.5px;font-weight:700">${__(z.status)}</span>
+							${z.issue ? `<a style="font-size:11.5px" onclick="frappe.set_route('Form','Duty Issue','${z.issue}')">🔧 ${z.issue}</a>` : ""}
+							<span style="white-space:nowrap">
+								${z.status !== "Waived" && !m.signoff ? `<button class="btn btn-xs btn-default" data-rec="${z.name}" title="${__("Record a result on the client's behalf")}">✍ ${__("record")}</button>` : ""}
+								<button class="btn btn-xs btn-default" data-edit="${z.name}">✎</button>
+								${m.manager && z.status !== "Waived" && !m.signoff ? `<button class="btn btn-xs btn-default" data-waive="${z.name}">${__("waive")}</button>` : ""}
+								<button class="btn btn-xs btn-default" data-del="${z.name}" style="color:#B0443C">×</button>
+							</span>
+						</div>`).join("")}`).join("") + `
+						<button class="btn btn-sm btn-primary" data-addcase style="margin-top:6px">＋ ${__("Add a case for this engagement")}</button>
+						${!m.signoff ? `<button class="btn btn-sm btn-default" data-seed style="margin-top:6px">🧪 ${__("Seed another template…")}</button>` : ""}
+						${m.manager && Object.keys(rows.reduce((a, z) => { if (z.template) a[z.template] = 1; return a; }, {})).length && !m.signoff ? `<button class="btn btn-sm btn-default" data-unseed style="margin-top:6px;color:#B0443C">${__("Unseed a template…")}</button>` : ""}`}
+				`);
+				const seededFrom = {};
+				rows.forEach((z) => { if (z.template) seededFrom[z.template] = 1; });
+				const roomProds = (m.room_products || "").toLowerCase();
+				$(d.body).find("[data-seed]").on("click", () =>
+					frappe.prompt(
+						[{
+							fieldname: "templates", fieldtype: "MultiCheck", label: __("Template banks to seed"), columns: 2,
+							options: (m.templates || []).map((t) => ({
+								label: seededFrom[t] ? t + " (" + __("already seeded") + ")" : t,
+								value: t,
+								checked: !seededFrom[t] && roomProds.indexOf(t.toLowerCase()) >= 0 ? 1 : 0,
+							})),
+						},
+						{ fieldname: "due", fieldtype: "Date", label: __("Testing window ends (optional — drives client reminders)") }],
+						(v) => {
+							const chosen = v.templates || [];
+							if (!chosen.length) return;
+							call("uat_seed", { room: x.name, templates: chosen.join(","), due: v.due || null });
+						},
+						__("Seed acceptance tests"), __("Seed")
+					)
+				);
+				$(d.body).find("[data-unseed]").on("click", () =>
+					frappe.prompt(
+						{ fieldname: "template", fieldtype: "Select", label: __("Remove untested cases seeded from"), options: Object.keys(seededFrom), reqd: 1 },
+						(v) => call("uat_unseed", { room: x.name, template: v.template }),
+						__("Unseed template"), __("Remove")
+					)
+				);
+				$(d.body).find("[data-addcase]").on("click", () => frappe.prompt(
+					[
+						{ fieldname: "section", fieldtype: "Data", label: __("Section"), default: "General" },
+						{ fieldname: "title", fieldtype: "Data", label: __("Scenario"), reqd: 1 },
+						{ fieldname: "steps", fieldtype: "Small Text", label: __("Steps") },
+						{ fieldname: "expected", fieldtype: "Small Text", label: __("Expected result") },
+					],
+					(v) => call("uat_case_add", { room: x.name, title: v.title, section: v.section, steps: v.steps || null, expected: v.expected || null }),
+					__("New acceptance case"), __("Add")
+				));
+				$(d.body).find("[data-edit]").on("click", (e) => {
+					const id = $(e.currentTarget).data("edit");
+					const z = rows.find((q) => q.name === id) || {};
+					frappe.prompt(
+						[
+							{ fieldname: "section", fieldtype: "Data", label: __("Section"), default: z.section },
+							{ fieldname: "title", fieldtype: "Data", label: __("Scenario"), default: z.title, reqd: 1 },
+							{ fieldname: "steps", fieldtype: "Small Text", label: __("Steps"), default: z.steps },
+							{ fieldname: "expected", fieldtype: "Small Text", label: __("Expected result"), default: z.expected },
+						],
+						(v) => call("uat_case_update", { name: id, title: v.title, section: v.section, steps: v.steps || "", expected: v.expected || "" }),
+						__("Edit case"), __("Save")
+					);
+				});
+				$(d.body).find("[data-rec]").on("click", (e) => {
+					const id = $(e.currentTarget).data("rec");
+					frappe.prompt(
+						[
+							{ fieldname: "result", fieldtype: "Select", label: __("Result"), options: ["Pass", "Fail", "Blocked"], reqd: 1 },
+							{ fieldname: "observed", fieldtype: "Small Text", label: __("What happened (required for Fail/Blocked)") },
+						],
+						(v) => call("uat_record", { name: id, result: v.result, observed: v.observed || null }),
+						__("Record on client's behalf"), __("Record")
+					);
+				});
+				$(d.body).find("[data-waive]").on("click", (e) => frappe.prompt(
+					{ fieldname: "reason", fieldtype: "Data", label: __("Waived because"), reqd: 1 },
+					(v) => call("uat_waive", { name: $(e.currentTarget).data("waive"), reason: v.reason }),
+					__("Waive case"), __("Waive")
+				));
+				$(d.body).find("[data-del]").on("click", (e) => frappe.confirm(__("Delete this case (and its attempt history)?"), () =>
+					call("uat_case_delete", { name: $(e.currentTarget).data("del") })
+				));
+				d.show();
+			},
+		});
+	}
+
+	deps_dialog(x) {
+		frappe.call({
+			method: "duty_board.commercial.deps_list",
+			args: { room: x.name },
+			callback: (r) => {
+				const rows = r.message || [];
+				const d = new frappe.ui.Dialog({ title: __("📋 Awaiting from {0}", [x.customer]), size: "large" });
+				const badge = (s, o) => s === "Received" ? "✅" : s === "Waived" ? "⚪" : s === "Provided" ? "📨" : o ? "🔴" : "🕐";
+				$(d.body).html(`
+					${rows.length ? `<table class="table table-sm" style="font-size:12px"><tr><th></th><th>${__("Item")}</th><th>${__("Due")}</th><th>${__("Age")}</th><th>${__("Blocks")}</th><th></th></tr>
+					${rows.map((z) => `<tr style="${z.overdue ? "background:#fef2f2" : ""}">
+						<td>${badge(z.status, z.overdue)}</td>
+						<td><b>${frappe.utils.escape_html(z.title)}</b><br><span class="text-muted">${frappe.utils.escape_html(z.category || "")}${z.provided_note ? " · 💬 " + frappe.utils.escape_html(z.provided_note) : ""}</span></td>
+						<td>${z.due_date || "—"}${z.overdue ? `<br><b style="color:#b91c1c">${z.days_late}d ${__("late")}</b>` : ""}</td>
+						<td>${z.age_days}d${z.remind_count ? `<br>🔔×${z.remind_count}` : ""}</td>
+						<td style="max-width:140px">${frappe.utils.escape_html(z.blocks || "")}</td>
+						<td style="white-space:nowrap">
+							${z.status === "Awaiting" || z.status === "Provided" ? `<button class="btn btn-xs btn-success" data-recv="${z.name}">✓ ${__("received")}</button> <button class="btn btn-xs btn-default" data-rem="${z.name}">🔔</button>` : ""}
+							${z.status === "Provided" ? `<button class="btn btn-xs btn-default" data-back="${z.name}" title="${__("not usable — reopen")}">↩</button>` : ""}
+							${z.status === "Awaiting" ? `<button class="btn btn-xs btn-default" data-waive="${z.name}">${__("waive")}</button>` : ""}
+						</td></tr>`).join("")}</table>` : `<p class="text-muted">${__("Nothing awaited from this client.")}</p>`}
+					<button class="btn btn-sm btn-primary" data-adddep>＋ ${__("New dependency")}</button>
+				`);
+				const reload = () => { d.hide(); this.deps_dialog(x); };
+				$(d.body).find("[data-recv]").on("click", (e) => frappe.call({ method: "duty_board.commercial.dep_receive", args: { name: $(e.currentTarget).data("recv") }, callback: reload }));
+				$(d.body).find("[data-rem]").on("click", (e) => frappe.call({ method: "duty_board.commercial.dep_remind", args: { name: $(e.currentTarget).data("rem") }, callback: () => frappe.show_alert({ message: __("🔔 Reminder posted to the room"), indicator: "blue" }) }));
+				$(d.body).find("[data-back]").on("click", (e) => frappe.prompt({ fieldname: "note", fieldtype: "Data", label: __("Why isn't it usable?") }, (v) => frappe.call({ method: "duty_board.commercial.dep_reopen", args: { name: $(e.currentTarget).data("back"), note: v.note }, callback: reload }), __("Reopen"), __("Reopen")));
+				$(d.body).find("[data-waive]").on("click", (e) => frappe.prompt({ fieldname: "reason", fieldtype: "Data", label: __("Reason") }, (v) => frappe.call({ method: "duty_board.commercial.dep_waive", args: { name: $(e.currentTarget).data("waive"), reason: v.reason }, callback: reload }), __("Waive"), __("Waive")));
+				$(d.body).find("[data-adddep]").on("click", () => frappe.prompt(
+					[
+						{ fieldname: "title", fieldtype: "Data", label: __("What do we need?"), reqd: 1 },
+						{ fieldname: "category", fieldtype: "Select", label: __("Category"), options: ["Data / Template", "Opening Balances", "Master Data", "Approval / Sign-off", "Credentials / Access", "Process Decision", "Test Results / UAT", "Training Attendance", "Document", "Payment", "Named Staff", "Other"], default: "Other" },
+						{ fieldname: "detail", fieldtype: "Small Text", label: __("Detail / format expected") },
+						{ fieldname: "due_date", fieldtype: "Date", label: __("Due") },
+						{ fieldname: "blocks", fieldtype: "Data", label: __("What this blocks (shown to management)") },
+					],
+					(v) => frappe.call({ method: "duty_board.commercial.dep_add", args: { room: x.name, title: v.title, category: v.category, detail: v.detail || null, due_date: v.due_date || null, blocks: v.blocks || null }, callback: reload }),
+					__("New dependency"), __("Request")
+				));
+				d.show();
+			},
+		});
 	}
 
 	academy_dialog(x) {
@@ -4025,7 +6548,48 @@ class DutyBoard {
 					<button type="button" class="btn btn-sm btn-primary duty-acad-assign">＋</button>
 					<a class="duty-acad-newmod" style="cursor:pointer;font-size:var(--text-xs);align-self:center">＋ ${__("new module")}</a>
 				</div>
+				<div class="duty-cr-addmem duty-acad-trackrow" style="flex-wrap:wrap;margin-top:6px;display:none">
+					<select class="form-control input-sm duty-acad-track" style="flex:1"></select>
+					<button type="button" class="btn btn-sm btn-primary duty-acad-assigntrack">🎓 ${__("Assign whole track")}</button>
+				</div>
 			`);
+			frappe.call({
+				method: "duty_board.client_room.room_tracks_for_assign",
+				args: { name: x.name },
+				callback: (tr) => {
+					const tracks = tr.message || [];
+					if (!tracks.length) return;
+					const $row = $(d.body).find(".duty-acad-trackrow");
+					$row.find(".duty-acad-track").html(
+						tracks
+							.map(
+								(t) =>
+									`<option value="${t.name}">🎓 ${frappe.utils.escape_html((t.product ? t.product + " · " : "") + t.title)} (${t.module_count} ${__("courses")})</option>`
+							)
+							.join("")
+					);
+					$row.show();
+					$row.find(".duty-acad-assigntrack").on("click", () =>
+						frappe.call({
+							method: "duty_board.client_room.training_assign_track_room",
+							args: {
+								name: x.name,
+								track: $row.find(".duty-acad-track").val(),
+								user: $(d.body).find(".duty-acad-user").val(),
+							},
+							callback: (rr) => {
+								const m = rr.message || {};
+								frappe.show_alert({
+									message: __("🎓 Track assigned: {0} new, {1} already had.", [m.created || 0, m.existing || 0]),
+									indicator: "green",
+								});
+								d.hide();
+								this.academy_dialog(x);
+							},
+						})
+					);
+				},
+			});
 			$(d.body).find(".duty-acad-assign").on("click", () =>
 				frappe.call({
 					method: "duty_board.client_room.training_assign",
@@ -4286,102 +6850,223 @@ class DutyBoard {
 	}
 
 	chreqs_dialog(x) {
-		const d = new frappe.ui.Dialog({ title: `💱 ${x.customer} — ${__("Change Requests")}`, size: "extra-large" });
-		const CHIP = {
-			"Draft": ["✏️", "#6b7280"], "Awaiting Approval": ["🟠", "#b45309"],
-			"Approved": ["✅", "#15803d"], "Declined": ["↩", "#dc2626"],
-			"In Delivery": ["🚀", "#0E7490"], "Delivered": ["📦", "#15803d"],
+		if (!document.getElementById("xcr-css")) {
+			const f = document.createElement("link");
+			f.rel = "stylesheet";
+			f.href = "https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600&display=swap";
+			document.head.appendChild(f);
+			const s = document.createElement("style");
+			s.id = "xcr-css";
+			s.textContent = `
+			.xcr{--ink:#182420;--mut:#6B7772;--fnt:#96A09B;--ln:#E8E5DD;--soft:#EFEDE6;--brand:#0E5A4A;--bsoft:#E4EEEA;--amber:#A96F1A;--asoft:#FBF3E4;--red:#B0443C;--good:#2E7D5B;font-size:13.5px;color:var(--ink)}
+			.xcr-sum{font-size:12px;color:var(--mut);margin:0 2px 12px}
+			.xcr-row{display:flex;align-items:center;gap:12px;padding:12px 14px;border:1px solid var(--ln);border-radius:12px;margin-bottom:8px;cursor:pointer;background:#fff;transition:box-shadow .1s}
+			.xcr-row:hover{box-shadow:0 2px 10px -4px rgba(24,36,32,.18)}
+			.xcr-dot{width:10px;height:10px;border-radius:50%;flex:none}
+			.xcr-row .t{font-weight:600;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+			.xcr-row .s{font-size:12px;color:var(--fnt);margin-left:auto;white-space:nowrap;display:flex;gap:10px;align-items:center}
+			.xcr-chip{font-size:11px;font-weight:700;letter-spacing:.04em;border-radius:99px;padding:3px 10px;background:var(--soft);color:var(--mut);white-space:nowrap}
+			.xcr-chip.amber{background:var(--asoft);color:var(--amber)}
+			.xcr-chip.green{background:var(--bsoft);color:var(--brand)}
+			.xcr-chip.red{background:#FBEDEB;color:var(--red)}
+			.xcr-amt{font-family:'Fraunces',serif;font-weight:600;font-size:14px;color:var(--ink)}
+			.xcr-back{font-size:12.5px;font-weight:600;color:var(--mut);cursor:pointer;display:inline-block;margin-bottom:10px}
+			.xcr-back:hover{color:var(--ink)}
+			.xcr-h{font-family:'Fraunces',serif;font-weight:600;font-size:20px;letter-spacing:-.01em;margin:0 0 10px}
+			.xcr-steps{display:flex;gap:0;margin:14px 0 16px}
+			.xcr-step{flex:1;text-align:center;font-size:10.5px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--fnt);position:relative;padding-top:14px}
+			.xcr-step::before{content:"";position:absolute;top:4px;left:50%;transform:translateX(-50%);width:9px;height:9px;border-radius:50%;background:var(--ln)}
+			.xcr-step::after{content:"";position:absolute;top:8px;left:calc(50% + 8px);right:calc(-50% + 8px);height:2px;background:var(--ln)}
+			.xcr-step:last-child::after{display:none}
+			.xcr-step.on{color:var(--brand)}.xcr-step.on::before{background:var(--brand)}
+			.xcr-step.now{color:var(--ink)}.xcr-step.now::before{background:var(--brand);box-shadow:0 0 0 3px var(--bsoft)}
+			.xcr-step.bad{color:var(--red)}.xcr-step.bad::before{background:var(--red)}
+			.xcr-note{border-radius:10px;padding:9px 12px;font-size:12.5px;margin-bottom:12px}
+			.xcr-note.amber{background:var(--asoft);color:var(--amber)}
+			.xcr-note.green{background:var(--bsoft);color:var(--brand)}
+			.xcr-f{display:grid;grid-template-columns:110px 1fr;gap:7px 14px;margin:12px 0}
+			.xcr-f dt{font-size:10.5px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--fnt);padding-top:2px}
+			.xcr-f dd{margin:0;font-size:13px;color:var(--ink);white-space:pre-wrap}
+			.xcr-acts{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px;padding-top:12px;border-top:1px solid var(--ln)}
+			.xcr-acts button{border:0;border-radius:9px;padding:7px 14px;font-size:12.5px;font-weight:600;cursor:pointer;background:var(--soft);color:var(--ink)}
+			.xcr-acts button.pri{background:var(--brand);color:#fff}
+			.xcr-acts button.dngr{background:#FBEDEB;color:var(--red)}
+			.xcr-new{display:flex;gap:8px;margin-top:12px}
+			.xcr-new input{flex:1;border:1px solid var(--ln);border-radius:10px;padding:8px 12px;font-size:13px}
+			.xcr-new button{border:0;border-radius:10px;padding:8px 16px;background:var(--brand);color:#fff;font-weight:600;cursor:pointer}
+			.xcr-empty{color:var(--fnt);font-size:13px;padding:18px 4px}`;
+			document.head.appendChild(s);
+		}
+		const d = new frappe.ui.Dialog({ title: `${x.customer} — ${__("Change requests")}`, size: "large" });
+		let view = null;
+		const PRICE_CHIP = (c) => {
+			const ps = c.pricing_status || "Awaiting Pricing";
+			if (c.status === "Declined") return `<span class="xcr-chip red">${__("declined")}</span>`;
+			if (ps === "Awaiting Pricing") return `<span class="xcr-chip amber">${__("awaiting pricing")}</span>`;
+			if (ps === "Priced") return `<span class="xcr-amt">${frappe.utils.escape_html(c.cost_fmt || "")}</span>`;
+			if (ps === "Covered by Subscription") return `<span class="xcr-chip green">${__("covered")}</span>`;
+			if (ps === "Goodwill") return `<span class="xcr-chip green">${__("goodwill")}</span>`;
+			return `<span class="xcr-chip">${__(ps.toLowerCase())}</span>`;
+		};
+		const DOT = (c) =>
+			c.status === "Declined" ? "var(--red)"
+			: ["Approved", "Delivered"].includes(c.status) ? "var(--good)"
+			: c.status === "In Delivery" ? "#0E7490"
+			: (c.pricing_status || "Awaiting Pricing") === "Awaiting Pricing" || c.status === "Awaiting Approval" ? "var(--amber)"
+			: "var(--fnt)";
+		const call = (method, args) =>
+			frappe.call({
+				method: "duty_board.client_room." + method,
+				args: args,
+				callback: (r) => {
+					if (r.message) {
+						render(r.message);
+						this.render_client_room(r.message);
+					}
+				},
+			});
+		const stepper = (c) => {
+			const ps = c.pricing_status || "Awaiting Pricing";
+			const free = ["Covered by Subscription", "Goodwill"].includes(ps);
+			const steps = free
+				? [__("Drafted"), ps === "Goodwill" ? __("Goodwill") : __("Covered"), __("In delivery"), __("Delivered")]
+				: [__("Drafted"), __("Priced"), __("Client approval"), __("Approved"), __("In delivery"), __("Delivered")];
+			let idx = 0;
+			if (free) idx = c.status === "Delivered" ? 3 : c.status === "In Delivery" ? 2 : 1;
+			else if (c.status === "Delivered") idx = 5;
+			else if (c.status === "In Delivery") idx = 4;
+			else if (c.status === "Approved") idx = 3;
+			else if (c.status === "Awaiting Approval") idx = 2;
+			else idx = ps === "Priced" ? 1 : 0;
+			const bad = c.status === "Declined";
+			return `<div class="xcr-steps">${steps
+				.map((s, i) => `<div class="xcr-step ${bad && i === 2 ? "bad" : i < idx ? "on" : i === idx ? "now" : ""}">${s}</div>`)
+				.join("")}</div>`;
 		};
 		const render = (data) => {
 			const crs = data.change_requests || [];
-			$(d.body).html(`
-				<div class="duty-cr-mslist">
-					${crs
-						.map((c) => {
-							const [icon, color] = CHIP[c.status] || ["", "#6b7280"];
-							const locked = ["Approved", "In Delivery", "Delivered"].includes(c.status);
-							return `
-						<div class="duty-cr-msrow ${locked ? "locked" : ""}">
-							<span style="color:${color};white-space:nowrap">${icon} <b>${frappe.utils.escape_html(c.title)}</b> <span class="duty-lead-chip">${__(c.status)}</span></span>
-							${c.cost_fmt ? `<span class="text-muted">💰 ${c.cost_fmt}</span>` : ""}
-							${c.timeline_impact ? `<span class="text-muted">⏱ ${frappe.utils.escape_html(c.timeline_impact)}</span>` : ""}
-							${c.quotation ? `<span class="text-muted">📄 ${frappe.utils.escape_html(c.quotation)}</span>` : ""}
-							${c.cards_total ? `<span class="duty-cr-msev ${c.cards_done === c.cards_total ? "ready" : ""}">📋 ${c.cards_done}/${c.cards_total} ${__("tasks")}</span>` : ""}
-							${c.status === "Approved" || c.status === "In Delivery" || c.status === "Delivered"
-								? `<span class="duty-cr-mssig">${__("Approved by")} <b>${frappe.utils.escape_html(c.approved_full || "")}</b> · ${c.approved_at || ""}${c.approved_fmt ? ` · ${c.approved_fmt}` : ""}${c.approval_note ? ` · “${frappe.utils.escape_html(c.approval_note)}”` : ""}</span>`
-								: ""}
-							${c.status === "Declined" && c.decline_reason ? `<span class="duty-cr-mssig" style="color:#dc2626">↩ “${frappe.utils.escape_html(c.decline_reason)}” · ${c.declined_at || ""}</span>` : ""}
-							<span class="duty-cr-msacts">
-								${!locked ? `<a data-a="edit" data-id="${c.name}">✎ ${__("Edit")}</a>` : ""}
-								<a data-a="tasks" data-id="${c.name}">📋 ${__("Tasks")}</a>
-								${c.source_message ? `<a data-a="origin" data-id="${c.name}">💬 ${__("Origin")}</a>` : ""}
-								${c.status === "Draft" ? `<a data-a="ask" data-id="${c.name}" class="duty-cr-msask">💱 ${__("Send for approval")}</a>` : ""}
-								${c.status === "Awaiting Approval" ? `<b class="duty-cr-mswait">${__("client's move")}</b> <a data-a="recall" data-id="${c.name}">↩ ${__("Recall")}</a>` : ""}
-								${c.status === "Declined" ? `<a data-a="reopen" data-id="${c.name}">✏️ ${__("Revise")}</a>` : ""}
-								${c.status === "Approved" ? `<a data-a="deliver" data-id="${c.name}">🚀 ${__("Start delivery")}</a>` : ""}
-								${c.status === "In Delivery" ? `<a data-a="done" data-id="${c.name}">📦 ${__("Mark delivered")}</a>` : ""}
-								${["Draft", "Declined"].includes(c.status) ? `<a data-a="del" data-id="${c.name}" style="color:var(--red-600,#dc2626)">🗑</a>` : ""}
+			if (view && !crs.some((z) => z.name === view)) view = null;
+			if (!view) {
+				const waitP = crs.filter((z) => (z.pricing_status || "Awaiting Pricing") === "Awaiting Pricing" && z.status !== "Declined").length;
+				const waitC = crs.filter((z) => z.status === "Awaiting Approval").length;
+				$(d.body).html(`<div class="xcr">
+					<div class="xcr-sum">${crs.length} ${__("total")}${waitP ? ` · <b style="color:var(--amber)">${waitP} ${__("awaiting pricing")}</b>` : ""}${waitC ? ` · ${waitC} ${__("with the client")}` : ""}</div>
+					${crs.length ? crs.map((c) => `
+						<div class="xcr-row" data-open="${c.name}">
+							<span class="xcr-dot" style="background:${DOT(c)}"></span>
+							<span class="t">${frappe.utils.escape_html(c.title)}</span>
+							<span class="s">
+								${c.cards_total ? `<span>${c.cards_done}/${c.cards_total} ${__("tasks")}</span>` : ""}
+								${PRICE_CHIP(c)}
+								<span class="xcr-chip">${__(c.status)}</span>
+								<span style="color:var(--ln)">›</span>
 							</span>
-							${(() => {
-								if (c.status === "Declined") return `<div class="duty-cr-msdesc text-muted">● Draft → ● Submitted → <b style="color:#dc2626">● Declined</b> → ↻ revise</div>`;
-								const steps = ["Draft", "Awaiting Approval", "Approved", "In Delivery", "Delivered"];
-								const names = ["Draft", "Submitted", "Approved", "In delivery", "Delivered"];
-								const at = steps.indexOf(c.status);
-								return `<div class="duty-cr-msdesc text-muted">${names.map((n, i) => `${i <= at ? "●" : "○"} ${i === at ? `<b>${n}</b>` : n}`).join(" → ")}</div>`;
-							})()}
-							${c.original_request ? `<div class="duty-cr-msdesc text-muted">🗣 ${frappe.utils.escape_html(c.original_request.slice(0, 220))}</div>` : ""}
-							${c.reason ? `<div class="duty-cr-msdesc text-muted">💡 ${frappe.utils.escape_html(c.reason.slice(0, 220))}</div>` : ""}
-							${c.scope_impact ? `<div class="duty-cr-msdesc text-muted">📐 ${frappe.utils.escape_html(c.scope_impact.slice(0, 220))}</div>` : ""}
-							${c.resource_impact ? `<div class="duty-cr-msdesc text-muted">👥 ${frappe.utils.escape_html(c.resource_impact.slice(0, 220))}</div>` : ""}
-							${c.risks ? `<div class="duty-cr-msdesc text-muted">⚠ ${frappe.utils.escape_html(c.risks.slice(0, 220))}</div>` : ""}
-						</div>`;
-						})
-						.join("") || `<div class="text-muted">${__("No change requests yet.")}</div>`}
-				</div>
-				<div class="duty-lead-section">＋ ${__("New change request")}</div>
-				<div class="duty-cr-addmem" style="flex-wrap:wrap">
-					<input type="text" class="form-control input-sm duty-cq-title" placeholder="${__("Title")}" style="flex:2">
-					<button type="button" class="btn btn-sm btn-primary duty-cq-add">＋</button>
-				</div>
-				<p class="text-muted duty-attach-hint">${__("Approved change requests are the client's formal commercial sign-off — permanent and uneditable. Drafts are invisible to the client until sent for approval.")}</p>
-			`);
-			const call = (method, args) =>
-				frappe.call({
-					method: "duty_board.client_room." + method,
-					args: args,
-					callback: (r) => {
-						if (r.message) {
-							render(r.message);
-							this.render_client_room(r.message);
-						}
-					},
+						</div>`).join("") : `<div class="xcr-empty">${__("No change requests yet — work beyond the subscription starts its life here.")}</div>`}
+					<div class="xcr-new">
+						<input type="text" maxlength="140" placeholder="${__("New change request — title…")}">
+						<button>＋ ${__("Draft it")}</button>
+					</div>
+				</div>`);
+				$(d.body).find(".xcr-row").on("click", (e) => { view = $(e.currentTarget).data("open"); render(data); });
+				const $in = $(d.body).find(".xcr-new input");
+				$(d.body).find(".xcr-new button").on("click", () => {
+					const t = ($in.val() || "").trim();
+					if (t) call("chreq_add", { name: x.name, title: t });
 				});
-			$(d.body).find(".duty-cq-add").on("click", () => {
-				const t = $(d.body).find(".duty-cq-title").val().trim();
-				if (!t) return;
-				call("chreq_add", { name: x.name, title: t });
-			});
-			$(d.body).find(".duty-cr-msacts a").on("click", (e) => {
+				return;
+			}
+			const c = crs.find((z) => z.name === view);
+			const ps = c.pricing_status || "Awaiting Pricing";
+			const locked = ["Approved", "In Delivery", "Delivered"].includes(c.status);
+			const F = [
+				[__("Request"), c.original_request], [__("Why"), c.reason], [__("Scope"), c.scope_impact],
+				[__("Timeline"), c.timeline_impact], [__("Resources"), c.resource_impact], [__("Risks"), c.risks],
+			].filter((z) => (z[1] || "").trim());
+			$(d.body).html(`<div class="xcr">
+				<span class="xcr-back">‹ ${__("All change requests")}</span>
+				<div class="xcr-h">${frappe.utils.escape_html(c.title)}</div>
+				<div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+					${PRICE_CHIP(c)}<span class="xcr-chip">${__(c.status)}</span>
+					${c.invoice_status ? `<span class="xcr-chip ${c.invoice_status === "Paid" ? "green" : "amber"}">${__(c.invoice_status.toLowerCase())}</span>` : ""}
+					${c.cards_total ? `<span class="xcr-chip">${c.cards_done}/${c.cards_total} ${__("tasks")}</span>` : ""}
+				</div>
+				${stepper(c)}
+				${c.status === "Draft" && ps === "Awaiting Pricing" ? `<div class="xcr-note amber">⏳ ${this.is_pricer ? __("In YOUR pricing queue — decide below and it moves.") : __("In the pricing queue — it reaches the client once priced or covered.")}</div>` : ""}
+				${c.status === "Draft" && ps === "Priced" ? `<div class="xcr-note green">${__("Priced and ready — send it to the client for formal approval.")}</div>` : ""}
+				${["Covered by Subscription", "Goodwill"].includes(ps) && !locked && c.status !== "Declined" ? `<div class="xcr-note green">${__("No charge — work can proceed; start delivery when ready.")}</div>` : ""}
+				${c.status === "Awaiting Approval" ? `<div class="xcr-note amber">${__("With the client for sign-off.")}</div>` : ""}
+				${c.status === "Declined" ? `<div class="xcr-note amber">↩ ${frappe.utils.escape_html(c.decline_reason || __("Declined by the client."))}</div>` : ""}
+				${["Approved", "In Delivery", "Delivered"].includes(c.status) && c.approved_full ? `<div class="xcr-note green">✍ ${__("Approved by")} ${frappe.utils.escape_html(c.approved_full)} · ${frappe.utils.escape_html(c.approved_at || "")}</div>` : ""}
+				${F.length ? `<dl class="xcr-f">${F.map((z) => `<dt>${z[0]}</dt><dd>${frappe.utils.escape_html(z[1])}</dd>`).join("")}</dl>` : ""}
+				<div class="xcr-acts">
+					${ps === "Awaiting Pricing" && c.status !== "Declined" && this.is_pricer ? `<button data-a="price" class="pri">${__("Price now")}</button>` : ""}
+					${!locked ? `<button data-a="edit">${__("Edit")}</button>` : ""}
+					<button data-a="tasks">${__("Tasks")}</button>
+					<button data-a="newtask">＋ ${__("New task")}</button>
+					${c.source_message ? `<button data-a="origin">${__("Origin")}</button>` : ""}
+					${c.status === "Draft" && ps === "Priced" ? `<button data-a="ask" class="pri">${__("Send for approval")}</button>` : ""}
+					${!locked && ["Covered by Subscription", "Goodwill"].includes(ps) && c.status !== "Declined" ? `<button data-a="deliver" class="pri">${__("Start delivery")}</button>` : ""}
+					${c.status === "Awaiting Approval" ? `<button data-a="recall">${__("Recall")}</button>` : ""}
+					${c.status === "Declined" ? `<button data-a="reopen">${__("Revise")}</button>` : ""}
+					${c.status === "Approved" ? `<button data-a="deliver" class="pri">${__("Start delivery")}</button>` : ""}
+					${c.status === "In Delivery" ? `<button data-a="done" class="pri">${__("Mark delivered")}</button>` : ""}
+					${["Draft", "Declined"].includes(c.status) ? `<button data-a="del" class="dngr">${__("Delete")}</button>` : ""}
+				</div>
+			</div>`);
+			$(d.body).find(".xcr-back").on("click", () => { view = null; render(data); });
+			$(d.body).find(".xcr-acts button").on("click", (e) => {
 				const a = $(e.currentTarget).data("a");
-				const id = $(e.currentTarget).data("id");
-				const c = ((data.change_requests || []).find((z) => z.name === id)) || {};
+				const id = c.name;
+				if (a === "price")
+					return frappe.prompt(
+						[
+							{ fieldname: "decision", fieldtype: "Select", label: __("Decision"), options: ["Priced", "Covered by Subscription", "Goodwill", "Rejected", "Deferred"], reqd: 1 },
+							{ fieldname: "price", fieldtype: "Currency", label: __("Price (₦, for Priced)") },
+							{ fieldname: "estimate_hours", fieldtype: "Float", label: __("Estimated hours") },
+							{ fieldname: "note", fieldtype: "Small Text", label: __("Note (kept on the CR)") },
+						],
+						(v) =>
+							frappe.call({
+								method: "duty_board.commercial.chreq_price",
+								args: { name: id, decision: v.decision, price: v.price || 0, estimate_hours: v.estimate_hours || 0, note: v.note || null },
+								callback: () =>
+									frappe.call({
+										method: "duty_board.client_room.get_room",
+										args: { name: x.name },
+										callback: (rr) => {
+											if (rr.message) {
+												render(rr.message);
+												this.render_client_room(rr.message);
+											}
+										},
+									}),
+							}),
+						__("Price this CR"),
+						__("Apply")
+					);
 				if (a === "ask")
 					return frappe.confirm(
 						__("Send “{0}” to the client for formal approval? They will see the scope, cost and timeline impacts.", [frappe.utils.escape_html(c.title)]),
 						() => call("chreq_request_approval", { id: id })
 					);
-				if (a === "origin") {
-					d.hide();
-					return this.jump_to_msg(c.source_message);
-				}
+				if (a === "newtask")
+					return frappe.prompt(
+						[
+							{ fieldname: "title", fieldtype: "Data", label: __("Task title"), reqd: 1 },
+							{ fieldname: "assignee", fieldtype: "Autocomplete", label: __("Assignee"), options: this.staff_options() },
+							{ fieldname: "due_date", fieldtype: "Date", label: __("Due") },
+						],
+						(v) => call("chreq_new_task", { id: id, title: v.title, assignee: v.assignee || null, due_date: v.due_date || null }),
+						__("New delivery task for this CR"),
+						__("Create")
+					);
+				if (a === "origin") { d.hide(); return this.jump_to_msg(c.source_message); }
 				if (a === "recall") return call("chreq_set_status", { id: id, status: "Draft" });
 				if (a === "deliver") return call("chreq_set_status", { id: id, status: "In Delivery" });
 				if (a === "done") return call("chreq_set_status", { id: id, status: "Delivered" });
 				if (a === "reopen") return call("chreq_reopen", { id: id });
 				if (a === "del")
-					return frappe.confirm(__("Delete this change request?"), () =>
-						call("chreq_delete", { id: id })
-					);
+					return frappe.confirm(__("Delete this change request?"), () => { view = null; call("chreq_delete", { id: id }); });
 				if (a === "tasks") {
 					return frappe.call({
 						method: "duty_board.client_room.chreq_task_options",
@@ -4392,16 +7077,16 @@ class DutyBoard {
 								frappe.msgprint(__("Link a project to this room first — tasks live on the project board."));
 								return;
 							}
-							const td = new frappe.ui.Dialog({ title: `📋 ${__("Tasks delivering")} “${c.title}”` });
+							const td = new frappe.ui.Dialog({ title: `${__("Tasks delivering")} “${c.title}”` });
 							$(td.body).html(
 								(opts.tasks || [])
 									.map(
 										(t) => `
-									<label class="duty-cr-mstask ${t.elsewhere ? "elsewhere" : ""}" style="display:flex;gap:8px;align-items:center;padding:4px 0">
-										<input type="checkbox" data-name="${t.name}" ${t.checked ? "checked" : ""} ${t.elsewhere ? "disabled" : ""}>
-										<span>${frappe.utils.escape_html(t.title)}</span>
-										<span class="text-muted" style="margin-left:auto">${__(t.column)}${t.elsewhere ? " · " + __("on another CR") : ""}</span>
-									</label>`
+								<label class="duty-cr-mstask ${t.elsewhere ? "elsewhere" : ""}" style="display:flex;gap:8px;align-items:center;padding:4px 0">
+									<input type="checkbox" data-name="${t.name}" ${t.checked ? "checked" : ""} ${t.elsewhere ? "disabled" : ""}>
+									<span>${frappe.utils.escape_html(t.title)}</span>
+									<span class="text-muted" style="margin-left:auto">${__(t.column)}${t.elsewhere ? " · " + __("on another CR") : ""}</span>
+								</label>`
 									)
 									.join("") || `<div class="text-muted">${__("No cards on this project board yet.")}</div>`
 							);
@@ -4413,11 +7098,11 @@ class DutyBoard {
 								frappe.call({
 									method: "duty_board.client_room.chreq_set_tasks",
 									args: { id: id, tasks: JSON.stringify(chosen) },
-									callback: (r) => {
+									callback: (r2) => {
 										td.hide();
-										if (r.message) {
-											render(r.message);
-											this.render_client_room(r.message);
+										if (r2.message) {
+											render(r2.message);
+											this.render_client_room(r2.message);
 										}
 									},
 								});
@@ -4486,8 +7171,7 @@ class DutyBoard {
 			$(d.body).find(".duty-sh-file").on("change", (e) => {
 				pending = e.target.files[0] || null;
 				if (pending) $(e.target).parent().contents().first()[0].textContent = "📎 " + pending.name.slice(0, 24) + " ";
-			});
-			$(d.body).find(".duty-cr-shelfrm").on("click", (e) =>
+			});			$(d.body).find(".duty-cr-shelfrm").on("click", (e) =>
 				frappe.confirm(__("Remove from the client's shelf?"), () =>
 					frappe.call({
 						method: "duty_board.client_room.shelf_remove",
@@ -4533,7 +7217,7 @@ class DutyBoard {
 					${(data.members || [])
 						.map(
 							(m) =>
-								`<div class="duty-cr-mem">${m.is_admin ? "★ " : ""}<b>${frappe.utils.escape_html(m.full_name)}</b> <span class="text-muted">${frappe.utils.escape_html(m.user)}${m.is_admin ? " · " + __("administrator") : ""}</span> <a class="duty-cr-memadmin" data-name="${m.name}" data-on="${m.is_admin ? 0 : 1}">${m.is_admin ? "☆ " + __("Demote") : "★ " + __("Make admin")}</a> <a class="duty-cr-memrm" data-name="${m.name}">${__("Remove")}</a></div>`
+								`<div class="duty-cr-mem">${m.is_admin ? "★ " : ""}<b>${frappe.utils.escape_html(m.full_name)}</b>${m.member_type === "Consultant" ? ` <span class="duty-cons-chip">${__("CONSULTANT")}</span>` : ""} <span class="text-muted">${frappe.utils.escape_html(m.user)}${m.is_admin ? " · " + __("administrator") : ""}</span> <a class="duty-cr-memadmin" data-name="${m.name}" data-on="${m.is_admin ? 0 : 1}">${m.is_admin ? "☆ " + __("Demote") : "★ " + __("Make admin")}</a> <a class="duty-cr-memrm" data-name="${m.name}">${__("Remove")}</a></div>`
 						)
 						.join("") || `<div class="text-muted">${__("No client members yet.")}</div>`}
 				</div>
@@ -4560,6 +7244,13 @@ class DutyBoard {
 					<button type="button" class="btn btn-sm btn-primary duty-cr-addbtn">＋</button>
 				</div>
 				<p class="text-muted duty-attach-hint">${__("New members get a welcome email with a password link. Their portal: {0}", ["<b>" + location.origin + "/portal</b>"])}</p>
+				<div class="duty-lead-section">👷 ${__("External consultant")}</div>
+				<div class="duty-cr-addmem">
+					<input type="text" class="form-control input-sm duty-cr-cem" placeholder="${__("consultant email")}">
+					<input type="text" class="form-control input-sm duty-cr-cnm" placeholder="${__("full name")}">
+					<button type="button" class="btn btn-sm btn-default duty-cr-caddbtn">👷 ＋</button>
+				</div>
+				<p class="text-muted duty-attach-hint">${__("Creates their consultant login (welcome email with password link), joins them to this room, and leaves an internal note. They see this room's conversation and their assigned issues — nothing else.")}</p>
 				<div class="duty-lead-section">📅 ${__("Bookable for meetings")}</div>
 				<div class="duty-cr-bookable">
 					${[{ user: frappe.session.user, full_name: frappe.session.user_fullname || frappe.session.user }]
@@ -4631,6 +7322,26 @@ class DutyBoard {
 					},
 				})
 			);
+			$(d.body).find(".duty-cr-caddbtn").on("click", () => {
+				const email = $(d.body).find(".duty-cr-cem").val().trim();
+				const nm = $(d.body).find(".duty-cr-cnm").val().trim();
+				if (!email) return;
+				frappe.call({
+					method: "duty_board.client_room.invite_consultant",
+					args: { room: x.name, email: email, full_name: nm || null },
+					callback: (r) => {
+						if (!r.message) return;
+						frappe.show_alert({
+							message: r.message.created
+								? __("Consultant created and joined — welcome email sent.")
+								: __("Consultant joined this room."),
+							indicator: "green",
+						});
+						d.hide();
+						this.load_client_room(x.name);
+					},
+				});
+			});
 			$(d.body).find(".duty-cr-memrm").on("click", (e) =>
 				frappe.confirm(__("Remove this member's access?"), () =>
 					frappe.call({
@@ -4748,6 +7459,142 @@ class DutyBoard {
 		});
 	}
 
+	render_radar(rows, $wrap) {
+		const esc = frappe.utils.escape_html;
+		const HEAT = { Hot: "🔥", Warm: "🌤", Cool: "❄️" };
+		const $r = $(`
+			<div class="duty-radar">
+				<div class="duty-radar-head">
+					<b>👁 ${__("Radar")}</b><span>${__("companies we're watching — zero contact yet")}</span>
+					<a class="duty-radar-add">＋ ${__("Watch a company")}</a>
+				</div>
+				<div class="duty-radar-shelf">
+					${rows.map((x) => `
+					<a class="duty-radar-card duty-heat-${(x.heat || "Warm").toLowerCase()}" data-name="${x.name}">
+						<span class="duty-radar-top">${HEAT[x.heat] || "🌤"} <b>${esc(x.company)}</b>${x.sector ? `<i>${esc(x.sector)}</i>` : ""}</span>
+						${x.angle ? `<span class="duty-radar-angle">${esc(x.angle.slice(0, 110))}${x.angle.length > 110 ? "…" : ""}</span>` : ""}
+						${x.trigger ? `<span class="duty-radar-trig">🎯 ${esc(x.trigger.slice(0, 70))}</span>` : ""}
+						${x.est_worth ? `<span class="duty-radar-worth">${this.naira(x.est_worth)}</span>` : ""}
+					</a>`).join("") || `<div class="duty-radar-empty">${__("Nothing on the radar — add the first company you're eyeing.")}</div>`}
+				</div>
+			</div>`).appendTo($wrap);
+		const rowsBy = {};
+		rows.forEach((x) => (rowsBy[x.name] = x));
+		const openDlg = (x) => {
+			const d = new frappe.ui.Dialog({
+				title: `👁 ${x ? esc(x.company) : __("Watch a company")}`,
+				fields: [
+					{ fieldname: "company", fieldtype: "Data", label: __("Company"), default: x ? x.company : "", reqd: 1 },
+					{ fieldname: "sector", fieldtype: "Data", label: __("Sector"), default: x ? x.sector : "" },
+					{ fieldname: "heat", fieldtype: "Select", label: __("Heat"), options: "Hot\nWarm\nCool", default: x ? x.heat : "Warm" },
+					{ fieldname: "angle", fieldtype: "Small Text", label: __("The angle — why we're watching"), default: x ? x.angle : "" },
+					{ fieldname: "trigger", fieldtype: "Data", label: __("Trigger — what opens the door"), default: x ? x.trigger : "" },
+					{ fieldname: "est_worth", fieldtype: "Currency", label: __("Estimated worth if landed"), default: x ? x.est_worth : "" },
+					{ fieldname: "link", fieldtype: "Data", label: __("Source link"), default: x ? x.link : "" },
+					...(x ? [{ fieldname: "log", fieldtype: "HTML" }, { fieldname: "signal", fieldtype: "Data", label: __("New signal (funding news, churn, tender…)") }] : []),
+				],
+				primary_action_label: x ? __("Save") : __("Start watching"),
+				primary_action: (v) => {
+					d.hide();
+					const args = { company: v.company, sector: v.sector || "", angle: v.angle || "", heat: v.heat, trigger: v.trigger || "", est_worth: v.est_worth || 0, link: v.link || "" };
+					const after = () => {
+						if (x && v.signal) frappe.call({ method: "duty_board.sales.radar_note", args: { name: x.name, note: v.signal }, callback: () => this.refresh_sales() });
+						else this.refresh_sales();
+					};
+					if (x) frappe.call({ method: "duty_board.sales.radar_update", args: Object.assign({ name: x.name }, args), callback: after });
+					else frappe.call({ method: "duty_board.sales.radar_add", args: args, callback: after });
+				},
+			});
+			if (x) {
+				d.set_secondary_action_label(__("📣 Promote to Lead"));
+				d.set_secondary_action(() => {
+					d.hide();
+					frappe.confirm(__("Contact has started with {0}? This creates a pipeline lead and retires the radar entry.", [esc(x.company)]), () =>
+						frappe.call({
+							method: "duty_board.sales.radar_promote",
+							args: { name: x.name },
+							callback: (r2) => {
+								frappe.show_alert({ message: __("📣 {0} is now a lead — the watch is over.", [esc(x.company)]), indicator: "green" });
+								this.refresh_sales();
+							},
+						})
+					);
+				});
+				$(d.body).append(`<a class="duty-radar-drop">🗑 ${__("Drop from radar")}</a>`);
+				$(d.body).find(".duty-radar-drop").on("click", () => {
+					d.hide();
+					frappe.prompt({ fieldname: "reason", fieldtype: "Data", label: __("Why drop them? (kept as memory)") },
+						(v2) => frappe.call({ method: "duty_board.sales.radar_drop", args: { name: x.name, reason: v2.reason || "" }, callback: () => this.refresh_sales() }),
+						__("Drop {0}", [esc(x.company)]), __("Drop"));
+				});
+				const log = (x.notes || "").split("\n").filter(Boolean);
+				$(d.body).find('[data-fieldname="log"]').html(
+					log.length ? `<div class="duty-radar-log"><b>${__("Signals log")}</b>${log.map((l2) => `<div>${esc(l2)}</div>`).join("")}</div>` : ""
+				);
+				if (x.link) $(d.body).prepend(`<a href="${esc(x.link)}" target="_blank" rel="noopener" class="duty-radar-visit">🔗 ${esc(x.link.slice(0, 60))}</a>`);
+			}
+			d.show();
+		};
+		$r.find(".duty-radar-add").on("click", () => openDlg(null));
+		$r.find(".duty-radar-card").on("click", (e) => { e.preventDefault(); openDlg(rowsBy[$(e.currentTarget).data("name")]); });
+	}
+
+	render_my_rooms() {
+		frappe.call({
+			method: "duty_board.client_room.my_rooms_summary",
+			error: () => {},
+			callback: (r) => {
+				const d = r.message;
+				if (!d || !this.$me || !this.$me.length) return;
+				this.$me.find(".duty-myrooms").remove();
+				if (!(d.owned || []).length && !(d.member || []).length) return;
+				const esc = frappe.utils.escape_html;
+				const chip = (x) => `<a class="duty-mr-chip" data-room="${x.name}">${esc(x.customer)}${x.unit ? ` · ${esc(x.unit)}` : ""}</a>`;
+				const $c = $(`
+					<div class="duty-myrooms">
+						${(d.owned || []).length ? `<div class="duty-mr-sect"><b>🔑 ${__("Rooms I own")}</b><span>${d.owned.map(chip).join("")}</span></div>` : ""}
+						${(d.member || []).length ? `<div class="duty-mr-sect"><b>💬 ${__("My rooms")}</b><span>${d.member.map(chip).join("")}</span></div>` : ""}
+					</div>`);
+				const $g = this.$me.find(".duty-radar-daily");
+				if ($g.length) $c.insertAfter($g);
+				else {
+					const $g2 = this.$me.find(".duty-gamify");
+					if ($g2.length) $c.insertAfter($g2);
+					else $c.prependTo(this.$me);
+				}
+				$c.find(".duty-mr-chip").on("click", (e) => {
+					const room = $(e.currentTarget).data("room");
+					this.show_face("clients");
+					setTimeout(() => this.open_room && this.open_room(room), 400);
+				});
+			},
+		});
+	}
+
+	render_radar_today() {
+		frappe.call({
+			method: "duty_board.sales.radar_today",
+			error: () => {},
+			callback: (r) => {
+				const x = r.message;
+				if (!x || !this.$me || !this.$me.length) return;
+				this.$me.find(".duty-radar-daily").remove();
+				const HEAT = { Hot: "🔥", Warm: "🌤", Cool: "❄️" };
+				const $c = $(`
+					<div class="duty-radar-daily">
+						<b>👁 ${__("On your radar today")}</b>
+						<span class="duty-rdd-co">${HEAT[x.heat] || "🌤"} ${frappe.utils.escape_html(x.company)}${x.sector ? ` · ${frappe.utils.escape_html(x.sector)}` : ""}</span>
+						${x.angle ? `<q>${frappe.utils.escape_html(x.angle.slice(0, 160))}</q>` : ""}
+						${x.trigger ? `<i>🎯 ${frappe.utils.escape_html(x.trigger)}</i>` : ""}
+					</div>`);
+				const $g = this.$me.find(".duty-gamify");
+				if ($g.length) $c.insertAfter($g);
+				else $c.prependTo(this.$me);
+				this.render_my_rooms();
+			},
+		});
+	}
+
 	lead_card(l) {
 		const owner = `<span style="color:${this.user_color(l.lead_owner)}">${frappe.utils.escape_html((this.name_map[l.lead_owner] || l.lead_owner).split(" ")[0])}</span>`;
 		return `
@@ -4767,7 +7614,51 @@ class DutyBoard {
 			</div>`;
 	}
 
+	bind_erp_bar() {
+		$(document).off("click.dutyerp");
+		$(document).on("click.dutyerp", ".duty-erp-push", (e) => {
+			const lead = $(e.currentTarget).closest(".duty-erp-bar").data("lead");
+			frappe.call({ method: "duty_board.sales.erp_lead_push", args: { name: lead },
+				callback: (r) => { frappe.show_alert({ message: __("✓ ERPNext lead {0} created.", [r.message.erp_lead]), indicator: "green" }); this.refresh_sales(); } });
+		});
+		$(document).on("click.dutyerp", ".duty-erp-quote", (e) => {
+			const lead = $(e.currentTarget).closest(".duty-erp-bar").data("lead");
+			const d2 = new frappe.ui.Dialog({
+				title: __("🧾 Quotation lines"),
+				fields: [{ fieldname: "lines", fieldtype: "Table", cannot_add_rows: false, in_place_edit: true,
+					fields: [
+						{ fieldname: "description", fieldtype: "Data", label: __("Description"), in_list_view: 1, columns: 5 },
+						{ fieldname: "qty", fieldtype: "Float", label: __("Qty"), in_list_view: 1, columns: 2 },
+						{ fieldname: "rate", fieldtype: "Currency", label: __("Rate"), in_list_view: 1, columns: 3 },
+					], data: [] }],
+				primary_action_label: __("Create & attach quotation"),
+				primary_action: (v) => {
+					d2.hide();
+					frappe.call({ method: "duty_board.sales.quote_create",
+						args: { name: lead, items: JSON.stringify(v.lines || []) },
+						callback: (r) => { frappe.show_alert({ message: __("🧾 {0} created — PDF attached to the lead.", [r.message.erp_quotation]), indicator: "green" }); this.refresh_sales(); } });
+				} });
+			d2.show();
+		});
+		$(document).on("click.dutyerp", ".duty-erp-attach", (e) => {
+			const lead = $(e.currentTarget).closest(".duty-erp-bar").data("lead");
+			frappe.prompt([
+				{ fieldname: "f", fieldtype: "Attach", label: __("Proposal file"), reqd: 1 },
+				{ fieldname: "label", fieldtype: "Data", label: __("Label (optional)") },
+			], (v) => frappe.call({ method: "duty_board.sales.attach_proposal", args: { name: lead, file_url: v.f, label: v.label || "" },
+				callback: () => frappe.show_alert({ message: __("📎 Proposal attached."), indicator: "green" }) }),
+				__("📎 Attach a proposal"), __("Attach"));
+		});
+		$(document).on("click.dutyerp", ".duty-erp-won", (e) => {
+			const lead = $(e.currentTarget).closest(".duty-erp-bar").data("lead");
+			frappe.confirm(__("Close this lead as WON? A Customer is created in ERPNext and the quotation becomes a submitted Sales Order — this ends the sales process."), () =>
+				frappe.call({ method: "duty_board.sales.lead_won_convert", args: { name: lead },
+					callback: (r) => { this.confetti(); frappe.show_alert({ message: __("🏆 {0} · {1} — sales process complete.", [r.message.erp_customer, r.message.erp_sales_order]), indicator: "green" }); this.refresh_sales(); } }));
+		});
+	}
+
 	render_pipeline(data) {
+		this.bind_erp_bar();
 		this.$sales
 			.find(".duty-sales-total")
 			.html(
@@ -4777,6 +7668,7 @@ class DutyBoard {
 						: "")
 			);
 		const $wrap = this.$sales.find(".duty-sales-wrap").empty();
+		this.render_radar(data.radar || [], $wrap);
 		const $board = $(`<div class="duty-kanban duty-sales-kanban"></div>`).appendTo($wrap);
 		const index = {};
 		(data.stages || []).forEach((stage) => {
@@ -4866,46 +7758,97 @@ class DutyBoard {
 	}
 
 	render_lead_dialog(x) {
-		if (this._lead_dialog) this._lead_dialog.hide();
-		const d = (this._lead_dialog = new frappe.ui.Dialog({
-			title: `💼 ${x.company}`,
-			size: "large",
-			fields: [
-				{ fieldname: "company", fieldtype: "Data", label: __("Company / Prospect"), default: x.company, reqd: 1 },
-				{
-					fieldname: "lead_owner",
-					fieldtype: "Autocomplete",
-					label: __("Owner"),
-					options: this.staff_options().filter((o) => o.value),
-					default: x.lead_owner,
-				},
-				...(x.can_edit_value
-					? [{ fieldname: "value", fieldtype: "Currency", label: __("Lead Value"), default: x.value }]
-					: []),
-				{ fieldname: "contact_name", fieldtype: "Data", label: __("Contact Name"), default: x.contact_name },
-				{ fieldname: "email", fieldtype: "Data", label: __("Email"), default: x.email },
-				{ fieldname: "phone", fieldtype: "Data", label: __("Phone"), default: x.phone },
-				{ fieldname: "expected_close", fieldtype: "Date", label: __("Expected Close"), default: x.expected_close || "" },
-				{
-					fieldname: "source",
-					fieldtype: "Select",
-					label: __("Source"),
-					options: "\nReferral\nExisting Client\nWebsite\nCold Outreach\nEvent\nOther",
-					default: x.source || "",
-				},
-				{ fieldname: "description", fieldtype: "Small Text", label: __("What they do & need"), default: x.description },
-				{ fieldname: "extras", fieldtype: "HTML" },
-			],
-			primary_action_label: __("Save"),
-			primary_action: (v) => {
-				d.hide();
-				frappe.call({
-					method: "duty_board.sales.update_lead",
-					args: Object.assign({ name: x.name }, v),
-					callback: () => this.refresh_sales(),
-				});
+		const esc = frappe.utils.escape_html;
+		if (!this._$ldrawer) {
+			this._$ldrawer = $(`
+				<div class="duty-ldrawer" style="display:none">
+					<div class="duty-ld-head"></div>
+					<div class="duty-ld-tabs"><a class="on" data-t="act">💬 ${__("Activity & tasks")}</a><a data-t="det">✎ ${__("Details")}</a></div>
+					<div class="duty-ld-body">
+						<div class="duty-ld-activity"></div>
+						<div class="duty-ld-details" style="display:none"></div>
+					</div>
+					<div class="duty-ld-bar"></div>
+				</div>`).appendTo(document.body);
+			this._$ldrawer.on("click", ".duty-ld-tabs a", (e) => {
+				const t = $(e.currentTarget).data("t");
+				this._$ldrawer.find(".duty-ld-tabs a").removeClass("on").filter(`[data-t="${t}"]`).addClass("on");
+				this._$ldrawer.find(".duty-ld-activity").toggle(t === "act");
+				this._$ldrawer.find(".duty-ld-details").toggle(t === "det");
+			});
+		}
+		const $dw = this._$ldrawer.show();
+		const d = {
+			onhide: null,
+			hide: () => {
+				if (d.onhide) d.onhide();
+				$dw.hide();
 			},
-		}));
+			fields_dict: { extras: { wrapper: $dw.find(".duty-ld-activity")[0] } },
+		};
+		this._lead_dialog = d;
+		const stages = ["New", "Contacted", "Qualified", "Proposal", "Negotiation"];
+		$dw.find(".duty-ld-head").html(`
+			<a class="duty-ld-x">✕</a>
+			<b class="duty-ld-co">${esc(x.company)}</b>
+			<div class="duty-ld-chips">
+				<select class="duty-ld-stage">${stages.map((s) => `<option ${x.stage === s ? "selected" : ""}>${__(s)}</option>`).join("")}</select>
+				${x.value ? `<span class="duty-ld-val">${esc(x.value_fmt || String(x.value))}</span>` : ""}
+				${x.lead_owner ? `<span class="duty-ld-own" style="color:${this.user_color(x.lead_owner)}">${esc((this.name_map[x.lead_owner] || x.lead_owner).split(" ")[0])}</span>` : ""}
+				${x.expected_close ? `<span class="duty-ld-close-d">🗓 ${frappe.datetime.str_to_user(x.expected_close)}</span>` : ""}
+			</div>`);
+		$dw.find(".duty-ld-x").on("click", () => d.hide());
+		$dw.find(".duty-ld-stage").on("change", (e) =>
+			frappe.call({
+				method: "duty_board.sales.move_lead",
+				args: { name: x.name, stage: e.target.value },
+				callback: () => this.refresh_sales(),
+			})
+		);
+		const F = (fn, label, val, type) => `<label class="duty-ld-f"><span>${label}</span><input type="${type || "text"}" data-f="${fn}" value="${esc(val == null ? "" : String(val))}"></label>`;
+		$dw.find(".duty-ld-details").html(`
+			<div class="duty-ld-form">
+				${F("company", __("Company / Prospect"), x.company)}
+				<label class="duty-ld-f"><span>${__("Owner")}</span><select data-f="lead_owner">${this.staff_options().filter((o) => o.value).map((o) => `<option value="${o.value}" ${o.value === x.lead_owner ? "selected" : ""}>${esc(o.label)}</option>`).join("")}</select></label>
+				${x.can_edit_value ? F("value", __("Lead Value"), x.value, "number") : ""}
+				${F("contact_name", __("Contact Name"), x.contact_name)}
+				${F("email", __("Email"), x.email)}
+				${F("phone", __("Phone"), x.phone)}
+				${F("expected_close", __("Expected Close"), x.expected_close || "", "date")}
+				<label class="duty-ld-f"><span>${__("Source")}</span><select data-f="source">${["", "Referral", "Existing Client", "Website", "Cold Outreach", "Event", "Other"].map((s) => `<option value="${s}" ${x.source === s ? "selected" : ""}>${s ? __(s) : ""}</option>`).join("")}</select></label>
+				<div class="duty-erp-bar" data-lead="${x.name}">
+					${x.erp_lead ? `<a class="duty-erp-open" href="/app/lead/${esc(x.erp_lead)}" target="_blank" rel="noopener" title="${__("Open in ERPNext")}">✓ ${esc(x.erp_lead)}</a>` : `<a class="duty-erp-push">ERP ⇢ ${__("Create Lead")}</a>`}
+					${x.erp_quotation ? `<a class="duty-erp-open" href="/app/quotation/${esc(x.erp_quotation)}" target="_blank" rel="noopener" title="${__("Open the quotation")}">🧾 ${esc(x.erp_quotation)}</a><a class="duty-erp-quote" title="${__("Another quotation")}">➕</a>` : `<a class="duty-erp-quote" ${x.erp_lead ? "" : 'style="opacity:.45"'}>🧾 ${__("Quotation")}</a>`}
+					<a class="duty-erp-attach">📎 ${__("Proposal")}</a>
+					<a class="duty-erp-open" href="/app/duty-lead/${esc(x.name)}" target="_blank" rel="noopener" title="${__("All attached documents")}">🗂 ${__("Files")}</a>
+					${x.erp_sales_order ? `<a class="duty-erp-open" href="/app/sales-order/${esc(x.erp_sales_order)}" target="_blank" rel="noopener" title="${__("Open the sales order")}">🏆 ${esc(x.erp_sales_order)}</a>` : `<a class="duty-erp-won" ${x.erp_quotation ? "" : 'style="opacity:.45"'}>🏆 ${__("Won → Customer + SO")}</a>`}
+				</div>
+				${(x.files || []).length ? `<div class="duty-ld-docs"><b>🗂 ${__("Documents")}</b>${x.files.map((f) => `<a href="${esc(f.file_url)}" target="_blank" rel="noopener">${f.file_name.toLowerCase().endsWith(".pdf") ? "🧾" : "📎"} ${esc(f.file_name)}<i>${esc((f.creation || "").slice(0, 10))}</i></a>`).join("")}</div>` : ""}
+				<label class="duty-ld-f duty-ld-wide"><span>${__("What they do & need")}</span><textarea data-f="description" rows="3">${esc(x.description || "")}</textarea></label>
+			</div>
+			<button class="btn btn-primary btn-sm duty-ld-save">${__("Save details")}</button>`);
+		$dw.find(".duty-ld-save").on("click", () => {
+			const v = {};
+			$dw.find(".duty-ld-details [data-f]").each((_, el) => (v[$(el).data("f")] = $(el).val()));
+			frappe.call({
+				method: "duty_board.sales.update_lead",
+				args: Object.assign({ name: x.name }, v),
+				callback: (r) => {
+					frappe.show_alert({ message: __("Saved."), indicator: "green" });
+					this.refresh_sales();
+					r.message ? this.render_lead_dialog(r.message) : this.lead_dialog(x.name);
+				},
+			});
+		});
+		const digits = (x.phone || "").replace(/[^0-9]/g, "").replace(/^0/, "234");
+		$dw.find(".duty-ld-bar").html(`
+			${x.email ? `<a class="duty-ldb" href="mailto:${esc(x.email)}">✉ ${__("Email")}</a>` : ""}
+			${x.phone ? `<a class="duty-ldb" href="tel:${esc(x.phone)}">📞 ${__("Call")}</a>` : ""}
+			${digits.length > 9 ? `<a class="duty-ldb" href="https://wa.me/${digits}" target="_blank">💬 WhatsApp</a>` : ""}
+			<a class="duty-ldb duty-ldb-won">🏆 ${__("Won")}</a>
+			<a class="duty-ldb duty-ldb-lost">✖ ${__("Lost")}</a>`);
+		$dw.find(".duty-ldb-won").on("click", () => $dw.find(".duty-lead-won").trigger("click"));
+		$dw.find(".duty-ldb-lost").on("click", () => $dw.find(".duty-lead-lost").trigger("click"));
 		const contact_bits = [];
 		if (x.email) contact_bits.push(`<a href="mailto:${x.email}">✉ ${frappe.utils.escape_html(x.email)}</a>`);
 		if (x.phone) contact_bits.push(`<a href="tel:${x.phone}">📞 ${frappe.utils.escape_html(x.phone)}</a>`);
@@ -5376,7 +8319,7 @@ class DutyBoard {
 				<div class="duty-lead-section">📝 ${__("Updates")}</div>
 				${(rows || [])
 					.map(
-						(u) => `<div class="duty-upd-row"><span class="duty-upd-meta">${frappe.utils.escape_html(u.by)} · ${frappe.utils.escape_html(u.when)}</span>${frappe.utils.escape_html(u.note)}</div>`
+						(u) => `<div class="duty-upd-row"><span class="duty-upd-meta">${frappe.utils.escape_html(u.by)} · ${frappe.utils.escape_html(u.when)}${u.row && !u.self && !this._is_consultant ? ` <a class="duty-kudo ${u.mine ? "duty-kudo-mine" : ""}" data-row="${u.row}" title="${u.mine ? __("You applauded this") : __("Applaud this update")}">👏${u.kudos ? ` ${u.kudos}` : ""}</a>` : u.kudos ? ` <span class="duty-kudo duty-kudo-ro">👏 ${u.kudos}</span>` : ""}</span>${frappe.utils.escape_html(u.note)}</div>`
 					)
 					.join("") || `<div class="text-muted" style="font-size:var(--text-xs)">${__("No updates yet — post progress and the client's room hears it.")}</div>`}
 				<div class="duty-upd-compose">
@@ -5393,6 +8336,16 @@ class DutyBoard {
 					callback: (r) => render(r.message),
 				});
 			};
+			$host.find(".duty-kudo[data-row]").not(".duty-kudo-mine").on("click", (e) => {
+				frappe.call({
+					method: "duty_board.gamify.kudos_give",
+					args: { row: $(e.currentTarget).data("row") },
+					callback: () => {
+						frappe.show_alert({ message: __("👏 Applauded"), indicator: "green" });
+						frappe.call({ method: "duty_board.api.issue_updates", args: { name: x.name }, callback: (r) => render(r.message) });
+					},
+				});
+			});
 			$host.find(".duty-upd-send").on("click", post);
 			$host.find(".duty-upd-in").on("keydown", (e) => {
 				if (e.key === "Enter") post();
@@ -5458,21 +8411,29 @@ class DutyBoard {
 	render_issues(issues, me) {
 		this._issues = issues = issues || [];
 		this._issues_me = me;
-		const $wrap = this.body.find(".duty-issues").empty();
-		const $rail = this.body.find(".duty-issues-rail");
+		const $wrap = this.$issues.find(".duty-issues").empty();
+		const $rail = this.$issues.find(".duty-issues-rail");
 		if (!me) {
 			$rail.hide();
 			return;
 		}
 		this.check_overdue_issues(issues);
-		if (this.issues_open === undefined) {
-			this.issues_open = localStorage.getItem("duty_issues_side") === "1";
-		}
-		if (this.is_mobile()) this.issues_open = true;
+		this.issues_open = true;
 		this.issue_status_filter = this.issue_status_filter || "open";
+		if (this._iv_init === undefined) {
+			this._iv_init = true;
+			const saved = localStorage.getItem("duty_iv");
+			if (saved === null) {
+				this.issue_user_filter = "__me__";
+			} else if (saved === "unassigned") this.issue_user_filter = "__none__";
+			else if (saved === "mine") this.issue_user_filter = "__me__";
+			else if (saved === "overdue") this._iss_overdue = true;
+		}
 
 		$rail.find(".duty-issues-rail-badge").text(issues.length).toggle(issues.length > 0);
+		this._issues_open = issues.length;
 		$(".duty-tab-issues").text(issues.length).toggle(issues.length > 0);
+		this._badge_more();
 		this.body.toggleClass("duty-issues-collapsed", !this.issues_open);
 		$wrap.toggle(this.issues_open);
 		$rail.toggle(!this.issues_open);
@@ -5533,6 +8494,9 @@ class DutyBoard {
 			shown = shown.filter((x) => (x.assignees || []).includes(ufilter));
 		}
 		const today = frappe.datetime.get_today();
+		if (this._iss_overdue) {
+			shown = shown.filter((x) => x.due_date && x.due_date < today && ["Open", "In Progress"].includes(x.status));
+		}
 
 		const rows = shown
 			.map((x) => {
@@ -5549,14 +8513,14 @@ class DutyBoard {
 					: `${__("raised")} ${this.fmt_stamp(x.creation)}`;
 				return `
 				<div class="duty-issue-row ${this.issue_is_mine(x) ? "duty-issue-mine" : ""}" data-name="${x.name}">
+					<span class="duty-task-customer">${x.customer ? frappe.utils.escape_html(x.customer) : '<i class="duty-ic-empty">—</i>'}</span>
 					<span class="duty-sev duty-sev-${(x.severity || "medium").toLowerCase()}">${__(x.severity)}</span>
+					<span class="duty-issue-type">${x.issue_type ? frappe.utils.escape_html(x.issue_type) : '<i class="duty-ic-empty">—</i>'}${x.wk_total ? `<span class="duty-wk-chip ${x.wk_done >= x.wk_total ? "duty-wk-full" : ""}" title="${__("Workplan progress")}">${x.wk_done}/${x.wk_total}</span>` : ""}</span>
 					<span class="duty-issue-title">${frappe.utils.escape_html(x.title)}</span>
-					<span class="duty-task-customer">${frappe.utils.escape_html(x.customer || "")}</span>
-					${names ? `<span class="duty-issue-who">→ ${names}</span>` : ""}
-					${x.status !== "Open" ? `<span class="duty-issue-status duty-ist-${x.status.replace(/ /g, "").toLowerCase()}">${__(x.status)}</span>` : ""}
-					${x.due_date && active ? `<span class="duty-issue-due ${overdue ? "duty-issue-overdue" : ""}">${overdue ? "⚠ " : ""}${__("due")} ${frappe.datetime.str_to_user(x.due_date)}</span>` : ""}
-					${x.issue_type && x.issue_type !== "Support" ? `<span class="duty-type-chip">${frappe.utils.escape_html(x.issue_type)}</span>` : ""}
-					${this.sla_chip(x)}
+					<span class="duty-issue-who">${names || '<i class="duty-ic-empty">—</i>'}</span>
+					<span class="duty-issue-status duty-ist-${x.status.replace(/ /g, "").toLowerCase()}">${__(x.status)}</span>
+					<span class="duty-issue-crcol">${x.cr_chip ? `<span class="duty-crpill ${x.cr_go ? "duty-crpill-go" : ""}" title="${frappe.utils.escape_html(x.cr_chip)}">💱 ${frappe.utils.escape_html(x.cr_chip.replace(/^CR · /, ""))}</span>` : ""}</span>
+					<span class="duty-issue-due ${overdue ? "duty-issue-overdue" : ""}">${x.due_date && active ? `${overdue ? "⚠ " : ""}${frappe.datetime.str_to_user(x.due_date)}` : '<i class="duty-ic-empty">—</i>'}${this.sla_chip(x)}</span>
 					<span class="duty-issue-raised">${stamp}</span>
 				</div>`;
 			})
@@ -5587,13 +8551,22 @@ class DutyBoard {
 						<a class="duty-issues-collapse" title="${__("Collapse")}">«</a>
 					</span>
 				</div>
+				${(() => {
+					const cur = this._iss_overdue ? "overdue" : ufilter === "__me__" ? "mine" : ufilter === "__none__" ? "unassigned" : !ufilter && scope === "open" && !cfilter && !this.issue_type_filter ? "all" : "";
+					const pill = (id, label, n) => `<a class="duty-iv ${cur === id ? "on" : ""}" data-iv="${id}">${label}${n !== undefined && n !== null ? ` <b>${n}</b>` : ""}</a>`;
+					const unass = issues.filter((x) => !(x.assignees || []).length).length;
+					const over = issues.filter((x) => x.due_date && x.due_date < today && ["Open", "In Progress"].includes(x.status)).length;
+					return `<div class="duty-ivrow">${pill("mine", __("Mine"), mine)}${pill("unassigned", __("Unassigned"), unass)}${pill("overdue", __("Overdue"), over)}${pill("all", __("All open"), issues.length)}</div>`;
+				})()}
 				<div class="duty-issues-toolbar">
 					<div class="duty-issues-toolbar-row">
 						<a class="duty-oncall-chip" title="${__("On-call for out-of-hours urgents — click to change (System Manager)")}">${this._on_call ? `🌙 ${frappe.utils.escape_html(this._on_call.first)}` : `🌙 ${__("no on-call")}`}</a>
 						<button class="btn btn-xs btn-default duty-kb-open">📚 ${__("KB")}</button>
 						<button class="btn btn-xs btn-default duty-team-load">👥 ${__("Load")}</button>
 						<button class="btn btn-xs btn-default duty-issue-new">＋ ${__("New")}</button>
+						<button class="btn btn-xs btn-default duty-iss-ftoggle">⚲ ${__("Filters")}${((scope !== "open" ? 1 : 0) + (this.issue_type_filter ? 1 : 0) + (cfilter ? 1 : 0) + (this.issue_user_filter ? 1 : 0)) ? ` <b style="color:#B0443C">${(scope !== "open" ? 1 : 0) + (this.issue_type_filter ? 1 : 0) + (cfilter ? 1 : 0) + (this.issue_user_filter ? 1 : 0)}</b>` : ""}</button>
 					</div>
+					<div class="duty-iss-filters" style="display:${this._iss_f ? "flex" : "none"}">
 					<select class="form-control input-sm duty-issue-scope" title="${__("Status")}">
 						<option value="open" ${scope === "open" ? "selected" : ""}>${__("Open")}</option>
 						<option value="resolved" ${scope === "resolved" ? "selected" : ""}>${__("Resolved")}</option>
@@ -5602,7 +8575,7 @@ class DutyBoard {
 					</select>
 					<select class="form-control input-sm duty-issue-typefilter" title="${__("Filter by type")}">
 						<option value="">${__("All types")}</option>
-						${["Support", "Bug", "Feature Request", "Configuration", "Training", "Data Correction", "Integration", "Billing", "Implementation"].map((t) => `<option value="${t}" ${this.issue_type_filter === t ? "selected" : ""}>${__(t)}</option>`).join("")}
+						${["Support", "Bug", "Feature Request", "Configuration", "Training", "Data Correction", "Integration", "Billing", "Implementation", "Enablement"].map((t) => `<option value="${t}" ${this.issue_type_filter === t ? "selected" : ""}>${__(t)}</option>`).join("")}
 					</select>
 					<select class="form-control input-sm duty-issue-filter" title="${__("Filter by customer")}">
 						<option value="">${__("All customers")}</option>
@@ -5616,15 +8589,30 @@ class DutyBoard {
 					<select class="form-control input-sm duty-issue-user" title="${__("Filter by assignee")}">
 						${staff_opts}
 					</select>
+					</div>
 				</div>
 				<div class="duty-issues-list">
+					${rows ? `<div class="duty-ih"><span>${__("Customer")}</span><span>${__("Priority")}</span><span>${__("Type")}</span><span>${__("Ticket")}</span><span>${__("Assigned")}</span><span>${__("Status")}</span><span>${__("CR")}</span><span>${__("Due")}</span><span>${__("Raised")}</span></div>` : ""}
 					${rows || `<div class="text-muted duty-plan-empty">${__("Nothing here with these filters.")}</div>`}
 				</div>
 			</div>
 		`);
+		$wrap.find(".duty-iss-ftoggle").on("click", () => {
+			this._iss_f = !this._iss_f;
+			$wrap.find(".duty-iss-filters").toggle(this._iss_f);
+		});
+		$wrap.find(".duty-issues-collapse").hide();
 		$wrap.find(".duty-issues-collapse").on("click", () => {
 			this.issues_open = false;
 			localStorage.setItem("duty_issues_side", "0");
+			this.render_issues(this._issues, this._issues_me);
+		});
+		$wrap.find(".duty-iv").on("click", (e) => {
+			const v = $(e.currentTarget).data("iv");
+			this._iss_overdue = v === "overdue";
+			this.issue_user_filter = v === "mine" ? "__me__" : v === "unassigned" ? "__none__" : "";
+			if (v === "all") { this.issue_customer_filter = ""; this.issue_type_filter = ""; this.issue_status_filter = "open"; }
+			localStorage.setItem("duty_iv", v);
 			this.render_issues(this._issues, this._issues_me);
 		});
 		$wrap.find(".duty-issue-scope").on("change", (e) => {
@@ -5667,6 +8655,14 @@ class DutyBoard {
 	}
 
 	create_issue_dialog(prefill) {
+		if (!this._is_consultant && this._enab_templates === undefined) {
+			frappe.call({
+				method: "duty_board.api.enablement_templates",
+				error: () => { this._enab_templates = []; this.create_issue_dialog(prefill); },
+				callback: (r) => { this._enab_templates = r.message || []; this.create_issue_dialog(prefill); },
+			});
+			return;
+		}
 		prefill = prefill || {};
 		const all_staff = () =>
 			[{ user: frappe.session.user, full_name: __("Me") }]
@@ -5684,9 +8680,9 @@ class DutyBoard {
 				},
 				{
 					fieldname: "customer",
-					fieldtype: "Link",
+					fieldtype: "Autocomplete",
 					label: __("Customer"),
-					options: "Customer",
+					options: (this._cust_opts || []).slice(),
 					reqd: 1,
 					default: prefill.customer || "",
 				},
@@ -5702,8 +8698,16 @@ class DutyBoard {
 					fieldname: "issue_type",
 					fieldtype: "Select",
 					label: __("Type"),
-					options: "Support\nBug\nFeature Request\nConfiguration\nTraining\nData Correction\nIntegration\nBilling\nImplementation",
+					options: "Support\nBug\nFeature Request\nConfiguration\nTraining\nData Correction\nIntegration\nBilling\nImplementation\nEnablement",
 					default: "Support",
+				},
+				{
+					fieldname: "enab_template",
+					fieldtype: "Select",
+					label: __("Workplan template"),
+					options: [""].concat((this._enab_templates || []).map((t) => t.name)).join("\n"),
+					depends_on: 'eval:doc.issue_type=="Enablement"',
+					description: __("Optional — pre-loads the standard steps. Manage templates in Duty Settings."),
 				},
 				{
 					fieldname: "due_date",
@@ -5767,10 +8771,26 @@ class DutyBoard {
 								{ message: __("Issue {0} created", [r.message.name]), indicator: "green" },
 								5
 							);
-							this.touch_issues();
+							if (v.issue_type === "Enablement" && v.enab_template) {
+								frappe.call({
+									method: "duty_board.api.enablement_apply",
+									args: { name: r.message.name, template: v.enab_template },
+									callback: () => this.touch_issues(),
+								});
+							} else this.touch_issues();
 						}
 					},
 				});
+			},
+		});
+		frappe.call({
+			method: "duty_board.api.my_customer_options",
+			error: () => {},
+			callback: (r) => {
+				this._cust_opts = r.message || [];
+				try {
+					d.fields_dict.customer.set_data(this._cust_opts.slice());
+				} catch (e) { /* control variant without set_data */ }
 			},
 		});
 		d.show();
@@ -5824,8 +8844,40 @@ class DutyBoard {
 		});
 	}
 
+	issue_drawer(title) {
+		if (!this._$idrawer) {
+			this._$idrawer = $(`
+				<div class="duty-idrawer" style="display:none">
+					<div class="duty-id-head"><b class="duty-id-title"></b><a class="duty-id-x">✕</a></div>
+					<div class="duty-id-body"></div>
+				</div>`).appendTo(document.body);
+			document.addEventListener("keydown", (e) => {
+				if (e.key !== "Escape") return;
+				if (!this._$idrawer.is(":visible")) return;
+				if (e.target.closest && e.target.closest("input,textarea,select,.modal")) return;
+				this._idshim && this._idshim.hide();
+			});
+		}
+		const $dw = this._$idrawer;
+		$dw.find(".duty-id-title").text(title);
+		const shim = {
+			body: $dw.find(".duty-id-body")[0],
+			show: () => {
+				$dw.show();
+				$("body").addClass("duty-idrawer-open");
+			},
+			hide: () => {
+				$dw.hide();
+				$("body").removeClass("duty-idrawer-open");
+			},
+		};
+		$dw.find(".duty-id-x").off("click").on("click", () => shim.hide());
+		this._idshim = shim;
+		return shim;
+	}
+
 	issue_detail_dialog(name) {
-		const d = new frappe.ui.Dialog({ title: name, size: "large" });
+		const d = this.issue_drawer(name);
 		const render = (x) => {
 			const today = frappe.datetime.get_today();
 			const overdue = x.due_date && x.due_date < today && ["Open", "In Progress"].includes(x.status);
@@ -5857,13 +8909,22 @@ class DutyBoard {
 						${x.due_date ? ` · ${__("Due")} <span class="${overdue ? "duty-issue-overdue" : ""}">${frappe.datetime.str_to_user(x.due_date)}</span>` : ""}
 						${x.source_type && x.source_type !== "Manual" ? ` · ${__("From")} ${__(x.source_type)}` : ""}
 					</div>
-					${names ? `<div class="duty-issue-meta">${__("Assigned to")}: ${names}</div>` : ""}
+					<div class="duty-id-ctl">
+						<label>${__("Severity")}<select class="duty-idc-sev">${["Low", "Medium", "High", "Critical"].map((s) => `<option ${x.severity === s ? "selected" : ""}>${s}</option>`).join("")}</select></label>
+						<label>${__("Type")}<select class="duty-idc-type">${["Support", "Bug", "Feature Request", "Configuration", "Training", "Data Correction", "Integration", "Billing", "Implementation", "Enablement"].map((s) => `<option ${(x.issue_type || "Support") === s ? "selected" : ""}>${__(s)}</option>`).join("")}</select></label>
+						<label>${__("Due")}<input type="date" class="duty-idc-due" value="${x.due_date || ""}"></label>
+						<label>${__("Assigned")}<span class="duty-idc-who">${(x.assignees || []).map((u) => `<span class="duty-idc-chip" style="color:${this.user_color(u)}">${frappe.utils.escape_html((this.name_map[u] || u).split(" ")[0])}<a class="duty-idc-rm" data-user="${u}">✕</a></span>`).join("") || '<i class="duty-ic-empty">—</i>'}</span><a class="duty-idc-assign">＋ ${__("Assign")}</a></label>
+					</div>
 					${working_names ? `<div class="duty-issue-meta">⏱ ${__("Working on it now")}: ${working_names}</div>` : ""}
 					${this.sla_meta(x)}
-					<div class="duty-upd-host"></div>
-					<div class="duty-sim-host"></div>
-					<div class="duty-issue-meta"><a class="duty-issue-rca">📋 ${__("RCA report")}</a> · <a class="duty-issue-kb">📚 ${__("Promote to KB")}</a> · <a class="duty-issue-chreq">💱 ${__("To change request")}</a> ·${x.source_message && x.source_type === "Client Room" ? ` <a class="duty-issue-origin">💬 ${__("View origin")}</a> ·` : ""} <a class="duty-issue-vis">${x.client_visible ? "👁 " + __("Client-visible — click to hide") : "🙈 " + __("Hidden from client — click to publish")}</a>${x.client_stars ? ` · <span class="duty-stars">${"★".repeat(x.client_stars)}${"☆".repeat(5 - x.client_stars)}</span>` : x.client_rating ? ` · ${x.client_rating === "Up" ? "👍 " + __("Client satisfied") : "👎 " + __("Client unhappy")}` : ""}${x.client_confirmed_at ? ` · <span class="duty-confirmed">✅ ${__("client confirmed")}</span>` : ""}${x.acknowledged_first ? ` · 👀 ${__("Acknowledged by")} ${frappe.utils.escape_html(x.acknowledged_first)}` : x.client_visible ? ` · <a class="duty-issue-ack">👀 ${__("Acknowledge")}</a>` : ""}</div>
-					${x.description ? `<div class="duty-issue-desc">${frappe.utils.escape_html(x.description)}</div>` : ""}
+					${x.change_request ? `<div class="duty-issue-meta duty-id-crline ${x.change_request.go ? "duty-cr-go" : ""}">💱 <b>${frappe.utils.escape_html(x.change_request.title)}</b> · <span class="duty-cr-chiptxt">${frappe.utils.escape_html(x.change_request.chip || "")}</span> <a class="duty-issue-cru" data-cr="${x.change_request.name}">✎ ${__("Update")}</a>${x.change_request.go && x.status === "Open" ? ` <button class="btn btn-sm btn-primary duty-cr-accept">▶ ${__("Accept & start")}</button>` : ""}</div>` : ""}
+					<div class="duty-id-tools">
+						<button class="btn btn-sm btn-default duty-issue-rca">📋 ${__("RCA report")}</button>
+						<button class="btn btn-sm btn-default duty-issue-kb">📚 ${__("Promote to KB")}</button>
+						<button class="btn btn-sm btn-default duty-issue-chreq">💱 ${__("Change request")}</button>
+					</div>
+					<div class="duty-issue-meta">${x.source_message && x.source_type === "Client Room" ? `<a class="duty-issue-origin">💬 ${__("View origin")}</a> · ` : ""}<a class="duty-issue-vis">${x.client_visible ? "👁 " + __("Client-visible — click to hide") : "🙈 " + __("Hidden from client — click to publish")}</a>${x.client_stars ? ` · <span class="duty-stars">${"★".repeat(x.client_stars)}${"☆".repeat(5 - x.client_stars)}</span>` : x.client_rating ? ` · ${x.client_rating === "Up" ? "👍 " + __("Client satisfied") : "👎 " + __("Client unhappy")}` : ""}${x.client_confirmed_at ? ` · <span class="duty-confirmed">✅ ${__("client confirmed")}</span>` : ""}${x.acknowledged_first ? ` · 👀 ${__("Acknowledged by")} ${frappe.utils.escape_html(x.acknowledged_first)}` : x.client_visible ? ` · <a class="duty-issue-ack">👀 ${__("Acknowledge")}</a>` : ""}</div>
+					${x.description ? `<div class="duty-issue-details"><b>📄 ${__("Details")}<i>${__("as raised by")} ${frappe.utils.escape_html((this.name_map[x.owner] || x.owner || "").split(" ")[0] || __("client"))}</i></b><div class="duty-idet-body">${frappe.utils.escape_html(x.description).replace(/\n/g, "<br>")}</div></div>` : `<div class="duty-issue-details duty-idet-empty">📄 ${__("No details were written when this was raised.")}</div>`}
 					${
 						(x.attachments || []).length
 							? `<div class="duty-issue-files">${x.attachments
@@ -5876,13 +8937,41 @@ class DutyBoard {
 							: ""
 					}
 					${x.resolution ? `<div class="duty-issue-resolution"><b>${__("Resolution")}:</b> ${frappe.utils.escape_html(x.resolution)}${x.resolved_at ? ` <span class="text-muted">(${frappe.datetime.str_to_user(x.resolved_at)})</span>` : ""}</div>` : ""}
+					<div class="duty-upd-host"></div>
+					${(() => {
+						const cl = x.checklist || [];
+						const done = cl.filter((c) => c.done).length;
+						const complete = cl.length && done === cl.length;
+						return `
+						<div class="duty-checklist ${cl.length ? (complete ? "duty-cl-complete" : "duty-cl-open") : "duty-cl-empty"}">
+							${!this._is_consultant ? `<a class="duty-issue-merge" title="${__("Fold this duplicate into another ticket")}">⇄ ${__("Merge")}</a>` : ""}${x.issue_type === "Enablement" && !this._is_consultant ? `<a class="duty-enab-promote">⤴ ${__("Promote to Project")}</a><a class="duty-enab-tpl">📋 ${__("Load workplan")}</a>` : ""}
+							<div class="duty-cl-head">
+								<b>✅ ${__("Checklist")}</b>
+								${cl.length ? `<span class="duty-cl-count">${done} / ${cl.length}</span>` : `<span class="duty-cl-optional">${__("optional — but once added, it gates Resolve")}</span>`}
+							</div>
+							${cl.length ? `<div class="duty-cl-bar"><i style="width:${Math.round((done / cl.length) * 100)}%"></i></div>` : ""}
+							${cl.map((c) => `
+								<label class="duty-cl-item ${c.done ? "duty-cl-done" : ""} ${!c.done && c.due_date && c.due_date < frappe.datetime.get_today() ? "duty-cl-late" : ""}">
+									<input type="checkbox" data-row="${c.row}" ${c.done ? "checked" : ""}>
+									<span>${frappe.utils.escape_html(c.item)}</span>
+									${c.done && c.done_by ? `<i class="duty-cl-by">${frappe.utils.escape_html((this.name_map[c.done_by] || c.done_by).split(" ")[0])}</i>` : ""}
+									${!this._is_consultant || c.assignee ? `<a class="duty-cl-who ${c.assignee ? "duty-cl-set" : ""}" data-row="${c.row}" data-assignee="${c.assignee || ""}" data-due="${c.due_date || ""}">👤 ${c.assignee ? frappe.utils.escape_html((this.name_map[c.assignee] || c.assignee).split(" ")[0]) : "＋"}</a>` : ""}
+									${!this._is_consultant || c.due_date ? `<a class="duty-cl-due ${c.due_date ? "duty-cl-set" : ""}" data-row="${c.row}" data-assignee="${c.assignee || ""}" data-due="${c.due_date || ""}">📅 ${c.due_date ? frappe.datetime.str_to_user(c.due_date).slice(0, 5) : "＋"}</a>` : ""}
+									<a class="duty-cl-rm" data-row="${c.row}">✕</a>
+								</label>`).join("")}
+							${cl.length && !complete ? `<div class="duty-cl-warn">⛔ ${__("Resolve and Close are locked until every item is ticked.")}</div>` : ""}
+							${cl.length && complete ? `<div class="duty-cl-clear">✔ ${__("All clear — this ticket may be resolved.")}</div>` : ""}
+							<div class="duty-cl-addrow">
+								<input type="text" class="duty-cl-input" placeholder="${__("Add a checklist item and press Enter…")}">
+							</div>
+						</div>`;
+					})()}
 					<div class="duty-issue-actions">
 						${["Open", "In Progress"].includes(x.status) && !i_am_working ? `<button class="btn btn-sm btn-default duty-issue-start">▶ ${__("Start work")}</button>` : ""}
 						${i_am_working ? `<button class="btn btn-sm btn-default duty-issue-stopwork">⏸ ${__("Stop work")}</button>` : ""}
 						${["Open", "In Progress"].includes(x.status) ? `<button class="btn btn-sm btn-primary" data-act="Resolved">${__("Resolve")}</button>` : ""}
 						${["Open", "In Progress", "Resolved"].includes(x.status) ? `<button class="btn btn-sm btn-default" data-act="Closed">${__("Close")}</button>` : ""}
 						${["Resolved", "Closed"].includes(x.status) ? `<button class="btn btn-sm btn-default" data-act="Open">${__("Reopen")}</button>` : ""}
-						<button class="btn btn-sm btn-default duty-issue-edit">✎ ${__("Edit")}</button>
 						${this.issue_is_mine(x) || frappe.user.has_role("System Manager") ? `<label class="btn btn-sm btn-default duty-issue-attach">📎 ${__("Add file")}<input type="file" hidden></label>` : ""}
 					</div>
 				</div>
@@ -5891,24 +8980,46 @@ class DutyBoard {
 				.find(".duty-issue-actions button[data-act]")
 				.on("click", (e) => {
 					const act = $(e.currentTarget).data("act");
-					const apply = (resolution) =>
+					if (["Resolved", "Closed"].includes(act)) {
+						const cl = x.checklist || [];
+						if (cl.length && cl.some((c) => !c.done)) {
+							frappe.msgprint(__("⛔ The checklist gates this ticket — {0} of {1} items still open. Tick them all, then resolve.", [cl.filter((c) => !c.done).length, cl.length]));
+							return;
+						}
+					}
+					const apply = (resolution, hours) =>
 						frappe.call({
 							method: "duty_board.api.update_issue_status",
-							args: { name: name, status: act, resolution: resolution || null },
+							args: { name: name, status: act, resolution: resolution || null, hours: hours || null },
 							callback: (r) => {
 								if (r.message) render(r.message);
 								this.touch_issues();
+								if (act === "Resolved" && r.message) this.confetti();
 							},
 						});
+					if (this._is_consultant && act === "Closed") {
+						frappe.prompt(
+							{ fieldname: "hours", fieldtype: "Float", label: __("Hours spent on this issue"), reqd: 1 },
+							(v) => apply(null, v.hours),
+							__("Log your time"),
+							__("Close issue")
+						);
+						return;
+					}
 					if (act === "Resolved") {
 						frappe.prompt(
-							{
+							this._is_consultant
+								? [
+									{ fieldname: "resolution", fieldtype: "Small Text", label: __("What was done?"), reqd: 1 },
+									{ fieldname: "hours", fieldtype: "Float", label: __("Hours spent on this issue"), reqd: 1 },
+								]
+								: {
 								fieldname: "resolution",
 								fieldtype: "Small Text",
 								label: __("What was done?"),
 								reqd: 1,
 							},
-							(v) => apply(v.resolution),
+							(v) => apply(v.resolution, v.hours),
 							__("Resolve Issue"),
 							__("Resolve")
 						);
@@ -5936,12 +9047,171 @@ class DutyBoard {
 					},
 				})
 			);
+			const inline_save = (extra) =>
+				frappe.call({
+					method: "duty_board.api.update_issue",
+					args: Object.assign({
+						name: name,
+						severity: $(d.body).find(".duty-idc-sev").val(),
+						issue_type: $(d.body).find(".duty-idc-type").val(),
+						due_date: $(d.body).find(".duty-idc-due").val() || null,
+					}, extra || {}),
+					callback: (r) => {
+						if (r.message) render(r.message);
+						this.refresh();
+					},
+				});
+			$(d.body).find(".duty-checklist input[type=checkbox]").on("change", (e) => {
+				frappe.call({
+					method: "duty_board.api.checklist_toggle",
+					args: { name: name, row: $(e.currentTarget).data("row"), done: e.currentTarget.checked ? 1 : 0 },
+					callback: (r) => r.message && render(r.message),
+				});
+			});
+			$(d.body).find(".duty-cl-who, .duty-cl-due").on("click", (e) => {
+				e.preventDefault();
+				e.stopPropagation();
+				if (this._is_consultant) return;
+				const $c = $(e.currentTarget);
+				const row = $c.data("row");
+				const isWho = $c.hasClass("duty-cl-who");
+				const staff = Object.keys(this.name_map || {}).map((u) => ({ value: u, label: this.name_map[u] }));
+				frappe.prompt(
+					isWho
+						? { fieldname: "v", fieldtype: "Autocomplete", label: __("Step owner"), options: staff, default: $c.data("assignee") || "" }
+						: { fieldname: "v", fieldtype: "Date", label: __("Step due date"), default: $c.data("due") || "" },
+					(vals) => frappe.call({
+						method: "duty_board.api.checklist_assign",
+						args: {
+							name: name, row: row,
+							assignee: isWho ? vals.v || null : $c.data("assignee") || null,
+							due_date: isWho ? $c.data("due") || null : vals.v || null,
+						},
+						callback: (r) => r.message && render(r.message),
+					}),
+					isWho ? __("👤 Who owns this step?") : __("📅 When is it due?"), __("Set")
+				);
+			});
+			$(d.body).find(".duty-issue-merge").on("click", () => {
+				frappe.prompt(
+					{ fieldname: "target", fieldtype: "Data", label: __("Merge INTO ticket (the survivor, e.g. ISS-202608-01234)"), reqd: 1 },
+					(v2) => frappe.confirm(
+						__("Fold {0} into {1}? Updates, assignees, checklist, hours and files move across; {0} closes as 'Merged into {1}'.", [name, v2.target.trim()]),
+						() => frappe.call({
+							method: "duty_board.api.merge_issue",
+							args: { source: name, target: v2.target.trim() },
+							callback: (r) => {
+								if (!r.message) return;
+								frappe.show_alert({ message: __("⇄ Merged into {0}.", [v2.target.trim()]), indicator: "green" });
+								d.hide();
+								this.touch_issues();
+							},
+						})
+					),
+					__("⇄ Merge duplicate"), __("Merge"));
+			});
+			$(d.body).find(".duty-enab-tpl").on("click", () => {
+				const openPick = () => {
+					const names = (this._enab_templates || []).map((t) => t.name);
+					if (!names.length) {
+						frappe.msgprint(__("No templates yet — define them in Duty Settings → Enablement Templates ([Name] line, then one step per line)."));
+						return;
+					}
+					frappe.prompt(
+						{ fieldname: "tpl", fieldtype: "Select", label: __("Workplan template"), options: names.join("\n"), reqd: 1 },
+						(v2) => frappe.call({
+							method: "duty_board.api.enablement_apply",
+							args: { name: name, template: v2.tpl },
+							callback: (r) => { if (r.message) { render(r.message); frappe.show_alert({ message: __("📋 Workplan loaded — assign the steps."), indicator: "green" }); } },
+						}),
+						__("📋 Load a workplan"), __("Load"));
+				};
+				if (this._enab_templates === undefined) {
+					frappe.call({ method: "duty_board.api.enablement_templates", error: () => { this._enab_templates = []; openPick(); }, callback: (r) => { this._enab_templates = r.message || []; openPick(); } });
+				} else openPick();
+			});
+			$(d.body).find(".duty-enab-promote").on("click", () => {
+				frappe.confirm(
+					__("This enablement has outgrown its ticket? A Duty Project will be created, open workplan steps become project tasks (owners and dates carried), and this ticket closes with the paper trail."),
+					() => frappe.call({
+						method: "duty_board.api.promote_to_project",
+						args: { name: name },
+						callback: (r) => {
+							if (!r.message) return;
+							frappe.show_alert({ message: __("⤴ Project {0} created — {1} step(s) carried.", [r.message.project, r.message.carried]), indicator: "green" });
+							d.hide();
+							this.touch_issues();
+						},
+					})
+				);
+			});
+			$(d.body).find(".duty-cl-rm").on("click", (e) => {
+				e.preventDefault();
+				frappe.call({
+					method: "duty_board.api.checklist_remove",
+					args: { name: name, row: $(e.currentTarget).data("row") },
+					callback: (r) => r.message && render(r.message),
+				});
+			});
+			$(d.body).find(".duty-cl-input").on("keydown", (e) => {
+				if (e.key !== "Enter") return;
+				const v = $(e.currentTarget).val().trim();
+				if (!v) return;
+				frappe.call({
+					method: "duty_board.api.checklist_add",
+					args: { name: name, item: v },
+					callback: (r) => {
+						if (r.message) {
+							render(r.message);
+							$(d.body).find(".duty-cl-input").focus();
+						}
+					},
+				});
+			});
+			$(d.body).find(".duty-idc-rm").on("click", (e) => {
+				e.stopPropagation();
+				frappe.call({
+					method: "duty_board.api.remove_assignee",
+					args: { name: name, user: $(e.currentTarget).data("user") },
+					callback: (r) => {
+						if (r.message) render(r.message);
+						this.refresh();
+					},
+				});
+			});
+			$(d.body).find(".duty-idc-sev").on("change", () => inline_save());
+			$(d.body).find(".duty-idc-type").on("change", () => inline_save());
+			$(d.body).find(".duty-idc-due").on("change", () => inline_save());
+			$(d.body).find(".duty-idc-assign").on("click", () => {
+				const pd = new frappe.ui.Dialog({
+					title: __("Assign"),
+					fields: [{
+						fieldname: "add_assignees", fieldtype: "MultiSelectList", label: __("Add assignees"),
+						get_data: () => [{ value: frappe.session.user, description: __("Me") }].concat(
+							this.team_members().map((t) => ({ value: t.user, description: t.full_name }))),
+					}],
+					primary_action_label: __("Assign"),
+					primary_action: (v) => { pd.hide(); inline_save({ add_assignees: JSON.stringify(v.add_assignees || []) }); },
+				});
+				pd.show();
+			});
 			this.load_updates(x, $(d.body).find(".duty-upd-host"));
-			this.load_similar(x, $(d.body).find(".duty-sim-host"));
 			$(d.body).find(".duty-issue-origin").on("click", () => {
 				d.hide();
 				this.view_origin(x.source, x.source_message);
 			});
+			$(d.body).find(".duty-issue-cru").on("click", (e) => this.open_cr_editor($(e.currentTarget).data("cr")));
+			$(d.body).find(".duty-cr-accept").on("click", () =>
+				frappe.call({
+					method: "duty_board.api.cr_accept",
+					args: { name: name },
+					callback: (r) => {
+						if (r.message) render(r.message);
+						this.refresh();
+						frappe.show_alert({ message: __("✅ Accepted — the ticket is In Progress."), indicator: "green" });
+					},
+				})
+			);
 			$(d.body).find(".duty-issue-chreq").on("click", () =>
 				frappe.confirm(
 					__("Draft a change request from this ticket? Use this when the ask is new paid scope, not subscription support."),
@@ -5952,7 +9222,11 @@ class DutyBoard {
 							callback: (r) => {
 								if (r.message) {
 									d.hide();
-									frappe.show_alert({ message: __("💱 Change request drafted — open the client room to price and send it."), indicator: "green" });
+									if (this._is_consultant && r.message.new_cr) {
+										this.consultant_cr_edit(r.message.new_cr, { title: r.message.new_cr_title });
+									} else {
+										frappe.show_alert({ message: __("💱 Change request drafted — open the client room to price and send it."), indicator: "green" });
+									}
 									if (this._open_room === r.message.name) this.render_client_room(r.message);
 								}
 							},
@@ -6125,6 +9399,68 @@ class DutyBoard {
 		$me.find(".duty-main-btn").on("click", () => {
 			on_duty ? this.clock_out_dialog() : this.action("clock_in");
 		});
+	}
+
+	build_rail() {
+		if (this.is_mobile && this.is_mobile()) return;
+		let $r = $(".duty-rail");
+		if (!$r.length) {
+			$r = $('<div class="duty-rail"></div>').appendTo(document.body);
+			if (localStorage.getItem("duty_rail") === "min") $("body").addClass("duty-rail-min");
+			const sync = () => {
+				const here = frappe.get_route_str() === "duty-board";
+				$r.toggle(here);
+				$("body").toggleClass("duty-has-rail", here);
+			};
+			frappe.router.on("change", sync);
+			sync();
+		}
+		const ic = (paths) => `<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${paths}</svg>`;
+		$r.html(
+			(this.rail || []).map((e) => `<a class="duty-rl ${e.id === (this.face || "board") ? "on" : ""}" data-id="${e.id}" title="${e.label}">${ic(e.ic)}<span>${e.label}</span></a>`).join("") +
+			`<a class="duty-rl duty-rl-min" title="${__("Collapse")}">${ic('<path d="m11 17-5-5 5-5"/><path d="m18 17-5-5 5-5"/>')}<span>${__("Collapse")}</span></a>`
+		);
+		$r.find(".duty-rl").not(".duty-rl-min").on("click", (ev) => {
+			const id = $(ev.currentTarget).data("id");
+			const e = (this.rail || []).find((x) => x.id === id);
+			if (e) e.go();
+		});
+		$r.find(".duty-rl-min").on("click", () => {
+			$("body").toggleClass("duty-rail-min");
+			localStorage.setItem("duty_rail", $("body").hasClass("duty-rail-min") ? "min" : "full");
+		});
+	}
+
+	rail_sync(face) {
+		$(".duty-rail .duty-rl").removeClass("on");
+		$(`.duty-rail .duty-rl[data-id="${face}"]`).addClass("on");
+	}
+
+	render_strip() {
+		if (this._is_consultant) { $(".duty-strip").remove(); return; }
+		if (this.is_mobile && this.is_mobile()) { $(".duty-strip").remove(); return; }
+		let $s = $(".duty-strip");
+		if (!$s.length) $s = $('<div class="duty-strip"></div>').appendTo(document.body);
+		const me = this._me;
+		const face = this.face || "board";
+		if (!me || face === "board") { $s.hide(); return; }
+		if (!this._strip_tick) {
+			this._strip_tick = setInterval(() => this.render_strip(), 30000);
+		}
+		const on_duty = me.status === "On Duty";
+		const t = on_duty && me.task;
+		const dur = (s) => this.fmt_duration(s);
+		$s.html(
+			on_duty
+				? t
+					? `<span class="ds-dot on"></span><span class="ds-lab">${__("Working on")}</span> <b class="ds-task">${frappe.utils.escape_html(t.activity).slice(0, 44)}</b>${t.customer ? `<span class="ds-cust">${frappe.utils.escape_html(t.customer)}</span>` : ""}<span class="ds-time">${dur(t.seconds)}</span><a class="ds-btn ds-switch">${__("Switch")}</a><a class="ds-btn ds-stop">${__("Stop")}</a>`
+					: `<span class="ds-dot on"></span><b>${__("On duty")}</b><span class="ds-time">${dur(me.on_duty_seconds)}</span><span class="ds-idle">${__("no task running")}</span><a class="ds-btn ds-go">${__("Start task")}</a>`
+				: `<span class="ds-dot"></span><span class="ds-idle">${__("Off duty")}</span><a class="ds-btn ds-in">${__("Clock in")}</a>`
+		).show();
+		$s.find(".ds-stop").on("click", () => this.stop_task_flow());
+		$s.find(".ds-switch").on("click", () => this.start_task_dialog(true));
+		$s.find(".ds-go").on("click", () => this.start_task_dialog(false));
+		$s.find(".ds-in").on("click", () => this.action("clock_in"));
 	}
 
 	render_task(me) {
@@ -6514,64 +9850,59 @@ class DutyBoard {
 			$team.html(`<div class="text-muted">${__("No staff found.")}</div>`);
 			return;
 		}
-		let open_set;
-		try {
-			open_set = new Set(JSON.parse(localStorage.getItem("duty_staff_open") || "[]"));
-		} catch (e) {
-			open_set = new Set();
-		}
-		rows.forEach((r) => {
-			const s = this.status_meta(r.status);
-			const opened = open_set.has(r.user);
-			const $card = $(`
-				<div class="duty-card duty-card-click ${opened ? "" : "collapsed"}">
-					<div class="duty-card-head">
-						<span class="duty-card-caret">${opened ? "▾" : "▸"}</span>
-						${frappe.avatar(r.user, "avatar-medium")}
-						<div class="duty-card-name">
-							<div class="duty-name-row">
-								<div class="duty-name" style="color:${this.user_color(r.user)}">${frappe.utils.escape_html(r.full_name)}</div>
-								${r.user !== frappe.session.user ? `<a class="duty-dm-btn" data-user="${r.user}" data-name="${frappe.utils.escape_html(r.full_name)}" title="${__("Direct message")}">✉<b class="duty-dm-badge" ${(this.dm_unread || {})[r.user] ? "" : 'style="display:none"'}>${(this.dm_unread || {})[r.user] || ""}</b></a>` : ""}
-							</div>
-							<div class="duty-badge" style="color:${s.color};background:${s.bg}">
-								<span class="duty-dot" style="background:${s.color}"></span>${__(r.status)}
-							</div>
-						</div>
-					</div>
-					<div class="duty-card-body text-muted">
-						${
-							r.task
-								? `<div class="duty-card-task">▸ ${frappe.utils.escape_html(r.task.activity)}${
-										r.task.customer
-											? ` <span class="duty-task-customer">${frappe.utils.escape_html(r.task.customer)}</span>`
-											: ""
-								  } <span class="text-muted">(${this.fmt_duration(r.task.seconds)})</span></div>`
-								: ""
-						}
-						${r.reason && r.status === "Away" ? `<div class="duty-reason">${frappe.utils.escape_html(r.reason)}</div>` : ""}
-						${r.summary && r.status === "Done for the Day" ? `<div class="duty-summary">“${frappe.utils.escape_html(r.summary)}”</div>` : ""}
-						${r.since ? `<div>${__("Since")} ${this.fmt_time(r.since)}</div>` : `<div>${__("Not clocked in today")}</div>`}
-						<div>
-							${__("On duty")}: ${this.fmt_duration(r.on_duty_seconds)}${r.breaks ? " · " + __("Breaks") + ": " + r.breaks : ""}
-							${r.todos_total ? " · " + __("Plan") + `: ${r.todos_done}/${r.todos_total}` : ""}
-						</div>
-						<div class="duty-card-more">${__("View day")} ›</div>
-					</div>
-				</div>
-			`).appendTo($team);
-			$card.find(".duty-card-head").on("click", (e) => {
-				if ($(e.target).closest(".duty-dm-btn").length) return;
-				const now_open = $card.hasClass("collapsed");
-				$card.toggleClass("collapsed", !now_open);
-				$card.find(".duty-card-caret").text(now_open ? "▾" : "▸");
-				if (now_open) open_set.add(r.user);
-				else open_set.delete(r.user);
-				localStorage.setItem("duty_staff_open", JSON.stringify([...open_set]));
-			});
-			$card.find(".duty-card-more").on("click", (e) => {
-				e.stopPropagation();
-				this.show_member(r);
-			});
+		const esc = frappe.utils.escape_html;
+		this._team_f = this._team_f || localStorage.getItem("duty_team_f") || "all";
+		const is_on = (r) => r.status === "On Duty";
+		const no_plan = (r) => !r.todos_total;
+		const no_task = (r) => is_on(r) && !r.task;
+		const counts = {
+			all: rows.length,
+			on: rows.filter(is_on).length,
+			off: rows.filter((r) => !is_on(r)).length,
+			noplan: rows.filter(no_plan).length,
+			notask: rows.filter(no_task).length,
+		};
+		const FDEF = [
+			["all", __("All")], ["on", __("On duty")], ["off", __("Off duty")],
+			["noplan", __("No plan")], ["notask", __("No task")],
+		];
+		const shown = rows.filter((r) =>
+			this._team_f === "on" ? is_on(r)
+			: this._team_f === "off" ? !is_on(r)
+			: this._team_f === "noplan" ? no_plan(r)
+			: this._team_f === "notask" ? no_task(r)
+			: true);
+		$team.html(`
+			<div class="duty-tf">${FDEF.map(([k, l]) => `<a class="duty-tfp ${this._team_f === k ? "on" : ""}" data-f="${k}">${l} <b>${counts[k]}</b></a>`).join("")}</div>
+			<div class="duty-teamtbl">
+				${shown.map((r) => {
+					const s = this.status_meta(r.status);
+					const warn = no_task(r) || no_plan(r);
+					return `
+					<div class="duty-tr ${warn ? "duty-tr-warn" : ""}" data-user="${r.user}">
+						<span class="duty-tr-who">${frappe.avatar(r.user, "avatar-small")}<b style="color:${this.user_color(r.user)}">${esc(r.full_name)}</b>
+							${r.user !== frappe.session.user ? `<a class="duty-dm-btn" data-user="${r.user}" data-name="${esc(r.full_name)}" title="${__("Direct message")}">✉<b class="duty-dm-badge" ${(this.dm_unread || {})[r.user] ? "" : 'style="display:none"'}>${(this.dm_unread || {})[r.user] || ""}</b></a>` : ""}</span>
+						<span class="duty-badge" style="color:${s.color};background:${s.bg}"><span class="duty-dot" style="background:${s.color}"></span>${__(r.status)}</span>
+						<span class="duty-tr-task">${r.task
+							? `${esc(r.task.activity)}${r.task.customer ? ` <span class="duty-task-customer">${esc(r.task.customer)}</span>` : ""} <span class="text-muted">${this.fmt_duration(r.task.seconds)}</span>`
+							: r.status === "Away" && r.reason ? `<span class="text-muted">${esc(r.reason)}</span>`
+							: r.status === "Done for the Day" && r.summary ? `<span class="text-muted">“${esc(r.summary)}”</span>`
+							: `<span class="text-muted">—</span>`}</span>
+						<span class="duty-tr-dur">${r.since ? this.fmt_duration(r.on_duty_seconds) : `<span class="text-muted">${__("not in")}</span>`}</span>
+						<span class="duty-tr-plan ${no_plan(r) ? "duty-tr-plan-none" : ""}">${r.todos_total ? `${r.todos_done}/${r.todos_total}` : "—"}</span>
+						<a class="duty-tr-more">›</a>
+					</div>`;
+				}).join("") || `<div class="text-muted" style="padding:10px 4px">${__("Nobody matches this filter.")}</div>`}
+			</div>`);
+		$team.find(".duty-tfp").on("click", (e) => {
+			this._team_f = $(e.currentTarget).data("f");
+			localStorage.setItem("duty_team_f", this._team_f);
+			this.render_team(rows);
+		});
+		$team.find(".duty-tr").on("click", (e) => {
+			if ($(e.target).closest(".duty-dm-btn").length) return;
+			const r = rows.find((x) => x.user === $(e.currentTarget).data("user"));
+			if (r) this.show_member(r);
 		});
 	}
 
@@ -6846,7 +10177,8 @@ class DutyBoard {
 				.duty-side { position: static; flex: 1 1 auto; max-width: 100%; width: 100%; }
 				.duty-left { position: static; flex: 1 1 auto; max-width: 100%; width: 100%; order: 2; }
 				.duty-issues-card { height: auto; }
-				.duty-issues-list { max-height: 300px; }
+				.duty-issues-list { max-height: calc(100vh - 250px); max-height: calc(100dvh - 250px); overflow-y: auto; }
+				.duty-board[data-mtab="issues"] { padding-bottom: 0 !important; }
 				.duty-issues-rail { writing-mode: horizontal-tb; justify-content: center; padding: 8px 14px; width: 100%; }
 				.duty-chat-card { height: auto; }
 				.duty-chat-list { max-height: 260px; }
@@ -6854,13 +10186,61 @@ class DutyBoard {
 			}
 			@media (max-width: 767px) {
 				body.duty-mobile .page-head { display: none; }
-				body.duty-mobile .duty-board { padding-bottom: 76px; }
+				body.duty-mobile.duty-immersive header.navbar { display: none; }
+				body.duty-mobile.duty-immersive .main-section { padding-top: 0; }
+				body.duty-mobile.duty-immersive .page-body { margin-top: 0; }
+				body.duty-mobile { background: #F3F4F1; }
+				body.duty-mobile .duty-board { padding-bottom: 88px; }
+				body.duty-mobile .duty-projects, body.duty-mobile .duty-library,
+				body.duty-mobile .duty-clients, body.duty-mobile .duty-sales,
+				body.duty-mobile .duty-me, body.duty-mobile .duty-books { padding-bottom: 88px; }
+				body.duty-mobile .duty-card, body.duty-mobile .duty-bk,
+				body.duty-mobile .duty-chat-card { border-radius: 16px; border: none; box-shadow: 0 1px 2px rgba(16,24,40,.06), 0 1px 3px rgba(16,24,40,.05); }
+				body.duty-mobile input.form-control, body.duty-mobile textarea.form-control,
+				body.duty-mobile select.form-control { font-size: 16px; border-radius: 12px; }
+				body.duty-mobile .btn { border-radius: 10px; }
+				body.duty-mobile a[class*="-edit"], body.duty-mobile a[class*="-del"],
+				body.duty-mobile a[class*="-fetch"], body.duty-mobile .duty-cr-caret { padding: 8px 6px; display: inline-block; }
+				@media (hover: none) { .duty-cal-add { visibility: visible !important; } }
+				.duty-sheet-wrap { position: fixed; inset: 0; z-index: 1055; }
+				.duty-sheet-ovl { position: absolute; inset: 0; background: rgba(16,24,40,.4); opacity: 0; transition: opacity .18s; }
+				.duty-sheet { position: absolute; left: 0; right: 0; bottom: 0; background: #fff; border-radius: 20px 20px 0 0; padding: 8px 16px calc(16px + env(safe-area-inset-bottom)); transform: translateY(100%); transition: transform .22s cubic-bezier(.32,.72,.32,1); box-shadow: 0 -8px 32px rgba(16,24,40,.16); }
+				.duty-sheet-wrap.open .duty-sheet-ovl { opacity: 1; }
+				.duty-sheet-wrap.open .duty-sheet { transform: none; }
+				.duty-sheet-grip { width: 38px; height: 4px; border-radius: 99px; background: #E3E4E0; margin: 4px auto 10px; }
+				.duty-sheet-title { font-size: 12px; font-weight: 800; letter-spacing: .07em; text-transform: uppercase; color: #6B7772; margin-bottom: 6px; }
+				.duty-sheet-item { display: flex; align-items: center; gap: 14px; padding: 13px 6px; border-radius: 12px; font-size: 15px; color: #101828; text-decoration: none; cursor: pointer; }
+				.duty-sheet-item:active { background: #F3F4F1; }
+				.duty-sheet-item .i { font-size: 21px; width: 28px; text-align: center; }
+				.duty-cr-mtabs { display: none; }
+				body.duty-mobile .duty-cr-mtabs { display: flex; gap: 6px; margin: 2px 0 8px; background: #EFF0ED; border-radius: 12px; padding: 3px; }
+				body.duty-mobile .duty-cr-mtabs a { flex: 1; text-align: center; padding: 8px 0; border-radius: 10px; font-size: 13.5px; font-weight: 600; color: #6B7772; text-decoration: none; cursor: pointer; }
+				body.duty-mobile .duty-cr-mtabs a.on { background: #fff; color: #101828; box-shadow: 0 1px 2px rgba(16,24,40,.08); }
+				body.duty-mobile .duty-cr-side { display: none; }
+				body.duty-mobile .rt-tasks .duty-cr-side { display: block; width: 100%; border: none; padding: 0; }
+				body.duty-mobile .rt-tasks .duty-cr-msgs, body.duty-mobile .rt-tasks .duty-cr-compose,
+				body.duty-mobile .rt-tasks .duty-cr-typing, body.duty-mobile .rt-tasks .duty-cr-replychip,
+				body.duty-mobile .rt-tasks .duty-cr-pending, body.duty-mobile .rt-tasks .duty-cr-emojis { display: none !important; }
+				body.duty-mobile .duty-cr-head { overflow-x: auto; white-space: nowrap; -webkit-overflow-scrolling: touch; }
+				body.duty-mobile .duty-cr-msgs { max-height: calc(100vh - 350px); }
+				body.duty-mobile .duty-projects { display: block; }
+				body.duty-mobile .duty-pj-side { width: 100%; border-right: none; max-height: none; padding: 0; }
+				body.duty-mobile .duty-pj-main { display: none; padding-left: 0; }
+				body.duty-mobile .duty-projects.pj-detail .duty-pj-side { display: none; }
+				body.duty-mobile .duty-projects.pj-detail .duty-pj-main { display: block; }
+				body.duty-mobile .duty-pj-item { padding: 12px 10px; }
+				.duty-pj-back { display: none; }
+				body.duty-mobile .duty-pj-back { display: inline-block; cursor: pointer; font-weight: 700; color: #0E5A4A; margin-right: 10px; text-decoration: none; font-size: 14px; }
+				body.duty-mobile .duty-kanban { display: flex; flex-wrap: nowrap; overflow-x: auto; scroll-snap-type: x mandatory; gap: 12px; -webkit-overflow-scrolling: touch; padding-bottom: 8px; }
+				body.duty-mobile .duty-kanban .duty-kb-col { flex: 0 0 86vw; scroll-snap-align: start; }
+				body.duty-mobile .modal .modal-dialog { position: fixed; left: 0; right: 0; bottom: 0; top: auto; margin: 0; width: 100%; max-width: 100% !important; }
+				body.duty-mobile .modal .modal-content { border-radius: 20px 20px 0 0; max-height: 92vh; overflow-y: auto; padding-bottom: env(safe-area-inset-bottom); }
 				.duty-tabbar {
 					position: fixed; left: 0; right: 0; bottom: 0; z-index: 100;
-					display: flex; background: var(--card-bg, #fff);
-					border-top: 1px solid var(--border-color);
-					padding: 6px 0 calc(6px + env(safe-area-inset-bottom));
-					box-shadow: 0 -2px 10px rgba(0,0,0,0.06);
+					display: flex; background: rgba(255,255,255,.88);
+					backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
+					border-top: 1px solid rgba(16,24,40,.07);
+					padding: 8px 6px calc(8px + env(safe-area-inset-bottom));
 				}
 				.duty-tabbar a {
 					flex: 1; text-align: center; font-size: 11px; color: var(--text-muted);
@@ -6868,7 +10248,8 @@ class DutyBoard {
 					align-items: center; gap: 2px; position: relative;
 				}
 				.duty-tabbar a span { font-size: 20px; line-height: 1; filter: grayscale(1); opacity: 0.75; }
-				.duty-tabbar a.active { color: #0F5C55; font-weight: 700; }
+				.duty-tabbar a { padding: 4px 0 2px; border-radius: 12px; margin: 0 3px; }
+				.duty-tabbar a.active { color: #0E5A4A; font-weight: 700; background: #E4EEEA; }
 			.duty-tabbar-away { opacity: 0.92; box-shadow: 0 -2px 10px rgba(15, 92, 85, 0.25); }
 			.duty-tabbar-away a.active { color: inherit; font-weight: 500; }
 				.duty-tabbar a.active span { filter: none; opacity: 1; }
@@ -6877,6 +10258,35 @@ class DutyBoard {
 					background: var(--red-500, #ef4444); color: #fff; border-radius: 99px;
 					min-width: 16px; padding: 0 4px; font-size: 10px; line-height: 16px; font-style: normal;
 				}
+				body.duty-mobile .duty-board[data-mtab="chat"] { padding: 0 !important; }
+				body.duty-mobile .duty-board[data-mtab="chat"] > :not(:has(.duty-chat)):not(.duty-chat) { display: none !important; }
+				body.duty-mobile .duty-board[data-mtab="chat"] .duty-side > :not(.duty-chat) { display: none !important; }
+				body.duty-mobile .duty-board[data-mtab="chat"] .duty-side { padding: 0; width: 100%; }
+				body.duty-mobile .duty-board[data-mtab="chat"] .duty-urgent-banner,
+				body.duty-mobile .duty-board[data-mtab="chat"] .duty-metrics,
+				body.duty-mobile .duty-board[data-mtab="chat"] .duty-card:not(.duty-chat-card) { display: none !important; }
+				body.duty-mobile .duty-board[data-mtab="chat"] .duty-chat-card {
+					display: flex; flex-direction: column;
+					height: calc(100vh - 118px);
+					height: calc(100dvh - 118px);
+					margin: 0; background: #fff;
+					border-radius: 0 !important; box-shadow: none !important; border: none !important;
+				}
+				body.duty-mobile .duty-board[data-mtab="chat"] .duty-chat-head { padding: 7px 12px 5px; border-bottom: 1px solid #EEEFEC; font-size: 13.5px; }
+				body.duty-mobile .duty-board[data-mtab="chat"] .duty-chat-collapse { display: none; }
+				body.duty-mobile .duty-board[data-mtab="chat"] .duty-chat-list { flex: 1 1 auto; min-height: 0; overflow-y: auto; max-height: none !important; padding: 10px 12px; }
+				body.duty-mobile .duty-board[data-mtab="chat"] .duty-chat-send { padding: 6px 10px calc(6px + env(safe-area-inset-bottom)); border-top: 1px solid #EEEFEC; background: #fff; }
+				body.duty-mobile .duty-chat-input { height: 42px; min-height: 42px; max-height: 120px; padding: 10px 14px; border-radius: 21px; resize: none; }
+				body.duty-mobile .duty-chat-toolbar { margin-top: 4px !important; }
+				body.duty-mobile .duty-chat-toolbar .btn, body.duty-mobile .duty-chat-toolbar a { font-size: 17px; padding: 3px 7px; }
+				body.duty-mobile .duty-msg { margin: 3px 0; }
+				body.duty-mobile .duty-msg-mine { padding: 5px 9px; }
+				body.duty-mobile .duty-msg-time { font-size: 10px; }
+				body.duty-mobile .duty-cr-msg { margin: 4px 0; padding: 7px 10px; }
+				body.duty-mobile .duty-cr-compose textarea, body.duty-mobile .duty-cr-compose input[type="text"] { height: 42px; min-height: 42px; border-radius: 21px; padding: 10px 14px; }
+				body.duty-mobile .duty-board[data-mtab="chat"] .duty-msg { max-width: 82%; }
+				body.duty-mobile .duty-board[data-mtab="chat"] .duty-msg-mine { margin-left: auto; }
+				body.duty-mobile .duty-tabbar { z-index: 60; }
 				.duty-board[data-mtab] .duty-left, .duty-board[data-mtab] .duty-side,
 				.duty-board[data-mtab] .duty-plan, .duty-board[data-mtab] .duty-my-sessions,
 				.duty-board[data-mtab] .duty-me, .duty-board[data-mtab] .duty-task,
@@ -6906,6 +10316,7 @@ class DutyBoard {
 				.duty-chat-collapse, .duty-issues-collapse { display: none; }
 				.duty-chat-input, .duty-todo-input, .duty-search-input { font-size: 16px; }
 				.duty-tabbar a, .duty-todo-row, .duty-issue-row, .duty-msg { -webkit-tap-highlight-color: rgba(15,92,85,0.1); }
+				body.duty-mobile .duty-issue-title { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
 			}
 			.duty-chat-badge {
 				display: inline-block; min-width: 20px; text-align: center; padding: 1px 7px;
@@ -6922,6 +10333,9 @@ class DutyBoard {
 			.duty-load-earlier a:hover { color: var(--text-color); }
 			.duty-msg { padding: 4px 2px; font-size: var(--text-sm); line-height: 1.5; }
 			.duty-msg-who { font-weight: 700; color: var(--text-color); margin-right: 6px; }
+			.duty-msg-mine { background: #e7f4ec; border-radius: 10px; padding: 4px 8px; }
+			.duty-tc-emojibtn, .duty-tc-mic, .duty-cr-mic { cursor: pointer; font-size: 18px; align-self: center; padding: 0 4px; text-decoration: none; user-select: none; }
+			@keyframes duty-pulse { 0% { opacity: 1; } 50% { opacity: .35; } 100% { opacity: 1; } }
 			.duty-msg-mine .duty-msg-who { color: var(--green-600, #2e7d32); }
 			.duty-msg-time { margin-left: 8px; font-size: var(--text-xs); color: var(--text-muted); }
 			.duty-chat-send { display: flex; gap: 8px; align-items: flex-end; }
@@ -7032,6 +10446,8 @@ class DutyBoard {
 				padding: 10px 16px; display: flex; flex-direction: column;
 				height: calc(100vh - 140px); min-height: 320px;
 			}
+			.duty-iss-filters { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px; }
+			.duty-iss-filters select { flex: 1 1 45%; min-width: 130px; width: auto !important; }
 			.duty-issues-toolbar { display: flex; flex-direction: column; gap: 6px; margin-top: 8px; }
 			.duty-issue-scope { min-width: 108px; }
 			.duty-issues-toolbar-row { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
@@ -7157,7 +10573,37 @@ class DutyBoard {
 			}
 			.duty-projects { padding-bottom: 76px; }
 			.duty-proj-head { display: flex; gap: 12px; align-items: flex-start; flex-wrap: wrap; margin-bottom: 12px; }
-			.duty-proj-tabs { display: flex; gap: 8px; flex-wrap: wrap; flex: 1; }
+			.duty-projects { display: flex; gap: 0; align-items: stretch; min-height: calc(100vh - 120px); }
+			.duty-pj-side { width: 250px; flex: none; border-right: 1px solid #e5e7eb; padding: 8px 8px 8px 0; overflow-y: auto; max-height: calc(100vh - 110px); }
+			.duty-pj-sidehead { display: flex; gap: 6px; margin-bottom: 8px; }
+			.duty-pj-main { flex: 1; min-width: 0; padding-left: 14px; }
+			.duty-pj-title { font-size: 15px; padding: 2px 0 10px; }
+			.duty-pj-cust { font-size: 11px; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; color: #6B7772; padding: 7px 4px 4px; cursor: pointer; user-select: none; }
+			.duty-pj-count { color: #b3b8b5; font-weight: 600; }
+			.duty-pj-item { display: block; padding: 6px 8px; border-radius: 8px; margin: 2px 0; cursor: pointer; text-decoration: none; color: inherit; }
+			.duty-pj-item:hover { background: #f5f4f0; text-decoration: none; color: inherit; }
+			.duty-pj-item.active { background: #eef2f0; }
+			.duty-pj-item .t { display: block; font-weight: 600; font-size: 12.5px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+			.duty-pj-item .s { display: block; font-size: 11px; color: #8a938f; }
+			.duty-pj-views { display: inline-flex; gap: 2px; margin-left: 14px; background: #f0efe9; border-radius: 8px; padding: 2px; }
+			.duty-pj-v { font-size: 12px; padding: 3px 10px; border-radius: 6px; cursor: pointer; color: #6B7772; text-decoration: none; }
+			.duty-pj-v.on { background: #fff; color: #182420; font-weight: 600; box-shadow: 0 1px 2px rgba(0,0,0,.08); }
+			.duty-cal-head { display: flex; gap: 10px; align-items: center; margin: 8px 0; }
+			.duty-cal-nav, .duty-cal-today { cursor: pointer; padding: 2px 8px; border-radius: 6px; background: #f0efe9; text-decoration: none; color: #182420; font-size: 12.5px; }
+			.duty-cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); border: 1px solid #e5e7eb; border-radius: 10px; overflow: hidden; }
+			.duty-cal-dow { font-size: 10.5px; font-weight: 800; letter-spacing: .05em; text-transform: uppercase; color: #1a1a1a; padding: 6px 8px; background: #faf9f6; border-bottom: 1px solid #e5e7eb; }
+			.duty-cal-cell { min-height: 92px; border-right: 1px solid #f0eee8; border-bottom: 1px solid #f0eee8; padding: 4px 5px; }
+			.duty-cal-cell .d { font-size: 11.5px; color: #000; font-weight: 700; display: flex; justify-content: space-between; align-items: center; }
+			.duty-cal-add { visibility: hidden; cursor: pointer; color: #0E5A4A; font-weight: 700; text-decoration: none; padding: 0 3px; }
+			.duty-cal-cell:hover .duty-cal-add { visibility: visible; }
+			.duty-cal-cell:not(.duty-cal-pad) { cursor: pointer; }
+			.duty-cal-cell.today { background: #f2f7f4; }
+			.duty-cal-cell.today .d { color: #0E5A4A; font-weight: 800; }
+			.duty-cal-cell.over { background: #e4eeea; }
+			.duty-cal-pad { background: #fbfaf7; }
+			.duty-cal-task { font-size: 11.5px; color: #000; font-weight: 500; background: #fff; border: 1px solid #eceae4; border-radius: 6px; padding: 2px 5px; margin-top: 3px; cursor: pointer; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+			.duty-cal-task.done { text-decoration: line-through; color: #96A09B; }
+			.duty-proj-tabs { display: block; }
 			.duty-proj-tab {
 				border: 1px solid var(--border-color); border-radius: 10px; padding: 8px 14px;
 				background: var(--card-bg); cursor: pointer; text-decoration: none;
@@ -7324,6 +10770,16 @@ class DutyBoard {
 			.duty-cr-emojis a:hover { background: var(--gray-100, #f5f5f5); }
 			.duty-cr-emojibtn { cursor: pointer; align-self: center; font-size: 18px; text-decoration: none; }
 			.duty-cr-staff { background: #ecfdf5; align-self: flex-end; }
+			.duty-cr-mine { background: #cdeedd; align-self: flex-end; border: 1px solid #b5e3cd; }
+			.duty-cr-unread-sys { background: #eceae4 !important; color: #6B7772 !important; }
+			@media (max-width: 767px) {
+				.duty-library { padding: 10px 12px 90px; }
+				.duty-lb-head { gap: 10px; }
+				.duty-lb-search { flex-basis: 100%; }
+				.duty-rd-toc { width: 100% !important; position: static !important; max-height: 200px !important; border-right: none !important; border-bottom: 1px solid #E8E5DD; padding-bottom: 8px; }
+				.duty-pj-side { width: 190px; }
+			}
+
 			.duty-cr-client { background: var(--gray-100, #f3f4f6); align-self: flex-start; }
 			.duty-cr-internal { background: #fef9c3; border: 1px dashed #d97706; align-self: flex-end; }
 			.duty-cr-msg .duty-msg-who { display: block; font-size: var(--text-xs); font-weight: 700; }
@@ -7411,7 +10867,532 @@ class DutyBoard {
 			.duty-mtile b { display: block; font-size: 22px; color: #0F5C55; }
 			.duty-mtile span { font-size: 11px; color: var(--text-muted); }
 						.duty-cr-int { font-size: var(--text-xs); font-weight: 700; align-self: center; white-space: nowrap; }
-			.duty-cr-composing-internal textarea { background: #fef9c3; border-color: #d97706; }
+			.duty-cr-composing-internal textarea { background: #FDF6E3; border-color: #B27409; }
+			.duty-cr-composing-internal { background: #FBF0DC; border-radius: 10px; }
+			.duty-md { display: inline-flex; border: 1.5px solid #E2E8E5; border-radius: 99px; overflow: hidden; flex: none; align-self: center; }
+			.duty-md a { padding: 4px 11px; font-size: 11.5px; font-weight: 700; cursor: pointer; color: #65736F; white-space: nowrap; }
+			.duty-md a.on { background: #123C35; color: #fff; }
+			.duty-md .duty-md-i.on { background: #B27409; }
+			.duty-cr-intbanner { background: #B27409; color: #fff; font-size: 12px; font-weight: 700; padding: 5px 12px; border-radius: 8px 8px 0 0; }
+			.duty-cr-send.duty-send-internal { background: #B27409 !important; border-color: #B27409 !important; }
+			.duty-strip { position: fixed; bottom: 14px; left: 50%; transform: translateX(-50%); z-index: 300;
+				display: flex; align-items: center; gap: 9px; background: #123C35; color: #fff;
+				border-radius: 99px; padding: 8px 16px; font-size: 12.5px; box-shadow: 0 6px 22px rgba(12,34,30,.35); }
+			.duty-strip .ds-dot { width: 9px; height: 9px; border-radius: 50%; background: #8A9994; flex: none; }
+			.duty-strip .ds-dot.on { background: #2FD08C; box-shadow: 0 0 0 3px rgba(47,208,140,.25); }
+			.duty-strip .ds-lab { color: rgba(255,255,255,.65); }
+			.duty-strip .ds-task { max-width: 300px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+			.duty-strip .ds-cust { color: #7FD6BC; font-weight: 600; }
+			.duty-strip .ds-time { font-weight: 800; font-variant-numeric: tabular-nums; }
+			.duty-strip .ds-idle { color: rgba(255,255,255,.6); }
+			.duty-strip .ds-btn { background: rgba(255,255,255,.14); border-radius: 99px; padding: 4px 12px; font-weight: 700; cursor: pointer; color: #fff; transition: background .15s; }
+			.duty-strip .ds-btn:hover { background: rgba(255,255,255,.26); color: #fff; }
+			.duty-strip .ds-stop { background: rgba(201,70,70,.85); }
+			.duty-strip .ds-stop:hover { background: #C94646; }
+			.duty-ivrow { display: flex; gap: 5px; padding: 7px 8px 3px; flex-wrap: wrap; }
+			.duty-iv { font-size: 11.5px; font-weight: 700; color: #65736F; background: #F0F4F2; border-radius: 99px; padding: 4px 11px; cursor: pointer; transition: all .14s; }
+			.duty-iv b { font-weight: 800; }
+			.duty-iv:hover { background: #E2E8E5; color: #17211F; }
+			.duty-iv.on { background: #123C35; color: #fff; }
+			.duty-rail { position: fixed; left: 0; top: var(--navbar-height, 60px); bottom: 0; width: 172px; z-index: 90;
+				background: #123C35; display: flex; flex-direction: column; padding: 10px 8px; gap: 2px; overflow-y: auto; }
+			.duty-rl { display: flex; align-items: center; gap: 10px; color: rgba(255,255,255,.72); font-size: 13px; font-weight: 600;
+				border-radius: 9px; padding: 8px 10px; cursor: pointer; white-space: nowrap; transition: background .14s, color .14s; }
+			.duty-rl:hover { color: #fff; background: rgba(255,255,255,.08); text-decoration: none; }
+			.duty-rl.on { background: #fff; color: #123C35; font-weight: 700; }
+			.duty-rl svg { flex: none; }
+			.duty-rl-min { margin-top: auto; color: rgba(255,255,255,.45); }
+			body.duty-rail-min .duty-rail { width: 52px; padding: 10px 6px; align-items: center; }
+			body.duty-rail-min .duty-rl span { display: none; }
+			body.duty-rail-min .duty-rl-min svg { transform: rotate(180deg); }
+			body.duty-has-rail .layout-main-section-wrapper, body.duty-has-rail .page-head { margin-left: 172px; }
+			body.duty-rail-min.duty-has-rail .layout-main-section-wrapper, body.duty-rail-min.duty-has-rail .page-head { margin-left: 52px; }
+			body.duty-mobile .duty-rail { display: none !important; }
+			body.duty-mobile.duty-has-rail .layout-main-section-wrapper, body.duty-mobile.duty-has-rail .page-head { margin-left: 0; }
+			.duty-cr-search { padding: 6px 2px 8px; }
+			.duty-cr-sech { font-size: 10.5px; font-weight: 800; letter-spacing: .07em; text-transform: uppercase; color: #8A9994; margin: 12px 2px 5px; }
+			.duty-cr-secrow { display: flex; flex-direction: column; gap: 2px; padding: 7px 9px; border-radius: 10px; cursor: pointer; border: 1px solid transparent; }
+			.duty-cr-secrow:hover { background: #F0F4F2; text-decoration: none; }
+			.duty-cr-secmain { display: flex; align-items: center; gap: 7px; font-size: 13px; color: #17211F; }
+			.duty-cr-secunit { font-size: 11px; color: #65736F; background: #F0F4F2; border-radius: 99px; padding: 1px 8px; }
+			.duty-cr-secprev { font-size: 12px; color: #65736F; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 100%; }
+			.duty-cr-sectime { font-size: 10.5px; color: #8A9994; }
+			.duty-kb-colslim { flex: 0 0 40px !important; min-width: 40px !important; cursor: pointer; display: flex; align-items: flex-start; justify-content: center;
+				background: #F0F4F2; border-radius: 10px; padding-top: 12px; }
+			.duty-kb-colslim span { writing-mode: vertical-rl; font-size: 11.5px; font-weight: 700; color: #8A9994; letter-spacing: .04em; }
+			.duty-kb-colslim:hover { background: #E2E8E5; }
+			.duty-kanban .duty-kb-col { max-width: 340px; }
+			.duty-kb-compact .duty-kb-card { padding: 5px 8px !important; font-size: 12px !important; }
+			.duty-kb-compact .duty-kb-col-head { font-size: 12px; }
+			.duty-kb-dense { cursor: pointer; font-size: 11.5px; color: #65736F; margin-left: 8px; }
+			.duty-kb-dense:hover { color: #17211F; }
+			.duty-sg-slots { display: flex; gap: 6px; flex-wrap: wrap; margin: 4px 0; }
+			.duty-sg-slot { border: 1.5px solid #E2E8E5; border-radius: 99px; padding: 5px 13px; font-size: 12.5px; font-weight: 700; cursor: pointer; color: #17211F; }
+			.duty-sg-slot:hover { border-color: #087A67; text-decoration: none; }
+			.duty-sg-slot.on { background: #123C35; border-color: #123C35; color: #fff; }
+			.duty-cr-msuggest { cursor: pointer; margin: 0 4px; color: #087A67; font-weight: 700; }
+			.duty-mtile-act { cursor: pointer; transition: transform .14s, box-shadow .14s; }
+			.duty-mtile-act:hover { transform: translateY(-1px); box-shadow: 0 4px 12px rgba(12,34,30,.12); }
+			.tm-tabs { display: flex; gap: 4px; margin-bottom: 10px; }
+			.tm-tabs a { font-size: 12.5px; font-weight: 700; color: #65736F; background: #F0F4F2; border-radius: 99px; padding: 5px 14px; cursor: pointer; }
+			.tm-tabs a.on { background: #123C35; color: #fff; }
+			.tm-wrap { overflow-x: auto; max-height: 62vh; }
+			.tm { border-collapse: collapse; font-size: 12px; }
+			.tm th, .tm td { border: 1px solid #E2E8E5; padding: 5px 9px; text-align: center; white-space: nowrap; }
+			.tm thead th { background: #F3F6F4; font-size: 11px; font-weight: 700; color: #51605C; max-width: 130px; overflow: hidden; text-overflow: ellipsis; position: sticky; top: 0; }
+			.tm tbody th { text-align: left; font-weight: 700; background: #FAFBFA; position: sticky; left: 0; }
+			.tm-c.tm-done { background: #DFF2EC; color: #0B6B4F; font-weight: 800; }
+			.tm-c.tm-prog { background: #FAEEDC; color: #8F5C07; font-weight: 700; }
+			.tm-c.tm-fail { background: #FAE4E1; color: #C94646; font-weight: 700; }
+			.tm-c.tm-zero { color: #8A9994; }
+			.tm-c.tm-none { color: #D4DCD8; }
+			.tm-legend { font-size: 11.5px; color: #65736F; margin-top: 8px; }
+			.tm-legend span { font-weight: 800; }
+			.tm-legend .tm-done { color: #0B6B4F; } .tm-legend .tm-prog { color: #8F5C07; } .tm-legend .tm-fail { color: #C94646; }
+			.duty-ldrawer { position: fixed; top: var(--navbar-height, 60px); right: 0; bottom: 0; width: 460px; max-width: 96vw; z-index: 150;
+				background: #fff; border-left: 1px solid #E2E8E5; box-shadow: -8px 0 28px rgba(12,34,30,.14); display: flex; flex-direction: column; }
+			.duty-ld-head { padding: 13px 16px 9px; border-bottom: 1px solid #EEF2F0; position: relative; }
+			.duty-ld-x { position: absolute; top: 10px; right: 12px; cursor: pointer; color: #8A9994; font-size: 14px; padding: 4px 8px; }
+			.duty-ld-co { font-size: 16.5px; display: block; padding-right: 30px; }
+			.duty-ld-chips { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; margin-top: 7px; font-size: 12px; }
+			.duty-ld-stage { border: 1.5px solid #E2E8E5; border-radius: 99px; padding: 3px 10px; font-size: 12px; font-weight: 700; background: #F3F6F4; }
+			.duty-ld-val { font-weight: 800; color: #0B6B4F; }
+			.duty-ld-own { font-weight: 700; }
+			.duty-ld-close-d { color: #65736F; }
+			.duty-ld-tabs { display: flex; gap: 4px; padding: 8px 14px 0; border-bottom: 1px solid #EEF2F0; }
+			.duty-ld-tabs a { font-size: 12.5px; font-weight: 700; color: #65736F; padding: 7px 12px; cursor: pointer; border-bottom: 2.5px solid transparent; }
+			.duty-ld-tabs a.on { color: #123C35; border-bottom-color: #123C35; }
+			.duty-ld-body { flex: 1; overflow-y: auto; padding: 12px 16px; }
+			.duty-ld-form { display: grid; grid-template-columns: 1fr 1fr; gap: 9px 12px; margin-bottom: 12px; }
+			.duty-ld-f { display: flex; flex-direction: column; gap: 3px; font-size: 12px; margin: 0; }
+			.duty-ld-f span { font-weight: 700; color: #51605C; font-size: 11px; }
+			.duty-ld-f input, .duty-ld-f select, .duty-ld-f textarea { border: 1px solid #E2E8E5; border-radius: 8px; padding: 6px 9px; font-size: 13px; font-family: inherit; }
+			.duty-ld-wide { grid-column: 1 / -1; }
+			.duty-ld-bar { display: flex; gap: 6px; padding: 10px 14px; border-top: 1px solid #EEF2F0; background: #FAFBFA; flex-wrap: wrap; }
+			.duty-ldb { font-size: 12px; font-weight: 700; border: 1.5px solid #E2E8E5; border-radius: 99px; padding: 6px 12px; cursor: pointer; color: #17211F; background: #fff; }
+			.duty-ldb:hover { border-color: #087A67; text-decoration: none; }
+			.duty-ldb-won { background: #123C35; border-color: #123C35; color: #fff; }
+			.duty-ldb-lost { color: #C94646; }
+			body.duty-mobile .duty-ldrawer { top: 0; width: 100vw; max-width: 100vw; }
+			#page-duty-board .container { max-width: none; }
+			.duty-issues-face { padding: 14px 30px 90px; max-width: none; margin: 0; }
+			.duty-issues-face .duty-issues-card { border: 1px solid #E2E8E5; border-radius: 14px; background: #fff; box-shadow: 0 1px 2px rgba(12,34,30,.05); padding: 4px 8px 10px; }
+			.duty-issues-face .duty-issues-collapse { display: none !important; }
+			.duty-issues-face .duty-ih, .duty-issues-face .duty-issue-row {
+				display: grid; grid-template-columns: minmax(105px, 140px) 76px 86px minmax(200px, 1.8fr) minmax(100px, 135px) 100px minmax(118px, 150px) minmax(118px, 150px) 120px;
+				gap: 9px; align-items: center; }
+			.duty-crpill { display: inline-flex; align-items: center; gap: 4px; font-size: 10.5px; font-weight: 800; color: #51605C; background: #F0F4F2; border-radius: 99px; padding: 3px 9px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; }
+			.duty-crpill-go { color: #0B6B4F; background: #E4F3EC; box-shadow: 0 0 0 1.5px #0E8A63 inset; }
+			.duty-issue-type { font-size: 11.5px; font-weight: 600; color: #51605C; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+			.duty-ih { padding: 6px 12px 2px; font-size: 10.5px; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; color: #8A9994; }
+			.duty-issues-face .duty-issue-row { padding: 8px 12px; }
+			.duty-issues-face .duty-issue-title, .duty-issues-face .duty-issue-who, .duty-issues-face .duty-task-customer {
+				overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; }
+			.duty-issues-face .duty-issue-due { white-space: nowrap; display: flex; align-items: center; gap: 6px; }
+			.duty-issues-face .duty-issue-raised { font-size: 11px; color: #8A9994; text-align: right; white-space: nowrap; }
+			.duty-issues-face .duty-sev { text-align: center; }
+			.duty-issue-status.duty-ist-open { background: #EDF2EF; color: #51605C; }
+			.duty-ic-empty { color: #C4CFC9; font-style: normal; }
+			body.duty-mobile .duty-issues-face .duty-issue-row { display: flex; flex-wrap: wrap; }
+			body.duty-mobile .duty-ih { display: none; }
+			.duty-idrawer { position: fixed; top: var(--navbar-height, 60px); right: 0; bottom: 0; width: 640px; max-width: 96vw; z-index: 140;
+				background: #fff; border-left: 1px solid #E2E8E5; box-shadow: -8px 0 28px rgba(12,34,30,.14); display: flex; flex-direction: column; }
+			.duty-id-head { display: flex; align-items: center; justify-content: space-between; padding: 12px 16px; border-bottom: 1px solid #EEF2F0; }
+			.duty-id-title { font-size: 14px; letter-spacing: .01em; }
+			.duty-id-x { cursor: pointer; color: #8A9994; font-size: 15px; padding: 4px 8px; }
+			.duty-id-body { flex: 1; overflow-y: auto; padding: 14px 18px 24px; }
+			body.duty-idrawer-open .duty-issues-face { max-width: none; margin: 0 660px 0 26px; }
+			body.duty-idrawer-open .duty-issues-face .duty-ih,
+			body.duty-idrawer-open .duty-issues-face .duty-issue-row {
+				grid-template-columns: minmax(100px, 130px) 74px minmax(160px, 1.8fr) 102px minmax(115px, 145px); }
+			body.duty-idrawer-open .duty-issues-face .duty-issue-who,
+			body.duty-idrawer-open .duty-issues-face .duty-issue-type,
+			body.duty-idrawer-open .duty-issues-face .duty-issue-crcol,
+			body.duty-idrawer-open .duty-issues-face .duty-issue-raised,
+			body.duty-idrawer-open .duty-issues-face .duty-ih span:nth-child(3),
+			body.duty-idrawer-open .duty-issues-face .duty-ih span:nth-child(5),
+			body.duty-idrawer-open .duty-issues-face .duty-ih span:nth-child(7),
+			body.duty-idrawer-open .duty-issues-face .duty-ih span:nth-child(9) { display: none; }
+			body.duty-mobile .duty-idrawer { top: 0; width: 100vw; max-width: 100vw; }
+			body.duty-mobile.duty-idrawer-open .duty-issues-face { margin: 0; }
+			.duty-id-ctl { display: flex; gap: 14px; flex-wrap: wrap; align-items: center; margin: 9px 0; padding: 9px 12px; background: #F6F8F7; border-radius: 11px; }
+			.duty-id-ctl label { display: flex; align-items: center; gap: 7px; margin: 0; font-size: 11.5px; font-weight: 700; color: #51605C; }
+			.duty-idc-sev, .duty-idc-due { border: 1px solid #E2E8E5; border-radius: 8px; padding: 4px 8px; font-size: 12.5px; font-family: inherit; background: #fff; }
+			.duty-idc-who { font-weight: 600; font-size: 12.5px; }
+			.duty-idc-assign { font-size: 11.5px; font-weight: 700; color: #087A67; cursor: pointer; }
+			.duty-id-tools { display: flex; gap: 7px; flex-wrap: wrap; margin: 10px 0 6px; }
+			.duty-cons-hold { display: flex; align-items: center; justify-content: center; min-height: 70vh; padding: 20px; }
+			.duty-cons-card { max-width: 480px; background: #fff; border: 1px solid #E2E8E5; border-radius: 18px; padding: 34px 36px; text-align: center; box-shadow: 0 8px 30px rgba(12,34,30,.10); }
+			.duty-cons-badge { display: inline-block; font-size: 10px; font-weight: 800; letter-spacing: .14em; color: #fff; background: #123C35; border-radius: 99px; padding: 4px 12px; margin-bottom: 14px; }
+			.duty-cons-card h2 { font-size: 22px; margin: 0 0 10px; }
+			.duty-cons-card p { font-size: 14px; color: #51605C; line-height: 1.55; margin: 0 0 10px; }
+			.duty-cons-sub { font-size: 12.5px !important; color: #8A9994 !important; }
+			body.duty-consultant .duty-chat-rail { display: none !important; }
+			body.duty-consultant .duty-cr-side .duty-cr-milestones, body.duty-consultant .duty-cr-side .duty-cr-chreqs,
+			body.duty-consultant .duty-cr-side .duty-cr-meetings, body.duty-consultant .duty-cr-side .duty-cr-shelf { display: none !important; }
+			body.duty-consultant .duty-cr-new { display: none !important; }
+			body.duty-consultant .duty-md-i { display: none !important; }
+			body.duty-consultant .duty-kb-open, body.duty-consultant .duty-team-load,
+			body.duty-consultant .duty-oncall-chip, body.duty-consultant .duty-iv[data-iv="unassigned"] { display: none !important; }
+			body.duty-consultant .duty-issue-rca, body.duty-consultant .duty-issue-kb,
+			body.duty-consultant .duty-issue-vis,
+			body.duty-consultant .duty-issue-ack { display: none !important; }
+			.duty-cons-chip { font-size: 9px; font-weight: 800; letter-spacing: .1em; color: #fff; background: #123C35; border-radius: 99px; padding: 2px 8px; vertical-align: 1px; }
+			.duty-proj-cons { font-size: var(--text-xs); font-weight: 700; color: #087A67; cursor: pointer; margin-right: 10px; }
+			.duty-td-form .duty-ld-form { margin-bottom: 4px; }
+			.duty-td-chk { display: flex; align-items: center; gap: 7px; font-size: 12.5px; margin: 0; grid-column: 1 / -1; font-weight: 600; color: #17211F; }
+			.duty-td-bar { justify-content: flex-start; }
+			.duty-td-del { color: #C94646; }
+			body.duty-consultant .duty-td-del { display: none !important; }
+			body.duty-consultant .duty-lib-add, body.duty-consultant .duty-lib-upload,
+			body.duty-consultant .duty-bk-edit, body.duty-consultant .duty-bk-del,
+			body.duty-consultant .duty-lib-convert { display: none !important; }
+			body.duty-consultant .page-actions [data-label*="Document"],
+			body.duty-consultant .page-actions .menu-btn-group { display: none !important; }
+			body.duty-consultant .duty-cr-memadmin, body.duty-consultant .duty-cr-memrm,
+			body.duty-consultant .duty-cr-approve, body.duty-consultant .duty-cr-rejectq,
+			body.duty-consultant .duty-cr-addmem, body.duty-consultant .duty-cr-joinlink,
+			body.duty-consultant .duty-cr-bookable, body.duty-consultant .duty-cr-membersbtn ~ .duty-attach-hint { display: none !important; }
+			body.duty-consultant .modal .duty-lead-section, body.duty-consultant .modal .duty-attach-hint { display: none; }
+			body.duty-consultant .modal .duty-cr-memlist { display: block !important; }
+			.duty-idc-chip { display: inline-flex; align-items: center; gap: 3px; font-weight: 700; background: #F0F4F2; border-radius: 99px; padding: 2px 7px; margin-right: 4px; font-size: 11.5px; }
+			.duty-idc-rm { color: #8A9994; cursor: pointer; font-size: 10px; padding: 0 2px; }
+			.duty-idc-rm:hover { color: #C94646; }
+			.duty-cons-stats { display: flex; gap: 10px; margin-bottom: 12px; flex-wrap: wrap; }
+			.duty-cs-tile { background: #fff; border: 1px solid #E2E8E5; border-radius: 12px; padding: 10px 18px; display: flex; flex-direction: column; }
+			.duty-cs-tile b { font-size: 20px; }
+			.duty-cs-tile span { font-size: 11px; color: #65736F; font-weight: 700; }
+			.duty-cs-warn { border-left: 3px solid #B27409; background: #FFFDF8; }
+			.duty-crtag { cursor: help; }
+			.duty-crtag-go { filter: drop-shadow(0 0 3px rgba(14,138,99,.8)); }
+			.duty-id-crline { background: #F6F8F7; border-radius: 10px; padding: 8px 11px; display: flex; align-items: center; gap: 7px; flex-wrap: wrap; }
+			.duty-id-crline.duty-cr-go { background: #EDF7F2; border-left: 3px solid #0E8A63; }
+			.duty-cr-chiptxt { font-weight: 700; color: #51605C; font-size: 12px; }
+			.duty-cr-go .duty-cr-chiptxt { color: #0B6B4F; }
+			.duty-checklist { margin-top: 16px; border-radius: 14px; padding: 14px 16px; border: 2px solid #E2E8E5; background: #FAFCFB; }
+			.duty-checklist.duty-cl-open { border-color: #B27409; background: #FFFBF2; box-shadow: 0 2px 14px rgba(178,116,9,.14); }
+			.duty-checklist.duty-cl-complete { border-color: #0E8A63; background: #F1FAF6; box-shadow: 0 2px 14px rgba(14,138,99,.14); }
+			.duty-cl-head { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
+			.duty-cl-head b { font-size: 15px; color: #123C35; }
+			.duty-cl-count { font-weight: 800; font-size: 14px; color: #B27409; background: #FFF; border-radius: 99px; padding: 2px 12px; border: 1.5px solid #B27409; }
+			.duty-cl-complete .duty-cl-count { color: #0B6B4F; border-color: #0E8A63; }
+			.duty-cl-optional { font-size: 11.5px; color: #8A9994; font-style: italic; }
+			.duty-cl-bar { height: 7px; border-radius: 99px; background: #EDE4D3; overflow: hidden; margin-bottom: 10px; }
+			.duty-cl-bar i { display: block; height: 100%; background: linear-gradient(90deg, #B27409, #0E8A63); border-radius: 99px; transition: width .25s; }
+			.duty-cl-complete .duty-cl-bar { background: #D7EDE3; }
+			.duty-cl-item { display: flex; align-items: center; gap: 9px; padding: 7px 9px; border-radius: 9px; margin: 0 0 3px; cursor: pointer; font-size: 13px; font-weight: 600; color: #17211F; }
+			.duty-cl-item:hover { background: rgba(18, 60, 53, .05); }
+			.duty-cl-item input { width: 17px; height: 17px; accent-color: #0E8A63; cursor: pointer; flex: 0 0 auto; }
+			.duty-cl-item span { flex: 1; }
+			.duty-cl-done span { text-decoration: line-through; color: #8A9994; font-weight: 500; }
+			.duty-cl-by { font-size: 10.5px; color: #0B6B4F; font-style: normal; background: #E4F3EC; border-radius: 99px; padding: 1px 8px; }
+			.duty-cl-rm { color: #C6CFCB; font-size: 11px; padding: 0 3px; }
+			.duty-cl-rm:hover { color: #C94646; }
+			.duty-cl-warn { font-size: 12px; font-weight: 800; color: #8F5C07; background: #FDF0D7; border-radius: 8px; padding: 7px 11px; margin-top: 8px; }
+			.duty-cl-clear { font-size: 12px; font-weight: 800; color: #0B6B4F; background: #DBF0E6; border-radius: 8px; padding: 7px 11px; margin-top: 8px; }
+			.duty-cl-addrow { margin-top: 9px; }
+			.duty-wk-chip { margin-left: 6px; font-size: 10px; font-weight: 800; color: #8F5C07; background: #FFF6E0; border-radius: 99px; padding: 1px 7px; }
+			.duty-wk-full { color: #0B6B4F; background: #E4F3EC; }
+			.duty-cl-who, .duty-cl-due { font-size: 10.5px; font-weight: 700; color: #A9B5B1; text-decoration: none !important; margin-left: 6px; white-space: nowrap; }
+			.duty-cl-who.duty-cl-set { color: #0B6B4F; }
+			.duty-cl-due.duty-cl-set { color: #51605C; }
+			.duty-cl-late .duty-cl-due { color: #C94646 !important; }
+			.duty-cl-late { background: #FFF7F5; border-radius: 8px; }
+			.duty-enab-promote { float: right; font-size: 11.5px; font-weight: 800; color: #0B6B4F; background: #E4F3EC; border-radius: 99px; padding: 4px 13px; cursor: pointer; text-decoration: none !important; margin-bottom: 6px; }
+			.duty-enab-promote:hover { background: #123C35; color: #E7F0EC; }
+			.duty-enab-tpl { float: right; font-size: 11.5px; font-weight: 800; color: #8F5C07; background: #FFF6E0; border-radius: 99px; padding: 4px 13px; cursor: pointer; text-decoration: none !important; margin: 0 8px 6px 0; }
+			.duty-enab-tpl:hover { background: #B27409; color: #fff; }
+			.duty-issue-merge { float: right; font-size: 11.5px; font-weight: 800; color: #51605C; background: #EDF2EF; border-radius: 99px; padding: 4px 13px; cursor: pointer; text-decoration: none !important; margin: 0 8px 6px 0; }
+			.duty-issue-merge:hover { background: #123C35; color: #E7F0EC; }
+			.duty-erp-bar { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; background: #F4FAF6; border: 1px dashed #B9D6C6; border-radius: 12px; padding: 8px 12px; margin: 6px 0 10px; }
+			.duty-erp-bar a { font-size: 11.5px; font-weight: 800; color: #123C35; background: #E4F3EC; border-radius: 99px; padding: 4px 13px; cursor: pointer; text-decoration: none !important; }
+			.duty-erp-bar a:hover { background: #123C35; color: #E7F0EC; }
+			.duty-erp-done { font-size: 11px; font-weight: 800; color: #0B6B4F; }
+			.duty-erp-bar a.duty-erp-open { background: #fff; border: 1px solid #B9D6C6; color: #0B6B4F; }
+			.duty-erp-bar a.duty-erp-open:hover { background: #0B6B4F; color: #fff; }
+			.duty-ld-docs { border: 1px solid #E2E8E5; border-radius: 12px; padding: 8px 12px; margin: 0 0 10px; }
+			.duty-ld-docs b { display: block; font-size: 10.5px; text-transform: uppercase; letter-spacing: .4px; color: #65736F; margin-bottom: 4px; }
+			.duty-ld-docs a { display: flex; justify-content: space-between; gap: 10px; font-size: 12.5px; font-weight: 700; color: #123C35; padding: 4px 2px; text-decoration: none !important; border-bottom: 1px dashed #EDF2EF; }
+			.duty-ld-docs a:hover { color: #0B6B4F; }
+			.duty-ld-docs a i { font-style: normal; font-size: 10.5px; color: #8A9994; }
+			.duty-issue-details { background: #FBFDFC; border: 1.5px solid #CFE3D8; border-left: 5px solid #0E8A63; border-radius: 12px; padding: 12px 16px; margin: 10px 0 14px; box-shadow: 0 2px 8px rgba(18,60,53,.06); }
+			.duty-issue-details > b { display: flex; align-items: baseline; gap: 8px; font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: .5px; color: #0B6B4F; margin-bottom: 6px; }
+			.duty-issue-details > b i { font-style: normal; font-weight: 700; text-transform: none; letter-spacing: 0; color: #8A9994; }
+			.duty-idet-body { font-size: 13.5px; line-height: 1.62; color: #17211F; white-space: normal; max-height: 300px; overflow-y: auto; }
+			.duty-idet-empty { color: #8A9994; font-size: 12px; font-weight: 700; border-left-color: #D5DEDA; }
+			.duty-cl-input { width: 100%; border: 1.5px dashed #B9C6C1; border-radius: 9px; padding: 7px 11px; font-size: 12.5px; background: #FFF; }
+			.duty-cl-input:focus { border-color: #0E8A63; outline: none; border-style: solid; }
+			.duty-kudo { font-size: 11px; font-weight: 800; color: #8A9994; cursor: pointer; margin-left: 6px; border-radius: 99px; padding: 1px 7px; background: #F0F4F2; }
+			.duty-kudo:hover { color: #0B6B4F; background: #E4F3EC; text-decoration: none; }
+			.duty-kudo-mine { color: #0B6B4F; background: #E4F3EC; cursor: default; }
+			.duty-kudo-ro { cursor: default; }
+			.duty-gamify { display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 16px; }
+			.duty-gm-card { background: #fff; border: 1px solid #E2E8E5; border-radius: 14px; padding: 12px 16px; }
+			.duty-gm-streak { display: flex; align-items: center; gap: 12px; border-left: 4px solid #E2620E; background: #FFFAF5; }
+			.duty-gm-flame { font-size: 30px; }
+			.duty-gm-nums b { font-size: 26px; color: #17211F; }
+			.duty-gm-nums span { display: block; font-size: 10.5px; font-weight: 800; color: #A2542C; text-transform: uppercase; }
+			.duty-gm-nums i { font-size: 10.5px; color: #8A9994; font-style: normal; }
+			.duty-gm-today { display: flex; flex-direction: column; gap: 3px; margin-left: 6px; }
+			.duty-gm-chk { font-size: 11px; font-weight: 700; color: #A9B5B1; }
+			.duty-gm-on { color: #0B6B4F; }
+			.duty-gm-week b, .duty-gm-badges b { font-size: 11px; text-transform: uppercase; color: #65736F; letter-spacing: .4px; }
+			.duty-gm-wrow { font-size: 12px; color: #51605C; margin-top: 3px; }
+			.duty-gm-wrow span { font-weight: 800; color: #17211F; }
+			.duty-gm-badges { max-width: 380px; }
+			.duty-gm-brow { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 6px; }
+			.duty-gm-badge { font-size: 19px; cursor: help; }
+			.duty-gm-locked { filter: grayscale(1); opacity: .32; }
+			.duty-pulse { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; background: #123C35; color: #E7F0EC; border-radius: 12px; padding: 9px 16px; margin: 0 0 12px; width: 100%; box-sizing: border-box; }
+			.duty-pulse-hit { background: linear-gradient(90deg, #123C35, #0E8A63); }
+			.duty-pl-label { font-weight: 800; font-size: 12px; }
+			.duty-pl-bar { flex: 1 1 160px; height: 8px; border-radius: 99px; background: rgba(255,255,255,.18); overflow: hidden; min-width: 120px; }
+			.duty-pl-bar i { display: block; height: 100%; background: #FFC53D; border-radius: 99px; transition: width .3s; }
+			.duty-pulse-hit .duty-pl-bar i { background: #7BE3B0; }
+			.duty-pl-num, .duty-pl-breach, .duty-pl-app { font-size: 11.5px; font-weight: 700; }
+			.duty-pl-bad { color: #FFB3A6; }
+			.duty-library { padding: 14px 30px 90px; }
+			.duty-lb-head { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; margin-bottom: 10px; }
+			.duty-lb-head h3 { margin: 0; color: #123C35; font-weight: 800; }
+			.duty-lb-search { flex: 0 1 320px; border: 1.5px solid #E2E8E5; border-radius: 99px; padding: 7px 16px; font-size: 12.5px; background: #fff; }
+			.duty-lb-search:focus { border-color: #0E8A63; outline: none; }
+			.duty-lb-admin { margin-left: auto; display: flex; gap: 8px; align-items: center; }
+			.duty-lb-admin .duty-bk-file { width: 200px; font-size: 11px; }
+			.duty-lb-chips { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 6px; }
+			.duty-lb-chip { font-size: 11.5px; font-weight: 800; color: #51605C; background: #EDF2EF; border-radius: 99px; padding: 4px 13px; cursor: pointer; }
+			.duty-lb-chip i { font-style: normal; opacity: .6; font-weight: 700; }
+			.duty-lb-chip.on, .duty-lb-chip:hover { background: #123C35; color: #E7F0EC; text-decoration: none; }
+			.duty-lb-cat { display: flex; align-items: baseline; gap: 8px; margin: 20px 0 10px; }
+			.duty-lb-cat b { font-size: 14px; color: #123C35; letter-spacing: .02em; }
+			.duty-lb-cat span { font-size: 11px; font-weight: 800; color: #8A9994; }
+			.duty-lb-shelf { display: flex; gap: 16px; overflow-x: auto; padding: 4px 2px 14px; scroll-snap-type: x proximity; }
+			.duty-lb-shelf::-webkit-scrollbar { height: 8px; }
+			.duty-lb-shelf::-webkit-scrollbar-thumb { background: #D5DEDA; border-radius: 99px; }
+			.duty-lb-tile { flex: 0 0 148px; width: 148px; min-width: 148px; max-width: 148px; scroll-snap-align: start; display: flex; flex-direction: column; gap: 3px; text-decoration: none !important; }
+			.duty-lb-mini { flex-basis: 118px; width: 118px; min-width: 118px; max-width: 118px; }
+			.duty-lb-coverwrap { position: relative; }
+			.duty-lb-cover { display: block; width: 148px; height: 222px; border-radius: 10px; background-size: cover; background-position: center; box-shadow: 0 3px 10px rgba(18, 60, 53, .16); transition: transform .14s, box-shadow .14s; }
+			.duty-lb-mini .duty-lb-cover { width: 118px; height: 177px; }
+			.duty-lb-tile:hover .duty-lb-cover { transform: translateY(-4px) scale(1.02); box-shadow: 0 12px 26px rgba(18, 60, 53, .26); }
+			.duty-lb-fallback { display: flex; align-items: flex-end; padding: 12px 11px; }
+			.duty-lb-fallback i { font-style: normal; color: #fff; font-weight: 800; font-size: 13.5px; line-height: 1.25; text-shadow: 0 1px 5px rgba(0,0,0,.35); display: -webkit-box; -webkit-line-clamp: 5; -webkit-box-orient: vertical; overflow: hidden; }
+			.duty-lb-ring { position: absolute; right: 7px; bottom: 7px; width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 7px rgba(0,0,0,.3); }
+			.duty-lb-ring i { font-style: normal; background: #123C35; color: #fff; border-radius: 50%; width: 27px; height: 27px; display: flex; align-items: center; justify-content: center; font-size: 8.5px; font-weight: 800; }
+			.duty-lb-done { background: #0E8A63; color: #fff; font-weight: 800; font-size: 15px; }
+			.duty-lb-newtag { position: absolute; top: 7px; left: 7px; background: #FFC53D; color: #4A3A00; font-size: 9.5px; font-weight: 800; text-transform: uppercase; letter-spacing: .05em; border-radius: 99px; padding: 2px 8px; box-shadow: 0 1px 4px rgba(0,0,0,.2); }
+			.duty-lb-menu { position: absolute; top: 5px; right: 7px; color: #fff; font-weight: 800; font-size: 16px; text-shadow: 0 1px 4px rgba(0,0,0,.6); cursor: pointer; padding: 0 5px; opacity: 0; transition: opacity .12s; }
+			.duty-lb-tile:hover .duty-lb-menu { opacity: 1; }
+			.duty-lb-title { font-size: 12.5px; font-weight: 700; color: #17211F; line-height: 1.25; margin-top: 5px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+			.duty-lb-meta { font-size: 10.5px; color: #65736F; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+			.duty-lb-meta2 { font-size: 10px; color: #8A9994; }
+			.duty-lb-meta2 b { color: #B27409; font-weight: 800; }
+			.duty-lb-empty { padding: 50px 0; text-align: center; color: #65736F; font-weight: 700; }
+			.duty-lb-pop { position: fixed; z-index: 100000; background: #fff; border: 1px solid #E2E8E5; border-radius: 12px; box-shadow: 0 10px 30px rgba(18,60,53,.18); padding: 6px; width: 170px; display: flex; flex-direction: column; }
+			.duty-lb-pop a { padding: 8px 11px; border-radius: 8px; font-size: 12.5px; font-weight: 700; color: #17211F; text-decoration: none !important; }
+			.duty-lb-pop a:hover { background: #EDF2EF; }
+			.duty-lb-pop .duty-bk-del { color: #C94646; }
+			.duty-rd-prog { position: sticky; top: 0; z-index: 20; height: 22px; display: flex; align-items: center; background: transparent; margin-bottom: 6px; }
+			.duty-rd-prog i { display: block; height: 4px; background: linear-gradient(90deg, #B27409, #0E8A63); border-radius: 99px; flex: none; transition: width .3s; min-width: 0; }
+			.duty-rd-prog { gap: 10px; }
+			.duty-rd-prog span { font-size: 10.5px; font-weight: 800; color: #8A9994; white-space: nowrap; }
+			.duty-rd-thm, .duty-rd-zenbtn, .duty-rd-listen { padding: 3px 9px; border-radius: 6px; cursor: pointer; text-decoration: none !important; color: #6B7772; }
+			.duty-rd-thm:hover, .duty-rd-zenbtn:hover, .duty-rd-listen:hover { background: #fff; color: #182420; }
+			.duty-rd-listen.on { background: #123C35 !important; color: #FFC53D !important; }
+			.duty-th-sepia { background: #F6EEDC; border-radius: 14px; }
+			.duty-th-sepia .duty-rd-body, .duty-th-sepia .duty-rd-toc a { color: #463924 !important; }
+			.duty-th-night { background: #0F1B17; border-radius: 14px; }
+			.duty-th-night .duty-rd-body { color: #C6D4CD !important; }
+			.duty-th-night .duty-rd-head b, .duty-th-night .duty-rd-toc a { color: #C6D4CD !important; }
+			.duty-th-night .duty-rd-toc, .duty-th-night .duty-rd-nav { border-color: #23342E !important; }
+			.duty-th-night .duty-rd-opts { background: #1A2822 !important; }
+			.duty-th-night .duty-rd-prog span { color: #6E837B; }
+			.duty-th-night .btn-default { background: #1A2822; color: #C6D4CD; border-color: #2A3D36; }
+			.duty-rd-speaking { background: rgba(255, 197, 61, .28); border-radius: 6px; box-decoration-break: clone; transition: background .25s; }
+			.duty-th-night .duty-rd-speaking { background: rgba(255, 197, 61, .18); }
+			.duty-rd-audio { position: fixed; bottom: 22px; left: 50%; transform: translateX(-50%); z-index: 10000;
+				display: flex; align-items: center; gap: 8px; background: #123C35; color: #E7F0EC; border-radius: 99px;
+				padding: 8px 14px; box-shadow: 0 10px 30px rgba(10, 26, 22, .4); }
+			.duty-rd-audio a { color: #E7F0EC; font-size: 17px; cursor: pointer; text-decoration: none !important; padding: 0 4px; }
+			.duty-rd-audio a:hover { color: #FFC53D; }
+			.duty-rd-audio select { background: #1A2822; color: #E7F0EC; border: 1px solid #2A3D36; border-radius: 8px; font-size: 11.5px; padding: 3px 6px; max-width: 150px; }
+			.duty-rd-zenmode .duty-rd-head, .duty-rd-zenmode .duty-rd-toc, .duty-rd-zenmode .duty-rd-nav,
+			.duty-rd-zenmode .duty-rd-revpanel, .duty-rd-zenmode .duty-lb-chips { display: none !important; }
+			.duty-rd-zenmode .duty-rd-body { max-width: 66ch !important; margin: 0 auto; }
+			.duty-rd-zenx { position: fixed; top: 16px; right: 20px; z-index: 10001; font-size: 17px; font-weight: 800;
+				color: #8A9994; cursor: pointer; background: rgba(255,255,255,.85); border-radius: 50%; width: 34px; height: 34px;
+				display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 10px rgba(0,0,0,.15); text-decoration: none !important; }
+			.duty-th-night .duty-rd-zenx { background: #1A2822; color: #C6D4CD; }
+			mark.duty-hl { background: rgba(255, 197, 61, .32); border-radius: 4px; padding: 0 1px; cursor: pointer; box-decoration-break: clone; color: inherit; }
+			mark.duty-hl-shared { background: rgba(255, 197, 61, .5); border-bottom: 2px solid #B27409; }
+			mark.duty-hl:not(.duty-hl-mine) { background: rgba(14, 138, 99, .18); }
+			mark.duty-hl-shared:not(.duty-hl-mine) { background: rgba(14, 138, 99, .3); border-bottom-color: #0E8A63; }
+			.duty-th-night mark.duty-hl { background: rgba(255, 197, 61, .22); }
+			.duty-hl-para { border-left: 3px solid rgba(255, 197, 61, .8); padding-left: 10px; }
+			.duty-hl-flash { animation: duty-hl-pulse 2.4s ease; border-radius: 6px; }
+			@keyframes duty-hl-pulse { 0%, 60% { background: rgba(255, 197, 61, .4); } 100% { background: transparent; } }
+			.duty-rd-selbar { position: fixed; z-index: 100001; display: flex; gap: 2px; background: #123C35; border-radius: 10px; padding: 5px; box-shadow: 0 8px 24px rgba(10,26,22,.4); }
+			.duty-rd-selbar a { color: #E7F0EC; font-size: 12px; font-weight: 700; padding: 5px 10px; border-radius: 7px; cursor: pointer; text-decoration: none !important; white-space: nowrap; }
+			.duty-rd-selbar a:hover { background: #0E8A63; }
+			.duty-hl-pop { width: 250px; }
+			.duty-hl-who { font-size: 11px; font-weight: 800; color: #65736F; padding: 5px 9px 3px; }
+			.duty-hl-note { font-size: 12px; padding: 4px 9px; color: #2A3531; }
+			.duty-hl-rm { color: #C94646 !important; }
+			.duty-rd-hlpanel, .duty-rd-findpanel { border: 1px solid #E8E5DD; border-radius: 12px; padding: 8px; margin-bottom: 10px; max-height: 320px; overflow-y: auto; background: #fff; }
+			.duty-hl-row { display: block; padding: 8px 10px; border-radius: 9px; cursor: pointer; text-decoration: none !important; }
+			.duty-hl-row:hover { background: #F2F6F4; }
+			.duty-hl-row i { display: block; font-style: normal; font-size: 10.5px; font-weight: 800; color: #0B6B4F; }
+			.duty-hl-row span { display: block; font-size: 12.5px; color: #2A3531; line-height: 1.45; }
+			.duty-hl-row b { display: block; font-size: 11.5px; color: #8F5C07; margin-top: 2px; font-weight: 600; }
+			.duty-rd-marks, .duty-rd-find { padding: 3px 9px; border-radius: 6px; cursor: pointer; text-decoration: none !important; color: #6B7772; }
+			.duty-rd-marks:hover, .duty-rd-find:hover { background: #fff; color: #182420; }
+			.duty-rd-zenmode .duty-rd-hlpanel, .duty-rd-zenmode .duty-rd-findpanel { display: none !important; }
+			.duty-rd-aa, .duty-rd-bmk { padding: 3px 9px; border-radius: 6px; cursor: pointer; text-decoration: none !important; color: #6B7772; font-weight: 700; }
+			.duty-rd-aa:hover, .duty-rd-bmk:hover { background: #fff; color: #182420; }
+			.duty-rd-aapanel { position: absolute; top: 44px; right: 0; z-index: 10002; width: 300px; background: #fff; border: 1px solid #E2E8E5; border-radius: 14px; box-shadow: 0 14px 40px rgba(18,60,53,.2); padding: 12px 14px; }
+			.duty-rd-head { position: relative; }
+			.duty-aa-row { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin: 7px 0; font-size: 12px; font-weight: 700; color: #51605C; }
+			.duty-aa-row input[type=range] { width: 150px; accent-color: #0E8A63; }
+			.duty-aa-segs { display: flex; gap: 4px; align-items: center; }
+			.duty-aa-seg, .duty-aa-fs { font-size: 11.5px; font-weight: 800; color: #51605C; background: #EDF2EF; border-radius: 8px; padding: 4px 10px; cursor: pointer; text-decoration: none !important; }
+			.duty-aa-seg.on { background: #123C35; color: #E7F0EC; }
+			.duty-aa-fsv { min-width: 22px; text-align: center; }
+			.duty-rd-aapanel details summary { font-size: 11.5px; font-weight: 800; color: #0B6B4F; cursor: pointer; margin: 6px 0 2px; }
+			.duty-rd-scrub { flex: 1; height: 5px; accent-color: #0E8A63; cursor: pointer; margin: 0; }
+			.duty-rd-wb { position: relative; background: linear-gradient(135deg, #FFFAF0, #F4FAF6); border: 1px solid #EAD9A8; border-radius: 14px; padding: 12px 40px 12px 16px; margin-bottom: 12px; }
+			.duty-rd-wb b { display: block; color: #123C35; font-size: 13.5px; }
+			.duty-rd-wb span { font-size: 12.5px; color: #51605C; }
+			.duty-rd-wb i { display: block; font-style: normal; font-size: 10.5px; font-weight: 800; text-transform: uppercase; color: #8F5C07; margin-top: 8px; }
+			.duty-rd-wb q { display: block; font-size: 12px; color: #4A3E22; margin-top: 3px; quotes: none; }
+			.duty-wb-x { position: absolute; top: 8px; right: 12px; cursor: pointer; color: #8A9994; font-weight: 800; text-decoration: none !important; }
+			.duty-rd-undo { position: fixed; bottom: 80px; left: 50%; transform: translateX(-50%); z-index: 100002; background: #17211F; color: #E7F0EC; border-radius: 99px; padding: 9px 18px; font-size: 12.5px; font-weight: 700; box-shadow: 0 8px 26px rgba(0,0,0,.35); }
+			.duty-rd-undo a { color: #FFC53D; cursor: pointer; font-weight: 800; text-decoration: none !important; margin-left: 4px; }
+			.duty-au-skip { font-size: 14px !important; }
+			.duty-au-sleep { background: #1A2822; color: #E7F0EC; border: 1px solid #2A3D36; border-radius: 8px; font-size: 11px; padding: 3px 5px; }
+			.duty-hl-sect { font-size: 10.5px; font-weight: 800; text-transform: uppercase; letter-spacing: .05em; color: #65736F; padding: 8px 10px 2px; display: flex; justify-content: space-between; }
+			.duty-hl-md { font-style: normal; color: #0B6B4F; cursor: pointer; text-transform: none; letter-spacing: 0; }
+			.duty-hl-qc, .duty-bm-rm { float: right; font-style: normal; cursor: pointer; color: #8A9994; padding: 0 4px; }
+			.duty-hl-qc:hover { color: #B27409; }
+			.duty-bm-rm:hover { color: #C94646; }
+			.duty-gm-memory { max-width: 300px; border-left: 4px solid #B27409; background: #FFFDF6; }
+			.duty-gm-memory b { font-size: 11px; text-transform: uppercase; color: #8F5C07; letter-spacing: .4px; }
+			.duty-gm-memory q { display: block; font-size: 12px; color: #4A3E22; margin-top: 5px; line-height: 1.45; quotes: none; }
+			.duty-gm-memory i { display: block; font-style: normal; font-size: 10.5px; font-weight: 800; color: #8A9994; margin-top: 4px; }
+			.duty-radar { margin-bottom: 16px; }
+			.duty-radar-head { display: flex; align-items: baseline; gap: 10px; margin-bottom: 8px; }
+			.duty-radar-head b { color: #123C35; font-size: 14px; }
+			.duty-radar-head span { font-size: 11px; color: #8A9994; font-weight: 700; }
+			.duty-radar-add { margin-left: auto; font-size: 12px; font-weight: 800; color: #0B6B4F; cursor: pointer; text-decoration: none !important; }
+			.duty-radar-shelf { display: flex; gap: 12px; overflow-x: auto; padding-bottom: 8px; }
+			.duty-radar-card { flex: 0 0 250px; display: flex; flex-direction: column; gap: 4px; background: #fff; border: 1px solid #E2E8E5; border-radius: 12px; padding: 10px 13px; text-decoration: none !important; transition: transform .12s, box-shadow .12s; border-top: 3px solid #A9B5B1; }
+			.duty-radar-card:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(18,60,53,.12); }
+			.duty-heat-hot { border-top-color: #E2620E; }
+			.duty-heat-warm { border-top-color: #FFC53D; }
+			.duty-heat-cool { border-top-color: #7BA8C9; }
+			.duty-radar-top { font-size: 13px; color: #17211F; }
+			.duty-radar-top b { font-weight: 800; }
+			.duty-radar-top i { font-style: normal; font-size: 10px; font-weight: 800; color: #65736F; background: #EDF2EF; border-radius: 99px; padding: 1px 8px; margin-left: 6px; text-transform: uppercase; }
+			.duty-radar-angle { font-size: 11.5px; color: #51605C; line-height: 1.4; }
+			.duty-radar-trig { font-size: 11px; font-weight: 700; color: #8F5C07; }
+			.duty-radar-worth { font-size: 11.5px; font-weight: 800; color: #0B6B4F; }
+			.duty-radar-empty { padding: 18px; color: #8A9994; font-weight: 700; font-size: 12.5px; }
+			.duty-radar-log { margin: 8px 0; font-size: 12px; color: #2A3531; }
+			.duty-radar-log b { display: block; font-size: 10.5px; text-transform: uppercase; color: #65736F; margin-bottom: 4px; }
+			.duty-radar-log div { padding: 3px 0; border-bottom: 1px dashed #EDF2EF; }
+			.duty-radar-drop { display: inline-block; margin: 6px 0 2px; color: #C94646; font-size: 12px; font-weight: 700; cursor: pointer; text-decoration: none !important; }
+			.duty-radar-visit { display: block; font-size: 12px; margin-bottom: 8px; color: #0B6B4F; word-break: break-all; }
+			.duty-radar-daily { background: linear-gradient(135deg, #F4FAF6, #FFFDF6); border: 1px solid #DCE8E0; border-left: 4px solid #123C35; border-radius: 14px; padding: 12px 16px; margin-bottom: 16px; max-width: 560px; }
+			.duty-radar-daily b { display: block; font-size: 11px; text-transform: uppercase; letter-spacing: .4px; color: #65736F; }
+			.duty-rdd-co { display: block; font-size: 15px; font-weight: 800; color: #17211F; margin-top: 3px; }
+			.duty-radar-daily q { display: block; font-size: 12.5px; color: #51605C; margin-top: 4px; quotes: none; line-height: 1.45; }
+			.duty-radar-daily i { display: block; font-style: normal; font-size: 11.5px; font-weight: 700; color: #8F5C07; margin-top: 4px; }
+			.duty-myrooms { display: flex; flex-direction: column; gap: 8px; margin-bottom: 16px; }
+			.duty-mr-sect { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; }
+			.duty-mr-sect > b { font-size: 11px; text-transform: uppercase; letter-spacing: .4px; color: #65736F; white-space: nowrap; }
+			.duty-mr-sect > span { display: flex; gap: 6px; flex-wrap: wrap; }
+			.duty-mr-chip { font-size: 11.5px; font-weight: 800; color: #123C35; background: #E4F3EC; border-radius: 99px; padding: 4px 13px; cursor: pointer; text-decoration: none !important; }
+			.duty-mr-chip:hover { background: #123C35; color: #E7F0EC; }
+			.duty-cr-accessbtn { cursor: pointer; padding: 0 6px; text-decoration: none !important; }
+			.duty-th-night .duty-rd-aapanel { background: #14231E; border-color: #23342E; }
+			.duty-th-night .duty-aa-row { color: #9FB3AB; }
+			.duty-th-night .duty-aa-seg, .duty-th-night .duty-aa-fs { background: #1A2822; color: #C6D4CD; }
+			.duty-th-night .duty-aa-seg.on { background: #0E8A63; }
+			.duty-th-night .duty-rd-wb { background: #14231E; border-color: #2A3D36; }
+			.duty-th-night .duty-rd-wb b { color: #C6D4CD; }
+			.duty-rd-turn { position: absolute; top: 0; bottom: 0; width: 46%; z-index: 8; pointer-events: none; overflow: hidden; border-radius: 8px; }
+			.duty-turn-fwd { right: 0; background: linear-gradient(270deg, rgba(0,0,0,.14), rgba(255,255,255,.55) 24%, transparent 55%); transform-origin: left center; animation: duty-turn-f .52s cubic-bezier(.3,.5,.3,1) forwards; }
+			.duty-turn-bck { left: 0; background: linear-gradient(90deg, rgba(0,0,0,.14), rgba(255,255,255,.55) 24%, transparent 55%); transform-origin: right center; animation: duty-turn-b .52s cubic-bezier(.3,.5,.3,1) forwards; }
+			@keyframes duty-turn-f { 0% { transform: perspective(1200px) rotateY(0deg); opacity: .95; } 100% { transform: perspective(1200px) rotateY(-72deg); opacity: 0; } }
+			@keyframes duty-turn-b { 0% { transform: perspective(1200px) rotateY(0deg); opacity: .95; } 100% { transform: perspective(1200px) rotateY(72deg); opacity: 0; } }
+			.duty-th-night .duty-turn-fwd { background: linear-gradient(270deg, rgba(0,0,0,.45), rgba(198,212,205,.16) 24%, transparent 55%); }
+			.duty-th-night .duty-turn-bck { background: linear-gradient(90deg, rgba(0,0,0,.45), rgba(198,212,205,.16) 24%, transparent 55%); }
+			.duty-news { padding: 14px 26px 90px; max-width: 1280px; margin: 0 auto; }
+			.duty-nw-head { display: flex; align-items: center; gap: 18px; flex-wrap: wrap; margin-bottom: 14px; }
+			.duty-nw-head h3 { margin: 0; color: #123C35; font-weight: 800; }
+			.duty-nw-chips { display: flex; gap: 6px; flex-wrap: wrap; }
+			.duty-nw-chip { font-size: 11.5px; font-weight: 800; color: #51605C; background: #EDF2EF; border-radius: 99px; padding: 4px 13px; cursor: pointer; }
+			.duty-nw-chip.on, .duty-nw-chip:hover { background: #123C35; color: #E7F0EC; text-decoration: none; }
+			.duty-nw-refresh { margin-left: auto; font-size: 19px; font-weight: 800; color: #51605C; cursor: pointer; padding: 0 8px; }
+			.duty-nw-refresh:hover { color: #0B6B4F; text-decoration: none; }
+			.duty-confetti { position: fixed; inset: 0; pointer-events: none; z-index: 99999; overflow: hidden; }
+			.duty-confetti i { position: absolute; top: -14px; display: block; opacity: .95;
+				animation-name: duty-confetti-fall; animation-timing-function: cubic-bezier(.25,.45,.45,.95); animation-fill-mode: forwards; }
+			@keyframes duty-confetti-fall {
+				0% { transform: translate3d(0, -10px, 0) rotate(0deg); opacity: 1; }
+				70% { opacity: 1; }
+				100% { transform: translate3d(var(--sway, 30px), 104vh, 0) rotate(var(--spin, 360deg)); opacity: .55; }
+			}
+			.duty-nw-hero { display: block; position: relative; height: 300px; border-radius: 18px; background-size: cover; background-position: center; background-color: #123C35; overflow: hidden; margin-bottom: 16px; }
+			.duty-nw-hgrad { position: absolute; inset: 0; background: linear-gradient(180deg, transparent 30%, rgba(10, 26, 22, .88)); }
+			.duty-nw-htxt { position: absolute; left: 22px; right: 22px; bottom: 18px; color: #fff; }
+			.duty-nw-htxt i { font-style: normal; font-size: 11.5px; font-weight: 800; opacity: .85; text-transform: uppercase; letter-spacing: .5px; }
+			.duty-nw-htxt b { display: block; font-size: 24px; line-height: 1.25; margin-top: 4px; text-shadow: 0 1px 8px rgba(0,0,0,.4); }
+			.duty-nw-hero:hover .duty-nw-htxt b { text-decoration: underline; }
+			.duty-nw-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 14px; }
+			.duty-nw-card { display: flex; flex-direction: column; background: #fff; border: 1px solid #E2E8E5; border-radius: 14px; overflow: hidden; text-decoration: none !important; transition: transform .12s, box-shadow .12s; }
+			.duty-nw-card:hover { transform: translateY(-2px); box-shadow: 0 8px 22px rgba(18, 60, 53, .12); }
+			.duty-nw-img { height: 136px; background-size: cover; background-position: center; background-color: #EDF2EF; }
+			.duty-nw-noimg { display: flex; align-items: center; justify-content: center; font-size: 44px; font-weight: 800; color: #fff; background: linear-gradient(135deg, #123C35, #0E8A63); }
+			.duty-nw-body { display: flex; flex-direction: column; gap: 4px; padding: 10px 13px 12px; }
+			.duty-nw-src { font-size: 10.5px; font-weight: 800; color: #65736F; text-transform: uppercase; letter-spacing: .4px; }
+			.duty-nw-cat { font-style: normal; color: #0B6B4F; }
+			.duty-nw-title { font-size: 13.5px; font-weight: 700; color: #17211F; line-height: 1.3; }
+			.duty-nw-when { font-size: 10.5px; color: #8A9994; }
+			.duty-nw-new { color: #B27409; }
+			.duty-nw-load { padding: 60px 0; text-align: center; color: #65736F; font-weight: 700; }
+			.duty-ndrawer { width: 560px; }
+			.duty-nd-hero { height: 230px; border-radius: 14px; background-size: cover; background-position: center; background-color: #EDF2EF; margin-bottom: 14px; }
+			.duty-nd-title { color: #123C35; font-weight: 800; margin: 0 0 4px; line-height: 1.3; }
+			.duty-nd-meta { font-size: 11px; font-weight: 800; color: #65736F; text-transform: uppercase; letter-spacing: .4px; margin-bottom: 12px; }
+			.duty-nd-p { font-size: 13.5px; line-height: 1.65; color: #2A3531; }
+			.duty-nd-extra { height: 180px; border-radius: 12px; background-size: cover; background-position: center; margin: 10px 0; }
+			.duty-nd-src { margin-top: 14px; }
+			body.duty-consultant .duty-proj-new, body.duty-consultant .duty-proj-cons,
+			body.duty-consultant .duty-proj-archive { display: none !important; }
+			body.duty-mobile .duty-issues-face { padding: 8px 10px 90px; }
+			.duty-team { display: block !important; }
+			.duty-tf { display: flex; gap: 5px; flex-wrap: wrap; margin-bottom: 9px; }
+			.duty-tr .duty-dm-btn { border: 1px solid #E2E8E5; border-radius: 99px; padding: 1px 9px; font-size: 11px; color: #087A67; flex: none; text-decoration: none; }
+			.duty-tr .duty-dm-btn:hover { border-color: #087A67; background: #F0F7F4; }
+			.duty-tfp { font-size: 11.5px; font-weight: 700; color: #65736F; background: #F0F4F2; border-radius: 99px; padding: 4px 11px; cursor: pointer; }
+			.duty-tfp b { font-weight: 800; }
+			.duty-tfp.on { background: #123C35; color: #fff; }
+			.duty-tfp:hover:not(.on) { background: #E2E8E5; }
+			.duty-teamtbl { display: flex; flex-direction: column; gap: 4px; }
+			.duty-tr { display: grid; grid-template-columns: minmax(150px, 1.1fr) auto minmax(160px, 1.6fr) 74px 52px 20px;
+				gap: 10px; align-items: center; background: #fff; border: 1px solid #EEF2F0; border-radius: 10px;
+				padding: 7px 11px; font-size: 12.5px; cursor: pointer; transition: box-shadow .14s; }
+			.duty-tr:hover { box-shadow: 0 2px 8px rgba(12,34,30,.08); }
+			.duty-tr-warn { border-left: 3px solid #B27409; background: #FFFDF8; }
+			.duty-tr-who { display: flex; align-items: center; gap: 7px; min-width: 0; }
+			.duty-tr-who b { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+			.duty-tr-task { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+			.duty-tr-dur { text-align: right; font-variant-numeric: tabular-nums; font-weight: 600; }
+			.duty-tr-plan { text-align: center; font-weight: 700; }
+			.duty-tr-plan-none { color: #B27409; }
+			.duty-tr-more { color: #8A9994; font-weight: 800; text-align: right; }
+			body.duty-mobile .duty-tr { grid-template-columns: 1fr auto; grid-auto-rows: auto; }
+			body.duty-mobile .duty-tr-task { grid-column: 1 / -1; }
+			body.duty-mobile .duty-tr-dur, body.duty-mobile .duty-tr-plan { text-align: left; }
 			.duty-cr-mem { padding: 6px 0; border-bottom: 1px dashed var(--border-color); display: flex; gap: 8px; align-items: center; }
 			.duty-cr-mem a { margin-left: auto; cursor: pointer; font-size: var(--text-xs); }
 			.duty-cr-addmem { display: flex; gap: 6px; margin-top: 10px; }

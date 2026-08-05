@@ -15,7 +15,16 @@
   "products",
   "bookkeeper",
   "books_optionals",
-  "playbook"
+  "books_scope",
+  "books_fye_month",
+  "playbook",
+  "scope_note",
+  "support_plan",
+  "uat_due",
+  "uat_nudged_on",
+  "is_financial_room",
+  "allow_consultant_internal",
+  "staff_users"
  ],
  "fields": [
   {
@@ -86,14 +95,63 @@
    "description": "Comma-separated Duty Service Deliverable Type names enabled for this room"
   },
   {
+   "fieldname": "books_scope",
+   "fieldtype": "Data",
+   "label": "Books Service Scope (csv of lines; blank = Full Books)"
+  },
+  {
+   "fieldname": "books_fye_month",
+   "fieldtype": "Int",
+   "label": "Financial Year End Month (1-12, for annual tax deliverables)"
+  },
+  {
    "fieldname": "playbook",
    "fieldtype": "Text",
    "label": "Client Playbook",
    "description": "Continuity knowledge: banks & statement quirks, key contacts, month peculiarities \u2014 anything a covering bookkeeper must know"
+  },
+  {
+   "fieldname": "scope_note",
+   "fieldtype": "Small Text",
+   "label": "Contract Scope (supported modules / boundaries)"
+  },
+  {
+   "fieldname": "support_plan",
+   "fieldtype": "Data",
+   "label": "Support Plan (shown to client)"
+  },
+  {
+   "fieldname": "uat_due",
+   "fieldtype": "Date",
+   "label": "UAT Target End"
+  },
+  {
+   "fieldname": "uat_nudged_on",
+   "fieldtype": "Date",
+   "label": "UAT Last Nudge"
+  },
+  {
+   "fieldname": "is_financial_room",
+   "fieldtype": "Check",
+   "label": "Financial Room",
+   "description": "Financial statements, announcements and review actions for this customer live here. One per customer."
+  },
+  {
+   "fieldname": "allow_consultant_internal",
+   "fieldtype": "Check",
+   "default": "0",
+   "label": "Consultants May See Internal Notes",
+   "description": "Off by default. Turn on only for a trusted consultant room \u2014 internal notes are often candid."
+  },
+  {
+   "fieldname": "staff_users",
+   "fieldtype": "Small Text",
+   "label": "Staff Access",
+   "description": "Comma-separated staff emails who see this room. EMPTY = every staff member (default). The room owner and System Managers always see it."
   }
  ],
  "links": [],
- "modified": "2026-07-09 09:00:00.000000",
+ "modified": "2026-08-03 08:08:47.824359",
  "modified_by": "Administrator",
  "module": "Duty Board",
  "name": "Client Room",

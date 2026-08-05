@@ -1,0 +1,57 @@
+{
+ "doctype": "DocType",
+ "name": "Statement Review Entry",
+ "module": "Document Hub",
+ "istable": 1,
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "entry_type",
+  "user",
+  "when",
+  "at_version",
+  "note"
+ ],
+ "fields": [
+  {
+   "fieldname": "entry_type",
+   "fieldtype": "Select",
+   "label": "Type",
+   "options": "Feedback\nStaff Note\nApproval",
+   "in_list_view": 1,
+   "columns": 1
+  },
+  {
+   "fieldname": "user",
+   "fieldtype": "Data",
+   "label": "By",
+   "in_list_view": 1,
+   "columns": 2
+  },
+  {
+   "fieldname": "when",
+   "fieldtype": "Datetime",
+   "label": "When",
+   "in_list_view": 1,
+   "columns": 2
+  },
+  {
+   "fieldname": "at_version",
+   "fieldtype": "Int",
+   "label": "v",
+   "in_list_view": 1,
+   "columns": 1
+  },
+  {
+   "fieldname": "note",
+   "fieldtype": "Long Text",
+   "label": "Note",
+   "in_list_view": 1,
+   "columns": 4
+  }
+ ],
+ "permissions": [],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "owner": "Administrator"
+}
