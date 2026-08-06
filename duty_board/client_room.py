@@ -403,9 +403,10 @@ def get_room(name, before=None):
 	if _is_c:
 		if name not in consultant_room_names():
 			frappe.throw(_("Not permitted."), frappe.PermissionError)
+		# Consultants see internal whispers only when the room allows it.
+		_incl = bool(cint(room.get("allow_consultant_internal")))
 	elif "System Manager" not in frappe.get_roles() and not _staff_sees_room(room, frappe.session.user):
 		frappe.throw(_("Not permitted."), frappe.PermissionError)
-		_incl = bool(cint(room.get("allow_consultant_internal")))
 	else:
 		_incl = True
 	messages, has_more = _room_payload(room, include_internal=_incl, before=before)

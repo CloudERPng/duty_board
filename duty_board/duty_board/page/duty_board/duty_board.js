@@ -17,6 +17,10 @@ frappe.pages["duty-board"].on_page_load = function (wrapper) {
 	);
 	page.add_menu_item(__("Duty Log List"), () => frappe.set_route("List", "Duty Log"));
 
+	// Frappe's fixed-width .container ignores the expanded workspace
+	// sidebar and overflows small viewports (measured: 106px at 1315px).
+	// Fluid containers on THIS page only — head and body stay aligned.
+	$(wrapper).find(".container").addClass("duty-fluid");
 	const board = new DutyBoard(page);
 	board.refresh();
 
@@ -188,7 +192,7 @@ class DutyBoard {
 		this.$chatface = $(`
 			<div class="duty-chatface" style="display:none">
 				<div class="duty-ch-rail">
-					<div class="duty-ch-railhead"><b>\ud83d\udcac ${__("Chats")}</b><span class="duty-ch-total"></span></div>
+					<div class="duty-ch-railhead"><b>\ud83d\udcac ${__("Chats")}</b><span class="duty-ch-total"></span><a class="duty-ch-new" title="${__("New direct message")}">\u270f</a></div>
 					<div class="duty-ch-search"><input type="text" class="form-control input-sm" placeholder="${__("Search chats\u2026")}"></div>
 					<div class="duty-ch-list"></div>
 				</div>
@@ -203,6 +207,7 @@ class DutyBoard {
 		`).appendTo(page.body);
 		if (localStorage.getItem("duty_ch_side") === "0") this.$chatface.addClass("ch-side-hidden");
 		this.$chatface.find(".duty-ch-sidetoggle").on("click", () => this.toggle_ch_side());
+		this.$chatface.find(".duty-ch-new").on("click", () => this.new_dm_dialog());
 		this.$chatface.find(".duty-ch-search input").on("input", frappe.utils.debounce((e) => {
 			this._ch_q = e.target.value;
 			this.render_chat_rail();
@@ -363,6 +368,7 @@ class DutyBoard {
 		frappe.realtime.on("duty_client_room", (n) => {
 			if (n && n.room && this._open_room === n.room) this.load_client_room(n.room);
 			else if (this.face === "clients") this.refresh_clients(true);
+			this.ch_ping();
 		});
 		frappe.realtime.on("duty_board_note", (n) => {
 			if (!n || !n.id) return;
@@ -10144,6 +10150,13 @@ this.$me.find(".duty-req-ok").on("click", (e) =>
 	open_convo(kind, id) {
 		if (!kind || !id) return;
 		this._ch_open = { kind: kind, id: id };
+		// Optimistic: the pill dies the moment you open the conversation.
+		// The server watermark (mark_*_seen) commits asynchronously, so a
+		// reconciling refresh follows once it has had time to land.
+		const cv = (this._convos || []).find((c) => c.kind === kind && String(c.id) === String(id));
+		if (cv) { cv.unread = 0; cv.unread_client = 0; cv.unread_other = 0; }
+		clearTimeout(this._ch_reconcile);
+		this._ch_reconcile = setTimeout(() => { if (this.face === "chat") this.refresh_chat(true); }, 1500);
 		const $c = this.$chatface;
 		$c.find(".duty-ch-blank").hide();
 		$c.find(".duty-ch-room, .duty-ch-team, .duty-ch-dm").hide();
@@ -10184,6 +10197,56 @@ this.$me.find(".duty-req-ok").on("click", (e) =>
 		this._ch_return_team();
 		const $host = this.$chatface.find(".duty-ch-dm").show();
 		this._ch_dm = this.build_dm_thread($host, user, this.name_map[user] || user);
+	}
+
+	new_dm_dialog() {
+		const esc = frappe.utils.escape_html;
+		const people = this.team_members();
+		if (!people.length) {
+			frappe.show_alert({ message: __("Colleague list is still loading — try again in a moment."), indicator: "orange" });
+			return;
+		}
+		const d = new frappe.ui.Dialog({ title: __("New direct message") });
+		$(d.body).html(`
+			<input type="text" class="form-control duty-ndm-q" placeholder="${__("Type a name\u2026")}">
+			<div class="duty-ndm-list"></div>
+		`);
+		const $q = $(d.body).find(".duty-ndm-q");
+		const $list = $(d.body).find(".duty-ndm-list");
+		const pick = (user) => {
+			d.hide();
+			this.open_convo("dm", user);
+		};
+		const paint = () => {
+			const q = ($q.val() || "").toLowerCase();
+			const rows = people
+				.filter((p) => !q || (p.full_name || p.user).toLowerCase().indexOf(q) >= 0)
+				.sort((a, b) => (a.full_name || a.user).localeCompare(b.full_name || b.user));
+			$list.html(
+				rows.length
+					? rows
+						.map(
+							(p) => `
+						<a class="duty-ndm-row" data-user="${esc(p.user)}">
+							<span class="duty-ch-av" style="background:${this.user_color(p.user)}">${esc((p.full_name || p.user).trim().charAt(0).toUpperCase())}</span>
+							<span>${esc(p.full_name || p.user)}</span>
+						</a>`
+						)
+						.join("")
+					: `<div class="text-muted duty-plan-empty">${__("Nobody matches.")}</div>`
+			);
+			$list.find(".duty-ndm-row").on("click", (e) => pick($(e.currentTarget).attr("data-user")));
+		};
+		$q.on("input", frappe.utils.debounce(paint, 120));
+		$q.on("keydown", (e) => {
+			if (e.key === "Enter") {
+				const $first = $list.find(".duty-ndm-row").first();
+				if ($first.length) pick($first.attr("data-user"));
+			}
+		});
+		paint();
+		d.show();
+		setTimeout(() => $q.focus(), 150);
 	}
 
 	toggle_ch_side() {
@@ -10439,6 +10502,27 @@ this.$me.find(".duty-req-ok").on("click", (e) =>
 			.duty-ch-dm { display: flex; flex-direction: column; padding: 12px; }
 			.duty-ch-dm .duty-dm-list { flex: 1; min-height: 0; overflow-y: auto; }
 			.duty-ch-room .duty-cr-back, .duty-ch-room .duty-cr-mtabs { display: none !important; }
+			.duty-ch-new { margin-left: auto; cursor: pointer; font-size: 15px; opacity: .7; text-decoration: none; }
+			.duty-ch-new:hover { opacity: 1; text-decoration: none; }
+			.duty-ndm-q { margin-bottom: 8px; }
+			.duty-ndm-list { max-height: 320px; overflow-y: auto; }
+			.duty-ndm-row { display: flex; align-items: center; gap: 10px; padding: 8px 10px; border-radius: 8px; cursor: pointer; color: inherit; text-decoration: none; }
+			.duty-ndm-row:hover { background: var(--bg-light-gray, #f2f2f2); color: inherit; text-decoration: none; }
+			.duty-ndm-row .duty-ch-av { width: 32px; height: 32px; min-width: 32px; font-size: 13px; }
+			/* WhatsApp rhythm — Chat face only; mobile board tab and portal untouched. */
+			.duty-chatface .duty-chat-list { padding: 16px 20px; }
+			.duty-chatface .duty-chat-list .duty-msg { margin-bottom: 14px; line-height: 1.55; }
+			.duty-chatface .duty-cr-msgs { padding: 16px 20px; }
+			.duty-chatface .duty-cr-msgs .duty-cr-msg { margin-bottom: 14px; line-height: 1.55; }
+			.duty-chatface .duty-dm-list { padding: 16px 20px; }
+			.duty-chatface .duty-dm-list .duty-msg { margin-bottom: 14px; line-height: 1.55; }
+			/* .duty-fluid.container out-specifies Bootstrap's .container breakpoints. */
+			.duty-fluid.container { max-width: 100%; }
+			@media (max-width: 1440px) {
+				/* 15" laptops: rail + thread + tasks in one view, sidebar expanded or not. */
+				.duty-ch-rail { width: 320px; min-width: 320px; }
+				.duty-chatface .duty-cr-side { width: 320px; }
+			}
 			@media (max-width: 991px) {
 				.duty-chatface { height: calc(100dvh - 120px); border: 0; border-radius: 0; }
 				.duty-ch-rail { width: 100%; min-width: 0; border-right: 0; }
