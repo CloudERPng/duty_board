@@ -160,6 +160,38 @@ ISSUE_CLIENT_STATUS = {
 }
 
 
+def _project_names(customer):
+	"""name -> display label for a customer's active projects. The room's
+	auto-created catch-all ("{cust} — Requests") shows as "General Requests"."""
+	out = {}
+	for p in frappe.get_all(
+		"Duty Project",
+		filters={"customer": customer, "status": "Active"},
+		fields=["name", "project_name"],
+	):
+		label = p.project_name or p.name
+		if label.endswith("— Requests") or label.endswith("- Requests"):
+			label = "General Requests"
+		out[p.name] = label
+	return out
+
+
+def _project_names(customer):
+	"""name -> display label for a customer's active projects. The room's
+	auto-created catch-all ("{cust} — Requests") shows as "General Requests"."""
+	out = {}
+	for p in frappe.get_all(
+		"Duty Project",
+		filters={"customer": customer, "status": "Active"},
+		fields=["name", "project_name"],
+	):
+		label = p.project_name or p.name
+		if label.endswith("— Requests") or label.endswith("- Requests"):
+			label = "General Requests"
+		out[p.name] = label
+	return out
+
+
 def _work_rows(room):
 	"""Everything client-visible for this customer: issues + project milestones."""
 	out = []
@@ -208,6 +240,8 @@ def _work_rows(room):
 				"confirmed": 1 if i.client_confirmed_at else 0,
 				"stars": cint(i.client_stars) or 0,
 				"modified": i.modified,
+				"project": None,
+				"project_name": None,
 			}
 		)
 	projs = frappe.get_all(
@@ -216,10 +250,11 @@ def _work_rows(room):
 		pluck="name",
 	)
 	if projs:
+		pnames = _project_names(room.customer)
 		for t in frappe.get_all(
 			"Duty Project Task",
 			filters={"project": ["in", projs], "client_visible": 1},
-			fields=["name", "title", "column", "assignee", "client_requested", "modified", "creation"],
+			fields=["name", "title", "column", "assignee", "client_requested", "modified", "creation", "project"],
 		):
 			status = CLIENT_STATUS.get(t.column)
 			if not status:
@@ -238,6 +273,8 @@ def _work_rows(room):
 					),
 					"reported": str(t.creation)[:16],
 					"modified": t.modified,
+					"project": t.project,
+					"project_name": pnames.get(t.project),
 				}
 			)
 	out.sort(key=lambda x: str(x.get("reported") or x.get("modified") or ""), reverse=True)
@@ -261,6 +298,8 @@ def _visible_tasks(room):
 			"seen": o.get("seen"),
 			"confirmed": o.get("confirmed"),
 			"stars": o.get("stars"),
+			"project": o.get("project"),
+			"project_name": o.get("project_name"),
 		}
 		for o in _work_rows(room)
 	]
@@ -1856,6 +1895,9 @@ def _milestone_rows(room):
 		r.cards_total = len(tasks)
 		r.cards_done = sum(1 for t in tasks if t.column == "Completed")
 		r.awaiting = sum(1 for t in tasks if cint(t.awaiting_client) and t.column != "Completed")
+	pnames = _project_names(room.customer)
+	for r in rows:
+		r.project_name = pnames.get(r.project)
 	return rows
 
 
@@ -2200,10 +2242,11 @@ def _chreq_rows(room):
 			"approved_amount", "submitted_on", "approved_full", "approved_at",
 			"approval_note", "declined_at", "decline_reason", "delivered_at",
 			"source_type", "source_message", "source_issue",
-			"released", "pricing_status", "estimate_hours", "invoice_status",
+			"released", "pricing_status", "estimate_hours", "invoice_status", "project",
 		],
 		order_by="creation desc",
 	)
+	_crpn = _project_names(room.customer)
 	for r in rows:
 		r.submitted_on = str(r.submitted_on)[:16] if r.submitted_on else None
 		r.approved_at = str(r.approved_at)[:16] if r.approved_at else None
@@ -2211,6 +2254,7 @@ def _chreq_rows(room):
 		r.delivered_at = str(r.delivered_at)[:16] if r.delivered_at else None
 		r.cost_fmt = _chreq_fmt(r.cost_impact)
 		r.approved_fmt = _chreq_fmt(r.approved_amount)
+		r.project_name = _crpn.get(r.project)
 		tasks = frappe.get_all(
 			"Duty Project Task",
 			filters={"change_request": r.name},
@@ -2228,7 +2272,7 @@ def _chreq_rows(room):
 
 
 @frappe.whitelist()
-def chreq_add(name, title, original_request=None):
+def chreq_add(name, title, original_request=None, project=None):
 	_staff_only()
 	room = frappe.get_doc("Client Room", name)
 	title = (title or "").strip()
@@ -2242,6 +2286,7 @@ def chreq_add(name, title, original_request=None):
 			"status": "Draft",
 			"original_request": (original_request or "").strip() or None,
 			"source_type": "Manual",
+			"project": _validate_milestone_project(room.name, project or None),
 		}
 	).insert(ignore_permissions=True)
 	frappe.db.commit()
@@ -2342,8 +2387,7 @@ def chreq_update(
 	cost_impact=None,
 	resource_impact=None,
 	risks=None,
-	quotation=None,
-):
+	quotation=None, project=None):
 	from duty_board.permissions import require_staff_or_consultant
 
 	_is_c = require_staff_or_consultant()
@@ -2382,6 +2426,7 @@ def chreq_update(
 			"resource_impact": (resource_impact or "").strip()[:500] or None,
 			"risks": (risks or "").strip()[:500] or None,
 			"quotation": quotation or None,
+			"project": _validate_milestone_project(doc.room, project or None),
 		},
 		update_modified=False,
 	)
