@@ -40,6 +40,7 @@ frappe.pages["duty-board"].on_page_load = function (wrapper) {
 		{ id: "issues", ic: RSVG.warn, label: __("Issues"), go: () => board.show_face("issues") },
 		{ id: "projects", ic: RSVG.proj, label: __("Projects"), go: () => board.show_face("projects") },
 		{ id: "sales", ic: RSVG.sales, label: __("Sales"), go: () => board.show_face("sales") },
+		{ id: "chat", ic: '<path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>', label: __("Chat"), go: () => board.show_face("chat") },
 		{ id: "clients", ic: RSVG.rooms, label: __("Client Rooms"), go: () => board.show_face("clients") },
 		{ id: "me", ic: RSVG.me, label: __("My Dashboard"), go: () => board.show_face("me") },
 		{ id: "news", ic: '<path d="M4 22h16a2 2 0 0 0 2-2V4a2 2 0 0 0-2-2H8a2 2 0 0 0-2 2v16a2 2 0 0 1-2 2Zm0 0a2 2 0 0 1-2-2v-9c0-1.1.9-2 2-2h2"/><path d="M18 14h-8"/><path d="M15 18h-5"/><path d="M10 6h8v4h-8V6Z"/>', label: __("News"), go: () => board.show_face("news") },
@@ -184,6 +185,28 @@ class DutyBoard {
 				<div class="duty-cr-room" style="display:none"></div>
 			</div>
 		`).appendTo(page.body);
+		this.$chatface = $(`
+			<div class="duty-chatface" style="display:none">
+				<div class="duty-ch-rail">
+					<div class="duty-ch-railhead"><b>\ud83d\udcac ${__("Chats")}</b><span class="duty-ch-total"></span></div>
+					<div class="duty-ch-search"><input type="text" class="form-control input-sm" placeholder="${__("Search chats\u2026")}"></div>
+					<div class="duty-ch-list"></div>
+				</div>
+				<div class="duty-ch-center">
+					<a class="duty-ch-sidetoggle" style="display:none" title="${__("Show or hide the task column")}">\ud83d\udccb</a>
+					<div class="duty-ch-room duty-cr-room" style="display:none"></div>
+					<div class="duty-ch-team" style="display:none"></div>
+					<div class="duty-ch-dm" style="display:none"></div>
+					<div class="duty-ch-blank">${__("Pick a conversation on the left.")}</div>
+				</div>
+			</div>
+		`).appendTo(page.body);
+		if (localStorage.getItem("duty_ch_side") === "0") this.$chatface.addClass("ch-side-hidden");
+		this.$chatface.find(".duty-ch-sidetoggle").on("click", () => this.toggle_ch_side());
+		this.$chatface.find(".duty-ch-search input").on("input", frappe.utils.debounce((e) => {
+			this._ch_q = e.target.value;
+			this.render_chat_rail();
+		}, 200));
 		this.$me = $(`<div class="duty-me" style="display:none"></div>`).appendTo(page.body);
 		this.$books = $(`<div class="duty-books" style="display:none"></div>`).appendTo(page.body);
 		this.name_map = {};
@@ -305,10 +328,16 @@ class DutyBoard {
 			if (e.key === "Escape") $c.find(".duty-search-close").click();
 		});
 
-		frappe.realtime.on("duty_board_message", (m) => this.handle_incoming(m));
+		frappe.realtime.on("duty_board_message", (m) => {
+			this.handle_incoming(m);
+			this.ch_ping();
+		});
 		this._sync_timer = setInterval(() => this.sync_messages(), 25 * 1000);
 		frappe.realtime.on("duty_board_notify", (d) => this.notify_event(d));
-		frappe.realtime.on("duty_board_dm", (m) => this.handle_dm(m));
+		frappe.realtime.on("duty_board_dm", (m) => {
+			this.handle_dm(m);
+			this.ch_ping();
+		});
 		frappe.realtime.on("duty_board_typing", (n) => {
 			if (!n || n.user === frappe.session.user) return;
 			const $t = $(".duty-chat-typing");
@@ -1936,17 +1965,6 @@ class DutyBoard {
 				send();
 			}
 		});
-		this._cr_last_typing = 0;
-		$input.on("input", () => {
-			const now = Date.now();
-			if (now - this._cr_last_typing < 2500) return;
-			this._cr_last_typing = now;
-			frappe.call({
-				method: "duty_board.client_room.staff_typing",
-				args: { name: x.name },
-				freeze: false,
-			});
-		});
 		d.show();
 		load(null);
 		this.set_dm_badge(user, 0);
@@ -2009,6 +2027,16 @@ class DutyBoard {
 		if (this._$ldrawer) this._$ldrawer.hide();
 		$("body").removeClass("duty-idrawer-open");
 		const prev_face = this.face;
+		if (face === "chat" && prev_face !== "chat") {
+			this.$clients.find(".duty-cr-room").empty().hide();
+			this.$clients.removeClass("cr-room-open");
+			this._open_room = null;
+			this._ch_open = null;
+		}
+		if (face !== "chat" && prev_face === "chat") {
+			this.$chatface.find(".duty-ch-room").empty().hide();
+			this._open_room = null;
+		}
 		setTimeout(() => { this.render_strip(); this.rail_sync(face); }, 0);
 		if (face === "projects" && prev_face !== "projects") {
 			this._pj_open = {};
@@ -2026,6 +2054,8 @@ class DutyBoard {
 		this.$issues.toggle(face === "issues");
 		this.$projects.toggle(face === "projects");
 		this.$sales.toggle(face === "sales");
+		if (this.$chatface) this.$chatface.toggle(face === "chat");
+		if (face !== "chat") this._ch_return_team();
 		this.$clients.toggle(face === "clients");
 		this.$me.toggle(face === "me");
 		this.$books.toggle(face === "books");
@@ -2036,6 +2066,7 @@ class DutyBoard {
 		if (face === "books") this.refresh_books();
 		if (face === "projects") this.refresh_projects();
 		if (face === "sales") this.refresh_sales();
+		if (face === "chat") this.refresh_chat();
 		if (face === "clients") this.refresh_clients();
 		if (face === "me") this.refresh_me();
 	}
@@ -4494,7 +4525,7 @@ this.$me.find(".duty-req-ok").on("click", (e) =>
 
 	render_client_room(x) {
 		if (x.name !== this._open_room) return;
-		const $room = this.$clients.find(".duty-cr-room").show();
+		const $room = this._cr_host().show();
 		this.$clients.addClass("cr-room-open");
 		const counts = { Queued: 0, "In Progress": 0, Done: 0 };
 		(x.tasks || []).forEach((t) => (counts[t.status] = (counts[t.status] || 0) + 1));
@@ -7565,7 +7596,7 @@ this.$me.find(".duty-req-ok").on("click", (e) =>
 				$c.find(".duty-mr-chip").on("click", (e) => {
 					const room = $(e.currentTarget).data("room");
 					this.show_face("clients");
-					setTimeout(() => this.open_room && this.open_room(room), 400);
+					setTimeout(() => this.open_client_room(room), 400);
 				});
 			},
 		});
@@ -10017,6 +10048,230 @@ this.$me.find(".duty-req-ok").on("click", (e) =>
 		return h ? `${h}h ${m}m` : `${m}m`;
 	}
 
+	// ---------------- Chat face ----------------
+
+	_cr_host() {
+		// render_client_room paints into whichever face is currently asking.
+		if (this.face === "chat") return this.$chatface.find(".duty-ch-room");
+		return this.$clients.find(".duty-cr-room");
+	}
+
+	ch_ping() {
+		// Debounced: a burst of realtime events costs one rail refresh.
+		if (this.face !== "chat") return;
+		clearTimeout(this._ch_t);
+		this._ch_t = setTimeout(() => this.refresh_chat(true), 700);
+	}
+
+	refresh_chat(silent) {
+		frappe.call({
+			method: "duty_board.chat.get_rail",
+			freeze: false,
+			error: () => {
+				this._ch_fail = (this._ch_fail || 0) + 1;
+				if (this._ch_fail >= 3) this.halt_polling();
+			},
+			callback: (r) => {
+				this._ch_fail = 0;
+				this._convos = r.message || [];
+				this.render_chat_rail();
+				if (!this._ch_open) this.open_convo("team", "__team__");
+			},
+		});
+	}
+
+	render_chat_rail() {
+		const $list = this.$chatface.find(".duty-ch-list");
+		const esc = frappe.utils.escape_html;
+		const q = (this._ch_q || "").toLowerCase();
+		const all = this._convos || [];
+		const rows = all.filter(
+			(c) =>
+				!q ||
+				(c.title || "").toLowerCase().indexOf(q) >= 0 ||
+				(c.subtitle || "").toLowerCase().indexOf(q) >= 0
+		);
+		const total = all.reduce((n, c) => n + (c.unread || 0), 0);
+		this.$chatface
+			.find(".duty-ch-total")
+			.text(total ? (total > 99 ? "99+" : total) : "")
+			.toggle(!!total);
+		if (!rows.length) {
+			$list.html(
+				`<div class="text-muted duty-plan-empty">${q ? __("No chats match.") : __("No conversations yet.")}</div>`
+			);
+			return;
+		}
+		const open = this._ch_open || {};
+		$list.html(
+			rows
+				.map((c) => {
+					const on = open.kind === c.kind && String(open.id) === String(c.id);
+					const initial = (c.title || "?").trim().charAt(0).toUpperCase();
+					const badge = c.unread
+						? `<span class="duty-ch-badge ${c.unread_client ? "is-client" : ""}">${c.unread > 99 ? "99+" : c.unread}</span>`
+						: "";
+					const join = c.join_requests
+						? `<span class="duty-ch-join" title="${__("Join requests waiting")}">\ud83d\ude4b ${c.join_requests}</span>`
+						: "";
+					const frozen = c.kind === "room" && c.status && c.status !== "Active";
+					return `
+					<a class="duty-ch-row ${on ? "on" : ""} ${c.unread ? "unread" : ""} ${frozen ? "frozen" : ""}"
+					   data-kind="${esc(c.kind)}" data-id="${esc(String(c.id))}">
+						<span class="duty-ch-av" style="background:${c.kind === "team" ? "#0f766e" : this.proj_color(String(c.id))}">${c.kind === "team" ? "\ud83d\udcac" : c.kind === "dm" ? "\u2709" : esc(initial)}</span>
+						<span class="duty-ch-body">
+							<span class="duty-ch-l1">
+								<b class="duty-ch-title">${esc(c.title || "")}</b>
+								<span class="duty-ch-when">${c.last_when ? esc(this.smart_time(c.last_when)) : ""}</span>
+							</span>
+							<span class="duty-ch-l2">
+								<span class="duty-ch-prev">${esc(c.last || __("No messages yet"))}</span>
+								${join}${badge}
+							</span>
+							<span class="duty-ch-sub">${esc(c.subtitle || "")}</span>
+						</span>
+					</a>`;
+				})
+				.join("")
+		);
+		$list.find(".duty-ch-row").on("click", (e) => {
+			const $r = $(e.currentTarget);
+			// .attr not .data — room ids and emails must not be coerced.
+			this.open_convo($r.attr("data-kind"), $r.attr("data-id"));
+		});
+	}
+
+	open_convo(kind, id) {
+		if (!kind || !id) return;
+		this._ch_open = { kind: kind, id: id };
+		const $c = this.$chatface;
+		$c.find(".duty-ch-blank").hide();
+		$c.find(".duty-ch-room, .duty-ch-team, .duty-ch-dm").hide();
+		$c.find(".duty-ch-sidetoggle").toggle(kind === "room");
+		if (kind === "team") this._ch_show_team();
+		else if (kind === "room") this._ch_show_room(id);
+		else if (kind === "dm") this._ch_show_dm(id);
+		else return;
+		this.render_chat_rail();
+		if (this.is_mobile()) $c.addClass("ch-convo-open");
+	}
+
+	_ch_show_team() {
+		const $host = this.$chatface.find(".duty-ch-team").show();
+		// Move the live node — every handler, observer and draft comes along.
+		if (this.$chat && this.$chat.parent()[0] !== $host[0]) this.$chat.appendTo($host);
+		this.chat_open = true;
+		this.apply_chat_state();
+		this.clear_unread();
+		this.scroll_chat();
+	}
+
+	_ch_return_team() {
+		const $home = this.body.find(".duty-chat");
+		if (this.$chat && $home.length && this.$chat.parent()[0] !== $home[0]) {
+			this.$chat.appendTo($home);
+			this.apply_chat_state();
+		}
+	}
+
+	_ch_show_room(name) {
+		this._ch_return_team();
+		this.$chatface.find(".duty-ch-room").show();
+		this.open_client_room(name);
+	}
+
+	_ch_show_dm(user) {
+		this._ch_return_team();
+		const $host = this.$chatface.find(".duty-ch-dm").show();
+		this._ch_dm = this.build_dm_thread($host, user, this.name_map[user] || user);
+	}
+
+	toggle_ch_side() {
+		const hide = !this.$chatface.hasClass("ch-side-hidden");
+		this.$chatface.toggleClass("ch-side-hidden", hide);
+		localStorage.setItem("duty_ch_side", hide ? "0" : "1");
+	}
+
+	build_dm_thread($host, user, full_name) {
+		// One implementation, two hosts: the ✉ dialog and the Chat face.
+		const esc = frappe.utils.escape_html;
+		const first = (full_name || user).split(" ")[0];
+		$host.html(`
+			<div class="duty-dm-list"><div class="text-muted">${__("Loading...")}</div></div>
+			<div class="duty-dm-send">
+				<textarea rows="1" class="form-control duty-dm-input" maxlength="1000"
+					placeholder="${__("Message {0}... Enter to send, Shift+Enter for a new line", [esc(first)])}"></textarea>
+				<button class="btn btn-primary btn-sm duty-dm-btn-send">${__("Send")}</button>
+			</div>
+		`);
+		const $list = $host.find(".duty-dm-list");
+		const $input = $host.find(".duty-dm-input");
+		let oldest = null;
+		const load = (before) => {
+			frappe.call({
+				method: "duty_board.dm.get_dm_thread",
+				args: { with_user: user, before: before },
+				callback: (r) => {
+					const data = r.message || {};
+					const msgs = data.messages || [];
+					if (msgs.length) oldest = msgs[0].creation;
+					if (!before) {
+						$list.empty();
+						if (data.has_more) {
+							$list.append(`<div class="duty-load-earlier"><a>${__("Load earlier")}</a></div>`);
+							$list.find(".duty-load-earlier a").on("click", () => load(oldest));
+						}
+						$list.append(msgs.map((m) => this.dm_row(m)).join(""));
+						if (!msgs.length) {
+							$list.append(`<div class="text-muted duty-plan-empty">${__("No messages yet — say hello.")}</div>`);
+						}
+						$list.scrollTop($list[0].scrollHeight);
+					} else {
+						const old_h = $list[0].scrollHeight;
+						const $anchor = $list.find(".duty-load-earlier");
+						$anchor.after(msgs.map((m) => this.dm_row(m)).join(""));
+						if (!data.has_more) $anchor.hide();
+						$list.scrollTop($list[0].scrollHeight - old_h);
+					}
+					this.mark_dm_seen(user);
+				},
+			});
+		};
+		const send = () => {
+			const text = ($input.val() || "").trim();
+			if (!text) return;
+			$input.val("");
+			frappe.call({
+				method: "duty_board.dm.send_dm",
+				args: { to: user, message: text },
+				callback: (r) => {
+					const m = r.message;
+					if (m && !$list.find(`[data-name="${m.name}"]`).length) {
+						$list.find(".duty-plan-empty").remove();
+						$list.append(this.dm_row(m));
+						$list.scrollTop($list[0].scrollHeight);
+					}
+				},
+			});
+		};
+		$host.find(".duty-dm-btn-send").on("click", send);
+		$input.on("keydown", (e) => {
+			if (e.key === "Enter" && !e.shiftKey) {
+				e.preventDefault();
+				send();
+			}
+		});
+		load(null);
+		this.set_dm_badge(user, 0);
+		return { user: user, $list: $list, append: (m) => {
+			if (!$list.find(`[data-name="${m.name}"]`).length) {
+				$list.find(".duty-plan-empty").remove();
+				$list.append(this.dm_row(m));
+				$list.scrollTop($list[0].scrollHeight);
+			}
+		} };
+	}
+
 	inject_style() {
 		if ($("#duty-board-style").length) $("#duty-board-style").remove();
 		$(`<style id="duty-board-style">
@@ -10145,6 +10400,47 @@ this.$me.find(".duty-req-ok").on("click", (e) =>
 				border-radius: 14px; padding: 12px;
 			}
 			.duty-chat-collapsed .duty-side { flex: 0 0 auto; max-width: none; }
+			.duty-chatface { display: flex; gap: 0; height: calc(100vh - 150px); min-height: 420px; border: 1px solid var(--border-color, #e0e0e0); border-radius: 10px; overflow: hidden; background: var(--card-bg, #fff); }
+			.duty-ch-rail { width: 320px; min-width: 320px; display: flex; flex-direction: column; border-right: 1px solid var(--border-color, #e0e0e0); background: var(--fg-color, #fafafa); }
+			.duty-ch-railhead { display: flex; align-items: center; gap: 8px; padding: 12px 14px 8px; font-size: 15px; }
+			.duty-ch-total { background: #ef4444; color: #fff; border-radius: 10px; padding: 0 7px; font-size: 11px; font-weight: 700; line-height: 18px; }
+			.duty-ch-search { padding: 0 12px 10px; }
+			.duty-ch-list { flex: 1; overflow-y: auto; }
+			.duty-ch-row { display: flex; gap: 10px; padding: 10px 12px; border-bottom: 1px solid var(--border-color, #ececec); cursor: pointer; text-decoration: none; color: inherit; }
+			.duty-ch-row:hover { background: var(--bg-light-gray, #f2f2f2); text-decoration: none; color: inherit; }
+			.duty-ch-row.on { background: var(--bg-light-gray, #e8f2f1); box-shadow: inset 3px 0 0 #0f766e; }
+			.duty-ch-row.frozen { opacity: .55; }
+			.duty-ch-av { width: 40px; height: 40px; min-width: 40px; border-radius: 50%; color: #fff; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 15px; }
+			.duty-ch-body { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+			.duty-ch-l1, .duty-ch-l2 { display: flex; align-items: center; gap: 6px; }
+			.duty-ch-title { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: 600; }
+			.duty-ch-row.unread .duty-ch-title { font-weight: 800; }
+			.duty-ch-when { font-size: 11px; color: var(--text-muted, #888); white-space: nowrap; }
+			.duty-ch-prev { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 12px; color: var(--text-muted, #777); }
+			.duty-ch-row.unread .duty-ch-prev { color: var(--text-color, #333); }
+			.duty-ch-sub { font-size: 11px; color: var(--text-muted, #999); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+			.duty-ch-badge { background: #6b7280; color: #fff; border-radius: 10px; padding: 0 7px; font-size: 11px; font-weight: 700; line-height: 18px; }
+			.duty-ch-badge.is-client { background: #ef4444; }
+			.duty-ch-join { background: #f59e0b; color: #fff; border-radius: 10px; padding: 0 6px; font-size: 10px; font-weight: 700; line-height: 17px; }
+			.duty-ch-center { flex: 1; min-width: 0; position: relative; display: flex; flex-direction: column; }
+			.duty-ch-center > .duty-ch-room, .duty-ch-center > .duty-ch-team, .duty-ch-center > .duty-ch-dm { flex: 1; min-height: 0; }
+			.duty-ch-blank { margin: auto; color: var(--text-muted, #999); }
+			.duty-ch-sidetoggle { position: absolute; top: 10px; right: 12px; z-index: 5; cursor: pointer; font-size: 15px; opacity: .65; }
+			.duty-ch-sidetoggle:hover { opacity: 1; }
+			.duty-chatface.ch-side-hidden .duty-cr-side { display: none !important; }
+			.duty-ch-team { display: flex; flex-direction: column; }
+			.duty-ch-team .duty-chat-card { flex: 1; min-height: 0; border: 0; border-radius: 0; box-shadow: none; }
+			.duty-ch-team .duty-chat-collapse { display: none !important; }
+			.duty-ch-dm { display: flex; flex-direction: column; padding: 12px; }
+			.duty-ch-dm .duty-dm-list { flex: 1; min-height: 0; overflow-y: auto; }
+			.duty-ch-room .duty-cr-back, .duty-ch-room .duty-cr-mtabs { display: none !important; }
+			@media (max-width: 991px) {
+				.duty-chatface { height: calc(100dvh - 120px); border: 0; border-radius: 0; }
+				.duty-ch-rail { width: 100%; min-width: 0; border-right: 0; }
+				.duty-ch-center { display: none; }
+				.duty-chatface.ch-convo-open .duty-ch-rail { display: none; }
+				.duty-chatface.ch-convo-open .duty-ch-center { display: flex; }
+			}
 			.duty-chat-rail {
 				writing-mode: vertical-rl; cursor: pointer; user-select: none;
 				border: 1px solid var(--border-color); border-radius: 10px;
