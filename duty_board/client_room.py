@@ -12,6 +12,7 @@ import frappe
 from frappe import _
 from frappe.utils import cint, get_datetime, getdate, now_datetime, today
 from frappe.utils.pdf import get_pdf
+from frappe.rate_limiter import rate_limit
 
 MSG_MAX = 2000
 CLIENT_STATUS = {"To Do": "Queued", "In Progress": "In Progress", "Completed": "Done"}
@@ -5345,7 +5346,8 @@ def client_get_staff():
 
 
 @frappe.whitelist(allow_guest=True)
-def submit_join_request(token, full_name, email, phone=None, password=None):
+@rate_limit(limit=10, seconds=60 * 60)
+def submit_join_request(token, full_name, email, phone=None):
 	token = (token or "").strip()
 	full_name = (full_name or "").strip()[:100]
 	email = (email or "").strip().lower()[:120]
@@ -5366,22 +5368,19 @@ def submit_join_request(token, full_name, email, phone=None, password=None):
 
 	created_user = 0
 	if not frappe.db.exists("User", email):
-		password = (password or "").strip()
-		if password and len(password) < 8:
-			frappe.throw(_("Password must be at least 8 characters."))
-		u = frappe.get_doc(
+		# No guest-chosen credentials and no pre-approval emails: the account
+		# sits disabled and silent until a staff member approves, and the
+		# approval email's set-password link is the only way to credentials.
+		frappe.get_doc(
 			{
 				"doctype": "User",
 				"email": email,
 				"first_name": full_name,
 				"user_type": "Website User",
 				"enabled": 0,
-				"send_welcome_email": 0 if password else 1,
+				"send_welcome_email": 0,
 			}
-		)
-		if password:
-			u.new_password = password
-		u.insert(ignore_permissions=True)
+		).insert(ignore_permissions=True)
 		created_user = 1
 
 	frappe.get_doc(
@@ -5464,6 +5463,13 @@ def approve_join(request_name):
 		frappe.throw(_("Already handled."))
 	add_member(req.room, req.email, req.full_name)
 	if frappe.db.get_value("User", req.email, "user_type") == "Website User":
+		if req.created_user and not frappe.db.get_value("User", req.email, "last_login"):
+			# Retroactive lock: requests submitted before v3.58.0 could carry a
+			# requester-chosen password. Scramble it (and any sessions) before
+			# enabling, so the approval email's set-password link is the only
+			# door — for planted requests and legitimate ones alike.
+			from frappe.utils.password import update_password
+			update_password(req.email, frappe.generate_hash(length=32), logout_all_sessions=True)
 		frappe.db.set_value("User", req.email, "enabled", 1, update_modified=False)
 	req.db_set("status", "Approved", update_modified=False)
 	frappe.db.commit()

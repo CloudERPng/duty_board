@@ -27,7 +27,6 @@
 	<input id="name" placeholder="Full name" maxlength="100">
 	<input id="email" placeholder="Work email" maxlength="120" type="email">
 	<input id="phone" placeholder="Phone (optional)" maxlength="30">
-	<input id="pw" placeholder="Choose a password (min 8 characters)" maxlength="60" type="password">
 	<button onclick="go()">Request access</button>
 	<div id="msg"></div>
 </div>
@@ -41,13 +40,11 @@ function go() {
 	const name = document.getElementById("name").value.trim();
 	const email = document.getElementById("email").value.trim();
 	const phone = document.getElementById("phone").value.trim();
-	const pw = document.getElementById("pw").value;
 	if (!name || !email) return show("Name and email are required.", false);
-	if (pw && pw.length < 8) return show("Password must be at least 8 characters.", false);
 	fetch("/api/method/duty_board.client_room.submit_join_request", {
 		method: "POST",
 		headers: { "Content-Type": "application/json" },
-		body: JSON.stringify({ token: token, full_name: name, email: email, phone: phone, password: pw }),
+		body: JSON.stringify({ token: token, full_name: name, email: email, phone: phone }),
 	})
 		.then(async (r) => {
 			const j = await r.json();
@@ -56,7 +53,7 @@ function go() {
 			if (d.already) show("You already have access — check your email for your login, or go to /portal.", true);
 			else if (d.pending) show("Your request is already awaiting approval — hang tight.", true);
 			else {
-				show(pw ? "Request sent ✔ Once approved, log in with your email and password." : "Request sent ✔ You'll receive a welcome email once approved.", true);
+				show("Request sent ✔ Once your Xlevel team approves, you'll get an email with a link to set your password.", true);
 				setTimeout(() => (location.href = "/login?redirect-to=/portal"), 2500);
 			}
 			document.querySelector("button").disabled = true;
