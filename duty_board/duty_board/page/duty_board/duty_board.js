@@ -10122,13 +10122,13 @@ this.$me.find(".duty-req-ok").on("click", (e) =>
 						<span class="duty-ch-body">
 							<span class="duty-ch-l1">
 								<b class="duty-ch-title">${esc(c.title || "")}</b>
+								${c.kind === "room" ? `<span class="duty-ch-unit">${esc(c.subtitle || "General")}</span>` : ""}
 								<span class="duty-ch-when">${c.last_when ? esc(this.smart_time(c.last_when)) : ""}</span>
 							</span>
 							<span class="duty-ch-l2">
 								<span class="duty-ch-prev">${esc(c.last || __("No messages yet"))}</span>
 								${join}${badge}
 							</span>
-							<span class="duty-ch-sub">${esc(c.subtitle || "")}</span>
 						</span>
 					</a>`;
 				})
@@ -10401,12 +10401,12 @@ this.$me.find(".duty-req-ok").on("click", (e) =>
 			}
 			.duty-chat-collapsed .duty-side { flex: 0 0 auto; max-width: none; }
 			.duty-chatface { display: flex; gap: 0; height: calc(100vh - 150px); min-height: 420px; border: 1px solid var(--border-color, #e0e0e0); border-radius: 10px; overflow: hidden; background: var(--card-bg, #fff); }
-			.duty-ch-rail { width: 320px; min-width: 320px; display: flex; flex-direction: column; border-right: 1px solid var(--border-color, #e0e0e0); background: var(--fg-color, #fafafa); }
+			.duty-ch-rail { width: 360px; min-width: 360px; display: flex; flex-direction: column; border-right: 1px solid var(--border-color, #e0e0e0); background: var(--fg-color, #fafafa); }
 			.duty-ch-railhead { display: flex; align-items: center; gap: 8px; padding: 12px 14px 8px; font-size: 15px; }
 			.duty-ch-total { background: #ef4444; color: #fff; border-radius: 10px; padding: 0 7px; font-size: 11px; font-weight: 700; line-height: 18px; }
 			.duty-ch-search { padding: 0 12px 10px; }
 			.duty-ch-list { flex: 1; overflow-y: auto; }
-			.duty-ch-row { display: flex; gap: 10px; padding: 10px 12px; border-bottom: 1px solid var(--border-color, #ececec); cursor: pointer; text-decoration: none; color: inherit; }
+			.duty-ch-row { display: flex; gap: 11px; padding: 12px 14px; border-bottom: 1px solid var(--border-color, #ececec); cursor: pointer; text-decoration: none; color: inherit; }
 			.duty-ch-row:hover { background: var(--bg-light-gray, #f2f2f2); text-decoration: none; color: inherit; }
 			.duty-ch-row.on { background: var(--bg-light-gray, #e8f2f1); box-shadow: inset 3px 0 0 #0f766e; }
 			.duty-ch-row.frozen { opacity: .55; }
@@ -10419,8 +10419,13 @@ this.$me.find(".duty-req-ok").on("click", (e) =>
 			.duty-ch-prev { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 12px; color: var(--text-muted, #777); }
 			.duty-ch-row.unread .duty-ch-prev { color: var(--text-color, #333); }
 			.duty-ch-sub { font-size: 11px; color: var(--text-muted, #999); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-			.duty-ch-badge { background: #6b7280; color: #fff; border-radius: 10px; padding: 0 7px; font-size: 11px; font-weight: 700; line-height: 18px; }
+			.duty-ch-badge { background: #22c55e; color: #fff; border-radius: 11px; padding: 0 8px; font-size: 12px; font-weight: 700; line-height: 20px; min-width: 20px; text-align: center; }
 			.duty-ch-badge.is-client { background: #ef4444; }
+			.duty-ch-unit { background: var(--bg-light-gray, #eef2f1); color: #0f766e; border: 1px solid #d5e5e2; border-radius: 8px; padding: 0 6px; font-size: 10px; font-weight: 700; line-height: 16px; white-space: nowrap; flex-shrink: 0; }
+			@media (min-width: 992px) {
+				/* Chat lives in the Chat face now; My Day gets its width back. */
+				.duty-layout > .duty-side { display: none !important; }
+			}
 			.duty-ch-join { background: #f59e0b; color: #fff; border-radius: 10px; padding: 0 6px; font-size: 10px; font-weight: 700; line-height: 17px; }
 			.duty-ch-center { flex: 1; min-width: 0; position: relative; display: flex; flex-direction: column; }
 			.duty-ch-center > .duty-ch-room, .duty-ch-center > .duty-ch-team, .duty-ch-center > .duty-ch-dm { flex: 1; min-height: 0; }
