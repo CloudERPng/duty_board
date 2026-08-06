@@ -63,7 +63,7 @@ def get_projects():
 
 
 @frappe.whitelist()
-def create_project(project_name, customer=None, target_date=None):
+def create_project(project_name, customer=None, target_date=None, room=None):
 	require_staff()
 	project_name = (project_name or "").strip()
 	if not project_name:
@@ -77,6 +77,7 @@ def create_project(project_name, customer=None, target_date=None):
 			"doctype": "Duty Project",
 			"project_name": project_name,
 			"customer": customer,
+			"room": room or None,
 			"target_date": target_date or None,
 			"status": "Active",
 		}

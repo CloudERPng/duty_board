@@ -5107,20 +5107,30 @@ this.$me.find(".duty-req-ok").on("click", (e) =>
 		$room.find(".duty-cr-uat").on("click", () => this.uat_dialog(x));
 		$room.find(".duty-cr-tl").on("click", () => this.timeline_dialog(x));
 		$room.find(".duty-cr-scope").on("click", () => {
-			frappe.call({ method: "frappe.client.get_value", args: { doctype: "Client Room", filters: { name: x.name }, fieldname: ["scope_note", "support_plan", "project", "is_financial_room"] }, callback: (rv) => {
+			frappe.call({ method: "duty_board.client_room.room_projects", args: { name: x.name }, callback: (pr) => {
+			  const projs = pr.message || [];
+			  frappe.call({ method: "frappe.client.get_value", args: { doctype: "Client Room", filters: { name: x.name }, fieldname: ["scope_note", "support_plan", "project", "is_financial_room"] }, callback: (rv) => {
 				const cur = rv.message || {};
-				frappe.prompt(
-					[
+				const d = new frappe.ui.Dialog({
+					title: __("Room scope"),
+					fields: [
 						{ fieldname: "support_plan", fieldtype: "Data", label: __("Support plan (shown to client, e.g. 'Unlimited support · changes quoted via CR')"), default: cur.support_plan || "" },
 						{ fieldname: "scope_note", fieldtype: "Small Text", label: __("Contract scope — supported modules & boundaries"), default: cur.scope_note || "" },
-						{ fieldname: "project", fieldtype: "Link", options: "Duty Project", label: __("Project board for this room (tasks, milestones, CR delivery)"), default: cur.project || "" },
+						{ fieldname: "projects_html", fieldtype: "HTML", label: __("Projects in this room") },
 						{ fieldname: "is_financial_room", fieldtype: "Check", label: __("📊 Financial Room — statements, announcements & review actions for this customer live here (one per customer)"), default: cur.is_financial_room || 0 },
 					],
-					(v) => frappe.call({ method: "duty_board.commercial.set_room_scope", args: { name: x.name, scope_note: v.scope_note || "", support_plan: v.support_plan || "", is_financial_room: v.is_financial_room ? 1 : 0 }, callback: () =>
-						frappe.call({ method: "duty_board.client_room.room_set_project", args: { name: x.name, project: v.project || null }, callback: () => frappe.show_alert({ message: __("⚖ Scope & project saved"), indicator: "green" }) })
-					}),
-					__("Room scope"), __("Save")
-				);
+					primary_action_label: __("Save"),
+					primary_action: (v) => {
+						const picked = [];
+						d.$wrapper.find(".duty-projpick:checked").each((i, el) => picked.push($(el).val()));
+						frappe.call({ method: "duty_board.commercial.set_room_scope", args: { name: x.name, scope_note: v.scope_note || "", support_plan: v.support_plan || "", is_financial_room: v.is_financial_room ? 1 : 0 } });
+						frappe.call({ method: "duty_board.client_room.room_assign_projects", args: { name: x.name, project_names: JSON.stringify(picked) }, callback: () => { d.hide(); frappe.show_alert({ message: __("⚖ Scope & projects saved"), indicator: "green" }); this.render_client_room(x); } });
+					},
+				});
+				const rows = projs.map((p) => `<label style="display:flex;gap:8px;align-items:center;padding:5px 0"><input type="checkbox" class="duty-projpick" value="${frappe.utils.escape_html(p.name)}" ${p.mine ? "checked" : ""}> <span>${frappe.utils.escape_html(p.label)}${p.other_room ? ` <span style="color:#B45309;font-size:11px">(currently in another room — ticking moves it here)</span>` : ""}</span></label>`).join("");
+				d.fields_dict.projects_html.$wrapper.html(`<div style="border:1px solid #e6e6e6;border-radius:8px;padding:8px 12px">${rows || `<span class="text-muted">${__("No projects for this customer yet.")}</span>`}<div class="text-muted" style="font-size:11px;margin-top:6px">${__("A project belongs to exactly one room. Ticking it here moves it here.")}</div></div>`);
+				d.show();
+			  }});
 			}});
 		});
 		$room.find(".duty-cr-metrics").on("click", () =>

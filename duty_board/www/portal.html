@@ -1294,9 +1294,10 @@ function loadProjects() {
 			window._projs = list || [];
 			const wrap = document.getElementById("pselwrap");
 			if (!wrap) return;
-			// Selector only earns its place with 2+ real projects (General always
-			// present, so ">2 entries" means "more than one actual project").
-			if (window._projs.length <= 2) { wrap.style.display = "none"; window._psel = ""; return; }
+			// Show once there is at least one real project besides General.
+			// client_projects() returns [each real project..., General], so 2+
+			// entries means one-or-more real projects to choose between.
+			if (window._projs.length < 2) { wrap.style.display = "none"; window._psel = ""; return; }
 			wrap.style.display = "block";
 			wrap.className = "pselbar";
 			wrap.innerHTML = `<span class="psellbl">Project</span><select id="pselsel">

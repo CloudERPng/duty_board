@@ -160,13 +160,13 @@ ISSUE_CLIENT_STATUS = {
 }
 
 
-def _project_names(customer):
-	"""name -> display label for a customer's active projects. The room's
-	auto-created catch-all ("{cust} — Requests") shows as "General Requests"."""
+def _project_names(room):
+	"""name -> display label for THIS ROOM's active projects. The room's
+	auto-created catch-all ("… — Requests") shows as "General Requests"."""
 	out = {}
 	for p in frappe.get_all(
 		"Duty Project",
-		filters={"customer": customer, "status": "Active"},
+		filters={"room": room.name, "status": "Active"},
 		fields=["name", "project_name"],
 	):
 		label = p.project_name or p.name
@@ -230,11 +230,11 @@ def _work_rows(room):
 		)
 	projs = frappe.get_all(
 		"Duty Project",
-		filters={"customer": room.customer, "status": "Active"},
+		filters={"room": room.name, "status": "Active"},
 		pluck="name",
 	)
 	if projs:
-		pnames = _project_names(room.customer)
+		pnames = _project_names(room)
 		for t in frappe.get_all(
 			"Duty Project Task",
 			filters={"project": ["in", projs], "client_visible": 1},
@@ -306,11 +306,15 @@ def _ensure_project(room):
 	if room.project and frappe.db.exists("Duty Project", room.project):
 		return room.project
 	customer_name = room.customer
+	# Each room gets its own catch-all so requests from one room don't land
+	# in another's bucket. Label by unit when present to keep them distinct.
+	label_unit = (room.get("unit") or "General")
 	proj = frappe.get_doc(
 		{
 			"doctype": "Duty Project",
-			"project_name": f"{customer_name} — Requests",
+			"project_name": f"{customer_name} · {label_unit} — Requests",
 			"customer": customer_name,
+			"room": room.name,
 			"status": "Active",
 		}
 	).insert(ignore_permissions=True)
@@ -1104,7 +1108,7 @@ def _shelf_rows(room):
 		order_by="creation desc",
 		limit=200,
 	)
-	_shpn = _project_names(room.customer)
+	_shpn = _project_names(room)
 	for r in rows:
 		r.creation = str(r.creation)[:10]
 		r.project_name = _shpn.get(r.project) if r.project else None
@@ -1467,7 +1471,7 @@ def client_projects():
 	room = _client_room()
 	projs = frappe.get_all(
 		"Duty Project",
-		filters={"customer": room.customer, "status": "Active"},
+		filters={"room": room.name, "status": "Active"},
 		fields=["name", "project_name"],
 		order_by="creation asc",
 	)
@@ -1912,7 +1916,7 @@ def _milestone_rows(room):
 		r.cards_total = len(tasks)
 		r.cards_done = sum(1 for t in tasks if t.column == "Completed")
 		r.awaiting = sum(1 for t in tasks if cint(t.awaiting_client) and t.column != "Completed")
-	pnames = _project_names(room.customer)
+	pnames = _project_names(room)
 	for r in rows:
 		r.project_name = pnames.get(r.project)
 	return rows
@@ -2263,7 +2267,7 @@ def _chreq_rows(room):
 		],
 		order_by="creation desc",
 	)
-	_crpn = _project_names(room.customer)
+	_crpn = _project_names(room)
 	for r in rows:
 		r.submitted_on = str(r.submitted_on)[:16] if r.submitted_on else None
 		r.approved_at = str(r.approved_at)[:16] if r.approved_at else None
@@ -2552,13 +2556,61 @@ def chreq_delete(id):
 
 @frappe.whitelist()
 def room_set_project(name, project=None):
-	"""Link a room to an existing Duty Project (or clear the link). The lazy
-	'{Customer} — Requests' auto-project remains the default path; this is
-	for pointing a room at a real implementation project."""
+	"""Set the room's DEFAULT board project (where new client requests land).
+	Kept for back-compat with the scope dialog's single default field."""
 	_staff_only()
 	if project and not frappe.db.exists("Duty Project", project):
 		frappe.throw(_("Unknown project."))
 	frappe.db.set_value("Client Room", name, "project", project or None, update_modified=False)
+	frappe.db.commit()
+	return get_room(name)
+
+
+@frappe.whitelist()
+def room_projects(name):
+	"""For the scope dialog: this customer's active projects, each flagged
+	with whether it currently belongs to THIS room."""
+	_staff_only()
+	room = frappe.get_doc("Client Room", name)
+	out = []
+	for p in frappe.get_all(
+		"Duty Project",
+		filters={"customer": room.customer, "status": "Active"},
+		fields=["name", "project_name", "room"],
+		order_by="creation asc",
+	):
+		out.append({
+			"name": p.name,
+			"label": p.project_name or p.name,
+			"mine": 1 if p.room == name else 0,
+			"other_room": p.room if (p.room and p.room != name) else None,
+		})
+	return out
+
+
+@frappe.whitelist()
+def room_assign_projects(name, project_names):
+	"""Assign a set of projects to THIS room. Because a project belongs to
+	exactly one room, assigning here MOVES it off whatever room it was on.
+	Projects of this customer not in the set, currently on this room, are
+	left where they are only if still ticked — unticking moves nothing (a
+	project must live somewhere); to move a project elsewhere, assign it
+	there. Here we only ADD/!MOVE the ticked ones onto this room."""
+	_staff_only()
+	room = frappe.get_doc("Client Room", name)
+	import json as _json
+
+	try:
+		wanted = _json.loads(project_names) if isinstance(project_names, str) else (project_names or [])
+	except Exception:
+		wanted = []
+	for pn in wanted:
+		if not frappe.db.exists("Duty Project", pn):
+			continue
+		pc = frappe.db.get_value("Duty Project", pn, "customer")
+		if pc != room.customer:
+			continue  # never move a project across customers
+		frappe.db.set_value("Duty Project", pn, "room", name, update_modified=False)
 	frappe.db.commit()
 	return get_room(name)
 
