@@ -64,6 +64,34 @@ frappe.ui.form.on("Client Document", {
 
         frm.page.clear_actions_menu();
 
+        // ---- Client review badge (financial statements) ----
+        if (frm.doc.is_financial_statement && frm.doc.review_status) {
+            const rs = frm.doc.review_status;
+            if (rs === "Approved") {
+                const current =
+                    Number(frm.doc.approved_version || 0) === Number(frm.doc.publish_seq || 1);
+                if (current) {
+                    frm.dashboard.add_indicator(
+                        __("✅ APPROVED by client — {0}", [(frm.doc.approved_on || "").slice(0, 10)]),
+                        "green"
+                    );
+                } else {
+                    // Approval binds to a published version; a republish makes it stale.
+                    frm.dashboard.add_indicator(
+                        __("✅ Approved v{0} — but v{1} is now published", [
+                            frm.doc.approved_version,
+                            frm.doc.publish_seq,
+                        ]),
+                        "orange"
+                    );
+                }
+            } else if (rs === "Changes Requested") {
+                frm.dashboard.add_indicator(__("✏ Client requested changes"), "orange");
+            } else if (rs === "Awaiting Client Review") {
+                frm.dashboard.add_indicator(__("👀 Awaiting client review"), "blue");
+            }
+        }
+
         const is_manager =
             frappe.user.has_role("System Manager") ||
             frappe.user.has_role("Duty Board Manager");

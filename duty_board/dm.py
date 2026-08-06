@@ -86,7 +86,7 @@ def get_dm_thread(with_user, before=None, limit=30):
 	rows = frappe.get_all(
 		"Duty DM",
 		filters=filters,
-		fields=["name", "sender", "recipient", "message", "creation"],
+		fields=["name", "sender", "recipient", "message", "creation", "edited_on"],
 		order_by="creation desc",
 		limit=cap,
 	)
@@ -95,10 +95,42 @@ def get_dm_thread(with_user, before=None, limit=30):
 	names = {}
 	for r in rows:
 		r.creation = str(r.creation)
+		r.edited_on = str(r.edited_on) if r.get("edited_on") else None
 		r.sender_name = names.setdefault(
 			r.sender, frappe.db.get_value("User", r.sender, "full_name") or r.sender
 		)
 	return {"messages": rows, "has_more": has_more}
+
+
+@frappe.whitelist()
+def edit_dm(name, message=None, drop_attachment=0):
+	"""Edit own DM within 30 minutes. DMs have no attachments; drop is ignored."""
+	from duty_board.api import _within_edit_window
+
+	require_staff()
+	me = frappe.session.user
+	doc = frappe.get_doc("Duty DM", name)
+	if doc.sender != me:
+		frappe.throw(_("You can only edit your own messages."))
+	if not _within_edit_window(doc.creation):
+		frappe.throw(_("The 30-minute edit window has passed."))
+	text = (message or "").strip()
+	if not text:
+		frappe.throw(_("A message cannot be empty."))
+	if len(text) > MAX_LENGTH:
+		frappe.throw(_("Message is too long (max {0} characters).").format(MAX_LENGTH))
+	doc.message = text
+	doc.edited_on = frappe.utils.now_datetime()
+	doc.save(ignore_permissions=True)
+	frappe.db.commit()
+	payload = {
+		"name": doc.name, "sender": doc.sender, "recipient": doc.recipient,
+		"message": text, "creation": str(doc.creation), "edited_on": str(doc.edited_on),
+		"edit": 1,
+	}
+	frappe.publish_realtime("duty_board_dm", payload, user=doc.recipient)
+	frappe.publish_realtime("duty_board_dm", payload, user=me)
+	return payload
 
 
 @frappe.whitelist()

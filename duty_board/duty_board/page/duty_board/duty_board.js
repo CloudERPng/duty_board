@@ -58,7 +58,12 @@ frappe.pages["duty-board"].on_page_load = function (wrapper) {
 	}
 	// show_face only runs on clicks; fire it once so the day tabs (and
 	// every other face-state toggle) are correct on first paint.
-	if (!board._is_consultant) board.show_face("board");
+	// Desktop only: this exists so the day tabs paint on first load.
+	// On mobile it fired AFTER the tab bar restored the saved tab, hiding
+	// the dashboard host mid-fetch and triggering the old overlay fallback.
+	if (!board._is_consultant && !window.matchMedia("(max-width: 991px)").matches) {
+		board.show_face("board");
+	}
 	if (board._is_consultant) {
 		$("body").addClass("duty-consultant");
 		if (!window._duty_msg_wrap) {
@@ -355,6 +360,17 @@ class DutyBoard {
 			this.handle_incoming(m);
 			this.ch_ping();
 		});
+		frappe.realtime.on("duty_board_message_edit", (m) => {
+			const $row = this.$list && this.$list.find(`.duty-msg[data-name="${m.name}"]`);
+			if ($row && $row.length) {
+				$row.find(".duty-msg-text").html(this.format_message_text(m));
+				if (!$row.find(".duty-msg-edited").length) {
+					$row.find(".duty-msg-time").append(
+						` <span class="duty-msg-edited">${__("edited")}</span>`
+					);
+				}
+			}
+		});
 		this._sync_timer = setInterval(() => this.sync_messages(), 25 * 1000);
 		frappe.realtime.on("duty_board_notify", (d) => this.notify_event(d));
 		frappe.realtime.on("duty_board_dm", (m) => {
@@ -646,7 +662,6 @@ class DutyBoard {
 			<div class="duty-tabbar">
 				<a data-tab="me"><span>🏠</span>${__("Today")}</a>
 				<a data-tab="chat"><span>💬</span>${__("Chat")}<b class="duty-tab-badge duty-tab-chat" style="display:none"></b></a>
-				<a data-tab="clients"><span>🤝</span>${__("Clients")}<b class="duty-tab-badge duty-tab-clients" style="display:none"></b></a>
 				<a data-tab="projects"><span>📁</span>${__("Projects")}</a>
 				<a data-tab="library"><span>📚</span>${__("Library")}</a>
 				<a data-tab="more"><span>⋯</span>${__("More")}<b class="duty-tab-badge duty-tab-more" style="display:none"></b></a>
@@ -676,6 +691,7 @@ class DutyBoard {
 		const items = [
 			{ icon: "📋", label: __("Team board"), go: () => this.set_mtab("board") },
 			{ icon: "✓", label: __("My plan"), go: () => this.set_mtab("plan") },
+			{ icon: "🤝", label: __("Client Rooms"), badge: "duty-tab-clients", go: () => this.set_mtab("clients") },
 			{ icon: "⚠", label: __("Issues"), badge: "duty-tab-issues", go: () => this.set_mtab("issues") },
 			{ icon: "💼", label: __("Sales"), go: () => this.set_mtab("sales") },
 		].concat(this._more_extra || []);
@@ -712,6 +728,8 @@ class DutyBoard {
 			this.show_face("projects");
 		} else if (tab === "sales") {
 			this.show_face("sales");
+		} else if (tab === "chat") {
+			this.show_face("chat");
 		} else if (tab === "clients") {
 			this.show_face("clients");
 		} else if (tab === "me") {
@@ -726,7 +744,7 @@ class DutyBoard {
 			this.show_face("board");
 			this.body.attr("data-mtab", tab);
 		}
-		const primary = ["me", "chat", "clients", "projects", "library"];
+		const primary = ["me", "chat", "projects", "library"];
 		$(".duty-tabbar a")
 			.removeClass("active")
 			.filter(`[data-tab="${primary.indexOf(tab) >= 0 ? tab : "more"}"]`)
@@ -1022,6 +1040,43 @@ class DutyBoard {
 		});
 	}
 
+	edited_tag(m) {
+		return m.edited_on ? ` <span class="duty-msg-edited" title="${__("edited")}">${__("edited")}</span>` : "";
+	}
+
+	can_edit(creation) {
+		if (!creation) return false;
+		const t = frappe.datetime.str_to_obj(creation).getTime();
+		return Date.now() - t <= 30 * 60 * 1000;
+	}
+
+	edit_prompt(kind, name, current, hasAttach, onDone) {
+		const d = new frappe.ui.Dialog({
+			title: __("Edit message"),
+			fields: [
+				{ fieldname: "text", fieldtype: "Small Text", label: __("Message"), default: current || "" },
+				hasAttach
+					? { fieldname: "drop", fieldtype: "Check", label: __("Remove the attachment"), default: 0 }
+					: null,
+			].filter(Boolean),
+			primary_action_label: __("Save"),
+			primary_action: (v) => {
+				const method =
+					kind === "team"
+						? "duty_board.api.edit_message"
+						: kind === "room"
+						? "duty_board.client_room.edit_room_message"
+						: "duty_board.dm.edit_dm";
+				frappe.call({
+					method: method,
+					args: { name: name, message: v.text || "", drop_attachment: v.drop ? 1 : 0 },
+					callback: (r) => { d.hide(); if (onDone) onDone(r.message); },
+				});
+			},
+		});
+		d.show();
+	}
+
 	format_message_text(m) {
 		let html = this.linkify(frappe.utils.escape_html(m.message || ""));
 		return html.replace(/@([\w-]+)(?![^<]*<\/a>)/g, '<span class="duty-mention">@$1</span>');
@@ -1049,7 +1104,8 @@ class DutyBoard {
 				${m.reply_snippet ? `<div class="duty-msg-quote ${m.reply_to ? "duty-msg-quote-link" : ""}" ${m.reply_to ? `data-target="${m.reply_to}"` : ""}>${frappe.utils.escape_html(m.reply_snippet)}</div>` : ""}
 				<span class="duty-msg-who" style="color:${this.user_color(m.user)}">${frappe.utils.escape_html(mine ? __("You") : (m.full_name || m.user).split(" ")[0])}</span>
 				<span class="duty-msg-text">${this.format_message_text(m)}</span>
-				<span class="duty-msg-time">${when}</span>
+				<span class="duty-msg-time">${when}${this.edited_tag(m)}</span>
+				${mine && this.can_edit(m.creation) ? `<a class="duty-msg-edit" title="${__("Edit")}">✏</a>` : ""}
 				<a class="duty-msg-reply" title="${__("Reply")}">↩</a>
 				<a class="duty-msg-react" title="${__("React")}">🙂</a>
 				<a class="duty-msg-issue" title="${__("Raise issue from this message")}">⚠</a>
@@ -1068,6 +1124,9 @@ class DutyBoard {
 			$row.find(".duty-msg-reply, .duty-msg-react, .duty-msg-issue, .duty-msg-del").remove();
 		} else {
 			$row.find(".duty-msg-reply").on("click", () => this.set_reply(m));
+			$row.find(".duty-msg-edit").on("click", () =>
+				this.edit_prompt("team", m.name, m.message, !!m.attachment, () => this.load_messages())
+			);
 			$row.find(".duty-msg-quote-link").on("click", (e) => {
 				e.stopPropagation();
 				const target = $(e.currentTarget).data("target");
@@ -1640,12 +1699,23 @@ class DutyBoard {
 		);
 
 		const current = this.current_task;
+		if (switching && current) {
+			const note = current.todo
+				? __("⏸ “{0}” will pause into your tray unless you mark it completed below.", [frappe.utils.escape_html(current.activity)])
+				: __("⏸ “{0}” will pause into your tray — resume it anytime.", [frappe.utils.escape_html(current.activity)]);
+			fields.unshift({
+				fieldname: "pause_note",
+				fieldtype: "HTML",
+				options: `<div class="duty-pause-note">${note}</div>`,
+			});
+		}
 		if (switching && current && current.todo) {
 			fields.push({
 				fieldname: "complete_previous",
 				fieldtype: "Check",
 				label: __("I completed: {0}", [frappe.utils.escape_html(current.activity)]),
-				default: 1,
+				// Unticked by default: switching PAUSES. Completing is the deliberate act.
+				default: 0,
 			});
 		}
 
@@ -1782,6 +1852,7 @@ class DutyBoard {
 		this._me = data.me;
 		this.render_strip();
 		this.render_me(data.me);
+		this.render_paused_strip(data);
 		this.render_task(data.me);
 		this.render_plan(data.me);
 		this.render_my_sessions(data.my_sessions, data.me);
@@ -1889,7 +1960,7 @@ class DutyBoard {
 			<div class="duty-msg ${mine ? "duty-msg-mine" : ""}" data-name="${m.name}">
 				<span class="duty-msg-who" style="color:${this.user_color(m.sender)}">${mine ? __("You") : frappe.utils.escape_html((m.sender_name || m.sender).split(" ")[0])}</span>
 				<span class="duty-msg-text">${this.linkify(frappe.utils.escape_html(m.message || ""))}</span>
-				<span class="duty-msg-time">${when}</span>
+				<span class="duty-msg-time">${when}${this.edited_tag(m)}</span>${mine && this.can_edit(m.creation) ? ` <a class="duty-dm-edit" data-name="${m.name}" data-text="${frappe.utils.escape_html(m.message || "")}" title="${__("Edit")}">✏</a>` : ""}
 			</div>`;
 	}
 
@@ -1998,6 +2069,18 @@ class DutyBoard {
 		if (!m || !m.name) return;
 		const me = frappe.session.user;
 		const other = m.sender === me ? m.recipient : m.sender;
+		if (m.edit) {
+			// An edit, not a new message: rewrite the row wherever it is shown.
+			[
+				this._dm_dialog && $(this._dm_dialog.body),
+				this.$chatface && this.$chatface.find(".duty-ch-dm"),
+			].forEach(($scope) => {
+				if (!$scope || !$scope.length) return;
+				const $row = $scope.find(`[data-name="${m.name}"]`);
+				if ($row.length) $row.replaceWith(this.dm_row(m));
+			});
+			return;
+		}
 		const dialog_open =
 			this._dm_with === other && this._dm_dialog && this._dm_dialog.$wrapper.is(":visible");
 		if (dialog_open) {
@@ -2297,19 +2380,11 @@ class DutyBoard {
 				const node = this.$me[0];
 				const rect = node.getBoundingClientRect();
 				console.log("[duty-me] painted:", this.$me.find(".duty-mtile").length, "tiles | innerHTML:", node.innerHTML.length, "chars | visible height:", Math.round(rect.height), "| offsetParent:", !!node.offsetParent);
-				if (rect.height < 60 || !node.offsetParent) {
-					console.warn("[duty-me] node invisible — escalating to overlay");
-					$(".duty-me-overlay").remove();
-					const $ov = $(`
-						<div class="duty-me-overlay">
-							<div class="duty-me-ovbar"><b>👤 ${__("My Dashboard")}</b><a class="duty-me-ovclose">✕</a></div>
-							<div class="duty-me-ovbody"></div>
-						</div>`).appendTo(document.body);
-					$ov.find(".duty-me-ovclose").on("click", () => $ov.remove());
-					this.$me = $ov.find(".duty-me-ovbody");
-					this.render_my_dashboard(j.message);
-					console.log("[duty-me] overlay tiles:", this.$me.find(".duty-mtile").length);
-				}
+				// v2.59.3 "escalate to overlay" fallback removed (v3.59.5): it
+				// answered a hidden host by double-rendering the dashboard into an
+				// unstyled fixed panel, masking face-state bugs. If the host is
+				// hidden, the render simply waits for the face to show.
+				$(".duty-me-overlay").remove();
 			})
 			.catch((err) => {
 				console.error("[duty-me] FAILED:", err);
@@ -4558,7 +4633,8 @@ this.$me.find(".duty-req-ok").on("click", (e) =>
 				${m.ref ? `<a class="duty-cr-quote" data-target="${m.ref}"><b>${frappe.utils.escape_html(m.ref_who || "")}</b>: ${frappe.utils.escape_html(m.ref_text || "")}</a>` : ""}
 				<span class="duty-msg-text">${this.linkify(frappe.utils.escape_html(m.message))}</span>
 				${m.attachment_url ? `<span class="duty-cr-att">${m.is_image ? `<a href="/api/method/duty_board.client_room.room_file?msg=${m.name}" target="_blank"><img src="/api/method/duty_board.client_room.room_file?msg=${m.name}"></a>` : m.is_audio ? `<audio controls preload="none" src="/api/method/duty_board.client_room.room_file?msg=${m.name}" style="display:block;margin-top:6px;max-width:240px"></audio>` : `<a class="duty-issue-filelink" href="/api/method/duty_board.client_room.room_file?msg=${m.name}" target="_blank">📎 ${frappe.utils.escape_html(m.attachment_name || "file")}</a>`}</span>` : ""}
-				<span class="duty-msg-time">${frappe.datetime.str_to_user(m.creation)}</span>
+				<span class="duty-msg-time">${frappe.datetime.str_to_user(m.creation)}${this.edited_tag(m)}</span>
+				${m.mine && this.can_edit(m.creation) ? `<a class="duty-cr-edit" data-name="${m.name}" data-text="${frappe.utils.escape_html(m.message || "")}" data-att="${m.attachment_url ? 1 : 0}" title="${__("Edit")}">✏</a>` : ""}
 				${m.is_staff ? "" : `<a class="duty-cr-mktask" data-mid="${m.name}" data-text="${frappe.utils.escape_html(m.message.slice(0, 120))}" title="${__("Make task from this")}">➕</a><a class="duty-cr-mkchreq" data-mid="${m.name}" data-text="${frappe.utils.escape_html(m.message.slice(0, 120))}" title="${__("Draft change request from this")}">💱</a>`}
 			</div>`;
 	}
@@ -4681,6 +4757,11 @@ this.$me.find(".duty-req-ok").on("click", (e) =>
 			}
 		};
 		const $msgs2 = $room.find(".duty-cr-msgs");
+		$msgs2.find(".duty-cr-edit").on("click", (e) => {
+			const $t = $(e.currentTarget);
+			this.edit_prompt("room", $t.data("name"), $t.data("text"), !!$t.data("att"),
+				() => { if (this._open_room) this.load_client_room(this._open_room); });
+		});
 		$msgs2.find(".duty-cr-reply").on("click", (e) => {
 			const $m = $(e.currentTarget).closest(".duty-cr-msg");
 			const mm = (x.messages || []).find((q) => q.name === $m.data("name"));
@@ -9539,6 +9620,52 @@ this.$me.find(".duty-req-ok").on("click", (e) =>
 		$s.find(".ds-in").on("click", () => this.action("clock_in"));
 	}
 
+	render_paused_strip(data) {
+		const host = this.body.find(".duty-me");
+		host.find(".duty-paused-strip").remove();
+		const stack = (data && data.my_paused) || [];
+		if (!stack.length) return;
+		const clocked = data.me && data.me.status === "On Duty";
+		const esc = frappe.utils.escape_html;
+		const $s = $(`
+			<div class="duty-paused-strip">
+				<div class="duty-paused-head">
+					<span class="duty-paused-ic">⏸</span>
+					<b>${__("Paused")} (${stack.length})</b>
+					${clocked ? "" : `<span class="duty-paused-hint">${__("Clock in to resume")}</span>`}
+				</div>
+				${stack
+					.map(
+						(p) => `
+				<div class="duty-paused-row" data-name="${esc(p.name)}">
+					<span class="duty-paused-txt">
+						<b>${esc(p.activity || __("a task"))}</b>${p.customer ? ` · ${esc(p.customer)}` : ""}
+						<span class="duty-paused-age">${p.paused_at ? frappe.datetime.comment_when(p.paused_at) : ""}</span>
+					</span>
+					${clocked ? `<a class="duty-paused-resume">▶ ${__("Resume")}</a>` : ""}
+					<a class="duty-paused-dismiss" title="${__("Dismiss")}">✕</a>
+				</div>`
+					)
+					.join("")}
+			</div>`);
+		host.prepend($s);
+		$s.find(".duty-paused-resume").on("click", (e) => {
+			frappe.call({
+				method: "duty_board.api.resume_paused_task",
+				args: { name: $(e.currentTarget).closest(".duty-paused-row").attr("data-name") },
+				freeze: true,
+				callback: (r) => { if (r.message) this.render(r.message); },
+			});
+		});
+		$s.find(".duty-paused-dismiss").on("click", (e) => {
+			frappe.call({
+				method: "duty_board.api.dismiss_paused_task",
+				args: { name: $(e.currentTarget).closest(".duty-paused-row").attr("data-name") },
+				callback: (r) => { if (r.message) this.render(r.message); },
+			});
+		});
+	}
+
 	render_task(me) {
 		const $task = this.body.find(".duty-task").empty();
 		if (!me || me.status !== "On Duty") return;
@@ -9566,7 +9693,7 @@ this.$me.find(".duty-req-ok").on("click", (e) =>
 						<button class="btn btn-default duty-note-btn" title="${__("Task notes")}">📝${t.notes ? " " + t.notes : ""}</button>
 						<button class="btn btn-default duty-invite-btn" title="${__("Invite a colleague to this task")}">👤+</button>
 						<button class="btn btn-default duty-taskcust-btn" title="${__("Set / change customer")}">✎</button>
-						<button class="btn btn-default duty-switch-btn">${__("Switch Task")}</button>
+						<button class="btn btn-default duty-switch-btn" title="${__("Start another task — this one pauses into your tray")}">＋ ${__("Another Task")}</button>
 						<button class="btn btn-primary duty-stop-btn">${__("Stop")}</button>
 					</div>
 				</div>
@@ -10120,9 +10247,11 @@ this.$me.find(".duty-req-ok").on("click", (e) =>
 				this._ch_fail = 0;
 				this._convos = r.message || [];
 				this.render_chat_rail();
-				if (!this._ch_open) {
-					// First rail entry: Duty Room for staff (pinned), the most
-					// recent room for consultants (who have no team entry).
+				if (!this._ch_open && !window.matchMedia("(max-width: 991px)").matches) {
+					// Desktop only: two panes, the centre must show something —
+					// Duty Room for staff (pinned), newest room for consultants.
+					// On mobile the rail IS the destination; auto-opening here is
+					// what bounced ‹ Chats straight back into the conversation.
 					const first = (this._convos || [])[0];
 					if (first) this.open_convo(first.kind, String(first.id));
 				}
@@ -10211,7 +10340,30 @@ this.$me.find(".duty-req-ok").on("click", (e) =>
 		else if (kind === "dm") this._ch_show_dm(id);
 		else return;
 		this.render_chat_rail();
-		if (this.is_mobile()) $c.addClass("ch-convo-open");
+		if (window.matchMedia("(max-width: 991px)").matches) {
+			// Full-screen conversation with a way back — WhatsApp shape.
+			const esc = frappe.utils.escape_html;
+			const conv = (this._convos || []).find(
+				(c) => c.kind === kind && String(c.id) === String(id)
+			);
+			const title =
+				(conv && conv.title) ||
+				(kind === "team" ? __("Duty Room") : kind === "dm" ? this.name_map[id] || id : id);
+			const $center = $c.find(".duty-ch-center");
+			$center.find(".duty-ch-mhead").remove();
+			$center.prepend(`
+				<div class="duty-ch-mhead">
+					<a class="duty-ch-mback">‹ ${__("Chats")}</a>
+					<b>${esc(title)}</b>
+					${conv && conv.subtitle && kind === "room" ? `<span class="duty-ch-munit">${esc(conv.subtitle)}</span>` : ""}
+				</div>`);
+			$center.find(".duty-ch-mback").on("click", () => {
+				$c.removeClass("ch-convo-open");
+				this._ch_open = null;
+				this.refresh_chat(true);
+			});
+			$c.addClass("ch-convo-open");
+		}
 	}
 
 	_ch_show_team() {
@@ -10362,6 +10514,10 @@ this.$me.find(".duty-req-ok").on("click", (e) =>
 				},
 			});
 		};
+		$list.on("click", ".duty-dm-edit", (e) => {
+			const $t = $(e.currentTarget);
+			this.edit_prompt("dm", $t.data("name"), $t.data("text"), false, () => load(null));
+		});
 		$host.find(".duty-dm-btn-send").on("click", send);
 		$input.on("keydown", (e) => {
 			if (e.key === "Enter" && !e.shiftKey) {
@@ -10546,7 +10702,14 @@ this.$me.find(".duty-req-ok").on("click", (e) =>
 			.duty-ch-team .duty-chat-collapse { display: none !important; }
 			.duty-ch-dm { display: flex; flex-direction: column; padding: 12px; }
 			.duty-ch-dm .duty-dm-list { flex: 1; min-height: 0; overflow-y: auto; }
-			.duty-ch-room .duty-cr-back, .duty-ch-room .duty-cr-mtabs { display: none !important; }
+			.duty-ch-room .duty-cr-back { display: none !important; }
+			@media (min-width: 992px) {
+				/* Desktop shows the task column; the 💬/📋 pills are mobile's. */
+				.duty-ch-room .duty-cr-mtabs { display: none !important; }
+			}
+			@media (max-width: 991px) {
+				.duty-ch-sidetoggle { display: none !important; }
+			}
 			.duty-ch-new { margin-left: auto; cursor: pointer; font-size: 15px; opacity: .7; text-decoration: none; }
 			.duty-ch-new:hover { opacity: 1; text-decoration: none; }
 			.duty-ndm-q { margin-bottom: 8px; }
@@ -10567,6 +10730,22 @@ this.$me.find(".duty-req-ok").on("click", (e) =>
 			.duty-daytabs a { padding: 7px 18px; border-radius: 10px; font-weight: 600; cursor: pointer; border: 1px solid var(--border-color, #e0e0e0); background: var(--card-bg, #fff); color: var(--text-muted, #666); text-decoration: none; }
 			.duty-daytabs a:hover { color: var(--text-color, #333); text-decoration: none; }
 			.duty-daytabs a.on { background: #0F5C55; border-color: #0F5C55; color: #fff; }
+			.duty-msg-edited { font-size: 10px; color: var(--text-muted, #9aa4a0); font-style: italic; margin-left: 4px; }
+			.duty-msg-edit, .duty-cr-edit, .duty-dm-edit { cursor: pointer; opacity: .6; margin-left: 6px; }
+			.duty-msg-edit:hover, .duty-cr-edit:hover, .duty-dm-edit:hover { opacity: 1; }
+			.duty-paused-strip { display: flex; align-items: center; gap: 10px; margin: 0 0 12px; padding: 9px 14px; background: #FFF7E6; border: 1px solid #F5D08A; border-radius: 10px; }
+			.duty-paused-ic { font-size: 16px; }
+			.duty-paused-txt { flex: 1; min-width: 0; font-size: 13px; }
+			.duty-paused-resume { cursor: pointer; font-weight: 700; color: #0F5C55; white-space: nowrap; }
+			.duty-paused-hint { font-size: 12px; color: var(--text-muted, #999); white-space: nowrap; }
+			.duty-paused-dismiss { cursor: pointer; opacity: .5; }
+			.duty-paused-dismiss:hover { opacity: 1; }
+			.duty-paused-strip { display: block; }
+			.duty-paused-head { display: flex; align-items: center; gap: 8px; margin-bottom: 4px; font-size: 13px; }
+			.duty-paused-row { display: flex; align-items: center; gap: 10px; padding: 5px 0 5px 26px; border-top: 1px dashed #F0DFB6; }
+			.duty-paused-row:first-of-type { border-top: 0; }
+			.duty-paused-age { font-size: 11px; color: var(--text-muted, #999); margin-left: 6px; }
+			.duty-pause-note { background: #FFF7E6; border: 1px solid #F5D08A; border-radius: 8px; padding: 8px 12px; margin-bottom: 10px; font-size: 12.5px; }
 			@media (max-width: 1440px) {
 				/* 15" laptops: rail + thread + tasks in one view, sidebar expanded or not. */
 				.duty-ch-rail { width: 320px; min-width: 320px; }
@@ -10578,6 +10757,21 @@ this.$me.find(".duty-req-ok").on("click", (e) =>
 				.duty-ch-center { display: none; }
 				.duty-chatface.ch-convo-open .duty-ch-rail { display: none; }
 				.duty-chatface.ch-convo-open .duty-ch-center { display: flex; }
+				.duty-ch-mhead { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-bottom: 1px solid var(--border-color, #e6e6e6); background: var(--fg-color, #fafafa); position: sticky; top: 0; z-index: 6; }
+				.duty-ch-mhead b { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 15px; }
+				.duty-ch-mback { font-weight: 700; color: #0F5C55; text-decoration: none; white-space: nowrap; cursor: pointer; }
+				.duty-ch-mback:hover { text-decoration: none; color: #0F5C55; }
+				.duty-ch-munit { background: var(--bg-light-gray, #eef2f1); color: #0f766e; border: 1px solid #d5e5e2; border-radius: 8px; padding: 0 6px; font-size: 10px; font-weight: 700; line-height: 16px; white-space: nowrap; }
+				/* Team chat: full-height column. Kills the 260px side-panel cap
+				   that survived from the board-face era (see 10802). */
+				.duty-chatface .duty-ch-team,
+				.duty-chatface .duty-ch-team .duty-chat,
+				.duty-chatface .duty-ch-team .duty-chat-card { display: flex; flex-direction: column; flex: 1 1 auto; min-height: 0; }
+				.duty-chatface .duty-ch-team .duty-chat-list { flex: 1 1 auto; min-height: 0; overflow-y: auto; max-height: none !important; }
+				/* The card's own title duplicates the ‹ Chats header one line up;
+				   🔍 search and enable-notifications keep the row, right-aligned. */
+				.duty-chatface .duty-ch-team .duty-chat-head > span:first-child { display: none; }
+				.duty-chatface .duty-ch-team .duty-chat-head { justify-content: flex-end; padding: 2px 4px; }
 			}
 			.duty-chat-rail {
 				writing-mode: vertical-rl; cursor: pointer; user-select: none;

@@ -105,7 +105,7 @@ def _room_payload(room, include_internal, before=None, limit=40):
 		"Client Room Message",
 		filters=filters,
 		fields=[
-			"name", "message", "internal", "owner", "creation",
+			"name", "message", "internal", "owner", "creation", "edited_on",
 			"attachment_url", "attachment_name", "ref",
 		],
 		order_by="creation desc",
@@ -116,6 +116,7 @@ def _room_payload(room, include_internal, before=None, limit=40):
 	names = {}
 	for r in rows:
 		r.creation = str(r.creation)
+		r.edited_on = str(r.edited_on) if r.get("edited_on") else None
 		r.who = names.setdefault(
 			r.owner, frappe.utils.get_fullname(r.owner) or r.owner
 		)
@@ -326,6 +327,39 @@ def _post(room, text, internal=0, attachment_url=None, attachment_name=None, ref
 	return doc
 
 
+@frappe.whitelist()
+def edit_room_message(name, message=None, drop_attachment=0):
+	"""Edit own room message within 30 min. Because the room is client-visible,
+	the original text is preserved as an internal audit whisper."""
+	from duty_board.api import _within_edit_window
+
+	doc = frappe.get_doc("Client Room Message", name)
+	if doc.owner != frappe.session.user:
+		frappe.throw(_("You can only edit your own messages."))
+	if frappe.db.get_value("User", doc.owner, "user_type") != "System User":
+		frappe.throw(_("Not permitted."), frappe.PermissionError)
+	if not _within_edit_window(doc.creation):
+		frappe.throw(_("The 30-minute edit window has passed."))
+	room = frappe.get_doc("Client Room", doc.room)
+	old_text = doc.message
+	text = (message or "").strip()
+	if not text and not doc.attachment_url:
+		frappe.throw(_("A message cannot be empty."))
+	doc.message = text or "📎"
+	if cint(drop_attachment):
+		doc.attachment_url = None
+		doc.attachment_name = None
+	doc.edited_on = frappe.utils.now_datetime()
+	doc.save(ignore_permissions=True)
+	# Governance trail: a whisper only staff see, naming the edit and the
+	# text as the client may already have read it.
+	who = frappe.utils.get_fullname(frappe.session.user)
+	_post(room, _("✏ {0} edited a message (was: {1})").format(who, (old_text or "")[:200]), internal=1)
+	frappe.db.commit()
+	frappe.publish_realtime("duty_client_room", {"room": room.name})
+	return {"ok": 1}
+
+
 # ---------------- staff face ----------------
 
 
@@ -367,10 +401,6 @@ def get_rooms():
 			r.health = _room_health(r.name)
 		except Exception:
 			r.health = None
-		try:
-			r.renewal = _renewal_info(r.customer)
-		except Exception:
-			r.renewal = None
 		try:
 			r.renewal = _renewal_info(r.customer)
 		except Exception:

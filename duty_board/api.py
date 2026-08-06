@@ -90,6 +90,7 @@ def clock_out(reason=None, summary=None):
 	require_staff()
 	if not reason:
 		frappe.throw(_("Please give a reason for clocking out."))
+	_capture_paused_task(frappe.session.user)
 	_stop_running_session(frappe.session.user)
 	_make_log("Clock Out", reason, summary)
 	board = get_board()
@@ -197,6 +198,40 @@ def _fmt_hm(seconds):
 # ---------------- Team chat ----------------
 
 
+EDIT_WINDOW_SECONDS = 30 * 60
+
+
+def _within_edit_window(creation):
+	from frappe.utils import time_diff_in_seconds, now_datetime
+
+	return time_diff_in_seconds(now_datetime(), creation) <= EDIT_WINDOW_SECONDS
+
+
+@frappe.whitelist()
+def edit_message(name, message=None, drop_attachment=0):
+	"""Edit own Team Message within the window. Optionally clear attachment."""
+	require_staff()
+	doc = frappe.get_doc("Team Message", name)
+	if doc.user != frappe.session.user:
+		frappe.throw(_("You can only edit your own messages."))
+	if not _within_edit_window(doc.creation):
+		frappe.throw(_("The 30-minute edit window has passed."))
+	text = (message or "").strip()
+	if not text and not doc.attachment:
+		frappe.throw(_("A message cannot be empty."))
+	doc.message = text
+	if cint(drop_attachment):
+		doc.attachment = None
+		doc.attachment_name = None
+		doc.attachment_type = None
+	doc.edited_on = frappe.utils.now_datetime()
+	doc.save(ignore_permissions=True)
+	frappe.db.commit()
+	payload = _message_payload(doc.as_dict(), _reactions_for([doc.name]))
+	frappe.publish_realtime("duty_board_message_edit", payload)
+	return payload
+
+
 @frappe.whitelist()
 def send_message(
 	message=None,
@@ -285,6 +320,7 @@ def get_messages(limit=50, before=None, after=None):
 			"attachment_name",
 			"attachment_type",
 			"creation",
+			"edited_on",
 		],
 		order_by="creation desc",
 		limit=min(cint(limit) or 50, 200),
@@ -436,6 +472,7 @@ def _message_payload(r, reactions):
 		"attachment_name": r.get("attachment_name"),
 		"attachment_type": r.get("attachment_type"),
 		"creation": str(r.get("creation")),
+		"edited_on": str(r.get("edited_on")) if r.get("edited_on") else None,
 		"reactions": reactions.get(r.get("name"), {}),
 	}
 
@@ -2112,6 +2149,107 @@ def _sorted_todos(rows):
 # ---------------- Tasks ----------------
 
 
+def _capture_paused_task(user):
+	"""Remember the running session so clock-in can offer it back. One per
+	user; a new pause overwrites the last (you resume the most recent thing)."""
+	running = _get_running_session(user)
+	if not running:
+		return
+	# Additive: this joins the stack rather than replacing it. Dedupe on
+	# activity so pausing the same task twice keeps one entry (the fresh one).
+	frappe.db.delete(
+		"Duty Paused Task", {"user": user, "activity": (running.activity or "").strip()}
+	)
+	frappe.get_doc(
+		{
+			"doctype": "Duty Paused Task",
+			"user": user,
+			"activity": running.activity,
+			"customer": running.customer,
+			"daily_todo": running.daily_todo,
+			"duty_issue": running.duty_issue,
+			"project_task": running.project_task,
+			"paused_at": now_datetime(),
+		}
+	).insert(ignore_permissions=True)
+	# Cap the stack: keep the newest 5, drop the oldest overflow.
+	extras = frappe.get_all(
+		"Duty Paused Task",
+		filters={"user": user},
+		order_by="paused_at desc",
+		pluck="name",
+	)[5:]
+	for name in extras:
+		frappe.delete_doc("Duty Paused Task", name, ignore_permissions=True, force=True)
+	frappe.db.commit()
+
+
+def _my_paused(user):
+	rows = frappe.get_all(
+		"Duty Paused Task",
+		filters={"user": user},
+		fields=["name", "activity", "customer", "daily_todo", "paused_at"],
+		order_by="paused_at desc",
+		limit=5,
+	)
+	for r in rows:
+		r.paused_at = str(r.paused_at) if r.paused_at else None
+	return rows
+
+
+@frappe.whitelist()
+def resume_paused_task(name=None):
+	"""Reopen ONE paused task as a fresh Work Session, pausing whatever is
+	running now. No name = the most recently paused."""
+	require_staff()
+	user = frappe.session.user
+	if not _is_clocked_in(user):
+		frappe.throw(_("Clock in first before resuming."))
+	filters = {"user": user}
+	if name:
+		filters["name"] = name
+	rows = frappe.get_all(
+		"Duty Paused Task",
+		filters=filters,
+		fields=["name", "activity", "customer", "daily_todo", "duty_issue", "project_task"],
+		order_by="paused_at desc",
+		limit=1,
+	)
+	if not rows:
+		frappe.throw(_("Nothing paused to resume."))
+	row = rows[0]
+	# The task you are leaving joins the stack; the one you resume leaves it.
+	_capture_paused_task(user)
+	_stop_running_session(user)
+	frappe.get_doc(
+		{
+			"doctype": "Work Session",
+			"user": user,
+			"activity": row.activity or _("Resumed task"),
+			"customer": row.customer or None,
+			"daily_todo": row.daily_todo or None,
+			"duty_issue": row.duty_issue or None,
+			"project_task": row.project_task or None,
+			"start_time": now_datetime(),
+		}
+	).insert()
+	frappe.delete_doc("Duty Paused Task", row.name, ignore_permissions=True, force=True)
+	frappe.db.commit()
+	return get_board()
+
+
+@frappe.whitelist()
+def dismiss_paused_task(name=None):
+	"""Drop one paused task (or all of them, with no name) without resuming."""
+	require_staff()
+	filters = {"user": frappe.session.user}
+	if name:
+		filters["name"] = name
+	frappe.db.delete("Duty Paused Task", filters)
+	frappe.db.commit()
+	return get_board()
+
+
 @frappe.whitelist()
 def start_task(activity, customer=None, todo=None, complete_previous=0):
 	require_staff()
@@ -2121,9 +2259,15 @@ def start_task(activity, customer=None, todo=None, complete_previous=0):
 	if not _is_clocked_in(user):
 		frappe.throw(_("Clock in first before starting a task."))
 
+	# Switching pauses the running task instead of discarding it — unless
+	# you marked it completed, in which case it is done, not paused.
+	if not cint(complete_previous):
+		_capture_paused_task(user)
 	previous = _stop_running_session(user)
 	if cint(complete_previous) and previous and previous.daily_todo:
 		_complete_todo(previous.daily_todo)
+	# Typing a task that matches a paused entry IS resuming it by hand.
+	frappe.db.delete("Duty Paused Task", {"user": user, "activity": activity.strip()})
 
 	frappe.get_doc(
 		{
@@ -2470,6 +2614,7 @@ def get_board():
 	board.sort(key=lambda r: (order.get(r["status"], 9), r["full_name"].lower()))
 
 	me = next((r for r in board if r["user"] == session), None)
+	my_paused = _my_paused(session)
 
 	my_start, my_end = user_day_window(session)
 	my_sessions = frappe.get_all(
@@ -2505,6 +2650,7 @@ def get_board():
 
 	return {
 		"me": me,
+		"my_paused": my_paused,
 		"board": board,
 		"my_sessions": my_sessions,
 		"my_todos": todos_by_user.get(session, []),
