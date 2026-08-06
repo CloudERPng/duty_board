@@ -286,6 +286,9 @@
 	.tlm { display: flex; gap: 8px; align-items: center; margin-top: 3px; font-size: 11px; color: #8A9994; }
 	.tlchip { font-size: 9px; font-weight: 800; letter-spacing: 1px; border-radius: 99px; padding: 2px 8px; }
 	#msstep { display: flex; align-items: flex-start; overflow-x: auto; padding: 4px 0 10px; -webkit-overflow-scrolling: touch; }
+	.pselbar { display: flex; align-items: center; gap: 10px; background: #fff; border: 1px solid #E4EAE8; border-radius: 12px; padding: 10px 14px; margin: 0 0 12px; }
+	.pselbar .psellbl { font-size: 12px; font-weight: 800; letter-spacing: .04em; text-transform: uppercase; color: #0F5C55; }
+	.pselbar select { flex: 1; max-width: 340px; border: 1px solid #D4DCD8; border-radius: 8px; padding: 7px 10px; font-size: 14px; font-family: inherit; background: #fff; }
 	.mss { display: flex; flex-direction: column; align-items: center; gap: 5px; min-width: 62px; flex: none; }
 	.mssd { width: 22px; height: 22px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 800; background: #E2E8E5; color: #8A9994; box-sizing: border-box; }
 	.mss.d .mssd { background: #0E8A63; color: #fff; }
@@ -776,6 +779,7 @@ body[data-tab="home"] .foot{display:block!important;grid-area:foot}
 		</div>
 	</div>
 	<div class="rightcol">
+	<div id="pselwrap" style="display:none"></div>
 	<div class="card mstones">
 		<h3 class="foldh" onclick="fold(this,'mstones')"><span class="fc">▾</span> <svg class="li" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/><line x1="4" x2="4" y1="22" y2="15"/></svg> <span class="t">Project milestones</span></h3>
 		<div id="msbarwrap" style="display:none"><div id="msbar"><i></i></div><div id="mscount" class="muted"></div></div>
@@ -830,6 +834,7 @@ function setRoom(name) {
 	);
 	load();
 	loadMeetings();
+	loadProjects();
 	loadMilestones();
 	loadChreqs();
 	loadTraining();
@@ -1008,7 +1013,7 @@ function render(d) {
 		: " Urgent? Call your account manager.";
 	const t = document.getElementById("tasks");
 	const filt = document.getElementById("tfilter").value;
-	const rows = (d.tasks || []).filter((x) => !filt || x.status === filt);
+	const rows = (d.tasks || []).filter((x) => !filt || x.status === filt).filter((x) => _pselMatch(x.project));
 	t.innerHTML = rows.length
 		? `<table class="tt"><tr><th>Task</th><th>📅 Reported</th><th>✅ Done</th><th>⏳ Time</th><th>👤 With</th><th>Status</th></tr>` +
 			rows
@@ -1184,7 +1189,7 @@ function load() {
 			};
 			const renderList = () => {
 				const q = (window._docq || "").toLowerCase();
-				const rows = window._DOCS.filter((d) =>
+				const rows = window._DOCS.filter((d) => _pselMatch(d.project)).filter((d) =>
 					(!window._doccat || d.category === window._doccat) &&
 					(!q || (d.title || "").toLowerCase().includes(q) || (d.category || "").toLowerCase().includes(q)));
 				document.getElementById("dwlist").innerHTML = rows.length
@@ -1212,6 +1217,7 @@ function load() {
 			};
 			document.getElementById("dwq").addEventListener("input", (e) => { window._docq = e.target.value; renderList(); });
 			el.querySelectorAll(".dwc").forEach((c) => c.addEventListener("click", () => { window._doccat = c.dataset.c; el.querySelectorAll(".dwc").forEach((x) => x.classList.toggle("on", x === c)); renderList(); }));
+			window.renderDocList = renderList;
 			renderList();
 		})
 		.catch(() => {});
@@ -1280,6 +1286,42 @@ async function setupPush() {
 }
 setupPush();
 
+/* ---- project selector ---- */
+window._psel = window._psel || "";
+function loadProjects() {
+	api("client_projects")
+		.then((list) => {
+			window._projs = list || [];
+			const wrap = document.getElementById("pselwrap");
+			if (!wrap) return;
+			// Selector only earns its place with 2+ real projects (General always
+			// present, so ">2 entries" means "more than one actual project").
+			if (window._projs.length <= 2) { wrap.style.display = "none"; window._psel = ""; return; }
+			wrap.style.display = "block";
+			wrap.className = "pselbar";
+			wrap.innerHTML = `<span class="psellbl">Project</span><select id="pselsel">
+				<option value="">All projects</option>
+				${window._projs.map((p) => `<option value="${esc(p.id)}" ${window._psel === p.id ? "selected" : ""}>${esc(p.label)}</option>`).join("")}
+			</select>`;
+			document.getElementById("pselsel").addEventListener("change", (e) => setPsel(e.target.value));
+		})
+		.catch((e) => console.warn("projects:", e.message));
+}
+function setPsel(v) {
+	window._psel = v || "";
+	// Re-run every scoped surface with the new filter.
+	if (window.LAST) render(window.LAST);
+	if (window._msrows) renderMilestones(window._msrows);
+	if (window._chreqs) renderChreqs(window._chreqs);
+	if (window._DOCS && window.renderDocList) window.renderDocList();
+}
+function _pselMatch(projectId) {
+	// "" = all. General entry id may be a real catch-all project or "__general__".
+	if (!window._psel) return true;
+	if (window._psel === "__general__") return !projectId;
+	return projectId === window._psel;
+}
+
 /* ---- milestones ---- */
 function loadMilestones() {
 	api("client_get_milestones")
@@ -1287,7 +1329,8 @@ function loadMilestones() {
 		.catch((e) => console.warn("milestones:", e.message));
 }
 function renderMilestones(rows) {
-	rows = rows || [];
+	window._msrows = rows || [];
+	rows = (rows || []).filter((m) => _pselMatch(m.project));
 	const DOTS = { "Upcoming": "⚪", "In Progress": "🔵", "Awaiting Approval": "🟠", "Approved": "✅" };
 	const done = rows.filter((m) => m.status === "Approved").length;
 	const wrap = document.getElementById("msbarwrap");
@@ -1482,8 +1525,8 @@ function chreqPath(c) {
 		.join(" → ")}</div>`;
 }
 function renderChreqs(rows) {
-	rows = rows || [];
-	window._chreqs = rows;
+	window._chreqs = rows || [];
+	rows = (rows || []).filter((c) => _pselMatch(c.project));
 	const DOTS = { "Draft": "🤝", "Awaiting Approval": "🟠", "Approved": "✅", "Declined": "↩", "In Delivery": "🚀", "Delivered": "📦" };
 	window._pmdot = window._pmdot || {};
 	window._pmdot.cr = rows.some((c) => c.status === "Awaiting Approval");

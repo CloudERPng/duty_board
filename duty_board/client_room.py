@@ -176,22 +176,6 @@ def _project_names(customer):
 	return out
 
 
-def _project_names(customer):
-	"""name -> display label for a customer's active projects. The room's
-	auto-created catch-all ("{cust} — Requests") shows as "General Requests"."""
-	out = {}
-	for p in frappe.get_all(
-		"Duty Project",
-		filters={"customer": customer, "status": "Active"},
-		fields=["name", "project_name"],
-	):
-		label = p.project_name or p.name
-		if label.endswith("— Requests") or label.endswith("- Requests"):
-			label = "General Requests"
-		out[p.name] = label
-	return out
-
-
 def _work_rows(room):
 	"""Everything client-visible for this customer: issues + project milestones."""
 	out = []
@@ -1116,12 +1100,14 @@ def _shelf_rows(room):
 	rows = frappe.get_all(
 		"Client Shelf Doc",
 		filters={"room": room.name, "active": 1},
-		fields=["name", "title", "category", "file_name", "creation", "owner"],
+		fields=["name", "title", "category", "file_name", "creation", "owner", "project"],
 		order_by="creation desc",
 		limit=200,
 	)
+	_shpn = _project_names(room.customer)
 	for r in rows:
 		r.creation = str(r.creation)[:10]
+		r.project_name = _shpn.get(r.project) if r.project else None
 		try:
 			r.by = (frappe.utils.get_fullname(r.owner) or "").split(" ")[0]
 		except Exception:
@@ -1387,7 +1373,7 @@ def client_statement_file(id):
 
 
 @frappe.whitelist()
-def shelf_add(name, title, attachment_url, attachment_name=None, category=None):
+def shelf_add(name, title, attachment_url, attachment_name=None, category=None, project=None):
 	_staff_only()
 	room = frappe.get_doc("Client Room", name)
 	title = (title or "").strip()
@@ -1398,6 +1384,11 @@ def shelf_add(name, title, attachment_url, attachment_name=None, category=None):
 	)
 	if not owned:
 		frappe.throw(_("Upload not found — try attaching again."))
+	# "__general__" (or blank) files the doc under the room catch-all project —
+	# the relationship bucket for contracts, SLAs and the like.
+	proj = None if (not project or project == "__general__") else _validate_milestone_project(room.name, project)
+	if not proj:
+		proj = _ensure_project(room)
 	frappe.get_doc(
 		{
 			"doctype": "Client Shelf Doc",
@@ -1407,6 +1398,7 @@ def shelf_add(name, title, attachment_url, attachment_name=None, category=None):
 			"file_url": attachment_url,
 			"file_name": attachment_name or owned,
 			"active": 1,
+			"project": proj,
 		}
 	).insert(ignore_permissions=True)
 	frappe.db.commit()
@@ -1465,6 +1457,31 @@ def client_get_documents():
 	room = _client_room()
 	stm = _statement_rows(room)
 	return {"docs": _shelf_rows(room), "statements": stm, "year_strip": _statement_year_strip(stm)}
+
+
+@frappe.whitelist()
+def client_projects():
+	"""Active projects for the client's customer, for the portal selector.
+	The room catch-all is presented once as "General"; a stable id lets the
+	selector scope tasks/phases/CRs/docs to the relationship bucket."""
+	room = _client_room()
+	projs = frappe.get_all(
+		"Duty Project",
+		filters={"customer": room.customer, "status": "Active"},
+		fields=["name", "project_name"],
+		order_by="creation asc",
+	)
+	catchall = None
+	out = []
+	for p in projs:
+		label = p.project_name or p.name
+		if label.endswith("— Requests") or label.endswith("- Requests"):
+			catchall = p.name
+			continue
+		out.append({"id": p.name, "label": label})
+	# General always last, always present so relationship docs have a home.
+	out.append({"id": catchall or "__general__", "label": "General"})
+	return out
 
 
 @frappe.whitelist()
