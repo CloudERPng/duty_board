@@ -51,6 +51,14 @@ frappe.pages["duty-board"].on_page_load = function (wrapper) {
 	];
 	board._rsvg = RSVG;
 	board._is_consultant = localStorage.getItem("duty_cons") === "1";
+	// Desktop staff reach the dashboard as a tab inside My Day now.
+	// Consultants keep the standalone face; mobile keeps its \ud83d\udc64 chip.
+	if (!board._is_consultant && !board.is_mobile()) {
+		board.rail = board.rail.filter((r) => r.id !== "me");
+	}
+	// show_face only runs on clicks; fire it once so the day tabs (and
+	// every other face-state toggle) are correct on first paint.
+	if (!board._is_consultant) board.show_face("board");
 	if (board._is_consultant) {
 		$("body").addClass("duty-consultant");
 		if (!window._duty_msg_wrap) {
@@ -139,6 +147,16 @@ class DutyBoard {
 			</div>
 		`).appendTo(page.body);
 		this.face = "board";
+		this._day_tab = "today";
+		this.$daytabs = $(`
+			<div class="duty-daytabs" style="display:none">
+				<a data-dt="today" class="on">\ud83d\udcc6 ${__("My Day")}</a>
+				<a data-dt="dash">\ud83d\udcca ${__("Dashboard")}</a>
+			</div>`).insertBefore(this.body);
+		this.$daytabs.find("a").on("click", (e) => {
+			this._day_tab = $(e.currentTarget).attr("data-dt") === "dash" ? "dash" : "today";
+			this.show_face("board");
+		});
 		this.$issues = $(`
 			<div class="duty-issues-face" style="display:none">
 				<div class="duty-issues"></div>
@@ -2026,6 +2044,12 @@ class DutyBoard {
 	}
 
 	show_face(face) {
+		const merged = !this._is_consultant && !this.is_mobile();
+		if (face === "me" && merged) {
+			// Every existing show_face("me") caller lands on the Dashboard tab.
+			face = "board";
+			this._day_tab = "dash";
+		}
 		if (this._idshim) this._idshim.hide();
 		if (this._$tdrawer) this._$tdrawer.hide();
 		if (this._$ndrawer) this._$ndrawer.hide();
@@ -2055,15 +2079,20 @@ class DutyBoard {
 				.forEach((k) => localStorage.removeItem(k));
 		}
 		this.face = face;
-		this.body.toggle(face === "board");
-		$(".duty-pulse").toggle(face === "board");
+		const dtab = merged ? (this._day_tab || "today") : "today";
+		this.body.toggle(face === "board" && dtab === "today");
+		$(".duty-pulse").toggle(face === "board" && dtab === "today");
+		if (this.$daytabs) {
+			this.$daytabs.toggle(merged && face === "board");
+			this.$daytabs.find("a").removeClass("on").filter(`[data-dt="${dtab}"]`).addClass("on");
+		}
 		this.$issues.toggle(face === "issues");
 		this.$projects.toggle(face === "projects");
 		this.$sales.toggle(face === "sales");
 		if (this.$chatface) this.$chatface.toggle(face === "chat");
 		if (face !== "chat") this._ch_return_team();
 		this.$clients.toggle(face === "clients");
-		this.$me.toggle(face === "me");
+		this.$me.toggle(merged ? face === "board" && dtab === "dash" : face === "me");
 		this.$books.toggle(face === "books");
 		if (this.$library) this.$library.toggle(face === "library");
 		if (this.$news) this.$news.toggle(face === "news");
@@ -2074,7 +2103,7 @@ class DutyBoard {
 		if (face === "sales") this.refresh_sales();
 		if (face === "chat") this.refresh_chat();
 		if (face === "clients") this.refresh_clients();
-		if (face === "me") this.refresh_me();
+		if (face === "me" || (face === "board" && merged && dtab === "dash")) this.refresh_me();
 	}
 
 	_me_host() {
@@ -10534,6 +10563,10 @@ this.$me.find(".duty-req-ok").on("click", (e) =>
 			.duty-chatface .duty-dm-list .duty-msg { margin-bottom: 14px; line-height: 1.55; }
 			/* .duty-fluid.container out-specifies Bootstrap's .container breakpoints. */
 			.duty-fluid.container { max-width: 100%; }
+			.duty-daytabs { display: flex; gap: 8px; margin: 0 0 12px; }
+			.duty-daytabs a { padding: 7px 18px; border-radius: 10px; font-weight: 600; cursor: pointer; border: 1px solid var(--border-color, #e0e0e0); background: var(--card-bg, #fff); color: var(--text-muted, #666); text-decoration: none; }
+			.duty-daytabs a:hover { color: var(--text-color, #333); text-decoration: none; }
+			.duty-daytabs a.on { background: #0F5C55; border-color: #0F5C55; color: #fff; }
 			@media (max-width: 1440px) {
 				/* 15" laptops: rail + thread + tasks in one view, sidebar expanded or not. */
 				.duty-ch-rail { width: 320px; min-width: 320px; }
