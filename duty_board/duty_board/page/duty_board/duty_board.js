@@ -1492,7 +1492,7 @@ class DutyBoard {
 	}
 
 	consultant_shell() {
-		this.rail = (this.rail || []).filter((r) => ["issues", "clients", "projects", "me", "news"].includes(r.id));
+		this.rail = (this.rail || []).filter((r) => ["issues", "chat", "projects", "me", "news"].includes(r.id));
 		if (!this.rail.some((r) => r.id === "library")) {
 			this.rail.splice(this.rail.length - 1, 0, { id: "library", ic: this._rsvg.lib, label: __("Library"), go: () => this.show_face("library") });
 		}
@@ -4492,8 +4492,13 @@ this.$me.find(".duty-req-ok").on("click", (e) =>
 			this.jump_to_msg(msg_id);
 			return;
 		}
-		this.show_face("clients");
-		this.open_client_room(room_name);
+		if (this._is_consultant) {
+			this.show_face("chat");
+			this.open_convo("room", String(room_name));
+		} else {
+			this.show_face("clients");
+			this.open_client_room(room_name);
+		}
 		setTimeout(() => this.jump_to_msg(msg_id), 1300);
 	}
 
@@ -7601,8 +7606,13 @@ this.$me.find(".duty-req-ok").on("click", (e) =>
 				}
 				$c.find(".duty-mr-chip").on("click", (e) => {
 					const room = $(e.currentTarget).data("room");
-					this.show_face("clients");
-					setTimeout(() => this.open_client_room(room), 400);
+					if (this._is_consultant) {
+						this.show_face("chat");
+						setTimeout(() => this.open_convo("room", String(room)), 400);
+					} else {
+						this.show_face("clients");
+						setTimeout(() => this.open_client_room(room), 400);
+					}
 				});
 			},
 		});
@@ -10081,7 +10091,12 @@ this.$me.find(".duty-req-ok").on("click", (e) =>
 				this._ch_fail = 0;
 				this._convos = r.message || [];
 				this.render_chat_rail();
-				if (!this._ch_open) this.open_convo("team", "__team__");
+				if (!this._ch_open) {
+					// First rail entry: Duty Room for staff (pinned), the most
+					// recent room for consultants (who have no team entry).
+					const first = (this._convos || [])[0];
+					if (first) this.open_convo(first.kind, String(first.id));
+				}
 			},
 		});
 	}
@@ -10149,6 +10164,7 @@ this.$me.find(".duty-req-ok").on("click", (e) =>
 
 	open_convo(kind, id) {
 		if (!kind || !id) return;
+		if (this._is_consultant && kind !== "room") return;
 		this._ch_open = { kind: kind, id: id };
 		// Optimistic: the pill dies the moment you open the conversation.
 		// The server watermark (mark_*_seen) commits asynchronously, so a
@@ -11413,6 +11429,7 @@ this.$me.find(".duty-req-ok").on("click", (e) =>
 			.duty-cons-card p { font-size: 14px; color: #51605C; line-height: 1.55; margin: 0 0 10px; }
 			.duty-cons-sub { font-size: 12.5px !important; color: #8A9994 !important; }
 			body.duty-consultant .duty-chat-rail { display: none !important; }
+			body.duty-consultant .duty-ch-new { display: none !important; }
 			body.duty-consultant .duty-cr-side .duty-cr-milestones, body.duty-consultant .duty-cr-side .duty-cr-chreqs,
 			body.duty-consultant .duty-cr-side .duty-cr-meetings, body.duty-consultant .duty-cr-side .duty-cr-shelf { display: none !important; }
 			body.duty-consultant .duty-cr-new { display: none !important; }

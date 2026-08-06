@@ -234,7 +234,7 @@ def get_rail():
 	"""
 	from duty_board.permissions import require_staff_or_consultant
 
-	require_staff_or_consultant()
+	is_consultant = require_staff_or_consultant()
 	me = frappe.session.user
 
 	rooms = _visible_rooms(me)
@@ -256,7 +256,10 @@ def get_rail():
 		):
 			joins[j.room] = cint(j.cnt)
 
-	entries = [_team_entry(me)]
+	# Consultants never see the internal team room or DMs — stripped from
+	# the data, not hidden by the client. dm.py and get_messages are
+	# require_staff besides; this keeps the rail honest about it.
+	entries = [] if is_consultant else [_team_entry(me)]
 
 	for r in rooms:
 		last = last_map.get(r.name)
@@ -279,7 +282,8 @@ def get_rail():
 			}
 		)
 
-	entries.extend(_dm_entries(me))
+	if not is_consultant:
+		entries.extend(_dm_entries(me))
 
 	# Stable sort, least significant key first: alphabetical tie-break, then
 	# newest-first, then silent conversations to the bottom, then pin the
