@@ -5103,19 +5103,29 @@ this.$me.find(".duty-req-ok").on("click", (e) =>
 		const $ms = $room.find(".duty-cr-mstones");
 		if ($ms.length) {
 			const mst = x.milestones || [];
-			const done = mst.filter((m) => m.status === "Approved").length;
-			const waiting = mst.filter((m) => m.status === "Awaiting Approval").length;
-			const current = mst.find((m) => m.status === "In Progress");
-			$ms.html(`
-				<div class="duty-lead-section">🏁 ${__("Milestones")} <a class="duty-cr-msmanage">${__("Manage")}</a></div>
-				${mst.length
-					? `<div class="duty-cr-msline">
-							<div class="duty-cr-msbar"><i style="width:${Math.round((done / mst.length) * 100)}%"></i></div>
-							<span>${done}/${mst.length} ${__("approved")}${waiting ? ` · <b class="duty-cr-mswait">⏳ ${waiting} ${__("awaiting client")}</b>` : ""}${current ? ` · 🔵 ${frappe.utils.escape_html(current.title)}` : ""}</span>
-						</div>`
-					: `<div class="text-muted" style="font-size:var(--text-sm)">${__("No milestones yet — Manage to seed the Xlevel method.")}</div>`}
-			`);
-			$ms.find(".duty-cr-msmanage").on("click", () => this.milestones_dialog(x));
+			const projCount = new Set(mst.map((m) => m.project).filter(Boolean)).size;
+			if (projCount > 1) {
+				// Multi-project room: the blended strip is meaningless — point to the
+				// Projects face where each project's phases are managed on their own.
+				$ms.html(`
+					<div class="duty-lead-section">🏁 ${__("Phases")}</div>
+					<div class="text-muted" style="font-size:var(--text-sm)">${__("This client has multiple projects. Manage each project's phases on the")} <a class="duty-cr-msgoproj" style="cursor:pointer;font-weight:600">${__("Projects face")}</a>.</div>
+				`);
+			} else {
+				const done = mst.filter((m) => m.status === "Approved").length;
+				const waiting = mst.filter((m) => m.status === "Awaiting Approval").length;
+				const current = mst.find((m) => m.status === "In Progress");
+				$ms.html(`
+					<div class="duty-lead-section">🏁 ${__("Phases")} <a class="duty-cr-msgoproj" style="cursor:pointer">${__("Manage ›")}</a></div>
+					${mst.length
+						? `<div class="duty-cr-msline">
+								<div class="duty-cr-msbar"><i style="width:${Math.round((done / mst.length) * 100)}%"></i></div>
+								<span>${done}/${mst.length} ${__("approved")}${waiting ? ` · <b class="duty-cr-mswait">⏳ ${waiting} ${__("awaiting client")}</b>` : ""}${current ? ` · 🔵 ${frappe.utils.escape_html(current.title)}` : ""}</span>
+							</div>`
+						: `<div class="text-muted" style="font-size:var(--text-sm)">${__("No phases yet — manage on the Projects face.")}</div>`}
+				`);
+			}
+			$ms.find(".duty-cr-msgoproj").on("click", () => this.show_face("projects"));
 		}
 		const $cq = $room.find(".duty-cr-chreqs");
 		if ($cq.length) {
@@ -6913,181 +6923,6 @@ this.$me.find(".duty-req-ok").on("click", (e) =>
 			})
 		);
 		load();
-		d.show();
-	}
-
-	milestones_dialog(x) {
-		const d = new frappe.ui.Dialog({ title: `🏁 ${x.customer} — ${__("Milestones")}`, size: "large" });
-		const CHIP = {
-			"Upcoming": ["⚪", "#6b7280"], "In Progress": ["🔵", "#0E7490"],
-			"Awaiting Approval": ["🟠", "#b45309"], "Approved": ["✅", "#15803d"],
-		};
-		const render = (data) => {
-			const mst = data.milestones || [];
-			$(d.body).html(`
-				<div class="duty-cr-mslist">
-					${mst
-						.map((m, i) => {
-							const [icon, color] = CHIP[m.status];
-							const locked = m.status === "Approved";
-							return `
-						<div class="duty-cr-msrow ${locked ? "locked" : ""}">
-							<span style="color:${color};white-space:nowrap">${icon} <b>${frappe.utils.escape_html(m.title)}</b></span>
-							${m.target_date ? `<span class="text-muted">🎯 ${m.target_date}</span>` : ""}
-							${m.project && m.cards_total ? `<span class="duty-cr-msev ${m.cards_done === m.cards_total ? "ready" : ""}">📋 ${m.cards_done}/${m.cards_total} ${__("tasks")}</span>` : ""}
-							${locked
-								? `<span class="duty-cr-mssig">${__("Signed off by")} <b>${frappe.utils.escape_html(m.approved_full || "")}</b> · ${m.approved_at}${m.approval_note ? ` · “${frappe.utils.escape_html(m.approval_note)}”` : ""}</span>`
-								: `<span class="duty-cr-msacts">
-									${i > 0 ? `<a data-a="up" data-id="${m.name}">↑</a>` : ""}
-									${i < mst.length - 1 ? `<a data-a="down" data-id="${m.name}">↓</a>` : ""}
-									<a data-a="edit" data-id="${m.name}">✎</a>
-									<a data-a="tasks" data-id="${m.name}">📋 ${__("Tasks")}</a>
-									${m.status === "Upcoming" ? `<a data-a="start" data-id="${m.name}">▶ ${__("Start")}</a>` : ""}
-									${m.status === "In Progress" ? `<a data-a="ask" data-id="${m.name}" class="duty-cr-msask ${m.project && m.cards_total && m.cards_done === m.cards_total ? "glow" : ""}">🏁 ${__("Request approval")}${m.project && m.cards_total && m.cards_done === m.cards_total ? " — " + __("board complete!") : ""}</a>` : ""}
-									${m.status === "Awaiting Approval" ? `<b class="duty-cr-mswait">${__("client's move")}</b>` : ""}
-									<a data-a="del" data-id="${m.name}" style="color:var(--red-600,#dc2626)">🗑</a>
-								</span>`}
-							${m.description ? `<div class="duty-cr-msdesc text-muted">${frappe.utils.escape_html(m.description)}</div>` : ""}
-						</div>`;
-						})
-						.join("") || ""}
-				</div>
-				${!mst.length ? `<button type="button" class="btn btn-sm btn-primary duty-cr-msseed">🏁 ${__("Seed the Xlevel method (7 phases)")}</button>` : ""}
-				<div class="duty-lead-section">＋ ${__("Add milestone")}</div>
-				<div class="duty-cr-addmem" style="flex-wrap:wrap">
-					<input type="text" class="form-control input-sm duty-ms-title" placeholder="${__("Title")}" style="flex:2">
-					<input type="date" class="form-control input-sm duty-ms-date" style="flex:1">
-					<button type="button" class="btn btn-sm btn-primary duty-ms-add">＋</button>
-				</div>
-				<p class="text-muted duty-attach-hint">${__("Approved phases are permanent — they are the client's formal sign-off and cannot be edited or deleted.")}</p>
-			`);
-			const call = (method, args) =>
-				frappe.call({
-					method: "duty_board.client_room." + method,
-					args: args,
-					callback: (r) => {
-						if (r.message) {
-							render(r.message);
-							this.render_client_room(r.message);
-						}
-					},
-				});
-			$(d.body).find(".duty-cr-msseed").on("click", () =>
-				frappe.prompt(
-					[
-						{
-							fieldname: "plan_type",
-							fieldtype: "Select",
-							label: __("Project plan"),
-							options: [
-								{ value: "standard", label: __("Standard CloudERP.One Implementation — 7 phases + 47 standard tasks") },
-								{ value: "crm", label: __("CRM on CloudERP.One Implementation — 7 phases + 35 standard tasks") },
-								{ value: "", label: __("Milestones only (no tasks)") },
-							],
-							default: "standard",
-						},
-					],
-					(v) => {
-						if (v.plan_type && !x.project)
-							frappe.show_alert({ message: __("Creating a project for this room…"), indicator: "blue" });
-						call("milestones_seed", { name: x.name, plan_type: v.plan_type || null });
-					},
-					__("Seed the project plan — tasks arrive unassigned in To Do, due dates paced from today"),
-					__("Seed")
-				)
-			);
-			$(d.body).find(".duty-ms-add").on("click", () => {
-				const t = $(d.body).find(".duty-ms-title").val().trim();
-				if (!t) return;
-				call("milestone_add", {
-					name: x.name, title: t,
-					target_date: $(d.body).find(".duty-ms-date").val() || null,
-				});
-			});
-			$(d.body).find(".duty-cr-msacts a").on("click", (e) => {
-				const a = $(e.currentTarget).data("a");
-				const id = $(e.currentTarget).data("id");
-				if (a === "up" || a === "down") return call("milestone_move", { id: id, direction: a });
-				if (a === "start") return call("milestone_set_status", { id: id, status: "In Progress" });
-				if (a === "ask")
-					return frappe.confirm(
-						__("Tell the client this phase is complete and request their formal sign-off?"),
-						() => call("milestone_request_approval", { id: id })
-					);
-				if (a === "tasks") {
-					const m = (x.milestones || []).find((z) => z.name === id) || {};
-					frappe.call({
-						method: "duty_board.client_room.milestone_task_options",
-						args: { id: id },
-						callback: (r) => {
-							const opts = r.message || [];
-							const pd = new frappe.ui.Dialog({
-								title: `📋 ${frappe.utils.escape_html(m.title || "")} — ${__("tasks in this phase")}`,
-							});
-							$(pd.body).html(
-								opts.length
-									? opts
-											.map(
-												(o) => `
-									<label style="display:flex;gap:8px;align-items:baseline;padding:5px 2px;border-bottom:1px dashed var(--border-color);font-size:var(--text-sm)">
-										<input type="checkbox" value="${o.name}" ${o.checked ? "checked" : ""}>
-										<b>${frappe.utils.escape_html(o.title)}</b>
-										<span class="text-muted">${frappe.utils.escape_html(o.project_title)} · ${o.column}</span>
-										${o.elsewhere ? `<span class="duty-lead-chip">${__("in another phase")}</span>` : ""}
-									</label>`
-											)
-											.join("") +
-											`<p class="text-muted duty-attach-hint">${__("Ticked tasks appear under this phase on the client's plan — title and status become client-visible.")}</p>
-											<button type="button" class="btn btn-sm btn-primary duty-ms-tsave">${__("Save")}</button>`
-									: `<div class="text-muted">${__("No project tasks exist for this customer yet.")}</div>`
-							);
-							$(pd.body).find(".duty-ms-tsave").on("click", () => {
-								const picked = $(pd.body)
-									.find("input:checked")
-									.map((i, el) => el.value)
-									.get();
-								frappe.call({
-									method: "duty_board.client_room.milestone_set_tasks",
-									args: { id: id, tasks: JSON.stringify(picked) },
-									callback: (rr) => {
-										pd.hide();
-										if (rr.message) {
-											render(rr.message);
-											this.render_client_room(rr.message);
-										}
-									},
-								});
-							});
-							pd.show();
-						},
-					});
-					return;
-				}
-				if (a === "del")
-					return frappe.confirm(__("Delete this milestone?"), () =>
-						call("milestone_delete", { id: id })
-					);
-				if (a === "edit") {
-					const m = (x.milestones || []).find((z) => z.name === id) || {};
-					frappe.prompt(
-						[
-							{ fieldname: "title", fieldtype: "Data", label: __("Title"), default: m.title, reqd: 1 },
-							{ fieldname: "description", fieldtype: "Small Text", label: __("Description (client-visible)"), default: m.description },
-							{ fieldname: "target_date", fieldtype: "Date", label: __("Target date"), default: m.target_date },
-						],
-						(v) =>
-							call("milestone_update", {
-								id: id, title: v.title,
-								description: v.description || "",
-								target_date: v.target_date || "",
-							}),
-						__("Edit milestone"),
-						__("Save")
-					);
-				}
-			});
-		};
-		render(x);
 		d.show();
 	}
 
