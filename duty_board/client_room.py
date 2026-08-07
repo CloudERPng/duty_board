@@ -1871,6 +1871,7 @@ def _milestone_locked(doc):
 
 
 def _milestone_rows(room):
+	"""Room-scoped milestone rows (legacy path: every phase in the room)."""
 	rows = frappe.get_all(
 		"Duty Milestone",
 		filters={"room": room.name},
@@ -1880,6 +1881,27 @@ def _milestone_rows(room):
 		],
 		order_by="sort_order asc, creation asc",
 	)
+	return _milestone_decorate(rows, _project_names(room))
+
+
+def _project_milestone_rows(project):
+	"""Project-scoped milestone rows — the project-first path. Works whether
+	or not the project is attached to a room."""
+	rows = frappe.get_all(
+		"Duty Milestone",
+		filters={"project": project},
+		fields=[
+			"name", "title", "description", "sort_order", "status", "target_date",
+			"approved_full", "approved_at", "approval_note", "submitted_on", "project",
+		],
+		order_by="sort_order asc, creation asc",
+	)
+	pname = frappe.db.get_value("Duty Project", project, "project_name") or project
+	return _milestone_decorate(rows, {project: pname})
+
+
+def _milestone_decorate(rows, pnames):
+	"""Shared row builder: attach tasks, progress counts, project label."""
 	for r in rows:
 		r.target_date = str(r.target_date) if r.target_date else None
 		r.approved_at = str(r.approved_at)[:16] if r.approved_at else None
@@ -1916,13 +1938,100 @@ def _milestone_rows(room):
 		r.cards_total = len(tasks)
 		r.cards_done = sum(1 for t in tasks if t.column == "Completed")
 		r.awaiting = sum(1 for t in tasks if cint(t.awaiting_client) and t.column != "Completed")
-	pnames = _project_names(room)
 	for r in rows:
 		r.project_name = pnames.get(r.project)
 	return rows
 
 
 @frappe.whitelist()
+@frappe.whitelist()
+def project_seed_milestones(project, plan_type=None):
+	"""Seed the Xlevel method onto a PROJECT (room-independent). Guards per
+	project, so each project in a room gets its own phase journey."""
+	_staff_only()
+	if not frappe.db.exists("Duty Project", project):
+		frappe.throw(_("Unknown project."))
+	if frappe.db.count("Duty Milestone", {"project": project}):
+		frappe.throw(_("This project already has phases."))
+	room_name = frappe.db.get_value("Duty Project", project, "room")
+	if not room_name:
+		frappe.throw(_("Assign this project to a room before seeding phases."))
+
+	plan = None
+	if plan_type:
+		from duty_board.plan_templates import PLAN_TYPES
+
+		if plan_type not in PLAN_TYPES:
+			frappe.throw(_("Unknown plan type."))
+		plan = PLAN_TYPES[plan_type][1]
+
+	from frappe.utils import add_days
+
+	for i, (title, desc) in enumerate(XLEVEL_METHOD):
+		phase_tasks = (plan or {}).get(title, [])
+		ms = frappe.get_doc(
+			{
+				"doctype": "Duty Milestone",
+				"room": room_name,
+				"project": project,
+				"title": title,
+				"description": desc,
+				"sort_order": i,
+				"status": "Upcoming",
+				"target_date": add_days(today(), max(t[3] for t in phase_tasks))
+				if phase_tasks
+				else None,
+			}
+		).insert(ignore_permissions=True)
+		for t_title, t_desc, t_urg, t_off in phase_tasks:
+			frappe.get_doc(
+				{
+					"doctype": "Duty Project Task",
+					"project": project,
+					"title": t_title,
+					"column": "To Do",
+					"urgency": t_urg if t_urg in ("Low", "Medium", "High", "Critical") else "Medium",
+					"description": t_desc or None,
+					"due_date": add_days(today(), t_off) if t_off else None,
+					"milestone": ms.name,
+				}
+			).insert(ignore_permissions=True)
+	frappe.db.commit()
+	return {"ok": 1, "project": project}
+
+
+@frappe.whitelist()
+def project_milestone_add(project, title, description=None, target_date=None):
+	"""Add one phase to a project; sort-order sequenced per project."""
+	_staff_only()
+	if not frappe.db.exists("Duty Project", project):
+		frappe.throw(_("Unknown project."))
+	title = (title or "").strip()
+	if not title:
+		frappe.throw(_("Give the phase a title."))
+	room_name = frappe.db.get_value("Duty Project", project, "room")
+	if not room_name:
+		frappe.throw(_("Assign this project to a room before adding phases."))
+	last = frappe.db.sql(
+		"select coalesce(max(sort_order), -1) from `tabDuty Milestone` where project = %s",
+		project,
+	)[0][0]
+	frappe.get_doc(
+		{
+			"doctype": "Duty Milestone",
+			"room": room_name,
+			"project": project,
+			"title": title[:120],
+			"description": (description or "").strip()[:500] or None,
+			"target_date": target_date or None,
+			"sort_order": last + 1,
+			"status": "Upcoming",
+		}
+	).insert(ignore_permissions=True)
+	frappe.db.commit()
+	return {"ok": 1, "project": project}
+
+
 def milestones_seed(name, plan_type=None):
 	_staff_only()
 	room = frappe.get_doc("Client Room", name)

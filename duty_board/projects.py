@@ -146,9 +146,12 @@ def get_project_board(project):
 		t.working = working.get(t.name, [])
 		t.subs_done, t.subs_total = sub_counts.get(t.name, (0, 0))
 		tasks.setdefault(t.column, []).append(t)
+	from duty_board.client_room import _project_milestone_rows
+
 	return {
 		"columns": COLUMNS,
 		"tasks": tasks,
+		"milestones": _project_milestone_rows(project),
 		"consultants": [
 			r.user
 			for r in frappe.get_all(
