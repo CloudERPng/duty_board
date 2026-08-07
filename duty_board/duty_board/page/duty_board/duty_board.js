@@ -3976,6 +3976,81 @@ this.$me.find(".duty-req-ok").on("click", (e) =>
 		});
 	}
 
+	render_phases(project, data, $wrap) {
+		const ms = data.milestones || [];
+		const esc = frappe.utils.escape_html;
+		const $p = $(`<div class="duty-phases"></div>`).appendTo($wrap);
+
+		if (!ms.length) {
+			$p.html(`
+				<div class="duty-phases-empty">
+					<p class="text-muted">${__("No phases yet. Seed the Xlevel delivery method, or add phases one at a time below.")}</p>
+					<div class="duty-phase-seed">
+						<select class="form-control duty-seed-plan" style="max-width:280px;display:inline-block">
+							<option value="standard">${__("Standard plan (phases + starter tasks)")}</option>
+							<option value="">${__("Phases only (no tasks)")}</option>
+						</select>
+						<button class="btn btn-primary btn-sm duty-seed-go">🚩 ${__("Seed the Xlevel method")}</button>
+					</div>
+				</div>`);
+			$p.find(".duty-seed-go").on("click", () => {
+				const plan = $p.find(".duty-seed-plan").val();
+				frappe.call({
+					method: "duty_board.client_room.project_seed_milestones",
+					args: { project: project, plan_type: plan || null },
+					freeze: true,
+					callback: () => { frappe.show_alert({ message: __("Phases seeded."), indicator: "green" }); this.load_kanban(project); },
+				});
+			});
+		} else {
+			const curIdx = ms.findIndex((m) => m.status !== "Approved");
+			const rows = ms.map((m, i) => {
+				const st = m.status === "Approved" ? "done" : i === curIdx ? "active" : "up";
+				const locked = m.status === "Approved";
+				return `
+				<div class="duty-phase-row duty-phase-${st}" data-id="${esc(m.name)}">
+					<span class="duty-phase-ix">${st === "done" ? "✓" : i + 1}</span>
+					<div class="duty-phase-main">
+						<div class="duty-phase-title">${esc(m.title)}${m.status === "Awaiting Approval" ? ` <span class="duty-phase-wait">⏳ ${__("awaiting client")}</span>` : ""}</div>
+						<div class="duty-phase-meta">${esc(m.status)}${m.target_date ? ` · 🎯 ${esc(m.target_date)}` : ""} · ${m.cards_done || 0}/${m.cards_total || 0} ${__("tasks")}</div>
+					</div>
+					<div class="duty-phase-acts">
+						<a data-a="up" title="${__("Move up")}">▲</a>
+						<a data-a="down" title="${__("Move down")}">▼</a>
+						${st === "active" && m.status !== "In Progress" ? `<a data-a="start" title="${__("Mark in progress")}">▶</a>` : ""}
+						${!locked && m.status !== "Awaiting Approval" ? `<a data-a="ask" title="${__("Request client sign-off")}">✅</a>` : ""}
+						${!locked ? `<a data-a="del" title="${__("Delete phase")}">🗑</a>` : ""}
+					</div>
+				</div>`;
+			}).join("");
+			$p.html(`
+				<div class="duty-phase-list">${rows}</div>
+				<div class="duty-phase-add">
+					<input type="text" class="form-control input-sm duty-newphase" placeholder="${__("Add a phase title and press Enter…")}" style="max-width:340px;display:inline-block">
+				</div>`);
+			$p.find(".duty-phase-acts a").on("click", (e) => {
+				const a = $(e.currentTarget).data("a");
+				const id = $(e.currentTarget).closest(".duty-phase-row").data("id");
+				const done = () => this.load_kanban(project);
+				if (a === "up" || a === "down") return frappe.call({ method: "duty_board.client_room.milestone_move", args: { id: id, direction: a }, callback: done });
+				if (a === "start") return frappe.call({ method: "duty_board.client_room.milestone_set_status", args: { id: id, status: "In Progress" }, callback: done });
+				if (a === "ask") return frappe.confirm(__("Tell the client this phase is complete and request their formal sign-off?"), () => frappe.call({ method: "duty_board.client_room.milestone_request_approval", args: { id: id }, callback: done }));
+				if (a === "del") return frappe.confirm(__("Delete this phase? Its tasks are kept but unlinked."), () => frappe.call({ method: "duty_board.client_room.milestone_delete", args: { id: id }, callback: done }));
+			});
+			$p.find(".duty-newphase").on("keydown", (e) => {
+				if (e.key !== "Enter") return;
+				const t = e.target.value.trim();
+				if (!t) return;
+				e.target.value = "";
+				frappe.call({
+					method: "duty_board.client_room.project_milestone_add",
+					args: { project: project, title: t },
+					callback: () => this.load_kanban(project),
+				});
+			});
+		}
+	}
+
 	kb_card(t) {
 		const who = t.assignee
 			? `<span style="color:${this.user_color(t.assignee)}">${frappe.utils.escape_html((this.name_map[t.assignee] || t.assignee).split(" ")[0])}</span>`
@@ -4015,6 +4090,7 @@ this.$me.find(".duty-req-ok").on("click", (e) =>
 				<span class="duty-pj-views">
 					<a class="duty-pj-v ${(this._pj_view || "board") === "board" ? "on" : ""}" data-v="board">▦ ${__("Board")}</a>
 					<a class="duty-pj-v ${this._pj_view === "cal" ? "on" : ""}" data-v="cal">📅 ${__("Calendar")}</a>
+					<a class="duty-pj-v ${this._pj_view === "phases" ? "on" : ""}" data-v="phases">🚩 ${__("Phases")}${(data.milestones || []).length ? ` <b>${data.milestones.length}</b>` : ""}</a>
 					<a class="duty-kb-dense" title="${__("Toggle density")}">${(localStorage.getItem("duty_kb_density") || "comfortable") === "compact" ? "▤ " + __("Compact") : "▢ " + __("Comfortable")}</a>
 				</span>
 				<a class="duty-proj-cons">👷 ${__("Consultants")}${(data.consultants || []).length ? ` <b>${data.consultants.length}</b>` : ""}</a>
@@ -4074,6 +4150,10 @@ this.$me.find(".duty-req-ok").on("click", (e) =>
 		);
 		if ((this._pj_view || "board") === "cal") {
 			this.render_calendar(project, data, $wrap);
+			return;
+		}
+		if (this._pj_view === "phases") {
+			this.render_phases(project, data, $wrap);
 			return;
 		}
 		const dense = (localStorage.getItem("duty_kb_density") || "comfortable") === "compact";
@@ -10750,6 +10830,22 @@ this.$me.find(".duty-req-ok").on("click", (e) =>
 			.duty-paused-hint { font-size: 12px; color: var(--text-muted, #999); white-space: nowrap; }
 			.duty-paused-dismiss { cursor: pointer; opacity: .5; }
 			.duty-paused-dismiss:hover { opacity: 1; }
+			.duty-phases { padding: 12px 4px; max-width: 720px; }
+			.duty-phases-empty { text-align: center; padding: 24px; }
+			.duty-phase-seed { display: flex; gap: 10px; justify-content: center; align-items: center; flex-wrap: wrap; }
+			.duty-phase-row { display: flex; align-items: center; gap: 12px; padding: 10px 12px; border: 1px solid var(--border-color, #e6e6e6); border-radius: 10px; margin-bottom: 8px; background: #fff; }
+			.duty-phase-active { border-color: #0F5C55; box-shadow: 0 0 0 1px #0F5C55 inset; }
+			.duty-phase-done { opacity: .7; }
+			.duty-phase-ix { width: 26px; height: 26px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 800; background: #EEF4F3; color: #0F5C55; flex: none; }
+			.duty-phase-done .duty-phase-ix { background: #0E8A63; color: #fff; }
+			.duty-phase-main { flex: 1; min-width: 0; }
+			.duty-phase-title { font-weight: 700; }
+			.duty-phase-meta { font-size: 12px; color: var(--text-muted, #888); }
+			.duty-phase-wait { color: #B45309; font-size: 11px; font-weight: 700; }
+			.duty-phase-acts { display: flex; gap: 8px; }
+			.duty-phase-acts a { cursor: pointer; opacity: .65; text-decoration: none; }
+			.duty-phase-acts a:hover { opacity: 1; }
+			.duty-phase-add { margin-top: 10px; }
 			.duty-paused-strip { display: block; }
 			.duty-paused-head { display: flex; align-items: center; gap: 8px; margin-bottom: 4px; font-size: 13px; }
 			.duty-paused-row { display: flex; align-items: center; gap: 10px; padding: 5px 0 5px 26px; border-top: 1px dashed #F0DFB6; }

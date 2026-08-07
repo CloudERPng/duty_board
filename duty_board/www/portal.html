@@ -87,11 +87,25 @@
 		body[data-tab="pm"] .wrap { max-width: 1560px; }
 		@media (min-width: 900px) {
 			body[data-tab="pm"] .rightcol {
-				display: grid !important; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-				gap: 18px; align-items: start; width: auto;
+				display: block !important; width: auto; max-width: 1100px; margin: 0 auto;
 			}
-			body[data-tab="pm"] .rightcol > .card { margin-bottom: 0; }
+			body[data-tab="pm"] .rightcol > .card { margin-bottom: 16px; }
 		}
+		/* PM sub-tabs: show exactly one panel at a time. */
+		#pmsubbar { display: none; }
+		body[data-tab="pm"] #pmsubbar {
+			display: flex; gap: 4px; max-width: 1100px; margin: 0 auto 14px; flex-wrap: wrap;
+		}
+		body[data-tab="pm"] #pmsubbar a {
+			font-size: 13px; font-weight: 700; padding: 8px 16px; border-radius: 10px;
+			color: #65736F; cursor: pointer; text-decoration: none; border: 1px solid transparent;
+		}
+		body[data-tab="pm"] #pmsubbar a.on { background: #123C35; color: #fff; }
+		body[data-tab="pm"] #pmsubbar a:not(.on):hover { background: #EAF0EE; }
+		body[data-tab="pm"][data-pmsub="phases"] .rightcol .card:not(.mstones),
+		body[data-tab="pm"][data-pmsub="chreqs"] .rightcol .card:not(.chreqs),
+		body[data-tab="pm"][data-pmsub="timeline"] .rightcol .card:not(.tlx),
+		body[data-tab="pm"][data-pmsub="uat"] .rightcol .card:not(.uatx) { display: none !important; }
 		body[data-tab="training"] .rightcol { width: auto; display: block; padding-bottom: 90px; }
 		body[data-tab="pm"] .card:not(.mstones):not(.chreqs):not(.uatx):not(.tlx) { display: none; }
 		body[data-tab="home"] .card.chreqs { display: none; }
@@ -119,6 +133,7 @@
 		body[data-tab="home"] .wrap { display: flex; flex-direction: column; }
 		body[data-tab="home"] .card.chat { order: -1; }
 		body[data-tab="pm"] .card:not(.mstones):not(.chreqs):not(.uatx):not(.tlx) { display: none; }
+		body[data-tab="pm"] #pmsubbar { display: flex !important; }
 		body[data-tab="training"] .card:not(.acad) { display: none; }
 		body[data-tab="docs"] .card:not(.docs) { display: none; }
 		body[data-tab="home"] .msgs { max-height: calc(100vh - 380px); }
@@ -780,6 +795,12 @@ body[data-tab="home"] .foot{display:block!important;grid-area:foot}
 	</div>
 	<div class="rightcol">
 	<div id="pselwrap" style="display:none"></div>
+	<div id="pmsubbar">
+		<a data-sub="phases" class="on" onclick="pmShow('phases')">🚩 Phases</a>
+		<a data-sub="chreqs" onclick="pmShow('chreqs')">🔁 Change requests</a>
+		<a data-sub="timeline" data-optional="1" onclick="pmShow('timeline')" style="display:none">📅 Timeline</a>
+		<a data-sub="uat" data-optional="1" onclick="pmShow('uat')" style="display:none">🧪 Acceptance testing</a>
+	</div>
 	<div class="card mstones">
 		<h3 class="foldh" onclick="fold(this,'mstones')"><span class="fc">▾</span> <svg class="li" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/><line x1="4" x2="4" y1="22" y2="15"/></svg> <span class="t">Project milestones</span></h3>
 		<div id="msbarwrap" style="display:none"><div id="msbar"><i></i></div><div id="mscount" class="muted"></div></div>
@@ -1329,16 +1350,36 @@ function loadMilestones() {
 		.then((r) => { if (r && r.rows) { window._pjpm = r.pm || null; renderMilestones(r.rows); } else renderMilestones(r); })
 		.catch((e) => console.warn("milestones:", e.message));
 }
+function _phaseFocusProject(allRows) {
+	// Which project's journey the strip shows. Explicit pick wins; otherwise,
+	// on "All", focus the first REAL project (a phase strip blending projects
+	// is meaningless). Returns { id, label } or null (single/no project).
+	if (window._psel) {
+		const p = (window._projs || []).find((x) => x.id === window._psel);
+		return { id: window._psel, label: p ? p.label : null };
+	}
+	const realIds = [...new Set((allRows || []).map((m) => m.project).filter(Boolean))];
+	if (realIds.length <= 1) return null; // single project: no focus needed
+	const first = (window._projs || []).find((x) => x.id !== "__general__" && realIds.includes(x.id))
+		|| { id: realIds[0], label: null };
+	return { id: first.id, label: first.label };
+}
 function renderMilestones(rows) {
 	window._msrows = rows || [];
-	rows = (rows || []).filter((m) => _pselMatch(m.project));
+	const _focus = _phaseFocusProject(rows);
+	if (_focus && _focus.id) {
+		rows = (rows || []).filter((m) => m.project === _focus.id);
+	} else {
+		rows = (rows || []).filter((m) => _pselMatch(m.project));
+	}
 	const DOTS = { "Upcoming": "⚪", "In Progress": "🔵", "Awaiting Approval": "🟠", "Approved": "✅" };
 	const done = rows.filter((m) => m.status === "Approved").length;
 	const wrap = document.getElementById("msbarwrap");
 	if (rows.length) {
 		wrap.style.display = "block";
 		const cur = rows.findIndex((m) => m.status !== "Approved");
-		wrap.innerHTML = `<div id="msstep">${rows.map((m, i) => {
+		const _focusLbl = (!window._psel && _focus && _focus.label) ? `<div class="msfocus">📁 ${esc(_focus.label)}</div>` : "";
+		wrap.innerHTML = _focusLbl + `<div id="msstep">${rows.map((m, i) => {
 			const st = m.status === "Approved" ? "d" : i === cur ? "a" : "u";
 			return `<div class="mss ${st}"><span class="mssd">${st === "d" ? "✓" : i + 1}</span><span class="mssl">${esc(m.title)}</span>${st === "a" ? `<span class="msshere">You are here${m.target_date ? ` · 🎯 ${esc(m.target_date)}` : ""}</span>` : ""}</div>`;
 		}).join('<span class="mssline"></span>')}</div>
@@ -1376,20 +1417,22 @@ function renderMilestones(rows) {
 	const URG = { Critical: ["#fee2e2", "#C94646"], High: ["#FAEEDC", "#8F5C07"], Medium: ["#e0f2fe", "#075985"], Low: ["#f3f4f6", "#4b5563"] };
 	const taskRow = (t) => {
 		const [ubg, ufg] = URG[t.urgency] || URG.Medium;
+		const awaiting = t.awaiting_client && t.status !== "Done";
+		const dotcol = t.status === "Done" ? "#0E8A63" : t.status === "In Progress" ? "#2563EB" : "#C4CFC9";
 		return `
-		<div class="mst" style="flex-direction:column;align-items:stretch;gap:2px;border:1px solid ${t.awaiting_client && t.status !== "Done" ? "#f59e0b" : "#f3f4f6"};border-radius:8px;padding:7px 9px;margin:2px 0;background:${t.awaiting_client && t.status !== "Done" ? "#fffbeb" : "#fff"}">
-			<div style="display:flex;gap:8px;align-items:baseline">
-				<span class="dotc" style="background:${t.status === "Done" ? "#0E8A63" : t.status === "In Progress" ? "#2563EB" : "#C4CFC9"}"></span>
-				<b style="font-size:13px">${esc(t.title)}</b>
-				<span class="pill" style="background:${ubg};color:${ufg};margin-left:auto">${esc(t.urgency || "Medium")}</span>
-				<span class="pill ${PILL[t.status]}">${esc(t.status)}</span>
+		<div class="ctask${awaiting ? " ctask-await" : ""}">
+			<div class="ctask-main">
+				<span class="dotc" style="background:${dotcol}"></span>
+				<div class="ctask-tw">
+					<b>${esc(t.title)}</b>
+					${t.description ? `<div class="ctask-desc">${esc(t.description)}</div>` : ""}
+				</div>
 			</div>
-			<div class="muted" style="font-size:12px;display:flex;gap:12px;flex-wrap:wrap">
-				${t.assignee ? `<span>👤 ${esc(t.assignee)}</span>` : `<span>👤 Unassigned</span>`}
-				${t.due_date ? `<span style="${t.overdue ? "color:#dc2626;font-weight:700" : ""}">📅 ${t.overdue ? "⚠ " : ""}${esc(t.due_date)}</span>` : ""}
-			</div>
-			${t.description ? `<div class="muted" style="font-size:12px;line-height:1.45">${esc(t.description)}</div>` : ""}
-			${t.awaiting_client && t.status !== "Done" ? `<div style="display:flex;gap:8px;align-items:center;margin-top:2px"><span class="pill pcta">⏳ Your input needed</span><button style="font-size:12px;padding:4px 12px" onclick="respondTask('${esc(t.title).replace(/'/g, "&#39;")}')">💬 Respond</button></div>` : ""}
+			<div class="ctask-who"><span class="ctask-lbl">Owner</span>${t.assignee ? esc(t.assignee) : "Unassigned"}</div>
+			<div class="ctask-due"><span class="ctask-lbl">Due</span>${t.due_date ? `<span class="${t.overdue ? "ctask-over" : ""}">${t.overdue ? "⚠ " : ""}${esc(t.due_date)}</span>` : "—"}</div>
+			<div class="ctask-pri"><span class="pill" style="background:${ubg};color:${ufg}">${esc(t.urgency || "Medium")}</span></div>
+			<div class="ctask-st"><span class="pill ${PILL[t.status]}">${esc(t.status)}</span></div>
+			${awaiting ? `<div class="ctask-cta"><span class="pill pcta">⏳ Your input needed</span><button onclick="respondTask('${esc(t.title).replace(/'/g, "&#39;")}')">💬 Respond</button></div>` : ""}
 		</div>`;
 	};
 	document.getElementById("mstones").innerHTML = (totalAwaiting
@@ -1406,7 +1449,7 @@ function renderMilestones(rows) {
 				${m.status !== "Approved" && m.cards_total ? `<span class="muted" style="font-size:12px">📋 ${m.cards_done} of ${m.cards_total} tasks complete</span>` : ""}
 				${m.status === "Awaiting Approval" ? (m.can_approve === 0 ? `<span class="muted" style="font-size:13px">✋ Awaiting sign-off by your team administrator.</span>` : `<button onclick="approveMilestone('${esc(m.name)}','${esc(m.title)}')">✍ Approve this phase</button>`) : ""}
 				${m.description ? `<div class="desc">${esc(m.description)}</div>` : ""}
-				${(m.tasks || []).length ? `<a class="mstoggle" onclick="this.nextElementSibling.classList.toggle('open');this.querySelector('i').textContent=this.nextElementSibling.classList.contains('open')?'▾':'▸'">📋 ${m.tasks.filter((t) => t.status === "Done").length}/${m.tasks.length} tasks <i>${m.awaiting ? "▾" : "▸"}</i></a><div class="mstasks${m.awaiting ? " open" : ""}">${m.tasks.map(taskRow).join("")}</div>` : ""}
+				${(m.tasks || []).length ? `<a class="mstoggle" onclick="this.nextElementSibling.classList.toggle('open');this.querySelector('i').textContent=this.nextElementSibling.classList.contains('open')?'▾':'▸'">📋 ${m.tasks.filter((t) => t.status === "Done").length}/${m.tasks.length} tasks <i>${m.awaiting ? "▾" : "▸"}</i></a><div class="mstasks${m.awaiting ? " open" : ""}"><div class="ctask ctask-head"><div class="ctask-main">Task</div><div>Owner</div><div>Due</div><div>Priority</div><div>Status</div></div>${m.tasks.map(taskRow).join("")}</div>` : ""}
 			</div>`
 				)
 				.join("")
@@ -2342,6 +2385,26 @@ function setTab(t) {
 		}
 	}
 }
+window._pmsub = "phases";
+function pmShow(panel) {
+	window._pmsub = panel;
+	document.body.dataset.pmsub = panel;
+	document.querySelectorAll("#pmsubbar a").forEach((a) => a.classList.toggle("on", a.dataset.sub === panel));
+}
+function pmSyncOptionalTabs() {
+	// A Timeline / UAT tab appears only when its card has content. The render
+	// functions set card.style.display; we mirror that onto the tab button.
+	const map = { timeline: ".card.tlx", uat: ".card.uatx" };
+	Object.entries(map).forEach(([sub, sel]) => {
+		const card = document.querySelector(sel);
+		const tab = document.querySelector(`#pmsubbar a[data-sub="${sub}"]`);
+		if (!tab) return;
+		const has = card && card.style.display !== "none";
+		tab.style.display = has ? "" : "none";
+		if (!has && window._pmsub === sub) pmShow("phases"); // active tab vanished
+	});
+}
+document.body.dataset.pmsub = "phases";
 setTab((() => {
 	const t = localStorage.getItem("xl_tab");
 	if (t === "plan") return "pm";
@@ -2626,8 +2689,9 @@ function renderTimeline(t) {
 	const card = document.querySelector(".card.tlx");
 	const host = document.getElementById("tlx");
 	if (!card || !host) return;
-	if (!(t.events || []).length) { card.style.display = "none"; return; }
+	if (!(t.events || []).length) { card.style.display = "none"; if (window.pmSyncOptionalTabs) pmSyncOptionalTabs(); return; }
 	card.style.display = "";
+	if (window.pmSyncOptionalTabs) pmSyncOptionalTabs();
 	const CHIP = { client: ["YOU", "#B27409", "#FAEEDC"], xlevel: ["XLEVEL", "#087A67", "#DFF2EC"], info: ["", "", ""] };
 	host.innerHTML = `
 		<div style="font-size:12.5px;margin-bottom:8px;color:#65736F">The full record of this engagement — every step, dated, and who it sat with.
@@ -2653,8 +2717,9 @@ function renderUat(u) {
 	const card = document.querySelector(".card.uatx");
 	const host = document.getElementById("uatx");
 	if (!card || !host) return;
-	if (!u.rows.length) { card.style.display = "none"; QS.uatq = []; renderQueue(); return; }
+	if (!u.rows.length) { card.style.display = "none"; QS.uatq = []; renderQueue(); if (window.pmSyncOptionalTabs) pmSyncOptionalTabs(); return; }
 	card.style.display = "";
+	if (window.pmSyncOptionalTabs) pmSyncOptionalTabs();
 	const p = u.progress || {};
 	const CH = { "Passed": ["#0E8A63", "#15803d"], "Failed": ["#C94646", "#C94646"], "Blocked": ["#B27409", "#B27409"],
 		"Blocked by Issue": ["#B27409", "#B27409"], "Waived": ["#8A9994", "#65736F"], "Awaiting Client": ["#087A67", "#087A67"] };
@@ -2788,6 +2853,29 @@ function uatSign() {
 .mss.a .mssd { background: #123C35; color: #fff; box-shadow: 0 0 0 4px rgba(14,138,99,.18); }
 .mss.a .mssl { color: #123C35; font-weight: 800; }
 .msshere { display: block; font-size: 10px; font-weight: 800; color: #0B6B4F; margin-top: 2px; }
+.msfocus { font-size: 12px; font-weight: 800; color: #0F5C55; margin: 0 0 6px; }
+	/* Client task rows — aligned column grid (desktop) -> stacked card (mobile) */
+	.ctask { display: grid; grid-template-columns: minmax(0,1fr) 130px 116px 92px 104px; column-gap: 12px; row-gap: 2px; align-items: start; border: 1px solid #f0f2f1; border-radius: 8px; padding: 9px 11px; margin: 3px 0; background: #fff; }
+	.ctask-await { border-color: #f59e0b; background: #fffbeb; }
+	.ctask-main { display: flex; gap: 8px; align-items: baseline; min-width: 0; }
+	.ctask-tw { min-width: 0; }
+	.ctask-tw b { font-size: 13px; }
+	.ctask-desc { font-size: 11.5px; line-height: 1.4; color: #7A8783; margin-top: 2px; }
+	.ctask-who, .ctask-due { font-size: 12px; color: #5f6d68; align-self: center; }
+	.ctask-pri, .ctask-st { align-self: center; }
+	.ctask-over { color: #dc2626; font-weight: 700; }
+	.ctask-lbl { display: none; }
+	.ctask-head { background: #F4F7F6; border-color: #E4EAE8; padding-top: 6px; padding-bottom: 6px; font-size: 11px; font-weight: 800; letter-spacing: .03em; text-transform: uppercase; color: #8a958f; }
+	.ctask-head > div { align-self: center; }
+	.ctask-cta { grid-column: 1 / -1; display: flex; gap: 8px; align-items: center; margin-top: 4px; }
+	.ctask-cta button { font-size: 12px; padding: 4px 12px; }
+	@media (max-width: 640px) {
+		.ctask-head { display: none; }
+		.ctask { grid-template-columns: 1fr; row-gap: 4px; }
+		.ctask-who, .ctask-due { display: flex; gap: 6px; }
+		.ctask-lbl { display: inline; font-weight: 700; color: #9aa4a0; min-width: 46px; }
+		.ctask-pri, .ctask-st { justify-self: start; }
+	}
 @media (min-width: 900px) {
 	body[data-tab="acct"] .wrap { display: block; max-width: 1120px; }
 	body[data-tab="acct"] .leftcol, body[data-tab="acct"] .rightcol { display: block; width: auto; }
