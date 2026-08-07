@@ -4159,6 +4159,7 @@ this.$me.find(".duty-req-ok").on("click", (e) =>
 				</div>
 				<div class="duty-kb-title">${frappe.utils.escape_html(t.title)}</div>
 				${t.milestone && this._ms_names && this._ms_names[t.milestone] ? `<div class="duty-kb-ms">🚩 ${frappe.utils.escape_html(this._ms_names[t.milestone])}</div>` : ""}
+				${t.blocked ? `<div class="duty-kb-blk">🔒 ${__("blocked by")} ${frappe.utils.escape_html(t.blocked_title || "")}</div>` : ""}
 				<div class="duty-kb-meta">
 					${who}
 					<span class="duty-lead-badges">
@@ -4398,6 +4399,7 @@ this.$me.find(".duty-req-ok").on("click", (e) =>
 				<label class="duty-ld-f"><span>${__("Urgency")}</span><select data-f="urgency">${["Low", "Medium", "High", "Critical"].map((s) => `<option ${(t.urgency || "Medium") === s ? "selected" : ""}>${s}</option>`).join("")}</select></label>
 				<label class="duty-ld-f"><span>${__("Column")}</span><select data-f="column">${["To Do", "In Progress", "Completed", "Suspended"].map((s) => `<option ${t.column === s ? "selected" : ""}>${s}</option>`).join("")}</select></label>
 				<label class="duty-ld-f"><span>🚩 ${__("Phase")}</span><select data-f="milestone"><option value="">${__("— none —")}</option>${Object.entries(this._ms_names || {}).map(([id, nm]) => `<option value="${id}" ${t.milestone === id ? "selected" : ""}>${esc(nm)}</option>`).join("")}</select></label>
+				<label class="duty-ld-f"><span>🔒 ${__("Blocked by")}</span><select data-f="blocked_by"><option value="">${__("— nothing —")}</option>${(t.task_options || []).map((o) => `<option value="${o.name}" ${t.blocked_by === o.name ? "selected" : ""}>${esc(o.title)}</option>`).join("")}</select></label>
 				<label class="duty-td-chk"><input type="checkbox" data-f="client_visible" ${t.client_visible ? "checked" : ""}> ${__("Visible to client (shows on their portal)")}</label>
 				<label class="duty-td-chk"><input type="checkbox" data-f="awaiting_client" ${t.awaiting_client ? "checked" : ""}> ⏳ ${__("Awaiting client action (nudges them on the portal)")}</label>
 				<label class="duty-ld-f duty-ld-wide"><span>${__("Description")}</span><textarea data-f="description" rows="3">${esc(t.description || "")}</textarea></label>
@@ -4437,6 +4439,7 @@ this.$me.find(".duty-req-ok").on("click", (e) =>
 					awaiting_client: v.awaiting_client ? 1 : 0,
 					hours: v.hours || null,
 					milestone: v.milestone || null,
+					blocked_by: v.blocked_by || null,
 				},
 				callback: (r) => {
 					if (r.message) this.render_kanban(project, r.message);
@@ -4456,6 +4459,7 @@ this.$me.find(".duty-req-ok").on("click", (e) =>
 					client_visible: v2.client_visible ? 1 : 0,
 					awaiting_client: v2.awaiting_client ? 1 : 0, hours: v2.hours,
 					milestone: v2.milestone || null,
+					blocked_by: v2.blocked_by || null,
 				},
 				callback: (r) => {
 					if (r.message) this.render_kanban(project, r.message);
@@ -10792,6 +10796,7 @@ this.$me.find(".duty-req-ok").on("click", (e) =>
 			.duty-pt-st { color: var(--text-muted, #888); font-size: 11px; }
 			.duty-pt-who { color: #5f6d68; font-size: 11px; }
 			.duty-kb-ms { font-size: 10.5px; color: #0F5C55; margin-top: 2px; font-weight: 600; }
+			.duty-kb-blk { font-size: 10.5px; color: #B45309; margin-top: 2px; font-weight: 700; }
 			.duty-baseline-bar { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 8px 12px; border: 1px solid #E4EAE8; border-radius: 10px; margin-bottom: 12px; background: #F7FAF9; font-size: 13px; }
 			.duty-baseline-bar.on { background: #F0F6F4; border-color: #D2E4E0; }
 			.duty-baseline-set { cursor: pointer; }

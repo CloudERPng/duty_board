@@ -134,10 +134,12 @@ def get_project_board(project):
 		fields=[
 			"name", "title", "column", "assignee", "due_date",
 			"urgency", "linked_todo", "modified", "awaiting_client", "milestone",
+			"blocked_by",
 		],
 		order_by="sort_order asc, creation asc",
 	)
 	names = [r.name for r in rows]
+	by_name = {r.name: r for r in rows}
 	note_counts, working, sub_counts = {}, {}, {}
 	if names:
 		for n in frappe.get_all(
@@ -174,6 +176,13 @@ def get_project_board(project):
 		t.working = working.get(t.name, [])
 		t.subs_done, t.subs_total = sub_counts.get(t.name, (0, 0))
 		# t.milestone already present from the fetch
+		t.blocked = 0
+		t.blocked_title = None
+		if t.blocked_by:
+			blk = by_name.get(t.blocked_by)
+			if blk is not None and blk.column != "Completed":
+				t.blocked = 1
+				t.blocked_title = blk.title
 		tasks.setdefault(t.column, []).append(t)
 	from duty_board.client_room import _project_milestone_rows
 
@@ -261,7 +270,7 @@ def reschedule_task(name, due_date=None):
 
 
 @frappe.whitelist()
-def update_task(name, title=None, assignee=None, due_date=None, urgency=None, column=None, description=None, client_visible=None, awaiting_client=None, hours=None, milestone=None):
+def update_task(name, title=None, assignee=None, due_date=None, urgency=None, column=None, description=None, client_visible=None, awaiting_client=None, hours=None, milestone=None, blocked_by=None):
 	from duty_board.permissions import require_staff_or_consultant
 	_is_c = require_staff_or_consultant()
 	if _is_c:
@@ -299,6 +308,21 @@ def update_task(name, title=None, assignee=None, due_date=None, urgency=None, co
 	doc.assignee = assignee or None
 	if milestone is not None:
 		doc.milestone = milestone or None
+	if blocked_by is not None:
+		new_blk = blocked_by or None
+		if new_blk:
+			if new_blk == doc.name:
+				frappe.throw(_("A task cannot be blocked by itself."))
+			# cycle guard: walk up the chain from the proposed blocker
+			seen, cur = set(), new_blk
+			for _hop in range(50):
+				if cur == doc.name:
+					frappe.throw(_("That would create a dependency loop."))
+				if not cur or cur in seen:
+					break
+				seen.add(cur)
+				cur = frappe.db.get_value("Duty Project Task", cur, "blocked_by")
+		doc.blocked_by = new_blk
 	doc.save(ignore_permissions=True)
 
 	if old_assignee != doc.assignee:
@@ -515,6 +539,16 @@ def get_card(name):
 		"due_date": str(doc.due_date) if doc.due_date else None,
 		"urgency": doc.urgency,
 		"milestone": doc.milestone,
+		"blocked_by": doc.blocked_by,
+		"task_options": [
+			{"name": r.name, "title": r.title}
+			for r in frappe.get_all(
+				"Duty Project Task",
+				filters={"project": doc.project, "name": ["!=", doc.name]},
+				fields=["name", "title"],
+				order_by="creation asc",
+			)
+		],
 		"description": doc.description,
 		"client_visible": cint(doc.client_visible),
 		"notes": notes,
