@@ -105,7 +105,7 @@ def get_project_board(project):
 		filters={"project": project},
 		fields=[
 			"name", "title", "column", "assignee", "due_date",
-			"urgency", "linked_todo", "modified", "awaiting_client",
+			"urgency", "linked_todo", "modified", "awaiting_client", "milestone",
 		],
 		order_by="sort_order asc, creation asc",
 	)
@@ -145,6 +145,7 @@ def get_project_board(project):
 		t.notes = note_counts.get(t.name, 0)
 		t.working = working.get(t.name, [])
 		t.subs_done, t.subs_total = sub_counts.get(t.name, (0, 0))
+		# t.milestone already present from the fetch
 		tasks.setdefault(t.column, []).append(t)
 	from duty_board.client_room import _project_milestone_rows
 
@@ -232,7 +233,7 @@ def reschedule_task(name, due_date=None):
 
 
 @frappe.whitelist()
-def update_task(name, title=None, assignee=None, due_date=None, urgency=None, column=None, description=None, client_visible=None, awaiting_client=None, hours=None):
+def update_task(name, title=None, assignee=None, due_date=None, urgency=None, column=None, description=None, client_visible=None, awaiting_client=None, hours=None, milestone=None):
 	from duty_board.permissions import require_staff_or_consultant
 	_is_c = require_staff_or_consultant()
 	if _is_c:
@@ -268,6 +269,8 @@ def update_task(name, title=None, assignee=None, due_date=None, urgency=None, co
 	if client_visible is not None:
 		doc.client_visible = cint(client_visible)
 	doc.assignee = assignee or None
+	if milestone is not None:
+		doc.milestone = milestone or None
 	doc.save(ignore_permissions=True)
 
 	if old_assignee != doc.assignee:
@@ -483,6 +486,7 @@ def get_card(name):
 		"assignee": doc.assignee,
 		"due_date": str(doc.due_date) if doc.due_date else None,
 		"urgency": doc.urgency,
+		"milestone": doc.milestone,
 		"description": doc.description,
 		"client_visible": cint(doc.client_visible),
 		"notes": notes,

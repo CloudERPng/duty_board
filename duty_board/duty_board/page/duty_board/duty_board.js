@@ -4012,22 +4012,41 @@ this.$me.find(".duty-req-ok").on("click", (e) =>
 					<span class="duty-phase-ix">${st === "done" ? "✓" : i + 1}</span>
 					<div class="duty-phase-main">
 						<div class="duty-phase-title">${esc(m.title)}${m.status === "Awaiting Approval" ? ` <span class="duty-phase-wait">⏳ ${__("awaiting client")}</span>` : ""}</div>
-						<div class="duty-phase-meta">${esc(m.status)}${m.target_date ? ` · 🎯 ${esc(m.target_date)}` : ""} · ${m.cards_done || 0}/${m.cards_total || 0} ${__("tasks")}</div>
+						<div class="duty-phase-meta">${esc(m.status)}${m.target_date ? ` · 🎯 ${esc(m.target_date)}` : ""} · ${m.cards_done || 0}/${m.cards_total || 0} ${__("tasks")}${m.baselined && m.slip_days !== null && m.slip_days !== undefined ? ` · <span class="duty-phase-slip ${m.slip_days > 0 ? "late" : m.slip_days < 0 ? "early" : "onplan"}">${m.slip_days > 0 ? `⚠ +${m.slip_days}d vs plan` : m.slip_days < 0 ? `${m.slip_days}d vs plan` : "✓ on plan"}</span>` : ""}</div>
 					</div>
 					<div class="duty-phase-acts">
 						<a data-a="up" title="${__("Move up")}">▲</a>
 						<a data-a="down" title="${__("Move down")}">▼</a>
+						<a data-a="tasks" title="${__("Add or remove tasks")}">📋</a>
+						${!locked ? `<a data-a="edit" title="${__("Edit phase")}">✎</a>` : ""}
 						${st === "active" && m.status !== "In Progress" ? `<a data-a="start" title="${__("Mark in progress")}">▶</a>` : ""}
 						${!locked && m.status !== "Awaiting Approval" ? `<a data-a="ask" title="${__("Request client sign-off")}">✅</a>` : ""}
 						${!locked ? `<a data-a="del" title="${__("Delete phase")}">🗑</a>` : ""}
 					</div>
+					${(m.tasks || []).length ? `<div class="duty-phase-tasks">${m.tasks.map((tk) => `<div class="duty-phase-task"><span class="duty-pt-dot ${tk.status === "Done" ? "done" : ""}"></span><span class="duty-pt-title">${esc(tk.title)}</span><span class="duty-pt-st">${esc(tk.status || "")}</span>${tk.assignee ? `<span class="duty-pt-who">${esc(tk.assignee)}</span>` : ""}</div>`).join("")}</div>` : `<div class="duty-phase-tasks empty">${__("No tasks in this phase yet — 📋 to add.")}</div>`}
 				</div>`;
 			}).join("");
+			const anyBaselined = ms.some((m) => m.baselined);
+			const maxSlip = ms.reduce((mx, m) => (m.slip_days != null && m.slip_days > mx ? m.slip_days : mx), 0);
+			const baselineBar = anyBaselined
+				? `<div class="duty-baseline-bar on"><span>📏 ${__("Baselined")}${maxSlip > 0 ? ` · <b class="duty-phase-slip late">worst slip +${maxSlip}d</b>` : ` · <b class="duty-phase-slip onplan">on plan</b>`}</span><a class="duty-baseline-set muted">${__("Re-baseline")}</a></div>`
+				: `<div class="duty-baseline-bar"><span class="muted">📏 ${__("Not baselined — freeze the agreed plan to track slip against it.")}</span><button class="btn btn-xs btn-primary duty-baseline-set">${__("Set baseline")}</button></div>`;
 			$p.html(`
+				${baselineBar}
 				<div class="duty-phase-list">${rows}</div>
 				<div class="duty-phase-add">
 					<input type="text" class="form-control input-sm duty-newphase" placeholder="${__("Add a phase title and press Enter…")}" style="max-width:340px;display:inline-block">
 				</div>`);
+			$p.find(".duty-baseline-set").on("click", () => {
+				const go = () => frappe.call({
+					method: "duty_board.client_room.project_set_baseline",
+					args: { project: project },
+					freeze: true,
+					callback: (r) => { frappe.show_alert({ message: __("Baseline set — {0} phases frozen.", [(r.message || {}).phases_baselined || 0]), indicator: "green" }); this.load_kanban(project); },
+				});
+				if (anyBaselined) frappe.confirm(__("Re-baseline this project? The frozen plan is replaced by the current dates — do this only for a deliberate, agreed re-plan."), go);
+				else go();
+			});
 			$p.find(".duty-phase-acts a").on("click", (e) => {
 				const a = $(e.currentTarget).data("a");
 				const id = $(e.currentTarget).closest(".duty-phase-row").data("id");
@@ -4036,6 +4055,40 @@ this.$me.find(".duty-req-ok").on("click", (e) =>
 				if (a === "start") return frappe.call({ method: "duty_board.client_room.milestone_set_status", args: { id: id, status: "In Progress" }, callback: done });
 				if (a === "ask") return frappe.confirm(__("Tell the client this phase is complete and request their formal sign-off?"), () => frappe.call({ method: "duty_board.client_room.milestone_request_approval", args: { id: id }, callback: done }));
 				if (a === "del") return frappe.confirm(__("Delete this phase? Its tasks are kept but unlinked."), () => frappe.call({ method: "duty_board.client_room.milestone_delete", args: { id: id }, callback: done }));
+				if (a === "tasks") {
+					const m = (ms || []).find((z) => z.name === id) || {};
+					frappe.call({ method: "duty_board.client_room.project_milestone_task_options", args: { id: id }, callback: (r) => {
+						const opts = r.message || [];
+						const pd = new frappe.ui.Dialog({ title: `📋 ${frappe.utils.escape_html(m.title || "")} — ${__("tasks in this phase")}` });
+						$(pd.body).html(opts.length
+							? opts.map((o) => `<label style="display:flex;gap:8px;align-items:baseline;padding:5px 2px;border-bottom:1px dashed var(--border-color);font-size:var(--text-sm)"><input type="checkbox" value="${o.name}" ${o.checked ? "checked" : ""}><b>${frappe.utils.escape_html(o.title)}</b><span class="text-muted">${frappe.utils.escape_html(o.column)}</span>${o.elsewhere ? `<span class="duty-lead-chip">${__("in another phase")}</span>` : ""}</label>`).join("")
+								+ `<p class="text-muted duty-attach-hint">${__("Ticked tasks belong to this phase; on the client's plan their title and status become visible under it.")}</p><button type="button" class="btn btn-sm btn-primary duty-pt-save">${__("Save")}</button>`
+							: `<div class="text-muted">${__("This project has no tasks yet. Add tasks on the Board, then attach them here.")}</div>`);
+						$(pd.body).find(".duty-pt-save").on("click", () => {
+							const picked = $(pd.body).find("input:checked").map((i, el) => el.value).get();
+							frappe.call({ method: "duty_board.client_room.milestone_set_tasks", args: { id: id, tasks: JSON.stringify(picked) }, callback: () => { pd.hide(); frappe.show_alert({ message: __("Phase tasks updated."), indicator: "green" }); done(); } });
+						});
+						pd.show();
+					}});
+					return;
+				}
+				if (a === "edit") {
+					const m = (ms || []).find((z) => z.name === id) || {};
+					frappe.prompt(
+						[
+							{ fieldname: "title", fieldtype: "Data", label: __("Phase title"), default: m.title || "", reqd: 1 },
+							{ fieldname: "target_date", fieldtype: "Date", label: __("Target date"), default: m.target_date || null },
+							{ fieldname: "description", fieldtype: "Small Text", label: __("Description"), default: m.description || "" },
+						],
+						(v) => frappe.call({
+							method: "duty_board.client_room.milestone_update",
+							args: { id: id, title: v.title, target_date: v.target_date || null, description: v.description || "" },
+							callback: () => { frappe.show_alert({ message: __("Phase updated."), indicator: "green" }); done(); },
+						}),
+						__("Edit phase"), __("Save")
+					);
+					return;
+				}
 			});
 			$p.find(".duty-newphase").on("keydown", (e) => {
 				if (e.key !== "Enter") return;
@@ -4062,6 +4115,7 @@ this.$me.find(".duty-req-ok").on("click", (e) =>
 					${t.due_date ? `<span class="duty-kb-due ${t.overdue ? "duty-issue-overdue" : ""}">${t.overdue ? "⚠ " : ""}${frappe.datetime.str_to_user(t.due_date)}</span>` : ""}
 				</div>
 				<div class="duty-kb-title">${frappe.utils.escape_html(t.title)}</div>
+				${t.milestone && this._ms_names && this._ms_names[t.milestone] ? `<div class="duty-kb-ms">🚩 ${frappe.utils.escape_html(this._ms_names[t.milestone])}</div>` : ""}
 				<div class="duty-kb-meta">
 					${who}
 					<span class="duty-lead-badges">
@@ -4077,6 +4131,8 @@ this.$me.find(".duty-req-ok").on("click", (e) =>
 
 	render_kanban(project, data) {
 		if (project !== this.current_project) return;
+		this._ms_names = {};
+		(data.milestones || []).forEach((m) => { this._ms_names[m.name] = m.title; });
 		const $wrap = this.$projects.find(".duty-kanban-wrap").empty();
 		const proj = (this._projects || []).find((p) => p.name === project);
 		this._kb_color = this.proj_color(project);
@@ -4298,6 +4354,7 @@ this.$me.find(".duty-req-ok").on("click", (e) =>
 				<label class="duty-ld-f"><span>${__("Due Date")}</span><input type="date" data-f="due_date" value="${t.due_date || ""}"></label>
 				<label class="duty-ld-f"><span>${__("Urgency")}</span><select data-f="urgency">${["Low", "Medium", "High", "Critical"].map((s) => `<option ${(t.urgency || "Medium") === s ? "selected" : ""}>${s}</option>`).join("")}</select></label>
 				<label class="duty-ld-f"><span>${__("Column")}</span><select data-f="column">${["To Do", "In Progress", "Completed", "Suspended"].map((s) => `<option ${t.column === s ? "selected" : ""}>${s}</option>`).join("")}</select></label>
+				<label class="duty-ld-f"><span>🚩 ${__("Phase")}</span><select data-f="milestone"><option value="">${__("— none —")}</option>${Object.entries(this._ms_names || {}).map(([id, nm]) => `<option value="${id}" ${t.milestone === id ? "selected" : ""}>${esc(nm)}</option>`).join("")}</select></label>
 				<label class="duty-td-chk"><input type="checkbox" data-f="client_visible" ${t.client_visible ? "checked" : ""}> ${__("Visible to client (shows on their portal)")}</label>
 				<label class="duty-td-chk"><input type="checkbox" data-f="awaiting_client" ${t.awaiting_client ? "checked" : ""}> ⏳ ${__("Awaiting client action (nudges them on the portal)")}</label>
 				<label class="duty-ld-f duty-ld-wide"><span>${__("Description")}</span><textarea data-f="description" rows="3">${esc(t.description || "")}</textarea></label>
@@ -4336,6 +4393,7 @@ this.$me.find(".duty-req-ok").on("click", (e) =>
 					client_visible: v.client_visible ? 1 : 0,
 					awaiting_client: v.awaiting_client ? 1 : 0,
 					hours: v.hours || null,
+					milestone: v.milestone || null,
 				},
 				callback: (r) => {
 					if (r.message) this.render_kanban(project, r.message);
@@ -4354,6 +4412,7 @@ this.$me.find(".duty-req-ok").on("click", (e) =>
 					description: v2.description || null,
 					client_visible: v2.client_visible ? 1 : 0,
 					awaiting_client: v2.awaiting_client ? 1 : 0, hours: v2.hours,
+					milestone: v2.milestone || null,
 				},
 				callback: (r) => {
 					if (r.message) this.render_kanban(project, r.message);
@@ -10681,6 +10740,23 @@ this.$me.find(".duty-req-ok").on("click", (e) =>
 			.duty-phase-acts a { cursor: pointer; opacity: .65; text-decoration: none; }
 			.duty-phase-acts a:hover { opacity: 1; }
 			.duty-phase-add { margin-top: 10px; }
+			.duty-phase-tasks { margin: 4px 0 2px 38px; display: flex; flex-direction: column; gap: 3px; }
+			.duty-phase-tasks.empty { color: var(--text-muted, #9aa4a0); font-size: 12px; font-style: italic; }
+			.duty-phase-task { display: flex; align-items: center; gap: 8px; font-size: 12.5px; }
+			.duty-pt-dot { width: 7px; height: 7px; border-radius: 50%; background: #C4CFC9; flex: none; }
+			.duty-pt-dot.done { background: #0E8A63; }
+			.duty-pt-title { flex: 1; min-width: 0; }
+			.duty-pt-st { color: var(--text-muted, #888); font-size: 11px; }
+			.duty-pt-who { color: #5f6d68; font-size: 11px; }
+			.duty-kb-ms { font-size: 10.5px; color: #0F5C55; margin-top: 2px; font-weight: 600; }
+			.duty-baseline-bar { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 8px 12px; border: 1px solid #E4EAE8; border-radius: 10px; margin-bottom: 12px; background: #F7FAF9; font-size: 13px; }
+			.duty-baseline-bar.on { background: #F0F6F4; border-color: #D2E4E0; }
+			.duty-baseline-set { cursor: pointer; }
+			a.duty-baseline-set { font-size: 12px; text-decoration: underline; }
+			.duty-phase-slip { font-weight: 700; }
+			.duty-phase-slip.late { color: #C2410C; }
+			.duty-phase-slip.early { color: #0E8A63; }
+			.duty-phase-slip.onplan { color: #0E8A63; }
 			.duty-paused-strip { display: block; }
 			.duty-paused-head { display: flex; align-items: center; gap: 8px; margin-bottom: 4px; font-size: 13px; }
 			.duty-paused-row { display: flex; align-items: center; gap: 10px; padding: 5px 0 5px 26px; border-top: 1px dashed #F0DFB6; }

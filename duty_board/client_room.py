@@ -1878,6 +1878,7 @@ def _milestone_rows(room):
 		fields=[
 			"name", "title", "description", "sort_order", "status", "target_date",
 			"approved_full", "approved_at", "approval_note", "submitted_on", "project",
+			"baseline_date",
 		],
 		order_by="sort_order asc, creation asc",
 	)
@@ -1893,6 +1894,7 @@ def _project_milestone_rows(project):
 		fields=[
 			"name", "title", "description", "sort_order", "status", "target_date",
 			"approved_full", "approved_at", "approval_note", "submitted_on", "project",
+			"baseline_date",
 		],
 		order_by="sort_order asc, creation asc",
 	)
@@ -1901,8 +1903,18 @@ def _project_milestone_rows(project):
 
 
 def _milestone_decorate(rows, pnames):
-	"""Shared row builder: attach tasks, progress counts, project label."""
+	"""Shared row builder: attach tasks, progress counts, project label,
+	and baseline variance (slip vs the frozen plan)."""
+	from frappe.utils import date_diff
 	for r in rows:
+		baseline = r.get("baseline_date")
+		r.baseline_date = str(baseline) if baseline else None
+		r.baselined = 1 if baseline else 0
+		if baseline and r.get("target_date"):
+			# +ve = later than plan (slipped), -ve = ahead of plan
+			r.slip_days = date_diff(r.target_date, baseline)
+		else:
+			r.slip_days = None
 		r.target_date = str(r.target_date) if r.target_date else None
 		r.approved_at = str(r.approved_at)[:16] if r.approved_at else None
 		tasks = frappe.get_all(
@@ -1998,6 +2010,39 @@ def project_seed_milestones(project, plan_type=None):
 			).insert(ignore_permissions=True)
 	frappe.db.commit()
 	return {"ok": 1, "project": project}
+
+
+@frappe.whitelist()
+def project_set_baseline(project):
+	"""Freeze the current phase target dates as the project's baseline. Call
+	once the plan is agreed; variance is measured against this line. Safe to
+	re-run (a deliberate re-plan) — it re-freezes to current targets."""
+	_staff_only()
+	if not frappe.db.exists("Duty Project", project):
+		frappe.throw(_("Unknown project."))
+	phases = frappe.get_all(
+		"Duty Milestone",
+		filters={"project": project},
+		fields=["name", "target_date"],
+	)
+	if not phases:
+		frappe.throw(_("Seed or add phases before baselining."))
+	stamped = 0
+	for p in phases:
+		if p.target_date:
+			frappe.db.set_value("Duty Milestone", p.name, "baseline_date", p.target_date, update_modified=False)
+			stamped += 1
+	frappe.db.set_value("Duty Project", project, "baselined_on", frappe.utils.now(), update_modified=False)
+	frappe.db.commit()
+	return {"ok": 1, "project": project, "phases_baselined": stamped}
+
+
+@frappe.whitelist()
+def project_baseline_status(project):
+	"""Whether a project is baselined, and when."""
+	_staff_only()
+	on = frappe.db.get_value("Duty Project", project, "baselined_on")
+	return {"baselined": 1 if on else 0, "baselined_on": str(on)[:16] if on else None}
 
 
 @frappe.whitelist()
@@ -2140,6 +2185,32 @@ def milestone_task_options(id):
 					"elsewhere": bool(t.milestone and t.milestone != id),
 				}
 			)
+	return out
+
+
+@frappe.whitelist()
+def project_milestone_task_options(id):
+	"""Tasks of THIS milestone's project, flagged for the picker. Project-
+	scoped (unlike the legacy customer-wide milestone_task_options)."""
+	_staff_only()
+	ms = frappe.get_doc("Duty Milestone", id)
+	project = frappe.db.get_value("Duty Milestone", id, "project")
+	out = []
+	if not project:
+		return out
+	for t in frappe.get_all(
+		"Duty Project Task",
+		filters={"project": project},
+		fields=["name", "title", "column", "milestone"],
+		order_by="creation asc",
+	):
+		out.append({
+			"name": t.name,
+			"title": t.title,
+			"column": t.column,
+			"checked": t.milestone == id,
+			"elsewhere": bool(t.milestone and t.milestone != id),
+		})
 	return out
 
 
