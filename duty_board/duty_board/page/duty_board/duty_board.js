@@ -172,6 +172,7 @@ class DutyBoard {
 				<div class="duty-pj-side">
 					<div class="duty-pj-sidehead">
 						<input type="text" class="form-control input-sm duty-pj-filter" placeholder="${__("Filter projects…")}">
+						<button class="btn btn-sm btn-default duty-proj-portfolio" title="${__("Portfolio — all projects at a glance")}">📊</button>
 						<button class="btn btn-sm btn-default duty-proj-new" title="${__("New Project")}">＋</button>
 					</div>
 					<div class="duty-proj-tabs"></div>
@@ -183,6 +184,7 @@ class DutyBoard {
 			</div>
 		`).appendTo(page.body);
 		this.$projects.find(".duty-proj-new").on("click", () => this.new_project_dialog());
+		this.$projects.find(".duty-proj-portfolio").on("click", () => this.render_portfolio());
 		this.$library = $(`<div class="duty-library" style="display:none"></div>`).appendTo(page.body);
 		this.$news = $(`<div class="duty-news" style="display:none"></div>`).appendTo(page.body);
 		this.$projects.find(".duty-pj-filter").on("input", (e) => {
@@ -3712,6 +3714,47 @@ this.$me.find(".duty-req-ok").on("click", (e) =>
 
 	toggle_sales() {
 		this.show_face(this.face === "sales" ? "board" : "sales");
+	}
+
+	render_portfolio() {
+		this.current_project = null;
+		if (this.is_mobile()) this.$projects.addClass("pj-detail");
+		const $wrap = this.$projects.find(".duty-kanban-wrap").empty();
+		const esc = frappe.utils.escape_html;
+		const ps = (this._projects || []).slice().sort((a, b) => (b.at_risk || 0) - (a.at_risk || 0) || (b.overdue || 0) - (a.overdue || 0) || (b.worst_slip || 0) - (a.worst_slip || 0));
+		if (!ps.length) { $wrap.html(`<div class="text-muted duty-plan-empty">${__("No active projects.")}</div>`); return; }
+		const atRisk = ps.filter((p) => p.at_risk).length;
+		const rows = ps.map((p) => {
+			const pc = this.proj_color(p.name);
+			const slip = p.worst_slip != null && p.worst_slip > 0 ? `<span class="duty-pf-slip late">+${p.worst_slip}d</span>` : (p.phases_total ? `<span class="duty-pf-slip ok">on plan</span>` : `<span class="text-muted">—</span>`);
+			const phase = p.phase_current ? esc(p.phase_current) : `<span class="text-muted">${__("no phases")}</span>`;
+			const due = p.days_left == null ? `<span class="text-muted">—</span>` : p.days_left < 0 ? `<span class="duty-pf-slip late">${Math.abs(p.days_left)}d over</span>` : `${p.days_left}d left`;
+			return `
+				<tr class="duty-pf-row" data-name="${p.name}">
+					<td><span class="duty-pf-dot" style="background:${pc}"></span><b>${esc(p.project_name)}</b><div class="duty-pf-cust">${esc(p.customer || "")}</div></td>
+					<td>🚩 ${phase}${p.phases_total ? ` <span class="text-muted">${p.phases_done}/${p.phases_total}</span>` : ""}</td>
+					<td><div class="duty-pf-bar"><span style="width:${p.pct || 0}%;background:${pc}"></span></div><span class="duty-pf-pct">${p.pct || 0}%</span></td>
+					<td>${slip}</td>
+					<td>${p.overdue ? `<span class="duty-proj-over">⚠ ${p.overdue}</span>` : `<span class="text-muted">0</span>`}</td>
+					<td>${due}</td>
+					<td>${p.at_risk ? `<span class="duty-pf-badge risk">At risk</span>` : `<span class="duty-pf-badge ok">On track</span>`}</td>
+				</tr>`;
+		}).join("");
+		$wrap.html(`
+			<div class="duty-pf">
+				<div class="duty-pf-head"><b>📊 ${__("Portfolio")}</b><span class="text-muted">${ps.length} ${__("active")}${atRisk ? ` · <b class="duty-proj-over">${atRisk} ${__("at risk")}</b>` : ""}</span></div>
+				<table class="duty-pf-table">
+					<thead><tr><th>${__("Project")}</th><th>${__("Phase")}</th><th>${__("Progress")}</th><th>${__("Slip")}</th><th>${__("Overdue")}</th><th>${__("Target")}</th><th>${__("Status")}</th></tr></thead>
+					<tbody>${rows}</tbody>
+				</table>
+			</div>`);
+		$wrap.find(".duty-pf-row").on("click", (e) => {
+			const name = $(e.currentTarget).data("name");
+			this.current_project = name;
+			localStorage.setItem("duty_proj", name);
+			this.render_project_tabs();
+			this.load_kanban(name);
+		});
 	}
 
 	refresh_projects(silent) {
@@ -11218,6 +11261,23 @@ this.$me.find(".duty-req-ok").on("click", (e) =>
 			}
 			.duty-projects { padding-bottom: 76px; }
 			.duty-proj-head { display: flex; gap: 12px; align-items: flex-start; flex-wrap: wrap; margin-bottom: 12px; }
+			.duty-pf { max-width: 1100px; }
+			.duty-pf-head { display: flex; align-items: baseline; gap: 12px; margin-bottom: 14px; font-size: 16px; }
+			.duty-pf-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+			.duty-pf-table th { text-align: left; font-size: 11px; text-transform: uppercase; letter-spacing: .03em; color: #8a958f; padding: 6px 10px; border-bottom: 2px solid #E4EAE8; }
+			.duty-pf-table td { padding: 10px; border-bottom: 1px solid #EEF2F1; vertical-align: middle; }
+			.duty-pf-row { cursor: pointer; }
+			.duty-pf-row:hover { background: #F4F7F6; }
+			.duty-pf-dot { display: inline-block; width: 9px; height: 9px; border-radius: 50%; margin-right: 7px; }
+			.duty-pf-cust { font-size: 11px; color: #8a958f; margin-left: 16px; }
+			.duty-pf-bar { display: inline-block; width: 90px; height: 7px; border-radius: 4px; background: #EEF2F1; overflow: hidden; vertical-align: middle; }
+			.duty-pf-bar span { display: block; height: 100%; }
+			.duty-pf-pct { font-size: 11px; color: #65736F; margin-left: 6px; }
+			.duty-pf-slip.late { color: #C2410C; font-weight: 700; }
+			.duty-pf-slip.ok { color: #0E8A63; }
+			.duty-pf-badge { font-size: 11px; font-weight: 700; padding: 3px 9px; border-radius: 20px; }
+			.duty-pf-badge.risk { background: #FEF0E6; color: #C2410C; }
+			.duty-pf-badge.ok { background: #E7F5EF; color: #0E8A63; }
 			.duty-projects { display: flex; gap: 0; align-items: stretch; min-height: calc(100vh - 120px); }
 			.duty-pj-side { width: 250px; flex: none; border-right: 1px solid #e5e7eb; padding: 8px 8px 8px 0; overflow-y: auto; max-height: calc(100vh - 110px); }
 			.duty-pj-sidehead { display: flex; gap: 6px; margin-bottom: 8px; }

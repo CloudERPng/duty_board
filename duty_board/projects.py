@@ -59,6 +59,34 @@ def get_projects():
 		p.pct = int(p["done"] * 100 / p["total"]) if p["total"] else 0
 		p.target_date = str(p.target_date) if p.target_date else None
 		p.days_left = (getdate(p.target_date) - tday).days if p.target_date else None
+
+	# --- phase + baseline slip per project (portfolio signals) ---
+	from frappe.utils import date_diff
+	ms_rows = frappe.get_all(
+		"Duty Milestone",
+		filters={"project": ["in", [p.name for p in projects]]},
+		fields=["project", "title", "status", "target_date", "baseline_date", "sort_order"],
+		order_by="sort_order asc",
+	)
+	ph = {p.name: {"total": 0, "done": 0, "current": None, "worst_slip": None} for p in projects}
+	for m in ms_rows:
+		g = ph[m.project]
+		g["total"] += 1
+		if m.status == "Approved":
+			g["done"] += 1
+		elif g["current"] is None:
+			g["current"] = m.title  # first non-approved by sort_order = where we are
+		if m.baseline_date and m.target_date:
+			slip = date_diff(m.target_date, m.baseline_date)
+			if g["worst_slip"] is None or slip > g["worst_slip"]:
+				g["worst_slip"] = slip
+	for p in projects:
+		g = ph[p.name]
+		p.phases_total = g["total"]
+		p.phases_done = g["done"]
+		p.phase_current = g["current"] or ("Complete" if g["total"] and g["done"] == g["total"] else None)
+		p.worst_slip = g["worst_slip"]
+		p.at_risk = 1 if (p.get("overdue", 0) or (g["worst_slip"] or 0) > 0) else 0
 	return projects
 
 
