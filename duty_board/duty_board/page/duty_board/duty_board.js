@@ -173,6 +173,7 @@ class DutyBoard {
 					<div class="duty-pj-sidehead">
 						<input type="text" class="form-control input-sm duty-pj-filter" placeholder="${__("Filter projects…")}">
 						<button class="btn btn-sm btn-default duty-proj-portfolio" title="${__("Portfolio — all projects at a glance")}">📊</button>
+						<button class="btn btn-sm btn-default duty-proj-team" title="${__("Team load — who's carrying what")}">👥</button>
 						<button class="btn btn-sm btn-default duty-proj-new" title="${__("New Project")}">＋</button>
 					</div>
 					<div class="duty-proj-tabs"></div>
@@ -185,6 +186,7 @@ class DutyBoard {
 		`).appendTo(page.body);
 		this.$projects.find(".duty-proj-new").on("click", () => this.new_project_dialog());
 		this.$projects.find(".duty-proj-portfolio").on("click", () => this.render_portfolio());
+		this.$projects.find(".duty-proj-team").on("click", () => this.render_team_load());
 		this.$library = $(`<div class="duty-library" style="display:none"></div>`).appendTo(page.body);
 		this.$news = $(`<div class="duty-news" style="display:none"></div>`).appendTo(page.body);
 		this.$projects.find(".duty-pj-filter").on("input", (e) => {
@@ -3716,6 +3718,39 @@ this.$me.find(".duty-req-ok").on("click", (e) =>
 		this.show_face(this.face === "sales" ? "board" : "sales");
 	}
 
+	render_team_load() {
+		this.current_project = null;
+		if (this.is_mobile()) this.$projects.addClass("pj-detail");
+		const $wrap = this.$projects.find(".duty-kanban-wrap").empty();
+		const esc = frappe.utils.escape_html;
+		$wrap.html(`<div class="text-muted duty-plan-empty">${__("Loading team load…")}</div>`);
+		frappe.call({
+			method: "duty_board.projects.get_team_load",
+			callback: (r) => {
+				const rows = r.message || [];
+				if (!rows.length) { $wrap.html(`<div class="text-muted duty-plan-empty">${__("No open work.")}</div>`); return; }
+				const body = rows.map((p) => `
+					<tr>
+						<td><b style="color:${p.user ? this.user_color(p.user) : "#8a958f"}">${esc(p.full_name)}</b></td>
+						<td>${p.open}</td>
+						<td>${p.overdue ? `<span class="duty-proj-over">⚠ ${p.overdue}</span>` : `<span class="text-muted">0</span>`}</td>
+						<td>${p.est_hours ? `${p.est_hours}h` : `<span class="text-muted">—</span>`}</td>
+						<td>${p.blocked ? `🔒 ${p.blocked}` : `<span class="text-muted">0</span>`}</td>
+						<td class="duty-tl-projects">${p.projects.map((n) => `<span class="duty-tl-chip">${esc(n)}</span>`).join(" ")}</td>
+					</tr>`).join("");
+				$wrap.html(`
+					<div class="duty-pf">
+						<div class="duty-pf-head"><b>👥 ${__("Team load")}</b><span class="text-muted">${rows.length} ${__("people")} · ${__("heaviest first")}</span></div>
+						<table class="duty-pf-table">
+							<thead><tr><th>${__("Person")}</th><th>${__("Open")}</th><th>${__("Overdue")}</th><th>${__("Est. remaining")}</th><th>${__("Blocked")}</th><th>${__("Projects")}</th></tr></thead>
+							<tbody>${body}</tbody>
+						</table>
+						<p class="text-muted" style="font-size:12px;margin-top:10px">${__("Est. remaining sums estimate hours on open tasks — tasks without estimates count as 0, so fill estimates for a truthful picture.")}</p>
+					</div>`);
+			},
+		});
+	}
+
 	render_portfolio() {
 		this.current_project = null;
 		if (this.is_mobile()) this.$projects.addClass("pj-detail");
@@ -3737,7 +3772,7 @@ this.$me.find(".duty-req-ok").on("click", (e) =>
 					<td>${slip}</td>
 					<td>${p.overdue ? `<span class="duty-proj-over">⚠ ${p.overdue}</span>` : `<span class="text-muted">0</span>`}</td>
 					<td>${due}</td>
-					<td>${p.at_risk ? `<span class="duty-pf-badge risk">At risk</span>` : `<span class="duty-pf-badge ok">On track</span>`}</td>
+					<td>${p.at_risk ? `<span class="duty-pf-badge risk">At risk</span>` : `<span class="duty-pf-badge ok">On track</span>`}${p.open_risks ? `<div class="duty-pf-risks">⚠ ${p.open_risks} ${__("risks")}</div>` : ""}</td>
 				</tr>`;
 		}).join("");
 		$wrap.html(`
@@ -4019,6 +4054,57 @@ this.$me.find(".duty-req-ok").on("click", (e) =>
 		});
 	}
 
+	render_risks(project, $wrap) {
+		const esc = frappe.utils.escape_html;
+		$wrap.html(`<div class="text-muted duty-plan-empty">${__("Loading risks…")}</div>`);
+		const SEVC = (s) => s >= 6 ? "#C2410C" : s >= 3 ? "#B45309" : "#65736F";
+		const reload = () => frappe.call({ method: "duty_board.projects.project_risks", args: { project: project }, callback: (r) => draw(r.message || []) });
+		const draw = (rows) => {
+			const open = rows.filter((x) => x.status !== "Closed").length;
+			const body = rows.map((x) => `
+				<tr class="${x.status === "Closed" ? "duty-risk-closed" : ""}" data-name="${x.name}">
+					<td><b style="color:${SEVC(x.severity)}">${x.severity}</b></td>
+					<td><b>${esc(x.title)}</b>${x.mitigation ? `<div class="duty-risk-mit">${esc(x.mitigation)}</div>` : ""}</td>
+					<td>${esc(x.likelihood)}</td>
+					<td>${esc(x.impact)}</td>
+					<td>${x.owner_name ? esc(x.owner_name) : `<span class="text-muted">—</span>`}</td>
+					<td>${esc(x.status)}</td>
+					<td class="duty-risk-acts"><a data-a="edit">✎</a> ${x.status !== "Closed" ? `<a data-a="close">✅</a>` : ""} <a data-a="del">🗑</a></td>
+				</tr>`).join("");
+			$wrap.html(`
+				<div class="duty-pf">
+					<div class="duty-pf-head"><b>⚠ ${__("Risk register")}</b><span class="text-muted">${open} ${__("open")}</span><button class="btn btn-xs btn-primary duty-risk-add" style="margin-left:auto">＋ ${__("Log a risk")}</button></div>
+					${rows.length ? `<table class="duty-pf-table"><thead><tr><th>${__("Sev")}</th><th>${__("Risk & mitigation")}</th><th>${__("Likelihood")}</th><th>${__("Impact")}</th><th>${__("Owner")}</th><th>${__("Status")}</th><th></th></tr></thead><tbody>${body}</tbody></table>` : `<div class="text-muted duty-plan-empty">${__("No risks logged. A major project with an empty register usually means nobody looked.")}</div>`}
+				</div>`);
+			const dlg = (x) => frappe.prompt(
+				[
+					{ fieldname: "title", fieldtype: "Data", label: __("Risk"), reqd: 1, default: x ? x.title : "" },
+					{ fieldname: "likelihood", fieldtype: "Select", label: __("Likelihood"), options: ["Low", "Medium", "High"], default: x ? x.likelihood : "Medium" },
+					{ fieldname: "impact", fieldtype: "Select", label: __("Impact"), options: ["Low", "Medium", "High"], default: x ? x.impact : "Medium" },
+					{ fieldname: "mitigation", fieldtype: "Small Text", label: __("Mitigation"), default: x ? x.mitigation || "" : "" },
+					{ fieldname: "owner_user", fieldtype: "Link", options: "User", label: __("Owner"), default: x ? x.owner_user || "" : "" },
+					{ fieldname: "status", fieldtype: "Select", label: __("Status"), options: ["Open", "Mitigating", "Closed"], default: x ? x.status : "Open" },
+				],
+				(v) => frappe.call({
+					method: "duty_board.projects.risk_save",
+					args: { project: project, name: x ? x.name : null, ...v },
+					callback: (r) => draw(r.message || []),
+				}),
+				x ? __("Edit risk") : __("Log a risk"), __("Save")
+			);
+			$wrap.find(".duty-risk-add").on("click", () => dlg(null));
+			$wrap.find(".duty-risk-acts a").on("click", (e) => {
+				const a = $(e.currentTarget).data("a");
+				const nm = $(e.currentTarget).closest("tr").data("name");
+				const x = rows.find((z) => z.name === nm);
+				if (a === "edit") return dlg(x);
+				if (a === "close") return frappe.call({ method: "duty_board.projects.risk_save", args: { project: project, name: nm, title: x.title, likelihood: x.likelihood, impact: x.impact, mitigation: x.mitigation, owner_user: x.owner_user, status: "Closed" }, callback: (r) => draw(r.message || []) });
+				if (a === "del") return frappe.confirm(__("Delete this risk entry?"), () => frappe.call({ method: "duty_board.projects.risk_delete", args: { name: nm }, callback: (r) => draw(r.message || []) }));
+			});
+		};
+		reload();
+	}
+
 	render_phases(project, data, $wrap) {
 		const ms = data.milestones || [];
 		const esc = frappe.utils.escape_html;
@@ -4055,7 +4141,7 @@ this.$me.find(".duty-req-ok").on("click", (e) =>
 					<span class="duty-phase-ix">${st === "done" ? "✓" : i + 1}</span>
 					<div class="duty-phase-main">
 						<div class="duty-phase-title">${esc(m.title)}${m.status === "Awaiting Approval" ? ` <span class="duty-phase-wait">⏳ ${__("awaiting client")}</span>` : ""}</div>
-						<div class="duty-phase-meta">${esc(m.status)}${m.target_date ? ` · 🎯 ${esc(m.target_date)}` : ""} · ${m.cards_done || 0}/${m.cards_total || 0} ${__("tasks")}${m.baselined && m.slip_days !== null && m.slip_days !== undefined ? ` · <span class="duty-phase-slip ${m.slip_days > 0 ? "late" : m.slip_days < 0 ? "early" : "onplan"}">${m.slip_days > 0 ? `⚠ +${m.slip_days}d vs plan` : m.slip_days < 0 ? `${m.slip_days}d vs plan` : "✓ on plan"}</span>` : ""}</div>
+						<div class="duty-phase-meta">${esc(m.status)}${m.target_date ? ` · 🎯 ${esc(m.target_date)}` : ""} · ${m.cards_done || 0}/${m.cards_total || 0} ${__("tasks")}${m.est_hours ? ` · ⏱ <span class="${m.act_hours > m.est_hours ? "duty-est-over" : ""}">${m.act_hours || 0}h/${m.est_hours}h</span>` : m.act_hours ? ` · ⏱ ${m.act_hours}h` : ""}${m.baselined && m.slip_days !== null && m.slip_days !== undefined ? ` · <span class="duty-phase-slip ${m.slip_days > 0 ? "late" : m.slip_days < 0 ? "early" : "onplan"}">${m.slip_days > 0 ? `⚠ +${m.slip_days}d vs plan` : m.slip_days < 0 ? `${m.slip_days}d vs plan` : "✓ on plan"}</span>` : ""}</div>
 					</div>
 					<div class="duty-phase-acts">
 						<a data-a="up" title="${__("Move up")}">▲</a>
@@ -4191,6 +4277,7 @@ this.$me.find(".duty-req-ok").on("click", (e) =>
 					<a class="duty-pj-v ${(this._pj_view || "board") === "board" ? "on" : ""}" data-v="board">▦ ${__("Board")}</a>
 					<a class="duty-pj-v ${this._pj_view === "cal" ? "on" : ""}" data-v="cal">📅 ${__("Calendar")}</a>
 					<a class="duty-pj-v ${this._pj_view === "phases" ? "on" : ""}" data-v="phases">🚩 ${__("Phases")}${(data.milestones || []).length ? ` <b>${data.milestones.length}</b>` : ""}</a>
+					<a class="duty-pj-v ${this._pj_view === "risks" ? "on" : ""}" data-v="risks">⚠ ${__("Risks")}</a>
 					<a class="duty-kb-dense" title="${__("Toggle density")}">${(localStorage.getItem("duty_kb_density") || "comfortable") === "compact" ? "▤ " + __("Compact") : "▢ " + __("Comfortable")}</a>
 				</span>
 				<a class="duty-proj-cons">👷 ${__("Consultants")}${(data.consultants || []).length ? ` <b>${data.consultants.length}</b>` : ""}</a>
@@ -4254,6 +4341,10 @@ this.$me.find(".duty-req-ok").on("click", (e) =>
 		}
 		if (this._pj_view === "phases") {
 			this.render_phases(project, data, $wrap);
+			return;
+		}
+		if (this._pj_view === "risks") {
+			this.render_risks(project, $wrap);
 			return;
 		}
 		const dense = (localStorage.getItem("duty_kb_density") || "comfortable") === "compact";
@@ -4400,6 +4491,7 @@ this.$me.find(".duty-req-ok").on("click", (e) =>
 				<label class="duty-ld-f"><span>${__("Column")}</span><select data-f="column">${["To Do", "In Progress", "Completed", "Suspended"].map((s) => `<option ${t.column === s ? "selected" : ""}>${s}</option>`).join("")}</select></label>
 				<label class="duty-ld-f"><span>🚩 ${__("Phase")}</span><select data-f="milestone"><option value="">${__("— none —")}</option>${Object.entries(this._ms_names || {}).map(([id, nm]) => `<option value="${id}" ${t.milestone === id ? "selected" : ""}>${esc(nm)}</option>`).join("")}</select></label>
 				<label class="duty-ld-f"><span>🔒 ${__("Blocked by")}</span><select data-f="blocked_by"><option value="">${__("— nothing —")}</option>${(t.task_options || []).map((o) => `<option value="${o.name}" ${t.blocked_by === o.name ? "selected" : ""}>${esc(o.title)}</option>`).join("")}</select></label>
+				<label class="duty-ld-f"><span>⏱ ${__("Est. hours")}</span><input type="number" step="0.5" min="0" data-f="estimate_hours" value="${t.estimate_hours || ""}" placeholder="${__("e.g. 4")}">${t.actual_hours ? `<small class="duty-est-act ${t.estimate_hours && t.actual_hours > t.estimate_hours ? "over" : ""}">${__("logged")} ${t.actual_hours}h${t.estimate_hours ? ` / ${t.estimate_hours}h` : ""}</small>` : ""}</label>
 				<label class="duty-td-chk"><input type="checkbox" data-f="client_visible" ${t.client_visible ? "checked" : ""}> ${__("Visible to client (shows on their portal)")}</label>
 				<label class="duty-td-chk"><input type="checkbox" data-f="awaiting_client" ${t.awaiting_client ? "checked" : ""}> ⏳ ${__("Awaiting client action (nudges them on the portal)")}</label>
 				<label class="duty-ld-f duty-ld-wide"><span>${__("Description")}</span><textarea data-f="description" rows="3">${esc(t.description || "")}</textarea></label>
@@ -4440,6 +4532,7 @@ this.$me.find(".duty-req-ok").on("click", (e) =>
 					hours: v.hours || null,
 					milestone: v.milestone || null,
 					blocked_by: v.blocked_by || null,
+					estimate_hours: v.estimate_hours || null,
 				},
 				callback: (r) => {
 					if (r.message) this.render_kanban(project, r.message);
@@ -4460,6 +4553,7 @@ this.$me.find(".duty-req-ok").on("click", (e) =>
 					awaiting_client: v2.awaiting_client ? 1 : 0, hours: v2.hours,
 					milestone: v2.milestone || null,
 					blocked_by: v2.blocked_by || null,
+					estimate_hours: v2.estimate_hours || null,
 				},
 				callback: (r) => {
 					if (r.message) this.render_kanban(project, r.message);
@@ -10797,6 +10891,8 @@ this.$me.find(".duty-req-ok").on("click", (e) =>
 			.duty-pt-who { color: #5f6d68; font-size: 11px; }
 			.duty-kb-ms { font-size: 10.5px; color: #0F5C55; margin-top: 2px; font-weight: 600; }
 			.duty-kb-blk { font-size: 10.5px; color: #B45309; margin-top: 2px; font-weight: 700; }
+			.duty-est-act { display: block; font-size: 11px; color: #65736F; margin-top: 2px; }
+			.duty-est-act.over, .duty-est-over { color: #C2410C; font-weight: 700; }
 			.duty-baseline-bar { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 8px 12px; border: 1px solid #E4EAE8; border-radius: 10px; margin-bottom: 12px; background: #F7FAF9; font-size: 13px; }
 			.duty-baseline-bar.on { background: #F0F6F4; border-color: #D2E4E0; }
 			.duty-baseline-set { cursor: pointer; }
@@ -11283,6 +11379,13 @@ this.$me.find(".duty-req-ok").on("click", (e) =>
 			.duty-pf-badge { font-size: 11px; font-weight: 700; padding: 3px 9px; border-radius: 20px; }
 			.duty-pf-badge.risk { background: #FEF0E6; color: #C2410C; }
 			.duty-pf-badge.ok { background: #E7F5EF; color: #0E8A63; }
+			.duty-tl-chip { display: inline-block; font-size: 11px; background: #F0F4F3; border-radius: 20px; padding: 2px 9px; margin: 1px 0; color: #4b5a55; }
+			.duty-tl-projects { max-width: 320px; }
+			.duty-risk-mit { font-size: 11.5px; color: #65736F; margin-top: 2px; }
+			.duty-risk-closed { opacity: .55; }
+			.duty-risk-acts a { cursor: pointer; opacity: .65; margin-right: 4px; text-decoration: none; }
+			.duty-risk-acts a:hover { opacity: 1; }
+			.duty-pf-risks { font-size: 11px; color: #B45309; font-weight: 700; margin-top: 3px; }
 			.duty-projects { display: flex; gap: 0; align-items: stretch; min-height: calc(100vh - 120px); }
 			.duty-pj-side { width: 250px; flex: none; border-right: 1px solid #e5e7eb; padding: 8px 8px 8px 0; overflow-y: auto; max-height: calc(100vh - 110px); }
 			.duty-pj-sidehead { display: flex; gap: 6px; margin-bottom: 8px; }

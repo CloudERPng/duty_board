@@ -1922,7 +1922,7 @@ def _milestone_decorate(rows, pnames):
 			filters={"milestone": r.name},
 			fields=[
 				"name", "title", "column", "assignee", "due_date",
-				"urgency", "description", "awaiting_client",
+				"urgency", "description", "awaiting_client", "estimate_hours",
 			],
 			order_by="creation asc",
 			limit=60,
@@ -1950,6 +1950,15 @@ def _milestone_decorate(rows, pnames):
 		r.cards_total = len(tasks)
 		r.cards_done = sum(1 for t in tasks if t.column == "Completed")
 		r.awaiting = sum(1 for t in tasks if cint(t.awaiting_client) and t.column != "Completed")
+		r.est_hours = round(sum(t.estimate_hours or 0 for t in tasks), 1)
+		task_names = [t.name for t in tasks]
+		r.act_hours = 0
+		if task_names:
+			secs = frappe.db.sql(
+				"select coalesce(sum(duration),0) from `tabWork Session` where project_task in %(n)s",
+				{"n": task_names},
+			)[0][0] or 0
+			r.act_hours = round(secs / 3600.0, 1)
 	for r in rows:
 		r.project_name = pnames.get(r.project)
 	return rows

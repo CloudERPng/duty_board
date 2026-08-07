@@ -87,7 +87,126 @@ def get_projects():
 		p.phase_current = g["current"] or ("Complete" if g["total"] and g["done"] == g["total"] else None)
 		p.worst_slip = g["worst_slip"]
 		p.at_risk = 1 if (p.get("overdue", 0) or (g["worst_slip"] or 0) > 0) else 0
+	risk_counts = {}
+	for rc in frappe.get_all(
+		"Duty Project Risk",
+		filters={"project": ["in", [p.name for p in projects]], "status": ["!=", "Closed"]},
+		fields=["project", "count(name) as cnt"],
+		group_by="project",
+	):
+		risk_counts[rc.project] = rc.cnt
+	for p in projects:
+		p.open_risks = risk_counts.get(p.name, 0)
 	return projects
+
+
+@frappe.whitelist()
+def get_team_load():
+	"""Per-person load across all active projects: open tasks, overdue,
+	estimated hours remaining, blocked count, project spread."""
+	require_staff()
+	projects = frappe.get_all(
+		"Duty Project", filters={"status": "Active"}, fields=["name", "project_name"]
+	)
+	if not projects:
+		return []
+	pnames = {p.name: p.project_name for p in projects}
+	rows = frappe.get_all(
+		"Duty Project Task",
+		filters={
+			"project": ["in", list(pnames)],
+			"column": ["not in", ["Completed", "Suspended"]],
+		},
+		fields=["name", "assignee", "project", "due_date", "estimate_hours", "blocked_by", "column"],
+	)
+	blockers = {r.blocked_by for r in rows if r.blocked_by}
+	blocker_done = {}
+	if blockers:
+		for b in frappe.get_all(
+			"Duty Project Task",
+			filters={"name": ["in", list(blockers)]},
+			fields=["name", "column"],
+		):
+			blocker_done[b.name] = b.column == "Completed"
+	tday = getdate(today())
+	load = {}
+	for r in rows:
+		key = r.assignee or "__unassigned__"
+		g = load.setdefault(key, {"open": 0, "overdue": 0, "est": 0.0, "blocked": 0, "projects": set()})
+		g["open"] += 1
+		g["est"] += r.estimate_hours or 0
+		g["projects"].add(r.project)
+		if r.due_date and getdate(r.due_date) < tday:
+			g["overdue"] += 1
+		if r.blocked_by and not blocker_done.get(r.blocked_by, False):
+			g["blocked"] += 1
+	out = []
+	for user, g in load.items():
+		out.append({
+			"user": None if user == "__unassigned__" else user,
+			"full_name": _("Unassigned") if user == "__unassigned__" else frappe.utils.get_fullname(user),
+			"open": g["open"],
+			"overdue": g["overdue"],
+			"est_hours": round(g["est"], 1),
+			"blocked": g["blocked"],
+			"projects": sorted(pnames.get(p, p) for p in g["projects"]),
+		})
+	out.sort(key=lambda x: (-x["est_hours"], -x["open"]))
+	return out
+
+
+_RISK_SCORE = {"Low": 1, "Medium": 2, "High": 3}
+
+
+@frappe.whitelist()
+def project_risks(project):
+	"""The project's risk register, severity-sorted (open first)."""
+	require_staff()
+	rows = frappe.get_all(
+		"Duty Project Risk",
+		filters={"project": project},
+		fields=["name", "title", "likelihood", "impact", "mitigation", "owner_user", "status"],
+	)
+	for r in rows:
+		r.severity = _RISK_SCORE.get(r.likelihood, 2) * _RISK_SCORE.get(r.impact, 2)
+		r.owner_name = frappe.utils.get_fullname(r.owner_user) if r.owner_user else None
+	rows.sort(key=lambda r: (r.status == "Closed", -r.severity))
+	return rows
+
+
+@frappe.whitelist()
+def risk_save(project, title, likelihood="Medium", impact="Medium", mitigation=None, owner_user=None, status="Open", name=None):
+	"""Create (no name) or update (name given) a risk."""
+	require_staff()
+	title = (title or "").strip()
+	if not title:
+		frappe.throw(_("Describe the risk."))
+	vals = {
+		"title": title[:200],
+		"likelihood": likelihood if likelihood in ("Low", "Medium", "High") else "Medium",
+		"impact": impact if impact in ("Low", "Medium", "High") else "Medium",
+		"mitigation": (mitigation or "").strip()[:1000] or None,
+		"owner_user": owner_user or None,
+		"status": status if status in ("Open", "Mitigating", "Closed") else "Open",
+	}
+	if name:
+		frappe.db.set_value("Duty Project Risk", name, vals, update_modified=True)
+	else:
+		if not frappe.db.exists("Duty Project", project):
+			frappe.throw(_("Unknown project."))
+		doc = frappe.get_doc(dict(doctype="Duty Project Risk", project=project, **vals))
+		doc.insert(ignore_permissions=True)
+	frappe.db.commit()
+	return project_risks(project)
+
+
+@frappe.whitelist()
+def risk_delete(name):
+	require_staff()
+	project = frappe.db.get_value("Duty Project Risk", name, "project")
+	frappe.delete_doc("Duty Project Risk", name, ignore_permissions=True, force=True)
+	frappe.db.commit()
+	return project_risks(project)
 
 
 @frappe.whitelist()
@@ -134,13 +253,13 @@ def get_project_board(project):
 		fields=[
 			"name", "title", "column", "assignee", "due_date",
 			"urgency", "linked_todo", "modified", "awaiting_client", "milestone",
-			"blocked_by",
+			"blocked_by", "estimate_hours",
 		],
 		order_by="sort_order asc, creation asc",
 	)
 	names = [r.name for r in rows]
 	by_name = {r.name: r for r in rows}
-	note_counts, working, sub_counts = {}, {}, {}
+	note_counts, working, sub_counts, actual_secs = {}, {}, {}, {}
 	if names:
 		for n in frappe.get_all(
 			"Duty Project Note",
@@ -162,6 +281,13 @@ def get_project_board(project):
 			group_by="parent",
 		):
 			sub_counts[s.parent] = (cint(s.done), cint(s.total))
+		for a in frappe.get_all(
+			"Work Session",
+			filters={"project_task": ["in", names]},
+			fields=["project_task", "sum(duration) as secs"],
+			group_by="project_task",
+		):
+			actual_secs[a.project_task] = a.secs or 0
 	tday = getdate(today())
 	now = frappe.utils.now_datetime()
 	tasks = {c: [] for c in COLUMNS}
@@ -176,6 +302,7 @@ def get_project_board(project):
 		t.working = working.get(t.name, [])
 		t.subs_done, t.subs_total = sub_counts.get(t.name, (0, 0))
 		# t.milestone already present from the fetch
+		t.actual_hours = round((actual_secs.get(t.name, 0) or 0) / 3600.0, 1)
 		t.blocked = 0
 		t.blocked_title = None
 		if t.blocked_by:
@@ -270,7 +397,7 @@ def reschedule_task(name, due_date=None):
 
 
 @frappe.whitelist()
-def update_task(name, title=None, assignee=None, due_date=None, urgency=None, column=None, description=None, client_visible=None, awaiting_client=None, hours=None, milestone=None, blocked_by=None):
+def update_task(name, title=None, assignee=None, due_date=None, urgency=None, column=None, description=None, client_visible=None, awaiting_client=None, hours=None, milestone=None, blocked_by=None, estimate_hours=None):
 	from duty_board.permissions import require_staff_or_consultant
 	_is_c = require_staff_or_consultant()
 	if _is_c:
@@ -323,6 +450,9 @@ def update_task(name, title=None, assignee=None, due_date=None, urgency=None, co
 				seen.add(cur)
 				cur = frappe.db.get_value("Duty Project Task", cur, "blocked_by")
 		doc.blocked_by = new_blk
+	if estimate_hours is not None:
+		from frappe.utils import flt
+		doc.estimate_hours = flt(estimate_hours) or None
 	doc.save(ignore_permissions=True)
 
 	if old_assignee != doc.assignee:
@@ -540,6 +670,12 @@ def get_card(name):
 		"urgency": doc.urgency,
 		"milestone": doc.milestone,
 		"blocked_by": doc.blocked_by,
+		"estimate_hours": doc.estimate_hours,
+		"actual_hours": round(
+			(frappe.db.sql(
+				"select coalesce(sum(duration),0) from `tabWork Session` where project_task=%s",
+				name,
+			)[0][0] or 0) / 3600.0, 1),
 		"task_options": [
 			{"name": r.name, "title": r.title}
 			for r in frappe.get_all(
