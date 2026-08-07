@@ -7,7 +7,20 @@ description = "Simple remote-staff duty clock in/out tracker with a live status 
 requires-python = ">=3.10"
 readme = "README.md"
 dynamic = ["version"]
-dependencies = []
+dependencies = [
+    # PDF handling — library reader (pdfminer.six) and document tooling (pypdf)
+    "pypdf>=3.0.0",
+    "pdfminer.six>=20220524",
+    # Web Push (VAPID) for portal/browser notifications
+    "pywebpush>=1.14.0",
+    "py-vapid>=1.9.0",
+    "cryptography>=41.0.0",
+    # HTTP + timezones + WSGI (werkzeug/requests/cryptography also ship with
+    # Frappe, but declared explicitly so a fresh/standalone install is complete)
+    "requests>=2.28.0",
+    "pytz>=2022.1",
+    "werkzeug>=2.0.0",
+]
 
 [build-system]
 requires = ["flit_core >=3.4,<4"]
