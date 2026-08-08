@@ -8,6 +8,30 @@ class WorkSession(Document):
 	def validate(self):
 		self.enforce_own_session()
 		self.set_duration()
+		self.set_work_type()
+
+	def set_work_type(self):
+		"""Service line: explicit choice wins; else derived from linkage;
+		else sticky (user's last choice on unlinked work). Left empty when
+		nothing is known — Untyped is visible, a silent guess is not."""
+		if self.work_type:
+			return
+		if self.project_task:
+			self.work_type = "ERP Delivery"
+		elif self.duty_issue:
+			self.work_type = "ERP Support"
+		else:
+			last = frappe.db.get_value(
+				"Work Session",
+				{
+					"user": self.user,
+					"work_type": ["in", ["Accounting Service", "Internal & Product"]],
+				},
+				"work_type",
+				order_by="creation desc",
+			)
+			if last:
+				self.work_type = last
 
 	def enforce_own_session(self):
 		if "System Manager" in frappe.get_roles():

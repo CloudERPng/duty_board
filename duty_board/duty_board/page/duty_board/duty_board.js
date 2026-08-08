@@ -5617,8 +5617,28 @@ this.$me.find(".duty-req-ok").on("click", (e) =>
 						<td>${z.fee_covers === false ? `<b style="color:#b91c1c">${__("under water")}</b>` : z.fee_covers ? `<span style="color:#15803d">✓</span>` : ""}</td>
 					</tr>`).join("")}</table>
 					<p class="text-muted" style="font-size:11px">${__("Hours from work sessions with a customer; fee shown where known (accounting fee today). Red rows: attention cost exceeds known fee — a renewal-conversation list, not an invoice list.")}</p>
+					<div class="duty-alloc"><div class="text-muted" style="font-size:12px">${__("Loading service-line allocation…")}</div></div>
 				`);
 				d.show();
+				frappe.call({
+					method: "duty_board.commercial.service_line_allocation",
+					args: { months: 1 },
+					callback: (ar) => {
+						const a = ar.message || {};
+						const lines = a.lines || [];
+						const hdr = lines.map((l) => `<th>${frappe.utils.escape_html(l.replace("Accounting Service", "Accounting").replace("Internal & Product", "Internal"))}</th>`).join("");
+						const body = (a.rows || []).map((p) => `<tr>
+							<td><b>${frappe.utils.escape_html(p.full_name)}</b></td>
+							${lines.map((l) => `<td>${p.lines[l] ? `<b>${p.lines[l]}</b>` : `<span class="text-muted">—</span>`}</td>`).join("")}
+							<td><b>${p.total_hours}</b></td><td>${naira(p.cost)}</td>
+						</tr>`).join("");
+						$(d.body).find(".duty-alloc").html(`
+							<h5 style="margin:14px 0 6px">👤 ${__("By person × service line — hours (last month)")}</h5>
+							<table class="table table-sm" style="font-size:12px"><tr><th>${__("Person")}</th>${hdr}<th>${__("Total")}</th><th>${__("Cost")}</th></tr>${body}</table>
+							<p class="text-muted" style="font-size:11px">${__("Untyped = unlinked sessions logged before service lines existed (or a person's first unlinked session). Bulk-classify history once and the column empties; the sticky default keeps it empty.")}</p>
+						`);
+					},
+				});
 			},
 		});
 	}

@@ -334,8 +334,8 @@ def cost_to_serve(months=1):
 		"""
 		select customer, user,
 			sum(duration) as total_secs,
-			sum(case when coalesce(duty_issue, '') != '' then duration else 0 end) as support_secs,
-			sum(case when coalesce(project_task, '') != '' then duration else 0 end) as delivery_secs
+			sum(case when work_type = 'ERP Support' or (coalesce(work_type,'') = '' and coalesce(duty_issue, '') != '') then duration else 0 end) as support_secs,
+			sum(case when work_type = 'ERP Delivery' or (coalesce(work_type,'') = '' and coalesce(project_task, '') != '') then duration else 0 end) as delivery_secs
 		from `tabWork Session`
 		where coalesce(customer, '') != '' and start_time >= %s and coalesce(duration, 0) > 0
 		group by customer, user
@@ -487,3 +487,48 @@ def _spawn_cr_issue(doc):
 			frappe.log_error(frappe.get_traceback()[-1200:], "spawn email")
 	_post_room(doc.room, _("🎫 “{0}” is approved and queued as a work ticket.").format(doc.title[:120]))
 	return issue.name
+
+
+@frappe.whitelist()
+def service_line_allocation(months=1):
+	"""Person x service line: hours and loaded cost. The instrument the
+	accounting-vs-ERP capacity decision falls out of."""
+	require_staff()
+	from duty_board.accounting import _books_manager
+
+	if not _books_manager():
+		frappe.throw(_("Managers only."), frappe.PermissionError)
+	months = max(1, min(cint(months) or 1, 12))
+	since = frappe.utils.add_months(today(), -months)
+	rows = frappe.db.sql(
+		"""
+		select user,
+			case
+				when coalesce(work_type, '') != '' then work_type
+				when coalesce(project_task, '') != '' then 'ERP Delivery'
+				when coalesce(duty_issue, '') != '' then 'ERP Support'
+				else 'Untyped'
+			end as line,
+			sum(duration) as secs
+		from `tabWork Session`
+		where start_time >= %s and coalesce(duration, 0) > 0
+		group by user, line
+		""",
+		(since,),
+		as_dict=True,
+	)
+	from duty_board.permissions import get_user_rate
+
+	LINES = ["Accounting Service", "ERP Delivery", "ERP Support", "Internal & Product", "Untyped"]
+	people = {}
+	for r in rows:
+		p = people.setdefault(r.user, {"user": r.user, "full_name": frappe.utils.get_fullname(r.user), "total_hours": 0.0, "cost": 0.0, "lines": {k: 0.0 for k in LINES}})
+		hours = flt(r.secs) / 3600.0
+		p["lines"][r.line if r.line in p["lines"] else "Untyped"] += hours
+		p["total_hours"] += hours
+	for p in people.values():
+		p["cost"] = round(p["total_hours"] * flt(get_user_rate(p["user"])))
+		p["total_hours"] = round(p["total_hours"], 1)
+		p["lines"] = {k: round(v, 1) for k, v in p["lines"].items()}
+	out = sorted(people.values(), key=lambda x: -x["total_hours"])
+	return {"months": months, "lines": LINES, "rows": out}
