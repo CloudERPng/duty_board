@@ -20,14 +20,25 @@ def _is_admin(user=None):
 	return "System Manager" in frappe.get_roles(user or frappe.session.user)
 
 
+def holidays():
+	"""Public-holiday dates from Duty Settings (Duty Holiday child rows)."""
+	try:
+		s = frappe.get_cached_doc("Duty Settings")
+		return {getdate(h.holiday_date) for h in (s.get("public_holidays") or []) if h.holiday_date}
+	except Exception:
+		return set()
+
+
 def _workdays(start, end):
-	"""Weekdays (Mon-Fri) inclusive between two dates."""
+	"""Weekdays (Mon-Fri) inclusive between two dates, public holidays
+	excluded — a holiday inside a leave range costs no leave day."""
 	s, e = getdate(start), getdate(end)
 	if e < s:
 		return 0
+	hols = holidays()
 	n, d = 0, s
 	while d <= e:
-		if d.weekday() < 5:
+		if d.weekday() < 5 and d not in hols:
 			n += 1
 		d += timedelta(days=1)
 	return n
@@ -143,6 +154,24 @@ def my_leave():
 			p.start_date = str(p.start_date)
 			p.end_date = str(p.end_date)
 			p.remaining = max(_entitlement(p.user) - _taken(p.user, getdate(p.start_date).year), 0)
+			others = frappe.get_all(
+				"Duty Leave Request",
+				filters={
+					"user": ["!=", p.user],
+					"status": ["in", ["Approved", "Pending"]],
+					"start_date": ["<=", p.end_date],
+					"end_date": [">=", p.start_date],
+				},
+				fields=["user", "status"],
+			)
+			seen = {}
+			for o in others:
+				if o.user not in seen or o.status == "Approved":
+					seen[o.user] = o.status
+			p.also_away = [
+				{"name": frappe.utils.get_fullname(u), "status": st}
+				for u, st in seen.items()
+			]
 		data["pending"] = pend
 	return data
 
@@ -177,6 +206,28 @@ def request_leave(start_date, end_date, note=None):
 		}
 	).insert(ignore_permissions=True)
 	frappe.db.commit()
+	try:
+		from duty_board.api import _notify_user
+
+		full = frappe.utils.get_fullname(user)
+		sms = {
+			u
+			for u in frappe.get_all(
+				"Has Role",
+				filters={"role": "System Manager", "parenttype": "User"},
+				pluck="parent",
+			)
+			if u not in ("Administrator", user)
+			and frappe.db.get_value("User", u, "enabled")
+		}
+		for sm in sms:
+			_notify_user(
+				sm,
+				_("🌴 Leave request: {0}").format(full),
+				_("{0} → {1} · {2} day(s). Approve on your Me screen.").format(str(s), str(e), days),
+			)
+	except Exception:
+		frappe.log_error(frappe.get_traceback(), "leave request notify")
 	return my_leave()
 
 

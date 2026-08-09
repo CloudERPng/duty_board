@@ -2387,7 +2387,7 @@ class DutyBoard {
 			<details ${open ? "open" : ""} class="duty-earn-m">
 				<summary><b>${esc(c.label)}</b>${c.closed ? `<span class="duty-earn-lock">🔒 ${__("closed")}</span>` : ""}<span class="duty-earn-grand">${naira(c.totals.grand)}</span></summary>
 				<div class="duty-earn-rows">
-					<div class="duty-earn-r"><span class="duty-earn-lbl">⏱ ${__("Customer hours")}</span><span class="duty-earn-calc"><b>${c.hours.paid_hours}h</b> × ${naira(c.rates.hourly)}${c.hours.capped ? ` <i class="duty-earn-cap">(${__("capped from")} ${c.hours.hours}h)</i>` : ""} <span class="text-muted">· ${c.hours.linked_hours}h ${__("linked")} / ${c.hours.unlinked_hours}h ${__("unlinked")}</span></span><b>${naira(c.totals.hours)}</b></div>
+					<div class="duty-earn-r"><span class="duty-earn-lbl">⏱ ${__("Customer hours")}</span><span class="duty-earn-calc"><b>${c.hours.paid_hours}h</b><span class="text-muted"> / ${c.hours.cap || 120}h</span> × ${naira(c.rates.hourly)}${c.hours.capped ? ` <i class="duty-earn-cap">(${__("capped from")} ${c.hours.hours}h)</i>` : ""} <span class="text-muted">· ${c.hours.linked_hours}h ${__("linked")} / ${c.hours.unlinked_hours}h ${__("unlinked")}</span></span><b>${naira(c.totals.hours)}</b></div>
 					${c.resolutions.length ? `<div class="duty-earn-r"><span class="duty-earn-lbl">✅ ${__("Resolutions")}</span><span class="duty-earn-calc"><b>${c.resolutions.length}</b> × ${naira(c.rates.resolution)} ${__("base")} <span class="text-muted">· ${__("stars & splits applied per item below")}</span></span><b>${naira(c.totals.resolutions)}</b></div>` : ""}
 					${c.totals.sla ? `<div class="duty-earn-r"><span class="duty-earn-lbl">⚡ ${__("SLA bonus")}</span><span class="duty-earn-calc"><b>${c.sla_count}</b> × ${naira(c.rates.sla)}</span><b>${naira(c.totals.sla)}</b></div>` : ""}
 					${c.phases.length ? `<div class="duty-earn-r"><span class="duty-earn-lbl">🚩 ${__("Phase sign-offs")}</span><span class="duty-earn-calc"><b>${c.phases.length}</b> ${__("on baseline")}</span><b>${naira(c.totals.phases)}</b></div>` : ""}
@@ -2431,6 +2431,7 @@ class DutyBoard {
 				<b>${esc(p.full_name)}</b>
 				<span>${esc(p.start_date)} → ${esc(p.end_date)} · ${p.work_days} ${__("day(s)")}</span>
 				<span class="text-muted">${p.remaining} ${__("left")}${p.note ? " · " + esc(p.note) : ""}</span>
+				${(p.also_away || []).length ? `<span class="duty-lv-clash">⚠ ${__("also away then")}: ${p.also_away.map((a) => `${esc(a.name)}${a.status === "Pending" ? ` <i>(${__("pending")})</i>` : ""}`).join(", ")}</span>` : ""}
 				<span class="duty-req-btns">
 					<button class="btn btn-xs btn-primary duty-lv-ok" data-id="${p.name}">✓ ${__("Approve")}</button>
 					<button class="btn btn-xs btn-default duty-lv-no" data-id="${p.name}">✗ ${__("Decline")}</button>
@@ -11616,6 +11617,8 @@ this.$me.find(".duty-req-ok").on("click", (e) => {
 			.duty-pay-tot td { border-top: 2px solid #123C35 !important; background: #F4F8F6; }
 			.duty-earn-lock { font-size: 11px; font-weight: 700; color: #7A8783; background: #F0F4F3; border-radius: 20px; padding: 2px 8px; }
 			.duty-pay-close { margin: 6px 0 2px; }
+			.duty-lv-clash { width: 100%; font-size: 12px; color: #B45309; font-weight: 700; }
+			.duty-lv-clash i { font-weight: 400; }
 			.duty-projects { display: flex; gap: 0; align-items: stretch; min-height: calc(100vh - 120px); }
 			.duty-pj-side { width: 250px; flex: none; border-right: 1px solid #e5e7eb; padding: 8px 8px 8px 0; overflow-y: auto; max-height: calc(100vh - 110px); }
 			.duty-pj-sidehead { display: flex; gap: 6px; margin-bottom: 8px; }

@@ -922,6 +922,11 @@ def client_reopen(id, comment):
 	doc.status = "In Progress"
 	doc.save(ignore_permissions=True)
 	frappe.db.set_value("Duty Issue", row.name, "client_confirmed_at", None, update_modified=False)
+	# A rejected resolution is not a resolution: clear resolved_at so the
+	# earnings auto-pay clock stops, and sla_res_met so a failed fix
+	# doesn't keep its SLA credit. Both re-set on genuine re-resolution.
+	frappe.db.set_value("Duty Issue", row.name, "resolved_at", None, update_modified=False)
+	frappe.db.set_value("Duty Issue", row.name, "sla_res_met", 0, update_modified=False)
 	frappe.db.commit()
 	full = frappe.utils.get_fullname(frappe.session.user)
 	_post(room, _("↩️ Reopened by {0} — “{1}”: {2}").format(full, row.title, comment[:500]))
@@ -4981,7 +4986,9 @@ def _meeting_slots(staff_list, date):
 		return []
 	if d.weekday() >= 5:  # Sat/Sun — the banner's promise holds
 		return []
-	from duty_board.leave import is_on_leave
+	from duty_board.leave import holidays, is_on_leave
+	if d in holidays():
+		return []  # public holiday — nobody is bookable
 	for u in staff_list:
 		if is_on_leave(u, d):
 			return []  # a requested attendee is on leave that day

@@ -65,6 +65,7 @@ def _hours_component(user, start, end, cap, rate):
 		"linked_hours": round(linked_h, 1),
 		"unlinked_hours": round(max(total_h - linked_h, 0), 1),
 		"paid_hours": round(paid_h, 1),
+		"cap": cap,
 		"capped": 1 if total_h > cap else 0,
 		"amount": round(paid_h * rate),
 	}
