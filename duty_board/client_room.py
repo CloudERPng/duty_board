@@ -4981,6 +4981,10 @@ def _meeting_slots(staff_list, date):
 		return []
 	if d.weekday() >= 5:  # Sat/Sun — the banner's promise holds
 		return []
+	from duty_board.leave import is_on_leave
+	for u in staff_list:
+		if is_on_leave(u, d):
+			return []  # a requested attendee is on leave that day
 	blocked = set()
 	for u in staff_list:
 		busy, count = _staff_hour_load(u, date)

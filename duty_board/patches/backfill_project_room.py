@@ -4,6 +4,8 @@ import frappe
 
 
 def execute():
+	if "duty_board" not in frappe.get_installed_apps():
+		return
 	if not frappe.db.has_column("Duty Project", "room"):
 		return
 

@@ -2361,6 +2361,78 @@ class DutyBoard {
 		});
 	}
 
+	_load_leave_card() {
+		const $host = this.$me.find(".duty-me-leave");
+		if (!$host.length) return;
+		frappe.call({
+			method: "duty_board.leave.my_leave",
+			callback: (r) => r.message && this._render_leave_card(r.message),
+		});
+	}
+
+	_render_leave_card(L) {
+		const esc = frappe.utils.escape_html;
+		const $host = this.$me.find(".duty-me-leave");
+		if (!$host.length) return;
+		const PILL = { Pending: "⏳", Approved: "✅", Declined: "✖", Cancelled: "◌" };
+		const reqs = (L.requests || []).map((q) => `
+			<div class="duty-lv-row">
+				<span class="duty-lv-st duty-lv-${q.status.toLowerCase()}">${PILL[q.status] || ""} ${__(q.status)}</span>
+				<b>${esc(q.start_date)} → ${esc(q.end_date)}</b>
+				<span class="text-muted">${q.work_days} ${__("day(s)")}${q.note ? " · " + esc(q.note) : ""}</span>
+				${q.cancellable ? `<a class="duty-lv-cancel" data-id="${q.name}" title="${__("Cancel")}">✕</a>` : ""}
+			</div>`).join("");
+		const pend = (L.pending || []).map((p) => `
+			<div class="duty-lv-row">
+				<b>${esc(p.full_name)}</b>
+				<span>${esc(p.start_date)} → ${esc(p.end_date)} · ${p.work_days} ${__("day(s)")}</span>
+				<span class="text-muted">${p.remaining} ${__("left")}${p.note ? " · " + esc(p.note) : ""}</span>
+				<span class="duty-req-btns">
+					<button class="btn btn-xs btn-primary duty-lv-ok" data-id="${p.name}">✓ ${__("Approve")}</button>
+					<button class="btn btn-xs btn-default duty-lv-no" data-id="${p.name}">✗ ${__("Decline")}</button>
+				</span>
+			</div>`).join("");
+		$host.html(`
+			<div class="duty-me-reqs duty-lv-card">
+				<h4>🌴 ${__("Leave")} <span class="duty-lv-bal">${L.remaining} ${__("of")} ${L.entitlement} ${__("days left")} · ${L.taken} ${__("taken in")} ${L.year}</span></h4>
+				${reqs || `<div class="text-muted" style="font-size:12.5px">${__("No leave requested this year.")}</div>`}
+				<div class="duty-lv-ask">
+					<input type="date" class="form-control input-sm duty-lv-s">
+					<span>→</span>
+					<input type="date" class="form-control input-sm duty-lv-e">
+					<input type="text" class="form-control input-sm duty-lv-note" placeholder="${__("Note (optional)")}">
+					<button class="btn btn-xs btn-primary duty-lv-go">🌴 ${__("Request leave")}</button>
+				</div>
+				${L.is_admin && (L.pending || []).length ? `<h4 style="margin-top:14px">🗂 ${__("Awaiting your approval")}</h4>${pend}` : ""}
+			</div>`);
+		const redo = (r) => r.message && this._render_leave_card(r.message);
+		$host.find(".duty-lv-go").on("click", () => {
+			const s = $host.find(".duty-lv-s").val();
+			const e = $host.find(".duty-lv-e").val();
+			if (!s || !e) return frappe.show_alert({ message: __("Pick both dates."), indicator: "orange" });
+			frappe.call({
+				method: "duty_board.leave.request_leave",
+				args: { start_date: s, end_date: e, note: $host.find(".duty-lv-note").val() || null },
+				callback: (r) => { frappe.show_alert({ message: __("Leave requested."), indicator: "green" }); redo(r); },
+			});
+		});
+		$host.find(".duty-lv-cancel").on("click", (e) =>
+			frappe.confirm(__("Cancel this leave?"), () =>
+				frappe.call({ method: "duty_board.leave.cancel_leave", args: { name: $(e.currentTarget).data("id") }, callback: redo }))
+		);
+		$host.find(".duty-lv-ok").on("click", (e) =>
+			frappe.call({ method: "duty_board.leave.decide_leave", args: { name: $(e.currentTarget).data("id"), approve: 1 }, callback: (r) => { frappe.show_alert({ message: __("Approved."), indicator: "green" }); redo(r); } })
+		);
+		$host.find(".duty-lv-no").on("click", (e) => {
+			const id = $(e.currentTarget).data("id");
+			frappe.prompt(
+				[{ fieldname: "note", fieldtype: "Small Text", label: __("Reason (optional)") }],
+				(v) => frappe.call({ method: "duty_board.leave.decide_leave", args: { name: id, approve: 0, note: v.note || null }, callback: redo }),
+				__("Decline leave"), __("Decline")
+			);
+		});
+	}
+
 	refresh_me(month) {
 		const V = "js v2.59.3";
 		console.log("[duty-me]", V, "refresh_me start, month:", month || "(current)");
@@ -2444,6 +2516,7 @@ class DutyBoard {
 						</span>
 					</div>`).join("")}
 			</div>` : ""}
+			<div class="duty-me-leave"></div>
 			<div class="duty-me-cal">
 				<div class="duty-me-calhead">
 					<button class="btn btn-xs duty-cal-prev">◀</button>
@@ -2528,19 +2601,23 @@ class DutyBoard {
 				__("Clock Out")
 			)
 		);
+		this._load_leave_card();
 		this.$me.find(".duty-req-sg").on("click", (e) =>
 			this.suggest_meeting_dialog($(e.currentTarget).data("id"), $(e.currentTarget).data("topic"), () => this.show_face("me"))
 		);
-this.$me.find(".duty-req-ok").on("click", (e) =>
+this.$me.find(".duty-req-ok").on("click", (e) => {
+			const $row = $(e.currentTarget).closest(".duty-req-row");
 			frappe.call({
 				method: "duty_board.client_room.confirm_meeting",
 				args: { id: $(e.currentTarget).data("id") },
 				callback: () => {
+					// Optimistic: show the result at the click, before any refresh.
+					$row.find(".duty-req-btns").html(`<span style="color:#0E8A63;font-weight:700">✅ ${__("Confirmed")}</span>`);
 					frappe.show_alert({ message: __("Meeting confirmed"), indicator: "green" });
 					this.refresh_me((this._me_data || {}).month);
 				},
-			})
-		);
+			});
+		});
 		this.$me.find(".duty-req-no").on("click", (e) => {
 			const id = $(e.currentTarget).data("id");
 			frappe.prompt(
@@ -3731,7 +3808,7 @@ this.$me.find(".duty-req-ok").on("click", (e) =>
 				if (!rows.length) { $wrap.html(`<div class="text-muted duty-plan-empty">${__("No open work.")}</div>`); return; }
 				const body = rows.map((p) => `
 					<tr>
-						<td><b style="color:${p.user ? this.user_color(p.user) : "#8a958f"}">${esc(p.full_name)}</b></td>
+						<td><b style="color:${p.user ? this.user_color(p.user) : "#8a958f"}">${esc(p.full_name)}</b>${p.on_leave ? " 🌴" : ""}</td>
 						<td>${p.open}</td>
 						<td>${p.overdue ? `<span class="duty-proj-over">⚠ ${p.overdue}</span>` : `<span class="text-muted">0</span>`}</td>
 						<td>${p.est_hours ? `${p.est_hours}h` : `<span class="text-muted">—</span>`}</td>
@@ -5359,13 +5436,22 @@ this.$me.find(".duty-req-ok").on("click", (e) =>
 						)
 						.join("")
 			);
-			$mt.find(".duty-cr-mconfirm").on("click", (e) =>
+			$mt.find(".duty-cr-mconfirm").on("click", (e) => {
+				const $row = $(e.currentTarget).closest("div");
+				const roomName = x.name;
 				frappe.call({
 					method: "duty_board.client_room.confirm_meeting",
 					args: { id: $(e.currentTarget).data("id") },
-					callback: (r) => r.message && this.render_client_room(r.message),
-				})
-			);
+					callback: (r) => {
+						// Optimistic: flip this row now; full re-render follows.
+						$row.find(".duty-cr-mconfirm, .duty-cr-msuggest, .duty-cr-mdecline").remove();
+						$row.find(".pill").removeClass("queued").addClass("done").text("✅ " + __("Confirmed"));
+						$row.append(`<span style="color:#0E8A63;font-weight:700;font-size:12px"> ✅ ${__("Confirmed")}</span>`);
+						if (r.message) this.render_client_room(r.message);
+						else this.load_client_room(roomName);
+					},
+				});
+			});
 			$mt.find(".duty-cr-msuggest").on("click", (e) =>
 				this.suggest_meeting_dialog(
 					$(e.currentTarget).data("id"),
@@ -11406,6 +11492,19 @@ this.$me.find(".duty-req-ok").on("click", (e) =>
 			.duty-risk-acts a { cursor: pointer; opacity: .65; margin-right: 4px; text-decoration: none; }
 			.duty-risk-acts a:hover { opacity: 1; }
 			.duty-pf-risks { font-size: 11px; color: #B45309; font-weight: 700; margin-top: 3px; }
+			.duty-lv-card h4 { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; }
+			.duty-lv-bal { font-size: 12.5px; font-weight: 600; color: #0E8A63; }
+			.duty-lv-row { display: flex; gap: 10px; align-items: baseline; flex-wrap: wrap; padding: 6px 0; border-bottom: 1px dashed var(--border-color, #eee); font-size: 13px; }
+			.duty-lv-row:last-child { border-bottom: none; }
+			.duty-lv-st { font-weight: 700; font-size: 12px; }
+			.duty-lv-approved { color: #0E8A63; }
+			.duty-lv-pending { color: #B45309; }
+			.duty-lv-declined, .duty-lv-cancelled { color: #9aa4a0; }
+			.duty-lv-cancel { cursor: pointer; opacity: .6; margin-left: auto; }
+			.duty-lv-cancel:hover { opacity: 1; }
+			.duty-lv-ask { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; margin-top: 10px; }
+			.duty-lv-ask input[type="date"] { max-width: 150px; }
+			.duty-lv-ask .duty-lv-note { max-width: 220px; }
 			.duty-projects { display: flex; gap: 0; align-items: stretch; min-height: calc(100vh - 120px); }
 			.duty-pj-side { width: 250px; flex: none; border-right: 1px solid #e5e7eb; padding: 8px 8px 8px 0; overflow-y: auto; max-height: calc(100vh - 110px); }
 			.duty-pj-sidehead { display: flex; gap: 6px; margin-bottom: 8px; }

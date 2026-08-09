@@ -140,10 +140,13 @@ def get_team_load():
 			g["overdue"] += 1
 		if r.blocked_by and not blocker_done.get(r.blocked_by, False):
 			g["blocked"] += 1
+	from duty_board.leave import users_on_leave
+	_leave_set = users_on_leave([u for u in load if u != "__unassigned__"]) if load else set()
 	out = []
 	for user, g in load.items():
 		out.append({
 			"user": None if user == "__unassigned__" else user,
+			"on_leave": 1 if user in _leave_set else 0,
 			"full_name": _("Unassigned") if user == "__unassigned__" else frappe.utils.get_fullname(user),
 			"open": g["open"],
 			"overdue": g["overdue"],

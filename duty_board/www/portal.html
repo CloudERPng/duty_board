@@ -53,9 +53,14 @@
 	h3 { margin: 0 0 10px; font-size: 14px; color: #087A67; }
 	#tasks { max-height: calc(100vh - 300px); overflow-y: auto; }
 	table.tt { width: 100%; border-collapse: collapse; font-size: 14px; }
+	body[data-tab="tasks"] table.tt { font-size: 15.5px; }
+	body[data-tab="tasks"] table.tt td { padding: 12px 10px; }
+	body[data-tab="tasks"] td.tt-title { font-size: 16px; font-weight: 700; }
+	body[data-tab="tasks"] table.tt .pill { font-size: 12.5px; padding: 4px 12px; }
 	table.tt th { text-align: left; font-size: 11px; text-transform: uppercase; letter-spacing: 0.04em;
 		color: #65736F; padding: 6px 8px; border-bottom: 2px solid #E2E8E5; position: sticky; top: 0; background: #fff; }
 	table.tt td { padding: 8px; border-bottom: 1px dashed #eee; vertical-align: top; }
+	body[data-tab="tasks"] table.tt th { font-size: 12px; padding-bottom: 8px; }
 	table.tt tr:last-child td { border-bottom: none; }
 	td.dt { white-space: nowrap; color: #65736F; font-size: 13px; }
 	td.dur { white-space: nowrap; font-weight: 600; font-size: 13px; }
@@ -87,14 +92,14 @@
 		body[data-tab="pm"] .wrap { max-width: 1560px; }
 		@media (min-width: 900px) {
 			body[data-tab="pm"] .rightcol {
-				display: block !important; width: auto; max-width: 1100px; margin: 0 auto;
+				display: block !important; width: auto; max-width: 1360px; margin: 0 auto;
 			}
 			body[data-tab="pm"] .rightcol > .card { margin-bottom: 16px; }
 		}
 		/* PM sub-tabs: show exactly one panel at a time. */
 		#pmsubbar { display: none; }
 		body[data-tab="pm"] #pmsubbar {
-			display: flex; gap: 4px; max-width: 1100px; margin: 0 auto 14px; flex-wrap: wrap;
+			display: flex; gap: 4px; max-width: 1360px; margin: 0 auto 14px; flex-wrap: wrap;
 		}
 		body[data-tab="pm"] #pmsubbar a {
 			font-size: 13px; font-weight: 700; padding: 8px 16px; border-radius: 10px;
@@ -173,6 +178,17 @@
 	#msbar i { display: block; height: 100%; background: #087A67; border-radius: 99px; transition: width 0.4s; }
 	#mscount { font-size: 12px; margin-bottom: 8px; }
 	.ms { display: flex; gap: 10px; padding: 9px 0; border-bottom: 1px dashed #eee; align-items: baseline; flex-wrap: wrap; font-size: 14px; }
+	@media (min-width: 900px) {
+		body[data-tab="pm"] .ms { font-size: 15.5px; padding: 12px 0; }
+		body[data-tab="pm"] .ms b { font-size: 16px; }
+		body[data-tab="pm"] .ms .desc { font-size: 13.5px; }
+		body[data-tab="pm"] .ms .muted { font-size: 13px !important; }
+		body[data-tab="pm"] .mstoggle { font-size: 13px; }
+		body[data-tab="pm"] .ctask { grid-template-columns: minmax(0,1fr) 150px 126px 100px 112px; }
+		body[data-tab="pm"] .ctask-tw b { font-size: 14px; }
+		body[data-tab="pm"] .ctask-desc { font-size: 12.5px; }
+		body[data-tab="pm"] .ctask-who, body[data-tab="pm"] .ctask-due { font-size: 13px; }
+	}
 	.ms:last-child { border-bottom: none; }
 	.ms .dot { font-size: 15px; }
 	.ms b { flex: 0 1 auto; }
@@ -260,7 +276,7 @@
 	.sthlp { font-size: 12px; background: #F3F6F4; border: 1px solid #E2E8E5; border-radius: 99px; padding: 3px 11px; font-weight: 600; color: #17211F; }
 	body[data-tab="tasks"], body[data-tab="acct"] { overflow-y: auto; height: auto; }
 	body[data-tab="tasks"] .wrap, body[data-tab="acct"] .wrap { display: block !important; max-width: 1180px; margin: 0 auto; padding-bottom: 90px; }
-	body[data-tab="tasks"] .wrap { max-width: 860px; }
+	body[data-tab="tasks"] .wrap { max-width: 1280px; }
 	@media (min-width: 1100px) {
 		body[data-tab="docs"] .wrap { max-width: 1280px; }
 		body[data-tab="docs"] .dwlayout { display: grid; grid-template-columns: minmax(340px, 1fr) minmax(0, 1.1fr); gap: 16px; align-items: start; }

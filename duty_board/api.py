@@ -2344,38 +2344,23 @@ def _stop_running_session(user):
 
 
 def _users_on_leave(user_ids):
-	"""Users with an approved Leave Application covering their local today."""
-	if not frappe.db.exists("DocType", "Leave Application"):
-		return set()
-	emp_map = {
-		e.name: e.user_id
-		for e in frappe.get_all(
-			"Employee",
-			filters={"user_id": ["in", user_ids]},
-			fields=["name", "user_id"],
-		)
-	}
-	if not emp_map:
-		return set()
-	on_leave = set()
-	leaves = frappe.get_all(
-		"Leave Application",
+	"""Users on approved Duty Board leave covering their local today.
+	(Source-swapped from ERPNext Leave Application — leave now lives here.)"""
+	rows = frappe.get_all(
+		"Duty Leave Request",
 		filters={
-			"employee": ["in", list(emp_map.keys())],
-			"docstatus": 1,
+			"user": ["in", list(user_ids)],
 			"status": "Approved",
-			"from_date": ["<=", add_days(getdate(today()), 1)],
-			"to_date": [">=", add_days(getdate(today()), -1)],
+			"start_date": ["<=", add_days(getdate(today()), 1)],
+			"end_date": [">=", add_days(getdate(today()), -1)],
 		},
-		fields=["employee", "from_date", "to_date"],
+		fields=["user", "start_date", "end_date"],
 	)
-	for lv in leaves:
-		uid = emp_map.get(lv.employee)
-		if not uid:
-			continue
-		local_today = user_today(uid)
-		if getdate(lv.from_date) <= local_today <= getdate(lv.to_date):
-			on_leave.add(uid)
+	on_leave = set()
+	for lv in rows:
+		local_today = user_today(lv.user)
+		if getdate(lv.start_date) <= local_today <= getdate(lv.end_date):
+			on_leave.add(lv.user)
 	return on_leave
 
 
