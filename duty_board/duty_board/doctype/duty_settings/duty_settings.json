@@ -32,7 +32,13 @@
   "user_rates",
   "pulse_target",
   "news_feeds",
-  "enablement_templates"
+  "enablement_templates",
+  "earnings_section",
+  "payable_hours_cap",
+  "rating_mult_4",
+  "rating_mult_5",
+  "sla_bonus",
+  "phase_signoff_bonus"
  ],
  "fields": [
   {
@@ -211,6 +217,41 @@
    "fieldtype": "Small Text",
    "label": "Enablement Templates",
    "description": "Reusable workplans. Format: a [Template Name] line, then one step per line. Blank line between templates. Example:\n[HR Module Enablement]\nDiscovery call \u2014 scope & data\nEnable module & roles\nImport employee master\nPayroll structure setup\nUAT with client\nGo-live & handover"
+  },
+  {
+   "fieldname": "earnings_section",
+   "fieldtype": "Section Break",
+   "label": "Performance Earnings"
+  },
+  {
+   "fieldname": "payable_hours_cap",
+   "fieldtype": "Int",
+   "label": "Payable Hours Cap (per month)",
+   "default": "120"
+  },
+  {
+   "fieldname": "rating_mult_4",
+   "fieldtype": "Float",
+   "label": "4-Star Multiplier",
+   "default": "1.1",
+   "precision": "2"
+  },
+  {
+   "fieldname": "rating_mult_5",
+   "fieldtype": "Float",
+   "label": "5-Star Multiplier",
+   "default": "1.25",
+   "precision": "2"
+  },
+  {
+   "fieldname": "sla_bonus",
+   "fieldtype": "Currency",
+   "label": "Within-SLA Resolution Bonus (\u20a6)"
+  },
+  {
+   "fieldname": "phase_signoff_bonus",
+   "fieldtype": "Currency",
+   "label": "Phase Sign-off Bonus (\u20a6, on-baseline only)"
   }
  ],
  "issingle": 1,

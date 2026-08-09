@@ -1,0 +1,135 @@
+{
+ "actions": [],
+ "autoname": "hash",
+ "creation": "2026-08-09 12:00:00.000000",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "year",
+  "month",
+  "user",
+  "full_name",
+  "paid_hours",
+  "linked_hours",
+  "unlinked_hours",
+  "capped",
+  "hours_amt",
+  "res_count",
+  "res_amt",
+  "sla_amt",
+  "phase_amt",
+  "grand",
+  "closed_by",
+  "closed_on"
+ ],
+ "fields": [
+  {
+   "fieldname": "year",
+   "fieldtype": "Int",
+   "label": "Year",
+   "reqd": 1
+  },
+  {
+   "fieldname": "month",
+   "fieldtype": "Int",
+   "label": "Month",
+   "reqd": 1
+  },
+  {
+   "fieldname": "user",
+   "fieldtype": "Link",
+   "label": "User",
+   "options": "User",
+   "reqd": 1
+  },
+  {
+   "fieldname": "full_name",
+   "fieldtype": "Data",
+   "label": "Full Name"
+  },
+  {
+   "fieldname": "paid_hours",
+   "fieldtype": "Float",
+   "label": "Paid Hours",
+   "precision": "1"
+  },
+  {
+   "fieldname": "linked_hours",
+   "fieldtype": "Float",
+   "label": "Linked Hours",
+   "precision": "1"
+  },
+  {
+   "fieldname": "unlinked_hours",
+   "fieldtype": "Float",
+   "label": "Unlinked Hours",
+   "precision": "1"
+  },
+  {
+   "fieldname": "capped",
+   "fieldtype": "Check",
+   "label": "Capped"
+  },
+  {
+   "fieldname": "hours_amt",
+   "fieldtype": "Currency",
+   "label": "Hours Amount"
+  },
+  {
+   "fieldname": "res_count",
+   "fieldtype": "Int",
+   "label": "Resolutions"
+  },
+  {
+   "fieldname": "res_amt",
+   "fieldtype": "Currency",
+   "label": "Resolution Amount"
+  },
+  {
+   "fieldname": "sla_amt",
+   "fieldtype": "Currency",
+   "label": "SLA Amount"
+  },
+  {
+   "fieldname": "phase_amt",
+   "fieldtype": "Currency",
+   "label": "Phase Amount"
+  },
+  {
+   "fieldname": "grand",
+   "fieldtype": "Currency",
+   "label": "Grand Total"
+  },
+  {
+   "fieldname": "closed_by",
+   "fieldtype": "Link",
+   "label": "Closed By",
+   "options": "User"
+  },
+  {
+   "fieldname": "closed_on",
+   "fieldtype": "Datetime",
+   "label": "Closed On"
+  }
+ ],
+ "links": [],
+ "modified": "2026-08-09 12:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "Duty Board",
+ "name": "Duty Payout Record",
+ "naming_rule": "Random",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "write": 1
+  }
+ ],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}

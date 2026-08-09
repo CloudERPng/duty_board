@@ -1,0 +1,65 @@
+{
+ "actions": [],
+ "autoname": "hash",
+ "creation": "2026-08-09 12:00:00.000000",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "issue",
+  "user",
+  "month_key",
+  "amount",
+  "sla_amount"
+ ],
+ "fields": [
+  {
+   "fieldname": "issue",
+   "fieldtype": "Link",
+   "label": "Issue",
+   "options": "Duty Issue",
+   "reqd": 1
+  },
+  {
+   "fieldname": "user",
+   "fieldtype": "Link",
+   "label": "User",
+   "options": "User",
+   "reqd": 1
+  },
+  {
+   "fieldname": "month_key",
+   "fieldtype": "Data",
+   "label": "Month (YYYY-MM)"
+  },
+  {
+   "fieldname": "amount",
+   "fieldtype": "Currency",
+   "label": "Amount Paid"
+  },
+  {
+   "fieldname": "sla_amount",
+   "fieldtype": "Currency",
+   "label": "SLA Paid"
+  }
+ ],
+ "links": [],
+ "modified": "2026-08-09 12:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "Duty Board",
+ "name": "Duty Paid Resolution",
+ "naming_rule": "Random",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "write": 1
+  }
+ ],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}

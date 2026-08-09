@@ -2361,6 +2361,50 @@ class DutyBoard {
 		});
 	}
 
+	_load_earnings_card() {
+		const $host = this.$me.find(".duty-me-earn");
+		if (!$host.length) return;
+		frappe.call({
+			method: "duty_board.earnings.my_earnings",
+			callback: (r) => r.message && this._render_earnings_card(r.message),
+		});
+	}
+
+	_render_earnings_card(E) {
+		const esc = frappe.utils.escape_html;
+		const $host = this.$me.find(".duty-me-earn");
+		if (!$host.length) return;
+		const naira = (n) => "₦" + (n || 0).toLocaleString();
+		const tm = E.this_month, lm = E.last_month;
+		if (!tm.totals.grand && !lm.totals.grand) { $host.empty(); return; }
+		const block = (c, open) => {
+			const eq = [];
+			if (c.totals.hours) eq.push(naira(c.totals.hours));
+			if (c.totals.resolutions) eq.push(naira(c.totals.resolutions));
+			if (c.totals.sla) eq.push(naira(c.totals.sla));
+			if (c.totals.phases) eq.push(naira(c.totals.phases));
+			return `
+			<details ${open ? "open" : ""} class="duty-earn-m">
+				<summary><b>${esc(c.label)}</b>${c.closed ? `<span class="duty-earn-lock">🔒 ${__("closed")}</span>` : ""}<span class="duty-earn-grand">${naira(c.totals.grand)}</span></summary>
+				<div class="duty-earn-rows">
+					<div class="duty-earn-r"><span class="duty-earn-lbl">⏱ ${__("Customer hours")}</span><span class="duty-earn-calc"><b>${c.hours.paid_hours}h</b> × ${naira(c.rates.hourly)}${c.hours.capped ? ` <i class="duty-earn-cap">(${__("capped from")} ${c.hours.hours}h)</i>` : ""} <span class="text-muted">· ${c.hours.linked_hours}h ${__("linked")} / ${c.hours.unlinked_hours}h ${__("unlinked")}</span></span><b>${naira(c.totals.hours)}</b></div>
+					${c.resolutions.length ? `<div class="duty-earn-r"><span class="duty-earn-lbl">✅ ${__("Resolutions")}</span><span class="duty-earn-calc"><b>${c.resolutions.length}</b> × ${naira(c.rates.resolution)} ${__("base")} <span class="text-muted">· ${__("stars & splits applied per item below")}</span></span><b>${naira(c.totals.resolutions)}</b></div>` : ""}
+					${c.totals.sla ? `<div class="duty-earn-r"><span class="duty-earn-lbl">⚡ ${__("SLA bonus")}</span><span class="duty-earn-calc"><b>${c.sla_count}</b> × ${naira(c.rates.sla)}</span><b>${naira(c.totals.sla)}</b></div>` : ""}
+					${c.phases.length ? `<div class="duty-earn-r"><span class="duty-earn-lbl">🚩 ${__("Phase sign-offs")}</span><span class="duty-earn-calc"><b>${c.phases.length}</b> ${__("on baseline")}</span><b>${naira(c.totals.phases)}</b></div>` : ""}
+					<div class="duty-earn-r duty-earn-total"><span class="duty-earn-lbl">${__("Total")}</span><span class="duty-earn-calc">${eq.length > 1 ? eq.join(" + ") : ""}</span><b>${naira(c.totals.grand)}</b></div>
+				</div>
+				${c.resolutions.length ? `<div class="duty-earn-items">${c.resolutions.map((x) => `<div class="duty-earn-it"><span class="duty-earn-t" title="${esc(x.title)}">${esc(x.title)}</span><span class="duty-earn-meta">${esc(x.customer || "")} · ${x.mode === "confirmed" ? (x.stars ? "★".repeat(x.stars) : __("confirmed")) : x.mode === "upgrade" ? `${x.stars ? "★".repeat(x.stars) + " " : ""}${__("upgrade")}` : __("auto (7d)")}${x.split > 1 ? ` · ÷${x.split}` : ""}</span><b>${naira(x.amount + x.sla_amount)}</b></div>`).join("")}</div>` : ""}
+				${c.phases.length ? `<div class="duty-earn-items">${c.phases.map((p) => `<div class="duty-earn-it"><span class="duty-earn-t" title="${esc(p.phase)}">${esc(p.phase)}</span><span class="duty-earn-meta">${esc(p.project)} · ${esc(p.approved)}${p.split > 1 ? ` · ÷${p.split}` : ""}</span><b>${naira(p.amount)}</b></div>`).join("")}</div>` : ""}
+			</details>`;
+		};
+		$host.html(`
+			<div class="duty-me-reqs duty-earn-card">
+				<h4>💵 ${__("Earnings")}</h4>
+				${block(tm, true)}
+				${block(lm, false)}
+			</div>`);
+	}
+
 	_load_leave_card() {
 		const $host = this.$me.find(".duty-me-leave");
 		if (!$host.length) return;
@@ -2517,6 +2561,7 @@ class DutyBoard {
 					</div>`).join("")}
 			</div>` : ""}
 			<div class="duty-me-leave"></div>
+			<div class="duty-me-earn"></div>
 			<div class="duty-me-cal">
 				<div class="duty-me-calhead">
 					<button class="btn btn-xs duty-cal-prev">◀</button>
@@ -2602,6 +2647,7 @@ class DutyBoard {
 			)
 		);
 		this._load_leave_card();
+		this._load_earnings_card();
 		this.$me.find(".duty-req-sg").on("click", (e) =>
 			this.suggest_meeting_dialog($(e.currentTarget).data("id"), $(e.currentTarget).data("topic"), () => this.show_face("me"))
 		);
@@ -5722,7 +5768,49 @@ this.$me.find(".duty-req-ok").on("click", (e) => {
 							<h5 style="margin:14px 0 6px">👤 ${__("By person × service line — hours (last month)")}</h5>
 							<table class="table table-sm" style="font-size:12px"><tr><th>${__("Person")}</th>${hdr}<th>${__("Total")}</th><th>${__("Cost")}</th></tr>${body}</table>
 							<p class="text-muted" style="font-size:11px">${__("Untyped = unlinked sessions logged before service lines existed (or a person's first unlinked session). Bulk-classify history once and the column empties; the sticky default keeps it empty.")}</p>
+							<div class="duty-pay"><div class="text-muted" style="font-size:12px">${__("Loading payouts…")}</div></div>
 						`);
+						const loadPay = (py, pm) => {
+							$(d.body).find(".duty-pay").html(`<div class="text-muted" style="font-size:12px">${__("Loading payouts…")}</div>`);
+							frappe.call({
+								method: "duty_board.earnings.earnings_summary",
+								args: py ? { year: py, month: pm } : {},
+								callback: (pr) => {
+									const P = pr.message || {};
+									const T = { h: 0, ha: 0, rc: 0, ra: 0, pa: 0, g: 0 };
+									const rows = (P.rows || []).map((p) => {
+										T.h += p.paid_hours; T.ha += p.hours_amt; T.rc += p.res_count; T.ra += p.res_amt; T.pa += p.phase_amt; T.g += p.grand;
+										return `<tr>
+										<td><b>${frappe.utils.escape_html(p.full_name)}</b></td>
+										<td>${p.paid_hours}h${p.capped ? " ⛔" : ""}<div class="text-muted" style="font-size:10.5px">${p.linked_hours}h ${__("linked")} / ${p.unlinked_hours}h ${__("unlinked")}</div></td>
+										<td>${naira(p.hours_amt)}</td>
+										<td>${p.res_count}</td>
+										<td>${naira(p.res_amt)}</td>
+										<td>${naira(p.phase_amt)}</td>
+										<td><b>${naira(p.grand)}</b></td>
+									</tr>`;
+									}).join("");
+									const nd = frappe.datetime.now_date().split("-");
+									const cy = parseInt(nd[0]), cm = parseInt(nd[1]);
+									const ly = cm === 1 ? cy - 1 : cy, lm = cm === 1 ? 12 : cm - 1;
+									const isCur = P.month === cm && P.year === cy;
+									$(d.body).find(".duty-pay").html(`
+										<h5 style="margin:14px 0 6px">💵 ${__("Payouts")} — ${frappe.utils.escape_html(P.label || "")}
+											<span class="duty-pay-tog"><a data-y="${cy}" data-m="${cm}" class="${isCur ? "on" : ""}">${__("This month")}</a><a data-y="${ly}" data-m="${lm}" class="${isCur ? "" : "on"}">${__("Last month")}</a></span></h5>
+										${rows ? `<table class="table table-sm" style="font-size:12px"><tr><th>${__("Person")}</th><th>${__("Paid hours")}</th><th>${__("Hours ₦")}</th><th>${__("Res.")}</th><th>${__("Res. ₦")}</th><th>${__("Phase ₦")}</th><th>${__("Total")}</th></tr>${rows}
+										<tr class="duty-pay-tot"><td><b>${__("Total to pay")}</b></td><td><b>${Math.round(T.h * 10) / 10}h</b></td><td><b>${naira(T.ha)}</b></td><td><b>${T.rc}</b></td><td><b>${naira(T.ra)}</b></td><td><b>${naira(T.pa)}</b></td><td><b>${naira(T.g)}</b></td></tr></table>
+										${P.closed ? `<p style="font-size:12px;color:#0B6B4F;font-weight:700">🔒 ${__("Closed")} ${frappe.utils.escape_html(P.closed_on || "")}${P.closed_by ? ` ${__("by")} ${frappe.utils.escape_html(P.closed_by)}` : ""} — ${__("these figures are frozen.")}</p>` : !isCur ? `<button class="btn btn-xs btn-default duty-pay-close" data-y="${P.year}" data-m="${P.month}">🔒 ${__("Close")} ${frappe.utils.escape_html(P.label || "")} — ${__("freeze these figures")}</button>` : ""}
+										<p class="text-muted" style="font-size:11px">${__("⛔ = monthly cap reached. Watch the unlinked share — a rising unlinked fraction means hours are drifting away from issues and tasks.")}</p>` : `<p class="text-muted" style="font-size:12px">${__("No earnings recorded for")} ${frappe.utils.escape_html(P.label || "")}.</p>`}`);
+									$(d.body).find(".duty-pay-tog a").on("click", (ev) => loadPay($(ev.currentTarget).data("y"), $(ev.currentTarget).data("m")));
+									$(d.body).find(".duty-pay-close").on("click", (ev) => {
+										const y = $(ev.currentTarget).data("y"), m = $(ev.currentTarget).data("m");
+										frappe.confirm(__("Close this month? Figures freeze permanently — rate changes and record edits will no longer move them."), () =>
+											frappe.call({ method: "duty_board.earnings.close_month", args: { year: y, month: m }, callback: () => { frappe.show_alert({ message: __("Month closed."), indicator: "green" }); loadPay(y, m); } }));
+									});
+								},
+							});
+						};
+						loadPay();
 					},
 				});
 			},
@@ -11505,6 +11593,29 @@ this.$me.find(".duty-req-ok").on("click", (e) => {
 			.duty-lv-ask { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; margin-top: 10px; }
 			.duty-lv-ask input[type="date"] { max-width: 150px; }
 			.duty-lv-ask .duty-lv-note { max-width: 220px; }
+			.duty-earn-m { border: 1px solid #D8E2DF; border-radius: 12px; margin-bottom: 14px; overflow: hidden; background: #fff; }
+			.duty-earn-m summary { cursor: pointer; display: flex; gap: 10px; align-items: baseline; list-style: none; background: #EAF3F0; padding: 10px 14px; font-size: 15px; border-bottom: 1px solid #D8E2DF; }
+			.duty-earn-m summary::-webkit-details-marker { display: none; }
+			.duty-earn-grand { margin-left: auto; font-weight: 800; font-size: 16px; color: #0B6B4F; }
+			.duty-earn-rows { padding: 8px 14px 4px; }
+			.duty-earn-r { display: grid; grid-template-columns: 160px minmax(0,1fr) auto; gap: 12px; align-items: baseline; padding: 5px 0; font-size: 13px; }
+			.duty-earn-lbl { font-weight: 700; }
+			.duty-earn-r > b { text-align: right; }
+			.duty-earn-total { border-top: 2px solid #123C35; margin-top: 4px; padding-top: 8px; font-size: 14px; }
+			.duty-earn-total > b { color: #0B6B4F; font-size: 15px; }
+			.duty-earn-cap { color: #B45309; font-weight: 700; font-size: 12px; font-style: normal; }
+			.duty-earn-items { margin: 2px 14px 10px; padding-left: 8px; border-left: 3px solid #EAF3F0; display: flex; flex-direction: column; gap: 3px; }
+			.duty-earn-it { display: grid; grid-template-columns: minmax(0,1fr) auto auto; gap: 10px; align-items: baseline; font-size: 12.5px; }
+			.duty-earn-t { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+			.duty-earn-meta { color: #7A8783; font-size: 11.5px; white-space: nowrap; }
+			.duty-earn-it > b { text-align: right; }
+			@media (max-width: 640px) { .duty-earn-r { grid-template-columns: 1fr auto; } .duty-earn-r .duty-earn-calc { grid-column: 1 / -1; } }
+			.duty-pay-tog { margin-left: 12px; font-size: 12px; font-weight: 400; }
+			.duty-pay-tog a { cursor: pointer; padding: 3px 10px; border: 1px solid #D8E2DF; border-radius: 20px; margin-right: 4px; color: #4b5a55; text-decoration: none; }
+			.duty-pay-tog a.on { background: #123C35; color: #fff; border-color: #123C35; font-weight: 700; }
+			.duty-pay-tot td { border-top: 2px solid #123C35 !important; background: #F4F8F6; }
+			.duty-earn-lock { font-size: 11px; font-weight: 700; color: #7A8783; background: #F0F4F3; border-radius: 20px; padding: 2px 8px; }
+			.duty-pay-close { margin: 6px 0 2px; }
 			.duty-projects { display: flex; gap: 0; align-items: stretch; min-height: calc(100vh - 120px); }
 			.duty-pj-side { width: 250px; flex: none; border-right: 1px solid #e5e7eb; padding: 8px 8px 8px 0; overflow-y: auto; max-height: calc(100vh - 110px); }
 			.duty-pj-sidehead { display: flex; gap: 6px; margin-bottom: 8px; }
