@@ -1,0 +1,1419 @@
+{
+ "customers": {
+  "title": "Selling 1 — Customers & Selling Foundations",
+  "desc": "The customer master done right: groups, territories, contacts and addresses, credit limits, and the Selling Settings that shape every document after it.",
+  "lessons": [
+   {
+    "title": "The Customer master",
+    "est": "5",
+    "html": "<p>Every selling document in ZhiftERP hangs off a <b>Customer</b>. Create one from <b>Selling &gt; Customer</b>: the name, <b>Customer Group</b>, and <b>Territory</b> are the three fields that drive reporting later — group answers <i>what kind</i> of customer (Retail, Pharmacy, Distributor), territory answers <i>where</i> (Lagos Mainland, Abuja, South-West).</p><p>Set the <b>Default Price List</b> and <b>Default Currency</b> on the customer so quotations pick the right rates automatically. A customer created carelessly today is a reporting headache for years — the master record is a contract with your future reports.</p>"
+   },
+   {
+    "title": "Contacts & addresses",
+    "est": "4",
+    "html": "<p>A Customer is a company; the humans and locations attach separately. <b>Contacts</b> carry names, phones, and emails; <b>Addresses</b> carry billing and shipping locations. One customer can hold many of each — a chain like your larger retail accounts has one customer record and dozens of branch shipping addresses.</p><p>Mark one contact and one address as <b>primary</b>: documents pull them by default. When a quotation shows the wrong address, the fix is almost always the address record, not the quotation.</p>"
+   },
+   {
+    "title": "Credit limits & the credit controller",
+    "est": "5",
+    "html": "<p>A <b>Credit Limit</b> on the customer caps how much unpaid exposure you allow. When a new Sales Order would push the outstanding balance past the limit, ZhiftERP blocks submission.</p><p>Only a user holding the <b>Credit Controller</b> role can bypass the block — deliberately, per document. This is the difference between a sales team that grows revenue and one that grows bad debt: the limit is policy, the controller is the exception process.</p>"
+   },
+   {
+    "title": "Selling Settings that matter",
+    "est": "4",
+    "html": "<p><b>Selling Settings</b> (search it in the awesome bar) holds the switches that shape daily work: customer naming, the default price list, whether sales staff must have an <b>Item Price</b> before selling, and whether one item can appear on multiple rows of the same order.</p><p>Two to know cold: <b>Allow Item to be Added Multiple Times</b> (same item at two rates on one order) and <b>Maintain Same Rate Throughout Sales Cycle</b> — which stops the delivery note quietly changing the price agreed on the order.</p>"
+   }
+  ],
+  "questions": [
+   {
+    "q": "Which three Customer fields most directly drive sales reporting in ZhiftERP?",
+    "opts": [
+     "Name, email, phone",
+     "Customer Group, Territory, and the customer name",
+     "Credit limit, currency, price list",
+     "Contact, address, tax ID"
+    ],
+    "ans": 1,
+    "why": "Group and territory are the analysis dimensions every sales report slices by.",
+    "src": "Customers §1"
+   },
+   {
+    "q": "A customer's quotations keep defaulting to the wrong currency. Where is the durable fix?",
+    "opts": [
+     "Edit each quotation",
+     "The customer's Default Currency field",
+     "Selling Settings",
+     "The exchange rate list"
+    ],
+    "ans": 1,
+    "why": "Document defaults flow from the customer master — fix the master, not the symptom.",
+    "src": "Customers §1"
+   },
+   {
+    "q": "One customer with 30 branches needing deliveries to each branch is modelled as:",
+    "opts": [
+     "30 customers",
+     "One customer with 30 shipping addresses",
+     "One customer, addresses typed per order",
+     "30 price lists"
+    ],
+    "ans": 1,
+    "why": "One company = one customer; locations are address records attached to it.",
+    "src": "Contacts §2"
+   },
+   {
+    "q": "Documents pull which contact and address by default?",
+    "opts": [
+     "The newest",
+     "The primary contact and primary address",
+     "Alphabetically first",
+     "Whichever was used last"
+    ],
+    "ans": 1,
+    "why": "The primary flags control defaulting.",
+    "src": "Contacts §2"
+   },
+   {
+    "q": "A Sales Order is blocked because the customer would exceed their credit limit. Who can let it through?",
+    "opts": [
+     "Any System Manager",
+     "A user with the Credit Controller role",
+     "The sales user who made it",
+     "Nobody — it must be paid first"
+    ],
+    "ans": 1,
+    "why": "Credit Controller is the deliberate bypass role for credit-limit blocks.",
+    "src": "Credit §3"
+   },
+   {
+    "q": "The credit limit measures the customer's:",
+    "opts": [
+     "Lifetime purchases",
+     "Unpaid outstanding exposure",
+     "Number of open orders",
+     "Discount ceiling"
+    ],
+    "ans": 1,
+    "why": "It caps outstanding receivables, not sales volume.",
+    "src": "Credit §3"
+   },
+   {
+    "q": "Where do you control whether the same item can appear on two rows of one order?",
+    "opts": [
+     "Item master",
+     "Selling Settings — Allow Item to be Added Multiple Times",
+     "Price list",
+     "Sales Order print format"
+    ],
+    "ans": 1,
+    "why": "It's a Selling Settings switch.",
+    "src": "Settings §4"
+   },
+   {
+    "q": "\"Maintain Same Rate Throughout Sales Cycle\" protects against:",
+    "opts": [
+     "Currency changes",
+     "The rate silently differing between order and delivery/invoice",
+     "Discounts",
+     "Tax recalculation"
+    ],
+    "ans": 1,
+    "why": "It enforces the agreed rate downstream through the cycle.",
+    "src": "Settings §4"
+   },
+   {
+    "q": "Customer Group answers which question about a customer?",
+    "opts": [
+     "Where they are",
+     "What kind of customer they are",
+     "How much they owe",
+     "Who manages them"
+    ],
+    "ans": 1,
+    "why": "Group is the kind/segment dimension; territory is the where.",
+    "src": "Customers §1"
+   },
+   {
+    "q": "The right place to record a buyer's phone number is:",
+    "opts": [
+     "The customer name field",
+     "A Contact linked to the customer",
+     "The quotation remarks",
+     "Selling Settings"
+    ],
+    "ans": 1,
+    "why": "People live on Contact records, linked to the customer.",
+    "src": "Contacts §2"
+   },
+   {
+    "q": "Territory on the customer is best set to:",
+    "opts": [
+     "The salesperson's name",
+     "The geographic region used in your reporting structure",
+     "The delivery driver",
+     "The warehouse"
+    ],
+    "ans": 1,
+    "why": "Territory is the geography dimension for analysis and targets.",
+    "src": "Customers §1"
+   },
+   {
+    "q": "A new customer record should always be created with:",
+    "opts": [
+     "Only a name — details later",
+     "Name, group, territory, currency and default price list set deliberately",
+     "A credit limit of zero",
+     "A copied address from another customer"
+    ],
+    "ans": 1,
+    "why": "Master data created deliberately keeps every later document and report clean.",
+    "src": "Customers §1"
+   }
+  ]
+ },
+ "items_prices": {
+  "title": "Selling 2 — Items & Price Lists",
+  "desc": "Sellable items, units of measure, selling price lists and Item Prices — where every rate on every quotation actually comes from.",
+  "lessons": [
+   {
+    "title": "The sellable item",
+    "est": "4",
+    "html": "<p>An <b>Item</b> must have <b>Is Sales Item</b> ticked to appear on selling documents. The <b>Item Group</b> plays the same reporting role Customer Group plays on the other side. The <b>Default Unit of Measure</b> (UOM) is the unit stock is kept in; a <b>Sales UOM</b> can differ — keep stock in Units, sell in Cartons of 12 — with a conversion factor doing the arithmetic.</p>"
+   },
+   {
+    "title": "Price lists",
+    "est": "4",
+    "html": "<p>A <b>Price List</b> is a named collection of rates in one currency — Standard Selling, Distributor NGN, Export USD. Selling documents read rates from the price list on the document, which defaults from the customer.</p><p>Price lists separate <i>who pays what</i>: the same item can be ₦1,000 on Retail and ₦850 on Distributor with no discounts involved — cleaner than discounting, because reports then show true agreed rates.</p>"
+   },
+   {
+    "title": "Item Price records",
+    "est": "4",
+    "html": "<p>The actual number lives in an <b>Item Price</b>: item + price list + rate (+ optional validity dates and minimum quantity). When a quotation row finds no Item Price for its price list, the rate comes up zero — the single most common \"why is my rate 0?\" answer in support.</p><p>Bulk price maintenance is an import job: export Item Prices, update rates in the sheet, re-import. Never retype fifty rates by hand.</p>"
+   },
+   {
+    "title": "Currency & conversion",
+    "est": "3",
+    "html": "<p>A price list has one currency. Quote a USD price list to a naira customer and ZhiftERP converts using the <b>Currency Exchange</b> rate into the document currency — visible on the document as the conversion rate.</p><p>Rule of thumb: one price list per currency per commercial arrangement, and let the customer default do the choosing.</p>"
+   }
+  ],
+  "questions": [
+   {
+    "q": "An item refuses to appear on a quotation. First thing to check:",
+    "opts": [
+     "Its price",
+     "Is Sales Item is ticked on the item",
+     "The customer group",
+     "The warehouse"
+    ],
+    "ans": 1,
+    "why": "Only sales items appear on selling documents.",
+    "src": "Items §1"
+   },
+   {
+    "q": "Stock kept in Units but sold in Cartons of 12 uses:",
+    "opts": [
+     "Two item records",
+     "A Sales UOM with a conversion factor",
+     "A pricing rule",
+     "Manual arithmetic on each row"
+    ],
+    "ans": 1,
+    "why": "Sales UOM + conversion factor handles the unit difference.",
+    "src": "Items §1"
+   },
+   {
+    "q": "A quotation row shows rate 0. The most common cause:",
+    "opts": [
+     "The item is inactive",
+     "No Item Price exists for the document's price list",
+     "Taxes not set",
+     "The customer has no territory"
+    ],
+    "ans": 1,
+    "why": "Rates come from Item Price records; missing record = zero.",
+    "src": "Item Price §3"
+   },
+   {
+    "q": "Retail pays ₦1,000, distributors pay ₦850 for the same item. Cleanest model:",
+    "opts": [
+     "A 15% discount for distributors",
+     "Two price lists with their own Item Prices",
+     "Two item records",
+     "Edit the rate manually each time"
+    ],
+    "ans": 1,
+    "why": "Separate price lists show true agreed rates without discount noise.",
+    "src": "Price lists §2"
+   },
+   {
+    "q": "The rate a quotation uses comes from:",
+    "opts": [
+     "The item's standard rate always",
+     "The Item Price for the document's price list",
+     "The last invoice",
+     "Selling Settings"
+    ],
+    "ans": 1,
+    "why": "The document's price list is looked up in Item Price.",
+    "src": "Item Price §3"
+   },
+   {
+    "q": "A price list can contain:",
+    "opts": [
+     "Multiple currencies",
+     "Exactly one currency",
+     "Only NGN",
+     "One item"
+    ],
+    "ans": 1,
+    "why": "One price list, one currency.",
+    "src": "Currency §4"
+   },
+   {
+    "q": "Updating 300 selling rates at quarter start is best done by:",
+    "opts": [
+     "Editing each Item Price",
+     "Export, update in sheet, re-import Item Prices",
+     "Deleting the price list",
+     "A pricing rule per item"
+    ],
+    "ans": 1,
+    "why": "Bulk price maintenance is an import job.",
+    "src": "Item Price §3"
+   },
+   {
+    "q": "Which field defaults the price list onto a new quotation?",
+    "opts": [
+     "Selling Settings only",
+     "The customer's Default Price List",
+     "The item group",
+     "The territory"
+    ],
+    "ans": 1,
+    "why": "The customer default drives document defaulting.",
+    "src": "Price lists §2"
+   },
+   {
+    "q": "Item Group serves the same purpose for items that ______ serves for customers.",
+    "opts": [
+     "Territory",
+     "Customer Group",
+     "Credit limit",
+     "Contact"
+    ],
+    "ans": 1,
+    "why": "Both are the segment/reporting dimension of their master.",
+    "src": "Items §1"
+   },
+   {
+    "q": "A USD price list on a naira document results in:",
+    "opts": [
+     "An error",
+     "Automatic conversion at the exchange rate into document currency",
+     "The rate showing in USD",
+     "Zero rates"
+    ],
+    "ans": 1,
+    "why": "Currency Exchange converts into the document currency.",
+    "src": "Currency §4"
+   },
+   {
+    "q": "An Item Price can be limited by:",
+    "opts": [
+     "Warehouse",
+     "Validity dates and minimum quantity",
+     "Salesperson",
+     "Payment terms"
+    ],
+    "ans": 1,
+    "why": "Valid-from/upto and min qty scope an Item Price.",
+    "src": "Item Price §3"
+   },
+   {
+    "q": "The unit stock is counted in is the item's:",
+    "opts": [
+     "Sales UOM",
+     "Default Unit of Measure",
+     "Carton size",
+     "Price list unit"
+    ],
+    "ans": 1,
+    "why": "Default UOM is the stock-keeping unit; Sales UOM is for selling.",
+    "src": "Items §1"
+   }
+  ]
+ },
+ "quotations": {
+  "title": "Selling 3 — Quotations",
+  "desc": "The offer document: creating quotations, validity, taxes on the offer, the status lifecycle, losing gracefully, and converting to an order.",
+  "lessons": [
+   {
+    "title": "Creating the offer",
+    "est": "5",
+    "html": "<p>A <b>Quotation</b> is the formal offer: customer (or lead), items, quantities, rates, taxes, terms. Create it directly from <b>Selling &gt; Quotation</b> or from a CRM opportunity so the trail from first contact to offer stays linked.</p><p>Rates arrive from the price list; you can override per row — overrides are visible and reportable, so discipline stays intact. The <b>Valid Till</b> date says how long the offer stands; after it passes, the quotation shows <b>Expired</b>.</p>"
+   },
+   {
+    "title": "Taxes on the quotation",
+    "est": "4",
+    "html": "<p>Attach a <b>Sales Taxes and Charges Template</b> — for Nigerian trade, typically VAT at 7.5% — and the quotation shows the customer the true payable total. Quoting without tax and surprising the customer at invoice is how deals sour late.</p><p>The template travels forward: convert the quotation and the same taxes flow onto the Sales Order and beyond.</p>"
+   },
+   {
+    "title": "The status lifecycle",
+    "est": "4",
+    "html": "<p>Draft → <b>Open</b> on submit. From Open: <b>Ordered</b> when a Sales Order is made from it, <b>Lost</b> when you concede, <b>Expired</b> when Valid Till passes, <b>Cancelled</b> if withdrawn. The Quotation list filtered to Open IS your offers-awaiting-answer pipeline — keep it honest.</p>"
+   },
+   {
+    "title": "Losing well & converting",
+    "est": "4",
+    "html": "<p>Marking a quotation <b>Lost</b> asks for a <b>Lost Reason</b> (price, competitor, timing). Six months of honest lost reasons is a strategy document nobody had to write.</p><p>Winning: <b>Create &gt; Sales Order</b> from the quotation carries everything across — items, rates, taxes, terms — no retyping, no transcription errors. The quotation flips to Ordered and the chain of custody is unbroken.</p>"
+   }
+  ],
+  "questions": [
+   {
+    "q": "A submitted quotation awaiting the customer's answer shows status:",
+    "opts": [
+     "Draft",
+     "Open",
+     "Ordered",
+     "Pending"
+    ],
+    "ans": 1,
+    "why": "Submit moves Draft to Open — the awaiting-answer state.",
+    "src": "Lifecycle §3"
+   },
+   {
+    "q": "After Valid Till passes with no order, the quotation shows:",
+    "opts": [
+     "Lost",
+     "Expired",
+     "Cancelled",
+     "Closed"
+    ],
+    "ans": 1,
+    "why": "Expiry is automatic from the Valid Till date.",
+    "src": "Lifecycle §3"
+   },
+   {
+    "q": "Making a Sales Order from a quotation flips the quotation to:",
+    "opts": [
+     "Closed",
+     "Ordered",
+     "Won",
+     "Fulfilled"
+    ],
+    "ans": 1,
+    "why": "Ordered records that the offer converted.",
+    "src": "Converting §4"
+   },
+   {
+    "q": "Marking a quotation Lost prompts for:",
+    "opts": [
+     "A discount",
+     "A Lost Reason",
+     "Manager approval",
+     "A replacement quote"
+    ],
+    "ans": 1,
+    "why": "Lost reasons accumulate into competitive intelligence.",
+    "src": "Losing §4"
+   },
+   {
+    "q": "Nigerian VAT on a quotation is applied via:",
+    "opts": [
+     "Typing 7.5% into the rate",
+     "A Sales Taxes and Charges Template",
+     "The item master",
+     "The customer group"
+    ],
+    "ans": 1,
+    "why": "The tax template carries VAT onto the document.",
+    "src": "Taxes §2"
+   },
+   {
+    "q": "Why quote taxes on the offer rather than adding them at invoice?",
+    "opts": [
+     "It's legally required on quotes",
+     "The customer sees the true payable total — no late surprises",
+     "It changes the rate",
+     "Templates only work on quotations"
+    ],
+    "ans": 1,
+    "why": "Late tax surprises sour closed deals.",
+    "src": "Taxes §2"
+   },
+   {
+    "q": "Overriding a price-list rate on one quotation row is:",
+    "opts": [
+     "Impossible",
+     "Allowed, visible, and reportable",
+     "Only for System Managers",
+     "Automatic"
+    ],
+    "ans": 1,
+    "why": "Row overrides are permitted and transparent.",
+    "src": "Creating §1"
+   },
+   {
+    "q": "Your live offers-awaiting-answer list is the Quotation list filtered to:",
+    "opts": [
+     "Draft",
+     "Open",
+     "Ordered",
+     "All"
+    ],
+    "ans": 1,
+    "why": "Open = submitted, unanswered, unexpired.",
+    "src": "Lifecycle §3"
+   },
+   {
+    "q": "Converting via Create > Sales Order matters because:",
+    "opts": [
+     "It's faster to type fresh",
+     "Items, rates, taxes and terms carry over with no transcription errors",
+     "It skips approval",
+     "It hides the quotation"
+    ],
+    "ans": 1,
+    "why": "Document flow preserves the agreed offer exactly.",
+    "src": "Converting §4"
+   },
+   {
+    "q": "A quotation can be made against:",
+    "opts": [
+     "Only a customer",
+     "A customer or a lead",
+     "Only an existing order",
+     "A supplier"
+    ],
+    "ans": 1,
+    "why": "Quotations support leads as well as customers.",
+    "src": "Creating §1"
+   },
+   {
+    "q": "The taxes chosen on the quotation:",
+    "opts": [
+     "Must be re-entered on the order",
+     "Flow onto the Sales Order made from it",
+     "Apply only to the quote",
+     "Are locked to VAT"
+    ],
+    "ans": 1,
+    "why": "The template travels forward through the cycle.",
+    "src": "Taxes §2"
+   },
+   {
+    "q": "Six months of Lost Reasons is best used as:",
+    "opts": [
+     "A blame record",
+     "Competitive and pricing intelligence for strategy",
+     "A deletion queue",
+     "Nothing — it's noise"
+    ],
+    "ans": 1,
+    "why": "Patterns in why deals die tell you what to fix.",
+    "src": "Losing §4"
+   }
+  ]
+ },
+ "sales_orders": {
+  "title": "Selling 4 — Sales Orders",
+  "desc": "The commitment document: delivery dates, what submission reserves, the status language, amendments, holds and closes, and delivery tolerance.",
+  "lessons": [
+   {
+    "title": "The commitment",
+    "est": "4",
+    "html": "<p>A <b>Sales Order</b> is the point where an offer becomes an obligation: the customer has said yes, and you now owe goods by the <b>Delivery Date</b>. Made from the quotation (preferred) or directly, it carries items, rates, taxes, and per-row delivery dates when different lines ship at different times.</p>"
+   },
+   {
+    "title": "What submission does",
+    "est": "4",
+    "html": "<p>Submitting a Sales Order commits stock intent: ordered quantities appear as <b>reserved</b> against the warehouse, so planners and other salespeople see the truth of what is promised. It also opens the order's fulfilment ledger — every delivery note and invoice made from it counts down the remaining quantities.</p>"
+   },
+   {
+    "title": "Status language & control",
+    "est": "5",
+    "html": "<p>A submitted order reads <b>To Deliver and Bill</b>, then <b>To Bill</b> (delivered, not invoiced), <b>To Deliver</b> (invoiced first), and <b>Completed</b>. Two manual controls: <b>Hold</b> pauses an order (credit issues, stock trouble) and <b>Close</b> ends it early — the customer took 80 of 100 and won't take more; closing releases the reservation and stops the order haunting your pending lists.</p><p>Amending: cancel and <b>Amend</b> creates the next revision with full history preserved.</p>"
+   },
+   {
+    "title": "Delivery tolerance",
+    "est": "3",
+    "html": "<p>Real warehouses ship 102 units against an order of 100. The <b>Over Delivery/Receipt Allowance %</b> (on the item or globally) says how much overage a delivery may carry before ZhiftERP blocks it. Zero tolerance means exact quantities only — right for serialized goods, wrong for bulk.</p>"
+   }
+  ],
+  "questions": [
+   {
+    "q": "A freshly submitted, untouched Sales Order shows status:",
+    "opts": [
+     "Open",
+     "To Deliver and Bill",
+     "Confirmed",
+     "Pending"
+    ],
+    "ans": 1,
+    "why": "Both obligations — deliver and bill — are outstanding.",
+    "src": "Status §3"
+   },
+   {
+    "q": "Delivered in full but not yet invoiced, the order reads:",
+    "opts": [
+     "To Deliver",
+     "To Bill",
+     "Completed",
+     "Closed"
+    ],
+    "ans": 1,
+    "why": "Delivery done; billing remains.",
+    "src": "Status §3"
+   },
+   {
+    "q": "Submitting a Sales Order affects stock by:",
+    "opts": [
+     "Deducting it immediately",
+     "Reserving the ordered quantities against the warehouse",
+     "Nothing until invoice",
+     "Transferring it to the customer"
+    ],
+    "ans": 1,
+    "why": "Reservation shows everyone what's promised.",
+    "src": "Submission §2"
+   },
+   {
+    "q": "The customer took 80 of 100 and will take no more. Correct action:",
+    "opts": [
+     "Cancel the order",
+     "Close the order",
+     "Delete the remaining rows",
+     "Deliver 20 to scrap"
+    ],
+    "ans": 1,
+    "why": "Close ends it early, releases reservation, keeps history.",
+    "src": "Status §3"
+   },
+   {
+    "q": "An order that must pause for a credit issue should be:",
+    "opts": [
+     "Cancelled",
+     "Held",
+     "Closed",
+     "Deleted"
+    ],
+    "ans": 1,
+    "why": "Hold pauses without destroying the commitment.",
+    "src": "Status §3"
+   },
+   {
+    "q": "Changing a submitted order's quantities is done by:",
+    "opts": [
+     "Editing it directly",
+     "Cancel then Amend, creating the next revision",
+     "A new order",
+     "Asking a System Manager to edit SQL"
+    ],
+    "ans": 1,
+    "why": "Amend preserves the revision history.",
+    "src": "Status §3"
+   },
+   {
+    "q": "Shipping 102 against an order of 100 is permitted when:",
+    "opts": [
+     "Never",
+     "Over Delivery Allowance % covers the 2% overage",
+     "The driver insists",
+     "The invoice matches"
+    ],
+    "ans": 1,
+    "why": "The allowance defines acceptable overage before blocking.",
+    "src": "Tolerance §4"
+   },
+   {
+    "q": "Different lines shipping at different times are handled by:",
+    "opts": [
+     "Separate orders always",
+     "Per-row delivery dates on one order",
+     "Remarks",
+     "Holding the order"
+    ],
+    "ans": 1,
+    "why": "Row-level delivery dates schedule split fulfilment.",
+    "src": "Commitment §1"
+   },
+   {
+    "q": "The order's remaining-to-deliver quantities count down as:",
+    "opts": [
+     "Payments arrive",
+     "Delivery Notes are made from the order",
+     "Time passes",
+     "Stock is purchased"
+    ],
+    "ans": 1,
+    "why": "Fulfilment documents made FROM the order drive its ledger.",
+    "src": "Submission §2"
+   },
+   {
+    "q": "\"To Deliver\" (without \"and Bill\") means:",
+    "opts": [
+     "Nothing delivered",
+     "Invoiced ahead of delivery; goods still owed",
+     "Completed",
+     "On hold"
+    ],
+    "ans": 1,
+    "why": "Billing done first; delivery outstanding.",
+    "src": "Status §3"
+   },
+   {
+    "q": "Zero over-delivery tolerance is right for:",
+    "opts": [
+     "Bulk cement",
+     "Serialized electronics where exact units matter",
+     "All items",
+     "No items"
+    ],
+    "ans": 1,
+    "why": "Serialized goods need exact quantities; bulk needs slack.",
+    "src": "Tolerance §4"
+   },
+   {
+    "q": "The preferred origin of a Sales Order is:",
+    "opts": [
+     "Direct entry always",
+     "Create from the accepted Quotation",
+     "Copy of an old order",
+     "Import"
+    ],
+    "ans": 1,
+    "why": "Creating from the quotation preserves the agreed offer.",
+    "src": "Commitment §1"
+   }
+  ]
+ },
+ "delivery": {
+  "title": "Selling 5 — Delivery Notes & Returns",
+  "desc": "Where stock actually moves: delivery notes from orders, partial shipments, statuses, sales returns, packing slips, and serial/batch discipline.",
+  "lessons": [
+   {
+    "title": "The document that moves stock",
+    "est": "4",
+    "html": "<p>The <b>Delivery Note</b> is the moment goods leave: submitting it <b>deducts stock</b> from the warehouse and counts down the Sales Order. Always create it <b>from the order</b> (Create &gt; Delivery Note) so quantities, rates and taxes flow and the order's ledger stays true.</p>"
+   },
+   {
+    "title": "Partial delivery & status",
+    "est": "4",
+    "html": "<p>Deliver 60 of 100 today: make the DN from the order and edit quantities down — the order remembers 40 remain, and the next DN offers exactly the 40 remaining. A DN reads <b>To Bill</b> until invoiced, then <b>Completed</b>; a DN can also be made against the invoice when billing led.</p>"
+   },
+   {
+    "title": "Sales returns",
+    "est": "5",
+    "html": "<p>Goods come back via a <b>Sales Return</b>: a Delivery Note with <b>Is Return</b> ticked, made against the original DN, with negative quantities. Submitting it puts stock <b>back into</b> the warehouse and the paper trail ties the return to the exact original shipment. The money side is the credit note — a return Sales Invoice — covered in the next module.</p>"
+   },
+   {
+    "title": "Packing slips, serials & batches",
+    "est": "4",
+    "html": "<p>A <b>Packing Slip</b> against the DN lists cartons and contents for the driver and the gate. Items tracked by <b>Serial No</b> or <b>Batch</b> demand the exact serials/batches on the DN — this is what makes \"which customer got batch B-204?\" answerable during a recall, in seconds instead of days.</p>"
+   }
+  ],
+  "questions": [
+   {
+    "q": "Stock is deducted from the warehouse at which moment?",
+    "opts": [
+     "Sales Order submit",
+     "Delivery Note submit",
+     "Invoice payment",
+     "Quotation acceptance"
+    ],
+    "ans": 1,
+    "why": "The DN is the stock-moving document.",
+    "src": "Moving stock §1"
+   },
+   {
+    "q": "A Delivery Note should be created:",
+    "opts": [
+     "From scratch each time",
+     "From the Sales Order via Create > Delivery Note",
+     "By copying an old DN",
+     "Only by storekeepers"
+    ],
+    "ans": 1,
+    "why": "Creating from the order keeps the fulfilment ledger true.",
+    "src": "Moving stock §1"
+   },
+   {
+    "q": "60 of 100 delivered today. The next DN from the order will offer:",
+    "opts": [
+     "100",
+     "40",
+     "60",
+     "Whatever is typed"
+    ],
+    "ans": 1,
+    "why": "The order tracks the remaining 40 automatically.",
+    "src": "Partial §2"
+   },
+   {
+    "q": "An undelivered-quantity view across all orders lives in:",
+    "opts": [
+     "The DN list",
+     "The Sales Order's remaining quantities (and order analysis reports)",
+     "The item master",
+     "Selling Settings"
+    ],
+    "ans": 1,
+    "why": "Remaining-to-deliver is order-side data.",
+    "src": "Partial §2"
+   },
+   {
+    "q": "A sales return is recorded as:",
+    "opts": [
+     "Deleting the original DN",
+     "A Delivery Note with Is Return, against the original DN, negative quantities",
+     "A purchase receipt",
+     "A stock adjustment"
+    ],
+    "ans": 1,
+    "why": "The return DN reverses stock with a trail to the original.",
+    "src": "Returns §3"
+   },
+   {
+    "q": "Submitting a sales-return DN moves stock:",
+    "opts": [
+     "Out of the warehouse",
+     "Back into the warehouse",
+     "Nowhere",
+     "To a supplier"
+    ],
+    "ans": 1,
+    "why": "Returns restore stock.",
+    "src": "Returns §3"
+   },
+   {
+    "q": "The customer-money side of a return is handled by:",
+    "opts": [
+     "The return DN itself",
+     "A credit note (return Sales Invoice)",
+     "Cash from the driver",
+     "Editing the order"
+    ],
+    "ans": 1,
+    "why": "Stock and money reverse on separate linked documents.",
+    "src": "Returns §3"
+   },
+   {
+    "q": "A DN that has shipped but not been invoiced reads:",
+    "opts": [
+     "Completed",
+     "To Bill",
+     "Draft",
+     "Open"
+    ],
+    "ans": 1,
+    "why": "To Bill = goods gone, billing pending.",
+    "src": "Partial §2"
+   },
+   {
+    "q": "\"Which customers received batch B-204?\" is answerable because:",
+    "opts": [
+     "Drivers keep notebooks",
+     "Batch numbers are recorded on each Delivery Note",
+     "The invoice lists batches",
+     "It isn't answerable"
+    ],
+    "ans": 1,
+    "why": "Batch/serial capture on the DN powers recall tracing.",
+    "src": "Serials §4"
+   },
+   {
+    "q": "The Packing Slip exists to:",
+    "opts": [
+     "Replace the DN",
+     "List cartons and contents for the driver and the gate",
+     "Charge packing fees",
+     "Reserve stock"
+    ],
+    "ans": 1,
+    "why": "It's the physical-handling companion to the DN.",
+    "src": "Serials §4"
+   },
+   {
+    "q": "A serial-tracked item on a DN requires:",
+    "opts": [
+     "Nothing special",
+     "The exact serial numbers being shipped",
+     "A batch number",
+     "Manager approval"
+    ],
+    "ans": 1,
+    "why": "Serialized stock demands per-unit identity on the DN.",
+    "src": "Serials §4"
+   },
+   {
+    "q": "A Delivery Note can also be created against:",
+    "opts": [
+     "A quotation",
+     "A Sales Invoice, when billing preceded delivery",
+     "A lead",
+     "A price list"
+    ],
+    "ans": 1,
+    "why": "Invoice-first flows make the DN from the invoice.",
+    "src": "Partial §2"
+   }
+  ]
+ },
+ "taxes_invoicing": {
+  "title": "Selling 6 — Taxes, Pricing Rules & Invoicing",
+  "desc": "VAT done right, inclusive vs exclusive, item tax overrides, pricing rules and discounts, the Sales Invoice, payments, credit notes — and the reports that watch it all.",
+  "lessons": [
+   {
+    "title": "Sales taxes & VAT",
+    "est": "5",
+    "html": "<p>The <b>Sales Taxes and Charges Template</b> defines tax rows once — Nigerian <b>VAT 7.5%</b> output tax to its ledger account — and every selling document applies it consistently. An <b>Item Tax Template</b> on an item overrides the document rate for that row: how zero-rated or exempt items sit correctly on a VAT-able invoice.</p><p><b>Inclusive</b> tax means the entered rate already contains VAT (₦1,075 inclusive = ₦1,000 + ₦75); <b>exclusive</b> adds it on top. Mixing them up misstates either your price or your VAT return.</p>"
+   },
+   {
+    "title": "Pricing rules & discounts",
+    "est": "5",
+    "html": "<p>A <b>Pricing Rule</b> applies a discount or special rate automatically when conditions match — item/group/brand, customer/group/territory, quantity brackets, validity dates. \"10% off cartons of 50+ for Distributors in Q4\" becomes a rule, not a memo.</p><p>Manual discounting still exists per document — the <b>Additional Discount</b> on totals or per-row rate cuts — but rules are policy while manual discounts are exceptions; keep the exceptional rare and visible.</p>"
+   },
+   {
+    "title": "The Sales Invoice & getting paid",
+    "est": "5",
+    "html": "<p>The <b>Sales Invoice</b> is the accounting event: submitting it books revenue and the customer's receivable. Make it from the order or the DN so quantities and taxes flow. Its outstanding amount clears via <b>Payment Entry</b> — full, partial, or one payment across several invoices.</p><p>Status tells the collection story: <b>Unpaid</b>, <b>Partly Paid</b>, <b>Paid</b>, <b>Overdue</b> once the due date passes — the Overdue filter is your collections worklist.</p>"
+   },
+   {
+    "title": "Credit notes & the watching reports",
+    "est": "5",
+    "html": "<p>A <b>credit note</b> is a Sales Invoice with <b>Is Return</b> — against the original invoice — reversing revenue and receivable for returned goods or corrections, mirroring the return DN on the money side.</p><p>Then the instruments: <b>Sales Analytics</b> (revenue by customer/item/territory over time), <b>Sales Order Analysis</b> (delivery backlog), and <b>Accounts Receivable</b> (who owes what, aged). A sales professional reads these weekly, not at quarter-end panic.</p>"
+   }
+  ],
+  "questions": [
+   {
+    "q": "Nigerian VAT at 7.5% is applied to selling documents through:",
+    "opts": [
+     "Typing it per row",
+     "A Sales Taxes and Charges Template",
+     "The customer master",
+     "A pricing rule"
+    ],
+    "ans": 1,
+    "why": "The template defines VAT once for consistent application.",
+    "src": "VAT §1"
+   },
+   {
+    "q": "A VAT-exempt item on an otherwise VAT-able invoice is handled by:",
+    "opts": [
+     "Deleting the tax row",
+     "An Item Tax Template on that item overriding the document rate",
+     "A separate invoice",
+     "A discount equal to the VAT"
+    ],
+    "ans": 1,
+    "why": "Item tax templates override per row.",
+    "src": "VAT §1"
+   },
+   {
+    "q": "₦1,075 entered as tax-INCLUSIVE at 7.5% VAT means net revenue of:",
+    "opts": [
+     "₦1,075",
+     "₦1,000",
+     "₦994",
+     "₦1,150"
+    ],
+    "ans": 1,
+    "why": "Inclusive rates contain the tax: 1,075 / 1.075 = 1,000.",
+    "src": "VAT §1"
+   },
+   {
+    "q": "\"10% off for Distributors buying 50+ cartons in Q4\" is best implemented as:",
+    "opts": [
+     "A memo to staff",
+     "A Pricing Rule with group, quantity and validity conditions",
+     "Manual edits per order",
+     "A second price list per quarter"
+    ],
+    "ans": 1,
+    "why": "Conditional automatic discounts are what pricing rules are for.",
+    "src": "Pricing §2"
+   },
+   {
+    "q": "Revenue and the customer's receivable are booked when:",
+    "opts": [
+     "The order is submitted",
+     "The Sales Invoice is submitted",
+     "The DN is submitted",
+     "Payment arrives"
+    ],
+    "ans": 1,
+    "why": "The invoice is the accounting event.",
+    "src": "Invoice §3"
+   },
+   {
+    "q": "An invoice past its due date and unpaid shows:",
+    "opts": [
+     "Unpaid",
+     "Overdue",
+     "Late",
+     "Blocked"
+    ],
+    "ans": 1,
+    "why": "Overdue is the past-due status — and the collections filter.",
+    "src": "Invoice §3"
+   },
+   {
+    "q": "One customer payment covering three invoices is recorded as:",
+    "opts": [
+     "Three payment entries",
+     "One Payment Entry allocated across the three invoices",
+     "A journal only",
+     "A credit note"
+    ],
+    "ans": 1,
+    "why": "Payment Entry allocates one payment over multiple invoices.",
+    "src": "Invoice §3"
+   },
+   {
+    "q": "A credit note in ZhiftERP is:",
+    "opts": [
+     "A special letter",
+     "A Sales Invoice with Is Return against the original invoice",
+     "A cancelled invoice",
+     "A negative payment"
+    ],
+    "ans": 1,
+    "why": "The return invoice reverses revenue and receivable with a trail.",
+    "src": "Credit notes §4"
+   },
+   {
+    "q": "The stock reversal and the money reversal of a return live on:",
+    "opts": [
+     "One document",
+     "The return DN and the credit note respectively",
+     "The order",
+     "A journal entry"
+    ],
+    "ans": 1,
+    "why": "Stock reverses on the return DN; money on the credit note.",
+    "src": "Credit notes §4"
+   },
+   {
+    "q": "Who-owes-what, aged by how long, is the report:",
+    "opts": [
+     "Sales Analytics",
+     "Accounts Receivable",
+     "Stock Ledger",
+     "Sales Order Analysis"
+    ],
+    "ans": 1,
+    "why": "AR ageing is the receivables instrument.",
+    "src": "Reports §4"
+   },
+   {
+    "q": "Delivery backlog across all open orders is read from:",
+    "opts": [
+     "Accounts Receivable",
+     "Sales Order Analysis",
+     "The DN list",
+     "Sales Register alone"
+    ],
+    "ans": 1,
+    "why": "Order analysis shows ordered vs delivered vs billed.",
+    "src": "Reports §4"
+   },
+   {
+    "q": "Manual per-document discounts should be:",
+    "opts": [
+     "The normal pricing method",
+     "Rare, visible exceptions — policy lives in pricing rules and price lists",
+     "Hidden in rates",
+     "Banned entirely"
+    ],
+    "ans": 1,
+    "why": "Rules are policy; manual discounts are exceptions kept visible.",
+    "src": "Pricing §2"
+   }
+  ]
+ },
+ "sales_invoice": {
+  "title": "Selling 7 — The Sales Invoice, Payments & Collections",
+  "desc": "The accounting event in full: creating invoices from orders and delivery notes, what submission books, due dates and payment terms, Payment Entry mechanics including advances and allocation, credit notes, and the receivables discipline that turns sales into cash.",
+  "lessons": [
+   {
+    "title": "The invoice as the accounting event",
+    "est": "5",
+    "html": "<p>Everything before it was commitment and movement; the <b>Sales Invoice</b> is where money becomes real. Submitting it books <b>revenue</b> and the customer's <b>receivable</b> into the ledgers on its <b>posting date</b>. Make it from the Sales Order (billing before or alongside delivery) or from the Delivery Note (billing what actually shipped) — either way quantities, rates and taxes flow and the order's billed-quantity ledger counts down.</p><p>Two dates matter and are not the same: the <b>posting date</b> is when the books record it; the <b>due date</b> is when the customer must pay — computed from the <b>Payment Terms</b> (Net 30, 50% advance / 50% on delivery, and so on). Terms belong on the customer or the order so the invoice inherits them instead of someone deciding at billing time.</p>"
+   },
+   {
+    "title": "Statuses & the collections story",
+    "est": "5",
+    "html": "<p>An invoice's status is the collections narrative in one word: <b>Unpaid</b> when submitted, <b>Partly Paid</b> as money arrives, <b>Paid</b> when cleared, <b>Overdue</b> the moment the due date passes unpaid, and <b>Credit Note Issued</b> when a return has been raised against it. The invoice list filtered to Overdue, sorted oldest first, IS the collections worklist — a sales professional opens it weekly, not when cash runs short.</p><p>One special case to know: an invoice with <b>Update Stock</b> ticked moves inventory itself — used when the delivery note step is skipped (counter sales, services with materials). In the standard flow the DN moves stock and the invoice moves money; don't tick Update Stock on an invoice made from a DN or stock moves twice.</p>"
+   },
+   {
+    "title": "Payment Entry mechanics",
+    "est": "5",
+    "html": "<p>Money is recorded with a <b>Payment Entry</b> — made from the invoice so the reference and allocation come pre-filled. It handles every real-world shape: a <b>full</b> payment closes the invoice; a <b>partial</b> payment leaves it Partly Paid with the outstanding visible; <b>one payment across several invoices</b> is a single entry allocated over each reference; small shortfalls can be <b>written off</b> within your write-off limit instead of chasing ₦150 forever.</p><p><b>Advances</b> work in reverse order: a Payment Entry taken against the customer <i>before</i> the invoice exists sits as an advance, then gets <b>allocated</b> to the invoice when raised — the 50%-upfront deals your enterprise clients sign are exactly this mechanic. Mode of Payment and the bank account on the entry are what make bank reconciliation painless later.</p>"
+   },
+   {
+    "title": "Credit notes & receivables discipline",
+    "est": "4",
+    "html": "<p>Corrections and returns reverse through a <b>credit note</b> — a Sales Invoice with <b>Is Return</b> against the original — pulling revenue and receivable back with a paper trail; the original flips to Credit Note Issued. Never \"fix\" a submitted invoice by editing history: the credit-note-plus-reinvoice pattern is what auditors, and FIRS, expect to find.</p><p>Discipline is the difference between sales and cash: the <b>Accounts Receivable</b> report ages who-owes-what into buckets (0-30, 31-60, 61-90, 90+); a <b>Statement of Account</b> sent monthly keeps customers honest; and every overdue invoice should have a next follow-up — which in this house means a dated next step on the Duty Board pipeline, not a hope.</p>"
+   }
+  ],
+  "questions": [
+   {
+    "q": "Revenue and the customer's receivable hit the ledgers when:",
+    "opts": [
+     "The Sales Order is submitted",
+     "The Sales Invoice is submitted",
+     "The Delivery Note is submitted",
+     "The payment arrives"
+    ],
+    "ans": 1,
+    "why": "The invoice is the accounting event; earlier documents commit and move stock.",
+    "src": "Accounting event §1"
+   },
+   {
+    "q": "Posting date vs due date — the difference is:",
+    "opts": [
+     "None, they match",
+     "Posting is when the books record it; due is when the customer must pay",
+     "Posting is for taxes only",
+     "Due date is the delivery date"
+    ],
+    "ans": 1,
+    "why": "Two dates, two meanings: books vs payment deadline.",
+    "src": "Accounting event §1"
+   },
+   {
+    "q": "The due date on an invoice is computed from:",
+    "opts": [
+     "The posting date plus 30 always",
+     "The Payment Terms (inherited from customer or order)",
+     "The delivery date",
+     "Selling Settings"
+    ],
+    "ans": 1,
+    "why": "Payment terms templates drive the due date.",
+    "src": "Accounting event §1"
+   },
+   {
+    "q": "Billing exactly what shipped is best done by creating the invoice from:",
+    "opts": [
+     "Scratch",
+     "The Delivery Note",
+     "The quotation",
+     "The packing slip"
+    ],
+    "ans": 1,
+    "why": "Invoice-from-DN bills shipped quantities precisely.",
+    "src": "Accounting event §1"
+   },
+   {
+    "q": "An invoice past its due date and unpaid reads:",
+    "opts": [
+     "Unpaid",
+     "Overdue",
+     "Expired",
+     "Blocked"
+    ],
+    "ans": 1,
+    "why": "Overdue is the past-due status — and the collections filter.",
+    "src": "Statuses §2"
+   },
+   {
+    "q": "Update Stock on a Sales Invoice means:",
+    "opts": [
+     "Nothing",
+     "The invoice itself moves inventory — for flows that skip the DN",
+     "Stock is reserved",
+     "The DN is cancelled"
+    ],
+    "ans": 1,
+    "why": "Update-stock invoices replace the DN's stock movement; never combine with a DN-based invoice.",
+    "src": "Statuses §2"
+   },
+   {
+    "q": "A customer pays ₦2m against a ₦5m invoice. The invoice now shows:",
+    "opts": [
+     "Paid",
+     "Partly Paid",
+     "Overdue",
+     "Unpaid"
+    ],
+    "ans": 1,
+    "why": "Partial receipts leave the invoice Partly Paid with outstanding visible.",
+    "src": "Payments §3"
+   },
+   {
+    "q": "One bank transfer settling four invoices is recorded as:",
+    "opts": [
+     "Four Payment Entries",
+     "One Payment Entry allocated across the four references",
+     "A journal entry only",
+     "Four credit notes"
+    ],
+    "ans": 1,
+    "why": "One entry, multiple allocated references.",
+    "src": "Payments §3"
+   },
+   {
+    "q": "A 50% advance received before the invoice exists is handled by:",
+    "opts": [
+     "Waiting for the invoice",
+     "A Payment Entry against the customer, later allocated to the invoice",
+     "A negative invoice",
+     "A discount"
+    ],
+    "ans": 1,
+    "why": "Advances sit on the customer and allocate when the invoice is raised.",
+    "src": "Payments §3"
+   },
+   {
+    "q": "A customer underpays by ₦180 on a ₦2m invoice. The pragmatic close-out:",
+    "opts": [
+     "Chase the ₦180 forever",
+     "Write off the difference within the write-off limit on the Payment Entry",
+     "Cancel the invoice",
+     "Edit the invoice total"
+    ],
+    "ans": 1,
+    "why": "Small differences write off; the invoice closes honestly.",
+    "src": "Payments §3"
+   },
+   {
+    "q": "A submitted invoice has a wrong rate. The correct fix is:",
+    "opts": [
+     "Edit the submitted invoice",
+     "Credit note against it, then re-invoice correctly",
+     "Delete it",
+     "A journal to patch the ledger"
+    ],
+    "ans": 1,
+    "why": "Credit-note-and-reinvoice preserves the audit trail regulators expect.",
+    "src": "Credit notes §4"
+   },
+   {
+    "q": "After a credit note is raised against an invoice, the original shows:",
+    "opts": [
+     "Cancelled",
+     "Credit Note Issued",
+     "Returned",
+     "Paid"
+    ],
+    "ans": 1,
+    "why": "The status ties the original to its reversal.",
+    "src": "Credit notes §4"
+   }
+  ]
+ },
+ "advanced": {
+  "title": "Selling 8 — Advanced Selling: Settings, Bundles, Blanket Orders & Sales Teams",
+  "desc": "The advanced layer: Selling Settings in depth, Product Bundles, Blanket Orders for long-term rate agreements, and the two sales-team structures — Sales Person (internal, contribution and targets) and Sales Partner (external channel and commission).",
+  "lessons": [
+   {
+    "title": "Selling Settings — the full tour",
+    "est": "6",
+    "html": "<p><b>Selling Settings</b> is where selling policy becomes system behaviour; a consultant should be able to defend every switch. The naming pair — <b>Customer Naming By</b> (name vs naming series) — decides whether customers are \"Alpha Pharmacy\" or \"CUST-00042\"; chains with duplicate branch names need the series. <b>Default Customer Group</b>, <b>Default Territory</b>, and the default <b>Selling Price List</b> pre-fill every new record — set them to your commonest case so lazy data entry lands correctly.</p><p>The discipline switches: <b>Maintain Same Rate Throughout Sales Cycle</b> (the agreed rate can't drift between order, delivery, and invoice — and its companion action setting decides whether a drift is a hard <i>Stop</i> or just a <i>Warning</i>); <b>Allow User to Edit Price List Rate</b> (untick it and rates come only from Item Prices — the strongest anti-\"special price\" control you have); <b>Validate Selling Price Against Purchase Rate</b> (blocks selling below cost — margin protection at the point of entry); <b>Allow Item to be Added Multiple Times</b>; and the global <b>over-delivery allowance</b> that Module 4's per-item tolerance falls back to. Policy questions from clients — \"can we stop staff discounting?\", \"can we prevent below-cost sales?\" — are usually answered in this one screen.</p>"
+   },
+   {
+    "title": "Product Bundles",
+    "est": "5",
+    "html": "<p>A <b>Product Bundle</b> sells several stock items as one line: a \"Pharmacy Starter Pack\" parent containing shelf units, a scanner, and a printer. The parent item is <b>non-stock</b> (it never has warehouse quantity — untick Maintain Stock); the bundle definition lists the child items and quantities.</p><p>The mechanics to remember: the customer sees and pays the <b>parent's price</b> (one line, one rate on the quotation and invoice), while the <b>Delivery Note explodes the bundle</b> into its <b>packed items</b> — the children — and it's the children that move stock from the warehouse. Hampers, promo packs, starter kits, install kits: whenever you price as one thing but pick as many things, it's a bundle — never a workaround item with stock nobody counts.</p>"
+   },
+   {
+    "title": "Blanket Orders",
+    "est": "5",
+    "html": "<p>A <b>Blanket Order</b> is a long-term rate-and-quantity agreement: the customer commits to, say, 10,000 cartons over six months at ₦820 — better than rack rate, weaker than an order for everything at once. Create the blanket order with items, agreed quantities, rates, and the from/to dates.</p><p>Individual <b>Sales Orders are then drawn against it</b>: reference the blanket order and the row inherits the agreed rate automatically, and the blanket order tracks its <b>drawdown</b> — ordered quantity against committed quantity — so both sides see how much of the commitment remains. Use it instead of stretching a quotation's validity for months: a quotation is an offer awaiting an answer; a blanket order is an agreement being consumed.</p>"
+   },
+   {
+    "title": "Sales Person — the internal team",
+    "est": "5",
+    "html": "<p><b>Sales Person</b> models your own team as a <b>tree</b> — Sales Director → Regional Managers → Field Reps — so results roll up the hierarchy. On a transaction, the <b>Sales Team</b> section assigns one or more sales persons each with a <b>contribution %</b> (summing to 100): a deal worked by two reps splits credit 60/40 and reports show each person's contributed revenue, not double-counted totals.</p><p>Set <b>targets</b> per sales person (by item group and period) and read the <b>Sales Person-wise Transaction Summary</b> against them — commissions, league tables, and performance conversations all come from this structure. If a client asks \"can we see sales by rep?\", the honest answer is: only if sales persons are assigned on documents — the discipline precedes the report.</p>"
+   },
+   {
+    "title": "Sales Partner — the external channel",
+    "est": "5",
+    "html": "<p>A <b>Sales Partner</b> is outside your company — a reseller, referral agent, or channel distributor who brings the deal — carrying a <b>commission rate</b>. Selecting the partner on a Sales Order or Invoice stamps the channel and computes the <b>total commission</b> on that document automatically.</p><p>The distinction to keep sharp: <b>Sales Person is your staff</b> (tree, contribution %, targets); <b>Sales Partner is an external business</b> (flat entity, commission %). A transaction can carry both — your rep worked the deal a referral partner introduced. The <b>Sales Partner-wise Transaction Summary</b> totals each channel's business and owed commission — pay partners from the report, not from their claims.</p>"
+   }
+  ],
+  "questions": [
+   {
+    "q": "A retail chain has many branches with similar names. Customer Naming By should be:",
+    "opts": [
+     "Customer name",
+     "Naming series",
+     "Territory",
+     "Manual entry"
+    ],
+    "ans": 1,
+    "why": "Series naming avoids collisions and keeps records unambiguous.",
+    "src": "Settings §1"
+   },
+   {
+    "q": "The strongest control to stop staff typing \"special prices\" on documents is:",
+    "opts": [
+     "A memo",
+     "Unticking Allow User to Edit Price List Rate",
+     "A smaller price list",
+     "Removing their login"
+    ],
+    "ans": 1,
+    "why": "Rates then come only from Item Price records.",
+    "src": "Settings §1"
+   },
+   {
+    "q": "Blocking sales below cost at the point of entry uses:",
+    "opts": [
+     "A pricing rule",
+     "Validate Selling Price Against Purchase Rate",
+     "Credit limits",
+     "A report review"
+    ],
+    "ans": 1,
+    "why": "The validation setting is margin protection built into entry.",
+    "src": "Settings §1"
+   },
+   {
+    "q": "Maintain Same Rate Throughout Sales Cycle can be configured to respond to a drift with:",
+    "opts": [
+     "Silence only",
+     "A Stop or a Warning, per the action setting",
+     "Automatic correction",
+     "An email"
+    ],
+    "ans": 1,
+    "why": "The companion action setting chooses hard block vs warning.",
+    "src": "Settings §1"
+   },
+   {
+    "q": "A Product Bundle's parent item must be:",
+    "opts": [
+     "A stock item with quantity",
+     "A non-stock item (Maintain Stock unticked)",
+     "A serialized item",
+     "A service"
+    ],
+    "ans": 1,
+    "why": "The parent is never counted in the warehouse; only children are.",
+    "src": "Bundles §2"
+   },
+   {
+    "q": "On a bundle sale, warehouse stock is deducted for:",
+    "opts": [
+     "The parent item",
+     "The packed child items on the Delivery Note",
+     "Neither",
+     "Both parent and children"
+    ],
+    "ans": 1,
+    "why": "The DN explodes the bundle; children move stock.",
+    "src": "Bundles §2"
+   },
+   {
+    "q": "The customer's invoice for a bundle shows:",
+    "opts": [
+     "Every child item priced separately",
+     "One line at the parent's price",
+     "Only the children",
+     "The warehouse breakdown"
+    ],
+    "ans": 1,
+    "why": "Price lives on the parent; picking lives on the children.",
+    "src": "Bundles §2"
+   },
+   {
+    "q": "A customer commits to 10,000 cartons over six months at an agreed rate. Model it as:",
+    "opts": [
+     "One giant Sales Order",
+     "A Blanket Order drawn down by individual Sales Orders",
+     "A quotation valid six months",
+     "A pricing rule"
+    ],
+    "ans": 1,
+    "why": "Blanket orders are consumed agreements; quotations are offers.",
+    "src": "Blanket §3"
+   },
+   {
+    "q": "A Sales Order drawn against a blanket order inherits:",
+    "opts": [
+     "Nothing",
+     "The agreed rate, while the blanket tracks drawdown",
+     "Only the quantity",
+     "The delivery date"
+    ],
+    "ans": 1,
+    "why": "Rate flows from the agreement; drawdown is tracked against commitment.",
+    "src": "Blanket §3"
+   },
+   {
+    "q": "How much of a blanket commitment remains is read from:",
+    "opts": [
+     "The customer's memory",
+     "The blanket order's ordered-vs-committed quantities",
+     "The last invoice",
+     "Stock levels"
+    ],
+    "ans": 1,
+    "why": "The blanket order itself tracks its consumption.",
+    "src": "Blanket §3"
+   },
+   {
+    "q": "Two reps split a deal 60/40. This is recorded via:",
+    "opts": [
+     "Two invoices",
+     "Sales Team rows with contribution percentages summing to 100",
+     "A note",
+     "Two sales partners"
+    ],
+    "ans": 1,
+    "why": "Contribution % splits credit without double-counting revenue.",
+    "src": "Sales Person §4"
+   },
+   {
+    "q": "Sales Person is structured as:",
+    "opts": [
+     "A flat list",
+     "A tree so results roll up the hierarchy",
+     "One per territory",
+     "A customer group"
+    ],
+    "ans": 1,
+    "why": "The tree gives regional and directorial roll-ups.",
+    "src": "Sales Person §4"
+   },
+   {
+    "q": "\"Show me sales by rep\" only works if:",
+    "opts": [
+     "The report is installed",
+     "Sales persons are assigned on the transactions",
+     "Targets are set",
+     "Partners are defined"
+    ],
+    "ans": 1,
+    "why": "The discipline of assignment precedes the report.",
+    "src": "Sales Person §4"
+   },
+   {
+    "q": "Sales Person vs Sales Partner — the distinction is:",
+    "opts": [
+     "None",
+     "Person is internal staff with contribution %; Partner is an external business with commission %",
+     "Person earns commission, partner doesn't",
+     "Partner is a customer"
+    ],
+    "ans": 1,
+    "why": "Internal tree vs external channel — a document can carry both.",
+    "src": "Sales Partner §5"
+   },
+   {
+    "q": "Commission owed to a reseller is paid from:",
+    "opts": [
+     "The partner's own claim",
+     "The Sales Partner-wise Transaction Summary",
+     "The rep's report",
+     "The delivery notes"
+    ],
+    "ans": 1,
+    "why": "Pay channels from the system's totals, not their invoices' claims.",
+    "src": "Sales Partner §5"
+   }
+  ]
+ }
+}
