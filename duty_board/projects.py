@@ -31,11 +31,20 @@ def get_projects():
 	projects = frappe.get_all(
 		"Duty Project",
 		filters={"status": "Active"},
-		fields=["name", "project_name", "customer", "target_date"],
+		fields=["name", "project_name", "customer", "target_date", "owner"],
 		order_by="creation asc",
 	)
 	if _is_c:
 		projects = [p for p in projects if p.name in _memb]
+	elif "System Manager" not in frappe.get_roles():
+		_mine = set(
+			frappe.get_all(
+				"Duty Project Staff",
+				filters={"user": frappe.session.user},
+				pluck="parent",
+			)
+		)
+		projects = [p for p in projects if p.name in _mine or p.owner == frappe.session.user]
 	if not projects:
 		return []
 	tasks = frappe.get_all(
@@ -225,6 +234,7 @@ def create_project(project_name, customer=None, target_date=None, room=None):
 	doc = frappe.get_doc(
 		{
 			"doctype": "Duty Project",
+			"staff": [{"user": frappe.session.user}],
 			"project_name": project_name,
 			"customer": customer,
 			"room": room or None,
@@ -249,6 +259,14 @@ def get_project_board(project):
 	from duty_board.permissions import require_staff_or_consultant, consultant_project_names
 	if require_staff_or_consultant() and project not in consultant_project_names():
 		frappe.throw(_("Not permitted."), frappe.PermissionError)
+	if not require_staff_or_consultant() and "System Manager" not in frappe.get_roles():
+		_ok = frappe.get_all(
+			"Duty Project Staff",
+			filters={"parent": project, "user": frappe.session.user},
+			limit=1,
+		) or frappe.db.get_value("Duty Project", project, "owner") == frappe.session.user
+		if not _ok:
+			frappe.throw(_("You're not assigned to this project."), frappe.PermissionError)
 
 	rows = frappe.get_all(
 		"Duty Project Task",
@@ -324,6 +342,12 @@ def get_project_board(project):
 			r.user
 			for r in frappe.get_all(
 				"Duty Project Consultant", filters={"parent": project}, fields=["user"]
+			)
+		],
+		"staff": [
+			{"user": r.user, "full_name": frappe.utils.get_fullname(r.user)}
+			for r in frappe.get_all(
+				"Duty Project Staff", filters={"parent": project}, fields=["user"]
 			)
 		],
 	}
@@ -1044,3 +1068,66 @@ def list_consultants():
 		if frappe.db.get_value("User", u, "enabled"):
 			out.append({"user": u, "full_name": frappe.utils.get_fullname(u)})
 	return sorted(out, key=lambda x: x["full_name"])
+
+
+def _can_edit_team(doc):
+	return (
+		"System Manager" in frappe.get_roles()
+		or doc.owner == frappe.session.user
+	)
+
+
+@frappe.whitelist()
+def project_staff_options(project):
+	"""The staff roster (Duty Settings user-rates table) with membership
+	flags for the 👥 Team dialog."""
+	require_staff()
+	doc = frappe.get_doc("Duty Project", project)
+	members = {r.user for r in (doc.get("staff") or [])}
+	roster = sorted(
+		set(
+			frappe.get_all(
+				"Duty User Rate",
+				filters={"parenttype": "Duty Settings"},
+				pluck="user",
+			)
+		)
+	)
+	options = [
+		{"user": u, "full_name": frappe.utils.get_fullname(u), "member": 1 if u in members else 0}
+		for u in roster
+	]
+	options.sort(key=lambda x: x["full_name"] or "")
+	return {"options": options, "can_edit": 1 if _can_edit_team(doc) else 0}
+
+
+@frappe.whitelist()
+def project_staff_set(project, users):
+	"""Replace the project's staff team. System Managers and the
+	project's creator only. Newly added staff are notified."""
+	require_staff()
+	import json as _json
+
+	users = _json.loads(users) if isinstance(users, str) else (users or [])
+	doc = frappe.get_doc("Duty Project", project)
+	if not _can_edit_team(doc):
+		frappe.throw(_("Only managers or the project's creator set the team."), frappe.PermissionError)
+	roster = set(
+		frappe.get_all(
+			"Duty User Rate", filters={"parenttype": "Duty Settings"}, pluck="user"
+		)
+	)
+	before = {r.user for r in (doc.get("staff") or [])}
+	doc.set("staff", [])
+	for u in users:
+		if u in roster:
+			doc.append("staff", {"user": u})
+	doc.save(ignore_permissions=True)
+	frappe.db.commit()
+	first = frappe.utils.get_fullname(frappe.session.user).split(" ")[0]
+	for u in set(users) - before:
+		try:
+			_notify(u, _("👥 Added to project team by {0}").format(first), doc.project_name)
+		except Exception:
+			pass
+	return project_staff_options(project)

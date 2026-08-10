@@ -86,7 +86,7 @@ def get_dm_thread(with_user, before=None, limit=30):
 	rows = frappe.get_all(
 		"Duty DM",
 		filters=filters,
-		fields=["name", "sender", "recipient", "message", "creation", "edited_on"],
+		fields=["name", "sender", "recipient", "message", "creation", "edited_on", "seen"],
 		order_by="creation desc",
 		limit=cap,
 	)
@@ -99,7 +99,11 @@ def get_dm_thread(with_user, before=None, limit=30):
 		r.sender_name = names.setdefault(
 			r.sender, frappe.db.get_value("User", r.sender, "full_name") or r.sender
 		)
-	return {"messages": rows, "has_more": has_more}
+	from duty_board.api import _touch_delivered
+
+	_touch_delivered(frappe.session.user)
+	peer_delivered = frappe.db.get_value("Chat Seen", {"user": with_user}, "last_delivered")
+	return {"messages": rows, "has_more": has_more, "peer_delivered": str(peer_delivered) if peer_delivered else None}
 
 
 @frappe.whitelist()

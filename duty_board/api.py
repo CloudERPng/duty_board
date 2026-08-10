@@ -297,9 +297,23 @@ def send_message(
 	return payload
 
 
+def _touch_delivered(user):
+	"""Advance the user's delivery watermark: their app is open and
+	receiving, so everything up to now has reached their client."""
+	try:
+		name = frappe.db.get_value("Chat Seen", {"user": user}, "name")
+		if name:
+			frappe.db.set_value("Chat Seen", name, "last_delivered", frappe.utils.now(), update_modified=False)
+		else:
+			frappe.get_doc({"doctype": "Chat Seen", "user": user, "last_delivered": frappe.utils.now()}).insert(ignore_permissions=True)
+	except Exception:
+		pass  # receipts must never break a poll
+
+
 @frappe.whitelist()
 def get_messages(limit=50, before=None, after=None):
 	require_staff()
+	_touch_delivered(frappe.session.user)
 	filters = {}
 	if before:
 		filters["creation"] = ["<", before]
@@ -328,7 +342,7 @@ def get_messages(limit=50, before=None, after=None):
 	has_more = len(rows) >= min(cint(limit) or 50, 200)
 	rows.reverse()
 	reactions = _reactions_for([r.name for r in rows])
-	rows_seen = frappe.get_all("Chat Seen", fields=["user", "last_seen"])
+	rows_seen = frappe.get_all("Chat Seen", fields=["user", "last_seen", "last_delivered"])
 	alive = set(
 		frappe.get_all(
 			"User",
@@ -336,10 +350,12 @@ def get_messages(limit=50, before=None, after=None):
 			pluck="name",
 		)
 	) if rows_seen else set()
-	seen = {s.user: str(s.last_seen) for s in rows_seen if s.user in alive}
+	seen = {s.user: str(s.last_seen) for s in rows_seen if s.user in alive and s.last_seen}
+	delivered = {s.user: str(s.last_delivered) for s in rows_seen if s.user in alive and s.last_delivered}
 	return {
 		"messages": [_message_payload(r, reactions) for r in rows],
 		"seen": seen,
+		"delivered": delivered,
 		"has_more": has_more,
 	}
 
@@ -478,6 +494,93 @@ def _message_payload(r, reactions):
 
 
 # ---------------- To-do list ----------------
+
+
+@frappe.whitelist()
+def plan_sources():
+	"""My open issues and my open project tasks — the 'add from existing'
+	picker's data."""
+	require_staff()
+	user = frappe.session.user
+	issue_names = frappe.get_all("Duty Issue Assignee", filters={"user": user}, pluck="parent")
+	issues = []
+	if issue_names:
+		issues = frappe.get_all(
+			"Duty Issue",
+			filters={"name": ["in", issue_names], "status": ["in", ["Open", "In Progress"]]},
+			fields=["name", "title", "customer"],
+			order_by="modified desc",
+			limit=50,
+		)
+	tasks = frappe.get_all(
+		"Duty Project Task",
+		filters={"assignee": user, "column": ["not in", ["Completed", "Suspended"]]},
+		fields=["name", "title", "project"],
+		order_by="modified desc",
+		limit=50,
+	)
+	pnames = {}
+	if tasks:
+		for p in frappe.get_all(
+			"Duty Project",
+			filters={"name": ["in", list({t.project for t in tasks})]},
+			fields=["name", "project_name", "customer"],
+		):
+			pnames[p.name] = p
+	for t in tasks:
+		pr = pnames.get(t.project)
+		t.project_name = pr.project_name if pr else t.project
+		t.customer = pr.customer if pr else None
+	return {"issues": issues, "tasks": tasks}
+
+
+@frappe.whitelist()
+def plan_existing(kind, source, date=None):
+	"""Add an existing issue/task to my plan for a day (default today)."""
+	require_staff()
+	user = frappe.session.user
+	d = getdate(date) if date else getdate(today())
+	if d < getdate(today()):
+		frappe.throw(_("Plan for today or a future day."))
+	if kind == "issue":
+		row = frappe.db.get_value("Duty Issue", source, ["title", "customer"], as_dict=True)
+		if not row:
+			frappe.throw(_("Unknown issue."))
+		dupe = frappe.get_all(
+			"Daily Todo",
+			filters={"user": user, "duty_issue": source, "status": ["!=", "Completed"]},
+			limit=1,
+		)
+		if dupe:
+			frappe.throw(_("That issue is already on your plan."))
+		vals = {"description": row.title, "customer": row.customer, "duty_issue": source}
+	elif kind == "task":
+		row = frappe.db.get_value("Duty Project Task", source, ["title", "project"], as_dict=True)
+		if not row:
+			frappe.throw(_("Unknown task."))
+		dupe = frappe.get_all(
+			"Daily Todo",
+			filters={"user": user, "project_task": source, "status": ["!=", "Completed"]},
+			limit=1,
+		)
+		if dupe:
+			frappe.throw(_("That task is already on your plan."))
+		cust = frappe.db.get_value("Duty Project", row.project, "customer")
+		vals = {"description": row.title, "customer": cust, "project_task": source, "project": row.project}
+	else:
+		frappe.throw(_("Unknown kind."))
+	frappe.get_doc(
+		dict(
+			doctype="Daily Todo",
+			user=user,
+			full_name=frappe.utils.get_fullname(user),
+			date=d,
+			status="Open",
+			**vals,
+		)
+	).insert(ignore_permissions=True)
+	frappe.db.commit()
+	return get_board()
 
 
 @frappe.whitelist()
@@ -2269,6 +2372,11 @@ def start_task(activity, customer=None, todo=None, complete_previous=0):
 	# Typing a task that matches a paused entry IS resuming it by hand.
 	frappe.db.delete("Duty Paused Task", {"user": user, "activity": activity.strip()})
 
+	_t_task, _t_issue = None, None
+	if todo:
+		_tv = frappe.db.get_value("Daily Todo", todo, ["project_task", "duty_issue"], as_dict=True)
+		if _tv:
+			_t_task, _t_issue = _tv.project_task or None, _tv.duty_issue or None
 	frappe.get_doc(
 		{
 			"doctype": "Work Session",
@@ -2276,6 +2384,8 @@ def start_task(activity, customer=None, todo=None, complete_previous=0):
 			"activity": activity.strip(),
 			"customer": customer or None,
 			"daily_todo": todo or None,
+			"project_task": _t_task,
+			"duty_issue": _t_issue,
 			"start_time": now_datetime(),
 		}
 	).insert()
@@ -2419,6 +2529,7 @@ def get_board():
 		return _consultant_board()
 	now = now_datetime()
 	session = frappe.session.user
+	_touch_delivered(session)
 
 	users = frappe.get_all(
 		"User",

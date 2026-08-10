@@ -12,6 +12,7 @@ scheduler_events = {
     "cron": {
         # hourly, so each user's local midnight is caught within the hour
         "15 * * * *": ["duty_board.tasks.auto_clock_out"],
+        "* * * * *": ["duty_board.reminders.fire_due"],
         # Monday 07:00 site time
         "0 7 * * 1": ["duty_board.tasks.weekly_digest"],
         # Monday 08:00 site time — weekly pulse into each client room

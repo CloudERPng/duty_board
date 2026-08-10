@@ -633,10 +633,7 @@ class DutyBoard {
 		frappe.call({
 			method: "duty_board.api.get_messages",
 			args: { after: latest },
-			error: () => {
-				this._fail_count = (this._fail_count || 0) + 1;
-				if (this._fail_count >= 3) this.halt_polling();
-			},
+			error: (x) => this._poll_failed(x),
 			callback: (r) => {
 				this._fail_count = 0;
 				const msgs = (r.message && r.message.messages) || [];
@@ -803,6 +800,52 @@ class DutyBoard {
 		const b = (s + pad).replace(/-/g, "+").replace(/_/g, "/");
 		const raw = atob(b);
 		return Uint8Array.from([...raw].map((c) => c.charCodeAt(0)));
+	}
+
+	_poll_failed(x) {
+		if (this._halted) return;
+		const status = (x && (x.status || (x.xhr && x.xhr.status) || (x.responseJSON && x.responseJSON.http_status_code))) || 0;
+		if (!navigator.onLine || status === 0 || status >= 500 || status === 417) {
+			this._note_reconnecting();
+			return;
+		}
+		if (status === 401 || status === 403) {
+			this._verify_session();
+			return;
+		}
+		// other 4xx: endpoint-specific problem, not connectivity — ignore here
+	}
+
+	_note_reconnecting() {
+		const now = Date.now();
+		this._reconn_count = (this._reconn_count || 0) + 1;
+		if (this._reconn_count >= 5) {
+			this._reconn_count = 0;
+			this._verify_session();
+			return;
+		}
+		if (this._reconn_toast_at && now - this._reconn_toast_at < 60000) return;
+		this._reconn_toast_at = now;
+		frappe.show_alert({ message: __("Reconnecting to Duty Board…"), indicator: "orange" }, 4);
+	}
+
+	_verify_session() {
+		const now = Date.now();
+		if (this._auth_checking) return;
+		if (this._auth_checked_at && now - this._auth_checked_at < 10000) return;
+		this._auth_checking = true;
+		$.ajax({ url: "/api/method/frappe.auth.get_logged_user", timeout: 8000 })
+			.done(() => {
+				this._reconn_count = 0; // session alive — it was transient
+			})
+			.fail((xhr) => {
+				if (xhr && (xhr.status === 401 || xhr.status === 403)) this.halt_polling();
+				else this._note_reconnecting();
+			})
+			.always(() => {
+				this._auth_checking = false;
+				this._auth_checked_at = Date.now();
+			});
 	}
 
 	halt_polling() {
@@ -1185,6 +1228,7 @@ class DutyBoard {
 				const data = r.message || {};
 				const msgs = data.messages || [];
 				this.seen_map = data.seen || {};
+				this.delivered_map = data.delivered || {};
 				this.$list.empty();
 				this.$list.append(
 					`<div class="duty-load-earlier"><a>${__("Load earlier messages")}</a></div>`
@@ -1288,23 +1332,30 @@ class DutyBoard {
 
 	update_receipts() {
 		const me = frappe.session.user;
+		const first = (u) => (((this.name_map || {})[u] || u).split(" ")[0]);
+		const audience = [...new Set([...Object.keys(this.seen_map || {}), ...Object.keys(this.delivered_map || {})])].filter((u) => u !== me);
 		this.$list.find(".duty-msg-mine").each((_, el) => {
 			const $row = $(el);
 			const creation = $row.data("creation");
 			if (!creation) return;
-			const readers = Object.keys(this.seen_map || {}).filter(
-				(u) => u !== me && this.seen_map[u] >= creation
-			);
+			const readers = audience.filter((u) => (this.seen_map || {})[u] >= creation);
+			const dlv = audience.filter((u) => readers.indexOf(u) < 0 && ((this.delivered_map || {})[u] >= creation || (this.seen_map || {})[u] >= creation));
+			const pending = audience.filter((u) => readers.indexOf(u) < 0 && dlv.indexOf(u) < 0);
 			let $seen = $row.find(".duty-msg-seen");
-			if (!readers.length) {
-				$seen.remove();
-				return;
-			}
-			const names = readers.map((u) => ((this.name_map || {})[u] || u).split(" ")[0]).join(", ");
 			if (!$seen.length) {
 				$seen = $(`<span class="duty-msg-seen"></span>`).insertAfter($row.find(".duty-msg-time"));
 			}
-			$seen.text(`✓✓ ${readers.length}`).attr("title", __("Seen by {0}", [names]));
+			const allRead = audience.length && readers.length === audience.length;
+			const allDlv = audience.length && !pending.length;
+			const tick = allRead || allDlv || readers.length || dlv.length ? "✓✓" : "✓";
+			const cls = allRead ? "tick-read" : "tick-dlv";
+			const parts = [];
+			if (readers.length) parts.push(`${__("Read")}: ${readers.map(first).join(", ")}`);
+			if (dlv.length) parts.push(`${__("Delivered")}: ${dlv.map(first).join(", ")}`);
+			if (pending.length) parts.push(`${__("Pending")}: ${pending.map(first).join(", ")}`);
+			$seen.removeClass("tick-read tick-dlv").addClass(cls)
+				.text(`${tick}${readers.length ? " " + readers.length : ""}`)
+				.attr("title", parts.join(" · "));
 		});
 	}
 
@@ -1523,10 +1574,12 @@ class DutyBoard {
 		frappe.call({
 			method: "duty_board.api.get_board",
 			freeze: !silent,
-			error: () => {
-				this._fail_count = (this._fail_count || 0) + 1;
-				if (this._fail_count === 1) this.consultant_check();
-				if (this._fail_count >= 3) this.halt_polling();
+			error: (x) => {
+				if (!this._cc_done) {
+					this._cc_done = 1;
+					this.consultant_check();
+				}
+				this._poll_failed(x);
 			},
 			callback: (r) => {
 				this._fail_count = 0;
@@ -1964,7 +2017,7 @@ class DutyBoard {
 			<div class="duty-msg ${mine ? "duty-msg-mine" : ""}" data-name="${m.name}">
 				<span class="duty-msg-who" style="color:${this.user_color(m.sender)}">${mine ? __("You") : frappe.utils.escape_html((m.sender_name || m.sender).split(" ")[0])}</span>
 				<span class="duty-msg-text">${this.linkify(frappe.utils.escape_html(m.message || ""))}</span>
-				<span class="duty-msg-time">${when}${this.edited_tag(m)}</span>${mine && this.can_edit(m.creation) ? ` <a class="duty-dm-edit" data-name="${m.name}" data-text="${frappe.utils.escape_html(m.message || "")}" title="${__("Edit")}">✏</a>` : ""}
+				<span class="duty-msg-time">${when}${this.edited_tag(m)}</span>${mine ? (m.seen ? ` <span class="duty-msg-seen tick-read" title="${__("Read")}">✓✓</span>` : this._dm_peer_delivered && m.creation <= this._dm_peer_delivered ? ` <span class="duty-msg-seen tick-dlv" title="${__("Delivered")}">✓✓</span>` : ` <span class="duty-msg-seen tick-dlv" title="${__("Sent")}">✓</span>`) : ""}${mine && this.can_edit(m.creation) ? ` <a class="duty-dm-edit" data-name="${m.name}" data-text="${frappe.utils.escape_html(m.message || "")}" title="${__("Edit")}">✏</a>` : ""}
 			</div>`;
 	}
 
@@ -2012,6 +2065,7 @@ class DutyBoard {
 				args: { with_user: user, before: before },
 				callback: (r) => {
 					const data = r.message || {};
+					this._dm_peer_delivered = data.peer_delivered || null;
 					const msgs = data.messages || [];
 					if (msgs.length) oldest = msgs[0].creation;
 					if (!before) {
@@ -2361,6 +2415,55 @@ class DutyBoard {
 		});
 	}
 
+	_load_reminders_card() {
+		const $host = this.$me.find(".duty-me-remind");
+		if (!$host.length) return;
+		frappe.call({
+			method: "duty_board.reminders.my_reminders",
+			callback: (r) => this._render_reminders_card(r.message || []),
+		});
+	}
+
+	_render_reminders_card(rows) {
+		const esc = frappe.utils.escape_html;
+		const $host = this.$me.find(".duty-me-remind");
+		if (!$host.length) return;
+		const list = rows.map((x) => `
+			<div class="duty-lv-row">
+				<b>${esc(x.text)}</b>
+				<span class="text-muted">${frappe.datetime.str_to_user(x.remind_at)}</span>
+				${x.repeat && x.repeat !== "None" ? `<span class="duty-rm-rep">↻ ${__(x.repeat)}</span>` : ""}
+				<a class="duty-lv-cancel duty-rm-cancel" data-id="${x.name}" title="${__("Cancel")}">✕</a>
+			</div>`).join("");
+		$host.html(`
+			<div class="duty-me-reqs">
+				<h4>⏰ ${__("Reminders")}</h4>
+				${list || `<div class="text-muted" style="font-size:12.5px">${__("No reminders set.")}</div>`}
+				<div class="duty-lv-ask">
+					<input type="text" class="form-control input-sm duty-rm-text" placeholder="${__("Remind me to…")}" maxlength="200">
+					<input type="date" class="form-control input-sm duty-rm-date" min="${frappe.datetime.now_date()}">
+					<input type="time" class="form-control input-sm duty-rm-time">
+					<select class="form-control input-sm duty-rm-rep-sel"><option value="None">${__("Once")}</option><option value="Daily">${__("Daily")}</option><option value="Weekly">${__("Weekly")}</option><option value="Monthly">${__("Monthly")}</option></select>
+					<button class="btn btn-xs btn-primary duty-rm-go">⏰ ${__("Set")}</button>
+				</div>
+			</div>`);
+		const redo = (r) => this._render_reminders_card(r.message || []);
+		$host.find(".duty-rm-go").on("click", () => {
+			const t = $host.find(".duty-rm-text").val();
+			const dd = $host.find(".duty-rm-date").val();
+			const tt = $host.find(".duty-rm-time").val();
+			if (!t || !dd || !tt) return frappe.show_alert({ message: __("Text, date and time, please."), indicator: "orange" });
+			frappe.call({
+				method: "duty_board.reminders.add_reminder",
+				args: { text: t, remind_at: `${dd} ${tt}:00`, repeat: $host.find(".duty-rm-rep-sel").val() },
+				callback: (r) => { frappe.show_alert({ message: __("Reminder set."), indicator: "green" }); redo(r); },
+			});
+		});
+		$host.find(".duty-rm-cancel").on("click", (e) =>
+			frappe.call({ method: "duty_board.reminders.cancel_reminder", args: { name: $(e.currentTarget).data("id") }, callback: redo })
+		);
+	}
+
 	_load_earnings_card() {
 		const $host = this.$me.find(".duty-me-earn");
 		if (!$host.length) return;
@@ -2563,6 +2666,7 @@ class DutyBoard {
 			</div>` : ""}
 			<div class="duty-me-leave"></div>
 			<div class="duty-me-earn"></div>
+			<div class="duty-me-remind"></div>
 			<div class="duty-me-cal">
 				<div class="duty-me-calhead">
 					<button class="btn btn-xs duty-cal-prev">◀</button>
@@ -2649,6 +2753,7 @@ class DutyBoard {
 		);
 		this._load_leave_card();
 		this._load_earnings_card();
+		this._load_reminders_card();
 		this.$me.find(".duty-req-sg").on("click", (e) =>
 			this.suggest_meeting_dialog($(e.currentTarget).data("id"), $(e.currentTarget).data("topic"), () => this.show_face("me"))
 		);
@@ -3920,10 +4025,7 @@ this.$me.find(".duty-req-ok").on("click", (e) => {
 		frappe.call({
 			method: "duty_board.projects.get_projects",
 			freeze: false,
-			error: () => {
-				this._fail_count = (this._fail_count || 0) + 1;
-				if (this._fail_count >= 3) this.halt_polling();
-			},
+			error: (x) => this._poll_failed(x),
 			callback: (r) => {
 				this._fail_count = 0;
 				this._projects = r.message || [];
@@ -4404,6 +4506,7 @@ this.$me.find(".duty-req-ok").on("click", (e) => {
 					<a class="duty-pj-v ${this._pj_view === "risks" ? "on" : ""}" data-v="risks">⚠ ${__("Risks")}</a>
 					<a class="duty-kb-dense" title="${__("Toggle density")}">${(localStorage.getItem("duty_kb_density") || "comfortable") === "compact" ? "▤ " + __("Compact") : "▢ " + __("Comfortable")}</a>
 				</span>
+				<a class="duty-proj-staffb">👥 ${__("Team")}${(data.staff || []).length ? ` <b>${data.staff.length}</b>` : ""}</a>
 				<a class="duty-proj-cons">👷 ${__("Consultants")}${(data.consultants || []).length ? ` <b>${data.consultants.length}</b>` : ""}</a>
 				<a class="duty-proj-archive">${__("Archive project")}</a>
 			</div>
@@ -4412,6 +4515,38 @@ this.$me.find(".duty-req-ok").on("click", (e) => {
 		$bar.find(".duty-pj-v").on("click", (e) => {
 			this._pj_view = $(e.currentTarget).data("v");
 			this.render_kanban(project, data);
+		});
+		$bar.find(".duty-proj-staffb").on("click", () => {
+			frappe.call({
+				method: "duty_board.projects.project_staff_options",
+				args: { project: this.current_project },
+				callback: (r) => {
+					const R = r.message || {};
+					const rows = R.options || [];
+					const d = new frappe.ui.Dialog({
+						title: __("Project team"),
+						primary_action_label: R.can_edit ? __("Save team") : __("Close"),
+						primary_action: () => {
+							if (!R.can_edit) return d.hide();
+							const users = $(d.body).find("input.duty-tm:checked").map((_i, el) => $(el).val()).get();
+							frappe.call({
+								method: "duty_board.projects.project_staff_set",
+								args: { project: this.current_project, users: JSON.stringify(users) },
+								callback: () => {
+									d.hide();
+									frappe.show_alert({ message: __("Team saved."), indicator: "green" });
+									this.load_kanban(this.current_project);
+								},
+							});
+						},
+					});
+					$(d.body).html(
+						rows.map((u) => `<label class="duty-px-row"><input type="checkbox" class="duty-tm" value="${u.user}" ${u.member ? "checked" : ""} ${R.can_edit ? "" : "disabled"}><span class="duty-px-t">${frappe.utils.escape_html(u.full_name)}</span></label>`).join("")
+						|| `<div class="text-muted">${__("No staff in the rates roster yet — add them in Duty Settings.")}</div>`
+					);
+					d.show();
+				},
+			});
 		});
 		$bar.find(".duty-proj-cons").on("click", () => {
 			frappe.call({
@@ -4859,10 +4994,7 @@ this.$me.find(".duty-req-ok").on("click", (e) => {
 		frappe.call({
 			method: "duty_board.client_room.get_rooms",
 			freeze: false,
-			error: () => {
-				this._fail_count = (this._fail_count || 0) + 1;
-				if (this._fail_count >= 3) this.halt_polling();
-			},
+			error: (x) => this._poll_failed(x),
 			callback: (r) => {
 				this._fail_count = 0;
 				this._rooms = r.message || [];
@@ -7920,10 +8052,7 @@ this.$me.find(".duty-req-ok").on("click", (e) => {
 		frappe.call({
 			method: "duty_board.sales.get_pipeline",
 			freeze: false,
-			error: () => {
-				this._fail_count = (this._fail_count || 0) + 1;
-				if (this._fail_count >= 3) this.halt_polling();
-			},
+			error: (x) => this._poll_failed(x),
 			callback: (r) => {
 				this._fail_count = 0;
 				if (r.message) this.render_pipeline(r.message);
@@ -10132,6 +10261,7 @@ this.$me.find(".duty-req-ok").on("click", (e) => {
 				<div class="duty-plan-add">
 					<input type="text" class="form-control duty-todo-input" placeholder="${__("Add a to-do and press Enter...")}">
 					<button class="btn btn-default btn-sm duty-todo-add-btn">${__("Add")}</button>
+					<button class="btn btn-default btn-sm duty-todo-existing-btn" title="${__("Add from my issues & tasks")}">📋</button>
 				</div>
 			</details>
 			<details class="duty-sessions-details">
@@ -10152,6 +10282,7 @@ this.$me.find(".duty-req-ok").on("click", (e) => {
 			if (e.key === "Enter") add();
 		});
 		$plan.find(".duty-todo-more-btn").on("click", () => this.add_todo_dialog());
+		$plan.find(".duty-todo-existing-btn").on("click", () => this.plan_existing_dialog());
 		$plan.find(".duty-bring-old").on("click", () => this.action("bring_old_todos"));
 		$plan.find(".duty-carry-all").on("click", () => {
 			frappe.confirm(__("Move all unfinished items to tomorrow?"), () =>
@@ -10269,6 +10400,49 @@ this.$me.find(".duty-req-ok").on("click", (e) => {
 			},
 		});
 		d.show();
+	}
+
+	plan_existing_dialog() {
+		const esc = frappe.utils.escape_html;
+		frappe.call({
+			method: "duty_board.api.plan_sources",
+			callback: (r) => {
+				const S = r.message || {};
+				const issues = S.issues || [], tasks = S.tasks || [];
+				if (!issues.length && !tasks.length) {
+					frappe.show_alert({ message: __("No open issues or tasks assigned to you."), indicator: "orange" });
+					return;
+				}
+				const opt = (kind, name, title, sub) => `
+					<label class="duty-px-row"><input type="radio" name="duty-px" value="${kind}:${name}">
+					<span class="duty-px-t">${esc(title)}</span><span class="duty-px-s">${esc(sub || "")}</span></label>`;
+				const d = new frappe.ui.Dialog({
+					title: __("Add existing work to my plan"),
+					primary_action_label: __("Add to plan"),
+					primary_action: () => {
+						const v = $(d.body).find("input[name=duty-px]:checked").val();
+						if (!v) return frappe.show_alert({ message: __("Pick one."), indicator: "orange" });
+						const [kind, ...rest] = v.split(":");
+						frappe.call({
+							method: "duty_board.api.plan_existing",
+							args: { kind: kind, source: rest.join(":"), date: $(d.body).find(".duty-px-date").val() || null },
+							callback: (rr) => {
+								d.hide();
+								frappe.show_alert({ message: __("Added to your plan."), indicator: "green" });
+								this.refresh(true);
+							},
+						});
+					},
+				});
+				$(d.body).html(`
+					<div class="duty-px-date-row"><label>${__("For day")}</label>
+					<input type="date" class="form-control input-sm duty-px-date" value="${frappe.datetime.now_date()}" min="${frappe.datetime.now_date()}"></div>
+					${issues.length ? `<h6>🐞 ${__("My open issues")}</h6>${issues.map((i) => opt("issue", i.name, i.title, i.customer)).join("")}` : ""}
+					${tasks.length ? `<h6 style="margin-top:10px">📌 ${__("My project tasks")}</h6>${tasks.map((t) => opt("task", t.name, t.title, t.project_name)).join("")}` : ""}
+				`);
+				d.show();
+			},
+		});
 	}
 
 	add_todo_dialog() {
@@ -10559,10 +10733,7 @@ this.$me.find(".duty-req-ok").on("click", (e) => {
 		frappe.call({
 			method: "duty_board.chat.get_rail",
 			freeze: false,
-			error: () => {
-				this._ch_fail = (this._ch_fail || 0) + 1;
-				if (this._ch_fail >= 3) this.halt_polling();
-			},
+			error: (x) => this._poll_failed(x),
 			callback: (r) => {
 				this._ch_fail = 0;
 				this._convos = r.message || [];
@@ -10793,6 +10964,7 @@ this.$me.find(".duty-req-ok").on("click", (e) => {
 				args: { with_user: user, before: before },
 				callback: (r) => {
 					const data = r.message || {};
+					this._dm_peer_delivered = data.peer_delivered || null;
 					const msgs = data.messages || [];
 					if (msgs.length) oldest = msgs[0].creation;
 					if (!before) {
@@ -11619,6 +11791,17 @@ this.$me.find(".duty-req-ok").on("click", (e) => {
 			.duty-pay-close { margin: 6px 0 2px; }
 			.duty-lv-clash { width: 100%; font-size: 12px; color: #B45309; font-weight: 700; }
 			.duty-lv-clash i { font-weight: 400; }
+			.duty-msg-seen.tick-dlv { color: #9aa4a0; }
+			.duty-msg-seen.tick-read { color: #3B82F6; font-weight: 700; }
+			.duty-px-row { display: flex; gap: 8px; align-items: baseline; padding: 5px 2px; border-bottom: 1px dashed #eee; cursor: pointer; font-weight: 400; width: 100%; }
+			.duty-px-t { font-size: 13px; }
+			.duty-px-s { font-size: 11.5px; color: #8a958f; margin-left: auto; }
+			.duty-px-date-row { display: flex; gap: 10px; align-items: center; margin-bottom: 10px; }
+			.duty-px-date-row input { max-width: 170px; }
+			.duty-rm-rep { font-size: 11px; font-weight: 700; color: #0F5C55; background: #E7F5EF; border-radius: 20px; padding: 2px 8px; }
+			.duty-lv-ask .duty-rm-text { max-width: 240px; }
+			.duty-lv-ask .duty-rm-date, .duty-lv-ask .duty-rm-time { max-width: 140px; }
+			.duty-lv-ask .duty-rm-rep-sel { max-width: 110px; }
 			.duty-projects { display: flex; gap: 0; align-items: stretch; min-height: calc(100vh - 120px); }
 			.duty-pj-side { width: 250px; flex: none; border-right: 1px solid #e5e7eb; padding: 8px 8px 8px 0; overflow-y: auto; max-height: calc(100vh - 110px); }
 			.duty-pj-sidehead { display: flex; gap: 6px; margin-bottom: 8px; }
@@ -12086,6 +12269,7 @@ this.$me.find(".duty-req-ok").on("click", (e) => {
 			body.duty-consultant .duty-issue-ack { display: none !important; }
 			.duty-cons-chip { font-size: 9px; font-weight: 800; letter-spacing: .1em; color: #fff; background: #123C35; border-radius: 99px; padding: 2px 8px; vertical-align: 1px; }
 			.duty-proj-cons { font-size: var(--text-xs); font-weight: 700; color: #087A67; cursor: pointer; margin-right: 10px; }
+			.duty-proj-staffb { font-size: var(--text-xs); font-weight: 700; color: #0F5C55; cursor: pointer; margin-right: 10px; }
 			.duty-td-form .duty-ld-form { margin-bottom: 4px; }
 			.duty-td-chk { display: flex; align-items: center; gap: 7px; font-size: 12.5px; margin: 0; grid-column: 1 / -1; font-weight: 600; color: #17211F; }
 			.duty-td-bar { justify-content: flex-start; }
@@ -12413,7 +12597,7 @@ this.$me.find(".duty-req-ok").on("click", (e) => {
 			.duty-nd-p { font-size: 13.5px; line-height: 1.65; color: #2A3531; }
 			.duty-nd-extra { height: 180px; border-radius: 12px; background-size: cover; background-position: center; margin: 10px 0; }
 			.duty-nd-src { margin-top: 14px; }
-			body.duty-consultant .duty-proj-new, body.duty-consultant .duty-proj-cons,
+			body.duty-consultant .duty-proj-new, body.duty-consultant .duty-proj-cons, body.duty-consultant .duty-proj-staffb,
 			body.duty-consultant .duty-proj-archive { display: none !important; }
 			body.duty-mobile .duty-issues-face { padding: 8px 10px 90px; }
 			.duty-team { display: block !important; }

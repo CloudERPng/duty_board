@@ -150,7 +150,7 @@ def _phase_items(user, start, end, bonus):
 	if not bonus:
 		return []
 	projects = frappe.get_all(
-		"Duty Project Consultant", filters={"user": user}, pluck="parent"
+		"Duty Project Staff", filters={"user": user}, pluck="parent"
 	)
 	if not projects:
 		return []
@@ -168,7 +168,7 @@ def _phase_items(user, start, end, bonus):
 	for m in rows:
 		if getdate(m.approved_at) > getdate(m.baseline_date):
 			continue  # late sign-off pays zero — the locked decision
-		n = max(frappe.db.count("Duty Project Consultant", {"parent": m.project}), 1)
+		n = max(frappe.db.count("Duty Project Staff", {"parent": m.project}), 1)
 		pname = frappe.db.get_value("Duty Project", m.project, "project_name") or m.project
 		out.append({
 			"phase": m.title,
