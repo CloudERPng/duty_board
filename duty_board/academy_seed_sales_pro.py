@@ -120,3 +120,81 @@ def seed_sales_pro_track():
 
 	frappe.db.commit()
 	print("ZhiftERP Sales Professional track ready.")
+
+
+def refresh_lessons(only=None):
+	"""Replace lesson content on ALREADY-SEEDED modules from the data
+	file (matched by title). Clears lesson read-progress for refreshed
+	modules — rewritten materials should be re-read. Questions untouched.
+	Pass only=<module_key> to refresh a single module and leave the
+	others' content and read-progress untouched."""
+	data = _data()
+	refreshed = 0
+	keys = [only] if only else ORDER
+	for key in keys:
+		if key not in data:
+			print(f"unknown module key: {key}")
+			continue
+		m = data[key]
+		mod = frappe.db.get_value("Duty Training Module", {"title": m["title"]}, "name")
+		if not mod:
+			print(f"module not seeded yet (skipped): {m['title']}")
+			continue
+		for row in frappe.get_all("Duty Lesson", filters={"module": mod}, pluck="name"):
+			frappe.delete_doc("Duty Lesson", row, ignore_permissions=True, force=True)
+		for row in frappe.get_all("Duty Lesson Progress", filters={"module": mod}, pluck="name"):
+			frappe.delete_doc("Duty Lesson Progress", row, ignore_permissions=True, force=True)
+		for j, l in enumerate(m["lessons"]):
+			frappe.get_doc(
+				{
+					"doctype": "Duty Lesson",
+					"module": mod,
+					"title": l["title"],
+					"sort_order": j,
+					"est_minutes": l["est"],
+					"content": l["html"],
+				}
+			).insert(ignore_permissions=True)
+		refreshed += 1
+		print(f"refreshed: {m['title']} ({len(m['lessons'])} lessons)")
+	frappe.db.commit()
+	print(f"{refreshed} module(s) refreshed. Read-progress reset for refreshed modules.")
+
+
+def refresh_questions(only=None):
+	"""Replace a seeded module's question bank from the data file
+	(matched by title). Past attempts keep their stored results; future
+	sittings draw from the new bank. Pass only=<module_key> for one
+	module, else all in ORDER."""
+	data = _data()
+	keys = [only] if only else ORDER
+	for key in keys:
+		if key not in data:
+			print(f"unknown module key: {key}")
+			continue
+		m = data[key]
+		mod = frappe.db.get_value("Duty Training Module", {"title": m["title"]}, "name")
+		if not mod:
+			print(f"module not seeded yet (skipped): {m['title']}")
+			continue
+		for row in frappe.get_all("Duty Quiz Question", filters={"module": mod}, pluck="name"):
+			frappe.delete_doc("Duty Quiz Question", row, ignore_permissions=True, force=True)
+		for q in m["questions"]:
+			frappe.get_doc(
+				{
+					"doctype": "Duty Quiz Question",
+					"module": mod,
+					"question": q["q"],
+					"opt_a": q["opts"][0],
+					"opt_b": q["opts"][1],
+					"opt_c": q["opts"][2],
+					"opt_d": q["opts"][3],
+					"correct": "ABCD"[q["ans"]],
+					"rationale": q["why"],
+					"source": q["src"],
+					"active": 1,
+				}
+			).insert(ignore_permissions=True)
+		print(f"bank refreshed: {m['title']} ({len(m['questions'])} questions)")
+	frappe.db.commit()
+	print("Question banks refreshed.")

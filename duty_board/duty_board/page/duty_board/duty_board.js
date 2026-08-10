@@ -2828,19 +2828,29 @@ this.$me.find(".duty-req-ok").on("click", (e) => {
 		$t.html(`
 			<div class="duty-lead-section">🎓 ${__("My training")} <a class="duty-me-trassign">＋ ${__("Assign to a colleague")}</a></div>
 			${rows.length
-				? rows
-						.map(
-							(r) => `
-				<div class="duty-cr-msrow" style="cursor:pointer" data-record="${r.name}">
-					<span>${r.status === "Completed" ? "🏅" : "📖"} <b>${frappe.utils.escape_html(r.module_title)}</b>${r.product ? ` <span class="text-muted">· ${frappe.utils.escape_html(r.product)}</span>` : ""}</span>
+				? (() => {
+						const esc = frappe.utils.escape_html;
+						let out = "", last = null;
+						rows.forEach((r) => {
+							const g = r.product || __("General");
+							if (g !== last) {
+								const gr = rows.filter((x) => (x.product || __("General")) === g);
+								const cert = gr.filter((x) => x.status === "Completed").length;
+								out += `<div class="duty-tr-group"><b>${esc(g)}</b><span class="${cert === gr.length ? "duty-tr-done" : ""}">${cert}/${gr.length} ${__("certified")}</span></div>`;
+								last = g;
+							}
+							out += `
+				<div class="duty-cr-msrow duty-tr-row" style="cursor:pointer" data-record="${r.name}">
+					<span>${r.status === "Completed" ? "🏅" : "📖"} <b>${esc(r.module_title)}</b></span>
 					<span class="text-muted" style="font-size:var(--text-sm)">
 						${r.status === "Completed"
 							? `✓ ${__("certified")} ${r.completed_on || ""}`
 							: `📚 ${r.lessons_done}/${r.lessons_total} ${__("lessons")}${r.lessons_total && r.lessons_done === r.lessons_total ? " · ✓ " + __("all read") : ""}`}
 					</span>
-				</div>`
-						)
-						.join("")
+				</div>`;
+						});
+						return out;
+				  })()
 				: `<div class="text-muted" style="font-size:var(--text-sm)">${__("No training assigned to you yet.")}</div>`}
 		`);
 		$t.find("[data-record]").on("click", (e) => this.my_course_dialog($(e.currentTarget).data("record")));
@@ -12089,6 +12099,11 @@ this.$me.find(".duty-req-ok").on("click", (e) => {
 			.duty-ld-meets .duty-meet-new { margin-top: 6px; }
 			.duty-slot-grid { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
 			.duty-slot-grid button { min-width: 64px; }
+			.duty-tr-group { display: flex; align-items: baseline; gap: 10px; margin: 14px 0 4px; padding-bottom: 4px; border-bottom: 2px solid #E4EAE8; }
+			.duty-tr-group b { font-size: 13px; text-transform: uppercase; letter-spacing: .04em; color: #0F5C55; }
+			.duty-tr-group span { font-size: 11.5px; font-weight: 700; color: #8a958f; }
+			.duty-tr-group span.duty-tr-done { color: #0E8A63; }
+			.duty-tr-row { padding-left: 10px; }
 			.duty-projects { display: flex; gap: 0; align-items: stretch; min-height: calc(100vh - 120px); }
 			.duty-pj-side { width: 250px; flex: none; border-right: 1px solid #e5e7eb; padding: 8px 8px 8px 0; overflow-y: auto; max-height: calc(100vh - 110px); }
 			.duty-pj-sidehead { display: flex; gap: 6px; margin-bottom: 8px; }

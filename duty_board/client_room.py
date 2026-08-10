@@ -4192,7 +4192,8 @@ def my_training():
 		r.completed_on = str(r.completed_on) if r.completed_on else None
 		r.lessons_total = lesson_counts.get(r.module, 0)
 		r.lessons_done = done_counts.get(r.module, 0)
-	rows.sort(key=lambda r: (mods[r.module].sort_order or 999) if r.module in mods else 999)
+		r.sort_order = (m.sort_order or 999) if m else 999
+	rows.sort(key=lambda r: (r.product or "~", r.sort_order, r.module_title))
 	return rows
 
 

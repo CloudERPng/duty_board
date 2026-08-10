@@ -4,36 +4,61 @@
   "desc": "The customer master done right: groups, territories, contacts and addresses, credit limits, and the Selling Settings that shape every document after it.",
   "lessons": [
    {
-    "title": "The Customer master",
-    "est": "5",
-    "html": "<p>Every selling document in ZhiftERP hangs off a <b>Customer</b>. Create one from <b>Selling &gt; Customer</b>: the name, <b>Customer Group</b>, and <b>Territory</b> are the three fields that drive reporting later — group answers <i>what kind</i> of customer (Retail, Pharmacy, Distributor), territory answers <i>where</i> (Lagos Mainland, Abuja, South-West).</p><p>Set the <b>Default Price List</b> and <b>Default Currency</b> on the customer so quotations pick the right rates automatically. A customer created carelessly today is a reporting headache for years — the master record is a contract with your future reports.</p>"
+    "title": "Chapter 1 — The Customer master, field by field",
+    "est": "18",
+    "html": "<p>Every quotation, sales order, delivery note and invoice in ZhiftERP begins with a question: <i>who is this for?</i> The answer is a <b>Customer</b> record, and the quality of that record decides the quality of everything that follows. A well-built customer master means documents that default correctly, statements that reconcile, credit that is controlled, and reports that answer management's questions without a single spreadsheet. A carelessly built one means the opposite, for years. This chapter walks the record field by field.</p><p><b>Creating the record.</b> Navigate <b>Selling &gt; Customer &gt; New</b> (or press the plus from the Customer list). The form opens with the identity section on top. Before typing anything, understand the difference between the customer's <i>name</i> and the record's <i>ID</i>: what you type as Customer Name is the trading identity you'll see on documents; whether the system also uses it as the record's permanent ID, or issues a series number like CUST-00042 instead, is governed by <b>Customer Naming By</b> in Selling Settings (Chapter 7 and, in depth, Selling 8). For now: type the legal or trading name exactly, consistently cased — \"Alpha Pharmacy Ltd\", not \"alpha pharm\", not \"ALPHA PHARMACY (Mr Chidi's one)\".</p><p><b>Customer Type — Company or Individual.</b> Companies carry registration and tax identity and typically several contacts; individuals are natural persons. The choice affects which identity fields make sense (a Tax ID belongs to a company) and how you'll structure contacts. Retail chains, distributors, corporates: Company. A walk-in professional buying on account: Individual. When in doubt for B2B trade, it's Company.</p><p><b>Customer Group.</b> The first of the two great reporting dimensions. It answers <i>what kind</i> of customer this is — Retail, Pharmacy, Distributor, Corporate, Government — and every serious sales report can slice by it. Groups are covered as a design exercise in Chapter 2; at creation time the rule is simply: never leave the default unexamined. If your defaults chapter set \"All Customer Groups\" or a generic bucket, a lazily created customer disappears from segment analysis forever.</p><p><b>Territory.</b> The second great dimension: <i>where</i>. Lagos Mainland, Lagos Island, Abuja FCT, South-West. Chapter 3 designs the tree; the creation-time rule mirrors groups: choose deliberately. And two anti-patterns to refuse on sight: a territory named after a salesperson (people resign; Ikeja does not), and a territory set to a warehouse (fulfilment geography is not sales geography).</p><p><b>Default Price List.</b> Which set of selling rates this customer receives. When a quotation is raised for them, this list lands on the document and every row's rate is looked up from it (Selling 2 covers the machinery). Distributor customers point at the distributor list; retail at standard. Leave it blank and the global default from Selling Settings applies — acceptable for the common case, wrong for anyone on negotiated rates.</p><p><b>Default Currency.</b> The currency their documents are priced and their receivable is tracked in. For domestic trade: NGN. For your Ghanaian or export relationships: the trading currency. The diagnostic habit to build now: <i>when a customer's quotations keep defaulting to the wrong currency, the durable fix is this field on the master</i> — editing each quotation treats the symptom and guarantees the disease recurs on the next document.</p><p><b>Tax identity.</b> For Nigerian companies, record the <b>Tax ID (TIN)</b> — your FIRS e-invoicing pipeline (the NGE stack) and formal B2B invoicing both want it, and chasing TINs at invoice time is how billing stalls. Capture it at onboarding while the relationship is new and cooperative.</p><p><b>Accounts and terms (a preview).</b> The master also carries the customer's default <b>Payment Terms</b> (Net 30, advance-and-balance — inherited by invoices, as Selling 7 teaches), their receivable account override if your chart demands one, and the <b>Credit Limit</b> section that Chapter 6 treats end-to-end. The principle across all of them: <i>everything a document will need should already live on the master</i>, so document creation is selection, not invention.</p><p><b>The creation discipline.</b> A customer record is created once and transacted against for years. Create it deliberately: name, type, group, territory, currency, price list, TIN, terms — all set before the first quotation. \"Only a name, details later\" is the master-data equivalent of unhedged debt: later never comes, every document inherits blanks, and the dimensions you need at year-end were never captured. The master record is a contract with your future reports; sign it properly.</p>"
    },
    {
-    "title": "Contacts & addresses",
-    "est": "4",
-    "html": "<p>A Customer is a company; the humans and locations attach separately. <b>Contacts</b> carry names, phones, and emails; <b>Addresses</b> carry billing and shipping locations. One customer can hold many of each — a chain like your larger retail accounts has one customer record and dozens of branch shipping addresses.</p><p>Mark one contact and one address as <b>primary</b>: documents pull them by default. When a quotation shows the wrong address, the fix is almost always the address record, not the quotation.</p>"
+    "title": "Chapter 2 — Customer Groups: designing the segmentation tree",
+    "est": "15",
+    "html": "<p>Customer Group is not a label; it is the backbone of every answer to \"how is each part of our market doing?\" This chapter treats it as what it is — a small piece of information architecture that deserves an hour of design before the first customer is created.</p><p><b>The mechanics.</b> Customer Groups live in a <b>tree</b> (Selling &gt; Customer Group, or the tree view). A group can be a <i>group node</i> (has children, holds no customers directly) or a <i>leaf</i> (customers attach here). Reports roll leaves up through their parents automatically: sales for \"Pharmacy — Independent\" and \"Pharmacy — Chain\" sum into \"Pharmacy\", which sums into \"Healthcare\", which sums into the root. You design the rollup once; every report inherits it forever.</p><p><b>Designing the tree — three rules.</b></p><ul><li><b>Rule 1: one question per tree.</b> The group tree answers <i>what kind of customer</i>. Resist the temptation to encode geography (that's Territory), size (consider a custom field or naming convention), or payment behaviour (that's credit data) into group names. \"Lagos Pharmacies (Big, Slow-paying)\" as a group is three dimensions crushed into one string — unreportable on any of them.</li><li><b>Rule 2: mirror how management actually talks.</b> If the MD asks \"how did Pharmacy do versus Distribution?\", those are your top branches. A tree that mirrors the org's mental model gets used; a taxonomically \"correct\" tree nobody recognises gets ignored and defaulted around.</li><li><b>Rule 3: leaves you can assign in two seconds.</b> Every real customer must land in exactly one obvious leaf. If your team debates where a customer goes, the tree is too clever. Six to fifteen leaves serves most Nigerian mid-market firms; thirty means you're encoding something that belongs elsewhere.</li></ul><p><b>A worked tree for a ZhiftERP retail-systems vendor:</b> All Customer Groups → <i>Retail</i> (→ Supermarket · Pharmacy · Specialty), <i>Distribution</i> (→ FMCG Distributor · Pharma Distributor), <i>Corporate &amp; Institutional</i>, <i>Government</i>. Eight leaves, every prospect obviously placeable, every board question answerable by rollup.</p><p><b>Groups as machinery, not just reporting.</b> The group is also a <i>condition</i> elsewhere in ZhiftERP: pricing rules can target a customer group (\"10% off for Distribution\", Selling 6), and defaults can hang from groups. That doubles the case for a clean tree — a pricing policy aimed at a mushy group hits mushy targets.</p><p><b>Changing your mind later.</b> Re-parenting a group or moving a customer between leaves is allowed and takes effect in reports immediately (they read current assignments). What you cannot recover is history never captured: customers dumped for a year into a generic default have a year of unsegmentable sales. Hence the Chapter 1 discipline — the tree is only as good as assignment at creation time.</p><p><b>The default group.</b> Selling Settings names a default group for hurried creation. Point it at your genuinely most common leaf — not at the root, and not at a \"Misc\" bucket that becomes a landfill. A weekly two-minute review of newly created customers (filter by creation date) catches misfiled ones while they're young.</p>"
    },
    {
-    "title": "Credit limits & the credit controller",
-    "est": "5",
-    "html": "<p>A <b>Credit Limit</b> on the customer caps how much unpaid exposure you allow. When a new Sales Order would push the outstanding balance past the limit, ZhiftERP blocks submission.</p><p>Only a user holding the <b>Credit Controller</b> role can bypass the block — deliberately, per document. This is the difference between a sales team that grows revenue and one that grows bad debt: the limit is policy, the controller is the exception process.</p>"
+    "title": "Chapter 3 — Territories: geography as a reporting dimension",
+    "est": "14",
+    "html": "<p>Territory answers <i>where</i>. Like groups it is a tree, it rolls up in every report, and it is worth designing before data arrives — with one extra power groups don't have: territories can carry <b>targets</b>.</p><p><b>Designing for Nigeria.</b> The right granularity follows your commercial footprint, not the atlas. A Lagos-centric firm with national ambitions might use: All Territories → <i>Lagos</i> (→ Mainland · Island · Lagos West), <i>South-West (ex-Lagos)</i>, <i>Abuja &amp; North-Central</i>, <i>South-East</i>, <i>South-South</i>, <i>North</i>, <i>Export</i> (→ Ghana · Other West Africa). Twelve leaves. The tests: (1) every customer lands somewhere obvious; (2) each leaf is worth measuring on its own — if you'd never look at \"North-East\" alone, don't create it yet; split when the business arrives; (3) the top branches match how you'd staff regional responsibility, because territory performance and regional accountability should read off the same tree.</p><p><b>The two anti-patterns, again, with reasons.</b> A territory named after a salesperson welds an org-chart snapshot into your geography: when Tunde resigns, \"Tunde's Area\" becomes archaeology, and reassigning his customers rewrites history's meaning. People belong in the <b>Sales Person</b> tree (Selling 8), which exists precisely so geography and staffing can change independently. And a territory set to a warehouse confuses <i>where we sell</i> with <i>where we ship from</i> — a Mainland customer served from an Island warehouse is still Mainland revenue.</p><p><b>Targets on territories.</b> A territory can carry sales targets by item group and fiscal period. Set ₦120m for Lagos Mainland this year, and territory reports show actual against target with the tree rolling both up. This is the lightest-weight regional performance system you can run — no spreadsheets, no arguments about whose number is whose, because the number is computed from the same documents that raised the invoices.</p><p><b>Territory in the machinery.</b> Like groups, territories serve as conditions: pricing rules can target them (a promo for South-East only), and analytics slice by them natively (Sales Analytics grouped by Territory is your regional revenue map, Selling 6). Export as a branch matters here: separating Ghana under Export keeps cross-border pricing rules and FX-flavoured analysis clean.</p><p><b>Assignment and hygiene.</b> Every customer gets exactly one territory at creation (Chapter 1). For chains, the territory of the <i>customer</i> is where the relationship is managed — usually the head office — while individual branch geography lives on the shipping addresses (Chapter 5); don't fragment one chain across territories unless you genuinely manage the regions as separate relationships. Same weekly hygiene habit as groups: review new customers, catch misfiles early.</p>"
    },
    {
-    "title": "Selling Settings that matter",
-    "est": "4",
-    "html": "<p><b>Selling Settings</b> (search it in the awesome bar) holds the switches that shape daily work: customer naming, the default price list, whether sales staff must have an <b>Item Price</b> before selling, and whether one item can appear on multiple rows of the same order.</p><p>Two to know cold: <b>Allow Item to be Added Multiple Times</b> (same item at two rates on one order) and <b>Maintain Same Rate Throughout Sales Cycle</b> — which stops the delivery note quietly changing the price agreed on the order.</p>"
+    "title": "Chapter 4 — Contacts: the people layer",
+    "est": "13",
+    "html": "<p>A Customer is a company; you cannot phone a company. The people you actually deal with — the procurement officer, the pharmacist-owner, the accounts payable clerk — live as <b>Contact</b> records linked to the customer. Modelling them properly is the difference between institutional relationships and relationships that resign when one staff member (theirs or yours) does.</p><p><b>What a Contact carries.</b> First and last name, designation (\"Head of Procurement\"), one or more email addresses, one or more phone numbers (each list with its own primary), and the link to the customer (a contact can even serve multiple parties — a consultant procuring for two sister companies). Create contacts from the customer's dashboard (the linked Contacts section) so the link is born correct, or from the Contact list directly.</p><p><b>The placement rule.</b> When a buyer gives you a phone number, it goes on a Contact. Not appended to the customer name (\"Alpha Pharmacy — call Ngozi 0803…\" is a real record in many bad implementations), not buried in a quotation's remarks (unfindable in a month), not in a private phonebook (gone when your rep leaves). The Contact record is searchable, appears on documents, syncs to communications, and — critically — belongs to the <i>company's</i> relationship with the customer, not to any individual rep's.</p><p><b>Primary contact.</b> Exactly one contact per customer should carry the primary flag. Documents pull the <b>primary contact by default</b> — not the newest contact, not the first alphabetically, not whoever was used last. So the operational meaning of \"primary\" is: <i>who should a document address when nobody chooses?</i> Usually the commercial decision-maker for quotations. You can always switch a given document to another of the customer's contacts; primary just sets the sane starting point.</p><p><b>Multiple contacts, deliberately.</b> A healthy B2B customer record carries at least three people: the commercial contact (quotations, negotiations), the operational contact (deliveries — the store manager who receives goods), and the finance contact (invoices, statements, the person you chase at collections time, Selling 7). Capturing all three at onboarding costs five minutes and removes the single most common friction in fulfilment and collections: \"who do we even talk to about this?\"</p><p><b>Lifecycle.</b> People move. When the procurement officer changes, you edit or replace the contact and re-flag primary — the customer, its history, its balances are untouched. That separation (company-level customer, person-level contacts) is exactly why the layer exists; firms that encode people into customer names get to rename their history every time someone resigns.</p>"
+   },
+   {
+    "title": "Chapter 5 — Addresses & the chain-modelling walkthrough",
+    "est": "16",
+    "html": "<p>Addresses answer <i>where things happen</i>: where invoices are addressed, where goods land. Like contacts they are separate records linked to the customer — one company, many places — and they carry the single most consequential modelling decision in Nigerian retail implementations: <b>how to represent a chain</b>.</p><p><b>What an Address carries.</b> Title, address lines, city, state, country; a type — <b>Billing</b>, <b>Shipping</b>, or both; the link to its customer; and a primary flag per role. Create from the customer's dashboard so linkage is automatic.</p><p><b>Billing vs shipping.</b> The billing address is the invoice's legal face — head office, where the TIN lives. Shipping addresses are delivery reality — stores, warehouses, branches. One customer routinely has one billing address and many shipping addresses, and documents let you pick: the invoice wears billing; each delivery note wears the branch it's actually going to.</p><p><b>Primary flags.</b> As with contacts: documents pull the <b>primary address by default</b>. When a quotation shows the wrong address, the fix is almost always on the address records — the wrong one is flagged primary, or the right one was never created — not on the quotation. Diagnose at the master; the documents will follow.</p><p><b>THE CHAIN WALKTHROUGH.</b> Your customer is a pharmacy chain: head office in Ikeja, 30 branches across Lagos and Ibadan, one procurement department, one account to settle. The correct model, end to end:</p><ol><li><b>One Customer record</b> — \"MediPlus Pharmacies Ltd\". One, not thirty. The customer is the <i>commercial relationship</i>: one credit limit governing total exposure, one receivable balance, one statement, one negotiated price list, one history. Thirty customer records would shatter every one of those into thirty fragments — credit control becomes fiction (each \"customer\" under its limit while the chain owes triple your comfort), statements become a monthly reconciliation war, and \"how much did MediPlus buy this year?\" becomes a report nobody can run.</li><li><b>One billing address</b> — head office, primary billing. Every invoice addresses Ikeja, where accounts payable lives.</li><li><b>Thirty shipping addresses</b> — \"MediPlus — Surulere\", \"MediPlus — Yaba\", … \"MediPlus — Bodija\". Named so pickers and drivers recognise them instantly. Each delivery note selects its branch; the waybill prints the right street; and delivered-to history per branch is queryable forever.</li><li><b>Contacts per role</b> (Chapter 4) — procurement at HQ (primary), finance at HQ, and optionally key store managers attached as operational contacts.</li><li><b>What NOT to do</b> — addresses retyped per order (typos become failed deliveries and history becomes text nobody can group), or a hybrid \"main branches as customers, small ones as addresses\" (the worst of both: fragmented finance <i>and</i> inconsistent shipping data).</li></ol><p><b>The exception that proves the rule.</b> Model branches as separate customers only when they genuinely are separate commercial relationships — franchisees who buy and pay independently, each with its own credit standing. Then each franchisee IS a customer (perhaps grouped under a \"MediPlus Franchise\" customer group for rollup). The test is always: <i>who owes the money?</i> One payer, one customer.</p>"
+   },
+   {
+    "title": "Chapter 6 — Credit limits & the credit-control workflow",
+    "est": "16",
+    "html": "<p>Every credit sale is a loan wearing a delivery note. This chapter is the end-to-end workflow that keeps those loans deliberate: the limit, the block, the controller, and the review.</p><p><b>What the limit is — precisely.</b> The <b>Credit Limit</b>, set in the customer's Credit Limits section (settable per company if you run several), caps the customer's <b>unpaid outstanding exposure</b>: their open invoices plus committed-but-unbilled orders, now. It is not lifetime purchases (a decade-old customer hasn't \"used up\" anything by volume), not a count of orders, and not a discount ceiling. Exposure — what you'd lose if they vanished tonight.</p><p><b>Setting the number.</b> New customer, no history: start conservative — one typical order's value, or trade-reference-informed. Established customer: their payment behaviour is your underwriting; a customer who clears ₦8m monthly like clockwork can carry ₦10–15m. The limit is a policy dial, reviewed (see below), not a one-time guess.</p><p><b>The block.</b> When a new Sales Order or invoice would push outstanding past the limit, ZhiftERP <b>blocks submission</b> with a credit-limit message. Understand the timing philosophically: the block fires at the moment of maximum temptation — the deal is closing, the rep wants the number, the customer is asking nicely. That is exactly when policy must be mechanical, because \"just this once\" evaluated by the person carrying the sales target is not evaluation.</p><p><b>The bypass — the Credit Controller.</b> Exceptions must be possible (a strategic customer mid-payment-run deserves flexibility) but must be <i>owned</i>. Only a user holding the <b>Credit Controller</b> role can release a blocked document — per document, deliberately, their name on the action. Not any System Manager by default, not the salesperson who raised it, and not \"nobody until they pay\" (that's not a policy, it's an outage). Organisationally: give the role to finance, never to sales — the person who wants the deal must not be the person who waives the risk. In an 11-person firm that's the accountant or the MD; the point is the separation, not the headcount.</p><p><b>The bypass conversation, scripted.</b> Rep hits the block → rep messages the controller with three facts: how much over, what's the customer's ageing (Selling 7's AR report), and when payment is expected → controller decides: release this document, raise the limit properly, or hold the order (Selling 4) until money lands. Sixty seconds, recorded in the system's own trail. What the workflow prevents is the alternative that kills firms slowly: goods shipping on charm while finance discovers the exposure at month-end.</p><p><b>The review cadence.</b> Quarterly, run the AR ageing next to the limits: customers paying flawlessly at 80% utilisation are candidates for raises (don't strangle good growth); customers living in the 61-90 bucket get cuts or cash-only status. Limits that never move are limits nobody believes in.</p><p><b>The commercial truth to teach every rep:</b> the difference between a sales team that grows revenue and one that grows bad debt is rarely closing skill — it is whether credit policy executes automatically at the point of entry or gets \"reviewed\" by humans after the goods have left. The block is not the system doubting you; it is the system doing the one job charm cannot.</p>"
+   },
+   {
+    "title": "Chapter 7 — Selling Settings for foundations",
+    "est": "12",
+    "html": "<p>Selling Settings (type it in the awesome bar) is one screen of switches where selling policy becomes system behaviour. Selling 8 walks every switch as the advanced treatment; a foundations trainee needs to command the following subset now, because they shape the documents you'll make from Chapter 1's customers.</p><p><b>Customer Naming By.</b> <i>Customer Name</i> makes the typed name the record's permanent ID; <i>Naming Series</i> issues CUST-00042-style IDs with the name as display label. Preview of the Selling 8 decision rule: portfolios with duplicate or near-duplicate names — chains, common Nigerian trading names — need the series, because IDs must be unambiguous forever even when names aren't. What matters at foundations level: know that this is where record identity is decided, and that it's a day-one decision (changing naming schemes mid-life is migration surgery).</p><p><b>The defaults trio.</b> Default <b>Customer Group</b>, default <b>Territory</b>, default <b>Selling Price List</b>. These pre-fill new customers and documents when nobody chooses. Set each to your genuinely commonest case — hurried data entry then lands <i>correctly</i> instead of blank. And connect this to Chapters 2–3's hygiene: defaults are a safety net, not a filing system; the weekly new-customer review catches what fell into the net.</p><p><b>Allow Item to be Added Multiple Times in a Transaction.</b> Off: the same item cannot appear on two rows of one order (duplicate protection). On: it can — the legitimate case being the same item at two rates on one document, like 100 units at list plus 20 promotional units at zero, as two visible rows rather than a doctored average rate. This switch lives HERE — not on the item master, not on the price list, not in a print format — and knowing its address is a straight exam fact and a straight support fact.</p><p><b>Maintain Same Rate Throughout Sales Cycle.</b> The rate agreed on the Sales Order cannot silently differ on the Delivery Note or Sales Invoice made from it. What it defends against is precisely <b>rate drift between the documents of one sale</b> — the ₦850 the customer signed becoming ₦880 at invoice because someone \"tidied\" it. It is not currency management (Selling 2's conversion machinery), not discount control (Selling 6), not tax recalculation (templates). Its companion <i>action</i> setting — hard <b>Stop</b> versus <b>Warning</b> — is the Selling 8 discussion; foundations level: know the switch, know what drift means, know why a customer who signs one number and is billed another becomes a former customer.</p><p><b>The consultant's reflex to build now:</b> when a client asks \"can the system stop staff doing X?\", open this screen before you say anything. Most selling-policy questions are already switches; the expensive consultant is the one who writes a customisation for a checkbox.</p>"
+   },
+   {
+    "title": "Chapter 8 — Case study: onboarding a 30-branch pharmacy chain",
+    "est": "18",
+    "html": "<p>Theory becomes competence in the doing. This chapter onboards a realistic customer end-to-end using everything in this module. Read it actively — every step names the chapter that taught it.</p><p><b>The client.</b> MediPlus Pharmacies Ltd: head office Ikeja, 30 branches (24 Lagos, 6 Ibadan), central procurement, central payment, negotiated distributor-grade pricing, requesting 45-day terms. Your firm has agreed to supply.</p><p><b>Step 1 — The customer record (Ch. 1).</b> Selling &gt; Customer &gt; New. Name: <i>MediPlus Pharmacies Ltd</i> (their CAC name). Type: Company. Customer Group: <i>Retail → Pharmacy — Chain</i> (Ch. 2's tree earning its keep: chain pharmacies report separately from independents). Territory: <i>Lagos → Mainland</i> — the relationship is managed from Ikeja; branch geography will live on addresses, and we do NOT fragment one payer across territories (Ch. 3, Ch. 5). Default Currency: NGN. Default Price List: <i>Distributor NGN</i> — their negotiated tier, so every quotation prices correctly without anyone remembering the deal (Ch. 1; machinery in Selling 2). Tax ID: their TIN, captured now while onboarding goodwill is high.</p><p><b>Step 2 — Payment terms.</b> They asked 45 days; management approved. Set default Payment Terms on the customer to the Net-45 template — every invoice will inherit it (Selling 7) and nobody improvises terms at billing time.</p><p><b>Step 3 — Contacts (Ch. 4).</b> Three people, created from the customer's dashboard: <i>Ngozi E.</i>, Head of Procurement — <b>primary</b> (quotations address her); <i>Ibrahim S.</i>, Accounts Payable (statements and collections address him — future-you at Selling 7 says thanks); <i>Kemi A.</i>, Regional Ops (delivery escalations). Five minutes now; the \"who do we even call?\" friction never exists.</p><p><b>Step 4 — Addresses (Ch. 5).</b> One billing address: head office, Ikeja — primary billing; every invoice wears it. Thirty shipping addresses, one per branch, named for humans: \"MediPlus — Surulere\", … \"MediPlus — Bodija\". (Thirty entries is an import job, not an afternoon of typing — the same import discipline Selling 2 teaches for prices.) Flag the highest-volume branch primary shipping; every delivery note picks its actual branch.</p><p><b>Step 5 — Credit (Ch. 6).</b> Projected offtake ₦6m/month on 45-day terms means roughly two months' exposure in steady state: recommend a ₦15m limit, approved by finance, entered on the customer. Confirm the Credit Controller role sits with the accountant, not the sales lead. Diarise the first review for the end of quarter one: their actual payment behaviour will tell you whether ₦15m was generous or tight.</p><p><b>Step 6 — Verify the defaults end-to-end.</b> Raise a draft test quotation for MediPlus (delete after): price list shows Distributor NGN ✓; currency NGN ✓; contact Ngozi ✓; billing address Ikeja ✓; a delivery-note address picker shows all thirty branches ✓. Ten minutes of verification beats a first live order that ships to the wrong city at retail rates.</p><p><b>Step 7 — The one-paragraph handover.</b> In the client room / CRM: \"MediPlus configured: 1 customer, 30 shipping addresses (import file attached), Distributor NGN pricing, Net-45, ₦15m limit (review 30 Sept), contacts: Ngozi (commercial), Ibrahim (finance), Kemi (ops).\" The next consultant — or you in six months — reconstructs the whole setup from four lines.</p><p><b>What this setup buys, permanently:</b> one statement Ibrahim can reconcile; one limit that actually caps the chain; branch-level delivery history; segment-true reporting (Pharmacy—Chain, Lagos Mainland); pricing that defaults right on every future document. Total work: under two hours, most of it the address import. Every hour skipped here is repaid weekly, with interest, forever.</p>"
+   },
+   {
+    "title": "Chapter 9 — Common mistakes & support patterns",
+    "est": "14",
+    "html": "<p>Every implementation team accumulates the same scar tissue. This chapter hands you the scars pre-earned: the foundations mistakes you will meet in the field, how they present as support tickets, and the fixes — so you recognise the disease from the symptom in one move.</p><p><b>Pattern 1 — \"The quotation shows the wrong address/contact.\"</b> Disease: primary flags (Ch. 4-5) — the wrong record is flagged primary, or the right record was never created and the only one wins by default. Fix at the master: create/flag correctly; the documents follow. Anti-fix: editing the document, which cures one quotation and leaves every future one wrong.</p><p><b>Pattern 2 — \"Wrong currency/prices keep appearing for this customer.\"</b> Disease: Default Currency or Default Price List on the master (Ch. 1). The document is faithfully inheriting a wrong default. Fix the field; stop treating documents.</p><p><b>Pattern 3 — \"We can't tell how much the chain owes us\" / statements chaos.</b> Disease: the chain was modelled as many customers (Ch. 5's cardinal sin). Each fragment is individually under-limit and individually statement-ed while the real payer's exposure is invisible. Fix: consolidate to one customer with shipping addresses — a data-migration exercise (re-pointing open documents and balances) that gets harder every month it waits, which is why the walkthrough exists.</p><p><b>Pattern 4 — \"Reports say most of our sales are in 'All Customer Groups'.\"</b> Disease: creation-time laziness plus a root-level default (Ch. 2, Ch. 7). Everyone was filed in the landfill. Fix forward: set a real default leaf, institute the weekly new-customer review. Fix backward: a one-time regrouping exercise — tedious, and the reports only speak from the day assignments are true.</p><p><b>Pattern 5 — \"Sales by region is meaningless / territories named after ex-staff.\"</b> Disease: people encoded into geography (Ch. 3). Fix: rebuild territories as geography, move staffing to the Sales Person tree (Selling 8), reassign customers once.</p><p><b>Pattern 6 — \"The system blocked my order and the client is waiting!\"</b> Not a disease — the credit block working (Ch. 6). The support answer is the workflow, not a workaround: check exposure and ageing, route to the Credit Controller, release / raise / hold deliberately. The ticket to ESCALATE is its inverse: \"can you give my user the bypass so this stops happening\" — that's a request to disable credit control, and it goes to management, not to a permissions tweak.</p><p><b>Pattern 7 — \"Duplicate customers everywhere.\"</b> Disease: name-based creation without discipline (\"Alpha Pharmacy\", \"Alpha Pharmacy Ltd\", \"ALPHA PHARM\") — each with partial history. Prevention: naming-series IDs (Ch. 7 / Selling 8) plus a search-before-create habit. Cure: merge/re-point, then prevention — duplicates recreate themselves wherever the habit that made them survives.</p><p><b>The meta-pattern.</b> Read the seven again: every single one is a master-data disease presenting as a document symptom. That is the deepest lesson of this module — <i>documents are downstream of masters</i>. The consultant who fixes masters closes tickets permanently; the one who fixes documents subscribes to them. When a selling support ticket arrives, your first question is now reflex: <b>which master record is lying?</b></p>"
    }
   ],
   "questions": [
    {
     "q": "Which three Customer fields most directly drive sales reporting in ZhiftERP?",
     "opts": [
-     "Name, email, phone",
      "Customer Group, Territory, and the customer name",
+     "Name, email, phone",
      "Credit limit, currency, price list",
      "Contact, address, tax ID"
     ],
-    "ans": 1,
+    "ans": 0,
     "why": "Group and territory are the analysis dimensions every sales report slices by.",
     "src": "Customers §1"
    },
@@ -53,11 +78,11 @@
     "q": "One customer with 30 branches needing deliveries to each branch is modelled as:",
     "opts": [
      "30 customers",
-     "One customer with 30 shipping addresses",
      "One customer, addresses typed per order",
+     "One customer with 30 shipping addresses",
      "30 price lists"
     ],
-    "ans": 1,
+    "ans": 2,
     "why": "One company = one customer; locations are address records attached to it.",
     "src": "Contacts §2"
    },
@@ -65,23 +90,23 @@
     "q": "Documents pull which contact and address by default?",
     "opts": [
      "The newest",
-     "The primary contact and primary address",
+     "Whichever was used last",
      "Alphabetically first",
-     "Whichever was used last"
+     "The primary contact and primary address"
     ],
-    "ans": 1,
+    "ans": 3,
     "why": "The primary flags control defaulting.",
     "src": "Contacts §2"
    },
    {
     "q": "A Sales Order is blocked because the customer would exceed their credit limit. Who can let it through?",
     "opts": [
-     "Any System Manager",
      "A user with the Credit Controller role",
+     "Any System Manager",
      "The sales user who made it",
      "Nobody — it must be paid first"
     ],
-    "ans": 1,
+    "ans": 0,
     "why": "Credit Controller is the deliberate bypass role for credit-limit blocks.",
     "src": "Credit §3"
    },
@@ -101,11 +126,11 @@
     "q": "Where do you control whether the same item can appear on two rows of one order?",
     "opts": [
      "Item master",
-     "Selling Settings — Allow Item to be Added Multiple Times",
      "Price list",
+     "Selling Settings — Allow Item to be Added Multiple Times",
      "Sales Order print format"
     ],
-    "ans": 1,
+    "ans": 2,
     "why": "It's a Selling Settings switch.",
     "src": "Settings §4"
    },
@@ -113,23 +138,23 @@
     "q": "\"Maintain Same Rate Throughout Sales Cycle\" protects against:",
     "opts": [
      "Currency changes",
-     "The rate silently differing between order and delivery/invoice",
+     "Tax recalculation",
      "Discounts",
-     "Tax recalculation"
+     "The rate silently differing between order and delivery/invoice"
     ],
-    "ans": 1,
+    "ans": 3,
     "why": "It enforces the agreed rate downstream through the cycle.",
     "src": "Settings §4"
    },
    {
     "q": "Customer Group answers which question about a customer?",
     "opts": [
-     "Where they are",
      "What kind of customer they are",
+     "Where they are",
      "How much they owe",
      "Who manages them"
     ],
-    "ans": 1,
+    "ans": 0,
     "why": "Group is the kind/segment dimension; territory is the where.",
     "src": "Customers §1"
    },
@@ -149,11 +174,11 @@
     "q": "Territory on the customer is best set to:",
     "opts": [
      "The salesperson's name",
-     "The geographic region used in your reporting structure",
      "The delivery driver",
+     "The geographic region used in your reporting structure",
      "The warehouse"
     ],
-    "ans": 1,
+    "ans": 2,
     "why": "Territory is the geography dimension for analysis and targets.",
     "src": "Customers §1"
    },
@@ -161,13 +186,169 @@
     "q": "A new customer record should always be created with:",
     "opts": [
      "Only a name — details later",
-     "Name, group, territory, currency and default price list set deliberately",
+     "A copied address from another customer",
      "A credit limit of zero",
-     "A copied address from another customer"
+     "Name, group, territory, currency and default price list set deliberately"
     ],
-    "ans": 1,
+    "ans": 3,
     "why": "Master data created deliberately keeps every later document and report clean.",
     "src": "Customers §1"
+   },
+   {
+    "q": "At onboarding, when is the right moment to capture a company customer's TIN?",
+    "opts": [
+     "At onboarding, while goodwill is high",
+     "At first invoice",
+     "When FIRS asks",
+     "Only for government customers"
+    ],
+    "ans": 0,
+    "why": "Chasing TINs at invoice time stalls billing; capture at creation.",
+    "src": "Ch1"
+   },
+   {
+    "q": "A healthy B2B customer record carries at least which three contacts?",
+    "opts": [
+     "Three procurement officers",
+     "Commercial, operational, and finance contacts",
+     "MD, chairman, secretary",
+     "Any three staff"
+    ],
+    "ans": 1,
+    "why": "Quotations, deliveries, and collections each need a named person.",
+    "src": "Ch4"
+   },
+   {
+    "q": "The customer's territory for a 30-branch chain managed from head office should be:",
+    "opts": [
+     "Split across all branch territories",
+     "The largest branch's territory",
+     "The head office's territory, with branch geography on shipping addresses",
+     "Export"
+    ],
+    "ans": 2,
+    "why": "One relationship, one territory; branch geography lives on addresses.",
+    "src": "Ch3, Ch5"
+   },
+   {
+    "q": "Franchise branches that buy and pay independently should be modelled as:",
+    "opts": [
+     "Shipping addresses of the franchisor",
+     "One customer with 30 contacts",
+     "A customer group only",
+     "Separate customers — the test is who owes the money"
+    ],
+    "ans": 3,
+    "why": "Independent payers are independent commercial relationships.",
+    "src": "Ch5"
+   },
+   {
+    "q": "What makes 'Default Customer Group' safe rather than a landfill?",
+    "opts": [
+     "A real common leaf plus a weekly review of newly created customers",
+     "Pointing it at the root group",
+     "Disabling customer creation",
+     "A naming series"
+    ],
+    "ans": 0,
+    "why": "Defaults are a safety net; the review catches misfiles young.",
+    "src": "Ch2, Ch7"
+   },
+   {
+    "q": "Credit limits should be reviewed:",
+    "opts": [
+     "Never — they're policy",
+     "On a cadence (e.g. quarterly) against AR ageing",
+     "Only when a customer complains",
+     "Daily"
+    ],
+    "ans": 1,
+    "why": "Flawless payers at high utilisation get raises; 61-90 dwellers get cuts.",
+    "src": "Ch6"
+   },
+   {
+    "q": "A rep hits the credit block. Per the workflow, the message to the controller carries:",
+    "opts": [
+     "An apology and a promise",
+     "The customer's phone number",
+     "Amount over, the customer's ageing, expected payment date",
+     "A discount proposal"
+    ],
+    "ans": 2,
+    "why": "Three facts let the controller decide in sixty seconds.",
+    "src": "Ch6"
+   },
+   {
+    "q": "A support user asks you to grant their login the credit bypass 'so this stops happening'. You:",
+    "opts": [
+     "Grant it — it's one checkbox",
+     "Delete the credit limit instead",
+     "Grant it for a week",
+     "Escalate to management — it's a request to disable credit control"
+    ],
+    "ans": 3,
+    "why": "Permanent bypass for sales is credit control switched off.",
+    "src": "Ch9"
+   },
+   {
+    "q": "MediPlus's 30 branch addresses are best entered by:",
+    "opts": [
+     "A data import of the address file",
+     "One address reused with edits per order",
+     "Typing all 30 by hand",
+     "Asking drivers to remember"
+    ],
+    "ans": 0,
+    "why": "Thirty structured records is an import job, not an afternoon of typing.",
+    "src": "Ch8"
+   },
+   {
+    "q": "Reports show most sales under 'All Customer Groups'. The backward fix is:",
+    "opts": [
+     "Nothing — history is history",
+     "A one-time regrouping exercise; reports speak from when assignments are true",
+     "Delete those customers",
+     "Rename the root group"
+    ],
+    "ans": 1,
+    "why": "Forward hygiene plus one cleanup; unassigned history stays unsegmentable until regrouped.",
+    "src": "Ch9"
+   },
+   {
+    "q": "The deepest law of foundations support is:",
+    "opts": [
+     "Restart the server first",
+     "Users cause all tickets",
+     "Documents are downstream of masters — find the lying master",
+     "Escalate everything"
+    ],
+    "ans": 2,
+    "why": "Every recurring document symptom traces to a master-data disease.",
+    "src": "Ch9"
+   },
+   {
+    "q": "Why must the Credit Controller role sit in finance rather than sales?",
+    "opts": [
+     "Finance works longer hours",
+     "It's a licensing rule",
+     "Sales lacks system access",
+     "The person who wants the deal must not be the one who waives the risk"
+    ],
+    "ans": 3,
+    "why": "Separation of desire and approval is the point of the role.",
+    "src": "Ch6"
+   },
+   {
+    "q": "Verifying a new customer setup end-to-end is best done by:",
+    "opts": [
+     "A draft test quotation checking list, currency, contact, addresses — then deleted",
+     "Waiting for the first live order",
+     "Reading the record twice",
+     "Asking the customer"
+    ],
+    "ans": 0,
+    "why": "Ten minutes of draft-document verification beats a wrong first shipment.",
+    "src": "Ch8"
    }
   ]
  },
@@ -176,36 +357,61 @@
   "desc": "Sellable items, units of measure, selling price lists and Item Prices — where every rate on every quotation actually comes from.",
   "lessons": [
    {
-    "title": "The sellable item",
-    "est": "4",
-    "html": "<p>An <b>Item</b> must have <b>Is Sales Item</b> ticked to appear on selling documents. The <b>Item Group</b> plays the same reporting role Customer Group plays on the other side. The <b>Default Unit of Measure</b> (UOM) is the unit stock is kept in; a <b>Sales UOM</b> can differ — keep stock in Units, sell in Cartons of 12 — with a conversion factor doing the arithmetic.</p>"
+    "title": "Chapter 1 — The Item master for selling, field by field",
+    "est": "16",
+    "html": "<p>If the customer master answers <i>who</i>, the item master answers <i>what</i> — and just as in Selling 1, the quality of the master decides the quality of every document that touches it. This chapter walks the item record through a seller's eyes: which fields make an item sellable, findable, priceable, and reportable.</p><p><b>The gate: Is Sales Item.</b> One checkbox decides whether an item can appear on selling documents at all. Ticked, the item is offered on quotations, orders, delivery notes, invoices; unticked, it is invisible to the selling side no matter how much stock exists. This is deliberate: purchase-only components, internal consumables, packaging materials, and fixed assets live in the same item table but must never be quotable. The support reflex this creates — and it is the FIRST check, before price, before customer, before warehouse — is: <i>\"an item refuses to appear on a quotation\" → open the item → is Is Sales Item ticked?</i> Thirty seconds; ticket closed.</p><p><b>Item Code and Item Name.</b> The code is the permanent identity — short, unique, never recycled, never changed once transactions exist (a changed code orphans history). The name is the human label that prints on documents. Discipline for codes in Nigerian retail practice: a scheme the warehouse can read (PARA-500-TAB tells a picker more than ITM-0042), agreed once, enforced always. Duplicate items — the same product created twice under slightly different names — are the item-side twin of Selling 1's duplicate customers, and Chapter 9 treats the cure; here, build the habit: <b>search before you create</b>.</p><p><b>Item Group.</b> The reporting dimension. It serves for items <i>exactly</i> what Customer Group serves for customers: the segment/rollup axis every sales report slices by — Beverages, Antibiotics, Hardware, Services. It is a tree, designed (Chapter 3), not accreted. Note the symmetry consciously, because exam questions and client conversations both lean on it: customer group answers <i>what kind of buyer</i>; item group answers <i>what kind of product</i>; territory answers <i>where</i> — the three axes of every serious sales analysis.</p><p><b>Description.</b> What prints on documents beneath the name. Write it for the customer's eyes — spec, pack size, grade — because this text IS your quotation line. A blank description on a ₦5m line item reads as carelessness to the buyer's procurement office.</p><p><b>Maintain Stock.</b> Ticked for physical goods (the system tracks quantity); unticked for services and for bundle parents (Selling 8's Product Bundles). A consulting-fee item with Maintain Stock ticked will one day block an invoice for \"insufficient stock\" of something that never existed — a classic mis-setup found in the wild.</p><p><b>Flags that matter later.</b> <b>Has Serial No</b> and <b>Has Batch No</b> switch on per-unit and per-lot identity — their operational weight lands at delivery time (Selling 5: exact serials on the DN, recall-by-batch), but they are <i>set here</i>, at item creation, and retro-fitting them after transactions exist is painful. Pharma and electronics implementations decide these flags on day one.</p><p><b>Standard Selling Rate.</b> A convenience field used when no Item Price exists — a fallback, not the pricing system. Real rates live in Item Price records against price lists (Chapters 4-5); treat this field as scaffolding for brand-new setups, not as where pricing happens.</p>"
    },
    {
-    "title": "Price lists",
-    "est": "4",
-    "html": "<p>A <b>Price List</b> is a named collection of rates in one currency — Standard Selling, Distributor NGN, Export USD. Selling documents read rates from the price list on the document, which defaults from the customer.</p><p>Price lists separate <i>who pays what</i>: the same item can be ₦1,000 on Retail and ₦850 on Distributor with no discounts involved — cleaner than discounting, because reports then show true agreed rates.</p>"
+    "title": "Chapter 2 — Units of Measure: the carton walkthrough",
+    "est": "15",
+    "html": "<p>Nigerian trade sells in cartons, packs, dozens, bundles, jerrycans — and counts stock in pieces. The UOM machinery is how one item lives honestly in both worlds, and getting it wrong double-counts or twelfth-counts stock with real money attached. This chapter makes the arithmetic reflexive.</p><p><b>Default Unit of Measure — the counting unit.</b> The item's Default UOM is the unit stock is <i>kept and counted</i> in — the stock-keeping unit. If the warehouse counts pieces, Default UOM is Unit (Nos), full stop. Every stock report, every valuation, every bin quantity speaks this unit. It is not the carton size, not the price-list unit, not the selling unit — it is the physical count language of the warehouse, chosen once and never casually changed (a changed default UOM re-denominates history).</p><p><b>Sales UOM — the selling unit.</b> When you <i>sell</i> in a different unit than you count, set the Sales UOM. Stock in Units, sell in Cartons: Sales UOM = Carton. Selling documents then default to cartons for this item, which is how the trade actually talks.</p><p><b>The conversion factor — where the arithmetic lives.</b> In the item's UOM table, add the row: Carton, conversion factor <b>12</b> (one carton = twelve stock units). Now the system does the arithmetic everywhere, forever: a quotation for 5 Cartons prices 5 × the carton rate, and its delivery deducts <b>60 Units</b> from stock. One item record, two honest languages.</p><p><b>The wrong answers, and why they fail.</b> (1) <i>Two item records</i> — \"Paracetamol (Unit)\" and \"Paracetamol (Carton)\" — splits one physical stock into two ledgers that instantly disagree: sell a carton and the unit item's stock doesn't move; every stocktake becomes a reconciliation between two records of the same shelf. (2) <i>Manual arithmetic on rows</i> — \"just type 60 units when they order 5 cartons\" — survives until the first tired Friday, when 6 cartons ships as 6 units and a customer receives a twelfth of their order. The conversion factor exists so no human does trade arithmetic under deadline.</p><p><b>Multiple UOMs.</b> The table holds as many as trade needs: Unit (factor 1, the default), Pack of 4 (factor 4), Carton (factor 12), Pallet (factor 288). Documents can transact any of them; stock always resolves to the default UOM underneath.</p><p><b>Pricing meets UOM — a preview with teeth.</b> Item Prices (Chapter 5) are stated against a UOM. Price the Carton at ₦10,200 for carton-trade lists; the unit-retail list prices the Unit at ₦1,000. Keep list, UOM, and rate coherent — the classic field bug is a carton rate sitting on a unit row (an order of \"5\" priced as 5 cartons but understood by the warehouse as 5 units), and Chapter 9 shows how that ticket presents. The prevention is discipline you now have: <i>every rate knows its unit</i>.</p>"
    },
    {
-    "title": "Item Price records",
-    "est": "4",
-    "html": "<p>The actual number lives in an <b>Item Price</b>: item + price list + rate (+ optional validity dates and minimum quantity). When a quotation row finds no Item Price for its price list, the rate comes up zero — the single most common \"why is my rate 0?\" answer in support.</p><p>Bulk price maintenance is an import job: export Item Prices, update rates in the sheet, re-import. Never retype fifty rates by hand.</p>"
+    "title": "Chapter 3 — Item Groups: designing the product tree",
+    "est": "12",
+    "html": "<p>Selling 1 Chapter 2 taught segmentation-tree design for customers; this chapter is its mirror for products, shorter because the design logic transfers — and it should transfer consciously, since the symmetry itself is the lesson.</p><p><b>The mechanics.</b> Item Groups form a tree (group nodes and leaves); items attach to leaves; reports roll leaves up through parents. \"Analgesics\" and \"Antibiotics\" sum into \"Pharma\", which sums into the root. Sales Analytics grouped by Item Group is your product-mix instrument (Selling 6), and the tree you design here is the shape of every answer it will ever give.</p><p><b>The three rules, transferred.</b> (1) <b>One question per tree</b> — item group answers <i>what kind of product</i>. Do not encode supplier (that's the buying side), location (warehouses), or price tier (price lists) into group names. (2) <b>Mirror management's language</b> — if the MD asks \"how did Pharma do against FMCG?\", those are the top branches. (3) <b>Two-second leaves</b> — every item obviously belongs somewhere; if creation-time filing needs a debate, the tree is too clever. Ten to twenty leaves serves most mid-market catalogs.</p><p><b>A worked tree for a dual-channel distributor:</b> All Item Groups → <i>Pharma</i> (→ Analgesics · Antibiotics · Supplements), <i>FMCG</i> (→ Beverages · Personal Care · Home Care), <i>Equipment</i> (→ Retail Hardware · Spare Parts), <i>Services</i> (→ Installation · Support Plans). Note Services as a first-class branch: service items (Maintain Stock off, Chapter 1) deserve reporting identity too — firms that dump services into \"Misc\" cannot answer \"how much of our revenue is recurring service?\", which is exactly the question a SaaS-minded MD asks.</p><p><b>Groups as machinery.</b> As with customers, the group is a <i>condition</i> elsewhere: pricing rules target item groups (\"10% off all Beverages in Q4\", Selling 6), and sales-person targets are set per item group (Selling 8). A clean tree makes policy aimable; a mushy one makes every rule a special case.</p><p><b>Hygiene.</b> Same habits as Selling 1: a real default leaf in settings rather than a landfill, search-before-create, and a periodic review of recently created items. Re-parenting is cheap and takes effect in reports immediately; history filed into \"All Item Groups\" for a year is unsegmentable forever.</p><p><b>Two adjacent fields, placed correctly.</b> <b>Brand</b> is its own field on the item — Coca-Cola vs Rite Foods across the Beverages leaf — so brand analysis never needs brand-flavoured group names; keep brand out of the tree and in its field. And <b>item variants</b> (one template, many size/colour children) are the machinery for true variations of one product — a polo shirt in five sizes is one template with variants, not five leaves and not five unrelated items; if you find yourself designing group leaves per size, the variant system is what you actually wanted. Both belong to deeper item-master work, but knowing they exist stops the tree absorbing jobs that aren't its.</p>"
    },
    {
-    "title": "Currency & conversion",
-    "est": "3",
-    "html": "<p>A price list has one currency. Quote a USD price list to a naira customer and ZhiftERP converts using the <b>Currency Exchange</b> rate into the document currency — visible on the document as the conversion rate.</p><p>Rule of thumb: one price list per currency per commercial arrangement, and let the customer default do the choosing.</p>"
+    "title": "Chapter 4 — Price Lists: the architecture of who pays what",
+    "est": "15",
+    "html": "<p>A <b>Price List</b> is a named collection of selling rates in <b>exactly one currency</b> — and that constraint is structural: the list IS a currency context, not a folder with a currency sticker. This chapter is about using lists as what they really are: the architecture of your commercial arrangements.</p><p><b>The defaulting chain — machinery you must recite cold.</b> Every selling document carries a price list field. The list lands there from the <b>customer's Default Price List</b> (Selling 1 Chapter 1); if the customer has none, the global default from Selling Settings applies. Each document row's rate is then looked up from <i>that document's list</i> in the Item Price table (Chapter 5). Customer → document → row: three links, and every pricing support ticket is a break in one of them.</p><p><b>Lists over discounts — the design principle with the reasons attached.</b> Retail pays ₦1,000; distributors pay ₦850. The clean model is <b>two lists — Standard Selling and Distributor NGN — each with its own Item Price</b>. The rejected alternatives, and why:</p><ul><li><i>A 15% distributor discount</i> — now every report shows ₦1,000 minus noise; margin analysis must mentally un-discount every row; \"discount\" as a word stops meaning anything exceptional; and the day you reprice retail, the distributor price moves too, whether you meant it or not. Coupled prices are accidental prices.</li><li><i>Two item records</i> — Chapter 2 already convicted this: one product, two stock ledgers.</li><li><i>Manual rate edits per document</i> — pricing by memory, enforced by nobody, invisible to every report.</li></ul><p>With separate lists, each channel's report shows its <b>true agreed rate</b>, each reprices independently, and discounts (Selling 6) are reserved for genuine exceptions — which keeps them visible, which keeps them controllable.</p><p><b>How many lists?</b> One per <i>commercial arrangement per currency</i>: Standard Selling (NGN retail), Distributor NGN, Key Accounts NGN (if negotiated tiers truly differ), Export USD. Four or five lists is architecture; fifteen is pricing chaos wearing a filing system — at that point the real structure you need is pricing rules over fewer lists.</p><p><b>Selling vs buying lists.</b> The same Price List doctype serves both sides, distinguished by its Selling / Buying checkboxes. A consultant never confuses which side a list feeds; the checkbox says. (Your purchase-cost story lives in the Buying track.)</p><p><b>Enabled/disabled.</b> Lists can be disabled — the right end for a retired arrangement, preserving history without offering the list on new documents. Deleting a list with history is the wrong end.</p>"
+   },
+   {
+    "title": "Chapter 5 — Item Price records & the rate-0 clinic",
+    "est": "14",
+    "html": "<p>The price list is the folder; the <b>Item Price</b> is the atom: <b>one item + one price list + one rate</b>, optionally scoped. ₦1,000 for PARA-500 on Standard Selling is one record. Everything a document charges traces to one of these atoms — which is why the most common selling support ticket in existence resolves here.</p><p><b>The clinic: \"why is my rate 0?\"</b> A quotation row shows rate 0.00. The overwhelming cause: <b>no Item Price exists for that item on the document's price list</b>. The document asked its list; the list had no row for the item; zero came back — not an error, an honest empty answer. The diagnostic sequence, in order: (1) what price list is on the <i>document</i>? (2) does an Item Price exist for <i>this item on that list</i>? (3) if scoped — is today inside its validity window, and does the row's quantity meet its minimum? Ninety percent of tickets end at step 2 with a missing record; the rest at step 3 with an expired promo or an unmet min-qty. What the cause is NOT: the item being inactive (inactive items don't appear at all — Chapter 1), taxes (they compute after the rate), or the customer's territory (a reporting dimension, not a pricing input).</p><p><b>Scoping an Item Price.</b> Two optional fields turn a flat rate into a policy: <b>valid from / valid upto</b> dates — a September promo rate that starts and expires itself, no memo, no cleanup — and <b>minimum quantity</b> — ₦950 from 50 units up, coexisting with the standard ₦1,000 row; the document picks by quantity. These two, and only these two, are how an Item Price is scoped: not by warehouse, not by salesperson, not by payment terms (those concerns belong to other machinery entirely — pricing rules, sales-person assignment, terms templates).</p><p><b>UOM on the price.</b> From Chapter 2: every rate knows its unit. The carton rate is stated against the Carton UOM; the unit rate against Unit. A rate on the wrong UOM row is the silent 12× error, and Chapter 9 shows its ticket face.</p><p><b>Where rates come from — the recitation.</b> A document row's rate comes from <b>the Item Price for the document's price list</b> — not from the item's standard rate whenever a real Item Price exists (that field is fallback scaffolding, Chapter 1), not from the last invoice (there is no \"price memory\" between documents), not from Selling Settings. Say it until it's reflex, because half of pricing support is repeating this sentence with the screen open.</p><p><b>Coexisting rows, resolved.</b> When several Item Prices legitimately coexist for one item on one list — standard ₦1,000; promo ₦950 min-qty 50, dated — the document resolves by scope: quantity meets the minimum and today sits in the window → the scoped row wins; otherwise the standard row. And on the document itself notice the two fields per row: <b>Price List Rate</b> (what the lookup returned — the list's truth) and <b>Rate</b> (what this document charges). They start equal; a negotiated override changes Rate while Price List Rate stands as the reference — which is exactly how override reporting (Selling 3) can compare charged against list without archaeology.</p>"
+   },
+   {
+    "title": "Chapter 6 — Bulk price maintenance: the import workflow",
+    "est": "12",
+    "html": "<p>Quarter-start. Costs moved, FX moved, and 300 selling rates must change by Monday. This chapter is the workflow that does it in an hour without a single typo becoming an invoice.</p><p><b>The principle: bulk price maintenance is an import job.</b> The cycle: <b>export → edit in the sheet → re-import</b>. Concretely: from the Item Price list, filter to the target price list, export via the data-export tool including the record IDs; open the sheet; update the rate column (this is where spreadsheet skill earns money — a formula applying +8% to a cost-driven subset beats 300 manual edits); re-import in <i>update</i> mode, matching on ID so each existing record is amended in place.</p><p><b>Why not the alternatives.</b> <i>Editing each Item Price by hand</i> — 300 open-edit-save cycles at human error rates; the one typo (₦10,200 entered as ₦1,020) ships on a real order before anyone notices. <i>Deleting the list and rebuilding</i> — history evaporates, scoped promo rows die with it, and for the rebuild window the list is empty: every document raised meanwhile prices at 0 (Chapter 5's clinic, self-inflicted, fleet-wide). <i>Patching with pricing rules</i> — a rule stacking +8% on stale base rates buries the true price under arithmetic; rules are for conditional policy (Selling 6), not for deferred maintenance of base rates.</p><p><b>The safety habits.</b> Export a backup copy of the list <i>before</i> editing (the rollback is then itself a one-import job). Spot-check ten rows after import against the sheet. Announce the effective date to the sales floor — quotations already in Draft keep their fetched rates until refreshed, and reps should know which world they're quoting in.</p><p><b>Validity-dated repricing — the elegant variant.</b> For a planned future change, import the <i>new</i> rates as additional Item Price rows with <b>valid from</b> = the effective date, and set <b>valid upto</b> on the old rows to the day before. The price change then executes itself at midnight, atomically, with zero downtime and a perfect audit trail of what was charged when — the professional's version of \"remember to update prices on the 1st\".</p><p><b>Cadence.</b> In an FX-exposed market, price review is a rhythm, not an event: a monthly thirty-minute review of cost-driven lists (with Chapter 7's currency machinery absorbing pure FX drift on export lists) keeps repricing boring — and boring is the goal.</p><p><b>Who owns repricing.</b> Give bulk price maintenance a named owner and a change log kept as the export files themselves — dated backup exports ARE the price history, reconstructible to any Monday. And pair the workflow with the Chapter 4 permission stance: with Allow-User-to-Edit-Price-List-Rate off for the sales floor (Selling 8), the import workflow is the ONLY door prices move through — one owner, one method, one trail. Firms that can answer \"who changed this rate, when, from what to what?\" in one minute are firms whose margins survive audits and arguments alike.</p>"
+   },
+   {
+    "title": "Chapter 7 — Multi-currency pricing",
+    "est": "12",
+    "html": "<p>One list, one currency — so what happens when currencies meet? This chapter is the machinery and the architecture for pricing across the naira boundary.</p><p><b>The mechanics.</b> A <b>USD price list</b> is selected (or defaults) onto a document whose currency is <b>NGN</b>. The result is: not an error, not zero rates, not dollars printing on a naira invoice — ZhiftERP <b>converts automatically</b>, using the <b>Currency Exchange</b> rate, into the document's currency, and the document displays the conversion rate it used. The customer sees naira; the list stays dollars; the bridge is explicit and auditable on the document itself.</p><p><b>Where rates come from.</b> Currency Exchange records hold the rates, datestamped, and can auto-fetch daily from providers. For manual regimes (or CBN-vs-parallel realities), rates can be entered deliberately — and a document can carry an overridden conversion rate when a deal was struck at an agreed rate. The audit principle: <i>every converted amount traces to a visible rate on the document</i>.</p><p><b>The architecture win — import-priced goods.</b> Electronics, equipment, anything dollar-costed: hold the <b>stable dollar price on the USD list</b> and let conversion happen per document at the current rate. Your naira quotations then track FX automatically — no human reprices anything when the rate moves. The rejected alternative — maintaining a naira copy of dollar prices — goes stale the day the rate moves and turns every FX swing into Chapter 6's bulk-import job. One source of truth per price; conversion is computation, not maintenance.</p><p><b>The structuring rule, restated with currency.</b> One price list per <b>currency per commercial arrangement</b>: Distributor USD for the Ghana channel, Export USD for other West Africa, Standard Selling in NGN — and the <b>customer's default does the choosing</b> (Selling 1): the Accra distributor's master points at Distributor USD; the Surulere pharmacy at Standard Selling; nobody picks lists at quotation time and nobody quotes the wrong currency by accident.</p><p><b>The boundary of this module.</b> Multi-currency also touches the receivable's currency, exchange-gain/loss on settlement, and revaluation — accounting depths that belong to the Accounts track. A Sales <i>Professional</i> owns everything above: the pricing mechanics, the conversion trail on documents, and the architecture that keeps FX a computation instead of a monthly emergency.</p><p><b>Two field realities to handle gracefully.</b> First, <b>agreed-rate deals</b>: an export order struck at a locked ₦/$ rate carries that rate as the document's conversion override — deliberate, visible, and better than editing prices to fake it; the list stays pure, the deal stays honest. Second, <b>rounding</b>: converted amounts produce kobo-level fractions; currency precision settings and the invoice's rounding row absorb them so totals stay payable — never hand-round a converted rate on the row, because the payment allocation (Selling 7) must later match the document to the kobo.</p>"
+   },
+   {
+    "title": "Chapter 8 — Case study: pricing architecture for a dual-channel vendor",
+    "est": "16",
+    "html": "<p>Everything in this module, executed once, end to end. The client is your own commercial reality in miniature; every step names its chapter.</p><p><b>The business.</b> HealthTrade Ltd sells pharmacy consumables two ways: retail counters buy by the <i>unit</i> at list; distributors buy by the <i>carton</i> (12s) at trade rates; and a Ghana distributor buys the same cartons priced in USD. A Q4 promo is planned: units at ₦950 from 50 units up, September–November. Build the whole pricing architecture.</p><p><b>Step 1 — The item, once (Ch. 1-2).</b> Item PARA-500, \"Paracetamol 500mg Tablets\", Is Sales Item ✓, Maintain Stock ✓, Item Group <i>Pharma → Analgesics</i> (Ch. 3's tree). Default UOM: <b>Unit</b> — the warehouse counts pieces. UOM table: add <b>Carton, factor 12</b>. One item record; both trade languages; the conversion factor owns the arithmetic forever. (Two item records was rejected in Chapter 2 and stays rejected.)</p><p><b>Step 2 — The lists (Ch. 4).</b> Three, one per arrangement per currency: <i>Standard Selling</i> (NGN — exists), <i>Distributor NGN</i>, <i>Distributor USD</i>. Not a \"distributor discount\" on the retail list — separate lists so each channel reports its true rate and reprices independently.</p><p><b>Step 3 — The Item Prices (Ch. 5).</b> Four atoms: PARA-500 · Standard Selling · <b>Unit</b> · ₦1,000. PARA-500 · Distributor NGN · <b>Carton</b> · ₦10,200. PARA-500 · Distributor USD · <b>Carton</b> · $6.80. And the promo: PARA-500 · Standard Selling · Unit · <b>₦950, min qty 50, valid 01-Sep → 30-Nov</b> — it will switch itself on, apply itself only to qualifying quantities, and expire itself, no memo ever written (Ch. 5-6). Note every rate declaring its UOM — the carton rate on the Carton row, the silent-12×-error made impossible.</p><p><b>Step 4 — Customers choose lists by default (Ch. 4; Selling 1).</b> Retail customers' masters: Standard Selling. Nigerian distributors: Distributor NGN. The Accra distributor: Distributor USD, currency USD on their master. From this moment, every quotation for every channel prices itself correctly with nobody choosing anything.</p><p><b>Step 5 — Verify end-to-end.</b> Draft quotations, one per channel (delete after): retail 60 units → ₦950 rate fires (min qty met, in window) ✓; retail 20 units → ₦1,000 ✓; distributor 5 Cartons → ₦10,200/carton, and the stock projection shows <b>60 Units</b> committed ✓ (Ch. 2's arithmetic, working); Accra 5 Cartons on an NGN document → converted at today's Currency Exchange rate, rate visible on the document ✓ (Ch. 7).</p><p><b>Step 6 — The maintenance plan (Ch. 6-7).</b> Distributor NGN reprices via export-edit-reimport when costs move, with validity-dated rows for planned changes; Distributor USD never chases FX — conversion does; the promo needs no cleanup — it dies on schedule. Handover note, four lines, filed in the client room.</p><p><b>What the architecture buys:</b> three channels, two currencies, one item, one stock ledger, self-managing promos, FX absorbed by computation — and every report showing true agreed rates per channel. Total build: under an hour. The firms that skip it spend that hour weekly, in support tickets, forever.</p>"
+   },
+   {
+    "title": "Chapter 9 — Common mistakes & support patterns",
+    "est": "13",
+    "html": "<p>The scar tissue chapter for items and pricing: the tickets you will actually receive, the disease behind each, and the fix — plus the meta-pattern that by now you can predict.</p><p><b>Pattern 1 — \"Item doesn't appear on the quotation.\"</b> Disease: <b>Is Sales Item unticked</b> (Ch. 1). The first check, always. Runner-up disease: the item is disabled entirely. What it is not: pricing (an unpriced item appears at rate 0; a non-sales item doesn't appear at all — the symptom distinguishes the diseases).</p><p><b>Pattern 2 — \"Rate shows 0.\"</b> The clinic (Ch. 5): no Item Price for the item on <i>the document's</i> price list — or a scoped one whose window/min-qty doesn't match. Run the three-step diagnostic; fix the atom, not the document. Typing the rate onto the quotation \"just this once\" closes today's ticket and books tomorrow's — the next document asks the same empty list.</p><p><b>Pattern 3 — \"Customer was quoted 12× too much / warehouse shipped a twelfth of the order.\"</b> Disease: UOM incoherence (Ch. 2, 5) — a carton rate on a Unit row, or an order taken in the wrong UOM. Fix: correct the Item Price's UOM, verify the item's conversion table, re-issue the document. Prevention is the discipline: <i>every rate knows its unit</i>, checked at entry.</p><p><b>Pattern 4 — \"Distributor prices moved when we repriced retail.\"</b> Disease: channels coupled by a discount instead of separated by lists (Ch. 4). The %-off-retail \"distributor pricing\" faithfully tracked a retail change nobody meant to pass through. Fix: build the second list, migrate customers' defaults to it, retire the discount — decoupled channels reprice independently by construction.</p><p><b>Pattern 5 — \"Half the catalog priced at 0 since Tuesday.\"</b> Disease: a list rebuild done by delete-and-recreate, or an import that <i>created new</i> rows instead of <i>updating</i> existing ones, leaving the live list orphaned (Ch. 6). Fix: restore from the pre-edit export (you kept one — the workflow said so) and redo the import in update mode, matched on ID.</p><p><b>Pattern 6 — \"The Ghana invoice used a strange exchange rate.\"</b> Disease: a stale or manually mistyped Currency Exchange record, or a forgotten per-document override (Ch. 7). The document displays the rate it used — read it there first; the audit trail is on the page. Fix the exchange record or the override; re-issue if the deal rate was agreed differently.</p><p><b>Pattern 7 — \"Same product exists three times.\"</b> Disease: creation without search — PARA-500, \"Paracetamol 500\", \"Panadol tabs (white box)\" — each with partial stock and partial history (Ch. 1). Cure: pick the survivor, re-point and merge, retire the duplicates; then prevention — code discipline and search-before-create — because duplicates regrow wherever the habit that made them survives.</p><p><b>The meta-pattern, confirmed.</b> Seven tickets; seven master-data diseases wearing document symptoms — the same law Selling 1 closed on: <b>documents are downstream of masters</b>. On the selling side the masters are two: <i>who</i> (customer, Selling 1) and <i>what + at what rate</i> (item and Item Price, this module). Command both and the document layer — quotations onward, starting next module — becomes almost boring. That is the goal. Boring documents are correct documents.</p>"
    }
   ],
   "questions": [
    {
     "q": "An item refuses to appear on a quotation. First thing to check:",
     "opts": [
-     "Its price",
      "Is Sales Item is ticked on the item",
+     "Its price",
      "The customer group",
      "The warehouse"
     ],
-    "ans": 1,
+    "ans": 0,
     "why": "Only sales items appear on selling documents.",
     "src": "Items §1"
    },
@@ -225,11 +431,11 @@
     "q": "A quotation row shows rate 0. The most common cause:",
     "opts": [
      "The item is inactive",
-     "No Item Price exists for the document's price list",
      "Taxes not set",
+     "No Item Price exists for the document's price list",
      "The customer has no territory"
     ],
-    "ans": 1,
+    "ans": 2,
     "why": "Rates come from Item Price records; missing record = zero.",
     "src": "Item Price §3"
    },
@@ -237,23 +443,23 @@
     "q": "Retail pays ₦1,000, distributors pay ₦850 for the same item. Cleanest model:",
     "opts": [
      "A 15% discount for distributors",
-     "Two price lists with their own Item Prices",
+     "Edit the rate manually each time",
      "Two item records",
-     "Edit the rate manually each time"
+     "Two price lists with their own Item Prices"
     ],
-    "ans": 1,
+    "ans": 3,
     "why": "Separate price lists show true agreed rates without discount noise.",
     "src": "Price lists §2"
    },
    {
     "q": "The rate a quotation uses comes from:",
     "opts": [
-     "The item's standard rate always",
      "The Item Price for the document's price list",
+     "The item's standard rate always",
      "The last invoice",
      "Selling Settings"
     ],
-    "ans": 1,
+    "ans": 0,
     "why": "The document's price list is looked up in Item Price.",
     "src": "Item Price §3"
    },
@@ -273,11 +479,11 @@
     "q": "Updating 300 selling rates at quarter start is best done by:",
     "opts": [
      "Editing each Item Price",
-     "Export, update in sheet, re-import Item Prices",
      "Deleting the price list",
+     "Export, update in sheet, re-import Item Prices",
      "A pricing rule per item"
     ],
-    "ans": 1,
+    "ans": 2,
     "why": "Bulk price maintenance is an import job.",
     "src": "Item Price §3"
    },
@@ -285,23 +491,23 @@
     "q": "Which field defaults the price list onto a new quotation?",
     "opts": [
      "Selling Settings only",
-     "The customer's Default Price List",
+     "The territory",
      "The item group",
-     "The territory"
+     "The customer's Default Price List"
     ],
-    "ans": 1,
+    "ans": 3,
     "why": "The customer default drives document defaulting.",
     "src": "Price lists §2"
    },
    {
     "q": "Item Group serves the same purpose for items that ______ serves for customers.",
     "opts": [
-     "Territory",
      "Customer Group",
+     "Territory",
      "Credit limit",
      "Contact"
     ],
-    "ans": 1,
+    "ans": 0,
     "why": "Both are the segment/reporting dimension of their master.",
     "src": "Items §1"
    },
@@ -321,11 +527,11 @@
     "q": "An Item Price can be limited by:",
     "opts": [
      "Warehouse",
-     "Validity dates and minimum quantity",
      "Salesperson",
+     "Validity dates and minimum quantity",
      "Payment terms"
     ],
-    "ans": 1,
+    "ans": 2,
     "why": "Valid-from/upto and min qty scope an Item Price.",
     "src": "Item Price §3"
    },
@@ -333,13 +539,169 @@
     "q": "The unit stock is counted in is the item's:",
     "opts": [
      "Sales UOM",
-     "Default Unit of Measure",
+     "Price list unit",
      "Carton size",
-     "Price list unit"
+     "Default Unit of Measure"
     ],
-    "ans": 1,
+    "ans": 3,
     "why": "Default UOM is the stock-keeping unit; Sales UOM is for selling.",
     "src": "Items §1"
+   },
+   {
+    "q": "On a document row, 'Price List Rate' vs 'Rate' means:",
+    "opts": [
+     "List's looked-up truth vs what this document charges — overrides change Rate only",
+     "They are always equal",
+     "Rate is tax-inclusive",
+     "Price List Rate is editable, Rate is not"
+    ],
+    "ans": 0,
+    "why": "The pair is how override reporting compares charged against list.",
+    "src": "Ch5"
+   },
+   {
+    "q": "A planned price change for the 1st of next month is executed cleanly by:",
+    "opts": [
+     "A reminder to edit prices that morning",
+     "Validity-dated new Item Price rows (valid-from the 1st) with old rows ended the day before",
+     "A pricing rule",
+     "Editing rates on open quotations"
+    ],
+    "ans": 1,
+    "why": "The change executes itself at midnight with a perfect trail.",
+    "src": "Ch6"
+   },
+   {
+    "q": "Bulk repricing imports must run in:",
+    "opts": [
+     "Create mode — new rows are safer",
+     "Delete-then-create",
+     "Update mode matched on record ID",
+     "Any mode"
+    ],
+    "ans": 2,
+    "why": "Create mode orphans the live rows; update amends the real records.",
+    "src": "Ch6"
+   },
+   {
+    "q": "Before editing the exported price sheet, the workflow requires:",
+    "opts": [
+     "Manager sign-off",
+     "Disabling the price list",
+     "Closing all quotations",
+     "A dated backup export — it IS the rollback and the price history"
+    ],
+    "ans": 3,
+    "why": "Dated exports make any Monday's prices reconstructible.",
+    "src": "Ch6"
+   },
+   {
+    "q": "Brand analysis across Beverages should rely on:",
+    "opts": [
+     "The Brand field on items, keeping the tree one-question",
+     "Brand-flavoured item group leaves",
+     "Separate price lists per brand",
+     "Item codes containing brand names"
+    ],
+    "ans": 0,
+    "why": "Brand has its own field; the tree answers only 'what kind of product'.",
+    "src": "Ch3"
+   },
+   {
+    "q": "A polo shirt in five sizes is correctly modelled as:",
+    "opts": [
+     "Five unrelated items",
+     "One template item with variants",
+     "Five item-group leaves",
+     "One item, sizes in remarks"
+    ],
+    "ans": 1,
+    "why": "Variants exist precisely for true variations of one product.",
+    "src": "Ch3"
+   },
+   {
+    "q": "An export deal struck at a locked exchange rate is handled by:",
+    "opts": [
+     "Editing the USD price list",
+     "A new price list per deal",
+     "A deliberate conversion-rate override on that document",
+     "Charging in naira cash"
+    ],
+    "ans": 2,
+    "why": "The list stays pure; the deal's rate is visible on the document.",
+    "src": "Ch7"
+   },
+   {
+    "q": "Kobo-level fractions from currency conversion are absorbed by:",
+    "opts": [
+     "Hand-rounding the row rate",
+     "A discount",
+     "Ignoring them",
+     "Currency precision and the document's rounding row"
+    ],
+    "ans": 3,
+    "why": "Payment allocation must later match the document to the kobo.",
+    "src": "Ch7"
+   },
+   {
+    "q": "Standard Selling Rate on the item is:",
+    "opts": [
+     "A fallback used when no Item Price exists — scaffolding, not policy",
+     "The pricing system",
+     "The maximum price",
+     "The cost price"
+    ],
+    "ans": 0,
+    "why": "Real rates live in Item Price records against lists.",
+    "src": "Ch1"
+   },
+   {
+    "q": "Item and Item Price rows both declare a UOM so that:",
+    "opts": [
+     "Print formats look complete",
+     "The carton rate can never silently price a unit row — the 12x error",
+     "Stock reports run faster",
+     "Imports validate"
+    ],
+    "ans": 1,
+    "why": "Every rate knows its unit; incoherence is the silent multiplier bug.",
+    "src": "Ch2, Ch5"
+   },
+   {
+    "q": "A service item blocking invoices for 'insufficient stock' has:",
+    "opts": [
+     "Is Sales Item unticked",
+     "No item group",
+     "Maintain Stock ticked in error",
+     "No price"
+    ],
+    "ans": 2,
+    "why": "Services must not maintain stock; the flag was mis-set at creation.",
+    "src": "Ch1"
+   },
+   {
+    "q": "Distributor prices moved when retail was repriced. The structural fix is:",
+    "opts": [
+     "Reprice distributors back",
+     "Locking the retail list",
+     "A memo",
+     "A separate distributor price list replacing the %-off coupling"
+    ],
+    "ans": 3,
+    "why": "Channels coupled by a discount reprice together; separate lists decouple.",
+    "src": "Ch9"
+   },
+   {
+    "q": "With sales-floor rate editing off, prices change through:",
+    "opts": [
+     "The owned import workflow — one owner, one method, one trail",
+     "Any user's document edits",
+     "Support tickets",
+     "Month-end journals"
+    ],
+    "ans": 0,
+    "why": "One door for price movement is what survives audits and arguments.",
+    "src": "Ch6"
    }
   ]
  },
@@ -349,23 +711,23 @@
   "lessons": [
    {
     "title": "Creating the offer",
-    "est": "5",
-    "html": "<p>A <b>Quotation</b> is the formal offer: customer (or lead), items, quantities, rates, taxes, terms. Create it directly from <b>Selling &gt; Quotation</b> or from a CRM opportunity so the trail from first contact to offer stays linked.</p><p>Rates arrive from the price list; you can override per row — overrides are visible and reportable, so discipline stays intact. The <b>Valid Till</b> date says how long the offer stands; after it passes, the quotation shows <b>Expired</b>.</p>"
+    "est": "10",
+    "html": "<p>The <b>Quotation</b> is the first formal document of the cycle — the written offer. It can be made against an existing <b>Customer</b> or against a <b>Lead</b> (someone not yet a customer) — that flexibility matters: you don't create a customer master just to price an enquiry. Create from <b>Selling &gt; Quotation &gt; New</b>, or from a CRM opportunity so the trail from first contact to offer stays linked.</p><p>What you fill:</p><ul><li><b>Party</b> — the customer or lead. Their price list, currency, contact and address default in.</li><li><b>Items</b> — code, quantity; the <b>rate arrives from the price list</b> automatically per the previous module.</li><li><b>Rate overrides</b> — you MAY type over a price-list rate on any row. This is allowed, visible, and reportable — not forbidden, not manager-only, not automatic. The philosophy: empower the negotiation, but leave fingerprints. Reports can always compare charged rate vs list rate.</li><li><b>Valid Till</b> — how long the offer stands. After this date the quotation automatically shows <b>Expired</b>. Fill it always: open-ended offers are how last year's prices get accepted this year.</li><li><b>Payment terms, terms &amp; conditions</b> — the commercial fine print that will travel forward.</li></ul><p>Save produces a Draft you can still edit; <b>Submit</b> makes it a formal, numbered offer and moves it to Open. Print formats give it your letterhead for the customer's inbox.</p>"
    },
    {
     "title": "Taxes on the quotation",
-    "est": "4",
-    "html": "<p>Attach a <b>Sales Taxes and Charges Template</b> — for Nigerian trade, typically VAT at 7.5% — and the quotation shows the customer the true payable total. Quoting without tax and surprising the customer at invoice is how deals sour late.</p><p>The template travels forward: convert the quotation and the same taxes flow onto the Sales Order and beyond.</p>"
+    "est": "8",
+    "html": "<p>Quote taxes ON the offer — this is both mechanics and commercial judgment.</p><p><b>Mechanics:</b> attach a <b>Sales Taxes and Charges Template</b> to the quotation — for Nigerian trade typically <b>VAT at 7.5%</b> — and the document computes and displays the tax rows and the grand total. VAT is never typed into item rates by hand and never derived from the customer group; the template row (account head + 7.5%) does it uniformly. Building the templates is covered deeply in Selling 6; here you need to know that one is <i>selected on the document</i> and does the work.</p><p><b>Commercial judgment:</b> the reason to quote taxes is that <b>the customer sees the true payable total from the first document</b>. Quote ₦10m clean, invoice ₦10.75m later, and you have manufactured a dispute at the worst possible moment — after commitment, before payment. It is not a legal requirement on quotations that drives this; it is deal hygiene. No late surprises.</p><p><b>The template travels:</b> the taxes chosen on the quotation <b>flow onto the Sales Order</b> made from it, and onward to delivery and invoice. Nobody re-enters taxes at each stage, and the offer's arithmetic is the invoice's arithmetic.</p>"
    },
    {
     "title": "The status lifecycle",
-    "est": "4",
-    "html": "<p>Draft → <b>Open</b> on submit. From Open: <b>Ordered</b> when a Sales Order is made from it, <b>Lost</b> when you concede, <b>Expired</b> when Valid Till passes, <b>Cancelled</b> if withdrawn. The Quotation list filtered to Open IS your offers-awaiting-answer pipeline — keep it honest.</p>"
+    "est": "8",
+    "html": "<p>A quotation's status is one word telling you exactly where the deal stands. Learn the vocabulary cold:</p><ul><li><b>Draft</b> — being written; editable; not yet an offer.</li><li><b>Open</b> — submitted and awaiting the customer's answer. THE working state.</li><li><b>Ordered</b> — won: a Sales Order has been made from it.</li><li><b>Lost</b> — conceded, with a reason recorded.</li><li><b>Expired</b> — Valid Till passed with no order; automatic.</li><li><b>Cancelled</b> — withdrawn by you.</li></ul><p><b>The operational habit:</b> the Quotation list filtered to <b>Open</b> IS your offers-awaiting-answer pipeline — not Draft (those aren't offers yet), not All (that's history). A sales professional works that filter weekly: chase the old ones, expire-and-refresh the stale ones, mark the dead ones Lost honestly. An Open list you can trust is worth more than any forecast, because it's not a forecast — it's the actual set of live offers.</p>"
    },
    {
     "title": "Losing well & converting",
-    "est": "4",
-    "html": "<p>Marking a quotation <b>Lost</b> asks for a <b>Lost Reason</b> (price, competitor, timing). Six months of honest lost reasons is a strategy document nobody had to write.</p><p>Winning: <b>Create &gt; Sales Order</b> from the quotation carries everything across — items, rates, taxes, terms — no retyping, no transcription errors. The quotation flips to Ordered and the chain of custody is unbroken.</p>"
+    "est": "8",
+    "html": "<p><b>Losing well:</b> when a deal dies, mark the quotation <b>Lost</b> — and ZhiftERP prompts for a <b>Lost Reason</b>: price, competitor, timing, no budget, spec mismatch. Recording it costs ten seconds. Six months of honest lost reasons is a strategy document nobody had to write: if \"price\" dominates in one segment, your list rates are wrong there; if one competitor's name keeps appearing, you know exactly who to build battle-cards against. Lost reasons are <b>competitive and pricing intelligence</b> — not a blame record for reps, not noise, not a deletion queue. Teams that fake them (everything is \"timing\") throw the intelligence away.</p><p><b>Winning:</b> when the customer says yes, do NOT open a blank Sales Order and retype. From the quotation: <b>Create &gt; Sales Order</b>. Everything carries across — items, quantities, rates (including your negotiated overrides), taxes, terms — with <b>no transcription errors</b>, and the quotation flips to <b>Ordered</b>, closing the loop. The point of document flow is that the offer the customer accepted is BYTE-FOR-BYTE the order you fulfil; the moment someone retypes, the agreed deal and the recorded deal can diverge, and every dispute that follows is your fault.</p><p>This create-from-the-previous-document pattern is the spine of the whole cycle: quotation → order → delivery note → invoice, each born from its parent, nothing retyped, the chain of custody unbroken.</p>"
    }
   ],
   "questions": [
@@ -521,23 +883,23 @@
   "lessons": [
    {
     "title": "The commitment",
-    "est": "4",
-    "html": "<p>A <b>Sales Order</b> is the point where an offer becomes an obligation: the customer has said yes, and you now owe goods by the <b>Delivery Date</b>. Made from the quotation (preferred) or directly, it carries items, rates, taxes, and per-row delivery dates when different lines ship at different times.</p>"
+    "est": "8",
+    "html": "<p>The <b>Sales Order</b> is where an offer becomes an obligation. The customer has said yes; you now owe specific goods at specific rates by a specific <b>Delivery Date</b> — and the business plans around that promise: stock gets reserved, procurement sees demand, the warehouse sees a pipeline of picks.</p><p><b>Preferred origin:</b> created FROM the accepted quotation (Create &gt; Sales Order), inheriting everything — the previous module explained why retyping is malpractice. Direct entry exists for genuinely quotation-less sales (repeat standing orders, counter trade), but \"direct entry always\" is the mark of a team not using the system's spine.</p><p><b>Delivery dates, properly:</b> the order carries a header delivery date, and each row can carry its OWN — because real orders split: the shelving ships Monday, the imported scanners in three weeks. <b>Per-row delivery dates on one order</b> is the correct model for staggered fulfilment — not separate orders per timeline (which fragments the customer's one purchase), not remarks (which no report reads), not holding the whole order hostage to its slowest line.</p><p>The order also fixes the commercial terms for the rest of the cycle: rates, taxes, payment terms — which the Maintain-Same-Rate setting then defends downstream.</p>"
    },
    {
     "title": "What submission does",
-    "est": "4",
-    "html": "<p>Submitting a Sales Order commits stock intent: ordered quantities appear as <b>reserved</b> against the warehouse, so planners and other salespeople see the truth of what is promised. It also opens the order's fulfilment ledger — every delivery note and invoice made from it counts down the remaining quantities.</p>"
+    "est": "8",
+    "html": "<p>Submitting a Sales Order is not filing paperwork — it changes system state in two ways every seller must understand:</p><p><b>1. Stock intent is committed.</b> The ordered quantities appear as <b>reserved</b> against the warehouse. Reserved stock is not deducted (deduction is the Delivery Note's job, next module), and nothing transfers to the customer yet — but everyone SEES the promise: another salesperson checking availability sees actual-minus-reserved; the planner sees demand; procurement sees what must be bought. Reservation is the mechanism that stops two reps selling the same last 50 cartons.</p><p><b>2. The fulfilment ledger opens.</b> The order now tracks, per row: quantity ordered, <b>delivered so far</b>, <b>billed so far</b>. Every Delivery Note and Sales Invoice <b>made FROM the order</b> counts these down automatically. That's why creating downstream documents from the order matters mechanically, not just for convenience: a delivery note typed from scratch doesn't count against anything, and the order will insist those goods are still owed. The remaining quantities count down as <b>Delivery Notes are made from the order</b> — not as payments arrive, not as time passes, not as stock is purchased.</p>"
    },
    {
     "title": "Status language & control",
-    "est": "5",
-    "html": "<p>A submitted order reads <b>To Deliver and Bill</b>, then <b>To Bill</b> (delivered, not invoiced), <b>To Deliver</b> (invoiced first), and <b>Completed</b>. Two manual controls: <b>Hold</b> pauses an order (credit issues, stock trouble) and <b>Close</b> ends it early — the customer took 80 of 100 and won't take more; closing releases the reservation and stops the order haunting your pending lists.</p><p>Amending: cancel and <b>Amend</b> creates the next revision with full history preserved.</p>"
+    "est": "10",
+    "html": "<p>Order status is a compact sentence about what remains owed. The vocabulary:</p><ul><li><b>To Deliver and Bill</b> — freshly submitted; both obligations outstanding. Every order starts here.</li><li><b>To Bill</b> — delivered in full, not yet invoiced. Goods gone; money not asked for.</li><li><b>To Deliver</b> — invoiced first (advance-billing deals), goods still owed.</li><li><b>Completed</b> — both done.</li></ul><p>Two manual controls change an order's course:</p><ul><li><b>Hold</b> — pauses the order. Credit trouble, stock uncertainty, customer says \"wait\": Hold keeps the commitment intact but stops fulfilment. Not cancellation, not closure — a pause.</li><li><b>Close</b> — ends it early, deliberately. The classic case: customer took 80 of 100 and will take no more. Closing the order <b>releases the reserved stock</b> for the remaining 20 and removes the order from every pending-delivery list — the honest end. Cancelling would falsify history (the 80 DID happen); deleting rows mutilates a submitted document; delivering 20 to scrap is absurd. <b>Close is the answer</b> — know this cold.</li></ul><p><b>Amending:</b> submitted documents don't get edited — they get <b>cancelled and Amended</b>, which creates the next revision (same number, -1 suffix) with the original preserved in history. Quantities changed, rows added: cancel → Amend → adjust → resubmit. Never a fresh order pretending the first didn't exist, and never database surgery.</p>"
    },
    {
     "title": "Delivery tolerance",
-    "est": "3",
-    "html": "<p>Real warehouses ship 102 units against an order of 100. The <b>Over Delivery/Receipt Allowance %</b> (on the item or globally) says how much overage a delivery may carry before ZhiftERP blocks it. Zero tolerance means exact quantities only — right for serialized goods, wrong for bulk.</p>"
+    "est": "7",
+    "html": "<p>Paper says 100; the pallet holds 102. Real warehouses overship slightly — bulk goods, pack rounding, good-faith extras — and the system must decide whether to allow it.</p><p>The <b>Over Delivery/Receipt Allowance %</b> answers it: set on the <b>item</b> (per-product tolerance) or globally in settings (the fallback), it defines how much a delivery may exceed the ordered quantity before ZhiftERP <b>blocks the delivery note</b>. Allowance 5% on an order of 100 → deliveries up to 105 pass; 106 is refused. Shipping 102 against 100 is permitted <b>when the allowance covers the 2%</b> — not never, not because the driver insists, and the invoice has nothing to do with it.</p><p><b>Choosing the number is a policy decision, per item class:</b> <b>zero tolerance</b> is right for <b>serialized electronics</b> — every unit has an identity, 100 means exactly 100 serials; slack there is how phones vanish. Bulk cement, produce, consumables earn a few percent, because blocking a 101st bag helps nobody. \"Zero for everything\" strangles the warehouse; \"slack for everything\" leaks serialized stock. Match tolerance to the nature of the goods.</p>"
    }
   ],
   "questions": [
@@ -693,23 +1055,23 @@
   "lessons": [
    {
     "title": "The document that moves stock",
-    "est": "4",
-    "html": "<p>The <b>Delivery Note</b> is the moment goods leave: submitting it <b>deducts stock</b> from the warehouse and counts down the Sales Order. Always create it <b>from the order</b> (Create &gt; Delivery Note) so quantities, rates and taxes flow and the order's ledger stays true.</p>"
+    "est": "8",
+    "html": "<p>Everything before this module was promise; the <b>Delivery Note</b> is physics. <b>Submitting a Delivery Note deducts stock from the warehouse.</b> Fix the timeline in your head permanently: quotation moves nothing, Sales Order <i>reserves</i>, <b>Delivery Note deducts</b>, invoice moves money, payment settles it. When a client asks \"why does my stock report still show those goods?\", the first question is \"has the delivery note been submitted?\"</p><p><b>Creation discipline:</b> from the Sales Order — <b>Create &gt; Delivery Note</b> — never from scratch, never by copying an old DN. Three reasons: quantities, rates and taxes flow correctly; the order's fulfilment ledger counts down (a from-scratch DN counts against nothing, and the order will insist the goods are still owed); and the document chain stays auditable — this DN fulfils that order fulfils that quotation.</p><p>The DN records the warehouse each row ships from, the shipping address chosen from the customer's addresses, and the transporter details when you need them on the waybill. Its print format IS the delivery document your driver carries and the customer's gate signs.</p>"
    },
    {
     "title": "Partial delivery & status",
-    "est": "4",
-    "html": "<p>Deliver 60 of 100 today: make the DN from the order and edit quantities down — the order remembers 40 remain, and the next DN offers exactly the 40 remaining. A DN reads <b>To Bill</b> until invoiced, then <b>Completed</b>; a DN can also be made against the invoice when billing led.</p>"
+    "est": "8",
+    "html": "<p>Orders rarely ship whole. The mechanics of shipping 60 of 100 today:</p><p>Create the DN from the order and <b>edit the quantity down to 60</b> on the row. Submit. The order's ledger now shows 60 delivered, 40 remaining — and here is the part that makes the system trustworthy: <b>the next DN created from that order offers exactly the 40 remaining</b>. Not 100 again (no double-shipping), not whatever someone types from memory. The order arithmetic is authoritative.</p><p><b>Where to see undelivered backlog:</b> remaining-to-deliver is <b>order-side data</b> — read it on the Sales Order itself or across all orders in the order-analysis reports (Selling 6 names them). The DN list can't tell you what HASN'T shipped; only orders know what they're still owed.</p><p><b>DN status:</b> a submitted DN reads <b>To Bill</b> until a Sales Invoice covers it, then <b>Completed</b>. \"To Bill\" on a DN is a small alarm: goods have left the building and nobody has asked for money yet — a list of To-Bill DNs older than a few days is revenue leaking.</p><p><b>Direction of creation can also reverse:</b> in advance-billing flows where the Sales Invoice came first, the DN is created <b>against the invoice</b> — same chain, opposite order. A DN is never made against a quotation, a lead, or a price list.</p>"
    },
    {
     "title": "Sales returns",
-    "est": "5",
-    "html": "<p>Goods come back via a <b>Sales Return</b>: a Delivery Note with <b>Is Return</b> ticked, made against the original DN, with negative quantities. Submitting it puts stock <b>back into</b> the warehouse and the paper trail ties the return to the exact original shipment. The money side is the credit note — a return Sales Invoice — covered in the next module.</p>"
+    "est": "9",
+    "html": "<p>Goods come back — wrong spec, damaged in transit, customer over-ordered. The clean reversal has two halves, and this module owns the stock half.</p><p><b>The Sales Return is a Delivery Note with <i>Is Return</i> ticked</b>, created <b>against the original DN</b>, carrying <b>negative quantities</b>. Submitting it moves stock <b>back INTO the warehouse</b> — the exact mirror of the outbound. Three properties make this the only correct method:</p><ul><li><b>Traceability</b> — the return references the precise original shipment: which DN, which batch, which serials came back. An unlinked \"stock adjustment\" restores quantity but destroys the story; deleting the original DN falsifies history; a purchase receipt is a different doctype for a different trading partner entirely.</li><li><b>Valuation</b> — the return re-enters stock at the correct value, because it knows what left.</li><li><b>Partiality</b> — return 5 of the 60 shipped; the negative rows say exactly which 5.</li></ul><p><b>The money half is a separate document:</b> the customer's refund or credit is the <b>credit note</b> — a return Sales Invoice — covered in Selling 7. Stock reverses on the return DN; money reverses on the credit note; the two link to their respective originals. One event, two ledgers, two documents. The return DN itself does not touch the customer's balance, and cash from the driver is not an accounting system.</p>"
    },
    {
     "title": "Packing slips, serials & batches",
-    "est": "4",
-    "html": "<p>A <b>Packing Slip</b> against the DN lists cartons and contents for the driver and the gate. Items tracked by <b>Serial No</b> or <b>Batch</b> demand the exact serials/batches on the DN — this is what makes \"which customer got batch B-204?\" answerable during a recall, in seconds instead of days.</p>"
+    "est": "8",
+    "html": "<p>Three companions to the DN that turn \"we shipped it\" into an operation:</p><p><b>Packing Slip</b> — created against the DN, it lists <b>cartons and their contents</b>: case 1 of 3 holds these items, case 2 holds those. Its audience is the <b>driver and the receiving gate</b> — the people who count boxes, not lines. It does not replace the DN (no stock effect), charges nothing, and reserves nothing; it is the physical-handling companion. Multi-carton B2B shipments without packing slips produce gate disputes; with them, the gate ticks cartons and signs.</p><p><b>Serial numbers</b> — an item flagged serialized requires <b>the exact serial numbers being shipped</b> entered on the DN row. Not \"any 10 units\": THESE ten, by identity. That per-unit identity is what powers warranty claims (\"was this unit ours, and when did it ship?\") and theft control. It requires no manager approval and no batch number — it requires the serials.</p><p><b>Batches</b> — batch-tracked items (pharma, food) record <b>which batch</b> each DN row shipped. The payoff is the recall question: <i>\"which customers received batch B-204?\"</i> — answerable in seconds by searching DNs for the batch, because <b>batch numbers are recorded on each Delivery Note</b>. Not because drivers keep notebooks, and not from invoices (money documents, not movement documents). For your pharmacy clients this is regulatory survival: NAFDAC recall queries are DN queries.</p>"
    }
   ],
   "questions": [
@@ -865,23 +1227,23 @@
   "lessons": [
    {
     "title": "Sales taxes & VAT",
-    "est": "5",
-    "html": "<p>The <b>Sales Taxes and Charges Template</b> defines tax rows once — Nigerian <b>VAT 7.5%</b> output tax to its ledger account — and every selling document applies it consistently. An <b>Item Tax Template</b> on an item overrides the document rate for that row: how zero-rated or exempt items sit correctly on a VAT-able invoice.</p><p><b>Inclusive</b> tax means the entered rate already contains VAT (₦1,075 inclusive = ₦1,000 + ₦75); <b>exclusive</b> adds it on top. Mixing them up misstates either your price or your VAT return.</p>"
+    "est": "10",
+    "html": "<p>Tax setup is write-once, apply-everywhere. The <b>Sales Taxes and Charges Template</b> defines the tax rows a selling document carries — for Nigerian trade, a template with one row: <b>VAT, 7.5%, On Net Total</b>, posting to your VAT output liability account. Selecting that template on any quotation, order, or invoice applies VAT uniformly — never typed per row, never inferred from the customer master, never a pricing rule's job. Build once; select everywhere; when FIRS changes the rate, change one template.</p><p><b>Item-level overrides:</b> not everything is standard-rated. A <b>zero-rated or exempt item</b> sitting on an otherwise VAT-able invoice is handled by an <b>Item Tax Template</b> attached to that item, overriding the document rate <b>for that row only</b> — 7.5% on the taxable rows, 0% on the exempt one, one invoice, correct return. You do not delete the document's tax row (breaking the other rows), split invoices, or fake it with a discount.</p><p><b>Inclusive vs exclusive — get the arithmetic reflexive:</b> <b>exclusive</b> (the default) adds tax on top: rate ₦1,000 → total ₦1,075. <b>Inclusive</b> (a checkbox on the tax row) means the entered rate already CONTAINS the tax: ₦1,075 inclusive at 7.5% = <b>₦1,000 net + ₦75 VAT</b> (divide by 1.075). Retail prices are typically quoted inclusive; B2B exclusive. Mixing them up misstates either your price (charging tax on tax) or your VAT return (remitting less than collected) — both expensive.</p>"
    },
    {
     "title": "Pricing rules & discounts",
-    "est": "5",
-    "html": "<p>A <b>Pricing Rule</b> applies a discount or special rate automatically when conditions match — item/group/brand, customer/group/territory, quantity brackets, validity dates. \"10% off cartons of 50+ for Distributors in Q4\" becomes a rule, not a memo.</p><p>Manual discounting still exists per document — the <b>Additional Discount</b> on totals or per-row rate cuts — but rules are policy while manual discounts are exceptions; keep the exceptional rare and visible.</p>"
+    "est": "9",
+    "html": "<p>Two instruments cut prices; a professional keeps them in the right hands.</p><p><b>Pricing Rules — policy, automated.</b> A Pricing Rule applies a discount (percentage or amount) or a special rate automatically when its conditions match. Conditions span: <b>what</b> (item, item group, brand), <b>who</b> (customer, customer group, territory), <b>how much</b> (quantity brackets — 50+ cartons), and <b>when</b> (valid from/to). So \"10% off cartons of 50+ for Distributors in Q4\" is built ONCE as a rule and fires itself on every qualifying order — not circulated as a memo (memos get forgotten and misapplied), not manually edited per order (inconsistent, invisible), not a per-quarter clone of the price list. Rules can stack with priorities when several match; keep rules few and legible.</p><p><b>Manual discounts — exceptions, visible.</b> Per document there is an <b>Additional Discount</b> (on the grand or net total) and per-row rate cuts. These exist for the genuinely exceptional negotiation. The discipline: <b>policy lives in price lists and pricing rules; manual discounts stay rare and visible</b> — reportable exceptions, not the everyday pricing method, not hidden inside doctored rates, and not banned outright (real negotiations exist). When \"exceptional\" discounts appear on every order, pricing has left the system and moved into WhatsApp — the moment to rebuild the rules.</p>"
    },
    {
     "title": "The Sales Invoice & getting paid",
-    "est": "5",
-    "html": "<p>The <b>Sales Invoice</b> is the accounting event: submitting it books revenue and the customer's receivable. Make it from the order or the DN so quantities and taxes flow. Its outstanding amount clears via <b>Payment Entry</b> — full, partial, or one payment across several invoices.</p><p>Status tells the collection story: <b>Unpaid</b>, <b>Partly Paid</b>, <b>Paid</b>, <b>Overdue</b> once the due date passes — the Overdue filter is your collections worklist.</p>"
+    "est": "9",
+    "html": "<p>The <b>Sales Invoice</b> is the accounting event of the cycle: submitting it <b>books revenue and the customer's receivable</b> into the ledgers. Not the order (a promise), not the DN (goods movement), not the payment (settlement of what the invoice created) — the INVOICE is where money becomes real on the books. Selling 7 dedicates a full module to its depths; here is the working core.</p><p><b>Creation:</b> from the Sales Order (billing ahead of or with delivery) or from the Delivery Note (billing exactly what shipped) — the same no-retyping spine. Quantities, rates, taxes flow; the order's billed-quantity ledger counts down.</p><p><b>Getting paid:</b> money arrives as a <b>Payment Entry</b> — full payment closes the invoice; a partial leaves it Partly Paid with the outstanding visible; and <b>one customer payment covering several invoices is ONE Payment Entry allocated across all of them</b> — not three separate entries, not a bare journal, and certainly not a credit note (that reverses revenue, the opposite of receiving it!).</p><p><b>Status = the collections story:</b> <b>Unpaid</b> → <b>Partly Paid</b> → <b>Paid</b>; and the moment the due date passes unpaid, <b>Overdue</b>. The invoice list filtered to Overdue is your collections worklist. Not \"Late\", not \"Blocked\" — Overdue.</p>"
    },
    {
     "title": "Credit notes & the watching reports",
-    "est": "5",
-    "html": "<p>A <b>credit note</b> is a Sales Invoice with <b>Is Return</b> — against the original invoice — reversing revenue and receivable for returned goods or corrections, mirroring the return DN on the money side.</p><p>Then the instruments: <b>Sales Analytics</b> (revenue by customer/item/territory over time), <b>Sales Order Analysis</b> (delivery backlog), and <b>Accounts Receivable</b> (who owes what, aged). A sales professional reads these weekly, not at quarter-end panic.</p>"
+    "est": "9",
+    "html": "<p><b>The credit note:</b> when goods return or an invoice must be corrected, revenue reverses via a <b>Sales Invoice with <i>Is Return</i> ticked, made against the original invoice</b> — negative amounts pulling revenue and receivable back, linked to what they reverse. Not a special letter, not cancelling the invoice (history falsified), not a \"negative payment\". It mirrors the return DN: <b>stock reverses on the return Delivery Note; money reverses on the credit note</b> — one physical event, two ledgers, two linked documents. This pairing is what auditors — and FIRS — expect to find.</p><p><b>The three watching reports — read them weekly, not at quarter-end panic:</b></p><ul><li><b>Sales Analytics</b> — revenue sliced by customer, item, item group, territory over time. Growth, mix, and the customer quietly shrinking.</li><li><b>Sales Order Analysis</b> — ordered vs delivered vs billed across all open orders: the <b>delivery backlog</b> in one screen. This, not the DN list, answers \"what have we promised and not shipped?\"</li><li><b>Accounts Receivable</b> — <b>who owes what, aged</b> into buckets (0-30, 31-60, 61-90, 90+ days). The ageing is the point: ₦5m owed 15 days is business; ₦5m owed 95 days is a problem with a name. This is the receivables instrument — not Sales Analytics, not the stock ledger.</li></ul><p>A sales professional who reads these three weekly manages a book; one who doesn't, gets managed by it.</p>"
    }
   ],
   "questions": [
@@ -1037,23 +1399,23 @@
   "lessons": [
    {
     "title": "The invoice as the accounting event",
-    "est": "5",
-    "html": "<p>Everything before it was commitment and movement; the <b>Sales Invoice</b> is where money becomes real. Submitting it books <b>revenue</b> and the customer's <b>receivable</b> into the ledgers on its <b>posting date</b>. Make it from the Sales Order (billing before or alongside delivery) or from the Delivery Note (billing what actually shipped) — either way quantities, rates and taxes flow and the order's billed-quantity ledger counts down.</p><p>Two dates matter and are not the same: the <b>posting date</b> is when the books record it; the <b>due date</b> is when the customer must pay — computed from the <b>Payment Terms</b> (Net 30, 50% advance / 50% on delivery, and so on). Terms belong on the customer or the order so the invoice inherits them instead of someone deciding at billing time.</p>"
+    "est": "10",
+    "html": "<p>Everything before it was commitment and movement; the <b>Sales Invoice</b> is where money becomes real on the books. <b>Submitting it books revenue and the customer's receivable</b> in the general ledger, dated by the invoice's <b>posting date</b>. Nothing else in the cycle does this: the order promises, the DN moves goods, the payment (later) settles what the invoice created. If the question is \"when do the books recognise this sale?\", the answer is always: at invoice submission.</p><p><b>Creation paths, chosen by flow:</b></p><ul><li><b>From the Sales Order</b> — billing ahead of or alongside delivery (advance-billing deals, services).</li><li><b>From the Delivery Note</b> — <b>billing exactly what shipped</b>: quantities on the invoice are the quantities that actually left. For partial-delivery trade this is the honest path — you invoice the 60 that went, not the 100 ordered.</li><li>Standalone — for genuinely document-less sales; rare in disciplined B2B.</li></ul><p><b>Two dates, two meanings — never conflate them:</b> the <b>posting date</b> is when the books record the sale; the <b>due date</b> is when the customer must pay. The due date is not \"posting + 30 always\" and not the delivery date: it is <b>computed from the Payment Terms</b> — Net 30, 50% advance / balance on delivery, end-of-following-month — which the invoice <b>inherits from the customer or the order</b>. Terms belong on the master or the order precisely so nobody improvises them at billing time; the seller's job is to make sure they're set BEFORE the first invoice, not negotiated after it.</p>"
    },
    {
     "title": "Statuses & the collections story",
-    "est": "5",
-    "html": "<p>An invoice's status is the collections narrative in one word: <b>Unpaid</b> when submitted, <b>Partly Paid</b> as money arrives, <b>Paid</b> when cleared, <b>Overdue</b> the moment the due date passes unpaid, and <b>Credit Note Issued</b> when a return has been raised against it. The invoice list filtered to Overdue, sorted oldest first, IS the collections worklist — a sales professional opens it weekly, not when cash runs short.</p><p>One special case to know: an invoice with <b>Update Stock</b> ticked moves inventory itself — used when the delivery note step is skipped (counter sales, services with materials). In the standard flow the DN moves stock and the invoice moves money; don't tick Update Stock on an invoice made from a DN or stock moves twice.</p>"
+    "est": "9",
+    "html": "<p>An invoice's status is the collections narrative in one word:</p><ul><li><b>Unpaid</b> — submitted, no money yet.</li><li><b>Partly Paid</b> — some money allocated, outstanding remains. A ₦2m receipt against a ₦5m invoice leaves it here — visibly ₦3m short, not \"Paid\", not still \"Unpaid\".</li><li><b>Paid</b> — outstanding cleared.</li><li><b>Overdue</b> — the due date passed while unpaid (or partly paid). Automatic, merciless, useful.</li><li><b>Credit Note Issued</b> — a return invoice has been raised against it (lesson 4).</li></ul><p><b>The worklist habit:</b> the invoice list filtered to <b>Overdue, sorted oldest-first, IS collections</b>. Open it weekly. Every entry gets an action — a call, a statement, a dated next step on the Duty Board pipeline — because an overdue invoice nobody is chasing is a donation.</p><p><b>The Update Stock special case — know it to avoid double-movement:</b> an invoice with <b>Update Stock</b> ticked <b>moves inventory itself</b> — it plays both money document and delivery note. Its legitimate home is flows that skip the DN: counter sales, service jobs with materials. The trap: tick Update Stock on an invoice made FROM a Delivery Note and <b>stock moves twice</b> — once at the DN, once at the invoice — and your stock report is now lying. Standard flow: DN moves stock, invoice moves money, Update Stock stays off.</p>"
    },
    {
     "title": "Payment Entry mechanics",
-    "est": "5",
-    "html": "<p>Money is recorded with a <b>Payment Entry</b> — made from the invoice so the reference and allocation come pre-filled. It handles every real-world shape: a <b>full</b> payment closes the invoice; a <b>partial</b> payment leaves it Partly Paid with the outstanding visible; <b>one payment across several invoices</b> is a single entry allocated over each reference; small shortfalls can be <b>written off</b> within your write-off limit instead of chasing ₦150 forever.</p><p><b>Advances</b> work in reverse order: a Payment Entry taken against the customer <i>before</i> the invoice exists sits as an advance, then gets <b>allocated</b> to the invoice when raised — the 50%-upfront deals your enterprise clients sign are exactly this mechanic. Mode of Payment and the bank account on the entry are what make bank reconciliation painless later.</p>"
+    "est": "10",
+    "html": "<p>Money arrives in every shape; the <b>Payment Entry</b> records them all. Make it FROM the invoice (Create &gt; Payment) so the reference and amounts pre-fill. The shapes:</p><ul><li><b>Full payment</b> — allocates the whole outstanding; invoice → Paid.</li><li><b>Partial payment</b> — allocate what came; invoice → Partly Paid, outstanding visible. Repeat until cleared.</li><li><b>One payment, many invoices</b> — a customer's single ₦12m transfer settling four invoices is <b>ONE Payment Entry with four allocation rows</b>, splitting the amount across the references. Never four fabricated entries for one bank line — reconciliation must match the bank statement line-for-line.</li><li><b>Advance payment</b> — money BEFORE any invoice exists (your enterprise 50%-upfront deals): a Payment Entry taken <b>against the customer</b>, sitting as an advance on their account; when the invoice is later raised, the advance is <b>allocated</b> to it. Not \"wait for the invoice to bank the cheque\", not a negative invoice, not a discount.</li><li><b>Write-off</b> — the customer pays ₦1,999,820 against ₦2m. Chasing ₦180 forever costs more than ₦180: within your configured write-off limit, the Payment Entry <b>writes off the difference</b> and closes the invoice honestly. Never edit the invoice total to match the shortfall.</li></ul><p>On every entry: <b>Mode of Payment</b> (transfer, POS, cash, cheque) and the receiving <b>bank account</b> — filled correctly at entry, these make month-end bank reconciliation a matching exercise instead of archaeology.</p>"
    },
    {
     "title": "Credit notes & receivables discipline",
-    "est": "4",
-    "html": "<p>Corrections and returns reverse through a <b>credit note</b> — a Sales Invoice with <b>Is Return</b> against the original — pulling revenue and receivable back with a paper trail; the original flips to Credit Note Issued. Never \"fix\" a submitted invoice by editing history: the credit-note-plus-reinvoice pattern is what auditors, and FIRS, expect to find.</p><p>Discipline is the difference between sales and cash: the <b>Accounts Receivable</b> report ages who-owes-what into buckets (0-30, 31-60, 61-90, 90+); a <b>Statement of Account</b> sent monthly keeps customers honest; and every overdue invoice should have a next follow-up — which in this house means a dated next step on the Duty Board pipeline, not a hope.</p>"
+    "est": "9",
+    "html": "<p><b>Correcting a submitted invoice:</b> a submitted invoice with a wrong rate is never edited and never deleted — the audit trail is the point of submission. The correct fix is a <b>credit note against it, then re-invoice correctly</b>: the credit note is a <b>Sales Invoice with <i>Is Return</i> ticked, made against the original</b>, reversing revenue and receivable with negative amounts; the original's status flips to <b>Credit Note Issued</b> — permanently tying reversal to reversed. Then a fresh, correct invoice goes out. Auditors and FIRS expect exactly this pattern: every figure that ever hit the ledger, plus the visible document that unwound it. \"Journal patches\" to fix invoice errors are how audits go from routine to forensic.</p><p><b>For returned goods</b> the credit note is the money half of the pair from Selling 5: stock came back on the return DN; the customer's balance comes back on the credit note.</p><p><b>Receivables discipline — the weekly trinity:</b></p><ul><li><b>Accounts Receivable report</b> — who owes what, <b>aged into buckets</b> (0-30, 31-60, 61-90, 90+). Age is risk: read the right-hand columns first.</li><li><b>Statement of Account</b> — sent to each credit customer monthly. Customers dispute what they see once a quarter; they pay what they see every month.</li><li><b>A dated next step for every overdue invoice</b> — in this house that means the Duty Board pipeline's next-step discipline, applied to collections: no overdue invoice without a named person and a date on its follow-up. Hope is not a collections strategy.</li></ul><p>Selling ends when the money is in the bank. This module is the difference between revenue and cash.</p>"
    }
   ],
   "questions": [
@@ -1209,28 +1571,28 @@
   "lessons": [
    {
     "title": "Selling Settings — the full tour",
-    "est": "6",
-    "html": "<p><b>Selling Settings</b> is where selling policy becomes system behaviour; a consultant should be able to defend every switch. The naming pair — <b>Customer Naming By</b> (name vs naming series) — decides whether customers are \"Alpha Pharmacy\" or \"CUST-00042\"; chains with duplicate branch names need the series. <b>Default Customer Group</b>, <b>Default Territory</b>, and the default <b>Selling Price List</b> pre-fill every new record — set them to your commonest case so lazy data entry lands correctly.</p><p>The discipline switches: <b>Maintain Same Rate Throughout Sales Cycle</b> (the agreed rate can't drift between order, delivery, and invoice — and its companion action setting decides whether a drift is a hard <i>Stop</i> or just a <i>Warning</i>); <b>Allow User to Edit Price List Rate</b> (untick it and rates come only from Item Prices — the strongest anti-\"special price\" control you have); <b>Validate Selling Price Against Purchase Rate</b> (blocks selling below cost — margin protection at the point of entry); <b>Allow Item to be Added Multiple Times</b>; and the global <b>over-delivery allowance</b> that Module 4's per-item tolerance falls back to. Policy questions from clients — \"can we stop staff discounting?\", \"can we prevent below-cost sales?\" — are usually answered in this one screen.</p>"
+    "est": "12",
+    "html": "<p>Selling Settings is where selling <i>policy</i> becomes system <i>behaviour</i>. A consultant should be able to defend every switch on this screen to a client's managing director. The tour:</p><p><b>Naming:</b> <b>Customer Naming By</b> — <i>Customer Name</i> makes the record's ID the name itself (\"Alpha Pharmacy\"); <i>Naming Series</i> issues CUST-00042 style IDs. The decision rule: <b>chains and portfolios with duplicate or near-duplicate names need the series</b> — a retailer with \"Adepoju Stores\" in three cities cannot key records by name without collisions. Series naming keeps identity unambiguous forever; the display name remains human.</p><p><b>Defaults:</b> Default <b>Customer Group</b>, <b>Territory</b>, and <b>Selling Price List</b> pre-fill new records and documents. Set them to your commonest case so hurried data entry lands correctly instead of blank.</p><p><b>The discipline switches — each answers a client policy question:</b></p><ul><li><i>\"Can we stop staff typing special prices?\"</i> → <b>untick Allow User to Edit Price List Rate</b>. Rates then come ONLY from Item Price records; the rate field is read-only on documents. The single strongest anti-discount control that exists — stronger than memos, smaller price lists, or threats.</li><li><i>\"Can we prevent selling below cost?\"</i> → <b>Validate Selling Price Against Purchase Rate</b>: blocks a selling rate below the item's purchase cost at the point of entry. Margin protection built into the keyboard, not discovered in a month-end report.</li><li><i>\"Can the agreed rate change between order and invoice?\"</i> → <b>Maintain Same Rate Throughout Sales Cycle</b>, whose companion <b>action setting</b> chooses the response to a drift: <b>Stop</b> (hard block) or <b>Warning</b> (allow but flag). Strict shops choose Stop; shops with legitimate mid-cycle repricing choose Warning. Not silence, not auto-correction, not an email.</li><li><b>Allow Item to be Added Multiple Times</b> — same item on two rows (standard + promo rate), from Selling 1.</li><li>The global <b>over-delivery allowance</b> — the fallback that Selling 4's per-item tolerance overrides.</li></ul><p>When a policy question arrives, check this screen before writing a customisation — nine times in ten, the switch already exists.</p>"
    },
    {
     "title": "Product Bundles",
-    "est": "5",
-    "html": "<p>A <b>Product Bundle</b> sells several stock items as one line: a \"Pharmacy Starter Pack\" parent containing shelf units, a scanner, and a printer. The parent item is <b>non-stock</b> (it never has warehouse quantity — untick Maintain Stock); the bundle definition lists the child items and quantities.</p><p>The mechanics to remember: the customer sees and pays the <b>parent's price</b> (one line, one rate on the quotation and invoice), while the <b>Delivery Note explodes the bundle</b> into its <b>packed items</b> — the children — and it's the children that move stock from the warehouse. Hampers, promo packs, starter kits, install kits: whenever you price as one thing but pick as many things, it's a bundle — never a workaround item with stock nobody counts.</p>"
+    "est": "10",
+    "html": "<p>You price as ONE thing but pick as MANY things: a \"Pharmacy Starter Pack\" at ₦450,000 that is really shelving units + a barcode scanner + a receipt printer. The <b>Product Bundle</b> is the correct model — never a workaround stock item whose contents live in someone's head and whose warehouse quantity nobody can honestly count.</p><p><b>The construction:</b></p><ul><li><b>The parent item</b> — created as a normal item BUT <b>non-stock: Maintain Stock UNTICKED</b>. The parent never has warehouse quantity; it is a commercial identity, not a physical one. (Not \"a stock item with quantity\", not necessarily serialized, not a service.)</li><li><b>The bundle definition</b> — the Product Bundle record lists the parent and its <b>child items with quantities</b>: 4 × shelf unit, 1 × scanner, 1 × printer.</li><li><b>Pricing</b> — an Item Price for the PARENT on your selling list: ₦450,000. Children need no selling price for the bundle to work.</li></ul><p><b>The mechanics at each document:</b> on the quotation and the <b>invoice, the customer sees ONE line at the parent's price</b> — clean commercial presentation, no per-child price exposure. On the <b>Delivery Note, the bundle EXPLODES into its packed items</b> — the children appear as the packed-items list, and <b>it is the CHILDREN that move stock</b> from the warehouse: 4 shelves, 1 scanner, 1 printer deducted; the parent deducts nothing (it has nothing to deduct). Price lives on the parent; picking lives on the children. Hampers, promo packs, starter kits, installation kits — the pattern is everywhere in Nigerian retail; model it once, correctly.</p>"
    },
    {
     "title": "Blanket Orders",
-    "est": "5",
-    "html": "<p>A <b>Blanket Order</b> is a long-term rate-and-quantity agreement: the customer commits to, say, 10,000 cartons over six months at ₦820 — better than rack rate, weaker than an order for everything at once. Create the blanket order with items, agreed quantities, rates, and the from/to dates.</p><p>Individual <b>Sales Orders are then drawn against it</b>: reference the blanket order and the row inherits the agreed rate automatically, and the blanket order tracks its <b>drawdown</b> — ordered quantity against committed quantity — so both sides see how much of the commitment remains. Use it instead of stretching a quotation's validity for months: a quotation is an offer awaiting an answer; a blanket order is an agreement being consumed.</p>"
+    "est": "10",
+    "html": "<p>A customer says: \"we'll take 10,000 cartons over the next six months — what's your best rate?\" You agree ₦820. This is more than a quotation (they've committed, not enquired) and less than a Sales Order (they don't want 10,000 cartons delivered Tuesday). It is a <b>Blanket Order</b>: a long-term <b>rate-and-quantity agreement</b> consumed over time.</p><p><b>Creating it:</b> the Blanket Order carries the customer, the items with <b>agreed quantities and agreed rates</b>, and the <b>from/to dates</b> of the agreement. Submitting it creates no reservation and moves no stock — it establishes the commercial frame.</p><p><b>Drawing against it:</b> each real purchase becomes an ordinary <b>Sales Order referencing the blanket order</b> — and two things happen automatically: the order row <b>inherits the agreed ₦820 rate</b> (nobody negotiates twice, nobody \"forgets\" the deal rate), and the blanket order records the <b>drawdown</b> — ordered-so-far against committed. Not just the quantity copies, and the delivery date is per-order business, not the blanket's.</p><p><b>Reading the commitment:</b> \"how much of the 10,000 remains?\" is read <b>from the blanket order itself</b> — its ordered-vs-committed quantities — not from the customer's memory, the last invoice, or stock levels. Both sides see the same consumption truth, which is precisely what makes volume agreements governable.</p><p><b>Blanket vs the alternatives:</b> one giant 10,000-carton Sales Order reserves half a warehouse for months and lies about delivery intent. A quotation stretched to six-month validity is an <i>offer awaiting an answer</i> pretending to be an <i>agreement being consumed</i> — wrong document, wrong semantics. A pricing rule gives the rate but tracks no commitment. The blanket order is the instrument built for exactly this shape of deal — your Montaigne-class volume agreements belong here.</p>"
    },
    {
     "title": "Sales Person — the internal team",
-    "est": "5",
-    "html": "<p><b>Sales Person</b> models your own team as a <b>tree</b> — Sales Director → Regional Managers → Field Reps — so results roll up the hierarchy. On a transaction, the <b>Sales Team</b> section assigns one or more sales persons each with a <b>contribution %</b> (summing to 100): a deal worked by two reps splits credit 60/40 and reports show each person's contributed revenue, not double-counted totals.</p><p>Set <b>targets</b> per sales person (by item group and period) and read the <b>Sales Person-wise Transaction Summary</b> against them — commissions, league tables, and performance conversations all come from this structure. If a client asks \"can we see sales by rep?\", the honest answer is: only if sales persons are assigned on documents — the discipline precedes the report.</p>"
+    "est": "10",
+    "html": "<p><b>Sales Person</b> models YOUR OWN sales force — and models it as a <b>tree</b>, not a flat list: Sales Director → Regional Managers → Field Reps. The tree is the point: results <b>roll up the hierarchy</b>, so the Lagos region's number is the sum of its reps' numbers and the director's number is the company, without anyone building spreadsheets.</p><p><b>Assignment on transactions:</b> selling documents carry a <b>Sales Team</b> section where one or MORE sales persons are attached, each with a <b>contribution %</b> — and the percentages <b>sum to 100</b>. A deal worked by two reps splits 60/40: reports then credit each with their contributed share of the revenue, <b>never double-counting</b> the deal. Not two invoices for one sale, not a note in remarks, not two \"sales partners\" (wrong concept entirely — next lesson).</p><p><b>Targets:</b> each sales person can carry targets by item group and period (monthly, quarterly). Actuals accrue from their assigned transactions.</p><p><b>The report:</b> <b>Sales Person-wise Transaction Summary</b> — each person's transactions, contributed amounts, and performance against target. League tables, commission calculations, and performance conversations all read from here.</p><p><b>The consultant's honest answer</b> — when a client asks \"can we see sales by rep?\": <i>only if sales persons are assigned on the transactions.</i> The report is arithmetic over assignments; installing it changes nothing, targets alone measure nothing, partners are a different object. <b>The discipline of assignment precedes the report</b> — configure the tree, make the Sales Team section mandatory in the client's process, and THEN the question answers itself weekly.</p>"
    },
    {
     "title": "Sales Partner — the external channel",
-    "est": "5",
-    "html": "<p>A <b>Sales Partner</b> is outside your company — a reseller, referral agent, or channel distributor who brings the deal — carrying a <b>commission rate</b>. Selecting the partner on a Sales Order or Invoice stamps the channel and computes the <b>total commission</b> on that document automatically.</p><p>The distinction to keep sharp: <b>Sales Person is your staff</b> (tree, contribution %, targets); <b>Sales Partner is an external business</b> (flat entity, commission %). A transaction can carry both — your rep worked the deal a referral partner introduced. The <b>Sales Partner-wise Transaction Summary</b> totals each channel's business and owed commission — pay partners from the report, not from their claims.</p>"
+    "est": "10",
+    "html": "<p>A <b>Sales Partner</b> is a business OUTSIDE your company that brings you deals — a reseller, a referral agent, a channel distributor, an implementation partner who sources clients. The record carries the partner's identity, type, and — the operative field — a <b>commission rate</b>.</p><p><b>On transactions:</b> select the Sales Partner on a Sales Order or Sales Invoice and two things happen: the deal is <b>stamped as that channel's business</b> (channel revenue becomes reportable), and the document computes the <b>total commission</b> at the partner's rate — the liability you owe them for the introduction, calculated per deal, automatically.</p><p><b>The distinction to keep razor-sharp — Person vs Partner:</b></p><ul><li><b>Sales Person</b> = <b>internal staff</b>: a tree, contribution percentages summing to 100, targets, performance management.</li><li><b>Sales Partner</b> = an <b>external business</b>: a flat entity, a commission %, a payable relationship.</li></ul><p>They are not the same thing with different names, commission is not what separates them (both can drive earnings), and a partner is not a customer. And a single transaction can legitimately carry <b>BOTH</b>: your rep (Sales Person, 100% contribution) worked a deal that a referral firm (Sales Partner, 5% commission) introduced.</p><p><b>Paying partners:</b> commissions are settled from the <b>Sales Partner-wise Transaction Summary</b> — the system's own totals of each channel's business and accrued commission. <b>Pay partners from the report, not from their claims</b>: when the partner's invoice says ₦2.4m and your summary says ₦2.1m, the summary — built from the actual stamped transactions — is the negotiating position. Channel programs die of over-payment and under-tracking; this report prevents both.</p>"
    }
   ],
   "questions": [
