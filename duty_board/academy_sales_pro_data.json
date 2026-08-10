@@ -2602,36 +2602,66 @@
   "desc": "The accounting event in full: creating invoices from orders and delivery notes, what submission books, due dates and payment terms, Payment Entry mechanics including advances and allocation, credit notes, and the receivables discipline that turns sales into cash.",
   "lessons": [
    {
-    "title": "The invoice as the accounting event",
-    "est": "10",
-    "html": "<p>Everything before it was commitment and movement; the <b>Sales Invoice</b> is where money becomes real on the books. <b>Submitting it books revenue and the customer's receivable</b> in the general ledger, dated by the invoice's <b>posting date</b>. Nothing else in the cycle does this: the order promises, the DN moves goods, the payment (later) settles what the invoice created. If the question is \"when do the books recognise this sale?\", the answer is always: at invoice submission.</p><p><b>Creation paths, chosen by flow:</b></p><ul><li><b>From the Sales Order</b> — billing ahead of or alongside delivery (advance-billing deals, services).</li><li><b>From the Delivery Note</b> — <b>billing exactly what shipped</b>: quantities on the invoice are the quantities that actually left. For partial-delivery trade this is the honest path — you invoice the 60 that went, not the 100 ordered.</li><li>Standalone — for genuinely document-less sales; rare in disciplined B2B.</li></ul><p><b>Two dates, two meanings — never conflate them:</b> the <b>posting date</b> is when the books record the sale; the <b>due date</b> is when the customer must pay. The due date is not \"posting + 30 always\" and not the delivery date: it is <b>computed from the Payment Terms</b> — Net 30, 50% advance / balance on delivery, end-of-following-month — which the invoice <b>inherits from the customer or the order</b>. Terms belong on the master or the order precisely so nobody improvises them at billing time; the seller's job is to make sure they're set BEFORE the first invoice, not negotiated after it.</p>"
+    "title": "Chapter 1 — The invoice as the accounting event",
+    "est": "16",
+    "html": "<p>Everything in Selling 1-6 was preparation for this document. The <b>Sales Invoice</b> is where money becomes real on the books: submitting it <b>books revenue and the customer's receivable</b> into the general ledger, dated by its <b>posting date</b>, and — Selling 6's addition — crystallises the <b>VAT</b> to the liability account the monthly filing reads. Nothing else does this: the order promised, the DN moved goods, the payment (later) settles what the invoice creates. When any question begins <i>when do the books recognise…</i>, the answer is: at invoice submission.</p><p><b>The ledger effect, spelled out.</b> One submission posts: debit the customer's receivable (they owe you the gross), credit revenue (the net), credit VAT output (the tax) — and, in perpetual-stock configurations, the cost-of-goods entries ride the stock movement's valuation. A Sales Professional does not journal these; the point is to KNOW they happen, so that every conversation with the accountant, the auditor, or FIRS starts from the same picture.</p><p><b>Creation paths, chosen by flow:</b></p><ul><li><b>From the Sales Order</b> — billing ahead of or alongside delivery: the advance and milestone flows (the Montaigne 50/40/10, Chapter 9). The order's billed-quantity ledger counts down; the To-Deliver status keeps the physical promise visible after finance is satisfied (Selling 4).</li><li><b>From the Delivery Note</b> — billing exactly what shipped: partial-delivery trade's honest path. The invoice quantities ARE the shipped quantities; the DN advances from To Bill toward Completed.</li><li><b>Standalone</b> — for genuinely document-less sales; rare and suspicious in disciplined B2B, because a standalone invoice counts against no order and closes no DN.</li></ul><p><b>The Update Stock invoice — full treatment of the trap.</b> An invoice with <b>Update Stock</b> ticked moves inventory itself, playing delivery note and invoice in one document. Its legitimate homes: counter sales and cash-and-carry, service jobs consuming materials, any flow that deliberately skips the DN. The trap, precisely: tick it on an invoice made FROM a Delivery Note and stock deducts TWICE — once at the DN, once at the invoice — and the stock report begins lying by exactly the doubled quantities. The rule: in the standard flow (order → DN → invoice), Update Stock stays OFF; where it is ON, there is no DN in that flow at all. Auditing a client's flows for this one checkbox has recovered entire phantom-stock mysteries.</p><p><b>Two dates, permanently distinct.</b> The <b>posting date</b> is when the books record the sale; the <b>due date</b> is when the customer must pay. They are computed differently, serve different masters, and conflating them is the root of half of all ageing-report confusion. The due date's engineering is Chapter 2's entire subject.</p>"
    },
    {
-    "title": "Statuses & the collections story",
-    "est": "9",
-    "html": "<p>An invoice's status is the collections narrative in one word:</p><ul><li><b>Unpaid</b> — submitted, no money yet.</li><li><b>Partly Paid</b> — some money allocated, outstanding remains. A ₦2m receipt against a ₦5m invoice leaves it here — visibly ₦3m short, not \"Paid\", not still \"Unpaid\".</li><li><b>Paid</b> — outstanding cleared.</li><li><b>Overdue</b> — the due date passed while unpaid (or partly paid). Automatic, merciless, useful.</li><li><b>Credit Note Issued</b> — a return invoice has been raised against it (lesson 4).</li></ul><p><b>The worklist habit:</b> the invoice list filtered to <b>Overdue, sorted oldest-first, IS collections</b>. Open it weekly. Every entry gets an action — a call, a statement, a dated next step on the Duty Board pipeline — because an overdue invoice nobody is chasing is a donation.</p><p><b>The Update Stock special case — know it to avoid double-movement:</b> an invoice with <b>Update Stock</b> ticked <b>moves inventory itself</b> — it plays both money document and delivery note. Its legitimate home is flows that skip the DN: counter sales, service jobs with materials. The trap: tick Update Stock on an invoice made FROM a Delivery Note and <b>stock moves twice</b> — once at the DN, once at the invoice — and your stock report is now lying. Standard flow: DN moves stock, invoice moves money, Update Stock stays off.</p>"
+    "title": "Chapter 2 — Payment terms & due-date engineering",
+    "est": "15",
+    "html": "<p>The due date is not typed; it is ENGINEERED — from Payment Terms that were agreed before the invoice existed. This chapter is that engineering, because the collections craft of Chapter 8 is only as strong as the dates it enforces.</p><p><b>The Payment Terms Template.</b> A named schedule of when portions of an invoice fall due: <i>Net 30</i> (100% at 30 days from posting); <i>50% Advance, Balance Net 15</i>; the Montaigne <i>50/40/10</i> (50% in advance, 40% on delivery, 10% on commissioning — a three-portion template). Each portion carries its share and its due rule (days after posting, day-of-following-month, etc.). Build the firm's real commercial offers as templates ONCE; the sales floor then selects agreements, never invents arithmetic.</p><p><b>The inheritance chain.</b> Terms flow: <b>customer master → sales order → invoice</b>. Set Net-45 on MediPlus's master (Selling 1, Chapter 8) and every order inherits it, every invoice computes its due date from it, and nobody decides terms at billing time — which is the governance point: terms are AGREED at relationship or deal level, with whatever approval that took, and billing merely executes the agreement. An invoice whose terms were improvised at creation is an agreement nobody made.</p><p><b>Due-date computation.</b> From posting date plus the template's rule, per portion. A ₦10m invoice on 50% Advance / Balance Net 30, posted 1 September: ₦5m due immediately, ₦5m due 1 October — TWO schedule rows on one invoice, and the ageing report (Chapter 8) ages each portion by its own due date. This is why multi-portion templates beat splitting into multiple invoices: one invoice, one document for the customer's records, a schedule the system enforces portion by portion.</p><p><b>Retention — the 10% that waits.</b> Project and installation trade holds a retention: the final portion due on commissioning, sign-off, or a defects period. Model it as the template's last portion with its longer rule — the Montaigne 10% is exactly this — so the retained amount ages correctly as NOT-YET-DUE rather than polluting the overdue columns, and surfaces on schedule when its trigger date arrives. Retentions tracked in someone's memory are retentions never collected; the schedule row is the memory.</p><p><b>Credit days and the limit.</b> Terms interact with the credit limit (Selling 1, Chapter 6): longer terms mean more exposure per naira of monthly sales — the ₦15m limit that fits Net-30 strangles the same customer on Net-60. When terms are renegotiated, the limit review rides along; the two numbers are one risk decision wearing two fields.</p><p><b>Discipline summary.</b> Templates for every real offer; terms on masters and orders, never improvised on invoices; multi-portion schedules for staged deals; retention as the last portion. Do this, and Chapter 8's collections machine runs on dates a court would recognise.</p>"
    },
    {
-    "title": "Payment Entry mechanics",
-    "est": "10",
-    "html": "<p>Money arrives in every shape; the <b>Payment Entry</b> records them all. Make it FROM the invoice (Create &gt; Payment) so the reference and amounts pre-fill. The shapes:</p><ul><li><b>Full payment</b> — allocates the whole outstanding; invoice → Paid.</li><li><b>Partial payment</b> — allocate what came; invoice → Partly Paid, outstanding visible. Repeat until cleared.</li><li><b>One payment, many invoices</b> — a customer's single ₦12m transfer settling four invoices is <b>ONE Payment Entry with four allocation rows</b>, splitting the amount across the references. Never four fabricated entries for one bank line — reconciliation must match the bank statement line-for-line.</li><li><b>Advance payment</b> — money BEFORE any invoice exists (your enterprise 50%-upfront deals): a Payment Entry taken <b>against the customer</b>, sitting as an advance on their account; when the invoice is later raised, the advance is <b>allocated</b> to it. Not \"wait for the invoice to bank the cheque\", not a negative invoice, not a discount.</li><li><b>Write-off</b> — the customer pays ₦1,999,820 against ₦2m. Chasing ₦180 forever costs more than ₦180: within your configured write-off limit, the Payment Entry <b>writes off the difference</b> and closes the invoice honestly. Never edit the invoice total to match the shortfall.</li></ul><p>On every entry: <b>Mode of Payment</b> (transfer, POS, cash, cheque) and the receiving <b>bank account</b> — filled correctly at entry, these make month-end bank reconciliation a matching exercise instead of archaeology.</p>"
+    "title": "Chapter 3 — Statuses & reading the invoice book",
+    "est": "14",
+    "html": "<p>The invoice list, read correctly, is the firm's cash cockpit. This chapter is the vocabulary and the worklists.</p><p><b>The status vocabulary, complete:</b></p><ul><li><b>Draft</b> — being prepared; no ledger effect yet.</li><li><b>Unpaid</b> — submitted; the receivable stands; no money allocated.</li><li><b>Partly Paid</b> — some allocation received; outstanding visible. A ₦2m receipt against ₦5m leaves exactly this — never Paid, and no longer merely Unpaid.</li><li><b>Paid</b> — outstanding cleared to zero (allocations plus any write-off, Chapter 6).</li><li><b>Overdue</b> — the due date (or a portion's due date) passed while an outstanding remains. Automatic, merciless, and the single most useful filter in the module.</li><li><b>Credit Note Issued</b> — a return invoice stands against it (Chapter 7).</li><li><b>Return</b> — the credit note itself carries this, marking it as the reversal side.</li><li><b>Cancelled</b> — the document lifecycle exit; its ledger entries reversed by cancellation, its number retained in history.</li></ul><p><b>The three worklists, from one list:</b></p><ul><li><b>Overdue, oldest first</b> — collections (Chapter 8 operationalises it). Every entry is money the firm has EARNED and not received; the sort order is the priority order.</li><li><b>Unpaid, due this week</b> — the pre-emptive list: a polite reminder BEFORE the due date converts more invoices than a firm letter after it. Nigerian B2B pays the supplier who asks on time.</li><li><b>Draft older than a day</b> — the leak inside the house: invoices prepared and never submitted book nothing, age nowhere, and hide from every report. Drafts are a workspace, not a warehouse.</li></ul><p><b>The To-Bill handoff, formalised.</b> Selling 5 left delivered-unbilled DNs as an alarm; here is the standing routine. The <b>owner</b>: a named person (in an 11-person firm, the accountant or ops lead — named, not implied). The <b>cadence</b>: daily or twice-weekly, the To-Bill DN list oldest first, each becoming an invoice FROM its DN or carrying a written reason it cannot yet. The <b>metric</b>: <b>DN-to-invoice days</b> — median days between delivery and invoice submission. World-class is same-day to two days; a creeping median is the earliest possible warning that revenue is leaking between the warehouse and finance, visible weeks before it shows as a cash problem. Measure it, post it, and the handoff gap that Chapter 10 meets as a disease never forms.</p><p><b>The account view.</b> Per-customer, all invoices, all statuses, schedule rows visible: the screen for the terms conversation, the statement dispute, the credit-limit review. Selling 4 gave account owners the promises screen; this is its cash twin — together they are the whole relationship on two tabs.</p>"
    },
    {
-    "title": "Credit notes & receivables discipline",
-    "est": "9",
-    "html": "<p><b>Correcting a submitted invoice:</b> a submitted invoice with a wrong rate is never edited and never deleted — the audit trail is the point of submission. The correct fix is a <b>credit note against it, then re-invoice correctly</b>: the credit note is a <b>Sales Invoice with <i>Is Return</i> ticked, made against the original</b>, reversing revenue and receivable with negative amounts; the original's status flips to <b>Credit Note Issued</b> — permanently tying reversal to reversed. Then a fresh, correct invoice goes out. Auditors and FIRS expect exactly this pattern: every figure that ever hit the ledger, plus the visible document that unwound it. \"Journal patches\" to fix invoice errors are how audits go from routine to forensic.</p><p><b>For returned goods</b> the credit note is the money half of the pair from Selling 5: stock came back on the return DN; the customer's balance comes back on the credit note.</p><p><b>Receivables discipline — the weekly trinity:</b></p><ul><li><b>Accounts Receivable report</b> — who owes what, <b>aged into buckets</b> (0-30, 31-60, 61-90, 90+). Age is risk: read the right-hand columns first.</li><li><b>Statement of Account</b> — sent to each credit customer monthly. Customers dispute what they see once a quarter; they pay what they see every month.</li><li><b>A dated next step for every overdue invoice</b> — in this house that means the Duty Board pipeline's next-step discipline, applied to collections: no overdue invoice without a named person and a date on its follow-up. Hope is not a collections strategy.</li></ul><p>Selling ends when the money is in the bank. This module is the difference between revenue and cash.</p>"
+    "title": "Chapter 4 — Payment Entry I: receiving money",
+    "est": "15",
+    "html": "<p>Money arrives; the <b>Payment Entry</b> records it — and records it in a way the BANK STATEMENT will recognise, which is the standard this chapter holds throughout.</p><p><b>Creation.</b> From the invoice: <b>Create &gt; Payment</b> — party, references and amounts pre-fill, and the entry is born allocated. The fields that matter:</p><ul><li><b>Mode of Payment</b> — transfer, POS, cash, cheque. Not decoration: modes map to accounts and to reconciliation behaviour, and a firm that records mode honestly can answer <i>how much cash did the counter take Tuesday</i> without a drawer count.</li><li><b>Paid To (the bank account)</b> — the actual account the money entered. THE reconciliation field: month-end bank rec is matching entries to statement lines, and entries pointing at the wrong bank are the archaeology.</li><li><b>Reference number and date</b> — the transfer reference, the teller number, the cheque number. Sixty seconds at entry; hours saved per dispute.</li><li><b>Allocation rows</b> — which invoices, how much each. The entry's heart, and Chapter 5's subject at depth.</li></ul><p><b>Full payment.</b> Allocation equals outstanding; the invoice flips to Paid. The base case, worth one sentence.</p><p><b>Partial payment.</b> Allocate what came; the invoice stands Partly Paid, outstanding visible and aging by its due date. Repeat as receipts arrive — three payments against one invoice are three entries, each matching a real bank line. Resist the anti-pattern of holding receipts unrecorded <i>until the customer finishes paying</i>: cash in the bank unrecorded in the ledger is the reconciliation break you built yourself.</p><p><b>The bank-line law.</b> One real-world receipt = one Payment Entry. A customer's single ₦12m transfer is ONE entry (however many invoices it settles — Chapter 5); three separate cheques are THREE entries even if they arrived in one envelope. Entries mirror bank lines; when they do, reconciliation is a matching game; when they do not — receipts merged for convenience, or one transfer split into fabricated entries — every month-end begins with an investigation.</p><p><b>Journals are not receipts.</b> A bare journal entry crediting the customer records a number while orphaning everything the Payment Entry carries: no reference, no mode, no allocation to specific invoices, no place in payment reports. Journals have their accounting uses; recording customer receipts is not one of them, and Chapter 10 meets the ledger that thought otherwise.</p><p><b>Posting date honesty, again.</b> The entry's date is when the money moved — the statement's date, not the recording afternoon's. The same chronology law as the DN (Selling 5): ledgers are believed exactly as far as their dates are true.</p>"
+   },
+   {
+    "title": "Chapter 5 — Payment Entry II: advances, allocation & multi-invoice",
+    "est": "15",
+    "html": "<p>Real receipts rarely match one invoice neatly. This chapter is the allocation craft — the difference between a receivables ledger that answers questions and one that generates them.</p><p><b>One payment, many invoices.</b> The ₦12m transfer settling four invoices: ONE Payment Entry, four allocation rows splitting the amount across the references — each invoice's outstanding reduced by its share, each flipping to Paid or Partly Paid as its share dictates. Which invoices, in what order? The default craft: <b>oldest first</b>, unless the customer's remittance advice says otherwise — and when it says otherwise, FOLLOW the advice and keep it on file, because allocation against the customer's instruction is how two correct ledgers come to disagree, and Chapter 10's allocation-drift disease is born from exactly this shortcut.</p><p><b>The advance — money before any invoice.</b> Your enterprise reality: 50% before work begins. The mechanics: a Payment Entry <b>against the customer with no invoice reference</b> — the amount sits as an <b>advance (unallocated credit)</b> on the customer's account, visible in their balance, reducing their net exposure, waiting. It is NOT parked in a drawer until an invoice exists (unrecorded cash), NOT a negative invoice, NOT a discount promised against future billing.</p><p><b>Allocation — the advance meets its invoice.</b> When the invoice is raised, the advance is <b>allocated</b> to it — pulled into the invoice's settlement so the outstanding nets down. The Montaigne flow in miniature: ₦4.85m advance received (entry against customer); first invoice ₦4.85m raised from the order; allocation applied; invoice Paid; advance consumed. The failure mode this discipline prevents is expensive and common: the advance sits unallocated forever, the invoice is <i>paid</i> by a fresh receipt or chased as overdue, and the customer is functionally double-credited — or rightly furious at being dunned for money they sent months ago. Chapter 10 names it the unallocated-advance black hole; the prevention is a standing monthly read of <b>unallocated credits per customer</b>, each one matched to its invoice or explained.</p><p><b>Partial allocation and mixed entries.</b> An advance may cover part of a larger invoice (allocate the advance, balance stays outstanding on schedule); one entry may combine allocation to old invoices AND an advance residue for future ones — the rows express it exactly. The ledger's job is to mirror the commercial reality however untidy; the craft is expressing untidiness precisely rather than rounding it into fiction.</p><p><b>Refunding an advance.</b> The deal dies after the deposit: the advance is refunded by a payment OUT against the customer, consuming the credit — documented, referenced, mirrored in the bank. Never a quiet journal, never <i>keep it against something future</i> unless the customer has agreed in writing to exactly that.</p>"
+   },
+   {
+    "title": "Chapter 6 — Write-offs, deductions & Nigerian short-pay realities",
+    "est": "16",
+    "html": "<p>The amount that arrives is often not the amount invoiced — and in Nigerian B2B, the difference is frequently LAWFUL. This chapter is the taxonomy of short payments and the exact treatment of each; mishandling them is the fastest way to fill an ageing report with fictional debts.</p><p><b>Reality one: Withholding Tax (WHT) deducted at source.</b> The big one. Qualifying Nigerian customers — companies, government — are REQUIRED to withhold tax from certain payments (services and contracts prominently; rates commonly 5% for corporate service arrangements, with other categories at other rates — the firm's accountant owns the exact schedule) and remit it to FIRS on your behalf. So Montaigne, invoiced ₦1,000,000 for services, lawfully pays ₦950,000 and remits ₦50,000 to FIRS against your tax identity, issuing (eventually) a <b>WHT credit note/certificate</b> — which is REAL MONEY to you: creditable against your company income tax.</p><p><b>The treatment, exactly:</b> the Payment Entry records ₦950,000 received, allocates the FULL ₦1,000,000 to the invoice, and carries the ₦50,000 as a <b>deduction row posting to a WHT receivable asset account</b>. The invoice closes Paid (the customer's obligation to YOU is fully discharged — part in cash, part in tax paid on your behalf); the receivable ledger is clean; and the WHT receivable account accumulates the certificates-to-chase balance. The wrong treatments, each with its cost: leaving ₦50,000 outstanding forever (a fictional debt that poisons the ageing and eventually gets dunned — embarrassing both firms); writing it off (donating a tax credit); a credit note (there was no return and no error — the price was right). <b>The certificate chase</b> is then a standing discipline: the WHT receivable is only worth its paper, so certificates are requested, logged against their deductions, and handed to the accountant for the income-tax credit — a monthly list, owned, like everything else in this module.</p><p><b>Reality two: bank charges on the receipt.</b> The transfer arrives ₦4,850 light because a bank took its fee in transit. Same instrument: full allocation to the invoice, a deduction row posting the charge to bank-charges expense. The invoice closes; the expense lands where expenses live.</p><p><b>Reality three: the genuine short-pay.</b> ₦1,999,820 against ₦2m — rounding, a customer's payment-run quirk, no dispute intended. Within the firm's configured <b>write-off limit</b>, the Payment Entry writes off the ₦180 to the write-off account and closes the invoice honestly. Chasing ₦180 forever costs more than ₦180; carrying it as outstanding pollutes every report it touches. Above the limit, it is not a write-off — it is either a dispute (Chapter 8's process) or an agreed adjustment (Chapter 7's credit note); the limit exists precisely to keep those categories from blurring.</p><p><b>What is NEVER the treatment:</b> editing the invoice total to match the receipt. The invoice is the record of what was agreed and billed; the Payment Entry's deduction machinery exists so that every difference between billed and banked is CLASSIFIED — tax, charge, write-off — and lands in its own account with its own trail. An invoice edited to meet its payment has destroyed the only evidence of the difference.</p>"
+   },
+   {
+    "title": "Chapter 7 — Credit notes & the correction doctrine",
+    "est": "15",
+    "html": "<p>Submitted invoices are never edited and never deleted — their immutability is what makes the ledger evidence. Reversal and correction happen through the <b>credit note</b>, and this chapter is its complete mechanics plus the doctrine around it.</p><p><b>The instrument.</b> A credit note is a <b>Sales Invoice with Is Return ticked, made against the original invoice</b>, carrying negative amounts: revenue reversed, VAT reversed, the receivable reduced — each by exactly the credited quantities and values, each linked to what it reverses. The original's status flips to <b>Credit Note Issued</b>; the credit note itself carries <b>Return</b>. Two documents, permanently married in the record.</p><p><b>The two occasions:</b></p><ul><li><b>Returned goods</b> — the money half of Selling 5's pairing: stock came back on the return DN; the credit note gives the money back its mirror. Raise it against the original invoice for the returned quantities — partial returns get partial credit notes, the linkage keeping every remainder honest. The pairing sentence, final form: <i>stock reverses on the return DN; money reverses on the credit note; one physical event, two ledgers, two linked documents.</i></li><li><b>Billing corrections</b> — wrong rate, wrong quantity, wrong customer even. The doctrine: <b>credit note against the wrong invoice, then re-invoice correctly.</b> Both documents stand forever: every figure that ever hit the ledger PLUS the visible instrument that unwound it. This is precisely what auditors and FIRS expect to find; the alternative culture — journals quietly patching invoice errors, or administrative edits to submitted documents — is what turns a routine audit forensic, because a ledger that can be silently corrected is a ledger that proves nothing.</li></ul><p><b>What the customer does with a credit.</b> Two lawful endings: the credit is <b>applied against other invoices</b> (allocated like a payment — the customer's next settlement nets it off), or <b>refunded</b> (a payment out, referenced, banked — Chapter 5's refund mechanics). Which one is the customer's call within the commercial relationship; the system's job is that the credit exists as a first-class balance until one ending consumes it — never an off-ledger IOU, never <i>we will remember at the next order</i>.</p><p><b>Credit notes and the VAT return.</b> The reversed VAT flows back through the liability account — the month's filing nets it automatically because the credit note is a document like any other (Selling 6's architecture paying off in reverse). A credit given outside the system, by discount-on-the-next-invoice handshake, misstates two months' VAT at once.</p><p><b>Governance.</b> Credit notes are powerful — they erase receivables — so they carry the same visibility posture as discounts (Selling 6): a monthly read of credit notes by value, reason, and raiser. A firm whose credit-note report is boring is a firm whose billing is accurate; a spike is either a quality problem upstream (returns — route to operations) or a billing-discipline problem inside (corrections — route to training). Either way the report knew first.</p>"
+   },
+   {
+    "title": "Chapter 8 — The collections craft",
+    "est": "16",
+    "html": "<p>Selling ends when the money is in the bank; collections is the craft of the last mile. It is a SYSTEM — cadence, instruments, escalation — not a mood that strikes when cash feels tight. This chapter builds the system.</p><p><b>The posture.</b> Collections begins before anything is late: terms agreed on the offer (Selling 3), enforced dates engineered (Chapter 2), invoices submitted same-day-as-delivery (Chapter 3's metric). A firm that bills promptly and reminds politely is PAID first in its customers' payment runs — Nigerian B2B triages suppliers by who is organised, and everything below is that organisation made visible.</p><p><b>The weekly engine, four gears:</b></p><ul><li><b>Gear 1 — the pre-due reminder.</b> Invoices due within 7 days get a courteous note with the invoice attached. Cost: minutes. Effect: your invoice is IN the payment run instead of after it.</li><li><b>Gear 2 — the statement.</b> Monthly, every credit customer receives a <b>Statement of Account</b>: invoices, credits, payments, balance. Customers dispute what they see quarterly; they PAY what they see monthly — and the statement surfaces allocation disagreements (Chapter 5) while they are one month deep, not eight.</li><li><b>Gear 3 — the overdue ladder.</b> AR read right-to-left (Selling 6, Chapter 8), each right-column entry worked up a stated ladder: reminder → call with a <b>promise-to-pay</b> recorded — and in this house a promise-to-pay IS a dated next step on the board, with an owner, that fires (your v3.75 reminder machinery doing collections duty) → escalation letter → commercial measures.</li><li><b>Gear 4 — the commercial measures.</b> The credit machinery from Selling 1 and 4, now used: the credit limit blocks new exposure automatically as outstandings swell; open orders go on <b>Hold</b> (Selling 4, Chapter 5) pending payment — the polite sentence is <i>we have paused the next delivery while the account catches up</i>, and it collects better than any letter because it is not a threat, it is a system behaving predictably.</li></ul><p><b>Disputes, quarantined.</b> A genuinely disputed invoice (wrong goods claim, pricing disagreement) is FLAGGED and worked as a dispute — investigation, resolution by credit note or by evidence — and NOT dunned while flagged: dunning a dispute hardens it. But the flag has an owner and an age limit; disputes are a queue, not a parking lot, and the monthly read includes disputes older than 30 days by name.</p><p><b>The metrics that steer.</b> Three numbers, monthly: <b>DSO</b> (days sales outstanding — the book's overall speed); <b>ageing shape</b> (the % beyond 60 days — the risk concentration); <b>promise-kept rate</b> (of recorded promises-to-pay, how many landed — which tells you whose word prices at par). Post them where the commercial team sees them; collections improves fastest when it is measured in public and worked in private.</p><p><b>The tone.</b> Every instrument above is polite, predictable, and relentless — the three adjectives that collect. Anger is amateur; silence is expensive; the system is neither.</p>"
+   },
+   {
+    "title": "Chapter 9 — Case study: the Montaigne billing, settled to zero",
+    "est": "17",
+    "html": "<p>The deal that began as a quotation in Selling 3, committed in Selling 4, and shipped its waves in Selling 5 now runs its money to zero — through an advance, staged invoices, a lawful WHT deduction, a credit note, and a retention. Every chapter clocks in.</p><p><b>The frame (Ch. 2).</b> Order value ₦9.7m on the 50/40/10 template: ₦4.85m advance, ₦3.88m on delivery, ₦970k retention on commissioning. The schedule lives on the terms; the invoices will inherit it.</p><p><b>Step 1 — the advance (Ch. 5).</b> Before wave one ships, Montaigne transfers ₦4.85m. Payment Entry against the customer, no invoice yet — reference captured, bank account exact — sitting as an unallocated advance. The advance invoice is then raised FROM the order for the 50% portion; the advance is <b>allocated</b>; invoice Paid; credit consumed. (The Selling 4 hold episode — the four-day stall in Montaigne's approval chain — happened exactly here, and released here.)</p><p><b>Step 2 — wave billing (Ch. 1, 3).</b> As each delivery wave completes, its invoice is raised <b>from the DNs</b> — billing exactly what shipped, branch by branch; the To-Bill DNs clear within a day (the metric holds at same-day), and the order's billed ledger climbs alongside its delivered ledger. Update Stock stays OFF throughout — the DNs moved the stock; the invoices move only money.</p><p><b>Step 3 — the lawful short-pay (Ch. 6).</b> The 40% invoice (₦3.88m, service-heavy) is settled by Montaigne at ₦3.686m — 5% WHT of ₦194k withheld at source. The Payment Entry: ₦3.686m received, FULL ₦3.88m allocated, ₦194k deduction to the WHT receivable. Invoice Paid; ageing clean; and the certificate chase begins — logged, owned, requested with the same politeness as everything else, because that paper is creditable tax.</p><p><b>Step 4 — the DOA credit (Ch. 7).</b> Selling 5's damaged terminal (T-88214, quarantined; T-88519 shipped as replacement) resolves commercially as a like-for-like swap: the replacement was invoiced on its wave, so a <b>credit note against that wave's invoice</b> for one terminal reverses the double-billing — negative quantities, linked to the original, the wave invoice flipping to Credit Note Issued for that line's value. Montaigne elects to apply the credit against the retention invoice rather than take a refund — noted, and waiting.</p><p><b>Step 5 — the retention (Ch. 2, 8).</b> Commissioning signs off in week 10; the retention portion falls due ON SCHEDULE — it aged as not-yet-due the whole time, polluting nothing. The ₦970k invoice is raised; the parked credit allocates against it; the balance arrives inside terms after one pre-due reminder (Gear 1 earning its keep).</p><p><b>Step 6 — zero (Ch. 3, 5).</b> The account view reads: every invoice Paid, no unallocated credits, WHT receivable carrying its ₦194k awaiting certificate, order Completed-and-Closed at 11 sets (Selling 4's honest ending). One deal, five modules, and any colleague can reconstruct every naira of it from the documents alone — which is the entire point of the machine.</p><p><b>The ledger of the deal:</b> ₦9.7m committed → ₦8.897m banked + ₦194k in tax paid on the firm's behalf + ₦609k credited for the swap-and-retention netting — and not one number lives in anyone's memory.</p>"
+   },
+   {
+    "title": "Chapter 10 — Support patterns & the sixth law",
+    "est": "15",
+    "html": "<p>The cash module's scar tissue — the most expensive tickets in the entire manual, because every disease here IS money. Symptom → disease → fix.</p><p><b>Pattern 1 — stock report wrong by exactly the recent sales.</b> Update Stock ticked on DN-based invoices (Ch. 1): every sale deducted twice. Fix: untick and correct the movements; audit the flow for which document owns deduction. The one-checkbox phantom-stock generator.</p><p><b>Pattern 2 — receipts recorded as journal entries.</b> The pre-system habit (Ch. 4): balances roughly right, but no references, no modes, no allocations — reconciliation impossible, payment reports empty, and specific invoices still showing outstanding while the account nets fine. Fix: re-book as Payment Entries against their invoices; retire the habit with training, not memos.</p><p><b>Pattern 3 — the unallocated-advance black hole.</b> Advances taken, never allocated (Ch. 5): customers dunned for invoices their deposits already covered, or double-credited when fresh receipts settle what the advance should have. Fix: the monthly unallocated-credits read, each matched to its invoice or explained; apologise to whoever got dunned — they were right.</p><p><b>Pattern 4 — the ageing full of fictional WHT debts.</b> Lawful withholdings left as outstanding balances (Ch. 6): the 5% tails of every service invoice aging into the 90+ column, poisoning DSO, and eventually dunned — embarrassing the firm to its best corporate customers. Fix: re-book each with the deduction treatment to the WHT receivable; institute the certificate chase; teach the taxonomy of short-pays so cash application classifies instead of parks.</p><p><b>Pattern 5 — a submitted invoice was edited to match its payment.</b> The evidence-destruction culture (Ch. 6, 7): the difference between billed and banked is now unexplainable forever. Fix: revert; classify the difference properly (deduction, write-off, or credit note); close the administrative permission that allowed it — and as with Selling 4's Pattern 7, this escalates as governance, because a quietly editable ledger proves nothing.</p><p><b>Pattern 6 — credit note raised with no return DN (or the reverse).</b> The pairing broken (Ch. 7; Selling 5): money reversed while stock did not come back, or goods returned while the customer still owes the price. Each half-event leaves one ledger lying. Fix: complete the pair — the missing document, linked to its original — and reconcile the gap period.</p><p><b>Pattern 7 — allocation drift.</b> Payments allocated by convenience against the customer's remittance advice (Ch. 5): both ledgers correct in total, disagreeing per invoice; every statement triggers a dispute about WHICH invoices are open. Fix: reallocate to match the advices on file; adopt the follow-the-advice rule; send statements monthly so drift surfaces at one month deep.</p><p><b>The sixth law.</b> Selling 1-2: documents are downstream of masters. Selling 3: the pipeline is downstream of discipline. Selling 4: the order is the single source of fulfilment truth. Selling 5: the DN is where the word meets the world. Selling 6: tax and price are policy. This module: <b>the invoice ledger is the cash truth, and collections is a system, not a mood.</b> Every naira billed is classified on arrival — cash, tax withheld, charge, write-off, credit — every date is real, every promise has an owner, and the firm that holds this law is paid first, files calmly, and never argues with its own books.</p>"
    }
   ],
   "questions": [
    {
     "q": "Revenue and the customer's receivable hit the ledgers when:",
     "opts": [
-     "The Sales Order is submitted",
      "The Sales Invoice is submitted",
+     "The Sales Order is submitted",
      "The Delivery Note is submitted",
      "The payment arrives"
     ],
-    "ans": 1,
+    "ans": 0,
     "why": "The invoice is the accounting event; earlier documents commit and move stock.",
     "src": "Accounting event §1"
    },
@@ -2651,11 +2681,11 @@
     "q": "The due date on an invoice is computed from:",
     "opts": [
      "The posting date plus 30 always",
-     "The Payment Terms (inherited from customer or order)",
      "The delivery date",
+     "The Payment Terms (inherited from customer or order)",
      "Selling Settings"
     ],
-    "ans": 1,
+    "ans": 2,
     "why": "Payment terms templates drive the due date.",
     "src": "Accounting event §1"
    },
@@ -2663,23 +2693,23 @@
     "q": "Billing exactly what shipped is best done by creating the invoice from:",
     "opts": [
      "Scratch",
-     "The Delivery Note",
+     "The packing slip",
      "The quotation",
-     "The packing slip"
+     "The Delivery Note"
     ],
-    "ans": 1,
+    "ans": 3,
     "why": "Invoice-from-DN bills shipped quantities precisely.",
     "src": "Accounting event §1"
    },
    {
     "q": "An invoice past its due date and unpaid reads:",
     "opts": [
-     "Unpaid",
      "Overdue",
+     "Unpaid",
      "Expired",
      "Blocked"
     ],
-    "ans": 1,
+    "ans": 0,
     "why": "Overdue is the past-due status — and the collections filter.",
     "src": "Statuses §2"
    },
@@ -2699,11 +2729,11 @@
     "q": "A customer pays ₦2m against a ₦5m invoice. The invoice now shows:",
     "opts": [
      "Paid",
-     "Partly Paid",
      "Overdue",
+     "Partly Paid",
      "Unpaid"
     ],
-    "ans": 1,
+    "ans": 2,
     "why": "Partial receipts leave the invoice Partly Paid with outstanding visible.",
     "src": "Payments §3"
    },
@@ -2711,23 +2741,23 @@
     "q": "One bank transfer settling four invoices is recorded as:",
     "opts": [
      "Four Payment Entries",
-     "One Payment Entry allocated across the four references",
+     "Four credit notes",
      "A journal entry only",
-     "Four credit notes"
+     "One Payment Entry allocated across the four references"
     ],
-    "ans": 1,
+    "ans": 3,
     "why": "One entry, multiple allocated references.",
     "src": "Payments §3"
    },
    {
     "q": "A 50% advance received before the invoice exists is handled by:",
     "opts": [
-     "Waiting for the invoice",
      "A Payment Entry against the customer, later allocated to the invoice",
+     "Waiting for the invoice",
      "A negative invoice",
      "A discount"
     ],
-    "ans": 1,
+    "ans": 0,
     "why": "Advances sit on the customer and allocate when the invoice is raised.",
     "src": "Payments §3"
    },
@@ -2747,11 +2777,11 @@
     "q": "A submitted invoice has a wrong rate. The correct fix is:",
     "opts": [
      "Edit the submitted invoice",
-     "Credit note against it, then re-invoice correctly",
      "Delete it",
+     "Credit note against it, then re-invoice correctly",
      "A journal to patch the ledger"
     ],
-    "ans": 1,
+    "ans": 2,
     "why": "Credit-note-and-reinvoice preserves the audit trail regulators expect.",
     "src": "Credit notes §4"
    },
@@ -2759,13 +2789,289 @@
     "q": "After a credit note is raised against an invoice, the original shows:",
     "opts": [
      "Cancelled",
-     "Credit Note Issued",
+     "Paid",
      "Returned",
-     "Paid"
+     "Credit Note Issued"
     ],
-    "ans": 1,
+    "ans": 3,
     "why": "The status ties the original to its reversal.",
     "src": "Credit notes §4"
+   },
+   {
+    "q": "Submitting a Sales Invoice posts, in one stroke:",
+    "opts": [
+     "Receivable (gross), revenue (net), and VAT output",
+     "Only revenue",
+     "Stock deduction always",
+     "The payment"
+    ],
+    "ans": 0,
+    "why": "The full ledger effect of the accounting event.",
+    "src": "Ch1"
+   },
+   {
+    "q": "A standalone invoice in disciplined B2B is suspicious because:",
+    "opts": [
+     "It cannot be printed",
+     "It counts against no order and closes no DN",
+     "It has no taxes",
+     "It cannot be paid"
+    ],
+    "ans": 1,
+    "why": "Document-less billing breaks both counting chains.",
+    "src": "Ch1"
+   },
+   {
+    "q": "Update Stock belongs ON only where:",
+    "opts": [
+     "Every invoice",
+     "DN-based invoices",
+     "The flow deliberately has no DN — counter sales, materials-with-service",
+     "Exports"
+    ],
+    "ans": 2,
+    "why": "Where it is on, there is no DN in that flow at all.",
+    "src": "Ch1"
+   },
+   {
+    "q": "A ₦10m invoice on 50% Advance / Balance Net 30 carries:",
+    "opts": [
+     "One due date",
+     "A single Net-30 date",
+     "No due date",
+     "Two schedule rows, each aging by its own due date"
+    ],
+    "ans": 3,
+    "why": "Multi-portion templates beat splitting into multiple invoices.",
+    "src": "Ch2"
+   },
+   {
+    "q": "Retention (the 10% on commissioning) is modelled as:",
+    "opts": [
+     "The terms template's last portion with its longer rule — aging as not-yet-due",
+     "A separate customer",
+     "A write-off",
+     "A discount"
+    ],
+    "ans": 0,
+    "why": "The schedule row is the memory; unscheduled retentions go uncollected.",
+    "src": "Ch2"
+   },
+   {
+    "q": "Renegotiating a customer to longer terms should trigger:",
+    "opts": [
+     "Nothing",
+     "A credit-limit review — terms and limit are one risk decision",
+     "A new price list",
+     "A tax change"
+    ],
+    "ans": 1,
+    "why": "More days means more exposure per naira of sales.",
+    "src": "Ch2"
+   },
+   {
+    "q": "Invoices sitting in Draft for days are:",
+    "opts": [
+     "Safely queued",
+     "Automatically submitted",
+     "A leak — booking nothing, aging nowhere, hidden from every report",
+     "Already due"
+    ],
+    "ans": 2,
+    "why": "Drafts are a workspace, not a warehouse.",
+    "src": "Ch3"
+   },
+   {
+    "q": "The DN-to-invoice-days metric measures:",
+    "opts": [
+     "Delivery speed",
+     "Stock turns",
+     "Payment speed",
+     "The gap between delivery and invoice submission — the earliest revenue-leak warning"
+    ],
+    "ans": 3,
+    "why": "A creeping median shows the handoff gap weeks before cash feels it.",
+    "src": "Ch3"
+   },
+   {
+    "q": "The pre-due reminder (due within 7 days) works because:",
+    "opts": [
+     "It puts your invoice IN the customer's payment run instead of after it",
+     "It threatens",
+     "It adds interest",
+     "It is legally required"
+    ],
+    "ans": 0,
+    "why": "Nigerian B2B pays the organised supplier first.",
+    "src": "Ch3, Ch8"
+   },
+   {
+    "q": "One real-world receipt maps to:",
+    "opts": [
+     "As many entries as invoices",
+     "Exactly one Payment Entry mirroring the bank line",
+     "A journal",
+     "A statement"
+    ],
+    "ans": 1,
+    "why": "Entries mirror bank lines; reconciliation becomes matching.",
+    "src": "Ch4"
+   },
+   {
+    "q": "Recording customer receipts as bare journal entries orphans:",
+    "opts": [
+     "Nothing",
+     "Only the date",
+     "References, modes, and invoice allocations — reconciliation and reports break",
+     "The customer"
+    ],
+    "ans": 2,
+    "why": "Balances roughly right; everything else lost.",
+    "src": "Ch4, Ch10"
+   },
+   {
+    "q": "The Payment Entry's Paid-To bank account is critical because:",
+    "opts": [
+     "It prints",
+     "It notifies the bank",
+     "It sets the rate",
+     "Bank reconciliation matches entries to statement lines by it"
+    ],
+    "ans": 3,
+    "why": "Wrong-bank entries are the month-end archaeology.",
+    "src": "Ch4"
+   },
+   {
+    "q": "A customer's remittance advice specifying which invoices to settle should be:",
+    "opts": [
+     "Followed, and kept on file",
+     "Ignored for oldest-first",
+     "Discarded",
+     "Charged for"
+    ],
+    "ans": 0,
+    "why": "Allocation against the advice is how two correct ledgers disagree.",
+    "src": "Ch5"
+   },
+   {
+    "q": "An advance is recorded as:",
+    "opts": [
+     "Cash held unrecorded until the invoice",
+     "A Payment Entry against the customer, sitting as unallocated credit",
+     "A negative invoice",
+     "A pricing rule"
+    ],
+    "ans": 1,
+    "why": "Visible on the balance, reducing exposure, waiting for allocation.",
+    "src": "Ch5"
+   },
+   {
+    "q": "The unallocated-advance black hole causes:",
+    "opts": [
+     "Faster payment",
+     "Extra VAT",
+     "Customers dunned for invoices their deposits already covered",
+     "Stock errors"
+    ],
+    "ans": 2,
+    "why": "The monthly unallocated-credits read is the prevention.",
+    "src": "Ch5, Ch10"
+   },
+   {
+    "q": "Refunding a dead deal's advance is done by:",
+    "opts": [
+     "A quiet journal",
+     "A discount next time",
+     "Keeping it silently",
+     "A payment OUT against the customer, referenced and banked"
+    ],
+    "ans": 3,
+    "why": "Documented, mirrored in the bank, consuming the credit.",
+    "src": "Ch5"
+   },
+   {
+    "q": "Montaigne pays ₦950k on a ₦1m service invoice, remitting 5% WHT. The entry:",
+    "opts": [
+     "Receives ₦950k, allocates the full ₦1m, deducts ₦50k to the WHT receivable asset",
+     "Leaves ₦50k outstanding",
+     "Writes off ₦50k",
+     "Credits ₦50k"
+    ],
+    "ans": 0,
+    "why": "The obligation is fully discharged — part cash, part tax paid on your behalf.",
+    "src": "Ch6"
+   },
+   {
+    "q": "The WHT certificate matters because:",
+    "opts": [
+     "It is decorative",
+     "The receivable is creditable against income tax — real money once papered",
+     "It changes VAT",
+     "Customers require it"
+    ],
+    "ans": 1,
+    "why": "The certificate chase is a standing owned discipline.",
+    "src": "Ch6"
+   },
+   {
+    "q": "A transfer arriving light by bank charges is treated with:",
+    "opts": [
+     "A dispute",
+     "An invoice edit",
+     "Full allocation plus a deduction row to bank-charges expense",
+     "A refund"
+    ],
+    "ans": 2,
+    "why": "Every billed-vs-banked difference is classified into its own account.",
+    "src": "Ch6"
+   },
+   {
+    "q": "Above the write-off limit, a shortfall is:",
+    "opts": [
+     "Still written off",
+     "Rounded",
+     "Ignored",
+     "Either a dispute or an agreed credit note — the limit keeps categories from blurring"
+    ],
+    "ans": 3,
+    "why": "Write-off is for the genuinely trivial only.",
+    "src": "Ch6"
+   },
+   {
+    "q": "A customer holding a credit balance may lawfully:",
+    "opts": [
+     "Apply it against other invoices or take a refund — the credit is first-class until consumed",
+     "Only wait",
+     "Lose it after 90 days",
+     "Convert it to discount"
+    ],
+    "ans": 0,
+    "why": "Never an off-ledger IOU.",
+    "src": "Ch7"
+   },
+   {
+    "q": "A spike in the monthly credit-note read signals:",
+    "opts": [
+     "Success",
+     "Quality problems upstream (returns) or billing discipline inside (corrections)",
+     "Tax savings",
+     "Nothing"
+    ],
+    "ans": 1,
+    "why": "The report knows first, either way.",
+    "src": "Ch7"
+   },
+   {
+    "q": "A flagged disputed invoice is:",
+    "opts": [
+     "Dunned harder",
+     "Written off",
+     "Worked as a dispute with an owner and an age limit — not dunned while flagged",
+     "Cancelled"
+    ],
+    "ans": 2,
+    "why": "Dunning a dispute hardens it; parking it forever hides it.",
+    "src": "Ch8"
    }
   ]
  },
