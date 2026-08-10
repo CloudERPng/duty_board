@@ -37,6 +37,7 @@ def get_pipeline():
 			"name", "company", "lead_owner", "stage", "value",
 			"contact_name", "email", "phone", "expected_close", "source", "modified",
 			"erp_lead", "erp_quotation", "erp_customer", "erp_sales_order",
+			"next_step", "next_step_due", "next_step_user",
 		],
 		order_by="modified desc",
 	)
@@ -61,6 +62,15 @@ def get_pipeline():
 			group_by="lead",
 		):
 			note_counts[n.lead] = n.cnt
+		meet_next = {}
+		for m in frappe.get_all(
+			"Duty Meeting",
+			filters={"lead": ["in", names], "status": "Confirmed"},
+			fields=["lead", "meeting_date", "start_time"],
+			order_by="meeting_date asc, start_time asc",
+		):
+			if m.lead not in meet_next and m.meeting_date and getdate(m.meeting_date) >= tday:
+				meet_next[m.lead] = f"{m.meeting_date} {str(m.start_time)[:5] if m.start_time else ''}".strip()
 
 	sv = _sees_value()
 	now = frappe.utils.now_datetime()
@@ -75,6 +85,12 @@ def get_pipeline():
 		l.tasks_open = task_stats.get(l.name, {}).get("open", 0)
 		l.tasks_overdue = task_stats.get(l.name, {}).get("overdue", 0)
 		l.notes = note_counts.get(l.name, 0)
+		l.next_step_due = str(l.next_step_due) if l.next_step_due else None
+		l.no_step = 0 if l.next_step else 1
+		l.step_overdue = bool(
+			l.next_step and l.next_step_due and frappe.utils.get_datetime(l.next_step_due) < now
+		)
+		l.meeting_next = meet_next.get(l.name) if names else None
 		col = stages.get(l.stage) or stages["New"]
 		col["leads"].append(l)
 		col["count"] += 1
@@ -83,6 +99,7 @@ def get_pipeline():
 	total = {
 		"count": len(leads),
 		"value": sum(s["value"] for s in stages.values()) if sv else None,
+		"no_step": sum(1 for l in leads if l.no_step),
 	}
 	return {"stages": STAGES, "pipeline": stages, "total": total, "show_values": sv, "radar": _radar_rows()}
 
@@ -261,6 +278,15 @@ def get_lead(name):
 		),
 		"expected_close": str(doc.expected_close) if doc.expected_close else None,
 		"source": doc.source,
+		"next_step": doc.get("next_step"),
+		"next_step_due": str(doc.next_step_due) if doc.get("next_step_due") else None,
+		"next_step_user": doc.get("next_step_user"),
+		"step_overdue": bool(
+			doc.get("next_step")
+			and doc.get("next_step_due")
+			and frappe.utils.get_datetime(doc.next_step_due) < frappe.utils.now_datetime()
+		),
+		"meetings": _lead_meetings(name),
 		"tasks": tasks,
 		"notes": notes,
 	}
@@ -616,3 +642,150 @@ def lead_won_convert(name):
 		"note": _("🏆 {0} closed WON — customer {1}, sales order {2}. Sales process complete.").format(first, cust, so.name)}).insert(ignore_permissions=True)
 	frappe.db.commit()
 	return {"erp_customer": cust, "erp_sales_order": so.name}
+
+
+def _lead_meetings(lead):
+	now = frappe.utils.now_datetime()
+	rows = frappe.get_all(
+		"Duty Meeting",
+		filters={"lead": lead},
+		fields=["name", "topic", "meeting_date", "start_time", "status", "outcome", "outcome_note"],
+		order_by="meeting_date desc, start_time desc",
+		limit=8,
+	)
+	for m in rows:
+		start = frappe.utils.get_datetime(f"{m.meeting_date} {m.start_time or '00:00:00'}")
+		m.meeting_date = str(m.meeting_date)
+		m.start_time = str(m.start_time)[:5] if m.start_time else ""
+		m.past = 1 if start < now else 0
+	return rows
+
+
+def _cancel_step_reminder(doc):
+	if doc.get("next_step_reminder") and frappe.db.exists("Duty Reminder", doc.next_step_reminder):
+		frappe.db.set_value(
+			"Duty Reminder", doc.next_step_reminder, "status", "Cancelled", update_modified=False
+		)
+
+
+@frappe.whitelist()
+def lead_set_step(name, step, due, user=None):
+	"""Set (or replace) the lead's single next step. Auto-creates the
+	reminder at the due moment — the nudge is generated, never manual."""
+	require_staff()
+	step = (step or "").strip()
+	if not step:
+		frappe.throw(_("Describe the next step."))
+	when = frappe.utils.get_datetime(due)
+	if when <= frappe.utils.now_datetime():
+		frappe.throw(_("Pick a future time."))
+	doc = frappe.get_doc("Duty Lead", name)
+	who = user or doc.lead_owner or frappe.session.user
+	_cancel_step_reminder(doc)
+	rem = frappe.get_doc({
+		"doctype": "Duty Reminder",
+		"user": who,
+		"text": f"📞 {doc.company}: {step}"[:200],
+		"remind_at": when,
+		"repeat": "None",
+		"status": "Active",
+	}).insert(ignore_permissions=True)
+	doc.db_set(
+		{
+			"next_step": step[:140],
+			"next_step_due": when,
+			"next_step_user": who,
+			"next_step_reminder": rem.name,
+		},
+		update_modified=False,
+	)
+	frappe.db.commit()
+	_auto_note(name, f"📞 Next step: {step} — due {str(when)[:16]} ({frappe.utils.get_fullname(who)})")
+	if who != frappe.session.user:
+		first = frappe.utils.get_fullname(frappe.session.user).split(" ")[0]
+		_notify(who, _("Next step from {0}").format(first), f"{doc.company}: {step}")
+	return get_lead(name)
+
+
+@frappe.whitelist()
+def lead_complete_step(name, outcome=None):
+	"""Complete the current step with an outcome; timeline remembers,
+	reminder dies, and the UI immediately asks for the next one."""
+	require_staff()
+	doc = frappe.get_doc("Duty Lead", name)
+	if not doc.get("next_step"):
+		frappe.throw(_("No next step is set."))
+	_cancel_step_reminder(doc)
+	note = f"✅ Done: {doc.next_step}"
+	if (outcome or "").strip():
+		note += f" — {outcome.strip()}"
+	_auto_note(name, note)
+	doc.db_set(
+		{"next_step": None, "next_step_due": None, "next_step_user": None, "next_step_reminder": None},
+		update_modified=False,
+	)
+	frappe.db.commit()
+	return get_lead(name)
+
+
+@frappe.whitelist()
+def lead_meeting_slots(name, date):
+	"""Availability for a lead meeting — the same slot grid clients see:
+	weekdays, working hours, leave and public holidays respected."""
+	require_staff()
+	from duty_board.client_room import _meeting_slots
+
+	doc = frappe.get_doc("Duty Lead", name)
+	staff = list({frappe.session.user, doc.lead_owner or frappe.session.user})
+	slots = _meeting_slots(staff, getdate(date)) or []
+	out = []
+	for s in slots:
+		if isinstance(s, dict):
+			out.append(str(s.get("start") or s.get("time") or ""))
+		else:
+			out.append(str(s))
+	return {"slots": [s for s in out if s]}
+
+
+@frappe.whitelist()
+def lead_schedule_meeting(name, meeting_date, start_time, topic=None):
+	"""A roomless Duty Meeting linked to the lead — existing calendar,
+	reminder crons, and invites all apply unchanged."""
+	require_staff()
+	doc = frappe.get_doc("Duty Lead", name)
+	topic = (topic or "").strip() or f"{doc.company} — sales meeting"
+	users = list({frappe.session.user, doc.lead_owner or frappe.session.user})
+	meet = frappe.get_doc({
+		"doctype": "Duty Meeting",
+		"topic": topic[:140],
+		"lead": name,
+		"meeting_date": getdate(meeting_date),
+		"start_time": start_time if len(str(start_time)) > 5 else f"{start_time}:00",
+		"duration_mins": 30,
+		"status": "Confirmed",
+		"requested_by": frappe.session.user,
+		"confirmed_by": frappe.session.user,
+		"attendees": [{"user": u} for u in users],
+	})
+	meet.insert(ignore_permissions=True)
+	frappe.db.commit()
+	try:
+		from duty_board.client_room import _send_meeting_invite
+
+		_send_meeting_invite(meet, "REQUEST")
+	except Exception:
+		pass
+	_auto_note(name, f"📅 Meeting scheduled: {topic} — {meeting_date} {str(start_time)[:5]}")
+	return get_lead(name)
+
+
+@frappe.whitelist()
+def lead_meeting_outcome(meeting, note):
+	require_staff()
+	doc = frappe.get_doc("Duty Meeting", meeting)
+	if not doc.get("lead"):
+		frappe.throw(_("Not a lead meeting."))
+	doc.db_set({"outcome": "Held", "outcome_note": (note or "").strip()[:500]}, update_modified=False)
+	frappe.db.commit()
+	_auto_note(doc.lead, f"📝 Meeting outcome: {(note or '').strip()}")
+	return get_lead(doc.lead)

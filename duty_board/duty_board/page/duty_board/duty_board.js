@@ -4039,12 +4039,13 @@ this.$me.find(".duty-req-ok").on("click", (e) => {
 						<td>${p.est_hours ? `${p.est_hours}h` : `<span class="text-muted">—</span>`}</td>
 						<td>${p.blocked ? `🔒 ${p.blocked}` : `<span class="text-muted">0</span>`}</td>
 						<td class="duty-tl-projects">${p.projects.map((n) => `<span class="duty-tl-chip">${esc(n)}</span>`).join(" ")}</td>
+						<td>${p.followups ? `📞 ${p.followups}` : `<span class="text-muted">0</span>`}</td>
 					</tr>`).join("");
 				$wrap.html(`
 					<div class="duty-pf">
 						<div class="duty-pf-head"><b>👥 ${__("Team load")}</b><span class="text-muted">${rows.length} ${__("people")} · ${__("heaviest first")}</span></div>
 						<table class="duty-pf-table">
-							<thead><tr><th>${__("Person")}</th><th>${__("Open")}</th><th>${__("Overdue")}</th><th>${__("Est. remaining")}</th><th>${__("Blocked")}</th><th>${__("Projects")}</th></tr></thead>
+							<thead><tr><th>${__("Person")}</th><th>${__("Open")}</th><th>${__("Overdue")}</th><th>${__("Est. remaining")}</th><th>${__("Blocked")}</th><th>${__("Projects")}</th><th>📞 ${__("Follow-ups")}</th></tr></thead>
 							<tbody>${body}</tbody>
 						</table>
 						<p class="text-muted" style="font-size:12px;margin-top:10px">${__("Est. remaining sums estimate hours on open tasks — tasks without estimates count as 0, so fill estimates for a truthful picture.")}</p>
@@ -8358,6 +8359,8 @@ this.$me.find(".duty-req-ok").on("click", (e) => {
 						${l.expected_close ? `<span class="${l.close_overdue ? "duty-lead-over" : ""}" title="${__("Expected close")}">🎯 ${frappe.datetime.str_to_user(l.expected_close)}</span>` : ""}
 						${l.tasks_open ? `<span class="${l.tasks_overdue ? "duty-lead-over" : ""}">📋 ${l.tasks_open}</span>` : ""}
 						${l.notes ? `<span>💬 ${l.notes}</span>` : ""}
+						${l.no_step ? `<span class="duty-step-none" title="${__("No next step — every open lead needs one")}">❗ ${__("no next step")}</span>` : l.next_step ? `<span class="duty-step ${l.step_overdue ? "duty-lead-over" : ""}" title="${frappe.utils.escape_html(l.next_step)}">📞 ${l.next_step_due ? frappe.datetime.str_to_user(l.next_step_due).slice(0, 17) : ""}</span>` : ""}
+						${l.meeting_next ? `<span title="${__("Next meeting")}">📅 ${l.meeting_next.slice(5, 16)}</span>` : ""}
 					</span>
 				</div>
 			</div>`;
@@ -8412,6 +8415,7 @@ this.$me.find(".duty-req-ok").on("click", (e) => {
 			.find(".duty-sales-total")
 			.html(
 				`💼 <b>${__("Pipeline")}</b> · ${data.total.count} ${__("leads")}` +
+					(data.total.no_step ? ` · <b class="duty-step-none">❗ ${data.total.no_step} ${__("without next step")}</b>` : "") +
 					(data.show_values && data.total.value != null
 						? ` · <b class="duty-lead-value">${this.naira(data.total.value)}</b> ${__("open")}`
 						: "")
@@ -8506,6 +8510,69 @@ this.$me.find(".duty-req-ok").on("click", (e) => {
 		});
 	}
 
+	lead_step_prompt(x) {
+		frappe.prompt(
+			[
+				{ fieldname: "step", fieldtype: "Data", label: __("Next step (e.g. Call Mrs Ade re: quotation)"), reqd: 1, default: x.next_step || "" },
+				{ fieldname: "due", fieldtype: "Datetime", label: __("When"), reqd: 1, default: x.next_step_due || "" },
+			],
+			(v) => frappe.call({
+				method: "duty_board.sales.lead_set_step",
+				args: { name: x.name, step: v.step, due: v.due },
+				callback: (r) => {
+					if (!r.message) return;
+					frappe.show_alert({ message: __("📞 Next step set — reminder will fire."), indicator: "green" });
+					this.render_lead_dialog(r.message);
+					this.refresh_sales(true);
+				},
+			}),
+			__("Next step — {0}", [x.company]), __("Set")
+		);
+	}
+
+	lead_meet_dialog(x) {
+		const d = new frappe.ui.Dialog({
+			title: `📅 ${__("Meeting — {0}", [x.company])}`,
+			fields: [
+				{ fieldname: "topic", fieldtype: "Data", label: __("Topic"), default: `${x.company} — sales meeting` },
+				{ fieldname: "date", fieldtype: "Date", label: __("Day"), reqd: 1 },
+				{ fieldname: "slot_html", fieldtype: "HTML" },
+			],
+		});
+		const $slots = () => $(d.fields_dict.slot_html.wrapper);
+		const load = () => {
+			const day = d.get_value("date");
+			if (!day) return;
+			$slots().html(`<span class="text-muted">${__("Checking availability…")}</span>`);
+			frappe.call({
+				method: "duty_board.sales.lead_meeting_slots",
+				args: { name: x.name, date: day },
+				callback: (r) => {
+					const slots = (r.message && r.message.slots) || [];
+					$slots().html(slots.length
+						? `<div class="duty-slot-grid">${slots.map((s) => `<button class="btn btn-xs btn-default" data-s="${s}">${s}</button>`).join("")}</div>`
+						: `<span class="text-muted">${__("No slots that day — weekends, leave and holidays are blocked.")}</span>`);
+					$slots().find("button").on("click", (e) => {
+						const s = $(e.currentTarget).data("s");
+						frappe.call({
+							method: "duty_board.sales.lead_schedule_meeting",
+							args: { name: x.name, meeting_date: day, start_time: s, topic: d.get_value("topic") },
+							callback: (rr) => {
+								if (!rr.message) return;
+								d.hide();
+								frappe.show_alert({ message: __("📅 Meeting scheduled — it's on the calendar with reminders."), indicator: "green" });
+								this.render_lead_dialog(rr.message);
+								this.refresh_sales(true);
+							},
+						});
+					});
+				},
+			});
+		};
+		d.fields_dict.date.$input.on("change", load);
+		d.show();
+	}
+
 	render_lead_dialog(x) {
 		const esc = frappe.utils.escape_html;
 		if (!this._$ldrawer) {
@@ -8524,6 +8591,37 @@ this.$me.find(".duty-req-ok").on("click", (e) => {
 				this._$ldrawer.find(".duty-ld-tabs a").removeClass("on").filter(`[data-t="${t}"]`).addClass("on");
 				this._$ldrawer.find(".duty-ld-activity").toggle(t === "act");
 				this._$ldrawer.find(".duty-ld-details").toggle(t === "det");
+			});
+			this._$ldrawer.on("click", ".duty-step-set, .duty-step-edit", () => this.lead_step_prompt(this._lead_ctx));
+			this._$ldrawer.on("click", ".duty-step-done", () => {
+				const lx = this._lead_ctx;
+				frappe.prompt(
+					{ fieldname: "outcome", fieldtype: "Data", label: __("Outcome (what happened?)") },
+					(v) => frappe.call({
+						method: "duty_board.sales.lead_complete_step",
+						args: { name: lx.name, outcome: v.outcome || "" },
+						callback: (r) => {
+							if (!r.message) return;
+							this.render_lead_dialog(r.message);
+							this.refresh_sales(true);
+							this.lead_step_prompt(r.message);
+						},
+					}),
+					__("Step done — {0}", [this._lead_ctx.company]), __("Done")
+				);
+			});
+			this._$ldrawer.on("click", ".duty-meet-new", () => this.lead_meet_dialog(this._lead_ctx));
+			this._$ldrawer.on("click", ".duty-meet-log", (e) => {
+				const mid = $(e.currentTarget).data("m");
+				frappe.prompt(
+					{ fieldname: "note", fieldtype: "Small Text", label: __("How did it go?"), reqd: 1 },
+					(v) => frappe.call({
+						method: "duty_board.sales.lead_meeting_outcome",
+						args: { meeting: mid, note: v.note },
+						callback: (r) => r.message && this.render_lead_dialog(r.message),
+					}),
+					__("Meeting outcome"), __("Log")
+				);
 			});
 		}
 		const $dw = this._$ldrawer.show();
@@ -8601,8 +8699,18 @@ this.$me.find(".duty-req-ok").on("click", (e) => {
 		const contact_bits = [];
 		if (x.email) contact_bits.push(`<a href="mailto:${x.email}">✉ ${frappe.utils.escape_html(x.email)}</a>`);
 		if (x.phone) contact_bits.push(`<a href="tel:${x.phone}">📞 ${frappe.utils.escape_html(x.phone)}</a>`);
+		this._lead_ctx = x;
 		const $x = $(d.fields_dict.extras.wrapper).html(`
 			${contact_bits.length ? `<div class="duty-lead-links">${contact_bits.join(" · ")}</div>` : ""}
+			<div class="duty-lead-section">📞 ${__("Next step")}</div>
+			<div class="duty-ld-step">
+				${x.next_step ? `<div class="duty-ld-step-cur ${x.step_overdue ? "over" : ""}"><b>${esc(x.next_step)}</b><span class="text-muted"> · ${x.next_step_due ? frappe.datetime.str_to_user(x.next_step_due) : ""} · ${esc((this.name_map || {})[x.next_step_user] || x.next_step_user || "")}</span> <button class="btn btn-xs btn-primary duty-step-done">✓ ${__("Done")}</button> <a class="duty-step-edit" title="${__("Replace")}">✎</a></div>` : `<span class="duty-step-none">❗ ${__("No next step — every open lead needs one.")}</span> <button class="btn btn-xs btn-primary duty-step-set">＋ ${__("Set next step")}</button>`}
+			</div>
+			<div class="duty-lead-section">📅 ${__("Meetings")}</div>
+			<div class="duty-ld-meets">
+				${(x.meetings || []).map((m) => `<div class="duty-ld-meet"><b>${frappe.datetime.str_to_user(m.meeting_date)} ${m.start_time || ""}</b> · ${esc(m.topic)} ${m.outcome ? `<span class="text-muted">— ${esc(m.outcome_note || m.outcome)}</span>` : m.past ? `<a class="duty-meet-log" data-m="${m.name}">📝 ${__("log outcome")}</a>` : ""}</div>`).join("") || `<div class="text-muted" style="font-size:12px">${__("None yet.")}</div>`}
+				<button class="btn btn-xs btn-default duty-meet-new">📅 ${__("Schedule meeting")}</button>
+			</div>
 			<div class="duty-lead-section">📋 ${__("Tasks")}</div>
 			<div class="duty-lead-tasks">
 				${(x.tasks || [])
@@ -11962,6 +12070,25 @@ this.$me.find(".duty-req-ok").on("click", (e) => {
 			.duty-tf-del { opacity: .55; margin-left: 2px; text-decoration: none; }
 			.duty-tf-del:hover { opacity: 1; }
 			.duty-kb-files { font-size: 10.5px; color: #65736F; font-weight: 700; }
+			/* --- contracted layouts: keep content together on wide screens --- */
+			@media (min-width: 992px) {
+				body:not(.duty-mobile) .duty-board { max-width: 1120px; margin-left: auto; margin-right: auto; }
+				body:not(.duty-mobile) .duty-issues { max-width: 1160px; margin-left: auto; margin-right: auto; }
+				body:not(.duty-mobile) .duty-sales { max-width: 1140px; margin-left: auto; margin-right: auto; }
+				body:not(.duty-mobile) .duty-chat { max-width: 1000px; margin-right: auto; }
+				body:not(.duty-mobile) .duty-projects { max-width: 1500px; margin-left: auto; margin-right: auto; }
+				body:not(.duty-mobile) .duty-pj-main { max-width: 1220px; }
+			}
+			.duty-step-none { color: #B45309; font-weight: 700; font-size: 11px; }
+			.duty-step { font-size: 11px; font-weight: 700; color: #0F5C55; }
+			.duty-ld-step, .duty-ld-meets { margin-bottom: 12px; font-size: 13px; }
+			.duty-ld-step-cur { display: flex; gap: 8px; align-items: baseline; flex-wrap: wrap; }
+			.duty-ld-step-cur.over b { color: #C2410C; }
+			.duty-ld-meet { padding: 3px 0; }
+			.duty-meet-log { color: #B45309; font-weight: 700; cursor: pointer; }
+			.duty-ld-meets .duty-meet-new { margin-top: 6px; }
+			.duty-slot-grid { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+			.duty-slot-grid button { min-width: 64px; }
 			.duty-projects { display: flex; gap: 0; align-items: stretch; min-height: calc(100vh - 120px); }
 			.duty-pj-side { width: 250px; flex: none; border-right: 1px solid #e5e7eb; padding: 8px 8px 8px 0; overflow-y: auto; max-height: calc(100vh - 110px); }
 			.duty-pj-sidehead { display: flex; gap: 6px; margin-bottom: 8px; }

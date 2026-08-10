@@ -149,6 +149,14 @@ def get_team_load():
 			g["overdue"] += 1
 		if r.blocked_by and not blocker_done.get(r.blocked_by, False):
 			g["blocked"] += 1
+	_fu = {}
+	for f in frappe.get_all(
+		"Duty Lead",
+		filters={"status": "Open", "next_step_user": ["is", "set"]},
+		fields=["next_step_user", "count(name) as cnt"],
+		group_by="next_step_user",
+	):
+		_fu[f.next_step_user] = f.cnt
 	from duty_board.leave import users_on_leave
 	_leave_set = users_on_leave([u for u in load if u != "__unassigned__"]) if load else set()
 	out = []
@@ -157,6 +165,7 @@ def get_team_load():
 			"user": None if user == "__unassigned__" else user,
 			"on_leave": 1 if user in _leave_set else 0,
 			"full_name": _("Unassigned") if user == "__unassigned__" else frappe.utils.get_fullname(user),
+			"followups": _fu.get(user, 0),
 			"open": g["open"],
 			"overdue": g["overdue"],
 			"est_hours": round(g["est"], 1),
