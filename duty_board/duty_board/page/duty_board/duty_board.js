@@ -3837,6 +3837,78 @@ this.$me.find(".duty-req-ok").on("click", (e) => {
 		});
 	}
 
+	proctored_runner(t) {
+		const esc = frappe.utils.escape_html;
+		const d = new frappe.ui.Dialog({ title: `⏱ ${__("Timed assessment")} — ${t.size} ${__("questions")}`, size: "large", static: true });
+		let blurs = 0, timer = null, deadline = 0;
+		const onBlur = () => { blurs += 1; };
+		$(window).on("blur.duty_exam", onBlur);
+		const cleanup = () => { clearInterval(timer); $(window).off("blur.duty_exam"); };
+		d.$wrapper.on("hidden.bs.modal", cleanup);
+		const finish = (R) => {
+			cleanup();
+			$(d.body).html(`
+				<div style="text-align:center;padding:14px 6px">
+					<div style="font-size:40px">${R.passed ? "🎉" : "😞"}</div>
+					<h4>${R.passed ? __("Passed") : __("Not this time")} — ${R.score}% <span class="text-muted" style="font-size:13px">(${__("pass mark")} ${R.pass_mark}%)</span></h4>
+					${R.timeouts ? `<p style="color:#B45309;font-weight:700">⏱ ${R.timeouts} ${__("question(s) timed out")}</p>` : ""}
+					${(R.wrong || []).length ? `<div style="text-align:left;margin-top:10px"><b>${__("Review these topics")}:</b><ul>${R.wrong.map((w) => `<li>${esc(w)}</li>`).join("")}</ul></div>` : ""}
+					${R.newly_certified ? `<p style="color:#0E8A63;font-weight:700">🎓 ${__("Certified!")}</p>` : ""}
+				</div>`);
+			d.set_primary_action(__("Close"), () => d.hide());
+		};
+		const show = (Q) => {
+			if (Q.done) return finish(Q);
+			deadline = Date.now() + Q.seconds * 1000;
+			$(d.body).html(`
+				<div class="duty-ex-top"><b>${__("Question")} ${Q.idx + 1} / ${Q.size}</b><span class="duty-ex-clock">${Q.seconds}s</span></div>
+				<div class="duty-ex-bar"><span style="width:100%"></span></div>
+				<div class="duty-ex-q">${esc(Q.question)}</div>
+				${Q.options.map((o, j) => `<label class="duty-ex-opt"><input type="radio" name="duty-ex" value="${j}"><span>${esc(o)}</span></label>`).join("")}
+				<p class="text-muted" style="font-size:11.5px;margin-top:8px">${__("One question at a time. No going back. Unanswered when the clock hits zero counts as wrong.")}</p>
+			`);
+			clearInterval(timer);
+			timer = setInterval(() => {
+				const left = Math.max(0, deadline - Date.now());
+				const pct = (left / (Q.seconds * 1000)) * 100;
+				$(d.body).find(".duty-ex-clock").text(`${Math.ceil(left / 1000)}s`);
+				$(d.body).find(".duty-ex-bar span").css("width", pct + "%").toggleClass("low", pct < 25);
+				if (left <= 0) submit(null);
+			}, 250);
+			d.set_primary_action(__("Submit answer"), () => {
+				const v = $(d.body).find("input[name=duty-ex]:checked").val();
+				submit(v === undefined ? null : v);
+			});
+		};
+		const submit = (choice) => {
+			clearInterval(timer);
+			const b = blurs; blurs = 0;
+			frappe.call({
+				method: "duty_board.client_room.proctored_answer",
+				args: { attempt: t.attempt, choice: choice, blurs: b },
+				callback: (r) => r.message && show(r.message),
+			});
+		};
+		// rules screen first — the announcement is part of the deterrent
+		$(d.body).html(`
+			<div style="padding:6px 2px">
+				<h4>⏱ ${__("This is a timed assessment")}</h4>
+				<ul style="font-size:13.5px;line-height:1.7">
+					<li>${__("Questions appear one at a time — {0} seconds each.", [t.seconds])}</li>
+					<li>${__("Once you answer (or time runs out) you move on. There is no going back.")}</li>
+					<li>${__("Your time per question and any switching away from this tab are recorded.")}</li>
+				</ul>
+			</div>`);
+		d.set_primary_action(`▶ ${__("Start")}`, () => {
+			frappe.call({
+				method: "duty_board.client_room.proctored_next",
+				args: { attempt: t.attempt },
+				callback: (r) => r.message && show(r.message),
+			});
+		});
+		d.show();
+	}
+
 	my_quiz_dialog(record) {
 		frappe.call({
 			method: "duty_board.client_room.my_quiz_start",
@@ -3844,6 +3916,7 @@ this.$me.find(".duty-req-ok").on("click", (e) => {
 			callback: (r) => {
 				const t = r.message;
 				if (!t) return;
+				if (t.timed) return this.proctored_runner(t);
 				const d = new frappe.ui.Dialog({ title: `📝 ${__("Assessment")} — 10 ${__("questions")}`, size: "large" });
 				$(d.body).html(
 					t.questions
@@ -4472,6 +4545,7 @@ this.$me.find(".duty-req-ok").on("click", (e) => {
 				<div class="duty-kb-title">${frappe.utils.escape_html(t.title)}</div>
 				${t.milestone && this._ms_names && this._ms_names[t.milestone] ? `<div class="duty-kb-ms">🚩 ${frappe.utils.escape_html(this._ms_names[t.milestone])}</div>` : ""}
 				${t.blocked ? `<div class="duty-kb-blk">🔒 ${__("blocked by")} ${frappe.utils.escape_html(t.blocked_title || "")}</div>` : ""}
+				${t.file_count ? `<span class="duty-kb-files">📎 ${t.file_count}</span>` : ""}
 				<div class="duty-kb-meta">
 					${who}
 					<span class="duty-lead-badges">
@@ -4751,6 +4825,11 @@ this.$me.find(".duty-req-ok").on("click", (e) => {
 				<label class="duty-ld-f"><span>🚩 ${__("Phase")}</span><select data-f="milestone"><option value="">${__("— none —")}</option>${Object.entries(this._ms_names || {}).map(([id, nm]) => `<option value="${id}" ${t.milestone === id ? "selected" : ""}>${esc(nm)}</option>`).join("")}</select></label>
 				<label class="duty-ld-f"><span>🔒 ${__("Blocked by")}</span><select data-f="blocked_by"><option value="">${__("— nothing —")}</option>${(t.task_options || []).map((o) => `<option value="${o.name}" ${t.blocked_by === o.name ? "selected" : ""}>${esc(o.title)}</option>`).join("")}</select></label>
 				<label class="duty-ld-f"><span>⏱ ${__("Est. hours")}</span><input type="number" step="0.5" min="0" data-f="estimate_hours" value="${t.estimate_hours || ""}" placeholder="${__("e.g. 4")}">${t.actual_hours ? `<small class="duty-est-act ${t.estimate_hours && t.actual_hours > t.estimate_hours ? "over" : ""}">${__("logged")} ${t.actual_hours}h${t.estimate_hours ? ` / ${t.estimate_hours}h` : ""}</small>` : ""}</label>
+				<div class="duty-ld-files">
+					<span class="duty-ld-files-h">📎 ${__("Files")}</span>
+					<div class="duty-tf-list">${(t.files || []).map((f) => `<span class="duty-tf-chip" data-url="${f.file_url}" data-kind="${f.kind}" data-fn="${frappe.utils.escape_html(f.file_name || "")}">${f.kind === "image" ? "🖼" : f.kind === "pdf" ? "📄" : "📁"} ${frappe.utils.escape_html(f.file_name || "file")}<a class="duty-tf-del" data-file="${f.name}" title="${__("Remove")}">✕</a></span>`).join("")}</div>
+					<label class="btn btn-xs btn-default duty-tf-add">＋ ${__("Add files")}<input type="file" multiple style="display:none"></label>
+				</div>
 				<label class="duty-td-chk"><input type="checkbox" data-f="client_visible" ${t.client_visible ? "checked" : ""}> ${__("Visible to client (shows on their portal)")}</label>
 				<label class="duty-td-chk"><input type="checkbox" data-f="awaiting_client" ${t.awaiting_client ? "checked" : ""}> ⏳ ${__("Awaiting client action (nudges them on the portal)")}</label>
 				<label class="duty-ld-f duty-ld-wide"><span>${__("Description")}</span><textarea data-f="description" rows="3">${esc(t.description || "")}</textarea></label>
@@ -4961,6 +5040,46 @@ this.$me.find(".duty-req-ok").on("click", (e) => {
 				args: { name: t.name, note: note },
 				callback: reopen,
 			});
+		});
+
+		// --- task file attachments: preview, upload, delete ---
+		const tfReload = () => frappe.call({ method: "duty_board.projects.get_card", args: { name: t.name }, callback: (rr) => { if (rr.message) { d.hide(); this.task_dialog(project, rr.message); } } });
+		$dw.find(".duty-tf-chip").off("click").on("click", (e) => {
+			if ($(e.target).hasClass("duty-tf-del")) return;
+			const $c = $(e.currentTarget);
+			const url = $c.data("url"), kind = $c.data("kind"), fn = $c.data("fn");
+			if (kind === "image") {
+				const pd = new frappe.ui.Dialog({ title: fn, size: "extra-large" });
+				$(pd.body).html(`<div style="text-align:center"><img src="${url}" style="max-width:100%;max-height:74vh;border-radius:8px"></div>`);
+				pd.show();
+			} else if (kind === "pdf") {
+				const pd = new frappe.ui.Dialog({ title: fn, size: "extra-large" });
+				$(pd.body).html(`<iframe src="${url}" style="width:100%;height:76vh;border:none;border-radius:8px"></iframe>`);
+				pd.show();
+			} else {
+				window.open(url, "_blank");
+			}
+		});
+		$dw.find(".duty-tf-del").off("click").on("click", (e) => {
+			e.stopPropagation();
+			const file = $(e.currentTarget).data("file");
+			frappe.confirm(__("Remove this file from the task?"), () =>
+				frappe.call({ method: "duty_board.projects.task_file_delete", args: { name: t.name, file: file }, callback: (rr) => { if (rr.message) { d.hide(); this.task_dialog(project, rr.message); } } }));
+		});
+		$dw.find(".duty-tf-add input").off("change").on("change", async (e) => {
+			const files = Array.from(e.target.files || []);
+			if (!files.length) return;
+			frappe.show_alert({ message: __("Uploading {0} file(s)…", [files.length]), indicator: "blue" });
+			for (const f of files) {
+				const fd = new FormData();
+				fd.append("file", f, f.name);
+				fd.append("is_private", "1");
+				fd.append("doctype", "Duty Project Task");
+				fd.append("docname", t.name);
+				await fetch("/api/method/upload_file", { method: "POST", headers: { "X-Frappe-CSRF-Token": frappe.csrf_token }, body: fd });
+			}
+			frappe.show_alert({ message: __("Uploaded."), indicator: "green" });
+			tfReload();
 		});
 		d.show();
 	}
@@ -7009,6 +7128,30 @@ this.$me.find(".duty-req-ok").on("click", (e) => {
 			callback: (r) => {
 				const m = r.message || { people: [] };
 				const d = new frappe.ui.Dialog({ title: __("🎓 Team training & certification"), size: "extra-large" });
+				if (frappe.user.has_role("System Manager")) {
+					d.set_secondary_action_label(`⏱ ${__("Exam forensics")}`);
+					d.set_secondary_action(() => {
+						frappe.call({
+							method: "duty_board.client_room.quiz_forensics",
+							callback: (fr) => {
+								const rows = fr.message || [];
+								const fd = new frappe.ui.Dialog({ title: `⏱ ${__("Timed-exam forensics")}`, size: "extra-large" });
+								$(fd.body).html(rows.length ? `
+									<table class="table table-sm" style="font-size:12px">
+									<tr><th>${__("Person")}</th><th>${__("Module")}</th><th>${__("When")}</th><th>${__("Score")}</th><th>${__("Avg s/q")}</th><th>${__("Spread")}</th><th>${__("Timeouts")}</th><th>${__("Tab-outs")}</th><th></th></tr>
+									${rows.map((x) => `<tr class="${x.flag ? "duty-fx-flag" : ""}">
+										<td><b>${frappe.utils.escape_html(x.user)}</b></td><td>${frappe.utils.escape_html(x.module)}</td><td>${x.when}</td>
+										<td>${x.score}%${x.passed ? " ✅" : ""}</td><td>${x.avg_s}s</td><td title="${(x.times || []).join(", ")}s">${x.spread_s}s</td>
+										<td>${x.timeouts || 0}</td><td>${x.blurs || 0}</td><td>${x.flag ? `<b style="color:#C2410C">⚠ ${__("review")}</b>` : ""}</td>
+									</tr>`).join("")}
+									</table>
+									<p class="text-muted" style="font-size:11px">${__("⚠ = uniform answer times (low spread at unhurried pace) or tab-outs on nearly every question — the lookup/AI signature. Hover Spread for per-question times. A flag is a conversation, not a verdict.")}</p>`
+									: `<p class="text-muted">${__("No timed attempts yet.")}</p>`);
+								fd.show();
+							},
+						});
+					});
+				}
 				const detail_html = (
 					(m.people || []).map((p) => `
 					<div style="border:1px solid #E8E5DD;border-radius:12px;padding:11px 14px;margin-bottom:10px">
@@ -11802,6 +11945,23 @@ this.$me.find(".duty-req-ok").on("click", (e) => {
 			.duty-lv-ask .duty-rm-text { max-width: 240px; }
 			.duty-lv-ask .duty-rm-date, .duty-lv-ask .duty-rm-time { max-width: 140px; }
 			.duty-lv-ask .duty-rm-rep-sel { max-width: 110px; }
+			.duty-ex-top { display: flex; align-items: baseline; margin-bottom: 4px; }
+			.duty-ex-clock { margin-left: auto; font-weight: 800; font-size: 18px; color: #0F5C55; }
+			.duty-ex-bar { height: 6px; border-radius: 4px; background: #EEF2F1; overflow: hidden; margin-bottom: 12px; }
+			.duty-ex-bar span { display: block; height: 100%; background: #0E8A63; transition: width .25s linear; }
+			.duty-ex-bar span.low { background: #C2410C; }
+			.duty-ex-q { font-weight: 700; font-size: 15px; margin-bottom: 10px; }
+			.duty-ex-opt { display: flex; gap: 10px; align-items: baseline; padding: 8px 10px; border: 1px solid #E4EAE8; border-radius: 10px; margin-bottom: 6px; cursor: pointer; font-weight: 400; }
+			.duty-ex-opt:hover { background: #F4F7F6; }
+			.duty-fx-flag td { background: #FEF6F0; }
+			.duty-ld-files { margin-top: 6px; }
+			.duty-ld-files-h { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .03em; color: #8a958f; display: block; margin-bottom: 4px; }
+			.duty-tf-list { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 6px; }
+			.duty-tf-chip { display: inline-flex; gap: 6px; align-items: center; font-size: 12px; background: #F0F4F3; border: 1px solid #E4EAE8; border-radius: 20px; padding: 3px 10px; cursor: pointer; max-width: 240px; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+			.duty-tf-chip:hover { background: #E7F0ED; }
+			.duty-tf-del { opacity: .55; margin-left: 2px; text-decoration: none; }
+			.duty-tf-del:hover { opacity: 1; }
+			.duty-kb-files { font-size: 10.5px; color: #65736F; font-weight: 700; }
 			.duty-projects { display: flex; gap: 0; align-items: stretch; min-height: calc(100vh - 120px); }
 			.duty-pj-side { width: 250px; flex: none; border-right: 1px solid #e5e7eb; padding: 8px 8px 8px 0; overflow-y: auto; max-height: calc(100vh - 110px); }
 			.duty-pj-sidehead { display: flex; gap: 6px; margin-bottom: 8px; }

@@ -4445,7 +4445,211 @@ def my_quiz_start(record):
 	)
 	if not rec or rec.trainee != frappe.session.user or rec.room:
 		frappe.throw(_("Not found."), frappe.PermissionError)
-	return _quiz_start(rec.name, rec.module)
+	mod = frappe.db.get_value(
+		"Duty Training Module", rec.module,
+		["timed_mode", "seconds_per_question", "questions_served"], as_dict=True,
+	) or frappe._dict()
+	if not cint(mod.timed_mode):
+		return _quiz_start(rec.name, rec.module)
+	# Timed mode: build the attempt with the SAME subset+shuffle machinery,
+	# but hand back only a handle — questions are served one at a time.
+	base = _quiz_start(rec.name, rec.module)
+	size = base["size"]
+	if cint(mod.questions_served) and cint(mod.questions_served) != size:
+		# module overrides the subset size: rebuild served on the attempt
+		import random as _rnd
+		att = frappe.get_doc("Duty Quiz Attempt", base["attempt"])
+		bank = frappe.get_all(
+			"Duty Quiz Question",
+			filters={"module": rec.module, "active": 1},
+			fields=["name"],
+		)
+		n = min(cint(mod.questions_served), len(bank))
+		picked = _rnd.sample([b.name for b in bank], n)
+		served = []
+		for qn in picked:
+			order = [0, 1, 2, 3]
+			_rnd.shuffle(order)
+			served.append({"q": qn, "order": order})
+		att.db_set("served", json.dumps(served), update_modified=False)
+		size = n
+	seconds = cint(mod.seconds_per_question) or 60
+	frappe.db.set_value(
+		"Duty Quiz Attempt", base["attempt"],
+		{"mode": "Timed", "current_idx": 0, "results": "[]", "blurs": 0},
+		update_modified=False,
+	)
+	frappe.db.commit()
+	return {"timed": 1, "attempt": base["attempt"], "size": size, "seconds": seconds}
+
+
+def _timed_attempt(attempt):
+	att = frappe.get_doc("Duty Quiz Attempt", attempt)
+	if att.user != frappe.session.user:
+		frappe.throw(_("Not found."), frappe.PermissionError)
+	if att.finished_at:
+		frappe.throw(_("This attempt is already finished."))
+	if (att.mode or "") != "Timed":
+		frappe.throw(_("Not a timed attempt."))
+	return att
+
+
+def _timed_seconds(att):
+	return cint(
+		frappe.db.get_value("Duty Training Module", att.module, "seconds_per_question")
+	) or 60
+
+
+def _timed_finish(att):
+	"""Score from results, write the attempt, run the shared completion."""
+	results = json.loads(att.results or "[]")
+	score_n = sum(1 for r in results if r.get("ok"))
+	total = len(json.loads(att.served or "[]")) or 1
+	score = round(score_n * 100 / total)
+	rec = frappe.get_doc("Duty Training Record", att.record)
+	pass_mark = cint(frappe.db.get_value("Duty Training Module", rec.module, "pass_mark")) or 70
+	passed = score >= pass_mark
+	att.db_set(
+		{"finished_at": now_datetime(), "score": score, "passed": 1 if passed else 0},
+		update_modified=False,
+	)
+	frappe.db.commit()
+	newly_certified = False
+	if passed and rec.status != "Completed":
+		_award_module_completion(rec)
+		newly_certified = True
+	wrong = [
+		frappe.db.get_value("Duty Quiz Question", r["q"], "question")
+		for r in results
+		if not r.get("ok")
+	]
+	state = _quiz_state(rec.module, frappe.session.user)
+	return {
+		"done": 1,
+		"score": score,
+		"passed": passed,
+		"pass_mark": pass_mark,
+		"wrong": wrong,
+		"timeouts": sum(1 for r in results if r.get("timed_out")),
+		"attempts": state["attempts"],
+		"best": state["best"],
+		"newly_certified": newly_certified,
+	}
+
+
+@frappe.whitelist()
+def proctored_next(attempt):
+	"""Serve the current question, stamped server-side. Calling this after
+	a disconnect forfeits the stale question (rule: no going back)."""
+	_staff_only()
+	att = _timed_attempt(attempt)
+	served = json.loads(att.served or "[]")
+	idx = cint(att.current_idx)
+	results = json.loads(att.results or "[]")
+	# a question was served but never answered (reload/disconnect): forfeit it
+	if att.current_served_at and len(results) <= idx and idx < len(served):
+		results.append({"q": served[idx]["q"], "given": None, "ok": False, "timed_out": True, "elapsed": None})
+		idx += 1
+		att.db_set(
+			{"results": json.dumps(results), "current_idx": idx, "current_served_at": None},
+			update_modified=False,
+		)
+	if idx >= len(served):
+		return _timed_finish(att)
+	s = served[idx]
+	q = frappe.db.get_value(
+		"Duty Quiz Question", s["q"],
+		["question", "opt_a", "opt_b", "opt_c", "opt_d"], as_dict=True,
+	)
+	opts = [q.opt_a, q.opt_b, q.opt_c, q.opt_d]
+	att.db_set("current_served_at", now_datetime(), update_modified=False)
+	frappe.db.commit()
+	return {
+		"idx": idx,
+		"size": len(served),
+		"question": q.question,
+		"options": [opts[i] for i in s["order"]],
+		"seconds": _timed_seconds(att),
+	}
+
+
+@frappe.whitelist()
+def proctored_answer(attempt, choice=None, blurs=0):
+	"""Record the answer for the CURRENT question. Server-enforced timing:
+	answers after limit+5s grace count as timed out. Advances; no return."""
+	_staff_only()
+	att = _timed_attempt(attempt)
+	served = json.loads(att.served or "[]")
+	idx = cint(att.current_idx)
+	if idx >= len(served) or not att.current_served_at:
+		return proctored_next(attempt)
+	s = served[idx]
+	elapsed = (now_datetime() - get_datetime(att.current_served_at)).total_seconds()
+	limit = _timed_seconds(att) + 5  # network grace
+	results = json.loads(att.results or "[]")
+	if len(results) > idx:
+		return proctored_next(attempt)  # double-submit: ignore, serve next
+	timed_out = elapsed > limit or choice is None or choice == ""
+	ok = False
+	if not timed_out:
+		chosen = cint(choice)
+		real = s["order"][chosen] if 0 <= chosen < 4 else -1
+		correct = "ABCD".index(frappe.db.get_value("Duty Quiz Question", s["q"], "correct"))
+		ok = real == correct
+	results.append({
+		"q": s["q"],
+		"given": None if timed_out else cint(choice),
+		"ok": bool(ok),
+		"timed_out": bool(timed_out),
+		"elapsed": round(elapsed, 1),
+	})
+	att.db_set(
+		{
+			"results": json.dumps(results),
+			"current_idx": idx + 1,
+			"current_served_at": None,
+			"blurs": cint(att.blurs) + cint(blurs),
+		},
+		update_modified=False,
+	)
+	frappe.db.commit()
+	return proctored_next(attempt)
+
+
+@frappe.whitelist()
+def quiz_forensics(limit=30):
+	"""SM-only: recent timed attempts with the timing pattern — the AI
+	signature detector (uniform elapsed + blur count tell the story)."""
+	_staff_only()
+	if "System Manager" not in frappe.get_roles():
+		frappe.throw(_("Managers only."), frappe.PermissionError)
+	rows = frappe.get_all(
+		"Duty Quiz Attempt",
+		filters={"mode": "Timed", "finished_at": ["is", "set"]},
+		fields=["name", "user", "module", "score", "passed", "blurs", "results", "finished_at"],
+		order_by="finished_at desc",
+		limit=cint(limit) or 30,
+	)
+	out = []
+	for a in rows:
+		res = json.loads(a.results or "[]")
+		times = [r["elapsed"] for r in res if r.get("elapsed") is not None]
+		avg = round(sum(times) / len(times), 1) if times else 0
+		spread = round(max(times) - min(times), 1) if times else 0
+		out.append({
+			"user": frappe.utils.get_fullname(a.user),
+			"module": frappe.db.get_value("Duty Training Module", a.module, "title") or a.module,
+			"when": str(a.finished_at)[:16],
+			"score": a.score,
+			"passed": a.passed,
+			"blurs": cint(a.blurs),
+			"avg_s": avg,
+			"spread_s": spread,
+			"timeouts": sum(1 for r in res if r.get("timed_out")),
+			"times": times,
+			"flag": 1 if (times and spread < 8 and avg > 10) or cint(a.blurs) >= len(res) else 0,
+		})
+	return out
 
 
 @frappe.whitelist()

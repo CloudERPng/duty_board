@@ -280,7 +280,7 @@ def get_project_board(project):
 	)
 	names = [r.name for r in rows]
 	by_name = {r.name: r for r in rows}
-	note_counts, working, sub_counts, actual_secs = {}, {}, {}, {}
+	note_counts, working, sub_counts, actual_secs, file_counts = {}, {}, {}, {}, {}
 	if names:
 		for n in frappe.get_all(
 			"Duty Project Note",
@@ -309,6 +309,13 @@ def get_project_board(project):
 			group_by="project_task",
 		):
 			actual_secs[a.project_task] = a.secs or 0
+		for fc in frappe.get_all(
+			"File",
+			filters={"attached_to_doctype": "Duty Project Task", "attached_to_name": ["in", names]},
+			fields=["attached_to_name", "count(name) as cnt"],
+			group_by="attached_to_name",
+		):
+			file_counts[fc.attached_to_name] = fc.cnt
 	tday = getdate(today())
 	now = frappe.utils.now_datetime()
 	tasks = {c: [] for c in COLUMNS}
@@ -324,6 +331,7 @@ def get_project_board(project):
 		t.subs_done, t.subs_total = sub_counts.get(t.name, (0, 0))
 		# t.milestone already present from the fetch
 		t.actual_hours = round((actual_secs.get(t.name, 0) or 0) / 3600.0, 1)
+		t.file_count = file_counts.get(t.name, 0)
 		t.blocked = 0
 		t.blocked_title = None
 		if t.blocked_by:
@@ -698,6 +706,24 @@ def get_card(name):
 		"milestone": doc.milestone,
 		"blocked_by": doc.blocked_by,
 		"estimate_hours": doc.estimate_hours,
+		"files": [
+			{
+				"name": f.name,
+				"file_name": f.file_name,
+				"file_url": f.file_url,
+				"kind": (
+					"image" if (f.file_name or "").lower().rsplit(".", 1)[-1] in ("png", "jpg", "jpeg", "gif", "webp")
+					else "pdf" if (f.file_name or "").lower().endswith(".pdf")
+					else "other"
+				),
+			}
+			for f in frappe.get_all(
+				"File",
+				filters={"attached_to_doctype": "Duty Project Task", "attached_to_name": name},
+				fields=["name", "file_name", "file_url"],
+				order_by="creation asc",
+			)
+		],
 		"actual_hours": round(
 			(frappe.db.sql(
 				"select coalesce(sum(duration),0) from `tabWork Session` where project_task=%s",
@@ -759,6 +785,20 @@ def add_card_note(name, note):
 	except Exception:
 		pass
 	frappe.publish_realtime("duty_board_note", {"kind": "card", "id": name})
+	return get_card(name)
+
+
+@frappe.whitelist()
+def task_file_delete(name, file):
+	"""Remove one attachment from a task."""
+	require_staff()
+	row = frappe.db.get_value(
+		"File", file, ["attached_to_doctype", "attached_to_name"], as_dict=True
+	)
+	if not row or row.attached_to_doctype != "Duty Project Task" or row.attached_to_name != name:
+		frappe.throw(_("Not found."))
+	frappe.delete_doc("File", file, ignore_permissions=True, force=True)
+	frappe.db.commit()
 	return get_card(name)
 
 
