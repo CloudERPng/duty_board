@@ -12074,7 +12074,7 @@ this.$me.find(".duty-req-ok").on("click", (e) => {
 			@media (min-width: 992px) {
 				body:not(.duty-mobile) .duty-board { max-width: 1120px; margin-left: auto; margin-right: auto; }
 				body:not(.duty-mobile) .duty-issues { max-width: 1160px; margin-left: auto; margin-right: auto; }
-				body:not(.duty-mobile) .duty-sales { max-width: 1140px; margin-left: auto; margin-right: auto; }
+				body:not(.duty-mobile) .duty-sales { max-width: 1560px; margin-left: auto; margin-right: auto; }
 				body:not(.duty-mobile) .duty-chat { max-width: 1000px; margin-right: auto; }
 				body:not(.duty-mobile) .duty-projects { max-width: 1500px; margin-left: auto; margin-right: auto; }
 				body:not(.duty-mobile) .duty-pj-main { max-width: 1220px; }
