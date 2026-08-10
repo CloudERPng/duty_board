@@ -710,36 +710,61 @@
   "desc": "The offer document: creating quotations, validity, taxes on the offer, the status lifecycle, losing gracefully, and converting to an order.",
   "lessons": [
    {
-    "title": "Creating the offer",
-    "est": "10",
-    "html": "<p>The <b>Quotation</b> is the first formal document of the cycle — the written offer. It can be made against an existing <b>Customer</b> or against a <b>Lead</b> (someone not yet a customer) — that flexibility matters: you don't create a customer master just to price an enquiry. Create from <b>Selling &gt; Quotation &gt; New</b>, or from a CRM opportunity so the trail from first contact to offer stays linked.</p><p>What you fill:</p><ul><li><b>Party</b> — the customer or lead. Their price list, currency, contact and address default in.</li><li><b>Items</b> — code, quantity; the <b>rate arrives from the price list</b> automatically per the previous module.</li><li><b>Rate overrides</b> — you MAY type over a price-list rate on any row. This is allowed, visible, and reportable — not forbidden, not manager-only, not automatic. The philosophy: empower the negotiation, but leave fingerprints. Reports can always compare charged rate vs list rate.</li><li><b>Valid Till</b> — how long the offer stands. After this date the quotation automatically shows <b>Expired</b>. Fill it always: open-ended offers are how last year's prices get accepted this year.</li><li><b>Payment terms, terms &amp; conditions</b> — the commercial fine print that will travel forward.</li></ul><p>Save produces a Draft you can still edit; <b>Submit</b> makes it a formal, numbered offer and moves it to Open. Print formats give it your letterhead for the customer's inbox.</p>"
+    "title": "Chapter 1 — The quotation, field by field",
+    "est": "16",
+    "html": "<p>The quotation is the first formal document of the selling cycle — the written offer a customer can accept, dispute, or file. Selling 1 built <i>who</i>; Selling 2 built <i>what at what rate</i>; this document is where they meet in front of a customer for the first time, so its craft is customer-facing craft. Create from <b>Selling &gt; Quotation &gt; New</b>, and walk the fields:</p><ul><li><b>Quotation To &amp; Party</b> — the offer can address a <b>Customer</b> or a <b>Lead</b>. That flexibility is deliberate and important: you do not create a customer master just to price an enquiry (Chapter 2 covers the lead path end to end). Selecting the party pulls their defaults — price list, currency, primary contact, primary address — exactly as Selling 1 promised.</li><li><b>Date &amp; series</b> — the quotation number comes from its naming series; the date defaults to today. Both print on the document; both are how the customer's procurement office will refer to your offer for months (\"your QTN-2026-00871 of 12 August\").</li><li><b>Valid Till</b> — how long the offer stands. After this date the status flips to <b>Expired</b> automatically (Chapter 6). Fill it on every quotation, always: an open-ended offer is a standing invitation to accept last quarter's prices in this quarter's cost reality. Thirty days is a common Nigerian B2B default; volatile-cost goods deserve less.</li><li><b>Price list &amp; currency</b> — inherited from the party (Selling 2's defaulting chain). Visible on the document; changeable when a deal genuinely belongs to another list.</li><li><b>The items grid</b> — per row: item, quantity, <b>UOM</b> (cartons vs units — Selling 2's discipline lives here), the fetched <b>Price List Rate</b>, the charged <b>Rate</b>, and the amount. The item's <b>description</b> prints beneath the name — remember Selling 2: that text is your offer's line copy, written for the buyer's eyes.</li><li><b>Taxes</b> — the template section (Chapter 4).</li><li><b>Payment terms, Terms &amp; Conditions</b> — the commercial fine print (Chapter 5).</li></ul><p><b>Draft vs Submitted.</b> Save produces a Draft — editable, internal, not yet an offer. <b>Submit</b> makes it formal: numbered, immutable (changes now require amendment, Chapter 6), and ready to send. The distinction matters behaviourally: build and check in Draft; the customer only ever sees Submitted.</p><p><b>Who fills what.</b> The rep chooses party, items, quantities, UOMs, and any negotiated Rate; the system supplies the number, the fetched rates, the tax arithmetic, and the totals section — including the rounding adjustment that keeps the grand total payable to the kobo. Respect the division: a rep hand-typing what the system computes (totals, taxes, conversions) is manufacturing the discrepancies that Selling 7 will meet as payment-allocation mismatches months later.</p>"
    },
    {
-    "title": "Taxes on the quotation",
-    "est": "8",
-    "html": "<p>Quote taxes ON the offer — this is both mechanics and commercial judgment.</p><p><b>Mechanics:</b> attach a <b>Sales Taxes and Charges Template</b> to the quotation — for Nigerian trade typically <b>VAT at 7.5%</b> — and the document computes and displays the tax rows and the grand total. VAT is never typed into item rates by hand and never derived from the customer group; the template row (account head + 7.5%) does it uniformly. Building the templates is covered deeply in Selling 6; here you need to know that one is <i>selected on the document</i> and does the work.</p><p><b>Commercial judgment:</b> the reason to quote taxes is that <b>the customer sees the true payable total from the first document</b>. Quote ₦10m clean, invoice ₦10.75m later, and you have manufactured a dispute at the worst possible moment — after commitment, before payment. It is not a legal requirement on quotations that drives this; it is deal hygiene. No late surprises.</p><p><b>The template travels:</b> the taxes chosen on the quotation <b>flow onto the Sales Order</b> made from it, and onward to delivery and invoice. Nobody re-enters taxes at each stage, and the offer's arithmetic is the invoice's arithmetic.</p>"
+    "title": "Chapter 2 — Leads, CRM & the offer's origin",
+    "est": "13",
+    "html": "<p>Where does a quotation come from? The answer shapes your pipeline's honesty.</p><p><b>Quoting a Lead.</b> A <b>Lead</b> is a party that is not yet a customer — an enquiry with a name. The quotation addresses the lead directly: no customer master is created, no defaults exist to inherit (you choose price list and currency by hand), and your customer table stays clean of parties who never bought. This is the correct handling of \"send us a price for…\" enquiries — the wrong handling being a customer record created per enquiry, which within a year fills the master with hundreds of never-transacted ghosts that every report must wade through and every duplicate-check trips over (Selling 1, Chapter 9's duplicate disease, self-inflicted at scale).</p><p><b>The conversion moment.</b> When a lead accepts, the win path runs through conversion: the lead becomes a <b>Customer</b> (created properly — group, territory, currency, the full Selling 1 Chapter 1 discipline applied at the moment it becomes real), and the order proceeds against the new customer. The quotation's history remains linked: enquiry → offer → customer → order, one chain, auditable forever.</p><p><b>From opportunity.</b> Where the CRM pipeline runs ahead of documents — an opportunity being worked, then priced — create the quotation <b>from the opportunity</b> so the linkage is born, not reconstructed. Deal history that reads \"opportunity → quotation v1 → quotation v2 (amended) → sales order\" is a deal that can be studied later; loose documents with matching company names are archaeology.</p><p><b>Your own house's version.</b> In this firm the pre-document pipeline lives on the Duty Board Sales face — radar, leads, next steps, meetings. The principle transfers exactly: the quotation is where a <i>worked</i> relationship becomes a <i>written</i> offer, and the working (dated next steps, meeting outcomes) is what makes the offer's timing right. A quotation fired at an unworked lead is a price list with a stamp; a quotation landing after the third meeting, priced to what was learned, is a close in progress.</p><p><b>One list, one truth.</b> However it originates, the offer's commercial content comes from the same masters: the party's list, the item's price, the tax template. Origin changes the <i>path</i>, never the <i>pricing machinery</i> — which is why Selling 1 and 2 came first.</p><p><b>Qualify before you price.</b> A lead carries a source (referral, exhibition, web) and an owner — fill both, because loss analysis by source (Chapter 7) is how you learn which channels send buyers and which send browsers. And the standing rule of offer timing: an unqualified enquiry gets a conversation, not a quotation; the document goes out when budget, authority, and need have at least been probed. Quotations broadcast to every enquiry train the market to treat your offers as brochures.</p>"
    },
    {
-    "title": "The status lifecycle",
-    "est": "8",
-    "html": "<p>A quotation's status is one word telling you exactly where the deal stands. Learn the vocabulary cold:</p><ul><li><b>Draft</b> — being written; editable; not yet an offer.</li><li><b>Open</b> — submitted and awaiting the customer's answer. THE working state.</li><li><b>Ordered</b> — won: a Sales Order has been made from it.</li><li><b>Lost</b> — conceded, with a reason recorded.</li><li><b>Expired</b> — Valid Till passed with no order; automatic.</li><li><b>Cancelled</b> — withdrawn by you.</li></ul><p><b>The operational habit:</b> the Quotation list filtered to <b>Open</b> IS your offers-awaiting-answer pipeline — not Draft (those aren't offers yet), not All (that's history). A sales professional works that filter weekly: chase the old ones, expire-and-refresh the stale ones, mark the dead ones Lost honestly. An Open list you can trust is worth more than any forecast, because it's not a forecast — it's the actual set of live offers.</p>"
+    "title": "Chapter 3 — Rates & negotiation on the document",
+    "est": "13",
+    "html": "<p>The rate arrives from the price list; the negotiation happens on the document. This chapter is the discipline of the gap between those two numbers.</p><p><b>The two fields, again, now in anger.</b> Selling 2 introduced them; the quotation is where they earn their keep. <b>Price List Rate</b> is what the lookup returned — the list's truth, untouchable by the negotiation. <b>Rate</b> is what THIS offer charges. They start equal; a negotiated concession lowers Rate while Price List Rate stands as the reference. The consequence is override <i>reporting</i>: any analysis can compare charged against list across every quotation, per rep, per customer, per period — negotiation is empowered AND measured. Overriding is allowed, visible, and reportable: not forbidden (deals are negotiated in the real world), not manager-only by default (though approval workflows can be added where a client's policy demands), and never invisible.</p><p><b>The override discipline, taught to reps.</b> Three rules make overrides an instrument instead of a leak: (1) override the <b>Rate</b>, never doctor quantity or UOM to fake a price (a \"free\" 13th unit hidden in a carton conversion is a stock lie); (2) a concession has a <i>reason</i> that belongs in the deal's record — volume, competitor pressure, relationship — so the review conversation is about strategy, not memory; (3) recurring overrides are a message: when the same customer gets the same \"exception\" monthly, the exception is actually their price, and Selling 2's answer applies — move them to the right list (or a pricing rule), and let \"override\" mean something again.</p><p><b>Free and promotional lines.</b> The honest way to give 20 free units on 100: two rows — 100 at rate, 20 at zero — made possible by Selling 1 Chapter 7's <i>Allow Item to be Added Multiple Times</i>. The dishonest ways (a blended average rate; 120 units at a doctored rate) survive until the first margin report or the first stock count, whichever humiliates first.</p><p><b>Margin awareness.</b> With <i>Validate Selling Price Against Purchase Rate</i> on (Selling 8), a below-cost override blocks at entry — the floor under every negotiation. Where it's off, the floor is the rep's knowledge of cost; a professional negotiates knowing the number below which the deal loses money, because \"we'll make it up on volume\" is how volume becomes losses at scale.</p><p><b>The three discount instruments, distinguished.</b> A row's <b>Rate</b> edit (this chapter) reprices one line. A row's <b>discount percentage</b> does the same arithmetic but records the concession AS a percentage against Price List Rate — preferable when the deal was struck in percentage language. The document-level <b>Additional Discount</b> cuts the total after the rows — Selling 6 treats it, and its proper use is rare, visible, whole-deal concessions. Knowing which instrument was used is what makes discount reporting legible later.</p>"
    },
    {
-    "title": "Losing well & converting",
-    "est": "8",
-    "html": "<p><b>Losing well:</b> when a deal dies, mark the quotation <b>Lost</b> — and ZhiftERP prompts for a <b>Lost Reason</b>: price, competitor, timing, no budget, spec mismatch. Recording it costs ten seconds. Six months of honest lost reasons is a strategy document nobody had to write: if \"price\" dominates in one segment, your list rates are wrong there; if one competitor's name keeps appearing, you know exactly who to build battle-cards against. Lost reasons are <b>competitive and pricing intelligence</b> — not a blame record for reps, not noise, not a deletion queue. Teams that fake them (everything is \"timing\") throw the intelligence away.</p><p><b>Winning:</b> when the customer says yes, do NOT open a blank Sales Order and retype. From the quotation: <b>Create &gt; Sales Order</b>. Everything carries across — items, quantities, rates (including your negotiated overrides), taxes, terms — with <b>no transcription errors</b>, and the quotation flips to <b>Ordered</b>, closing the loop. The point of document flow is that the offer the customer accepted is BYTE-FOR-BYTE the order you fulfil; the moment someone retypes, the agreed deal and the recorded deal can diverge, and every dispute that follows is your fault.</p><p>This create-from-the-previous-document pattern is the spine of the whole cycle: quotation → order → delivery note → invoice, each born from its parent, nothing retyped, the chain of custody unbroken.</p>"
+    "title": "Chapter 4 — Taxes on the offer",
+    "est": "12",
+    "html": "<p>Selling 6 owns tax <i>architecture</i>; this chapter owns tax <i>presentation</i> — what the customer sees on the offer, and why it must be there.</p><p><b>The mechanics.</b> Select a <b>Sales Taxes and Charges Template</b> on the quotation — for standard Nigerian trade, the VAT 7.5% template — and the document computes the tax rows and the grand total. VAT is never typed into item rates, never inferred from customer group, never left \"to be added at invoice\": the template row does it uniformly, and the totals section shows net, tax, and grand total in plain sight.</p><p><b>Why quote taxes — the commercial argument, in full.</b> The customer's decision number is what they will PAY, not your net. Quote ₦10,000,000 clean and invoice ₦10,750,000 later, and you have manufactured a dispute at the worst possible moment — after commitment, before payment, when the procurement officer must now explain to their MD why the bill grew 7.5%. Some will pay angrily; some will \"round down\" unilaterally; all will trust your next quotation less. It is not a legal formality that drives tax-on-the-quote — it is that <b>no late surprises</b> is the cheapest customer-retention policy that exists. The offer's grand total and the invoice's grand total should be the same number for the same goods.</p><p><b>Inclusive display.</b> Where the commercial custom is tax-inclusive pricing (retail-adjacent trade), the tax row's inclusive setting (Selling 6 teaches the arithmetic: ₦1,075 inclusive = ₦1,000 + ₦75) lets the offer show inclusive line rates while the totals still break out VAT for the customer's input-credit paperwork. Choose per the customer's world; never mix regimes on one document.</p><p><b>The template travels.</b> The taxes selected here <b>flow onto the Sales Order</b> made from this quotation, and onward to invoice — Selling 4 and 7 inherit what you choose now. Nobody re-enters tax at each stage; the arithmetic the customer accepted is the arithmetic they are billed. Which is also why choosing the WRONG template on the quotation is worth catching in Draft: the error travels just as faithfully as the correction would have.</p><p><b>Beyond VAT: charges rows.</b> The same template machinery carries non-tax charges — delivery fees, installation surcharges — as additional rows with their own account heads, computed on net total or as fixed amounts. The quotation then presents goods, charges, and VAT as distinct lines summing to one grand total: the customer sees exactly what is product, what is service charge, and what is government — which is precisely the transparency that pre-empts the invoice-time line-by-line interrogation from a professional procurement office.</p>"
+   },
+   {
+    "title": "Chapter 5 — Validity, terms & presentation",
+    "est": "12",
+    "html": "<p>An offer is a package: numbers, conditions, and the face it wears. This chapter finishes the package.</p><p><b>Valid Till, as policy.</b> Chapter 1 said fill it always; here is how to choose it. The validity window is your <i>price risk</i> window: for stable-cost goods, 30 days reads as professional patience; for FX-exposed or volatile-cost items, 7–14 days — with Selling 2's currency machinery noted in the terms (\"USD-linked items converted at prevailing rate\") — keeps a falling naira from turning old offers into losses. A customer who needs longer can ask; granting it is then a decision, not an accident of a blank field.</p><p><b>Payment terms on the offer.</b> The quotation carries payment terms — Net 30, 50% advance / balance on delivery — inherited from the customer's default (Selling 1) or set for the deal. Stating them on the OFFER means the cash conversation happens before commitment, when leverage is mutual, rather than at invoice time when the goods are gone (Selling 7 inherits what is agreed here). An offer silent on terms is an offer to have that argument later.</p><p><b>Terms &amp; Conditions.</b> The T&amp;C field takes a reusable template — delivery scope, warranty, installation exclusions, price-validity language — maintained once, selected per document. Deal-specific clauses append below the template. The discipline: the standard terms are STANDARD (legal has seen them once, not per-deal), and deviations are visible additions, not silent edits.</p><p><b>Presentation.</b> The print format wears your letterhead and prints what the fields hold: item descriptions (Selling 2 said write them for the buyer), quantities in trade UOMs, rates, taxes broken out, totals, validity, terms. Send from the system — the email tracks against the document, so \"did we ever send them the revised offer?\" is a lookup, not an inbox excavation. Attachments (spec sheets, drawings) ride the document too.</p><p><b>The standard of craft.</b> A quotation is often the first artefact of your firm a customer's decision-makers ever hold. Clean descriptions, honest totals, stated validity, stated terms, letterhead, no typos: ten minutes of craft that prices the firm, not just the goods. Sloppy offers negotiate against themselves.</p><p><b>The Draft checklist, enumerated.</b> Before Submit, thirty seconds against six boxes: right party and contact? right price list and currency? every row's UOM sane? the correct tax template? validity and payment terms filled? descriptions readable by a stranger? Six checks catch the six errors that account for nearly every embarrassing offer — and Chapter 9's patterns 1 and 4 are simply this checklist, skipped, presenting as tickets weeks later.</p>"
+   },
+   {
+    "title": "Chapter 6 — The status lifecycle & working the Open pipeline",
+    "est": "14",
+    "html": "<p>A quotation's status is one word of truth about where the deal stands. This chapter is the vocabulary — and the weekly practice that keeps the vocabulary honest.</p><p><b>The lifecycle.</b> <b>Draft</b> (being written; not an offer) → submit → <b>Open</b> (formal, awaiting the customer's answer — THE working state). From Open, four exits: <b>Ordered</b> (won — a Sales Order was created from it, Chapter 8's moment), <b>Lost</b> (conceded, with a reason — Chapter 7), <b>Expired</b> (Valid Till passed with no order — automatic, no human needed), <b>Cancelled</b> (withdrawn by you — a mispriced offer pulled back before acceptance).</p><p><b>Amending a submitted quotation.</b> The customer pushes back; the offer must change. Submitted documents are not edited — <b>cancel, then Amend</b>: the amendment carries the same number with a revision suffix, the original is preserved, and the negotiation's history reads as v1 → v2 in the record (exactly the Sales Order discipline of Selling 4, learned here first). Editing-by-new-document — a fresh quotation pretending v1 never existed — orphans the trail and doubles your Open count with a ghost.</p><p><b>Working the Open list — the weekly ritual.</b> Filter Quotations to <b>Open</b>. That list IS your offers-awaiting-answer pipeline — not Draft (not offers yet), not All (history). The ritual, oldest first: (1) <b>chase</b> — every Open offer has a dated follow-up; in this house that means a next step on the Duty Board lead, not a hope; (2) <b>refresh the stale</b> — an offer near expiry that's still live gets amended with fresh validity (and current prices — that's the point of expiry); (3) <b>kill the dead honestly</b> — no answer after the third chase is a Lost with reason \"no response\", not an Open kept warm to flatter the pipeline. An Open list you can trust is worth more than any forecast, because it isn't a forecast — it is the actual set of live offers, and management reads it as such.</p><p><b>Expired is a feature.</b> Teams sometimes resent auto-expiry; it is protecting them. An expired quotation cannot be accepted at stale prices — the customer who returns after 60 days gets a refreshed offer at current reality, and the awkward \"that price was then\" conversation is had by the system, politely, in advance.</p><p><b>Reading the pipeline by age.</b> Sort the Open list by date, oldest first, and read it as three bands: this week's offers (working normally), two-to-four weeks (chase actively — the decision window for most Nigerian B2B), and beyond validity horizon (refresh or kill, no third option). The bands turn a list into a worklist; and the amendment numbering (QTN-00871-1, -2) means even the refreshed offers carry their age honestly in their names.</p>"
+   },
+   {
+    "title": "Chapter 7 — Losing well: lost reasons as intelligence",
+    "est": "12",
+    "html": "<p>Half of selling is losing. The difference between an amateur pipeline and a professional one is what the losses leave behind.</p><p><b>The mechanics.</b> Marking a quotation <b>Lost</b> prompts for a <b>Lost Reason</b> — and supports recording which <b>competitor</b> took it. Ten seconds per loss. The reason taxonomy should be short and honest: <i>Price · Competitor · Timing/postponed · No budget · Spec mismatch · No response</i>. Six options a rep can pick without a philosophy seminar; \"Other\" exists but a category that wins the usage stats is a category list that needs redesign.</p><p><b>Why it matters — the compounding asset.</b> One lost reason is an anecdote. Six months of honest ones is a strategy document nobody had to write: <b>Price</b> dominating in one segment says your list rates are wrong there (or your value story is — same signal, two fixes); one <b>competitor's</b> name recurring says build the battle-card, study their gaps, price their weaknesses; <b>Timing</b> clusters say your offers land too early in the buying cycle — a next-step cadence problem (Selling 3 Chapter 2's working-the-lead discipline), not a pricing one; <b>Spec mismatch</b> patterns are product feedback wearing a sales costume — route them to whoever owns the catalog. Lost reasons are competitive and pricing intelligence. They are not a blame record for reps — the moment they're used punitively, every loss becomes \"Timing\" and the asset is destroyed; not noise; and never a deletion queue (a purged loss history is a firm that pays to relearn its own lessons).</p><p><b>Reading the intelligence.</b> Quarterly: losses grouped by reason, by segment (customer group — Selling 1's tree earning rent again), by competitor. One page. The questions it answers are the ones boards actually ask: where do we lose, to whom, and about what?</p><p><b>Reopening.</b> A lost deal that comes back to life is a NEW offer at current prices — refresh rather than resurrect, and let the record show both chapters of the story.</p><p><b>The quarterly one-pager, specified.</b> Four cuts, one page: losses by reason (the headline mix), by customer group (which segments resist), by competitor (who beats you, where), and by source (which channels send losers). Build it once from the quotation list's filters; read it in the quarterly commercial review beside the win data. The firms that do this treat lost deals as tuition already paid — the ones that don't, pay the same tuition annually.</p><p><b>Owning the taxonomy.</b> The reason list itself needs an owner — usually the sales lead — who prunes it yearly: a reason nobody picks gets merged away; an 'Other' that wins the counts gets split into what people were actually meaning. Taxonomies drift out of truth exactly like price lists drift out of market, and the maintenance discipline is the same: scheduled, owned, and boring.</p>"
+   },
+   {
+    "title": "Chapter 8 — Case study: the enterprise quotation, end to end",
+    "est": "16",
+    "html": "<p>One deal, worked from enquiry to order, every chapter earning its place. The client is recognisable on purpose.</p><p><b>The deal.</b> Montaigne AH — luxury retail, 30+ branches — requests an offer: POS hardware for 12 branches (12 terminals, 12 scanners, 12 printers), installation, and a year of support. Procurement is professional; legal will read the terms; the decision will take three weeks and two rounds.</p><p><b>Step 1 — The party (Ch. 1-2).</b> Montaigne exists as a customer (Selling 1's onboarding was done at contract stage): Corporate group, Lagos Island, NGN, Key Accounts NGN price list. The quotation addresses the customer; contact defaults to their procurement lead (primary contact doing its job).</p><p><b>Step 2 — The grid (Ch. 1, 3).</b> Six rows: terminals, scanners, printers (12 each — hardware descriptions written for a buyer: model, spec, warranty line); Installation (service item, Maintain Stock off — Selling 2 Ch. 1); Support Plan — Year 1; and a training line. Rates fetch from Key Accounts NGN. Negotiation from the prior meetings (worked on the Duty Board lead, next steps and all) justifies one override: terminals cut 4% against list — <b>Rate</b> edited, <b>Price List Rate</b> standing witness, reason noted in the deal record.</p><p><b>Step 3 — Taxes and terms (Ch. 4-5).</b> VAT 7.5% template selected; grand total shows what Montaigne will actually pay. Payment terms: 50% advance, 40% on delivery, 10% on commissioning — stated ON the offer, inherited later by every invoice (Selling 7 will thank this step). T&amp;C template: standard supply-and-install terms, plus one deal clause — site-readiness responsibilities per branch. Valid Till: 30 days.</p><p><b>Step 4 — Submit and send (Ch. 1, 5).</b> Draft reviewed against a checklist (right list? right template? descriptions clean? totals sane?), then Submit → QTN number → emailed from the system on letterhead, spec sheets attached. Status: <b>Open</b>. A dated next step lands on the lead: follow up in 5 days.</p><p><b>Step 5 — The pushback and the amendment (Ch. 6).</b> Round two: Montaigne wants the support plan cut 10% and 45-day validity for their board cycle. Cancel → <b>Amend</b> → v2: support rate adjusted, Valid Till extended, one line added to terms. The record now reads v1 → v2 — the negotiation IS the document history. (A fresh quotation pretending v1 never existed was the rejected path.)</p><p><b>Step 6 — The win (Ch. 6; Selling 4 begins).</b> Acceptance email arrives. From the v2 quotation: <b>Create &gt; Sales Order</b> — items, the negotiated rates, VAT, the staged payment terms, all carried without retyping; the quotation flips to <b>Ordered</b>; the lead on the Duty Board closes won. The chain of custody — enquiry, meetings, v1, v2, order — is unbroken and readable by anyone, forever.</p><p><b>What the craft bought:</b> two rounds closed in three weeks with zero transcription errors, terms legal had pre-approved, a payment schedule collections will enforce verbatim, and a file that the delivery team (Selling 5) and the billing team (Selling 7) can execute without one clarifying phone call. That is what a quotation is FOR.</p>"
+   },
+   {
+    "title": "Chapter 9 — Common mistakes & support patterns",
+    "est": "13",
+    "html": "<p>The quotations scar-tissue chapter: the tickets and habits you will actually meet, symptom → disease → fix.</p><p><b>Pattern 1 — \"Customer accepted at the old price and we're stuck.\"</b> Disease: blank or generous Valid Till (Ch. 1, 5) — the offer outlived its cost basis. Fix forward: validity policy by item volatility; fix now: a commercial conversation, because the document did commit you. The system's version of this protection — auto-expiry — was disabled by the blank field.</p><p><b>Pattern 2 — \"Our Open pipeline is huge but nothing closes.\"</b> Disease: Open-list dishonesty (Ch. 6) — dead deals kept warm, no-response offers never marked Lost, stale offers never expired-and-refreshed. Fix: the weekly ritual, enforced; the number shrinks to the truth and management can finally steer by it. A big fake pipeline is worse than a small real one because it licenses complacency.</p><p><b>Pattern 3 — \"Every quotation has overrides.\"</b> Disease: list rates diverged from market, so everything is an 'exception' (Ch. 3; Selling 2 Ch. 9's coupling cousin). Fix: reprice the lists (Selling 2 Ch. 6's import workflow), or migrate structural cases to their proper list/pricing rule — and reserve Rate for genuine negotiation again.</p><p><b>Pattern 4 — \"We quoted the wrong tax and it reached the invoice.\"</b> Disease: wrong template chosen in Draft, faithfully travelling (Ch. 4). Fix: the Draft checklist (right template is a checkbox on it); for the live case, amend the quotation if pre-order, or handle downstream per Selling 7's correction discipline if it's already billed.</p><p><b>Pattern 5 — \"We can't find what we offered them last time.\"</b> Disease: offers made outside the system (a PDF from someone's desktop) or fresh-document 'edits' orphaning the trail (Ch. 6). Fix: every offer is a Quotation, every revision an Amend — then \"what did we offer?\" is a filter, not a forensic exercise.</p><p><b>Pattern 6 — \"A customer record exists for every enquiry that ever emailed us.\"</b> Disease: quoting enquiries as customers instead of leads (Ch. 2). Fix: leads for the unconverted, conversion at the win — and a one-time cleanup of the ghost customers (Selling 1 Ch. 9's merge discipline).</p><p><b>Pattern 7 — \"Lost reasons are all 'Timing'.\"</b> Disease: the taxonomy is being used defensively — usually because it's read punitively (Ch. 7). Fix is managerial, not technical: losses reviewed as strategy, never as prosecution; the data honestifies within a quarter.</p><p><b>The meta-pattern, extended.</b> Selling 1 and 2 taught: documents are downstream of masters. This module adds the second law: <b>the pipeline is downstream of discipline</b>. Statuses kept true, validity enforced, losses recorded honestly, revisions amended not forked — the quotation layer is where process integrity becomes visible to management, because the Open list is the one report everyone reads as a promise. Keep it worthy of that reading.</p>"
    }
   ],
   "questions": [
    {
     "q": "A submitted quotation awaiting the customer's answer shows status:",
     "opts": [
-     "Draft",
      "Open",
+     "Draft",
      "Ordered",
      "Pending"
     ],
-    "ans": 1,
+    "ans": 0,
     "why": "Submit moves Draft to Open — the awaiting-answer state.",
     "src": "Lifecycle §3"
    },
@@ -759,11 +784,11 @@
     "q": "Making a Sales Order from a quotation flips the quotation to:",
     "opts": [
      "Closed",
-     "Ordered",
      "Won",
+     "Ordered",
      "Fulfilled"
     ],
-    "ans": 1,
+    "ans": 2,
     "why": "Ordered records that the offer converted.",
     "src": "Converting §4"
    },
@@ -771,23 +796,23 @@
     "q": "Marking a quotation Lost prompts for:",
     "opts": [
      "A discount",
-     "A Lost Reason",
+     "A replacement quote",
      "Manager approval",
-     "A replacement quote"
+     "A Lost Reason"
     ],
-    "ans": 1,
+    "ans": 3,
     "why": "Lost reasons accumulate into competitive intelligence.",
     "src": "Losing §4"
    },
    {
     "q": "Nigerian VAT on a quotation is applied via:",
     "opts": [
-     "Typing 7.5% into the rate",
      "A Sales Taxes and Charges Template",
+     "Typing 7.5% into the rate",
      "The item master",
      "The customer group"
     ],
-    "ans": 1,
+    "ans": 0,
     "why": "The tax template carries VAT onto the document.",
     "src": "Taxes §2"
    },
@@ -807,11 +832,11 @@
     "q": "Overriding a price-list rate on one quotation row is:",
     "opts": [
      "Impossible",
-     "Allowed, visible, and reportable",
      "Only for System Managers",
+     "Allowed, visible, and reportable",
      "Automatic"
     ],
-    "ans": 1,
+    "ans": 2,
     "why": "Row overrides are permitted and transparent.",
     "src": "Creating §1"
    },
@@ -819,23 +844,23 @@
     "q": "Your live offers-awaiting-answer list is the Quotation list filtered to:",
     "opts": [
      "Draft",
-     "Open",
+     "All",
      "Ordered",
-     "All"
+     "Open"
     ],
-    "ans": 1,
+    "ans": 3,
     "why": "Open = submitted, unanswered, unexpired.",
     "src": "Lifecycle §3"
    },
    {
     "q": "Converting via Create > Sales Order matters because:",
     "opts": [
-     "It's faster to type fresh",
      "Items, rates, taxes and terms carry over with no transcription errors",
+     "It's faster to type fresh",
      "It skips approval",
      "It hides the quotation"
     ],
-    "ans": 1,
+    "ans": 0,
     "why": "Document flow preserves the agreed offer exactly.",
     "src": "Converting §4"
    },
@@ -855,11 +880,11 @@
     "q": "The taxes chosen on the quotation:",
     "opts": [
      "Must be re-entered on the order",
-     "Flow onto the Sales Order made from it",
      "Apply only to the quote",
+     "Flow onto the Sales Order made from it",
      "Are locked to VAT"
     ],
-    "ans": 1,
+    "ans": 2,
     "why": "The template travels forward through the cycle.",
     "src": "Taxes §2"
    },
@@ -867,13 +892,289 @@
     "q": "Six months of Lost Reasons is best used as:",
     "opts": [
      "A blame record",
-     "Competitive and pricing intelligence for strategy",
+     "Nothing — it's noise",
      "A deletion queue",
-     "Nothing — it's noise"
+     "Competitive and pricing intelligence for strategy"
     ],
-    "ans": 1,
+    "ans": 3,
     "why": "Patterns in why deals die tell you what to fix.",
     "src": "Losing §4"
+   },
+   {
+    "q": "A price enquiry from a company that has never bought should be quoted against:",
+    "opts": [
+     "A Lead — conversion to customer happens at the win",
+     "A new customer record",
+     "The generic 'Walk-in' customer",
+     "No document — email a PDF"
+    ],
+    "ans": 0,
+    "why": "Leads keep the customer master free of never-transacted ghosts.",
+    "src": "Ch2"
+   },
+   {
+    "q": "On a quotation row, a negotiated concession changes:",
+    "opts": [
+     "Price List Rate",
+     "Rate, while Price List Rate stands as the reference",
+     "Both fields",
+     "The item's Item Price"
+    ],
+    "ans": 1,
+    "why": "The pair makes negotiation measurable against list.",
+    "src": "Ch3"
+   },
+   {
+    "q": "The honest way to give 20 free units on an order of 100 is:",
+    "opts": [
+     "A blended average rate on one row",
+     "120 units at a doctored rate",
+     "Two rows — 100 at rate, 20 at zero",
+     "A remark promising the extras"
+    ],
+    "ans": 2,
+    "why": "Two visible rows; enabled by Allow-Multiple-Times.",
+    "src": "Ch3"
+   },
+   {
+    "q": "The same customer gets the same 'exception' override every month. The right response:",
+    "opts": [
+     "Keep overriding — it works",
+     "Raise their credit limit",
+     "Ban overrides",
+     "Move them to the correct price list or rule; overrides return to meaning exceptions"
+    ],
+    "ans": 3,
+    "why": "A recurring exception is actually their price.",
+    "src": "Ch3"
+   },
+   {
+    "q": "A quotation left with a blank Valid Till:",
+    "opts": [
+     "Never expires — last quarter's prices stay acceptable indefinitely",
+     "Expires in 30 days anyway",
+     "Cannot be submitted",
+     "Is automatically cancelled"
+    ],
+    "ans": 0,
+    "why": "Auto-expiry only protects you if the field is filled.",
+    "src": "Ch1, Ch9"
+   },
+   {
+    "q": "Validity for FX-exposed goods should be:",
+    "opts": [
+     "The standard 30 days",
+     "Short (7–14 days), with conversion language in terms",
+     "One year",
+     "Blank"
+    ],
+    "ans": 1,
+    "why": "The validity window is your price-risk window.",
+    "src": "Ch5"
+   },
+   {
+    "q": "Payment terms belong on the quotation because:",
+    "opts": [
+     "Invoices can't carry terms",
+     "It's legally required",
+     "The cash conversation should happen before commitment, and invoices inherit what's agreed",
+     "It shortens the document"
+    ],
+    "ans": 2,
+    "why": "Terms stated at offer time are enforced, not argued, at billing time.",
+    "src": "Ch5"
+   },
+   {
+    "q": "The customer pushes back on a submitted quotation. The change is made by:",
+    "opts": [
+     "Editing the submitted document",
+     "A phone agreement",
+     "A fresh quotation ignoring v1",
+     "Cancel then Amend — v2 carries the history"
+    ],
+    "ans": 3,
+    "why": "Amendments keep the negotiation readable as v1 → v2.",
+    "src": "Ch6"
+   },
+   {
+    "q": "An Open offer with no response after the third chase should be:",
+    "opts": [
+     "Marked Lost with reason 'no response'",
+     "Kept Open to flatter the pipeline",
+     "Deleted",
+     "Re-submitted"
+    ],
+    "ans": 0,
+    "why": "An Open list you can trust beats a big fake one.",
+    "src": "Ch6, Ch7"
+   },
+   {
+    "q": "Auto-expiry of quotations protects the seller by:",
+    "opts": [
+     "Punishing slow customers",
+     "Preventing acceptance at stale prices — refresh happens by design",
+     "Reducing database size",
+     "Hiding old offers"
+    ],
+    "ans": 1,
+    "why": "Expired offers force a repriced conversation politely, in advance.",
+    "src": "Ch6"
+   },
+   {
+    "q": "A lost-reason taxonomy that works is:",
+    "opts": [
+     "Twenty precise categories",
+     "A free-text field",
+     "Short and honest — Price, Competitor, Timing, No budget, Spec, No response",
+     "Optional"
+    ],
+    "ans": 2,
+    "why": "Reps must pick truthfully in seconds for the data to compound.",
+    "src": "Ch7"
+   },
+   {
+    "q": "Lost reasons all read 'Timing'. The likeliest cause:",
+    "opts": [
+     "Deals genuinely all mistimed",
+     "The taxonomy is too short",
+     "A system bug",
+     "The data is read punitively, so reps answer defensively"
+    ],
+    "ans": 3,
+    "why": "Intelligence dies the day it becomes prosecution.",
+    "src": "Ch7, Ch9"
+   },
+   {
+    "q": "'Price' dominating lost reasons in one segment signals:",
+    "opts": [
+     "List rates or the value story are wrong there — same signal, two fixes",
+     "Reps need discipline",
+     "Stop selling to that segment",
+     "Nothing"
+    ],
+    "ans": 0,
+    "why": "Loss patterns are strategy wearing sales data.",
+    "src": "Ch7"
+   },
+   {
+    "q": "A dead deal that revives after two months gets:",
+    "opts": [
+     "The old quotation reopened as-is",
+     "A refreshed offer at current prices, with both chapters in the record",
+     "A discount for returning",
+     "A verbal price"
+    ],
+    "ans": 1,
+    "why": "Refresh rather than resurrect.",
+    "src": "Ch7"
+   },
+   {
+    "q": "The email sending a quotation should go:",
+    "opts": [
+     "From any personal inbox",
+     "Via WhatsApp only",
+     "From the system, tracking against the document",
+     "After the order"
+    ],
+    "ans": 2,
+    "why": "'Did we send the revised offer?' becomes a lookup, not an excavation.",
+    "src": "Ch5"
+   },
+   {
+    "q": "Item description on the quotation row matters because:",
+    "opts": [
+     "It's searchable",
+     "It controls stock",
+     "It sets the tax",
+     "It prints as your offer's line copy for the buyer's eyes"
+    ],
+    "ans": 3,
+    "why": "The description IS the customer-facing spec line.",
+    "src": "Ch1, Ch5"
+   },
+   {
+    "q": "The Draft/Submit distinction means:",
+    "opts": [
+     "Build and check in Draft; the customer only ever sees Submitted",
+     "Drafts are visible to customers",
+     "Submit deletes the draft",
+     "Drafts expire"
+    ],
+    "ans": 0,
+    "why": "Formality begins at submission.",
+    "src": "Ch1"
+   },
+   {
+    "q": "Choosing the wrong tax template on a quotation is worth catching in Draft because:",
+    "opts": [
+     "It can't be fixed later",
+     "The error travels to order and invoice as faithfully as the correct choice would",
+     "Taxes don't recalculate",
+     "FIRS reads drafts"
+    ],
+    "ans": 1,
+    "why": "The template flows through the whole cycle.",
+    "src": "Ch4"
+   },
+   {
+    "q": "Terms & Conditions on quotations should be:",
+    "opts": [
+     "Written fresh per deal",
+     "Omitted for speed",
+     "A standard template, with deal-specific clauses as visible additions",
+     "Only in the email body"
+    ],
+    "ans": 2,
+    "why": "Standard terms stay legally pre-approved; deviations stay visible.",
+    "src": "Ch5"
+   },
+   {
+    "q": "Quoting from an opportunity (rather than loose) matters because:",
+    "opts": [
+     "It's faster",
+     "It changes pricing",
+     "It skips approval",
+     "The deal's history — opportunity, offers, order — is born linked and studyable"
+    ],
+    "ans": 3,
+    "why": "Linked chains beat archaeology.",
+    "src": "Ch2"
+   },
+   {
+    "q": "In the Montaigne case, the 4% terminal concession was recorded as:",
+    "opts": [
+     "A Rate override with the reason noted, Price List Rate standing",
+     "A quantity bump",
+     "A new price list",
+     "A hidden rebate"
+    ],
+    "ans": 0,
+    "why": "Negotiation visible, measurable, and explained.",
+    "src": "Ch8"
+   },
+   {
+    "q": "The weekly Open-pipeline ritual, oldest first, is:",
+    "opts": [
+     "Print and file",
+     "Chase, refresh the stale, kill the dead honestly",
+     "Convert everything to orders",
+     "Delete expired offers"
+    ],
+    "ans": 1,
+    "why": "Three verbs keep the pipeline true.",
+    "src": "Ch6"
+   },
+   {
+    "q": "The second law this module adds to 'documents are downstream of masters' is:",
+    "opts": [
+     "Taxes are downstream of totals",
+     "Offers are downstream of luck",
+     "The pipeline is downstream of discipline",
+     "Reports are downstream of IT"
+    ],
+    "ans": 2,
+    "why": "Status truth, validity, honest losses, amended revisions — discipline made visible.",
+    "src": "Ch9"
    }
   ]
  },
@@ -882,36 +1183,61 @@
   "desc": "The commitment document: delivery dates, what submission reserves, the status language, amendments, holds and closes, and delivery tolerance.",
   "lessons": [
    {
-    "title": "The commitment",
-    "est": "8",
-    "html": "<p>The <b>Sales Order</b> is where an offer becomes an obligation. The customer has said yes; you now owe specific goods at specific rates by a specific <b>Delivery Date</b> — and the business plans around that promise: stock gets reserved, procurement sees demand, the warehouse sees a pipeline of picks.</p><p><b>Preferred origin:</b> created FROM the accepted quotation (Create &gt; Sales Order), inheriting everything — the previous module explained why retyping is malpractice. Direct entry exists for genuinely quotation-less sales (repeat standing orders, counter trade), but \"direct entry always\" is the mark of a team not using the system's spine.</p><p><b>Delivery dates, properly:</b> the order carries a header delivery date, and each row can carry its OWN — because real orders split: the shelving ships Monday, the imported scanners in three weeks. <b>Per-row delivery dates on one order</b> is the correct model for staggered fulfilment — not separate orders per timeline (which fragments the customer's one purchase), not remarks (which no report reads), not holding the whole order hostage to its slowest line.</p><p>The order also fixes the commercial terms for the rest of the cycle: rates, taxes, payment terms — which the Maintain-Same-Rate setting then defends downstream.</p>"
+    "title": "Chapter 1 — The Sales Order, field by field",
+    "est": "15",
+    "html": "<p>The Sales Order is the hinge of the entire selling cycle: everything before it was persuasion, everything after it is performance. The customer has said yes; this document records exactly what was promised, at what price, for when — and the whole business plans off it: the warehouse sees a pipeline of picks, procurement sees demand, finance sees revenue in flight, and the delivery and billing modules (Selling 5 and 7) will count themselves down against its rows. Walk the fields with that weight in mind.</p><ul><li><b>Customer</b> — always a customer now, never a lead: commitment requires the full master (Selling 1). If the deal began as a lead quotation, conversion happened at the win (Selling 3, Chapter 2), and the order addresses the newborn customer with its group, territory, currency and price list properly set.</li><li><b>Transaction date vs Delivery Date</b> — two different promises. The transaction date is when the commitment was made; the header <b>Delivery Date</b> is when the goods are owed. The gap between them is your fulfilment runway, and every planning view measures against the delivery side.</li><li><b>Per-row delivery dates</b> — real orders split: shelving Monday, imported scanners in three weeks. Each item row can carry its OWN delivery date, and this — not separate orders, not remarks, not holding everything hostage to the slowest line — is the correct model for staggered fulfilment. The header date then reads as the outer promise; the rows carry the schedule.</li><li><b>The items grid</b> — inherited from the quotation when created from one (Chapter 2): items, quantities, UOMs, the negotiated rates with Price List Rate standing witness (Selling 3), amounts. The row additionally carries the <b>warehouse</b> it will ship from — the first appearance of physical reality in the cycle — and, once submitted, live <b>delivered and billed quantities</b> that Chapter 3 explains.</li><li><b>Taxes, terms, T&amp;C</b> — travelled from the quotation (Selling 3, Chapters 4-5): the VAT template, the payment schedule, the conditions legal saw. Verify rather than re-enter; the whole point of document flow is that the accepted offer IS the recorded order.</li><li><b>Source link</b> — the quotation reference, visible on the order. The chain of custody in one field: this order fulfils that offer.</li></ul><p><b>Draft first, always.</b> As with quotations: build in Draft, check against the six-box discipline (right customer, rates as negotiated, dates realistic, warehouse sane, tax template correct, terms intact), then Submit — because submission, as Chapter 3 shows, is not filing. It changes the state of the business.</p>"
    },
    {
-    "title": "What submission does",
-    "est": "8",
-    "html": "<p>Submitting a Sales Order is not filing paperwork — it changes system state in two ways every seller must understand:</p><p><b>1. Stock intent is committed.</b> The ordered quantities appear as <b>reserved</b> against the warehouse. Reserved stock is not deducted (deduction is the Delivery Note's job, next module), and nothing transfers to the customer yet — but everyone SEES the promise: another salesperson checking availability sees actual-minus-reserved; the planner sees demand; procurement sees what must be bought. Reservation is the mechanism that stops two reps selling the same last 50 cartons.</p><p><b>2. The fulfilment ledger opens.</b> The order now tracks, per row: quantity ordered, <b>delivered so far</b>, <b>billed so far</b>. Every Delivery Note and Sales Invoice <b>made FROM the order</b> counts these down automatically. That's why creating downstream documents from the order matters mechanically, not just for convenience: a delivery note typed from scratch doesn't count against anything, and the order will insist those goods are still owed. The remaining quantities count down as <b>Delivery Notes are made from the order</b> — not as payments arrive, not as time passes, not as stock is purchased.</p>"
+    "title": "Chapter 2 — From quotation to commitment",
+    "est": "13",
+    "html": "<p>How an order comes to exist determines whether the deal the customer accepted and the deal you fulfil are the same deal. This chapter is the creation discipline.</p><p><b>The preferred path: Create from the quotation.</b> On the accepted quotation: <b>Create &gt; Sales Order</b>. Items, quantities, UOMs, the negotiated rates including overrides, the tax template, the payment terms, the T&amp;C — all carry across with zero retyping, zero transcription errors. The quotation flips to <b>Ordered</b> (Selling 3, Chapter 6), closing its lifecycle, and the order carries the source link forever. This path is preferred not for convenience but for integrity: the moment a human retypes an accepted offer, the agreed deal and the recorded deal can diverge, and every dispute born of that divergence is self-inflicted.</p><p><b>Partial acceptance.</b> The customer accepted four of the six quoted lines. Create the order from the quotation, then <b>delete the declined rows in Draft</b> before submitting — the order records what was actually accepted; the quotation's full offer remains in history; the source link still tells the story. What NOT to do: a fresh hand-typed order for the four lines (orphans the trail, invites typos), or forcing the customer's decision into an all-or-nothing re-quote when the win is sitting in front of you.</p><p><b>Quantity changes at acceptance.</b> Same principle: adjust quantities in Draft. The quotation offered 100; they committed to 80 — the order says 80. (If they may take the other 20 later, that later purchase is a NEW order when it becomes real; do not book hope as commitment. Selling 8's blanket orders exist for genuinely committed future volume.)</p><p><b>Direct entry — the legitimate minority.</b> Orders without quotations exist honestly: standing repeat orders from established customers, counter trade, phone orders in fast-moving distribution. Direct entry serves them — the full grid filled by hand, rates fetching from the customer's list per Selling 2's machinery. The tell of a process problem is not direct entry existing but direct entry DOMINATING in a business that negotiates: if most orders have no quotation behind them in a deal-driven trade, offers are being made outside the system (Selling 3, Chapter 9, Pattern 5) and the pipeline management above them is fiction.</p><p><b>One order per commitment.</b> Resist both fragmentation (five little orders for one purchase because five people phoned) and agglomeration (appending a new week's purchase onto last week's open order). The order maps one commercial commitment; its identity is what every downstream document, status, and report hangs from.</p>"
    },
    {
-    "title": "Status language & control",
-    "est": "10",
-    "html": "<p>Order status is a compact sentence about what remains owed. The vocabulary:</p><ul><li><b>To Deliver and Bill</b> — freshly submitted; both obligations outstanding. Every order starts here.</li><li><b>To Bill</b> — delivered in full, not yet invoiced. Goods gone; money not asked for.</li><li><b>To Deliver</b> — invoiced first (advance-billing deals), goods still owed.</li><li><b>Completed</b> — both done.</li></ul><p>Two manual controls change an order's course:</p><ul><li><b>Hold</b> — pauses the order. Credit trouble, stock uncertainty, customer says \"wait\": Hold keeps the commitment intact but stops fulfilment. Not cancellation, not closure — a pause.</li><li><b>Close</b> — ends it early, deliberately. The classic case: customer took 80 of 100 and will take no more. Closing the order <b>releases the reserved stock</b> for the remaining 20 and removes the order from every pending-delivery list — the honest end. Cancelling would falsify history (the 80 DID happen); deleting rows mutilates a submitted document; delivering 20 to scrap is absurd. <b>Close is the answer</b> — know this cold.</li></ul><p><b>Amending:</b> submitted documents don't get edited — they get <b>cancelled and Amended</b>, which creates the next revision (same number, -1 suffix) with the original preserved in history. Quantities changed, rows added: cancel → Amend → adjust → resubmit. Never a fresh order pretending the first didn't exist, and never database surgery.</p>"
+    "title": "Chapter 3 — What submission changes: reservation & the fulfilment ledger",
+    "est": "14",
+    "html": "<p>Submitting a Sales Order is the moment a promise becomes system state. Two machines start, and a professional can explain both to a sceptical storekeeper.</p><p><b>Machine one: stock reservation.</b> The ordered quantities appear as <b>reserved</b> against each row's warehouse. Reserved is not deducted — deduction is the Delivery Note's act (Selling 5), and nothing has physically moved — but reserved quantities subtract from what everyone else sees as available: projected stock reads actual minus reserved plus incoming. The consequence is coordination without meetings: a second salesperson checking availability sees the truth net of promises; the planner sees demand by date; procurement sees what must be bought to cover commitments. Reservation is the mechanism that stops two reps selling the same last fifty cartons — and it is also why <b>stale open orders are poison</b>: an abandoned order nobody closed keeps its reservation forever, hiding sellable stock from the whole company (Chapter 5's Close exists for exactly this, and Chapter 9 meets the disease in the wild).</p><p><b>Machine two: the fulfilment ledger.</b> From submission, the order tracks per row: quantity ordered, <b>delivered so far</b>, <b>billed so far</b> — as quantities and percentages. Every Delivery Note and every Sales Invoice <b>created FROM the order</b> counts these down automatically; the order always knows what remains owed and what remains unbilled. This is the mechanical reason the create-from discipline matters beyond neatness: a delivery note typed from scratch, however accurate its contents, counts against NOTHING — the order will insist those goods are still owed, the status will never advance, and someone will eventually ship them again (Chapter 9, Pattern 1, the most expensive ticket in this module).</p><p><b>What the ledger feeds.</b> The delivered/billed percentages drive the status word (Chapter 4); the remaining quantities pre-fill the next DN and the next invoice (Selling 5 and 7 inherit exact remainders, never guesses); and across all orders, the order-analysis reporting (Selling 6) reads these same numbers as the company's delivery backlog. One ledger, kept automatically, on the document everyone already looks at.</p><p><b>What submission does NOT do.</b> No stock moves. No revenue books. No money is owed. Those are the Delivery Note's and the Sales Invoice's moments respectively — the timeline from Selling 5 bears repeating until reflexive: <i>order reserves, delivery deducts, invoice books, payment settles</i>. A customer who asks why their stock report has not changed after confirming an order gets that sentence, kindly.</p>"
    },
    {
-    "title": "Delivery tolerance",
-    "est": "7",
-    "html": "<p>Paper says 100; the pallet holds 102. Real warehouses overship slightly — bulk goods, pack rounding, good-faith extras — and the system must decide whether to allow it.</p><p>The <b>Over Delivery/Receipt Allowance %</b> answers it: set on the <b>item</b> (per-product tolerance) or globally in settings (the fallback), it defines how much a delivery may exceed the ordered quantity before ZhiftERP <b>blocks the delivery note</b>. Allowance 5% on an order of 100 → deliveries up to 105 pass; 106 is refused. Shipping 102 against 100 is permitted <b>when the allowance covers the 2%</b> — not never, not because the driver insists, and the invoice has nothing to do with it.</p><p><b>Choosing the number is a policy decision, per item class:</b> <b>zero tolerance</b> is right for <b>serialized electronics</b> — every unit has an identity, 100 means exactly 100 serials; slack there is how phones vanish. Bulk cement, produce, consumables earn a few percent, because blocking a 101st bag helps nobody. \"Zero for everything\" strangles the warehouse; \"slack for everything\" leaks serialized stock. Match tolerance to the nature of the goods.</p>"
+    "title": "Chapter 4 — The status language",
+    "est": "13",
+    "html": "<p>An order's status is a compact sentence about what remains owed, computed from the fulfilment ledger — not set by hand. Learn to read it, and to explain what moves it.</p><ul><li><b>To Deliver and Bill</b> — freshly submitted: both obligations outstanding. Every order begins here, and stays here while delivered and billed both sit below their thresholds.</li><li><b>To Bill</b> — delivered (fully, within tolerance), not yet invoiced. Goods gone, money not asked for — a status that should be measured in days, not weeks, because it is literally revenue waiting for someone to press Create (Selling 7 turns this into the billing worklist).</li><li><b>To Deliver</b> — invoiced ahead of delivery: the advance-billing flows (Selling 7, Chapter 1). Money asked for or received; goods still owed. Common in project and import trade; the status keeps the outstanding physical promise visible even after finance is satisfied.</li><li><b>Completed</b> — both counts done. The order retires from every pending list.</li></ul><p><b>How the percentages drive it.</b> The status flips on the delivered and billed percentages crossing completion (with over-delivery tolerance, Chapter 7, letting 100%+ within allowance count as complete). This is why hand-fixing a status is meaningless: the status is arithmetic; fix the arithmetic — usually a missing or mis-created downstream document — and the word fixes itself (Chapter 9's diagnostic spine).</p><p><b>Reading the order list as an operations dashboard.</b> Filter by status and the list becomes worklists: <i>To Deliver and Bill</i> sorted by delivery date is the warehouse's week; <i>To Bill</i> oldest-first is billing's morning; per-customer filters show any account's open commitments in one screen — the view to have open when that customer calls. Add the delivery-date column and overdue-to-promise orders surface without any report being built.</p><p><b>Status vs the docstatus.</b> Distinguish the fulfilment status (this chapter) from the document's own lifecycle: Draft / Submitted / Cancelled. A cancelled order (Chapter 6) leaves the fulfilment conversation entirely; a submitted one speaks the four-word vocabulary above. Support conversations go smoother when you name which axis a customer is asking about — <i>the document stands; the fulfilment is what moved</i>.</p><p><b>Per-customer reading.</b> One filter worth teaching every account owner: the customer's own open orders, all statuses, delivery-date column visible — the single screen to have open when that customer calls. It answers, without a report: what have we promised them, what has shipped, what is invoiced, what is overdue to promise. An account managed from this screen never says <i>let me check and get back to you</i> about its own commitments — and for your 30-branch enterprise accounts, that screen IS the service-level conversation.</p>"
+   },
+   {
+    "title": "Chapter 5 — Hold & Close: the two manual controls",
+    "est": "13",
+    "html": "<p>The ledger runs itself; two decisions remain human. Both change an order's course without falsifying its history — which is precisely why they exist, and why the destructive alternatives are wrong.</p><p><b>Hold — the pause.</b> Credit trouble surfaced (Selling 1, Chapter 6's block may have been bypassed and now the doubt has grown); stock is uncertain; the customer said wait. <b>Hold</b> freezes fulfilment: the commitment stands, the reservation stands, but the order stops being actionable until released. It is not cancellation (nothing is unwound), not closure (nothing is finalised) — a pause, visible to everyone who reads the order, reversible the moment the blocker clears. The discipline around it: a held order carries a reason and an owner — in this house, a dated next step on whoever must clear it — because an unowned hold is just a slow leak with a label.</p><p><b>Close — the honest early ending.</b> The canonical case, worth knowing verbatim: the customer took 80 of 100 and will take no more. <b>Close</b> ends the order deliberately: the delivered 80 stand in history exactly as they happened; the undelivered 20's <b>reservation is released</b> back to sellable stock; the order leaves every pending-delivery and pending-billing list. Walk the rejected alternatives and their specific harms: <i>cancelling</i> falsifies history (the 80 DID ship — a cancelled order says the commitment never stood); <i>deleting the remaining rows</i> mutilates a submitted document and breaks the ledger arithmetic; <i>delivering 20 to scrap</i> is inventing movement to satisfy a status. Close is the answer, and the storekeeper's gratitude is immediate: the phantom 20 stop haunting the projected stock.</p><p><b>Close as hygiene, not just endings.</b> Chapter 3 named stale open orders poison; Close is the antidote at scale. A monthly sweep — open orders past their delivery dates with no movement in N weeks — gets each one a decision: chase it, hold it with an owner, or close it honestly. The projected-stock figure the whole company trades against is only as true as this sweep is regular. (Your SLOT-scale inventory remediations have met the ghost-reservation disease at its terminal stage; this sweep is the vaccine.)</p><p><b>Reopening.</b> A closed order can be reopened when the customer's appetite genuinely returns for the SAME commitment — the reservation re-engages. If what returns is a new purchase at new terms, it is a new order; reopening old paper to house new deals muddies both.</p>"
+   },
+   {
+    "title": "Chapter 6 — Amendments & cancellation",
+    "est": "13",
+    "html": "<p>Submitted documents are immutable — that immutability is what makes them trustworthy — so change happens through a formal doorway. This chapter is the doorway, its numbering, and its limits.</p><p><b>Cancel, then Amend.</b> Quantities must change, a row must be added, a rate was agreed differently: <b>Cancel</b> the order, then <b>Amend</b>. The amendment is a new revision carrying the same identity with a suffix — SO-00412 becomes SO-00412-1 — editable as a draft, resubmitted when right. The original remains in history, cancelled but readable; the revision chain (…-1, -2) IS the negotiation-after-commitment record, exactly as quotation amendments were in Selling 3. Never a fresh order pretending the first never existed (orphans the quotation link and the customer's paper trail), never database surgery, and never — the recurring temptation — asking a System Manager to edit a submitted document in place: the moment submitted documents can be quietly edited, no document in the system means anything.</p><p><b>What cancellation does mechanically.</b> Cancelling releases the reservation (the promise is withdrawn, stock returns to sellable) and re-opens the source quotation's claim on reality — an order cancelled without amendment leaves the quotation Ordered but unfulfilled, worth tidying when the deal truly dies (mark the quotation appropriately, close the loop).</p><p><b>The linked-documents constraint.</b> An order with <b>submitted</b> Delivery Notes or Sales Invoices against it cannot simply be cancelled — the system refuses, because cancelling a commitment that has partly HAPPENED would orphan real stock movements and real ledger entries. The lawful sequence runs backwards down the chain: deal with the downstream documents first (cancel an unexecuted DN; for executed reality, Selling 5's returns and Selling 7's credit notes unwind what actually occurred), and only then does the order become cancellable. Chapter 9 meets this as a ticket; the answer is always the same sentence: <i>unwind the children before the parent</i>.</p><p><b>Amend vs Close — choosing the right instrument.</b> The confusion to pre-empt: <b>Amend</b> is for correcting what the commitment IS (wrong quantity agreed, missing line, wrong rate recorded). <b>Close</b> is for ending what remains of a correct commitment (they took 80, done). Amending an order down to 80 because the customer stopped buying rewrites history to match the outcome — the 100 was really promised; Close preserves that truth. Corrections amend; endings close.</p>"
+   },
+   {
+    "title": "Chapter 7 — Delivery tolerance & scheduling",
+    "est": "13",
+    "html": "<p>Paper meets pallets in this chapter: the allowance that absorbs honest overage, and the date discipline that turns orders into a deliverable plan.</p><p><b>Over-delivery tolerance.</b> Real warehouses ship 102 against an order of 100 — pack rounding, bulk goods, good-faith extras. The <b>Over Delivery/Receipt Allowance %</b> defines how much a delivery may exceed the ordered quantity before the Delivery Note is blocked: set per <b>item</b> (the specific tolerance) with the <b>global</b> setting as fallback (Selling 1, Chapter 7's screen). Allowance 5% on 100 → up to 105 passes; 106 refuses. The policy logic, by item class: <b>zero tolerance for serialized goods</b> — every unit has identity, 100 means exactly 100 serials, and slack is how phones vanish; <b>a few percent for bulk</b> — cement, produce, consumables — because blocking the 101st bag helps nobody and the warehouse will otherwise route around the system (the worst outcome: tolerance decided ad hoc at the loading bay). Set it deliberately, per class, once.</p><p><b>Tolerance and completion.</b> Within allowance, an over-delivered row still completes cleanly — 102/100 within 5% reads as delivered, and the status machinery (Chapter 4) proceeds. Outside allowance, the DN blocks at submission and the conversation happens BEFORE stock moves, which is the entire point.</p><p><b>Scheduling with per-row dates.</b> Chapter 1 introduced row-level delivery dates; here is the operating rhythm they enable. The warehouse's forward view is the order rows grouped by delivery date — this week's picks, next week's, the overdue. An order with three delivery waves is one order, three row-dates, three appearances in the plan; the alternative models (three orders, or remarks) either fragment the commitment or hide the schedule from every view. When dates slip, the row's date is updated through the amendment discipline (Chapter 6) if the promise itself is being renegotiated — or stands as the record of the promise missed, which the overdue view then reports honestly. A plan that only ever shows achievable dates because someone edits the misses away is not a plan; it is a mirror.</p><p><b>Promise-keeping as a metric.</b> With dates kept honest, on-time-delivery-to-promise becomes computable per customer, per item group, per period — the operations metric your enterprise clients (30-branch chains with their own service levels to keep) will ask about in the second year of the relationship. The data exists the day the discipline does.</p>"
+   },
+   {
+    "title": "Chapter 8 — Case study: the Montaigne order, staged and stress-tested",
+    "est": "16",
+    "html": "<p>Selling 3 closed with Montaigne AH accepting quotation v2. This chapter runs that commitment through everything this module taught — including the two bumps every real enterprise order hits.</p><p><b>Step 1 — Birth (Ch. 2).</b> From quotation v2: <b>Create &gt; Sales Order</b>. Six lines carry over — hardware trio at the negotiated rates (the 4% terminal concession intact, Price List Rate still standing witness), installation, support plan, training — with VAT template and the staged payment terms (50/40/10). Montaigne confirms one change at signature: training moves to a later phase, so the training row's quantity drops in <b>Draft</b> before submission. Submit. Quotation v2 flips to <b>Ordered</b>; the order carries the source link; status: <b>To Deliver and Bill</b>.</p><p><b>Step 2 — The schedule (Ch. 1, 7).</b> Twelve branches in three waves: rows carry per-row delivery dates — wave one (5 branches) in 2 weeks, wave two (4) in 5 weeks, wave three (3) in 8 weeks. Hardware rows ship from the main warehouse; tolerance is zero on terminals and scanners (serialized — Ch. 7's rule) and default on consumables. The warehouse's forward view now shows three dated picks; nobody schedules by email.</p><p><b>Step 3 — Submission's machines (Ch. 3).</b> Reservation: 12 terminals, 12 scanners, 12 printers held against the warehouse — the two other pending POS deals this quarter now see availability NET of Montaigne, and procurement sees the reorder demand by date. The fulfilment ledger opens at 0% delivered, 0% billed.</p><p><b>Step 4 — Advance billing (Ch. 4; Selling 7 ahead).</b> Per the terms, the 50% advance invoice is raised FROM the order before any delivery — the ledger records billed% rising while delivered% sits at zero, and the status reads the invoiced-ahead reality. Money machinery continues in Selling 7; the order meanwhile keeps the physical promise visible.</p><p><b>Step 5 — Bump one: the hold (Ch. 5).</b> Week 3: the advance payment stalls in Montaigne's approval chain. Finance requests a pause before wave two ships. <b>Hold</b> — commitment intact, reservation intact, fulfilment frozen — with an owner and a dated next step (chase the advance, review Friday). Payment lands day 4; hold released; wave two proceeds. Total drama recorded: two clicks and one dated follow-up, instead of a WhatsApp thread nobody can find later.</p><p><b>Step 6 — Bump two: the dropped branch (Ch. 5, 6).</b> Week 7: Montaigne cancels one wave-three branch (lease fell through) — they will take 11 sets, not 12. This is an ENDING of part of a correct commitment, not a correction of a wrong one: when wave three delivers its final 2 sets, the order stands at 11 of 12 delivered — and is <b>Closed</b>. The twelfth set's reservation releases to sellable stock; history shows truthfully that 12 were promised and 11 taken. (Amending down to 11 was the rejected instrument — it would rewrite the promise to match the outcome, Ch. 6's distinction earning its keep.)</p><p><b>Step 7 — Retirement.</b> Waves delivered from the order (Selling 5's discipline, each DN pre-filled with exact remainders), final invoices from the order (Selling 7), ledger at completion for 11 sets, order Closed, quotation chain readable end to end: enquiry → meetings → v1 → v2 → order → three waves → close. Anyone in the firm can reconstruct the entire deal in five minutes, two years from now. That is what the hinge document is FOR.</p>"
+   },
+   {
+    "title": "Chapter 9 — Common mistakes & support patterns",
+    "est": "14",
+    "html": "<p>The Sales Order scar-tissue chapter — and because the order is the cycle's ledger, its diseases are the most expensive in selling. Symptom → disease → fix.</p><p><b>Pattern 1 — The order says goods are owed; the customer says they arrived.</b> Disease: the Delivery Note was created from scratch instead of FROM the order (Ch. 3) — accurate goods movement, zero ledger effect; the order still counts the quantities as undelivered, and the warehouse may ship them AGAIN. Fix: cancel the orphan DN and recreate it from the order (stock timing permitting), or reconcile deliberately; then retrain the create-from reflex. This is the single most expensive ticket in the module — double shipment is real stock and real money.</p><p><b>Pattern 2 — Projected stock says nothing is available, the shelves are full.</b> Disease: ghost reservations — stale open orders never closed (Ch. 3, 5). Every abandoned order holds its stock hostage invisibly. Fix: the monthly sweep — open orders past delivery date, no movement — each one chased, held with an owner, or closed; watch projected stock tell the truth again. (At enterprise scale this disease compounds into the phantom-stock archaeology your team has performed for 50-warehouse clients; the sweep is cheaper.)</p><p><b>Pattern 3 — The system refuses to cancel the order.</b> Not a disease — the linked-documents constraint working (Ch. 6). Submitted DNs or invoices exist against it. Fix: unwind the children before the parent — cancel unexecuted downstream drafts, or route executed reality through returns (Selling 5) and credit notes (Selling 7); then the order cancels lawfully. The ticket to refuse: force-deleting via administrative power, which orphans ledgers.</p><p><b>Pattern 4 — The delivery is blocked for 2 units of overage.</b> The tolerance gate working as configured (Ch. 7). Fix is a policy question, not a workaround: if this item class genuinely warrants slack, set its allowance deliberately; if it is serialized, the block just saved you — 102 serials against 100 ordered is a conversation, not a shipment.</p><p><b>Pattern 5 — Two orders exist for one purchase; both partly fulfilled.</b> Disease: retyping instead of amending, or two staff booking the same phone call (Ch. 2, 6). Fix: consolidate — close or cancel the junior twin after moving any real fulfilment references, then the one-order-per-commitment rule, taught. Prevention: search the customer's open orders before creating (the same search-before-create reflex as Selling 1 and 2's duplicate diseases — third appearance of the same law).</p><p><b>Pattern 6 — Status is To Deliver though the customer already paid everything.</b> Not a bug: advance billing (Ch. 4) — billed complete, delivery outstanding. The status is keeping the PHYSICAL promise visible precisely because finance is satisfied. The support answer is the timeline sentence: order reserves, delivery deducts, invoice books, payment settles — and this order still owes a deduction.</p><p><b>Pattern 7 — Someone edited a submitted order directly.</b> Disease: administrative override culture (Ch. 6). Whatever it fixed today, it broke the system's word: if submitted documents are editable, none of them is evidence. Fix: revert, amend properly, and close the permission hole — this one is escalated as governance, not settled as support.</p><p><b>The meta-pattern, completed.</b> Selling 1-2: documents are downstream of masters. Selling 3: the pipeline is downstream of discipline. This module closes the trilogy: <b>the order is the single source of fulfilment truth</b> — every downstream document is made FROM it, every status is arithmetic ON it, every plan and every promise-metric reads OFF it. Protect that role and the rest of the cycle mostly runs itself; violate it and every module downstream inherits the lie.</p>"
    }
   ],
   "questions": [
    {
     "q": "A freshly submitted, untouched Sales Order shows status:",
     "opts": [
-     "Open",
      "To Deliver and Bill",
+     "Open",
      "Confirmed",
      "Pending"
     ],
-    "ans": 1,
+    "ans": 0,
     "why": "Both obligations — deliver and bill — are outstanding.",
     "src": "Status §3"
    },
@@ -931,11 +1257,11 @@
     "q": "Submitting a Sales Order affects stock by:",
     "opts": [
      "Deducting it immediately",
-     "Reserving the ordered quantities against the warehouse",
      "Nothing until invoice",
+     "Reserving the ordered quantities against the warehouse",
      "Transferring it to the customer"
     ],
-    "ans": 1,
+    "ans": 2,
     "why": "Reservation shows everyone what's promised.",
     "src": "Submission §2"
    },
@@ -943,23 +1269,23 @@
     "q": "The customer took 80 of 100 and will take no more. Correct action:",
     "opts": [
      "Cancel the order",
-     "Close the order",
+     "Deliver 20 to scrap",
      "Delete the remaining rows",
-     "Deliver 20 to scrap"
+     "Close the order"
     ],
-    "ans": 1,
+    "ans": 3,
     "why": "Close ends it early, releases reservation, keeps history.",
     "src": "Status §3"
    },
    {
     "q": "An order that must pause for a credit issue should be:",
     "opts": [
-     "Cancelled",
      "Held",
+     "Cancelled",
      "Closed",
      "Deleted"
     ],
-    "ans": 1,
+    "ans": 0,
     "why": "Hold pauses without destroying the commitment.",
     "src": "Status §3"
    },
@@ -979,11 +1305,11 @@
     "q": "Shipping 102 against an order of 100 is permitted when:",
     "opts": [
      "Never",
-     "Over Delivery Allowance % covers the 2% overage",
      "The driver insists",
+     "Over Delivery Allowance % covers the 2% overage",
      "The invoice matches"
     ],
-    "ans": 1,
+    "ans": 2,
     "why": "The allowance defines acceptable overage before blocking.",
     "src": "Tolerance §4"
    },
@@ -991,23 +1317,23 @@
     "q": "Different lines shipping at different times are handled by:",
     "opts": [
      "Separate orders always",
-     "Per-row delivery dates on one order",
+     "Holding the order",
      "Remarks",
-     "Holding the order"
+     "Per-row delivery dates on one order"
     ],
-    "ans": 1,
+    "ans": 3,
     "why": "Row-level delivery dates schedule split fulfilment.",
     "src": "Commitment §1"
    },
    {
     "q": "The order's remaining-to-deliver quantities count down as:",
     "opts": [
-     "Payments arrive",
      "Delivery Notes are made from the order",
+     "Payments arrive",
      "Time passes",
      "Stock is purchased"
     ],
-    "ans": 1,
+    "ans": 0,
     "why": "Fulfilment documents made FROM the order drive its ledger.",
     "src": "Submission §2"
    },
@@ -1027,11 +1353,11 @@
     "q": "Zero over-delivery tolerance is right for:",
     "opts": [
      "Bulk cement",
-     "Serialized electronics where exact units matter",
      "All items",
+     "Serialized electronics where exact units matter",
      "No items"
     ],
-    "ans": 1,
+    "ans": 2,
     "why": "Serialized goods need exact quantities; bulk needs slack.",
     "src": "Tolerance §4"
    },
@@ -1039,13 +1365,289 @@
     "q": "The preferred origin of a Sales Order is:",
     "opts": [
      "Direct entry always",
-     "Create from the accepted Quotation",
+     "Import",
      "Copy of an old order",
-     "Import"
+     "Create from the accepted Quotation"
     ],
-    "ans": 1,
+    "ans": 3,
     "why": "Creating from the quotation preserves the agreed offer.",
     "src": "Commitment §1"
+   },
+   {
+    "q": "A Sales Order is always made against:",
+    "opts": [
+     "A customer — lead conversion happened at the win",
+     "A customer or a lead",
+     "A quotation only",
+     "A contact"
+    ],
+    "ans": 0,
+    "why": "Commitment requires the full customer master.",
+    "src": "Ch1"
+   },
+   {
+    "q": "The customer accepted 4 of 6 quoted lines. The order is created by:",
+    "opts": [
+     "Hand-typing the 4 lines fresh",
+     "Create from the quotation, delete the declined rows in Draft",
+     "Forcing a re-quote of 4 lines",
+     "Submitting all 6 and closing 2"
+    ],
+    "ans": 1,
+    "why": "The trail stays linked; the order records what was accepted.",
+    "src": "Ch2"
+   },
+   {
+    "q": "They committed to 80 of the quoted 100 and MAY take 20 later. Book:",
+    "opts": [
+     "100 — optimism",
+     "Two orders of 80 and 20",
+     "80 now; the later 20 is a new order when real (or a blanket order if truly committed)",
+     "90 as a compromise"
+    ],
+    "ans": 2,
+    "why": "Never book hope as commitment.",
+    "src": "Ch2"
+   },
+   {
+    "q": "Direct-entry orders dominating in a deal-driven business signals:",
+    "opts": [
+     "Efficiency",
+     "Nothing",
+     "Good customer loyalty",
+     "Offers are being made outside the system — the pipeline above is fiction"
+    ],
+    "ans": 3,
+    "why": "Legitimate for repeat trade; a tell when it dominates negotiated trade.",
+    "src": "Ch2"
+   },
+   {
+    "q": "Projected stock is computed as:",
+    "opts": [
+     "Actual minus reserved plus incoming",
+     "Actual only",
+     "Actual minus delivered",
+     "Ordered minus billed"
+    ],
+    "ans": 0,
+    "why": "Reservation subtracts from what everyone sees as available.",
+    "src": "Ch3"
+   },
+   {
+    "q": "A from-scratch Delivery Note (not made from the order):",
+    "opts": [
+     "Counts down the order anyway",
+     "Moves stock but counts against nothing — the order still shows goods owed",
+     "Is blocked",
+     "Bills the customer"
+    ],
+    "ans": 1,
+    "why": "The ledger only counts documents made FROM the order.",
+    "src": "Ch3, Ch9"
+   },
+   {
+    "q": "Stale open orders nobody closed are poison because:",
+    "opts": [
+     "They look untidy",
+     "They expire loudly",
+     "Their reservations hide sellable stock from the whole company",
+     "They double-bill"
+    ],
+    "ans": 2,
+    "why": "Ghost reservations distort projected stock silently.",
+    "src": "Ch3, Ch5"
+   },
+   {
+    "q": "An order's status word is:",
+    "opts": [
+     "Set by the sales manager",
+     "Random",
+     "Chosen at submission",
+     "Arithmetic computed from delivered/billed percentages"
+    ],
+    "ans": 3,
+    "why": "Fix the arithmetic (the documents), and the word fixes itself.",
+    "src": "Ch4"
+   },
+   {
+    "q": "'To Bill' orders should be measured in:",
+    "opts": [
+     "Days — it is revenue waiting for someone to press Create",
+     "Quarters",
+     "Years",
+     "Units"
+    ],
+    "ans": 0,
+    "why": "Delivered-unbilled is leakage aging in plain sight.",
+    "src": "Ch4"
+   },
+   {
+    "q": "The order list filtered To-Deliver-and-Bill, sorted by delivery date, is:",
+    "opts": [
+     "A finance report",
+     "The warehouse's week",
+     "A marketing list",
+     "An audit file"
+    ],
+    "ans": 1,
+    "why": "Status filters turn the list into operational worklists.",
+    "src": "Ch4"
+   },
+   {
+    "q": "A held order should carry:",
+    "opts": [
+     "Nothing — the flag suffices",
+     "A discount",
+     "A reason and an owner with a dated next step",
+     "A new delivery date"
+    ],
+    "ans": 2,
+    "why": "An unowned hold is a slow leak with a label.",
+    "src": "Ch5"
+   },
+   {
+    "q": "Closing an order releases:",
+    "opts": [
+     "The customer",
+     "The price list",
+     "The invoices",
+     "The undelivered quantities' reservation back to sellable stock"
+    ],
+    "ans": 3,
+    "why": "The phantom remainder stops haunting projected stock.",
+    "src": "Ch5"
+   },
+   {
+    "q": "The monthly order sweep reviews:",
+    "opts": [
+     "Open orders past delivery date with no recent movement — chase, hold with owner, or close",
+     "All orders ever",
+     "Only held orders",
+     "Cancelled orders"
+    ],
+    "ans": 0,
+    "why": "Regular hygiene keeps projected stock true.",
+    "src": "Ch5"
+   },
+   {
+    "q": "A closed order is reopened when:",
+    "opts": [
+     "Any new purchase arrives",
+     "The SAME commitment genuinely revives; new deals get new orders",
+     "Stock arrives",
+     "Finance asks"
+    ],
+    "ans": 1,
+    "why": "Old paper must not house new deals.",
+    "src": "Ch5"
+   },
+   {
+    "q": "Amendment numbering works as:",
+    "opts": [
+     "A brand-new number",
+     "A letter prefix",
+     "The same identity with a revision suffix (SO-00412-1)",
+     "No visible change"
+    ],
+    "ans": 2,
+    "why": "The revision chain is the post-commitment negotiation record.",
+    "src": "Ch6"
+   },
+   {
+    "q": "Cancelling an order also:",
+    "opts": [
+     "Deletes its quotation",
+     "Closes the customer",
+     "Bills a fee",
+     "Releases its reservation and leaves the source quotation worth tidying"
+    ],
+    "ans": 3,
+    "why": "The promise withdraws; loose ends get closed deliberately.",
+    "src": "Ch6"
+   },
+   {
+    "q": "An order with submitted DNs against it, when cancellation is attempted:",
+    "opts": [
+     "Is refused — unwind the children before the parent",
+     "Cancels and orphans them",
+     "Cancels the DNs too",
+     "Converts to Draft"
+    ],
+    "ans": 0,
+    "why": "Executed reality unwinds via returns and credit notes first.",
+    "src": "Ch6, Ch9"
+   },
+   {
+    "q": "Customer stopped at 80 of a correctly-recorded 100. Amending down to 80 would:",
+    "opts": [
+     "Be the clean fix",
+     "Rewrite the promise to match the outcome — Close preserves the truth",
+     "Release stock faster",
+     "Be required"
+    ],
+    "ans": 1,
+    "why": "Corrections amend; endings close.",
+    "src": "Ch6"
+   },
+   {
+    "q": "Zero over-delivery tolerance on serialized items exists because:",
+    "opts": [
+     "Serials are expensive",
+     "The law requires it",
+     "100 means exactly 100 identities — slack is how units vanish",
+     "Warehouses prefer it"
+    ],
+    "ans": 2,
+    "why": "Tolerance policy follows the nature of the goods.",
+    "src": "Ch7"
+   },
+   {
+    "q": "Tolerance decided ad hoc at the loading bay is:",
+    "opts": [
+     "Flexible and good",
+     "Impossible",
+     "Required for bulk",
+     "The worst outcome — set it deliberately per item class instead"
+    ],
+    "ans": 3,
+    "why": "Policy belongs in configuration, not improvisation.",
+    "src": "Ch7"
+   },
+   {
+    "q": "In the Montaigne order, the dropped twelfth branch was handled by:",
+    "opts": [
+     "Delivering 11 and Closing — 12 promised, 11 taken, truthfully",
+     "Amending the order to 11",
+     "Cancelling the order",
+     "A negative row"
+    ],
+    "ans": 0,
+    "why": "The case study applies the amend-vs-close distinction.",
+    "src": "Ch8"
+   },
+   {
+    "q": "The advance-billing stage showed the ledger as:",
+    "opts": [
+     "Delivered rising, billed zero",
+     "Billed rising while delivered sat at zero",
+     "Both at 100%",
+     "Frozen"
+    ],
+    "ans": 1,
+    "why": "The order keeps the physical promise visible after finance is satisfied.",
+    "src": "Ch8"
+   },
+   {
+    "q": "The module's closing law is:",
+    "opts": [
+     "Orders are optional in fast trade",
+     "Status beats arithmetic",
+     "The order is the single source of fulfilment truth — everything downstream is made FROM it and read OFF it",
+     "Warehouses own orders"
+    ],
+    "ans": 2,
+    "why": "Protect the ledger role and the cycle runs itself.",
+    "src": "Ch9"
    }
   ]
  },
@@ -1054,36 +1656,61 @@
   "desc": "Where stock actually moves: delivery notes from orders, partial shipments, statuses, sales returns, packing slips, and serial/batch discipline.",
   "lessons": [
    {
-    "title": "The document that moves stock",
-    "est": "8",
-    "html": "<p>Everything before this module was promise; the <b>Delivery Note</b> is physics. <b>Submitting a Delivery Note deducts stock from the warehouse.</b> Fix the timeline in your head permanently: quotation moves nothing, Sales Order <i>reserves</i>, <b>Delivery Note deducts</b>, invoice moves money, payment settles it. When a client asks \"why does my stock report still show those goods?\", the first question is \"has the delivery note been submitted?\"</p><p><b>Creation discipline:</b> from the Sales Order — <b>Create &gt; Delivery Note</b> — never from scratch, never by copying an old DN. Three reasons: quantities, rates and taxes flow correctly; the order's fulfilment ledger counts down (a from-scratch DN counts against nothing, and the order will insist the goods are still owed); and the document chain stays auditable — this DN fulfils that order fulfils that quotation.</p><p>The DN records the warehouse each row ships from, the shipping address chosen from the customer's addresses, and the transporter details when you need them on the waybill. Its print format IS the delivery document your driver carries and the customer's gate signs.</p>"
+    "title": "Chapter 1 — The Delivery Note, field by field",
+    "est": "15",
+    "html": "<p>Everything before this document was words; the Delivery Note is physics. It is the document that stands at the warehouse gate when goods leave, the paper the driver carries, the record the customer's gate signs — and, decisively, the document whose <b>submission deducts stock</b>. Selling 4 built the promise; this document performs it, and every field exists to make the performance exact.</p><ul><li><b>Customer, contact, addresses</b> — inherited from the order. The billing address wears the invoice later; the <b>shipping address</b> is THIS shipment's destination, picked from the customer's address list — for a chain, the branch (Selling 1, Chapter 5's thirty addresses, now earning their keep one delivery at a time). One order can feed many DNs to many branches; the address on each DN is what makes per-branch delivery history queryable forever.</li><li><b>Posting date and time</b> — when the movement is recorded as happening. Default is now, and now is almost always right: the stock ledger is a chronology, and Chapter 9 shows what casual backdating does to it.</li><li><b>The items grid</b> — pre-filled from the order with the exact remaining quantities (Chapter 3's machinery): item, quantity in the trade UOM, rate (travelling untouched, guarded by Maintain-Same-Rate), and per row the <b>source warehouse</b> stock will leave — the field where system meets shelf, Chapter 4's subject.</li><li><b>Serial and batch sections</b> — for tracked items, the rows demand identities: WHICH serials, WHICH batch. Chapters 5 and 6 give each its full treatment; at field level, know that a tracked row without its identities will not submit.</li><li><b>Transporter details</b> — driver, vehicle, LR/waybill fields. Optional in the schema, invaluable at the gate and in the dispute three weeks later: the DN that names its vehicle settles the argument the untracked one starts.</li></ul><p><b>Draft, then the irreversible moment.</b> Build and check in Draft as ever — but respect what Submit means HERE more than anywhere: quotation submission made an offer, order submission made a reservation, and both are reversible with paperwork. DN submission moves inventory: quantities leave bins, valuation moves with them, and the stock ledger writes a line of history. Unwinding it is a real operation (cancellation while goods are still yours; a formal return, Chapter 7, once they are not). The Draft check before a DN submit is therefore the cheapest moment of truth in the entire cycle — thirty seconds against the pick, the address, the identities, the date.</p>"
    },
    {
-    "title": "Partial delivery & status",
-    "est": "8",
-    "html": "<p>Orders rarely ship whole. The mechanics of shipping 60 of 100 today:</p><p>Create the DN from the order and <b>edit the quantity down to 60</b> on the row. Submit. The order's ledger now shows 60 delivered, 40 remaining — and here is the part that makes the system trustworthy: <b>the next DN created from that order offers exactly the 40 remaining</b>. Not 100 again (no double-shipping), not whatever someone types from memory. The order arithmetic is authoritative.</p><p><b>Where to see undelivered backlog:</b> remaining-to-deliver is <b>order-side data</b> — read it on the Sales Order itself or across all orders in the order-analysis reports (Selling 6 names them). The DN list can't tell you what HASN'T shipped; only orders know what they're still owed.</p><p><b>DN status:</b> a submitted DN reads <b>To Bill</b> until a Sales Invoice covers it, then <b>Completed</b>. \"To Bill\" on a DN is a small alarm: goods have left the building and nobody has asked for money yet — a list of To-Bill DNs older than a few days is revenue leaking.</p><p><b>Direction of creation can also reverse:</b> in advance-billing flows where the Sales Invoice came first, the DN is created <b>against the invoice</b> — same chain, opposite order. A DN is never made against a quotation, a lead, or a price list.</p>"
+    "title": "Chapter 2 — The timeline law & creation discipline",
+    "est": "13",
+    "html": "<p>Two sentences govern this module; both must become reflex.</p><p><b>The timeline law.</b> <i>Order reserves, delivery deducts, invoice books, payment settles.</i> Fix each verb to its document permanently: the quotation moves nothing; the Sales Order <b>reserves</b> (visible intent, no movement); the <b>Delivery Note deducts</b> — the only selling document that reduces warehouse stock in the standard flow; the Sales Invoice books money; the Payment Entry settles it. Every confused support conversation in fulfilment is a customer or colleague with two verbs swapped, and the cure is this sentence, delivered kindly, with the screen open. (The one licensed exception — the Update Stock invoice that plays both movement and money roles when the DN step is skipped — belongs to Selling 7, and its misuse is the double-deduction trap named there.)</p><p><b>The creation discipline.</b> The DN is created <b>from the Sales Order</b> — open the order, <b>Create &gt; Delivery Note</b> — never from scratch, never by copying an old DN. Selling 4, Chapter 3 gave the mechanical reason and it bears repeating from the receiving end: only a DN made FROM the order counts down the order's fulfilment ledger. A from-scratch DN moves real stock while counting against nothing — the order still insists the goods are owed, the status never advances, and the warehouse is one busy afternoon away from shipping the same goods twice. What creation-from-the-order buys, concretely: the grid pre-filled with exact remainders (never guesses), rates and taxes travelling intact, the source link binding shipment to commitment, and the status arithmetic advancing itself.</p><p><b>Invoice-first flows.</b> Where billing led (advance-payment deals, Selling 4's To-Deliver status), the DN is created <b>against the Sales Invoice</b> — same chain, opposite order, same discipline: made FROM its parent so the counting stays true. A DN is never made against a quotation, a lead, or a price list; it descends only from documents that carry a commitment.</p><p><b>Posting honesty.</b> The posting date records when the movement happened — which should be when it actually happened. Recording Friday's dispatch on Friday, not batched into Monday, keeps the stock ledger a truthful chronology: valuations, stock-as-at reports, and reconciliation all read that timeline as fact. Deliberate backdating to a prior period is an accounting-governance question, not a convenience, and Chapter 9 shows the archaeology that casual date fiction produces.</p>"
    },
    {
-    "title": "Sales returns",
-    "est": "9",
-    "html": "<p>Goods come back — wrong spec, damaged in transit, customer over-ordered. The clean reversal has two halves, and this module owns the stock half.</p><p><b>The Sales Return is a Delivery Note with <i>Is Return</i> ticked</b>, created <b>against the original DN</b>, carrying <b>negative quantities</b>. Submitting it moves stock <b>back INTO the warehouse</b> — the exact mirror of the outbound. Three properties make this the only correct method:</p><ul><li><b>Traceability</b> — the return references the precise original shipment: which DN, which batch, which serials came back. An unlinked \"stock adjustment\" restores quantity but destroys the story; deleting the original DN falsifies history; a purchase receipt is a different doctype for a different trading partner entirely.</li><li><b>Valuation</b> — the return re-enters stock at the correct value, because it knows what left.</li><li><b>Partiality</b> — return 5 of the 60 shipped; the negative rows say exactly which 5.</li></ul><p><b>The money half is a separate document:</b> the customer's refund or credit is the <b>credit note</b> — a return Sales Invoice — covered in Selling 7. Stock reverses on the return DN; money reverses on the credit note; the two link to their respective originals. One event, two ledgers, two documents. The return DN itself does not touch the customer's balance, and cash from the driver is not an accounting system.</p>"
+    "title": "Chapter 3 — Partial delivery & the remainder machinery",
+    "est": "13",
+    "html": "<p>Orders rarely ship whole; the remainder machinery is what lets partial reality proceed without anyone keeping score by hand.</p><p><b>Shipping 60 of 100.</b> Create the DN from the order; the row arrives pre-filled at 100 (the full remainder); <b>edit it down to 60</b>; submit. Three things are now true automatically: the stock ledger shows 60 deducted; the order's fulfilment ledger shows 60 delivered, 40 remaining, delivered-percentage updated; and — the part that makes the system trustworthy — <b>the next DN created from that order pre-fills at exactly 40</b>. Not 100 again, not a number recalled from memory. The order's arithmetic is authoritative, and every wave of a staged delivery (Montaigne's three waves, Chapter 8) rides it without a single side-spreadsheet.</p><p><b>Where backlog lives.</b> Undelivered quantity is <b>order-side data</b>: read one commitment's remainder on the Sales Order itself; read the company's whole delivery backlog in the order-analysis reporting (Selling 6 names the report). The DN list cannot answer what has NOT shipped — DNs are the record of what did. Teach the asking-place and half the fulfilment questions in any client office answer themselves.</p><p><b>DN status: To Bill, then Completed.</b> A submitted DN reads <b>To Bill</b> until a Sales Invoice covers its quantities, then <b>Completed</b>. Read To Bill as a quiet alarm: goods have left the building and nobody has asked for money. A To-Bill list older than a few days is revenue leaking in plain sight — Selling 7 turns it into the billing worklist, and Chapter 9 here meets it as the aging-DN disease.</p><p><b>Over-delivery at the gate.</b> The tolerance policy set in Selling 4, Chapter 7 is ENFORCED here: a DN quantity exceeding the order's remainder beyond the item's allowance blocks at submission. 102 against 100 within a 5% allowance passes and completes the row; 106 refuses, and the conversation happens before stock moves — which is the entire point of policy-in-configuration.</p><p><b>Consolidation and splitting.</b> One order may feed many DNs (waves, branches); and one DN may, in mature flows, gather rows from multiple orders for one customer in one truck — the fulfilment ledgers each count their own. The invariant beneath both shapes: every DN row descends from an order row, and the remainders reconcile to zero when the story ends.</p><p><b>Rounding the UOM corner.</b> Remainders live in the row's UOM with the conversion factor beneath (Selling 2): an order of 10 Cartons part-shipped as 6 leaves a remainder of 4 Cartons — 48 Units in the stock ledger's language — and both readings agree by construction. The place partiality goes wrong is splitting a carton at the gate: shipping 6.5 cartons is really 78 units, and the honest row states it in Units (or a Pack UOM) rather than inventing fractional cartons the warehouse cannot count. When the trade unit stops matching the physical split, drop to the unit that does.</p>"
    },
    {
-    "title": "Packing slips, serials & batches",
-    "est": "8",
-    "html": "<p>Three companions to the DN that turn \"we shipped it\" into an operation:</p><p><b>Packing Slip</b> — created against the DN, it lists <b>cartons and their contents</b>: case 1 of 3 holds these items, case 2 holds those. Its audience is the <b>driver and the receiving gate</b> — the people who count boxes, not lines. It does not replace the DN (no stock effect), charges nothing, and reserves nothing; it is the physical-handling companion. Multi-carton B2B shipments without packing slips produce gate disputes; with them, the gate ticks cartons and signs.</p><p><b>Serial numbers</b> — an item flagged serialized requires <b>the exact serial numbers being shipped</b> entered on the DN row. Not \"any 10 units\": THESE ten, by identity. That per-unit identity is what powers warranty claims (\"was this unit ours, and when did it ship?\") and theft control. It requires no manager approval and no batch number — it requires the serials.</p><p><b>Batches</b> — batch-tracked items (pharma, food) record <b>which batch</b> each DN row shipped. The payoff is the recall question: <i>\"which customers received batch B-204?\"</i> — answerable in seconds by searching DNs for the batch, because <b>batch numbers are recorded on each Delivery Note</b>. Not because drivers keep notebooks, and not from invoices (money documents, not movement documents). For your pharmacy clients this is regulatory survival: NAFDAC recall queries are DN queries.</p>"
+    "title": "Chapter 4 — Warehouses & picking reality",
+    "est": "13",
+    "html": "<p>The DN row's <b>warehouse</b> field is where the system's numbers meet physical shelves — and where the meeting either confirms trust or exposes drift.</p><p><b>The source warehouse.</b> Each row names the warehouse stock leaves. Defaults flow from the order row or the item's default warehouse; multi-location fulfilment simply uses different warehouses on different rows — one DN can draw a shipment from the main store and the overflow bay honestly. The rule is only that the row tells the truth: stock is deducted FROM the named warehouse, and a row that names the wrong one creates two lies at once (the named location loses stock it still holds; the real source holds stock it has lost). Chapter 9 meets that ticket; the prevention is pick-from-the-paper discipline — the picker takes what the row names, or the row is corrected before submit.</p><p><b>Insufficient stock at submit.</b> The DN will refuse to submit a row whose warehouse lacks the quantity. Read the refusal correctly: it is a statement about the <b>system's bin balance</b>, not necessarily the shelf. Two diseases produce it: the shelf is genuinely short (the sale outran replenishment — a planning conversation), or the bin balance is wrong while the shelf is fine (unrecorded receipts, prior mis-warehoused documents — a hygiene conversation, and at scale the phantom-stock archaeology your team has performed for 50-warehouse clients). The support reflex: check the bin, check the shelf, and fix whichever is lying — never bypass by pointing the row at whatever warehouse happens to have balance, which cures the error message by poisoning two locations.</p><p><b>Negative stock — the false friend.</b> A configuration exists to allow negative stock. In disciplined retail and pharma operations, keep it OFF: allowing bins to go negative converts every insufficient-stock refusal — each one a diagnostic gift naming exactly where reality and records diverge — into silent drift that surfaces months later as a valuation write-off. The refusal is friction with information in it; negative stock is smoothness with a bill attached.</p><p><b>Picking as process.</b> Between order and gate lives the pick: the warehouse works from the DN draft (or a pick list generated from orders in higher-volume flows), gathers against the rows, confirms identities for tracked items (Chapters 5-6), and only then is the DN submitted — <i>submission follows the physical pick</i>, recording what was actually gathered, not what was hoped. A DN submitted before picking, then quietly edited to match reality, is the stock ledger dictating fiction first and confessing later.</p>"
+   },
+   {
+    "title": "Chapter 5 — Serial numbers at the gate",
+    "est": "13",
+    "html": "<p>For serialized items, the DN does not ship ten units; it ships <b>these ten</b>, by name. This chapter is per-unit identity at the moment it matters most.</p><p><b>The mechanics.</b> An item flagged <b>Has Serial No</b> (set at creation — Selling 2, Chapter 1) demands, on every DN row, the exact serial numbers being shipped — selected from the serials currently in the source warehouse. Quantity 12 means twelve identities entered; the row will not submit short, and it will not accept a serial the warehouse does not hold. No manager approval substitutes, no batch number substitutes: serialized stock speaks only in serials.</p><p><b>What the discipline buys.</b> Three capabilities, each worth its keystrokes:</p><ul><li><b>Warranty truth</b> — a unit comes back claiming coverage: the serial answers instantly whether it was yours, on which DN it shipped, to whom, and when the clock started. Without capture, every warranty claim is a negotiation; with it, a lookup.</li><li><b>Theft and leakage control</b> — 100 means exactly 100 identities. The unit that leaves without a document has no story the system tells, and the audit that counts serials finds the gap the day it opens, not the year-end it is written off. This is precisely why over-delivery tolerance is ZERO for serialized classes (Selling 4, Chapter 7): slack in counted-by-identity goods is the mechanism of vanishing.</li><li><b>Per-unit history</b> — installations, repairs, returns, replacements all reference the identity; the unit's biography is queryable across its life.</li></ul><p><b>Selection craft.</b> Pickers select the physical units, then the DN records those exact serials — scan-driven where barcoding exists, careful keyed entry where it does not. The failure smell is the reverse order: serials typed to satisfy the form, units pulled by convenience, and the system's identities diverging from the shelf's — surfacing later as the impossible return (Chapter 9: a serial comes back that the records say was never shipped, or is still in stock).</p><p><b>Returns preview.</b> When a serialized unit returns (Chapter 7), the return DN names the serial — the identity re-enters stock, its history unbroken. Identity out, identity in: the ledger of names balances exactly like the ledger of quantities.</p><p><b>The status of a serial.</b> Each serial carries its own state — in stock (and in which warehouse), delivered (and on which DN, to whom), or returned — and the serial's detail view is its biography in one screen. Support conversations about a specific unit start there: before any debate, open the serial and read where the system last saw it. Half of all serialized disputes end in that first minute, because the record either names the shipment that moved it or proves the movement was never recorded — and each answer dictates its own next step.</p>"
+   },
+   {
+    "title": "Chapter 6 — Batches & the recall drill",
+    "est": "13",
+    "html": "<p>Where serials give units identity, <b>batches</b> give lots identity — and in pharmaceutical and food trade, batch discipline is not operational hygiene but regulatory survival. This chapter ends with the drill that proves it.</p><p><b>The mechanics.</b> An item flagged <b>Has Batch No</b> carries stock as batches — each with its number and, critically, its <b>expiry date</b>. Every DN row for a batched item records WHICH batch shipped, selected from batches present in the source warehouse; quantities are per batch, and a row may draw from more than one when a single lot cannot cover it.</p><p><b>Expiry and FEFO.</b> Expiring goods are picked <b>first-expiry-first-out</b>: the earliest-dated batch leaves first, so shelves do not quietly accumulate short-dated stock behind fresher arrivals. The system supports expiry-aware selection; the discipline pairs it with physical rotation — the record and the shelf agreeing on which lot is at the front. Shipping near-dated stock to a branch that cannot sell it through in time is how sell-by write-offs happen at scale, and the batch-dated DN is the record of who decided.</p><p><b>The recall drill — walk it now, before you need it.</b> The regulator, or the manufacturer, names batch B-204. The question is: <i>which customers received it, how much, when?</i> With batch capture on every DN, the answer is a search: DNs filtered by the batch yield the customer, branch address, quantity and date of every shipment of that lot — minutes, complete, documentable to NAFDAC on letterhead. Note what the answer is NOT built from: not drivers' memories, not invoice lines (money documents, not movement documents — a credit-rebilled order would lie), not warehouse notebooks. The Delivery Note is the movement record, so the DN is where the recall lives. For your pharmacy clients — 30-location chains moving thousands of lots — this drill IS the compliance posture: the firm that answers in minutes keeps its license conversation short.</p><p><b>Returns and batches.</b> A batched return (Chapter 7) names its batch coming back, and the lot re-enters stock under its own identity and expiry — sellable again only if its dating and condition allow, which is a policy decision the batch record makes visible instead of invisible.</p><p><b>Batch at creation, again.</b> As with serials: the flag is set on the item at creation (Selling 2), because retrofitting lot identity after untracked transactions exist is reconstruction, not configuration. Pharma implementations decide this on day one, item by item.</p>"
+   },
+   {
+    "title": "Chapter 7 — Sales returns, end to end",
+    "est": "14",
+    "html": "<p>Goods come back — wrong spec, transit damage, over-order, expiry refusal at the branch gate. The return is a first-class documented event with two halves; this chapter owns the stock half completely and hands the money half to Selling 7 by name.</p><p><b>The instrument.</b> A Sales Return is a <b>Delivery Note with Is Return ticked</b>, created <b>against the original DN</b>, carrying <b>negative quantities</b>. Submission moves stock <b>back into</b> the warehouse — the exact mirror of the outbound movement, written in the same ledger.</p><p><b>Why this instrument and no other.</b> Three properties, each absent from the shortcuts:</p><ul><li><b>Traceability</b> — the return references the precise original shipment: which DN, which branch address, which serials or batch came back. A bare stock adjustment restores quantity while destroying the story; deleting or editing the original DN falsifies a movement that physically happened; a purchase receipt is a different trading relationship entirely.</li><li><b>Valuation</b> — the return re-enters stock at the correct value because it knows exactly what left and at what valuation. Adjustments guess; returns know.</li><li><b>Partiality with identity</b> — return 5 of the 60 shipped, and the negative rows say which 5: these serials, this batch, this branch. Partial returns are the normal case, and the linkage keeps every remainder honest.</li></ul><p><b>Condition and destination.</b> Returned goods are received somewhere deliberate: sellable returns to the trading warehouse; damaged or quality-hold stock to a quarantine/returns warehouse pending inspection — the row's target warehouse makes the decision explicit and the subsequent write-off or restock a documented movement rather than a shelf mystery. Batched returns re-enter under their lot and expiry (Chapter 6); serialized returns re-enter by name (Chapter 5), biographies unbroken.</p><p><b>The money half — separate document, linked event.</b> The customer's refund or account credit is the <b>credit note</b> — a return Sales Invoice against the original invoice — Selling 7's Chapter 4. Hold the pairing as one sentence: <i>stock reverses on the return DN; money reverses on the credit note</i>; two documents, two ledgers, one physical event, each linked to its original. The return DN itself does not touch the customer's balance — and cash handed to a driver is not an accounting system, it is a future dispute with a head start.</p><p><b>Replacements.</b> A replacement for a returned unit is a NEW outbound DN (against the order or as its own flow) — never an edit of the return, never netting the two into no-paper. Two movements happened; two documents say so; the serial trail shows the swap explicitly.</p>"
+   },
+   {
+    "title": "Chapter 8 — Case study: Montaigne wave one ships",
+    "est": "16",
+    "html": "<p>Selling 4 left the Montaigne order submitted, reserved, and scheduled in three waves. Wave one — five branches — ships this week. Every chapter clocks in.</p><p><b>Step 1 — Five DNs, one wave (Ch. 1-3).</b> From the order: <b>Create &gt; Delivery Note</b>, five times — one per branch, each carrying its branch <b>shipping address</b> from Montaigne's address book (Victoria Island, Lekki, Ikeja City Mall, Palms, Festac). Quantities edited per branch: 1 terminal, 1 scanner, 1 printer each, plus site consumables. The order's remainder machinery quietly tracks the arithmetic — after wave one, the ledger reads 5 of 12 sets delivered, and wave two's DNs will pre-fill from what remains.</p><p><b>Step 2 — The pick and the identities (Ch. 4-5).</b> The warehouse picks from the main store per the rows; terminals and scanners are serialized, so each DN records its exact units — VI's DN names terminals T-88231 and scanner S-4410, and so on, five documents, fifteen identities. Zero tolerance on serialized rows (Selling 4's policy) means the quantities are exact by construction. Consumables draw from the overflow bay — a second warehouse on those rows, honestly named.</p><p><b>Step 3 — Paper for the physical world (Ch. 1).</b> Packing slips per DN list the cartons for the drivers and the branch gates; transporter fields carry the vehicle and driver for each run. Submission happens AFTER each pick is confirmed — the DN records what was actually gathered, dated the day it left.</p><p><b>Step 4 — The status heartbeat (Ch. 3; Selling 4).</b> Five DNs submitted: stock deducted, order at 5/12 delivered, DNs standing at <b>To Bill</b> — which Selling 7 will clear against the staged billing without letting them age. The account screen (Selling 4, Chapter 4) now shows any caller exactly which branches have their kit.</p><p><b>Step 5 — The damaged terminal (Ch. 7).</b> Lekki reports terminal T-88214 dead on arrival — transit damage. The stock half: a <b>return DN against Lekki's delivery</b>, negative one terminal, serial T-88214 named, received into the <b>quarantine warehouse</b> pending the insurer's inspection — not back to sellable stock. The money half is flagged to billing for Selling 7's treatment in the staged-invoice context. The replacement: a NEW outbound DN from the order flow ships T-88519 next morning — two movements, two documents, and the serial history shows the swap end to end: 88214 out, 88214 back to quarantine, 88519 out.</p><p><b>Step 6 — The drill that never happened (Ch. 6).</b> Nothing batched shipped this wave — but the consumables in wave two are lot-tracked, and the team notes the recall drill applies from then on: every carton's batch on every branch DN, queryable in minutes if a manufacturer ever calls.</p><p><b>The wave in retrospect:</b> five branches live, fifteen identities on record, one damage handled with an unbroken paper trail, zero side-spreadsheets, and an order ledger that agrees with the shelves to the unit. Wave two inherits a system that already knows exactly what remains. That is fulfilment as the module means it.</p>"
+   },
+   {
+    "title": "Chapter 9 — Common mistakes & support patterns",
+    "est": "14",
+    "html": "<p>The delivery scar-tissue chapter — and because this is where records meet physical stock, its diseases show up as MONEY faster than any other module's. Symptom → disease → fix.</p><p><b>Pattern 1 — Customer received goods; the order says they are owed.</b> The from-scratch DN, met from the receiving end (Ch. 2; Selling 4, Pattern 1): real movement, zero ledger effect, double-shipment armed. Fix: reconcile the orphan against the order deliberately; retrain the create-from reflex. Still the most expensive ticket in fulfilment.</p><p><b>Pattern 2 — Submit refuses: insufficient stock, but the shelf is full.</b> The bin is lying (Ch. 4): unrecorded receipts, prior mis-warehoused rows, or history's drift. Fix: reconcile the bin to the shelf through proper stock documents — never by pointing the row at whichever warehouse has balance, which poisons two locations to silence one message. (The refusal is a diagnostic gift; treat it as the gauge, not the obstacle.)</p><p><b>Pattern 3 — Stock vanished from a location that never shipped it.</b> Wrong source warehouse on submitted rows (Ch. 4): the named location bled for the real one's shipments. Fix: correct via proper stock movements and fix the defaulting that steered the rows; prevention is pick-from-the-paper discipline.</p><p><b>Pattern 4 — A returned serial the system says was never shipped.</b> Identity drift (Ch. 5): serials typed to satisfy forms while pickers pulled by convenience — the records and the shelf parted ways months ago. Fix: a serial reconciliation (the kind your team has run at enterprise scale), then scan-driven capture so entry follows the physical pick.</p><p><b>Pattern 5 — The return was booked as a stock adjustment.</b> Quantity restored, story destroyed (Ch. 7): no link to the original DN, no serial or batch identity, no valuation truth — and the money half now hangs orphaned. Fix: reverse the adjustment, book the proper return DN against the original, and route the credit through Selling 7. Adjustments are for counting corrections, never for events that have a customer attached.</p><p><b>Pattern 6 — To-Bill DNs aging for weeks.</b> Revenue leaking in plain sight (Ch. 3): goods gone, billing unraised — often a handoff gap between warehouse and finance. Fix: the To-Bill list oldest-first becomes a standing worklist with an owner (Selling 7 formalises it); the metric is DN-to-invoice days, and it should embarrass nobody because it is measured.</p><p><b>Pattern 7 — Backdated DNs to tidy the week.</b> Date fiction (Ch. 2): Friday's and Monday's movements recorded as convenient, and now stock-as-at reports, valuations, and the reconciliation of any dispute read a chronology that never happened. Fix forward: post when it moves; the governance version of backdating (period adjustments) belongs to accounting policy with sign-off, not to dispatch convenience.</p><p><b>The meta-pattern, fourth law.</b> Selling 1-2: documents are downstream of masters. Selling 3: the pipeline is downstream of discipline. Selling 4: the order is the single source of fulfilment truth. This module adds the physical clause: <b>the Delivery Note is where the system's word meets the world — keep the gate honest and every ledger upstream and downstream of it can be believed.</b> A firm whose DNs are exact can trust its stock, its recalls, its warranties, and its billing; a firm whose gate is casual audits shelves forever.</p>"
    }
   ],
   "questions": [
    {
     "q": "Stock is deducted from the warehouse at which moment?",
     "opts": [
-     "Sales Order submit",
      "Delivery Note submit",
+     "Sales Order submit",
      "Invoice payment",
      "Quotation acceptance"
     ],
-    "ans": 1,
+    "ans": 0,
     "why": "The DN is the stock-moving document.",
     "src": "Moving stock §1"
    },
@@ -1103,11 +1730,11 @@
     "q": "60 of 100 delivered today. The next DN from the order will offer:",
     "opts": [
      "100",
-     "40",
      "60",
+     "40",
      "Whatever is typed"
     ],
-    "ans": 1,
+    "ans": 2,
     "why": "The order tracks the remaining 40 automatically.",
     "src": "Partial §2"
    },
@@ -1115,23 +1742,23 @@
     "q": "An undelivered-quantity view across all orders lives in:",
     "opts": [
      "The DN list",
-     "The Sales Order's remaining quantities (and order analysis reports)",
+     "Selling Settings",
      "The item master",
-     "Selling Settings"
+     "The Sales Order's remaining quantities (and order analysis reports)"
     ],
-    "ans": 1,
+    "ans": 3,
     "why": "Remaining-to-deliver is order-side data.",
     "src": "Partial §2"
    },
    {
     "q": "A sales return is recorded as:",
     "opts": [
-     "Deleting the original DN",
      "A Delivery Note with Is Return, against the original DN, negative quantities",
+     "Deleting the original DN",
      "A purchase receipt",
      "A stock adjustment"
     ],
-    "ans": 1,
+    "ans": 0,
     "why": "The return DN reverses stock with a trail to the original.",
     "src": "Returns §3"
    },
@@ -1151,11 +1778,11 @@
     "q": "The customer-money side of a return is handled by:",
     "opts": [
      "The return DN itself",
-     "A credit note (return Sales Invoice)",
      "Cash from the driver",
+     "A credit note (return Sales Invoice)",
      "Editing the order"
     ],
-    "ans": 1,
+    "ans": 2,
     "why": "Stock and money reverse on separate linked documents.",
     "src": "Returns §3"
    },
@@ -1163,23 +1790,23 @@
     "q": "A DN that has shipped but not been invoiced reads:",
     "opts": [
      "Completed",
-     "To Bill",
+     "Open",
      "Draft",
-     "Open"
+     "To Bill"
     ],
-    "ans": 1,
+    "ans": 3,
     "why": "To Bill = goods gone, billing pending.",
     "src": "Partial §2"
    },
    {
     "q": "\"Which customers received batch B-204?\" is answerable because:",
     "opts": [
-     "Drivers keep notebooks",
      "Batch numbers are recorded on each Delivery Note",
+     "Drivers keep notebooks",
      "The invoice lists batches",
      "It isn't answerable"
     ],
-    "ans": 1,
+    "ans": 0,
     "why": "Batch/serial capture on the DN powers recall tracing.",
     "src": "Serials §4"
    },
@@ -1199,11 +1826,11 @@
     "q": "A serial-tracked item on a DN requires:",
     "opts": [
      "Nothing special",
-     "The exact serial numbers being shipped",
      "A batch number",
+     "The exact serial numbers being shipped",
      "Manager approval"
     ],
-    "ans": 1,
+    "ans": 2,
     "why": "Serialized stock demands per-unit identity on the DN.",
     "src": "Serials §4"
    },
@@ -1211,13 +1838,289 @@
     "q": "A Delivery Note can also be created against:",
     "opts": [
      "A quotation",
-     "A Sales Invoice, when billing preceded delivery",
+     "A price list",
      "A lead",
-     "A price list"
+     "A Sales Invoice, when billing preceded delivery"
     ],
-    "ans": 1,
+    "ans": 3,
     "why": "Invoice-first flows make the DN from the invoice.",
     "src": "Partial §2"
+   },
+   {
+    "q": "One order, deliveries to five branches this week, is fulfilled as:",
+    "opts": [
+     "Five DNs from the order, each carrying its branch shipping address",
+     "One DN with five addresses in remarks",
+     "Five new orders",
+     "One DN to head office"
+    ],
+    "ans": 0,
+    "why": "Per-branch DNs make branch delivery history queryable forever.",
+    "src": "Ch1, Ch8"
+   },
+   {
+    "q": "The DN's posting date should record:",
+    "opts": [
+     "Month-end for tidiness",
+     "When the movement actually happened",
+     "The order date",
+     "The invoice date"
+    ],
+    "ans": 1,
+    "why": "The stock ledger is a chronology; keep it truthful.",
+    "src": "Ch2"
+   },
+   {
+    "q": "The timeline law of the selling cycle is:",
+    "opts": [
+     "Quote books, order ships, invoice reserves",
+     "Everything happens at invoice",
+     "Order reserves, delivery deducts, invoice books, payment settles",
+     "Payment moves stock"
+    ],
+    "ans": 2,
+    "why": "Four verbs, four documents — the cure for most fulfilment confusion.",
+    "src": "Ch2"
+   },
+   {
+    "q": "A DN row pre-fills its quantity from:",
+    "opts": [
+     "The original ordered quantity always",
+     "The picker's estimate",
+     "Last week's DN",
+     "The order's exact remaining quantity"
+    ],
+    "ans": 3,
+    "why": "The remainder machinery keeps every wave honest.",
+    "src": "Ch3"
+   },
+   {
+    "q": "'Insufficient stock' at DN submit is a statement about:",
+    "opts": [
+     "The system's bin balance — shelf or records may be the liar",
+     "The shelf, always",
+     "The customer's credit",
+     "The price list"
+    ],
+    "ans": 0,
+    "why": "Check bin AND shelf; fix whichever is lying.",
+    "src": "Ch4"
+   },
+   {
+    "q": "Bypassing insufficient-stock by pointing the row at another warehouse with balance:",
+    "opts": [
+     "Is the standard fix",
+     "Silences the message by poisoning two locations",
+     "Requires no permission",
+     "Updates both bins correctly"
+    ],
+    "ans": 1,
+    "why": "The refusal is a diagnostic gift, not an obstacle.",
+    "src": "Ch4, Ch9"
+   },
+   {
+    "q": "Allowing negative stock in a disciplined operation:",
+    "opts": [
+     "Speeds things up harmlessly",
+     "Is required for returns",
+     "Converts diagnostic refusals into silent drift and later write-offs",
+     "Improves valuation"
+    ],
+    "ans": 2,
+    "why": "Friction with information beats smoothness with a bill.",
+    "src": "Ch4"
+   },
+   {
+    "q": "DN submission should happen:",
+    "opts": [
+     "Before picking, to reserve the picker's time",
+     "When the invoice is paid",
+     "At month-end",
+     "After the physical pick is confirmed — recording what was gathered"
+    ],
+    "ans": 3,
+    "why": "The ledger records reality, not intention.",
+    "src": "Ch4"
+   },
+   {
+    "q": "A serialized row of quantity 12 requires:",
+    "opts": [
+     "Twelve exact serial identities present in the source warehouse",
+     "Any 12 units",
+     "A batch number",
+     "Supervisor override"
+    ],
+    "ans": 0,
+    "why": "Serialized stock speaks only in serials.",
+    "src": "Ch5"
+   },
+   {
+    "q": "Serial capture primarily buys:",
+    "opts": [
+     "Faster picking",
+     "Warranty truth, theft control, and per-unit history",
+     "Lower prices",
+     "Smaller documents"
+    ],
+    "ans": 1,
+    "why": "Identity is the asset; the keystrokes are the premium.",
+    "src": "Ch5"
+   },
+   {
+    "q": "Serials typed to satisfy the form while pickers pull by convenience produces:",
+    "opts": [
+     "No issue",
+     "Better speed",
+     "Identity drift — impossible returns and audits that find gaps",
+     "Cleaner reports"
+    ],
+    "ans": 2,
+    "why": "Entry must follow the physical pick.",
+    "src": "Ch5, Ch9"
+   },
+   {
+    "q": "Expiring goods are picked:",
+    "opts": [
+     "Newest first",
+     "By price",
+     "Randomly",
+     "First-expiry-first-out, with physical rotation matching"
+    ],
+    "ans": 3,
+    "why": "FEFO keeps short-dated stock from hiding behind fresh arrivals.",
+    "src": "Ch6"
+   },
+   {
+    "q": "The recall question 'who received batch B-204?' is answered from:",
+    "opts": [
+     "DNs filtered by batch — customer, branch, quantity, date in minutes",
+     "Invoice lines",
+     "Driver memory",
+     "The price list"
+    ],
+    "ans": 0,
+    "why": "The DN is the movement record, so the recall lives there.",
+    "src": "Ch6"
+   },
+   {
+    "q": "A batched return re-enters stock:",
+    "opts": [
+     "As new anonymous quantity",
+     "Under its own lot and expiry, sellability now a visible decision",
+     "Into any warehouse",
+     "Only after invoicing"
+    ],
+    "ans": 1,
+    "why": "Lot identity survives the round trip.",
+    "src": "Ch6"
+   },
+   {
+    "q": "Damaged returns should be received into:",
+    "opts": [
+     "The trading warehouse",
+     "The customer's account",
+     "A quarantine/returns warehouse pending inspection",
+     "No warehouse"
+    ],
+    "ans": 2,
+    "why": "The target warehouse makes the condition decision explicit.",
+    "src": "Ch7"
+   },
+   {
+    "q": "Returning 5 of 60 shipped is recorded with:",
+    "opts": [
+     "A 60-unit return",
+     "An email",
+     "A stock adjustment of 5",
+     "Negative rows for exactly those 5, against the original DN"
+    ],
+    "ans": 3,
+    "why": "Partial returns keep identity and remainders honest.",
+    "src": "Ch7"
+   },
+   {
+    "q": "A replacement for a returned unit ships as:",
+    "opts": [
+     "A NEW outbound DN — two movements, two documents",
+     "An edit to the return DN",
+     "No document — it nets off",
+     "A purchase receipt"
+    ],
+    "ans": 0,
+    "why": "The serial trail shows the swap explicitly.",
+    "src": "Ch7, Ch8"
+   },
+   {
+    "q": "The return booked as a bare stock adjustment:",
+    "opts": [
+     "Is equivalent",
+     "Restores quantity but destroys traceability, valuation truth, and orphans the credit",
+     "Is faster and fine",
+     "Links automatically"
+    ],
+    "ans": 1,
+    "why": "Adjustments are for counting; events with customers get returns.",
+    "src": "Ch9"
+   },
+   {
+    "q": "In wave one, terminal T-88214's story reads:",
+    "opts": [
+     "Deleted from history",
+     "Merged with the replacement",
+     "Out to Lekki, back to quarantine, replaced by T-88519 — end to end",
+     "Unrecorded"
+    ],
+    "ans": 2,
+    "why": "Identity discipline made the damage a lookup, not a dispute.",
+    "src": "Ch8"
+   },
+   {
+    "q": "To-Bill DNs aging for weeks indicate:",
+    "opts": [
+     "Healthy patience",
+     "Nothing",
+     "Tax optimisation",
+     "A warehouse-to-finance handoff gap — revenue leaking in plain sight"
+    ],
+    "ans": 3,
+    "why": "The oldest-first To-Bill list needs an owner.",
+    "src": "Ch3, Ch9"
+   },
+   {
+    "q": "Transporter details on the DN matter because:",
+    "opts": [
+     "The DN that names its vehicle settles the dispute the untracked one starts",
+     "They are mandatory",
+     "They set the price",
+     "Drivers request them"
+    ],
+    "ans": 0,
+    "why": "Gate paperwork is future-dispute insurance.",
+    "src": "Ch1"
+   },
+   {
+    "q": "Backdating DNs to tidy the week:",
+    "opts": [
+     "Is standard practice",
+     "Writes date fiction into valuations and stock-as-at history",
+     "Improves reports",
+     "Is reversible freely"
+    ],
+    "ans": 1,
+    "why": "Post when it moves; period adjustments are governance, not convenience.",
+    "src": "Ch2, Ch9"
+   },
+   {
+    "q": "This module's law is:",
+    "opts": [
+     "The gate can be casual if reports are good",
+     "Stock manages itself",
+     "The DN is where the system's word meets the world — keep the gate honest",
+     "Returns are optional"
+    ],
+    "ans": 2,
+    "why": "An exact gate lets every other ledger be believed.",
+    "src": "Ch9"
    }
   ]
  },
