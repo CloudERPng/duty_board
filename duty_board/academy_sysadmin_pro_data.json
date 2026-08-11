@@ -2368,5 +2368,478 @@
     "src": "Ch9"
    }
   ]
+ },
+ "email_integrations": {
+  "title": "Sysadmin 6 — Printing, Email & Integrations",
+  "desc": "Every message and integration has an owner: the email machinery with firm-domain identity and custodied credentials, the queue as the outbound ledger, the communication map with recipient hygiene, the integration inventory with the build boundary, API key custody with rotation by events, and designed failure modes with monthly reconciliation where money and statute flow.",
+  "lessons": [
+   {
+    "title": "Chapter 1 — The system speaks and connects: every channel owned",
+    "est": "12",
+    "html": "<p>The site does not only store and compute — it SPEAKS (the invoice emailed, the slip released, the reminder fired, the document printed) and it CONNECTS (the SMS gateway, the payment confirmation, the statutory e-invoicing endpoint, the partner-built bridges). Every one of those surfaces carries the firm's name, the firm's data, or the firm's legal obligations into the world — and the module's thesis is the track's sixth law forming: <b>every message and every integration has an owner — because the unowned channel fails silently, leaks quietly, and embarrasses publicly.</b></p><p><b>The two surface families.</b> The module's map: the OUTBOUND surfaces (Chapters 2-4 — the email machinery, its deliverability and queue, and the communication map of everything the system sends: the printed document's operational life included, its design having been Chapter 5 of the change module — this module owns the SENDING, the previous owned the shape), and the CONNECTED surfaces (Chapters 5-7 — the integrations' inventory, their credentials' custody, and their failure modes: the doors in the site's walls, each one deliberate, documented, and watched). The families share the module's one discipline, previewed: each channel carries a NAME (the function that owns its content and its consequences — the invoice email is selling's channel; the statutory connection is the accountant's; the admin custodians the plumbing of all of them, per the split now seven modules old), a MAP entry (the site book's communication and integration pages — Chapters 4 and 5's deliverables), and a FAILURE ANSWER (what happens when it stops — designed in calm, per module 4's whole philosophy, because the channel's failure mode chosen in advance is a degraded mode, and the one discovered live is an incident).</p><p><b>The unowned channel, convicted in advance.</b> The diseases this module prevents, named as its opening indictment: the invoice that stopped sending in March and nobody noticed until the debtors' calls (the unread queue — Chapter 3), the payslip emailed to a stale address (the recipient hygiene breach — Chapter 4, with the payroll track's tightest tier bleeding through a typo), the credential pasted in a group chat and never rotated after the leaver (Chapter 6 — the key to the firm's SMS identity or worse, walking out the door in someone's chat history), the integration that a departed consultant built and nobody can name (the orphaned door — Chapter 5), and the statutory connection whose rejected submissions accumulate unread (Chapter 7 — the compliance channel failing in a queue nobody owns, which is the unremitted-month disease of the payroll track wearing an API's clothes). Each disease is an ownership absence — and the module's cure, chapter by chapter, is the register that makes every channel answer to a name.</p>"
+   },
+   {
+    "title": "Chapter 2 — The email machinery: accounts, identity & custody",
+    "est": "13",
+    "html": "<p>The system's voice begins with its email accounts — the machinery that determines whether the firm's messages arrive, from whom they appear to come, and who controls the voice. The accounts chapter.</p><p><b>The outgoing account.</b> The sender, governed: the system sends through a configured OUTGOING account — and the first discipline is IDENTITY: the firm's documents sent from the FIRM'S domain address (the invoices from the firm's billing identity, not from anyone's personal mailbox — the personal-address sender being Chapter 9's opening disease: the firm whose invoices arrive from a staff member's private account has coupled its billing voice to one person's employment, mixed its evidence trail into a private mailbox it cannot search or retain, and taught its customers to trust a sender the firm does not control: the identity fixed as the module's first act at every implementation), the account's shape decided deliberately (the single firm voice versus the purpose addresses — the billing address, the payroll's notifications, the support inbox: few, named, and mapped — each a communication-map entry, not a proliferation), and the DELIVERABILITY foundations confirmed at boundary altitude (the domain's authentication records — the signatures that tell receiving servers the firm's mail is genuinely the firm's — confirmed with the domain's custodian and the host through the boundary conversation: the admin does not administer the records; the admin verifies the answer is yes and files it in the site book, because the unauthenticated domain's mail lands in spam folders, and the firm's invoices in spam is a collections problem wearing a technical costume).</p><p><b>The incoming accounts.</b> Where the system LISTENS: the inbound account pulling a mailbox into the system (the support address becoming tickets, the documents channel receiving — legitimate, powerful, and each one a door: the inbound account's scope decided — what it creates, who triages it — and its own hygiene watched: the inbox-to-system bridge that creates records from whatever arrives is an import door in disguise, and module 3's governance instincts apply), with the unused kept closed (the fewer listening doors, the smaller the surface — the minimalism of module 2's least-privilege, applied to mailboxes).</p><p><b>The account custody.</b> The credentials' governance, joining module 2's lifecycle: the email accounts' credentials held in the firm's custody (the password known to the CUSTODY, not to a person's memory alone — stored per Chapter 6's credential disciplines), the shared-purpose mailbox governed (the billing address read by the role, its access granted and revoked by the same events as everything else — the mailbox being a resource like any other, on the access register), and the ROTATION events wired (the leaver who knew the account's credentials triggers its rotation — HR 7's checklist and module 2's lifecycle both pointing at this desk: the separation that disables the user but leaves the shared mailbox's password unchanged has closed the front door and left the side window open, and the module's custody register makes the side windows enumerable). The chapter's summary for the site book: <b>few accounts, firm-domain identity, authenticated delivery, custodied credentials, rotation by events — the voice owned before a single message is judged.</b></p>"
+   },
+   {
+    "title": "Chapter 3 — Deliverability & the queue: the outbound ledger",
+    "est": "13",
+    "html": "<p>Every message the system sends passes through the EMAIL QUEUE — which makes the queue the outbound ledger: the complete, timestamped record of what the firm's system said, to whom, and whether it arrived. Read accordingly. The queue chapter.</p><p><b>The queue as ledger.</b> The reframe that organises the chapter: the queue is not plumbing to ignore but a REGISTER to read — every outbound message a row with a state (queued, sent, failed), which gives the admin two things the academy prizes: the EVIDENCE function (the dispute's 'we never received the invoice' answered by pointing — the queue's sent record with its timestamp and recipient being the outbound half of the evidence layer, filed beside the document it carried: the answered-by-pointing law extended to the sending itself) and the HEALTH function (the queue's shape read on the daily glance — module 1's posture now given its email column: the failure count, the stuck messages, the volume anomaly).</p><p><b>The failure read.</b> The failed message triaged by its kind: the BOUNCE (the recipient address dead or wrong — routed to the CONTACT'S owner for correction, because the bounce is a master-data finding wearing an email costume: the customer's stale address fixed in the customer record by selling's pen, per module 3's custodianship — the admin routes; the function corrects), the REJECTION (the receiving server refusing — the deliverability signal read: the pattern of rejections at one domain is a conversation; the pattern everywhere is the authentication check of Chapter 2 re-run), the STUCK message (the queue jammed — the background machinery's health, module 7's terrain, glanced daily exactly because the silent jam is the invoice-that-never-sent disease incubating), and the RETRY discipline honest (the transient failure retried by the machinery; the permanent failure CLOSED with its cause — the queue that accumulates ancient failures unread is the unread queue of Chapter 1's indictment: triaged to zero on its rhythm, like every worked list in this academy).</p><p><b>The spam reality.</b> The deliverability hygiene, at the admin's altitude: the firm's mail lands where the receiving world decides — and the admin's levers are the foundations (Chapter 2's authentication, confirmed), the CONTENT discipline (the outbound templates professional and consistent — the all-caps urgent subject line is a spam signal the firm sends about itself), the VOLUME shape (the sudden bulk blast from a transactional address teaches receiving servers suspicion — the mass communication need served deliberately, not improvised through the invoice channel), and the FEEDBACK read (the customers who report 'it went to spam' being a signal logged and investigated, not shrugged at — the firm's deliverability being a reputation maintained by hygiene, exactly as its trade reputation is).</p><p><b>The evidence discipline.</b> The chapter's closing tie to six tracks: the sent-record RETAINED per the evidence horizons (the queue's history and the communication log kept per the retention conversations of module 4 — the 'was it sent?' question answerable for as long as the dispute horizon runs), and the sending's provenance clean (the message sent by the system, from the governed account, logged in the queue — versus the document downloaded and forwarded from personal mailboxes, which exits the evidence layer entirely: the staff habit of personal forwarding read as the workaround signal it is, and the governed send made easier than the workaround, per the academy's oldest adoption law).</p>"
+   },
+   {
+    "title": "Chapter 4 — The communication map: what the system sends, to whom",
+    "est": "13",
+    "html": "<p>The module's first register: the COMMUNICATION MAP — every stream the system sends, on one page, each with its owner. The map chapter.</p><p><b>The map's rows.</b> The outbound inventory, drawn from six tracks' choreographies: the INVOICES and statements to customers (selling's channel — the trigger, the template, the sender identity, the attachment's format), the PURCHASE orders to suppliers (procurement's), the PAYSLIPS to staff (payroll's — with its special standing below), the REMINDERS and notifications (the expiry alerts, the approval nudges, the calendar's engine — each rule from module 5's automation register cross-referenced here by its audience), the RECEIPTS and confirmations (the payment acknowledged, the order confirmed), and the STATUTORY dispatches where the functions use them — each row carrying the same columns: WHAT goes out, TRIGGERED by what, TO whom, FROM which account, OWNED by which function, and last VERIFIED when (the map being the site book's page that answers, in one look, the question every new admin and every auditor asks: what does this system say to the world, and on whose authority?).</p><p><b>The recipient hygiene.</b> The map's data-quality dependency, stated with module weight: every stream is aimed by CONTACT DATA (the customer's email on the customer master, the employee's address on the employee record) — which makes recipient quality a master-data discipline with a confidentiality edge: the WRONG-RECIPIENT dispatch being this chapter's central disaster (the payslip to a stale address is the payroll track's tightest tier breached by a typo; the customer statement to the wrong customer is two relationships damaged in one send), and the hygiene mechanised: the sensitive streams' recipients verified on their events (the joiner's address confirmed at onboarding; the change-of-address event updating the master BEFORE the next cycle — HR's events feeding the map's aim), the bounce loop closing corrections fast (Chapter 3's routing), and the highest-sensitivity streams DOUBLE-KEYED (the payslip channel's recipient source read from the governed master only — never a manually-maintained side list, because the side list is where stale addresses live: the one-version law aiming the most dangerous mail).</p><p><b>The sensitive streams' standing.</b> The map's tiers, honest: not all streams are equal — the payslip and anything pay-adjacent carries module 2's tightest-tier weight IN TRANSIT (the delivery choices the payroll track designed — the attachment protections, the self-service pull versus the push — administered here as configuration, with the admin's conduct rule explicit: the admin who can see the queue does not open the payslip attachments passing through it — the custodian-not-owner law at the mail bag: the postman's ethics, enforced by module 8's conduct standard and its logs), and the statutory streams carrying legal weight (the dispatch that discharges an obligation — its proof-of-send retained per the adviser's horizons).</p><p><b>The map's maintenance.</b> The register's life: updated by the ceremony (every new stream or changed template through module 5's change process, the map's row updated in the same act), verified on the walk (the annual re-verification — each stream test-fired or evidenced live within the year: the stream that hasn't demonstrably fired in a year is either dead weight or a silent failure, and the walk decides which), and read at every incident ('what does the system send?' being the first question of half the module's diagnoses — answered by the page, in seconds, which is the entire reason the page exists).</p>"
+   },
+   {
+    "title": "Chapter 5 — Integrations: the inventory & the boundary",
+    "est": "13",
+    "html": "<p>The connected surfaces: the doors in the site's walls where other systems reach in and the firm's data reaches out. Every door deliberate, documented, and owned. The inventory chapter.</p><p><b>What the doors are.</b> The trade-scale integration landscape, named honestly: the PAYMENT rails (the gateway confirmations, the bank-adjacent feeds — money's arrival told to the system by machines), the MESSAGING gateways (the SMS and messaging channels the notifications ride — the delivery confirmations, the customer alerts), the STATUTORY connections (the e-invoicing and compliance endpoints where the regulator's machinery receives the firm's documents — the connection where an API failure is a COMPLIANCE event, given its own weight in Chapter 7), the PARTNER bridges (the connections the implementation partner built — the custom flows, the external tools), and the INBOUND doors (the webhooks and endpoints where outside events arrive — each one a listening surface with Chapter 6's verification duties). The chapter's frame for all of them: an integration is a STANDING RELATIONSHIP between systems — it has a purpose, a counterparty, credentials, a data flow, and a failure mode, exactly like a supplier relationship has terms, contacts, and risks — and it is governed like one: on a register, with an owner, reviewed on a rhythm.</p><p><b>The integration inventory.</b> The register's columns, fixed: each integration's PURPOSE (one sentence — the connection that cannot be described joins the retirement candidates, per the standing catalogue law), its OWNING FUNCTION (the payment confirmation is treasury's; the statutory endpoint the accountant's; the SMS gateway owned by whoever owns its messages' content — the admin custodians plumbing, never consequences), its COUNTERPARTY and support path (the provider, the contact, the escalation — the boundary map's pattern per connection), its CREDENTIALS' custody entry (Chapter 6's register cross-referenced), its DATA FLOW (what crosses, in which direction, how sensitive — the flow's tier read against module 2's designs: the integration that exports pay-adjacent data is a tightest-tier door and audited as one), its FAILURE MODE (Chapter 7's designed answer), and its last REVIEW date.</p><p><b>The build boundary.</b> Who makes the doors: integrations are BUILT through the implementation partner's discipline (the deep end of module 5's catalogue — the connection's construction, its error handling, its mapping logic being engineering the site admin commissions, not improvises: the admin's role in the build being the REQUIREMENTS side — the purpose, the owner, the data flow, the failure mode specified — and the acceptance side — the integration proven on test, the inventory's row completed, before production), and OPERATED by the admin thereafter (the monitoring, the credential rotations, the review rhythm — the custody handed over WITH documentation, because the partner-built door whose workings left with the partner is the orphaned integration of Chapter 1's indictment: the acceptance checklist includes the door's own runbook, or the acceptance is not complete). The chapter's closing rule, the module's law in inventory form: <b>no door without a row; no row without an owner; no owner without a failure answer</b> — the site whose connections all answer to names is the site where 'what is this connection?' is never asked in an incident for the first time.</p>"
+   },
+   {
+    "title": "Chapter 6 — Credentials & API custody: the keys to the firm",
+    "est": "14",
+    "html": "<p>Every integration, account, and automated connection runs on CREDENTIALS — the API keys, tokens, and passwords that ARE the firm's identity to machines. Held accordingly. The custody chapter.</p><p><b>What a credential is.</b> The weight set first: the API key is not a password-like inconvenience — it IS the firm, to every system that accepts it (the key to the SMS gateway can speak to customers AS the firm; the statutory connection's credentials can file AS the firm; the payment rail's token can read money's movements — each credential a signature stamp, and the academy's oldest custody instincts applying at full strength: the cheque-signing disciplines of the money tracks, at the machine layer), which sets the custody bar: credentials are held the way the firm holds its most consequential keys — enumerated, stored properly, issued narrowly, rotated on events, and never, ever ambient.</p><p><b>The storage law.</b> The disciplines, plainly: credentials live in GOVERNED storage (the credential store or sealed register the firm designates — access-controlled per module 2, its readers enumerable), and never in the ambient places the trade actually keeps them (the group chat where the key was pasted 'temporarily' three years ago — the chat history being a credential store with no access control, no rotation, and no leaver process; the spreadsheet named passwords.xlsx; the sticky note; the one person's memory — each an ambient copy the firm cannot enumerate, which means cannot rotate, which means does not control), with the module's honest note about the trade's reality: the cleanup engagement's credential audit always finds the ambient copies, and the certified admin's first custody act is the ENUMERATION (every credential found, listed, and re-homed) followed by the ROTATION (every credential whose ambient history is unknowable rotated on principle — the key that lived in a chat is treated as leaked because its readership is unknowable, which is the conservative instinct every custody track taught).</p><p><b>The issuance disciplines.</b> The keys' lifecycle, mirroring module 2's: ONE credential per connection (the shared key serving three integrations cannot be rotated for one without breaking two, and cannot be revoked for a compromised door without closing the innocent ones — the per-door key being the blast-radius discipline at the credential layer), scoped NARROWLY (the key issued with the least capability the connection needs — the read-only feed holding a read-only token: least privilege for machines, exactly as for humans), ROTATED on events (the leaver who knew or could know a credential triggers its rotation — module 2's lifecycle and HR 7's checklist both landing here: the credential register's rotation column making the leaver-event's credential sweep a checklist line instead of a guess; plus the calendar rotation for the long-lived keys the events never touched), and RETIRED with their doors (the integration decommissioned has its credentials revoked in the same ceremony — the dead door with a live key being an entrance nobody watches).</p><p><b>The key register & webhook hygiene.</b> The chapter's deliverables: the CREDENTIAL REGISTER (every key: what it opens, what it can do, where it is stored, who may access it, when last rotated — the register that makes the leaver sweep, the audit answer, and the incident response each a lookup), and the INBOUND door's verification (the webhook that receives outside events VERIFIES its callers — the endpoint that believes whatever arrives is an open gate for forged events: the verification's presence confirmed at acceptance, per Chapter 5's checklist, because the listening door's hygiene is part of the door). The chapter's closing sentence, for the site book's custody page: <b>a credential is the firm's signature in a machine's hands — enumerated, stored, scoped, rotated, retired: the five verbs that separate custody from exposure.</b></p>"
+   },
+   {
+    "title": "Chapter 7 — Integration health: designed failure & the reconciliation instinct",
+    "est": "13",
+    "html": "<p>Every door will fail — the gateway down, the endpoint rejecting, the confirmation lagging. The difference between an incident and a degraded mode is whether the failure was DESIGNED. The health chapter.</p><p><b>The designed failure mode.</b> The inventory's hardest column, completed per door: for each integration, the answer to 'what happens when it stops?' written in calm — the SMS gateway down (the notifications queue and retry? fall silent? — decided: the critical alerts carrying a fallback channel per the continuity instincts of module 4, the routine ones waiting), the PAYMENT confirmation lagging (the money's arrival told late — the receipt process's manual verification path standing, per the money tracks' own disciplines: the integration ACCELERATES the confirmation, it does not replace the reconciliation), and the STATUTORY endpoint rejecting or unreachable (the weightiest door's failure — the submission that cannot land does not suspend the obligation: the failure mode here includes the DEADLINE awareness (the retry window against the statutory clock), the rejection queue's triage (below), and the escalation to the owning function while time remains — the compliance door's outage being a calendar event, not just a technical one).</p><p><b>The rejection queue, owned.</b> The chapter's central discipline, weighted for the statutory doors: the integration that submits documents accumulates a REJECTION stream (the invoice the endpoint refused — the validation failure, the mismatched particulars, the schema drift after an update) — and the stream is a WORKED LIST with an owner (triaged on its rhythm to zero, each rejection corrected at its source and resubmitted — the rejected statutory submission being a compliance document in limbo, and the queue nobody reads being Chapter 1's gravest indictment: the firm that believes it is compliant because the system 'sends automatically' while rejections accumulate unread has automated its way into the unremitted-month disease with better technology), the rejection PATTERNS read (the cluster of one failure kind is a master-data or configuration finding routed per module 3 — the rejections as the endpoint's own quality feedback), and the queue's health on the glance (module 7 of this track formalises the read; this chapter establishes the duty).</p><p><b>The reconciliation instinct.</b> The trio discipline of the payroll track, generalised to every door where money or statute flows: the integration's records reconciled against the system's on a rhythm — the gateway's delivery report against the sent register (the messages the firm paid for matching the messages the system dispatched), the payment rail's settlement report against the receipts entered (the money the machines announced matching the money the books recorded — the money tracks' bank reconciliation extended to its feeder), and the statutory endpoint's ACCEPTED register against the firm's issued documents (the compliance door's reconciliation being the one that catches the silent gap: the documents issued minus the documents accepted equals the rejection queue plus the never-submitted — an equation read monthly, because its non-zero answer is a finding with a deadline), each reconciliation owned by the door's owning function with the admin providing the machinery — the split, one last time.</p><p><b>The review rhythm.</b> The doors' calendar: the integration REVIEW annually per door (the purpose still true, the volume read, the credentials' rotation current, the failure mode still correct, the counterparty relationship live — the door re-justified or retired: the museum discipline at the connection layer), the acceptance re-run after major changes (the platform update that touches an integration's terrain triggers its verification — module 5's collision check, cashed), and the incident learning loop (the door that failed teaches its runbook — the post-incident amendment, per module 4's pattern). The chapter's one-liner: <b>doors fail; owned doors fail gracefully — designed modes, worked rejection queues, monthly reconciliations, and an annual look that asks each door to justify its hinges.</b></p>"
+   },
+   {
+    "title": "Chapter 8 — Case study: HealthTrade's connected year",
+    "est": "16",
+    "html": "<p>The voice and the doors, governed through a year. Every chapter clocks in.</p><p><b>The voice fixed (Ch. 2-3).</b> The email overhaul opens the year: the audit finds the classic — invoices sending from the accountant's personal address ('it was set up that way at go-live and worked, so nobody touched it') — the sender identity moved to the firm's billing address, the domain's authentication confirmed with the host in one boundary ticket, and the deliverability difference measurable within a month (two customers who 'never got invoices' start getting them — the spam folder's tax, refunded). The queue read enters the daily glance and pays for itself in week three: a stuck-queue jam caught at 7 a.m. (a configuration hiccup after a mail-provider change) — cleared before the day's statements went out late, the invoice-that-never-sent disease caught in its incubation.</p><p><b>The map and the near-miss (Ch. 4).</b> The communication map's first draft lists eleven streams — and its recipient-hygiene pass delivers the chapter's sober moment: the payslip channel found reading addresses from a hand-maintained list predating the HR track's master (the side list three addresses stale — one belonging to a LEAVER: the payslip that would have gone to a departed employee's inbox, caught by the map's double-key rule before the next run instead of by the breach after it). The channel re-pointed to the governed master the same week; the side list deleted; the finding logged with the severity it deserved — and the MD's note enters the site book: <i>we nearly posted a payslip through a dead man's letterbox. The map earns its page.</i></p><p><b>The doors inventoried (Ch. 5-6).</b> The integration inventory's first census finds four doors: the SMS gateway (notifications and delivery alerts), the statutory e-invoicing connection (the accountant's door), a payment-confirmation feed, and one ORPHAN — a bridge built by a departed consultant during implementation, purpose unknown, still holding live credentials. The orphan's investigation (the partner consulted, the data flow read) finds it long-dead in function — decommissioned by ceremony, its credentials revoked (the dead door's live key, closed). The credential enumeration re-homes every key from its ambient places (two from a WhatsApp thread, one from a drawer notebook — each rotated on the leaked-until-proven-otherwise principle), and the register's rotation column meets its first leaver event in month seven: the checklist's credential sweep rotating the two keys the departing supervisor's role could reach — a checklist line, not a guess, exactly as designed.</p><p><b>The failures, designed and met (Ch. 7).</b> The failure modes written in quarter one are used twice: the SMS gateway's regional outage in month five runs its designed mode (critical expiry alerts re-routed to the fallback channel, routine notifications queued — no incident, a degraded Tuesday), and the statutory door delivers the year's compliance catch: the monthly issued-minus-accepted reconciliation finds a non-zero answer — a batch of rejections accumulated after a schema update (a particulars mismatch the automatic sender never announced) — triaged to zero inside the deadline window, the root cause fixed at the master (module 3's routing), and the reconciliation's monthly seat vindicated in one read: the firm that would have discovered the gap in a penalty letter discovered it in its own equation. The ops lead's year-note closes the case: <i>every message now has a sender we own, and every door has a name on it. The system talks to the world like a firm, not like a hobby.</i></p>"
+   },
+   {
+    "title": "Chapter 9 — Common mistakes & the sixth law",
+    "est": "13",
+    "html": "<p>The connected layer's scar tissue. Symptom → disease → fix.</p><p><b>Pattern 1 — the personal-address sender.</b> Symptom: invoices from a staff member's private mailbox; the evidence trail in an account the firm cannot search; the billing voice coupled to one person's employment. Disease: identity never governed (Ch. 2). Fix: firm-domain sender identities, few and mapped; authentication confirmed; the voice owned before a message is judged.</p><p><b>Pattern 2 — the unread queue.</b> Symptom: the invoice that stopped sending in March, discovered by the debtors' calls in June; failures accumulating unread; the outbound ledger treated as plumbing. Disease: the queue never made a register (Ch. 3). Fix: the daily glance's email column, failures triaged by kind to zero, bounces routed to the contact's owner, the sent-record retained as evidence.</p><p><b>Pattern 3 — the stale-recipient breach.</b> Symptom: the payslip to a departed employee's inbox; the statement to the wrong customer; the tightest tier defeated by a typo. Disease: recipient data ungoverned, side lists live (Ch. 4). Fix: sensitive streams aimed from the governed master only, addresses verified on their events, the bounce loop closing corrections fast.</p><p><b>Pattern 4 — the credential in the group chat.</b> Symptom: keys pasted 'temporarily' years ago; readership unknowable; the leaver's chat history a credential store; rotation never. Disease: ambient custody (Ch. 6). Fix: enumeration, governed storage, one key per door, narrow scopes, rotation by events and calendar — leaked-until-proven-otherwise for every ambient survivor.</p><p><b>Pattern 5 — the orphaned integration.</b> Symptom: the door a departed consultant built; purpose unknown, credentials live, workings undocumented; 'what is this connection?' asked for the first time in an incident. Disease: acceptance without custody (Ch. 5). Fix: the inventory — no door without a row, no row without an owner — the build boundary's acceptance checklist including the door's own runbook, and the orphans decommissioned by ceremony.</p><p><b>Pattern 6 — the unreconciled compliance door.</b> Symptom: rejections accumulating in a queue nobody owns; 'the system sends automatically' mistaken for 'we are compliant'; the gap discovered in a penalty letter. Disease: automation trusted without reconciliation (Ch. 7). Fix: the rejection queue as a worked list with a deadline-aware owner, and the monthly equation — issued minus accepted equals rejections plus never-submitted — read to zero.</p><p><b>The sixth law.</b> The custodian, the fences, the masters, the survival, the evolution — and now the voice and the doors: <b>every message and every integration has an owner — the firm's voice sent from identities it controls through a queue read as a ledger, every stream mapped and aimed from governed masters, every door on an inventory with custodied keys and a designed failure, and every money- or statute-bearing connection reconciled monthly to zero.</b> The system that speaks and connects this way faces the world like a firm — and the certified admin is why. Module 7 turns inward: monitoring, performance, and the health reads that let the admin know before anyone feels.</p>"
+   }
+  ],
+  "questions": [
+   {
+    "q": "The unowned channel:",
+    "opts": [
+     "Fails silently, leaks quietly, and embarrasses publicly — every disease in the module is an ownership absence",
+     "Works fine",
+     "Is cheaper",
+     "Is rare"
+    ],
+    "ans": 0,
+    "why": "The module's opening indictment.",
+    "src": "Ch1"
+   },
+   {
+    "q": "A channel's failure mode chosen in advance is:",
+    "opts": [
+     "Pessimism",
+     "A degraded mode — the one discovered live is an incident",
+     "Wasted effort",
+     "The host's job"
+    ],
+    "ans": 1,
+    "why": "Module 4's philosophy at every door.",
+    "src": "Ch1"
+   },
+   {
+    "q": "Invoices from a staff member's personal address mean:",
+    "opts": [
+     "Convenience",
+     "Faster sending",
+     "The billing voice coupled to one employment, the evidence trail in a mailbox the firm cannot search",
+     "Nothing"
+    ],
+    "ans": 2,
+    "why": "The identity fixed as the first act.",
+    "src": "Ch2"
+   },
+   {
+    "q": "The domain's authentication records are:",
+    "opts": [
+     "The admin's to administer",
+     "Automatic",
+     "Optional",
+     "Confirmed with the domain custodian and host — the unauthenticated domain's invoices land in spam"
+    ],
+    "ans": 3,
+    "why": "A collections problem wearing a technical costume.",
+    "src": "Ch2"
+   },
+   {
+    "q": "The shared mailbox left unrotated after a leaver is:",
+    "opts": [
+     "The front door closed and the side window open — rotation wired to the same events",
+     "Fine if the user is disabled",
+     "Standard",
+     "The host's issue"
+    ],
+    "ans": 0,
+    "why": "The custody register makes side windows enumerable.",
+    "src": "Ch2"
+   },
+   {
+    "q": "The email queue is:",
+    "opts": [
+     "Plumbing",
+     "The outbound ledger — every message a row, serving evidence and health at once",
+     "Temporary",
+     "Hidden"
+    ],
+    "ans": 1,
+    "why": "'We never received the invoice' answered by pointing.",
+    "src": "Ch3"
+   },
+   {
+    "q": "A bounce is:",
+    "opts": [
+     "An email problem",
+     "Ignorable",
+     "A master-data finding wearing an email costume — routed to the contact's owner for correction",
+     "The recipient's fault"
+    ],
+    "ans": 2,
+    "why": "The admin routes; the function corrects.",
+    "src": "Ch3"
+   },
+   {
+    "q": "The queue accumulating ancient failures unread is:",
+    "opts": [
+     "Normal",
+     "Evidence",
+     "Storage",
+     "The unread-queue disease — triaged to zero on its rhythm, like every worked list"
+    ],
+    "ans": 3,
+    "why": "The invoice-that-never-sent, incubating.",
+    "src": "Ch3"
+   },
+   {
+    "q": "Personal forwarding of documents:",
+    "opts": [
+     "Exits the evidence layer entirely — read as a workaround signal; the governed send made easier",
+     "Is initiative",
+     "Is faster",
+     "Is fine"
+    ],
+    "ans": 0,
+    "why": "The adoption law at the outbound layer.",
+    "src": "Ch3"
+   },
+   {
+    "q": "The communication map answers:",
+    "opts": [
+     "Storage questions",
+     "What the system says to the world, and on whose authority — in one look",
+     "Nothing new",
+     "Budgets"
+    ],
+    "ans": 1,
+    "why": "The page every new admin and auditor asks for.",
+    "src": "Ch4"
+   },
+   {
+    "q": "The wrong-recipient payslip is:",
+    "opts": [
+     "A minor slip",
+     "The employee's fault",
+     "The tightest tier breached by a typo — sensitive streams aimed from the governed master ONLY",
+     "Rare enough to ignore"
+    ],
+    "ans": 2,
+    "why": "The side list is where stale addresses live.",
+    "src": "Ch4"
+   },
+   {
+    "q": "The admin's conduct at the mail bag is:",
+    "opts": [
+     "Full access",
+     "Unregulated",
+     "Curiosity",
+     "The postman's ethics — the queue visible, the payslip attachments never opened"
+    ],
+    "ans": 3,
+    "why": "Custodian-not-owner, in transit.",
+    "src": "Ch4"
+   },
+   {
+    "q": "The stream that hasn't demonstrably fired in a year is:",
+    "opts": [
+     "Dead weight or a silent failure — the walk decides which",
+     "Fine",
+     "Efficient",
+     "Archived"
+    ],
+    "ans": 0,
+    "why": "Every stream test-fired or evidenced within the year.",
+    "src": "Ch4"
+   },
+   {
+    "q": "An integration is governed like:",
+    "opts": [
+     "Software",
+     "A standing relationship — purpose, counterparty, credentials, data flow, failure mode: a supplier with an API",
+     "A file",
+     "A report"
+    ],
+    "ans": 1,
+    "why": "On a register, with an owner, reviewed on a rhythm.",
+    "src": "Ch5"
+   },
+   {
+    "q": "The integration exporting pay-adjacent data is:",
+    "opts": [
+     "Ordinary",
+     "Efficient",
+     "A tightest-tier door — audited as one, its flow read against the tier designs",
+     "The provider's concern"
+    ],
+    "ans": 2,
+    "why": "The data flow's sensitivity column.",
+    "src": "Ch5"
+   },
+   {
+    "q": "The admin's role in integration builds is:",
+    "opts": [
+     "The engineering",
+     "Approval only",
+     "Nothing",
+     "Requirements and acceptance — purpose, owner, flow, failure mode specified; proven on test; the runbook received"
+    ],
+    "ans": 3,
+    "why": "Built through the partner; operated by the admin.",
+    "src": "Ch5"
+   },
+   {
+    "q": "The inventory's rule is:",
+    "opts": [
+     "No door without a row; no row without an owner; no owner without a failure answer",
+     "Doors as needed",
+     "Annual counts",
+     "Trust the partner"
+    ],
+    "ans": 0,
+    "why": "'What is this connection?' never asked first in an incident.",
+    "src": "Ch5"
+   },
+   {
+    "q": "An API key is:",
+    "opts": [
+     "A password",
+     "The firm's signature in a machine's hands — the key can speak, file, or read AS the firm",
+     "Technical trivia",
+     "The provider's property"
+    ],
+    "ans": 1,
+    "why": "The custody bar set by what it is.",
+    "src": "Ch6"
+   },
+   {
+    "q": "The credential pasted in a group chat is:",
+    "opts": [
+     "Stored",
+     "Convenient",
+     "In a store with no access control, no rotation, no leaver process — treated as leaked because readership is unknowable",
+     "Retrievable"
+    ],
+    "ans": 2,
+    "why": "Rotated on principle at enumeration.",
+    "src": "Ch6"
+   },
+   {
+    "q": "One credential per connection because:",
+    "opts": [
+     "Neatness",
+     "Provider rules",
+     "Cost",
+     "The shared key cannot be rotated for one door without breaking others — blast radius at the credential layer"
+    ],
+    "ans": 3,
+    "why": "Scoped narrowly, too: least privilege for machines.",
+    "src": "Ch6"
+   },
+   {
+    "q": "The decommissioned integration's credentials are:",
+    "opts": [
+     "Revoked in the same ceremony — the dead door with a live key is an entrance nobody watches",
+     "Kept as backup",
+     "Archived",
+     "Forgotten"
+    ],
+    "ans": 0,
+    "why": "Retired with their doors.",
+    "src": "Ch6"
+   },
+   {
+    "q": "The webhook that believes whatever arrives is:",
+    "opts": [
+     "Efficient",
+     "An open gate for forged events — caller verification confirmed at acceptance",
+     "Standard",
+     "Fast"
+    ],
+    "ans": 1,
+    "why": "The listening door's hygiene is part of the door.",
+    "src": "Ch6"
+   },
+   {
+    "q": "The payment integration:",
+    "opts": [
+     "Replaces reconciliation",
+     "Is the record",
+     "Accelerates the confirmation — the reconciliation still runs; machines announce, books verify",
+     "Ends manual checks"
+    ],
+    "ans": 2,
+    "why": "The money tracks' disciplines, kept.",
+    "src": "Ch7"
+   },
+   {
+    "q": "The statutory endpoint's outage is:",
+    "opts": [
+     "A technical event",
+     "Waitable",
+     "The provider's problem",
+     "A calendar event too — the submission that cannot land does not suspend the obligation; escalated while time remains"
+    ],
+    "ans": 3,
+    "why": "The retry window against the statutory clock.",
+    "src": "Ch7"
+   },
+   {
+    "q": "'The system sends automatically' while rejections accumulate is:",
+    "opts": [
+     "The unremitted-month disease with better technology — the rejection queue is a worked list with a deadline-aware owner",
+     "Compliance",
+     "Efficiency",
+     "Acceptable"
+    ],
+    "ans": 0,
+    "why": "Automated into the oldest disease.",
+    "src": "Ch7"
+   },
+   {
+    "q": "The compliance door's monthly equation is:",
+    "opts": [
+     "Volume sent",
+     "Issued minus accepted equals rejections plus never-submitted — its non-zero answer is a finding with a deadline",
+     "Cost per message",
+     "Uptime"
+    ],
+    "ans": 1,
+    "why": "The reconciliation that catches the silent gap.",
+    "src": "Ch7"
+   },
+   {
+    "q": "The annual integration review asks:",
+    "opts": [
+     "For renewal fees",
+     "Nothing",
+     "Each door to justify its hinges — purpose true, volume read, rotation current, failure mode correct, or retired",
+     "For upgrades"
+    ],
+    "ans": 2,
+    "why": "The museum discipline at the connection layer.",
+    "src": "Ch7"
+   },
+   {
+    "q": "HealthTrade's deliverability fix showed as:",
+    "opts": [
+     "Nothing visible",
+     "Lower costs",
+     "Faster emails",
+     "Two customers who 'never got invoices' starting to get them — the spam folder's tax, refunded"
+    ],
+    "ans": 3,
+    "why": "The unauthenticated era's measurable cost.",
+    "src": "Ch8"
+   },
+   {
+    "q": "The payslip channel was found reading from:",
+    "opts": [
+     "A hand-maintained side list with three stale addresses — one a LEAVER's; caught before the run, not after the breach",
+     "The governed master",
+     "The HR system",
+     "The queue"
+    ],
+    "ans": 0,
+    "why": "'We nearly posted a payslip through a dead man's letterbox.'",
+    "src": "Ch8"
+   },
+   {
+    "q": "The orphan integration was:",
+    "opts": [
+     "Left running",
+     "Investigated, found dead in function, decommissioned by ceremony, its live credentials revoked",
+     "Renamed",
+     "Sold"
+    ],
+    "ans": 1,
+    "why": "The dead door's live key, closed.",
+    "src": "Ch8"
+   },
+   {
+    "q": "The leaver's credential sweep was:",
+    "opts": [
+     "A guess",
+     "Skipped",
+     "A checklist line — the register's rotation column listing the two keys the role could reach",
+     "Annual"
+    ],
+    "ans": 2,
+    "why": "Exactly as designed.",
+    "src": "Ch8"
+   },
+   {
+    "q": "The statutory reconciliation caught:",
+    "opts": [
+     "Nothing",
+     "An outage",
+     "A fraud",
+     "A rejection batch after a schema update — triaged to zero inside the deadline, the root fixed at the master"
+    ],
+    "ans": 3,
+    "why": "Discovered in the firm's own equation, not a penalty letter.",
+    "src": "Ch8"
+   },
+   {
+    "q": "The SMS outage ran as:",
+    "opts": [
+     "The designed degraded mode — critical alerts on the fallback channel, routine ones queued: a degraded Tuesday",
+     "An incident",
+     "A crisis",
+     "Downtime"
+    ],
+    "ans": 0,
+    "why": "Designed failure, met calmly.",
+    "src": "Ch8"
+   },
+   {
+    "q": "Sensitive streams are aimed from:",
+    "opts": [
+     "Any list",
+     "The governed master only — never a manually-maintained side list",
+     "Memory",
+     "The queue"
+    ],
+    "ans": 1,
+    "why": "The one-version law aiming the most dangerous mail.",
+    "src": "Ch4"
+   },
+   {
+    "q": "This module's law is:",
+    "opts": [
+     "Channels manage themselves",
+     "Email is simple",
+     "Every message and every integration has an owner — the voice from controlled identities, every door inventoried with custodied keys and designed failures, money and statute reconciled monthly to zero",
+     "Providers own the risk"
+    ],
+    "ans": 2,
+    "why": "The system that faces the world like a firm.",
+    "src": "Ch9"
+   }
+  ]
  }
 }
