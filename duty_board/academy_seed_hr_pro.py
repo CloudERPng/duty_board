@@ -14,7 +14,7 @@ import os
 
 import frappe
 
-ORDER = ["employee_master", "recruitment"]
+ORDER = ["employee_master", "recruitment", "attendance"]
 
 TRACK = {
 	"title": "ZhiftERP HR Professional",
