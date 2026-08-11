@@ -1,0 +1,475 @@
+{
+ "sysadmin_function": {
+  "title": "Sysadmin 1 — The Sysadmin Function & the System Landscape",
+  "desc": "The foundation of the system administration certification: the platform custodian thesis and the least-privilege paradox, the system's anatomy and document model, the managed-hosting boundary map, the admin's place as a hat at trade scale, the site configuration as the constitution beneath the constitutions, the daily posture and request channel, and the site book as the documentation spine.",
+  "lessons": [
+   {
+    "title": "Chapter 1 — The seventh certification: the platform custodian",
+    "est": "12",
+    "html": "<p>Six tracks certified the FUNCTIONS — the counter, the gate, the warehouse, the books, the people, the pay. This track certifies the FLOOR they all stand on: the system itself — and the person who keeps it: the <b>system administrator</b>. The thesis that opens the seventh certification: <b>the system has a custodian — or it has a thousand casual owners, which is the same as having none.</b></p><p><b>Why the platform needs its own certification.</b> The argument, made from six tracks' evidence: every discipline this academy taught RUNS ON the system — the documents live in it, the permissions fence it, the masters govern through it, the calendars fire from it — and every track's structural module ended by leaning on capabilities this track owns: the permission walks (logged in AS the roles — who builds those roles?), the settings constitutions (who holds the settings pen?), the reminder engines TESTED (who tests them?), the archives forever (who verifies the backups those archives depend on?). The functional tracks assumed a competent platform layer the way a building assumes its foundation — and in the trade's reality, that assumption fails constantly: the site where everyone is an administrator, the password shared on the counter's sticky note, the backup nobody has ever restored, the customisation nobody remembers making — the diseases are the SAME diseases six tracks fought (memory over documents, improvisation over masters, heroics over rhythms), living one layer down, undermining everything built above.</p><p><b>The custodian frame.</b> The role's character, set before its duties: the sysadmin is a CUSTODIAN, not an owner — the functions own their data (the selling documents belong to the selling function, the pay masters to payroll's narrow pens: six tracks assigned every document an owner, and the admin is on none of those lists), and the admin custodians the PLATFORM those owners work on: the accounts that let them in, the permissions that fence them, the configuration that shapes their screens, the backups that guarantee their history, the health that keeps their mornings boring. The distinction is load-bearing and this track will enforce it repeatedly: the admin who reads the pay data because they CAN is the custody breach of the payroll track's tightest tier — the admin's power is access to everything, and the admin's governance (module 8) is therefore the strictest in the firm: <b>maximum capability, minimum entitlement</b> — the least-privilege paradox this track exists to resolve properly.</p><p><b>The track's map.</b> This module — the function and the landscape (the system's anatomy, the managed boundary, the admin's place, the documentation spine). Module 2 — the deep module: users, roles, and permissions at full depth (the layer every prior track's permission walk pointed at, finally opened). Module 3 — master data governance and imports. Module 4 — backups, recovery, and continuity. Module 5 — updates, changes, and the test discipline. Module 6 — printing, email, and integrations. Module 7 — monitoring and the health reads. Module 8 — security, audit, and the structural layer that closes the track. The laws will arc from <i>the system has a custodian</i> to <i>administration lives in structure</i> — and HealthTrade's case continues: the firm that built six functions on its platform now formally staffs the platform itself.</p>"
+   },
+   {
+    "title": "Chapter 2 — The system's anatomy: the vocabulary",
+    "est": "13",
+    "html": "<p>Before duties, the map: what the system actually IS — its layers, named precisely, because the admin who cannot name the layers cannot reason about them. The anatomy chapter.</p><p><b>The site.</b> The firm's tenancy: the SITE is the firm's complete, isolated instance — its database, its files, its users, its configuration, living at its address (the firm's own subdomain) — and the first vocabulary distinction the admin internalises: the site is the FIRM'S world (everything in it belongs to the firm's story), while the platform hosting it serves many worlds (the multi-tenant reality Chapter 3's boundary maps). One firm, one site, one story — and everything this track governs lives inside it.</p><p><b>The document model.</b> The system's deepest idea, taught once and used forever: everything is a DOCUMENT of a TYPE — the doctype defines the shape (the fields, their kinds, the rules), the document is one instance of it (this invoice, this employee, this warehouse), and the six tracks' whole world resolves into this vocabulary: the masters are documents (the item, the customer, the salary structure), the transactions are documents (the invoice, the payment, the payroll run), the configuration is documents (the settings pages themselves), and even the fences are documents (the roles, the permission rules — module 2's terrain, stored in the same model it governs). The model's practical consequences for the admin: every document has an IDENTITY (its name — the naming series of six tracks' registrar laws, administered in module 3), a HISTORY (the versions and the trail — module 8's audit layer, on by design for what matters), a STATE (draft, submitted, cancelled — the lifecycle the functional tracks ride: the sealed run and the frozen close are this machinery), and an OWNER-and-permissions context (module 2). The admin who holds this model can reason about anything in the system from first principles — which is why it is Chapter 2 and not an appendix.</p><p><b>The layers beneath.</b> The stack, at admin altitude: the DATABASE (every document's home — the single source the whole academy's one-version laws physically rest on: when six tracks said 'one version', they meant this layer's one row), the FILES layer (the attachments — the signed contracts, the scanned receipts, the payslip PDFs: documents' companions, backed up as deliberately as the database, because the invoice without its signed delivery note is half an evidence file), the APPS layer (the platform's capabilities and the firm's customisations — module 5's change discipline lives here), and the ACCOUNTS layer (the users — the humans' representations, module 2's raw material). The admin's mental model of any incident starts by placing it in a layer — the report that won't load (app layer? data volume?), the attachment missing (files layer), the login failing (accounts layer) — the triage instinct this vocabulary buys being the difference between a diagnostic and a panic.</p><p><b>The environments.</b> The last vocabulary pair: PRODUCTION (the live site — the firm's actual world, where every change is real) and the TEST site (the copy where changes rehearse — module 5's whole discipline previewed in one distinction), with the admin's iron habit stated now and enforced later: <b>nothing is tried for the first time in production</b> — the sentence that separates administration from gambling, and the cheapest sentence in this track.</p>"
+   },
+   {
+    "title": "Chapter 3 — The managed boundary: who owns what",
+    "est": "14",
+    "html": "<p>The firm's system runs on managed hosting — and the single most important page in the admin's book is the BOUNDARY MAP: what the HOST owns versus what the SITE ADMIN owns. The boundary chapter — the track's equivalent of the adviser boundary, and just as load-bearing.</p><p><b>The host's side.</b> What managed hosting owns and delivers, named so the admin neither duplicates nor neglects it: the SERVERS and infrastructure (the hardware, the operating layer, the network — invisible to the site admin by design), the PLATFORM's core software and its updates (the framework and application versions maintained, patched, and upgraded by the host on its announced cycle — module 5 governs the admin's side of that cycle), the INFRASTRUCTURE-level protections (the perimeter security, the encryption in transit, the platform monitoring), the infrastructure BACKUP machinery (the automated backup cycles running at platform level — with module 4 teaching the critical nuance: the host runs the machinery, the admin VERIFIES the firm's recoverability, because 'the host has backups' and 'we have tested that we can recover' are different sentences), and UPTIME (the availability commitment the hosting relationship states).</p><p><b>The site admin's side.</b> What no host can own, because it is the firm's own governance: the USERS and their lifecycle (who has an account, joined to the HR track's events — module 2), the PERMISSIONS (who sees and does what — the fences are the firm's policy, expressed in configuration), the MASTERS' governance (the naming, the imports, the hygiene — module 3, joining six tracks' master laws), the CONFIGURATION (the settings constitutions of every track — the admin holds the pens' custody), the firm's DATA quality and evidence files, the CUSTOMISATION decisions (what the firm changes about its own site — module 5), the integrations' firm-side credentials (module 6), and the firm's CONTINUITY plan (module 4 — the host recovers infrastructure; the firm plans its own business continuity). The boundary's one-line summary for the site book's first page: <b>the host keeps the system running; the admin keeps the firm governed on it.</b></p><p><b>The escalation channel.</b> The boundary's working interface: the SUPPORT relationship, governed like every channel this academy has built — issues raised through the standing channel (the ticket, not the midnight call to a personal number — the one-channel law arriving at the hosting relationship), with the firm's side disciplined (the ticket that states the symptom, the steps to reproduce, the affected users, and the business impact is answered in one round; the ticket that says 'system not working' is answered with questions — the admin's ticket hygiene being the firm's own support-speed lever), SEVERITY used honestly (the everything-is-critical firm teaches the host's queue to discount it — the boy-who-cried-wolf economics of severity levels, stated plainly), and the escalation path documented in the site book (who to contact, through what, with what expectations — tested before it is needed, like everything in this academy).</p><p><b>The boundary's discipline.</b> The chapter's closing rule, in the settled grammar: the admin never reaches ACROSS the boundary (the server-side question is a ticket, not an adventure; the platform update is the host's act, received per module 5's discipline) and never abandons their OWN side of it (the permission sprawl is not the host's problem; the untested restore is not covered by 'they have backups'; the sixty-day-stale user list is the firm's breach waiting) — the two failure modes being mirror images, and the boundary map on the wall being the cure for both: every incident, every question, every duty placed on its correct side in seconds, which is the map's entire job.</p>"
+   },
+   {
+    "title": "Chapter 4 — The admin's place: the hat, the paradox & the org",
+    "est": "13",
+    "html": "<p>Who the admin actually is at trade scale, the paradox their power creates, and where the role sits among six certified functions. The organisational chapter.</p><p><b>The hat, not the person.</b> The scale honesty first, in the academy's standing tradition: at eleven people, the sysadmin is a HAT — a few hours a week worn by a capable operations person (HealthTrade's case: the ops lead), not a hired specialist — and the track is designed for exactly that wearer: every duty sized (the daily read is minutes; the monthly rituals an hour; the annual season some afternoons), every skill teachable (no code required for the site admin's whole scope), and the growth path real (the hat grows into a role as the firm grows into branches — the admin path beside the HR track's ladders). What the hat requires is not technical depth but the academy's own virtues: precision, rhythm, documentation, and the temperament to refuse corridor requests politely — which is why the best trade-scale admins are so often the same people who run good closes.</p><p><b>The least-privilege paradox.</b> The role's central tension, named early because module 8 resolves it structurally: the admin holds the keys to everything — and must be the firm's LEAST casual user of them. The paradox's resolution, previewed: the admin's power is for PLATFORM acts (creating the account, building the role, restoring the backup), never for DATA acts (reading the pay figures because the fence is theirs to open, browsing the disciplinary file, 'checking' the sales numbers — each the custody breach of its track's tightest tier, committed by the person the fences trust most), with the enforcement structural where possible (the admin's own daily-work account distinct from the administrative account — the two-account discipline: the powerful account used deliberately, for administration, its sessions short and its acts logged; the daily account living under ordinary fences like everyone's) and cultural where it must be (module 8's conduct standard — the access log read by someone who is not the admin: nobody audits their own keys, the seventh telling of the academy's oldest separation).</p><p><b>The admin among the functions.</b> The role's relationships, mapped: the admin SERVES the six functions (their requests for accounts, fences, formats, and fixes — Chapter 6's channel), CUSTODIANS what they share (the platform, the masters' machinery, the calendars' engine), and OWNS none of their data (the selling function's numbers are the selling function's; the admin's job is that the right people see them and nobody else does) — with the authority map explicit: functional configuration changes belong to the FUNCTION'S owner through the admin's hands (the payroll setting changes because payroll's configure authority decided, the admin executed, and both are named in the change log — the admin as the pen's custodian, never the decision's author), and the admin's OWN decisions confined to the platform layer (the session policy, the backup verification schedule, the update window: module 8 seats these formally).</p><p><b>The bottleneck warning.</b> The chapter's closing pattern, familiar from six tracks and sharpest here: the FOUNDER-as-admin — the trade's default, where the owner holds the administrator password because the system arrived that way and nobody ever changed it — carrying every single-head disease at the platform layer (the founder's absence stalling every account request; the founder's casual omnipotence normalising exactly what module 8 forbids; the handover test failing before it is asked) plus one unique to this layer: the founder-admin cannot be fenced, so every tier this academy built — the payroll track's tightest, the HR track's sensitive — is one habit away from meaningless. The cure is this track's whole arc, and its first step is Chapter 8's case study: the hat formally assigned, to a named person, who is not the founder — the day the platform gets its custodian and the founder gets, at last, the same fences as everyone else, which six tracks have quietly been waiting for.</p>"
+   },
+   {
+    "title": "Chapter 5 — The site configuration: the constitution beneath the constitutions",
+    "est": "13",
+    "html": "<p>Every track walked a settings constitution; this chapter reveals what they stood on — the SITE-level configuration that shapes everyone's experience before any function configures anything. The seventh constitution, and the one beneath the other six.</p><p><b>The system settings walk.</b> The site-wide fields, walked in the standing discipline: the LOCALE layer (the country, timezone, and language defaults — the timezone being quietly load-bearing: every timestamp in every trail this academy relies on renders through it, and the wrong timezone makes every 'when' in every dispute off by an hour), the FORMATS layer (the date format, the number format, the currency and its precision — the precision setting the ledger's kobo discipline physically rests on: Accounts 8's precision conviction has a field, and this is it), the SESSION layer (the login expiry, the concurrent-session posture, the password policy's strength — module 8's security constitution previewing its most consequential fields), the NAMING defaults (the series machinery module 3 administers — seated here), and the communication defaults (the notification and email switches module 6 governs — the flood-or-silence dial, set deliberately).</p><p><b>The settings custody, seventh telling.</b> The academy's most-repeated law, at its deepest layer: every field above is a POLICY (the session expiry is a security policy; the precision is a financial policy; the timezone is an evidence policy), the pen is the NARROWEST in the firm (the site configuration changed by the admin, on a decision by the named authority, recorded in the change log — module 5's discipline receiving its first customers), and the corridor toggle convicted in its platform clothes — with the aggravating factor named honestly: a functional setting mis-toggled wounds its function, but a SITE setting mis-toggled wounds every function at once (the session expiry 'extended for convenience' weakening every tier's fences simultaneously; the precision nudged unbalancing reconciliation across two certified tracks) — the blast radius argument of the payroll track's pen tiers, applied to the layer where the radius is the whole site.</p><p><b>The configuration record.</b> The chapter's deliverable, feeding Chapter 7's site book: every site-level setting recorded with its VALUE, its REASON, and its DECIDER (the one-page configuration record — written at implementation, updated by the change log, re-walked annually) — because the setting whose reason is forgotten is the setting someone will 'fix' (the timezone changed by a helpful hand who thought it looked wrong; the format 'corrected' to a preference — the undocumented configuration inviting exactly the casual edits its documentation would have refused), and because the record is the new admin's first hour of orientation (module 8's handover test, being fed from its first module — the pattern six tracks have proven: the documentation that is a byproduct of governing well IS the handover, and the site that is governed from a record survives its administrator by construction).</p><p><b>The defaults-are-decisions law.</b> The chapter's closing conviction, stated for every implementation the certified admin will ever join: the site arrives with DEFAULTS, and every default kept is a decision made — the walk's job at implementation is to convert every consequential default from an accident into a choice (walked, decided, recorded — even when the decision is 'the default is right'), because the difference between the two is invisible for years and decisive in the one dispute, the one audit, the one recovery where the field turns out to matter — which is the settings-constitution argument all six tracks made, completed at the layer beneath them all.</p>"
+   },
+   {
+    "title": "Chapter 6 — The admin's posture: the reads & the request channel",
+    "est": "13",
+    "html": "<p>The admin's working rhythm — the daily glance that keeps mornings boring, and the channel that keeps requests governed. The posture chapter, previewing module 7's full machinery.</p><p><b>The daily glance.</b> The reads, previewed at posture level (module 7 builds them fully): the ERROR log's morning scan (not read line by line — scanned for shape: the quiet log is the boring morning; the log that grew overnight is the day's first question), the BACKGROUND queue's health (the jobs that run the firm's automation — the reminders, the emails, the scheduled tasks: the stuck queue is every calendar's silent failure, and the glance catches it before the missed reminder becomes a lapsed licence), the LOGIN pattern's anomaly check (the failed-login cluster, the login at an odd hour from an odd place — module 8's security reads at glance depth), and the STORAGE trend (the site's growth watched monthly — the attachment habit that doubles the site in a year being a conversation, not a crisis, when read early). The glance's economics stated in the academy's cadence: five minutes daily against the alternative — the firm discovering its platform problems the way it once discovered stock problems, by collision.</p><p><b>The request channel.</b> The one-channel law arriving at IT, and the discipline that saves every trade-scale admin: administration requests travel through the STANDING channel (the request document or ticket — the new account, the permission change, the format fix, the report question), never the corridor (the shoulder tap, the WhatsApp message, the founder's drive-by 'just quickly add...') — with the reasons the six tracks have made familiar: the corridor request is UNRECORDED (the permission granted with no trail is module 2's sprawl being manufactured in real time), UNPRIORITISED (the loudest request served first is the favour system running IT), and UNBOUNDED (the admin hat's few hours consumed by interrupts is the hat failing at its actual duties — the reads skipped, the backups unverified, the change log stale, all to answer taps). The channel's own governance: the request as a document (what, who, why, approved-by-whom where the request grants power — the permission request carrying its authoriser, because module 2's grants are events with authors), the SLA honest and published (the account request's turnaround stated; the emergency lane defined narrowly and honestly), and the queue read weekly for its shape (the clustering request is a training gap or a design gap — the request log as the platform's own query channel, read exactly as the payroll track read its pay queries: the channel measured by its own quieting).</p><p><b>The refusal craft.</b> The posture's hardest skill, taught explicitly because the hat's wearer needs it scripted: the admin refuses REQUESTS, never people — the corridor ask met with the channel (<i>log it and I'll have it done by tomorrow's SLA</i> — the yes that preserves the system), the policy-breaking ask met with the policy and its owner (<i>that fence is the payroll function's; if they authorise it through the request, I'll open it the same day</i> — the admin as the pen's custodian, visibly not its author, which deflects the pressure to where the decision actually lives), and the founder's ask met identically (the moment Chapter 4 promised — the founder's request travelling the channel is the day the machinery becomes real for everyone watching, and the certified admin is prepared for it in advance, with the founder prepared too: the consultant's implementation includes exactly that conversation, before it is needed, which is this academy's signature move applied to its own administrator).</p>"
+   },
+   {
+    "title": "Chapter 7 — The documentation spine: the site book",
+    "est": "13",
+    "html": "<p>The track's documentation layer, established in module 1 because every later module feeds it: the SITE BOOK — the one binder (physical or digital) that makes the platform legible to anyone who must hold it. The spine chapter.</p><p><b>The book's sections.</b> The structure, laid down now and filled across eight modules: the <b>boundary map</b> (Chapter 3 — who owns what, the escalation path, the support contacts and expectations), the <b>configuration record</b> (Chapter 5 — every site setting with value, reason, decider), the <b>access register</b> (module 2's deliverable — every user, their roles, the grant events: the permission layer's memory), the <b>master governance page</b> (module 3 — the naming series, the import disciplines, the custodians per master), the <b>continuity plan</b> (module 4 — the backup verification log, the recovery runbook, the RPO/RTO decisions), the <b>change log</b> (module 5 — every customisation and configuration change: what, why, who decided, when, how reversed), the <b>integration inventory</b> (module 6 — every connection, its credentials' custody, its owner, its failure mode), and the <b>calendar</b> (module 8 — the admin's rhythms with names). Eight sections, eight modules — the book IS the track, materialised.</p><p><b>Documentation as byproduct, seventh telling.</b> The academy's quiet thesis, at the layer where its violation is most expensive: nothing in the book is written FOR documentation — the boundary map is written to settle the first ownership confusion, the change log to make the first rollback possible, the access register to run the first permission walk — and the book assembles itself from governing well, which is why the undocumented site is not a documentation failure but a GOVERNANCE failure wearing one (the site with no change log is a site where changes were never governed; the missing access register is the sprawl's birth certificate), and why the consultant reads a prospect's site book — or its absence — as the single fastest health diagnostic the platform layer offers.</p><p><b>The book's readers.</b> Who the spine serves, enumerated because each reader justifies it alone: the ADMIN themselves (the book is the working reference — the escalation path at midnight, the change log before every 'did we change something?'), the COVERAGE (the absence test's whole feasibility — the hat handed over for a holiday is the book handed over), the SUCCESSOR (module 8's handover test, passed or failed by this binder), the CONSULTANT (the implementation partner who can read the site's story instead of archaeologising it), the AUDITOR (the access register and change log being exactly what IT-adjacent audit asks for first), and the FIRM ITSELF in its hardest moments (the recovery runbook read during the incident it was written for — the site book being to the platform what the deceased-employee procedure was to the payroll track: the structure built in calm, carrying everyone when calm is gone).</p><p><b>The book's discipline.</b> The maintenance rules, briefly: the book lives in a KNOWN place (and a copy lives outside the site it documents — the continuity plan that is only inside the system it recovers is a joke the incident will not find funny), its sections are OWNED (the admin owns most; the boundary map is co-owned with the host relationship; the integration inventory with each integration's function), it is UPDATED by events (the change that skips the log is module 5's conviction — the book fed by the rhythms, not by heroic annual rewrites), and it is WALKED annually (the book's own review on the calendar — stale documentation being worse than none, because it is believed). The chapter closes the module's foundations: the anatomy named, the boundary mapped, the hat assigned, the constitution recorded, the posture set, the spine established — and Chapter 8 watches HealthTrade do all of it in a quarter.</p>"
+   },
+   {
+    "title": "Chapter 8 — Case study: HealthTrade appoints its custodian",
+    "est": "16",
+    "html": "<p>The platform gets its keeper. Every chapter clocks in.</p><p><b>The appointment (Ch. 1, 4).</b> The trigger is honest and familiar: the MD — the site's only administrator since implementation — returns from the payroll track's absence-test triumph with the obvious question: <i>every function now survives its people except the one they all run on.</i> The hat is assigned deliberately: the operations lead (the HR track's developed deputy, the process temperament proven) takes system administration at four hours a week, with the appointment done as the academy does everything — a written scope (the site admin's side of the boundary map), a development plan (this track, module by module), and the two-account discipline from day one (her daily work account untouched; the administrative account created, powerful, logged, and used deliberately). The founder's own administrator access is retired the same week — the MD's note in the site book's first page is the chapter's thesis from the horse's mouth: <i>I have been the least governed user of the most sensitive system in the firm. That ends with this appointment.</i></p><p><b>The boundary and the book (Ch. 3, 7).</b> The first month is the map: the boundary session with the hosting relationship (the two-column page drawn — what the host owns, what HealthTrade owns; the escalation path documented and TESTED with a low-severity ticket, whose two-round resolution also teaches ticket hygiene by experience: the second ticket, written to the taught format, resolves in one), and the site book opened with its eight sections — five of them thin placeholders awaiting their modules, three filled immediately: the boundary map, the configuration record (the settings walk below), and the change log (opened with entry #1: the founder-access retirement itself — the book's first entry being its own origin story).</p><p><b>The constitution walked (Ch. 5).</b> The site settings walk with the MD and the accountant finds the expected archaeology: the timezone correct by luck (never checked — now recorded as decided), the currency precision confirmed against the ledger's (the accountant's kobo conviction getting its platform verification), the session expiry found at a lax default from the implementation era ('convenient' — and weakening every fence six tracks built: tightened in the walk, announced per the standing discipline, the change log's entry #2), and every consequential default converted from accident to choice in one afternoon — the configuration record's first full page, signed and dated.</p><p><b>The posture lands (Ch. 6).</b> The daily glance begins (five minutes with coffee — the error log's shape, the queue's health, the logins, the storage line), and the request channel opens with the announcement at the branch meetings: administration requests through the channel, the SLA published (accounts by next day, permission changes same-week with the owning function's authorisation, the emergency lane defined). The channel's first test arrives in week two, exactly as Chapter 6 predicted: the MD's corridor ask (<i>just quickly give the new pharmacist access to the stock reports</i>) — met with the prepared craft: <i>log it with Inventory's authorisation and it's done within the hour.</i> The request travels the channel; the fence's owner authorises; the grant lands with its trail — and the ops lead's note in the log is the module's whole posture in one line: <i>said yes through the channel; the register never lied.</i> The quarter closes with the glance boring, the queue quiet, the book growing by its own rhythms — and the platform, for the first time, a governed function among governed functions. The MD's quarter-note: <i>the floor now has a keeper — and the keeper has a book.</i></p>"
+   },
+   {
+    "title": "Chapter 9 — Common mistakes & the first law",
+    "est": "13",
+    "html": "<p>The platform layer's scar tissue — the diseases every site assessment finds first. Symptom → disease → fix.</p><p><b>Pattern 1 — the everyone-is-admin site.</b> Symptom: five administrator accounts; fences that exist but exclude nobody who matters; every tier six tracks built, hollow. Disease: power granted for convenience and never reclaimed (Ch. 1, 4). Fix: one custodian, named; the administrator population reduced to the design; the two-account discipline; and module 2's full machinery to rebuild the fences meaningfully.</p><p><b>Pattern 2 — the founder-as-admin.</b> Symptom: the owner holds the master password; every account request waits for them; every fence stops below them. Disease: the platform's single-head, unfenceable by definition (Ch. 4). Fix: the hat formally assigned to a named non-founder; the founder's access retired to an ordinary governed account; the day every tier becomes real.</p><p><b>Pattern 3 — the undocumented site.</b> Symptom: nobody knows why any setting is set; changes leave no trace; the new admin archaeologises for months; the incident finds no runbook. Disease: governance never materialised (Ch. 5, 7) — the missing book being the missing governance's birth certificate. Fix: the site book's eight sections, fed as byproducts of governing well, walked annually, copied outside the site.</p><p><b>Pattern 4 — corridor IT.</b> Symptom: requests by shoulder tap; permissions with no trail; the admin's hours consumed by interrupts; the loudest served first. Disease: the one-channel law never arrived at the platform (Ch. 6). Fix: the request channel with its SLA, the refusal craft scripted, the founder's requests travelling the same road — and the queue read for its shape.</p><p><b>Pattern 5 — the admin who owns data.</b> Symptom: the admin 'checking' the numbers; the pay figures browsed because the fence is theirs; the tightest tiers meaningless above one login. Disease: custodian and owner confused (Ch. 1, 4). Fix: the least-privilege paradox resolved structurally — platform acts only, the two accounts, the access log read by another — maximum capability, minimum entitlement.</p><p><b>Pattern 6 — the boundary confusion.</b> Symptom: the admin adventuring at the server layer, or neglecting their own side because 'the host handles it'; the untested restore covered by faith in someone else's machinery. Disease: the map never drawn (Ch. 3). Fix: the boundary map on the site book's first page — the host keeps the system running; the admin keeps the firm governed on it — every duty and every incident placed on its side in seconds.</p><p><b>The first law.</b> The seventh track opens where the academy's grammar demands: <b>the system has a custodian — a named keeper of the platform who owns none of its data, holds the narrowest pens beneath the other six constitutions, works through a channel, reads before being surprised, and writes the book that makes the floor survive its keeper.</b> Six tracks built a firm that runs on documents; this track ensures the system holding those documents is governed by the same laws it enforces. Module 2 now opens the layer every permission walk pointed at: users, roles, and permissions — at full depth, ten chapters, the track's deep module.</p>"
+   }
+  ],
+  "questions": [
+   {
+    "q": "The seventh track certifies:",
+    "opts": [
+     "The floor the six functions stand on — the system and its custodian",
+     "Another function",
+     "The host",
+     "Developers"
+    ],
+    "ans": 0,
+    "why": "Every track's structural module leaned on capabilities this track owns.",
+    "src": "Ch1"
+   },
+   {
+    "q": "A system with a thousand casual owners has:",
+    "opts": [
+     "Redundancy",
+     "None — the same as having no custodian",
+     "Resilience",
+     "Coverage"
+    ],
+    "ans": 1,
+    "why": "The thesis's second half.",
+    "src": "Ch1"
+   },
+   {
+    "q": "The admin is:",
+    "opts": [
+     "The data's owner",
+     "The boss",
+     "A custodian — the functions own their data; the admin custodians the platform they work on",
+     "A developer"
+    ],
+    "ans": 2,
+    "why": "The admin is on none of the six tracks' ownership lists.",
+    "src": "Ch1"
+   },
+   {
+    "q": "The least-privilege paradox is:",
+    "opts": [
+     "Impossible",
+     "Optional",
+     "A contradiction",
+     "Maximum capability, minimum entitlement — the keys to everything, used least casually of all"
+    ],
+    "ans": 3,
+    "why": "Resolved structurally in module 8.",
+    "src": "Ch1"
+   },
+   {
+    "q": "The site is:",
+    "opts": [
+     "The firm's complete, isolated tenancy — its database, files, users, and configuration",
+     "A webpage",
+     "The server",
+     "An app"
+    ],
+    "ans": 0,
+    "why": "One firm, one site, one story.",
+    "src": "Ch2"
+   },
+   {
+    "q": "The document model means:",
+    "opts": [
+     "Files everywhere",
+     "Everything is a document of a type — masters, transactions, configuration, and even the fences",
+     "Paper forms",
+     "Reports only"
+    ],
+    "ans": 1,
+    "why": "The admin who holds this model reasons from first principles.",
+    "src": "Ch2"
+   },
+   {
+    "q": "When six tracks said 'one version', they physically meant:",
+    "opts": [
+     "A policy",
+     "A backup",
+     "The database layer's one row — every document's single home",
+     "A report"
+    ],
+    "ans": 2,
+    "why": "The one-version laws rest on this layer.",
+    "src": "Ch2"
+   },
+   {
+    "q": "The files layer is backed up deliberately because:",
+    "opts": [
+     "It is small",
+     "The host insists",
+     "It is optional",
+     "The invoice without its signed delivery note is half an evidence file"
+    ],
+    "ans": 3,
+    "why": "Attachments are documents' companions.",
+    "src": "Ch2"
+   },
+   {
+    "q": "Nothing is tried for the first time in production:",
+    "opts": [
+     "Separates administration from gambling — the cheapest sentence in the track",
+     "Is excessive caution",
+     "Slows everything",
+     "Is impossible"
+    ],
+    "ans": 0,
+    "why": "The test site exists for rehearsal.",
+    "src": "Ch2"
+   },
+   {
+    "q": "'The host has backups' and 'we have tested that we can recover' are:",
+    "opts": [
+     "The same sentence",
+     "Different sentences — the host runs the machinery; the admin verifies the firm's recoverability",
+     "Both the host's job",
+     "Both myths"
+    ],
+    "ans": 1,
+    "why": "Module 4's critical nuance, previewed at the boundary.",
+    "src": "Ch3"
+   },
+   {
+    "q": "The boundary's one-line summary is:",
+    "opts": [
+     "The host does everything",
+     "The admin does everything",
+     "The host keeps the system running; the admin keeps the firm governed on it",
+     "Nobody owns anything"
+    ],
+    "ans": 2,
+    "why": "The site book's first page.",
+    "src": "Ch3"
+   },
+   {
+    "q": "The ticket that says 'system not working' is answered with:",
+    "opts": [
+     "A fix",
+     "Escalation",
+     "Silence",
+     "Questions — ticket hygiene is the firm's own support-speed lever"
+    ],
+    "ans": 3,
+    "why": "Symptom, steps, affected users, business impact: one round.",
+    "src": "Ch3"
+   },
+   {
+    "q": "The everything-is-critical firm teaches:",
+    "opts": [
+     "The host's queue to discount it — the boy-who-cried-wolf economics of severity",
+     "Urgency",
+     "Respect",
+     "Speed"
+    ],
+    "ans": 0,
+    "why": "Severity used honestly.",
+    "src": "Ch3"
+   },
+   {
+    "q": "The admin's two failure modes at the boundary are:",
+    "opts": [
+     "Slow and fast",
+     "Reaching across it and abandoning their own side — mirror images, cured by the map",
+     "Cheap and costly",
+     "Old and new"
+    ],
+    "ans": 1,
+    "why": "Every incident placed on its side in seconds.",
+    "src": "Ch3"
+   },
+   {
+    "q": "At eleven people, the sysadmin is:",
+    "opts": [
+     "A hire",
+     "The founder",
+     "A hat — a few hours a week on a capable operations person, every duty sized for exactly that",
+     "Outsourced"
+    ],
+    "ans": 2,
+    "why": "The best trade-scale admins run good closes.",
+    "src": "Ch4"
+   },
+   {
+    "q": "The two-account discipline means:",
+    "opts": [
+     "Two passwords",
+     "Backup logins",
+     "Shared accounts",
+     "The daily-work account under ordinary fences; the administrative account powerful, deliberate, and logged"
+    ],
+    "ans": 3,
+    "why": "The paradox's structural half.",
+    "src": "Ch4"
+   },
+   {
+    "q": "The admin reading pay figures because the fence is theirs is:",
+    "opts": [
+     "The custody breach of the tightest tier — committed by the person the fences trust most",
+     "Their right",
+     "Diligence",
+     "Normal"
+    ],
+    "ans": 0,
+    "why": "Platform acts, never data acts.",
+    "src": "Ch4"
+   },
+   {
+    "q": "Functional configuration changes are:",
+    "opts": [
+     "The admin's decisions",
+     "The function's owner's decisions through the admin's hands — both named in the change log",
+     "The host's",
+     "Automatic"
+    ],
+    "ans": 1,
+    "why": "The admin as the pen's custodian, never the decision's author.",
+    "src": "Ch4"
+   },
+   {
+    "q": "The founder-as-admin uniquely means:",
+    "opts": [
+     "Faster decisions",
+     "Better security",
+     "The founder cannot be fenced — every tier six tracks built is one habit from meaningless",
+     "Lower cost"
+    ],
+    "ans": 2,
+    "why": "The platform single-head's special disease.",
+    "src": "Ch4"
+   },
+   {
+    "q": "The timezone setting is:",
+    "opts": [
+     "Cosmetic",
+     "Irrelevant",
+     "The host's choice",
+     "An evidence policy — every timestamp in every trail renders through it"
+    ],
+    "ans": 3,
+    "why": "The wrong timezone makes every 'when' off by an hour.",
+    "src": "Ch5"
+   },
+   {
+    "q": "A site setting mis-toggled wounds:",
+    "opts": [
+     "Every function at once — the blast radius is the whole site",
+     "One function",
+     "Nobody",
+     "Only the admin"
+    ],
+    "ans": 0,
+    "why": "The pen-tier logic at the layer beneath the constitutions.",
+    "src": "Ch5"
+   },
+   {
+    "q": "The configuration record holds:",
+    "opts": [
+     "Values only",
+     "Every setting's value, reason, and decider — the setting whose reason is forgotten gets 'fixed'",
+     "Passwords",
+     "Screenshots"
+    ],
+    "ans": 1,
+    "why": "The undocumented configuration invites casual edits.",
+    "src": "Ch5"
+   },
+   {
+    "q": "Every default kept is:",
+    "opts": [
+     "Safe",
+     "Neutral",
+     "A decision made — the walk converts accidents into choices, even when the choice is the default",
+     "The host's"
+    ],
+    "ans": 2,
+    "why": "Invisible for years, decisive in the one dispute.",
+    "src": "Ch5"
+   },
+   {
+    "q": "The daily glance costs and buys:",
+    "opts": [
+     "Hours for comfort",
+     "A report",
+     "Nothing",
+     "Five minutes against discovering platform problems by collision"
+    ],
+    "ans": 3,
+    "why": "The quiet log is the boring morning.",
+    "src": "Ch6"
+   },
+   {
+    "q": "The stuck background queue is:",
+    "opts": [
+     "Every calendar's silent failure — the missed reminder becoming the lapsed licence",
+     "A minor lag",
+     "The host's issue",
+     "Self-healing"
+    ],
+    "ans": 0,
+    "why": "The automation the six tracks' rhythms run on.",
+    "src": "Ch6"
+   },
+   {
+    "q": "The corridor request is:",
+    "opts": [
+     "Efficient",
+     "Unrecorded, unprioritised, and unbounded — sprawl manufactured in real time",
+     "Friendly",
+     "Rare"
+    ],
+    "ans": 1,
+    "why": "The one-channel law arriving at IT.",
+    "src": "Ch6"
+   },
+   {
+    "q": "The admin refuses:",
+    "opts": [
+     "People",
+     "Everything",
+     "REQUESTS, never people — the yes that preserves the system: 'log it and it's done by SLA'",
+     "The founder only"
+    ],
+    "ans": 2,
+    "why": "The refusal craft, scripted in advance.",
+    "src": "Ch6"
+   },
+   {
+    "q": "The policy-breaking ask is met with:",
+    "opts": [
+     "A quiet yes",
+     "Escalation",
+     "A flat no",
+     "The policy and its owner — the pressure deflected to where the decision actually lives"
+    ],
+    "ans": 3,
+    "why": "The admin visibly the pen's custodian, not its author.",
+    "src": "Ch6"
+   },
+   {
+    "q": "The site book is:",
+    "opts": [
+     "Assembled as a byproduct of governing well — the undocumented site is a governance failure wearing one",
+     "Written for auditors",
+     "Annual homework",
+     "The host's manual"
+    ],
+    "ans": 0,
+    "why": "The book IS the track, materialised.",
+    "src": "Ch7"
+   },
+   {
+    "q": "A copy of the continuity plan lives:",
+    "opts": [
+     "Only in the site",
+     "Outside the site it documents — the plan only inside the system it recovers is a joke",
+     "With the host",
+     "Nowhere"
+    ],
+    "ans": 1,
+    "why": "The incident will not find it funny.",
+    "src": "Ch7"
+   },
+   {
+    "q": "Stale documentation is:",
+    "opts": [
+     "Better than none",
+     "Fine",
+     "Worse than none — because it is believed",
+     "Impossible"
+    ],
+    "ans": 2,
+    "why": "The book walked annually.",
+    "src": "Ch7"
+   },
+   {
+    "q": "HealthTrade's founder-access retirement was:",
+    "opts": [
+     "Resisted",
+     "Temporary",
+     "Skipped",
+     "The change log's entry #1 — 'I have been the least governed user of the most sensitive system'"
+    ],
+    "ans": 3,
+    "why": "The day every tier became real.",
+    "src": "Ch8"
+   },
+   {
+    "q": "The MD's corridor ask was met with:",
+    "opts": [
+     "'Log it with Inventory's authorisation and it's done within the hour' — the channel, the owner, the trail",
+     "The quick grant",
+     "Refusal",
+     "Delay"
+    ],
+    "ans": 0,
+    "why": "'Said yes through the channel; the register never lied.'",
+    "src": "Ch8"
+   },
+   {
+    "q": "The session expiry found at a lax default was:",
+    "opts": [
+     "Kept for convenience",
+     "Tightened in the walk — it was weakening every fence six tracks built, simultaneously",
+     "The host's setting",
+     "Ignored"
+    ],
+    "ans": 1,
+    "why": "The site-level blast radius, live.",
+    "src": "Ch8"
+   },
+   {
+    "q": "This module's law is:",
+    "opts": [
+     "Admins own everything",
+     "IT is support",
+     "The system has a custodian — a named keeper who owns none of its data, works through a channel, and writes the book that makes the floor survive its keeper",
+     "Hosting solves governance"
+    ],
+    "ans": 2,
+    "why": "The platform governed by the same laws it enforces.",
+    "src": "Ch9"
+   }
+  ]
+ }
+}
