@@ -471,5 +471,483 @@
     "src": "Ch9"
    }
   ]
+ },
+ "users_permissions": {
+  "title": "Sysadmin 2 — Users, Roles & Permissions",
+  "desc": "The track's deep module: the permission layer as policy-made-physics — the user lifecycle by events, roles mirroring functions, profiles and the grant discipline with the certification gate, doctype permissions and field-level permission levels, user permissions for territorial fencing, the systematic debugging method, and the annual permission walk mechanised.",
+  "lessons": [
+   {
+    "title": "Chapter 1 — The permission layer: policy as configuration",
+    "est": "12",
+    "html": "<p>Six tracks designed tiers — the payroll track's tightest, the HR track's sensitive, the inventory track's territorial fences, the accounts track's separated pens — and every one of them ended with the same instruction: <i>the permission walk, logged in as the roles.</i> This module opens the layer they were all pointing at: the PERMISSION machinery itself — and its thesis is the track's second law forming: <b>access is least-privilege, granted by events, and walked annually.</b></p><p><b>Policy as configuration.</b> The frame that governs the whole module: the permission layer is the firm's POLICY, expressed in configuration — who may see the pay figures is a payroll policy; who may adjust stock is an inventory policy; who may release payments is a treasury policy — and the machinery this module teaches is how those policies become PHYSICS instead of memos (the memo says the manager shouldn't see salaries; the permission level makes the field not exist on their screen — the difference between a rule and a fence being that the fence works at 2 a.m. on a bad day with nobody watching, which is the entire argument for configuration over culture that six tracks made and this module mechanises).</p><p><b>Least privilege, defined operationally.</b> The principle stated as a working test, not a slogan: every user holds exactly the access their CURRENT duties require — no more (the sprawl this module hunts), no less (the over-fenced user working around the system is a different disease with the same cure: the fence sized to the duty) — with the test being answerable: for any user and any capability, the question <i>which duty requires this?</i> has a named answer, or the capability comes off. The principle's quiet corollary, stated for every implementation: least privilege is a MAINTENANCE discipline, not a design event — the fences drift as duties change (the promotion that adds without removing, the cover that never ends — the HR track's lifecycle events each carrying a permission consequence this module wires), which is why the law's third clause is <i>walked annually</i> and not <i>designed once</i>.</p><p><b>The module's map.</b> Ten chapters, the track's deep module: the user lifecycle — accounts born and retired by events (2); roles — the vocabulary of capability (3); role profiles and the grant discipline (4); doctype permissions and permission levels — the fence anatomy, including the field-level machinery the pay tiers run on (5); user permissions — the record-level fences of the branch designs (6); the debugging method (7); the permission walk mechanised (8); HealthTrade's permission rebuild (9); and the patterns and the law (10). Throughout, one voice discipline: this module is written for the ADMIN as the machinery's custodian — the tiers' CONTENT was designed by six tracks' function owners, and the admin builds, maintains, and audits what those owners decided, which is Chapter 4 of module 1's authority map, now operating at the layer where it matters most.</p>"
+   },
+   {
+    "title": "Chapter 2 — The user lifecycle: accounts by events",
+    "est": "13",
+    "html": "<p>Before roles and fences, the accounts themselves — born, changed, and retired by the events that own them. The lifecycle chapter.</p><p><b>The account's birth.</b> The user account created from the HR track's JOINER package (the day-one readiness discipline of HR 2, delivered at this desk: the account requested through the channel by the onboarding checklist, created before the start date, granted its role profile per Chapter 4 — the new hire arriving to a working login being the platform's contribution to the first-day experience the HR track designed), with the account's anatomy governed at creation: the IDENTITY (the email address as the username — the firm-domain address, not the personal one: the account on a personal email is an account the firm does not control at separation), the USER TYPE decided deliberately (the full system user for staff who work IN the system versus the portal-class user for those who only interact with their own slice — the distinction carrying licence and cost implications the admin tracks, because the firm paying full-seat costs for view-only needs bought the wrong tier by default), and the WELCOME flow governed (the first login, the forced password set, the orientation — the account handed over properly, not emailed as a password in plain text to be forwarded around).</p><p><b>The account's life.</b> The changes, each by its event: the ROLE changes with the duties (the promotion's grant-and-review of HR 7 — executed here as Chapter 4's events), the NAME and detail changes maintained (the marriage-name change, the branch transfer's context — the record current because the account is a master like any other), and the DORMANCY watched (the account unused for the policy's horizon flagged monthly — the dormant account being either a person who left informally, a duty that evaporated, or a ghost's nest: all three worth finding, and the dormant-account scan being the lifecycle's cheapest read).</p><p><b>The account's retirement.</b> The separation checklist's platform line, delivered: the account DISABLED on the last working day (HR 7's join map reversed — the departed with live logins being the security failure every audit finds first, and this desk being where that line is actually executed: the separation package's date arriving through the channel, the disabling scheduled, done, and confirmed back to the checklist's owner), with the retirement's disciplines: DISABLED, not deleted (the account's history is the firm's history — the documents owned, the actions logged: the deleted user punches holes in every trail six tracks rely on; the disabled user keeps the story intact while closing the door), the handover of ownership where workflows route to the person (the approvals re-pointed per HR 7's checklist — the workflow routing to a disabled account is the process stalled at an empty desk), and the shared-anything rotated (the integration credential or shared mailbox the person knew — module 6's custody, triggered by this event).</p><p><b>The lifecycle's register.</b> The chapter's deliverable into the site book: the ACCESS REGISTER's first columns — every account, its holder, its type, its creation event, its status, its last-review date — the platform's mirror of HR 1's employee register, maintained by the same law (written by events, read monthly, reconciled at the walk), and the two registers RECONCILED as a standing read (every active account maps to an active employee or a documented exception — the service account, the auditor's temporary access — and every active employee who needs an account has exactly one: the reconciliation that makes ghosts structurally homeless at the platform layer, completing the cross-check the payroll track's controls began).</p>"
+   },
+   {
+    "title": "Chapter 3 — Roles: the vocabulary of capability",
+    "est": "13",
+    "html": "<p>The permission layer's first building block: the ROLE — a named bundle of capability — and the design discipline that keeps the vocabulary clean. The roles chapter.</p><p><b>What a role is.</b> The mechanics first: a role is a NAME that permission rules attach to (Chapter 5's rules say 'this role may read this doctype, write that one, submit the other') and users hold (the user with the role inherits its rules — capability by membership, not by individual grant), which makes the role the layer's unit of DESIGN: the firm's access policy is written in roles, and the quality of the role vocabulary determines whether the layer is legible or archaeological.</p><p><b>The design law: roles mirror functions, not individuals.</b> The chapter's central discipline: roles are named for FUNCTIONS and duties (the till operator, the storekeeper, the payroll officer, the branch manager — the org design of six tracks, spoken as capability), NEVER for people (the role named 'Blessing's Access' is the sprawl's seed — unreviewable because its logic is a person's history, unreusable because the next hire isn't Blessing, and immortal because nobody remembers what it was for: the role-per-person site being the permission layer's version of the salary-structure-per-person disease the payroll track convicted, and cured identically — the vocabulary collapsed to the function count), with the granularity judged by the same test the payroll track used for components: a role exists because a CLASS of duty exists (the trade-scale firm needing perhaps a dozen roles — one per function-shape, not one per anxiety), and the standard roles the platform ships weighed before custom ones are coined (the shipped role that fits is free forever; the custom role is owned forever — the make-versus-take discipline at the vocabulary layer).</p><p><b>The role catalogue.</b> The design's documentation, into the site book: every role listed with its PURPOSE (the duty-class it serves, in one sentence), its HOLDERS (maintained by Chapter 4's events), its permission summary (what it can broadly do — the detail living in Chapter 5's rules, the summary living here for the walk's reading), and its OWNER (the function whose policy it expresses — the payroll officer role owned by payroll's configure authority, the storekeeper role by inventory's: the admin custodians the catalogue; the functions own their entries — module 1's authority map at the vocabulary layer), with the catalogue's hygiene rules: no role without a purpose sentence (the role that cannot be described cannot be audited), no duplicate-purpose roles (the two roles doing one job are a merge waiting — the deduplication instinct of the master tracks), and the catalogue reviewed at the annual walk (the role nobody holds and nobody can explain is retired, not kept 'just in case' — the museum-of-old-deals conviction, at the role list).</p><p><b>The dangerous roles, named.</b> The chapter's closing register: the roles whose grant is a different class of event — the SYSTEM-level roles (the administrative capability itself — held by the custodian per module 1's design, and by as close to nobody else as the firm can manage), the CONFIGURE-class roles (the settings pens of six constitutions — each held by its function's named authority, per the narrowest-pen tiers), and the OVERRIDE-class capabilities (the cancel-and-amend rights on sealed documents, the delete rights anywhere — Chapter 5 details them; this register names them so the grant discipline of Chapter 4 can treat them as what they are: the keys whose casual grant undoes six tracks of sealed-document law in one checkbox). The vocabulary chapter's one-line summary: <b>few roles, function-named, purpose-sentenced, owner-assigned — the permission layer that can be read aloud is the permission layer that can be governed.</b></p>"
+   },
+   {
+    "title": "Chapter 4 — Role profiles & the grant discipline",
+    "est": "13",
+    "html": "<p>Roles bundle capability; PROFILES bundle roles into job-shapes; and the GRANT discipline governs how any of it reaches a human. The assignment chapter.</p><p><b>Role profiles: the job-shaped bundle.</b> The mechanics and the design: the role profile is a named SET of roles matching a job (the 'Branch Storekeeper' profile carrying the storekeeper role, the basic-employee role, the branch-reporting role — one assignment, the whole shape), mapped from the HR track's architecture (the designations and grades of HR 1 each implying a profile — the org chart and the access chart being one design read twice, which is why the certified admin builds profiles FROM the HR track's structure rather than inventing a parallel one), and paying the standard-template dividends: the new hire granted their whole shape in one governed act (day-one readiness, mechanised), the job's access reviewed as a unit (the profile audited once serves every holder), and the drift made visible (the user whose roles differ from their profile is a DELTA with a story — the deliberate exception documented, or the sprawl surfaced: the profile turning the walk's hardest question, 'is this user's access right?', into a diff).</p><p><b>Grants as events.</b> The discipline that keeps the layer's history readable: every grant and revocation is an EVENT with an author — the request through module 1's channel (what access, for whom), the AUTHORISATION by the fence's owner (the role's owning function saying yes — the admin executes; the owner decides: the payroll-role grant authorised by payroll's authority, never by the admin's judgment or the requester's insistence), the execution logged (who granted, when, on whose authority — the access register's event columns), and the TEMPORARY grant carrying its end date at birth (the audit-season access, the maternity cover — expiry-tracked like every temporary thing in this academy, because the cover that never ends is the sprawl's commonest species and the HR track's acting-role law has a platform twin).</p><p><b>The certification gate, wired.</b> The join this academy promised in the HR track, delivered at this desk: HR 6's law — authority follows certification — becomes CONFIGURATION where the firm adopts it: the role grant gated on the certified capability (the till-supervisor role granted when the register shows the certification held; the payment-release seat granted against the treasury training's record), with the wiring honest about its mechanics (at trade scale this is a CHECKLIST discipline — the grant request's form asking for the certification reference, the admin verifying against the register before executing — and at platform maturity it can be automation; both count, because the gate's value is the check, not its plumbing), and the revocation mirror stated: the lapsed licence or expired certification of HR 1's worklist carries a permission consequence (the pharmacist role resting while the licence renews — the regulated trade's compliance, expressed as a fence).</p><p><b>The grant anti-patterns.</b> The chapter's conviction list, brief and specific: the SELF-GRANT (the admin adding roles to their own account — module 8's conduct standard previewed: the admin's own access changes are authorised and executed by another, because nobody grants their own keys), the INSISTENCE-GRANT (the loud requester served without the owner's authorisation — the favour system at the fence line, and the refusal craft of module 1 pointed at exactly this), the CONVENIENCE-GRANT (the everything-role handed out to end a support conversation — the sprawl's express lane), and the UNREVOKED grant (the temporary that quietly became permanent — hunted by Chapter 8's walk, prevented by the end-date-at-birth rule). The chapter's summary for the site book: <b>profiles from the org design, grants by authorised events, temporaries with end dates, and nobody — nobody — granting their own.</b></p>"
+   },
+   {
+    "title": "Chapter 5 — Doctype permissions: the fence anatomy",
+    "est": "14",
+    "html": "<p>The rules themselves: what a role may DO to a document type — the fence anatomy, right by right, with the field-level machinery the tightest tiers run on. The rules chapter.</p><p><b>The permission rule.</b> The unit: role × doctype × RIGHTS — the rule saying this role, on this document type, holds these specific capabilities: READ (see it exists and open it), WRITE (change drafts), CREATE (make new ones), SUBMIT (seal — the right that fires the frozen-document machinery six tracks rely on), CANCEL and AMEND (unseal and revise — the override-class keys of Chapter 3's register: the cancel right on a sealed invoice is the power to unwind the counter's history, granted accordingly), DELETE (remove — the right this academy grants almost nowhere, because the trail-punching delete is the enemy of every evidence law), and the access rights beyond (REPORT — the query and report surfaces; EXPORT — the data-leaves-the-building right, held as narrowly as the payroll track's tightest tier demanded; SHARE — Chapter 7's governed exception; PRINT and EMAIL — the document's outbound doors). The design discipline: rights granted individually and deliberately per role per doctype (the read-only role that can somehow export the full customer book was granted by checkbox momentum, not decision — every ticked box a policy, in the settings-constitution grammar).</p><p><b>Permission levels: the field-level fence.</b> The machinery the pay tiers physically run on, taught carefully because it is the module's most consequential subtlety: fields on a doctype carry LEVELS (level 0 the default body; levels 1, 2, and beyond the sensitive strata), and permission rules grant rights PER LEVEL — so the employee doctype's identity fields sit at level 0 (readable by the roles that need the person), while the pay-relevant and sensitive fields sit at a higher level readable only by the roles the tier design named (the payroll track's 'the band, not the figure' and the HR track's sensitive tier being, mechanically, THIS: the field's level plus the rule's level-grant — the manager opening the employee record and simply not seeing the salary field, because for their role it does not exist). The admin's craft with levels: the level map DOCUMENTED per sensitive doctype (which fields at which levels, readable by which roles — the site book's page the walk re-verifies), changes to levels treated as tier-design changes (the function owner's decision through the change discipline — a field's level moved is a policy moved), and the verification empirical always (logged in as the role, the record opened, the field absent — the fence proven, not assumed).</p><p><b>The if-owner nuance.</b> The rule modifier worth its own paragraph: rights grantable IF-OWNER — the user holding them only on documents they created (the self-service patterns riding this: the employee reading their OWN leave applications and no one else's — the HR track's self tier, mechanised in one checkbox), with the nuance's edge taught: if-owner READ is the self-tier's engine, while if-owner WRITE on submitted-adjacent flows needs the workflow's scrutiny (the creator editing their own document after approval began is a process question the function owner answers, not a default).</p><p><b>The combination logic.</b> How the pieces resolve, stated plainly because debugging depends on it: a user's effective capability is the UNION of their roles' grants (any role granting read grants read — which is why the everything-role poisons every other design: one over-broad role held silently defeats ten careful ones, the additive logic making sprawl a one-way ratchet that only the walk reverses), then FILTERED by the record-level fences (Chapter 6's user permissions — the role says 'may read invoices'; the user permission says 'only this branch's'), then modulated by the document's state and the workflow's rules (the submitted document refusing writes regardless of rights — the state machinery outranking enthusiasm). Union, filter, state — the three-word model that makes Chapter 7's debugging systematic instead of superstitious.</p>"
+   },
+   {
+    "title": "Chapter 6 — User permissions: the record-level fence",
+    "est": "13",
+    "html": "<p>Roles answer WHAT a user may do; user permissions answer WHICH RECORDS they may do it to — the territorial layer the branch designs run on. The record-fence chapter.</p><p><b>The mechanism.</b> The user permission: a per-user restriction binding them to specific records of a doctype — this user, the Company doctype, THIS company; this user, the Warehouse doctype, THESE warehouses; this user, the Branch or Cost Center, THIS branch — with the effect flowing through the links: the user fenced to the Ibadan branch sees Ibadan's documents wherever documents carry the branch link (the invoice list filtering itself, the stock report showing their warehouses, the employee list — where the design fences it — showing their people), the record-level fence riding the document model's link fields, which is why clean master design (module 3) is this fence's silent prerequisite: the territorial fence is only as good as the territory fields on the documents.</p><p><b>The strategic uses.</b> Where the record fence earns its keep, mapped to six tracks' designs: the BRANCH isolation (the multi-branch firm's operators seeing their own world — the Ibadan till assistant with no window into Lagos's numbers: the need-to-know principle at geographic scale, and the design the Inventory and Selling tracks' territorial disciplines assumed), the WAREHOUSE custody fences (the storekeeper bound to their custody — Inventory's custodian law, expressed as configuration: the adjustment they can even attempt limited to the stock they answer for), the COMPANY boundary (the multi-entity firm's legal-person separation — Accounts 8's companies-by-law, fenced so the entities' books cannot cross-contaminate by accident), and the SELECTIVE openings (the supervisor fenced to two branches, the auditor's temporary window — the fence as scalpel, not just wall).</p><p><b>The traps.</b> The record fence's failure modes, taught before the enthusiasm: the OVER-FENCE (the fence that breaks legitimate workflows — the head-office accountant fenced to one branch cannot run the consolidated close; the payroll seat fenced from a branch cannot pay it: the fence tested against the holder's ACTUAL duties, per the least-privilege test's both directions), the DEFAULT-VALUE tangle (the user permission that also drives defaulting — the fenced value auto-filling forms: useful when intended, mystifying when not, and the admin knows the difference), the APPLY-TO scope discipline (the restriction scoped to the doctypes it should govern, not blanket-applied — the fence on Company applied to everything strangling doctypes that legitimately cross companies), and the MISSING-LINK illusion (the fence that seems to work because the list happens to filter, while documents without the link field pass freely — the fence verified empirically per doctype, as the roles were: opened as the user, probed at the edges, proven).</p><p><b>The register's territorial page.</b> The chapter's deliverable: the record-fence map into the site book — per fenced user or profile-class: WHAT they are bound to and WHY (the branch assignment from the HR record being the authorising fact — the fence maintained by the transfer event of HR 7: the person moved to Akure has their fence moved the same day, by the same event, or the platform contradicts the org chart), reviewed at the walk beside the roles — because the territorial layer drifts exactly as the capability layer does (the transfer that moved the person and not the fence; the two-branch exception that outlived its reason), and the walk that reads both layers against the HR track's current truth is the reconciliation that keeps the platform's map matching the firm's actual shape, which is the whole point of the layer this chapter closes.</p>"
+   },
+   {
+    "title": "Chapter 7 — The debugging method: systematic, not superstitious",
+    "est": "13",
+    "html": "<p>The admin's most frequent permission work is neither design nor audit — it is the COMPLAINT: <i>I can't see X</i> / <i>why can she do Y?</i> This chapter is the method that answers both in minutes. The diagnosis chapter.</p><p><b>The can't-see walk.</b> The complaint resolved by walking Chapter 5's combination model in order — UNION, FILTER, STATE — as a checklist: <b>1, the user</b> (account active? the right account? — the embarrassing first check that solves a surprising share), <b>2, the roles</b> (does any held role grant the capability on the doctype? — the role list against the catalogue), <b>3, the rule's detail</b> (the right itself granted? read but not report? report but not export? — the specific verb checked, because 'can't see' means five different rights in users' mouths), <b>4, the permission level</b> (the field they miss sitting at a level their roles don't reach — the 'record opens but the field is blank' signature, diagnostic in one look), <b>5, the user permissions</b> (the record fence excluding the records in question — the 'others see it, I don't' signature), <b>6, the sharing and workflow layer</b> (the document in a state or a stage their rights don't reach), and the answer given by POINTING (the payroll track's answered-by-pointing, at the platform desk: the diagnosis shown, the fix named, and — critically — the fix routed: if the access SHOULD exist, the grant travels Chapter 4's event with its owner's authorisation; the debugging session never becomes a granting session, because diagnosis and authorisation are different powers and the admin holds only one of them).</p><p><b>The shouldn't-see inverse.</b> The graver complaint, walked with the same model in reverse: <i>why can this user do that?</i> — the effective capability decomposed (which role grants it? the union's culprit found — usually the over-broad role of Chapter 5's warning, held from an old duty), the finding treated per its weight (the surprising capability is a walk-item at minimum and an incident at maximum — the user who could export the pay register is a finding with module 8's incident process behind it, not a quiet checkbox fix: the fence that was open gets closed AND the question 'was it used?' gets asked, with the logs answering), and the root cause fed back (the role redesigned, the grant discipline tightened — the debugging layer's findings being the walk's off-season intelligence).</p><p><b>Sharing: the governed exception.</b> The mechanism that bypasses the fences by design, governed accordingly: document SHARING (the specific document opened to a specific user — the fence's deliberate, per-document exception: the one contract shared with the adviser's account, the one report with the auditor), legitimate exactly because it is SPECIFIC and visible (the share is a logged act on the document — auditable per document, unlike a role grant's broad sweep), and watched for its culture (the share-workaround pattern — the team routinely sharing documents to defeat a fence that blocks real work — being not a sharing problem but a DESIGN problem surfaced: the fence mis-sized, fixed at the design layer through the owner, the workaround retired: the clustering share read exactly as every clustering signal in this academy — the same lesson wearing platform clothes).</p><p><b>The test-site discipline.</b> The method's laboratory: permission changes REHEARSED on the test site where the change is non-trivial (the level moved, the role redesigned — toggled and tested as the affected roles before production sees it: module 1's nothing-first-in-production, applied to the layer where a slip exposes pay data or strands a branch), and the empirical habit absolute: every fix VERIFIED as the affected user (logged in as the role, the capability confirmed present or absent — the fence proven, never assumed: the six-track canon's phrase, now revealed as this desk's daily method rather than an annual event).</p>"
+   },
+   {
+    "title": "Chapter 8 — The permission walk: the audit, mechanised",
+    "est": "13",
+    "html": "<p>Six tracks prescribed it; this chapter owns it: the ANNUAL PERMISSION WALK — the audit that proves the whole layer, mechanised into an afternoon. The walk chapter.</p><p><b>The walk's preparation.</b> The desk work before the logins: the ACCESS REGISTER reconciled (every account against the HR track's active list — the leaver scan first, because the departed with live access is the walk's gravest possible find and the cheapest to check; every account's roles against its profile — the deltas listed, each needing its documented reason or its revocation), the ROLE CATALOGUE reviewed (every role's purpose sentence still true, its holders still needing it, the unheld and unexplainable retired), the TEMPORARY grants audited (every end date checked — the expired-but-active grant being the sprawl's freshest species), and the walk's TARGET LIST drawn (the sensitive surfaces six tracks named: the pay-bearing doctypes and their levels, the sensitive HR tier, the export rights everywhere, the override-class capabilities, the administrative population itself).</p><p><b>The walk proper: logged in as the roles.</b> The canon, executed: a representative account per role-shape (the test users maintained for exactly this, or the walk performed beside the actual holders), and the surfaces walked EMPIRICALLY — the LIST VIEWS opened (the employee list's columns as the branch manager sees them — the birthday-leak find of the HR track's case being this exact check), the sensitive RECORDS opened (the pay fields absent for the roles the tier excludes — the level map proven), the REPORTS run (each people- and money-bearing report as its intended audience — the report that shows more than its viewer's fence is the layer's classic leak, because reports can travel paths list views don't), the EXPORTS attempted (the data-leaves-the-building right confirmed held only where the design says), and the TERRITORIAL fences probed (the Ibadan login shown only Ibadan — the edges tested, not the happy path: the unfenced doctype hunted per Chapter 6's missing-link trap).</p><p><b>The findings' discipline.</b> The walk's output, governed: every find LOGGED (the walk's report into the site book — the find, its severity, its fix, its owner, its date), fixed through the CHANNELS (the revocation as an event like the grant was; the level change through the function owner; the design flaw through module 5's change discipline — the walk finds; the owners decide; the admin executes: the authority map holding even in audit season), the was-it-used question asked for the grave finds (the open fence's history read in the logs before it closes — the finding's severity being partly its exploitation), and the walk's METRICS trended year over year (the finds count falling as the grant discipline matures — the walk measured by its own quieting, the academy's standard success shape, at the layer that guards all the others).</p><p><b>The walk's calendar seat.</b> The scheduling notes that make it real: ANNUAL as the floor (the standing walk on module 8's calendar), EVENT-TRIGGERED re-walks for the moments that concentrate risk (the org restructure, the system's major update, the admin handover — each a mini-walk of the affected surfaces), and the walk's ownership honest (the admin RUNS it; a second pair of eyes reviews the administrative population's own access — nobody walks their own keys, the module's conduct law applying to its audit: module 8 seats this formally, and the walk report's last page is always the admin's own access, reviewed and signed by someone else). The chapter's closing line, six tracks in the making: <b>the permission walk is where the firm's every tier, fence, and pen is proven real — an afternoon a year, against the alternative of finding out in the leak.</b></p>"
+   },
+   {
+    "title": "Chapter 9 — Case study: HealthTrade's permission rebuild",
+    "est": "16",
+    "html": "<p>The layer, rebuilt from six tracks' designs. Every chapter clocks in.</p><p><b>The lifecycle wired (Ch. 2).</b> The access register opens with the reconciliation — and finds the implementation era's residue: nineteen accounts for seventeen active staff (one leaver from before the HR track's checklist existed — disabled the same hour, the logs read: unused since departure, the finding closed clean; one duplicate from an email change — merged per module 3's discipline). The joiner and leaver events wire to the channel: the next hire's account exists on day minus-one; the next separation's disabling confirms back to the checklist within the hour. The dormant scan enters the monthly glance.</p><p><b>The vocabulary rebuilt (Ch. 3-4).</b> The role audit finds the expected museum: fourteen roles for eleven people, three named after individuals ('Chidi Stock Access' among them — its purpose archaeologised, its capabilities absorbed into the storekeeper role, the museum exhibit closed), and one everything-role held by four people 'from the setup days' — the union-logic poison named at the whiteboard, the role retired, its holders re-granted their actual shapes. The rebuild lands at NINE function-named roles with purpose sentences and owners, bundled into six profiles mapped from the HR track's designations — and the grant discipline goes live with the certification gate as a checklist rule: the till-supervisor grant request now carries its certification reference, verified against the register before execution.</p><p><b>The tiers proven (Ch. 5).</b> The level map is the rebuild's centrepiece: the employee doctype's pay-adjacent fields confirmed at their elevated level, the payroll doctypes' rules granted only to the payroll officer role and the approval seat — and the empirical verification delivers the module's signature moment: the branch manager's test login opens an employee record and the salary section simply is not there (the MD, watching: <i>so the policy is now physics</i> — the chapter's thesis, quoted back by its customer). One find at this layer: the export right on a stock report reachable by the till operator role (checkbox momentum from the setup era — revoked through Inventory's owner, the was-it-used logs read: never used, closed clean).</p><p><b>The territories fenced (Ch. 6-7).</b> The branch fences land: Ibadan and Akure operators bound to their branches, warehouses fenced to their custodians, the head-office seats deliberately unfenced (the over-fence trap avoided by design — the accountant's consolidated duties named in the register as the reason). The first debugging case arrives on schedule: a new Akure hire <i>can't see the stock report</i> — the method walks it in four minutes (user active, roles right, rule grants report... the record fence missing: the account created before the branch assignment landed — the fence added by its event, the fix routed properly), and the case enters the site book as the method's worked example. One share-workaround read: three shares of the same price list to the same two users in a month — the design question surfaced (the fence mis-sized for a legitimate cross-branch duty), fixed at the design layer through Selling's owner, the workaround retired.</p><p><b>The first walk (Ch. 8).</b> The annual walk runs in one afternoon: the register clean (the rebuild's dividend), the roles' catalogue true, two temporary grants found expired-but-active (the audit-season access from last year's statutory review — revoked, and the end-date-at-birth rule's enforcement tightened), the list views and reports walked as the roles (one report found showing unfenced branch columns — fixed through the owner), the admin's own access reviewed and signed by the MD (the last page's law, honoured from walk one). The walk report files as the site book's newest section — and the ops lead's closing note is the module in one line: <i>the fences used to be what we believed; now they are what I proved on Tuesday.</i></p>"
+   },
+   {
+    "title": "Chapter 10 — Common mistakes & the second law",
+    "est": "13",
+    "html": "<p>The permission layer's scar tissue. Symptom → disease → fix.</p><p><b>Pattern 1 — role-per-person sprawl.</b> Symptom: roles named after people; the vocabulary unreadable; every audit an archaeology. Disease: the design law inverted (Ch. 3). Fix: roles mirror functions — the catalogue collapsed to the function count, purpose-sentenced, owner-assigned, the personal roles absorbed and retired.</p><p><b>Pattern 2 — the everything-role.</b> Symptom: one broad role defeating every careful design; capability nobody meant, held by half the firm. Disease: the union logic poisoned at its root (Ch. 5) — sprawl's express lane. Fix: the role retired, holders re-granted their actual shapes, and the walk's target list watching the broad grants forever.</p><p><b>Pattern 3 — the unused level.</b> Symptom: sensitive fields at level 0; the pay figures visible to every role that can open the record; the tightest tier a memo. Disease: field-level fencing never deployed (Ch. 5). Fix: the level map per sensitive doctype, the rules granted per level, and the fence proven empirically — the policy made physics.</p><p><b>Pattern 4 — the share-workaround culture.</b> Symptom: routine sharing defeating the fences; the exception become the method. Disease: a design problem wearing a sharing problem (Ch. 7). Fix: the clustering shares read as the signal they are — the fence re-sized through its owner, the workaround retired, sharing returned to its governed-exception role.</p><p><b>Pattern 5 — the walk never run.</b> Symptom: fences believed, never proven; the leaver with live access; the maternity cover's residue immortal; the leak discovered by the leak. Disease: least privilege treated as a design event instead of a maintenance discipline (Ch. 1, 8). Fix: the annual walk on the calendar with its checklist, the event-triggered re-walks, and the metrics trended — an afternoon a year against finding out the hard way.</p><p><b>Pattern 6 — grants without events.</b> Symptom: access with no trail; nobody knows who authorised what or why; the register that cannot be reconciled. Disease: the grant discipline absent (Ch. 4). Fix: grants as authorised events through the channel — the owner decides, the admin executes, the register remembers, temporaries expire — and nobody, ever, granting their own.</p><p><b>The second law.</b> The custodian named; now the fences proven: <b>access is least-privilege, granted by events, and walked annually — accounts born and retired by the lifecycle's events, roles mirroring functions in a catalogue that can be read aloud, profiles from the org design, rights and levels expressing each tier's policy as physics, territories fenced to the firm's actual shape, complaints diagnosed by method, and the whole layer proven empirically once a year by someone logged in as the roles.</b> The permission layer is where six tracks' designs become real or stay memos — and the certified admin is the difference. Module 3 turns to the data the fences guard: master governance and the import machinery.</p>"
+   }
+  ],
+  "questions": [
+   {
+    "q": "The permission layer is:",
+    "opts": [
+     "The firm's policy expressed in configuration — the fence works at 2 a.m. where the memo doesn't",
+     "IT plumbing",
+     "Optional",
+     "The host's job"
+    ],
+    "ans": 0,
+    "why": "Configuration over culture, mechanised.",
+    "src": "Ch1"
+   },
+   {
+    "q": "Least privilege's working test is:",
+    "opts": [
+     "Trust levels",
+     "For any capability: 'which duty requires this?' has a named answer, or it comes off",
+     "Seniority",
+     "Cost"
+    ],
+    "ans": 1,
+    "why": "No more, and no less — the over-fence is a disease too.",
+    "src": "Ch1"
+   },
+   {
+    "q": "Accounts are created from:",
+    "opts": [
+     "Requests as they come",
+     "Templates",
+     "The HR joiner package through the channel — the working login as day-one readiness",
+     "The founder's list"
+    ],
+    "ans": 2,
+    "why": "The platform's contribution to the first-day experience.",
+    "src": "Ch2"
+   },
+   {
+    "q": "The account on a personal email is:",
+    "opts": [
+     "Convenient",
+     "Cheaper",
+     "Standard",
+     "An account the firm does not control at separation"
+    ],
+    "ans": 3,
+    "why": "The identity discipline at birth.",
+    "src": "Ch2"
+   },
+   {
+    "q": "Departed users are:",
+    "opts": [
+     "DISABLED, not deleted — the deleted user punches holes in every trail six tracks rely on",
+     "Deleted",
+     "Renamed",
+     "Archived monthly"
+    ],
+    "ans": 0,
+    "why": "The door closed, the story intact.",
+    "src": "Ch2"
+   },
+   {
+    "q": "The access register reconciles against:",
+    "opts": [
+     "Itself",
+     "The HR track's active list — every account maps to an active employee or a documented exception",
+     "The budget",
+     "The host"
+    ],
+    "ans": 1,
+    "why": "Ghosts made structurally homeless at the platform layer.",
+    "src": "Ch2"
+   },
+   {
+    "q": "Roles are named for:",
+    "opts": [
+     "People",
+     "Managers",
+     "Functions and duties — the role named after a person is the sprawl's seed",
+     "Branches"
+    ],
+    "ans": 2,
+    "why": "Unreviewable, unreusable, immortal.",
+    "src": "Ch3"
+   },
+   {
+    "q": "A role exists because:",
+    "opts": [
+     "Someone asked",
+     "Audits require it",
+     "Software suggests it",
+     "A CLASS of duty exists — a dozen roles at trade scale, not one per anxiety"
+    ],
+    "ans": 3,
+    "why": "The component-governance test at the vocabulary layer.",
+    "src": "Ch3"
+   },
+   {
+    "q": "The role that cannot be described:",
+    "opts": [
+     "Cannot be audited — every role carries its purpose sentence",
+     "Is fine",
+     "Is flexible",
+     "Is standard"
+    ],
+    "ans": 0,
+    "why": "The catalogue's first hygiene rule.",
+    "src": "Ch3"
+   },
+   {
+    "q": "Override-class capabilities (cancel/amend/delete) are:",
+    "opts": [
+     "Ordinary rights",
+     "The keys whose casual grant undoes six tracks of sealed-document law in one checkbox",
+     "Required widely",
+     "Harmless"
+    ],
+    "ans": 1,
+    "why": "The dangerous-roles register.",
+    "src": "Ch3"
+   },
+   {
+    "q": "Role profiles are built from:",
+    "opts": [
+     "Imagination",
+     "The host's defaults",
+     "The HR track's designations and grades — the org chart and access chart as one design read twice",
+     "Each hire"
+    ],
+    "ans": 2,
+    "why": "The walk's hardest question becomes a diff.",
+    "src": "Ch4"
+   },
+   {
+    "q": "Every grant is:",
+    "opts": [
+     "A favour",
+     "The admin's call",
+     "Automatic",
+     "An event — requested through the channel, authorised by the fence's OWNER, executed and logged by the admin"
+    ],
+    "ans": 3,
+    "why": "The owner decides; the admin executes.",
+    "src": "Ch4"
+   },
+   {
+    "q": "Temporary grants carry:",
+    "opts": [
+     "Their end date at birth — the cover that never ends is the sprawl's commonest species",
+     "Good intentions",
+     "A reminder",
+     "Nothing"
+    ],
+    "ans": 0,
+    "why": "The acting-role law's platform twin.",
+    "src": "Ch4"
+   },
+   {
+    "q": "The certification gate means:",
+    "opts": [
+     "Training is optional",
+     "The role grant gated on the certified capability — the check counts, whether checklist or automation",
+     "Slower hiring",
+     "IT decides skills"
+    ],
+    "ans": 1,
+    "why": "Authority follows certification, wired at this desk.",
+    "src": "Ch4"
+   },
+   {
+    "q": "The self-grant is:",
+    "opts": [
+     "Efficient",
+     "Standard",
+     "Forbidden — the admin's own access changes are authorised and executed by another",
+     "Logged, so fine"
+    ],
+    "ans": 2,
+    "why": "Nobody grants their own keys.",
+    "src": "Ch4"
+   },
+   {
+    "q": "The DELETE right is granted:",
+    "opts": [
+     "Widely",
+     "By default",
+     "To managers",
+     "Almost nowhere — the trail-punching delete is the enemy of every evidence law"
+    ],
+    "ans": 3,
+    "why": "The rules chapter's hardest line.",
+    "src": "Ch5"
+   },
+   {
+    "q": "Permission levels mean:",
+    "opts": [
+     "Field-level fencing — sensitive fields at higher levels, readable only by the roles the tier design named",
+     "Seniority tiers",
+     "Login levels",
+     "Menu depth"
+    ],
+    "ans": 0,
+    "why": "'The band, not the figure' is mechanically THIS.",
+    "src": "Ch5"
+   },
+   {
+    "q": "The manager not seeing the salary field means:",
+    "opts": [
+     "A bug",
+     "For their role the field does not exist — the policy as physics",
+     "Slow loading",
+     "A hidden menu"
+    ],
+    "ans": 1,
+    "why": "The fence proven empirically, as the role.",
+    "src": "Ch5"
+   },
+   {
+    "q": "Effective capability resolves as:",
+    "opts": [
+     "The strictest role",
+     "The newest role",
+     "The UNION of roles' grants, filtered by user permissions, modulated by document state",
+     "The first role"
+    ],
+    "ans": 2,
+    "why": "Union, filter, state — the debugging model.",
+    "src": "Ch5"
+   },
+   {
+    "q": "One over-broad role held silently:",
+    "opts": [
+     "Is contained",
+     "Is visible",
+     "Expires",
+     "Defeats ten careful ones — the additive logic makes sprawl a one-way ratchet"
+    ],
+    "ans": 3,
+    "why": "Only the walk reverses it.",
+    "src": "Ch5"
+   },
+   {
+    "q": "If-owner rights power:",
+    "opts": [
+     "The self tier — the employee reading their OWN applications and no one else's, in one checkbox",
+     "Admin overrides",
+     "Sharing",
+     "Backups"
+    ],
+    "ans": 0,
+    "why": "The self-service patterns' engine.",
+    "src": "Ch5"
+   },
+   {
+    "q": "User permissions bind a user to:",
+    "opts": [
+     "Roles",
+     "Specific RECORDS — this branch, this company, these warehouses — riding the documents' link fields",
+     "Menus",
+     "Reports"
+    ],
+    "ans": 1,
+    "why": "The territorial layer the branch designs run on.",
+    "src": "Ch6"
+   },
+   {
+    "q": "The record fence's silent prerequisite is:",
+    "opts": [
+     "Fast servers",
+     "Big teams",
+     "Clean master design — the fence is only as good as the territory fields on the documents",
+     "Licences"
+    ],
+    "ans": 2,
+    "why": "Module 3's join, stated early.",
+    "src": "Ch6"
+   },
+   {
+    "q": "The over-fence:",
+    "opts": [
+     "Is extra security",
+     "Is preferred",
+     "Is impossible",
+     "Breaks legitimate workflows — the consolidated close strangled by a one-branch fence"
+    ],
+    "ans": 3,
+    "why": "Least privilege's both directions.",
+    "src": "Ch6"
+   },
+   {
+    "q": "The transfer to Akure moves the fence:",
+    "opts": [
+     "The same day, by the same event — or the platform contradicts the org chart",
+     "Eventually",
+     "Annually",
+     "Never"
+    ],
+    "ans": 0,
+    "why": "HR 7's event carrying its permission consequence.",
+    "src": "Ch6"
+   },
+   {
+    "q": "'Record opens but the field is blank' signals:",
+    "opts": [
+     "Corruption",
+     "A permission level the user's roles don't reach — diagnostic in one look",
+     "A deleted field",
+     "The network"
+    ],
+    "ans": 1,
+    "why": "The can't-see walk's step four signature.",
+    "src": "Ch7"
+   },
+   {
+    "q": "The debugging session never becomes:",
+    "opts": [
+     "Long",
+     "Documented",
+     "A granting session — diagnosis and authorisation are different powers; the fix routes through the owner's event",
+     "Useful"
+    ],
+    "ans": 2,
+    "why": "The admin holds one power, not both.",
+    "src": "Ch7"
+   },
+   {
+    "q": "The surprising capability found is:",
+    "opts": [
+     "A checkbox fix",
+     "Normal",
+     "Ignored",
+     "A walk-item at minimum, an incident at maximum — closed AND asked 'was it used?', with the logs answering"
+    ],
+    "ans": 3,
+    "why": "The shouldn't-see inverse, weighted properly.",
+    "src": "Ch7"
+   },
+   {
+    "q": "The share-workaround pattern is:",
+    "opts": [
+     "A design problem surfaced — the fence mis-sized for real work, fixed through the owner",
+     "A sharing problem",
+     "Rule-breaking",
+     "Efficient"
+    ],
+    "ans": 0,
+    "why": "The clustering signal, in platform clothes.",
+    "src": "Ch7"
+   },
+   {
+    "q": "The walk's cheapest and gravest check is:",
+    "opts": [
+     "Report formats",
+     "The leaver scan — every account against the HR active list, first",
+     "Print margins",
+     "Menu order"
+    ],
+    "ans": 1,
+    "why": "The departed with live access.",
+    "src": "Ch8"
+   },
+   {
+    "q": "Reports get walked separately because:",
+    "opts": [
+     "They are pretty",
+     "They are slow",
+     "Reports can travel paths list views don't — the report showing more than its viewer's fence is the classic leak",
+     "Nobody uses them"
+    ],
+    "ans": 2,
+    "why": "The walk's empirical surfaces.",
+    "src": "Ch8"
+   },
+   {
+    "q": "The walk report's last page is always:",
+    "opts": [
+     "Thanks",
+     "Next year's date",
+     "The budget",
+     "The admin's own access — reviewed and signed by someone else; nobody walks their own keys"
+    ],
+    "ans": 3,
+    "why": "The conduct law applying to the audit itself.",
+    "src": "Ch8"
+   },
+   {
+    "q": "HealthTrade's everything-role was:",
+    "opts": [
+     "Retired, its four holders re-granted their actual shapes — the union-logic poison named at the whiteboard",
+     "Kept for emergencies",
+     "Renamed",
+     "Restricted"
+    ],
+    "ans": 0,
+    "why": "Fourteen roles collapsed to nine, function-named.",
+    "src": "Ch9"
+   },
+   {
+    "q": "'So the policy is now physics' described:",
+    "opts": [
+     "A metaphor",
+     "The salary section absent from the branch manager's screen — the level map proven empirically",
+     "A new server",
+     "A report"
+    ],
+    "ans": 1,
+    "why": "The module's signature moment, quoted by its customer.",
+    "src": "Ch9"
+   },
+   {
+    "q": "This module's law is:",
+    "opts": [
+     "Access is granted on trust",
+     "Roles are permanent",
+     "Access is least-privilege, granted by events, and walked annually — the layer proven empirically by someone logged in as the roles",
+     "Sharing solves fencing"
+    ],
+    "ans": 2,
+    "why": "Where six tracks' designs become real or stay memos.",
+    "src": "Ch10"
+   }
+  ]
  }
 }
