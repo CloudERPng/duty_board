@@ -1,0 +1,948 @@
+{
+ "suppliers": {
+  "title": "Buying 1 — Suppliers & the Supply Base",
+  "desc": "The supplier master field by field, the supply-base tree, contacts and addresses, currencies and terms, the payable posture, supplier lifecycle, and the Nigerian buy-side compliance frame — the foundations every purchase document stands on.",
+  "lessons": [
+   {
+    "title": "Chapter 1 — The Supplier master, field by field",
+    "est": "15",
+    "html": "<p>Selling taught that documents are downstream of masters; procurement obeys the same law from the other side of the counter. Every purchase order, receipt and purchase invoice begins with WHO you are buying from — a <b>Supplier</b> record — and the quality of that record decides whether your payables reconcile, your costs report truthfully, and your import exposure is visible or a surprise. This chapter walks the record field by field, through a buyer's eyes.</p><ul><li><b>Supplier Name</b> — the registered trading name, exactly as their invoices will carry it, because your accounts team will match paper to record for years. The identity-scheme decision (name-keyed vs series-keyed IDs) mirrors the selling side and is made once in Buying Settings — Buying 8's treatment; the preview: supply bases dense with similar names (three different Emzor distributors, five generic-pharma importers) want the series.</li><li><b>Supplier Type</b> — Company or Individual. More than a label in Nigeria: it drives the WHT rate your firm must withhold when paying them (Buying 7's chapter — companies and individuals are withheld at different rates), so misclassifying a supplier misclassifies a tax obligation.</li><li><b>Supplier Group</b> — the segmentation backbone (Chapter 2), assigned at creation.</li><li><b>Country and Currency</b> — the supplier's billing currency is a structural fact: a Mumbai API manufacturer bills USD, a Lagos logistics firm bills NGN, and the record's currency drives every document's default and your FX-exposure reporting (Chapter 4). Set it to what their invoices actually say, not what you wish.</li><li><b>Default Payment Terms</b> — the credit THEY extend YOU: Net 30 from a manufacturer, advance-only from a new importer. Inherited by every purchase document (Chapter 4), and collectively these fields ARE your firm's short-term funding structure (Chapter 6).</li><li><b>Default Price List / tax category</b> — the buying price list holding their agreed rates (Buying 2), and the tax posture governing what you withhold and what input VAT you claim (Buying 7).</li><li><b>TIN and bank details</b> — their tax identity (your WHT remittances reference it) and where payment runs will send money: captured at onboarding, verified from their letterhead, because payment-detail fraud lives in casually edited bank fields — Chapter 7 makes changing these a controlled event.</li></ul><p><b>The onboarding standard.</b> As with customers: a supplier created with only a name is a payables mess on layaway. Group, currency, terms, TIN, bank details, contact — set before the first purchase order, in one sitting, from documents the supplier provided. The master record is a contract with your future month-ends; sign it properly.</p>"
+   },
+   {
+    "title": "Chapter 2 — Supplier Groups: designing the supply-base tree",
+    "est": "13",
+    "html": "<p>Supplier Group is the mirror of Selling 1's customer tree, and the design logic transfers consciously: one tree, one question, leaves assignable in two seconds. The question here: <b>what KIND of supply is this?</b> — because every spend report, every risk review, and every negotiation strategy will be cut by this tree.</p><p><b>The mechanics.</b> Groups form a tree (group nodes and leaves); suppliers attach to leaves; reports roll up through parents. Purchase analytics grouped by supplier group is your spend-mix instrument — where the money goes, by category, per period — and the tree you design is the shape of every answer it gives.</p><p><b>Designing for a Nigerian trading reality.</b> A pharmacy-and-retail distributor's supply base might read: <i>All Supplier Groups → Manufacturers (→ Pharma — Local · Pharma — Import · FMCG) · Distributors &amp; Wholesalers · Importers &amp; Clearing · Services (→ Logistics · Professional · Facilities) · Utilities &amp; Statutory</i>. A dozen leaves. The tests, verbatim from the selling side because they ARE the same tests: every supplier lands somewhere obvious in two seconds; every branch answers a question management actually asks (what did we spend on logistics this quarter? how import-dependent is our pharma line?); and no leaf is a landfill — a Misc that accumulates everything classifies nothing.</p><p><b>What the tree is NOT.</b> Not a payment-priority ranking (that lives in terms and the payment run, Buying 7), not a quality grade (the scorecard carries that, Buying 8), not geography (country fields and addresses answer where). One tree, one question — mixed-question trees rot from the first ambiguous supplier onward.</p><p><b>Why category cuts matter commercially.</b> Three standing conversations run off this tree. <b>Import dependence:</b> the share of spend under import-side leaves is your FX-vulnerability number — the board question after every naira move, answerable in one grouping. <b>Category concentration:</b> one leaf dominated by one supplier is a single point of failure wearing a group name; the quarterly read flags where a second source is owed (Buying 4's RFQ discipline is the remedy). <b>Negotiation posture:</b> consolidated category spend is leverage — the distributor who knows their full FMCG number negotiates it; the one who buys the same category through five unconnected records at five prices funds everyone else's discounts.</p><p><b>The default group.</b> Buying Settings names one for hurried creation: point it at the genuinely commonest leaf, never the root, never Misc — and keep the weekly new-supplier review that catches misfiles while they are young. The safety net is a net, not a filing system.</p>"
+   },
+   {
+    "title": "Chapter 3 — Contacts & addresses: the people and places of supply",
+    "est": "13",
+    "html": "<p>A supplier is a company; you cannot phone a company, and goods do not ship from a concept. The people layer (Contacts) and the places layer (Addresses) mirror Selling 1's Chapters 4-5 exactly — linked records, primary flags, the customer machinery pointed the other way — with buy-side stakes of their own.</p><p><b>Contacts — who you actually deal with.</b> The sales manager who takes your orders, the accounts receivable clerk who chases YOUR payments, the logistics coordinator who books deliveries: each a Contact linked to the supplier, with designation, emails, phones, and a primary flag. The buy-side reason the layer matters: <b>continuity through their staff turnover</b>. When the sales rep who knew your account resigns, your record survives — the new rep's details replace the old contact, and five years of purchase history stay attached to the company, not to a person's phone number in someone's handset. Firms that keep supplier relationships in individual staff WhatsApps rebuild them from zero at every resignation — theirs or yours.</p><p><b>Addresses — where paper goes and goods come from.</b> One supplier, many places: the head office that receives your purchase orders and issues invoices (billing), the factory or warehouse goods actually ship from (shipping), sometimes a clearing agent's address for import flows. Address type and primary flags govern which lands on which document — the PO prints the right office; the receipt expects goods from the right origin. The consequential case: <b>a supplier with multiple fulfilment points</b> (a manufacturer shipping from Lagos or Ogun depending on line) keeps each as an address, and the purchase order's chosen address tells your receiving team what origin to expect — paperwork that matches the truck at the gate.</p><p><b>Primary-flag discipline, buy-side edition.</b> The wrong primary contact means your POs email into a void (the resigned rep's dead inbox — orders placed and never acknowledged); the wrong primary address means documents address the factory while their accounts office waits. Both present later as mysterious delays; both fix at the master in one move, never document-by-document — the anti-fix conviction transfers verbatim from the selling side.</p><p><b>Bank details are not an address, and are guarded harder.</b> Where payment goes lives on the supplier record and in the payment run — and a change to it is a controlled event: verified against supplier letterhead or a known contact by phone, never actioned from an email alone, because supplier-impersonation fraud is precisely an email asking you to update bank details before the next run. Buying 7 builds the payment-run control; the master-level habit starts here: bank fields change rarely, verifiably, and with a second pair of eyes.</p>"
+   },
+   {
+    "title": "Chapter 4 — Currencies, terms & the document default chain",
+    "est": "13",
+    "html": "<p>Three master fields — currency, payment terms, price list — flow from the supplier record onto every purchase document, and this chapter is that defaulting chain plus the two buy-side realities riding it: FX exposure and inherited credit.</p><p><b>The chain, recited cold.</b> A purchase document naming a supplier inherits: their <b>currency</b> (the document transacts in it — a USD manufacturer's PO is a USD PO, converted for your books at the exchange rate, displayed on the document exactly as the selling side's multi-currency machinery worked); their <b>payment terms</b> (the due-date engineering of Buying 7 starts from the master's template); their <b>buying price list</b> (agreed purchase rates, Buying 2); their tax defaults (what you withhold, what input VAT you record — Buying 7). Nobody re-decides these per document; the master decided, and the document executes — which is the entire architecture of not making Tuesday's data-entry clerk the author of your commercial arrangements.</p><p><b>FX exposure, made visible.</b> Every foreign-currency supplier is a naira risk position: the USD PO priced at today's rate lands as a payable whose naira cost moves with the market until settled. The record-level discipline that makes exposure REPORTABLE: supplier currency set to what they actually bill (never NGN-because-we-pay-from-a-naira-account — the conversion happens at payment either way; recording it wrong just hides the exposure), and import-side supplier groups (Chapter 2) so the aggregate foreign position is one grouping away. What your Montaigne-class selling clients ask about receivables, your own finance asks about payables: how much of what we owe is not in naira, and when does it fall due?</p><p><b>Their terms are your credit facility.</b> Net-30 from a supplier is thirty days of interest-free funding on every purchase — collectively, supplier terms are usually a trading firm's largest single credit line. Which is why the master's terms field deserves negotiation attention, not default acceptance: the onboarding conversation that moves a key supplier from advance-only to Net-15 to Net-30 as trust builds is treasury work conducted by procurement, and the record is where each stage is encoded. The mirror discipline from selling applies with roles reversed — you are now the customer whose payment behaviour is being scored, and Chapter 6 makes the case that paying WELL is a procurement strategy, not a finance nicety.</p><p><b>One supplier, one record, however many currencies tempt you.</b> The supplier who bills you USD for imports and NGN for local warehousing is still one supplier — one record in their PRIMARY billing currency, with the minority-currency flow handled at document level. Two records for one company (Emzor USD and Emzor NGN) is the duplicate disease in procurement clothing: split payables, split history, split negotiating knowledge — and their statement reconciles against neither half.</p>"
+   },
+   {
+    "title": "Chapter 5 — The payable posture: managing what you owe",
+    "est": "13",
+    "html": "<p>Selling 7 built the receivables craft; this chapter is its mirror — the deliberate management of what your firm owes — because payables run on decisions exactly as collections do, and a firm that only ever reacts to supplier calls is running its funding structure by whoever shouts loudest.</p><p><b>The payables ledger as one screen.</b> Every submitted purchase invoice (Buying 7) stands as a payable aging by its due date; the <b>Accounts Payable report</b> buckets it — 0-30, 31-60, 61-90, 90+ — per supplier, exactly as AR bucketed customers. The professional read is different from AR's, though: right-column entries in AR were money owed TO you going stale; right-column entries in AP are your firm's payment PROMISES going broken — supplier trust burning, credit terms about to shorten, and eventually supply itself at risk. The read: due-this-week (fund it), coming-due (schedule it), overdue (explain it, personally, before the supplier calls).</p><p><b>Paying well is procurement strategy.</b> The firm that pays on the day earns three things no negotiation can buy: priority allocation when supply is short (the distributor with scarce stock ships to who pays), terms extension over time (Net-15 becomes Net-30 for the account that never slips), and pricing candour (suppliers pad quotes to slow payers — the risk premium is invisible but real, and your firm pays it in every rate). Late payment is a loan taken from your supplier at the price of all three. Sometimes that loan is worth taking — cash crunches are real — but it should be TAKEN, deliberately, with a call and a date, not defaulted into by an unread AP report.</p><p><b>The supplier statement reconciliation.</b> Monthly, key suppliers send statements; the discipline is reconciling them against your ledger while discrepancies are one month deep: invoices they show that you never recorded (goods received, paper lost — Buying 6-7's three-way match catches most), payments you show that they have not applied (your reference discipline at fault, or their allocation — the remittance-advice habit from Selling 7, now written by you), and disputed items flagged on both sides. A supplier account reconciled monthly never produces the year-end archaeology where two firms discover they disagree by millions and neither can say why.</p><p><b>Advance payments to suppliers.</b> The buy-side advance — deposit against an import order, mobilisation on a contract — mirrors Selling 7 Chapter 5 with the roles reversed: a Payment Entry against the supplier with no invoice yet, sitting as YOUR credit on THEIR account, allocated when their invoice lands. The same black hole threatens in reverse: advances never allocated mean invoices paid twice or supplier balances nobody trusts — the monthly unallocated read covers both directions of trade.</p>"
+   },
+   {
+    "title": "Chapter 6 — Supplier lifecycle: onboarding, hold & retirement",
+    "est": "13",
+    "html": "<p>Suppliers have lifecycles — vetted in, paused when trouble surfaces, retired when the relationship ends — and each stage has a correct instrument. Improvised lifecycle management is how firms keep buying from suppliers they resolved to drop, and how they delete history they later need in a dispute.</p><p><b>Onboarding as a gate, not a formality.</b> Before the first purchase order: the record built to Chapter 1's standard (group, currency, terms, TIN, bank details verified from supplier documents), and for regulated goods, the compliance layer — a pharma supplier's NAFDAC standing and documentation checked and filed, because your downstream batch discipline (Selling 5's recall drill) is only as good as the provenance of what enters your warehouse. The onboarding checklist is short, written, and owned; a supplier who cannot complete it is telling you something worth hearing before money moves.</p><p><b>Hold — the pause with teeth.</b> When a quality dispute erupts, documentation lapses, or fraud is suspected, the supplier is placed <b>on hold</b> — and the hold has a TYPE: block everything, block new invoices, or block payments — plus an optional release date. The type is the craft: a quality investigation blocks new purchase documents while existing invoices still settle honestly (you owe what you owe); a payment dispute blocks the payment run while receiving continues; a full block freezes the relationship pending resolution. The hold does what memos cannot: the buyer who did not get the memo physically cannot raise the PO. Every hold carries an owner and a next step — an unowned hold is either forgotten (supply quietly resumes) or eternal (a dead record blocking a live relationship).</p><p><b>Disable, never delete.</b> A retired supplier — closed down, replaced, relationship ended — is <b>disabled</b>: invisible to new documents, fully present in history. Deletion is the wrong end for exactly the selling-side reasons: the purchase history, the price trail, the dispute evidence, the batch provenance all reference the record. The supplier you dropped over quality in 2024 is the record you need intact in 2026 when a batch from their era surfaces in a complaint.</p><p><b>Duplicates, merged early.</b> The same company entered twice — once by each buyer, once per currency (Chapter 4's conviction), once with a spelling variant — splits payables and history until merged. The search-before-create reflex is the prevention (third module in this manual family to say so, because it is the same disease in every master); the cure is a deliberate merge while the duplicate is young, not a two-year archaeology.</p><p><b>The review cadence.</b> Quarterly, the supply base gets thirty minutes: new suppliers correctly filed (the weekly habit rolled up), holds reviewed against their next steps, concentration flags from Chapter 2's tree, and terms renegotiation candidates (Chapter 4). A supply base is a portfolio; portfolios get reviewed.</p>"
+   },
+   {
+    "title": "Chapter 7 — Compliance & the Nigerian buy-side frame",
+    "est": "13",
+    "html": "<p>Buying in Nigeria carries obligations selling never taught, and the supplier master is where each one anchors. This chapter frames them now so the document modules land on prepared ground — each gets its full mechanics later; a professional carries the MAP from day one.</p><p><b>WHT — this time you withhold.</b> Selling 7 taught the deduction from the receiving side: your customers withheld from you. Procurement reverses the role: when YOUR firm pays qualifying suppliers for services and contracts, YOU are the withholding agent — deducting at the supplier-type-appropriate rate (companies and individuals differ; the accountant owns the schedule), remitting to FIRS against the supplier's TIN, and issuing the credit evidence they will chase you for exactly as you chase your customers. The master-level anchors: <b>Supplier Type</b> set correctly (it selects the rate class) and <b>TIN captured</b> (remittance requires it). Buying 7 carries the payment-entry mechanics; the posture to internalise now is symmetry — every discipline you wished your customers had about WHT certificates, your suppliers wish about yours.</p><p><b>Input VAT — the other half of the 21st.</b> The VAT on your purchase invoices is <b>input VAT</b>: claimable against the output VAT your sales collect, netted in the monthly FIRS filing (Selling 6 taught the output side and the deadline). The claim is only as good as its paper — a proper tax invoice from a VAT-registered supplier, recorded against the right tax head — which makes supplier tax hygiene a cash matter: unclaimable input VAT is real money donated monthly. The master anchors: the supplier's tax registration captured, the buy-side tax templates defaulting correctly.</p><p><b>Import documentation.</b> For the import-side supply base (Chapter 2's tree made it visible): Form M, letters of credit, bills of lading, PAAR, clearing-agent chains — the document trail that landed cost is built from (Buying 6 treats landed cost mechanics). The record-keeping habit: import paperwork files against the purchase cycle's documents, so the true cost of a container is assembled from records, not reconstructed from a clearing agent's memory.</p><p><b>Regulated goods provenance.</b> Pharma and food supply chains carry NAFDAC obligations UPSTREAM: the supplier's registration status, product listings, and batch documentation are onboarding requirements (Chapter 6's gate) and standing records — because when Selling 5's recall drill runs, the question after WHICH CUSTOMERS is WHICH SUPPLIER, and the answer must be as fast.</p><p><b>Payment-detail fraud, the standing threat.</b> Chapter 3 set the rule; it bears its own paragraph: bank-detail changes verified out-of-band, payment runs built from the master's verified details, and any email requesting an urgent account change treated as hostile until proven otherwise. The control is boring; the losses it prevents are not.</p>"
+   },
+   {
+    "title": "Chapter 8 — Case study: building the supply base for a pharmacy distributor",
+    "est": "16",
+    "html": "<p>Everything in this module, executed once. HealthTrade Ltd — the dual-channel vendor whose SELLING architecture Selling 2 built — now gets its supply base done properly. Read actively; every step names its chapter.</p><p><b>The business.</b> HealthTrade buys: pharma from two local manufacturers and one Indian exporter; FMCG from a Lagos mega-distributor; logistics from a haulage firm; clearing from an agent handling the import lane. Six suppliers, three currencies of exposure, one afternoon of master-data work.</p><p><b>Step 1 — the tree (Ch. 2).</b> Supplier groups: Manufacturers (→ Pharma — Local · Pharma — Import), Distributors &amp; Wholesalers, Services (→ Logistics · Clearing &amp; Professional). Six leaves, each answering a spend question the MD actually asks — import dependence is now one grouping away, forever.</p><p><b>Step 2 — the two local manufacturers (Ch. 1, 4).</b> Records built to standard: Company type (corporate WHT class), Pharma — Local, NGN, Net-30 terms as negotiated, TINs from their letterheads, bank details from their account-opening letters — filed. Contacts: each firm's sales manager and accounts officer, primaries flagged (Ch. 3). Their NAFDAC documentation checked and filed at onboarding (Ch. 6-7's gate).</p><p><b>Step 3 — the Indian exporter (Ch. 4, 7).</b> Currency USD — what their invoices actually say. Terms: 30% advance, balance against shipping documents — encoded as their template, the advance flow ready for Buying 7's mechanics (Ch. 5's advance discipline). Addresses: Mumbai head office (billing) and the factory (origin) — the receiving team will know what the paperwork should match (Ch. 3). The import-documentation file opens with their record (Ch. 7).</p><p><b>Step 4 — the mega-distributor and the services pair (Ch. 1-3).</b> The FMCG distributor: Company, NGN, Net-15 (to be renegotiated upward as volume proves — the treasury note is on the record, Ch. 4). The haulage firm and the clearing agent: Services leaves — and the clearing agent is Individual type, which the accountant confirms changes the WHT class (Ch. 1, 7). Every record: contacts, TINs, verified bank details.</p><p><b>Step 5 — the payable posture, scheduled (Ch. 5).</b> The AP report's weekly read lands in Friday's routine (due-this-week funded, overdue explained proactively); monthly statement reconciliation is agreed with both manufacturers from month one; the unallocated-advances read covers the exporter's deposit flow.</p><p><b>Step 6 — the near-miss that proves the controls (Ch. 3, 7).</b> Week three: an email arrives from the haulage firm's domain-lookalike asking to update bank details before the next run. The rule holds — out-of-band verification by phone to the known contact — and the fraud dies in one call. The control cost nothing; its absence would have cost a payment run.</p><p><b>What the afternoon bought:</b> spend reportable by category and currency from day one; WHT classes and TINs ready before the first payment; terms encoded as negotiated, with the renegotiation path noted; import exposure visible in one grouping; provenance documentation filed for the recall that will someday ask; and a payables posture that will make HealthTrade the customer its suppliers ship to first when stock is short. Master data is strategy stored where documents can execute it.</p>"
+   },
+   {
+    "title": "Chapter 9 — Common mistakes & support patterns",
+    "est": "13",
+    "html": "<p>The supply-base scar tissue: the tickets you will meet, the disease behind each, the fix — and the law this module hands to the rest of the track.</p><p><b>Pattern 1 — \"The PO went out and nobody at the supplier saw it.\"</b> Disease: primary contact is the resigned rep's dead inbox (Ch. 3). Fix at the master — replace the contact, re-flag primary; the anti-fix (typing addresses per document) subscribes to the ticket. The selling side's first pattern, mirrored exactly, because it is the same machinery.</p><p><b>Pattern 2 — \"We have this supplier twice and their statement matches neither.\"</b> Disease: the duplicate — per buyer, per spelling, or per currency (Ch. 4, 6). Split payables, split history, no negotiating memory. Fix: merge while young; prevention is search-before-create, the law of every master in this manual family.</p><p><b>Pattern 3 — \"Everything we buy from them shows due immediately.\"</b> Disease: terms never set on the master, so no due-date engineering exists (Ch. 4) — the AP report reads as a wall of now, and the payment run cannot prioritise. Fix: encode the actual agreed terms; the documents that follow inherit sanity. (The already-issued invoices keep their dates — correcting forward is the honest scope.)</p><p><b>Pattern 4 — \"Our naira costs jumped and nobody saw it coming.\"</b> Disease: foreign suppliers recorded as NGN because payment leaves a naira account (Ch. 4) — the FX exposure was real but invisible. Fix: currencies set to what invoices say; import-side grouping (Ch. 2) so the aggregate position is one report.</p><p><b>Pattern 5 — \"We resolved to stop buying from them, and a PO went out Tuesday.\"</b> Disease: the resolution lived in a meeting, not a hold (Ch. 6). Fix: the hold with the right type and an owner — the buyer who missed the memo cannot miss the block.</p><p><b>Pattern 6 — \"A supplier says we owe invoices we have never seen.\"</b> Disease: no statement-reconciliation habit (Ch. 5) — goods received against paper that never reached the ledger, discovered at relationship-threatening age. Fix: monthly reconciliation with key suppliers; the three-way match (Buying 6-7) closes the gap going forward.</p><p><b>Pattern 7 — \"Finance updated bank details from an email and the run paid a fraudster.\"</b> Disease: the control that existed in policy but not in practice (Ch. 3, 7). Fix — after the painful recovery attempt — is procedural and absolute: out-of-band verification for every detail change, no exceptions for urgency, BECAUSE of urgency. The fraud's entire design is that the email arrives the day before the run.</p><p><b>The law, mirrored.</b> Selling opened with: documents are downstream of masters. Procurement's first module closes the same way, from the other chair: <b>purchase documents are downstream of supplier masters</b> — the PO's currency, the receipt's expectations, the invoice's terms, the payment's destination and withholding all execute what the record encodes. Build the record right and the buying cycle — Material Requests onward, starting next module — mostly runs itself. The consultant who fixes supplier masters closes procurement tickets permanently; the one who fixes documents subscribes to them.</p>"
+   }
+  ],
+  "questions": [
+   {
+    "q": "Supplier Type (Company vs Individual) matters in Nigeria because:",
+    "opts": [
+     "It drives the WHT rate class your firm must withhold when paying them",
+     "It is cosmetic",
+     "It sets the currency",
+     "It controls stock"
+    ],
+    "ans": 0,
+    "why": "Misclassifying a supplier misclassifies a tax obligation.",
+    "src": "Ch1"
+   },
+   {
+    "q": "A supplier's currency field should be set to:",
+    "opts": [
+     "NGN always, since payment leaves a naira account",
+     "What their invoices actually say",
+     "The cheapest currency",
+     "USD for imports regardless"
+    ],
+    "ans": 1,
+    "why": "Recording it wrong just hides the FX exposure.",
+    "src": "Ch1, Ch4"
+   },
+   {
+    "q": "A supplier created with only a name is:",
+    "opts": [
+     "Fast and harmless",
+     "Automatically completed",
+     "A payables mess on layaway — group, currency, terms, TIN, bank details come first",
+     "Blocked by the system"
+    ],
+    "ans": 2,
+    "why": "The master record is a contract with your future month-ends.",
+    "src": "Ch1"
+   },
+   {
+    "q": "The supplier-group tree answers the single question:",
+    "opts": [
+     "Who pays fastest",
+     "Which buyer owns them",
+     "Where the supplier is located",
+     "What KIND of supply is this"
+    ],
+    "ans": 3,
+    "why": "One tree, one question — spend reports are cut by it.",
+    "src": "Ch2"
+   },
+   {
+    "q": "Import dependence is answered by:",
+    "opts": [
+     "The share of spend under import-side supplier-group leaves",
+     "Guesswork",
+     "The bank statement",
+     "The customer tree"
+    ],
+    "ans": 0,
+    "why": "The board question after every naira move, one grouping away.",
+    "src": "Ch2"
+   },
+   {
+    "q": "One category leaf dominated by one supplier signals:",
+    "opts": [
+     "Efficiency",
+     "A single point of failure — a second source is owed",
+     "Loyalty to reward",
+     "Nothing"
+    ],
+    "ans": 1,
+    "why": "The quarterly concentration read flags it; RFQ discipline remedies it.",
+    "src": "Ch2"
+   },
+   {
+    "q": "Buying the same category through five unconnected records at five prices means:",
+    "opts": [
+     "Healthy competition",
+     "Better risk spread",
+     "You fund everyone else's discounts — consolidated spend is leverage",
+     "Lower prices"
+    ],
+    "ans": 2,
+    "why": "The distributor who knows their full category number negotiates it.",
+    "src": "Ch2"
+   },
+   {
+    "q": "Supplier contacts exist so that:",
+    "opts": [
+     "Emails look formal",
+     "Payments accelerate",
+     "The tree stays clean",
+     "Relationships survive staff turnover — theirs and yours"
+    ],
+    "ans": 3,
+    "why": "History attaches to the company, not to a phone in someone's handset.",
+    "src": "Ch3"
+   },
+   {
+    "q": "A manufacturer shipping from two possible origins is modelled with:",
+    "opts": [
+     "Multiple addresses — the PO's chosen address tells receiving what to expect",
+     "Two supplier records",
+     "A remark",
+     "Two currencies"
+    ],
+    "ans": 0,
+    "why": "Paperwork that matches the truck at the gate.",
+    "src": "Ch3"
+   },
+   {
+    "q": "POs emailing into a void usually trace to:",
+    "opts": [
+     "Server issues",
+     "The primary contact being a resigned rep's dead inbox",
+     "Wrong currency",
+     "Missing TIN"
+    ],
+    "ans": 1,
+    "why": "Fix at the master; documents follow.",
+    "src": "Ch3, Ch9"
+   },
+   {
+    "q": "A supplier bank-detail change request arriving by email is:",
+    "opts": [
+     "Actioned before the next run",
+     "Forwarded to the bank",
+     "Treated as hostile until verified out-of-band with a known contact",
+     "Ignored forever"
+    ],
+    "ans": 2,
+    "why": "The fraud's design is urgency the day before the run.",
+    "src": "Ch3, Ch7, Ch9"
+   },
+   {
+    "q": "The document default chain inherits from the supplier master:",
+    "opts": [
+     "Only the name",
+     "The customer group",
+     "The warehouse",
+     "Currency, payment terms, buying price list, and tax defaults"
+    ],
+    "ans": 3,
+    "why": "The master decided; documents execute.",
+    "src": "Ch4"
+   },
+   {
+    "q": "Supplier payment terms are collectively:",
+    "opts": [
+     "Usually the firm's largest single credit line — thirty days of interest-free funding per purchase",
+     "A courtesy",
+     "A tax matter",
+     "Irrelevant to treasury"
+    ],
+    "ans": 0,
+    "why": "Terms negotiation is treasury work conducted by procurement.",
+    "src": "Ch4"
+   },
+   {
+    "q": "A supplier billing USD for imports and NGN for local services gets:",
+    "opts": [
+     "Two records, one per currency",
+     "One record in the primary billing currency; minority flows handled at document level",
+     "Three records",
+     "A merged customer record"
+    ],
+    "ans": 1,
+    "why": "Two records for one company is the duplicate disease in procurement clothing.",
+    "src": "Ch4"
+   },
+   {
+    "q": "Right-column (90+) entries in Accounts Payable are:",
+    "opts": [
+     "Money owed to you going stale",
+     "Tax credits",
+     "Your payment promises going broken — trust burning, terms at risk",
+     "Healthy float"
+    ],
+    "ans": 2,
+    "why": "AP's right columns read differently from AR's.",
+    "src": "Ch5"
+   },
+   {
+    "q": "Paying suppliers on the day earns:",
+    "opts": [
+     "Nothing measurable",
+     "Penalties",
+     "Only goodwill",
+     "Priority allocation in shortage, terms extension, and pricing candour"
+    ],
+    "ans": 3,
+    "why": "Suppliers pad quotes to slow payers; the premium is invisible but paid in every rate.",
+    "src": "Ch5"
+   },
+   {
+    "q": "Taking extra time to pay in a cash crunch should be:",
+    "opts": [
+     "Taken deliberately — with a call and a date",
+     "Defaulted into silently",
+     "Denied",
+     "Hidden from the supplier"
+    ],
+    "ans": 0,
+    "why": "The loan is sometimes worth taking; it is never worth stumbling into.",
+    "src": "Ch5"
+   },
+   {
+    "q": "Monthly supplier-statement reconciliation catches:",
+    "opts": [
+     "Nothing new",
+     "Their invoices you never recorded, your payments they never applied — at one month deep",
+     "Only fraud",
+     "Tax errors only"
+    ],
+    "ans": 1,
+    "why": "Never the year-end archaeology where two firms disagree by millions.",
+    "src": "Ch5"
+   },
+   {
+    "q": "An advance paid to a supplier is recorded as:",
+    "opts": [
+     "Unrecorded until their invoice",
+     "An expense",
+     "A Payment Entry against the supplier, sitting as your credit, allocated when the invoice lands",
+     "A negative PO"
+    ],
+    "ans": 2,
+    "why": "The unallocated black hole threatens in both directions of trade.",
+    "src": "Ch5"
+   },
+   {
+    "q": "Supplier onboarding for regulated pharma goods includes:",
+    "opts": [
+     "Only bank details",
+     "A trial order first",
+     "A handshake",
+     "NAFDAC standing and documentation checked and filed before money moves"
+    ],
+    "ans": 3,
+    "why": "Downstream recall discipline is only as good as upstream provenance.",
+    "src": "Ch6, Ch7"
+   },
+   {
+    "q": "The supplier hold's TYPE matters because:",
+    "opts": [
+     "Quality issues block new purchases while honest debts still settle; payment disputes block the run while receiving continues",
+     "It doesn't",
+     "All holds are total",
+     "It sets the release date only"
+    ],
+    "ans": 0,
+    "why": "The type is the craft; the block does what memos cannot.",
+    "src": "Ch6"
+   },
+   {
+    "q": "Every supplier hold carries:",
+    "opts": [
+     "A release date only",
+     "An owner and a next step",
+     "A penalty",
+     "Board approval"
+    ],
+    "ans": 1,
+    "why": "Unowned holds are forgotten or eternal.",
+    "src": "Ch6"
+   },
+   {
+    "q": "A retired supplier is:",
+    "opts": [
+     "Deleted for cleanliness",
+     "Renamed",
+     "Disabled — invisible to new documents, fully present in history",
+     "Merged into Misc"
+    ],
+    "ans": 2,
+    "why": "The 2024 quality-dispute record is the evidence you need intact in 2026.",
+    "src": "Ch6"
+   },
+   {
+    "q": "The prevention for supplier duplicates is:",
+    "opts": [
+     "Quarterly purges",
+     "One buyer only",
+     "Locking creation",
+     "Search before create — the same law as every master in this manual family"
+    ],
+    "ans": 3,
+    "why": "The cure is a deliberate merge while the duplicate is young.",
+    "src": "Ch6, Ch9"
+   },
+   {
+    "q": "In procurement, WHT works as:",
+    "opts": [
+     "YOUR firm withholds when paying qualifying suppliers, remits to FIRS against their TIN, and issues the evidence",
+     "Your customers withhold from you",
+     "A VAT substitute",
+     "Optional"
+    ],
+    "ans": 0,
+    "why": "The role reverses: you are now the withholding agent.",
+    "src": "Ch7"
+   },
+   {
+    "q": "The master-level anchors for WHT compliance are:",
+    "opts": [
+     "Currency and address",
+     "Supplier Type (rate class) and TIN (remittance reference)",
+     "Price list and group",
+     "Hold type"
+    ],
+    "ans": 1,
+    "why": "Set at onboarding, used at every qualifying payment.",
+    "src": "Ch1, Ch7"
+   },
+   {
+    "q": "Input VAT on purchases is:",
+    "opts": [
+     "A cost, always",
+     "Ignored",
+     "Claimable against output VAT in the monthly filing — if the paper is proper",
+     "Withheld from suppliers"
+    ],
+    "ans": 2,
+    "why": "Unclaimable input VAT is real money donated monthly.",
+    "src": "Ch7"
+   },
+   {
+    "q": "Import paperwork (Form M, bills of lading, PAAR) should be:",
+    "opts": [
+     "Kept by the clearing agent",
+     "Emailed monthly",
+     "Discarded after clearing",
+     "Filed against the purchase cycle's documents as landed cost is assembled"
+    ],
+    "ans": 3,
+    "why": "True container cost comes from records, not an agent's memory.",
+    "src": "Ch7"
+   },
+   {
+    "q": "In the HealthTrade build, the clearing agent's Individual type mattered because:",
+    "opts": [
+     "It changes the WHT class — confirmed with the accountant",
+     "It changed the currency",
+     "It blocked the record",
+     "It set the group"
+    ],
+    "ans": 0,
+    "why": "Supplier Type is a tax fact wearing a form field.",
+    "src": "Ch8"
+   },
+   {
+    "q": "The domain-lookalike bank-change email in the case study died because:",
+    "opts": [
+     "The firewall caught it",
+     "Out-of-band phone verification to the known contact was the rule, urgency or not",
+     "The bank refused",
+     "It was ignored by luck"
+    ],
+    "ans": 1,
+    "why": "The control cost nothing; its absence would have cost a payment run.",
+    "src": "Ch8"
+   },
+   {
+    "q": "The Indian exporter's addresses (Mumbai office + factory) let:",
+    "opts": [
+     "Two records exist",
+     "Currency conversion",
+     "Receiving know what origin the paperwork should match",
+     "Faster clearing"
+    ],
+    "ans": 2,
+    "why": "Billing and origin are different places on one record.",
+    "src": "Ch8"
+   },
+   {
+    "q": "Terms 'to be renegotiated upward as volume proves' belong:",
+    "opts": [
+     "In a buyer's memory",
+     "In the group name",
+     "Nowhere",
+     "As a note on the record — treasury work encoded where procurement executes"
+    ],
+    "ans": 3,
+    "why": "The renegotiation path is part of the master's story.",
+    "src": "Ch4, Ch8"
+   },
+   {
+    "q": "'Everything shows due immediately' traces to:",
+    "opts": [
+     "Terms never set on the master — no due-date engineering exists",
+     "A system bug",
+     "FX rates",
+     "The hold"
+    ],
+    "ans": 0,
+    "why": "Encode the agreed terms; documents inherit sanity forward.",
+    "src": "Ch9"
+   },
+   {
+    "q": "The fix scope for missing terms is:",
+    "opts": [
+     "Rewriting old invoices' dates",
+     "Correcting forward — issued invoices keep their dates",
+     "Deleting history",
+     "A new supplier record"
+    ],
+    "ans": 1,
+    "why": "Honest scope: the master governs what comes next.",
+    "src": "Ch9"
+   },
+   {
+    "q": "This module's law is:",
+    "opts": [
+     "Suppliers manage themselves",
+     "Payables beat receivables",
+     "Purchase documents are downstream of supplier masters",
+     "Holds are optional"
+    ],
+    "ans": 2,
+    "why": "The PO's currency, the receipt's expectations, the payment's destination all execute the record.",
+    "src": "Ch9"
+   }
+  ]
+ },
+ "items_costs": {
+  "title": "Buying 2 — Purchase Items, Costs & UOMs",
+  "desc": "The item master through a buyer's eyes: purchase gates and UOM arithmetic, supplier-scoped buying rates, the three meanings of cost, planning fields and reorder arithmetic, price-trend discipline, and landed-cost thinking for the import lane.",
+  "lessons": [
+   {
+    "title": "Chapter 1 — The Item master through a buyer's eyes",
+    "est": "15",
+    "html": "<p>Selling 2 walked the item master for sellers; this chapter walks the SAME record for buyers, because one item record serves both sides of trade and the buy-side fields decide whether procurement runs on data or on memory. The frame to carry: the item is one identity with two faces — what we charge lives on the selling face; what it costs us, who supplies it, how long it takes to arrive, and when to reorder live on the face this module owns.</p><ul><li><b>Is Purchase Item</b> — the buy-side gate, the exact mirror of Is Sales Item: ticked, the item can appear on material requests, purchase orders, receipts and purchase invoices; unticked, it is invisible to procurement no matter what stock exists. Items can be both (normal trading stock), purchase-only (consumables, spares, services you buy but never sell), or sales-only (items you make, not buy). The first diagnostic for the-item-is-missing-from-my-PO is this checkbox — and note the symptom distinction that transfers from selling: a gated-out item does not APPEAR; an unpriced item appears at rate 0.</li><li><b>Default Purchase UOM</b> — the unit you BUY in, which is routinely not the unit you count in (Chapter 2's whole subject).</li><li><b>Lead Time Days</b> — how long this item takes from order to arrival. Not decoration: planning arithmetic (Chapter 5) reads it, and an honest lead time on imports (weeks, not days) is the difference between reorder points that work and stockouts with paperwork.</li><li><b>Safety Stock, Reorder Level, Reorder Qty</b> — the replenishment triggers, per warehouse where it matters (Chapter 5).</li><li><b>Last Purchase Rate</b> — maintained by the system from actual purchase documents: what you LAST paid. A rear-view mirror, invaluable for trend reading (Chapter 6) and dangerous when mistaken for an agreed price (Chapter 6 convicts that habit).</li><li><b>Valuation fields</b> — the method by which stock carries cost (Chapter 4's literacy), and the account defaults your accountant confirmed.</li><li><b>Serial/batch flags</b> — decided at creation (Selling 2 taught why); the buy-side consequence is that RECEIVING demands the identities (Buying 6), so a pharma item's batch flag is a procurement obligation before it is a selling one.</li></ul><p><b>The one-record principle.</b> Resist the urge to create purchase-side twins of selling items (PARA-500-BUY next to PARA-500): one physical product is ONE item record wearing both flags, or the stock ledger splits into two half-truths that no report can join. The duplicate disease's item-master edition — third master, same law.</p>"
+   },
+   {
+    "title": "Chapter 2 — Purchase UOMs & the conversion arithmetic",
+    "est": "14",
+    "html": "<p>Nigerian procurement buys in cartons, bales, drums, and pallets — and counts stock in pieces. Selling 2 built the UOM machinery outbound; this chapter runs it INBOUND, where getting it wrong doesn't misprice a quotation — it miscounts the warehouse on arrival day.</p><p><b>The three-unit picture, buy-side.</b> The item's <b>Default UOM</b> remains the stock-keeping unit — what bins and valuations speak (Units, if the warehouse counts pieces; that decision was made once and governs both faces). The <b>Default Purchase UOM</b> is the trade unit purchases default to — Carton-12 for the paracetamol you buy by the dozen-pack. Each purchase document row then carries its UOM and the <b>conversion factor</b> to the stock unit: a PO row of 50 Carton-12 is, and displays as, 600 Units to the stock ledger; the receipt that follows moves 600 Units into the bin while the paperwork talks cartons to the supplier. Same arithmetic as selling, opposite direction of travel — and the same law: <b>every rate and every quantity knows its unit</b>.</p><p><b>Rates ride the UOM.</b> The supplier's price is per THEIR unit: ₦9,600 per Carton-12, not ₦800 typed against a unit row. The classic inbound bug is the mirror of selling's: a per-carton rate on a per-unit row (a PO for 600 priced as if 600 cartons — the approval that should have been ₦480k reading ₦5.76m, or the reverse, an underpriced order the supplier corrects with an invoice surprise). The prevention is the discipline already built: rate, UOM, and conversion factor read together, always.</p><p><b>Receiving is where UOM errors become physical.</b> The order said 50 cartons; the truck holds 50 cartons; the receiving clerk enters… what? If the receipt row is in Cartons with factor 12, entering 50 is correct and 600 Units land in the bin. If someone re-keys it as 600 in a Carton row — or 50 in a Unit row — the bin is wrong by a factor of twelve, and it is wrong at the exact moment the goods physically arrived, which is the hardest moment to argue with later. Buying 6 owns receiving craft; the UOM foundation is laid here: <i>the receipt speaks the PO's units, and the conversion does the counting</i>.</p><p><b>Split-carton reality.</b> Suppliers short-ship: 47 cartons and a loose half-dozen. The honest row drops to the unit that matches physical reality (Selling 5's carton-corner rule, inbound edition): 47 Carton-12 plus 6 Units, two rows, both converting truthfully — never 47.5 cartons the warehouse cannot count.</p><p><b>Purchase UOM vs supplier pack changes.</b> When a manufacturer moves from 12-packs to 10-packs, that is a NEW UOM (Carton-10) with its own factor — used from the change date forward — not an edit to Carton-12's factor, which would silently rewrite the meaning of every historical document that used it. Conversion factors are history's vocabulary; you add words, you do not redefine them.</p>"
+   },
+   {
+    "title": "Chapter 3 — Buying price lists & supplier rates",
+    "est": "14",
+    "html": "<p>Selling 2 taught price lists as the architecture of who pays what; the buying side holds the mirror: <b>who charges you what</b>, encoded so documents fetch agreed rates instead of remembered ones.</p><p><b>The mechanics, mirrored.</b> A price list flagged <b>Buying</b> holds purchase rates; the Selling/Buying checkboxes on the list say which side it feeds, and a consultant never confuses them — the checkbox says. Rates live as <b>Item Price</b> atoms exactly as before: one item + one buying list + one rate, in the list's single currency, optionally validity-dated — and, the buy-side power, <b>scopable to a supplier</b>: the same item carrying ₦9,600/carton from Emzor and ₦9,850/carton from the backup distributor as two supplier-scoped records, each fetched when its supplier's document asks. Agreed rates per supplier are thereby STRUCTURAL — the negotiation's output stored where every PO reads it.</p><p><b>The defaulting chain, inbound.</b> The purchase document's price list lands from the supplier's default buying list (Buying 1, Chapter 4's chain), else the global buying default in Buying Settings; each row's rate looks up item + list (+ supplier scope, + UOM coherence, + validity date). Recite it cold, because the rate-0 clinic transfers verbatim: <i>a purchase row at 0.00 means the list asked had no row for the item</i> — not an error, an honest empty answer — and the diagnostic walk is the same four checks (right list? record exists? right UOM's rate? validity window covers today?).</p><p><b>Agreed rate vs invoice rate.</b> The buying list holds what was AGREED; the purchase invoice will eventually say what was CHARGED. Buying 7's three-way match is where disagreement surfaces formally, but the master-data posture starts here: when a supplier's new price is accepted, the Item Price is updated through the owned workflow — so drift between the list and reality is a signal (the supplier moved and nobody encoded it; or the invoice is wrong and the list is your evidence), never just noise. A firm whose buying lists are current negotiates from records; a firm whose lists fossilised negotiates from the supplier's memory.</p><p><b>Bulk maintenance, mirrored.</b> Quarter-start cost moves hit hundreds of purchase rates; the workflow is the same export → edit → re-import in update mode, with the same ownership discipline — one door, one owner, one trail. FX-driven repricing of import-side lists (the USD list's naira consequences) is Chapter 7's thread.</p><p><b>What buying lists are NOT.</b> Not a cost-accounting system (valuation carries cost — Chapter 4), not a substitute for RFQ comparison on new sourcing (Buying 4 compares live quotes; the list stores the WINNER), and not per-PO scratch space — the rate on a document may be negotiated down in the moment exactly as selling's Rate vs Price-List-Rate pair allowed, visible and reportable, while the list stands as reference.</p>"
+   },
+   {
+    "title": "Chapter 4 — Cost, valuation & what a thing truly costs",
+    "est": "14",
+    "html": "<p>Three different numbers all get called <i>cost</i>, and a procurement professional keeps them distinct, because each answers a different question and confusing them misprices decisions.</p><p><b>Number one: the purchase rate.</b> What the supplier charges per unit — the buying list's agreed figure, the PO's negotiated figure. It is the PRICE of buying, not yet the cost of owning.</p><p><b>Number two: the landed cost.</b> What it took to get the unit onto your shelf: purchase rate PLUS freight, clearing, duty, insurance, handling. For local purchases the gap is small; for imports it is the whole story — a $10 unit at the factory can be a ₦25,000 unit on the Lagos shelf once the container's costs spread across its contents. Chapter 7 frames the thinking; Buying 6 carries the mechanics of adding these charges to received stock. The reflex to build now: <b>for imports, the invoice price is an ingredient, not the answer</b>.</p><p><b>Number three: the valuation rate.</b> What the stock ledger carries the unit at — the number that flows to cost-of-goods when Selling's documents ship it, and the number margin reports subtract. It derives from actual receipts (at their landed costs) under the company's <b>valuation method</b>: the working literacy is one paragraph — <i>FIFO</i> consumes cost in arrival order (old stock's cost leaves first), <i>Moving Average</i> blends each receipt into a running average — the method is an accounting-policy choice made with the accountant, applied consistently, and a consultant's job is knowing which is in force and what it implies for how margins move when purchase prices move, not re-litigating it per item.</p><p><b>Why this hygiene is a SELLING feature too.</b> Selling 8's below-cost guard (Validate Selling Price Against Purchase Rate) is only as good as the purchase-side truth beneath it: garbage purchase rates make the floor a random number generator — the exact caveat that module stated, whose fix lives HERE. And your team's remediation history is the cautionary tale at scale: opening stock keyed at selling prices, receipts at guessed rates, and valuations drifting from reality produce the multi-warehouse corrections that consume months. Cost truth is cheap at entry and ruinous to reconstruct.</p><p><b>The professional's habit.</b> When anyone says <i>cost</i>, ask which one: the supplier's price (negotiate it), the landed figure (manage it), or the valuation (trust it, because the first two were recorded honestly). Reports that mix them — margin computed against purchase rate while valuation says otherwise, or import viability judged on factory price — are the analytical bugs this chapter exists to prevent.</p>"
+   },
+   {
+    "title": "Chapter 5 — Lead times, reorder points & the planning fields",
+    "est": "14",
+    "html": "<p>Procurement's deepest purpose is that the shelf never surprises anyone. The item master carries four planning fields that, filled honestly, let replenishment run as arithmetic — and, left blank, guarantee that buying stays a panic-driven art.</p><p><b>Lead Time Days — the honest number.</b> Order-to-arrival, for THIS item from its usual source: 3 days from the Lagos distributor, 45-60 from the Mumbai factory through clearing. The field wants the honest planning figure including the boring parts (approval time, the clearing queue), because everything downstream multiplies by it. The classic dishonesty is optimism — the 30-day lead time that is really 50 — which converts every reorder into a three-week stockout with perfect paperwork.</p><p><b>Reorder Level — the trigger.</b> The stock quantity at which replenishment must START for arrival before exhaustion. The arithmetic that sets it: expected consumption over the lead time, plus the safety margin. An item selling 20 units/day with a 10-day lead needs the trigger around 200 plus safety — pulled lower, you stock out during the wait; parked absurdly high, you warehouse cash. It can be set <b>per warehouse</b>, because the Ikeja store and the Ibadan store consume differently.</p><p><b>Reorder Qty — the amount.</b> How much to order when triggered: the batch that balances carton economics, supplier minimums, storage, and cash. Often the supplier's economic pack (whole pallets), sometimes the month's cover — a commercial choice the field records so the system can propose it.</p><p><b>Safety Stock — the buffer.</b> The floor held against variability: demand spikes, supplier slips, clearing delays. Bigger for erratic-demand and long-lead items; near zero for stable local lines. Safety stock is insurance, and like insurance it is priced — the premium is carrying cost, and the claim it pays is the sale not lost.</p><p><b>What the fields DO.</b> With levels set, the system can raise <b>Material Requests automatically</b> when projected stock crosses the trigger — the auto-replenishment machinery Buying 3 owns. The projected-quantity arithmetic you already know from Selling 4 (actual minus reserved plus incoming) is exactly what the trigger watches: incoming purchase orders count toward coverage, reserved sales count against it, so the whole trading position feeds one honest number per item per warehouse.</p><p><b>The maintenance rhythm.</b> Planning fields rot: consumption shifts seasonally, lead times move with suppliers and ports, last year's safety stock funds this year's overstock. The review is quarterly and exception-driven — the items that stocked out (trigger too low? lead time dishonest?) and the items that never turn (level too high? demand gone?) — fifteen minutes per category, read straight from stock reports. Fields set once in 2024 and never revisited are how firms simultaneously stock out of winners and warehouse losers.</p>"
+   },
+   {
+    "title": "Chapter 6 — Reading prices: last purchase rate & the trend discipline",
+    "est": "13",
+    "html": "<p>The system remembers what you actually paid; this chapter is the craft of reading that memory — and the conviction of its misuse.</p><p><b>Last Purchase Rate — the rear-view mirror.</b> Maintained automatically from purchase documents: the most recent actual rate for the item. Its honest uses: a sanity reference when raising ad-hoc purchases (does this quote resemble what we last paid?), a drift detector against the buying list (last-paid pulling away from agreed means the supplier moved and nobody encoded it — Chapter 3's signal), and the seed for trend reading below.</p><p><b>The conviction: last-paid is not agreed.</b> The habit to break in every client office: treating last purchase rate AS the price — raising POs at last-paid, accepting whatever the last invoice said as the new normal. That habit hands repricing power to whoever issued the last invoice: one padded bill and the padding becomes your reference, compounding invisibly. The agreed rate lives on the buying list, negotiated and encoded (Chapter 3); last-paid is EVIDENCE about the world, not POLICY for it — the same instrument-vs-record distinction as selling's Price List Rate vs Rate, wearing procurement clothes.</p><p><b>Trend reading, monthly.</b> Purchase-rate movement per item group per quarter is procurement's inflation instrument: which categories are drifting, which suppliers move first, where naira weakness lands hardest (the import-side groups from Buying 1's tree). Three reads matter: <i>category drift</i> (feeds selling's repricing rhythm — Selling 2's quarter-start import workflow is DOWNSTREAM of this read, which is how cost moves reach selling prices deliberately instead of through margin erosion); <i>supplier divergence</i> (two suppliers of the same item drifting apart is a renegotiation or a resourcing flag — Buying 4's RFQ machinery is the action); and <i>single-item spikes</i> (a step-change in one item's cost is either a pack-size change wearing a price costume — Chapter 2's UOM check first — or a real move worth a phone call).</p><p><b>The price file discipline.</b> Where negotiations conclude, the result is encoded the same day: the buying list updated through the owned workflow, validity dates carrying agreed windows (the six-month locked rate expiring on schedule), supplier scope keeping multi-source items honest. The firm whose buying lists are living documents reads every invoice against a reference; the firm whose lists fossilised reads every invoice against a feeling.</p><p><b>What this buys selling.</b> Close the loop consciously: honest purchase rates power the below-cost floor (Selling 8), honest valuation powers margin truth (Chapter 4), and the trend read times the selling-side repricing. Procurement's data discipline is half of selling's margin story — the half the sales team never sees and always depends on.</p>"
+   },
+   {
+    "title": "Chapter 7 — Import costing: thinking in landed terms",
+    "est": "13",
+    "html": "<p>For an import-dependent trading economy, the difference between a profitable line and a quietly loss-making one is usually not the factory price — it is everything that happens between the factory and the shelf. This chapter installs landed-cost THINKING; Buying 6 wires the mechanics.</p><p><b>The stack, itemised.</b> A container's true cost assembles from: the supplier's invoice (FOB or CIF — know which, because insurance and freight are inside CIF and outside FOB); ocean or air freight; marine insurance; import duty and levies at the tariff line; clearing and terminal charges; the agent's fees; haulage to your warehouse; and the FX rate at which each naira figure crystallised. A $10.00 FOB unit can land at ₦24,000–₦28,000 depending on duty band and the naira's mood — and a buyer negotiating cents off the factory price while the clearing chain leaks thousands per carton is optimising the visible tenth of the iceberg.</p><p><b>Spreading the stack.</b> Landed charges attach to RECEIVED STOCK, spread across the shipment's items (by value or quantity as appropriate), so each unit's valuation carries its true cost — the mechanics are Buying 6's landed-cost treatment at receiving. The thinking to install now: charges belong ON the stock they landed, not in a general expense bucket, because expensing them flatters gross margin (stock undervalued, COGS understated) while the P&amp;L's expense lines quietly eat the difference — a distortion that makes importing look better than it is until the year-end tells the truth.</p><p><b>FX at cost.</b> The USD invoice converts at the transaction's rate; the naira cost of a shipment is decided partly by WHEN obligations crystallise. The record-keeping discipline (rates on documents, dates honest) is what makes the question <i>what did this container really cost us in naira</i> answerable from records — and the exposure question <i>what happens to our costs at ₦50 weaker</i> answerable by arithmetic over the import-side groups instead of by dread.</p><p><b>Viability arithmetic, the habit.</b> Before committing to an import line: selling price ceiling (what the market bears — selling's data), landed cost floor (the full stack at honest FX), and the margin between them tested at pessimistic clearing times and rates. The routine kills two familiar failures: the line that was profitable at the old duty band, and the container ordered on factory-price maths that arrives underwater. One page per candidate line, revisited when any stack layer moves.</p><p><b>Documentation as cost control.</b> Buying 1 Chapter 7 set the filing habit — Form M, BL, PAAR, duty assessments against the purchase cycle. Here is its payoff: the stack is auditable per shipment, clearing-cost drift is visible across shipments (the agent whose fees creep; the terminal whose charges doubled), and the negotiation with every layer of the chain proceeds from records. Landed cost is not a number you accept; it is a stack you manage, layer by layer.</p>"
+   },
+   {
+    "title": "Chapter 8 — Case study: HealthTrade's purchase-side item architecture",
+    "est": "16",
+    "html": "<p>The same firm, the same items — now built from the buying chair. Selling 2 gave HealthTrade its selling architecture for PARA-500; this chapter completes the record's other face, and every step names its chapter.</p><p><b>Step 1 — the one record, both flags (Ch. 1).</b> PARA-500 already exists (Selling 2 built it); the buy-side face is completed on the SAME record: Is Purchase Item ✓ (no PARA-500-BUY twin — the one-record principle), Default Purchase UOM Carton-12 with its factor (the UOM set Selling 2 defined, now defaulting inbound documents), batch flag already on (the pharma receiving obligation noted for Buying 6).</p><p><b>Step 2 — supplier-scoped rates (Ch. 3).</b> The buying list holds three atoms for one item: Emzor at ₦9,600/Carton-12, the backup distributor at ₦9,850/Carton-12 (supplier-scoped — each PO fetches its supplier's agreed rate), and the Mumbai exporter's USD list carrying $6.20/Carton-12 for the import lane. Validity dates carry Emzor's six-month locked window; the expiry will force the renewal conversation on schedule.</p><p><b>Step 3 — planning fields, per reality (Ch. 5).</b> Consumption runs ~40 cartons/day across channels. Local lanes: lead time 3 days, reorder level set for the wait plus safety, reorder qty at Emzor's pallet economics. The import lane's fields tell the truth: 50 days lead through clearing, safety stock sized for port variability. The Ikeja and Ibadan warehouses carry their own levels — they consume differently, and the fields say so.</p><p><b>Step 4 — the landed file (Ch. 4, 7).</b> The import lane's viability page: $6.20 FOB, freight/insurance/duty/clearing stack at honest rates → landed ≈ ₦8,900/carton at current FX — undercutting Emzor by ₦700 IF the 50-day pipeline is funded and the naira holds; the page notes the break-even rate. The MD's import decision is now arithmetic with assumptions visible, not a feeling about factory prices.</p><p><b>Step 5 — the trend hooks (Ch. 6).</b> Last-purchase-rate drift alerts the buyer when Emzor's invoices pull away from ₦9,600 (encode or dispute — never silently absorb); the monthly category read feeds Selling 2's quarter-start repricing so cost moves reach selling prices by decision.</p><p><b>Step 6 — the receiving rehearsal (Ch. 2).</b> Before the first import arrives, the receiving team walks the UOM drill: the PO speaks Carton-12, the receipt enters cartons, the conversion counts units into the bin; the short-shipment case (47 cartons + 6 loose) is rehearsed as two honest rows. Buying 6 will own the craft; the vocabulary is already fluent.</p><p><b>What the afternoon bought:</b> one item, two faces, zero twins; agreed rates per supplier fetchable by every document; planning fields that replace panic with triggers; an import decision made in landed terms with its break-even visible; and price-trend hooks that keep both the buying list and the selling list honest. The item master is now the whole trade's single source of product truth — which is exactly what the law at the end of this module says.</p>"
+   },
+   {
+    "title": "Chapter 9 — Common mistakes & support patterns",
+    "est": "13",
+    "html": "<p>The purchase-item scar tissue: the tickets, the diseases, the fixes — and the module's law.</p><p><b>Pattern 1 — \"The item will not appear on the purchase order.\"</b> Disease: Is Purchase Item unticked (Ch. 1) — the buy-side gate, first check always. The symptom distinction transfers: absent means gated out; present at 0.00 means unpriced (Pattern 2). Runner-up: the item is disabled entirely.</p><p><b>Pattern 2 — \"Purchase rate shows 0.\"</b> The rate-0 clinic, inbound (Ch. 3): no Item Price on the document's buying list — or the record exists but under the wrong supplier scope, the wrong UOM, or an expired validity window. The four-check walk resolves it in one minute; the anti-fix (typing a remembered rate) is how lists fossilise.</p><p><b>Pattern 3 — \"The bin is wrong by a factor of twelve since Tuesday's delivery.\"</b> The UOM receiving bug (Ch. 2): cartons keyed as units or units as cartons at the gate. Fix the stock through proper documents, then the drill — the receipt speaks the PO's units and the conversion counts. (At client scale this is the disease behind half the phantom-stock archaeology.)</p><p><b>Pattern 4 — \"Reorder never fires; we stock out with perfect paperwork.\"</b> Disease: planning fields blank or dishonest (Ch. 5) — no trigger exists, or the 30-day lead time is really 50. Fix: set levels from the consumption-times-lead arithmetic, tell the truth about lead times, and put the quarterly exception review in the calendar.</p><p><b>Pattern 5 — \"Our margins look great until year-end.\"</b> Disease: landed charges expensed instead of attached to stock (Ch. 4, 7) — valuation understated, gross margin flattered, the P&amp;L eating the difference in expense lines. Fix: landed-cost treatment at receiving (Buying 6) and the viability pages that judge imports in landed terms.</p><p><b>Pattern 6 — \"POs go out at whatever we last paid.\"</b> Disease: last-purchase-rate treated as the agreed price (Ch. 6) — repricing power handed to the last invoice. Fix: agreed rates encoded on the buying list through the owned workflow; last-paid demoted to evidence.</p><p><b>Pattern 7 — \"We have the same product twice — one for buying, one for selling.\"</b> Disease: the twin-record anti-pattern (Ch. 1) — stock split into half-truths, valuation and history unjoinable. Fix: merge to one record with both flags while the twin is young; prevention is the one-record principle taught at onboarding.</p><p><b>The law.</b> Buying 1 closed with: purchase documents are downstream of supplier masters. This module adds the second: <b>cost truth begins at the item</b> — the gate flags, the UOM arithmetic, the supplier-scoped agreed rates, the honest planning fields, and the landed-cost habit together decide whether every downstream number (the PO's value, the receipt's count, the valuation's margin, the reorder's timing) is computed or improvised. Selling's whole margin story stands on this module being done well — which is the quiet dignity of procurement data work: nobody celebrates it, and everything depends on it.</p>"
+   }
+  ],
+  "questions": [
+   {
+    "q": "Is Purchase Item, unticked, means the item:",
+    "opts": [
+     "Does not appear on purchase documents at all",
+     "Appears at rate 0 on POs",
+     "Cannot hold stock",
+     "Cannot be sold"
+    ],
+    "ans": 0,
+    "why": "Absent means gated out; rate-0 means unpriced — the symptom distinguishes.",
+    "src": "Ch1, Ch9"
+   },
+   {
+    "q": "One physical product bought AND sold is modelled as:",
+    "opts": [
+     "Two records, one per side",
+     "One item record wearing both flags",
+     "A bundle",
+     "Two warehouses"
+    ],
+    "ans": 1,
+    "why": "Twin records split the stock ledger into half-truths.",
+    "src": "Ch1, Ch9"
+   },
+   {
+    "q": "Last Purchase Rate is maintained by:",
+    "opts": [
+     "The buyer, manually",
+     "The supplier",
+     "The system, from actual purchase documents",
+     "The price list"
+    ],
+    "ans": 2,
+    "why": "A rear-view mirror, automatically kept.",
+    "src": "Ch1, Ch6"
+   },
+   {
+    "q": "A pharma item's batch flag creates a procurement obligation because:",
+    "opts": [
+     "Batches are optional inbound",
+     "It blocks imports",
+     "It changes the price",
+     "Receiving will demand batch identities before selling ever does"
+    ],
+    "ans": 3,
+    "why": "The flag decided at creation lands first at the receiving gate.",
+    "src": "Ch1"
+   },
+   {
+    "q": "The Default Purchase UOM is:",
+    "opts": [
+     "The trade unit purchases default to — cartons, not pieces",
+     "The stock-keeping unit",
+     "Always Units",
+     "The supplier's choice per order"
+    ],
+    "ans": 0,
+    "why": "Buy in cartons, count in units; the conversion joins them.",
+    "src": "Ch2"
+   },
+   {
+    "q": "A PO row of 50 Carton-12 moves how many units to the stock ledger at receipt:",
+    "opts": [
+     "50",
+     "600",
+     "12",
+     "Whatever is typed"
+    ],
+    "ans": 1,
+    "why": "The conversion factor does the counting.",
+    "src": "Ch2"
+   },
+   {
+    "q": "A per-carton rate on a per-unit row produces:",
+    "opts": [
+     "Correct totals",
+     "A blocked PO",
+     "An order mispriced by the conversion factor — in either direction",
+     "A discount"
+    ],
+    "ans": 2,
+    "why": "Rate, UOM, and factor read together, always.",
+    "src": "Ch2"
+   },
+   {
+    "q": "A short shipment of 47 cartons plus 6 loose units is entered as:",
+    "opts": [
+     "47.5 cartons",
+     "600 units flat",
+     "48 cartons",
+     "Two rows — 47 Carton-12 and 6 Units — both converting truthfully"
+    ],
+    "ans": 3,
+    "why": "Never fractional cartons the warehouse cannot count.",
+    "src": "Ch2"
+   },
+   {
+    "q": "When a manufacturer moves from 12-packs to 10-packs:",
+    "opts": [
+     "Create Carton-10 with its own factor, used from the change date",
+     "Edit Carton-12's factor to 10",
+     "Ignore it",
+     "Change the stock unit"
+    ],
+    "ans": 0,
+    "why": "Editing the factor rewrites every historical document's meaning.",
+    "src": "Ch2"
+   },
+   {
+    "q": "Buying-side agreed rates per supplier are stored as:",
+    "opts": [
+     "Remarks on the supplier",
+     "Supplier-scoped Item Price records on a buying list",
+     "The last invoice",
+     "PO templates"
+    ],
+    "ans": 1,
+    "why": "The negotiation's output, structural and fetchable.",
+    "src": "Ch3"
+   },
+   {
+    "q": "A purchase row at 0.00 means:",
+    "opts": [
+     "A system error",
+     "The item is free",
+     "The buying list asked had no row — check list, record, UOM, validity",
+     "The supplier is on hold"
+    ],
+    "ans": 2,
+    "why": "The rate-0 clinic transfers inbound verbatim.",
+    "src": "Ch3, Ch9"
+   },
+   {
+    "q": "Last-paid pulling away from the buying list signals:",
+    "opts": [
+     "Nothing",
+     "A UOM bug only",
+     "Time to delete the list",
+     "The supplier moved and nobody encoded it — or the invoices are wrong and the list is evidence"
+    ],
+    "ans": 3,
+    "why": "Drift is a signal, never just noise.",
+    "src": "Ch3, Ch6"
+   },
+   {
+    "q": "The three numbers all called 'cost' are:",
+    "opts": [
+     "Purchase rate, landed cost, valuation rate",
+     "List, retail, wholesale",
+     "FIFO, LIFO, average",
+     "Net, gross, margin"
+    ],
+    "ans": 0,
+    "why": "Each answers a different question; confusing them misprices decisions.",
+    "src": "Ch4"
+   },
+   {
+    "q": "For imports, the supplier's invoice price is:",
+    "opts": [
+     "The cost",
+     "An ingredient of landed cost — freight, duty, clearing complete it",
+     "Irrelevant",
+     "The valuation"
+    ],
+    "ans": 1,
+    "why": "A $10 unit can be a ₦25,000 unit on the shelf.",
+    "src": "Ch4, Ch7"
+   },
+   {
+    "q": "FIFO vs Moving Average is:",
+    "opts": [
+     "Chosen per item per day",
+     "A supplier preference",
+     "An accounting-policy choice made with the accountant, applied consistently",
+     "Automatic"
+    ],
+    "ans": 2,
+    "why": "The consultant knows which is in force and what it implies.",
+    "src": "Ch4"
+   },
+   {
+    "q": "Selling's below-cost validation depends on this module because:",
+    "opts": [
+     "It doesn't",
+     "VAT interferes",
+     "Selling sets costs",
+     "Garbage purchase rates make the floor a random number generator"
+    ],
+    "ans": 3,
+    "why": "The guard's fuel is purchase-side truth.",
+    "src": "Ch4"
+   },
+   {
+    "q": "Lead Time Days should record:",
+    "opts": [
+     "The honest order-to-arrival figure including approvals and clearing",
+     "The optimistic case",
+     "The supplier's promise",
+     "Zero for local items"
+    ],
+    "ans": 0,
+    "why": "Everything downstream multiplies by it.",
+    "src": "Ch5"
+   },
+   {
+    "q": "The reorder level is set from:",
+    "opts": [
+     "A round number",
+     "Expected consumption over the lead time plus the safety margin",
+     "Last year's level",
+     "The supplier's minimum"
+    ],
+    "ans": 1,
+    "why": "The trigger must cover the wait.",
+    "src": "Ch5"
+   },
+   {
+    "q": "Reorder levels can differ per warehouse because:",
+    "opts": [
+     "They can't",
+     "Only one warehouse reorders",
+     "Ikeja and Ibadan consume differently — the fields say so",
+     "Lead times are global"
+    ],
+    "ans": 2,
+    "why": "Planning follows each location's reality.",
+    "src": "Ch5"
+   },
+   {
+    "q": "With planning fields set, crossing the trigger can raise:",
+    "opts": [
+     "A purchase invoice",
+     "An alert only",
+     "A sales order",
+     "A Material Request automatically — the machinery Buying 3 owns"
+    ],
+    "ans": 3,
+    "why": "Replenishment as arithmetic, not panic.",
+    "src": "Ch5"
+   },
+   {
+    "q": "The projected quantity the trigger watches is:",
+    "opts": [
+     "Actual minus reserved plus incoming",
+     "Actual stock only",
+     "Ordered minus billed",
+     "Bin minus safety"
+    ],
+    "ans": 0,
+    "why": "The whole trading position feeds one number.",
+    "src": "Ch5"
+   },
+   {
+    "q": "Planning-field review is:",
+    "opts": [
+     "Once at setup",
+     "Quarterly and exception-driven — the stockouts and the never-turns",
+     "Daily",
+     "Never needed"
+    ],
+    "ans": 1,
+    "why": "Fields set in 2024 and never revisited stock out winners and warehouse losers.",
+    "src": "Ch5"
+   },
+   {
+    "q": "Treating last purchase rate as the agreed price:",
+    "opts": [
+     "Is efficient",
+     "Is required",
+     "Hands repricing power to whoever issued the last invoice",
+     "Updates the list"
+    ],
+    "ans": 2,
+    "why": "One padded bill becomes your reference, compounding invisibly.",
+    "src": "Ch6"
+   },
+   {
+    "q": "Last-paid vs the buying list is the distinction between:",
+    "opts": [
+     "Two currencies",
+     "FIFO and average",
+     "Cost and price",
+     "Evidence about the world vs policy for it"
+    ],
+    "ans": 3,
+    "why": "The instrument-vs-record law, wearing procurement clothes.",
+    "src": "Ch6"
+   },
+   {
+    "q": "A single item's cost step-change is checked FIRST against:",
+    "opts": [
+     "A pack-size change wearing a price costume — the UOM check",
+     "The naira",
+     "The MD",
+     "The customer"
+    ],
+    "ans": 0,
+    "why": "Chapter 2 before the phone call.",
+    "src": "Ch6"
+   },
+   {
+    "q": "The monthly category trend read feeds:",
+    "opts": [
+     "Nothing downstream",
+     "Selling's repricing rhythm — cost moves reach selling prices by decision",
+     "Only the auditors",
+     "The warehouse"
+    ],
+    "ans": 1,
+    "why": "Procurement's data discipline is half of selling's margin story.",
+    "src": "Ch6"
+   },
+   {
+    "q": "FOB vs CIF matters because:",
+    "opts": [
+     "It is jargon",
+     "CIF is always cheaper",
+     "Insurance and freight are inside CIF and outside FOB — the stack starts differently",
+     "FOB includes duty"
+    ],
+    "ans": 2,
+    "why": "Know which the invoice speaks before building the stack.",
+    "src": "Ch7"
+   },
+   {
+    "q": "Landed charges belong:",
+    "opts": [
+     "In a general expense bucket",
+     "Nowhere",
+     "On the supplier record",
+     "On the stock they landed — spread across the shipment at receiving"
+    ],
+    "ans": 3,
+    "why": "Expensing them flatters margin until year-end tells the truth.",
+    "src": "Ch7"
+   },
+   {
+    "q": "Import viability is judged by:",
+    "opts": [
+     "Selling ceiling vs landed floor, tested at pessimistic rates and clearing times",
+     "Factory price",
+     "The agent's advice",
+     "Last year's margin"
+    ],
+    "ans": 0,
+    "why": "One page per candidate line, assumptions visible.",
+    "src": "Ch7"
+   },
+   {
+    "q": "Filing Form M, BL, and duty assessments per shipment buys:",
+    "opts": [
+     "Compliance only",
+     "An auditable stack and visible clearing-cost drift across shipments",
+     "Faster clearing",
+     "Lower duty"
+    ],
+    "ans": 1,
+    "why": "Landed cost is a stack you manage, layer by layer.",
+    "src": "Ch7"
+   },
+   {
+    "q": "In the HealthTrade build, the import lane's viability page showed:",
+    "opts": [
+     "A feeling about factory prices",
+     "A loss",
+     "Landed ≈ ₦8,900 vs Emzor's ₦9,600 — with the break-even FX rate noted",
+     "No comparison"
+    ],
+    "ans": 2,
+    "why": "Arithmetic with assumptions visible.",
+    "src": "Ch8"
+   },
+   {
+    "q": "Emzor's six-month locked rate was encoded as:",
+    "opts": [
+     "A remark",
+     "A discount",
+     "A blanket order",
+     "A validity-dated Item Price — expiry forces the renewal conversation on schedule"
+    ],
+    "ans": 3,
+    "why": "Agreed windows live as dated atoms.",
+    "src": "Ch8"
+   },
+   {
+    "q": "The bin wrong by a factor of twelve since a delivery traces to:",
+    "opts": [
+     "Cartons keyed as units (or the reverse) at the receiving gate",
+     "Theft",
+     "Valuation method",
+     "The supplier"
+    ],
+    "ans": 0,
+    "why": "UOM errors become physical at arrival.",
+    "src": "Ch9"
+   },
+   {
+    "q": "Margins that look great until year-end usually hide:",
+    "opts": [
+     "Nothing",
+     "Landed charges expensed while stock sits undervalued",
+     "Tax fraud",
+     "FX gains"
+    ],
+    "ans": 1,
+    "why": "The P&L eats the difference in expense lines.",
+    "src": "Ch9"
+   },
+   {
+    "q": "This module's law is:",
+    "opts": [
+     "Costs manage themselves",
+     "Items are selling's job",
+     "Cost truth begins at the item",
+     "Valuation is optional"
+    ],
+    "ans": 2,
+    "why": "Every downstream number is computed or improvised from here.",
+    "src": "Ch9"
+   }
+  ]
+ }
+}
