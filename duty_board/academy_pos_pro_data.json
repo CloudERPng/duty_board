@@ -1422,5 +1422,478 @@
     "src": "Ch9"
    }
   ]
+ },
+ "shift_sale": {
+  "title": "POS 4 — The Shift & the Sale",
+  "desc": "The cashier's module: sign-in and the top bar's grammar, the counted float and the opening's custody, the cart's craft with stack-vs-queue and the line markers, batches/serials/units with the bag-and-record discipline, the customer at the header with the credit suspend, hold-not-clear and every tender's rules, the voucher sale under the-slip-is-the-money, the lock, and the close counted, overwritten and explained — never accepted blindly.",
+  "lessons": [
+   {
+    "title": "Chapter 1 — The cashier's module: sign-in & the screen's grammar",
+    "est": "13",
+    "html": "<p>Three modules built the counter's constitution, metal and estate; this one sits in the chair. The cashier's module — the trading day from sign-in to close, under the track's fourth law: <b>the shift is a sealed ritual — count open, count close, explain every variance.</b> The manual's own note applies: if any part of this track is printed for the counter, it is this.</p><p><b>Signing in.</b> The three doors, each with its rules: <b>NORMAL</b> — email and password, the till loading your profile, your catalogue and your permissions, and opening on the console you are entitled to (module 2's landing rule, felt from the chair; the forgotten password's reset link needs the terminal ONLINE); <b>OFFLINE</b> — where the profile enables it, sign-in against the terminal's local record: prior successful online sign-in on THIS terminal, within SEVEN days, the top bar carrying the Offline login marker, and the queued-and-post-later promise standing behind it (module 3's cached list, from the user's side — and the weekly-online habit restated as self-interest: sign in online at least weekly, or the outage locks you out at the worst moment); <b>MANAGER OVERRIDE</b> — the continuity valve recapped in one line: the manager's credentials open the counter, the sales are tagged for audit, and you are told so at the time — keep-trading machinery, never routine.</p><p><b>The top bar's grammar.</b> The chips read as a language, because module 8 will read them as one: Online/Offline (can the terminal reach the back office), Offline login (you signed in locally — reports and lookups wait for the line), <b>Queued</b> (completed sales waiting to post — safe, not lost), <b>Re-login</b> (a cashier's stored credentials rejected — if it names you, click and refresh, or your queued sales cannot post), <b>Conflicts</b> (sales held back on a batch or serial no longer available — click to fix), <b>Stock stale / Price stale</b> (the local copies aging — click to sync now), <b>Failed</b> (sales the back office rejected — a supervisor's list), plus Store, Date, Time, your name and role, <b>Duty</b> (Active or Inactive — shown where shift management is on) with the shift button beside it, the envelope (Message Hub with its unread count), Sync (refresh now; hover shows when each copy last updated), the padlock (Chapter 7's lock), and Sign out (with confirmation). The chapter's discipline: the cashier who can READ the bar owns their terminal's state — every chip is either 'fine', 'mine to click', or 'tell the supervisor', and this module sorts them.</p><p><b>The console's geography.</b> The Sales Console mapped once: products left with the search box above, the current order right; the cart HEADER carrying the customer, the item and unit counts, and — where credit checking is on — the customer's balance and limit; the FOOTER showing sales total, discount, subtotal, tax, delivery fee if enabled, and net total, with Cash and Card beneath. The sidebar lists the consoles you are entitled to (full labels wide, icon rail narrow), and beneath it the catalogue view controls: card versus LIST view (list fits far more), product images (off by default — hiding them makes the grid noticeably faster), items per row, and Recent receipts for the quick reprint. Geography learned once, then forgotten — which is the point: the certified cashier's attention belongs on the customer and the chips, not the furniture.</p>"
+   },
+   {
+    "title": "Chapter 2 — Opening the shift: the counted float",
+    "est": "13",
+    "html": "<p>Where shift management is enabled — and at Okelewo, per module 2, it is enabled everywhere — you must open a shift before you can sell. The module's first ritual, and the one the whole day's honesty hangs on. The opening chapter.</p><p><b>The mechanics.</b> The four steps, plainly: the clock icon in the top bar opens the <b>Open Shift</b> window; the float is COUNTED and the opening amount entered against each payment method (cash is the one that usually matters — the others left at zero); an opening NOTE added if anything is unusual — a short float, a missing key; and <b>Open Shift</b> chosen, the Duty indicator turning Active. Four steps, two minutes — and the second step is the module.</p><p><b>Count before you open.</b> The manual's instruction, elevated to the ritual's first commandment and taught with its full reasoning: <b>the opening figure is what your close will be measured against</b> — entering a round number you did not count is how variances appear from nowhere at the end of the day. The arithmetic of the sin walked once, because seeing it kills it: the drawer actually holds ₦19,400; the cashier types ₦20,000 because that is what the float 'should be'; the day trades perfectly; the close counts ₦600 short — and the evening is spent investigating a theft that never happened, or worse, NOT investigating it because 'it's always a bit off', which is the habituation that later hides the real ₦600. The counted float is custody taken properly (module 1's drawer-as-custody, in its first physical act: the signed receipt for what was actually received), and the opening note is its annotation — the short float DECLARED at open is context; discovered at close it is a dispute.</p><p><b>The opening's edge cases.</b> The craft around the ritual: the float PREPARED by the ritual's logic (denominations for change-making, counted into the drawer before the door opens — the supervisor's task module 8 schedules), the handover mid-day handled as two sealed shifts (the first closed with its count, the second opened with its own — never one shift passed between hands, because a shared shift is a shared variance, and shared variances are unattributable by construction: the one-person-one-account law, at the drawer), and the shift that was never opened named for what it becomes: sales rung with no shift attach to nothing — the returns-missing-from-the-summary symptom the manual's troubleshooting table traces to exactly this, repaired after the fact only by the back-office orphaned-transactions tool (Chapter 8), which exists as a correction, not a workflow. The chapter's closing line: the open is thirty seconds of counting that buys an evening of trust — the cashier who counts before opening has pre-cleared themselves of every variance the day does not actually produce, and the supervisor who enforces the count has bought variance reports worth reading.</p>"
+   },
+   {
+    "title": "Chapter 3 — Building the sale: the cart's craft",
+    "est": "13",
+    "html": "<p>The trade itself: items into the cart, correctly, at speed. The craft chapter.</p><p><b>Adding items.</b> The three roads: <b>SCAN</b> the barcode — the item added straight to the cart, and the search box does not need focus (the design fact that makes scanning uninterruptible: the cashier mid-conversation scans anyway); <b>SEARCH</b> by name, code or brand, then choose; <b>TAP a tile</b> in the grid. And the toggle module 2 configured, used from the chair: where the queue option is enabled, the switch beside the search box chooses <b>stack</b> mode (re-scanning the same item increases the existing line) or <b>queue</b> mode (each scan its own line — suiting counters where each unit needs a separate serial or batch: the electronics wall's mode, per Okelewo's own split).</p><p><b>Quantities and lines.</b> The cart's grammar: each line's minus and plus buttons and the editable quantity box (type and <b>Enter</b> to commit, <b>Escape</b> to abandon — the two-key discipline that prevents the half-typed quantity from riding into payment), the bin icon removing a line — with the exceptions known and their reasons owned: <b>bonus items, bundle components and gift voucher lines have FIXED quantities</b>, and bundle components cannot be removed individually — remove the bundle's main line instead (the bundle price governs the parts; module 5 owns the promotion machinery, but the cart's behaviour is learned here).</p><p><b>Reading the line.</b> The markers taught as the audit trail they are: <b>Bundle</b> on a bundle head, <b>Rate override</b> where the price was changed by hand (module 2's marked-for-review promise, visible), <b>Customer discount</b> where the customer's own recorded discount applied, and <b>Batch assigned</b> where batches have been picked — with the item-code toggle beside Hold showing or hiding codes per preference. The markers' discipline runs both ways: the cashier reads them to know what has happened to their own cart (the line that already carries a promotion will refuse a manual discount, and the marker says why before the refusal does), and the supervisor reads them on review (the sale whose every line says Rate override is a sale with a story — module 8's reading habit, seeded at the line).</p><p><b>The craft's tempo.</b> The chapter's closing standard, because speed is part of correctness at a counter: the certified cashier's cart is built scan-first (search is the exception path), quantity-edited by keyboard (Enter committing, Escape abandoning), read by its markers before payment is touched, and never carries a line the cashier cannot explain — the ten-second review at the footer (items, counts, net total against the customer's expectation) being the cheapest dispute-prevention the counter owns: the wrong quantity caught at the cart is a keystroke; caught at payment it is a correction; caught at the door it is a return, an override, and a story.</p>"
+   },
+   {
+    "title": "Chapter 4 — Batches, serials & units: the tracked sale",
+    "est": "13",
+    "html": "<p>Where the goods carry identity — batches, serials, multiple units — the cart asks more of the cashier, and the asking is the control. The tracked-sale chapter.</p><p><b>Batch-tracked items.</b> The flow as designed: adding a batch-tracked item, the till ASKS which batch the goods come from, showing what is available — a quantity SPLIT across batches by allocating against more than one; where AUTO-ALLOCATE is enabled (module 2's oldest-first setting), the till picks for you and only asks when it cannot cover the quantity. The mechanics' two fine points, both dispute-savers: <b>reducing a quantity releases batch allocations in REVERSE</b> (the last-allocated batch released first — the allocation unwound in order, not scrambled), and the <b>Batch assigned</b> marker on the line is clickable — review or change what was picked before payment, which is the cashier's check that the physical goods in the bag match the batches on the sale (the FEFO till that auto-picked the oldest batch while the cashier bagged from the front of the shelf is a mismatch the marker exists to catch — expiry discipline is only real when the bag and the record agree).</p><p><b>Serial-numbered items.</b> The harder gate: serial-tracked items need <b>one serial per unit</b> — scanned into the serial window or typed — and <b>the line will not proceed to payment until every unit has a serial</b>. The gate read as the control it is: the serial binds THIS physical unit to THIS sale (the warranty claim, the return, the recall all resolve to it — the Inventory track's identity law at the counter), so the gate that feels like friction at 6 p.m. is the record that settles the dispute in March — and the certified cashier scans serials from the UNITS IN THE BAG, never from a convenient box on the shelf, because a serial record that does not match the goods handed over is worse than none: it is confident fiction.</p><p><b>Units of measure.</b> The multi-unit ask: where an item sells in more than one unit — each, pack, carton — the till asks WHICH unit applies, and <b>the price follows the unit chosen</b>. The craft point: the unit ask is a pricing event (the carton price against twelve singles is a margin design someone made in module 2's groundwork), and the mis-picked unit is the counter's quietest large error — the carton sold at the single's price is an eleven-twelfths discount nobody approved, invisible until the margin report, which is why the footer's ten-second review from Chapter 3 explicitly includes units on multi-unit lines.</p><p><b>When the pick is refused.</b> The concurrency truth, taught calmly: a batch or serial can be REFUSED — another till may have sold it in the meantime — and the answer is simply to pick a different one. If the sale has already completed and been held back, it appears under the <b>Conflicts</b> marker in the top bar: module 8's territory, previewed in one sentence — the conflict is the local-copy design being honest about a race it lost, the fix is a re-pick, and the discipline is that conflicts are cleared before the shift closes, because a conflicted sale is money that has not reached the ledger. The chapter's closing line: the tracked sale is the counter carrying the warehouse's laws at retail speed — the ask is the control, the marker is the check, and the bag and the record leaving together, agreeing, is the whole point.</p>"
+   },
+   {
+    "title": "Chapter 5 — The customer at the header: attach, loyalty & credit",
+    "est": "13",
+    "html": "<p>A sale with no named customer books to the walk-in customer — correct for most of the queue. This chapter is the rest: the named customer, attached properly, with everything that follows. The customer chapter.</p><p><b>Attaching.</b> The mechanics: the person icon above the grid, or the customer chip on the cart header; SEARCH by name, phone or email and select — with the offline behaviour known (the search runs against locally CACHED customers when the line is down: the local-copy design covering the customer file); CREATE where new — name, and mobile and email if held (module 2's duplicate-name refusal and the mobile-match auto-merge standing behind the create, keeping eleven cashiers from minting eleven spellings of one woman); and the LOYALTY road — tick Issue loyalty card and scan or type the number at create, or, for an existing member, <b>scan their loyalty card</b> from the scan button above the grid: the customer loads automatically and their points appear on the header. The attach's effects, immediate and automatic: any discount recorded on the customer's record APPLIES (the Customer discount marker from Chapter 3 — recorded policy, not counter generosity), and where credit checking is on, the balance and limit appear on the header.</p><p><b>The credit suspend.</b> Module 2's fence, met from the chair: a customer over their limit shows <i>Sales suspended due to customer outstanding</i> — and <b>payment is blocked until an approver releases it</b>. The cashier's script taught, because the moment is social before it is technical: the suspend is read to the customer as the system's fact, not the cashier's judgment ('the account needs a supervisor before I can add to it' — the fence taking the blame, which is what fences are for), the release is the Power Approver's credit-limit permission doing its work (an authorised event, logged), and the cashier never routes around it — the full-cash alternative is offered where the customer prefers it (a paid sale needs no credit release), but the part-paid workaround, the split-across-two-tickets improvisation, is module 8's fraud map wearing a helpful face.</p><p><b>Loyalty's counter half.</b> The points machinery from the cashier's side: earning happens by attach (the member not attached earns nothing — the attach habit IS the programme), redemption happens at payment (Chapter 6 — online only, because the balance lives on the server), and the returns interaction is previewed for module 5: where an original sale earned points that were since SPENT, the return computes what must be recovered and shows it before completion — the cashier explains it from the screen, never estimates it. And the header's last discipline, closing the chapter: the customer attached is attached for the WHOLE sale — the mid-sale attach applies the customer's discount to what is already in the cart correctly, but the attach forgotten until after payment is a loyalty dispute and a reprint request rolled into one, so the certified habit is attach-first for any customer who mentions membership, before the first scan.</p>"
+   },
+   {
+    "title": "Chapter 6 — Hold, clear & payment: money's minute",
+    "est": "14",
+    "html": "<p>The basket parked or discarded, and then the money itself — every tender, in one chapter. The payment chapter.</p><p><b>Hold, do not clear.</b> The pair distinguished by what survives: <b>Hold</b> parks the basket and empties the cart for the next customer — held baskets KEEP their customer, discounts and batch allocations, resumed from the box icon above the grid (which shows the count), aged out automatically where module 2's housekeeping is on. <b>Clear</b> DISCARDS the basket — and where the cashier is not permitted to clear but an approver holds the permission, the button still appears and asks for approval (the authorised-discard design, per the constitution). The manual's rule is the chapter's title and the counter's habit: the customer who walks off to fetch their wallet gets a HOLD — clearing throws away the batch and serial work already done, and, per module 8's map, the clear that follows a cash-in-hand moment is a pattern the supervisor reads, so the honest counter simply never builds the habit.</p><p><b>Cash and card.</b> The two buttons beneath the totals: <b>CASH</b> — the tendered amount entered (or a quick-amount button), change calculated and displayed, completion opening the drawer and printing per configuration; <b>CARD</b> — without the integrated terminal, the amount simply RECORDED (the card machine worked as usual, then confirmed); with integration, the amount PUSHED to the terminal and the till waiting for the result (module 2's gateway, live).</p><p><b>Split payment.</b> One bill across several methods: Split payment on, a method chosen and its portion entered, <b>Add another method</b> per further portion, the REMAINING balance watched as it falls — with the over-tender rule known precisely: if CASH is among the methods, over-tendering shows change due; WITHOUT cash, the total may not exceed the amount owed. Complete when the remaining balance reaches zero. The craft note: split is the counter's honest answer to real wallets (some cash, some transfer) — and every portion lands on its own payment method for the close's per-method count, which is why the cashier who records a transfer as 'cash to balance faster' has just manufactured two variances from one sale.</p><p><b>The server-side tenders.</b> The three that need the line, each with its reason: <b>Loyalty redemption</b> — Redeem Loyalty Points, the programme picked, the points entered, their cash value deducted (the balance lives on the server; offline it cannot be trusted, so it cannot be spent); <b>Gift vouchers</b> — added from the payment window's voucher section, scanned or typed, each reducing the amount due, MORE than one applicable, full coverage asking no further tender, surplus handled by the profile's change policy (module 7 owns the programme; the tender behaviour is learned here); <b>Store credit</b> — chosen as a split method, the available credit shown, an amount above it refused. And the offline capability recap, in one breath because module 8 owns the full table: cash, manually keyed card and transfer work offline; integrated card, store credit, loyalty redemption, anything voucher, and any credit or part-paid sale do not — <b>offline, you collect the full amount</b>, because a balance that reads nil cannot be checked.</p><p><b>Back-dating.</b> Where module 2 permitted it: a transaction date field at the top of the payment window, <b>today or earlier only</b> — used for the genuinely late-rung sale, marked by its nature (revenue moved between reporting days), and rare by policy. The chapter closes at the footer: payment is the sale's seal — every tender on its own method, every server-side tender honest about the line, and the remaining balance at zero the only way out.</p>"
+   },
+   {
+    "title": "Chapter 7 — Receipts, the voucher sale & the lock",
+    "est": "13",
+    "html": "<p>The sale's paper, the counter's one bearer-instrument moment, and the padlock. The evidence chapter.</p><p><b>Receipts and reprints.</b> The paper's rules: auto-print printing on completion where configured (one or two copies), otherwise printed from the confirmation; the RECENT RECEIPTS panel (from the catalogue controls) for the quick reprint of the last few sales; Sales History (module 6) for anything older. And the offline reference law, restated from module 1 because the chair is where it matters: a sale completed offline prints with a LOCAL reference — once posted, the back-office reference takes over — <b>both refer to the same sale, and a return can be found by either</b>: the customer's offline receipt is not a second-class document, and the cashier says so with confidence when asked.</p><p><b>Selling a gift voucher.</b> The counter's most careful sale, walked step by step: the gift voucher TILE on the grid; a face value from the denomination buttons or another amount typed; the quantity set; for PRE-PRINTED stock, each physical card SCANNED so the code binds to the value — for system-issued vouchers, codes left blank and generated on completion; added to the sale (same-value vouchers grouping onto one line — the fixed-quantity line from Chapter 3); payment taken with the tender rule absolute: <b>vouchers are bought with cash-equivalent tenders only</b> — never with another voucher, store credit, or loyalty points (stored value does not mint stored value — the closed loop that prevents value appearing from nowhere, and module 7 will give the rule its accounting spine). A NAMED customer is required (the voucher may need emailing or reprinting later); no email on file prompts for one, skippable — in which case the printed slip is the only copy. And the manual's warning, this chapter's engraving: <b>the slip is the money</b> — the full code appears on the printed slip exactly once, a reprint requires authorisation, and an unissued slip is treated like cash, because to its bearer it is.</p><p><b>Locking the till.</b> The padlock's contract: lock IMMEDIATELY on stepping away — the shift stays open, the basket stays as it is, synchronisation continues — unlocked with username and password. The habit argued once, then assumed: the lock is faster than signing out and back in, it protects the open basket (the batch and serial work, the attached customer), and it protects the CASHIER — the unattended, unlocked till trading under your name is your variance, your overrides, your story, whoever's fingers made it; the lock is the one-person-one-account law defended sixty times a day, in one keystroke. The chapter's closing frame: this is the module's evidence layer — the receipt that survives offline, the slip that is money, the lock that keeps your name yours — and none of it costs ten seconds.</p>"
+   },
+   {
+    "title": "Chapter 8 — The close & Okelewo's first trading month",
+    "est": "16",
+    "html": "<p>The ritual's second seal, and the case study's first month at the new counters. The closing chapter.</p><p><b>Closing the shift.</b> The steps, with the module's second commandment inside them: the clock icon opens the <b>Close Shift</b> window — total sales, returns and transaction count for the shift, plus lay-by bookings, payments and refunds where there were any; the counted amounts arrive <b>PRE-FILLED with what the system expects</b> for each payment method — and the manual's emphasis is the academy's: <b>do not accept them blindly</b>. The drawer and each method are COUNTED, each figure OVERWRITTEN with what was actually counted; the per-method VARIANCE shows beside each — green over, red short — with a total at the foot; variances EXPLAINED in the closing notes; Close Shift chosen, Duty turning Inactive. The commandment's reasoning, taught plainly: the pre-filled figure accepted untouched is not a count — it is the system agreeing with itself, a reconciliation with one side, worth nothing on the evening the drawer is actually short; the counted close is the custody handed back with a signature, and the variance EXPLAINED at close ('₦200 over — suspected change error on a busy split sale, noted at 4pm') is context that costs a sentence, where the same variance unexplained is Monday's investigation.</p><p><b>The unclosed shift.</b> The failure mode and its repair: an unclosed shift leaves the sales unattributed and forces a supervisor to reconcile after the fact; a missed shift is REPORTED — the back-office tool attributes orphaned transactions to the shift they belong to (the manual's own correction path, and the troubleshooting table's answer to returns-missing-from-summaries) — a correction, never a workflow, and module 8's calendar makes the pattern visible if it tries to become one.</p><p><b>Okelewo's first month (every chapter clocks in).</b> The counters trade governed for the first time, and the month produces exactly the module's lessons: the COUNTED FLOAT catches its first prize in week two — the flagship's Tuesday drawer opens ₦1,500 light against the prepared float, declared in the opening note, and the discrepancy resolves to the weekend's change-making raid on the float box (a process fix: the float sealed after preparation), where the old counter would have discovered it at close and argued about it for an hour; the HOLD habit saves a serial sale in week three (a customer fetches a wallet; the held basket resumes with three scanned serials intact — the old counter would have rebuilt it or, worse, guessed); the pre-filled-close commandment survives its first temptation (a rushing Saturday cashier accepts the pre-fill once — the supervisor's review catches the untouched figures the same evening by their perfect roundness, and the re-count, done together, teaches the lesson better than the memo would have: ₦350 over, real, unexplained because uncounted); the month's variance report reads as designed — small, explained, attributable per cashier per shift — and one cashier's consistent small SHORTS on split-payment days trace not to theft but to Chapter 6's exact sin, transfers rung as cash 'to balance faster', corrected by a five-minute retrain; and the first VOUCHER sale drills the slip-is-money rule before December's programme (a pre-printed card scanned, bound, sold to a named customer with an email — the slip handed over with the sentence the consultant scripted: 'keep this like cash; the code is on it once'). The MD's month-end note: <i>for nine years the drawers were 'about right'. This month I know, per shift, per person, per method — and the arguments have simply stopped. The counting turned out to be the cheap part.</i></p>"
+   },
+   {
+    "title": "Chapter 9 — Common mistakes & the fourth law",
+    "est": "13",
+    "html": "<p>The ritual's scar tissue. Symptom → disease → fix.</p><p><b>Pattern 1 — the round-number float.</b> Symptom: variances from nowhere; the ₦600 investigation of a theft that never happened; 'it's always a bit off' as culture. Disease: the opening figure typed, not counted (Ch. 2). Fix: count before you open — the float prepared and sealed, the opening note declaring anything unusual, the custody taken with a real signature.</p><p><b>Pattern 2 — the shared shift.</b> Symptom: one shift passed between hands; variances nobody can own; the handover mid-basket becoming handover mid-drawer. Disease: two custodies under one seal (Ch. 2). Fix: two sealed shifts — the first closed with its count, the second opened with its own — one person, one account, one drawer, one variance.</p><p><b>Pattern 3 — the fiction serial.</b> Symptom: serials scanned from the shelf box, not the bag; warranty claims that resolve to units the customer never held; the record confident and wrong. Disease: the gate satisfied instead of used (Ch. 4). Fix: serials from the units in the bag, the batch marker reviewed against what was actually bagged, the bag and the record leaving together in agreement.</p><p><b>Pattern 4 — the cleared basket.</b> Symptom: batch and serial work thrown away for a wallet trip; the clear that follows cash-in-hand moments; rebuilt carts and guessed allocations. Disease: clear where hold belongs (Ch. 6). Fix: hold, do not clear — the parked basket keeping its customer, discounts and allocations; the clear an authorised, watched event.</p><p><b>Pattern 5 — the tender shortcut.</b> Symptom: transfers rung as cash 'to balance faster'; two variances from one sale; per-method counts that fight the drawer. Disease: the tender's truth traded for speed (Ch. 6). Fix: every portion on its own method — the split machinery used as built, because the close counts per method and the shortcut manufactures the very variance it was dodging.</p><p><b>Pattern 6 — the blind close.</b> Symptom: pre-filled figures accepted untouched; perfect-looking closes with nothing behind them; the real short discovered weeks later, unattributable. Disease: the system agreeing with itself and calling it a count (Ch. 8). Fix: do not accept them blindly — count, overwrite, explain; the variance with a sentence at close instead of an investigation on Monday.</p><p><b>The fourth law.</b> The counter's day, sealed at both ends: <b>the shift is a sealed ritual — the float counted before the door, the cart built by craft and read by its markers, the tracked sale's bag and record agreeing, every tender on its own method, the slip treated as the money it is, the till locked whenever the chair empties, and the close counted, overwritten and explained — never accepted blindly.</b> Module 5 opens the counter's pressure valve: concessions, returns and overrides — everything that takes money off or gives money back.</p>"
+   }
+  ],
+  "questions": [
+   {
+    "q": "Offline sign-in requires:",
+    "opts": [
+     "A prior successful online sign-in on THIS terminal within seven days",
+     "Nothing",
+     "A manager",
+     "A licence check"
+    ],
+    "ans": 0,
+    "why": "The cached record, from the user's side.",
+    "src": "Ch1"
+   },
+   {
+    "q": "The Queued chip means:",
+    "opts": [
+     "Sales are lost",
+     "Completed sales are waiting to post — safe, not lost",
+     "The till is broken",
+     "Sync is off"
+    ],
+    "ans": 1,
+    "why": "The bar's grammar, chip by chip.",
+    "src": "Ch1"
+   },
+   {
+    "q": "A Re-login chip naming you means:",
+    "opts": [
+     "Sign out",
+     "Ignore it",
+     "Click and refresh online — until then your queued sales cannot post",
+     "Restart"
+    ],
+    "ans": 2,
+    "why": "A today problem.",
+    "src": "Ch1"
+   },
+   {
+    "q": "List view and hidden product images:",
+    "opts": [
+     "Are cosmetic",
+     "Break scanning",
+     "Are mandatory",
+     "Fit far more on screen and make the grid noticeably faster"
+    ],
+    "ans": 3,
+    "why": "The console's geography, tuned.",
+    "src": "Ch1"
+   },
+   {
+    "q": "The opening figure matters because:",
+    "opts": [
+     "It is what the close is measured against — a round number you did not count births variances from nowhere",
+     "It is reported daily",
+     "Auditors read it",
+     "It sets the float"
+    ],
+    "ans": 0,
+    "why": "Count before you open.",
+    "src": "Ch2"
+   },
+   {
+    "q": "A short float at open is:",
+    "opts": [
+     "Hidden",
+     "DECLARED in the opening note — context at open, a dispute at close",
+     "The cashier's fault",
+     "Impossible"
+    ],
+    "ans": 1,
+    "why": "The annotation on the custody receipt.",
+    "src": "Ch2"
+   },
+   {
+    "q": "A mid-day handover is:",
+    "opts": [
+     "One shift passed on",
+     "A supervisor task",
+     "Two sealed shifts — the first closed with its count, the second opened with its own",
+     "Forbidden"
+    ],
+    "ans": 2,
+    "why": "A shared shift is a shared, unattributable variance.",
+    "src": "Ch2"
+   },
+   {
+    "q": "Sales rung with no shift open:",
+    "opts": [
+     "Post normally attributed",
+     "Auto-open a shift",
+     "Are blocked",
+     "Attach to nothing — repaired only by the back-office orphaned-transactions tool"
+    ],
+    "ans": 3,
+    "why": "A correction, not a workflow.",
+    "src": "Ch2"
+   },
+   {
+    "q": "Scanning a barcode:",
+    "opts": [
+     "Adds the item straight to the cart — the search box does not need focus",
+     "Needs the search box focused",
+     "Opens a dialog",
+     "Needs Enter"
+    ],
+    "ans": 0,
+    "why": "Scanning is uninterruptible by design.",
+    "src": "Ch3"
+   },
+   {
+    "q": "Queue mode (vs stack) makes each scan:",
+    "opts": [
+     "Merge into the line",
+     "Its own line — suiting counters where each unit needs its own serial or batch",
+     "A held basket",
+     "A bundle"
+    ],
+    "ans": 1,
+    "why": "The toggle beside search, used deliberately.",
+    "src": "Ch3"
+   },
+   {
+    "q": "Quantity edits commit and abandon with:",
+    "opts": [
+     "Click and click",
+     "Tab and Tab",
+     "Enter and Escape — the two keys that stop a half-typed quantity riding into payment",
+     "Save buttons"
+    ],
+    "ans": 2,
+    "why": "The cart's keyboard grammar.",
+    "src": "Ch3"
+   },
+   {
+    "q": "Fixed-quantity lines are:",
+    "opts": [
+     "Any discounted line",
+     "The first line",
+     "Batch lines",
+     "Bonus items, bundle components and gift voucher lines"
+    ],
+    "ans": 3,
+    "why": "And bundle components go by removing the main line.",
+    "src": "Ch3"
+   },
+   {
+    "q": "Reducing a batch-allocated quantity:",
+    "opts": [
+     "Releases allocations in REVERSE — unwound in order",
+     "Scrambles batches",
+     "Asks again",
+     "Clears the line"
+    ],
+    "ans": 0,
+    "why": "One of the two fine points that save disputes.",
+    "src": "Ch4"
+   },
+   {
+    "q": "The Batch assigned marker is clicked to:",
+    "opts": [
+     "Decorate",
+     "Review or change what was picked — the check that the bag and the record agree",
+     "Print",
+     "Lock the line"
+    ],
+    "ans": 1,
+    "why": "FEFO is only real when bag and record match.",
+    "src": "Ch4"
+   },
+   {
+    "q": "A serial-tracked line proceeds to payment:",
+    "opts": [
+     "Anytime",
+     "With one serial",
+     "Only when every unit has a serial — scanned from the units IN THE BAG",
+     "On approval"
+    ],
+    "ans": 2,
+    "why": "A record that mismatches the goods is confident fiction.",
+    "src": "Ch4"
+   },
+   {
+    "q": "The mis-picked unit of measure is:",
+    "opts": [
+     "Harmless",
+     "Rare",
+     "Blocked",
+     "The counter's quietest large error — the carton at the single's price is an unapproved eleven-twelfths discount"
+    ],
+    "ans": 3,
+    "why": "The price follows the unit chosen.",
+    "src": "Ch4"
+   },
+   {
+    "q": "A refused batch or serial means:",
+    "opts": [
+     "Another till sold it meanwhile — pick a different one; a completed sale held back appears under Conflicts",
+     "A defect",
+     "Sync failed",
+     "The item is fake"
+    ],
+    "ans": 0,
+    "why": "The local copy being honest about a lost race.",
+    "src": "Ch4"
+   },
+   {
+    "q": "Attaching a customer applies:",
+    "opts": [
+     "Nothing automatic",
+     "Any discount on their record, and shows balance and limit where credit checking is on",
+     "A loyalty charge",
+     "A hold"
+    ],
+    "ans": 1,
+    "why": "Recorded policy, not counter generosity.",
+    "src": "Ch5"
+   },
+   {
+    "q": "'Sales suspended due to customer outstanding' is released by:",
+    "opts": [
+     "The cashier retrying",
+     "A restart",
+     "A Power Approver holding the credit-limit permission",
+     "Splitting the ticket"
+    ],
+    "ans": 2,
+    "why": "The split-across-tickets workaround is the fraud map in a helpful face.",
+    "src": "Ch5"
+   },
+   {
+    "q": "Offline, customer search runs against:",
+    "opts": [
+     "The server",
+     "Yesterday's report",
+     "Nothing",
+     "Locally cached customers"
+    ],
+    "ans": 3,
+    "why": "The local-copy design covering the customer file.",
+    "src": "Ch5"
+   },
+   {
+    "q": "The attach-first habit exists because:",
+    "opts": [
+     "The attach forgotten until after payment is a loyalty dispute and a reprint request in one",
+     "Speed",
+     "Policy",
+     "The header looks better"
+    ],
+    "ans": 0,
+    "why": "Attach before the first scan for any member.",
+    "src": "Ch5"
+   },
+   {
+    "q": "Hold versus Clear:",
+    "opts": [
+     "Both discard",
+     "Hold parks and KEEPS customer, discounts and batch allocations; Clear discards — and may require approval",
+     "Both park",
+     "Clear is faster"
+    ],
+    "ans": 1,
+    "why": "Hold, do not clear.",
+    "src": "Ch6"
+   },
+   {
+    "q": "In a split payment without cash:",
+    "opts": [
+     "Over-tender freely",
+     "One method only",
+     "The total may not exceed the amount owed — with cash, over-tender shows change due",
+     "The sale blocks"
+    ],
+    "ans": 2,
+    "why": "The over-tender rule, precisely.",
+    "src": "Ch6"
+   },
+   {
+    "q": "Ringing a transfer as cash 'to balance faster':",
+    "opts": [
+     "Saves time harmlessly",
+     "Helps the customer",
+     "Is policy",
+     "Manufactures two variances from one sale — the close counts per method"
+    ],
+    "ans": 3,
+    "why": "The tender's truth is the close's raw material.",
+    "src": "Ch6"
+   },
+   {
+    "q": "Offline, the till requires:",
+    "opts": [
+     "Full payment — a balance that reads nil cannot be checked, so credit and part-paid sales are blocked",
+     "Any tender",
+     "A manager",
+     "Vouchers"
+    ],
+    "ans": 0,
+    "why": "Cash, keyed card and transfer work; the server-side tenders wait.",
+    "src": "Ch6"
+   },
+   {
+    "q": "Back-dating a sale:",
+    "opts": [
+     "Allows any date",
+     "Allows today or earlier only — revenue moved between reporting days, rare by policy",
+     "Is automatic",
+     "Needs no permission"
+    ],
+    "ans": 1,
+    "why": "Where module 2 granted it, sparingly.",
+    "src": "Ch6"
+   },
+   {
+    "q": "An offline sale's local reference:",
+    "opts": [
+     "Is invalid",
+     "Expires",
+     "Refers to the same sale as the later back-office reference — a return finds it by either",
+     "Must be reprinted"
+    ],
+    "ans": 2,
+    "why": "The offline receipt is not second-class.",
+    "src": "Ch7"
+   },
+   {
+    "q": "Vouchers may be bought with:",
+    "opts": [
+     "Any tender",
+     "Points",
+     "Store credit",
+     "Cash-equivalent tenders only — never another voucher, store credit, or loyalty points"
+    ],
+    "ans": 3,
+    "why": "Stored value does not mint stored value.",
+    "src": "Ch7"
+   },
+   {
+    "q": "'The slip is the money' means:",
+    "opts": [
+     "The full code appears on the printed slip exactly once — reprints need authorisation; unissued slips are treated like cash",
+     "Slips are receipts",
+     "Slips expire",
+     "Print two copies"
+    ],
+    "ans": 0,
+    "why": "To its bearer, it is cash.",
+    "src": "Ch7"
+   },
+   {
+    "q": "Locking the till:",
+    "opts": [
+     "Closes the shift",
+     "Keeps the shift open and the basket intact while sync continues — and keeps your name yours",
+     "Signs you out",
+     "Stops sync"
+    ],
+    "ans": 1,
+    "why": "One keystroke defending one-person-one-account, sixty times a day.",
+    "src": "Ch7"
+   },
+   {
+    "q": "The pre-filled close figures are:",
+    "opts": [
+     "The count",
+     "Always wrong",
+     "What the system expects — accepted untouched they are the system agreeing with itself, not a count",
+     "Optional"
+    ],
+    "ans": 2,
+    "why": "Do not accept them blindly: count, overwrite, explain.",
+    "src": "Ch8"
+   },
+   {
+    "q": "Variance colours at close:",
+    "opts": [
+     "Red good, green bad",
+     "None shown",
+     "Blue and grey",
+     "Green over, red short — each per method, with a total at the foot, explained in notes"
+    ],
+    "ans": 3,
+    "why": "The custody handed back with a signature.",
+    "src": "Ch8"
+   },
+   {
+    "q": "Okelewo's consistent split-day shorts traced to:",
+    "opts": [
+     "Transfers rung as cash — Chapter 6's exact sin, fixed by a five-minute retrain",
+     "Theft",
+     "A bad drawer",
+     "The float"
+    ],
+    "ans": 0,
+    "why": "The variance report diagnosing, not just accusing.",
+    "src": "Ch8"
+   },
+   {
+    "q": "The blind-close temptation was caught by:",
+    "opts": [
+     "Luck",
+     "The supervisor reading untouched figures by their perfect roundness — then re-counting together",
+     "A customer",
+     "The system"
+    ],
+    "ans": 1,
+    "why": "₦350 over, real, unexplained because uncounted.",
+    "src": "Ch8"
+   },
+   {
+    "q": "This module's law is:",
+    "opts": [
+     "Speed over ritual",
+     "Closing is optional",
+     "The shift is a sealed ritual — float counted, cart read by its markers, every tender on its own method, the close counted, overwritten and explained, never accepted blindly",
+     "The system counts for you"
+    ],
+    "ans": 2,
+    "why": "The fourth law.",
+    "src": "Ch9"
+   }
+  ]
  }
 }
