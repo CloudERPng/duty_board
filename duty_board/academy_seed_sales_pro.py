@@ -30,11 +30,11 @@ def _data():
 
 def seed_sales_pro_track():
 	data = _data()
-	if not frappe.db.exists("Duty Product", "ZhiftERP"):
-		frappe.get_doc({"doctype": "Duty Product", "title": "ZhiftERP", "active": 1, "sort_order": 0}).insert(
+	if not frappe.db.exists("Duty Product", "ZhiftERP Selling"):
+		frappe.get_doc({"doctype": "Duty Product", "title": "ZhiftERP Selling", "active": 1, "sort_order": 5}).insert(
 			ignore_permissions=True
 		)
-		print("created Duty Product: ZhiftERP")
+		print("created Duty Product: ZhiftERP Selling")
 
 	module_names = {}
 	for i, key in enumerate(ORDER):
@@ -48,7 +48,7 @@ def seed_sales_pro_track():
 			{
 				"doctype": "Duty Training Module",
 				"title": m["title"],
-				"product": "ZhiftERP",
+				"product": "ZhiftERP Selling",
 				"description": m["desc"],
 				"active": 1,
 				"audience": "Both",
@@ -108,7 +108,7 @@ def seed_sales_pro_track():
 			{
 				"doctype": "Duty Certification Track",
 				"title": TRACK["title"],
-				"product": "ZhiftERP",
+				"product": "ZhiftERP Selling",
 				"audience": "Consultant",
 				"serial_prefix": TRACK["serial_prefix"],
 				"description": TRACK["description"],
