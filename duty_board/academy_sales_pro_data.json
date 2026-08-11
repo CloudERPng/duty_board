@@ -349,6 +349,126 @@
     "ans": 0,
     "why": "Ten minutes of draft-document verification beats a wrong first shipment.",
     "src": "Ch8"
+   },
+   {
+    "q": "Creating a customer with 'only a name, details later' means:",
+    "opts": [
+     "Faster onboarding, no downside",
+     "Every document inherits blanks and year-end dimensions were never captured",
+     "The system fills the rest",
+     "Nothing until year 2"
+    ],
+    "ans": 1,
+    "why": "The master record is a contract with your future reports.",
+    "src": "Ch1"
+   },
+   {
+    "q": "In the Customer Group tree, customers attach to:",
+    "opts": [
+     "Any node",
+     "The root",
+     "Leaves only — group nodes hold children, not customers",
+     "Two nodes at once"
+    ],
+    "ans": 2,
+    "why": "Leaves attach; parents roll up.",
+    "src": "Ch2"
+   },
+   {
+    "q": "The extra power territories have that customer groups lack:",
+    "opts": [
+     "Colours",
+     "Currencies",
+     "More levels",
+     "Territories can carry targets"
+    ],
+    "ans": 3,
+    "why": "Geography as a dimension with goals attached.",
+    "src": "Ch3"
+   },
+   {
+    "q": "A 30-branch chain managed as one relationship gets its territory set:",
+    "opts": [
+     "Where the relationship is managed — head office — with branch geography on shipping addresses",
+     "Per branch, fragmenting the chain",
+     "Randomly",
+     "As Export"
+    ],
+    "ans": 0,
+    "why": "Don't fragment one chain unless regions are genuinely separate relationships.",
+    "src": "Ch3, Ch5"
+   },
+   {
+    "q": "When the client's procurement officer changes, you:",
+    "opts": [
+     "Rename the customer",
+     "Edit or replace the Contact and re-flag primary — the customer and history are untouched",
+     "Create a new customer",
+     "Edit old documents"
+    ],
+    "ans": 1,
+    "why": "Company-level customer, person-level contacts: that separation is why the layer exists.",
+    "src": "Ch4"
+   },
+   {
+    "q": "Branches become separate customers only when:",
+    "opts": [
+     "They have different addresses",
+     "They are far apart",
+     "They are separate commercial relationships — the test is who owes the money",
+     "They sell different items"
+    ],
+    "ans": 2,
+    "why": "One payer, one customer; franchisees who pay independently ARE customers.",
+    "src": "Ch5"
+   },
+   {
+    "q": "The credit limit caps:",
+    "opts": [
+     "Lifetime purchases",
+     "Discount depth",
+     "Order count",
+     "Current unpaid exposure — open invoices plus committed-but-unbilled orders"
+    ],
+    "ans": 3,
+    "why": "Exposure is what you'd lose now, not history.",
+    "src": "Ch6"
+   },
+   {
+    "q": "The credit block's value is that policy executes:",
+    "opts": [
+     "Automatically at the point of entry, before goods leave",
+     "In month-end review",
+     "After delivery",
+     "Only for new customers"
+    ],
+    "ans": 0,
+    "why": "The system does the one job charm cannot.",
+    "src": "Ch6"
+   },
+   {
+    "q": "MediPlus (30 branches, central payment) is modelled as:",
+    "opts": [
+     "30 customers",
+     "One customer, ~30 shipping addresses, group Pharmacy — Chain",
+     "One customer per state",
+     "A supplier"
+    ],
+    "ans": 1,
+    "why": "One statement, one limit that actually caps the chain, branch delivery history intact.",
+    "src": "Ch5, Ch8"
+   },
+   {
+    "q": "'The quotation shows the wrong address' is fixed by:",
+    "opts": [
+     "Editing the quotation",
+     "A new customer",
+     "Correcting the primary flags on the master — documents follow",
+     "Deleting the address"
+    ],
+    "ans": 2,
+    "why": "The anti-fix cures one document and subscribes to the ticket.",
+    "src": "Ch9"
    }
   ]
  },
@@ -702,6 +822,126 @@
     "ans": 0,
     "why": "One door for price movement is what survives audits and arguments.",
     "src": "Ch6"
+   },
+   {
+    "q": "An item with Is Sales Item unticked:",
+    "opts": [
+     "Appears at rate 0",
+     "Is invisible to selling documents no matter how much stock exists",
+     "Appears with a warning",
+     "Can be quoted but not invoiced"
+    ],
+    "ans": 1,
+    "why": "Rate-0 means unpriced; absence means not a sales item — the symptom distinguishes the diseases.",
+    "src": "Ch1, Ch9"
+   },
+   {
+    "q": "Standard Selling Rate on the item is:",
+    "opts": [
+     "The pricing system",
+     "The cost",
+     "A fallback for brand-new setups — real rates live in Item Price records",
+     "The carton rate"
+    ],
+    "ans": 2,
+    "why": "Scaffolding, not where pricing happens.",
+    "src": "Ch1"
+   },
+   {
+    "q": "The item's Default UOM is:",
+    "opts": [
+     "The selling unit",
+     "Whatever the customer wants",
+     "The carton",
+     "The stock-keeping unit — what the warehouse counts"
+    ],
+    "ans": 3,
+    "why": "Every bin quantity and valuation speaks this unit.",
+    "src": "Ch2"
+   },
+   {
+    "q": "The classic UOM field bug is:",
+    "opts": [
+     "A carton rate sitting on a unit row — 5 priced as cartons, picked as units",
+     "A missing conversion factor",
+     "Too many UOMs",
+     "Fractional units"
+    ],
+    "ans": 0,
+    "why": "Every rate must know its unit.",
+    "src": "Ch2, Ch9"
+   },
+   {
+    "q": "Designing item-group leaves per size (S, M, L) means:",
+    "opts": [
+     "Good granularity",
+     "You actually wanted the variant system — one template, size variants",
+     "More reports",
+     "Faster entry"
+    ],
+    "ans": 1,
+    "why": "Variants stop the tree absorbing jobs that aren't its.",
+    "src": "Ch3"
+   },
+   {
+    "q": "A Price List and currency relate as:",
+    "opts": [
+     "A list can hold many currencies",
+     "Currency is per item",
+     "One list, exactly one currency — the list IS a currency context",
+     "Currency is per customer only"
+    ],
+    "ans": 2,
+    "why": "Structural, not a sticker on a folder.",
+    "src": "Ch4"
+   },
+   {
+    "q": "A document's price list lands from:",
+    "opts": [
+     "Random selection",
+     "The warehouse",
+     "The last document",
+     "The customer's default list, else the global default in Selling Settings"
+    ],
+    "ans": 3,
+    "why": "The defaulting chain, recited cold.",
+    "src": "Ch4"
+   },
+   {
+    "q": "A retired price list with history is:",
+    "opts": [
+     "Disabled — history preserved, list withheld from new documents",
+     "Deleted",
+     "Renamed Misc",
+     "Emptied"
+    ],
+    "ans": 0,
+    "why": "Deleting a list with history is the wrong end.",
+    "src": "Ch4"
+   },
+   {
+    "q": "The bulk repricing workflow is:",
+    "opts": [
+     "300 manual edits",
+     "Export with record IDs → edit in the sheet → re-import in update mode",
+     "A support ticket",
+     "New price lists per quarter"
+    ],
+    "ans": 1,
+    "why": "With floor edit-rate off, this import is the only door prices move through.",
+    "src": "Ch6"
+   },
+   {
+    "q": "A USD price list on an NGN document produces:",
+    "opts": [
+     "An error",
+     "Dollars on a naira invoice",
+     "Automatic conversion at the exchange rate, shown on the document",
+     "Zero rates"
+    ],
+    "ans": 2,
+    "why": "Customer sees naira; the list stays dollars; the bridge is auditable — and converted rates are never hand-rounded.",
+    "src": "Ch7"
    }
   ]
  },
