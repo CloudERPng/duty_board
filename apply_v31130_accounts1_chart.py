@@ -1,0 +1,355 @@
+#!/usr/bin/env python3
+"""Duty Board v3.113.0 — ZhiftERP Accounts track: infrastructure
++ Accounts 1: The Chart of Accounts & the General Ledger (pass 1 of 8).
+
+Creates duty_board/academy_accounts_pro_data.json and
+duty_board/academy_seed_accounts_pro.py (faithful mirror of the
+inventory seeder: proctored modules, track-append idempotency,
+refresh_lessons/refresh_questions). Module 1 ships at manual depth
+from birth: 9 chapters, 35-bank.
+
+Deploy: apply -> commit -> then on the server:
+  bench --site xlevel.clouderp.one execute duty_board.academy_seed_accounts_pro.seed_accounts_pro_track
+
+Anchored, idempotent. Requires v3.112.0.
+Run from ~/frappe-bench/apps/duty_board.
+"""
+
+import io
+import json
+import os
+import sys
+
+INIT = "duty_board/__init__.py"
+DATA_PATH = "duty_board/academy_accounts_pro_data.json"
+SEEDER_PATH = "duty_board/academy_seed_accounts_pro.py"
+CHECK_ONLY = "--check" in sys.argv
+
+L = lambda t, est, html: {"title": t, "est": est, "html": html}
+Q = lambda q, opts, ans, why, src: {"q": q, "opts": opts, "ans": ans, "why": why, "src": src}
+
+SEEDER = '''"""ZhiftERP Accounts Professional track seed — the finance curriculum.
+
+Content lives in academy_accounts_pro_data.json. Modules are PROCTORED:
+timed 60s/question, 10 served from each 35-question bank. Modules are
+added pass by pass; re-running the seed appends new modules to the
+existing track (idempotent per module and for the track).
+
+Run:  bench --site xlevel.clouderp.one execute duty_board.academy_seed_accounts_pro.seed_accounts_pro_track
+"""
+
+import json
+import os
+
+import frappe
+
+ORDER = ["chart_gl"]
+
+TRACK = {
+\t"title": "ZhiftERP Accounts Professional",
+\t"serial_prefix": "ZERP-ACCPRO",
+\t"description": "The complete finance certification: the chart of accounts and the general ledger, journal entries and the manual layer, banking and reconciliation, receivables and payables from the accounts chair, tax accounting and Nigerian compliance, cost centers and dimensions, period close and financial statements, and the advanced accounts layer — proctored examinations from the account tree to the statements that run the firm.",
+}
+
+
+def _data():
+\tpath = os.path.join(os.path.dirname(__file__), "academy_accounts_pro_data.json")
+\twith open(path) as f:
+\t\treturn json.load(f)
+
+
+def seed_accounts_pro_track():
+\tdata = _data()
+\tif not frappe.db.exists("Duty Product", "ZhiftERP Accounts"):
+\t\tfrappe.get_doc({"doctype": "Duty Product", "title": "ZhiftERP Accounts", "active": 1, "sort_order": 8}).insert(
+\t\t\tignore_permissions=True
+\t\t)
+\t\tprint("created Duty Product: ZhiftERP Accounts")
+
+\tmodule_names = {}
+\tfor i, key in enumerate(ORDER):
+\t\tm = data[key]
+\t\texisting = frappe.db.get_value("Duty Training Module", {"title": m["title"]}, "name")
+\t\tif existing:
+\t\t\tmodule_names[key] = existing
+\t\t\tprint(f"module exists: {m['title']}")
+\t\t\tcontinue
+\t\tmod = frappe.get_doc(
+\t\t\t{
+\t\t\t\t"doctype": "Duty Training Module",
+\t\t\t\t"title": m["title"],
+\t\t\t\t"product": "ZhiftERP Accounts",
+\t\t\t\t"description": m["desc"],
+\t\t\t\t"active": 1,
+\t\t\t\t"audience": "Both",
+\t\t\t\t"sort_order": 90 + i,
+\t\t\t\t"pass_mark": 70,
+\t\t\t\t"timed_mode": 1,
+\t\t\t\t"seconds_per_question": 60,
+\t\t\t\t"questions_served": 10,
+\t\t\t}
+\t\t).insert(ignore_permissions=True)
+\t\tmodule_names[key] = mod.name
+\t\tfor j, l in enumerate(m["lessons"]):
+\t\t\tfrappe.get_doc(
+\t\t\t\t{
+\t\t\t\t\t"doctype": "Duty Lesson",
+\t\t\t\t\t"module": mod.name,
+\t\t\t\t\t"title": l["title"],
+\t\t\t\t\t"sort_order": j,
+\t\t\t\t\t"est_minutes": l["est"],
+\t\t\t\t\t"content": l["html"],
+\t\t\t\t}
+\t\t\t).insert(ignore_permissions=True)
+\t\tfor q in m["questions"]:
+\t\t\tfrappe.get_doc(
+\t\t\t\t{
+\t\t\t\t\t"doctype": "Duty Quiz Question",
+\t\t\t\t\t"module": mod.name,
+\t\t\t\t\t"question": q["q"],
+\t\t\t\t\t"opt_a": q["opts"][0],
+\t\t\t\t\t"opt_b": q["opts"][1],
+\t\t\t\t\t"opt_c": q["opts"][2],
+\t\t\t\t\t"opt_d": q["opts"][3],
+\t\t\t\t\t"correct": "ABCD"[q["ans"]],
+\t\t\t\t\t"rationale": q["why"],
+\t\t\t\t\t"source": q["src"],
+\t\t\t\t\t"active": 1,
+\t\t\t\t}
+\t\t\t).insert(ignore_permissions=True)
+\t\tprint(f"seeded module: {m['title']} ({len(m['lessons'])} lessons, {len(m['questions'])} questions, proctored)")
+
+\texisting_track = frappe.db.get_value("Duty Certification Track", {"title": TRACK["title"]}, "name")
+\tif existing_track:
+\t\ttr = frappe.get_doc("Duty Certification Track", existing_track)
+\t\thave = {r.module for r in tr.get("modules") or []}
+\t\tadded = 0
+\t\tfor k in ORDER:
+\t\t\tif module_names[k] not in have:
+\t\t\t\ttr.append("modules", {"module": module_names[k]})
+\t\t\t\tadded += 1
+\t\tif added:
+\t\t\ttr.save(ignore_permissions=True)
+\t\t\tprint(f"track exists: {TRACK['title']} — appended {added} new module(s)")
+\t\telse:
+\t\t\tprint(f"track exists: {TRACK['title']} — complete")
+\telse:
+\t\tfrappe.get_doc(
+\t\t\t{
+\t\t\t\t"doctype": "Duty Certification Track",
+\t\t\t\t"title": TRACK["title"],
+\t\t\t\t"product": "ZhiftERP Accounts",
+\t\t\t\t"audience": "Consultant",
+\t\t\t\t"serial_prefix": TRACK["serial_prefix"],
+\t\t\t\t"description": TRACK["description"],
+\t\t\t\t"active": 1,
+\t\t\t\t"modules": [{"module": module_names[k]} for k in ORDER],
+\t\t\t}
+\t\t).insert(ignore_permissions=True)
+\t\tprint(f"created track: {TRACK['title']} ({TRACK['serial_prefix']}, {len(ORDER)} modules)")
+
+\tfrappe.db.commit()
+\tprint("ZhiftERP Accounts Professional track ready.")
+
+
+def refresh_lessons(only=None):
+\t"""Replace lesson content on ALREADY-SEEDED modules from the data
+\tfile (matched by title). Clears lesson read-progress for refreshed
+\tmodules. Questions untouched. Pass only=<module_key> for a single
+\tmodule."""
+\tdata = _data()
+\trefreshed = 0
+\tkeys = [only] if only else ORDER
+\tfor key in keys:
+\t\tif key not in data:
+\t\t\tprint(f"unknown module key: {key}")
+\t\t\tcontinue
+\t\tm = data[key]
+\t\tmod = frappe.db.get_value("Duty Training Module", {"title": m["title"]}, "name")
+\t\tif not mod:
+\t\t\tprint(f"module not seeded yet (skipped): {m['title']}")
+\t\t\tcontinue
+\t\tfor row in frappe.get_all("Duty Lesson", filters={"module": mod}, pluck="name"):
+\t\t\tfrappe.delete_doc("Duty Lesson", row, ignore_permissions=True, force=True)
+\t\tfor row in frappe.get_all("Duty Lesson Progress", filters={"module": mod}, pluck="name"):
+\t\t\tfrappe.delete_doc("Duty Lesson Progress", row, ignore_permissions=True, force=True)
+\t\tfor j, l in enumerate(m["lessons"]):
+\t\t\tfrappe.get_doc(
+\t\t\t\t{
+\t\t\t\t\t"doctype": "Duty Lesson",
+\t\t\t\t\t"module": mod,
+\t\t\t\t\t"title": l["title"],
+\t\t\t\t\t"sort_order": j,
+\t\t\t\t\t"est_minutes": l["est"],
+\t\t\t\t\t"content": l["html"],
+\t\t\t\t}
+\t\t\t).insert(ignore_permissions=True)
+\t\trefreshed += 1
+\t\tprint(f"refreshed: {m['title']} ({len(m['lessons'])} lessons)")
+\tfrappe.db.commit()
+\tprint(f"{refreshed} module(s) refreshed. Read-progress reset for refreshed modules.")
+
+
+def refresh_questions(only=None):
+\t"""Replace a seeded module's question bank from the data file
+\t(matched by title). Past attempts keep stored results. Pass
+\tonly=<module_key> for one module, else all in ORDER."""
+\tdata = _data()
+\tkeys = [only] if only else ORDER
+\tfor key in keys:
+\t\tif key not in data:
+\t\t\tprint(f"unknown module key: {key}")
+\t\t\tcontinue
+\t\tm = data[key]
+\t\tmod = frappe.db.get_value("Duty Training Module", {"title": m["title"]}, "name")
+\t\tif not mod:
+\t\t\tprint(f"module not seeded yet (skipped): {m['title']}")
+\t\t\tcontinue
+\t\tfor row in frappe.get_all("Duty Quiz Question", filters={"module": mod}, pluck="name"):
+\t\t\tfrappe.delete_doc("Duty Quiz Question", row, ignore_permissions=True, force=True)
+\t\tfor q in m["questions"]:
+\t\t\tfrappe.get_doc(
+\t\t\t\t{
+\t\t\t\t\t"doctype": "Duty Quiz Question",
+\t\t\t\t\t"module": mod,
+\t\t\t\t\t"question": q["q"],
+\t\t\t\t\t"opt_a": q["opts"][0],
+\t\t\t\t\t"opt_b": q["opts"][1],
+\t\t\t\t\t"opt_c": q["opts"][2],
+\t\t\t\t\t"opt_d": q["opts"][3],
+\t\t\t\t\t"correct": "ABCD"[q["ans"]],
+\t\t\t\t\t"rationale": q["why"],
+\t\t\t\t\t"source": q["src"],
+\t\t\t\t\t"active": 1,
+\t\t\t\t}
+\t\t\t).insert(ignore_permissions=True)
+\t\tprint(f"bank refreshed: {m['title']} ({len(m['questions'])} questions)")
+\tfrappe.db.commit()
+\tprint("Question banks refreshed.")
+'''
+
+LESSONS = [
+L("Chapter 1 — The second ledger: books that write themselves", "13", "<p>Welcome to the fourth certification — the one the other three kept pointing at. Selling booked revenue, Procurement booked liabilities, Inventory wrote valuation... and every one of those sentences quietly assumed a machine underneath: the <b>accounting layer</b>, where every naira of the firm's life is recorded, organised, and reported. This track is that machine, from its language to its statements.</p><p><b>The two ledgers, twins.</b> Inventory 1 taught the stock ledger — append-only, written only by documents, the firm's stock testimony. The <b>General Ledger (GL)</b> is its money twin: every financial event is a dated entry — account, debit or credit, amount, and the DOCUMENT that caused it — appended forever, edited never, corrections appended beside their mistakes. The two ledgers even write together: the delivery that moved stock wrote a stock entry AND a money entry (the COGS posting — Inventory 5's valuation release, now seen from the money side), and much of this module is learning to see the money shadow every trading document has been casting all along.</p><p><b>The promise: books that write themselves from trade.</b> Here is the sentence that sells this track to every owner and accountant you will ever implement for: in a firm that kept the first three certifications' laws, <b>the books are a by-product of trading properly</b>. The invoice posted revenue, VAT, and the debtor; the receipt posted stock and the creditor accrual; the payment posted the bank — nobody journalised any of it, because the documents carry their accounting inside them. The accountant's job transforms: from writing entries (the bookkeeping treadmill) to GOVERNING the machine — the chart it speaks (this module), the exceptions it needs (module 2), the reconciliations that prove it (module 3), and the statements it produces (module 7). A firm still hand-journalising its sales has not bought less software; it has declined the machine's entire premise — and recognising that situation is a consulting diagnosis you will make often.</p><p><b>What the consultant must hold.</b> You are not becoming an accountant — the boundary from Inventory 5 stands (policy is theirs; machinery is yours) — but you cannot configure, diagnose, or explain the machine without its literacy: the debit-credit grammar (Chapter 2), the chart's design (Chapters 3-4), the posting map (Chapter 5 — which document writes which entries), and the drill-down culture (Chapter 6). That literacy is this module; the rest of the track builds on it exactly as Inventory built on its map. And one orientation before we start: everything here is READ far more often than it is written — the GL is where every question about money ends, and the professionals who can walk it are the ones every meeting goes quiet for.</p>"),
+L("Chapter 2 — Debits & credits: the grammar, for consultants", "15", "<p>Every GL entry speaks a two-word grammar — debit and credit — and consultants who never learn it spend careers nodding at accountants. One chapter, learned once, permanent.</p><p><b>The equation and the rule.</b> The books balance because they describe one reality twice: <b>Assets = Liabilities + Equity</b> (what the firm HAS equals who has claims on it), with income and expenses as equity's running story. Every event touches at least two accounts, and every entry's debits equal its credits — not as ritual but as arithmetic: money that came from somewhere went somewhere, and the entry records both ends.</p><p><b>The direction table — memorise this, it is the whole grammar:</b></p><ul><li><b>Assets</b> (bank, debtors, stock, equipment): <b>debit to increase</b>, credit to decrease.</li><li><b>Expenses</b> (rent, salaries, COGS): <b>debit to increase</b> — expenses behave like assets directionally (both are debits growing), which is the grammar's one merciful simplification.</li><li><b>Liabilities</b> (creditors, VAT payable, loans): <b>credit to increase</b>, debit to decrease.</li><li><b>Income</b> (sales, other income): <b>credit to increase</b>.</li><li><b>Equity</b> (capital, retained earnings): <b>credit to increase</b>.</li></ul><p>DEAD is the classic mnemonic — <b>D</b>ebits increase <b>E</b>xpenses, <b>A</b>ssets, <b>D</b>rawings; everything else grows by credit.</p><p><b>The grammar spoken by documents you already know.</b> Read three familiar documents in it, slowly, once: <b>A sales invoice for ₦107,500 (₦100,000 + VAT)</b>: DEBIT Debtors ₦107,500 (an asset grew — the customer owes you), CREDIT Sales ₦100,000 (income grew), CREDIT VAT Payable ₦7,500 (a liability grew — FIRS's money in your custody, Selling 6's whole argument now visible as a credit). Debits ₦107,500 = credits ₦107,500. <b>The customer's payment</b>: DEBIT Bank ₦107,500 (asset up), CREDIT Debtors ₦107,500 (asset down — the claim converted to cash). <b>A purchase receipt of stock at ₦940,000</b>: DEBIT Stock ₦940,000 (asset up — Inventory 5's valuation write, money-side), CREDIT the received-not-billed accrual ₦940,000 (a liability grew — you possess goods you have not yet been invoiced for; Chapter 5 completes this thread). Three documents, and the grammar already covers most of trade.</p><p><b>Reading direction in the wild.</b> The practical skills the grammar buys: an account's BALANCE side tells you its health story (Debtors carries a debit balance normally — a CREDIT balance on a customer means you owe THEM: the unallocated advance of Selling 7, now legible in grammar); a P&amp;L account's growth reads directly (credits growing Sales is trade; debits growing Sales is returns and reversals — worth a look when large); and the entry that looks wrong usually IS readable — the expense credited, the income debited, the one-sided-feeling journal — once you ask the grammar's two questions of every line: <i>which family is this account, and did the entry move it the way the story says it should move?</i> That question pair, asked patiently, is how a consultant walks any entry with any accountant as a peer — which is the chapter's entire purpose.</p>"),
+L("Chapter 3 — The chart as a tree: designing the language", "14", "<p>Every account lives in the <b>Chart of Accounts</b> — and if the shape feels familiar, it should: it is a TREE, with group nodes for reading and ledger (leaf) accounts for posting, and every design law you learned for the warehouse tree transfers with the names changed. This chapter is the design hour.</p><p><b>The structure.</b> Four (or five) <b>root types</b> anchor everything: Assets, Liabilities, Equity, Income, Expenses — the equation's own families, fixed by accounting itself. Beneath them, <b>groups</b> organise for reading (Current Assets → Bank Accounts → the individual banks; Indirect Expenses → Administrative → the specific lines) and <b>ledger accounts</b> — the leaves — take the postings: every GL entry names a LEAF, and posting to a group fails by design (the warehouse-tree refusal, money edition, teaching the same model: money exists in accounts; groups exist so accounts can be read together).</p><p><b>Designing for the firm's reading.</b> The standard chart the system ships is a competent skeleton — the design work is tailoring it to how THIS firm asks questions, and the discipline is Inventory 1's verbatim: <b>start from what must be read, not from what could be listed</b>. The owner's monthly questions (what did we make, what did it cost, where did the money go) define the P&amp;L groups; the statement's needs define the balance-sheet shape; and the granularity rule cuts both ways — an account earns existence when someone will READ its line separately (three bank accounts are three leaves because three reconciliations; <i>Office Expenses</i> splitting into eleven micro-accounts nobody reads separately is sprawl), and a distinction nobody reads is carried by a DIMENSION, not an account (the branch, the service line — module 6's terrain, previewed: the chart answers WHAT KIND of money; dimensions answer WHOSE and WHERE — conflating them is how charts explode into per-branch copies of every expense line, the disease module 6 exists to cure).</p><p><b>Naming and numbering for the decade.</b> The conventions law, fourth appearance: names that read plainly in every report forever (the accountant's vocabulary, not the software's), numbering where the firm's reporting tradition uses it (consistent, gapped for insertion, never re-used), and the shape SHALLOW — two to three levels below root serves almost every trading firm, and the five-level chart is the five-level warehouse tree: bureaucracy nobody navigates.</p><p><b>Change discipline.</b> Charts live for decades, and their change rules mirror the item master's: <b>renaming</b> a leaf is cheap (the history follows the account); <b>restructuring</b> — re-parenting groups, merging accounts — is an event (merging accounts merges their histories irreversibly; the annual review is its editing room); and <b>retiring</b> follows the delisting flow (balance cleared deliberately, then disabled — never deleted: the GL's testimony includes retired witnesses, the same sentence as every ledger in this academy because it is the same law). The chart walk happens at implementation WITH the accountant — their language, their statements, their sign-off — and annually thereafter; a chart nobody has walked in five years reads like a house nobody has cleaned: functional, and full of rooms no one can explain.</p>"),
+L("Chapter 4 — Account types: the machinery behind the leaves", "13", "<p>Two leaves can sit side by side in the tree and behave completely differently — because beneath the tree position sits the <b>account type</b>, and the type is what wires an account into the system's machinery. This chapter is the wiring diagram.</p><ul><li><b>Bank and Cash</b> — accounts of these types join the payment machinery (payment modes point at them — the mode-to-account mapping both money tracks used) and, decisively, the <b>bank reconciliation</b> (module 3's whole subject): a real-world bank account modelled as anything but a Bank-type account is invisible to the reconciliation that proves it.</li><li><b>Receivable and Payable</b> — the control accounts: entries here DEMAND a <b>party</b> (the customer or supplier), which is what makes the per-party ledgers of both money tracks possible — the control account is the total, the party dimension is the detail, and their permanent agreement is module 4's law (Chapter 7 previews it). An invoice posting to a non-Receivable account has left the machinery that ages, allocates, and statements — which is why the type, not the name, is what matters.</li><li><b>Stock</b> — the accounts the perpetual-inventory machinery writes (Inventory 5's valuation, landing here): stock-in-hand by warehouse grouping where configured, the received-not-billed accrual, the stock adjustment homes. Manual journals against Stock-type accounts are fenced precisely because two machines (the stock ledger and the GL) must agree — the bridge of Inventory 5, protected at the type level.</li><li><b>Tax</b> — the VAT and WHT accounts the templates post to (Selling 6, Procurement 7): typed so the tax machinery and its reports can find them, reconciled monthly against their registers by the rituals both tracks installed.</li><li><b>Depreciation, Fixed Asset, Accumulated Depreciation</b> — the asset machinery's accounts (module 7 gives fixed assets their overview).</li><li><b>Round-off, exchange gain/loss, opening temporary accounts</b> — the system's designated homes for its own arithmetic edges: configured once, reviewed for reasonableness (a growing round-off account is a symptom, not a rounding).</li></ul><p><b>The type discipline.</b> Three rules carry the chapter: <b>type at creation</b> — set correctly when the account is born, because retyping an account with history is an event bordering on migration (the receivable that spent a year untyped has a year of party-less entries no toggle repairs); <b>machinery over cosmetics</b> — when a posting misbehaves (the invoice that will not take a party, the bank missing from reconciliation), the TYPE is the first suspect, before names, before permissions; and <b>defaults complete the wiring</b> — the company's default accounts (debtors, creditors, stock accounts, round-off, the mode mappings) are where documents learn which leaves to write, and the settings walk that reviews them is the same constitutional hour as every settings walk in this academy: each default read as the policy it is, recorded, and re-walked annually.</p>"),
+L("Chapter 5 — The posting map: what every document writes", "15", "<p>The academy's central promise — books that write themselves — becomes concrete here: the <b>posting map</b>, document by document. Learn it once and every GL mystery becomes a lookup; this is the reference card of the entire track.</p><ul><li><b>Sales Invoice</b> — DR Debtors (party: the customer) for the gross; CR Sales income for the net; CR VAT Payable for the tax (the template's account). With Update Stock on (the POS-style flow): also CR Stock, DR COGS — the invoice doing the delivery's money work because it did the delivery's stock work.</li><li><b>Delivery Note</b> — the stock movement's money shadow: CR Stock (value leaves at the method's figure — Inventory 5's release), DR COGS. No revenue here: the timeline law's accounting face — <i>delivery moves value, invoicing books revenue</i> — and the reason a period's deliveries and invoices must both be complete for its margin to be true (module 7's cut-off discipline, seeded now).</li><li><b>Payment Entry (received)</b> — DR Bank (the mode's account); CR Debtors (party) — the claim becomes cash. Deductions ride as extra lines: the WHT-at-source receivable (Selling 7's ₦50k) debits its asset account in the same entry.</li><li><b>Purchase Receipt</b> — DR Stock at landed valuation (Inventory 5's write, money-side); CR <b>Stock Received But Not Billed</b> — the accrual that says <i>we possess what we have not yet been invoiced for</i>: the three-way match's accounting shadow, and the account whose balance IS the open match queue in naira (a beautiful diagnostic: an old, large RNB balance is Procurement 7's To-Bill list aging, read from the GL side).</li><li><b>Purchase Invoice</b> — CR Creditors (party: the supplier); DR the RNB accrual (clearing it — possession now billed); DR Input VAT (the claimable asset). Where no receipt preceded (the service invoice, the exempted tail): DR the expense account directly. WHT withheld posts its CR to WHT Payable inside the payment entry that settles it (Procurement 7's ₦50k, now grammatical).</li><li><b>Stock Entries</b> — issues and write-offs: CR Stock, DR the expense home the attribution names (Inventory 2's landing); Material Receipts: DR Stock, CR the designated offset (the accountant's policy from Inventory 2, here as an account); transfers: silent in the P&amp;L (value travels, nothing is earned or consumed — one Stock debit, one Stock credit where warehouse-level accounts apply, or nothing at all where one account serves).</li><li><b>Stock Reconciliation</b> — the adjustment's money face: DR/CR Stock against the adjustment home — the shrinkage number of Inventory 4, landing in the P&amp;L where the accountant directed.</li><li><b>Journal Entry</b> — whatever it says, which is exactly its power and its danger: module 2's entire subject.</li></ul><p><b>Using the map.</b> Three habits: <b>verify at go-live</b> — one live document of each kind, its GL entries pulled and read against the map (the hour that catches the mis-wired default before a month of postings inherits it); <b>diagnose by footprint</b> — the strange balance decomposes into documents, and each document's footprint tells you instantly whether IT behaved (the RNB that never clears is invoices bypassing receipts; the COGS that posts at invoice AND delivery is Update Stock double-wired); and <b>teach it</b> — the client accountant who holds this map stops fearing the system and starts governing it, which is the implementation outcome everything else serves.</p>"),
+L("Chapter 6 — Reading the GL: the drill-down culture", "13", "<p>The General Ledger report is the track's stock-ledger-walk: the diagnostic read that answers HOW any balance got this way. This chapter is the reading craft — and the culture it builds.</p><p><b>The report.</b> The GL, filtered: by account (the account's full story between dates — opening balance, every entry, closing balance), by party (a customer or supplier ACROSS accounts — their whole financial relationship on one screen, the accounts-chair version of the account screens both money tracks built), by voucher (one document's complete footprint — the posting map verified live), by cost center or dimension (module 6's lens, previewed). Each entry carries its date, accounts, amounts, party, remarks — and its DOCUMENT, which is the whole point.</p><p><b>The drill.</b> The provenance culture of Inventory 7, now at its origin: statement line → account balance → GL entries → the document → its attachments and chain. Three or four clicks from any number on any report to the paper that caused it — and the reading discipline is to USE them: the disputed figure opened live in the meeting, the strange balance walked to its entries, the month-end query answered with a filtered GL instead of a recollection. The consultant models this relentlessly at implementation, because the culture sets in the first month: the firm whose managers drill down argues from documents; the firm whose managers export argues from tabs — the Inventory 7 sentence, repeated because the GL is where it matters most.</p><p><b>The trial balance, introduced.</b> The GL's summary face: every account, its period debits, credits, and closing balance — necessarily balancing (the grammar guarantees it), and read not for its balance (which is arithmetic) but for its ANOMALIES: the account that should be zero and is not (the RNB aging, the suspense with a squatter, the round-off growing), the balance on the wrong side (the credit-balance customer, the debit-balance VAT payable — each a story the grammar makes legible), the account nobody recognises (Chapter 9's pattern). The monthly trial-balance scan — ten minutes, anomalies flagged — is the accounts layer's cycle count: small, rhythmic, and the reason year-end holds no surprises. Module 7 gives the close its full ritual; the scan is its daily-wear version.</p><p><b>Reading with the grammar.</b> The chapter closes where Chapter 2 opened: the GL rewards the literate. The balance-side read (which side does this account normally carry, and is it there?), the growth read (what has been increasing this account, and should it?), the counterparty read (every entry has another side — where did the other half go?): three questions, asked of any account, that turn the ledger from a wall of numbers into a narrative — and the consultant who narrates it aloud while drilling (<i>this is the invoice, here is its VAT line, that credit is the payment allocating</i>) is training every listener into the culture at once. The GL is the firm's money autobiography; this track exists to make you one of its fluent readers.</p>"),
+L("Chapter 7 — Control accounts & party ledgers: the tie", "13", "<p>One idea deserves its own chapter before module 4 builds on it, because it is the accounts layer's version of a law every prior track taught: the <b>control account</b> and its subledger, and the tie that makes both trustworthy.</p><p><b>The structure.</b> Debtors is ONE leaf in the chart — one balance, the total of every customer's claim. But every entry to it carried a PARTY (Chapter 4's type machinery), so the system maintains, in effect, a ledger per customer INSIDE the account: the party filter on the GL is the customer's statement; the receivables report ages the parties; and the control account's balance is, by construction, the sum of its parties' balances. The same structure serves Creditors, and the pattern generalises: <b>the control is the total; the subledger is the detail; the machinery keeps them agreeing because they are the same entries read two ways.</b></p><p><b>Why the tie is a law.</b> The agreement holds automatically — UNTIL someone posts around the machinery: the journal entry to Debtors without a party (a naira in the control that belongs to no customer — the total now exceeds the details, and every customer statement is silently suspect), the balance <i>corrected</i> at the control level while the party detail stands (the reverse divergence), the migration that loaded totals without parties. Once diverged, the control-to-subledger reconciliation is archaeology — which is why the discipline is prevention: <b>party-typed accounts take party-carrying entries only</b> (the system enforces most of it; module 2's journal governance fences the rest), and the monthly tie check — control balance against the party report's total, agreeing to the kobo — joins the close's checklist as the third bridge of the academy (stock-to-accounts from Inventory 5; the two tax registers from the money tracks; now debtors and creditors to their parties). Three bridges, one principle: <b>a total the details cannot reproduce is a total nobody should trust.</b></p><p><b>What the tie buys, operationally.</b> With it intact: the ageing reports are believed (collections and the payment run both work from them — Selling 7 and Procurement 7's machinery standing on this floor); customer and supplier statements go out without fear (the statement IS the party ledger, printed); the auditor samples parties and finds the control every time (the confirmation exercise that ends early); and the balance-sheet's receivables line is a number with 400 defensible components rather than one asserted total. The subledger disciplines both money tracks taught — allocation, advances matched, references carried — were, from this chair, tie-maintenance all along: every unallocated payment and orphaned advance is a party whose detail has stopped telling the control's story cleanly.</p><p><b>The consultant's preview of module 4.</b> This chapter is deliberately the foundation only: module 4 operates the chair — provisioning and bad debts, the advance machinery from the accounts side, statements and confirmations, the migration disciplines that load parties correctly. What must be permanent from today: when any receivables or payables number is questioned, the FIRST check is the tie — control against parties — because every deeper diagnosis depends on knowing whether the two still tell one story.</p>"),
+L("Chapter 8 — Case study: HealthTrade's chart is born", "16", "<p>The accountant, the consultant, and one afternoon: HealthTrade's accounting constitution, designed as Chapters 1-7 taught it. Every step names its chapter.</p><p><b>Step 1 — the reading list first (Ch. 3).</b> Before an account is touched, the MD's monthly questions are written down: sales and margin (by branch, eventually — noted for module 6), what running the firm costs (rent, people, power, logistics — read separately), what the firm owns and owes (banks by account, stock, debtors, creditors, the tax custodies). The accountant adds the statement's needs and the audit's. The list — fifteen questions — becomes the chart's specification: <i>start from what must be read.</i></p><p><b>Step 2 — tailoring the skeleton (Ch. 3-4).</b> The standard chart is walked against the list: the three real banks become three Bank-type leaves under Bank Accounts (three reconciliations coming — module 3); Debtors and Creditors confirmed as typed controls; the Stock family confirmed wired to the perpetual machinery (the Inventory 5 bridge's other end); the tax custodies named plainly — VAT Payable, Input VAT, WHT Payable, WHT Receivable (four accounts whose stories three tracks already taught); expense groups shaped to the reading list (eleven micro-splits of admin collapsed to four lines someone will actually read); and the branch question answered the RIGHT way: NOT per-branch expense copies, but the dimension noted for module 6 — the chart stays one language; the branches become a lens. Names in the accountant's vocabulary; numbering per their tradition; two levels below root, nowhere three.</p><p><b>Step 3 — the posting map verified live (Ch. 5).</b> One of each document, real, small, and walked: a test invoice's entries read aloud against the map (Debtors gross, Sales net, VAT Payable — the accountant nodding at the grammar); a receipt's RNB accrual explained (<i>this balance IS your unbilled possession — watch it clear when the invoice books</i>); a delivery's COGS line tied to Inventory 5's valuation (<i>the stock module priced it; this entry released it</i>); a payment's allocation read in the party ledger. Two defaults corrected on the spot — the round-off account pointed at a sensible home, one payment mode mapped to the wrong bank — the hour doing exactly what Chapter 5 promised: catching the mis-wire before a month inherits it.</p><p><b>Step 4 — the first reads (Ch. 6-7).</b> The GL drilled live for the accountant: statement → account → entries → document, four clicks, narrated. The trial balance scanned — one anomaly found and enjoyed: a small credit balance on a customer, drilled to an unallocated advance from the go-live week, allocated on the spot (the tie's first save). The monthly rhythm agreed before the afternoon ends: the trial-balance scan, the three bridges (stock-to-accounts, tax registers, control-to-parties), and the GL open in every meeting where a number is disputed. The accountant leaves governing a machine instead of feeding one — and the afternoon's last sentence is the track's thesis, said back to the consultant unprompted: <i>so the books write themselves, and my job is to keep them honest.</i></p>"),
+L("Chapter 9 — Common mistakes & the first law", "13", "<p>The chart-and-ledger layer's scar tissue — the design mistakes that surface as everyone's confusion for years. Symptom → disease → fix.</p><p><b>Pattern 1 — chart sprawl.</b> Symptom: four hundred accounts for an eleven-person firm; nobody can say what half are for; every report is a scroll. Disease: accounts created per whim — one per project, per branch, per mood (Ch. 3) — the warehouse-sprawl twin, and the same dilution: a language with four hundred words nobody speaks. Fix: the reading test applied ruthlessly in a consolidation pass (balances merged by documented entries into accounts that are read; husks retired through the flow), creation rights narrowed, and dimensions carrying the distinctions that were never account-shaped.</p><p><b>Pattern 2 — the suspense squatter.</b> Symptom: a suspense or miscellaneous account with a large, aging, growing balance. Disease: the account meant for momentary parking used as a destination (Ch. 3, 6) — every entry someone couldn't classify, accumulating into a number that means <i>we don't know</i>. Fix: suspense swept to zero monthly as a close-checklist line (each squatter classified to its true home), and the classification gaps that fed it fixed at their source — a default, a template, or a training.</p><p><b>Pattern 3 — the untyped leaf.</b> Symptom: the bank missing from reconciliation; the invoice refusing a party; receivables that cannot age. Disease: accounts created with names instead of types (Ch. 4) — the machinery wired to types, the leaf invisible to it. Fix: type at creation as law; the retype-with-history treated as the event it is; and the type audit (every Bank-type against the real bank list, every control against its party machinery) in the annual chart walk.</p><p><b>Pattern 4 — the partyless posting.</b> Symptom: the control disagreeing with its parties; customer statements missing money everyone knows exists. Disease: entries to control accounts without parties — journals around the machinery (Ch. 7; module 2 owns the fence). Fix: the divergence reconciled once (archaeology, priced honestly), the journal governance installed, and the monthly tie check standing guard after.</p><p><b>Pattern 5 — the account nobody can explain.</b> Symptom: the trial balance line that draws blank looks in the meeting. Disease: the chart accumulated instead of designed (Ch. 3) — history's sediment presented as structure. Fix: the annual walk with the accountant, each unexplainable account investigated to its entries (the GL always knows), then merged, retired, or documented — a chart where every line has a one-sentence explanation is the deliverable.</p><p><b>The first law.</b> Selling's laws began with masters; Procurement's with the supply base; Inventory's with the map. This track's begins with the language: <b>the chart of accounts is the language of the business — every naira speaks through an account, the tree is designed from what must be read, and the ledger beneath it is append-only testimony written by documents.</b> Learn the grammar, design the language, wire the types, hold the posting map, drill everything to its paper, and keep the controls tied to their parties. Seven modules stand on this floor; module 2 opens the one door this module kept locked: the journal entry, where humans write the ledger directly — and the governance that keeps that power honest.</p>"),
+]
+
+QUESTIONS = [
+Q("The General Ledger is:", ["A monthly report", "The stock ledger's money twin — append-only, written by documents, corrections appended", "A spreadsheet", "The accountant's notebook"], 1, "Every financial event, dated, accounted, and documented.", "Ch1"),
+Q("The track's central promise is:", ["Cheaper audits", "Books that write themselves from trade — the accounting is a by-product of trading properly", "No accountants needed", "Faster typing"], 1, "The accountant governs the machine instead of feeding it.", "Ch1"),
+Q("A firm hand-journalising its sales has:", ["Saved time", "Declined the machine's entire premise — a consulting diagnosis, not a preference", "Better control", "No option"], 1, "The documents carry their accounting inside them.", "Ch1"),
+Q("Debits increase:", ["Income and liabilities", "Expenses, assets, and drawings — everything else grows by credit", "Only bank", "Nothing"], 1, "DEAD: the grammar's one table.", "Ch2"),
+Q("A ₦107,500 sales invoice (₦100,000 + VAT) posts:", ["DR Sales, CR Debtors", "DR Debtors 107,500; CR Sales 100,000; CR VAT Payable 7,500", "DR Bank, CR Sales", "One line"], 1, "The custody credit Selling 6 argued, now grammatical.", "Ch2"),
+Q("A credit balance on a customer means:", ["They owe more", "You owe THEM — the unallocated advance, legible in grammar", "An error always", "Nothing"], 1, "The balance-side read tells the health story.", "Ch2"),
+Q("The grammar's two diagnostic questions are:", ["Who and when", "Which family is this account, and did the entry move it as the story says it should?", "How much and why", "Debit or credit"], 1, "Asked patiently, they walk any entry.", "Ch2"),
+Q("GL entries post to:", ["Groups or leaves", "Ledger (leaf) accounts only — groups exist so accounts can be read together", "Root types", "Anywhere"], 1, "The warehouse-tree refusal, money edition.", "Ch3"),
+Q("Chart design starts from:", ["The software's list", "What must be READ — the owner's questions and the statements define the shape", "Alphabetical order", "Last year's chart"], 1, "An account earns existence when someone reads its line separately.", "Ch3"),
+Q("Branch and service-line distinctions belong in:", ["Per-branch account copies", "Dimensions — the chart answers what KIND; dimensions answer whose and where", "Separate charts", "Suspense"], 1, "Conflating them is how charts explode.", "Ch3"),
+Q("Merging two accounts:", ["Is freely reversible", "Merges their histories irreversibly — restructuring is an event with an editing room", "Deletes both", "Is routine"], 1, "Renaming is cheap; restructuring is not.", "Ch3"),
+Q("Retired accounts are:", ["Deleted", "Balance cleared, then disabled — the GL's testimony includes retired witnesses", "Renamed", "Merged automatically"], 1, "The same law as every ledger in the academy.", "Ch3"),
+Q("An account's behaviour is driven by its:", ["Name", "TYPE — the wiring into reconciliation, party, stock, and tax machinery", "Position", "Number"], 1, "Two neighbouring leaves can behave completely differently.", "Ch4"),
+Q("Receivable/Payable-type entries demand:", ["A remark", "A PARTY — which is what makes per-customer ledgers and ageing possible", "Approval", "A dimension"], 1, "The control is the total; the party is the detail.", "Ch4"),
+Q("A real bank modelled as a non-Bank-type account is:", ["Fine", "Invisible to the reconciliation that proves it", "More secure", "Faster"], 1, "When a posting misbehaves, the type is the first suspect.", "Ch4"),
+Q("Manual journals against Stock-type accounts are fenced because:", ["Stock is private", "Two machines — the stock ledger and the GL — must agree; the bridge is protected at the type level", "Accountants forbid it", "They are slow"], 1, "Inventory 5's bridge, defended.", "Ch4"),
+Q("A Purchase Receipt posts:", ["DR Creditors, CR Stock", "DR Stock at landed value; CR Stock Received But Not Billed — the possession accrual", "DR Expense, CR Bank", "Nothing until invoiced"], 1, "The three-way match's accounting shadow.", "Ch5"),
+Q("An old, large RNB balance is:", ["Normal", "The To-Bill match queue aging, read from the GL side", "Profit", "A rounding issue"], 1, "The posting map turns balances into diagnoses.", "Ch5"),
+Q("A Delivery Note posts:", ["Revenue", "CR Stock, DR COGS — value moves; invoicing books revenue", "DR Debtors", "Nothing"], 1, "The timeline law's accounting face.", "Ch5"),
+Q("COGS posting at BOTH delivery and invoice signals:", ["Double profit", "Update Stock double-wired — the footprint diagnosis", "Good caution", "A tax rule"], 1, "Each document's footprint tells you whether it behaved.", "Ch5"),
+Q("The go-live posting-map verification is:", ["Optional polish", "One live document of each kind, entries read against the map — catching mis-wires before a month inherits them", "The auditor's job", "Annual"], 1, "The hour that pays for itself hundreds of times.", "Ch5, Ch8"),
+Q("The GL filtered by voucher shows:", ["An account's history", "One document's complete footprint — the posting map verified live", "A party's story", "The trial balance"], 1, "Account, party, voucher, dimension: four filters, four reads.", "Ch6"),
+Q("The drill-down culture means:", ["Exporting to spreadsheets", "Statement to account to entries to document in three or four clicks — disputed numbers opened live", "Printing reports", "Asking the accountant"], 1, "The firm that drills argues from documents.", "Ch6"),
+Q("The trial balance is read for:", ["Whether it balances", "Its anomalies — wrong-side balances, should-be-zero accounts, unrecognised lines", "Its length", "Its totals only"], 1, "The balancing is arithmetic; the anomalies are information.", "Ch6"),
+Q("The monthly trial-balance scan is:", ["A full audit", "The accounts layer's cycle count — ten minutes, anomalies flagged, year-end made boring", "Optional", "The close itself"], 1, "Small, rhythmic, preventative.", "Ch6"),
+Q("The control account and its subledger are:", ["Two record systems", "The same entries read two ways — the total and its details, agreeing by construction", "Independent", "Reconciled annually"], 1, "Until someone posts around the machinery.", "Ch7"),
+Q("A journal to Debtors without a party creates:", ["Nothing", "A naira in the control belonging to no customer — every statement silently suspect", "Better totals", "A dimension"], 1, "The total now exceeds the details.", "Ch7"),
+Q("The academy's three bridges are:", ["Three banks", "Stock-to-accounts, tax accounts to registers, controls to parties — totals the details must reproduce", "Three reports", "Three closes"], 1, "A total the details cannot reproduce is a total nobody should trust.", "Ch7"),
+Q("When a receivables number is questioned, the first check is:", ["The customer's word", "The tie — control against parties — before any deeper diagnosis", "The bank", "Last month"], 1, "Every deeper read depends on whether the two tell one story.", "Ch7"),
+Q("HealthTrade's chart specification was:", ["The software's default", "The fifteen written questions the firm must read monthly — the reading list first", "The old chart", "The auditor's template"], 1, "Start from what must be read.", "Ch8"),
+Q("The branch question was answered by:", ["Per-branch expense copies", "The dimension — the chart stays one language; the branches become a lens", "Separate companies", "More accounts"], 1, "Module 6's terrain, correctly deferred.", "Ch8"),
+Q("The verification hour corrected:", ["Nothing", "Two defaults — the round-off home and a mis-mapped payment mode — before a month inherited them", "The whole chart", "The VAT rate"], 1, "Exactly what the posting-map hour exists for.", "Ch8"),
+Q("The suspense account's discipline is:", ["A bigger suspense", "Swept to zero monthly — each squatter classified home, the feeding gap fixed at source", "Annual review", "Renaming it"], 1, "A destination named 'we don't know' is not an account.", "Ch9"),
+Q("Chart sprawl's fix mirrors:", ["Nothing", "The warehouse consolidation — merged by documented entries, husks retired, creation narrowed", "Deletion", "A new chart"], 1, "A language with four hundred words nobody speaks.", "Ch9"),
+Q("This module's law is:", ["Accounts are the accountant's problem", "The chart is the language of the business — every naira speaks through an account, and the tree is designed from what must be read", "More accounts, more control", "The GL is editable"], 1, "The ledger beneath it is append-only testimony written by documents.", "Ch9"),
+]
+
+
+def rebalance(questions):
+    for i, q in enumerate(questions):
+        target = i % 4
+        a = q["ans"]
+        if a != target:
+            q["opts"][a], q["opts"][target] = q["opts"][target], q["opts"][a]
+            q["ans"] = target
+    return questions
+
+
+def main():
+    root = os.getcwd()
+    with io.open(os.path.join(root, INIT), encoding="utf-8") as f:
+        init = f.read()
+
+    if os.path.exists(os.path.join(root, DATA_PATH)):
+        print("Already applied. Nothing to do.")
+        return
+    if '"3.112.0"' not in init:
+        sys.exit("ABORT: not at v3.112.0.")
+
+    problems = []
+    if len(LESSONS) != 9:
+        problems.append(f"  {len(LESSONS)} lessons (want 9)")
+    short = [f"{l['title'][:40]} ({len(l['html'])})" for l in LESSONS if len(l["html"]) < 2500]
+    if short:
+        problems.append(f"  below manual depth: {short}")
+    if len(QUESTIONS) != 35:
+        problems.append(f"  {len(QUESTIONS)} questions (want 35)")
+    for q in QUESTIONS:
+        if len(q["opts"]) != 4 or not (0 <= q["ans"] <= 3):
+            problems.append(f"  malformed '{q['q'][:40]}'")
+    if "ERPNext" in json.dumps({"l": LESSONS, "q": QUESTIONS}):
+        problems.append("  ERPNext branding leakage")
+    if problems:
+        print("ABORT — not clean:")
+        print("\n".join(problems))
+        sys.exit(1)
+
+    bank = rebalance(list(QUESTIONS))
+    dist = {c: sum(1 for q in bank if q["ans"] == i) for i, c in enumerate("ABCD")}
+    if max(dist.values()) > 10:
+        print(f"ABORT — spread failed: {dist}")
+        sys.exit(1)
+
+    total = sum(len(l["html"]) for l in LESSONS)
+    print(f"Accounts 1: 9 chapters ({total:,} chars, min {min(len(l['html']) for l in LESSONS):,}), bank {len(bank)}, spread {dist}")
+
+    if CHECK_ONLY:
+        print("--check given; no files written.")
+        return
+
+    data = {
+        "chart_gl": {
+            "title": "Accounts 1 — The Chart of Accounts & the General Ledger",
+            "desc": "The foundation of the finance certification: the GL as the stock ledger's money twin, debit-credit grammar for consultants, chart design as language, account types and their machinery, the posting map of every document, the drill-down culture, and control accounts with their party tie.",
+            "lessons": LESSONS,
+            "questions": bank,
+        }
+    }
+    with io.open(os.path.join(root, DATA_PATH), "w", encoding="utf-8") as f:
+        json.dump(data, f, indent=1, ensure_ascii=False)
+        f.write("\n")
+    with io.open(os.path.join(root, SEEDER_PATH), "w", encoding="utf-8") as f:
+        f.write(SEEDER)
+    with io.open(os.path.join(root, INIT), "w", encoding="utf-8") as f:
+        f.write(init.replace('"3.112.0"', '"3.113.0"'))
+    print("  created: academy_accounts_pro_data.json (Accounts 1)")
+    print("  created: academy_seed_accounts_pro.py (product, track ZERP-ACCPRO, refresh functions)")
+    print("wrote __version__ -> 3.113.0")
+
+
+if __name__ == "__main__":
+    main()
