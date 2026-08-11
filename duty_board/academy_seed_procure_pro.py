@@ -13,7 +13,7 @@ import os
 
 import frappe
 
-ORDER = ["suppliers", "items_costs", "material_requests", "rfq_quotes", "purchase_orders", "receiving"]
+ORDER = ["suppliers", "items_costs", "material_requests", "rfq_quotes", "purchase_orders", "receiving", "purchase_invoice"]
 
 TRACK = {
 	"title": "ZhiftERP Procurement Professional",
