@@ -16,7 +16,7 @@ import os
 
 import frappe
 
-ORDER = ["sysadmin_function", "users_permissions", "master_governance", "backups_continuity", "changes_updates", "email_integrations", "monitoring_health"]
+ORDER = ["sysadmin_function", "users_permissions", "master_governance", "backups_continuity", "changes_updates", "email_integrations", "monitoring_health", "advanced_sysadmin"]
 
 TRACK = {
 	"title": "ZhiftERP Sysadmin Professional",
