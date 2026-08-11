@@ -1890,5 +1890,478 @@
     "src": "Ch9"
    }
   ]
+ },
+ "purchase_orders": {
+  "title": "Procurement 5 — Purchase Orders: The Commitment",
+  "desc": "The commitment document: anatomy and creation discipline, the incoming pipeline and fulfilment ledger, status worklists, Hold and Close with the phantom-incoming sweep, amendments and sourcing integrity, and the supplier-promise craft — acknowledgment, honest dates, expediting, and OTIF.",
+  "lessons": [
+   {
+    "title": "Chapter 1 — The Purchase Order, field by field",
+    "est": "15",
+    "html": "<p>Everything before this document was preparation — the supplier vetted, the item priced, the need requested, the source competed. The <b>Purchase Order</b> is where your firm COMMITS: money promised to a named supplier for named goods at named rates by named dates. It is the buy-side twin of Selling 4's Sales Order, and if you commanded that module, this one will feel like meeting the same machine from the other side of the counter. Walk the fields:</p><ul><li><b>Supplier</b> — the vetted master (Procurement 1), whose currency, payment terms, buying price list and tax defaults land on the document by the default chain. A PO to a supplier on hold refuses per the hold's type — the lifecycle machinery working at the moment of commitment.</li><li><b>Transaction date vs required-by dates</b> — when the commitment was made vs when the goods are owed, header-level and refinable <b>per row</b> for staggered supply: the import line at 50 days, the local line at 3, one order, honest schedule. Receiving plans from these dates (Chapter 7's discipline keeps them honest).</li><li><b>The items grid</b> — item, quantity, <b>UOM with its conversion</b> (a 300 Carton-12 row is 3,600 units to the stock ledger — Buying 2's arithmetic at the moment it starts costing real money), the <b>rate</b> fetched from the supplier-scoped agreed price (Procurement 2) or carried from the winning quotation (Procurement 4), and per row the <b>target warehouse</b> — where the goods will be received, inherited from the request and inherited BY the receipt.</li><li><b>Taxes, buy-side</b> — the purchase taxes template computing <b>input VAT</b> (the claimable half of the 21st — Procurement 1, Chapter 7), plus any charges rows. The template travels to the purchase invoice exactly as selling's travelled — and so do its errors, which is why the Draft check matters here too.</li><li><b>Terms and conditions</b> — payment terms inherited from the master (the credit they extend you), delivery terms, and the T&amp;C the commitment rides under.</li><li><b>Source links</b> — the Material Request and/or Supplier Quotation this PO descends from: the chain of custody fields. A PO that names its ancestry can be audited in one minute; one that cannot is Chapter 9's business.</li></ul><p><b>Draft, the six-box check, submit.</b> Right supplier? rates as agreed or as quoted? dates realistic against lead times? target warehouses sane? tax template correct? terms intact? Thirty seconds, because submission — Chapter 3 — starts machinery that the whole company trades against. The PO that goes out wrong comes back as a receipt dispute, an invoice mismatch, or a warehouse surprise; the Draft check is the cheapest of the three conversations.</p>"
+   },
+   {
+    "title": "Chapter 2 — Creation discipline: where POs come from",
+    "est": "13",
+    "html": "<p>How a PO is born decides whether the commitment matches the need, the sourcing, and the agreed rates — or merely resembles them. Three legitimate births, one spine.</p><p><b>From the Material Request.</b> The routine route: demand assembled in the queue (Procurement 3), the PO created FROM the request — items, quantities, target warehouses carrying over; the supplier and rate arriving from the masters (supplier-scoped Item Prices doing their quiet work); the request's ordered-percentage advancing. <b>Consolidation</b> lives here: multiple requests' rows drawn into one PO at pallet economics, each request tracking its own fulfilment — the buying-power thesis, executed document by document.</p><p><b>From the winning Supplier Quotation.</b> The sourcing route (Procurement 4): the PO created FROM the awarded quotation, rates and terms exactly as quoted and negotiated, the chain request → RFQ → quotation → PO complete. This path's integrity IS the sourcing process's integrity: what was competed is what is committed, to the kobo.</p><p><b>Direct entry — the honest minority.</b> Purchases without requests or sourcing exist legitimately per the firm's policy (Procurement 3's proportionality: the categories the policy exempted; genuine emergencies logged as exceptions). Direct entry fills the grid by hand, rates still fetching from the buying list — and the tell of a process problem is not direct entry existing but direct entry DOMINATING where policy requires the layers: if most POs have no demand or sourcing ancestry in a firm whose policy says they should, the governance above them is being bypassed, and the exceptions log (Procurement 4, Chapter 7) is where that becomes visible instead of normal.</p><p><b>The spine, stated once more.</b> Documents made FROM their parents count against them; documents typed from scratch orphan the record — the fourth module in this track to say so, because procurement's chain is longer than selling's and every joint obeys the same law. The practical payoffs at this joint: zero transcription drift between quoted and committed; requests that close themselves; and the audit trail that answers WHO NEEDED THIS and HOW WAS THE SUPPLIER CHOSEN from the PO's own face.</p><p><b>One commitment, one PO.</b> Resist fragmentation (three small POs to one supplier in one week because three requests arrived separately — the consolidation scan exists to prevent exactly this) and agglomeration (appending new needs onto an old open PO — new commitments get new documents; old paper does not house new deals). The PO maps one commercial commitment, and its identity is what receiving, invoicing, and every status hangs from.</p>"
+   },
+   {
+    "title": "Chapter 3 — What submission changes: the incoming pipeline & the fulfilment ledger",
+    "est": "14",
+    "html": "<p>Submitting a Purchase Order changes the state of the business twice — and you already know both machines, because Selling 4 taught their mirror images.</p><p><b>Machine one: the incoming pipeline.</b> The ordered quantities appear as <b>incoming</b> (expected) against each row's target warehouse. Nothing has arrived — arrival is the Purchase Receipt's act (Procurement 6) — but the expectation is now system state, and it completes the arithmetic you have met twice already: <b>projected stock = actual − reserved + incoming</b>. Selling 4 taught the reserved term; THIS document supplies the incoming term. The consequences ripple everywhere: reorder triggers see coverage on the way and stop re-requesting (Procurement 3's auto-replenishment reads this number — a submitted PO is what silences the trigger); sales sees sellable-soon; planning sees the pipeline by date. Which is also why <b>stale open POs are poison in the exact inverse way stale sales orders were</b>: a dead PO nobody closed keeps promising incoming forever — projected stock reads healthy, triggers stay silent, and the firm quietly runs out of what the system swears is on the way. Chapter 5's sweep exists for this; Chapter 9 meets it in the wild as the phantom-incoming disease.</p><p><b>Machine two: the fulfilment ledger.</b> From submission the PO tracks per row: quantity ordered, <b>received so far</b>, <b>billed so far</b> — quantities and percentages. Every Purchase Receipt and every Purchase Invoice <b>created FROM the order</b> counts these down; the PO always knows what remains owed to you and what remains uninvoiced by the supplier. The from-scratch conviction lands harder on the buy side: a receipt typed loose moves real stock while the PO still shows goods owed — and the supplier's invoice, when it arrives, has nothing to match against, which is how the three-way match (Procurement 7's control) is quietly disarmed months before anyone needs it.</p><p><b>What the ledger feeds.</b> The received/billed percentages drive the status word (Chapter 4); remaining quantities pre-fill the next receipt and the invoice match (exact remainders, never guesses); and across all POs, the purchase-order analysis reading is the firm's <b>inbound backlog</b> — what stands committed and unperformed, by supplier, by date, by naira.</p><p><b>What submission does NOT do.</b> No stock moves, no expense books, no money is owed yet — receipt and invoice have their own moments (the timeline law's buy-side reading: <i>order commits, receipt takes possession, invoice books the liability, payment settles it</i>). A colleague asking why the bin has not changed after the PO went out gets that sentence, and the module it previews.</p>"
+   },
+   {
+    "title": "Chapter 4 — The status language & the PO list as worklists",
+    "est": "13",
+    "html": "<p>A PO's status is computed arithmetic on the fulfilment ledger — never set by hand — and the list, filtered by it, becomes three different teams' worklists.</p><ul><li><b>To Receive and Bill</b> — freshly committed: goods not arrived, invoice not booked. Every PO starts here.</li><li><b>To Bill</b> — received, not yet invoiced by the supplier (or their invoice not yet booked): possession taken, liability pending. This list is the <b>match queue</b> — Procurement 7's three-way match works it — and its age is worth watching from BOTH directions: your unbooked liabilities understate what you owe, and a supplier whose invoices chronically lag is a reconciliation risk compounding monthly (Procurement 1, Chapter 5's statement discipline catches the drift).</li><li><b>To Receive</b> — invoiced ahead of arrival: the advance-billing and payment-before-shipment flows (the import deposit against documents). Money committed or booked; goods still owed — the status keeps the physical promise visible after finance has moved, exactly as Selling 4's To-Deliver did with the roles reversed.</li><li><b>Completed</b> — both counts done; the PO retires from every pending list.</li></ul><p><b>The worklists, by team.</b> <b>Receiving's week</b>: To-Receive(-and-Bill) rows grouped by expected date — the inbound dock plan, staffed and scheduled from the system instead of from surprise trucks (Chapter 7's date honesty is what makes this view trustworthy). <b>Finance's match queue</b>: To Bill, oldest first, each receipt awaiting its invoice. <b>Procurement's chase list</b>: rows past their expected dates — the expediting queue, Chapter 7's craft. One list, three filters, three teams working from the same truth.</p><p><b>The per-supplier view.</b> One supplier's open POs, all statuses, expected-date column visible: the screen to have open when that supplier calls, and the screen to open BEFORE calling them — what have we committed, what has arrived, what is late, what is unbilled, in one look. For your key manufacturers this view plus the payables view (Procurement 1) is the whole relationship on two tabs, the buy-side twin of the account screens Selling 4 and 7 built.</p><p><b>Status vs docstatus, once more.</b> The fulfilment status (this chapter) is distinct from the document lifecycle (Draft / Submitted / Cancelled — Chapter 6's axis). Support conversations name which axis is in question: <i>the commitment stands; the fulfilment is what moved</i> — the same sentence as selling, the same clarity it buys.</p>"
+   },
+   {
+    "title": "Chapter 5 — Hold & Close: the two manual controls, inbound",
+    "est": "14",
+    "html": "<p>The ledger runs itself; two decisions stay human — and both matter MORE on the buy side, because their neglect distorts the number the whole company plans by.</p><p><b>Hold — the pause.</b> A quality question surfaces mid-order (the batch documentation query on pharma lines), the supplier's compliance lapses, your own storage or cash needs a beat: <b>Hold</b> freezes the PO — commitment intact, incoming intact, fulfilment not actionable until released. The discipline transfers verbatim from Selling 4: a held PO carries a reason, an owner, and a dated next step, because an unowned hold is either forgotten (goods arrive into an unresolved question) or eternal (a live supply line strangled by a dead flag). Note the interplay with the supplier-level hold (Procurement 1, Chapter 6): the supplier hold blocks NEW documents by type; the PO hold pauses ONE commitment — different instruments, different scopes, chosen deliberately.</p><p><b>Close — the honest early ending.</b> The canonical inbound case: the supplier delivered 260 of 300 and cannot supply the remainder — allocation shortage, discontinuation, or their own failure. <b>Close</b> ends the PO deliberately: the received 260 stand in history exactly as they happened; the undelivered 40's <b>incoming expectation is released</b> — projected stock stops counting phantom coverage, and (the step selling never needed) <b>the reorder trigger can see the gap again</b>: the shortfall re-enters the demand machinery to be resourced, typically to the second source at their scoped rate (the concentration remedy of Procurement 4, now operational). The rejected alternatives carry the same convictions as selling's: cancelling falsifies history (260 DID arrive); deleting rows mutilates a submitted document; receiving 40 to nowhere invents stock to satisfy a status.</p><p><b>The monthly sweep — the phantom-incoming vaccine.</b> Selling 4's sweep chased ghost reservations that HID sellable stock; the inbound sweep chases the inverse and nastier disease: stale open POs whose phantom incoming INFLATES projected stock — triggers stay silent, replenishment never fires, and the firm stocks out with a system that swears goods are on the way. The ritual: open POs past their expected dates with no movement in N weeks — each one chased (Chapter 7's expediting), held with an owner, or closed honestly with its remainder released back into the demand machinery. On the sell side the ghost cost you stock you could not sell; on the buy side it costs you stock you never bought — and only one of those is discovered by a customer.</p><p><b>Reopening.</b> A closed PO reopens only when the SAME commitment genuinely revives (the supplier's allocation returns for the same order at the same terms); new supply at new terms is a new PO. Old paper does not house new deals — fourth appearance, same law.</p>"
+   },
+   {
+    "title": "Chapter 6 — Amendments, cancellation & sourcing integrity",
+    "est": "13",
+    "html": "<p>Submitted POs are immutable; change walks through the formal doorway — and on the buy side, one amendment type carries a special warning.</p><p><b>Cancel, then Amend.</b> Quantities change, a line is added, a date is renegotiated: cancel, amend, and the revision carries the same identity with its suffix (PO-00318-1), the original preserved, the chain readable — the machinery you know. Cancellation releases the incoming expectation (the pipeline un-promises; triggers may fire — correctly, since the goods are no longer coming) and re-opens the source request's claim where one exists, worth tidying deliberately.</p><p><b>The linked-documents constraint.</b> A PO with submitted Purchase Receipts or Purchase Invoices against it will not simply cancel — the system refuses, because unwinding a commitment that partly HAPPENED would orphan real stock movements and real ledger entries. The lawful sequence is the one you learned outbound: <b>unwind the children before the parent</b> — cancel unexecuted drafts; route executed reality through purchase returns (Procurement 6) and debit notes (Procurement 7); then the PO cancels cleanly. The ticket to refuse is the same ticket: administrative force-deletion, which orphans ledgers and teaches the firm its documents are negotiable.</p><p><b>Rate amendments — the sourcing-integrity warning.</b> Here the buy side carries a hazard selling did not: the temptation to amend a PO's RATE to match whatever the supplier's invoice eventually says. Understand precisely what that amendment does: the PO's rate is the COMMITTED price — the agreed Item Price or the competed quotation figure — and it is the standard the three-way match (Procurement 7) will hold the invoice against. Amend the rate to match the invoice and the match is satisfied by construction: the control is disarmed, the overcharge is laundered into agreement, and the sourcing chain's final link is quietly cut. The honest paths when a price genuinely changed: a documented renegotiation BEFORE amendment (the new rate agreed, noted, and encoded to the buying list so the change is policy, not drift), or the invoice DISPUTED against the standing committed rate (the match doing its job). What never happens: the standard bending to meet the deviation. This is the buy-side edition of the edited-invoice conviction from Selling 7, and it escalates the same way — as governance, not support.</p><p><b>Amend vs Close, the instrument choice.</b> Corrections amend (the commitment was recorded wrong — wrong quantity agreed, missing line, wrong rate keyed against the quote). Endings close (the commitment was right; the supplier delivered what they will deliver). Amending a 300 down to 260 because the supplier stopped rewrites the promise to match the outcome; Close preserves that 300 was committed and 260 arrived — the truth the next negotiation with that supplier deserves to read.</p>"
+   },
+   {
+    "title": "Chapter 7 — The supplier's promise: acknowledgment, dates & expediting",
+    "est": "13",
+    "html": "<p>A PO sent is not a PO agreed. This chapter is the craft of turning your commitment into the supplier's promise — and managing that promise until the truck arrives.</p><p><b>Acknowledgment — the handshake.</b> Every consequential PO gets a supplier <b>acknowledgment</b>: confirmation received, quantities and rates accepted, delivery date committed. Without it you hold a promise nobody made — the PO that emailed into a dead inbox (Procurement 1's primary-flag hygiene, at stakes), the order the supplier is silently unable to fill, the rate they will dispute at invoice time. The discipline is light: acknowledgment requested in the send, chased within days for open sends, and the supplier's committed date recorded — which may differ from your asked date, and the difference is a conversation NOW, not a surprise at required-by. An 11-person firm does this with a checklist column; a larger one with workflow — either way, unacknowledged POs are a standing short list someone owns.</p><p><b>Expected-date honesty.</b> The row's expected dates are what receiving plans by and what the sweep (Chapter 5) and the chase (below) trigger from — so they are maintained as TRUTH: updated when the supplier's committed date differs from the ask, updated when a delay is notified, never edited to hide lateness (the mirror of Selling 4's plan-vs-mirror conviction: a schedule that only ever shows achievable dates because misses are edited away is not a schedule). Lateness recorded honestly is what makes the supplier measurable — the point of the last section.</p><p><b>Expediting — the chase craft.</b> The chase list: rows past expected date (or approaching it on critical lines), worked oldest-and-most-critical first, with the same four-gear spirit as collections (Selling 7) pointed inbound: the pre-due confirmation on critical lines (<i>still on for Tuesday?</i> — cheap, and it surfaces slips early), the polite chase at slip with a new committed date extracted and RECORDED, escalation through the relationship for chronic lines, and the commercial gears where they exist (the second source warmed up; the shortfall short-closed and resourced — Chapter 5's machinery). Expediting is a system, not a mood: predictable, polite, relentless — the three adjectives again, buying instead of collecting.</p><p><b>Measuring the promise: OTIF-to-commitment.</b> With honest dates and recorded slips, each supplier's <b>on-time-in-full</b> performance against their OWN committed dates becomes computable — the single most useful supplier metric there is, and the primary feed of the scorecard Procurement 8 builds. The craft points: measure against the supplier's commitment (not your original wish — that measures your optimism), measure in-full separately from on-time (the chronic 90%-shipper is a different problem from the chronic late-shipper), and let the number do the relationship talking: the quarterly review that opens with <i>your OTIF was 96%, thank you</i> or <i>83%, let us talk about why</i> is a review conducted from records — which, by now, you will recognise as this entire track's method.</p>"
+   },
+   {
+    "title": "Chapter 8 — Case study: HealthTrade's POs in motion",
+    "est": "16",
+    "html": "<p>Two commitments from earlier modules now live their full lives. Every step names its chapter.</p><p><b>Thread one — the 300-carton Emzor PO (from Procurement 3's consolidation).</b></p><p><b>Step 1 — birth and handshake (Ch. 2, 7).</b> Created from the three requests (auto 260, Ibadan gap 15, Abeokuta 25), rate fetching Emzor's scoped ₦9,600, target warehouse Central, VAT template computing input VAT. Acknowledgment requested in the send; Emzor confirms in two days — but commits 300 in TWO drops: 180 next week, 120 the week after. The row dates are updated to the committed schedule (Ch. 7's honesty): receiving now plans two dock days, and nobody is surprised by a half truck.</p><p><b>Step 2 — submission's machines (Ch. 3).</b> Incoming 300 cartons (3,600 units) against Central: PARA-500's reorder trigger goes quiet — correctly, coverage is on the way; projected stock tells sales the truth.</p><p><b>Step 3 — the hold episode (Ch. 5).</b> Before drop one, a NAFDAC batch-documentation query surfaces on one Emzor batch in the market. The PO goes on <b>Hold</b> — owner: procurement lead; next step: Emzor's QA letter by Friday — while the supplier-level record stays clean (one commitment paused, not the relationship blocked: the two instruments distinguished). The letter lands Thursday; hold released; drop one arrives on its committed date.</p><p><b>Step 4 — the short-close and the resource (Ch. 5).</b> Drop one delivers 180; drop two arrives at 80 — Emzor's allocation is short and the final 40 cannot come this cycle. The PO is <b>Closed</b> at 260 received: the 40's incoming releases, projected stock tells the truth, the trigger sees the gap — and the demand machinery resources it: a PO to the backup distributor at THEIR scoped ₦9,850 (Procurement 2's second atom, and Procurement 4's concentration logic, both earning their keep). History reads truthfully: 300 committed, 260 delivered, gap resourced in four days. That sentence will open the next Emzor review.</p><p><b>Thread two — the chiller PO (from Procurement 4's award).</b></p><p><b>Step 5 — the chain complete (Ch. 2).</b> PO from Vendor A's revised quotation: ₦1.395m, Net-15, exactly as awarded — request → RFQ → quotes → comparison → PO, auditable from the document's own face.</p><p><b>Step 6 — expediting a critical line (Ch. 7).</b> Two-week lead against a six-week launch: comfortable — so the craft is the pre-due confirmation, not the panic chase. Day 10's <i>still on for Thursday?</i> surfaces a two-day slip (a compressor delivery on their side); the new committed date is recorded, receiving replans, the launch holds with slack to spare. The slip enters Vendor A's OTIF record — 96% and honest, which their quarterly review will open by acknowledging.</p><p><b>Month-end reads (Ch. 4, 7).</b> The PO list by status: nothing stale (the sweep found only the closed Emzor remainder, already resourced); the match queue holds two receipts awaiting invoices (Procurement 7 inherits them); OTIF per supplier updates from committed dates. The inbound side now runs the way the outbound side learned to: on documents, on arithmetic, on promises with owners.</p>"
+   },
+   {
+    "title": "Chapter 9 — Common mistakes & support patterns",
+    "est": "13",
+    "html": "<p>The commitment layer's scar tissue — and on the buy side, the most expensive diseases are the QUIET ones, because they distort the number everything plans by. Symptom → disease → fix.</p><p><b>Pattern 1 — \"We stocked out while the system showed healthy projected stock.\"</b> Disease: phantom incoming — stale open POs promising goods forever (Ch. 3, 5). The trigger stayed silent because coverage was <i>on the way</i>; the way had ended months ago. Fix: the monthly sweep — chase, hold with owner, or close with the remainder released into the demand machinery; the inverse ghost of Selling 4's, and the one a customer discovers first.</p><p><b>Pattern 2 — \"Goods arrived; the PO says they are still owed; the invoice matches nothing.\"</b> Disease: the from-scratch Purchase Receipt (Ch. 3) — stock moved, ledger orphaned, three-way match disarmed in advance. Fix: reconcile the orphan against the PO deliberately; retrain the create-from reflex — fourth module, same spine.</p><p><b>Pattern 3 — \"The PO rate was amended to match the invoice.\"</b> Disease: the sourcing-integrity breach (Ch. 6) — the match satisfied by construction, the overcharge laundered, the competed rate's final link cut. Fix: revert; dispute the invoice against the standing rate or paper the renegotiation properly and encode it; close the permission that allowed it — governance, not support.</p><p><b>Pattern 4 — \"The supplier never saw the order.\"</b> Disease: no acknowledgment discipline (Ch. 7) riding on a dead primary contact (Procurement 1's Pattern 1, compounding). The promise existed only on your side. Fix: acknowledgment requested and chased as routine; the unacknowledged-PO list owned; the contact hygiene repaired at the master.</p><p><b>Pattern 5 — \"Receiving found out about the truck when it arrived.\"</b> Disease: expected dates unmaintained (Ch. 7) — asked dates never replaced by committed dates, slips never recorded, the dock planning blind. Fix: date honesty as routine — committed dates recorded at acknowledgment, updated at every notified slip — and the receiving week read from the To-Receive view it can finally trust.</p><p><b>Pattern 6 — \"Two POs to the same supplier for the same demand.\"</b> Disease: duplicate commitment — two buyers, or the request ordered twice because tracking was orphaned (Ch. 2; Procurement 3's Pattern 6, matured into money). Fix: consolidate — close or cancel the junior twin after moving real fulfilment references; the consolidation scan and the open-PO check before creating, taught as reflex.</p><p><b>Pattern 7 — \"The supplier stopped at 260, so we amended the PO to 260.\"</b> Disease: amend-close confusion (Ch. 6) — history rewritten to match the outcome, and the next negotiation robbed of the truthful sentence <i>you committed 300 and delivered 260</i>. Fix: Close, with the remainder released and resourced; corrections amend, endings close — the distinction, verbatim from Selling 4, because it is the same machine.</p><p><b>The law.</b> Procurement 1: purchase documents are downstream of supplier masters. Procurement 2: cost truth begins at the item. Procurement 3: the request layer separates need from commitment. Procurement 4: sourcing is a decision record, not a lunch. This module adds the fifth: <b>the Purchase Order is the single source of inbound truth</b> — every receipt and invoice is made FROM it, every status is arithmetic ON it, the incoming pipeline the whole firm plans by is promised BY it, and the supplier's measurable promise hangs from its honest dates. Protect that role, sweep its ghosts, and never bend its rates to meet an invoice — and the receiving dock, the match queue, and the reorder triggers all inherit a truth they can execute without a phone call.</p>"
+   }
+  ],
+  "questions": [
+   {
+    "q": "A PO to a supplier on hold:",
+    "opts": [
+     "Refuses per the hold's type — lifecycle machinery at the moment of commitment",
+     "Proceeds normally",
+     "Converts to Draft",
+     "Skips approval"
+    ],
+    "ans": 0,
+    "why": "Procurement 1's controls fire where money commits.",
+    "src": "Ch1"
+   },
+   {
+    "q": "A 300 Carton-12 PO row is, to the stock ledger:",
+    "opts": [
+     "300 units",
+     "3,600 units via the conversion",
+     "12 pallets",
+     "Whatever receiving types"
+    ],
+    "ans": 1,
+    "why": "Buying 2's arithmetic, now costing real money.",
+    "src": "Ch1"
+   },
+   {
+    "q": "The PO's tax template computes:",
+    "opts": [
+     "Output VAT",
+     "WHT only",
+     "Input VAT — the claimable half of the 21st — and travels to the purchase invoice",
+     "No tax"
+    ],
+    "ans": 2,
+    "why": "Errors travel as faithfully as correct choices.",
+    "src": "Ch1"
+   },
+   {
+    "q": "The PO's source links (request, quotation) matter because:",
+    "opts": [
+     "They are decorative",
+     "They block amendments",
+     "They set the rate",
+     "Ancestry makes the PO auditable in one minute — who needed this, how the supplier was chosen"
+    ],
+    "ans": 3,
+    "why": "The chain of custody on the document's own face.",
+    "src": "Ch1, Ch2"
+   },
+   {
+    "q": "Consolidation at PO creation means:",
+    "opts": [
+     "Multiple requests' rows drawn into one PO at pallet economics, each tracking its own fulfilment",
+     "One request per PO always",
+     "Merging suppliers",
+     "Splitting orders"
+    ],
+    "ans": 0,
+    "why": "The buying-power thesis executed document by document.",
+    "src": "Ch2"
+   },
+   {
+    "q": "Direct-entry POs dominating where policy requires the layers signals:",
+    "opts": [
+     "Efficiency",
+     "Governance bypassed — visible in the exceptions log instead of normal",
+     "Good suppliers",
+     "Nothing"
+    ],
+    "ans": 1,
+    "why": "The tell is dominance, not existence.",
+    "src": "Ch2"
+   },
+   {
+    "q": "Appending new needs onto an old open PO is refused because:",
+    "opts": [
+     "Forms limit rows",
+     "Suppliers object",
+     "New commitments get new documents; old paper does not house new deals",
+     "Tax rules"
+    ],
+    "ans": 2,
+    "why": "One commitment, one PO.",
+    "src": "Ch2"
+   },
+   {
+    "q": "Submission's first machine adds ordered quantities as:",
+    "opts": [
+     "Reserved",
+     "Billed",
+     "Received",
+     "Incoming against the target warehouse — completing projected stock's arithmetic"
+    ],
+    "ans": 3,
+    "why": "Selling supplied 'reserved'; this document supplies 'incoming'.",
+    "src": "Ch3"
+   },
+   {
+    "q": "A submitted PO silences the reorder trigger because:",
+    "opts": [
+     "Projected stock now shows coverage on the way",
+     "Triggers sleep weekly",
+     "POs disable triggers",
+     "The buyer says so"
+    ],
+    "ans": 0,
+    "why": "Which is exactly why stale POs are poison.",
+    "src": "Ch3"
+   },
+   {
+    "q": "Stale open POs distort planning by:",
+    "opts": [
+     "Hiding sellable stock",
+     "Inflating projected stock with phantom incoming — triggers stay silent, stockouts follow",
+     "Doubling reservations",
+     "Blocking receipts"
+    ],
+    "ans": 1,
+    "why": "The inverse of the ghost reservation, and discovered by a customer.",
+    "src": "Ch3, Ch5, Ch9"
+   },
+   {
+    "q": "A from-scratch Purchase Receipt:",
+    "opts": [
+     "Counts down the PO anyway",
+     "Is blocked",
+     "Moves stock while the PO still shows goods owed — and disarms the three-way match",
+     "Books the invoice"
+    ],
+    "ans": 2,
+    "why": "The ledger counts only documents made FROM the order.",
+    "src": "Ch3"
+   },
+   {
+    "q": "The buy-side timeline law reads:",
+    "opts": [
+     "Order books, receipt pays",
+     "Receipt commits",
+     "Everything at invoice",
+     "Order commits, receipt takes possession, invoice books the liability, payment settles it"
+    ],
+    "ans": 3,
+    "why": "Four verbs, four documents, inbound.",
+    "src": "Ch3"
+   },
+   {
+    "q": "The To Bill list is:",
+    "opts": [
+     "The match queue — receipts awaiting invoices, watched from both directions",
+     "Receiving's plan",
+     "The chase list",
+     "Completed orders"
+    ],
+    "ans": 0,
+    "why": "Unbooked liabilities understate what you owe; lagging suppliers compound reconciliation risk.",
+    "src": "Ch4"
+   },
+   {
+    "q": "Receiving's week is read from:",
+    "opts": [
+     "The supplier's emails",
+     "To-Receive rows grouped by expected date — the dock plan",
+     "The invoice list",
+     "Yesterday's trucks"
+    ],
+    "ans": 1,
+    "why": "Trustworthy exactly as far as date honesty holds.",
+    "src": "Ch4"
+   },
+   {
+    "q": "The per-supplier PO view is opened:",
+    "opts": [
+     "Only at year-end",
+     "By finance only",
+     "When the supplier calls — and before calling them",
+     "Never"
+    ],
+    "ans": 2,
+    "why": "Committed, arrived, late, unbilled — one look.",
+    "src": "Ch4"
+   },
+   {
+    "q": "A PO hold vs a supplier hold differ as:",
+    "opts": [
+     "Identical",
+     "Finance vs procurement",
+     "Temporary vs permanent",
+     "One commitment paused vs new documents blocked by type — different instruments, different scopes"
+    ],
+    "ans": 3,
+    "why": "Chosen deliberately, sometimes together.",
+    "src": "Ch5"
+   },
+   {
+    "q": "Closing a short-supplied PO releases:",
+    "opts": [
+     "The remainder's incoming — projected stock truths up and the trigger can see the gap again",
+     "The supplier",
+     "The invoices",
+     "The warehouse"
+    ],
+    "ans": 0,
+    "why": "The shortfall re-enters the demand machinery to be resourced.",
+    "src": "Ch5"
+   },
+   {
+    "q": "The monthly inbound sweep reviews:",
+    "opts": [
+     "All POs ever",
+     "Open POs past expected dates with no movement — chase, hold with owner, or close honestly",
+     "Only held POs",
+     "Completed POs"
+    ],
+    "ans": 1,
+    "why": "The phantom-incoming vaccine.",
+    "src": "Ch5"
+   },
+   {
+    "q": "The buy-side ghost costs you:",
+    "opts": [
+     "Stock you could not sell",
+     "Extra VAT",
+     "Stock you never bought — with a system swearing it was on the way",
+     "Nothing"
+    ],
+    "ans": 2,
+    "why": "Only one ghost is discovered by a customer.",
+    "src": "Ch5"
+   },
+   {
+    "q": "Cancelling a PO releases the incoming and:",
+    "opts": [
+     "Nothing else",
+     "Bills a fee",
+     "Deletes the request",
+     "May correctly let triggers fire — the goods are no longer coming — and re-opens the source request to tidy"
+    ],
+    "ans": 3,
+    "why": "The pipeline un-promises; loose ends close deliberately.",
+    "src": "Ch6"
+   },
+   {
+    "q": "A PO with submitted receipts, on attempted cancellation:",
+    "opts": [
+     "Is refused — unwind the children before the parent",
+     "Cancels and orphans them",
+     "Cancels the receipts too",
+     "Converts to Draft"
+    ],
+    "ans": 0,
+    "why": "Executed reality unwinds via returns and debit notes first.",
+    "src": "Ch6"
+   },
+   {
+    "q": "Amending a PO's rate to match the supplier's invoice:",
+    "opts": [
+     "Is the standard fix",
+     "Disarms the three-way match by construction and launders the overcharge",
+     "Updates the buying list",
+     "Is reversible freely"
+    ],
+    "ans": 1,
+    "why": "The standard never bends to meet the deviation.",
+    "src": "Ch6, Ch9"
+   },
+   {
+    "q": "When a price genuinely changed, the honest paths are:",
+    "opts": [
+     "Amend quietly",
+     "Split the difference",
+     "Documented renegotiation encoded to the buying list, or the invoice disputed against the standing rate",
+     "Pay and forget"
+    ],
+    "ans": 2,
+    "why": "Policy, not drift; the match doing its job.",
+    "src": "Ch6"
+   },
+   {
+    "q": "The supplier stopped at 260 of a correctly-recorded 300. Amending to 260 would:",
+    "opts": [
+     "Be the clean fix",
+     "Be required",
+     "Release stock faster",
+     "Rewrite the promise to match the outcome — Close preserves the truth the next negotiation deserves"
+    ],
+    "ans": 3,
+    "why": "Corrections amend; endings close.",
+    "src": "Ch6, Ch9"
+   },
+   {
+    "q": "A PO without acknowledgment is:",
+    "opts": [
+     "A promise nobody made — confirmation, acceptance, and a committed date turn it into one",
+     "Agreed by silence",
+     "Binding anyway",
+     "Cancelled automatically"
+    ],
+    "ans": 0,
+    "why": "The handshake discipline, chased within days.",
+    "src": "Ch7"
+   },
+   {
+    "q": "The supplier's committed date differing from your asked date is:",
+    "opts": [
+     "Hidden until required-by",
+     "A conversation NOW — recorded, with receiving replanning from it",
+     "Grounds for cancellation",
+     "Ignored"
+    ],
+    "ans": 1,
+    "why": "The difference surfaces at the handshake, not at the dock.",
+    "src": "Ch7"
+   },
+   {
+    "q": "Expected dates are never edited to hide lateness because:",
+    "opts": [
+     "Editing is impossible",
+     "Suppliers see them",
+     "A schedule showing only achievable dates is a mirror, not a plan — and the supplier stops being measurable",
+     "Audits forbid it"
+    ],
+    "ans": 2,
+    "why": "Honest lateness is what makes OTIF computable.",
+    "src": "Ch7"
+   },
+   {
+    "q": "Expediting runs as:",
+    "opts": [
+     "Panic when trucks fail",
+     "Finance's job",
+     "Weekly shouting",
+     "A system — pre-due confirmations, polite chases with new dates recorded, escalation, commercial gears"
+    ],
+    "ans": 3,
+    "why": "Predictable, polite, relentless — pointed inbound.",
+    "src": "Ch7"
+   },
+   {
+    "q": "OTIF is measured against:",
+    "opts": [
+     "The supplier's OWN committed date — anything else measures your optimism",
+     "Your original asked date",
+     "Month-end",
+     "The invoice date"
+    ],
+    "ans": 0,
+    "why": "And in-full separately from on-time.",
+    "src": "Ch7"
+   },
+   {
+    "q": "In the case study, Emzor's two-drop confirmation led to:",
+    "opts": [
+     "Cancellation",
+     "Row dates updated to the committed schedule — receiving planned two dock days",
+     "A dispute",
+     "A rate change"
+    ],
+    "ans": 1,
+    "why": "Date honesty at the handshake.",
+    "src": "Ch8"
+   },
+   {
+    "q": "The NAFDAC query paused:",
+    "opts": [
+     "The Emzor relationship entirely",
+     "All pharma buying",
+     "One PO on Hold with an owner and a Friday next step — the supplier record stayed clean",
+     "Nothing"
+    ],
+    "ans": 2,
+    "why": "The two hold instruments, distinguished in action.",
+    "src": "Ch8"
+   },
+   {
+    "q": "The Emzor short-close ended with:",
+    "opts": [
+     "A lost 40 cartons",
+     "A lawsuit",
+     "An amended PO",
+     "The gap resourced to the backup at their scoped rate in four days — and a truthful sentence for the next review"
+    ],
+    "ans": 3,
+    "why": "300 committed, 260 delivered, gap resourced.",
+    "src": "Ch8"
+   },
+   {
+    "q": "The chiller thread's day-10 call was:",
+    "opts": [
+     "A pre-due confirmation that surfaced a two-day slip early — recorded, replanned, launch held",
+     "A panic chase",
+     "Unnecessary",
+     "An escalation"
+    ],
+    "ans": 0,
+    "why": "Cheap, and it finds slips while they are small.",
+    "src": "Ch8"
+   },
+   {
+    "q": "'Receiving found out about the truck when it arrived' traces to:",
+    "opts": [
+     "Bad drivers",
+     "Expected dates unmaintained — committed dates and slips never recorded",
+     "The warehouse",
+     "Customs"
+    ],
+    "ans": 1,
+    "why": "The dock plans blind when dates are fiction.",
+    "src": "Ch9"
+   },
+   {
+    "q": "This module's law is:",
+    "opts": [
+     "POs are paperwork",
+     "Receipts beat orders",
+     "The Purchase Order is the single source of inbound truth",
+     "Suppliers own the schedule"
+    ],
+    "ans": 2,
+    "why": "Made FROM it, arithmetic ON it, the pipeline promised BY it.",
+    "src": "Ch9"
+   }
+  ]
  }
 }
