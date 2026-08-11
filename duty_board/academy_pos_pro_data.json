@@ -1,0 +1,475 @@
+{
+ "counter_system": {
+  "title": "POS 1 — The Counter & the System",
+  "desc": "The foundation of the counter certification: the governed-centrally-trades-locally thesis, the four-piece anatomy and the local-copy design, the Point of Sale Profile previewed as the counter's constitution, the five roles with per-permission Power Approvers, the selling modes as separation-of-hands design, the laws inherited from seven tracks, and the trade's counter diseases — opening the Okelewo Stores case.",
+  "lessons": [
+   {
+    "title": "Chapter 1 — The eighth certification: the counter",
+    "est": "12",
+    "html": "<p>Seven tracks certified a firm's functions and the platform they stand on. This track certifies the place where all of it meets the PUBLIC: the counter — the till where the selling track's laws become keystrokes, the drawer where money custody is a physical fact, and the desk that is, in the trade's honest accounting, the firm's most attacked and least governed. The thesis that opens the eighth certification: <b>the counter is governed centrally and trades locally — it runs on a profile, not on memory.</b></p><p><b>Why the counter needs its own certification.</b> The argument, from both sides of the till: the counter is where the firm's money physically ARRIVES (every naira of retail revenue passes through a cashier's hands before it is anything else — the drawer is the firm's first custody point, and the money tracks' every discipline lands here in its rawest form), where the firm's REPUTATION is transacted (the receipt in the customer's hand, the return argued at the desk, the queue that moves or doesn't — the counter is the brand, hourly), and where the trade's FRAUD concentrates (the till is where sweethearting, void abuse, drawer skims, and discount collusion live — the whole catalogue this track's final module maps at full depth, because the counter's controls are only as real as the people certified to run and supervise them). And the counter has its own body of craft — the float discipline, the shift ritual, the override machinery, the offline judgment — that no other track teaches, because no other track sits at this desk.</p><p><b>The governing thesis.</b> ZhiftPOS's design carries the academy's whole philosophy in one architectural sentence: everything a cashier is ALLOWED to do — whether they can discount, whether they can refund cash, whether a shift must open before selling, which payment methods appear — is decided CENTRALLY, on a record called the Point of Sale Profile, while the trading itself happens LOCALLY, on a terminal that keeps its own copy of the catalogue, prices and stock so that scanning stays instant and selling survives the line dropping entirely. Governed centrally: the policy is physics, set by named owners in the back office, not negotiated at the counter. Trades locally: the counter never stops for the network, because completed sales queue on the terminal and post when the link returns. The two halves of the sentence are the two halves of this track — the profile's constitution (module 2, the deep module) and the honest counter's daily proof (module 8, its equal).</p><p><b>The track's map.</b> This module — the system's anatomy, roles, and selling modes. Module 2 — the Point of Sale Profile at ten-chapter depth: every tab, every access box, the Power Approvers. Module 3 — commissioning and the terminal estate. Module 4 — the shift and the sale: the counted float, the cart's craft, the close. Module 5 — concessions, returns and overrides: everything that takes money off or gives money back. Module 6 — the extended counters: Lay-By, Staff Purchase, Airtime, the Customer Desk. Module 7 — the voucher programme: stored value from mint to breakage. Module 8 — the honest counter: offline, the queue, reconciliation and supervision, at ten chapters. The laws will arc from <i>the counter runs on a profile</i> to <i>the counter proves itself daily</i> — and the case runs continuously through <b>Okelewo Stores</b>, a three-branch Abeokuta retailer whose counters this track takes from exercise books to a governed estate.</p>"
+   },
+   {
+    "title": "Chapter 2 — The four pieces: the system's anatomy",
+    "est": "13",
+    "html": "<p>Before any craft, the map: what the system actually IS — four pieces, each with a job, and a design decision underneath them that explains everything the counter does under pressure. The anatomy chapter.</p><p><b>The back office.</b> The central web system — the home of items, prices, stock, customers, invoices and accounts: where administrators configure profiles, promotions, vouchers and staff access, and where finance sees the POSTED result of every sale. The back office is six earlier tracks' territory — the counter's relationship to it is the relationship this track governs: policy flows DOWN from it (the profile, the prices, the permissions), and money's evidence flows UP to it (the posted invoices, the shift closes, the reconciliations).</p><p><b>The till application.</b> The installed desktop application the cashier actually uses — the Sales Console and every counter screen this track walks. Installed, not a browser tab: the distinction is load-bearing, because the installed application owns local state (below) in a way a web page cannot, and the counter's resilience is built on exactly that ownership.</p><p><b>The background sync service.</b> The piece nobody sees and everybody depends on: a service that starts WITH THE TERMINAL and keeps running whether or not anyone is signed in — it owns the local copy of the catalogue, prices and stock, keeps them refreshed, and holds the queue of completed sales waiting to post. Because it is tied to the TERMINAL rather than to a cashier, signing out does not stop synchronisation — which yields the manual's own standing instruction, adopted here as doctrine: a terminal left on overnight still catches up on price changes and still posts queued sales, so <b>never shut a terminal down purely to 'force a sync'</b> — the restart superstition treats the system's most reliable piece as its least, and the certified professional retires it on day one.</p><p><b>The terminal management service.</b> The optional fleet layer: head office seeing which tills are alive, pushing display settings, retiring a terminal that is lost or replaced — module 3's estate governance, given its machinery.</p><p><b>The local-copy design.</b> The decision beneath the pieces, understood properly because half this track's judgments rest on it: the till is NOT a thin window onto the server — it keeps its own copy of the product catalogue, prices and stock on the terminal, so scanning and searching stay instant even on a slow line, and selling CONTINUES when the connection drops entirely, with completed sales queued locally and posted the moment the link returns. The design's two consequences, named now and governed later: the counter's SPEED and RESILIENCE are bought with local state (the cache that must be sized to the catalogue, the copies that can go stale — module 8's stock-stale and price-stale chips exist because copies age), and the counter's TRUTH is eventually consistent rather than instant (the queue means a completed sale and a posted sale are two moments — the gap this track teaches the counter to respect, never to fear: nothing in the queue is lost; the queue survives closing the application and restarting the terminal; and the discipline is simply that the gap is WATCHED and worked to zero, which is module 8's whole second half). The chapter's one-line summary for the site book: <b>four pieces — the office that governs, the till that trades, the service that remembers, the fleet layer that watches — on a local-copy design that buys speed and resilience with discipline.</b></p>"
+   },
+   {
+    "title": "Chapter 3 — The profile: the counter's constitution, previewed",
+    "est": "12",
+    "html": "<p>The track's central record, met before its deep module so every chapter between can lean on it: the POINT OF SALE PROFILE — one record that governs one counter's entire behaviour. The preview chapter.</p><p><b>What the profile decides.</b> The scope, stated to set the weight: whether a cashier can discount at all, and by which of three modes; whether cash can leave the drawer on a refund, or only store credit; whether a shift must be opened before a single item scans; which payment methods appear, and in what order; whether the counter sells vouchers, takes lay-bys, serves staff purchases, checks credit limits; who may approve what a cashier cannot do alone — every counter power on the list is a FIELD on the profile, which is the academy's oldest conviction arriving at its sharpest desk: the counter's policy is CONFIGURATION, decided by named owners in the back office, enforced by the machinery at 2 a.m. with nobody watching — the fence, not the memo, one more time, at the desk where the memo has historically governed everything.</p><p><b>Policy as physics, counter edition.</b> The conviction's counter-specific force: at the trade's ungoverned tills, what a cashier may do is decided by folklore — the verbal rule about discounts, the supervisor's mood about returns, the shared understanding about the drawer — and folklore's enforcement is presence: the rules hold while someone senior is watching and dissolve when they are not. The profile replaces presence with physics: the discount control that is DISABLED is disabled for everyone including the persuasive; the return that requires an override requires it at closing time on a Saturday exactly as at noon on a Tuesday; and the hover-tooltip that explains WHY a control is disabled (the manual's own touch) turns every refusal into a policy citation instead of an argument. The consultant's implementation conversation writes itself from this paragraph: the owner who lists their counter rules aloud is reading out the profile's field list without knowing it — and the certified professional's job is the translation.</p><p><b>The first diagnostic.</b> The profile preview closes with the track's most-used troubleshooting instinct, installed early because it answers half of all counter support questions: <b>a menu item missing from the sidebar is a profile question, not a defect</b> — the feature is off on the profile, or the cashier lacks the role or the access box on their row. The manual's own first-check discipline (check the profile tab that owns the feature, then the user's row) is this track's version of the Sysadmin track's permission-debugging method: systematic, two steps, and almost always right — the certified professional reaches for the profile before the restart, the reinstall, or the support ticket, because the profile is where the counter's behaviour LIVES, and module 2 is about to prove it field by field.</p><p><b>What the preview defers.</b> The honest scoping line: this chapter establishes THAT the profile governs; module 2 — the track's first ten-chapter deep module — walks WHAT it governs, tab by tab: the setup defaults and cart rules, the three discount modes, payments and returns, the voucher tab's conservative machinery, the integrations, the per-user access boxes normalised by mode, and the Power Approver table that makes override a governed event. Between here and there, one instruction carries: every time a later chapter says 'where the profile permits', it is citing a field with an owner — and the certified reader should hear a decision, not a default.</p>"
+   },
+   {
+    "title": "Chapter 4 — The roles: who does what at the counter",
+    "est": "13",
+    "html": "<p>Five roles govern the counter's world — held on the user account in the back office, more than one per person where the firm is small. The roles chapter, joining the Sysadmin track's vocabulary at the counter's door.</p><p><b>The Point of Sale Administrator.</b> The counter's configure authority: creates and maintains profiles, adds cashiers, sets discount policy, configures printers and hardware, commissions new terminals, installs updates — and reaches everything, including System Settings on the till itself. The role maps onto the Sysadmin track's custodian pattern deliberately: the POS Administrator is the platform track's admin wearing the counter's hat (at trade scale, often literally the same person), holding maximum capability under the same conduct standard — the configure pen used through the change disciplines, never for data acts, with the admin's own access on somebody else's review.</p><p><b>The Sales Manager.</b> The trading day's supervisor: watches trading through the day, approves overrides, runs end-of-day reports, reconciles shifts — reaching the Command Center and Revenue Intelligence in addition to the selling screens. The role this track's final module certifies hardest, because supervision is where the counter's honesty is proven or lost: the manager who reads the variance report is a control; the manager who signs it unread is a signature.</p><p><b>The Cashier.</b> The counter's working seat: opens a shift, sells, takes payment, handles returns if permitted, closes the shift — reaching the selling consoles their profile grants, plus Sales History, Customer Desk and Inventory Ops. The track's design honours the seat: module 4 is the cashier's own manual (the shift ritual, the cart's craft), written to certify the person, not merely describe the screens.</p><p><b>The Power Approver.</b> The counter's override authority, and the track's most distinctive control: authorises the SPECIFIC sensitive actions assigned to them — discounts, returns, clearing a cart, changing a rate, overriding a credit limit — approving at the till by password, or by a one-time code sent to their email. The design's precision is the point: approver power is PER-PERMISSION (the person who can approve a return cannot thereby approve a rate change — five separate boxes, ticked deliberately), and the approval is an EVENT (who, what, when — the override trail that module 5 builds on and module 8's fraud map leans on). The role is the separation-of-hands law of six tracks, delivered at retail speed: the cashier proposes, the approver disposes, and the machinery remembers both.</p><p><b>The Voucher Manager.</b> The stored-value programme's owner: creates voucher batches, sets voucher branding, monitors outstanding voucher liability — reaching the voucher records in the back office and the voucher console. Module 7's protagonist, previewed: the role exists because vouchers are MONEY (a liability from the moment one sells), and money's minting needs its own named custody.</p><p><b>The roles' governance.</b> The chapter's closing disciplines, imported whole from the Sysadmin track and cited rather than re-argued: roles granted by events through the channel (the grant with an authoriser), reconciled at the walk (the access register's counter rows), and the first-check diagnostic repeated because it earns its repetition — the cashier missing a menu item is a role-or-access-box question before it is anything else. One counter-specific addition, stated now and enforced in module 4: <b>one person, one account</b> — the shared till login is the counter's original sin (every trail this track builds attributes acts to accounts, and the shared account makes the whole evidence layer read 'somebody'), and the certified counter retires it before the first shift opens.</p>"
+   },
+   {
+    "title": "Chapter 5 — The selling modes: how a sale flows",
+    "est": "13",
+    "html": "<p>Each profile is set to ONE selling mode, and the mode decides which consoles appear and how a sale flows from basket to payment. The modes chapter — where the counter's org design becomes configuration.</p><p><b>Standard.</b> The usual shop counter: one person builds the basket and takes the money, on the Sales Console. The mode most of the trade runs, and the mode most of this track's chapters assume — one seat, whole sale, with the controls (overrides, approvers, the shift ritual) supplying the separation that the flow itself does not.</p><p><b>Pharmacy: the two-stage counter.</b> The mode with a control inside it: one person assembles the order and hands it off (the Order Console); a SECOND person collects payment (the Checkout Console) — useful, as the manual says, where a dispenser and a cashier are different people, and read by this academy for what it structurally IS: the separation of hands, built into the sale's flow. The person who picks the goods does not touch the money; the person who touches the money did not pick the goods — the two-stage counter is the payroll track's preparer-approver law at retail speed, and the certified consultant recommends it not only where regulation expects it (the pharmacy trade's dispensing discipline) but wherever the goods-to-money handoff carries risk worth splitting: the checkout seat, notably, also carries Revenue Intelligence access — the money seat sees the money reports, by design.</p><p><b>Booking: reserve, then pay.</b> The third flow: a sales representative reserves goods against a draft bill (the Booking Console); a cashier later collects payment and releases them (the Cashier Console). The showroom's mode — the negotiated sale, the customer who returns with the money — and structurally the same separation wearing sales clothes: the reserver and the collector are different seats, the draft and the payment different moments, and the flow gives the firm a governed answer to the trade's dangerous habit of 'keeping something aside' on memory.</p><p><b>Restaurant.</b> Named for completeness and scoped honestly: table service with a kitchen display requires the separate restaurant edition — the retail edition this track covers does not include it, and the certified professional says so plainly rather than improvising a workaround.</p><p><b>The mode's governance.</b> The disciplines that keep modes safe: the mode is settled FIRST when a profile is created (it controls which per-user access boxes are meaningful — the boxes are normalised against the mode on save, so a mode decided late scrambles access decided early), a LIVE profile's mode is changed only out of trading hours with every cashier row re-checked afterwards (the manual's own warning, adopted as ceremony: the mode switch resets the access boxes to match the new mode — a change that silently redraws who can do what, treated with module-5-of-Sysadmin weight), and the licence's precedence known (module 3 will detail it: the selling mode on the LICENCE takes precedence over the mode on the profile — a shop licensed for Standard presents the Standard console whatever the profile says, so the mode conversation includes the licence from the start). The chapter's closing frame: the mode is the counter's org chart expressed as a flow — one seat or two, sell-now or reserve-first — and choosing it is a design decision about separation and trust, made once, deliberately, before anything else on the profile.</p>"
+   },
+   {
+    "title": "Chapter 6 — The counter inherits the laws",
+    "est": "13",
+    "html": "<p>Seven tracks wrote laws; the counter is where most of them become physical. This chapter maps the inheritance — what the certified counter already owes the academy, before its own craft begins. The inheritance chapter.</p><p><b>Documents over memory, at retail speed.</b> The academy's first conviction, at the desk that tests it hardest: every sale is a DOCUMENT from the moment it completes (the invoice with its reference, its lines, its payments — the counter's velocity changing nothing about the law), every return is a document against the original (module 5 will walk the find-invoice-first design: a return BEGINS by locating the sale it reverses, which is the document-against-document law built into the console's own three steps), and every override is an event with an author. The counter's folklore alternative — the exercise book, the verbal 'I'll sort it later', the return taken on a wave — is precisely what six tracks convicted, running at its highest transaction rate.</p><p><b>The registrar, at the receipt.</b> The registrar's law lands on the counter twice: every sale carries its REFERENCE (the receipt's barcode and number — the retrievability that makes the return console's find-invoice step work, and makes 'the customer with a lost receipt' a Sales History search instead of a dispute), and the offline design honours it doubly (a sale completed offline prints with a LOCAL reference; once posted, the back-office reference takes over — both refer to the same sale, and a return can be found by either: two names, one identity, the registrar's discipline surviving the network).</p><p><b>Custody, at the drawer.</b> The inventory track's custodian law, in cash: the drawer is the cashier's CUSTODY — taken over with a counted float (the opening count is the custody's signed receipt), held through the shift (the lock-the-till habit is the custodian stepping away from their store), and handed back with a counted close measured against expectation (the variance being the custody's reconciliation, green or red, explained in notes). Module 4 builds the ritual in full; this chapter names its ancestry: the cashier who counts before opening is the storekeeper signing the closing count before a transfer — the same law, in notes and coins.</p><p><b>Evidence, at the counter's pace.</b> The evidence layer's counter form: the receipt as the customer-side evidence (printed, reprintable from Recent Receipts or Sales History — the reprint governed, because the receipt is a claim on the firm), the trails as the firm-side evidence (the override events, the shift closes, the markdown reasons — module 8's supervision reads them the way every track reads its registers), and the queue as evidence-in-transit (the completed-but-unposted sale being real money on its way to the ledger — held, watched, never lost, and worked to zero before handover: the manual's own conviction, 'conflicts and failed sales are real money that has not reached the ledger', arriving in this track as a load-bearing law).</p><p><b>The meshes ahead.</b> The chapter closes with the track's deliberate joints, so the reader holds the map: Staff Purchase meshes the PAYROLL track (the purchase booked to the employee account and recovered through a salary component — module 6), End of Day Funds meshes ACCOUNTS (the counter's daily reconciliation feeding the bank reconciliation's expectations — module 8), the voucher programme meshes Accounts' liability discipline (module 7's whole spine), the terminal estate meshes SYSADMIN (module 3), and the counter's stock operations mesh INVENTORY (the material requests and transfers of module 6's Inventory Ops). The counter is not an eighth island — it is the place the archipelago touches the sea, and the certified professional works it holding all seven maps.</p>"
+   },
+   {
+    "title": "Chapter 7 — The trade's counter diseases",
+    "est": "13",
+    "html": "<p>What the certified counter replaces: the diseases every consultant meets at the trade's tills, catalogued before the cure so the cure's shape makes sense. The diseases chapter.</p><p><b>The exercise-book counter.</b> The baseline disease: sales in a ruled notebook, prices from memory, the day's total whatever the book says it is — no line-level truth (which item, which price, which margin), no stock decrement (the warehouse and the counter drifting apart daily), and no dispute survivable (the customer's word against a pencil line). The book is not lazy — it is the pre-system optimum, and the consultant treats it with respect while replacing it completely: every later argument for the governed counter is an argument against a specific page of this book.</p><p><b>The shared login.</b> The counter's original sin, named in Chapter 4 and convicted here: one account, four cashiers, every trail reading 'somebody' — the variance nobody owns, the override nobody made, the fraud map's every control dissolved at the root, because attribution is the precondition of every other discipline this track teaches. The cure is structural and cheap (one person, one account; the lock button between users on a shared terminal; the cached-cashier list making multi-user terminals workable offline), and it is ALWAYS the first fix, because nothing else holds without it.</p><p><b>The memory price and the mood discount.</b> The pricing diseases as a pair: the price that lives in the seller's head (negotiated per customer, drifting per day — the selling track's price-list law violated at the till), and the discount granted by mood (unrecorded, unattributed, unbounded — the margin bleeding in amounts nobody can total because nothing was written). The governed counter's answer is module 5 entire: prices from the list, every concession carrying a reason and an authoriser, the markdown analytics telling the owner not just how much margin left, but WHY.</p><p><b>The unreconciled drawer.</b> The custody disease: the float nobody counted, the close nobody measured, the drawer that is 'about right' — and the slow leak that thrives in 'about': the counter that never reconciles cannot distinguish error from theft, and so suffers both, unpriced. The cure is module 4's ritual (count open, count close, explain variance) plus module 8's supervision (the variance TREND read per cashier — the epistemics of every track, at the drawer).</p><p><b>The phantom return and the quiet void.</b> The fraud pair, previewed for module 8's full map: the return processed with no customer present (money out of the drawer against goods that never came back), and the sale voided after the customer paid (the money pocketed, the record erased) — both thriving exactly where returns need no invoice, no reason, no approver, and no trail. The governed counter's answer is already visible in the product's design: the return that BEGINS at find-invoice, the reason list, the override requirement, the policy window — every step a wall this pair must now climb, and module 8 teaches the supervisor to watch the climbers.</p><p><b>The disconnected till.</b> The last disease is the subtle one: the counter that has a system but is not OF the system — the standalone till whose sales are retyped into the books weekly, whose stock never decrements live, whose 'computerisation' is a printing upgrade. The manual's architecture is the cure by design (the till posting to the back office as sales complete, the office's policy flowing down as configuration) — and the consultant's diagnostic question is the chapter's closer: <i>when a sale completes at your counter, what else happens, and when?</i> The ungoverned answers — 'nothing', 'later', 'Blessing types them in' — are the engagement's opening findings, every time.</p>"
+   },
+   {
+    "title": "Chapter 8 — Case study: Okelewo Stores takes the counter seriously",
+    "est": "16",
+    "html": "<p>The track's case firm, introduced — and its last ungoverned month, recorded honestly, because every module ahead repairs a line of it.</p><p><b>The firm.</b> <b>Okelewo Stores</b>: a general retailer, three branches — the Okelewo Lalubu Road flagship in Abeokuta, a second Abeokuta shop, and a Lagos outlet — eleven counter staff across them, run for nine years on the founder's presence and the trade's standard instruments: exercise books at two branches, an aging standalone till at the flagship, prices in three heads, and a WhatsApp group standing in for every register this academy has ever named. The founder — the MD this case will follow — is a capable, suspicious, tired retailer who knows the counters leak and cannot say where: the profile of half the trade, and the reason this track exists.</p><p><b>The last ungoverned month.</b> The findings walk, in the diseases' order: the EXERCISE BOOKS at the two smaller branches yield day totals that disagree with the cash by amounts nobody can decompose (the drawer 'about right' four days in five — the fifth day argued, never resolved); the flagship's standalone till runs ONE SHARED LOGIN for four cashiers (the variance report, where it exists, reads 'somebody' — a returns pattern the MD suspects and cannot attribute); prices at the Lagos shop drift from Abeokuta's by memory (the same item at three prices in one week — a customer with relatives in both cities makes it a reputation event); a RETURN is granted on a wave twice in the month (no invoice found, no reason recorded, cash out of the drawer — one certainly genuine, one the MD still wonders about); and the month's REAL margin is unknown at any level below 'the account balance moved'. The MD's note, opening the engagement and this case: <i>I built three shops and I cannot tell you what any counter did on Tuesday. I am done managing by suspicion.</i></p><p><b>The decision and the cast.</b> The engagement scopes exactly this track: ZhiftPOS across all three branches, on the governed pattern — and the roles are cast from the firm the academy's way: the operations lead (already the platform custodian in the firm's Sysadmin-track adoption) takes the <b>POS Administrator</b> hat (the counter's configure pen joining her existing conduct standard — two-account discipline and all); the flagship's senior supervisor becomes the <b>Sales Manager</b> whose certification module 8 will test hardest; four <b>Power Approvers</b> are named per-permission across the branches (the returns permission deliberately NOT given to everyone who holds the discount one — the per-box precision used as designed); the accountant takes the <b>Voucher Manager</b> role for the programme module 7 launches (stored value is money, and money's minting goes to the money seat); and every cashier gets their OWN account before anything else moves — the shared login retired as the engagement's act one, exactly as Chapter 7 demanded.</p><p><b>The map ahead.</b> The deployment plan reads as the track's own table of contents, and closes the module: the profiles designed and built (module 2 — one per counter, the modes settled first: Standard everywhere, with the Lagos shop's pharmacy annex flagged for the two-stage mode's separation), the terminals commissioned and the estate registered (module 3 — the flagship's aging till replaced, branch locks set, the licence allowances mapped), the shift ritual installed with counted floats (module 4 — the MD buying the float boxes personally, which the consultant notes as the best possible sign), the concession machinery configured with markdown reasons and the approver table (module 5), the extended counters staged (module 6 — Lay-By first, by customer demand), the voucher programme launched for December (module 7 — the liability account opened before the first card is minted), and the supervision layer stood up last and forever (module 8 — the End of Day ritual, the fraud map briefed to the Sales Manager, the owner's page replacing suspicion with numbers). The MD's closing line for the module: <i>so the counter gets a constitution, a ritual, and a daily proof. Nine years late. Begin.</i></p>"
+   },
+   {
+    "title": "Chapter 9 — Common mistakes & the first law",
+    "est": "13",
+    "html": "<p>The orientation layer's scar tissue — the diseases of understanding that precede the diseases of practice. Symptom → disease → fix.</p><p><b>Pattern 1 — the thin-client assumption.</b> Symptom: terminals restarted to 'force a sync'; panic when the line drops; the queue mistrusted and worked around. Disease: the local-copy design not understood (Ch. 2) — the till treated as a browser tab. Fix: the four-piece anatomy taught to every seat; the sync service's terminal-tied life known; the restart superstition retired on day one.</p><p><b>Pattern 2 — folklore governance.</b> Symptom: counter rules that hold only under supervision; the discount policy as a verbal tradition; every refusal an argument. Disease: policy living in presence instead of the profile (Ch. 3). Fix: the profile as the counter's constitution — every rule a field with an owner, enforced by the machinery at 2 a.m., the disabled control's tooltip turning refusals into citations.</p><p><b>Pattern 3 — the shared login.</b> Symptom: every trail reading 'somebody'; variances nobody owns; the fraud map's controls dissolved at the root. Disease: attribution never established (Ch. 4, 7) — the counter's original sin. Fix: one person, one account, before anything else moves; the lock button between users; the cached-cashier list making it workable.</p><p><b>Pattern 4 — the mode decided late.</b> Symptom: access boxes scrambled after a mode switch; a two-stage counter run on a one-stage profile with 'trust' filling the gap; the licence's mode contradicting the profile's. Disease: the mode treated as cosmetic (Ch. 5). Fix: mode settled FIRST, changed only out of hours with every row re-checked, and the licence's precedence in the design conversation from the start.</p><p><b>Pattern 5 — the counter as an island.</b> Symptom: sales retyped into the books; stock decremented weekly by guess; the till 'computerised' but disconnected; seven tracks' laws stopping at the shop door. Disease: the inheritance refused (Ch. 6, 7). Fix: the counter run as the place the firm's laws become physical — documents at retail speed, custody at the drawer, evidence at the receipt, and the meshes to Payroll, Accounts, Inventory and Sysadmin wired deliberately.</p><p><b>Pattern 6 — managing by suspicion.</b> Symptom: the owner who knows the counters leak and cannot say where; accusations without attribution; good staff resented and bad staff undetected, at once. Disease: no instrument between trust and doubt (Ch. 7, 8). Fix: this track entire — the constitution, the ritual, the daily proof — because the governed counter's deepest gift is not catching the guilty but CLEARING the honest, hourly, by record.</p><p><b>The first law.</b> The eighth track opens where its product's architecture points: <b>the counter is governed centrally and trades locally — every counter power a profile field with a named owner, every seat an attributed account, the mode a design decision made first, the local copy trusted and watched, and the queue respected as money in transit.</b> Module 2 now opens the constitution itself: the Point of Sale Profile, at ten-chapter depth — every tab, every box, every approver.</p>"
+   }
+  ],
+  "questions": [
+   {
+    "q": "The counter is, in the trade's honest accounting:",
+    "opts": [
+     "The firm's most attacked and least governed desk",
+     "A solved problem",
+     "Finance's problem",
+     "Fully automated"
+    ],
+    "ans": 0,
+    "why": "Where money arrives, reputation transacts, and fraud concentrates.",
+    "src": "Ch1"
+   },
+   {
+    "q": "The governing thesis is:",
+    "opts": [
+     "Everything local",
+     "Governed centrally, trades locally — policy on a profile, trading on a terminal that survives the line dropping",
+     "Everything central",
+     "Cloud-only"
+    ],
+    "ans": 1,
+    "why": "The two halves are the track's two deep modules.",
+    "src": "Ch1"
+   },
+   {
+    "q": "The till keeps a local copy of:",
+    "opts": [
+     "Nothing",
+     "Only settings",
+     "The catalogue, prices and stock — so scanning stays instant and selling continues offline",
+     "The whole back office"
+    ],
+    "ans": 2,
+    "why": "The local-copy design.",
+    "src": "Ch2"
+   },
+   {
+    "q": "The background sync service is tied to:",
+    "opts": [
+     "The cashier",
+     "The profile",
+     "The shift",
+     "The TERMINAL — signing out does not stop synchronisation"
+    ],
+    "ans": 3,
+    "why": "It runs whether or not anyone is signed in.",
+    "src": "Ch2"
+   },
+   {
+    "q": "'Never shut a terminal down purely to force a sync' because:",
+    "opts": [
+     "The restart superstition treats the system's most reliable piece as its least — the service catches up on its own",
+     "Restarts are slow",
+     "Data is lost",
+     "Updates break"
+    ],
+    "ans": 0,
+    "why": "A terminal left on overnight still posts queued sales.",
+    "src": "Ch2"
+   },
+   {
+    "q": "The queue's completed-but-unposted sales are:",
+    "opts": [
+     "At risk",
+     "Safe — the queue survives closing the application and restarting the terminal; nothing is lost",
+     "Discarded nightly",
+     "Estimates"
+    ],
+    "ans": 1,
+    "why": "Watched and worked to zero, never feared.",
+    "src": "Ch2"
+   },
+   {
+    "q": "Everything a cashier is allowed to do is decided:",
+    "opts": [
+     "At the till",
+     "By seniority",
+     "Centrally, on the Point of Sale Profile — every counter power is a field with an owner",
+     "By habit"
+    ],
+    "ans": 2,
+    "why": "The counter's constitution.",
+    "src": "Ch3"
+   },
+   {
+    "q": "Folklore governance fails because:",
+    "opts": [
+     "Rules are bad",
+     "It is illegal",
+     "Staff forget",
+     "Its enforcement is presence — rules hold while someone senior watches and dissolve when they don't"
+    ],
+    "ans": 3,
+    "why": "The profile replaces presence with physics.",
+    "src": "Ch3"
+   },
+   {
+    "q": "The disabled control's hover tooltip:",
+    "opts": [
+     "Turns every refusal into a policy citation instead of an argument",
+     "Is decoration",
+     "Names the cashier",
+     "Is a bug"
+    ],
+    "ans": 0,
+    "why": "The fence explains itself.",
+    "src": "Ch3"
+   },
+   {
+    "q": "A menu item missing from the sidebar is:",
+    "opts": [
+     "A defect",
+     "A profile question — the feature is off, or the cashier lacks the role or access box",
+     "A licence issue",
+     "A network issue"
+    ],
+    "ans": 1,
+    "why": "The track's most-used diagnostic: profile first.",
+    "src": "Ch3"
+   },
+   {
+    "q": "The Power Approver's power is:",
+    "opts": [
+     "General",
+     "By seniority",
+     "PER-PERMISSION — five separate boxes; the returns approver cannot thereby approve a rate change",
+     "Unlimited"
+    ],
+    "ans": 2,
+    "why": "Ticked deliberately, box by box.",
+    "src": "Ch4"
+   },
+   {
+    "q": "Power Approvers authorise at the till by:",
+    "opts": [
+     "Verbal ok",
+     "A signature",
+     "A phone call",
+     "Password, or a one-time code sent to their email"
+    ],
+    "ans": 3,
+    "why": "The approval is an event with an author.",
+    "src": "Ch4"
+   },
+   {
+    "q": "The Sales Manager who signs the variance report unread is:",
+    "opts": [
+     "A signature — supervision is where the counter's honesty is proven or lost",
+     "A control",
+     "Efficient",
+     "Trusting"
+    ],
+    "ans": 0,
+    "why": "Module 8 certifies this seat hardest.",
+    "src": "Ch4"
+   },
+   {
+    "q": "The Voucher Manager exists because:",
+    "opts": [
+     "Design needs an owner",
+     "Vouchers are MONEY — a liability from the moment one sells, and money's minting needs named custody",
+     "Printing is complex",
+     "Marketing asked"
+    ],
+    "ans": 1,
+    "why": "Module 7's protagonist.",
+    "src": "Ch4"
+   },
+   {
+    "q": "One person, one account is:",
+    "opts": [
+     "A preference",
+     "Expensive",
+     "The precondition of every other discipline — the shared login makes every trail read 'somebody'",
+     "Optional"
+    ],
+    "ans": 2,
+    "why": "The counter's original sin, retired first.",
+    "src": "Ch4"
+   },
+   {
+    "q": "Pharmacy mode structurally is:",
+    "opts": [
+     "A drug list",
+     "A report set",
+     "A faster counter",
+     "The separation of hands built into the flow — the picker never touches the money; the payer never picked the goods"
+    ],
+    "ans": 3,
+    "why": "The preparer-approver law at retail speed.",
+    "src": "Ch5"
+   },
+   {
+    "q": "Booking mode answers:",
+    "opts": [
+     "'Keeping something aside' on memory — a governed reserve-then-pay flow with two seats and two moments",
+     "Restaurant needs",
+     "Online orders",
+     "Wholesale only"
+    ],
+    "ans": 0,
+    "why": "The showroom's mode.",
+    "src": "Ch5"
+   },
+   {
+    "q": "The mode is settled FIRST because:",
+    "opts": [
+     "It looks better",
+     "It controls which access boxes are meaningful — boxes are normalised against the mode on save",
+     "Licences demand it",
+     "Habit"
+    ],
+    "ans": 1,
+    "why": "A mode decided late scrambles access decided early.",
+    "src": "Ch5"
+   },
+   {
+    "q": "Changing a live profile's mode is done:",
+    "opts": [
+     "Anytime",
+     "By cashiers",
+     "Out of trading hours, with every cashier row re-checked afterwards",
+     "Weekly"
+    ],
+    "ans": 2,
+    "why": "The switch silently redraws who can do what.",
+    "src": "Ch5"
+   },
+   {
+    "q": "The licence's selling mode:",
+    "opts": [
+     "Is cosmetic",
+     "Is negotiable at the till",
+     "Follows the profile",
+     "Takes precedence over the profile's — a shop licensed for Standard presents Standard regardless"
+    ],
+    "ans": 3,
+    "why": "The licence in the design conversation from the start.",
+    "src": "Ch5"
+   },
+   {
+    "q": "A return BEGINS at find-invoice because:",
+    "opts": [
+     "A return is a document against the original — the law built into the console's own three steps",
+     "Speed",
+     "Screens require it",
+     "Training"
+    ],
+    "ans": 0,
+    "why": "Document-against-document, at retail speed.",
+    "src": "Ch6"
+   },
+   {
+    "q": "An offline sale's two references are:",
+    "opts": [
+     "A problem",
+     "The local reference and the back-office reference — both refer to one sale; a return finds it by either",
+     "Duplicates",
+     "Temporary"
+    ],
+    "ans": 1,
+    "why": "The registrar's discipline surviving the network.",
+    "src": "Ch6"
+   },
+   {
+    "q": "The drawer is:",
+    "opts": [
+     "Shared space",
+     "The firm's petty cash",
+     "The cashier's CUSTODY — taken with a counted float, handed back with a counted close",
+     "Unmeasured"
+    ],
+    "ans": 2,
+    "why": "The custodian law, in notes and coins.",
+    "src": "Ch6"
+   },
+   {
+    "q": "The counter meshes Staff Purchase with:",
+    "opts": [
+     "Inventory",
+     "Nothing",
+     "Selling",
+     "The Payroll track — booked to the employee account, recovered through a salary component"
+    ],
+    "ans": 3,
+    "why": "The archipelago's deliberate joints.",
+    "src": "Ch6"
+   },
+   {
+    "q": "The counter that never reconciles:",
+    "opts": [
+     "Cannot distinguish error from theft — and so suffers both, unpriced",
+     "Saves time",
+     "Is trusted",
+     "Is rare"
+    ],
+    "ans": 0,
+    "why": "The slow leak thrives in 'about right'.",
+    "src": "Ch7"
+   },
+   {
+    "q": "The phantom return and the quiet void thrive where:",
+    "opts": [
+     "Systems exist",
+     "Returns need no invoice, no reason, no approver, and no trail",
+     "Managers watch",
+     "Stock is counted"
+    ],
+    "ans": 1,
+    "why": "Every product control is a wall this pair must climb.",
+    "src": "Ch7"
+   },
+   {
+    "q": "The disconnected till's diagnostic question is:",
+    "opts": [
+     "What brand is it?",
+     "How fast is it?",
+     "'When a sale completes at your counter, what else happens, and when?'",
+     "Who sells most?"
+    ],
+    "ans": 2,
+    "why": "'Nothing', 'later', and 'Blessing types them in' are the findings.",
+    "src": "Ch7"
+   },
+   {
+    "q": "The exercise book is:",
+    "opts": [
+     "Laziness",
+     "Fine at small scale",
+     "Illegal",
+     "The pre-system optimum — treated with respect while replaced completely"
+    ],
+    "ans": 3,
+    "why": "Every argument for the governed counter is against a specific page of it.",
+    "src": "Ch7"
+   },
+   {
+    "q": "Okelewo's shared-login flagship till meant:",
+    "opts": [
+     "A returns pattern the MD suspects and cannot attribute — every trail reading 'somebody'",
+     "Efficiency",
+     "Lower costs",
+     "Nothing"
+    ],
+    "ans": 0,
+    "why": "Attribution before everything.",
+    "src": "Ch8"
+   },
+   {
+    "q": "'I am done managing by suspicion' captures:",
+    "opts": [
+     "Anger",
+     "The owner with no instrument between trust and doubt — the profile of half the trade",
+     "Retirement",
+     "A staffing issue"
+    ],
+    "ans": 1,
+    "why": "The reason this track exists.",
+    "src": "Ch8"
+   },
+   {
+    "q": "Okelewo's returns permission was:",
+    "opts": [
+     "Given to all approvers",
+     "Skipped",
+     "Deliberately NOT given to everyone holding the discount one — the per-box precision used as designed",
+     "Given to cashiers"
+    ],
+    "ans": 2,
+    "why": "Per-permission approver power, cast properly.",
+    "src": "Ch8"
+   },
+   {
+    "q": "The voucher programme's role went to:",
+    "opts": [
+     "The MD",
+     "The consultant",
+     "A cashier",
+     "The accountant — stored value is money, and money's minting goes to the money seat"
+    ],
+    "ans": 3,
+    "why": "The Voucher Manager cast by the academy's logic.",
+    "src": "Ch8"
+   },
+   {
+    "q": "The governed counter's deepest gift is:",
+    "opts": [
+     "CLEARING the honest, hourly, by record",
+     "Catching the guilty",
+     "Speed",
+     "Reports"
+    ],
+    "ans": 0,
+    "why": "Between trust and doubt: an instrument.",
+    "src": "Ch9"
+   },
+   {
+    "q": "The engagement's act one is always:",
+    "opts": [
+     "New hardware",
+     "Retiring the shared login — nothing else holds without attribution",
+     "A price update",
+     "A report"
+    ],
+    "ans": 1,
+    "why": "One person, one account, before anything moves.",
+    "src": "Ch9"
+   },
+   {
+    "q": "This module's law is:",
+    "opts": [
+     "The counter governs itself",
+     "The till is a browser",
+     "The counter is governed centrally and trades locally — every power a profile field with a named owner, every seat an attributed account, the queue respected as money in transit",
+     "Memory suffices"
+    ],
+    "ans": 2,
+    "why": "The eighth track's first law.",
+    "src": "Ch9"
+   }
+  ]
+ }
+}
