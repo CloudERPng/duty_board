@@ -949,5 +949,478 @@
     "src": "Ch10"
    }
   ]
+ },
+ "master_governance": {
+  "title": "Sysadmin 3 — Master Data Governance & Imports",
+  "desc": "The machinery the six tracks' master laws run on: the naming series administered with forward-only counters, the import door with its legitimate catalogue and validate-before-load discipline, bulk updates governed by blast radius, rename/merge/deduplicate as identity surgery, and the quality reads with the custodianship map.",
+  "lessons": [
+   {
+    "title": "Chapter 1 — Masters enter governed, once",
+    "est": "12",
+    "html": "<p>Six tracks made master data their opening argument — the item file, the customer book, the supplier register, the chart, the employee master, the salary structures — and every one of them said the same three things: masters are created by the narrowest pens, named by the registrar's series, and kept clean forever. This module is where the MACHINERY behind all three lives, and its thesis is the track's third law: <b>masters enter governed, once — through the series that names them, the imports that load them, and the hygiene that keeps them singular.</b></p><p><b>The custodianship split, restated for this terrain.</b> Module 1's authority map, at the master layer: the FUNCTIONS own their masters' CONTENT (what items exist is inventory's decision; which customers, selling's; the chart's shape, the accountant's — the six tracks assigned every master type its narrow pen, and nothing in this module reassigns them), while the ADMIN owns the master MACHINERY: the naming series' administration (Chapter 2), the import tooling and its discipline (Chapters 3-4), the bulk-change instruments (Chapter 5), the rename-merge-deduplicate operations (Chapter 6), and the quality reads (Chapter 7) — the admin as the registrar's clerk, the loading dock's operator, and the hygiene inspector, never the author of a single master's content. The split's practical shape: the function owner DECIDES (this supplier exists; these two customers are one), the admin EXECUTES through the machinery (the merge run properly, the import validated), and both are named in the record — the pattern seven modules old, at the layer where its breach is most common (the 'helpful' admin who creates the missing item at a user's request has just authored inventory content with a platform pen — the corridor grant's master-data twin).</p><p><b>Why the machinery needs its own module.</b> The stakes, argued from six tracks' evidence: every master law this academy taught is only as strong as the machinery beneath it — the registrar's number-retired-with-its-subject law is a SERIES configuration (Chapter 2); the duplicate-customer disease the selling track fought is prevented by naming and validation and cured only by MERGE (Chapter 6); the record-level fences of module 2 ride the masters' link fields (the territorial fence on a duplicated branch master is a fence with a hole); and the implementation load that every engagement begins with is an IMPORT whose discipline decides the site's data quality for years (the unvalidated opening load being the original sin most cleanup engagements trace to — the SLOT-class remediations of the trade being, overwhelmingly, imports done casually a long time ago, compounding since). The module's map: the series (2), the import door (3) and its discipline (4), the bulk instruments (5), the singular-identity operations (6), the quality layer (7), HealthTrade's master year (8), and the law (9).</p>"
+   },
+   {
+    "title": "Chapter 2 — The naming series: the registrar's machinery",
+    "est": "13",
+    "html": "<p>Every track's registrar law — the number that identifies, the number retired with its subject — runs on one piece of machinery: the NAMING SERIES. The admin administers it. The series chapter.</p><p><b>The series' anatomy.</b> The mechanics: each doctype's documents named by a configured pattern — the PREFIX (the human-readable class: the invoice's, the employee's, the order's), the COUNTER (the incrementing number the series holds), and the optional PERIOD segments (the year or month embedded — the series that resets yearly versus the series that runs forever: a design decision with retrieval consequences, decided per doctype with the owning function, because the yearly-reset invoice series reads naturally against fiscal years while the never-reset employee series serves the registrar's retirement law), with the admin's duties precise: the series CONFIGURED per the design (the formats documented in the site book's master page), the counters' CURRENT state known (the series position is a fact the admin can read and, in governed circumstances, set — the power that makes Chapter's collision discipline necessary), and the DEFAULT-versus-selectable posture decided (one series per doctype as the default sanity; the multi-series doctype — the per-branch invoice series where the design wants it — as a deliberate choice with its selection governed, never a free-text field users improvise in).</p><p><b>The registrar laws, seated.</b> Six tracks' rules, landing on their machinery: numbers are IDENTITY, not information (the series that encodes meaning beyond its prefix — the customer number embedding a category — is a design smell the academy has convicted before: categories change, identities must not), numbers RETIRE with their subjects (the disabled employee's number never reissued — the series simply never reused, which the counter's forward-only life guarantees UNLESS someone resets it: the reset-counter power being exactly why series administration is an admin duty and not a user setting), and GAPS are tolerable but explained (the cancelled draft's consumed number is an honest gap; the series that jumps a thousand is a question — the gap read as the series' own audit trail).</p><p><b>The series diseases.</b> The failure modes the admin prevents: the COLLISION (the counter set backwards — by migration accident or misguided tidiness — colliding with existing names: the load that fails halfway or, worse, the near-miss that doesn't; prevented by the rule that counters move forward only, and set manually only in the governed migration moment with the existing maximum verified first), the FORMAT change mid-life (the series renamed or reshaped with history live — the old and new formats coexisting forever after: legitimate when decided and documented, chaos when drifted into; the change through module 5's discipline, with the old format's records untouched — history is history), the FREE-TEXT naming leak (the doctype configured to accept manual names beside the series — the 'Chidi's customer' entries the selling track's cleanup found: the leak closed by configuration, the series made mandatory where the design says), and the SERIES SPRAWL (a new series invented per mood — the prefix museum: the catalogue of series documented like the role catalogue, few, purposeful, owner-assigned). The chapter's one-liner for the site book: <b>the series is the registrar; the admin is its clerk — forward-only counters, documented formats, closed leaks, and every master born already named by law.</b></p>"
+   },
+   {
+    "title": "Chapter 3 — The import machinery: bulk data's governed door",
+    "est": "13",
+    "html": "<p>Data enters the site one document at a time through the functions' daily work — and in bulk through one door: the IMPORT machinery. This chapter governs the door. The import chapter.</p><p><b>The machinery.</b> The import tool's shape: the TEMPLATE downloaded per doctype (the columns as the fields — the template is the doctype's flat-file mirror, and its exactness matters because the import is a mass creation event riding it), the file FILLED (the rows as would-be documents), the VALIDATION pass (the tool checking the load before it lands — Chapter 4's whole discipline hangs on using this properly), and the LOAD (the rows becoming documents — each one as real as if typed, which is the power and the peril in one sentence: the import creates a hundred documents with one click, and every governance question the academy asks of one document multiplies by the row count).</p><p><b>When imports are legitimate.</b> The honest catalogue, drawn narrowly: the IMPLEMENTATION loads (the master files' initial population — the items, customers, suppliers, employees, opening balances: the engagement's founding imports, done under Chapter 4's full discipline because their quality echoes for years), the BULK MASTER events (the new branch's warehouse set, the acquired product line's items, the price list's seasonal revision — each a genuine bulk-creation moment with its owning function's authorisation), the MIGRATION moments (the data moving between systems in a governed cutover), and the CORRECTION loads in their governed rarity (the mass update of Chapter 5, where the import tool is the instrument). The list is short by design — and everything outside it is Chapter's disease.</p><p><b>When imports are the disease.</b> The pattern named plainly, because every consultant meets it: the ROUTINE TRANSACTION import — the daily sales loaded from a spreadsheet, the month's invoices imported in a batch, the stock movements arriving as files — is the process BYPASSED wearing a tool (the documents created without the workflow that governs them: the validations skipped, the permissions sidestepped by whoever holds the import right, the approvals never asked, the linked-document logic — the stock that should have moved, the ledger that should have posted — firing all at once or wrongly), and the firm importing its transactions routinely has not computerised its process; it has computerised its spreadsheet, with the system demoted to an expensive filing cabinet. The admin's posture: the import RIGHT held narrowly (module 2's export-class caution applying to the inbound door too — the import capability on the dangerous-roles register), routine-import requests read as DESIGN signals (the team importing daily has a process gap the owning function should fix at the process layer — the workaround-cluster read of module 2, at the loading dock), and the legitimate-catalogue test applied to every request through the channel.</p><p><b>The import as an event.</b> The governance shell, closing the chapter: every import is an EVENT in the change-log sense — WHAT was loaded (the doctype, the row count, the file retained), WHY (the authorising decision and its owner), WHO ran it, WHEN, and the VERIFICATION's result (Chapter 4's post-load checks, referenced) — because the import that nobody can explain two years later is the data archaeology every cleanup engagement performs, and the import log is the site's data provenance: the answer to 'where did these three hundred customers come from?' being a log line, not a shrug.</p>"
+   },
+   {
+    "title": "Chapter 4 — The import discipline: validate before load",
+    "est": "14",
+    "html": "<p>The door governed, now the craft: the discipline that makes any load land clean — walked as a procedure because the certified admin will run it dozens of times. The discipline chapter.</p><p><b>Stage 1 — the template's exactness.</b> The file prepared against the CURRENT template (downloaded fresh, not reused from last year — the doctype's fields drift with updates and customisations, and the stale template is the mysterious column-mismatch error), the MANDATORY fields identified and filled (the load that omits a required field fails — or worse, half-fails), the LINK fields resolved (the import that references masters — the item's group, the customer's territory, the employee's branch — must reference masters that EXIST, spelled exactly: the link validation being the discipline's most frequent catch, and the reason master loads are SEQUENCED — the groups before the items, the territories before the customers: the dependency order drawn before any file is filled), and the formats honest (the dates in the expected format, the numbers unpolluted by currency symbols and thousands separators — the spreadsheet's cosmetics being the import's poison).</p><p><b>Stage 2 — the rehearsal.</b> Module 1's iron habit, at the loading dock: the significant load REHEARSED on the test site first (the same file, the same procedure, the full run — the errors met in rehearsal costing minutes; the same errors in production costing a cleanup), with 'significant' judged honestly (the ten-row addition may proceed on validation alone; the five-hundred-row founding load rehearses, always — the threshold a site-book policy, not a mood), and the rehearsal's second dividend named: the TIMING read (the big load's duration and system impact known before production schedules it — the load run in the quiet window, not against the counter's busy hour).</p><p><b>Stage 3 — the validation pass and the batched load.</b> The tool's validation run and READ (the pass is not a formality to click through — every warning triaged: the row that will skip, the value that will default, the link that resolves to nothing), the load executed in BATCHES for size (the five-hundred-row load as manageable tranches — the failure at row 340 of a batched load being a contained restart, versus the monolith's half-landed mess), and the partial-failure posture decided in advance (the rows that failed logged, corrected, and re-run — never hand-created in a hurry to 'finish', because the hand-created stragglers are the ones that skip the very validations the import enforced).</p><p><b>Stage 4 — the post-load verification.</b> The load proven, not assumed: the COUNT reconciled (rows in the file = documents created + failures explained — to the row, always), the SPOT CHECKS walked (a sample of created documents opened and read against the source — the fields landed where they should, the links resolved to the right masters), the AGGREGATE checks where the load carries values (the opening-balance load's totals against the source system's — the accounts track's migration reconciliation being exactly this at its most consequential: the opening stock value, the receivables total, the trial balance's agreement, verified before anyone builds on them), and the verification FILED with the import's log entry (Chapter 3's event, completed by its evidence). The chapter's closing cadence, in the academy's oldest shape: the discipline costs an hour per significant load — against the alternative six tracks' cleanup case studies have priced in months: the unvalidated founding import is the phantom stock, the duplicate books, and the wrong opening balances of every remediation war story, and the certified admin is the person who makes those stories impossible to start.</p>"
+   },
+   {
+    "title": "Chapter 5 — Bulk updates: power governed by blast radius",
+    "est": "13",
+    "html": "<p>The machinery can change hundreds of documents at once — the bulk edit, the mass update, the update-via-import. Power of that radius is governed accordingly. The bulk chapter.</p><p><b>The instruments.</b> The bulk-change toolkit named: the BULK EDIT on list views (the selected records' field changed in one act — quick, visible, and bounded by the selection), the UPDATE-VIA-IMPORT (the existing records modified by a keyed file — the precise instrument for the large or complex change: the price list's revision, the category re-mapping), and the report-driven update patterns beyond — each carrying the same character: one act, many documents, and the mistake multiplied by the same arithmetic as the intention.</p><p><b>The governed procedure.</b> The bulk change as a ceremony, its steps in order: the DECISION by the owning function (the price update is selling's decision; the admin executes — the authority map's most-repeated clause, at the instrument where its breach is largest), the SCOPE defined precisely (which records, by what filter — the filter itself reviewed, because the bulk edit's classic disaster is the selection wider than the intention: the 'all items' that meant 'these items'), the BEFORE-SNAPSHOT taken (the affected records exported as they stand — the cheap insurance that makes 'undo' a re-import instead of an archaeology: the snapshot being this layer's version of every track's frozen history, taken voluntarily because bulk edits don't freeze anything), the REHEARSAL for the significant change (the test site again — the update run, the results read), the EXECUTION in the quiet window, and the VERIFICATION (the count, the spot checks, the aggregate where values moved — Chapter 4's stage four, applied to changes as to creations), all LOGGED as the event it is.</p><p><b>The refused operations.</b> The lines the admin holds: the BULK DELETE (refused as a category — the mass removal of documents is the trail-punching delete of module 2 at industrial scale, and the legitimate ends it claims to serve have governed means: the master no longer used is DISABLED, not deleted — the retirement pattern of every track, at the data layer; the truly-wrong records from a botched load are removed under the botched load's own remediation event, narrowly, logged, with the before-snapshot in hand), the bulk change on SUBMITTED documents (the sealed layers of six tracks — the bulk instrument does not unseal what the process sealed: corrections to submitted history travel the functions' own correction machinery, document by document, per their laws), and the bulk change as FAVOUR (the 'just update all their territories quickly' corridor ask — met with the channel and the owner, per the craft of module 1: the radius makes the refusal easier to explain, not harder).</p><p><b>The blast-radius habit.</b> The chapter's closing instinct, taught as a reflex: before any bulk act, the admin says the radius OUT LOUD (the count of affected records, the downstream links they carry, the reports and fences that read the changed field) — because the field that looks cosmetic is load-bearing somewhere (the item group that drives the fences, the territory that drives the pricing, the branch that drives the record-level permissions of module 2: the changed field rippling through every design that reads it), and the two-minute radius statement is the difference between the governed bulk change and the Tuesday everyone remembers. Power proportional to procedure: the academy's oldest trade, at the layer with the biggest lever.</p>"
+   },
+   {
+    "title": "Chapter 6 — Rename, merge & deduplicate: the singular identity",
+    "est": "14",
+    "html": "<p>The master laws demand each real-world thing exist ONCE — and when reality drifts (the duplicate customer, the misnamed item), three operations restore it: rename, merge, deduplicate. The most irreversible chapter, handled with proportional care.</p><p><b>The rename.</b> The master's identity changed — the mechanics and the caution: the platform's rename carries the LINKS along (the documents referencing the old name follow to the new — the mechanical half handled), but the admin's checklist covers what machinery cannot: the HISTORY's readability (the old name in printed documents, filed evidence, and human memory — the rename that confuses three years of archives weighed against its benefit), the EXTERNAL references (the name in the bank's records, the collector's filings, the integration's mappings — module 6's inventory consulted before any externally-visible master renames), and the AUTHORISATION (the rename is the owning function's decision — the customer renamed because selling says the legal name changed, never because someone prefers a spelling), with renames LOGGED and rare: identity is the point of a master, and stable identity is most of its value.</p><p><b>The merge.</b> The operation that unites duplicates — taught as the layer's most consequential act: the merge takes two masters that are ONE real thing and makes them one record (the survivor keeps the identity; the duplicate's documents, balances, and history transfer to it; the duplicate ceases), which makes the pre-merge discipline everything: the DUPLICATION confirmed by the owner (the two customers that look alike may be a branch relationship, a father and son, two genuine entities — the function's knowledge, not the admin's guess: the merge on a false duplicate is two histories scrambled into one lie), the SURVIVOR chosen deliberately (the record with the correct identity, the richer history, the referenced name — the choice documented), the BALANCES understood (the merged customer's receivables uniting — the accounts view read before and after, because the merge moves money's addresses), the REHEARSAL for the consequential merge (test site, again — the merge run, the united record read), and the act LOGGED with both names (the merge log being the answer to 'where did that customer go?' forever after). The irreversibility stated without softening: <b>the merge does not un-merge</b> — the operation's care is proportional to that sentence, and the admin who feels rushed toward a merge has found a reason to slow down.</p><p><b>The deduplicate hunt.</b> The prevention-and-cure system: PREVENTION first (the naming series closing the free-text leak — Chapter 2; the creation pens narrow — the functions' own master laws; the duplicate-check habits at creation: the search-before-create discipline the functions teach their narrow pens), the HUNT as a standing read (the duplicate scan per master type on the quarterly hygiene calendar — the exact-name doubles trivially found; the FUZZY duplicates — the spelling variants, the abbreviated twins, the swapped word orders — found by the sorted-list eyeball and the similarity reads: the hunt is craft, and the admin learns each master type's duplication signatures: customers duplicate by spelling, items by unit variants, suppliers by branch confusion), the FINDINGS routed (the candidate list to the owning function for confirmation — the admin hunts; the owner rules; the confirmed duplicates merge by the discipline above), and the SOURCES fixed (each duplicate's origin asked — the import that loaded variants, the pen that skipped the search, the leak the series left open: the hunt that only merges treats symptoms; the hunt that closes origins retires the species, the module-2 lesson at the data layer).</p><p><b>The operations' shared law.</b> The chapter's closing frame: rename, merge, and dedup all touch IDENTITY — the layer beneath the layers, where every link, fence, balance, and history keys — and the shared governance follows: the owner decides, the admin executes, the test site rehearses the consequential, the log remembers both names, and the irreversible is treated as irreversible. Identity operations are the master machinery's surgery: rare, scheduled, consented, and never performed in the corridor.</p>"
+   },
+   {
+    "title": "Chapter 7 — Data quality reads & the custodianship map",
+    "est": "13",
+    "html": "<p>The layer's maintenance rhythm: the quality reads that keep the masters clean, and the map that keeps every master type owned. The hygiene chapter.</p><p><b>The quality reads.</b> The quarterly scan, read by read: the INCOMPLETE masters (the mandatory-in-spirit fields empty — the customer without a territory, the item without its group, the employee record's gaps: the incompleteness that breaks fences, reports, and imports downstream, listed per master type and routed to the owning pens for filling), the ORPHANED records (the documents referencing disabled or absent masters — the invoice against the merged-away customer that predates the merge log's era, the stock in a warehouse nobody owns: each orphan a small archaeology with a routing), the STALE masters (the untouched-for-years read — the customer with no transactions since the old era, the item never sold: candidates for the DISABLE retirement, per the owner's ruling — the master list that only grows is the museum every track convicted, and disabling is how master lists breathe), the FREE-TEXT drift (the fields that should be selects filled with variants — 'Lagos', 'lagos', 'LAGOS' as three territories: the variants unified by the governed bulk instrument, the field tightened to a link or select through the change discipline), and the DUPLICATE scan (Chapter 6's hunt, on its calendar seat).</p><p><b>The custodianship map.</b> The site book's master page, completed: every master TYPE listed with its CONTENT OWNER (the function's narrow pen — items to inventory's named authority, customers to selling's, the chart to the accountant, employees to HR, structures to payroll: the six tracks' assignments, gathered on one page), its SERIES (Chapter 2's format, documented), its CREATION path (the pen, the mandatory standard, the duplicate-check habit), and its HYGIENE owner for the reads above (the admin runs the scans; the owner rules the findings — the standing split, written down per type so the quarterly read is a routing exercise, not a negotiation), with the map's second service noted: it is the IMPORT sequencing chart (Chapter 4's dependency order readable from the link structure) and the new admin's data orientation in one page.</p><p><b>The quality metrics.</b> The layer's trend line, kept simple: the counts per read per quarter (incomplete, orphaned, stale, duplicate — four numbers per master type), TRENDED (the falling counts as the pens tighten and the origins close — the layer measured by its own quieting, the academy's standard success shape), and escalated by exception (the count that climbs names its origin — the new pen that skips the search, the import that landed variants, the leak reopened: the quality metrics as the master machinery's own health read, feeding module 7's monitoring posture).</p><p><b>The hygiene economics.</b> The chapter's closing argument, for the owner conversation: master hygiene is the cheapest layer to maintain and the most expensive to restore — the quarterly read costs an afternoon; the neglected master file costs a remediation engagement (the trade's cleanup war stories being, at root, master stories: the duplicate customers that split one debtor's history, the item variants that made stock uncountable, the free-text territories that broke every report) — and the certified admin's quiet value proposition is exactly this: the site whose masters stay clean never needs the engagement that fixes them, which is invisible on every invoice and priceless on all of them.</p>"
+   },
+   {
+    "title": "Chapter 8 — Case study: HealthTrade's master year",
+    "est": "16",
+    "html": "<p>The master machinery, governed through a year. Every chapter clocks in.</p><p><b>The residue cleaned (Ch. 6).</b> The dedup hunt's first quarter finds the implementation era's expected sediment: the customer scan surfaces four candidate pairs — three confirmed by Selling's owner as true duplicates (spelling variants from the founding import — 'Chidera Pharmacy Ltd' beside 'Chidera Pharm.'), one REFUSED (two genuinely distinct outlets sharing a family name — the owner's knowledge doing exactly what Chapter 6 said the admin's guess cannot). The three merges run by the book: survivors chosen for correct legal names, the receivables read before and after (one united balance now telling one debtor's true story — the selling track's aging report visibly cleaner the same day), rehearsed on test, logged with both names. The origins closed: the founding import's variant-spelling source identified, and the customer creation pen's search-before-create habit added to Selling's own checklist.</p><p><b>The new-branch load (Ch. 3-4).</b> The Abeokuta branch expansion delivers the year's big legitimate import: the master set loaded in dependency order (the branch and cost center, the warehouse set, the opening price list rows) — template fresh, links validated, the five-hundred-row price file REHEARSED on test (the rehearsal catching a decimal-format pollution in forty rows — the spreadsheet's cosmetics caught in rehearsal, exactly as priced), loaded in batches in the Sunday quiet window, and verified to the row: counts reconciled, spot checks walked, the price list's aggregate spot-totals against the source file. The import log's entry carries the whole event — and the MD's note reads the chapter back: <i>the last branch opening took three weeks of data arguments; this one took a Sunday and a checklist.</i></p><p><b>The bulk update governed (Ch. 5).</b> The year's price revision arrives as the ceremony: Selling's owner decides (the supplier increase passing through), the scope filtered and REVIEWED (the filter's first draft catching a category too many — the selection-wider-than-intention classic, caught at the review step it exists for), the before-snapshot exported, the update-via-import rehearsed and run, the verification's spot checks against the approved sheet — and the radius said out loud before execution (<i>214 items, feeding the price fences and every open quotation's refresh behaviour</i> — the blast-radius habit, performed). One refused operation enters the log the same quarter: a corridor request to bulk-delete 'old test items' — met with the retirement pattern instead (the items DISABLED through Inventory's owner, the histories intact, the list breathing without amputation).</p><p><b>The series and the reads (Ch. 2, 7).</b> The series audit finds one live risk: the new branch's invoice series proposal nearly collides with an existing prefix — caught at the design review (the format catalogue consulted before configuration, the collision averted on paper instead of in production: the cheapest possible version of that story). The quality reads' first year trends exactly as designed: incomplete masters from 31 to 6 (the owning pens filling their lists), free-text drift unified in two governed bulk passes (the territory variants collapsed, the field tightened to a link), stale masters' first retirement wave disabling nineteen museum pieces through their owners, and the quarterly four-numbers-per-type page entering the site book beside the custodianship map. The ops lead's year-note closes the case: <i>the masters used to be where data went to drift; now every type has a series, an owner, a read, and a door — and nothing enters twice.</i></p>"
+   },
+   {
+    "title": "Chapter 9 — Common mistakes & the third law",
+    "est": "13",
+    "html": "<p>The master machinery's scar tissue. Symptom → disease → fix.</p><p><b>Pattern 1 — the import as routine bypass.</b> Symptom: daily transactions arriving as files; validations skipped, approvals never asked; the system demoted to an expensive filing cabinet. Disease: the process bypassed wearing a tool (Ch. 3). Fix: the legitimate catalogue applied at the channel, the import right on the dangerous register, and routine-import requests read as the design signals they are — fixed at the process layer through the owning function.</p><p><b>Pattern 2 — the unvalidated load.</b> Symptom: the founding import's errors compounding for years; the phantom stock, duplicate books, and wrong opening balances of every remediation story. Disease: the discipline skipped at the moment it mattered most (Ch. 4). Fix: template exactness, dependency sequencing, rehearsal for the significant, batched loads, and verification to the row — an hour per load against months per cleanup.</p><p><b>Pattern 3 — the casual rename.</b> Symptom: identities shifting by preference; archives that no longer match their subjects; external references broken silently. Disease: identity treated as a label (Ch. 6). Fix: renames authorised by owners, checked against history and external references, logged, and rare — stable identity being most of a master's value.</p><p><b>Pattern 4 — duplicate sprawl.</b> Symptom: one debtor split across three records; stock uncountable across item variants; every report a merge nobody ran. Disease: the leaks open and the hunt never scheduled (Ch. 2, 6). Fix: the series closing free-text leaks, the quarterly hunt with owner-confirmed merges, and every duplicate's origin closed — the species retired, not just the specimens.</p><p><b>Pattern 5 — the bulk edit disaster.</b> Symptom: the selection wider than the intention; hundreds changed in one act; no snapshot, no rehearsal, no way back. Disease: power without ceremony (Ch. 5). Fix: the governed procedure — owner's decision, reviewed scope, before-snapshot, rehearsal, quiet window, verification, log — and the radius said out loud before every act.</p><p><b>Pattern 6 — series chaos.</b> Symptom: counters reset into collisions; formats drifting mid-life; free-text names beside the series; prefixes multiplying by mood. Disease: the registrar's machinery unadministered (Ch. 2). Fix: forward-only counters, documented formats in the catalogue, leaks closed by configuration, and series changes through the change discipline — every master born already named by law.</p><p><b>The third law.</b> The custodian named, the fences proven — and now the data governed at its door: <b>masters enter governed, once — named by administered series, loaded through the validated door in dependency order, changed in bulk only by ceremony, united by owner-confirmed merges that never un-merge, retired by disabling, and kept singular by the quarterly hunt that closes origins.</b> The functions own what the masters say; the admin owns how they enter, change, and stay clean — and the site whose masters are governed this way never becomes the cleanup engagement, which is the certified admin's quietest and largest gift. Module 4 turns to the layer that guarantees all of it survives anything: backups, recovery, and business continuity.</p>"
+   }
+  ],
+  "questions": [
+   {
+    "q": "The custodianship split at the master layer is:",
+    "opts": [
+     "Functions own the masters' CONTENT; the admin owns the MACHINERY — series, imports, merges, hygiene",
+     "The admin authors content",
+     "The host owns both",
+     "Nobody owns masters"
+    ],
+    "ans": 0,
+    "why": "The registrar's clerk, never the author.",
+    "src": "Ch1"
+   },
+   {
+    "q": "The admin creating a missing item at a user's request is:",
+    "opts": [
+     "Helpful",
+     "Authoring inventory content with a platform pen — the corridor grant's master-data twin",
+     "Standard",
+     "Efficient"
+    ],
+    "ans": 1,
+    "why": "The owner decides; the admin executes.",
+    "src": "Ch1"
+   },
+   {
+    "q": "Most cleanup engagements trace to:",
+    "opts": [
+     "Bad users",
+     "The host",
+     "Imports done casually a long time ago, compounding since — the unvalidated founding load",
+     "Bad luck"
+    ],
+    "ans": 2,
+    "why": "The original sin of the remediation war stories.",
+    "src": "Ch1"
+   },
+   {
+    "q": "Numbers are:",
+    "opts": [
+     "Information",
+     "Reusable",
+     "Decorative",
+     "Identity, not information — the number encoding categories is a design smell; categories change, identities must not"
+    ],
+    "ans": 3,
+    "why": "The registrar law, seated on its machinery.",
+    "src": "Ch2"
+   },
+   {
+    "q": "Counters move:",
+    "opts": [
+     "Forward only — set manually only in the governed migration moment with the existing maximum verified first",
+     "Either way",
+     "Backward at year-end",
+     "Randomly"
+    ],
+    "ans": 0,
+    "why": "The collision discipline.",
+    "src": "Ch2"
+   },
+   {
+    "q": "The series that jumps a thousand is:",
+    "opts": [
+     "Normal",
+     "A question — gaps are tolerable but explained; the gap is the series' own audit trail",
+     "Broken",
+     "Ignored"
+    ],
+    "ans": 1,
+    "why": "The honest gap versus the mystery.",
+    "src": "Ch2"
+   },
+   {
+    "q": "Free-text naming beside the series is:",
+    "opts": [
+     "Flexibility",
+     "Convenient",
+     "The leak the cleanup found as 'Chidi's customer' — closed by configuration, the series made mandatory",
+     "Rare"
+    ],
+    "ans": 2,
+    "why": "The series diseases, named.",
+    "src": "Ch2"
+   },
+   {
+    "q": "Each import row becomes:",
+    "opts": [
+     "A suggestion",
+     "A log line",
+     "A draft",
+     "A document as real as if typed — every governance question multiplied by the row count"
+    ],
+    "ans": 3,
+    "why": "The power and the peril in one sentence.",
+    "src": "Ch3"
+   },
+   {
+    "q": "Legitimate imports are:",
+    "opts": [
+     "The short catalogue — implementation loads, bulk master events, migrations, governed corrections",
+     "Anything bulk",
+     "Daily sales",
+     "Whatever saves time"
+    ],
+    "ans": 0,
+    "why": "Everything outside it is the disease.",
+    "src": "Ch3"
+   },
+   {
+    "q": "The routine transaction import means:",
+    "opts": [
+     "Efficiency",
+     "The process bypassed wearing a tool — the firm computerised its spreadsheet, not its process",
+     "Modern practice",
+     "Scale"
+    ],
+    "ans": 1,
+    "why": "The system demoted to an expensive filing cabinet.",
+    "src": "Ch3"
+   },
+   {
+    "q": "The import log answers:",
+    "opts": [
+     "Nothing",
+     "Audit trivia",
+     "'Where did these three hundred customers come from?' with a log line, not a shrug",
+     "Storage questions"
+    ],
+    "ans": 2,
+    "why": "The site's data provenance.",
+    "src": "Ch3"
+   },
+   {
+    "q": "Templates are:",
+    "opts": [
+     "Reusable forever",
+     "The host's",
+     "Optional",
+     "Downloaded fresh — fields drift with updates, and the stale template is the column-mismatch mystery"
+    ],
+    "ans": 3,
+    "why": "Stage one's first rule.",
+    "src": "Ch4"
+   },
+   {
+    "q": "Master loads are sequenced because:",
+    "opts": [
+     "Link fields must reference masters that EXIST — groups before items, territories before customers",
+     "Alphabets",
+     "Size",
+     "Habit"
+    ],
+    "ans": 0,
+    "why": "The dependency order drawn before any file is filled.",
+    "src": "Ch4"
+   },
+   {
+    "q": "The significant load is:",
+    "opts": [
+     "Run directly",
+     "Rehearsed on the test site — errors in rehearsal cost minutes; in production, a cleanup",
+     "Estimated",
+     "Skipped"
+    ],
+    "ans": 1,
+    "why": "The iron habit at the loading dock.",
+    "src": "Ch4"
+   },
+   {
+    "q": "Failed rows are:",
+    "opts": [
+     "Hand-created quickly",
+     "Ignored",
+     "Logged, corrected, and re-run — the hand-created stragglers skip the very validations the import enforced",
+     "Deleted"
+    ],
+    "ans": 2,
+    "why": "The partial-failure posture, decided in advance.",
+    "src": "Ch4"
+   },
+   {
+    "q": "Post-load verification includes:",
+    "opts": [
+     "A glance",
+     "An email",
+     "Nothing",
+     "The count to the row, spot checks against source, and aggregate checks where values moved"
+    ],
+    "ans": 3,
+    "why": "The load proven, not assumed.",
+    "src": "Ch4"
+   },
+   {
+    "q": "The bulk edit's classic disaster is:",
+    "opts": [
+     "The selection wider than the intention — the 'all items' that meant 'these items'",
+     "Slow servers",
+     "Typos",
+     "Timing"
+    ],
+    "ans": 0,
+    "why": "The scope reviewed, because of exactly this.",
+    "src": "Ch5"
+   },
+   {
+    "q": "The before-snapshot makes:",
+    "opts": [
+     "Reports",
+     "'Undo' a re-import instead of an archaeology — the voluntary frozen history bulk edits don't provide",
+     "Backups redundant",
+     "Audits happy"
+    ],
+    "ans": 1,
+    "why": "The cheap insurance, taken always.",
+    "src": "Ch5"
+   },
+   {
+    "q": "Bulk delete is:",
+    "opts": [
+     "A cleanup tool",
+     "Monthly hygiene",
+     "Refused as a category — the master no longer used is DISABLED; retirement, not amputation",
+     "Fast"
+    ],
+    "ans": 2,
+    "why": "The trail-punching delete at industrial scale.",
+    "src": "Ch5"
+   },
+   {
+    "q": "Bulk changes to submitted documents:",
+    "opts": [
+     "Save time",
+     "Need no log",
+     "Are standard",
+     "Do not happen — corrections to sealed history travel the functions' own machinery, document by document"
+    ],
+    "ans": 3,
+    "why": "The bulk instrument does not unseal what the process sealed.",
+    "src": "Ch5"
+   },
+   {
+    "q": "The blast-radius habit is:",
+    "opts": [
+     "The radius said OUT LOUD before any bulk act — the cosmetic-looking field is load-bearing somewhere",
+     "Paperwork",
+     "Fear",
+     "Optional"
+    ],
+    "ans": 0,
+    "why": "Two minutes against the Tuesday everyone remembers.",
+    "src": "Ch5"
+   },
+   {
+    "q": "The rename's machinery handles links; the admin's checklist covers:",
+    "opts": [
+     "Nothing more",
+     "History's readability, external references, and the owner's authorisation",
+     "Fonts",
+     "Speed"
+    ],
+    "ans": 1,
+    "why": "Stable identity is most of a master's value.",
+    "src": "Ch6"
+   },
+   {
+    "q": "The two similar customers may be:",
+    "opts": [
+     "Always duplicates",
+     "Always merged",
+     "A branch relationship, a father and son, two genuine entities — the owner's knowledge, not the admin's guess",
+     "Ignored"
+    ],
+    "ans": 2,
+    "why": "The merge on a false duplicate scrambles two histories into one lie.",
+    "src": "Ch6"
+   },
+   {
+    "q": "The merge:",
+    "opts": [
+     "Can be undone",
+     "Is automatic",
+     "Is routine",
+     "Does not un-merge — care proportional to that sentence; the rushed admin has found a reason to slow down"
+    ],
+    "ans": 3,
+    "why": "The layer's most consequential act.",
+    "src": "Ch6"
+   },
+   {
+    "q": "The dedup hunt that only merges:",
+    "opts": [
+     "Treats symptoms — the hunt that closes origins retires the species",
+     "Is complete",
+     "Is enough",
+     "Is fast"
+    ],
+    "ans": 0,
+    "why": "Each duplicate's origin asked and fixed.",
+    "src": "Ch6"
+   },
+   {
+    "q": "Fuzzy duplicates are found by:",
+    "opts": [
+     "Exact matching only",
+     "Craft — sorted-list eyeballs and similarity reads; each master type has its duplication signatures",
+     "Luck",
+     "Users"
+    ],
+    "ans": 1,
+    "why": "Customers by spelling, items by unit variants, suppliers by branch confusion.",
+    "src": "Ch6"
+   },
+   {
+    "q": "Identity operations are:",
+    "opts": [
+     "Corridor work",
+     "Daily tasks",
+     "The master machinery's surgery — rare, scheduled, consented, never performed in the corridor",
+     "Automated"
+    ],
+    "ans": 2,
+    "why": "Rename, merge, dedup share one governance.",
+    "src": "Ch6"
+   },
+   {
+    "q": "Stale masters are:",
+    "opts": [
+     "Deleted",
+     "Renamed",
+     "Kept forever",
+     "DISABLED through their owners — the list that only grows is the museum; disabling is how master lists breathe"
+    ],
+    "ans": 3,
+    "why": "The retirement pattern at the data layer.",
+    "src": "Ch7"
+   },
+   {
+    "q": "'Lagos', 'lagos', 'LAGOS' as three territories is:",
+    "opts": [
+     "Free-text drift — unified by the governed bulk instrument, the field tightened to a link",
+     "Harmless",
+     "A feature",
+     "Rare"
+    ],
+    "ans": 0,
+    "why": "The variants that break every report.",
+    "src": "Ch7"
+   },
+   {
+    "q": "The custodianship map doubles as:",
+    "opts": [
+     "Decoration",
+     "The import sequencing chart and the new admin's data orientation in one page",
+     "A org chart",
+     "A backup"
+    ],
+    "ans": 1,
+    "why": "The link structure read as dependency order.",
+    "src": "Ch7"
+   },
+   {
+    "q": "Master hygiene economics:",
+    "opts": [
+     "Expensive to keep, cheap to restore",
+     "Equal both ways",
+     "The cheapest layer to maintain, the most expensive to restore — an afternoon quarterly versus a remediation engagement",
+     "Unknowable"
+    ],
+    "ans": 2,
+    "why": "The certified admin's quiet value proposition.",
+    "src": "Ch7"
+   },
+   {
+    "q": "HealthTrade's refused merge pair was:",
+    "opts": [
+     "An error",
+     "Deleted",
+     "Merged later",
+     "Two genuinely distinct outlets sharing a family name — the owner's knowledge doing what the admin's guess cannot"
+    ],
+    "ans": 3,
+    "why": "Chapter 6's discipline, live.",
+    "src": "Ch8"
+   },
+   {
+    "q": "The rehearsal caught:",
+    "opts": [
+     "Decimal-format pollution in forty rows — the spreadsheet's cosmetics, caught at the priced moment",
+     "Nothing",
+     "A virus",
+     "A collision"
+    ],
+    "ans": 0,
+    "why": "Errors in rehearsal cost minutes.",
+    "src": "Ch8"
+   },
+   {
+    "q": "The 'old test items' corridor request was met with:",
+    "opts": [
+     "Bulk delete",
+     "The retirement pattern — DISABLED through Inventory's owner, histories intact, the list breathing without amputation",
+     "Silence",
+     "A quick yes"
+    ],
+    "ans": 1,
+    "why": "The refused operation, logged.",
+    "src": "Ch8"
+   },
+   {
+    "q": "This module's law is:",
+    "opts": [
+     "Data enters freely",
+     "Imports are always fine",
+     "Masters enter governed, once — administered series, the validated door in dependency order, bulk by ceremony, merges that never un-merge, retirement by disabling, the quarterly hunt closing origins",
+     "Deletes clean up"
+    ],
+    "ans": 2,
+    "why": "The site that never becomes the cleanup engagement.",
+    "src": "Ch9"
+   }
+  ]
  }
 }
