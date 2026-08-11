@@ -13,7 +13,7 @@ import os
 
 import frappe
 
-ORDER = ["chart_gl", "journal_entries", "banking", "ar_ap_chair", "tax_compliance", "dimensions", "close_statements"]
+ORDER = ["chart_gl", "journal_entries", "banking", "ar_ap_chair", "tax_compliance", "dimensions", "close_statements", "advanced_accounts"]
 
 TRACK = {
 	"title": "ZhiftERP Accounts Professional",
