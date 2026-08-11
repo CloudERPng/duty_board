@@ -13,7 +13,7 @@ import os
 
 import frappe
 
-ORDER = ["warehouses", "stock_entries", "serial_batch", "counting"]
+ORDER = ["warehouses", "stock_entries", "serial_batch", "counting", "valuation"]
 
 TRACK = {
 	"title": "ZhiftERP Inventory Management Professional",

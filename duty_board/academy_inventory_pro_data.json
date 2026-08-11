@@ -1890,5 +1890,478 @@
     "src": "Ch9"
    }
   ]
+ },
+ "valuation": {
+  "title": "Inventory 5 — Valuation & the Stock Ledger",
+  "desc": "The money layer of stock: what valuation is and where cost is born, moving average and FIFO mechanics, choosing and keeping a method, how every document writes value, negative stock as poison, backdating and revaluation governance, and the remediation craft.",
+  "lessons": [
+   {
+    "title": "Chapter 1 — Valuation: where quantity meets money",
+    "est": "13",
+    "html": "<p>Module 1 promised that every warehouse balance is also a naira figure; this module is HOW. Valuation is the machinery that attaches a cost to every unit from the moment it arrives, carries that cost through every movement, and releases it into the profit calculation the moment the unit sells — and understanding it turns three kinds of mystery into arithmetic.</p><p><b>The three numbers valuation produces.</b> <b>The stock asset</b>: every item-at-warehouse quantity times its carried cost, summed — the balance sheet's inventory line, and the number module 4's counting verified the QUANTITY half of. <b>COGS</b>: when goods sell, their carried cost leaves stock and becomes cost of goods sold — the number margin subtracts. <b>Margin itself</b>: revenue minus COGS is only as true as the cost the goods carried — which is the sentence that makes this module commercial rather than clerical: <b>valuation correctness IS margin correctness</b>. Every valuation error in this module's bestiary — the selling-price opening, the zero-rate ghost, the negative-stock corruption — surfaces to the owner as margins that lie, and the consultant who can walk from a strange margin report back through COGS to the ledger entry that poisoned it is worth their fee that day.</p><p><b>Where cost comes from.</b> The carried cost is BORN at arrival: the Purchase Receipt's rate (the PO's committed rate travelling — Procurement 5's protection) plus the landed allocations (Procurement 6's voucher) — the full acquisition truth, written into the ledger entry the day possession happens. Every later movement either CARRIES that cost (transfers — the goods cost what they cost regardless of the room), RELEASES it (deliveries, issues, write-offs — value out at the carried figure), or ADJUSTS it deliberately (the governed exceptions of Chapter 7). Nothing in ordinary trade re-decides cost after arrival — which is why the gates mattered so much, and why this module keeps pointing backward: valuation is not a month-end calculation; it is <b>the gate disciplines, compounded</b>.</p><p><b>The two methods, introduced.</b> When identical units arrived at different costs (January's carton at ₦9,400, March's at ₦9,600) and one sells, which cost leaves? The method answers: <b>moving average</b> blends every arrival into one evolving rate per item-warehouse and releases at the blend (Chapter 2); <b>FIFO</b> keeps each arrival as its own cost layer and releases oldest-first (Chapter 3). Both are honest; they distribute the same total cost differently across time; and the choice, its trade-offs, and the law that you keep it once chosen are Chapter 4's business. What both share — and what this chapter wants permanent — is the writing moment: <b>valuation is written at the moment of movement</b>, entry by entry, and every report merely reads what the movements wrote.</p>"
+   },
+   {
+    "title": "Chapter 2 — Moving average: the blend",
+    "est": "14",
+    "html": "<p>The moving average is the workhorse method of Nigerian trading implementations, and its mechanics fit in one worked example — which you should be able to reproduce on a whiteboard for any client, because you will.</p><p><b>The worked example.</b> PARA-500 at Central, empty. <b>Receipt one</b>: 100 cartons at ₦9,400 → balance 100, value ₦940,000, average ₦9,400. <b>Receipt two</b>: 200 cartons at ₦9,600 → balance 300, value ₦940,000 + ₦1,920,000 = ₦2,860,000, average <b>₦9,533.33</b> — the blend: total value over total quantity, recomputed at every receipt. <b>A delivery of 120</b>: goods leave at the current average — COGS ₦1,144,000 (120 × ₦9,533.33), balance 180, value ₦1,716,000, average unchanged at ₦9,533.33 (issues never move the average; only arrivals at a different rate do). <b>Receipt three</b>: 100 at ₦9,850 (the backup distributor) → balance 280, value ₦2,701,000, average <b>₦9,646.43</b>. The rate is a living number, drifting with every purchase toward the current market — which is exactly its virtue and its vice.</p><p><b>The virtues.</b> Smoothness: COGS moves gradually, margins do not jump between two sales of identical goods, and the single per-item-warehouse rate is easy to read, quote, and reason about (the valuation rate on any bin IS the item's cost, full stop). Simplicity of story: for owners and their accountants, one number per item that means <i>what our stock of this costs us, blended</i> is an honest and communicable truth. For the price-volatile Nigerian supply environment, the blend also does quiet good work: FX-driven cost jumps enter the margin picture gradually rather than as a cliff between two invoices.</p><p><b>The vices — and their management.</b> <b>The blend has no memory</b>: once a rate enters, it disperses into every subsequent unit's cost, so a single bad receipt poisons the whole stream — the ₦94,000 keyed as ₦940,000 (the decimal slip), the zero-rate entry, the selling-price contamination — and the poison cannot be picked back out; it can only be diluted by future receipts or corrected by supervised revaluation (Chapter 7). The defence is upstream, and you already own every piece: the committed rate travelling untouched (maintain-same-rate), the landed voucher completing it, the last-paid drift eye (Procurement 2) that flags a receipt rate wildly off the item's history BEFORE it blends, and value thresholds on the odd documents that assert rates by hand. <b>The blend also hides vintage</b>: January's cheap stock and March's dear stock become indistinguishable in cost terms, so per-batch profitability questions need batch-level valuation granularity where the firm wants them (module 3's note, now with its mechanism), and slow-moving stock silently carries a partly-modern rate.</p><p><b>Reading a moving-average ledger.</b> The diagnostic skill: the item's valuation-rate HISTORY over time (each receipt's incoming rate against the evolving average) is a chart that confesses everything — the stable gentle drift of a healthy item, the cliff of a bad entry, the sawtooth of alternating suppliers, the slow decay toward zero of an item receiving free or misvalued stock. When margins on an item look wrong, this chart is the first thing you pull, and the entry where the line breaks is usually the whole answer.</p>"
+   },
+   {
+    "title": "Chapter 3 — FIFO: the queue of cost layers",
+    "est": "13",
+    "html": "<p>First-In-First-Out keeps what the average blends away: each arrival's cost stays intact as a LAYER, and issues consume the queue oldest-first. The same worked example, the other method.</p><p><b>The worked example, re-run.</b> PARA-500 at Central, empty. Receipt one: 100 at ₦9,400 → layer A [100 @ 9,400]. Receipt two: 200 at ₦9,600 → queue: [100 @ 9,400], [200 @ 9,600]; balance 300, value ₦2,860,000 — same total as the average method, differently organised. <b>The delivery of 120</b>: FIFO consumes oldest-first — all 100 of layer A (₦940,000) plus 20 of layer B (₦192,000): COGS <b>₦1,132,000</b> (vs the average's ₦1,144,000 — same goods, same total cost pool, different timing of release). Queue now: [180 @ 9,600]. Receipt three: 100 at ₦9,850 → [180 @ 9,600], [100 @ 9,850]. Every layer keeps its identity until consumed; the item's total value is the sum of its layers; and the difference between methods is never the total cost — it is WHEN each naira of it reaches COGS.</p><p><b>The virtues.</b> Vintage honesty: old cost leaves first, so COGS tracks the sequence in which money was actually spent, and in steadily-rising-cost environments FIFO's COGS runs cooler than the average's while stock value runs warmer (the remaining layers are the recent, dearer ones) — a difference the accountant cares about and the consultant should be able to explain in exactly that sentence. Layer visibility: the queue itself is information (how much of the balance is old-cost vs new-cost), and it harmonises conceptually with FEFO's physical discipline — first in, first out, in cost as on the shelf — though the two are INDEPENDENT systems (FEFO picks batches by expiry; FIFO releases cost by arrival order; they usually agree and nothing breaks when they don't).</p><p><b>The vices.</b> The reading burden: no single rate summarises the item — the bin's <i>rate</i> is an average of surviving layers that changes as they consume, which confuses exactly the people the moving average's one-number story serves; and diagnostics walk layers rather than a line. Sensitivity to sequence: FIFO's correctness depends on entry ORDER even more than the average's does, so backdating and out-of-sequence posting (Chapter 7) disturb it more visibly — the same discipline, higher stakes.</p><p><b>What both methods refuse.</b> Neither method lets ANYONE choose which cost a particular sale carries: the method is an algorithm, not a menu, and the temptation it forecloses is real — the hand-picked cost that flatters this month's margin is precisely what a method's consistency exists to prevent. Where a firm genuinely needs unit-level cost truth (the serialized chiller carrying ITS landed cost to ITS sale), serial-level valuation granularity provides it as architecture, not as discretion — the identity decision and the costing decision converging one more time.</p>"
+   },
+   {
+    "title": "Chapter 4 — Choosing the method — and keeping it",
+    "est": "13",
+    "html": "<p>Two honest methods, one choice, and a law about the choice: this chapter is the decision's anatomy and its governance.</p><p><b>The decision's owners.</b> The valuation method is an ACCOUNTING POLICY — the accountant (and where applicable the auditor) owns the choice; the consultant owns making its operational consequences vivid and its configuration correct. The conversation the consultant facilitates: how the two methods time cost release (the Chapter 2-3 examples, on the whiteboard), what each does to margins in a rising-cost environment, what the team can operationally sustain (the average's one-number story vs FIFO's layer reading), and what the firm's reporting jurisdictionally requires — the last being the accountant's sentence to finish, not yours.</p><p><b>The practical defaults, honestly stated.</b> For the Nigerian trading and pharmacy clients this curriculum serves, the moving average is the common choice and a defensible default: volatile input costs smooth into readable margins, the single rate communicates, and the operational literacy demands are lower — with the blend's vices managed by the upstream defences Chapter 2 listed. FIFO earns its place where vintage matters commercially (thin-margin distribution where cost timing IS the business), where the accountant's reporting stance prefers it, or where layer visibility answers questions the firm actually asks. Neither is a wrong answer; an UNMADE choice is — the default accepted without the conversation is an accounting policy adopted by accident, and Buying Settings' constitution logic applies here at full strength: the method field is the most consequential default in the stock system.</p><p><b>The consistency law.</b> Once chosen, the method is KEPT: applied to all items it governs (per-item variations exist for structural reasons — the serialized equipment on unit-level valuation beside the averaged consumables — but never as mood), applied across periods, and CHANGED only as a formal accounting event — accountant-led, effective-dated, disclosed where reporting requires, with the transition's revaluation computed and documented. The conviction underneath: method-flipping mid-year is margin manipulation's favourite costume, because each flip re-times cost release and a well-timed flip manufactures a good quarter — which is exactly why auditors treat method changes as events and why the consultant NEVER flips a method to make a report look right. The ticket that asks for it (<i>margins look bad — can we switch to FIFO?</i>) is answered with the diagnosis chapter: margins look wrong because of an ENTRY, almost always, and the entry is findable; the method is not the suspect.</p><p><b>Granularity decisions ride along.</b> The same conversation settles valuation's RESOLUTION: plain item-warehouse level (the default), batch-level where per-lot cost truth earns its keep (import vintages, the discounted-old-stock margin question), serial-level for the individually-valued unit. Each step up buys cost precision and costs bookkeeping — the identity architecture's economics, third appearance — and the choice is made at setup with the ten-year view, beside the flags it mirrors.</p>"
+   },
+   {
+    "title": "Chapter 5 — How every document writes value",
+    "est": "14",
+    "html": "<p>Valuation is written at the moment of movement — so here is every movement, and what each one writes. This chapter is the reference card the rest of the module leans on.</p><ul><li><b>Purchase Receipt</b> — value IN, born: quantity at the PO's rate, completed by the Landed Cost Voucher's allocations (which ADJUST the received entries' valuation after the fact — the one routine case of post-hoc adjustment, and it is document-governed). This entry is the most consequential valuation write in the system: every later cost is downstream of it.</li><li><b>Delivery Note (and sales returns)</b> — value OUT at the method's figure: the average, or the consumed layers. This write IS the COGS of the eventual sale; the return reverses at the value that left (the round-trip law from the trading tracks, now visible as valuation mechanics).</li><li><b>Material Issue / write-off</b> — value out at the method's figure, landing as expense where the attribution directs (Inv 2). The write-off's naira cost is this write.</li><li><b>Material Receipt</b> — value in at the ASSERTED rate (Inv 2's discipline: derived, not invented) — the entry with no upstream document to inherit from, which is exactly why its rate deserved thresholds and second eyes.</li><li><b>Transfers (one- and two-step)</b> — value TRAVELS: out of the source and into the destination (and through transit) at the carried figure. A transfer never revalues — restated here because the mechanics now show why: no acquisition happened, so no new cost exists to write. (Inter-COMPANY movement is different terrain — that is a sale and a purchase wearing transfer clothes, with its own pricing; flag it, don't improvise it.)</li><li><b>Stock Reconciliation</b> — the adjustment valued at the method's current figure for shortfalls (loss out at carried cost) and at the carried or asserted rate for surpluses; and — handled with gloves — the reconciliation CAN assert rates, which makes it the deliberate revaluation's instrument (Chapter 7) and the accidental revaluation's favourite accident (module 4's warning about the careless rate column, now with its full mechanism visible).</li><li><b>Repack</b> — conservation: outputs at the inputs' total value, allocated (Inv 2). No value created by changing the box; the write just reorganises it.</li></ul><p><b>The read side.</b> Reports never write valuation; they SUM it: the stock balance's value column, the warehouse-wise value (module 1's MD page), the stock ledger's running value per item, and — the bridge report — the stock-to-accounts reconciliation: the ledger's total stock value against the balance sheet's stock account, which should agree continuously and whose divergence is always a specific, findable set of entries (the accountant's month-end friend, and the consultant's first stop when <i>the books and the stock module disagree</i>). Every mystery in this module resolves by finding WHICH WRITE went wrong — and this card is the list of suspects.</p>"
+   },
+   {
+    "title": "Chapter 6 — Negative stock: the poison",
+    "est": "14",
+    "html": "<p>Now the module's sternest conviction. <b>Negative stock</b> — the ledger driven below zero, selling or issuing what the system does not hold — is not an inconvenience to be tolerated; it is poison to the valuation layer, and this chapter is why, where it comes from, and the posture.</p><p><b>Why it poisons.</b> Valuation releases cost from stock that EXISTS: the average has a rate because value and quantity are both present; FIFO has layers because arrivals were recorded. Drive the quantity below zero and the method must invent a cost for goods it never received — the negative-moment entries carry a fabricated or stale rate, and when the real receipt finally posts, the reconciliation between fiction and fact lands somewhere: rates jump, value totals diverge from quantity truth, and the stock-to-accounts bridge (Chapter 5) starts drifting. One item going negative for a day is a small wound; a firm TRADING on negative stock for months — selling ahead of posting receipts as habit — accumulates valuation damage that no single correction fixes: the SLOT-class remediation (Chapter 8's vignette) is what years of it look like, and it is measured in consultant-months.</p><p><b>The allow-negative setting.</b> The system offers a switch: allow negative stock. The posture: <b>OFF is the default and the discipline</b> — the refusal to sell what the ledger does not hold is the system telling the truth at the moment of temptation, and every refusal is a prompt to post the missing reality (the receipt sitting unentered, the transfer never received) BEFORE trading on it. The honest exceptions are narrow and eyes-open: the go-live transition window (trading must continue while history loads — bounded, dated, and closed), and certain fast-trade configurations where the operational reality (goods sold from the truck before paperwork lands) is a deliberate, accountant-acknowledged model with a same-day posting discipline that keeps negatives to hours. What the setting must never be: flipped on to make an error message go away — the Buying Settings conviction verbatim, because the error message IS the control, and silencing it converts a visible posting problem into an invisible valuation problem.</p><p><b>Where negatives come from — the causes, in order.</b> <b>Unposted receipts</b> (the goods arrived, sold briskly, the receipt queued — the dominant cause, and the fix is gate discipline plus posting-same-day culture); <b>wrong-warehouse sales</b> (the till selling from a leaf that never held the goods — module 1's defaults and restrictions are the fix); <b>sequence errors</b> (the receipt posted, but DATED after the sales it should have preceded — chronology, Chapter 7's terrain); and <b>genuine model mismatches</b> (the van-sales trade whose flows were never designed — a design conversation, not a toggle).</p><p><b>The response drill.</b> A negative flag is a same-day item: identify the missing or mis-dated reality (the ledger walk — the negative moment is visible as the exact entry that crossed zero), post the truth IN ORDER (the receipt with its honest date; the correcting transfer), and let the recompute settle; then the cycle-count trigger (module 4 wired it: negative-stock flags are counted the day they appear) verifies the physical truth the paperwork now matches. What the drill never does: reconcile the negative away by typing a counted quantity over it — the quantity heals and the poisoned rates remain, which is the half-fix that makes SLOT-class messes archaeologically fascinating and commercially expensive.</p>"
+   },
+   {
+    "title": "Chapter 7 — Backdating & the revaluation ripple",
+    "est": "13",
+    "html": "<p>The ledger is a chronology, and valuation compounds along it — so entries inserted INTO history, and rates changed AFTER the fact, both ripple forward. This chapter is the two governed exceptions to <i>the past is written</i>: the backdated entry and the deliberate revaluation.</p><p><b>The backdating ripple, mechanically.</b> Post a receipt dated the 3rd into a ledger already trading through the 10th, and everything recomputes from the 3rd forward: the average re-blends from that point (every issue between the 3rd and 10th re-releases at the corrected rate), FIFO re-queues its layers, COGS for the intervening sales changes, and the value totals as-at every intervening date shift. The system performs this recompute correctly — the machinery is built for it — but CORRECT is not the same as FREE: reports already circulated now disagree with the ledger's revised truth, a closed month's figures move if the date crosses a period boundary, and repeated casual backdating makes the ledger a document that will not sit still. The governance therefore: backdating is LEGITIMATE for late paperwork posted with its honest date (the truth belongs on the day it happened — Inv 2's law), BOUNDED by the accounting period discipline (entries into closed periods are the accountant's decision, not the storekeeper's convenience — period closing exists precisely to freeze what has been reported), and BATCHED thoughtfully (the month-end sweep that posts a week of stragglers knowingly, at once, with the accountant aware, beats the daily drizzle of surprises).</p><p><b>Deliberate revaluation — the supervised exercise.</b> Sometimes carried costs are WRONG at scale and must be corrected: the selling-price opening discovered late (module 4's disaster, in its remediation phase), the systematic rate error, the accountant-mandated write-down of impaired stock (the aged lot carried above its recoverable value — a policy call with accounting rules behind it). The instrument is the rate-asserting reconciliation (Chapter 5) or the dedicated revaluation entry per the setup — and the governance is the whole point: accountant-LED (the P&amp;L impact of revaluation lands as a gain or loss, and where it lands is their call), effective-DATED deliberately (the ripple is chosen, not stumbled into), DOCUMENTED as an exercise (what was wrong, what evidence set the new rates, what the impact was — the file the auditor will read), and RARE (a firm revaluing routinely has an upstream discipline problem wearing an accounting costume).</p><p><b>The consultant's boundary, drawn plainly.</b> You will be asked to <i>just fix the rates</i> — by clients, by their staff, sometimes urgently. The boundary: mechanical corrections of specific erroneous ENTRIES (the decimal-slip receipt, cancel-and-amend through the document trail) are implementation work; VALUATION POLICY — revaluations, write-downs, method transitions, closed-period entries — is accounting work you execute WITH the accountant, never instead of them. The consultant who reprices a client's stock asset on their own authority has assumed a liability they are not insured for; the one who frames the finding, quantifies the impact, and hands the accountant the decision with the tooling ready is doing the job at its professional grade — and this distinction, held consistently, is also what makes your findings trusted when it matters.</p>"
+   },
+   {
+    "title": "Chapter 8 — Case study: the valuation year — and the remediation",
+    "est": "16",
+    "html": "<p>Two stories: HealthTrade's healthy year, and the prospect whose system shows what years of broken valuation look like. Together they are this module's before-and-after.</p><p><b>HealthTrade's year (Ch. 1-7).</b> <b>The method hour</b>: moving average chosen with the accountant — volatile input costs, a team that reads one number well, batch-level granularity enabled for the import lines where vintage margins matter (the January $6.20 container vs March's dearer one now answer <i>did the old stock's discount still make money?</i> — yes, by 6 points). <b>The blend defended</b>: month five, a receipt keyed at ₦96,000 against a ₦9,600 history — the last-paid drift eye flags it BEFORE submission (Procurement 2's control, protecting Chapter 2's vice); the decimal slip dies in Draft, the blend never tastes it. <b>One negative incident</b>: a Friday flag on cough syrup at Abeokuta — the ledger walk shows the negative moment at Thursday's till; the cause is a transfer received Thursday PHYSICALLY but posted Friday (sequence, not loss); the receipt is posted with its honest Thursday date, the recompute settles, the trigger count confirms the shelf, and the posting-same-day rule gets a branch refresher. Allow-negative stays OFF; the refusal did its job by making the gap loud. <b>Month-end, every month</b>: the stock-to-accounts bridge agrees to the naira; the accountant's close takes the hour it should.</p><p><b>The remediation vignette (Ch. 6-7) — what you walk into.</b> A prospect asks for help: <i>our stock figures make no sense</i>. The diagnostic hour on their old system finds the classic archaeology: allow-negative ON for four years (switched on in week two to silence an error); hundreds of items with negative-moment histories; Material Receipts at supplier-like rates (the side-door trading of Inv 2, confirmed); opening stock keyed at selling prices in year one and never corrected; the stock-to-accounts bridge divergent by ₦38m and growing; margins that swing 20 points month to month on stable trade. The remediation shape — weeks, sequenced, priced honestly: <b>freeze the bleeding</b> (allow-negative off, the lawful flows restored, posting-same-day instituted — no remediation survives ongoing poisoning); <b>establish quantity truth</b> (the full count, module 4's run-book — valuation cannot be repaired on fictional quantities); <b>establish rate truth</b> (honest costs sourced item by item — purchase records, landed files, the module 4 opening discipline performed years late); <b>the supervised revaluation</b> (accountant-led, effective-dated, documented — the stock asset restated, the P&amp;L impact landed where they direct); and <b>the bridge reconciled</b> going forward, monthly, as the certificate the repair held. The vignette's lesson for the certification: every element of the remediation is a module of this track performed in reverse — which is why the firms that keep these laws never meet this consultant engagement, and why the consultant who holds this track can scope, price, and deliver it when a firm that didn't keeps calling.</p>"
+   },
+   {
+    "title": "Chapter 9 — Common mistakes & the fifth law",
+    "est": "13",
+    "html": "<p>The valuation layer's scar tissue — the diseases that surface as margins nobody believes. Symptom → disease → fix.</p><p><b>Pattern 1 — trading on negatives.</b> Symptom: allow-negative on; items living below zero; rate jumps when receipts finally post; the bridge drifting. Disease: the poison normalised (Ch. 6) — fictional cost invented at every negative moment. Fix: the setting off, the causes worked (unposted receipts, wrong-warehouse, sequence), the same-day drill, and where years have passed, the full remediation sequence — never the half-fix.</p><p><b>Pattern 2 — the count as revaluation.</b> Symptom: valuation rates shifting at every reconciliation; nobody meant to reprice anything. Disease: the rate column typed on ordinary count adjustments (Ch. 5; module 4's warning) — quantity corrections performing accidental revaluations. Fix: the rate column asserts nothing on ordinary counts; rate assertion reserved for the supervised exercise with its governance.</p><p><b>Pattern 3 — the casual backdate.</b> Symptom: reports that will not sit still; closed months moving; the accountant at war with the warehouse. Disease: chronology treated as a suggestion (Ch. 7). Fix: honest dates always, period discipline enforced (closed is closed, exceptions accountant-owned), the straggler sweep batched and announced.</p><p><b>Pattern 4 — the method flip.</b> Symptom: a method change lands suspiciously near a bad quarter. Disease: cost-release timing used as makeup (Ch. 4). Fix: the consistency law — changes as formal accounting events only, and the margin complaint answered by diagnosis (find the entry) rather than by switching algorithms.</p><p><b>Pattern 5 — the zero-rate and the decimal slip.</b> Symptom: an item's margin goes brilliant or catastrophic overnight. Disease: one bad rate entered the stream — the free-goods zero, the misplaced decimal, the selling-price contamination (Ch. 2, and modules 2 and 4's gates). Fix: the drift eye at entry, thresholds on rate-asserting documents, and when one lands anyway — the rate-history chart to find it, the document trail to correct it, the accountant where the impact crossed periods.</p><p><b>Pattern 6 — the unread bridge.</b> Symptom: <i>the books and the stock module disagree</i> discovered at year-end, by the auditor. Disease: the stock-to-accounts reconciliation never run (Ch. 5) — divergence compounding unread for months. Fix: the bridge monthly at close, divergences chased to their entries while they are one month old, and the agreement itself filed as the close's certificate.</p><p><b>The fifth law.</b> Module 1: the tree is the map of custody. Module 2: stock moves only by documents. Module 3: identity is operational. Module 4: the count is a dialogue. This module: <b>valuation is written at the moment of movement — every unit carries its honest cost from the day it arrives, and margin truth is nothing but this discipline compounded.</b> Guard the writing moments, refuse the negative, keep the method, govern the exceptions, and read the bridge — and the number the owner cares about most, the margin, becomes a number nobody has to defend, because every kobo of it can be walked back to a document. Three modules remain: the network, the reading, and the structure.</p>"
+   }
+  ],
+  "questions": [
+   {
+    "q": "Valuation produces:",
+    "opts": [
+     "The stock asset, COGS, and therefore margin — valuation correctness IS margin correctness",
+     "Only reports",
+     "Prices",
+     "Budgets"
+    ],
+    "ans": 0,
+    "why": "Every valuation error surfaces as margins that lie.",
+    "src": "Ch1"
+   },
+   {
+    "q": "Cost is born:",
+    "opts": [
+     "At month-end",
+     "At arrival — the receipt's rate plus landed allocations, written into the ledger entry",
+     "At sale",
+     "At the count"
+    ],
+    "ans": 1,
+    "why": "Nothing in ordinary trade re-decides cost after arrival.",
+    "src": "Ch1"
+   },
+   {
+    "q": "Valuation is:",
+    "opts": [
+     "A month-end calculation",
+     "An estimate",
+     "Written at the moment of movement — reports merely read what movements wrote",
+     "The accountant's spreadsheet"
+    ],
+    "ans": 2,
+    "why": "The gate disciplines, compounded.",
+    "src": "Ch1"
+   },
+   {
+    "q": "After receipts of 100 @ ₦9,400 and 200 @ ₦9,600, the moving average is:",
+    "opts": [
+     "₦9,400",
+     "₦9,500",
+     "₦9,600",
+     "₦9,533.33 — total value over total quantity"
+    ],
+    "ans": 3,
+    "why": "The blend recomputes at every receipt.",
+    "src": "Ch2"
+   },
+   {
+    "q": "Issues under moving average:",
+    "opts": [
+     "Release at the current average and leave it unchanged — only arrivals at a different rate move it",
+     "Move the average",
+     "Reset it",
+     "Use the last receipt's rate"
+    ],
+    "ans": 0,
+    "why": "The rate is a living number that drifts with purchases.",
+    "src": "Ch2"
+   },
+   {
+    "q": "The blend's core vice is:",
+    "opts": [
+     "Complexity",
+     "No memory — one bad receipt disperses into every subsequent unit's cost and cannot be picked out",
+     "Slowness",
+     "Illegality"
+    ],
+    "ans": 1,
+    "why": "Diluted by future receipts or corrected by supervised revaluation only.",
+    "src": "Ch2"
+   },
+   {
+    "q": "The bad-rate defence is:",
+    "opts": [
+     "Downstream cleanup",
+     "Faster typing",
+     "Upstream — committed rates travelling, the landed voucher, the last-paid drift eye, thresholds on asserted rates",
+     "Monthly reviews"
+    ],
+    "ans": 2,
+    "why": "Flag it BEFORE it blends.",
+    "src": "Ch2"
+   },
+   {
+    "q": "The rate-history chart:",
+    "opts": [
+     "Is decoration",
+     "Is for auditors only",
+     "Shows prices",
+     "Confesses everything — the cliff of a bad entry, the sawtooth of suppliers, the decay of misvaluation"
+    ],
+    "ans": 3,
+    "why": "The first pull when an item's margins look wrong.",
+    "src": "Ch2"
+   },
+   {
+    "q": "FIFO organises value as:",
+    "opts": [
+     "A queue of cost layers consumed oldest-first",
+     "One blended rate",
+     "Random layers",
+     "Selling prices"
+    ],
+    "ans": 0,
+    "why": "Every layer keeps its identity until consumed.",
+    "src": "Ch3"
+   },
+   {
+    "q": "The 120-carton delivery under FIFO released:",
+    "opts": [
+     "₦1,144,000",
+     "₦1,132,000 — all of layer A plus 20 of layer B",
+     "₦1,152,000",
+     "₦940,000"
+    ],
+    "ans": 1,
+    "why": "Same total cost pool as the average; different timing of release.",
+    "src": "Ch3"
+   },
+   {
+    "q": "The difference between the methods is:",
+    "opts": [
+     "The total cost",
+     "Legality",
+     "WHEN each naira reaches COGS — never the total",
+     "Accuracy"
+    ],
+    "ans": 2,
+    "why": "Both are honest; they distribute the same cost across time differently.",
+    "src": "Ch3"
+   },
+   {
+    "q": "FEFO and FIFO are:",
+    "opts": [
+     "The same system",
+     "Both about cost",
+     "Always in conflict",
+     "Independent — expiry picking vs cost release; they usually agree and nothing breaks when they don't"
+    ],
+    "ans": 3,
+    "why": "Physical discipline and cost algorithm, respectively.",
+    "src": "Ch3"
+   },
+   {
+    "q": "Neither method allows:",
+    "opts": [
+     "Hand-picking which cost a sale carries — the algorithm forecloses the flattering choice",
+     "Returns",
+     "Transfers",
+     "Write-offs"
+    ],
+    "ans": 0,
+    "why": "Consistency exists to prevent exactly that temptation.",
+    "src": "Ch3"
+   },
+   {
+    "q": "The valuation method is owned by:",
+    "opts": [
+     "The consultant",
+     "The accountant as accounting policy — the consultant makes consequences vivid and configuration correct",
+     "The storekeeper",
+     "The system"
+    ],
+    "ans": 1,
+    "why": "Their sentence to finish, not yours.",
+    "src": "Ch4"
+   },
+   {
+    "q": "An unmade method choice is:",
+    "opts": [
+     "Fine",
+     "Conservative",
+     "An accounting policy adopted by accident — the most consequential default in the stock system",
+     "Flexible"
+    ],
+    "ans": 2,
+    "why": "The constitution logic at full strength.",
+    "src": "Ch4"
+   },
+   {
+    "q": "'Margins look bad — can we switch to FIFO?' is answered by:",
+    "opts": [
+     "Switching",
+     "Both methods",
+     "A discount",
+     "Diagnosis — margins look wrong because of an ENTRY, findable; the method is not the suspect"
+    ],
+    "ans": 3,
+    "why": "Method-flipping is margin manipulation's favourite costume.",
+    "src": "Ch4"
+   },
+   {
+    "q": "A method change is:",
+    "opts": [
+     "A formal accounting event — accountant-led, effective-dated, disclosed, documented",
+     "A toggle",
+     "Monthly routine",
+     "Forbidden forever"
+    ],
+    "ans": 0,
+    "why": "Auditors treat it as an event because flips re-time cost release.",
+    "src": "Ch4"
+   },
+   {
+    "q": "The Landed Cost Voucher is:",
+    "opts": [
+     "A revaluation abuse",
+     "The one routine post-hoc valuation adjustment — document-governed completion of the receipt's cost",
+     "Optional",
+     "A price change"
+    ],
+    "ans": 1,
+    "why": "Every later cost is downstream of the receipt's write.",
+    "src": "Ch5"
+   },
+   {
+    "q": "A transfer's valuation write is:",
+    "opts": [
+     "A new cost",
+     "Zero",
+     "Travel — no acquisition happened, so no new cost exists to write",
+     "The target's average"
+    ],
+    "ans": 2,
+    "why": "Inter-company movement is different terrain: a sale and purchase in transfer clothes.",
+    "src": "Ch5"
+   },
+   {
+    "q": "The stock-to-accounts bridge:",
+    "opts": [
+     "Never agrees",
+     "Is the auditor's job alone",
+     "Is annual",
+     "Should agree continuously — divergence is always a specific, findable set of entries"
+    ],
+    "ans": 3,
+    "why": "The month-end friend; the first stop when books and stock disagree.",
+    "src": "Ch5, Ch9"
+   },
+   {
+    "q": "Negative stock poisons because:",
+    "opts": [
+     "The method must invent a cost for goods never received — fabricated rates entering the stream",
+     "It looks bad",
+     "Customers notice",
+     "It slows the system"
+    ],
+    "ans": 0,
+    "why": "Fiction meets fact when the real receipt posts, and the damage lands somewhere.",
+    "src": "Ch6"
+   },
+   {
+    "q": "The allow-negative posture is:",
+    "opts": [
+     "On for convenience",
+     "OFF as default and discipline — the refusal is the system telling the truth at the moment of temptation",
+     "On everywhere",
+     "Irrelevant"
+    ],
+    "ans": 1,
+    "why": "Every refusal prompts posting the missing reality BEFORE trading on it.",
+    "src": "Ch6"
+   },
+   {
+    "q": "The dominant cause of negatives is:",
+    "opts": [
+     "Theft",
+     "Weather",
+     "Unposted receipts — goods arrived, sold briskly, paperwork queued",
+     "Customers"
+    ],
+    "ans": 2,
+    "why": "Gate discipline plus posting-same-day culture is the fix.",
+    "src": "Ch6"
+   },
+   {
+    "q": "Reconciling a negative away by typing a counted quantity:",
+    "opts": [
+     "Fixes it",
+     "Is required",
+     "Is standard",
+     "Heals the quantity while the poisoned rates remain — the half-fix behind SLOT-class messes"
+    ],
+    "ans": 3,
+    "why": "Post the truth in order; let the recompute settle; count to confirm.",
+    "src": "Ch6"
+   },
+   {
+    "q": "A receipt backdated to the 3rd in a ledger trading through the 10th:",
+    "opts": [
+     "Recomputes everything from the 3rd forward — averages re-blend, COGS revises, as-at values shift",
+     "Changes nothing",
+     "Is refused",
+     "Only changes reports"
+    ],
+    "ans": 0,
+    "why": "Correct is not the same as free.",
+    "src": "Ch7"
+   },
+   {
+    "q": "Entries into closed periods are:",
+    "opts": [
+     "The storekeeper's convenience",
+     "The accountant's decision — period closing freezes what has been reported",
+     "Automatic",
+     "Forbidden absolutely"
+    ],
+    "ans": 1,
+    "why": "Bounded, owned, deliberate.",
+    "src": "Ch7"
+   },
+   {
+    "q": "Deliberate revaluation is:",
+    "opts": [
+     "Routine",
+     "The consultant's call",
+     "Accountant-led, effective-dated, documented, and RARE — routine revaluation means an upstream problem",
+     "A quantity fix"
+    ],
+    "ans": 2,
+    "why": "The P&L impact lands where they direct.",
+    "src": "Ch7"
+   },
+   {
+    "q": "The consultant's valuation boundary is:",
+    "opts": [
+     "Fix everything asked",
+     "Only reports",
+     "Touch nothing",
+     "Mechanical entry corrections yes; valuation POLICY with the accountant, never instead of them"
+    ],
+    "ans": 3,
+    "why": "Repricing a client's stock asset alone is an uninsured liability.",
+    "src": "Ch7"
+   },
+   {
+    "q": "HealthTrade's decimal-slip receipt was caught by:",
+    "opts": [
+     "The last-paid drift eye before submission — the blend never tasted it",
+     "The auditor",
+     "A count",
+     "Luck"
+    ],
+    "ans": 0,
+    "why": "₦96,000 against a ₦9,600 history flags itself.",
+    "src": "Ch8"
+   },
+   {
+    "q": "The Friday negative flag resolved as:",
+    "opts": [
+     "Theft",
+     "Sequence — physically received Thursday, posted Friday; the honest-dated posting settled the recompute",
+     "A write-off",
+     "A mystery"
+    ],
+    "ans": 1,
+    "why": "The refusal did its job by making the gap loud.",
+    "src": "Ch8"
+   },
+   {
+    "q": "The remediation vignette's first step is:",
+    "opts": [
+     "Revalue immediately",
+     "The full count",
+     "Freeze the bleeding — no remediation survives ongoing poisoning",
+     "New software"
+    ],
+    "ans": 2,
+    "why": "Then quantity truth, rate truth, supervised revaluation, and the bridge.",
+    "src": "Ch8"
+   },
+   {
+    "q": "The remediation is, structurally:",
+    "opts": [
+     "A new invention",
+     "A toggle",
+     "Impossible",
+     "Every module of this track performed in reverse"
+    ],
+    "ans": 3,
+    "why": "Firms that keep the laws never meet this engagement.",
+    "src": "Ch8"
+   },
+   {
+    "q": "Valuation cannot be repaired on:",
+    "opts": [
+     "Fictional quantities — the full count precedes rate truth",
+     "Any schedule",
+     "Weekends",
+     "Old systems"
+    ],
+    "ans": 0,
+    "why": "Module 4 before module 5, in remediation as in curriculum.",
+    "src": "Ch8"
+   },
+   {
+    "q": "The count-as-revaluation disease is fixed by:",
+    "opts": [
+     "More counts",
+     "The rate column asserting nothing on ordinary counts — assertion reserved for the governed exercise",
+     "Fewer counts",
+     "New rates monthly"
+    ],
+    "ans": 1,
+    "why": "Quantity corrections at existing valuation.",
+    "src": "Ch9"
+   },
+   {
+    "q": "This module's law is:",
+    "opts": [
+     "Valuation is month-end math",
+     "Methods are interchangeable",
+     "Valuation is written at the moment of movement — margin truth is this discipline compounded",
+     "Negatives are fine briefly"
+    ],
+    "ans": 2,
+    "why": "Every kobo of margin walks back to a document.",
+    "src": "Ch9"
+   }
+  ]
  }
 }
