@@ -15,7 +15,7 @@ import os
 
 import frappe
 
-ORDER = ["payroll_function", "statutory", "payroll_run", "payslips"]
+ORDER = ["payroll_function", "statutory", "payroll_run", "payslips", "variable_pay"]
 
 TRACK = {
 	"title": "ZhiftERP Payroll Professional",
