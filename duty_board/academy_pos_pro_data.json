@@ -2841,5 +2841,478 @@
     "src": "Ch9"
    }
   ]
+ },
+ "voucher_programme": {
+  "title": "POS 7 — The Voucher Programme",
+  "desc": "Stored value from mint to breakage: the Voucher Console's workspace and roles, sellable vs complimentary with the activation gate, the accounts wired under liability-never-revenue, design and creation with import-by-range, the governed press, the counter's two selling roads with the day's till batch, the register's per-card history and final void, the four-event accounting spine with deliberate breakage, the monthly proof against the ledger, and the stored-value fraud map at full depth.",
+  "lessons": [
+   {
+    "title": "Chapter 1 — The programme: money you owe, in one workspace",
+    "est": "12",
+    "html": "<p>Module 2 configured the voucher tab and left it dark; module 4 taught the slip's handling. This module lights the programme: the VOUCHER CONSOLE — a single, full-screen workspace for running a stored-value voucher programme, keeping a complete, auditable record of every card from the moment it is created to the moment it is fully spent. The track's seventh law, previewed: <b>a voucher is money you owe — governed from mint to breakage.</b></p><p><b>The instrument, stated whole.</b> The manual's own definition adopted as the module's thesis: <b>a voucher is a promise of value</b> — a card worth ₦5,000 can be spent by its BEARER in your stores, and until it is redeemed that promise is money you owe. Everything in this module derives from that sentence: the accounting (the sale that is not revenue — Chapter 3), the activation gate (free cards worthless until authorised — Chapter 2), the printing rules (Chapter 5), the void's finality (Chapter 6), the breakage discipline (Chapter 7), and the fraud map (Chapter 8 — because a bearer instrument's every control failure converts directly to cash in the wrong hands). Module 6 retired the costumes; this module governs the counter's one product that never wore one: the voucher IS money, printed on card.</p><p><b>The roles.</b> The programme's cast, per the console's own access design: the <b>Voucher Manager</b> (everything in the console — create, import, activate, print, browse and cancel cards, edit Setup and Design: Okelewo's accountant, cast in module 1 by the money-seat logic this module vindicates), the <b>Administrator</b> (everything, plus accounts, roles and system-wide settings), the <b>Accounts Manager</b> (the accounts the programme posts to, and the recognition of lapsed value as income — the breakage pen held by finance, deliberately), and <b>counter staff</b> (sell and redeem at the till, using ordinary till permissions — they work in the till, not the console). The separation read as the control it is: the person who MINTS value, the person who ACCOUNTS for it, and the people who HANDLE it are three different capabilities — the mint-handle-account separation being stored value's version of the three-hands law every money track teaches.</p><p><b>The workspace.</b> The command rail, mapped once: <b>Overview</b> (the whole programme at a glance — Chapter 6's dashboard), <b>Batches</b> (every batch — opened to activate or print), <b>Vouchers</b> (the searchable register of every individual card), <b>Generate</b> (mint a new batch), <b>Import</b> (load pre-printed stock), <b>Design</b> (the printed card's look, per company), and <b>Setup</b> (the accounts the programme posts to). Reached at the site's vouchers address, signed in, role-governed. Two of the seven are one-time (Setup and Design — configured per company and rarely touched again); five are the everyday programme — and the module walks them in the order value itself moves: accounts first (nothing minted into unwired books), then design, mint, activate, print, sell, redeem, reconcile, and — at the very end of a card's honest life — expire into breakage, deliberately.</p>"
+   },
+   {
+    "title": "Chapter 2 — Two kinds of card & the life of each",
+    "est": "13",
+    "html": "<p>Every card is one of two kinds, and the difference shapes everything that follows — the manual's sentence, and this chapter's structure. The lifecycle chapter.</p><p><b>Sellable cards.</b> The gift card a customer buys for cash: the moment one is SOLD, its value becomes money you owe the customer — and its clock starts at the <b>sale</b>: valid for the chosen number of days from the day it is bought. The sellable card's life is commercially simple because money changed hands at birth: minted ready, printed anytime (Chapter 5's stocking logic), sold at the till, spent by its bearer.</p><p><b>Complimentary cards.</b> The card given away free — a competition prize, an apology, a marketing giveaway — and the design's answer to the risk that freeness creates: because no money changes hands when they are made, complimentary cards are created <b>INACTIVE</b> and cannot be used until a manager <b>ACTIVATES</b> them. The manual names the control's purpose in a sentence this track engraves: a whole print run of free cards is worthless until someone with authority switches it on, <b>so a stolen or premature batch cannot be redeemed</b>. And the clock difference completes the pair: a complimentary card's validity runs from <b>activation</b>, not creation — the promise starts when the authority starts it.</p><p><b>The activation gate, read as a control.</b> The design given the academy's framing before Chapter 5 operates it: the gate is stored value's maker-checker — the person who CAUSED cards to exist (generate, import) has created nothing spendable; a second authorised act, stamped with its approver, converts stock into money — which means the theft of unactivated stock steals cardboard, the premature print run spends nothing, and the programme's minting risk is concentrated into one governed, logged event instead of being smeared across every print job and courier bag. The consultant's enablement corollary: the activation authority is CAST deliberately (the Voucher Manager, per the roles — never delegated to whoever prints), and Chapter 8's map will show what each bypass of this gate is worth.</p><p><b>The six states.</b> The card's whole life, in the console's own plain vocabulary: <b>Available</b> (live stock — a sellable card printed and ready to sell; a complimentary card existing but not yet activated), <b>Sold</b> (issued and carrying full value — bought, or activated), <b>Partially redeemed</b> (some value spent, a balance remaining), <b>Redeemed</b> (fully spent), <b>Expired</b> (the validity passed with value still on the card — Chapter 7's breakage), and <b>Void</b> (cancelled by a manager — <b>a void card can never be redeemed</b>). And beneath the states, the card's two constants: its remaining <b>balance</b> (starting at face value, falling as spent) and its permanent <b>serial number</b> (the card's unique reference — printed on the card, shown in the console, the identity every trace resolves to: the registrar's law, at the card). The chapter's closing line: two kinds, one gate, six states, one serial — the whole lifecycle legible at a glance, which is exactly what an auditable promise requires.</p>"
+   },
+   {
+    "title": "Chapter 3 — Setup: the accounts, wired before the mint",
+    "est": "13",
+    "html": "<p>Because a voucher is money you owe, selling one has to be recorded against the right accounts — and the Setup screen is where each company chooses them, ONCE, before the first card exists. The wiring chapter.</p><p><b>The two accounts.</b> The choices, with their jobs: the <b>LIABILITY ACCOUNT</b> — the account a sale CREDITS: when a customer buys a gift card, the cash comes in and this account records what you now owe them (it must be a liability account belonging to that company — the type is the meaning), and the <b>PROMOTIONAL EXPENSE ACCOUNT</b> — where the cost of complimentary cards is recorded when they are REDEEMED (an expense account; optional — left blank, complimentary redemptions fall back to the liability account, workable but less readable, and the certified setup names it).</p><p><b>The two roads to ready.</b> The setup's paths: <b>choose your own accounts</b> — selected from the company's existing chart, with the console VALIDATING each choice (belongs to the right company, is the right KIND of account, is a real POSTING account rather than a heading, and is ACTIVE — four checks that are the Accounts track's chart discipline enforced at the door) and then wiring everything together behind the scenes; or <b>Create defaults for me</b> — the console creating a suitable liability account, an expense account, <b>the voucher product, its tax treatment, and the till payment method</b> in one act, recorded on the screen for later adjustment. Either road ends at the same place: a status banner declaring the company <b>ready to issue vouchers</b> and naming its liability account — the readiness made visible, per every go-live discipline this academy runs. And the fallback honesty noted: a company that never opens Setup still works, on the standard accounts the system provides — the programme functional by default, made LEGIBLE by the setup.</p><p><b>The why, in full.</b> The manual's reasoning box, taught as the module's accounting foundation because Chapter 7 builds on it: <b>selling a voucher is not a sale — it is a promise.</b> The customer has paid, but no goods have been given, so the money sits as a LIABILITY — something owed — never as revenue, <b>and no sales tax is charged yet</b>: tax and revenue are recognised LATER, when the bearer actually spends the card on goods. The two safeguards the Setup wiring keeps true, named as the manual names them: a voucher sale <b>never charges sales tax</b> (tax belongs on the goods bought later, not on the promise), and a sale <b>always credits the liability account, never a revenue line</b> — so the outstanding-value figure is always truthful. The consultant's translation for the owner, closing the chapter: the December voucher push that 'boosts sales' boosts CASH and boosts DEBT in equal measure — the revenue arrives in January when the cards come back, with the tax — and the firm that books voucher sales as revenue has overstated December, understated January, mis-timed its tax, and lied to itself about what it owes: four errors, one wiring, which is why Setup runs before the mint, always.</p>"
+   },
+   {
+    "title": "Chapter 4 — Design & creation: the card made, two ways",
+    "est": "13",
+    "html": "<p>The card's face, and then the card's existence — Design once per company, then Generate or Import as the programme breathes. The minting chapter.</p><p><b>Design.</b> The printed card's two halves, per the manual: the LEFT half is the <b>branded panel</b> — logo, colours and words, controlled per company — and the RIGHT half is a <b>standard information panel</b>, the same on every card: the how-to-use notes, the barcode, the written code, the serial number, and the validity. Two roads to the branded half: <b>Guided design</b> (logo uploaded, optionally a strip of feature icons; background, highlight and text colours picked; two short taglines — one for gift cards, one for complimentary; footer lines — website, email, social; the console arranging a clean layout), or <b>Custom design</b> (your own artwork and layout supplied, the console dropping in each card's live details — amount, logo, icons, colours, company name, the right tagline, footers — so one design serves every value and both kinds). And the design tooling's honest touches, worth teaching: the <b>live preview</b> shows two sample cards drawn by <b>the very same engine that does the real printing</b> — the preview faithful to the finished result, the WYSIWYG claim actually true — and the fallback is graceful: a company with NO saved design prints on a clean, neutral panel built from its name, so a brand-new merchant starts immediately and refines later.</p><p><b>Generate.</b> Minting a fresh batch — five choices: the <b>TYPE</b> (Complimentary — created inactive, awaiting activation — or Sellable — created ready to sell), the <b>COMPANY</b>, the <b>VALUE</b> (a preset tapped or any amount typed — every card in the batch carrying the SAME value: the batch is a denomination, which keeps the till's counting and the register's reading simple), the <b>QUANTITY</b> (up to <b>ten thousand</b> at a time), and the <b>VALIDITY</b> (days usable, counted from sale for gift cards, from activation for complimentary — Chapter 2's clocks, set at birth). Generate pressed, the console mints the batch, <b>assigns every card a unique code and serial number</b>, and opens the new batch — sellable batches immediately ready to print and sell; complimentary batches waiting inactive for Chapter 5's gate.</p><p><b>Import.</b> The pre-printed stock's road in: physical cards already held — older cards with a short printed serial — brought into the programme so existing stock keeps working without reprinting. The screen takes <b>company, value and validity</b> exactly as when generating, then <b>the serials</b>: pasted one per line, comma-separated, or as a simple RANGE (0001-0500), the screen confirming how many it found; the preview reviewed, then confirmed. The import's two governing facts, both load-bearing: <b>the number already printed on each physical card stays the code used to redeem it</b> — the cards in people's hands keep working unchanged (the registrar's continuity: identity survives the system migration) — and imported cards arrive as an <b>inactive complimentary batch</b>, activated like any other: the gate applies to legacy stock exactly as to fresh mint, because the risk (a box of spendable cards) is identical whichever press printed them. The chapter's closing line: design once, mint by denomination, import by range — and nothing, fresh or legacy, becomes money until Chapter 5's authority says so.</p>"
+   },
+   {
+    "title": "Chapter 5 — Activation & printing: the gate operated, the press governed",
+    "est": "13",
+    "html": "<p>The moment of authorisation, and the paper that follows it. The gate-and-press chapter.</p><p><b>Activating a complimentary batch.</b> The ceremony, step by step: from <b>Batches</b> the batch is opened (or reached from the link shown right after generating or importing); the batch lists its cards, and the ones to issue are SELECTED — select-all for every eligible card, or individual rows ticked (the partial activation being a real design choice: fifty of five hundred activated for this month's campaign, the rest remaining inert stock); optionally, the cards' <b>issued-to</b> and <b>reason</b> recorded — notes that stay with each card <b>and appear on the printed card</b> (the complimentary card that names its recipient and its cause is a card whose later appearance anywhere else asks its own questions — Chapter 8 collects the dividend); and <b>Activate</b> pressed — which <b>stamps you as the approver, sets the issue and expiry dates, and moves the cards to the Sold (issued) state</b>. Only now can they be printed and redeemed. The manual's summary box, adopted whole: activation is the gate between a printed stock of free cards and live cards worth real money — keeping that gate closed until a manager opens it is what stops an unapproved run from ever being spent.</p><p><b>Printing.</b> The press's mechanics: with a batch open, the cards chosen and <b>Print</b> pressed — a shop-ready sheet opening in a new tab, laid out for cutting: <b>four cards to a page</b>, portrait, dashed cut guides; each card carrying the branded panel, the value, a scannable <b>barcode</b> and the grouped code, the <b>serial number</b>, and the validity terms — complimentary cards additionally showing who they were issued to, the issue date, and the expiry. The print dialog's craft, from the manual's own troubleshooting: the toolbar picks the <b>paper size</b> (A4 or US Letter), and the browser dialog keeps <b>margins on default (or none) and scale at 100%</b> — the cards printing at intended size, one sheet per page (the too-small cards and the blank trailing page both being scale-and-margin symptoms, fixed in the dialog, not the design).</p><p><b>The two printing rules.</b> The press's governance, stated as the manual states it and read as the controls they are: <b>sellable cards can be printed at any time</b> — printed precisely so physical stock sits at the till ready to sell (the batch of gift cards printed with none yet sold is INTENDED — stocking, not leakage: the unsold printed sellable card is inert until the till's sale binds money to it, which is why this rule is safe), and <b>complimentary cards can be printed only AFTER they are activated</b> — preventing an unauthorised batch from being printed at all, <b>and preventing the same card from being printed twice by mistake</b> (the double-print being a double-spend in waiting: two identical bearer instruments, one balance — the rule closes it at the press). The chapter's closing line: the gate stamped, the press ruled — the programme now holds real money on card stock, and Chapters 6 and 7 follow it to the counter and into the books.</p>"
+   },
+   {
+    "title": "Chapter 6 — The counter & the register: sold, redeemed, found, void",
+    "est": "14",
+    "html": "<p>The console made the cards; the till moves them; the register remembers every one. The circulation chapter.</p><p><b>Selling at the counter.</b> The two roads restated from module 4 and completed with the console's view: a <b>printed gift card</b> — the cashier scans the barcode or types the code at payment; the sale records the card as SOLD and <b>starts its validity from that day</b>; the customer can be <b>emailed a copy automatically</b> once the sale completes (and the never-received email is RE-SENT from that sale's record — the manual's own answer, filed for the desk). A <b>blank card</b> — sold without a pre-printed code — is given a <b>fresh code at the moment of payment</b>: the till offering the common amounts plus any-amount entry, printing the new code on the spot, and — the reconciliation design this track underlines — <b>cards created this way are grouped into the day's TILL BATCH, so they can be reconciled at close</b>: the counter's minting counted daily, per module 4's ritual, not discovered monthly. Whichever road, the manual's guarantee holds: the code, the value owed, and the expiry are recorded identically — the console always showing one complete, consistent picture.</p><p><b>Redemption.</b> The spend, in one paragraph because module 4 taught the tender: a card presented applies its value to the purchase and its balance falls — used in part, <b>Partially redeemed</b>; used up, <b>Redeemed</b> — with the profile's partial-redemption and change-policy settings (module 2) governing the arithmetic, and the offline policy (Online Only, or Guarded Offline inside its caps) governing the availability.</p><p><b>The register.</b> The <b>Vouchers</b> screen — every card, across every batch and company: SEARCHED by code, serial, or the name it was issued to; FILTERED by company, type and state; the list showing each card's code, type, state, face value, remaining balance, batch and expiry. Any card opens to its <b>detail page</b>: the full story — value, balance, key dates, issue details — with a <b>history of every event that changed its balance</b> (the card's own ledger: the promise's audit trail, per card), a <b>reprint</b> option for that single card (authorised, per module 4's slip law), and <b>cancel (void)</b> — for cards lost, damaged, or issued in error — with the discipline stated twice because it is final: <b>cancelling is permanent; a void card can never be redeemed</b>, the wrong card cancelled is replaced by creating or importing another, and <b>the cancellation stays on the record for audit</b> (disable-not-delete at its sharpest: the void kills the value and keeps the story).</p><p><b>The Overview.</b> The programme at a glance, filterable to one company or shown across all: the headline figures — total cards and batches, the <b>outstanding value</b> still owed to bearers (the live liability), the <b>value already redeemed</b>, and the <b>total face value ever issued</b> — and a <b>breakdown by state where each figure is a link</b>, clicking through to the matching card list (the dashboard that answers its own follow-up questions). The same figures feed finance's reports — the outstanding-liability statement, activity over a date range, and the lapsed-value summary Chapter 7 governs. The chapter's closing line: circulation, fully governed — sold with its clock, minted-at-till but counted-at-close, found by any handle, voided finally but never silently, and the whole programme's position readable in four numbers.</p>"
+   },
+   {
+    "title": "Chapter 7 — The accounting spine & the monthly proof",
+    "est": "13",
+    "html": "<p>The module's financial core: four events, four postings, one rule above them — and the reconciliation that proves the programme monthly. The spine chapter.</p><p><b>The rule.</b> The manual's sentence, the spine's whole logic: <b>a voucher you sell is money you owe until it is spent.</b> Everything flows from it, in the four-event table taught as the programme's grammar:</p><p><b>Event one — a gift card is SOLD.</b> The cash received is recorded, and an equal amount is set aside as a <b>liability</b> — value owed to the bearer. It is NOT treated as a sale, and <b>no sales tax is charged yet</b>. <b>Event two — a card is REDEEMED against goods.</b> The liability is REDUCED as the balance is spent, and the sale — <b>with its tax — is recognised on the GOODS the customer takes, not on the voucher itself</b>: revenue and tax arriving at the moment goods leave, which is the recognition principle the Accounts track teaches, executed by the till. <b>Event three — a COMPLIMENTARY card is redeemed.</b> No money came in when it was given away, so its cost is recognised as a <b>promotional expense</b> at the point of redemption — the giveaway priced when it is actually used, landing in the account Chapter 3 named. <b>Event four — a card EXPIRES unspent.</b> The value left is no longer owed — and a finance manager recognises that lapsed value as <b>breakage income</b>, clearing the stale liability from the books.</p><p><b>Breakage, deliberately.</b> The manual's box, engraved as the module's finance discipline: recognising breakage is <b>a deliberate decision a finance manager makes, not something that happens quietly in the background</b> — you choose when to sweep lapsed value into income, <b>the system never books it for you unasked, and it never records the same money twice</b>. The design read: automatic breakage would let the programme quietly manufacture income on a schedule nobody reviews (and would collide with the real world, where expired cards are sometimes honoured as goodwill); the deliberate sweep keeps the recognition an EVENT — dated, authored, reviewable — and the never-twice guarantee keeps the sweep idempotent. The governance corollary: the breakage pen belongs to the <b>Accounts Manager</b> role (Chapter 1's cast — finance recognises income; the programme's operator does not), and the sweep joins the period calendar, not the whim.</p><p><b>The monthly proof.</b> The reconciliation this track adds to every stored balance, applied here: monthly, the programme's <b>outstanding liability</b> (the Overview's figure; Gift Voucher Analytics on the till side — outstanding liability, active vouchers, sold and redeemed in the period, the redemption rate) is reconciled <b>against the liability ACCOUNT</b> in the books — the register's promise against the ledger's balance, agreeing or explained. The reads the proof yields, for module 8's page: the redemption RATE trending (the programme's health — cards coming back is the point), the liability CURVE (December's sales are January's obligations — the cash-flow honesty), and the breakage PIPELINE (expired-with-balance value awaiting its deliberate sweep). And the Guarded Offline caps recapped in one line where they belong: the offline risk budget (max single value, daily cap) is the ONE window where the register and reality can briefly disagree — priced in module 2, reconciled here, which is why the caps are set in naira the firm can afford to be wrong by. The chapter's closing line: four events, one rule, one monthly proof — the promise ledger that always tells the truth, because every posting was wired to keep it true.</p>"
+   },
+   {
+    "title": "Chapter 8 — The stored-value fraud map & Okelewo's December",
+    "est": "17",
+    "html": "<p>The module's full-depth map — stored value's attack surfaces, each named, each answered by a product control and a supervision read — then the programme's launch at Okelewo. The map chapter.</p><p><b>Surface one — the unauthorised activation.</b> The attack: a complimentary batch activated outside authority — free cards made spendable by whoever reached the button. The control: the activation gate itself (the approver STAMPED on the event — every activation carries its author), plus the role boundary (activation lives with the Voucher Manager, not the print room). The read: the activation log against the campaign calendar — every activated batch matched to a known giveaway, and the batch nobody planned being the finding by definition. <b>Surface two — the double-issue.</b> The attack: two tills issuing the SAME code — one balance, two bearers, the second redemption bouncing on a customer. The control: <b>Enforce Voucher Booking</b> (module 2 — the code reserved centrally before issue, closing the race), plus the printing rule preventing the double PRINT of complimentary cards. The read: redemption failures by reason — the 'already redeemed' bounce clustering is the race's signature. <b>Surface three — the buy-back conversion.</b> The attack: the tab's most dangerous switch worked as designed but for theft — vouchers 'bought back' for drawer cash against codes that were never honestly sold (the stored-value-to-cash pump). The control: buy-back OFF as the default posture (Okelewo: off permanently), and where a firm insists, override-gated and low-limit. The read: buy-back volume per till per cashier — a number whose healthy value is near zero and whose trend is the whole story. <b>Surface four — the void-after-redeem timing.</b> The attack: value spent, then the card voided or disputed to reverse the story. The control: the void's design — final, authored, kept for audit — plus the card's per-event HISTORY (the balance ledger showing the spend before the void). The read: voids by author and by card state — the void on a partially-redeemed card being the review item. <b>Surface five — the phantom blank sale.</b> The attack: blank cards coded at the till without honest payment — minting against the drawer. The control: the day's TILL BATCH grouping (Chapter 6 — till-issued cards reconciled at close, per module 4's counted ritual: cards issued must match voucher tenders taken). The read: the close's voucher line against the till batch, daily — the gap IS the finding. <b>Surface six — complimentary leakage.</b> The attack: giveaway cards drifting to friends and family — the marketing budget privatised. The control: the issued-to and reason notes, PRINTED on the card (the card that names its recipient travels badly), plus partial activation (only the campaign's count made live). The read: complimentary redemption patterns — the branch, the household surname cluster, the employee overlap. <b>Surface seven — the employee self-issue.</b> The attack: the mint-handle overlap — the person who creates value also selling or redeeming it. The control: the role separation of Chapter 1 held (the Voucher Manager does not run a till; counter staff do not reach the console). The read: the census — who holds which role, walked annually with the access review.</p><p><b>Okelewo's December (every chapter clocks in).</b> The launch runs the module in order: SETUP first — the accountant wires the liability and promotional expense accounts herself (validation passing all four checks), the ready banner screenshotted into the site book, the MD's 'vouchers will boost December' corrected in one meeting with Chapter 3's translation (cash now, revenue in January — the MD, to his credit: <i>so it is a loan from my customers. Fine. I like loans that shop with me.</i>); DESIGN by the guided road (logo, colours, two taglines, footer), previewed by the real engine, one custom refinement deferred; the MINT — sellable batches in three denominations (the profile's quick buttons matched), a complimentary batch of two hundred for the season's promotion, IMPORTED legacy stock from a 2024 experiment (ranges pasted, printed numbers preserved as codes, arriving inactive — the gate applying to history); ACTIVATION partial and purposeful (one hundred twenty of two hundred, issued-to and reason recorded, the approver stamp verified on the first batch as a drill); PRINTING at four-a-page with the scale-at-100% lesson learned on one wasted sheet; the COUNTER selling both roads (printed cards scan-bound; blank cards coded at payment and reconciled nightly against the till batch — clean all month); and the JANUARY proof closing the case: the first monthly reconciliation matches the Overview's outstanding liability to the account within rounding, the redemption rate reads healthy, and February's calendar carries the programme's rhythms — the monthly proof, the breakage pipeline's first review scheduled for the legacy imports' expiry, and the fraud map's seven reads distributed between the Sales Manager's week and finance's month. The accountant's note closes the module: <i>it is a small bank now — a mint, a ledger, a proof. Which is what it always was; we just used to run it on gift wrap and hope.</i></p>"
+   },
+   {
+    "title": "Chapter 9 — Common mistakes & the seventh law",
+    "est": "13",
+    "html": "<p>The programme's scar tissue. Symptom → disease → fix.</p><p><b>Pattern 1 — voucher sales booked as revenue.</b> Symptom: December overstated, January understated, tax mis-timed, the liability invisible; the firm lying to itself about what it owes. Disease: the promise treated as a sale (Ch. 3). Fix: the wiring — sale credits liability, never revenue, never taxed; tax and revenue on the goods at redemption; Setup run before the mint, always.</p><p><b>Pattern 2 — the gate bypassed by habit.</b> Symptom: complimentary batches activated by whoever prints; select-all pressed for a fifty-card campaign; free cards spendable before anyone with authority looked. Disease: activation treated as a step, not an authorisation (Ch. 2, 5). Fix: the gate cast to the Voucher Manager, partial activation matched to the campaign's count, the approver stamp verified, the activation log read against the calendar.</p><p><b>Pattern 3 — the ungoverned press.</b> Symptom: complimentary cards printed twice; sheets at the wrong scale; card stock treated as stationery. Disease: the printing rules unknown (Ch. 5). Fix: sellable anytime (stocking is intended), complimentary only after activation (no unauthorised print, no double print), margins default and scale at one hundred.</p><p><b>Pattern 4 — the silent void.</b> Symptom: cards cancelled casually, or the wrong card voided and 'fixed' by argument; value histories nobody reads. Disease: the void's finality and audit purpose unrespected (Ch. 6). Fix: void as the final, authored act it is — the wrong void answered by a replacement card, the cancellation kept on record, voids reviewed by author and state.</p><p><b>Pattern 5 — automatic breakage assumed.</b> Symptom: lapsed value swept by schedule or, worse, never swept; income manufactured quietly or liability stale forever. Disease: the deliberate-recognition rule unknown (Ch. 7). Fix: breakage recognised by the finance manager's dated, authored decision — never automatic, never twice — on the period calendar, from the expired-with-balance pipeline.</p><p><b>Pattern 6 — the unreconciled promise.</b> Symptom: the register and the ledger drifting; the till batch never counted; Guarded Offline caps set by round numbers; the programme's position unknown between audits. Disease: the monthly proof missing (Ch. 6-7). Fix: outstanding liability reconciled to the account monthly, till-issued cards to the day's batch nightly, the caps priced as the risk budget they are, and the seven fraud reads on their owners' calendars.</p><p><b>The seventh law.</b> The programme, whole: <b>a voucher is money you owe — governed from mint to breakage: the accounts wired before the first card, the gate stamped by authority, the press ruled, the till batch counted at close, the void final and kept, the four events posted as designed, breakage recognised deliberately, and the promise proven against the ledger every month.</b> One module remains: the honest counter — offline, the queue, reconciliation and supervision — where the whole track proves itself daily.</p>"
+   }
+  ],
+  "questions": [
+   {
+    "q": "A voucher is, in one sentence:",
+    "opts": [
+     "A promise of value — until redeemed, money you owe the bearer",
+     "A discount",
+     "Revenue",
+     "A receipt"
+    ],
+    "ans": 0,
+    "why": "Everything in the module derives from it.",
+    "src": "Ch1"
+   },
+   {
+    "q": "The mint-handle-account separation means:",
+    "opts": [
+     "One person does all",
+     "The Voucher Manager mints, counter staff handle, the Accounts Manager recognises — three capabilities apart",
+     "Finance mints",
+     "Cashiers activate"
+    ],
+    "ans": 1,
+    "why": "Stored value's three-hands law.",
+    "src": "Ch1"
+   },
+   {
+    "q": "Counter staff work in:",
+    "opts": [
+     "The console",
+     "Setup",
+     "The till, with ordinary till permissions — not the console",
+     "Design"
+    ],
+    "ans": 2,
+    "why": "The console is the programme; the till is the circulation.",
+    "src": "Ch1"
+   },
+   {
+    "q": "A sellable card's validity clock starts at:",
+    "opts": [
+     "Creation",
+     "First redemption",
+     "Printing",
+     "The SALE — a complimentary card's at ACTIVATION"
+    ],
+    "ans": 3,
+    "why": "The promise starts when the money or the authority starts it.",
+    "src": "Ch2"
+   },
+   {
+    "q": "Complimentary cards are born:",
+    "opts": [
+     "INACTIVE — unusable until a manager activates them",
+     "Ready",
+     "Printed",
+     "Expired"
+    ],
+    "ans": 0,
+    "why": "So a stolen or premature batch cannot be redeemed.",
+    "src": "Ch2"
+   },
+   {
+    "q": "The activation gate is stored value's:",
+    "opts": [
+     "Paperwork",
+     "Maker-checker — creating cards makes nothing spendable; a second authorised, stamped act converts stock into money",
+     "Printer setting",
+     "Tax step"
+    ],
+    "ans": 1,
+    "why": "Theft of unactivated stock steals cardboard.",
+    "src": "Ch2"
+   },
+   {
+    "q": "A Void card:",
+    "opts": [
+     "Can be reactivated",
+     "Loses its serial",
+     "Can never be redeemed — cancelling is final, and the cancellation stays on record for audit",
+     "Expires later"
+    ],
+    "ans": 2,
+    "why": "The wrong void is answered by a replacement card.",
+    "src": "Ch2"
+   },
+   {
+    "q": "A voucher sale credits:",
+    "opts": [
+     "Revenue",
+     "An expense",
+     "Cash only",
+     "The LIABILITY account, never a revenue line — and charges no sales tax yet"
+    ],
+    "ans": 3,
+    "why": "The outstanding-value figure stays truthful.",
+    "src": "Ch3"
+   },
+   {
+    "q": "The account validation checks:",
+    "opts": [
+     "Right company, right kind, a real posting account not a heading, and active",
+     "The balance",
+     "The name",
+     "The currency only"
+    ],
+    "ans": 0,
+    "why": "The chart discipline enforced at the door.",
+    "src": "Ch3"
+   },
+   {
+    "q": "Create defaults for me creates:",
+    "opts": [
+     "Accounts only",
+     "A liability account, an expense account, the voucher product, its tax treatment, and the till payment method",
+     "A design",
+     "A batch"
+    ],
+    "ans": 1,
+    "why": "One act to ready, recorded for later adjustment.",
+    "src": "Ch3"
+   },
+   {
+    "q": "Tax on a voucher is charged:",
+    "opts": [
+     "At sale",
+     "Monthly",
+     "At redemption, on the GOODS the customer takes — never on the promise",
+     "Never"
+    ],
+    "ans": 2,
+    "why": "Recognition when goods leave.",
+    "src": "Ch3"
+   },
+   {
+    "q": "Booking voucher sales as revenue creates:",
+    "opts": [
+     "One error",
+     "Nothing",
+     "A tax saving",
+     "Four — December overstated, January understated, tax mis-timed, the liability invisible"
+    ],
+    "ans": 3,
+    "why": "Why Setup runs before the mint.",
+    "src": "Ch3"
+   },
+   {
+    "q": "The live preview is trustworthy because:",
+    "opts": [
+     "It is drawn by the very same engine that does the real printing",
+     "It is a mock-up",
+     "It is approved",
+     "It is cached"
+    ],
+    "ans": 0,
+    "why": "The WYSIWYG claim actually true.",
+    "src": "Ch4"
+   },
+   {
+    "q": "A company with no saved design:",
+    "opts": [
+     "Cannot print",
+     "Prints on a clean neutral panel built from its name — start now, refine later",
+     "Prints blank",
+     "Uses another company's"
+    ],
+    "ans": 1,
+    "why": "The graceful fallback.",
+    "src": "Ch4"
+   },
+   {
+    "q": "Every card in a generated batch carries:",
+    "opts": [
+     "Random values",
+     "The average",
+     "The SAME value — the batch is a denomination",
+     "No value yet"
+    ],
+    "ans": 2,
+    "why": "Keeps the counting and the register simple.",
+    "src": "Ch4"
+   },
+   {
+    "q": "A batch may contain up to:",
+    "opts": [
+     "One hundred cards",
+     "Unlimited",
+     "One thousand",
+     "Ten thousand cards"
+    ],
+    "ans": 3,
+    "why": "The Generate quantity ceiling.",
+    "src": "Ch4"
+   },
+   {
+    "q": "Imported pre-printed cards:",
+    "opts": [
+     "Keep the printed number as the redemption code, and arrive as an inactive complimentary batch",
+     "Get new codes",
+     "Are sellable at once",
+     "Skip the gate"
+    ],
+    "ans": 0,
+    "why": "Identity survives; the gate applies to legacy stock.",
+    "src": "Ch4"
+   },
+   {
+    "q": "Pressing Activate:",
+    "opts": [
+     "Prints the cards",
+     "Stamps you as approver, sets issue and expiry dates, and moves the cards to Sold",
+     "Emails finance",
+     "Charges tax"
+    ],
+    "ans": 1,
+    "why": "The authorisation as a recorded event.",
+    "src": "Ch5"
+   },
+   {
+    "q": "Issued-to and reason notes:",
+    "opts": [
+     "Stay internal",
+     "Are mandatory",
+     "Stay with each card AND appear on the printed card",
+     "Expire"
+    ],
+    "ans": 2,
+    "why": "The card that names its recipient travels badly.",
+    "src": "Ch5"
+   },
+   {
+    "q": "Sellable cards print:",
+    "opts": [
+     "After activation",
+     "At the till",
+     "Once only",
+     "At any time — printed precisely to stock the counter; unsold printed cards are inert until a sale binds money"
+    ],
+    "ans": 3,
+    "why": "Stocking, not leakage.",
+    "src": "Ch5"
+   },
+   {
+    "q": "Complimentary cards print:",
+    "opts": [
+     "Only after activation — no unauthorised print, and no double print of the same card",
+     "Anytime",
+     "Never",
+     "At head office"
+    ],
+    "ans": 0,
+    "why": "The double print is a double-spend in waiting.",
+    "src": "Ch5"
+   },
+   {
+    "q": "Cards too small, or a blank page after each sheet:",
+    "opts": [
+     "A design flaw",
+     "A print-dialog issue — margins to default or none, scale at 100%, matching paper size",
+     "A licence issue",
+     "Bad card stock"
+    ],
+    "ans": 1,
+    "why": "Fixed in the dialog, not the design.",
+    "src": "Ch5"
+   },
+   {
+    "q": "A blank card sold at the till:",
+    "opts": [
+     "Is refused",
+     "Uses tomorrow's batch",
+     "Gets a fresh code at payment and joins the day's TILL BATCH for reconciliation at close",
+     "Has no code"
+    ],
+    "ans": 2,
+    "why": "The counter's minting counted daily.",
+    "src": "Ch6"
+   },
+   {
+    "q": "The voucher email that never arrived is:",
+    "opts": [
+     "Lost",
+     "Impossible",
+     "Reprinted only",
+     "Re-sent from that sale's record"
+    ],
+    "ans": 3,
+    "why": "The manual's own answer, filed for the desk.",
+    "src": "Ch6"
+   },
+   {
+    "q": "The card's detail page shows:",
+    "opts": [
+     "The full story with a history of every event that changed its balance — plus reprint and cancel",
+     "The balance only",
+     "The design",
+     "The batch price"
+    ],
+    "ans": 0,
+    "why": "The promise's audit trail, per card.",
+    "src": "Ch6"
+   },
+   {
+    "q": "The Overview's state figures are:",
+    "opts": [
+     "Static",
+     "Links — each clicking through to the matching card list",
+     "Estimates",
+     "Monthly"
+    ],
+    "ans": 1,
+    "why": "The dashboard answering its own follow-ups.",
+    "src": "Ch6"
+   },
+   {
+    "q": "Breakage is recognised:",
+    "opts": [
+     "Automatically at expiry",
+     "By the till",
+     "By a finance manager's deliberate decision — the system never books it unasked, and never twice",
+     "Monthly by default"
+    ],
+    "ans": 2,
+    "why": "A dated, authored, reviewable event.",
+    "src": "Ch7"
+   },
+   {
+    "q": "A complimentary redemption posts to:",
+    "opts": [
+     "Revenue",
+     "Tax",
+     "The liability forever",
+     "The promotional expense account — the giveaway priced when actually used"
+    ],
+    "ans": 3,
+    "why": "Falling back to liability only if unnamed.",
+    "src": "Ch7"
+   },
+   {
+    "q": "The monthly proof reconciles:",
+    "opts": [
+     "The programme's outstanding liability against the liability ACCOUNT in the books",
+     "Sales to stock",
+     "Cash to card",
+     "Codes to serials"
+    ],
+    "ans": 0,
+    "why": "The register's promise against the ledger's balance.",
+    "src": "Ch7"
+   },
+   {
+    "q": "Guarded Offline is the one window where:",
+    "opts": [
+     "Tax pauses",
+     "The register and reality can briefly disagree — priced by the caps, reconciled monthly",
+     "Cards are free",
+     "Voids happen"
+    ],
+    "ans": 1,
+    "why": "Set in naira the firm can afford to be wrong by.",
+    "src": "Ch7"
+   },
+   {
+    "q": "The 'already redeemed' bounce clustering signals:",
+    "opts": [
+     "Slow tills",
+     "Expired cards",
+     "The double-issue race — answered by booking enforcement",
+     "Bad printing"
+    ],
+    "ans": 2,
+    "why": "Surface two's signature.",
+    "src": "Ch8"
+   },
+   {
+    "q": "Buy-back's healthy read is:",
+    "opts": [
+     "Growth",
+     "Seasonal",
+     "Ten percent",
+     "Near zero, per till per cashier — the trend is the whole story"
+    ],
+    "ans": 3,
+    "why": "The stored-value-to-cash pump, watched.",
+    "src": "Ch8"
+   },
+   {
+    "q": "The phantom blank sale is caught by:",
+    "opts": [
+     "The close's voucher line against the day's till batch — the gap IS the finding",
+     "Luck",
+     "Customers",
+     "The carrier"
+    ],
+    "ans": 0,
+    "why": "Cards issued must match voucher tenders taken.",
+    "src": "Ch8"
+   },
+   {
+    "q": "Okelewo's MD summarised the accounting as:",
+    "opts": [
+     "A tax dodge",
+     "A loan from customers who shop with me — cash now, revenue in January",
+     "Free money",
+     "A discount scheme"
+    ],
+    "ans": 1,
+    "why": "Chapter 3's translation, landed.",
+    "src": "Ch8"
+   },
+   {
+    "q": "This module's law is:",
+    "opts": [
+     "Vouchers are marketing",
+     "Cards are stationery",
+     "A voucher is money you owe — governed from mint to breakage: accounts wired first, the gate stamped, the press ruled, the till batch counted, the void final, breakage deliberate, the promise proven monthly",
+     "Breakage is automatic"
+    ],
+    "ans": 2,
+    "why": "The seventh law.",
+    "src": "Ch9"
+   }
+  ]
  }
 }
