@@ -947,316 +947,328 @@
  },
  "banking": {
   "title": "Accounts 3 — Banking & Reconciliation",
-  "desc": "Banking and reconciliation: the bank statement as the record the business does not write, the account and payment-mode wiring, the monthly matching routine with the reconciliation equation, the three remainder categories with written age limits, the imprest float and its invariant, the four-link retail cash-up chain, and bank governance — prepare/release separation, masters-not-messages, and the mandate review.",
+  "desc": "Banking in ZhiftERP: the Bank-type ledger account, Bank Account record, and Mode of Payment mapping per real account; Bank Statement Import and matching in the Bank Reconciliation Tool with Create Voucher for bank-side items; the Bank Reconciliation Statement report; age limits for uncleared items; the imprest float and its invariant; the four-link cash-up chain recorded through Internal Transfers; and bank governance — prepare/release, masters-not-messages, mandate reviews, and the calendar.",
   "lessons": [
    {
-    "title": "Chapter 1 — The outside witness",
+    "title": "Chapter 1 — Bank reconciliation: what it is and why monthly",
     "est": "11",
-    "html": "<p>Every check so far compared the business's records with each other. This module's check is stronger, because one side of it is a record the business does not write: the <b>bank statement</b>. The reconciliation that examines it monthly is accounting's most important routine, and this module covers it end to end — the setup, the matching, the differences, cash handling, the retail cash-up chain, and bank governance.</p><p><b>Why the outside record matters.</b> Internal records can share a disease: the same wrong default poisons the invoice and the register together; the same fraud writes both sides of its own story. The bank's record cannot be reached by any of it. The statement says what money <b>actually</b> moved, when, and where. Every internal money record ultimately settles against the statement, and a business whose books reconcile to its banks monthly has anchored its whole financial story to a record nobody inside the building can edit. A business whose books do not reconcile has an unanchored story — whatever else it has.</p><p><b>What reconciliation is.</b> The disciplined comparison: every statement line matched to a GL entry, every GL bank entry matched to a statement line, and the unmatched remainder <b>named, explained, and worked</b> (Chapters 3-4). Three things it is not:</p><p>• <b>Not a formality</b> — a tick-and-file that examines nothing proves nothing.<br>• <b>Not a plug</b> — a balancing journal that forces agreement hides every real difference. Chapter 9 treats the plug as this module's most serious failure.<br>• <b>Not optional at any size</b> — the two-person business and the hundred-branch network reconcile for the same reasons, and the cost — about an hour per bank per month at a healthy business — is the cheapest error and fraud detection available.</p><p><b>What the unreconciled business cannot know.</b> Whether its cash position is real (decisions made on a GL balance the bank disagrees with are decisions made on fiction). Whether payments landed (the transfer that failed silently; the cheque never presented). What the bank has been taking (charges and deductions accumulating unbooked). And whether anyone is helping themselves — the classic frauds (the intercepted payment, the altered beneficiary, the takings banked short) are all caught first at reconciliation, or not at all.</p><p><b>Module contents.</b> Chapter 2: the setup — bank accounts and payment modes. Chapter 3: the matching routine. Chapter 4: working the differences. Chapter 5: cash — the float and the imprest system. Chapter 6: the retail cash-up chain, from drawer to statement. Chapter 7: bank governance. Chapter 8: HealthTrade's banking year. Chapter 9: review and the law.</p>"
+    "html": "<p>This module covers the banking layer of ZhiftERP: setting up bank accounts and payment modes, importing bank statements, the Bank Reconciliation Tool, handling the differences, cash and the imprest float, the retail cash-up chain, and bank governance.</p><p><b>The idea.</b> The bank statement is a record the business does not write. Internal records can share one fault — the same wrong default poisons the invoice and the register together — but the statement states what money actually moved, when, and where. Reconciliation is the monthly comparison of the two records: every statement line matched to a ledger entry, every ledger bank entry matched to a statement line, and the unmatched remainder named and worked.</p><p><b>What reconciliation is not.</b></p><p>• Not a formality. A tick that examines nothing proves nothing.<br>• Not a plug. A balancing Journal Entry that forces agreement hides every real difference. Chapter 9 treats the plug as this module's most serious failure.<br>• Not optional at any size. The cost is about an hour per bank per month once the routine is established.</p><p><b>What an unreconciled business cannot know.</b></p><p>1. Whether its cash position is real. Decisions made on a GL bank balance the bank disagrees with are decisions made on a wrong number.<br>2. Whether payments landed — the transfer that failed silently, the cheque never presented.<br>3. What the bank has been taking — charges and deductions accumulating unbooked.<br>4. Whether anyone is helping themselves. The common frauds — the intercepted payment, the altered beneficiary, takings banked short — are caught first at reconciliation or not at all.</p><p><b>How ZhiftERP does it.</b> The system's reconciliation is built from four parts, each with its chapter: the <b>Bank Account</b> record linked to a Bank-type ledger account (Chapter 2); the <b>Bank Statement Import</b>, which loads statement lines as <b>Bank Transaction</b> records (Chapter 3); the <b>Bank Reconciliation Tool</b>, which matches Bank Transactions against Payment Entries and Journal Entries (Chapter 3); and the <b>Bank Reconciliation Statement</b> report, which states the GL balance, the bank balance, and the explained difference between them (Chapter 4).</p><p><b>Module contents.</b> Chapter 2: bank accounts and Modes of Payment. Chapter 3: importing the statement and matching. Chapter 4: working the differences. Chapter 5: cash accounts and the imprest float. Chapter 6: the cash-up chain from till to statement. Chapter 7: bank governance. Chapter 8: the HealthTrade case. Chapter 9: review and the law.</p>"
    },
    {
-    "title": "Chapter 2 — Bank accounts and payment modes",
+    "title": "Chapter 2 — Bank accounts and Modes of Payment",
     "est": "12",
-    "html": "<p>Reconciliation needs the wiring right first: the real-world banks represented so the machinery can see them.</p><p><b>One real account, one leaf.</b> Every actual bank account — each with its own statement — is its own <b>Bank-type ledger account</b>:</p><p>• Typed Bank, so the reconciliation machinery can see it (module 1's type rule).<br>• Named plainly for the long term: <i>GTB Current - 0123</i>, not <i>Bank 2</i>.<br>• Grouped under Bank Accounts for the rollup read.<br>• Paired with its <b>bank account record</b> — the master carrying the account number, branch, and reconciliation linkage — created together with the leaf.</p><p>Two refusals follow from the rule: never pool two real accounts into one leaf (two statements cannot reconcile against one ledger), and never split one real account across leaves.</p><p><b>Payment modes.</b> The Mode of Payment is the front-line vocabulary — Cash, Transfer, POS, Cheque — and each mode maps to the account the money truly lands in: Transfer to the receiving bank leaf, Cash to the cash account, POS to the settlement path Chapter 6 covers. A <b>mis-mapped mode</b> is the quiet disease this chapter exists to prevent: every payment taken on it posts to the wrong leaf, one bank's reconciliation inherits a stream of phantom entries and another's misses a stream of real ones — weeks of tangle from one dropdown. Verify the mode map at go-live, and re-walk it whenever banks change.</p><p><b>Movements between own accounts.</b> Cash banked, funds shifted between banks, the float replenished — these are <b>contra entries</b> (module 2's type): one leaf credited, the other debited, no income or expense anywhere; the business is moving money between its own pockets. The discipline is the pairing: a contra touches two reconcilable worlds — the sending statement and the receiving one (or the cash count) — and both sides must land. The transfer is recorded when initiated, matched on the sending statement when it leaves, matched on the receiving statement when it arrives, and the in-transit gap (initiated Friday, landed Monday) lives as a timing item both reconciliations can see. Chapter 4 ages it.</p><p><b>Multiple banks, deliberately.</b> Businesses hold several banks for real reasons — clearing relationships, lending, branch cash handling. Keep the purposes written: each account's job noted on its record (operating, tax reserve, payroll), so the account list stays a design rather than an accumulation, and the annual review can ask whether each account still earns its place.</p><p><b>Summary.</b> One real account per typed leaf, plainly named, paired with its record; every payment mode mapped to its true landing account and verified at go-live; own-account movements as contras with both sides matched; and each bank's purpose written down.</p>"
+    "html": "<p>Reconciliation needs the setup right first. Three records per real bank account, walked in order.</p><p><b>1. The ledger account.</b> On the Chart of Accounts, create one leaf per real bank account under Bank Accounts, with <b>Account Type = Bank</b>. Name it with the bank and account identity — <i>GTB Current - 0123</i> — so every report reads plainly for years. Two rules follow:</p><p>• Never pool two real accounts into one leaf. Two statements cannot reconcile against one ledger.<br>• Never split one real account across leaves.</p><p><b>2. The Bank Account record.</b> Open <b>Accounting &gt; Bank Account &gt; New</b>. Fill: Account Name, Bank (create the Bank record once per bank), Account Number, <b>Is Company Account</b> ticked, Company, and — the linkage that matters — the <b>Account</b> field pointed at the ledger leaf from step 1. The Bank Account record is what the statement import and the reconciliation tool work from; a leaf without its Bank Account record is invisible to both.</p><p><b>3. Modes of Payment.</b> Open <b>Accounting &gt; Mode of Payment</b>. Each mode — Cash, Transfer, POS, Cheque — carries an Accounts table mapping the mode, per company, to the ledger account the money truly lands in: Transfer to the receiving bank leaf, Cash to the cash account, POS to its settlement account. A mis-mapped mode makes every payment taken on it post to the wrong leaf: one bank's reconciliation fills with entries the statement will never show, and another's misses entries the statement does show. Verify the mapping at go-live by posting one test Payment Entry per mode and reading View &gt; Accounting Ledger; re-check whenever a bank is added or changed.</p><p><b>Movements between your own accounts.</b> Cash banked, funds moved between banks, the float topped up. Record these either as a <b>Payment Entry with Payment Type = Internal Transfer</b> (from-account and to-account on one document) or as a <b>Journal Entry with Entry Type = Contra Entry</b>. Nothing posts to income or expense. Both sides land on a reconcilable record: the sending side matches when the money leaves that statement, the receiving side when it arrives, and a transfer initiated Friday that lands Monday shows as an in-transit item both reconciliations can see. Chapter 4 sets the age limit on it.</p><p><b>Multiple banks.</b> Businesses hold several accounts for real reasons — clearing, lending, payroll. Write each account's purpose in the Bank Account record's notes (operating, tax reserve, payroll), and review the list annually: every account should still have a job.</p><p><b>Summary.</b> One typed leaf per real account; a Bank Account record linking each leaf to its bank and number; every Mode of Payment mapped and test-verified; internal movements by Internal Transfer or Contra Entry; purposes written down.</p>"
    },
    {
-    "title": "Chapter 3 — The reconciliation routine",
+    "title": "Chapter 3 — Importing the statement and matching",
     "est": "13",
-    "html": "<p>The reconciliation itself: monthly, per account, from the statement's own cutoff date.</p><p><b>The frame.</b> Two lists face each other: the statement's lines for the period, and the GL bank account's entries. The goal is total mutual accounting — every statement line matched to a ledger entry, every ledger entry matched to a statement line — with the two closing balances tied together through the <b>explained</b> remainder. The classic arithmetic: <b>GL balance + deposits the bank has not yet seen − payments the bank has not yet cleared = statement balance.</b> When that equation closes with every remaining item named, the account is reconciled. When it closes only through an unexplained difference, it is not reconciled — it is approximately narrated, which is a different thing.</p><p><b>The matching pass.</b> Run from easiest to hardest:</p><p>1. <b>Exact amount-and-date pairs</b> — the bulk: transfers and deposits that behaved.<br>2. <b>Amount matches with date drift</b> — the clearance lag: the payment entered Tuesday appears on the statement Thursday. Match them, and record the <b>clearance date</b> on the ledger entry — the field that marks an entry as witnessed, and the anchor for every uncleared-items report afterwards.<br>3. <b>Composites</b> — one statement line covering several ledger entries (the batched deposit), or one ledger entry split across several statement lines (the split settlement).<br>4. <b>The remainder</b> — whatever stays unmatched on either side. This is not a failure; it is the routine's actual product: the worklist Chapter 4 takes over.</p><p><b>Naming the remainder.</b> Every surviving item belongs to one of three categories:</p><p>• <b>Timing items (business side)</b> — recorded by the business, not yet seen by the bank: the cheque issued and unpresented, the transfer in transit, the deposit lodged after the cutoff. Legitimate and expected — and aged (Chapter 4): a timing item that stops being timely stops being a timing item.<br>• <b>Bank-side items, unbooked</b> — seen by the bank, not yet recorded by the business: charges, interest, direct debits, standing orders, reversals, the customer who paid straight into the account unannounced. The reconciliation is where the business learns of these, and Chapter 4 books them from here — never from memory.<br>• <b>Errors</b> — either side's: the business's mis-keyed amount (corrected by module 2's rules), or — rare but real — the bank's own error, queried with the bank and tracked until reversed. Never absorbed.</p><p><b>Practical rules.</b> Reconcile from the statement's cutoff, not a convenient date. Work one account at a time to completion. And finish every session with the remainder list written: item, category, amount, age, owner. A reconciliation whose output is that list has done its job; one whose output is a tick has done nothing.</p>"
+    "html": "<p>The monthly reconciliation in ZhiftERP is two steps: load the statement, then match it. Run it per bank account, from the statement's own cutoff date.</p><p><b>Step 1 — load the statement.</b> Open <b>Bank Statement Import</b> (search it from the top bar). Select the Bank Account, upload the bank's file (CSV or XLSX export from the bank portal), and map the columns — date, description, deposit, withdrawal, reference — the first time; the mapping is remembered. On import, each statement line becomes a <b>Bank Transaction</b> record with status Unreconciled. If a bank offers no clean export, lines can be entered as Bank Transactions manually, but push for the export: typing a statement re-introduces the typing errors the import exists to avoid.</p><p><b>Step 2 — match in the Bank Reconciliation Tool.</b> Open <b>Accounting &gt; Bank Reconciliation Tool</b>. Select the Bank Account and the period; the screen shows the closing balance per the bank and per the books, and lists the unreconciled Bank Transactions. Work each transaction with its action buttons:</p><p>• <b>Match Against Voucher</b> — the normal case: the tool proposes Payment Entries and Journal Entries with matching amounts; confirm the right one. Matching sets the voucher's <b>clearance date</b>, which is what marks a ledger entry as seen by the bank.<br>• One statement line covering several vouchers (a batched deposit), or one voucher split across lines: select multiple documents in the match dialog until the amounts agree.<br>• <b>Create Voucher</b> — for statement lines with no ledger entry yet: bank charges, interest, direct debits. The tool creates the Payment Entry or Journal Entry from the transaction, with the statement line as its reference. This is the only lawful source for booking bank-side items — never book charges from memory.<br>• A transaction that matches nothing and should not create anything — the bank's own error — is left unreconciled and queried with the bank until reversed.</p><p><b>Matching order.</b> Run easiest to hardest: exact amount-and-date pairs first (the bulk), then amount matches with date drift (the payment entered Tuesday, on the statement Thursday — match it; the clearance date records the lag), then the composites, and last the remainder that will not match — which is not a failure but the month's worklist, handled in Chapter 4.</p><p><b>The proof.</b> After matching, open the <b>Bank Reconciliation Statement</b> report for the account and date: it shows the GL balance, adds cheques and payments not yet cleared, and arrives at the bank balance. When that report closes with every listed item named and expected, the account is reconciled. When it closes only through an unexplained difference, it is not.</p>"
    },
    {
     "title": "Chapter 4 — Working the differences",
     "est": "13",
-    "html": "<p>The remainder is named; now it is worked — each category's handling, plus the aging discipline that stops the reconciliation becoming a museum of old differences.</p><p><b>Timing items: ride, then investigate.</b> The unpresented cheque and the in-transit transfer ride to next month's reconciliation, where most clear. The discipline is the <b>age limit</b>, written per instrument:</p><p>• <b>Cheques</b> — the validity window. A cheque unpresented at six months is stale by banking practice and must be resolved, not carried: contact the payee; if the cheque was lost or never received, reverse its ledger entry by the correction rules (with references) and reissue the payment properly.<br>• <b>Transfers</b> — days, not months. A transfer in transit beyond a week is not in transit; it is missing. Trace it with the bank; find or force the reversal.<br>• <b>Deposits</b> — the loudest alarm in the module: a lodged deposit missing from the statement is escalated <b>same day</b>. Chapter 6's chain names who carried it.</p><p>The <b>uncleared-items report</b>, aged, is the reconciliation's standing output — and a remainder list that only grows is Chapter 9's pattern in its early form.</p><p><b>Bank-side items: book from the statement.</b> Charges, interest, direct debits, reversals — booked as Bank Entries, from the reconciliation, with the statement line referenced. That is the only lawful source: the bank account moves because the bank moved it, and the statement is the evidence. Two disciplines ride along:</p><p>• <b>Reasonableness.</b> Charges are read, not just booked — the charge schedule against the bank mandate. Banks err, and the business that books blindly subsidises the errors. A quarterly charges read against expectation is a small routine with a real yield.<br>• <b>The unexplained credit.</b> Money arriving unannounced is not income until identified. Park it as identified-pending, run the party investigation — it is usually a customer paying without a reference, resolved through the receivables machinery so the allocation lands properly. Never swallow it into income out of relief.</p><p><b>Errors: the correction rules, applied.</b> Business-side errors surface here constantly — the transposed amount, the payment posted to the wrong bank leaf, the double entry. Every one corrects by module 2's rules: reverse and repost with references and remarks; and where a document erred, correct the document. The reconciliation's job is finding them; the correction rules' job is fixing them without rewriting history.</p><p><b>Summary.</b> Timing items ride under written age limits and are investigated at the limit — cheque by its validity, transfer by the week, missing deposit same-day. Bank-side items book only from the statement, with a quarterly reasonableness read and unexplained credits parked, never pocketed. Errors correct by the rules. The aged remainder list is the standing output, and its length and age are the reconciliation's quality gauge.</p>"
+    "html": "<p>Matching leaves a remainder on both sides. Each item belongs to one of three categories, and each category has a procedure.</p><p><b>Category 1 — timing items (book side).</b> Entries in the ledger the bank has not yet seen: the cheque issued and unpresented, the transfer in transit, the deposit lodged after cutoff. These appear on the Bank Reconciliation Statement as uncleared items and normally clear next month. The discipline is a written <b>age limit per instrument</b>:</p><p>• <b>Cheques</b> — the validity window. A cheque unpresented at six months is stale; resolve it: contact the payee, and if the cheque is lost, reverse the Payment Entry by module 2's correction rules and reissue properly.<br>• <b>Transfers</b> — days, not months. In transit beyond a week means missing: trace it with the bank and find or force the reversal.<br>• <b>Deposits</b> — a lodged deposit missing from the statement is escalated the <b>same day</b>. Chapter 6's chain shows who carried it.</p><p>Read the uncleared list monthly with its ages. A remainder list that only grows is Chapter 9's Pattern 3 starting.</p><p><b>Category 2 — bank-side items, unbooked.</b> Lines on the statement with no ledger entry: charges, interest, direct debits, standing orders, reversals, a customer paying straight into the account. Book each from the Bank Reconciliation Tool's <b>Create Voucher</b> button, statement line referenced. Two rules ride along:</p><p>1. <b>Read charges before booking them.</b> Compare against the bank's agreed schedule quarterly. Banks make errors, and a business that books blindly pays for them. Query and recover duplicates.<br>2. <b>An unexplained credit is not income.</b> Park it against a holding account, investigate the payer — it is usually a customer paying without a reference — and allocate it through the receivables tools (module 4) so the customer's ledger stays correct.</p><p><b>Category 3 — errors.</b> Book-side errors surface here constantly: the transposed amount, the payment posted to the wrong bank leaf, the double entry. Correct each by module 2's rules — Reverse Journal Entry or cancel/amend the Payment Entry, with references and remarks. Bank-side errors are queried with the bank and tracked until reversed; never absorb them.</p><p><b>The monthly output.</b> Finish every reconciliation with two artifacts filed: the Bank Reconciliation Statement report (printed or saved to the close bundle) and the aged uncleared list with an owner per item. The list's length and age are the reconciliation's quality measures.</p><p><b>Summary.</b> Timing items ride under written age limits — cheque by validity, transfer by the week, missing deposit same day. Bank-side items book only through Create Voucher with the statement referenced. Errors correct by the rules. File the statement report and the aged list every month.</p>"
    },
    {
-    "title": "Chapter 5 — Cash: the float and the imprest system",
+    "title": "Chapter 5 — Cash accounts and the imprest float",
     "est": "12",
-    "html": "<p>The statement witnesses electronic money. Physical cash has no outside witness at all — which is why its rules are stricter and older.</p><p><b>Cash accounts: few, and owned.</b> A Cash-type leaf for each real cash <b>custody</b> — the main cash account, each petty cash float — never one diffuse Cash account that several drawers share. Pooled custody is no custody: when several people share one cash balance, no variance can be attributed to anyone. Each custody has a named holder, a counting rhythm, and a written purpose. And the design goal is <b>minimisation</b>: cash custodies are attack surface, and Nigeria's transfer-heavy payment reality is an ally — fewer drawers, smaller floats, faster banking, less to defend.</p><p><b>The imprest float.</b> Petty cash runs on the imprest system — the design that makes small cash self-controlling:</p><p>1. A <b>fixed float</b> (say ₦100,000) held by a named custodian.<br>2. Every disbursement against a <b>voucher</b> — what, why, who, with the receipt attached.<br>3. <b>Replenishment reimburses exactly the vouchers' total</b>, restoring the float to its fixed level.</p><p>The invariant that makes it work: <b>cash in the box plus vouchers in the box equals the float, at every moment.</b> A spot count takes two minutes and either ties or tells. Replenishment is where the accounting happens — the vouchers booked to their expense accounts, by dimension, in one entry, with the reimbursement transfer as the bank-side event. The GL stays clean of dribbles while every kobo stays evidenced.</p><p><b>The cash count.</b> Scheduled counts (the float monthly; tills daily — Chapter 6) plus <b>unscheduled spot counts</b> — unpredictability is what keeps a counting programme honest. Counted by someone other than the custodian where the roster allows, against the invariant, with the standard variance rules: named the same day, investigated before adjusted, reason-coded, and read as a rate per custody over time. And the framing that matters for the people: <b>the count protects the honest holder</b> — the clean-count record is the custodian's own evidence. A custodian who welcomes spot counts is telling you something, as is one who resents them.</p><p><b>Cash rules, itemised.</b></p><p>• Disbursements only against vouchers — no IOUs living in the box; an IOU is an unauthorised loan wearing a scrap of paper.<br>• The float is fixed — topping it up by feel breaks the invariant.<br>• A spending cap routes anything substantial to the proper payment machinery, where it gets evidence and approval.<br>• Custodian changes are a counted handover: outgoing count, incoming count, both signed, same day.</p>"
+    "html": "<p>The statement covers electronic money. Physical cash has no outside record at all, so its rules are stricter.</p><p><b>Cash accounts: few and owned.</b> Create a <b>Cash-type</b> leaf for each real cash custody — the main cash account, each petty cash float. Do not run one shared Cash account that several drawers post to: when several people share one balance, no variance can be attributed to anyone. Each custody gets a named holder, a counting schedule, and a written purpose. Design for minimisation: Nigeria's transfer-heavy payments make it practical to keep drawers few, floats small, and banking fast.</p><p><b>The imprest float, set up once.</b></p><p>1. Create the float's Cash-type account, e.g. <i>Petty Cash - Head Office</i>, and fund it to a fixed amount — say ₦100,000 — by an Internal Transfer from the bank.<br>2. Name the custodian. Disbursements happen only against a <b>voucher</b>: what, why, who, receipt attached. The vouchers accumulate in the box; nothing posts yet.<br>3. <b>Replenish monthly:</b> one Journal Entry (Entry Type: Cash Entry) debits each voucher's expense account with its Cost Center, credits the bank for the vouchers' exact total — restoring the float to ₦100,000. Attach the voucher scans to the entry.</p><p>The invariant that makes the float self-checking: <b>cash in the box plus vouchers in the box equals ₦100,000 at every moment.</b> A spot count takes two minutes and either ties or tells.</p><p><b>The cash count.</b> Scheduled counts (the float monthly; tills daily — Chapter 6) plus unscheduled spot counts, because unpredictability is what keeps a counting programme honest. Count against the invariant, preferably by someone other than the custodian. Variance rules are the standard set: named the same day, investigated before adjusted, reason-coded, and tracked as a rate per custody. Frame the counts correctly with the team: the count protects the honest holder — a clean-count record is the custodian's own evidence.</p><p><b>Cash rules, itemised.</b></p><p>• Disbursements only against vouchers. No IOUs in the box — an IOU is an unauthorised loan on a scrap of paper.<br>• The float is fixed. Topping up by feel breaks the invariant.<br>• A spending cap routes anything substantial to a proper Payment Entry, where it gets approval and evidence.<br>• Custodian changes are a counted handover: outgoing count, incoming count, both signed, same day.</p><p><b>Summary.</b> One Cash-type account per custody with a named holder; the imprest cycle — fixed float, vouchers, exact replenishment by one Cash Entry with cost centres; scheduled plus spot counts against the invariant; and the four cash rules.</p>"
    },
    {
-    "title": "Chapter 6 — The cash-up chain: drawer to statement",
+    "title": "Chapter 6 — The cash-up chain: till to statement",
     "est": "13",
-    "html": "<p>Retail's daily money routine — the chain from the till drawer to the bank statement — is where more small money is lost than anywhere else in trade. The chain has four links, and each one is signed.</p><p><b>Link 1 — the till session.</b> Each till, each day or shift, is a session: opened with a counted float, traded through the till's machinery (every sale a document), closed with a counted drawer. The session is the accountability unit — one till, one operator, one reconciliation. A pooled till (several operators, one drawer) converts every variance into an argument, which is why it is refused.</p><p><b>Link 2 — the cash-up.</b> At session close:</p><p>1. The drawer is counted <b>by denomination</b> — the count sheet by note, because <i>roughly ₦180k</i> is not a count.<br>2. The count is compared against the system's session totals <b>by mode</b>: cash sales against cash in the drawer (less the float); POS-terminal sales against the terminal's settlement report; transfers against the transfer log.<br>3. Variances are named <b>tonight</b>, same day, while memory serves. A ₦14,000 short investigated at close is a training catch; discovered a week later it is an argument; a month later, a write-off.</p><p>Cash-up variances are read as a rate per till and per operator — rotating operators across tills separates the till from the person where a pattern appears — and the clean-session streak is the operator's own visible record.</p><p><b>Link 3 — banking the takings.</b> Cash does not sleep in drawers:</p><p>• <b>Banked intact</b> — the whole count, never the count minus informal spendings. Takings that detour into expenses break the tie between till total and deposit slip, and every informal spend is an undocumented one.<br>• <b>Banked fast</b> — daily or next morning per policy and geography, the overnight safe's contents minimal.<br>• The deposit: counted, sealed, slipped, carried by a <b>named person</b>, lodged — and the deposit slip's amount must equal the cash-up's banked figure to the naira, because the next link checks it.</p><p><b>Link 4 — the statement closes the loop.</b> The deposit appears on the bank statement, and the reconciliation (Chapter 3) matches it. The full chain: <b>till total → cash-up → deposit slip → statement line</b> — one unbroken sequence of agreeing numbers, each link signed by its custodian. When the chain breaks, the break names its link: a till-to-cash-up gap is a session problem; a cash-up-to-slip gap happened in counting or carriage; a slip-to-statement gap is the same-day alarm from Chapter 4.</p><p><b>Summary.</b> One operator per session; denominated counts compared by mode, variances named tonight; takings banked intact and fast by named carriage; the statement matched at reconciliation. Four links, four signatures, one agreeing number end to end.</p>"
+    "html": "<p>Retail cash runs through a four-link chain from the till drawer to the bank statement. Each link produces a number, the numbers must agree, and each link has a named custodian. The till mechanics themselves belong to the ZhiftPOS track; this chapter is the accounts view of the chain.</p><p><b>Link 1 — the till session.</b> Each till, each day or shift, is one session: opened with a counted float, traded through the till (every sale a document), closed with a counted drawer. One till, one operator, one session — a pooled drawer shared by several operators turns every variance into an argument, so it is refused.</p><p><b>Link 2 — the cash-up.</b> At session close:</p><p>1. Count the drawer <b>by denomination</b> on a count sheet. \"Roughly ₦180k\" is not a count.<br>2. Compare against the session's system totals <b>by mode</b>: cash sales against cash in the drawer less the float; POS-terminal sales against the terminal's settlement report; transfers against the transfer log.<br>3. Name any variance <b>the same day</b>. A ₦14,000 short investigated at close is usually a training catch; found a week later it is an argument; a month later, a write-off.</p><p>Track cash-up variances as a rate per till and per operator. Rotating operators across tills separates the till from the person when a pattern appears; a clean-session streak is the operator's own record.</p><p><b>Link 3 — banking the takings.</b></p><p>• <b>Intact:</b> the whole count is banked — never the count minus informal spendings. Spendings out of the drawer break the tie between till total and deposit slip and skip all documentation; route them through the float or a Payment Entry instead.<br>• <b>Fast:</b> daily or next morning per policy; the overnight safe holds the minimum.<br>• The deposit is carried by a named person, and the deposit slip must equal the cash-up's banked figure to the naira. Record the banking as an Internal Transfer from the cash account to the bank account.</p><p><b>Link 4 — the statement.</b> The deposit appears on the imported statement and is matched in the Bank Reconciliation Tool (Chapter 3). The full chain — till total → cash-up sheet → deposit slip → statement line — is one sequence of agreeing numbers. A break names its own link: till-to-cash-up is a session problem; cash-up-to-slip happened in counting or carriage; slip-to-statement is Chapter 4's same-day deposit alarm.</p><p><b>Summary.</b> One operator per session; denominated counts compared by mode with same-day variances; takings banked intact and fast by named carriage, recorded as Internal Transfers; the statement match closing the loop monthly.</p>"
    },
    {
     "title": "Chapter 7 — Bank governance",
     "est": "12",
-    "html": "<p>Stock walks out in cartons; bank money leaves at wire speed. This chapter assembles the controls that defend it.</p><p><b>The release separation.</b> The <b>preparer</b> of a payment — who assembles what to pay from system evidence — is never its <b>releaser</b> — who authorises it at the bank. And the payment run pays what the ledger supports: approved invoices, matched documents — never what a message asks. The separation survives every size of business because it is two people, not two departments: at eleven people, the founder releases what the accountant prepares.</p><p><b>Masters, not messages.</b> The beneficiary-fraud defence:</p><p>• Payments go to the account details in the <b>supplier master</b> — never to details supplied in a message.<br>• Changes to those details are a governed master-data event: verified through a known channel back to a known person — never the phone number in the requesting email.<br>• The urgent message asking otherwise — the MD's spoofed mailbox, the supplier's lookalike domain, the WhatsApp that sounds exactly right — dies against the process. That is the point of having one.</p><p>The accounts team is this fraud's chosen target, because they hold the pen that pays. Refresh the training annually, and treat reported near-misses as wins, not embarrassments.</p><p><b>Mandates and signatories.</b> The bank-side mirror of the system's permissions: who may sign, at what thresholds, in what combinations — kept <b>aligned</b> with the internal release design. A mandate broader than the internal control is a back door; one narrower is a bottleneck. Review the mandate on the annual walk <b>and at every personnel change</b>: the departed signatory is removed the week they leave, not the year — a stale mandate is a standing invitation. Online banking gets the same treatment in modern clothes: users named, limits set, tokens held personally, and the admin rights themselves held by two named people.</p><p><b>The bank calendar.</b> The recurring lines this module adds:</p><p>• <b>Monthly:</b> the reconciliation, per account — with a written maximum tolerable unreconciled age (an account two months unreconciled is an incident, not a backlog); the uncleared-items aging read.<br>• <b>Quarterly:</b> the charges reasonableness read.<br>• <b>Annually and on change:</b> the mandate and online-user review.<br>• <b>Per their schedules:</b> the cash counts (Chapter 5) and till sessions (Chapter 6).<br>• <b>Daily, where cash flow is tight:</b> the cash position read across the banks.</p><p><b>Summary.</b> Prepare and release separated; beneficiaries paid from masters with governed changes; mandates aligned, reviewed, and purged the week people leave; and the calendar — monthly reconciliation with a maximum age, quarterly charges read, annual mandate walk.</p>"
+    "html": "<p>Bank money moves at transfer speed, so its controls are the strictest in the system. Four sets, each a procedure.</p><p><b>1. Prepare and release, separated.</b> The person who assembles a payment run (from approved invoices and matched documents in the system) is never the person who authorises it at the bank. Two people, at any size: at eleven staff, the founder releases what the accountant prepares. The run pays what the ledger supports — never what a message asks.</p><p><b>2. Masters, not messages.</b> Payments go to the bank details stored in the <b>Supplier record</b> — never to details supplied in an email or chat. Changes to a supplier's bank details are a governed master-data event: verified through a known channel back to a known person at the supplier — never the phone number given in the requesting message. The urgent email from the \"MD\", the lookalike supplier domain, the convincing WhatsApp — each one dies against the process, which is the point of having one. The accounts team is this fraud's chosen target; refresh the training yearly and treat reported near-misses as wins.</p><p><b>3. Mandates and users.</b> The bank-side mirror of system permissions:</p><p>• The bank mandate — who signs, at what thresholds, in what combinations — is kept aligned with the internal release design. Broader than the internal control is a back door; narrower is a bottleneck.<br>• Review the mandate annually <b>and at every personnel change</b>. A departed signatory is removed the week they leave.<br>• Online banking gets the same list: users named, limits set, tokens held personally, admin rights held by two named people.</p><p><b>4. The bank calendar.</b></p><p>• <b>Monthly:</b> reconciliation per account, with a written maximum unreconciled age — an account two months unreconciled is treated as an incident, not a backlog. The aged uncleared list read.<br>• <b>Quarterly:</b> the bank-charges read against the agreed schedule.<br>• <b>Annually and on change:</b> the mandate and online-user review.<br>• <b>Per schedule:</b> the cash counts (Chapter 5) and till sessions (Chapter 6).<br>• <b>Daily, where cash is tight:</b> the cash position across accounts. The Bank Account dashboard and the General Ledger report by account serve this read.</p><p><b>Summary.</b> Preparer never releases; beneficiaries paid from the Supplier record with verified changes; mandates aligned, reviewed, and purged the week people leave; the calendar — monthly reconciliation with a maximum age, quarterly charges read, annual mandate walk.</p>"
    },
    {
     "title": "Chapter 8 — Case study: HealthTrade's banking year",
     "est": "13",
-    "html": "<p>The outside witness, installed and lived. Every chapter appears.</p><p><b>The wiring and the first reconciliation (Chapters 2-4).</b> Three banks become three typed leaves with written purposes — operating, tax reserve, payroll — and the mode map is verified (module 1's go-live check had already caught one mis-mapping). Then the hardest hour of the whole setup: the <b>first reconciliation</b> of the operating account, facing eighteen months of never-reconciled history. The dig, run once, properly: the matching pass leaves a remainder of <b>34 items</b>, and worked by category it resolves into:</p><p>• A nine-month-old <b>stale cheque</b> — ₦210,000 to a supplier who never presented it. The payee is contacted (the cheque was lost), the ledger entry reversed by the correction rules with references, and the payment reissued through the proper run.<br>• An unbooked <b>charges trail</b> — fourteen months of charges and levies never entered, booked in one referenced sitting. The reasonableness read then finds <b>two duplicate charges</b>, queried and recovered from the bank: ₦38,000 back.<br>• One <b>mis-mapped POS week</b> — settlements posted to the wrong bank leaf during a terminal change. Corrected by the rules; the mode map fixed.<br>• An <b>unexplained credit</b> of ₦127,000 — parked identified-pending, traced within the week to a customer who paid without a reference, and allocated through receivables so the tie held.</p><p>Month two's reconciliation takes fifty minutes. Month three's, forty.</p><p><b>The float installed (Chapter 5).</b> The office's drawer-of-mystery becomes a ₦100,000 imprest float: named custodian, voucher pad, the invariant taught — <i>cash plus vouchers equals one hundred, always</i> — and monthly replenishment through the payment machinery with vouchers booked by dimension. The first unscheduled spot count, week three, ties to the naira, and the custodian asks when the next one is. <i>Unscheduled</i>, comes the answer — the system working.</p><p><b>The cash-up chain (Chapter 6).</b> Till sessions start at the retail counter: opening floats, denominated closing counts, mode-split cash-up. Day nine catches the chain's first fish: the evening count is <b>₦14,000 short</b> against cash sales — named that night, investigated while memory serves, and resolved as two transfer-paid sales rung as cash by a new operator. A mode error, not a theft: the sessions are corrected by document, the operator trained, and the variance rate returns to zero. Takings bank intact next morning by named carriage; the slips match the cash-ups to the naira; the statement matches the slips — the chain closes its loop for the first full month.</p><p><b>Governance (Chapter 7).</b> The mandate review finds a former manager still a signatory eight months after leaving — removed the same week, and the personnel-change trigger added to the leaver checklist. The prepare/release separation is confirmed live: the accountant prepares the run; the MD releases it. The year ends with three banks reconciling in under two hours total per month, and the MD's note: <i>I used to check the bank app and hope. Now the books and the bank argue it out monthly, and I read the result.</i></p>"
+    "html": "<p>HealthTrade's banking layer, installed and run. Every chapter appears.</p><p><b>Setup and the first reconciliation (Chapters 2-4).</b> Three banks become three Bank-type leaves, each with its Bank Account record and written purpose — operating, tax reserve, payroll. The Mode of Payment mappings are test-verified (module 1's check had already caught one). Then the first reconciliation of the operating account, facing eighteen months of never-reconciled history. The statement files are imported month by month through Bank Statement Import, matched in the Bank Reconciliation Tool, and the remainder — <b>34 items</b> — is worked by category:</p><p>• A nine-month-old <b>stale cheque</b>: ₦210,000 to a supplier who never presented it. The payee is contacted (the cheque was lost), the Payment Entry reversed with references, the payment reissued through the run.<br>• Fourteen months of <b>unbooked charges</b>, booked in one sitting through Create Voucher with each statement line referenced. The quarterly charges read then finds two duplicate charges; the bank refunds <b>₦38,000</b>.<br>• One <b>mis-mapped POS week</b> — settlements posted to the wrong bank leaf during a terminal change. Corrected by the rules; the Mode of Payment mapping fixed.<br>• An <b>unexplained credit</b> of ₦127,000 — parked, traced within the week to a customer who paid without a reference, allocated through Payment Reconciliation (module 4) so the customer's ledger stayed correct.</p><p>Month two's reconciliation takes fifty minutes; month three's, forty.</p><p><b>The float (Chapter 5).</b> The office drawer becomes a ₦100,000 imprest float: Cash-type account, named custodian, voucher pad, monthly replenishment by one Cash Entry with cost centres, voucher scans attached. The first unscheduled spot count in week three ties to the naira — cash plus vouchers equals one hundred — and the custodian asks when the next one is. Unscheduled, is the answer.</p><p><b>The cash-up chain (Chapter 6).</b> Till sessions start at the retail counter. Day nine, the evening count is <b>₦14,000 short</b> against cash sales — named that night, investigated while memory serves, resolved as two transfer-paid sales rung as cash by a new operator. A mode error, not a theft: the sessions corrected by document, the operator trained, the variance rate back at zero. Takings bank intact next morning by named carriage as Internal Transfers; slips match cash-ups; the statement matches the slips.</p><p><b>Governance (Chapter 7).</b> The mandate review finds a former manager still a signatory eight months after leaving — removed the same week, and the trigger added to the leaver checklist. Prepare/release is confirmed live: the accountant prepares, the MD releases. By year-end the three banks reconcile in under two hours a month total, and the MD's note: <i>the books and the bank now settle their differences monthly, and I read the result.</i></p>"
    },
    {
     "title": "Chapter 9 — Common mistakes & the third law",
     "est": "11",
-    "html": "<p>The banking layer's recurring failures, then the review list.</p><p><b>Pattern 1 — the never-reconciled account.</b> Symptom: a GL bank balance nobody would bet on; decisions made on it anyway; the statement opened only to see if a payment landed. Cause: the outside record never examined (Chapters 1, 3). Fix: the first-dig reconciliation — priced honestly, it faces the whole history once — then the monthly rhythm, with the maximum-unreconciled-age policy making relapse an incident.</p><p><b>Pattern 2 — reconciliation by plug.</b> Symptom: accounts that reconcile perfectly every month via a balancing journal to <i>reconciliation differences</i> or suspense. Cause: the module's most serious failure — forcing agreement converts every real difference (error, fraud, drift) into a booked fiction, and the account looks reconciled precisely because it never is. Fix: excavate the plug account's history (each plugged amount is an unworked difference), forbid the plug, and install the name-every-item discipline. An unexplained difference carried openly is honest; one booked away is not.</p><p><b>Pattern 3 — the museum remainder.</b> Symptom: uncleared items riding for a year; stale cheques immortal; in-transit items old enough to walk. Cause: the aging discipline absent (Chapter 4). Fix: age limits written per instrument, the monthly aging read with investigation at the limit, and the remainder list's length and age on the close checklist as the reconciliation's quality gauge.</p><p><b>Pattern 4 — cash counted never.</b> Symptom: the drawer of mystery; IOUs in the float; petty cash topped up by feel; variances discovered annually and absorbed silently. Cause: the no-witness asset given no discipline either (Chapter 5). Fix: the imprest installed (the invariant makes counting trivial), custodies named and minimal, the count rhythm with spot checks, and the spending cap routing real expenses to the evidenced machinery.</p><p><b>Pattern 5 — the leaking chain.</b> Symptom: till totals, cash-ups, deposit slips and statement lines each telling a slightly different number; takings banked late and light; variance arguments a week after the fact. Cause: the chain's links unsigned (Chapter 6) — pooled tills, undenominated counts, informal spendings en route, unnamed carriage. Fix: sessions and same-day cash-ups, intact and fast banking by named carriage, and the four-link match run monthly at reconciliation.</p><p><b>The review list.</b> Confirm you can state: why the outside record is categorically stronger; the wiring rules (one account one leaf, the mode map, contras); the matching order and the reconciliation equation; the three remainder categories and each one's handling with its age limit; the imprest invariant and the cash rules; the four links of the cash-up chain and what each break means; and the governance set — prepare/release, masters-not-messages, mandates aligned and purged.</p><p><b>The third law: every bank account is reconciled monthly, and every difference is named — never plugged.</b> Module 4 turns to the promises: receivables and payables from the accounts chair.</p>"
+    "html": "<p>The banking layer's recurring failures, then the review list.</p><p><b>Pattern 1 — the never-reconciled account.</b> Symptom: a GL bank balance nobody would rely on; decisions made on it anyway; the statement opened only to check if one payment landed. Cause: the comparison never performed (Chapters 1, 3). Fix: the first-dig reconciliation — it faces the whole backlog once; import the history through Bank Statement Import and work it — then the monthly routine, with the written maximum unreconciled age making relapse an incident.</p><p><b>Pattern 2 — reconciliation by plug.</b> Symptom: accounts that \"reconcile\" perfectly every month via a balancing Journal Entry to a differences or suspense account. Cause: forcing agreement converts every real difference — error, fraud, drift — into a booked fiction; the account looks reconciled precisely because it never is. This is the module's most serious failure. Fix: excavate the plug account's history (each plugged amount is an unworked difference), forbid the plug, and install the name-every-item rule. An unexplained difference carried openly on the Bank Reconciliation Statement is honest; one booked away is not.</p><p><b>Pattern 3 — the museum remainder.</b> Symptom: uncleared items riding for a year; stale cheques never resolved; in-transit items months old. Cause: no age limits (Chapter 4). Fix: the limits written per instrument, the monthly aged read with investigation at the limit, and the list's length and age on the close checklist.</p><p><b>Pattern 4 — cash counted never.</b> Symptom: a drawer nobody can explain; IOUs in the float; petty cash topped up by feel; variances found annually and absorbed. Cause: the no-record asset given no rules either (Chapter 5). Fix: the imprest installed — the invariant makes counting trivial — custodies named and minimal, the count schedule with spot checks, the spending cap routing real expenses to Payment Entries.</p><p><b>Pattern 5 — the leaking chain.</b> Symptom: till totals, cash-up sheets, deposit slips and statement lines each showing a slightly different number; takings banked late and light. Cause: the chain's links unsigned (Chapter 6) — pooled tills, undenominated counts, informal spendings en route, unnamed carriage. Fix: one operator per session, same-day denominated cash-ups, intact and fast banking recorded as Internal Transfers, and the four-link match run at every reconciliation.</p><p><b>The review list.</b> Before the quiz, confirm you can: set up the three records per bank (typed leaf, Bank Account record, Mode of Payment mapping) and verify the mapping; run Bank Statement Import and match in the Bank Reconciliation Tool, including Create Voucher for bank-side items; read the Bank Reconciliation Statement report; state the three remainder categories with their age limits; set up and replenish an imprest float and state its invariant; walk the four links of the cash-up chain and what each break means; and state the governance set — prepare/release, masters-not-messages, mandate reviews, and the calendar.</p><p><b>The third law: every bank account is reconciled monthly, and every difference is named — never plugged.</b> Module 4 covers receivables and payables from the accounts side.</p>"
    }
   ],
   "questions": [
    {
-    "q": "The bank statement is a stronger check than internal comparisons because:",
+    "q": "The bank statement matters because:",
     "opts": [
-     "It is a record the business does not write — no internal error or fraud can reach it",
-     "Banks are always right",
+     "It is a record the business does not write — internal faults cannot reach it",
+     "Banks are never wrong",
      "It is monthly",
-     "It is printed"
+     "It is legally required reading"
     ],
     "ans": 0,
-    "why": "The whole financial story anchors against it.",
+    "why": "Reconciliation compares the two records.",
     "src": "Ch1"
    },
    {
-    "q": "Reconciliation is:",
+    "q": "Reconciliation by balancing journal is:",
     "opts": [
-     "A tick-and-file formality",
-     "The disciplined comparison — every line matched both ways, and the remainder named, explained and worked",
-     "A balancing journal",
-     "Optional for small firms"
+     "Efficient",
+     "A plug — it hides every real difference and is this module's most serious failure",
+     "Standard practice",
+     "The tool's default"
     ],
     "ans": 1,
-    "why": "About an hour per bank per month at a healthy business.",
+    "why": "The account looks reconciled precisely because it never is.",
     "src": "Ch1"
    },
    {
-    "q": "Classic bank frauds are caught:",
+    "q": "ZhiftERP's reconciliation is built from:",
     "opts": [
-     "By the auditor, eventually",
-     "By the bank",
-     "First at reconciliation, or not at all",
-     "By cameras"
+     "One report",
+     "Spreadsheets",
+     "Bank Account records, Bank Statement Import, the Bank Reconciliation Tool, and the Bank Reconciliation Statement report",
+     "The GL alone"
     ],
     "ans": 2,
-    "why": "The intercepted payment, the altered beneficiary, the short banking.",
+    "why": "Four parts, four chapters.",
     "src": "Ch1"
    },
    {
-    "q": "Two real bank accounts pooled into one ledger leaf:",
+    "q": "Each real bank account gets:",
     "opts": [
-     "Saves maintenance",
-     "Improves reporting",
-     "Is standard",
-     "Cannot reconcile — two statements against one ledger"
+     "One shared leaf",
+     "A Cash account",
+     "A group account",
+     "Its own Bank-type leaf plus a Bank Account record linking to it"
     ],
     "ans": 3,
-    "why": "One real account, one typed leaf.",
+    "why": "Two statements cannot reconcile against one ledger.",
     "src": "Ch2"
    },
    {
-    "q": "A mis-mapped payment mode causes:",
+    "q": "A ledger leaf without its Bank Account record is:",
     "opts": [
-     "Every payment on it to post to the wrong leaf — phantoms in one reconciliation, gaps in another",
-     "One wrong entry",
+     "Invisible to the statement import and the reconciliation tool",
+     "Fine",
+     "Automatically created",
+     "Read-only"
+    ],
+    "ans": 0,
+    "why": "The record carries bank, number, and the Account link.",
+    "src": "Ch2"
+   },
+   {
+    "q": "A mis-mapped Mode of Payment causes:",
+    "opts": [
+     "One bad entry",
+     "Every payment on that mode to post to the wrong leaf — phantoms in one reconciliation, gaps in another",
      "A blocked sale",
-     "A tax error"
-    ],
-    "ans": 0,
-    "why": "Weeks of tangle from one dropdown; verify the map at go-live.",
-    "src": "Ch2"
-   },
-   {
-    "q": "Movements between the business's own accounts are:",
-    "opts": [
-     "Income and expense",
-     "Contra entries — one leaf credited, one debited, nothing earned or spent",
-     "Journals to suspense",
-     "Forbidden"
+     "Nothing"
     ],
     "ans": 1,
-    "why": "Both sides must land on their reconciliations.",
+    "why": "Verify with a test Payment Entry per mode at go-live.",
     "src": "Ch2"
    },
    {
-    "q": "A transfer initiated Friday and landing Monday lives as:",
+    "q": "Movements between your own accounts are recorded as:",
     "opts": [
-     "An error",
-     "Income",
-     "A timing item both reconciliations can see, aged by Chapter 4's limits",
-     "A plug"
+     "Sales",
+     "Expenses",
+     "A Payment Entry (Internal Transfer) or a Journal Entry (Contra Entry) — no income or expense",
+     "Bank charges"
     ],
     "ans": 2,
-    "why": "The in-transit gap, visible and aged.",
+    "why": "Both sides land on reconcilable records.",
     "src": "Ch2"
    },
    {
-    "q": "The reconciliation equation is:",
+    "q": "Bank Statement Import turns statement lines into:",
     "opts": [
-     "GL = statement, always",
-     "Cash = card",
-     "Debits = credits",
-     "GL balance + deposits the bank has not seen − payments not yet cleared = statement balance, with every item named"
+     "GL entries",
+     "Invoices",
+     "Payment Entries",
+     "Bank Transaction records with status Unreconciled"
     ],
     "ans": 3,
-    "why": "Closing via an unexplained difference is not reconciling.",
+    "why": "Column mapping is remembered after the first import.",
     "src": "Ch3"
    },
    {
-    "q": "Recording the clearance date on a ledger entry:",
+    "q": "Matching a Bank Transaction to a voucher sets:",
     "opts": [
-     "Marks the entry as witnessed — the anchor for every uncleared-items report",
-     "Is optional",
-     "Changes the amount",
-     "Closes the period"
+     "The voucher's clearance date — marking the entry as seen by the bank",
+     "The posting date",
+     "The exchange rate",
+     "The party"
     ],
     "ans": 0,
-    "why": "Set during the amount-with-date-drift matching pass.",
+    "why": "The anchor for the uncleared-items read.",
     "src": "Ch3"
    },
    {
-    "q": "The unmatched remainder is:",
+    "q": "Bank charges with no ledger entry are booked by:",
     "opts": [
-     "A failure",
-     "The routine's actual product — the worklist the next chapter works",
-     "Deleted",
-     "Plugged"
+     "A memory journal",
+     "The tool's Create Voucher button, with the statement line as the reference",
+     "Month-end estimate",
+     "The bank"
     ],
     "ans": 1,
-    "why": "Item, category, amount, age, owner.",
+    "why": "The only lawful source for bank-side items.",
     "src": "Ch3"
    },
    {
-    "q": "Bank-side unbooked items are learned of:",
+    "q": "The Bank Reconciliation Statement report shows:",
     "opts": [
-     "From memory",
-     "From the budget",
-     "At the reconciliation — and booked from there with the statement referenced",
-     "Quarterly"
+     "Only the GL balance",
+     "The budget",
+     "The GL balance, the uncleared items, and the bank balance they reconcile to",
+     "Party balances"
     ],
     "ans": 2,
-    "why": "Charges, interest, direct debits, the unannounced credit.",
+    "why": "Reconciled means every listed item is named and expected.",
+    "src": "Ch3"
+   },
+   {
+    "q": "A batched deposit covering several vouchers is matched by:",
+    "opts": [
+     "Splitting the statement",
+     "Ignoring it",
+     "A journal",
+     "Selecting multiple documents in the match dialog until the amounts agree"
+    ],
+    "ans": 3,
+    "why": "Composites come after the exact pairs.",
     "src": "Ch3"
    },
    {
     "q": "A cheque unpresented at six months is:",
     "opts": [
+     "Stale — payee contacted, the Payment Entry reversed with references, the payment reissued",
      "Left to ride",
-     "Income",
-     "Cashed by the bank",
-     "Stale — resolved, not carried: payee contacted, entry reversed with references, payment reissued"
+     "Cashed automatically",
+     "Income"
     ],
-    "ans": 3,
+    "ans": 0,
     "why": "The age limit per instrument.",
     "src": "Ch4"
    },
    {
     "q": "A transfer in transit beyond a week is:",
     "opts": [
-     "Not in transit — missing; traced with the bank",
      "Normal",
+     "Missing — traced with the bank until found or reversed",
      "A timing item forever",
-     "Ignored"
+     "Written off"
     ],
-    "ans": 0,
-    "why": "Transfers age in days, not months.",
+    "ans": 1,
+    "why": "Transfers age in days.",
     "src": "Ch4"
    },
    {
     "q": "A lodged deposit missing from the statement is:",
     "opts": [
      "Next month's item",
-     "Escalated the same day — the module's loudest alarm",
-     "A bank charge",
-     "A rounding issue"
+     "A charge",
+     "Escalated the same day",
+     "Rounding"
     ],
-    "ans": 1,
-    "why": "The chain names who carried it.",
+    "ans": 2,
+    "why": "The module's loudest alarm; the chain names the carrier.",
     "src": "Ch4"
    },
    {
     "q": "An unexplained credit on the statement is:",
     "opts": [
-     "Booked to income",
+     "Income",
+     "Split",
      "Refunded",
-     "Parked identified-pending and investigated — usually a customer paying without reference, allocated through receivables",
-     "Split across accounts"
+     "Parked and investigated — usually a customer paying without reference, then allocated through the receivables tools"
     ],
-    "ans": 2,
-    "why": "Never swallowed into income out of relief.",
+    "ans": 3,
+    "why": "Not income until identified.",
     "src": "Ch4"
    },
    {
     "q": "Bank charges are:",
     "opts": [
+     "Read against the agreed schedule quarterly — duplicates queried and recovered",
      "Booked blindly",
-     "Estimated",
-     "Disputed always",
-     "Read for reasonableness against the mandate — banks err, and blind booking subsidises the errors"
+     "Always correct",
+     "Estimated"
     ],
-    "ans": 3,
-    "why": "The quarterly charges read has a real yield.",
+    "ans": 0,
+    "why": "A business that books blindly pays for the bank's errors.",
     "src": "Ch4"
    },
    {
-    "q": "Pooled cash custody means:",
+    "q": "One shared Cash account for several drawers:",
     "opts": [
-     "No custody — several people on one balance means no variance can be attributed",
-     "Efficiency",
-     "Bigger floats",
-     "Fewer counts"
+     "Saves setup",
+     "Means no variance can be attributed to anyone — one custody, one named holder",
+     "Is standard",
+     "Improves reporting"
     ],
-    "ans": 0,
-    "why": "One custody, one named holder.",
+    "ans": 1,
+    "why": "Pooled custody is no custody.",
     "src": "Ch5"
    },
    {
     "q": "The imprest invariant is:",
     "opts": [
      "Cash equals sales",
+     "Vouchers equal the bank",
      "Cash in the box plus vouchers in the box equals the fixed float, at every moment",
-     "Vouchers equal expenses",
-     "The float grows monthly"
+     "The float grows"
     ],
-    "ans": 1,
+    "ans": 2,
     "why": "A spot count takes two minutes and either ties or tells.",
     "src": "Ch5"
    },
    {
-    "q": "Replenishment reimburses:",
+    "q": "Imprest replenishment is:",
     "opts": [
-     "A round figure",
-     "Whatever is missing",
-     "Exactly the vouchers' total, restoring the float to its fixed level — and books the vouchers to their expense accounts",
-     "Monthly rent"
+     "A round top-up",
+     "A transfer by feel",
+     "A new float",
+     "One Cash Entry debiting each voucher's expense account with its Cost Center, crediting the bank for the exact total"
     ],
-    "ans": 2,
-    "why": "The accounting happens at replenishment.",
+    "ans": 3,
+    "why": "Voucher scans attached to the entry.",
     "src": "Ch5"
    },
    {
     "q": "An IOU in the float is:",
     "opts": [
-     "A convenience",
-     "Petty cash",
+     "An unauthorised loan on a scrap of paper — disbursements are against vouchers only",
      "A voucher",
-     "An unauthorised loan wearing a scrap of paper — disbursements are against vouchers only"
+     "Petty cash",
+     "Fine if small"
     ],
-    "ans": 3,
-    "why": "One of the itemised cash rules.",
+    "ans": 0,
+    "why": "One of the four cash rules.",
     "src": "Ch5"
    },
    {
     "q": "Spot counts protect:",
     "opts": [
-     "The honest custodian — the clean-count record is their own evidence",
      "The auditor",
+     "The honest custodian — the clean-count record is their own evidence",
      "The bank",
-     "The float size"
+     "The float"
     ],
-    "ans": 0,
-    "why": "The custodian who welcomes them is telling you something.",
+    "ans": 1,
+    "why": "Frame the counts correctly with the team.",
     "src": "Ch5"
    },
    {
-    "q": "A pooled till (several operators, one drawer):",
+    "q": "A pooled till:",
     "opts": [
      "Speeds service",
-     "Converts every variance into an argument — one till, one operator, one session",
-     "Is standard retail",
-     "Reduces counts"
+     "Reduces counts",
+     "Turns every variance into an argument — one till, one operator, one session",
+     "Is required"
     ],
-    "ans": 1,
+    "ans": 2,
     "why": "The session is the accountability unit.",
     "src": "Ch6"
    },
@@ -1265,424 +1277,412 @@
     "opts": [
      "Roughly",
      "By the manager only",
-     "By denomination — the count sheet by note; roughly ₦180k is not a count",
-     "Weekly"
+     "Weekly",
+     "By denomination on a count sheet, compared by mode against the session totals"
     ],
-    "ans": 2,
-    "why": "Compared by mode against the session's totals.",
+    "ans": 3,
+    "why": "Roughly ₦180k is not a count.",
     "src": "Ch6"
    },
    {
-    "q": "A ₦14,000 short found at close versus a week later:",
+    "q": "A ₦14,000 short found at close versus a month later is:",
     "opts": [
+     "A training catch versus a write-off — variances are named the same day",
      "The same",
-     "Both ignored",
-     "Both write-offs",
-     "A training catch versus an argument — and a month later, a write-off"
+     "Both arguments",
+     "Both ignored"
     ],
-    "ans": 3,
-    "why": "Variances are named tonight, while memory serves.",
+    "ans": 0,
+    "why": "While memory serves.",
     "src": "Ch6"
    },
    {
     "q": "Banked intact means:",
     "opts": [
-     "The whole count banked — never the count minus informal spendings, which break the tie and skip documentation",
      "Banked eventually",
-     "Banked in one note",
-     "Banked by anyone"
-    ],
-    "ans": 0,
-    "why": "The chain's spine.",
-    "src": "Ch6"
-   },
-   {
-    "q": "The cash-up chain's four agreeing numbers are:",
-    "opts": [
-     "Sales, tax, cost, margin",
-     "Till total → cash-up → deposit slip → statement line, each link signed",
-     "Float, drawer, safe, bank",
-     "Cash, POS, transfer, credit"
+     "The whole count banked — informal spendings route through the float or a Payment Entry instead",
+     "One denomination",
+     "By anyone"
     ],
     "ans": 1,
-    "why": "A break names its link.",
+    "why": "Spendings from the drawer break the chain and skip documentation.",
     "src": "Ch6"
    },
    {
-    "q": "The prepare/release separation means:",
+    "q": "The cash-up chain's agreeing numbers are:",
     "opts": [
-     "Two departments",
-     "The bank prepares",
-     "The person assembling the payment run never authorises it at the bank — two people, at any size",
-     "The MD prepares"
+     "Sales, tax, cost, margin",
+     "Float, safe, bank, GL",
+     "Till total → cash-up sheet → deposit slip → statement line",
+     "Cash, POS, transfer, card"
     ],
     "ans": 2,
-    "why": "The run pays what the ledger supports, never what a message asks.",
+    "why": "A break names its own link.",
+    "src": "Ch6"
+   },
+   {
+    "q": "The payment run pays:",
+    "opts": [
+     "What a message asks",
+     "Round amounts",
+     "Whatever is urgent",
+     "What the ledger supports — approved invoices and matched documents; the preparer never releases"
+    ],
+    "ans": 3,
+    "why": "Two people, at any size.",
     "src": "Ch7"
    },
    {
-    "q": "Beneficiary details change:",
+    "q": "Supplier bank details change:",
     "opts": [
+     "As a governed master-data event, verified through a known channel to a known person",
      "By email request",
      "At payment time",
-     "By phone",
-     "As a governed master-data event, verified through a known channel back to a known person"
+     "By the bank"
     ],
-    "ans": 3,
-    "why": "The urgent message dies against the process — that is the point.",
+    "ans": 0,
+    "why": "The urgent message dies against the process.",
     "src": "Ch7"
    },
    {
     "q": "A departed signatory is removed:",
     "opts": [
-     "The week they leave — a stale mandate is a standing invitation",
-     "At year end",
-     "When remembered",
-     "By the bank"
+     "At year-end",
+     "The week they leave — the mandate is reviewed annually and at every personnel change",
+     "When noticed",
+     "Never"
     ],
-    "ans": 0,
-    "why": "Mandates reviewed annually and at every personnel change.",
+    "ans": 1,
+    "why": "A stale mandate is a standing invitation.",
     "src": "Ch7"
    },
    {
     "q": "An account two months unreconciled is:",
     "opts": [
      "A backlog",
-     "An incident — the policy states the maximum tolerable unreconciled age",
      "Normal",
-     "The bank's problem"
+     "An incident — the policy writes the maximum tolerable unreconciled age",
+     "The bank's fault"
     ],
-    "ans": 1,
+    "ans": 2,
     "why": "One of the calendar's written numbers.",
     "src": "Ch7"
    },
    {
-    "q": "HealthTrade's first-dig remainder of 34 items included:",
+    "q": "HealthTrade's first-dig remainder included:",
     "opts": [
-     "Nothing notable",
-     "Only charges",
-     "A ₦210,000 stale cheque, fourteen months of unbooked charges, a mis-mapped POS week, and a ₦127,000 unexplained credit",
-     "Only errors"
-    ],
-    "ans": 2,
-    "why": "And the reasonableness read recovered ₦38,000 in duplicate charges.",
-    "src": "Ch8"
-   },
-   {
-    "q": "HealthTrade's day-nine ₦14,000 short resolved as:",
-    "opts": [
-     "A theft",
-     "A write-off",
-     "A bank error",
-     "Two transfer-paid sales rung as cash by a new operator — corrected, trained, rate back to zero"
+     "Nothing",
+     "One item",
+     "Only errors",
+     "A ₦210,000 stale cheque, fourteen months of charges, a mis-mapped POS week, and a ₦127,000 unexplained credit"
     ],
     "ans": 3,
-    "why": "Named that night, investigated while memory served.",
+    "why": "34 items; the charges read recovered ₦38,000.",
     "src": "Ch8"
    },
    {
-    "q": "Reconciliation by plug:",
+    "q": "HealthTrade's day-nine ₦14,000 short was:",
     "opts": [
-     "Forges agreement — every real difference becomes a booked fiction, and the account looks reconciled precisely because it never is",
-     "Is efficient",
-     "Is temporary",
-     "Is the auditor's method"
+     "Two transfer-paid sales rung as cash by a new operator — corrected, trained, rate back to zero",
+     "A theft",
+     "A bank error",
+     "Unresolved"
     ],
     "ans": 0,
-    "why": "The module's most serious failure.",
-    "src": "Ch9"
+    "why": "Named that night, while memory served.",
+    "src": "Ch8"
    },
    {
-    "q": "The reconciliation's quality gauge is:",
+    "q": "The museum remainder pattern is fixed by:",
     "opts": [
-     "Speed",
-     "The remainder list's length and age",
-     "The plug account's balance",
-     "The bank's opinion"
+     "A bigger suspense",
+     "Written age limits per instrument and the monthly aged read with investigation at the limit",
+     "More imports",
+     "A plug"
     ],
     "ans": 1,
-    "why": "A list that only grows is the museum pattern's early form.",
+    "why": "The list's length and age go on the close checklist.",
     "src": "Ch9"
    },
    {
     "q": "Module 3's law is:",
     "opts": [
-     "Banks are trusted",
+     "Trust the bank app",
      "Cash is king",
      "Every bank account is reconciled monthly, and every difference is named — never plugged",
-     "Charges are booked blindly"
+     "Charges are ignored"
     ],
     "ans": 2,
-    "why": "The books anchored to the outside record.",
+    "why": "The third law.",
     "src": "Ch9"
    }
   ]
  },
  "ar_ap_chair": {
   "title": "Accounts 4 — Receivables & Payables from the Accounts Chair",
-  "desc": "Receivables and payables from the accounts chair: the record kept real, collectable, current and complete — the monthly tie check, the unallocated read worked to near-zero, advances in both directions under the never-net rule, provisioning by aging matrix with governed write-offs and recoveries, statements and confirmations with the supplier-statement mirror, detail-never-blobs migration, and the ninety-minute month-end ritual.",
+  "desc": "Receivables and payables from the accounts side: the monthly tie check against the Accounts Receivable and Payable reports; clearing floating items in Payment Reconciliation; advances captured against orders and consumed through the invoice's Advances section under the never-net rule; provisioning by aging matrix with the two-signature write-off workflow and recoveries; Process Statement Of Accounts and the supplier-statement mirror; per-invoice openings with the Opening Invoice Creation Tool; and the seven-step month-end routine.",
   "lessons": [
    {
-    "title": "Chapter 1 — The accounts chair: owning the record",
+    "title": "Chapter 1 — The AR/AP layer and the tie check",
     "est": "11",
-    "html": "<p>The sales desk runs credit control and collections; the purchasing desk runs the invoice match and the payment run. This module sits in a third chair — the <b>accounts chair</b> — and its distinction is one sentence: <b>the trading desks own the relationships; the accounts chair owns the record</b> — its integrity, its honesty, and what it asserts to everyone who reads the balance sheet.</p><p><b>The two promise lines.</b> Debtors and Creditors are the balance sheet's promise accounts: money the world owes the business, and money the business owes the world. They are usually the largest figures after stock — and unlike stock, which can be physically counted, a receivable is only as real as its record. No shelf holds it; its entire existence is the party's ledger, the documents behind it, and the tie that proves the total. Someone must own that bookkeeping with the same rigor the warehouse owns the shelves. This module is that ownership, made operational.</p><p><b>The chair's first duty: the tie.</b> Module 1 built the control-to-party tie; this module operates it: checked monthly (control balance against the party report's sum, to the kobo — Chapter 7 schedules it), divergences treated as incidents with the journal filter as the first tool. Every discipline in the chapters ahead is tie maintenance in some form: allocation hygiene keeps the details telling their story cleanly (Chapter 2), provisioning keeps the total honest about collectability (Chapter 4), confirmations test the record against the world (Chapter 5), and migration decides whether the tie is born intact or born broken (Chapter 6).</p><p><b>The four questions.</b> The trading desks read these balances operationally — who to chase, who to pay. The accounts chair reads them as assertions. The balance sheet says ₦18.4m is receivable. Is it:</p><p>• <b>Real</b> — every naira party-attached and document-backed?<br>• <b>Collectable</b> — the provision question: ₦18.4m gross of which ₦1.2m is doubtful is a different assertion.<br>• <b>Current</b> — the aging honest, advances not netted against debts (Chapter 3's rule)?<br>• <b>Complete</b> — nothing quietly deleted, nothing parked off-ledger?</p><p>Four adjectives — <b>real, collectable, current, complete</b> — and an auditor's entire receivables programme is those four questions asked systematically. A chair that keeps them answered all year meets any audit calmly.</p><p><b>Module contents.</b> Chapter 2: allocation hygiene. Chapter 3: advances, both directions. Chapter 4: provisioning and bad debts. Chapter 5: statements and confirmations. Chapter 6: opening balances and migration. Chapter 7: the month-end ritual. Chapter 8: HealthTrade's year in the chair. Chapter 9: review and the law.</p>"
+    "html": "<p>This module covers running receivables and payables from the accounts side: the reports, the Payment Reconciliation tool, advances, provisioning and write-offs, customer statements, opening balances, and the month-end routine.</p><p><b>The division of work.</b> The sales desk chases customers; the purchasing desk pays suppliers. The accounts side owns the <b>record</b>: that the Debtors and Creditors figures are real, correctly aged, honestly valued, and complete. A receivable has no shelf to count — its entire existence is the party's ledger, the documents behind it, and the agreement between the control account and its parties.</p><p><b>The four questions.</b> Read the receivables balance as four claims to verify:</p><p>1. <b>Real</b> — every naira attached to a Party and backed by documents.<br>2. <b>Collectable</b> — the provision question: ₦18.4m gross of which ₦1.2m is doubtful is a different figure.<br>3. <b>Current</b> — the aging honest, advances not netted against debts (Chapter 3).<br>4. <b>Complete</b> — nothing deleted, nothing parked off the ledger.</p><p>An external audit's receivables work is these four questions asked systematically. Keep them answered all year and the audit is short.</p><p><b>The tie check, as a procedure.</b> Module 1 introduced it; this module runs it monthly, first, always:</p><p>1. Run the <b>Trial Balance</b>; note the Debtors closing balance.<br>2. Run the <b>Accounts Receivable</b> report as at the same date; note its grand total.<br>3. They must agree to the kobo. Repeat for Creditors against <b>Accounts Payable</b>.<br>4. On a difference: run the General Ledger report on the control account filtered to <b>Voucher Type = Journal Entry</b>. The cause is almost always there. Correct it by module 2's rules and never carry a divergence forward unexplained.</p><p><b>The two reports, introduced.</b> <b>Accounts Receivable</b> (Accounting &gt; Accounts Receivable): every customer's open items in aging buckets, based on due date — the collections worklist and the aging evidence. <b>Accounts Payable</b> mirrors it for suppliers. Both accept Party, Cost Center, and ageing-basis filters; the Summary versions give one row per party. These two reports, plus the Payment Reconciliation tool in Chapter 2, carry most of this module's work.</p><p><b>Module contents.</b> Chapter 2: allocation and the Payment Reconciliation tool. Chapter 3: advances, both directions. Chapter 4: provisioning and write-offs. Chapter 5: statements and confirmations. Chapter 6: opening balances. Chapter 7: the month-end routine. Chapter 8: the HealthTrade case. Chapter 9: review and the law.</p>"
    },
    {
-    "title": "Chapter 2 — Allocation hygiene: the unallocated read",
+    "title": "Chapter 2 — Allocation and the Payment Reconciliation tool",
     "est": "12",
-    "html": "<p>Allocation is taught at the payment desks; the accounts chair inherits what the desks leave behind. This chapter is the standing cleanup that keeps party ledgers legible.</p><p><b>What unallocated means.</b> A party's ledger is entries; a party's <b>story</b> is entries matched — this payment against these invoices, this credit note applied to that invoice, this advance consumed by that bill. Every unmatched item is a naira of ambiguity:</p><p>• <b>The payment-on-account</b> sitting against no invoice: which debts does it settle? Until someone says, the aging lies — the invoices it should have cleared still age as unpaid while the ledger's net looks fine.<br>• <b>The credit note issued and never applied:</b> the customer's statement shows a debt and a floating credit side by side — and the customer, reasonably, pays the net and disputes the rest.<br>• <b>The advance unmatched</b> — Chapter 3's whole subject.</p><p>The balance can be right while the story is illegible, and illegible stories rot statements, aging reports, collections priorities, and eventually the relationship — because every conversation starts with twenty minutes of archaeology.</p><p><b>The unallocated read.</b> The standing report: unallocated payments, unapplied credit notes, unmatched advances — per party, aged, valued. Read monthly (Chapter 7 schedules it) and worked to near-zero. Each item is:</p><p>1. <b>Matched</b> — allocated against its invoices, driven from the accounts side; where the intent is genuinely unknown, the customer is asked: <i>your payment of the 14th — against which invoices?</i> A professional question that also quietly tells the customer their account is watched.<br>2. <b>Refunded</b> — the genuine overpayment returned through the proper payment machinery.<br>3. <b>Escalated</b> — the item nobody can explain after honest work. Rare, and exactly what the chair exists to chase down rather than let ride.</p><p><b>Why near-zero compounds.</b> Kept near-zero: every statement is self-explanatory, every aging line is a real debt, every collections call starts from agreed facts, and the monthly tie check is trivial. Lapsed for two quarters: the aging overstates (unallocated credits hide inside net balances), collections chase already-paid debts (the relationship cost), statements teach customers to dispute (the training cost), and the cleanup becomes a project instead of a routine.</p><p>Practical rule: grade each month's allocation discipline by the list's length. A growing unallocated report is the earliest warning this module gives, and it costs one glance to read.</p>"
+    "html": "<p>A party's ledger is entries; a party's readable story is entries <b>matched</b> — this payment against these invoices, this credit note applied to that invoice. Every unmatched item is ambiguity, and this chapter is the tool and routine that clear it.</p><p><b>What unallocated items do.</b></p><p>• <b>A payment on account</b> (received with no invoice references): the invoices it should have cleared still age as overdue in the Accounts Receivable report, while the customer's net balance looks fine. The aging now overstates, and collections may chase paid debts.<br>• <b>A credit note issued but never applied:</b> the customer's statement shows a debt and a floating credit side by side; the customer pays the net and disputes the rest.<br>• <b>An advance never matched to its later invoice</b> — Chapter 3's subject.</p><p>The balance can be right while the story is unreadable, and unreadable stories cost collections calls, statement disputes, and eventually the relationship.</p><p><b>The Payment Reconciliation tool.</b> Open <b>Accounting &gt; Payment Reconciliation</b>. Select the Company, the Party Type and Party, and the receivable/payable account. The screen loads two lists: unallocated payments and credit notes on one side, open invoices on the other. Select the items to match, adjust the allocation amounts where one payment covers several invoices, and click <b>Reconcile</b>. The tool writes the allocation — the invoices close, the payment stops floating, the aging corrects — without any new GL posting, because it is matching existing entries, not creating new ones.</p><p><b>The monthly unallocated read, as a procedure.</b></p><p>1. Run Accounts Receivable and filter or scan for negative and unallocated rows; do the same on the payables side.<br>2. For each party with floating items, open Payment Reconciliation and match. Where the customer's intent is unknown, ask them: <i>your payment of the 14th — against which invoices?</i> A normal, professional question, which also signals that the account is watched.<br>3. Genuine overpayments are refunded by a proper Payment Entry (Pay, referencing the credit), not left to confuse the aging.<br>4. Items nobody can explain after honest work are escalated by name — rare, and exactly what this routine exists to surface.</p><p><b>Why near-zero matters.</b> Kept near zero: every statement is self-explanatory, every aging line is a real debt, and the monthly tie check is trivial. Lapsed for two quarters: the aging overstates, collections chase paid debts, statements teach customers to dispute, and the cleanup becomes a project. Grade each month's allocation discipline by this list's length — it costs one glance.</p>"
    },
    {
     "title": "Chapter 3 — Advances, both directions",
     "est": "13",
-    "html": "<p>Money moves ahead of documents in both directions — customers pay before invoices; the business pays suppliers before bills. Advances are where promise accounting gets subtle, and both directions run on one discipline.</p><p><b>Customer advances: the liability.</b> Cash received ahead of earning is not income, and not a negative receivable left to confuse the aging — it is a <b>liability</b>: the business owes goods, services, or the money back. The handling:</p><p>1. <b>Captured as an advance</b> — the payment entry flagged, the liability posting where the configuration routes it.<br>2. <b>Matched to its invoice</b> when the trade completes — the advance consumed, the liability extinguished, the invoice settled in one motion.<br>3. <b>Reported as what it is</b> — the never-net rule below.</p><p>The advance left unmatched after its trade completed is Chapter 2's problem in its most expensive form: the customer who paid ahead <b>and</b> got invoiced now shows a debt and a credit nobody joined — and pays neither attention.</p><p><b>Supplier advances: the asset, and the known black hole.</b> The advance paid to a supplier is an <b>asset</b> (a prepayment — the business owns a claim), matched against the supplier's invoice when it lands, and <b>aged while it waits</b>. The advances-aging report — per supplier, valued, dated against expected delivery — is the chair's standing lamp over the classic failure: the advance paid, the goods arriving, and the bill settled <b>again</b> because nobody matched. Two structural defences:</p><p>• An advance aging past its expected delivery is either a late supplier (an expediting conversation) or a lost claim compounding quietly — the monthly aging decides which.<br>• The invoice-entry step <b>checks for open advances before settlement</b> — a workflow habit the chair audits, because the advance the payment run does not know about is the one that gets paid twice.</p><p><b>The reporting rule: never net.</b> The subtle sin this chapter forbids: netting — a customer's advance netted against debts into one rolled figure, or advances buried inside the receivables line so the balance sheet shows ₦18.4m receivable when the truth is ₦19.6m owed-to-us and ₦1.2m owed-by-us. The two directions are different assertions (an asset and a liability), different risks, and different tax stories. The statements show them separately, always. The reader's test: can a banker see the real position from the face of the statement?</p><p><b>Summary.</b> Customer advances: liability at capture, consumed at invoice, never left floating. Supplier advances: asset at capture, aged against expected delivery, checked before every settlement. Both directions: anchored to expected dates, reviewed monthly, and never netted in reporting.</p>"
+    "html": "<p>Money moves ahead of documents in both directions: customers pay before invoices exist, and the business pays suppliers before bills arrive. Each direction has its handling.</p><p><b>Customer advances — a liability.</b> Cash received ahead of earning is not income and not a negative receivable left to distort the aging. It is a liability: the business owes goods, services, or the money back.</p><p>1. <b>Capture it as an advance.</b> On the Payment Entry, when there is no invoice to reference, the amount stays unallocated — and where the order exists, receive the payment against the Sales Order so it is recorded as an advance on that order. The system posts the advance to the configured liability treatment rather than letting it float as a mystery credit.<br>2. <b>Match it when the invoice books.</b> The Sales Invoice's Advances section pulls the advance in (Get Advances Received), consuming the advance and settling the invoice in one step. An advance left floating after its trade completed is Chapter 2's most expensive case: the customer shows a debt and a credit nobody joined — and pays neither attention.<br>3. <b>Report it as what it is</b> — the never-net rule below.</p><p><b>Supplier advances — an asset, and a known trap.</b> The advance paid to a supplier is a prepayment asset: pay it against the Purchase Order (the order's Advance Paid field tracks it), and pull it into the Purchase Invoice's Advances section when the bill lands. The trap this defends against: the advance paid, the goods arriving, and the bill settled <b>again</b> in full because nobody matched — the double payment. Two rules:</p><p>1. <b>Age the advances.</b> Review supplier advances monthly against expected delivery dates. An advance aging past its delivery is either a late supplier (an expediting conversation) or a claim quietly going stale.<br>2. <b>Check for open advances before settlement.</b> The invoice-entry step pulls advances before the payment run sees the bill; make this a workflow habit and audit it.</p><p><b>The never-net rule.</b> Do not report customer advances netted inside the receivables line. ₦19.6m owed to the business and ₦1.2m owed by it are two different figures — an asset and a liability, with different risks and different tax treatment — not \"₦18.4m receivable\". The statements show them separately, always. The test: can a banker see the real position from the face of the statement?</p><p><b>Summary.</b> Customer advances: captured against the order, consumed through the invoice's Advances section, never left floating. Supplier advances: paid against the order, pulled into the bill, aged monthly, checked before every settlement. Both directions reported un-netted.</p>"
    },
    {
-    "title": "Chapter 4 — Provisioning and bad debts",
+    "title": "Chapter 4 — Provisioning and write-offs",
     "est": "13",
-    "html": "<p>Some promises break. The chair's hardest duty is saying so — in the books, on a policy, before anyone asks. The doctrine: doubtful, provided, written off, and sometimes recovered.</p><p><b>The two stages.</b></p><p>• <b>Doubtful.</b> Collection is uncertain — the customer silent past every escalation, disputing without engaging, visibly distressed. Response: a <b>provision</b> — an estimate of the loss, charged now: DR bad-debt expense, CR provision for doubtful debts (a contra-asset sitting against gross receivables). The debt itself <b>stays on the party's ledger</b>, and collections keeps working it.<br>• <b>Bad.</b> Collection has failed definitively — the customer wound up, vanished, or pursuit costs more than the claim per policy. Response: the <b>write-off</b> — the debt removed from the party ledger against the provision (or straight to expense where unprovided), governed like every destruction of value: evidence documented (the chase history), approvals by threshold (two names, value-routed), the tax notes captured (deductibility has conditions — the accountant owns them), and <b>the party's record retained</b>: written off is not erased; the history survives for the day the customer returns wanting credit.</p><p><b>The provision policy: a matrix, not a mood.</b> The provision's size is an estimate, and estimates need policy or they become tuning knobs. The standard instrument is the <b>aging matrix</b> — provision percentages by age band, for example: 0-60 days nil, 61-120 at 10%, 121-180 at 25%, 181-365 at 50%, over a year at 100%. The numbers are the accountant's policy call, informed by the business's actual collection history; the structure is universal. Two adjustments ride on top:</p><p>• The large debt with specific bad news is provided specifically, regardless of age.<br>• The aged debt with a signed payment plan performing on schedule can be relieved judgmentally — the matrix is the floor; judgment documents its exceptions.</p><p><b>The mechanics each period.</b> The matrix is applied to the fresh aging; the entry adjusts the provision <b>to</b> the required level — up as a charge, down as a release — and the <b>movement</b>, not the balance, is what the P&amp;L reader sees. This is why the policy must be stable: a provision moved by policy is information (collections got worse, or better); one moved by discretion is noise at best.</p><p><b>Recoveries.</b> A written-off debt sometimes pays. The recovery lands as income through the payment machinery, referenced end to end — and it lands cleanly precisely because the party's record survived the write-off. Chapter 8 shows HealthTrade's own case.</p><p><b>Summary.</b> Doubtful → provision by matrix, debt stays and is chased. Bad → write-off on two signatures with evidence, record retained. Policy stable, movements explained, exceptions documented, recoveries through the machinery.</p>"
+    "html": "<p>Some debts will not be collected, and the books must say so before the auditor asks. Two stages, each with its procedure.</p><p><b>Stage 1 — doubtful: the provision.</b> When collection is uncertain — the customer silent past every escalation, disputing without engaging, visibly in distress — the response is a provision: an estimate of the loss, charged now, while the debt <b>stays on the customer's ledger</b> and collections keeps working it.</p><p>• The entry: a Journal Entry — debit Bad Debt Expense, credit <b>Provision for Doubtful Debts</b> (create this account as a leaf under receivables' group so it reports against gross receivables).<br>• The size: by a written <b>aging matrix</b>, not by mood. Percentages per aging bucket, built from the business's own collection history — for example nil to 60 days, 10% at 61-120, 30% at 121-180, 60% at 181-365, 100% past a year. The Accounts Receivable report's buckets feed the computation directly.<br>• Each period, the matrix is run against the fresh aging and one Journal Entry adjusts the provision <b>to</b> the required level — up as a charge, down as a release. Keep the matrix stable (changed annually, as an event): then a provision movement means collections actually changed, not that someone turned a dial. Specific cases override the matrix in both directions, documented: the large debt with specific bad news provided fully regardless of age; the aged debt on a performing payment plan relieved with a note.</p><p><b>Stage 2 — bad: the write-off.</b> When collection has definitively failed — the customer wound up, vanished, or pursuit costs more than the claim per policy — the debt leaves the ledger:</p><p>1. Evidence assembled: the chase history and dossier.<br>2. Approval on the <b>two-signature path</b> — configure the write-off Journal Entry (or the invoice's write-off) behind a Workflow with value routing.<br>3. The entry posts against the provision (or straight to expense where unprovided), with the tax notes captured — deductibility has conditions the accountant owns.<br>4. <b>The customer record is retained</b>, never deleted: written off is not erased, and the history matters the day the customer returns asking for credit.</p><p><b>Recoveries.</b> A written-off debt sometimes pays. Receive it as a normal Payment Entry referencing the story in its remarks; it lands as income — and it lands cleanly precisely because the customer record survived the write-off. Chapter 8 shows HealthTrade's own case.</p><p><b>Summary.</b> Doubtful: provision by matrix Journal Entry, debt stays, collections continues. Bad: two-signature write-off with evidence and tax notes, record retained. Matrix stable, movements explained, recoveries through the normal payment machinery.</p>"
    },
    {
     "title": "Chapter 5 — Statements and confirmations",
     "est": "12",
-    "html": "<p>The party ledger faces the world through four routines: the statement run, on-record dispute handling, the audit confirmation, and the supplier-statement reconciliation.</p><p><b>The statement run.</b> The customer statement <b>is</b> the party ledger, printed: monthly, to every open-balance customer, showing the period's documents, payments, allocations, and the aged balance. The run is cheap — the machinery formats what allocation hygiene keeps legible — and it returns three things:</p><p>1. <b>Collections pressure</b> — the statement is the chase's ambient reminder.<br>2. <b>Free error-surfacing</b> — customers audit their statements: the missed payment, the unapplied credit, the invoice they never received all come back as queries, and each one is tie maintenance done for you.<br>3. <b>Dispute hygiene</b> — disagreements handled <b>on record</b>: the disputed line flagged in the system, the resolution documented, and the correcting instrument (credit note, allocation, or a firm restatement of the debt) issued as a document. Never as side-agreements living in someone's inbox — the side-agreement is the statement's silent contradiction and an audit's favourite finding.</p><p><b>The audit confirmation.</b> The external audit's receivables centrepiece: the auditor selects parties, sends balance confirmations, and compares the replies to the ledger. A chair that ran this module's disciplines meets it calmly — balances party-attached and document-backed (real), provisions on policy (collectable), advances un-netted (current), nothing deleted (complete). The four adjectives, pre-answered. One courtesy helps: warn the selected customers that confirmations are coming — an expected confirmation gets a reply; an ignored one costs a follow-up cycle.</p><p><b>The mirror: supplier statement reconciliation.</b> The payables side has its own near-outside witness: the <b>supplier's statement</b> of your account, reconciled against your creditor ledger. Not as independent as the bank — the supplier writes it, and suppliers err in both directions — but structurally the same routine: their lines matched to your entries, the remainder named. The catches it makes:</p><p>• <b>Invoices they show that you never received</b> — the missing-bill catch: a liability that exists in the world but not in your books, found before it arrives as a surprise demand.<br>• <b>Credit notes they issued that you never captured</b> — money owed to you, sitting unclaimed.<br>• <b>Payments you made that they never applied</b> — the allocation conversation, from the other side.</p><p>Run it monthly for the top suppliers, on rotation for the rest (Chapter 7 schedules it).</p><p><b>Summary.</b> Statements monthly to every open balance; disputes on record with document instruments; confirmations met with the four adjectives pre-answered; and the supplier statements reconciled — the mirror that catches missing bills and unclaimed credits.</p>"
+    "html": "<p>The party ledger faces the outside world through four routines.</p><p><b>1. The statement run — automated.</b> The customer statement is the party ledger, printed. ZhiftERP automates the run with <b>Process Statement Of Accounts</b> (search it from the top bar): select the customers (or a customer group), the period, the format (with or without aging), and either print the PDFs or — the useful part — schedule the tool to <b>email each customer their statement monthly</b>, automatically. Set it up once at go-live. The run returns three things:</p><p>• Collections pressure — the statement is the chase's standing reminder.<br>• Free error-checking — customers audit their statements: the missed payment, the unapplied credit, the invoice they never received all come back as queries, each one a correction you did not have to find yourself.<br>• Dispute hygiene — disagreements handled on record: the disputed invoice flagged in the system, the resolution documented, and the correcting instrument (a Credit Note from the invoice's Return button, an allocation in Payment Reconciliation, or a firm restatement of the debt) issued as a document. Never side-agreements in someone's inbox — a side-agreement contradicts every statement printed after it.</p><p><b>2. The audit confirmation.</b> The auditor selects customers, sends balance confirmations, and compares replies to the ledger. A business that runs this module meets it with the four questions pre-answered: balances party-attached and documented (real), provisions on the matrix (collectable), advances un-netted (current), nothing deleted (complete). One courtesy shortens it: warn the selected customers that confirmations are coming — an expected confirmation gets a reply.</p><p><b>3. The supplier statement reconciliation — the mirror.</b> The payables side has its own external record: the <b>supplier's</b> statement of your account, reconciled against your ledger (the General Ledger report filtered to the supplier, or the Accounts Payable report). Match their lines to your entries and name the remainder. What it catches:</p><p>• Invoices they show that you never received — a liability found before it arrives as a surprise demand.<br>• Credit notes they issued that you never captured — money owed to you, unclaimed.<br>• Payments you made that they never applied — the allocation conversation, from the other side.</p><p>Run it monthly for the top suppliers, on rotation for the rest.</p><p><b>4. Dispute records.</b> Keep every dispute inside the system: the flagged document, the correspondence attached, the resolving instrument linked. Six months later the story reads itself.</p><p><b>Summary.</b> Statements by Process Statement Of Accounts on a monthly schedule; disputes resolved on record by document instruments; confirmations met pre-answered; supplier statements reconciled — top names monthly, the rest on rotation.</p>"
    },
    {
     "title": "Chapter 6 — Opening balances and migration",
     "est": "13",
-    "html": "<p>Every AR/AP ledger was born somewhere — usually in a migration weekend — and how it was born decides whether the chair inherits a working tie or an archaeology site.</p><p><b>The loading rule: detail, never blobs.</b> Opening receivables load <b>per party, per open document</b>: each customer's balance decomposed into its actual open invoices — numbers, dates, amounts, due dates from the old records — entered so that:</p><p>• The new system's <b>aging is true from day one</b> — every balance ages from its real invoice date, not from go-live.<br>• Every future payment has <b>real invoices to allocate against</b> — Chapter 2's hygiene is possible at all.<br>• The <b>tie is born intact</b> — the control equals the sum of real party detail.</p><p>The blob alternative — one opening balance per customer, or worst of all one journal to the Debtors control — is the tie born broken: a total with no details, an aging that starts blind (collections priorities scrambled for a year), and an allocation machinery with nothing to match (every payment on-account forever). The same rule mirrors to payables: per supplier, per open bill — the payment run's evidence and the supplier-statement reconciliation both need documents, not assertions.</p><p><b>The mechanics.</b></p><p>• Use the opening instruments the setup provides — opening invoice tools, or governed journals per party per document — posting against the opening equity account so the openings do not fabricate revenue or expense in year one.<br>• Date with the <b>true original dates</b> where the aging must be honest; where the system's opening pattern forces posting-date compromises, preserve the due dates — the accountant's call, documented.<br>• <b>Advances load as advances</b> — never netted into balances; Chapter 3's rule applies from day one.<br>• <b>Disputed balances load flagged</b> — the dispute history summarised, not laundered by migration.<br>• <b>Provisions load as the policy's opening position</b> — the matrix applied to the opening aging, so the honesty doctrine is born with the ledger rather than retrofitted at the first year-end.</p><p><b>The migration reconciliation.</b> The proof, before go-live is called done:</p><p>1. The new system's control balances tie to the old system's (or the signed trial balance's) totals <b>to the kobo</b>.<br>2. The new party sums tie to the old party listings.<br>3. The differences — there are always differences — are worked to zero or documented as deliberate corrections: the old system's known errors fixed at migration, listed, and signed off.</p><p>Practical rule: price the detailed load honestly at planning time. It costs days where the blob costs hours — and the blob's true price is a year of blind aging, permanent on-account payments, and a tie that never agreed. The detail is the cheap option; it just pays upfront.</p>"
+    "html": "<p>Every AR/AP ledger is born in a migration, and how it is loaded decides whether the tie check agrees from day one or never has.</p><p><b>The loading rule: detail, never totals.</b> Opening receivables load <b>per customer, per open invoice</b> — each balance decomposed into its actual open invoices with their numbers, dates, amounts, and due dates from the old records. Three things depend on it:</p><p>1. The Accounts Receivable report's aging is true from day one — every balance ages from its real invoice date, not from go-live.<br>2. Every future payment has real invoices to allocate against — Chapter 2's routine is possible at all.<br>3. The tie is born intact — the control equals the sum of real party detail.</p><p>The alternative — one opening balance per customer, or one Journal Entry to the Debtors control — produces a blind aging (collections priorities scrambled for a year), payments on account forever, and a control with no details. The same rule mirrors to payables: per supplier, per open bill.</p><p><b>The tool.</b> Use the <b>Opening Invoice Creation Tool</b> (search it from the top bar): choose Sales or Purchase, and enter one row per open invoice — party, invoice number, date, amount, due date. The tool generates opening invoices marked <b>Is Opening = Yes</b>, posting against the Temporary Opening account so year one fabricates no revenue or expense. For businesses with clean export files, prepare the rows in the tool's template and load in batches.</p><p><b>The identity rules riding along.</b></p><p>• <b>True dates where possible.</b> Where the system's opening pattern forces a posting-date compromise, preserve the due dates — the aging runs on them. The accountant's call, documented.<br>• <b>Advances load as advances</b> — unallocated payments and order-linked advances, never netted into balances. Chapter 3's rule applies from the first day.<br>• <b>Disputed balances load flagged</b>, with the dispute history summarised — migration does not launder a dispute.<br>• <b>The opening provision loads too:</b> the matrix applied to the opening aging, posted as the policy's opening position — the honesty built in at birth, not retrofitted at the first year-end.</p><p><b>The migration reconciliation.</b> Before go-live is signed off:</p><p>1. The new system's Debtors and Creditors balances tie to the old system's (or the signed trial balance's) totals, to the kobo.<br>2. The new Accounts Receivable and Payable report totals tie to the old party listings.<br>3. Differences — there are always some — are worked to zero or documented as deliberate corrections: the old system's known errors fixed at migration, listed, and signed.</p><p>Practical note: the detailed load costs days where the total-per-party load costs hours. Price it honestly at planning — the cheap load's real price is a year of blind aging and a tie that never agreed.</p>"
    },
    {
-    "title": "Chapter 7 — The month-end AR/AP ritual",
+    "title": "Chapter 7 — The month-end AR/AP routine",
     "est": "12",
-    "html": "<p>The chair's disciplines, assembled into one monthly sitting. Ninety minutes at a healthy business, one owner, one list — run in this order:</p><p><b>1. The tie check — first, always.</b> Debtors control against the customer balance sum; Creditors against the supplier sum; to the kobo. Agreement: one line, initialed, done — two minutes. Divergence: an <b>incident</b> — run the journal filter first (the answer is almost always a journal), find the offending entry, correct it by the rules, and never carry the divergence forward unexplained.</p><p><b>2. The unallocated sweep.</b> Chapter 2's read: unallocated payments, unapplied credits, per party, aged. Worked to near-zero; the escalations named. The month's allocation discipline is graded by this list's length.</p><p><b>3. The advance aging — both directions.</b> Customer advances against their expected completions; supplier advances against expected deliveries. Items aged past plausibility resolved or escalated; the never-net rule confirmed in the reporting.</p><p><b>4. The provision review.</b> The matrix run against the fresh aging; the required provision computed; the adjusting movement posted with its one-line explanation; specific judgments documented. Write-off candidates are <b>surfaced to their approval path</b> — the ritual nominates; the governance decides. Never both in the same sitting.</p><p><b>5. The statement run.</b> Customer statements out; last month's returned queries confirmed worked; disputes verified on-record.</p><p><b>6. Supplier statement reconciliations.</b> The month's tranche — top suppliers monthly, the rest on rotation. Remainders worked; missed credit notes captured; missing bills chased.</p><p><b>7. The outputs handed upward.</b> The ritual's products go to the close (module 7 receives them): the aged AR and AP with provision netting shown, the advance schedules, the tie confirmation, the write-off log, the unallocated residual. Each a one-page artifact — and each already true, because the ritual made it so.</p><p><b>The economics.</b> Ninety minutes monthly is the compounding investment: skipped for a quarter, every list doubles and the archaeology begins; kept, the year-end AR/AP work is a formality and the audit's receivables programme meets a record with the four adjectives pre-answered. The trading desks receive the ritual's feedback — the unallocated causes, the recurring deduction patterns — rather than attending the sitting.</p><p>Practical rule: the ritual has one owner — the accountant, or the credit controller wearing the accounts hat — and a fixed slot in the month. A ritual with a name and a date happens; one without either is a good intention.</p>"
+    "html": "<p>The module's routines, assembled into one monthly sitting. About ninety minutes at a healthy business, one owner, run in this order.</p><p><b>1. The tie check — first, always.</b> Trial Balance Debtors against the Accounts Receivable report total; Creditors against Accounts Payable; to the kobo. Agreement: one line, initialed — two minutes. Difference: an incident — the Journal Entry filter on the control account finds the cause; correct by the rules; never carry it forward unexplained.</p><p><b>2. The unallocated sweep.</b> Chapter 2's read: floating payments and unapplied credits per party, matched in Payment Reconciliation, refunds issued properly, the unexplainable escalated by name. Grade the month by the list's length.</p><p><b>3. The advance aging — both directions.</b> Customer advances against their expected completions; supplier advances against expected deliveries (the Purchase Orders' Advance Paid figures). Items past plausibility resolved or escalated. Confirm the reporting stays un-netted.</p><p><b>4. The provision review.</b> Run the matrix against the fresh Accounts Receivable aging; post the one adjusting Journal Entry with its one-line explanation; document any specific judgments. Write-off candidates are surfaced to the approval workflow — the routine nominates, the governance decides, never both in the same sitting.</p><p><b>5. The statement run.</b> Confirm Process Statement Of Accounts fired on schedule; work the queries that came back from last month's statements; verify open disputes are on record with their instruments.</p><p><b>6. Supplier statement reconciliations.</b> The month's tranche — top suppliers monthly, the rest on rotation. Missing bills chased, unclaimed credit notes captured.</p><p><b>7. Outputs to the close.</b> Hand upward (module 7's checklist receives them): the aged AR and AP with the provision shown, the advance schedules, the tie confirmation, the write-off log, the unallocated residue. One page each, and each already true because the routine made it so.</p><p><b>The economics.</b> Skipped for a quarter, every list doubles and the catch-up becomes a project. Kept, the year-end AR/AP work is a formality and the audit's receivables questions are pre-answered. Give the routine one owner and a fixed slot in the month — a routine with a name and a date happens; one without either is an intention.</p><p><b>Feedback to the desks.</b> The routine's findings — the recurring unallocated causes, the deduction patterns — go back to the sales and purchasing desks as process fixes, so next month's lists are shorter. The desks do not attend the sitting; they receive its output.</p>"
    },
    {
-    "title": "Chapter 8 — Case study: HealthTrade's year in the chair",
+    "title": "Chapter 8 — Case study: HealthTrade's year in the AR/AP chair",
     "est": "13",
-    "html": "<p>The accounts chair, installed and lived. Every chapter appears.</p><p><b>The sweep instituted (Chapter 2).</b> Month one's first unallocated read is the expected archaeology: <b>₦840,000 unallocated across 23 items</b> — payments-on-account going back nine months, four credit notes issued and never applied, two advances whose trades completed unmatched. Three afternoons of matching (customers called with the professional question — <i>your payment of March 14th, against which invoices?</i> — every call also quietly announcing the watched account), one genuine overpayment refunded properly, one escalation: a ₦60,000 payment no record explains, parked named, resolved in week three as a sister-company transfer mis-referenced. The read closes month two at ₦45,000, month three at near-zero — and the aging report, purged of hidden credits, promptly reveals <b>two genuinely overdue accounts</b> the old net balances had camouflaged. The sweep's first commercial dividend, handed to collections.</p><p><b>The provision policy built (Chapter 4).</b> The matrix is built from the business's own history — the last two years' collection outcomes by age band: nil to 60 days, 10% at 61-120, 30% at 121-180, 60% at 181-365, full past a year — written on the policy page and applied to the opening aging. The opening provision: <b>₦410,000</b>, charged with its explanation to the MD: <i>this is what the aging says the book is worth; the number was always true — now it is booked.</i> Monthly movements thereafter are small and explained, and Q3's release (collections improved) reads as exactly the good news it is, <b>because</b> the policy is stable enough for movements to mean something.</p><p><b>A write-off done right — and the surprise (Chapter 4).</b> Month five: the definitively-gone customer — premises vacated, phones dead, chase dossier complete — <b>₦188,000 written off</b> on the two-signature path, evidence filed, tax notes captured, the party record retained with its history. Month eleven: the surprise — the customer's principal resurfaces, restarts smaller, and pays <b>₦120,000</b> against the old debt for the relationship's sake. The recovery lands as income through the payment machinery, referenced end to end, and the party's history reads whole: debt, chase, write-off, recovery, new terms (cash-and-carry). The accountant's remark: <i>the record survived the write-off, so the recovery had somewhere to land.</i></p><p><b>The mirror's catch (Chapter 5).</b> The first supplier-statement reconciliation of the top five finds a missing bill — an invoice the supplier shows that never reached the books — captured before it arrived as a surprise demand, and a credit note from a returns batch that was never claimed: ₦74,000 recovered by asking. The monthly tranche joins the ritual.</p><p><b>The ritual settles (Chapter 7).</b> By month six the sitting runs at its promised ninety minutes: tie checked in two, the sweep short, advances aged, the matrix movement one line, statements out, the mirror's tranche done, seven one-page outputs to the close. The MD's year note: <i>the receivables number used to be an opinion. Now it is four answered questions.</i></p>"
+    "html": "<p>The module's routines, installed and run at HealthTrade. Every chapter appears.</p><p><b>The sweep instituted (Chapter 2).</b> Month one's first unallocated read finds the expected backlog: <b>₦840,000 floating across 23 items</b> — payments on account going back nine months, four credit notes issued and never applied, two advances whose trades completed unmatched. Three afternoons in Payment Reconciliation clear most of it; customers are called with the standard question — <i>your payment of March 14th, against which invoices?</i> — one genuine overpayment is refunded by a proper Payment Entry, and one escalation (a ₦60,000 payment no record explains) resolves in week three as a sister-company transfer mis-referenced. The read closes month two at ₦45,000 and month three near zero. The corrected aging then shows <b>two genuinely overdue accounts</b> the old net balances had hidden — handed straight to collections.</p><p><b>The provision built (Chapter 4).</b> The matrix is built from two years of the business's own collection outcomes: nil to 60 days, 10% at 61-120, 30% at 121-180, 60% at 181-365, 100% past a year — written on the policy page and run against the opening aging. Opening provision: <b>₦410,000</b>, posted with its explanation to the MD: <i>this is what the aging says the book is worth; the number was always true — now it is booked.</i> Monthly movements after that are small and explained, and Q3's release reads as the good news it is, because the matrix had not moved.</p><p><b>A write-off and a recovery (Chapter 4).</b> Month five: a customer definitively gone — premises vacated, phones dead, dossier complete. <b>₦188,000</b> written off on the two-signature workflow, evidence attached, tax notes captured, the customer record retained. Month eleven: the customer's principal resurfaces, restarts smaller, and pays <b>₦120,000</b> against the old debt. The recovery is received as a normal Payment Entry, referenced end to end, and the customer's history reads whole: debt, chase, write-off, recovery, new terms — cash only. The accountant's remark: <i>the record survived the write-off, so the recovery had somewhere to land.</i></p><p><b>Statements and the mirror (Chapter 5).</b> Process Statement Of Accounts is scheduled in month one: every open-balance customer gets a monthly emailed statement with aging. The first returned queries fix two allocation gaps for free. The first supplier-statement reconciliation of the top five catches a missing bill — an invoice the supplier shows that never reached the books — and an unclaimed credit note from a returns batch: <b>₦74,000</b> recovered by asking.</p><p><b>The routine settles (Chapter 7).</b> By month six the sitting runs at its promised ninety minutes: tie checked in two, the sweep short, advances aged, one matrix entry, statements confirmed fired, the mirror's tranche done, seven one-page outputs to the close. The MD's year note: <i>the receivables number used to be an opinion. Now it is four answered questions.</i></p>"
    },
    {
     "title": "Chapter 9 — Common mistakes & the fourth law",
     "est": "11",
-    "html": "<p>The chair's recurring failures, then the review list.</p><p><b>Pattern 1 — the diverged tie.</b> Symptom: the control disagrees with the party sum; nobody knows since when; reports drawn from whichever number suits. Cause: the tie never checked (Chapters 1, 7) — journals to controls, blob migrations, deletions, each divergence compounding undated. Fix: the incident treatment — the journal filter, the divergence dated by working backwards, the correction by the rules, and the monthly check that makes the next divergence a one-month problem instead of a three-year one.</p><p><b>Pattern 2 — the netting sin.</b> Symptom: receivables that shrink when advances arrive; statements customers dispute on sight; a balance sheet position nobody can decompose. Cause: the two directions crushed together (Chapter 3). Fix: advances captured and reported as what they are; the un-netting migration where the sin is historical; and the reader's test — can a banker see the real position from the face of the statement?</p><p><b>Pattern 3 — the perpetual gross.</b> Symptom: receivables at face value for years; aged debts immortal; the write-off unknown as an instrument. Cause: the honesty doctrine absent (Chapter 4) — collectability asserted, never assessed. Fix: the matrix built from the business's own history, the opening provision charged with its adult explanation, and the write-off path governed and used.</p><p><b>Pattern 4 — the silent ledger.</b> Symptom: statements never sent; confirmations dreaded; supplier statements filed unread; disputes living in inboxes. Cause: the record hiding from examination (Chapter 5) — always a symptom of the hygiene it would fail. Fix: the hygiene first (Chapters 2-4), then the routines switched on in order — statements, supplier reconciliations, then the confirmation posture.</p><p><b>Pattern 5 — the immortal advance.</b> Symptom: advances aging past every plausible delivery; the schedule nobody reviews; the supplier advance paid twice. Cause: advances anchored to no expected date, reviewed on no rhythm (Chapter 3). Fix: expected dates at capture, the monthly aging in the ritual, the resolution paths actually walked, and the payment run's open-advance check made structural.</p><p><b>Pattern 6 — the deleted debtor.</b> Symptom: customers who vanish from the ledger with their balances; a record that cannot answer for its own past. Cause: deletion used where the write-off doctrine belonged — completeness broken. Fix: the write-off as the only exit for a debt, the record retained always, and the completeness question standing in every review.</p><p><b>The review list.</b> Confirm you can state: the chair's distinction and the four questions; the unallocated read's three resolutions and why near-zero compounds; both advance directions, the double-payment defence, and the never-net rule; the two stages of the honesty doctrine, the matrix, and the recovery path; the statement run's three returns and the supplier-statement mirror; the detail-never-blobs loading rule and the migration reconciliation; and the seven-step ninety-minute ritual with its outputs.</p><p><b>The fourth law: the chair keeps the record real, collectable, current and complete.</b> Module 5 turns to the tax custodies and Nigerian compliance.</p>"
+    "html": "<p>The AR/AP layer's recurring failures, then the review list.</p><p><b>Pattern 1 — the diverged tie.</b> Symptom: the Trial Balance control disagrees with the Accounts Receivable report; nobody knows since when; reports quote whichever number suits. Cause: the tie never checked — journals to controls, total-per-party migrations, deletions (Chapters 1, 6). Fix: the Journal Entry filter finds the causes; date the divergence by working backwards; correct by the rules; and the monthly check makes the next divergence a one-month problem instead of a three-year one.</p><p><b>Pattern 2 — the netting error.</b> Symptom: receivables that shrink when advances arrive; statements customers dispute on sight; a balance-sheet figure nobody can decompose. Cause: customer advances crushed into the receivables line (Chapter 3). Fix: advances captured against orders and consumed through the invoice's Advances section; reporting un-netted; and the banker's-view test applied to the statements.</p><p><b>Pattern 3 — the perpetual gross.</b> Symptom: receivables at face value for years; aged debts immortal; the write-off unknown as an instrument. Cause: no provision policy (Chapter 4). Fix: the matrix built from the business's own history, the opening provision posted with its explanation, and the write-off workflow configured and used.</p><p><b>Pattern 4 — the silent ledger.</b> Symptom: statements never sent; confirmations dreaded; supplier statements filed unread; disputes living in inboxes. Cause: the record hiding from examination — always a symptom of the hygiene it would fail (Chapter 5). Fix: the hygiene first (Chapters 2-4), then the routines switched on in order — Process Statement Of Accounts, supplier reconciliations, then the confirmation posture.</p><p><b>Pattern 5 — the immortal advance.</b> Symptom: supplier advances aging past every plausible delivery; the schedule nobody reviews; the advance paid twice. Cause: advances anchored to no expected date and no monthly read (Chapter 3). Fix: advances paid against Purchase Orders, the monthly aging in the routine, and the pull-advances-before-settlement habit audited.</p><p><b>Pattern 6 — the deleted debtor.</b> Symptom: customers who vanish from the ledger with their balances; a record that cannot answer for its own past. Cause: deletion used where the write-off belonged — completeness broken. Fix: the write-off as the only exit for a debt, records retained always.</p><p><b>The review list.</b> Before the quiz, confirm you can: run the tie check end to end including the Journal Entry filter; clear floating items in Payment Reconciliation and state the three resolutions; capture and consume advances in both directions through the order and the invoice's Advances section, and state the never-net rule; size a provision from the AR report's buckets and post the adjusting entry; run a write-off on the two-signature workflow and receive a recovery; schedule Process Statement Of Accounts and reconcile a supplier statement; load openings per-invoice with the Opening Invoice Creation Tool and prove the migration; and run the seven-step month-end routine.</p><p><b>The fourth law: the record is kept real, collectable, current and complete.</b> Module 5 covers the tax accounts and Nigerian compliance.</p>"
    }
   ],
   "questions": [
    {
-    "q": "The accounts chair's distinction is:",
+    "q": "The accounts side of AR/AP owns:",
     "opts": [
-     "The trading desks own the relationships; the accounts chair owns the record",
-     "It approves credit",
-     "It chases payments",
-     "It sets prices"
+     "The record — real, correctly aged, honestly valued, complete",
+     "Chasing customers",
+     "Pricing",
+     "Supplier selection"
     ],
     "ans": 0,
-    "why": "Integrity, honesty, and what the record asserts.",
+    "why": "The desks own the relationships.",
     "src": "Ch1"
    },
    {
-    "q": "A receivable differs from stock in that:",
-    "opts": [
-     "It is smaller",
-     "It is only as real as its record — no shelf holds it, no count confirms it",
-     "It cannot age",
-     "It needs no documents"
-    ],
-    "ans": 1,
-    "why": "Why the chair exists.",
-    "src": "Ch1"
-   },
-   {
-    "q": "The four questions asked of the receivables balance are:",
+    "q": "The four questions asked of the receivables figure are:",
     "opts": [
      "Big, small, old, new",
-     "Cash, credit, card, transfer",
      "Real, collectable, current, complete",
-     "Gross, net, aged, due"
+     "Gross, net, due, paid",
+     "Cash, credit, card, transfer"
     ],
-    "ans": 2,
-    "why": "An auditor's entire receivables programme is these four.",
+    "ans": 1,
+    "why": "An audit's receivables work is these four.",
     "src": "Ch1"
    },
    {
-    "q": "An unallocated payment-on-account means:",
+    "q": "The tie check compares:",
     "opts": [
-     "Nothing",
-     "A bank error",
-     "Extra income",
-     "The aging lies — the invoices it should have cleared still age as unpaid while the net looks fine"
-    ],
-    "ans": 3,
-    "why": "Every unmatched item is a naira of ambiguity.",
-    "src": "Ch2"
-   },
-   {
-    "q": "A credit note issued but never applied causes:",
-    "opts": [
-     "A statement showing a debt and a floating credit — the customer pays the net and disputes the rest",
-     "A tax saving",
-     "Nothing visible",
-     "A write-off"
-    ],
-    "ans": 0,
-    "why": "The story is illegible even when the balance is right.",
-    "src": "Ch2"
-   },
-   {
-    "q": "Each unallocated item is resolved by:",
-    "opts": [
-     "Deletion",
-     "Matching, refunding, or escalating — the three paths",
-     "Waiting",
-     "Netting"
-    ],
-    "ans": 1,
-    "why": "The rare unexplainable item is exactly what the chair chases.",
-    "src": "Ch2"
-   },
-   {
-    "q": "Asking a customer 'your payment of the 14th — against which invoices?' also:",
-    "opts": [
-     "Annoys them",
-     "Delays collection",
-     "Quietly tells them their account is watched",
-     "Voids the payment"
+     "Two banks",
+     "Sales to purchases",
+     "The Trial Balance control balance against the AR/AP report total, to the kobo",
+     "Budget to actual"
     ],
     "ans": 2,
-    "why": "A professional question with a side effect.",
+    "why": "Run monthly, first, always.",
+    "src": "Ch1"
+   },
+   {
+    "q": "On a tie difference, filter the control account's GL by:",
+    "opts": [
+     "Date",
+     "User",
+     "Amount",
+     "Voucher Type = Journal Entry"
+    ],
+    "ans": 3,
+    "why": "The cause is almost always there.",
+    "src": "Ch1"
+   },
+   {
+    "q": "A payment on account left unallocated makes:",
+    "opts": [
+     "The invoices it should have cleared still age as overdue — the aging overstates",
+     "No difference",
+     "Extra income",
+     "A tax error"
+    ],
+    "ans": 0,
+    "why": "Collections may chase paid debts.",
     "src": "Ch2"
    },
    {
-    "q": "A lapsed unallocated read causes:",
+    "q": "The Payment Reconciliation tool:",
     "opts": [
-     "Cleaner reports",
-     "Better ties",
-     "Faster closes",
-     "Overstated aging, collections chasing paid debts, statements that teach customers to dispute"
+     "Posts new GL entries",
+     "Matches existing unallocated payments and credit notes against open invoices — no new posting",
+     "Creates invoices",
+     "Imports statements"
+    ],
+    "ans": 1,
+    "why": "Select, adjust allocations, Reconcile.",
+    "src": "Ch2"
+   },
+   {
+    "q": "A genuine overpayment is:",
+    "opts": [
+     "Left floating",
+     "Netted",
+     "Refunded by a proper Payment Entry — not left to confuse the aging",
+     "Written off"
+    ],
+    "ans": 2,
+    "why": "One of the three resolutions.",
+    "src": "Ch2"
+   },
+   {
+    "q": "The unallocated list's length is:",
+    "opts": [
+     "Irrelevant",
+     "The auditor's problem",
+     "A tax figure",
+     "The grade of the month's allocation discipline — one glance"
     ],
     "ans": 3,
-    "why": "The value is invisible until it lapses.",
+    "why": "Near-zero keeps every statement self-explanatory.",
     "src": "Ch2"
    },
    {
     "q": "A customer advance is:",
     "opts": [
-     "A liability — the business owes goods, services, or the money back",
+     "A liability — captured against the Sales Order where one exists",
      "Income on receipt",
      "A negative receivable",
-     "Equity"
-    ],
-    "ans": 0,
-    "why": "Captured as an advance, consumed at the invoice.",
-    "src": "Ch3"
-   },
-   {
-    "q": "A supplier advance is:",
-    "opts": [
-     "An expense",
-     "An asset — a prepayment claim, matched when the bill lands and aged while it waits",
-     "A liability",
      "A discount"
     ],
-    "ans": 1,
-    "why": "The advances-aging report is the lamp over the black hole.",
+    "ans": 0,
+    "why": "The business owes goods, services, or the money back.",
     "src": "Ch3"
    },
    {
-    "q": "The double-payment defence is:",
+    "q": "The advance is consumed by:",
     "opts": [
-     "Paying late",
-     "Paying in cash",
-     "The invoice-entry step checking for open advances before settlement",
-     "Smaller advances"
+     "A journal",
+     "The Sales Invoice's Advances section — Get Advances Received settles it in one step",
+     "Deleting it",
+     "A refund"
+    ],
+    "ans": 1,
+    "why": "Never left floating after the trade completes.",
+    "src": "Ch3"
+   },
+   {
+    "q": "Supplier advances are paid:",
+    "opts": [
+     "Freely",
+     "To personal accounts",
+     "Against the Purchase Order — its Advance Paid field tracks them; the bill pulls them in",
+     "After the bill"
     ],
     "ans": 2,
-    "why": "The advance the payment run does not know about is the one paid twice.",
+    "why": "The double-payment defence is structural.",
     "src": "Ch3"
    },
    {
-    "q": "Netting advances into the receivables line:",
+    "q": "The never-net rule states:",
     "opts": [
-     "Simplifies reporting",
-     "Helps the banker",
-     "Is required",
-     "Hides two different assertions — ₦19.6m owed-to-us and ₦1.2m owed-by-us are not ₦18.4m receivable"
+     "Net everything",
+     "Show only the net",
+     "Round to thousands",
+     "Customer advances report separately from receivables — an asset and a liability are two figures"
     ],
     "ans": 3,
-    "why": "The reader's test: can the banker see the real position?",
+    "why": "Can a banker see the real position from the statement?",
     "src": "Ch3"
    },
    {
     "q": "A doubtful debt is handled by:",
     "opts": [
-     "A provision — charged now, while the debt stays on the ledger and collections keeps working it",
+     "A provision Journal Entry — the debt stays on the customer's ledger and collections continues",
      "Immediate write-off",
      "Deletion",
-     "Ignoring it"
+     "A discount"
     ],
     "ans": 0,
-    "why": "DR bad-debt expense, CR provision (a contra-asset).",
+    "why": "DR Bad Debt Expense, CR Provision for Doubtful Debts.",
+    "src": "Ch4"
+   },
+   {
+    "q": "The provision is sized by:",
+    "opts": [
+     "Mood",
+     "A written aging matrix run against the AR report's buckets — stable, changed annually as an event",
+     "The auditor",
+     "A percent of sales"
+    ],
+    "ans": 1,
+    "why": "Then movements mean collections changed.",
     "src": "Ch4"
    },
    {
     "q": "A write-off requires:",
     "opts": [
      "One click",
-     "Evidence documented, two-name value-routed approval, tax notes captured, and the party record retained",
-     "The MD's verbal ok",
-     "A new customer record"
+     "The MD's word",
+     "Evidence, the two-signature workflow, tax notes, and the customer record retained",
+     "Deleting the customer"
     ],
-    "ans": 1,
+    "ans": 2,
     "why": "Written off is not erased.",
     "src": "Ch4"
    },
    {
-    "q": "The provision is sized by:",
+    "q": "A recovery on a written-off debt:",
     "opts": [
-     "Mood and quarter",
-     "The auditor",
-     "An aging matrix — percentages by age band, built from the business's own collection history",
-     "A fixed percent of sales"
-    ],
-    "ans": 2,
-    "why": "The matrix is the floor; judgment documents exceptions.",
-    "src": "Ch4"
-   },
-   {
-    "q": "The P&L reader sees:",
-    "opts": [
-     "The provision balance",
-     "The gross book",
-     "The matrix",
-     "The movement — which is why the policy must be stable enough for movements to mean something"
+     "Cannot post",
+     "Is ignored",
+     "Reopens the invoice",
+     "Is received as a normal Payment Entry — it lands cleanly because the record survived"
     ],
     "ans": 3,
-    "why": "Moved by policy = information; moved by discretion = noise.",
+    "why": "HealthTrade's month-eleven case.",
     "src": "Ch4"
    },
    {
-    "q": "A recovery on a written-off debt lands cleanly because:",
+    "q": "Process Statement Of Accounts:",
     "opts": [
-     "The party's record survived the write-off, so the recovery had somewhere to land",
-     "Luck",
-     "It is rebooked as a sale",
-     "The provision absorbs it"
+     "Generates and emails each customer their statement on a monthly schedule — set up once",
+     "Prints the chart",
+     "Reconciles banks",
+     "Files VAT"
     ],
     "ans": 0,
-    "why": "HealthTrade's month-eleven surprise.",
-    "src": "Ch4"
+    "why": "The statement run, automated.",
+    "src": "Ch5"
    },
    {
-    "q": "The customer statement is:",
+    "q": "Customer statement queries are:",
     "opts": [
-     "A marketing letter",
-     "The party ledger, printed — monthly, to every open-balance customer",
-     "An invoice copy",
-     "A dunning threat"
+     "A nuisance",
+     "Free error-checking — the missed payment and unapplied credit come back as corrections",
+     "Ignored",
+     "Disputes"
     ],
     "ans": 1,
-    "why": "Cheap to run when allocation hygiene holds.",
+    "why": "One of the run's three returns.",
     "src": "Ch5"
    },
    {
@@ -1690,143 +1690,143 @@
     "opts": [
      "In inboxes",
      "By phone only",
-     "On record — flagged in the system, resolved by a document instrument, never as side-agreements",
-     "At year end"
+     "On record — flagged in the system, resolved by a document instrument",
+     "At year-end"
     ],
     "ans": 2,
-    "why": "The side-agreement is the statement's silent contradiction.",
-    "src": "Ch5"
-   },
-   {
-    "q": "The audit confirmation is met calmly when:",
-    "opts": [
-     "The auditor is friendly",
-     "Confirmations are declined",
-     "Balances are rounded",
-     "The four adjectives are pre-answered by the year's standing hygiene"
-    ],
-    "ans": 3,
-    "why": "Real, collectable, current, complete.",
+    "why": "A side-agreement contradicts every later statement.",
     "src": "Ch5"
    },
    {
     "q": "The supplier statement reconciliation catches:",
     "opts": [
-     "Missing bills, unclaimed credit notes, and payments they never applied",
-     "Nothing new",
+     "Nothing",
+     "Bank charges",
      "Only price errors",
-     "Bank charges"
+     "Missing bills, unclaimed credit notes, and payments they never applied"
     ],
-    "ans": 0,
-    "why": "The mirror — a near-outside witness on the payables side.",
+    "ans": 3,
+    "why": "Top suppliers monthly, the rest on rotation.",
     "src": "Ch5"
    },
    {
-    "q": "Opening receivables load as:",
+    "q": "Opening receivables load:",
     "opts": [
-     "One balance per customer",
-     "Per party, per open document — real invoices with real dates",
+     "Per customer, per open invoice — real numbers, dates, and due dates",
+     "One total per customer",
      "One journal to the control",
-     "A spreadsheet total"
+     "As a lump to suspense"
     ],
-    "ans": 1,
+    "ans": 0,
     "why": "The aging true from day one; the tie born intact.",
     "src": "Ch6"
    },
    {
-    "q": "The blob migration produces:",
+    "q": "The Opening Invoice Creation Tool:",
     "opts": [
-     "A faster go-live only",
-     "Better performance",
-     "A blind aging, permanent on-account payments, and a control with no details",
-     "Clean statements"
+     "Posts revenue",
+     "Generates opening invoices marked Is Opening = Yes against the Temporary Opening account",
+     "Imports statements",
+     "Creates customers"
+    ],
+    "ans": 1,
+    "why": "Year one fabricates no revenue or expense.",
+    "src": "Ch6"
+   },
+   {
+    "q": "The opening provision:",
+    "opts": [
+     "Waits for year-end",
+     "Is zero",
+     "Loads at migration — the matrix applied to the opening aging",
+     "Is the auditor's entry"
     ],
     "ans": 2,
-    "why": "The tie born broken.",
-    "src": "Ch6"
-   },
-   {
-    "q": "Openings post against:",
-    "opts": [
-     "Revenue",
-     "Bank",
-     "Suspense",
-     "The opening equity account — so year one fabricates no revenue or expense"
-    ],
-    "ans": 3,
-    "why": "One of the loading mechanics.",
-    "src": "Ch6"
-   },
-   {
-    "q": "Provisions at migration:",
-    "opts": [
-     "Load as the policy's opening position — the matrix applied to the opening aging",
-     "Wait for year-end",
-     "Are skipped",
-     "Equal zero"
-    ],
-    "ans": 0,
-    "why": "The honesty doctrine born with the ledger.",
+    "why": "The honesty built in at birth.",
     "src": "Ch6"
    },
    {
     "q": "The migration reconciliation proves:",
     "opts": [
      "The server works",
-     "New controls tie to old totals to the kobo, party sums tie to old listings, and differences are worked or documented",
-     "The users are trained",
-     "The chart is right"
+     "The chart is right",
+     "Users are trained",
+     "New control balances tie to old totals to the kobo, and the report totals tie to the old party listings"
     ],
-    "ans": 1,
-    "why": "Before go-live is called done.",
+    "ans": 3,
+    "why": "Differences worked to zero or documented as deliberate corrections.",
     "src": "Ch6"
    },
    {
-    "q": "The month-end ritual starts with:",
+    "q": "The total-per-party opening load's real price is:",
+    "opts": [
+     "A year of blind aging, payments on account forever, and a tie that never agreed",
+     "A faster go-live only",
+     "Better performance",
+     "Nothing"
+    ],
+    "ans": 0,
+    "why": "Price the detailed load honestly at planning.",
+    "src": "Ch6"
+   },
+   {
+    "q": "The month-end routine starts with:",
     "opts": [
      "Statements",
-     "The provision",
-     "The tie check — control against party sum, to the kobo; divergence is an incident",
-     "Write-offs"
+     "The tie check — two minutes when healthy; a difference is an incident",
+     "Write-offs",
+     "The provision"
     ],
-    "ans": 2,
-    "why": "The whole ritual's foundation.",
+    "ans": 1,
+    "why": "First, always.",
     "src": "Ch7"
    },
    {
-    "q": "Write-off candidates in the ritual are:",
+    "q": "Write-off candidates in the routine are:",
     "opts": [
      "Decided on the spot",
-     "Provisioned again",
      "Deleted",
-     "Surfaced to their approval path — the ritual nominates; the governance decides"
+     "Surfaced to the approval workflow — the routine nominates; the governance decides",
+     "Re-provisioned"
     ],
-    "ans": 3,
+    "ans": 2,
     "why": "Never both in the same sitting.",
     "src": "Ch7"
    },
    {
-    "q": "The ritual's economics are:",
+    "q": "The routine's outputs to the close are:",
     "opts": [
-     "Ninety minutes monthly — skipped for a quarter, every list doubles and the archaeology begins",
-     "A day per week",
-     "Annual",
-     "Continuous"
+     "Emails",
+     "Bank files",
+     "Verbal updates",
+     "Aged AR/AP with the provision shown, advance schedules, the tie confirmation, the write-off log, the unallocated residue"
+    ],
+    "ans": 3,
+    "why": "One page each, already true.",
+    "src": "Ch7"
+   },
+   {
+    "q": "The routine's findings go to the desks as:",
+    "opts": [
+     "Process fixes — the recurring unallocated causes, so next month's lists are shorter",
+     "Blame",
+     "Meetings",
+     "Nothing"
     ],
     "ans": 0,
-    "why": "One owner, one fixed slot.",
+    "why": "The desks receive the output, not the sitting.",
     "src": "Ch7"
    },
    {
     "q": "HealthTrade's first unallocated read found:",
     "opts": [
      "Nothing",
-     "₦840,000 across 23 items — closing month three at near-zero",
+     "₦840,000 across 23 items — near zero by month three",
      "One item",
      "Only advances"
     ],
     "ans": 1,
-    "why": "And the purged aging revealed two camouflaged overdue accounts.",
+    "why": "The corrected aging exposed two hidden overdue accounts.",
     "src": "Ch8"
    },
    {
@@ -1835,46 +1835,46 @@
      "Zero",
      "₦188,000",
      "₦410,000 — 'the number was always true; now it is booked'",
-     "₦2.4m"
+     "₦2.1m"
     ],
     "ans": 2,
-    "why": "The matrix applied to the opening aging.",
+    "why": "The matrix against the opening aging.",
     "src": "Ch8"
    },
    {
-    "q": "The mirror's first catch at HealthTrade:",
+    "q": "The supplier-statement mirror's first catch was:",
     "opts": [
      "A fraud",
-     "A tax issue",
+     "Nothing",
      "A bank error",
-     "A missing bill and an unclaimed ₦74,000 credit note — recovered by asking"
+     "A missing bill and an unclaimed credit note — ₦74,000 recovered by asking"
     ],
     "ans": 3,
-    "why": "The supplier statement reconciliation earning its slot.",
+    "why": "The mirror earning its slot.",
     "src": "Ch8"
    },
    {
-    "q": "The netting sin's fix includes:",
+    "q": "Deleting a customer instead of writing off breaks:",
     "opts": [
-     "Advances captured and reported as what they are, plus the banker's-view reader test",
-     "Better rounding",
-     "Bigger provisions",
-     "Fewer advances"
-    ],
-    "ans": 0,
-    "why": "Two directions, two assertions.",
-    "src": "Ch9"
-   },
-   {
-    "q": "Deleting a debtor instead of writing off breaks:",
-    "opts": [
-     "Nothing",
      "Completeness — the record can no longer answer for its own past",
+     "Nothing",
      "The bank rec",
      "The chart"
     ],
-    "ans": 1,
+    "ans": 0,
     "why": "The write-off is the only exit for a debt.",
+    "src": "Ch9"
+   },
+   {
+    "q": "The immortal advance is fixed by:",
+    "opts": [
+     "Bigger advances",
+     "Advances against Purchase Orders, the monthly aging, and the pull-before-settlement habit audited",
+     "Fewer suppliers",
+     "Ignoring it"
+    ],
+    "ans": 1,
+    "why": "Pattern 5.",
     "src": "Ch9"
    },
    {
@@ -1882,11 +1882,11 @@
     "opts": [
      "Chase everything",
      "Net the advances",
-     "The chair keeps the record real, collectable, current and complete",
+     "The record is kept real, collectable, current and complete",
      "Provision by mood"
     ],
     "ans": 2,
-    "why": "The four adjectives, owned.",
+    "why": "The fourth law.",
     "src": "Ch9"
    }
   ]
