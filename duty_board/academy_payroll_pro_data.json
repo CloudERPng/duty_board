@@ -1898,946 +1898,946 @@
  },
  "variable_pay": {
   "title": "Payroll 5 — Variable Pay: Overtime, Bonuses, Commissions & Deductions",
-  "desc": "The one-offs' governed home: the additional-salary machinery, overtime through one channel with the price-signal read, bonuses as documents with the policy-versus-gift line, commissions computed from selling documents with statements and clawback clauses, arrears travelling forward with shown arithmetic, staff lending mechanics with the welfare read, and off-cycle payments as mini-runs.",
+  "desc": "Variable pay in ZhiftERP: the four rules and the component-carries-everything design; the Additional Salary doctype field by field — component, amount, payroll date, Overwrite Salary Structure Amount, recurring From/To dates, Deduct Full Tax on Selected Payroll Date; the overtime lane with approved-before-worked and the two control reads; bonuses with the list-drift check and the tax-timing policy; commissions from the system's own sales figures; agreed recoveries on self-terminating schedules; the Employee Advance lifecycle; and loan recovery from the slip with affordability at approval.",
   "lessons": [
    {
-    "title": "Chapter 1 — Variable pay: governed, not improvised",
+    "title": "Chapter 1 — Variable pay enters as documents",
+    "est": "11",
+    "html": "<p>This module covers the pay that changes month to month: overtime, bonuses, commissions, one-off deductions, advances, and loan recoveries. The fixed package is modules 1-2's territory — computed by structures and assignments; variable pay is everything the structure cannot know in advance, and ZhiftERP's answer is one doctype family: variable amounts enter as <b>documents</b> that the run picks up automatically.</p><p><b>The machinery, previewed.</b></p><p>1. <b>Additional Salary</b> — the workhorse: one record adds one amount (earning or deduction) to one employee's slip for one payroll date, or recurs across a defined span (Chapter 2). Overtime, bonuses, commissions, and one-off deductions all ride it (Chapters 3-5).<br>2. <b>Employee Advance</b> — money paid ahead of earning or expense, tracked to settlement (Chapter 6).<br>3. <b>The loan machinery</b> — structured borrowing with a repayment schedule that deducts on the slip (Chapter 7).</p><p><b>The four rules, stated first because every chapter applies them.</b></p><p>1. <b>Approved before the close.</b> Every variable input carries its approval and lands by the records-close date (module 3, Station 1, line 5) — the run picks up what exists at generation; late inputs wait or take the deliberate correction lane. Variable pay is where close discipline is tested monthly, because variable inputs are exactly the ones that arrive late.<br>2. <b>Computed from evidence.</b> The amount on the document traces to its source: overtime to attendance records and the policy rate, commission to the sales figures, a recovery to its written agreement. The document without its computation is a number with a story, and stories do not survive audits or disputes.<br>3. <b>Taxed by the flags.</b> The component the document names carries the tax treatment (Is Tax Applicable — module 1's flag; module 2's ruling), and the bonus-month tax mechanics (Chapter 4) are handled by the document's own controls, never by the operator adjusting figures.<br>4. <b>Recovered by agreement.</b> Every deduction from pay that is not statutory or contractual stands on the employee's written agreement (module 3's overpayment rule, generalised) — the law and the relationship both require it, and the document attaches it.</p><p><b>Where variable pay shows.</b> On the slip, each Additional Salary line appears among earnings or deductions, named by its component (module 4's plain-naming rule: <i>Overtime — March</i>, not <i>ADDL-EARN-07</i>); on the register, the variable columns explain the month-on-month movements module 3's Station 3 reads; on the posting, each amount follows its component's account (module 2's wiring).</p><p><b>Module contents.</b> Chapter 2: the Additional Salary doctype. Chapter 3: overtime. Chapter 4: bonuses and the tax mechanics. Chapter 5: commissions and one-off deductions. Chapter 6: the Employee Advance. Chapter 7: loans. Chapter 8: the HealthTrade case. Chapter 9: review and the law.</p>"
+   },
+   {
+    "title": "Chapter 2 — The Additional Salary doctype",
     "est": "12",
-    "html": "<p>The structure computes the same numbers every month — and every month, real life adds to them: the overtime worked, the bonus earned, the commission closed, the correction owed, the loan advancing. This module governs the layer where those one-offs live: <b>variable pay</b> — and its thesis is the line this track has drawn since module 1: <b>variable pay is governed, not improvised.</b></p><p><b>Why this layer is where structure leaks.</b> The diagnosis first, because the consultant will meet it everywhere: the FIXED pay is easy to govern (the structure holds it; the review changes it; nobody types it) — but the variable layer is where every governance instinct meets its temptation: the bonus is discretionary (so why paper it?), the overtime is small (so why gate it?), the correction is urgent (so why wait?), the advance is a kindness (so why policy it?) — and the trade's payrolls answer those four questions wrongly for years until the layer is a parallel economy: cash envelopes beside the bank run, commissions computed from a salesperson's own notebook, corrections negotiated at the counter, and lending that is really the founder's personal favour book. The cost is every disease this academy has named at once — the favour system (unevenness denominated in naira), the version drift (the slip that doesn't know about the envelope), the tax leak (the cash bonus module 2's projection never saw), and the fraud surface (the variable layer is where the padding, the phantom overtime, and the invented one-off live, because it is the layer where numbers are typed).</p><p><b>The cure: the additional-salary machinery.</b> One instrument governs the whole layer: every variable item is a DOCUMENT — the additional-pay entry carrying its TYPE (the component it posts to — module 1's variable components receiving their population), its AMOUNT (or the computation that produces it — Chapters 2 and 4's derived items), its AUTHORITY (who approved, per the type's approval rule — the spot bonus's approver is named policy, not ambient generosity), its PERIOD (the run that will carry it — the cutoff of module 3 governing admission), and its REFERENCE (the source it derives from — the overtime sheet, the scheme, the arrears computation, the instrument). The document then flows the run's ritual like everything else: validated (module 3's pending-document read), computed (onto the slip as its labelled line — module 4's anatomy), posted (to its component's ledger address), and archived (the variable layer's history as readable as the fixed layer's — which is the whole point: the one-off that is a document is one-off in AMOUNT but standard in GOVERNANCE).</p><p><b>The module's map.</b> The variable earnings first — overtime (Chapter 2), bonuses (Chapter 3), commissions (Chapter 4 — the Selling track's crossover); the corrections layer — arrears and adjustments travelling forward (Chapter 5 — module 3's frozen-run law cashing its promise); the lending layer — loans and advances at mechanics depth (Chapter 6 — module 4's consent layer receiving its machinery); and the off-cycle payments that leave the monthly ritual without leaving governance (Chapter 7). One case study, one pattern set, one law — and the thread throughout: the variable layer run as documents is the difference between a payroll that flexes and a payroll that leaks.</p>"
+    "html": "<p>Open <b>Additional Salary</b> (awesome bar) &gt; New. One record, one variable amount, walked field by field.</p><p><b>1. Employee.</b> The recipient. One record per person — a team bonus is a batch of records (imported where volume wants it, under the governed import), never one record \"split later\".</p><p><b>2. Salary Component.</b> The component this amount rides — an existing, registered component (module 1's register): <i>Overtime</i>, <i>Bonus</i>, <i>Commission</i>, <i>Other Deductions</i>. The component brings everything the amount needs: Earning or Deduction type, the tax flag, the ledger account. This is the design's discipline: the operator never decides an amount's tax or posting at entry — the component decided it once, with the rulings behind it. A variable amount with no fitting component means a new component through the governed lane first, not a near-enough component borrowed.</p><p><b>3. Amount.</b> The figure, from the evidence (each lane's chapter defines its computation). The evidence attaches to this record.</p><p><b>4. Payroll Date.</b> The date that places the amount in a payroll period — the run whose Start/End Dates contain this date picks the record up. Set it inside the intended month, and mind the close: a record dated this month but entered after the records close belongs to the correction lane's decision, not to a quiet backdate.</p><p><b>5. Overwrite Salary Structure Amount.</b> Ticked, the record <b>replaces</b> the structure's own amount for that component this period instead of adding to it. The lawful use is the exception month — the component that normally computes but must be a stated figure this once. The standing caution: overwrite is a per-month override of the package, so it carries approval like a pay change, and its use is rare by design — a component overwritten monthly is a structure that needs fixing (module 1's rule: fix the record, not the output).</p><p><b>6. Is Recurring, From Date, To Date.</b> Ticked, the record applies every period from From to To — the fixed-term item: an acting allowance for a defined cover period, an agreed recovery spread over four months (Chapter 5). The recurrence ends itself at To Date, which is the point: a recurring record with honest dates cannot be forgotten on, the way a manual monthly entry can. Open-ended recurring items are a design smell — genuinely permanent amounts belong on the structure or the assignment, not on an Additional Salary that never expires.</p><p><b>7. Deduct Full Tax on Selected Payroll Date.</b> The bonus-month tax control — Chapter 4 owns it; here, know that it exists on this form and defaults off.</p><p><b>The record's lifecycle.</b> Draft → approval evidence attached → submitted before the close → picked up by the run → visible on the slip and register → part of the month's variable-pay register (Chapter 8's list). Submitted records follow document law: corrections by cancel/amend, never edits.</p><p>Practical rule: name the record's remarks for the reader — <i>Overtime, 14 hrs @ approved rate, March, per attendance sheet attached</i> — one line that makes the register comparison and every future query self-answering.</p>"
    },
    {
-    "title": "Chapter 2 — Overtime: hours into money, one channel",
+    "title": "Chapter 3 — Overtime",
+    "est": "12",
+    "html": "<p>Overtime is the highest-volume variable lane, and the one where evidence discipline pays monthly. The lane, end to end.</p><p><b>1. The policy, written first.</b> Who is overtime-eligible (by role — the policy names the categories), the rate basis (the multiplier on the hourly equivalent, or the flat rate — the accountant and owner set it, the page records it), the authorisation rule (overtime is <b>approved before it is worked</b>, by the named supervisor — the alternative is discovering the month's hours at the close and paying whatever is claimed), and the cap where the business sets one. This page is the lane's law; the operator executes it and никогда — never — arbitrates it: a disputed claim routes to the policy's owner.</p><p><b>2. The evidence.</b> Hours come from records, not recollection: the attendance machinery (the HR track's check-in records) or the signed overtime sheet per the business's practice — countersigned by the approving supervisor, stating date, hours, and the work. The month's sheets close with the records close (module 3, Station 1).</p><p><b>3. The computation.</b> Per employee: approved hours × the policy rate. Computed on the standing sheet (one tab per month: employee, hours, rate source, amount), checked by a second eye where volume is material, and filed — the sheet is the amount's audit trail.</p><p><b>4. The entry.</b> One Additional Salary per employee: the <b>Overtime</b> component (Earning-type; Is Tax Applicable per the accountant's ruling — overtime is generally taxable pay, and the ruling line says so), the computed amount, the payroll date in the month, the sheet attached, submitted before the close.</p><p><b>5. The run picks it up.</b> The slip shows <i>Overtime</i> among earnings; the register's overtime column carries the month's total; Station 3's comparison expects it — the LWP list's twin: the reviewer holds the overtime sheet, so every overtime line on a slip has its sheet line, and no sheet line is missing its slip.</p><p><b>The control reads.</b> Overtime is a standing audit interest because it is discretionary money on repeat, so two reads run monthly and quarterly:</p><p>1. <b>The monthly total and its trend</b> (the register column, month on month): overtime that grows quietly is either real workload — a staffing conversation for the owner — or approval drift; the trend read is what forces the question early.<br>2. <b>The concentration read:</b> the same names every month at the cap is a pattern the policy owner reviews — sustained overtime is either a role sized wrong or a claim habit, and both are management questions the data should raise, not bury.</p><p>Practical rule: the approved-before-worked rule is the lane's load-bearing wall. Where it holds, the close is calm and the amounts are boring; where it slips, every month ends in negotiation. Enforce it by routing: unapproved hours go to the policy owner's decision — the operator does not pay them by default, and does not refuse them personally either.</p>"
+   },
+   {
+    "title": "Chapter 4 — Bonuses and the tax mechanics",
+    "est": "12",
+    "html": "<p>The bonus lane is simple entry with one technical decision — the tax timing — that this chapter settles properly.</p><p><b>The entry.</b> A bonus is a decision (the owner's or the scheme's), evidenced (the approval memo or the scheme's computation), entered as one Additional Salary per recipient: the <b>Bonus</b> component (Earning; taxable per the standing ruling — bonuses are pay), the amount, the payroll date of the paying month, the approval attached, submitted before the close. Batch bonuses (the year-end round) enter by the governed import, then the register comparison at Station 3 confirms every intended name and no others — the bonus round's classic error is the list drift between the approval memo and the entries, and the comparison is where it dies.</p><p><b>The tax-timing problem, stated plainly.</b> Monthly PAYE is computed by spreading the year's tax over the months (module 2's slab machinery annualises). A large one-off amount in one month disturbs that: taxed as if it were the new normal monthly income, the bonus month can over-withhold; spread thinly, the bonus's tax arrives in pieces across later months. Neither is wrong in law — the annual reconciliation trues it up — but the difference is felt in the employee's bonus-month net, and it should be a <b>decision</b>, not an accident.</p><p><b>The control: Deduct Full Tax on Selected Payroll Date.</b> On the Additional Salary record:</p><p>• <b>Ticked:</b> the full tax attributable to this amount is withheld in the bonus month itself — the bonus lands net of its own tax, once, cleanly. The employee's later months are undisturbed. This is the recommended default for material one-off amounts: one month's clarity beats a quarter's confusion.<br>• <b>Clear:</b> the amount joins taxable income and the slab machinery spreads the effect per its annualisation — acceptable for small amounts where the disturbance is negligible.</p><p>The choice is made <b>with the accountant, once, as policy</b> — a line on the ruling page: material bonuses tick the flag; the materiality threshold stated — and then applied consistently, because two employees' identical bonuses taxed on different timings is a fairness question with the operator's name on it.</p><p><b>The communication step.</b> A bonus month's slip is the month most read all year. Two lines of preparation: the bonus line named plainly (<i>Annual Bonus</i>), and — where the flag was ticked — the payday note or the query-window answer ready: <i>the bonus is shown gross; its tax was withheld in full this month, so nothing further hits later months.</i> Module 4's standing-answers discipline, extended by one entry.</p><p><b>The register's face.</b> The bonus column's month-on-month spike is expected and documented — Station 3's comparison ties it to the approval memo's total, the posting tie carries it to the ledger at the component's account, and the custody sweep grows by the month's extra PAYE. The whole pipeline flexes without a single manual adjustment, which is the machinery working as designed.</p>"
+   },
+   {
+    "title": "Chapter 5 — Commissions and one-off deductions",
+    "est": "12",
+    "html": "<p>Two lanes sharing one discipline: the amount is computed from evidence and entered as a document.</p><p><b>Commissions.</b> Commission is earned pay computed from sales results, and its lane runs monthly:</p><p>1. <b>The scheme, written:</b> who earns commission, on what figure (invoiced sales, collected sales — the difference is a design decision with cash-flow consequences, decided by the owner and recorded), at what rates and thresholds, measured over what period.<br>2. <b>The source data, from the system:</b> the sales figures come from ZhiftERP's own reports — the sales analytics by salesperson, or the invoice register filtered per the scheme's measure — for the closed period. The commission computed from the system's figures is a commission nobody argues about twice: the invoice list <b>is</b> the evidence, and a disputed line is settled by opening documents, not by comparing recollections.<br>3. <b>The computation sheet:</b> per earner — the period's qualifying figure, the scheme's arithmetic, the amount — filed with the scheme's version noted (schemes change; the sheet says which rules computed this month).<br>4. <b>The entry:</b> one Additional Salary per earner on the <b>Commission</b> component (Earning, taxable per ruling), the sheet attached, before the close. Material commission months take the Chapter 4 tax-flag policy like bonuses do.</p><p><b>One-off deductions.</b> Money taken from pay outside the statutory and structural set — the overpayment recovery (module 3, Chapter 7), the agreed damage or shortage recovery where policy provides for it, the staff purchase. The rules are strict because the direction is sensitive:</p><p>1. <b>Written agreement, always.</b> The employee's signed agreement states the reason, the amount, and the schedule. No agreement, no deduction — a disputed unilateral deduction is a legal and trust failure that costs more than any recovery, and the till-shortage case in particular follows the POS track's rule: shortages are investigated and resolved by policy, never quietly netted from wages by default.<br>2. <b>The document:</b> one Additional Salary on the appropriate Deduction component, agreement attached. A spread recovery uses <b>Is Recurring</b> with From/To dates matching the agreed schedule — four months, four equal deductions, self-terminating (Chapter 2's design paying off: the recovery that cannot be forgotten on, and cannot silently continue past its end).<br>3. <b>The affordability line:</b> the schedule is set so the deduction leaves a livable net — the agreement conversation covers it, and a recovery that strips a month's pay is renegotiated, not enforced. The relationship the payroll function protects is worth more than a faster recovery.<br>4. <b>The register's trail:</b> each active recovery appears on the variable-pay register with its balance run-down — opening agreed amount, deducted to date, remaining — so \"how much is left on mine\" is a lookup, not an archaeology.</p><p>Practical rule: both lanes close the same way — the month's computation sheets and agreements filed beside the checklist, each register line traceable to its sheet. Variable pay's audit face is the file, and the file is built monthly or not at all.</p>"
+   },
+   {
+    "title": "Chapter 6 — The Employee Advance",
+    "est": "12",
+    "html": "<p>Open <b>Employee Advance</b> (awesome bar) &gt; New. An advance is money paid before it is earned or spent, and this doctype tracks it from payment to settlement — the record that prevents the advance from becoming a quiet loan nobody remembers.</p><p><b>The record's fields.</b> Employee; <b>Purpose</b> (written for the reader — <i>medical emergency advance</i>, <i>field expenses, Akure trip</i>); the <b>Advance Amount</b>; the <b>Advance Account</b> — the employee-advances asset account (money owed to the business; the Accounts track's receivable logic, pointed at staff); and the repayment intent.</p><p><b>The two advance kinds, distinguished at issue.</b></p><p>1. <b>The salary advance</b> — pay ahead of payday, recovered from pay. Settlement: deduction via Additional Salary (one-off or recurring per the agreed schedule — Chapter 5's machinery and its written-agreement rule apply verbatim, the agreement being part of the advance's approval).<br>2. <b>The expense advance</b> — business money for business spending, settled by the expense claim: the employee's claim documents the spending, the claim settles against the advance, and only an unspent remainder is recovered from pay. The two kinds post and settle differently; conflating them is how \"the trip money\" becomes a payroll dispute.</p><p><b>The lifecycle, as a procedure.</b></p><p>1. <b>Approval:</b> per the policy — who may approve, up to what amount, how many advances outstanding per person (one is the healthy default). The policy page exists before the first advance does.<br>2. <b>The record submitted, then the payment:</b> a Payment Entry against the advance, referencing the Employee Advance record — the money leaves through the books, debiting the advance account. Never the bare transfer with the record \"to follow\".<br>3. <b>The balance visible:</b> the advance record carries its paid and settled amounts; the advances account's balance is the business's total staff exposure — a standing line on the payroll close.<br>4. <b>Settlement on schedule:</b> the salary advance's recovery deductions run their course (the slip shows them; the register's run-down tracks the balance); the expense advance's claim arrives by the trip's end per policy.<br>5. <b>The exception read, monthly:</b> the advances account reconciled by person — every balance ageing normally against its schedule. The stale advance (no recovery running, no claim arriving) is chased the month it stalls, because a stalled advance's difficulty compounds: the six-month-old advance meets module 7's exit chapter as a settlement problem.</p><p><b>The custody note.</b> Advances are business money in personal hands — the approval limits, the one-outstanding default, the through-the-books payment, and the monthly reconciliation are the same custody pattern the programme applies to every till and float. The advance that skips the record is indistinguishable from the advance that was never meant to come back.</p><p>Practical rule: at issue, the recovery schedule is written into the same conversation as the money — amount, months, first deduction date — and the recurring Additional Salary is created the same day, dated to start on schedule. An advance issued with its recovery already ticking never becomes the awkward conversation.</p>"
+   },
+   {
+    "title": "Chapter 7 — Loans and slip recovery",
+    "est": "12",
+    "html": "<p>Where the business lends beyond the simple advance — larger amounts, longer terms — the loan machinery gives the borrowing a structure: an application, an approved loan record, a repayment schedule, and recovery that lands on the slip automatically. This chapter is the operator's working knowledge of that lane.</p><p><b>The lane's records, in order.</b></p><p>1. <b>The policy first</b> (the standing pattern): who is eligible, maximum amounts (commonly expressed against salary multiples), terms, whether interest applies (many staff-loan policies are interest-free; where interest runs, its treatment is the accountant's ruling), and the approval ladder. The page exists before the first loan.<br>2. <b>The application:</b> the employee's request on the record — amount, purpose, proposed term — routed to the approval per policy.<br>3. <b>The loan record:</b> the approved loan with its disbursement and its <b>repayment schedule</b> — the month-by-month plan of instalments the system will recover. Disbursement pays through the books (a Payment Entry against the loan account — a staff-loans asset account, the advances account's bigger sibling).<br>4. <b>Repay from salary:</b> the flag that connects the loan to payroll — set, each period's instalment appears as a deduction row on the slip automatically, per the schedule, until the balance closes. The operator's monthly involvement is verification, not entry: the loan deductions on the register tie to the schedules, which is a five-minute read on the close.</p><p><b>The operator's reads.</b></p><p>1. <b>At the run:</b> loan rows present for every active borrower, absent for everyone else — the register's loan column against the loans list.<br>2. <b>Monthly:</b> the loans account reconciled by borrower — balances descending on schedule; the missed instalment (an LWP month where net could not carry it, a schedule error) surfaced and handled per policy, on the record.<br>3. <b>At events:</b> the borrower's exit meets module 7's settlement chapter — the outstanding balance is a final-settlement line, which is why the loans read is monthly and not annual: exits do not schedule themselves around loan terms.</p><p><b>The affordability rule, structural this time.</b> Chapter 5's livable-net line becomes policy arithmetic here: the instalment is sized at approval so that the standing deductions (statutory + loan + any recovery) leave the defined minimum net — checked <b>at approval</b> against the current slip, not discovered at the first short month. A loan whose instalment fails the arithmetic is approved smaller or longer, not hoped through.</p><p><b>The boundary, stated once.</b> The operator runs the machinery — records, schedules, recoveries, reconciliations. Whether to lend, to whom, how much, and what to do about the genuinely distressed borrower are the owner's decisions on the policy's ladder. Payroll executes lending; it never underwrites it.</p><p>Practical rule: one page per borrower in the payroll file — loan record, schedule, disbursement reference, recovery history — maintained as deductions run. The page answers the employee's \"what's my balance\", the accountant's reconciliation, and module 7's settlement, from one place.</p>"
+   },
+   {
+    "title": "Chapter 8 — Case study: HealthTrade's variable quarter",
     "est": "13",
-    "html": "<p>The commonest variable earning, and the one whose governance the run already settled — this chapter completes it: the policy, the channel, the approval, and the read. The overtime chapter.</p><p><b>The policy first.</b> Overtime exists as a POLICY before it exists as a payment: WHO is eligible (role-based — the operational roles whose extra hours are compensable, distinguished from the salaried-inclusive roles whose contracts absorb reasonable extension: the line the adviser confirms and the contracts state, because the eligibility argued case-by-case is the fairness leak at its most frequent), the RATE (the multiplier convention — the policy stating its multiple of the derived hourly rate, with the hourly rate COMPUTED from the structure: the monthly-salary-to-hourly derivation stated once — the divisor convention explicit — so every overtime naira traces to the structure like everything else), the CAPS and authorisations (the monthly overtime ceiling per person that flags the roster problem before it becomes a budget problem — Chapter's read below), and the WEEKEND/holiday treatments where policy differentiates them (stated, not remembered).</p><p><b>The one channel.</b> Module 3's case-law rule, now with its full reasoning: overtime enters payroll through the ATTENDANCE PACKAGE only — the hours captured by the HR track's machinery (the check-ins that bound the shift, the overtime approved against the captured hours), closed in the attendance close, and delivered in the monthly cargo — never through a side list, a supervisor's text, or a direct additional-pay entry (the double-counting HealthTrade met in module 3 was exactly two channels carrying one truth; the fix was the channel count, not the vigilance). The discipline's dividend: overtime hours are FACTS from the capture layer (disputed hours resolved by the check-in trail, not by recollection), and the padding fraud's surface shrinks to the approval step — which is why the approval is designed next.</p><p><b>Approval: before the hours, not after the fact.</b> The governance's timing rule: overtime is APPROVED IN ADVANCE as the norm (the supervisor authorising the extension before it is worked — the roster's coverage decision made consciously, with the cost visible), with the discovered-overtime path as the governed exception (the emergency extension worked first and regularised within the window — module 3 of the HR track's regularisation discipline applying, bounded and reasoned), because after-the-fact overtime as the NORM is unmanaged cost plus unmanageable verification (the hours already worked can only be disputed, never declined — the approval that can only say yes is not an approval), and the approver's economics are taught plainly: the overtime hour costs its multiple; the roster fix costs a conversation — Chapter's read makes the comparison monthly.</p><p><b>The overtime read.</b> The layer's altitude discipline, closing the chapter: overtime read monthly at the pattern level — the CHRONIC overtime (the same role, every month, is not a surge; it is a staffing gap wearing a premium rate — the HR track's headcount conversation triggered by payroll's number: the trilogy's reads meshing), the CLUSTERED overtime (one supervisor's team consistently authorising heavy hours is a management read — the padding question asked politely by the data: the hours against the capture trail, the approvals against the pattern, module 3's session-variance epistemics applied to hours), the SEASONAL overtime (the festive-season surge that is real, planned, and budgeted — the calendar's known shape, distinguished from drift), and the ZERO overtime in roles that plainly extend (the unrecorded extension is either goodwill burning out or hours moving through a side channel — both worth finding). The read's one-line summary for the owner's page: overtime is a price signal — it prices the roster's gaps, and the firm that reads it staffs deliberately while the firm that doesn't pays time-and-a-half for its planning debt.</p>"
-   },
-   {
-    "title": "Chapter 3 — Bonuses: the discretionary layer, governed",
-    "est": "13",
-    "html": "<p>The variable earning with the widest discretion and therefore the strongest need for governance: the bonus — kept generous AND governed, because the two are not opposites. The bonus chapter.</p><p><b>The bonus taxonomy.</b> The types, each with its governance shape: the <b>performance bonus</b> (fed by the HR track's appraisal machinery — the rating-linked payout where policy runs one, computed from the calibrated outcome per the published rule: the bonus that traces to the folder is an incentive; the one that traces to a mood is a lottery, and the workforce knows which it is playing within two cycles), the <b>festive/thirteenth-month payment</b> (where the firm runs one — a POLICY, stated in the terms, scheduled as Chapter 7's second run, and budgeted from January, because the thirteenth month discovered in November is a cashflow ambush the firm aimed at itself), the <b>spot bonus</b> (the immediate recognition — the generator sorted, the save at the counter — governed lightest but governed: the named approvers, the per-instance cap, the document with its reason: HealthTrade's ₦30k in module 1 was exactly this machinery, thirty seconds of process), and the <b>scheme payouts</b> beyond (the target bonuses, the retention payments — each per its written rule).</p><p><b>Every bonus a document.</b> The machinery applied: the bonus as an additional-pay entry with its type, authority, and reason — landing on the slip as its LABELLED line (module 4's anatomy: the bonus the worker can see and name is recognition twice — once in naira, once in respect; the mystery credit is recognition wasted), posted to its component's address (the bonus expense visible in the cost-center P&L — Accounts 6 seeing what generosity costs where), and TAXED correctly (the bonus is taxable income — module 2's annual projection absorbing it in its month, the PAYE spike explained by the frame the payroll seat can narrate: the bonus month's tax question is Chapter 5 of module 4's catalogued query, pre-answered by the announcement that accompanies the payout). The cash-envelope alternative convicted with its full bill: the off-book bonus is a tax exposure (the income module 2's computation never saw), an evenness breach (the envelope has no policy), a ledger hole (the cash that left without an address), and a precedent (the envelope's recipient learned where generosity lives — outside the system, which is where they will look for it next time).</p><p><b>Policy versus gift.</b> The chapter's governing distinction, drawn once and used forever: the bonus that is POLICY (the thirteenth month, the scheme payout, the rating-linked amount) is an ENTITLEMENT once its conditions are met — administered evenly, computed from its rule, disputed against its rule (the HR track's entitlement law reaching the discretionary layer: what the policy grants, the mood cannot withhold) — while the bonus that is GIFT (the spot recognition, the discretionary year-end) is discretion EXERCISED within governance (the named approver, the cap, the document — discretion about WHO and HOW MUCH, never about whether the machinery applies). The confusion of the two is the layer's classic wound in both directions: the 'discretionary' thirteenth month withheld in a tight year from staff whose contracts state it (an entitlement breached, with the adviser about to be involved), and the spot bonus institutionalised by repetition until its absence is a grievance (the gift that hardened into an expectation nobody priced — the consultant's advice: the recurring gift should either become policy deliberately or vary visibly, because the third path, the accidental entitlement, is chosen by default and paid for annually).</p>"
-   },
-   {
-    "title": "Chapter 4 — Commissions: the selling crossover",
-    "est": "14",
-    "html": "<p>The variable earning that joins two certifications: the commission — earned at the counter the Selling track governs, paid through the run this track governs, and computed from DOCUMENTS at both ends. The crossover chapter.</p><p><b>The scheme is written.</b> The commission exists as a SCHEME before anyone sells: the written rule stating the BASE (commission on WHAT — the invoiced sale, the collected payment, the margin: the base decision is the scheme's whole character, and the Selling track taught its consequences — the invoice-based scheme pays for sales; the collection-based scheme pays for MONEY, and the trade's receivables discipline usually argues for the latter or a split), the RATE structure (flat, tiered, threshold-gated — per the written table), the PERIOD (the month or quarter it computes over), the ELIGIBILITY (the roles in the scheme, the joiner's proration, the leaver's treatment — Chapter's clause below), and the CAPS and gates where the design uses them (the target gate, the ceiling). The scheme signed and filed like the structure it is — because the commission dispute without a written scheme is two recollections negotiating, and the salesperson's version is always, honestly, larger.</p><p><b>Computed from source documents.</b> The discipline that makes commission a computation instead of a negotiation: the commission derives from the SELLING TRACK'S DOCUMENTS — the invoices, the collections, the credit notes — pulled by the scheme's rule over the period (the sales register's numbers, not the salesperson's notebook and not the manager's memory: the two tracks' machinery joining at the computation, which is why the consultant who holds both certifications configures this in an hour while the single-track consultant mediates it forever), the computation GENERATED as the additional-pay document with its reference (the period's source list attached — the commission's provenance as walkable as the slip's), and the anti-pattern named for every cleanup engagement: commission-from-memory (the month-end negotiation over a notebook) is the variable layer's version-drift disease at its most contentious, because it monthly re-litigates the firm's biggest incentive.</p><p><b>The clawback clause.</b> The scheme's hard edge, designed in daylight: the commission paid on the sale that REVERSES (the returned goods, the cancelled invoice, the collection that bounces) — governed by the scheme's own clause (the reversal netting against the period's computation, or the clawback recovering per the stated rule — decided at design, stated in the scheme, consented per module 4's layer), because the clawback IMPROVISED at the first big return is a grievance with a calculator (the salesperson who was never told the rule experiences the recovery as confiscation — module 4's never-surprised law applying to the downside exactly as to the upside), and the netting mechanics kept honest (the reversal visible in the commission statement's lines, not silently shrinking a total).</p><p><b>The commission statement.</b> The layer's transparency instrument, closing the chapter: each period's commission accompanied by its STATEMENT — the source documents listed (the invoices/collections in the base), the rule applied visibly (the tier reached, the gate passed), the reversals netted with their references, and the payout reconciling to the slip's line — the salesperson's own reconciliation document (module 4's answered-by-pointing, pre-delivered: the seller who can audit their own commission does, monthly, for free — twenty-seven personal auditors' logic at the incentive layer), and the statement's quiet second service: the commission data read at altitude joins the Selling track's scheme reads (the scheme that pays out against flat sales has a base problem; the seller earning far off the pack's curve is either the star the firm should study or the anomaly the firm should audit — both worth knowing, neither visible without the statement's data). The crossover's summary, for the certification's sales pitch: commission done this way costs one configuration and zero monthly arguments — and the firm's biggest incentive finally points exactly where the scheme aimed it.</p>"
-   },
-   {
-    "title": "Chapter 5 — Arrears & adjustments: corrections travel forward",
-    "est": "13",
-    "html": "<p>Module 3 froze the run and promised the corrections a home; this chapter is the home: the arrears and adjustments layer — where errors are corrected honestly, visibly, and FORWARD. The corrections chapter.</p><p><b>The underpayment: arrears.</b> The correction owed TO the worker (the missed increment, the dropped overtime hour, the validation miss surfacing late): governed as a document — the ARREARS entry carrying its computation SHOWN (the difference derived: what should have computed, what did, the delta per period — module 1's walk applied to the gap, because the arrears figure asserted without its arithmetic is a new dispute wearing a correction), its periods identified (which sealed months it repairs — referenced, never reopened: the frozen runs stand; the repair lands in the current run as its labelled line), its authority (the correction approved like any variable item), and its COMMUNICATION (module 4's law: the arrears announced to its recipient with the honest account — <i>we found it, here is the arithmetic, here is when it lands</i> — the error converted into the trust deposit module 4 described). The tax note carried with it: the arrears is income in its payment month (module 2's projection absorbing it — the spike explained in the announcement, pre-empting the query).</p><p><b>The backdated change: computed, not estimated.</b> The commonest arrears species, given its machinery: the increment or promotion effective in a PAST month (the review that concluded late, the movement processed after its date — HR 7's effective dates meeting module 3's cutoffs): the system computes the backdated difference PER PERIOD from the assignment's effective date (the months between the effective date and the processing date each re-derived against the new structure — the machinery's arithmetic, not a lump-sum estimate), lands it as the arrears line with its breakdown, and the discipline's contrast is the cleanup engagement's daily find: the backdated raise 'settled' with a round number nobody can derive — generous or short, nobody knows, and the not-knowing is the injury.</p><p><b>The overpayment: the recovery conversation.</b> The correction owed BY the worker — the harder direction, governed accordingly: the overpayment established with its arithmetic (the same shown computation, both directions honest), the CONVERSATION before the deduction (module 4's never-surprised law at its most necessary — the recovery discovered on a slip is an ambush with the firm's error as its author: the person told, the arithmetic walked, the recovery agreed), the recovery CONSENTED and SCHEDULED (module 4's instrument layer — the repayment plan signed, spread per the cap's protection: the firm's error does not license the worker's hardship; the recovery of the firm's mistake rides the same percentage cap as every deduction, which sometimes means the firm's error is recovered over months, and that patience is the price of its own mistake), and the write-off path honest where the arithmetic or equity argues it (the small stale overpayment written off by authority — Accounts 4's write-off discipline, payroll edition — beats the pursuit that costs more than it recovers in naira and far more in trust).</p><p><b>The adjustment's visibility.</b> The layer's slip discipline, closing the chapter: every correction VISIBLE as what it is (the arrears line labelled with its nature and periods, the recovery line with its reference and balance — module 4's anatomy receiving the corrections layer), never smuggled (the correction folded silently into a component's amount is the version drift this track buried — the slip that quietly differs from its structure is unexplainable by design, and unexplainable is the one thing this track's slips are never allowed to be). The corrections layer run this way completes module 3's promise: the frozen run and the honest correction are one system — March means March forever, AND every error March contained has a dated, derived, visible repair. That pairing is what 'corrections travel forward' means, and it is the only version of payroll integrity that survives contact with real months.</p>"
-   },
-   {
-    "title": "Chapter 6 — Staff lending: loans & advances, the mechanics",
-    "est": "13",
-    "html": "<p>Module 4 papered the consent; this chapter builds the machine: the staff lending layer — the policy, the instruments, the flows, and the book. The lending chapter.</p><p><b>The policy.</b> Lending exists as POLICY before the first request (the favour disease's final habitat, fenced in advance): ELIGIBILITY (who may borrow — the confirmation gate, the tenure threshold: the probationer's loan is a risk the policy prices deliberately or declines), LIMITS (the ceiling as a multiple of salary — the affordability logic stated: the loan the recovery cap cannot service inside a reasonable schedule is declined by arithmetic, not by mood), the SCHEDULE conventions (the standard tenors, the recovery rate defaults — inside module 4's percentage cap always), the INTEREST position (interest-free as welfare or priced per policy — a decision with tax and fairness dimensions the adviser and accountant weigh once; whichever is chosen applies evenly), and the APPROVAL route (the requests through the standing flow to the named authority — the founder's personal favour book retired into a policy the payroll seat can administer without courage).</p><p><b>The two instruments.</b> The distinction the layer runs on: the <b>salary advance</b> (THIS month's pay, early — bounded by the earned-to-date logic, recovered in FULL from the next run: the short bridge, governed lightly — the request, the approval, the off-cycle disbursement where urgency demands it, the single recovery; the advance's discipline is its brevity, and the advance that rolls month to month is not an advance but an undocumented loan wearing one — converted formally or closed) and the <b>staff loan</b> (the multi-month instrument — module 4's full consent layer: the agreement with amount, schedule, recovery rate, early-settlement terms, and the separation clause; the DISBURSEMENT through the payment separations like any money movement; the RECOVERY as the governed component advancing per schedule, its balance on every slip; the settlement ceremony at the end). The flows differ; the governance constant: instrument, then announcement, then slip.</p><p><b>The ledger's mirror.</b> The lending layer's accounting, walked once: the disbursement creating the RECEIVABLE (the staff-loan asset account — the firm's money, out, per person: Accounts 4's receivable discipline with employees as the counterparty), the recoveries reducing it run by run (the payroll journal's recovery credits landing against the receivable — module 3's posting anatomy extended one address), the BOOK reconciling monthly (the per-person balances against the slips' balance lines against the ledger's account — three views, one truth, agreeing by construction because they share one parent), and the aged read applying (the loan whose recoveries stalled — the leaver's unsettled balance, the paused schedule — surfaced by the same aging discipline every receivable gets).</p><p><b>The book read.</b> The layer's altitude view, closing the chapter: the lending book read quarterly — the EXPOSURE total (the firm's capital in staff loans, sized against policy's comfort: the book that grows past its ceiling is treasury drift wearing welfare), the DISTRIBUTION (the concentration read — the book that is mostly two names is a different risk than the book that is thin and wide), and the pattern the consultant teaches the owner to read with care: the CHRONIC borrower — the advance every month, the loan atop the loan — is a WELFARE SIGNAL before it is a credit risk (the salary that never reaches month's end has a story: the wage question, the family shock, the debt spiral — the HR track's check-in conversation triggered by payroll's pattern, handled with the dignity the HR track taught), because the lending layer, read humanely, is one of the firm's few honest windows into its people's financial weather — and the firm that notices early helps early, which is both the right thing and the cheaper thing, in that order.</p>"
-   },
-   {
-    "title": "Chapter 7 — Off-cycle payments: outside the ritual, inside governance",
-    "est": "13",
-    "html": "<p>The monthly ritual is the rule; this chapter governs the exceptions — the payments that must move OUTSIDE the run without moving outside governance. The off-cycle chapter.</p><p><b>When off-cycle is legitimate.</b> The catalogue, closed: the MISSED payment (the bounced credit's re-payment — module 3's resolution flow already runs this), the URGENT advance (Chapter 6's bridge, where the payday is too far), the EXIT settlement that cannot wait for the run (module 7's terrain — the final entitlements where timing or terms demand independence), the ERROR whose correction genuinely cannot ride the next run (rare, and the rarity is the point: the arrears layer of Chapter 5 exists precisely so most corrections CAN wait honestly — the off-cycle correction is for the missed-salary class of error, not the missed-allowance class), and the SCHEDULED second runs (the thirteenth month, the festive payout — the planned off-cycles that are really additional ritual runs on the calendar). Everything else waits — and the waiting is defensible because the arrears machinery makes it whole.</p><p><b>The off-cycle as a mini-run.</b> The governance rule: the off-cycle payment runs the SAME ritual at small scale — the document (the additional-pay entry or settlement with its authority), the computation (from the machinery, not a typed net — the off-cycle that hand-computes a net has bypassed the statutory layer, and module 2's projection meets it as an error in the annual true-up), the SEPARATED HANDS (the preparer-approver-releaser separation does not shrink because the amount did — the off-cycle is fraud's preferred vehicle precisely because it travels alone, outside the month's variance read: the single payment with unified hands is the exact shape of the invented one-off), the POSTING (to the same addresses, dated its date), and the SLIP treatment (the off-cycle payment slipped or statement-ed per its nature — the mid-month advance appearing on the month's slip as its recovery's twin, the exit settlement carrying module 7's full statement: nothing moves money to a person without a document the person can read).</p><p><b>The scheduled second run.</b> The legitimate off-cycle at its largest: the thirteenth-month or festive run — planned as a RUN (the calendar's known date, the population defined by the policy, the computation from the rule — the month's-basic or the stated formula, taxed per module 2's treatment of the payment in its month), budgeted from January (the accrual conversation with the accountant — Accounts 4's provision logic: the December obligation built monthly is a line; discovered in November it is a crisis), and communicated per module 4 (the announcement with the arithmetic — the festive payment's net effect shown, because the thirteenth month's PAYE interaction is the season's guaranteed query, pre-answered).</p><p><b>The off-cycle read.</b> The layer's health metric, closing the chapter: the off-cycle COUNT read quarterly — the near-zero count is the ritual working (the calendar absorbing the firm's real payment needs; the exceptions rare and each explained), while the CLIMBING count is a diagnosis (the frequent missed-payment off-cycles indict the bank-detail hygiene or the funding discipline; the frequent urgent advances indict the payday's position against the month's shape or the workforce's financial weather — Chapter 6's welfare read arriving by another door; the frequent 'couldn't wait' corrections indict the run's own quality gates), and the consultant's framing for the owner completes the module's arc: the off-cycle layer is the ritual's exception log, and a ritual whose exceptions are rare, documented, and boring is a ritual that has actually won — which is the standard this track set in module 3 and holds to the end.</p>"
-   },
-   {
-    "title": "Chapter 8 — Case study: HealthTrade's variable year",
-    "est": "16",
-    "html": "<p>The variable layer, governed through a full year. Every chapter clocks in.</p><p><b>Overtime settles (Ch. 2).</b> The one-channel rule holds from module 3's fix; the policy lands beside it: eligibility by role (the counter, warehouse, and driver roles in; the salaried supervisors out — stated in the contracts at the next renewal cycle), the rate convention published, approvals in advance as the norm. The read earns its keep in month three: the Ibadan warehouse's chronic overtime — the same two names, every month — is walked as a staffing gap, not a padding case (the capture trail clean, the approvals honest, the hours real): the roster conversation adds a part-time Saturday hire, and the overtime line falls by 60% — <i>we were paying time-and-a-half for a vacancy</i>, the MD's note reads, which is Chapter 2's price-signal lesson verbatim.</p><p><b>Bonuses & the thirteenth month (Ch. 3, 7).</b> The spot-bonus machinery (module 1's generator case) gets its policy: two named approvers, a per-instance cap, the document with its reason — eleven spot bonuses in the year, each a labelled slip line. The festive payment is formalised the other way: the December payment the firm had made 'when the year allowed' for six years running is recognised for what it had become — the accidental entitlement — and the MD chooses deliberately: the thirteenth month enters policy (stated terms, defined population), the accrual line starts in JANUARY (the accountant's provision building monthly — <i>the first December that isn't a surprise to our own books</i>), and the scheduled second run executes on its announced date with the net-effect announcement pre-answering the PAYE question at the branches.</p><p><b>The commission quarter (Ch. 4).</b> The two salespeople move onto a written scheme: collection-based (the receivables discipline arguing for money over paper — the Selling track's logic applied), tiered, quarterly, with the clawback clause stated and signed. The computation generates from the collection register — the first quarter's statements land beside the payout slips (each seller's source list, tier, and total — one seller finds a missing collection in her own statement's list; the correction runs forward and the channel's credibility is purchased exactly as module 4 taught). The clause earns its keep in quarter two: a ₦480,000 collection bounces after the payout — the reversal nets against the running quarter per the clause, visible in the statement's lines, and the conversation is arithmetic, not argument: <i>the rule we signed is the rule that ran.</i></p><p><b>Corrections & lending (Ch. 5-6).</b> The review cycle's one late conclusion becomes the backdated-increment case: effective March, processed May — the machinery derives the two months' delta per period, the arrears line lands with its breakdown, the announcement carries the arithmetic. One overpayment surfaces (a proration miss on a mid-month joiner — the firm's error): the conversation first, the arithmetic walked, the recovery consented over four months inside the cap — <i>your mistake, my schedule</i>, the employee notes, accurately, and the file agrees. The lending book's first year: policy adopted (confirmation gate, salary-multiple ceiling, interest-free by choice, even by rule), five loans and nine advances administered through the flow, the book reconciling three-ways monthly — and one chronic-advance pattern (the same till operator, four consecutive months) handled as Chapter 6 taught: the welfare conversation before the credit decision, surfacing a family medical situation — the response a governed hardship loan and the HR track's support conversation, the pattern read as a signal, not a nuisance. The year's off-cycle count: six — four bounced-credit re-payments, one urgent advance, one exit settlement — each documented, each boring. The MD's closing note: <i>the one-offs used to be where the system ended; now they are just the part of it that moves.</i></p>"
+    "html": "<p>The variable-pay machinery installed and one quarter run through it. Every chapter appears.</p><p><b>The lanes built (Chapters 1-2).</b> The components confirmed on the register: Overtime, Bonus, Commission (Earnings, taxable per the accountant's rulings), Other Deductions (Deduction). The overtime policy page is written — eligible roles (warehouse and drivers), the rate basis, <b>approved-before-worked</b> with the branch supervisors named, the monthly cap. The advance policy follows: approval limits, one-outstanding default, through-the-books payment.</p><p><b>Month one — overtime goes live (Chapter 3).</b> The first month's sheets arrive countersigned; the computation sheet prices <b>62 approved hours across seven staff</b>; seven Additional Salary records enter before the close, sheets attached. Station 3's reviewer holds the sheet beside the register: every overtime line matched, one slip carrying overtime for a name <b>not on the sheet</b> — traced in minutes to a record dated into the wrong month (a February entry meant for March; the Payroll Date field's lesson taught live). Cancelled, re-dated, clean.</p><p><b>Month two — the commission and the advance (Chapters 5-6).</b> The sales commission scheme's first cycle: the qualifying figures pulled from the system's own sales report for the closed period, the computation sheet filed with the scheme version noted, <b>three earners</b> entered on the Commission component. The same month, a driver's medical emergency takes the advance lane: approved within the policy limit, the Employee Advance record submitted, the Payment Entry referenced, and — per the issue-day rule — the recovery agreed and created in the same sitting: a recurring Additional Salary, <b>four equal monthly deductions</b>, From/To dates set, self-terminating. His slip shows the recovery line from the following month; the register's run-down tracks the balance without anyone remembering anything.</p><p><b>Month three — the bonus round (Chapter 4).</b> A mid-year performance bonus for eleven staff. The approval memo's list imports under the governed procedure; Station 3's comparison ties the register's bonus column to the memo's total <b>and catches one name on the memo missing from the entries</b> — the import's silent dropped row, restored before submission (the list-drift error, dying where it is supposed to). The tax decision runs the policy line: the amounts are material, <b>Deduct Full Tax on Selected Payroll Date</b> is ticked on all eleven, and the payday note goes out with the slips: the bonus shows gross, its tax fully withheld this month. Two queries arrive in the window; both are answered by the note's own sentence, records shown.</p><p><b>The quarter's file.</b> Three months of variable-pay registers, each line traceable: overtime sheets, the commission computation with its scheme version, the advance's agreement and run-down, the bonus memo and its tax-policy line. The close checklist's line 5 signed all three months. The payroll log's note: <i>the variable quarter produced not one number without a document — and not one payday argument.</i></p>"
    },
    {
     "title": "Chapter 9 — Common mistakes & the fifth law",
-    "est": "13",
-    "html": "<p>The variable layer's scar tissue. Symptom → disease → fix.</p><p><b>Pattern 1 — the cash envelope.</b> Symptom: bonuses beside the bank run; generosity the ledger never saw; the tax the projection never computed. Disease: the off-book variable layer (Ch. 1, 3) — a parallel economy with every disease at once. Fix: every bonus a document through the machinery — labelled on the slip, posted to its address, taxed in its month — generosity kept AND governed.</p><p><b>Pattern 2 — commission from memory.</b> Symptom: the month-end notebook negotiation; the firm's biggest incentive re-litigated monthly; the star seller's version always larger. Disease: the scheme unwritten and the computation sourceless (Ch. 4). Fix: the written scheme, the computation from selling documents, the statement as the seller's own reconciliation — one configuration, zero arguments.</p><p><b>Pattern 3 — the overtime leak.</b> Symptom: chronic hours nobody questions; the padding nobody can disprove; time-and-a-half as a standing budget line. Disease: no policy, side channels, after-the-fact approval (Ch. 2). Fix: the role-based policy, the one channel from the capture layer, approval before hours, and the monthly read — overtime as a price signal, answered with staffing.</p><p><b>Pattern 4 — the clawback surprise.</b> Symptom: the recovery discovered on a slip after a big return; the confiscation grievance; the scheme's downside improvised in anger. Disease: the reversal unclause-d (Ch. 4) and the never-surprised law breached (Ch. 5). Fix: the clawback designed in daylight, stated in the signed scheme, netted visibly — and every recovery, of any kind, conversationed before deducted.</p><p><b>Pattern 5 — the rolling advance.</b> Symptom: the advance every month, silently renewed; the undocumented loan wearing a bridge's name; the chronic borrower unnoticed. Disease: the instruments confused and the pattern unread (Ch. 6). Fix: the advance recovered in full next run or converted formally; the book read quarterly; the chronic pattern met as a welfare signal first — noticed early, helped early.</p><p><b>Pattern 6 — the off-cycle as normal.</b> Symptom: payments moving whenever, computed by hand, released by whoever; the month's story scattered across ad-hoc transfers. Disease: the exception become the method (Ch. 7) — fraud's preferred vehicle normalised. Fix: the legitimate catalogue closed, the mini-run governance (document, machinery computation, separated hands, posting, statement), and the off-cycle count read as the ritual's health metric.</p><p><b>The fifth law.</b> The structure computes, the state rides, the run seals, the account renders — and now the one-offs join: <b>variable pay is governed, not improvised — every overtime hour through one channel, every bonus a labelled document, every commission computed from source with its statement, every correction derived and travelling forward, every loan an instrument with a visible balance, and every off-cycle a mini-run with the same hands and the same paper.</b> The variable layer is where structure leaks or where it proves itself — and the firm whose one-offs are documents has a payroll that flexes without leaking, which is the whole difference between generosity and chaos. Module 6 climbs to the layer that changes the fixed pay itself: increments, reviews, and the governance of the pay structure over time.</p>"
+    "est": "11",
+    "html": "<p>The variable-pay layer's recurring failures, then the review list.</p><p><b>Pattern 1 — the verbal variable.</b> Symptom: overtime and bonuses arriving as messages and recollections; amounts negotiated at the close; the register carrying numbers with stories. Cause: the document rule unenforced (Chapters 1-2). Fix: every variable amount as an Additional Salary with its evidence attached and its approval on record, entered before the close — no document, no pay, said kindly and held firmly.</p><p><b>Pattern 2 — the borrowed component.</b> Symptom: a commission entered on the Bonus component \"because it was there\"; tax and posting following the wrong rulings; the register's columns lying by category. Cause: the component-carries-everything design ignored (Chapter 2). Fix: the fitting component or the governed lane for a new one — the operator never decides tax or posting at entry.</p><p><b>Pattern 3 — the immortal recurring record.</b> Symptom: an acting allowance still paying a year after the cover ended; a recovery that ran past its agreed total. Cause: recurring records without honest To Dates (Chapters 2, 5). Fix: From/To dates matching the written term on every recurring record, permanent amounts moved to structures and assignments, and the monthly register read confirming every recurring line still inside its dates.</p><p><b>Pattern 4 — the accidental bonus tax.</b> Symptom: bonus-month nets that surprise everyone — over-withheld or under-withheld by accident; two identical bonuses taxed on different timings. Cause: Deduct Full Tax left to chance per entry (Chapter 4). Fix: the policy line with the accountant — materiality threshold, flag treatment — applied consistently, with the payday note ready.</p><p><b>Pattern 5 — the unilateral deduction.</b> Symptom: shortages and damages netted from wages by default; disputes that outcost the recoveries; trust damage that outlasts both. Cause: the written-agreement rule skipped (Chapter 5). Fix: no agreement, no deduction — the policy route for shortages, the signed schedule for recoveries, the affordability line respected, the register's run-down visible.</p><p><b>Pattern 6 — the evaporating advance.</b> Symptom: transfers to staff outside the books; balances nobody tracks; the exit that discovers a two-year-old \"advance\" with no paper. Cause: the Employee Advance lane bypassed (Chapter 6). Fix: the record before the money, the Payment Entry referenced, the recovery created on issue day, and the monthly by-person reconciliation of the advances account chasing the stale the month it stalls.</p><p><b>The review list.</b> Before the quiz, confirm you can: state the four rules and the component-carries-everything design; walk the Additional Salary form — component, amount, payroll date, Overwrite, recurring dates, the tax flag — and its lifecycle; run the overtime lane from policy to sheet to entry with its two control reads; enter a bonus round with the list-drift check and the Deduct Full Tax policy; compute a commission from the system's own sales figures and run an agreed recovery on a self-terminating schedule; operate the Employee Advance lifecycle with the two kinds distinguished and the monthly reconciliation; and verify loan recoveries against their schedules with the affordability arithmetic at approval.</p><p><b>The fifth law: variable pay enters as documents — approved before the close, computed from evidence, taxed by the component's flags and the stated policy, and recovered only by written agreement on a schedule that ends itself.</b> Module 6 governs the pay decisions themselves: reviews, rises, and the movement record.</p>"
    }
   ],
   "questions": [
    {
-    "q": "The variable layer is where structure leaks because:",
+    "q": "Variable pay is:",
     "opts": [
-     "Every governance instinct meets its temptation — discretionary, small, urgent, kind: four wrong answers for years",
-     "Amounts are large",
-     "Software fails",
-     "Staff demand it"
+     "Everything the structure cannot know in advance — entered as documents the run picks up automatically",
+     "Guesswork",
+     "Illegal",
+     "The fixed package"
     ],
     "ans": 0,
-    "why": "The parallel economy: envelopes, notebooks, counter negotiations, the favour book.",
+    "why": "The Additional Salary family.",
     "src": "Ch1"
    },
    {
-    "q": "Every variable item is a document carrying:",
+    "q": "The four rules of variable pay are:",
     "opts": [
-     "An amount",
-     "Type, amount or computation, authority, period, and reference",
-     "A signature",
-     "A memo"
+     "Fast, cheap, monthly, verbal",
+     "Approved before the close, computed from evidence, taxed by the flags, recovered by agreement",
+     "Enter, submit, pay, forget",
+     "Cash, cheque, bank, card"
     ],
     "ans": 1,
-    "why": "One-off in amount, standard in governance.",
+    "why": "Every chapter applies them.",
     "src": "Ch1"
    },
    {
-    "q": "Overtime eligibility is:",
+    "q": "A variable amount with no fitting component:",
     "opts": [
-     "Universal",
-     "Manager's choice",
-     "Role-based per policy — argued case-by-case is the fairness leak at its most frequent",
-     "Seniority-based"
+     "Borrows the nearest one",
+     "Enters without one",
+     "Waits for a new component through the governed lane — the component carries tax and posting",
+     "Is paid in cash"
     ],
     "ans": 2,
-    "why": "The line the adviser confirms and the contracts state.",
+    "why": "The operator never decides tax at entry.",
     "src": "Ch2"
    },
    {
-    "q": "Overtime enters payroll through:",
+    "q": "The Payroll Date field:",
     "opts": [
-     "Any approved list",
-     "Direct entries",
-     "Supervisor texts",
-     "The attendance package only — one channel; the double-count was two channels carrying one truth"
+     "Is decorative",
+     "Is the approval date",
+     "Sets the tax",
+     "Places the amount in the run whose period contains it — set inside the intended month, minding the close"
     ],
     "ans": 3,
-    "why": "Module 3's case law, completed.",
+    "why": "HealthTrade's wrong-month overtime taught it live.",
     "src": "Ch2"
    },
    {
-    "q": "Overtime approval happens:",
+    "q": "Overwrite Salary Structure Amount:",
     "opts": [
-     "In advance as the norm — the approval that can only say yes is not an approval",
-     "After the hours",
-     "Never",
-     "At year-end"
+     "Replaces the structure's amount this period — a rare, approved exception; monthly overwriting means the structure needs fixing",
+     "Adds to the structure",
+     "Deletes the component",
+     "Is the default"
     ],
     "ans": 0,
-    "why": "Discovered overtime is the governed exception, bounded.",
+    "why": "Fix the record, not the output.",
     "src": "Ch2"
    },
    {
-    "q": "Chronic overtime in one role is:",
+    "q": "Recurring records need:",
     "opts": [
-     "A work ethic",
-     "A staffing gap wearing a premium rate — the headcount conversation triggered by payroll's number",
-     "Padding always",
-     "Ignorable"
+     "No dates",
+     "Honest From/To dates — self-terminating; permanent amounts belong on structures and assignments",
+     "Monthly re-entry",
+     "Overwrite ticked"
     ],
     "ans": 1,
-    "why": "Overtime is a price signal; it prices the roster's gaps.",
+    "why": "The immortal recurring record is Pattern 3.",
     "src": "Ch2"
    },
    {
-    "q": "The bonus that traces to a mood is:",
+    "q": "Overtime is approved:",
     "opts": [
-     "An incentive",
-     "Efficient",
-     "A lottery — and the workforce knows which it is playing within two cycles",
-     "Flexible"
+     "At the close",
+     "After payment",
+     "Before it is worked, by the named supervisor — or the close becomes a monthly negotiation",
+     "Never"
     ],
     "ans": 2,
-    "why": "The rating-linked bonus traces to the folder.",
+    "why": "The lane's load-bearing wall.",
     "src": "Ch3"
    },
    {
-    "q": "The thirteenth month discovered in November is:",
+    "q": "Overtime hours come from:",
     "opts": [
-     "A gift",
-     "The bank's problem",
-     "Normal",
-     "A cashflow ambush the firm aimed at itself — the accrual builds from January"
+     "Recollection",
+     "The cap",
+     "The employee's message",
+     "Records — attendance or countersigned sheets, closed with the records close"
     ],
     "ans": 3,
-    "why": "Policy, scheduled, budgeted.",
+    "why": "Computed from evidence.",
     "src": "Ch3"
    },
    {
-    "q": "The cash-envelope bonus is:",
+    "q": "The overtime concentration read finds:",
     "opts": [
-     "A tax exposure, an evenness breach, a ledger hole, and a precedent — at once",
-     "Discreet generosity",
-     "Efficient",
-     "Traditional"
-    ],
-    "ans": 0,
-    "why": "The recipient learned where generosity lives: outside the system.",
-    "src": "Ch3"
-   },
-   {
-    "q": "Policy versus gift means:",
-    "opts": [
-     "The same thing",
-     "The policy bonus is an entitlement once conditions are met; the gift is discretion exercised within governance",
-     "Both are moods",
-     "Neither is taxed"
-    ],
-    "ans": 1,
-    "why": "What the policy grants, the mood cannot withhold.",
-    "src": "Ch3"
-   },
-   {
-    "q": "The recurring gift should:",
-    "opts": [
-     "Stay ambiguous",
-     "Stop",
-     "Become policy deliberately or vary visibly — the accidental entitlement is chosen by default",
-     "Grow"
-    ],
-    "ans": 2,
-    "why": "The third path is paid for annually.",
-    "src": "Ch3"
-   },
-   {
-    "q": "The commission scheme's base decision is:",
-    "opts": [
-     "Cosmetic",
-     "The period",
-     "The rate",
-     "The scheme's whole character — invoice-based pays for sales; collection-based pays for MONEY"
-    ],
-    "ans": 3,
-    "why": "The receivables discipline usually argues for collections or a split.",
-    "src": "Ch4"
-   },
-   {
-    "q": "Commission computes from:",
-    "opts": [
-     "The selling track's documents — invoices, collections, credit notes pulled by the scheme's rule",
-     "The salesperson's notebook",
-     "Manager memory",
-     "Estimates"
-    ],
-    "ans": 0,
-    "why": "The two certifications joining at the computation.",
-    "src": "Ch4"
-   },
-   {
-    "q": "The clawback improvised at the first big return is:",
-    "opts": [
-     "Fair enough",
-     "A grievance with a calculator — the recovery experienced as confiscation",
-     "Standard",
-     "Quick"
-    ],
-    "ans": 1,
-    "why": "The clause is designed in daylight, stated, and signed.",
-    "src": "Ch4"
-   },
-   {
-    "q": "The commission statement is:",
-    "opts": [
-     "Optional paperwork",
-     "The slip",
-     "The seller's own reconciliation — sources listed, rule applied visibly, reversals netted with references",
-     "Private"
-    ],
-    "ans": 2,
-    "why": "The seller who can audit their own commission does, monthly, for free.",
-    "src": "Ch4"
-   },
-   {
-    "q": "The arrears figure without its arithmetic is:",
-    "opts": [
-     "A correction",
-     "Final",
-     "Generous",
-     "A new dispute wearing a correction — the computation is shown, per period"
-    ],
-    "ans": 3,
-    "why": "What should have computed, what did, the delta.",
-    "src": "Ch5"
-   },
-   {
-    "q": "Backdated increments are:",
-    "opts": [
-     "Computed per period from the effective date by the machinery — not a lump-sum estimate",
-     "Settled with round numbers",
-     "Ignored",
-     "Negotiated"
-    ],
-    "ans": 0,
-    "why": "The not-knowing is the injury.",
-    "src": "Ch5"
-   },
-   {
-    "q": "The overpayment recovery starts with:",
-    "opts": [
-     "The deduction",
-     "The conversation — the arithmetic walked, the recovery agreed, consented, and scheduled inside the cap",
-     "A letter",
-     "The slip"
-    ],
-    "ans": 1,
-    "why": "The recovery discovered on a slip is an ambush authored by the firm's own error.",
-    "src": "Ch5"
-   },
-   {
-    "q": "The firm's error recovered over months is:",
-    "opts": [
-     "Weakness",
-     "Inefficiency",
-     "The price of its own mistake — the cap protects the worker regardless of fault",
-     "Optional"
-    ],
-    "ans": 2,
-    "why": "The firm's error does not license the worker's hardship.",
-    "src": "Ch5"
-   },
-   {
-    "q": "Corrections folded silently into a component are:",
-    "opts": [
-     "Tidy",
-     "Standard",
-     "Efficient",
-     "The version drift this track buried — unexplainable by design"
-    ],
-    "ans": 3,
-    "why": "Every correction visible as what it is: labelled, dated, referenced.",
-    "src": "Ch5"
-   },
-   {
-    "q": "The frozen run and the honest correction are:",
-    "opts": [
-     "One system — March means March, AND every error has a dated, derived, visible repair",
-     "In tension",
-     "Alternatives",
-     "Incompatible"
-    ],
-    "ans": 0,
-    "why": "The only payroll integrity that survives real months.",
-    "src": "Ch5"
-   },
-   {
-    "q": "Lending exists as:",
-    "opts": [
-     "Favours",
-     "Policy before the first request — eligibility, limits, schedules, interest position, approval route",
-     "Founder discretion",
-     "Bank business"
-    ],
-    "ans": 1,
-    "why": "The favour book retired into a policy administered without courage.",
-    "src": "Ch6"
-   },
-   {
-    "q": "The advance versus the loan:",
-    "opts": [
-     "The same instrument",
-     "Both roll monthly",
-     "This month's pay early, recovered in full next run — versus the multi-month instrument with full consent",
-     "Neither documented"
-    ],
-    "ans": 2,
-    "why": "The rolling advance is an undocumented loan wearing one — converted or closed.",
-    "src": "Ch6"
-   },
-   {
-    "q": "The lending book reconciles:",
-    "opts": [
-     "Annually",
-     "At exits",
-     "Never",
-     "Three ways monthly — per-person balances, slip lines, and the ledger's receivable, one parent"
-    ],
-    "ans": 3,
-    "why": "Agreeing by construction.",
-    "src": "Ch6"
-   },
-   {
-    "q": "The chronic borrower is read as:",
-    "opts": [
-     "A welfare signal first — the salary that never reaches month's end has a story",
-     "A credit risk first",
-     "A nuisance",
-     "Normal"
-    ],
-    "ans": 0,
-    "why": "Noticed early, helped early — right and cheaper, in that order.",
-    "src": "Ch6"
-   },
-   {
-    "q": "Most corrections wait for the run because:",
-    "opts": [
-     "Rules are rules",
-     "The arrears machinery makes waiting whole — off-cycle is for the missed-salary class",
-     "Speed is risky",
-     "Staff prefer it"
-    ],
-    "ans": 1,
-    "why": "The rarity is the point.",
-    "src": "Ch7"
-   },
-   {
-    "q": "The off-cycle payment is fraud's preferred vehicle because:",
-    "opts": [
-     "Amounts are large",
-     "Banks miss it",
-     "It travels alone, outside the month's variance read — the invented one-off's exact shape",
-     "It is fast"
-    ],
-    "ans": 2,
-    "why": "The separations do not shrink because the amount did.",
-    "src": "Ch7"
-   },
-   {
-    "q": "The off-cycle that hand-computes a net has:",
-    "opts": [
-     "Saved time",
-     "No consequence",
-     "Helped the worker",
-     "Bypassed the statutory layer — the annual true-up meets it as an error"
-    ],
-    "ans": 3,
-    "why": "The computation comes from the machinery, always.",
-    "src": "Ch7"
-   },
-   {
-    "q": "A climbing off-cycle count diagnoses:",
-    "opts": [
-     "Bank-detail hygiene, funding discipline, payday position, or the run's own gates — the exception log read",
-     "Growth",
+     "The same names at the cap monthly — a role sized wrong or a claim habit; a management question the data raises",
      "Nothing",
-     "Generosity"
+     "Tax errors",
+     "Bank issues"
     ],
     "ans": 0,
-    "why": "A ritual whose exceptions are rare and boring has won.",
-    "src": "Ch7"
+    "why": "Discretionary money on repeat is a standing audit interest.",
+    "src": "Ch3"
    },
    {
-    "q": "HealthTrade's chronic warehouse overtime was:",
+    "q": "A disputed overtime claim routes to:",
     "opts": [
-     "Padding",
-     "A staffing gap — the part-time Saturday hire cut the line 60%: 'paying time-and-a-half for a vacancy'",
-     "Fraud",
-     "Seasonal"
+     "The operator's judgment",
+     "The policy's owner — the operator executes the policy and never arbitrates it",
+     "The bank",
+     "Silence"
     ],
     "ans": 1,
-    "why": "The price-signal lesson, verbatim.",
-    "src": "Ch8"
+    "why": "Not paid by default, not refused personally.",
+    "src": "Ch3"
    },
    {
-    "q": "The six-year December payment was:",
+    "q": "The bonus round's classic error is:",
     "opts": [
-     "Kept ambiguous",
-     "Cancelled",
-     "Recognised as an accidental entitlement and made deliberate policy with a January accrual",
-     "Reduced"
+     "Tax",
+     "Formatting",
+     "List drift between the approval memo and the entries — the register comparison ties the column to the memo",
+     "Timing"
     ],
     "ans": 2,
-    "why": "The first December that isn't a surprise to the books.",
-    "src": "Ch8"
+    "why": "HealthTrade's dropped import row died there.",
+    "src": "Ch4"
    },
    {
-    "q": "The ₦480k bounced collection was handled by:",
+    "q": "Deduct Full Tax on Selected Payroll Date, ticked:",
     "opts": [
-     "Argument",
+     "Spreads the tax",
+     "Doubles the tax",
+     "Exempts the bonus",
+     "Withholds the amount's full tax in that month — the bonus lands net of its own tax, once"
+    ],
+    "ans": 3,
+    "why": "Recommended for material one-offs.",
+    "src": "Ch4"
+   },
+   {
+    "q": "The bonus tax choice is made:",
+    "opts": [
+     "Once, as policy with the accountant — a materiality threshold, applied consistently",
+     "Per entry, by feel",
+     "By the employee",
+     "By the bank"
+    ],
+    "ans": 0,
+    "why": "Identical bonuses on different timings is a fairness question.",
+    "src": "Ch4"
+   },
+   {
+    "q": "The bonus month's communication is:",
+    "opts": [
      "Silence",
-     "Write-off",
-     "The signed clause — netted visibly in the statement: 'the rule we signed is the rule that ran'"
-    ],
-    "ans": 3,
-    "why": "Arithmetic, not argument.",
-    "src": "Ch8"
-   },
-   {
-    "q": "The chronic-advance pattern surfaced:",
-    "opts": [
-     "A family medical situation — the welfare conversation before the credit decision, a governed hardship response",
-     "A thief",
-     "Nothing",
-     "Padding"
-    ],
-    "ans": 0,
-    "why": "The pattern read as a signal, not a nuisance.",
-    "src": "Ch8"
-   },
-   {
-    "q": "The overpaid employee's note — 'your mistake, my schedule' — reflects:",
-    "opts": [
-     "A loophole",
-     "The cap protecting the worker even when recovering the firm's own error",
-     "Bad policy",
-     "A dispute"
+     "The line named plainly and the payday note ready — gross shown, tax withheld in full this month",
+     "A meeting",
+     "A warning"
     ],
     "ans": 1,
-    "why": "Accurate, and the file agrees.",
+    "why": "The most-read slip of the year.",
+    "src": "Ch4"
+   },
+   {
+    "q": "Commission's source figures come from:",
+    "opts": [
+     "Memory",
+     "The earner's tally",
+     "The system's own sales reports for the closed period — the invoice list is the evidence",
+     "The bank"
+    ],
+    "ans": 2,
+    "why": "Nobody argues with the documents twice.",
+    "src": "Ch5"
+   },
+   {
+    "q": "The commission sheet notes:",
+    "opts": [
+     "Only the amount",
+     "The mood",
+     "The tax",
+     "The qualifying figure, the arithmetic, and the scheme version that computed it"
+    ],
+    "ans": 3,
+    "why": "Schemes change; the sheet says which rules ran.",
+    "src": "Ch5"
+   },
+   {
+    "q": "A non-statutory deduction requires:",
+    "opts": [
+     "The employee's written agreement — reason, amount, schedule; no agreement, no deduction",
+     "A manager's instruction",
+     "A memo",
+     "Nothing"
+    ],
+    "ans": 0,
+    "why": "The direction is sensitive; the rule is strict.",
+    "src": "Ch5"
+   },
+   {
+    "q": "A spread recovery uses:",
+    "opts": [
+     "Manual monthly entries",
+     "A recurring Additional Salary with From/To matching the agreed schedule — self-terminating",
+     "Overwrite",
+     "The structure"
+    ],
+    "ans": 1,
+    "why": "Cannot be forgotten on, cannot run past its end.",
+    "src": "Ch5"
+   },
+   {
+    "q": "The affordability line means:",
+    "opts": [
+     "Recover fastest",
+     "No recovery",
+     "The schedule leaves a livable net — a stripping recovery is renegotiated, not enforced",
+     "Minimum wage only"
+    ],
+    "ans": 2,
+    "why": "The relationship outvalues the speed.",
+    "src": "Ch5"
+   },
+   {
+    "q": "The two advance kinds are:",
+    "opts": [
+     "Big and small",
+     "Cash and bank",
+     "Old and new",
+     "The salary advance (recovered from pay) and the expense advance (settled by claim) — conflating them breeds disputes"
+    ],
+    "ans": 3,
+    "why": "Distinguished at issue.",
+    "src": "Ch6"
+   },
+   {
+    "q": "The advance's money moves by:",
+    "opts": [
+     "A Payment Entry against the Employee Advance record — through the books, debiting the advance account",
+     "Bare transfer",
+     "Cash quietly",
+     "Next payroll"
+    ],
+    "ans": 0,
+    "why": "Never the record 'to follow'.",
+    "src": "Ch6"
+   },
+   {
+    "q": "The issue-day rule:",
+    "opts": [
+     "Pay first, plan later",
+     "The recovery schedule agreed and its recurring deduction created the same day, dated to start on schedule",
+     "One year to repay",
+     "No schedule"
+    ],
+    "ans": 1,
+    "why": "An advance with its recovery ticking never becomes awkward.",
+    "src": "Ch6"
+   },
+   {
+    "q": "The monthly advances read:",
+    "opts": [
+     "Counts records",
+     "Approves new ones",
+     "Reconciles the account by person — every balance ageing on schedule; the stale advance chased the month it stalls",
+     "Emails staff"
+    ],
+    "ans": 2,
+    "why": "Stalled advances compound into exit problems.",
+    "src": "Ch6"
+   },
+   {
+    "q": "Repay from salary means:",
+    "opts": [
+     "Manual entry monthly",
+     "HR deducts",
+     "The bank deducts",
+     "The loan's instalment lands as a slip deduction automatically per the schedule until the balance closes"
+    ],
+    "ans": 3,
+    "why": "The operator verifies; the machinery enters.",
+    "src": "Ch7"
+   },
+   {
+    "q": "Loan affordability is checked:",
+    "opts": [
+     "At approval — statutory + loan + recoveries must leave the defined minimum net on the current slip",
+     "At the first short month",
+     "Never",
+     "At exit"
+    ],
+    "ans": 0,
+    "why": "Approved smaller or longer, not hoped through.",
+    "src": "Ch7"
+   },
+   {
+    "q": "The loans read is monthly because:",
+    "opts": [
+     "Auditors visit monthly",
+     "Exits do not schedule themselves around loan terms — the balance is a settlement line",
+     "Interest compounds",
+     "The bank asks"
+    ],
+    "ans": 1,
+    "why": "Module 7 inherits every stale balance.",
+    "src": "Ch7"
+   },
+   {
+    "q": "The operator's boundary on lending:",
+    "opts": [
+     "Underwrites loans",
+     "Sets interest",
+     "Runs the machinery — whether and how much to lend is the owner's decision on the policy ladder",
+     "Approves alone"
+    ],
+    "ans": 2,
+    "why": "Payroll executes lending; it never underwrites it.",
+    "src": "Ch7"
+   },
+   {
+    "q": "HealthTrade's month-one catch was:",
+    "opts": [
+     "A tax error",
+     "A missing sheet",
+     "A bank bounce",
+     "An overtime record dated into the wrong month — a slip line with no sheet line, traced in minutes"
+    ],
+    "ans": 3,
+    "why": "The Payroll Date lesson, live.",
     "src": "Ch8"
    },
    {
-    "q": "This module's law is:",
+    "q": "The driver's advance was healthy because:",
     "opts": [
-     "One-offs are exceptions to governance",
-     "Cash is simpler",
-     "Variable pay is governed — one channel for hours, documents for bonuses, source-computed commissions with statements, derived forward corrections, instrumented loans, and off-cycles as mini-runs",
-     "Discretion needs no paper"
+     "Approved in policy, paid by referenced Payment Entry, recovery created the same sitting — four self-terminating deductions",
+     "It was small",
+     "It was verbal",
+     "It was interest-free"
+    ],
+    "ans": 0,
+    "why": "Chapters 2, 5, and 6 in one case.",
+    "src": "Ch8"
+   },
+   {
+    "q": "The bonus import's dropped row was caught by:",
+    "opts": [
+     "The bank",
+     "Station 3's comparison tying the register's bonus column to the memo's list and total",
+     "The employee",
+     "Year-end"
+    ],
+    "ans": 1,
+    "why": "The list-drift error dying where designed.",
+    "src": "Ch8"
+   },
+   {
+    "q": "The quarter's file property was:",
+    "opts": [
+     "Speed",
+     "Volume",
+     "Not one number without a document — and not one payday argument",
+     "Secrecy"
     ],
     "ans": 2,
-    "why": "The payroll that flexes without leaking.",
+    "why": "The variable-pay audit face.",
+    "src": "Ch8"
+   },
+   {
+    "q": "The verbal variable is fixed by:",
+    "opts": [
+     "Better memory",
+     "Fewer lanes",
+     "Bigger caps",
+     "No document, no pay — the Additional Salary with evidence and approval, before the close"
+    ],
+    "ans": 3,
+    "why": "Said kindly, held firmly.",
+    "src": "Ch9"
+   },
+   {
+    "q": "The evaporating advance is fixed by:",
+    "opts": [
+     "The record before the money, the referenced payment, the issue-day recovery, the monthly by-person reconciliation",
+     "Trust",
+     "Smaller advances",
+     "No advances"
+    ],
+    "ans": 0,
+    "why": "Pattern 6.",
+    "src": "Ch9"
+   },
+   {
+    "q": "Genuinely permanent amounts belong:",
+    "opts": [
+     "On recurring records forever",
+     "On structures and assignments — the recurring Additional Salary is for the fixed term",
+     "On the slip directly",
+     "In the remarks"
+    ],
+    "ans": 1,
+    "why": "The design boundary.",
+    "src": "Ch9"
+   },
+   {
+    "q": "Module 5's law is:",
+    "opts": [
+     "Variable pay is verbal",
+     "All pay is fixed",
+     "Variable pay enters as documents — approved before the close, computed from evidence, taxed by the flags and policy, recovered only by written agreement on a self-ending schedule",
+     "Recoveries are unilateral"
+    ],
+    "ans": 2,
+    "why": "The fifth law.",
     "src": "Ch9"
    }
   ]
  },
  "pay_reviews": {
   "title": "Payroll 6 — Increments, Reviews & Pay Governance",
-  "desc": "How pay changes: the annual cycle with the envelope set first, the increment matrix pricing calibrated evidence, band maintenance against market, inflation, and the minimum wage, promotion re-pricing with the compression and equity reads, the payroll budget as the owner's instrument, and the no-quiet-raises perimeter.",
+  "desc": "Pay-change governance in ZhiftERP: the decision/execution split and the operator's procedural refusal; the approval matrix with the four-element evidence standard and the letter as anchor; same-day execution of the single change with preview and movement line; the arrears lane — honest From Dates, the sheet's arithmetic, the Arrears component entry, history standing; promotions via the Employee Promotion record with the silent-difference flag; the annual round's timetable, batch import, and both-ways verification; the movement record and the deciders' reads; and the boundary routing questions.",
   "lessons": [
    {
-    "title": "Chapter 1 — Reviews on structure and evidence",
+    "title": "Chapter 1 — Pay changes: decisions executed as records",
+    "est": "11",
+    "html": "<p>This module governs pay changes: who decides them, how they enter the system, how late decisions pay their arrears, how the annual round runs as a batch, and how the movement record keeps every change explained. The machinery is module 1's — the new-assignment rule; this module builds the governance around it.</p><p><b>The frame.</b> A pay change has two halves, and the custody split (module 1) assigns each:</p><p>1. <b>The decision</b> — whether, whom, how much, from when. This belongs to management: the owner, the approval matrix (Chapter 2). The payroll operator holds no vote and gives no opinion on amounts; what the operator holds is the <b>data</b> the deciders need (Chapter 6's reads) and the <b>refusal</b> that keeps the lane honest: no approved decision, no record.<br>2. <b>The execution</b> — the decision entered as records that compute it: the new Salary Structure Assignment (Chapter 3), the arrears document where the decision came late (Chapter 4), the preview, the run. This is the operator's craft, and its standard is exactness: the record says what the decision said — amount, date, person — nothing more, nothing rounded, nothing \"while we're at it\".</p><p><b>Why governance earns a module.</b> Pay changes are where payroll's discipline is tested by pressure, because every change has an interested party and a deadline:</p><p>• The undocumented rise — promised in a corridor, entered from a message — is the classic dispute seed: two people remember two amounts.<br>• The backdated decision handled casually — history edited, or arrears guessed — breaks the register's honesty in both directions.<br>• The unexplained movement — a base that changed with no decision on file — is the register comparison's most serious finding, because it is either an error or the thing errors are blamed on.</p><p>The module's design makes every change carry its decision like every posting carries its document — the same document-rule, applied to the most sensitive numbers in the business.</p><p><b>The change kinds, previewed.</b> The rise (base up, same package) — Chapter 3. The late decision (effective before it was entered) — Chapter 4's arrears. The promotion (role and package change together) — Chapter 5. The annual round (many decisions, one batch) — Chapter 5. The structure-level change (the package itself redesigned) — Chapter 7's boundary with module 8.</p><p><b>Module contents.</b> Chapter 2: the approval matrix. Chapter 3: executing the single change. Chapter 4: arrears. Chapter 5: promotions and the annual round. Chapter 6: the movement record and the deciders' reads. Chapter 7: the boundaries. Chapter 8: the HealthTrade review. Chapter 9: review and the law.</p>"
+   },
+   {
+    "title": "Chapter 2 — The approval matrix",
     "est": "12",
-    "html": "<p>Modules 1-5 governed pay as it IS; this module governs how it CHANGES — the review cycle that moves the fixed pay itself — and its thesis is the sixth law forming: <b>pay reviews run on structure and evidence, not on squeak and mood.</b></p><p><b>Why pay must be reviewed at all.</b> The Nigerian reality stated first, because it drives everything: unreviewed nominal pay DECAYS — inflation erodes real pay silently, month by month, so the firm that 'kept salaries stable' for three years has in truth cut everyone's real pay substantially without a single decision (the decay is a pay cut nobody announced, and the workforce experiences it exactly as one: the HR track's attrition referendum reads it back as the year-two exodus, the side-hustle drift, and the counter-offer season) — which converts the review from a generosity question into a MAINTENANCE question: the review cycle is how a firm keeps the pay bargain's real value deliberate instead of letting arithmetic quietly break it. The second driver beside it: EVIDENCE accumulates — the HR track's performance machinery produces calibrated, documented ratings annually, and evidence that changes nothing teaches everyone that the folder was theatre (HR 5's ambush law has a payroll corollary: the appraisal that never touches pay eventually never touches effort).</p><p><b>The two inputs.</b> Every review cycle reconciles exactly two forces, and naming them keeps the cycle honest: the FIRM'S CAPACITY (what the budget can carry — Chapter 6's envelope, set from the numbers before the cycle opens, because the affordability decided after seeing the wish-list is a negotiation, while the envelope decided before is a constraint everyone shares) and the PERSON'S EVIDENCE (the calibrated rating, the band position, the certified growth — the HR track's outputs, consumed as the cycle's raw material). The cycle's machinery — the matrix (Chapter 3), the bands (Chapter 4), the governance (Chapter 7) — exists to reconcile these two inputs EVENLY: same evidence, same treatment, inside the same envelope.</p><p><b>One cycle, not rolling favours.</b> The structural decision that shapes everything: pay changes happen at the CYCLE (the annual review, on the calendar, all at once) plus the defined movement events (the promotion, the confirmation step where policy grants one — HR 7's documents), and NOT as a rolling stream of individual renegotiations — because the rolling model is the favour system with a calendar problem (the raise granted to whoever asked loudest, whenever they asked — module 1's negotiated-from-memory disease applied to changes; the quiet raise that module 7's governance will formally outlaw), while the cycle model concentrates the firm's one hardest conversation into one season with one process, one envelope, and one announcement — which is cheaper in management attention, fairer by construction, and defensible forever. The module's map follows the cycle's own arc: the calendar event (2), the matrix (3), the bands beneath (4), the promotions and equity reads (5), the budget above (6), the governance and letters around (7) — and HealthTrade's first cycle run end to end (8).</p>"
+    "html": "<p>Before any change enters, the business writes who may decide what. The matrix is one page, and the operator enforces it by routing — the same enforcement pattern as every policy in the track.</p><p><b>The matrix's rows.</b> Per change kind, the deciding authority and the evidence the operator requires:</p><p>1. <b>Individual rise inside the annual budget</b> — the approving manager per the business's ladder (branch manager proposes, owner approves is the small-business standard), evidenced by the signed increment letter or the approval on the review record.<br>2. <b>Off-cycle rise</b> (outside the round) — a higher bar by design: the owner's approval regardless of amount, because off-cycle changes are where exceptions breed. The matrix says so plainly, and the operator routes accordingly.<br>3. <b>Promotion</b> — the role decision (HR/owner) plus its pay decision, both evidenced (Chapter 5).<br>4. <b>The annual round</b> — the batch's total approved by the owner against the budget line, then each name per the ladder (Chapter 5).<br>5. <b>Structure redesign</b> — the owner and the accountant together, because the B/H/T split moves statutory amounts (module 2's dependency, resurfacing).</p><p><b>The evidence standard.</b> Every decision reaching the operator carries: <b>who</b> (the named employee), <b>what</b> (the new base, or the new structure and base), <b>from when</b> (the effective date, explicit), and <b>whose approval</b> (the signature or the recorded approval per the matrix). A message that says \"increase Tunde's pay\" fails on three of four counts, and the operator's reply is the standard, not the execution: <i>send the letter with the amount and effective date, and it enters same day.</i> The refusal is procedural, kind, and absolute — the operator who executes vague instructions inherits their disputes.</p><p><b>The letter as the anchor document.</b> The increment or promotion letter — addressed to the employee, stating the new terms and the effective date, signed per the matrix — is the change's anchor: it is what the employee agreed to, what the assignment must match, and what settles every future \"but I was told\" in one look. The operator files it attached to the assignment it produces (Chapter 3), which closes the loop: every assignment traceable to its letter, every letter to its assignment.</p><p><b>Confidential handling, restated.</b> Decisions in flight are the most sensitive traffic payroll carries — the round's list before it is announced, the individual rise before its letter. Module 4's confidentiality rules apply with the volume turned up: the decisions folder access-controlled, no lists in open channels, and the operator's conduct rule (payroll knowledge is never social currency) at its strictest exactly here, because a leaked round is a trust failure across the whole staff at once.</p><p>Practical rule: the matrix page is agreed once with the owner and re-confirmed at the annual review. Its value is the pressure it absorbs on the operator's behalf: \"the matrix requires the owner's approval for off-cycle changes\" is a sentence that ends arguments the operator should never have to win personally.</p>"
    },
    {
-    "title": "Chapter 2 — The review cycle: the calendar event",
+    "title": "Chapter 3 — Executing the single change",
+    "est": "12",
+    "html": "<p>The approved decision arrives with its letter. Execution is one procedure, run the same way every time.</p><p><b>The procedure.</b></p><p>1. <b>Verify the decision:</b> the four elements present (who, what, from when, whose approval), the approval matching the matrix, the letter in hand.<br>2. <b>Create the new Salary Structure Assignment:</b> the employee, the structure (unchanged for a plain rise; the new one for a package move), the <b>new Base</b> exactly as the letter states, the <b>From Date</b> exactly the letter's effective date, the Income Tax Slab carried, the letter attached to the record. Module 1's supersession rule executes itself: the new assignment governs from its date; the old one stands as history, untouched.<br>3. <b>Preview:</b> the changed employee's slip previewed (module 1, Chapter 7) — the new base flowing through the percentages, the statutory lines moving with it (pension on the new B/H/T; PAYE at the new taxable level — the change's full consequence visible before it pays). The preview against the letter is the execution's proof: the letter's package arithmetic and the slip agree.<br>4. <b>Log the movement:</b> one line in the movement record (Chapter 6): employee, old base → new base, effective date, letter reference, approver, entered by, entered on.<br>5. <b>The run applies it:</b> the next run whose period contains the From Date computes on the new assignment — no run-side action needed. Where the From Date is mid-month, the period splits correctly by the platform's computation; the preview shows exactly how, and the split's arithmetic joins the payday standing answers for that employee.</p><p><b>The timing cases.</b></p><p>• <b>Decided ahead:</b> the letter dated the 20th, effective the 1st of next month — the assignment enters now with its future From Date, and the change waits correctly. Enter decisions when they arrive; the From Date does the scheduling.<br>• <b>Decided in-month:</b> effective the 1st, entered the 12th, run generated the 21st — inside the same period, the run computes it fully; only the records-close matters (a decision entered after the close waits or takes the deliberate lane, module 3's rule).<br>• <b>Decided late:</b> effective before the current period — the assignment enters with its honest past From Date <b>and</b> the already-paid months' difference becomes arrears: Chapter 4's lane. What never happens: the From Date moved forward \"to keep it simple\". The date is the decision's; simplicity is the arrears lane's job.</p><p><b>The employee's side.</b> The letter told them the terms; the first changed slip shows them computed. Where the change lands mid-month or with arrears, the two-line explanation is prepared before payday (module 4's standing-answer discipline): what the letter said, what this slip shows, why they match. A rise that arrives with a confusing slip wastes the goodwill it bought.</p><p>Practical rule: same-day execution as the service standard — a complete decision entered the day it arrives. The lane's speed is what keeps decisions flowing through it rather than around it, exactly as with the sysadmin track's change lane.</p>"
+   },
+   {
+    "title": "Chapter 4 — Arrears: the late decision's lane",
     "est": "13",
-    "html": "<p>The cycle as machinery: its stages, in order, each feeding the next — the run's ritual discipline applied to the year's biggest pay event. The cycle chapter.</p><p><b>The stages.</b> The sequence, walked: <b>1 — the envelope set</b> (Chapter 6's budget work concluding BEFORE the cycle opens: the total increment pool as a number the owner has already accepted — the cycle that opens without an envelope closes as an argument); <b>2 — the evidence in</b> (the HR track's appraisal season concluding first by design — the calibrated ratings landing as the cycle's input file: the two calendars sequenced deliberately, appraisals then reviews, because ratings finalised DURING pay season are ratings written backwards from desired raises — the calibration integrity of HR 5 protected by the calendar itself); <b>3 — the matrix applied</b> (Chapter 3 — the ratings and band positions converted to proposed increments, mechanically, as the STARTING grid); <b>4 — the adjustments within governance</b> (the below-band priorities, the retention flags, the equity corrections — Chapter 5's reads applied as deliberate exceptions with written reasons, inside the envelope: the matrix proposes, humans decide, the envelope constrains); <b>5 — the approval</b> (the full grid — every name, current, proposed, new band position, cost — approved by the authority in one sitting: the review's version of module 3's names-reading approval); <b>6 — the letters</b> (Chapter 7 — individual, with effective dates and net effects); <b>7 — the execution</b> (the assignments updated by the event, effective-dated — module 1's machinery; the structures re-versioned where Chapter 4 moved bands); and <b>8 — the run</b> (the first affected run carrying the changes, its variance read pre-loaded with the cycle's grid as the expected-changes list — module 3's review consuming module 6's output: the machinery meshing).</p><p><b>The timing.</b> The cycle placed deliberately: aligned to the fiscal year and the appraisal season (the evidence fresh, the budget known), at the same time EVERY year (the workforce that knows review season builds expectations to it — the fixed payday's logic at annual scale: the cycle that drifts teaches that pay changes are weather), and with its effective date clean (the year's start or a fixed month — the mid-month effective date buying proration complexity for no benefit).</p><p><b>The cycle's size honesty.</b> The eleven-person reality, stated as every track states it: HealthTrade's cycle is the founder, the accountant, and the payroll seat, one afternoon of grid work and a week of letters — the SHAPE, small (the envelope a paragraph, the calibration a conversation, the approval a sitting) — and the discipline is not the paperwork's weight but the sequence's integrity: envelope before wishes, evidence before numbers, grid before letters, letters before slips. The firm that keeps the sequence at eleven people scales it to a hundred without redesign — which is the academy's standing promise, kept here at the layer where growing firms break most publicly (the fifty-person firm still doing rolling favours is the one whose pay chaos makes the trade's gossip).</p>"
+    "html": "<p>A decision effective in the past — the review that concluded in March effective January, the letter signed after the effective date. The months between were paid on the old base, correctly, by the records as they stood. The difference owed is <b>arrears</b>, and it has a lane.</p><p><b>The two halves of the late change.</b></p><p>1. <b>The go-forward half:</b> the new assignment with its <b>honest past From Date</b> (Chapter 3's rule — the date is the decision's). From the current run onward, pay computes on the new base. The past runs' slips are <b>not</b> reopened: they were correct when computed, they are submitted documents, and the arrears lane exists precisely so history can stand.<br>2. <b>The arrears half:</b> the already-paid months' shortfall, computed and paid as its own document.</p><p><b>The arrears computation.</b> On the standing sheet, per affected employee:</p><p>1. Per month from the effective date to the last paid run: the components as they <b>would have computed</b> on the new base, minus as they <b>did compute</b> — the earnings difference. For percentage structures this is arithmetic: the base delta flowed through the package's rates; a proration month (a January joiner with a January-effective rise) prorates the delta identically.<br>2. Sum the months. The sheet shows its working — months, deltas, total — and files with the letter.<br>3. The statutory consequence rides automatically: arrears are taxable pay in the month paid, and the pension family recomputes on the arrears' B/H/T share — the sheet notes the components' split so the entry (next step) carries it correctly.</p><p><b>The entry.</b> One <b>Additional Salary</b> per employee (module 5's machinery — this is its most important standing use): an <b>Arrears</b> component (Earning-type, taxable, wired to the salary expense family — created once through the governed lane, on the register), the sheet's total, the current payroll date, the sheet and letter attached. Material arrears take the <b>Deduct Full Tax</b> policy line like bonuses do (module 5, Chapter 4) — same logic, same consistency rule. Where the split matters to statutory computation (the pension share of arrears), the entry follows the accountant's ruling on how the arrears components are structured — one line or split lines — decided once, on the page.</p><p><b>The slip and the explanation.</b> The arrears month's slip shows the regular pay on the new base <b>plus</b> the arrears line — a large slip that generates the year's most predictable query. The answer is prepared: the letter (effective January), the sheet (three months' difference, here is the arithmetic), the tax note where the flag was ticked. Shown once, understood permanently.</p><p><b>The movement record's entry.</b> The late change logs like any change (Chapter 3), plus the arrears reference: the sheet, the Additional Salary record, the month paid. The register comparison for the arrears month expects the spike and holds its documents.</p><p>Practical rule: arrears exist because decisions were slow, not because payroll was wrong — and the quarterly movement read (Chapter 6) counts them. A business paying arrears every quarter has a decision-timing problem upstream; the count is how the operator hands that fact to the owner as data instead of complaint.</p>"
    },
    {
-    "title": "Chapter 3 — The increment matrix: evidence into naira",
+    "title": "Chapter 5 — Promotions and the annual round",
+    "est": "12",
+    "html": "<p>Two composite changes: the promotion (role and pay together) and the annual round (many changes, one batch).</p><p><b>The promotion.</b> A promotion changes the job and the pay, and the records change in order:</p><p>1. <b>The role half:</b> the <b>Employee Promotion</b> record — the platform's document for the event: employee, promotion date, and the property changes it applies (the new Designation, Department or Branch where they move, and related fields). Submitted, it updates the Employee record's properties from the date and stands as the event's document — the role history readable later as a chain of promotion records rather than a mystery of edited fields.<br>2. <b>The pay half:</b> the new Salary Structure Assignment per Chapter 3 — commonly a <b>structure move</b> (Branch Retail Staff → Management) with the new base, from the same effective date, the promotion letter anchoring both halves.<br>3. <b>The consequence walk:</b> a structure move changes the package's shape — different components, different percentages — so the preview is read with extra care: the new package against the letter, the statutory lines on the new B/H/T, and where the old package carried items the new one does not (an allowance that ends with the old role), the letter must have said so — the operator flags the silent difference back to the decider before entering, because the employee will find it on the slip if nobody found it before.</p><p><b>The annual round.</b> The yearly review executes many decisions at once, and the batch has its own procedure:</p><p>1. <b>The list, approved:</b> the round's schedule — every name, current base, new base, effective date — approved as a total against the budget by the owner, then per name per the matrix. The list is the batch's anchor document.<br>2. <b>The batch entry:</b> the assignments created from the list — individually at small scale, by the governed import at volume (the sysadmin track's six steps; the import's dropped-row risk answered by the next step).<br>3. <b>The batch verification — the list tied both ways:</b> every name on the list has its new assignment (none dropped), and every new assignment this cycle is on the list (none invented). The assignment list filtered by the round's From Date is the read; ten minutes that catches both failure directions.<br>4. <b>Previews by structure plus spot names</b>, the letters issued and attached, the movement record batch-logged.<br>5. <b>The round's first run:</b> Station 3's register comparison expects a broad movement and holds the list — every base delta on the register matching the list's delta, the month's one big explanation already written.</p><p><b>The round's confidentiality window.</b> Between the list's approval and the letters' issue, the round is the business's most sensitive document — Chapter 2's rules at maximum: the list lives in the controlled folder, discussions happen in private, and the operator's answer to every corridor question is the same: <i>letters come from management on the date they announce.</i></p><p>Practical rule: the round runs on a published internal timetable — decisions closed, letters issued, effective date, first changed payday — agreed with the owner so the round lands inside one payroll cycle. A round that straggles across months manufactures arrears (Chapter 4) out of pure scheduling.</p>"
+   },
+   {
+    "title": "Chapter 6 — The movement record and the deciders' reads",
+    "est": "12",
+    "html": "<p>Governance needs memory and measurement: the movement record remembers every change; the reads give the deciders their data. Both are the operator's products.</p><p><b>The movement record.</b> One running register — a line per change, from Chapters 3-5's logging steps: date entered, employee, kind (rise / promotion / arrears / round), old base → new base, effective date, letter reference, approver. The record's uses:</p><p>1. <b>The audit answer:</b> any base's history reconstructed in one filter — every value it has held, each with its decision. The assignment list holds the same truth record-by-record (module 1: assignments are never edited, so the chain is complete); the movement record is that chain with its governance columns, readable by a human in order.<br>2. <b>The reconciliation:</b> quarterly, the movement record ties to the assignment list — every new assignment has its movement line and its letter; a naked assignment (no line, no letter) is the register comparison's most serious finding, investigated as module 8's audit chapter directs.<br>3. <b>The arrears count</b> (Chapter 4's quarterly read) and the off-cycle count — both handed to the owner as decision-timing data.</p><p><b>The deciders' reads.</b> The operator prepares these for the review cycle — aggregates and structured data, produced from the system, confidentiality rules riding along:</p><p>1. <b>The pay register:</b> the assignment list by structure — who is on what package at what base (module 1's standing view), the round's working document.<br>2. <b>The consistency read:</b> per structure or role family, the base spread — lowest, highest, median — read as aggregates for the deciders to see outliers and compression before the round, not after a grievance. The read surfaces the question (two people, one role, widely different bases); the <b>answer</b> — history, performance, market — is management's, and the operator presents the data without editorial.<br>3. <b>The cost line:</b> the salary cost by cost center from the register's grouping, and the round's modelled cost — the list's deltas annualised, with the employer statutory riding (the employer pension share moves with every base; a round's true cost is the package cost, not the base cost — the modelling sheet says so with arithmetic).<br>4. <b>The budget tie:</b> where the business runs the budget machinery on its salary accounts (the Accounts track's budget module), the round's modelled cost reads against the budget line before approval — the matrix's row 4 assumes this number exists, and the operator is who produces it.</p><p><b>The boundary, held.</b> Every read above is data for deciders. The operator who starts recommending amounts has left their lane and taken sides in every future dispute; the operator who produces clean spreads, true costs, and honest counts is the review cycle's most useful person and nobody's antagonist. The value is the discipline.</p><p>Practical rule: the reads are produced on the round's timetable, dated, and filed with the round — the deciders decided on <i>this</i> data. When next year's round asks \"what did we know last year\", the file answers.</p>"
+   },
+   {
+    "title": "Chapter 7 — Boundaries: structure changes and the special cases",
+    "est": "12",
+    "html": "<p>The module's edges: changes that look like pay changes but run other lanes, and the cases that test the rules.</p><p><b>The structure redesign.</b> Changing the <b>package itself</b> — the B/H/T split, a component added or removed for everyone on a structure — is not a pay change; it is a machinery change, and it runs module 8's change discipline: decided by the owner <b>and</b> the accountant together (the split moves pension and tax — module 2's dependency), built as a new or amended structure, previewed per affected structure, and applied by <b>new assignments</b> for the affected employees from the effective date (the supersession rule at batch scale — the old assignments computed the old package honestly and stand). The boundary matters because a redesign entered as \"just edit the structure\" silently changes history's meaning: the old slips reference a structure that no longer says what it said. Module 8 owns the versioning rules; this chapter's job is routing the case there.</p><p><b>The demotion and the reduction.</b> Pay reductions are legally and personally the heaviest change: they require the employee's agreement to varied terms (the letter is a contract variation, signed by both sides — the owner's process, with advice where needed), and only then execute as records — the new assignment at the reduced base from the agreed date, the movement line noting the kind. The operator's line is unchanged and matters most here: no complete evidenced decision, no record — a reduction entered from an instruction without the agreement is the operator executing a breach.</p><p><b>The temporary change.</b> Acting allowances, temporary responsibility pay, secondment terms — pay that changes <b>for a period</b>. The lane is module 5's: a <b>recurring Additional Salary</b> with honest From/To dates (self-terminating — the acting allowance that outlives the acting is that module's Pattern 3), not a base change that must be remembered and reversed. The base moves only for permanent decisions; the distinction is asked explicitly when the decision arrives: <i>permanent or for a period?</i> — and the answer routes the lane.</p><p><b>The correction masquerading as a change.</b> \"His base was entered wrong at go-live\" is not a pay change — it is an error correction: evidenced against the offer letter (the anchor document proving what the base should have been), corrected by a new assignment from the discovery date <b>plus</b> the arrears lane for the shortfall (or module 3's agreed-recovery lane for the overpayment), and logged as a correction with its cause. The distinction matters for the record's honesty: corrections count in the incident log's cause read; changes count in the movement record. Blending them hides both signals.</p><p><b>The freeze months.</b> The matrix can declare freeze windows — no changes entering during the close or the round's own processing — and the operator holds them like the records close: arrivals during a freeze queue with their letters and enter the day it lifts, From Dates honest, arrears lane covering any gap. The freeze protects the batch's integrity; the honest dates protect the employees'.</p><p>Practical rule: every arriving change gets the routing questions in order — permanent or temporary? individual or structural? decision or correction? — thirty seconds that puts each case on its lane before any record is touched.</p>"
+   },
+   {
+    "title": "Chapter 8 — Case study: HealthTrade's first annual round",
     "est": "13",
-    "html": "<p>The cycle's computational heart: the INCREMENT MATRIX — the published logic that converts a rating and a band position into a proposed increment. The matrix chapter.</p><p><b>The matrix's shape.</b> Two axes, one output: the RATING (the HR track's calibrated outcome — the honest scale of HR 5, with 'meets' as its honourable centre) crossed with the POSITION IN BAND (where the person's pay sits inside their grade's range — the compa-ratio concept taught practically: below the band's midpoint, at it, above it), yielding the increment percentage per cell — with the matrix's internal logic taught so consultants can design one, not just admire one: the HIGH-rating-LOW-position cell carries the largest increments (the strong performer paid under their band is the firm's biggest fairness debt and flight risk at once — the matrix pays the debt fastest), the MEETS-at-midpoint cell carries the maintenance increment (the real-pay-decay repair of Chapter 1 — the cost-of-living reality answered for the solid performer), the HIGH-position cells taper (the person at band top has outgrown the band — the answer is Chapter 5's promotion question or Chapter 4's band question, not an increment that breaches the band's own meaning), and the LOW-rating cells carry small-to-zero (with the capability process of HR 5 owning the person, not the matrix — the review is not the performance conversation; it consumes its output).</p><p><b>Why a matrix at all.</b> The argument, made once for every owner who calls it rigid: EVENNESS (same rating, same position, same increment — the favour system structurally displaced: the matrix cannot like anyone), BUDGET CONTROL (the matrix's cells priced against the population BEFORE approval — the envelope test run on the grid, the cells tuned until the total fits: the affordability engineered, not discovered), DEFENSIBILITY (the increment explained by pointing — the rating, the position, the cell: module 4's answered-by-pointing reaching the year's most sensitive question), and SPEED (the cycle's grid generated in minutes, reviewed in an afternoon — the rolling-negotiation year compressed into a sitting). The matrix's honest limits stated beside it: it PROPOSES — Chapter 2's stage 4 lets governance adjust with written reasons — and its calibration is only as good as the ratings feeding it (the leniency-inflated ratings of an uncalibrated appraisal season turn the matrix into an expensive rubber stamp: HR 5's calibration is this chapter's load-bearing dependency, and the two-track consultant sells them as the pair they are).</p><p><b>The below-band priority.</b> The matrix's first exception rule, promoted to policy: the person BELOW their band's floor is corrected FIRST, before the matrix runs — the correction to the band minimum is not an increment (not a reward, not a rating outcome); it is the structure enforcing its own promise (module 1's band architecture made a floor; the floor means something or nothing), funded ahead of the envelope's discretionary pool, and communicated as what it is (the correction letter distinct from the increment letter — the person told the band is real, which lands as the structure's justice exactly as HealthTrade's module 1 case landed). The chapter's closing frame: the matrix is the evenness law given a calculator — and the firm that publishes its logic (the axes and the philosophy, not the cell values' gossip) has told the workforce the one thing that defuses review season: the path to more money is evidence and growth, and the path is the same for everyone.</p>"
-   },
-   {
-    "title": "Chapter 4 — Band maintenance: the structure against the market",
-    "est": "13",
-    "html": "<p>Increments move people WITHIN bands; this chapter governs the bands THEMSELVES — the annual maintenance that keeps the structure honest against the market, inflation, and the law. The bands chapter.</p><p><b>The annual band review.</b> The structure's own review, run beside the cycle: each grade's band tested against three forces — the MARKET (what the trade pays for the role now: the labour-market read of HR 2, refreshed — the band that lags the market is the recruitment funnel's silent saboteur and the exit interview's recurring line; the read's sources practical: the firm's own hiring data (the offers declined and the asks that declined them), the trade's networks, the adviser's and peers' soundings), INFLATION (the real-value check of Chapter 1 applied to the band itself — the band unmoved for three years has drifted down the market by arithmetic alone), and the LAW (the national minimum wage as the absolute floor — the statutory minimum the adviser confirms current, against which the LOWEST band's floor is tested every year without exception: the minimum wage change is a compliance event, not a negotiation, and the reform era's movements make this an annual confirmation, not an assumption — the band floor below the legal floor is a violation wearing a structure).</p><p><b>The band move's machinery.</b> When the review moves a band: the structure RE-VERSIONED (module 1's amendment discipline — the new band effective-dated, the old preserved), the move's two distinct effects handled separately: the FLOOR effect (everyone below the new floor corrected to it — Chapter 3's below-band rule firing automatically at the band's own move) and the POSITION effect (everyone else's band position recalculated — the person at midpoint now below it, which feeds NEXT cycle's matrix rather than triggering immediate increments: the band move and the increment cycle are separate instruments, and conflating them double-spends the envelope), and the move COSTED before approval (the floor corrections' total is the band move's price tag — presented with the move, decided with open eyes).</p><p><b>Cost-of-living versus merit.</b> The distinction that keeps both honest, taught for the announcement as much as the arithmetic: the COLA-type adjustment (the across-the-board response to inflation — everyone's real pay maintained: applied as a band move plus a uniform component where the firm runs one, communicated as maintenance — <i>this is not a raise; this is your pay keeping its meaning</i>) versus the MERIT increment (the matrix's differentiated output — communicated as earned), because the firm that blends them into one number teaches that merit is automatic (the strong performer who got 12% learns 8% of it was inflation and feels the 4%), while the firm that names them separately gets credit for both — the maintenance honoured as fairness, the merit honoured as recognition: one letter, two lines, twice the trust.</p><p><b>The frozen-band autopsy.</b> The chapter's cautionary pattern, told for every prospect conversation: the firm whose bands froze for five years — real pay down by half, the market moved on, the recruitment funnel dried (the offers laughed at), the tenured staff trapped-then-gone in a wave (the exit interviews unanimous), and the panicked correction costing in one year what maintenance would have cost in five, plus the rebuilding — the arithmetic the consultant shows with the client's own inflation history, because the frozen band FEELS free (no decision, no cost, no letter) and is the most expensive pay decision a firm makes by not making it. The chapter's law-fragment: the structure is only as honest as its maintenance — bands reviewed annually, moved deliberately, floored legally, and separated cleanly from merit.</p>"
-   },
-   {
-    "title": "Chapter 5 — Promotion re-pricing & the equity reads",
-    "est": "13",
-    "html": "<p>The individual movements the cycle prices, and the population-level fairness reads that keep the whole structure honest. The equity chapter.</p><p><b>Promotion re-pricing.</b> HR 7's promotion event, receiving its pay discipline: the promoted person is priced INTO THE NEW BAND (the placement conversation — typically at or near the new band's floor-to-lower-third depending on readiness, per the firm's stated convention), NOT given a percentage on old pay — because the percent-on-old-pay promotion manufactures the trade's commonest inequity by arithmetic: the promoted-from-below person lands under the band (or under peers hired directly into the grade), doing the bigger job at the smaller pay, with the gap visible to everyone the moment module 4's band transparency exists (the promotion that nets a person less than an external hire for the same seat is the structure contradicting itself in public). The discipline's edge cases handled by rule: the promotion whose new-band placement exceeds the matrix-era increments is CORRECT (the promotion is a re-pricing event, not an increment — budgeted in Chapter 6's headcount plan, not the increment envelope), and the small-step promotion into an overlapping band placed thoughtfully (the overlap zone is where the placement convention earns its keep).</p><p><b>The compression read.</b> The first population scan, run annually beside the cycle: COMPRESSION — the gap between adjacent layers shrinking until it inverts (the new hire priced at today's market landing above the three-year incumbent whose increments lagged; the supervisor earning barely above the supervised — the differential that made the rung worth climbing, eroded): read by listing each grade's population against the one below (the overlaps flagged, the inversions treated as urgent — the incumbent who discovers the newcomer's premium is a resignation letter in draft, and module 4's confidentiality only delays the discovery), and repaired deliberately (the lagging incumbents' corrections prioritised in the envelope — the compression repair as a named budget line, because compression is the market's message that the internal maintenance fell behind the external reality, and the repair bill is the lag's invoice).</p><p><b>The equity scan.</b> The harder read, run with the care it demands: pay equity across the population — like work compared with like pay (within grade, controlling for band position and tenure: the scan asking whether any PATTERN — gender being the scan's classic and legally live axis, but tenure cohorts and hire-era effects equally — explains pay differences that evidence does not), read at altitude first (the grade-level averages and distributions — the HR track's numbers-are-questions epistemics governing absolutely: the pattern surfaced is a question for investigation, not a verdict for announcement), investigated by cases (the flagged pairs walked against their documents — the offer history, the increment trail, the red-circles: sometimes the difference has a documented story; sometimes it has none, and the none is the finding), and REPAIRED where found (the correction through the cycle's machinery, communicated per module 4's individual-change discipline — and the adviser engaged where the finding has legal weight, per the standing grammar). The scan's annual habit is the point: the firm that reads its own equity yearly repairs drifts of months; the firm that never reads repairs decades, publicly, under counsel.</p><p><b>The red-circle clock.</b> The legacy arrangements of module 1, managed over time: the red-circled pay (above-band, personal-to-holder) held FLAT through cycles (the band rises toward it — the increment matrix's high-position taper doing its designed work; the red circle is not punished, merely not compounded) until the band catches up and the circle dissolves (the arrangement re-absorbed into structure — the event noted, the history closed), with the discipline being patience-by-design: the red circle inherited from the pre-structure era is a debt the structure retires by growth, not by confrontation — the module's quietest lesson in how architecture fixes what arguments cannot.</p>"
-   },
-   {
-    "title": "Chapter 6 — The payroll budget: the owner's instrument",
-    "est": "13",
-    "html": "<p>The cycle's ceiling and the owner's steering wheel: the PAYROLL BUDGET — the layer where pay meets the business's arithmetic. The budget chapter.</p><p><b>Payroll cost in the business's shape.</b> The framing numbers, taught for the owner conversation: TOTAL payroll cost (module 1's third number, summed — gross plus employer statutory plus the variable layer's run-rate: the employer-cost model at population scale) read against the business (as a share of revenue and of gross margin — the trade's ratios varying by vertical: the distribution business and the pharmacy carry different payroll shapes, and the consultant benchmarks against the firm's own trend first, the vertical's norms second), TRENDED (the ratio's drift telling the structural story — payroll growing faster than gross margin is a trajectory conversation, not a crisis, when read early), and DECOMPOSED (the cost by branch and function via Accounts 6's dimensions — the payroll journal's cost-center addresses making the question 'where does our payroll go?' a report, not a research project: the trilogy's machinery answering the owner's biggest cost question from its ordinary operation).</p><p><b>The envelope.</b> The cycle's budget discipline, mechanised: the increment ENVELOPE set before the cycle (Chapter 2's stage one) from the business's numbers — the affordability modeled (the envelope's percentage against the year's plan: what the P&L carries, what the cash carries — the accountant's session, with Accounts 7's statements as the evidence), the envelope's COMPOSITION named (the maintenance share for the COLA reality, the merit pool for the matrix, the named repair lines — the below-band corrections, the compression repairs of Chapter 5 — each sized: the envelope with named compartments survives the cycle; the single number gets eaten by whoever moves first), and the envelope's honesty defended in both directions (the envelope too small for maintenance is Chapter 4's frozen-band autopsy on the instalment plan — the owner shown the real-pay arithmetic and the attrition bill before choosing it; the envelope inflated past the business's arithmetic is next year's retrenchment conversation prepaid — the sustainable raise beats the impressive one, and the workforce, told honestly, knows it).</p><p><b>The what-if machinery.</b> Module 1's modeling discipline at cycle scale: the review modeled before it is offered — the grid's scenarios costed (matrix tuning A versus B, the band move's price tag, the promotion slate's total — each scenario's monthly and annual cost, employer-statutory included, because the increment's true cost is the third number's delta, not the gross delta), the headcount plan integrated (HR 2's staffing frame — the planned hires' full cost in the same model: the year's people budget as ONE picture, increments and hires together, against one affordability), and the model's output being the owner's decision-grade page: this envelope, these bands, this slate — costing this, monthly, from these dates. The affordability conversation done this way is the module's quiet gift to the founder: the year's hardest numbers, decided once, with evidence, in daylight — instead of relitigated at every request, from memory, in corridors.</p><p><b>The budget's year.</b> The instrument's rhythm, closing the chapter: the budget set annually with the envelope, TRACKED monthly (the run's totals against the plan — module 3's approval already reads this; the budget line makes the reading cumulative), and VARIANCE-read quarterly (the drift explained: the overtime trend of module 5's read, the unplanned hires, the off-cycle creep — each a named cause, because the payroll budget that drifts silently is the business's largest cost unmanaged, and the one this trilogy exists to make boring).</p>"
-   },
-   {
-    "title": "Chapter 7 — Governing the cycle: authorities, letters & the no-quiet-raises law",
-    "est": "13",
-    "html": "<p>The cycle's governance shell: who decides, how it is communicated, and the law that keeps every pay change inside the machinery. The governance chapter.</p><p><b>The authorities.</b> The cycle's separated powers, in the academy's pattern: the MATRIX and bands are configuration (the narrowest pen — changed at the cycle by the design conversation, versioned), the GRID is proposed by the machinery and adjusted by management within governance (the written-reason discipline for every deviation from the matrix's proposal — the adjustment without a reason is the favour system re-entering through the exception door), the APPROVAL is the named authority's in one sitting (the whole grid, every name — the founder at HealthTrade's scale; the committee where scale demands: module 3's real-approval standard at the year's biggest pay moment), and the EXECUTION is the payroll seat's through the standing machinery (the assignments by event, the letters from the grid — the deciders and the executors distinct, as every track requires). Nobody adjusts their own row: the cycle's participants with pay in the grid — the payroll seat, the managers — have their rows decided by their principals (HR 6's nobody-files-their-own-case law, at the pay table).</p><p><b>The letters.</b> The cycle's communication, per module 4's laws: INDIVIDUAL letters (the pay change is personal — the letter with the current, the new, the effective date, and the NET effect per module 1's modeling: the ₦20k gross that yields ₦14k net, shown, because the un-shown net difference is payday's guaranteed query), the maintenance and merit named separately (Chapter 4's two lines), the below-band and compression corrections named as corrections (the structure's justice, claimed), the letters BEFORE the first affected run with the week's runway (never-surprised-by-payday at the year's biggest change), and filed to the record (HR 7's event discipline — the letter is the assignment's authorising document). The population announcement beside them: the cycle's completion announced with its process honoured (the matrix's logic, the bands' review, the envelope's reality — the HOW public per module 4's transparency line, the WHOs private forever).</p><p><b>The no-quiet-raises law.</b> The cycle's perimeter, stated absolutely: every change to fixed pay travels through the CYCLE or a defined MOVEMENT EVENT — no third path (the quiet raise granted mid-year outside both is module 1's quiet edit wearing a kindness: invisible to the envelope, corrosive to the evenness, and discoverable by exactly the person it will wound most), with the mid-cycle EXCEPTION governed rather than denied: the genuine market correction (the critical role's band suddenly wrong — the band question handled as Chapter 4's machinery, off-cycle but on-process) and the counter-offer case (HR 6's honest framing applied: where the firm chooses to counter, the counter travels as a documented exception with its written reason, its approval, and its letter — rare by design, because Chapter's machinery makes the systematic version unnecessary: the firm whose bands are maintained and whose matrix pays evidence has removed the resignation-as-negotiation channel's fuel). The law's enforcement is structural, as always: the assignment writable only by its owning events (module 1's fence), the cycle and the movement events being the only events that own it — the quiet raise not forbidden but IMPOSSIBLE, which is this academy's preferred kind of rule.</p>"
-   },
-   {
-    "title": "Chapter 8 — Case study: HealthTrade's first review cycle",
-    "est": "16",
-    "html": "<p>The cycle, run end to end in its first year on structure. Every chapter clocks in.</p><p><b>The envelope and the evidence (Ch. 2, 6).</b> The sequence holds from the start: the accountant's affordability session lands the envelope in November (the year's numbers carrying a defined pool — compartments named: maintenance share, merit pool, and two repair lines pre-sized), the appraisal season concludes first (HR 5's calibrated ratings in — the calendar sequenced deliberately, and the one manager who tries to 'revisit' a rating during pay season is declined by the calendar itself: <i>ratings closed in October; we are pricing them, not rewriting them</i>). The band review runs beside it: the market read from the year's own hiring data (two declined offers at the counter-role band's floor — the market's message, received), the minimum-wage confirmation with the adviser (the lowest band's floor cleared with margin), and ONE band moved — the counter roles' band lifted, its floor corrections costed as the move's price tag and approved with open eyes.</p><p><b>The matrix and the grid (Ch. 3, 5).</b> The matrix designed in one sitting (three ratings by three band positions — nine cells, the philosophy walked: debt-paying cell largest, meets-at-midpoint as maintenance, high-position tapered), the grid generated in minutes — and the adjustments arrive as governance, not favours: TWO below-band corrections fire first (the band move's floor effect — the corrections funded from their named line, the letters drafted as corrections: the structure's justice, second edition), ONE compression flag (a three-year till operator overlapped by the year's new hire — the incumbent's repair prioritised with its written reason: <i>market moved; her increments lagged; the gap is ours, not hers</i>), and one promotion priced properly (the Ibadan senior storekeeper of HR 8's succession — placed into the new band's lower third, NOT percent-on-old: the placement exceeding any matrix cell, correctly, as a re-pricing event from the headcount plan's budget). The equity scan's first run reads clean at grade level with one flagged pair — walked against documents, the difference explained by a documented red-circle — the scan filed with its finding: <i>clean, one explained, repeat annually.</i></p><p><b>The letters and the run (Ch. 7, 2).</b> The founder approves the grid in one sitting — every name, every current-and-new, the envelope's total confirmed against the pool (<i>first year I've seen the whole picture on one page</i>). The letters go out with the week's runway: maintenance and merit as two lines (the branch reaction validating Chapter 4's design — the maintenance line landing as respect: <i>they named the inflation instead of pretending it was a raise</i>), net effects shown, the corrections named as corrections. The population announcement honours the process at the branch meetings. The first affected run's variance read is pre-loaded with the grid as its expected list — module 3's review consuming module 6's output, every variance matched, the run sealing clean on schedule.</p><p><b>The perimeter tested (Ch. 7).</b> The year delivers its test in month eight: a Lagos pharmacist resigns with a competitor's offer; the MD wants to counter. The machinery answers instead of the mood: the band checked first (current — the market read four months old and holding), the person's grid position reviewed (paid at band, rated honestly), and the honest conversation held per HR 6's framing — the firm counters ONCE, as a documented exception with its written reason and letter (the specialist licence's replacement cost pricing the exception), and the file notes the systemic answer beside the individual one: <i>if this recurs, it is a band question, not a counter-offer policy.</i> The pharmacist stays; the exception stays rare; the perimeter holds. The MD's cycle note closes the case: <i>pay used to be twenty-seven separate arguments spread across a year; now it is one season, one grid, one envelope — and the arguments stopped because the answers moved into the structure.</i></p>"
+    "html": "<p>The governance built, then the round run through it. Every chapter appears.</p><p><b>The matrix and the record (Chapters 2, 6).</b> The one-page matrix is agreed with the MD: branch managers propose, the MD approves; off-cycle changes need the MD regardless; the round approves as a total against the budget line first, names second. The movement record opens with the go-live history back-filled from the offer letters — every current base traceable to its letter from day one. The first quarterly reconciliation runs clean: every assignment has its line and letter.</p><p><b>An off-cycle test (Chapters 2-3).</b> Month two, a branch manager messages: <i>increase Kemi's pay, she's carrying the branch.</i> The operator's reply is the standard: the matrix line quoted, the letter template sent. The MD approves, the letter issues — new base, effective the 1st of the following month — and the execution runs same-day: assignment created, letter attached, preview read against the letter (the pension and PAYE lines moving with the base, shown), movement line logged. Kemi's first changed slip matches her letter to the naira; no query arrives.</p><p><b>The round (Chapter 5).</b> The MD sets the timetable: decisions closed by the 10th, letters the 15th, effective the 1st of the next month, first changed payday inside one cycle. The operator produces the deciders' reads (Chapter 6): the pay register by structure, the consistency spread — which surfaces one genuine outlier: <b>two pharmacists, one role, bases eighteen percent apart</b>, presented as data without editorial; the MD resolves it inside the round — and the modelled cost with the employer pension riding, read against the budget line. Twenty-two rises approve. The batch enters by governed import; the both-ways verification catches nothing missing and one extra — <b>an assignment created in a duplicate import row</b> — cancelled before it computes. Letters issue on the 15th; the confidentiality window holds (one corridor question gets the standing answer).</p><p><b>The arrears case (Chapter 4).</b> Two of the twenty-two were review-committee stragglers: decided in the round but agreed effective <b>two months earlier</b> per their review outcomes. Both run the lane: assignments with honest past From Dates; arrears sheets showing the two months' deltas through the package rates; one <b>Arrears</b> component created through the governed lane and registered; two Additional Salary entries with sheets and letters attached, Deduct Full Tax ticked per the materiality line. The arrears month's register comparison expects both spikes and holds both sheets. Both employees get the prepared walk — letter, sheet, tax note — at delivery; zero disputes.</p><p><b>A promotion (Chapter 5).</b> The Ibadan branch supervisor moves to branch manager: the <b>Employee Promotion</b> record carries the designation change from the date; the assignment moves her from Branch Retail Staff to Management with the new base; the preview walk flags that the Retail structure's meal allowance is absent from Management — <b>the letter had not mentioned it</b>; the operator routes the silent difference back to the MD, who amends the letter (the allowance absorbed into the base) before entry. The slip she receives matches the letter she signed. The quarter's movement read goes to the MD as data: twenty-three changes, two arrears cases — both from decision timing — and the note that next year's round timetable closes decisions ten days earlier.</p>"
    },
    {
     "title": "Chapter 9 — Common mistakes & the sixth law",
-    "est": "13",
-    "html": "<p>The review layer's scar tissue. Symptom → disease → fix.</p><p><b>Pattern 1 — the squeaky-wheel raise.</b> Symptom: raises to whoever asks loudest, whenever; the quiet diligent underpaid for their silence; resignation as the only reliable negotiation channel. Disease: rolling favours instead of a cycle (Ch. 1-2). Fix: one cycle on the calendar, the matrix pricing evidence, the perimeter law — the path to more money the same for everyone.</p><p><b>Pattern 2 — the frozen band.</b> Symptom: 'stable' salaries through years of inflation; offers laughed at; the tenured wave-exit; the panic correction costing five years' maintenance at once. Disease: real-pay decay unmanaged (Ch. 1, 4) — the most expensive decision made by not making it. Fix: the annual band review against market, inflation, and the minimum wage; maintenance named and funded; the decay arithmetic shown to the owner yearly.</p><p><b>Pattern 3 — the percent-on-old-pay promotion.</b> Symptom: the promoted earning under the band and under external peers; the bigger job at the smaller pay; the structure contradicting itself in public. Disease: the promotion treated as an increment instead of a re-pricing (Ch. 5). Fix: placement into the new band by convention, budgeted from the headcount plan — the rung worth climbing because the price honours it.</p><p><b>Pattern 4 — compression ignored.</b> Symptom: new hires above incumbents; supervisors barely above supervised; the discovery followed by the resignation. Disease: the market repriced the entrance while the inside lagged (Ch. 5). Fix: the annual compression read, the inversions urgent, the repairs a named envelope line — the lag's invoice paid deliberately, not at exit interviews.</p><p><b>Pattern 5 — the unbudgeted cycle.</b> Symptom: increments decided then discovered unaffordable; the envelope negotiated after the wish-list; next year's retrenchment prepaying this year's generosity. Disease: capacity consulted last (Ch. 6). Fix: the envelope before the cycle, compartments named, scenarios costed at the third number — the sustainable raise beating the impressive one.</p><p><b>Pattern 6 — the quiet raise.</b> Symptom: pay changes outside any cycle or event; the grid that doesn't match the assignments; the favour discovered by exactly whom it wounds. Disease: the third path left open (Ch. 7). Fix: the assignment writable only by its owning events — the cycle and the movements — with the governed mid-cycle exception documented and rare: the quiet raise made impossible, not merely forbidden.</p><p><b>The sixth law.</b> The structure computes, the state rides, the run seals, the account renders, the one-offs join — and now the change itself is governed: <b>pay reviews run on structure and evidence — one cycle with its envelope set first, the matrix pricing calibrated evidence evenly, bands maintained against market, inflation, and law, promotions re-priced into their bands, equity read annually, every change lettered with its net, and no path to changed pay outside the machinery.</b> The firm that governs pay's changes as well as its computation has closed the layer's last leak — and module 7 now takes the machinery to its hardest single computation: the exit, where everything this track built must settle one person's whole account, once, correctly, on a deadline.</p>"
+    "est": "11",
+    "html": "<p>The governance layer's recurring failures, then the review list.</p><p><b>Pattern 1 — the corridor rise.</b> Symptom: pay changed from messages and recollections; two people remembering two amounts; the dispute arriving with the first slip. Cause: the evidence standard unenforced (Chapter 2). Fix: the four-element standard (who, what, from when, whose approval) with the letter as anchor, the operator's procedural refusal, and same-day execution keeping the lane faster than the corridor.</p><p><b>Pattern 2 — the moved date.</b> Symptom: effective dates shifted forward \"to keep it simple\"; employees paid less than decided; the letter and the records disagreeing. Cause: arrears treated as too hard (Chapters 3-4). Fix: the date is the decision's, always — the honest From Date plus the arrears lane, whose sheet makes the hard part arithmetic.</p><p><b>Pattern 3 — the reopened month.</b> Symptom: past slips cancelled and recomputed to apply late decisions; the register's history unstable; the payroll tie broken backward. Cause: the two-halves design unknown (Chapter 4). Fix: history stands — the past was computed correctly by the records as they stood; the new assignment goes forward, the arrears document covers the gap.</p><p><b>Pattern 4 — the naked assignment.</b> Symptom: a base changed with no movement line and no letter; discovered by the reconciliation or the comparison; error and mischief indistinguishable. Cause: the logging step skipped (Chapters 3, 6). Fix: the movement line as part of execution, the quarterly assignment-to-record reconciliation, and the naked assignment treated as the serious finding it is.</p><p><b>Pattern 5 — the straggling round.</b> Symptom: the annual review dribbling across months; arrears manufactured by scheduling; the round's cost never modelled against the budget before approval. Cause: no timetable, no batch procedure (Chapter 5). Fix: the published timetable inside one cycle, the list as anchor, the both-ways batch verification, and the modelled cost — employer statutory riding — read against the budget line before names approve.</p><p><b>Pattern 6 — the operator with opinions.</b> Symptom: the operator recommending amounts, arguing cases, taking sides; every dispute finding the operator inside it. Cause: the boundary abandoned (Chapters 1, 6). Fix: data without editorial — spreads, costs, counts, produced clean and dated — and the decisions left with the matrix's owners; the discipline is the value.</p><p><b>The review list.</b> Before the quiz, confirm you can: state the two halves of a pay change and the operator's refusal; hold the approval matrix with the four-element evidence standard and the letter as anchor; execute the single change same-day with its preview and movement line, across the three timing cases; run the arrears lane — honest From Date, the sheet's arithmetic, the Arrears component entry with the tax policy, history standing; execute a promotion with the Employee Promotion record and the silent-difference flag, and run the annual round on its timetable with the both-ways verification; produce the deciders' reads — register, spread, modelled cost, budget tie — without editorial; and route the boundary cases by the three questions.</p><p><b>The sixth law: a pay change is a decision executed as a record — approved on the matrix, anchored to its letter, effective from its honest date, arrears by document, history standing, and every movement explained by the record.</b> Module 7 covers exits: the final slip, the settlement, and the leaver's payroll close.</p>"
    }
   ],
   "questions": [
    {
-    "q": "Unreviewed nominal pay:",
+    "q": "A pay change's two halves are:",
     "opts": [
-     "Decays — inflation cuts real pay without a decision, and the workforce experiences it as the pay cut it is",
-     "Stays stable",
-     "Grows",
-     "Is fair"
+     "The decision (management's, on the matrix) and the execution (the operator's, as records)",
+     "Gross and net",
+     "Letter and slip",
+     "Old and new"
     ],
     "ans": 0,
-    "why": "The review is maintenance, not generosity.",
+    "why": "The custody split, applied to changes.",
     "src": "Ch1"
    },
    {
-    "q": "The appraisal that never touches pay:",
+    "q": "The operator's refusal is:",
     "opts": [
-     "Stays credible",
-     "Eventually never touches effort — evidence that changes nothing teaches the folder was theatre",
-     "Is safer",
-     "Is standard"
-    ],
-    "ans": 1,
-    "why": "HR 5's ambush law, payroll corollary.",
-    "src": "Ch1"
-   },
-   {
-    "q": "The review cycle reconciles:",
-    "opts": [
-     "Requests and moods",
-     "Managers and staff",
-     "The firm's capacity and the person's evidence — evenly, inside one envelope",
-     "Budgets and taxes"
-    ],
-    "ans": 2,
-    "why": "Named inputs keep the cycle honest.",
-    "src": "Ch1"
-   },
-   {
-    "q": "Rolling individual renegotiations are:",
-    "opts": [
-     "Flexible",
-     "Cheaper",
-     "Modern",
-     "The favour system with a calendar problem — raises to whoever asked loudest"
-    ],
-    "ans": 3,
-    "why": "One cycle concentrates the hardest conversation into one season.",
-    "src": "Ch1"
-   },
-   {
-    "q": "Ratings finalised during pay season are:",
-    "opts": [
-     "Written backwards from desired raises — appraisals conclude first, by calendar design",
-     "Fresh",
-     "Efficient",
-     "Calibrated"
-    ],
-    "ans": 0,
-    "why": "The two calendars sequenced deliberately.",
-    "src": "Ch2"
-   },
-   {
-    "q": "The cycle's first stage is:",
-    "opts": [
-     "The wish-list",
-     "The envelope set before the cycle opens — opened without one, it closes as an argument",
-     "The letters",
-     "The ratings"
-    ],
-    "ans": 1,
-    "why": "Envelope before wishes.",
-    "src": "Ch2"
-   },
-   {
-    "q": "The first affected run's variance read is:",
-    "opts": [
-     "Normal",
-     "Skipped",
-     "Pre-loaded with the cycle's grid as the expected-changes list — module 3 consuming module 6",
-     "Doubled"
-    ],
-    "ans": 2,
-    "why": "The machinery meshing.",
-    "src": "Ch2"
-   },
-   {
-    "q": "The matrix's axes are:",
-    "opts": [
-     "Tenure and age",
-     "Branch and grade",
-     "Salary and role",
-     "The calibrated rating crossed with position in band — yielding the increment per cell"
-    ],
-    "ans": 3,
-    "why": "Evidence into naira, mechanically, as the starting grid.",
-    "src": "Ch3"
-   },
-   {
-    "q": "The largest matrix cell serves:",
-    "opts": [
-     "High-rating-low-position — the strong performer paid under band is the biggest fairness debt and flight risk at once",
-     "Top of band",
-     "Low ratings",
-     "Managers"
-    ],
-    "ans": 0,
-    "why": "The matrix pays the debt fastest.",
-    "src": "Ch3"
-   },
-   {
-    "q": "The person at band top gets:",
-    "opts": [
-     "The biggest increment",
-     "The promotion question or the band question — not an increment that breaches the band's meaning",
-     "Nothing ever",
-     "A bonus"
-    ],
-    "ans": 1,
-    "why": "The high-position taper.",
-    "src": "Ch3"
-   },
-   {
-    "q": "The matrix cannot like anyone — this is:",
-    "opts": [
-     "Its flaw",
-     "A bug",
-     "Its point — evenness, budget control, defensibility, and speed",
-     "Rigidity"
-    ],
-    "ans": 2,
-    "why": "The favour system structurally displaced.",
-    "src": "Ch3"
-   },
-   {
-    "q": "The below-band correction is:",
-    "opts": [
-     "An increment",
+     "Rude",
+     "Procedural — no approved decision, no record; executing vague instructions inherits their disputes",
      "Optional",
-     "A reward",
-     "The structure enforcing its own promise — corrected first, funded ahead of the discretionary pool"
+     "A veto on amounts"
+    ],
+    "ans": 1,
+    "why": "The lane's honesty depends on it.",
+    "src": "Ch1"
+   },
+   {
+    "q": "Off-cycle rises carry:",
+    "opts": [
+     "A lower bar",
+     "No approval",
+     "A higher bar by design — the owner's approval regardless of amount, because exceptions breed there",
+     "The same bar"
+    ],
+    "ans": 2,
+    "why": "The matrix says so plainly.",
+    "src": "Ch2"
+   },
+   {
+    "q": "The evidence standard's four elements:",
+    "opts": [
+     "Name, rank, date, amount",
+     "Old base, new base, tax, net",
+     "Letter, slip, register, run",
+     "Who, what (the new base), from when (explicit), and whose approval per the matrix"
     ],
     "ans": 3,
-    "why": "The floor means something or nothing.",
+    "why": "'Increase Tunde's pay' fails three of four.",
+    "src": "Ch2"
+   },
+   {
+    "q": "The letter is the anchor because:",
+    "opts": [
+     "It is what the employee agreed to, what the assignment must match, and what settles 'but I was told'",
+     "It is formal",
+     "HR requires it",
+     "It sets the tax"
+    ],
+    "ans": 0,
+    "why": "Filed attached to the assignment it produces.",
+    "src": "Ch2"
+   },
+   {
+    "q": "Decisions in flight are handled:",
+    "opts": [
+     "Openly",
+     "At maximum confidentiality — controlled folder, no open channels, the conduct rule strictest here",
+     "By supervisors",
+     "In the register"
+    ],
+    "ans": 1,
+    "why": "A leaked round is a trust failure across the whole staff.",
+    "src": "Ch2"
+   },
+   {
+    "q": "The single change's execution is:",
+    "opts": [
+     "Edit the old assignment",
+     "A slip adjustment",
+     "Verify, new assignment (exact base, honest From Date, letter attached), preview, movement line, the run applies it",
+     "A memo"
+    ],
+    "ans": 2,
+    "why": "One procedure, same every time.",
     "src": "Ch3"
    },
    {
-    "q": "Uncalibrated ratings turn the matrix into:",
+    "q": "A decision effective next month, arriving today:",
     "opts": [
-     "An expensive rubber stamp — HR 5's calibration is the load-bearing dependency",
-     "A better tool",
-     "A backup",
+     "Waits in a drawer",
+     "Is previewed only",
+     "Enters next month",
+     "Enters now with its future From Date — the date does the scheduling"
+    ],
+    "ans": 3,
+    "why": "Enter decisions when they arrive.",
+    "src": "Ch3"
+   },
+   {
+    "q": "The preview of a change shows:",
+    "opts": [
+     "The full consequence — the new base through the percentages, pension and PAYE moving with it, against the letter",
+     "Only the base",
+     "The old slip",
+     "The budget"
+    ],
+    "ans": 0,
+    "why": "The execution's proof.",
+    "src": "Ch3"
+   },
+   {
+    "q": "Moving the From Date forward 'to keep it simple':",
+    "opts": [
+     "Is efficient",
+     "Never happens — the date is the decision's; simplicity is the arrears lane's job",
+     "Is standard",
+     "Saves tax"
+    ],
+    "ans": 1,
+    "why": "Pattern 2.",
+    "src": "Ch3"
+   },
+   {
+    "q": "The late change's two halves are:",
+    "opts": [
+     "Letter and slip",
+     "Tax and pension",
+     "The new assignment with its honest past From Date going forward, and the arrears document covering the paid months",
+     "Old and new structures"
+    ],
+    "ans": 2,
+    "why": "History stands; the gap is a document.",
+    "src": "Ch4"
+   },
+   {
+    "q": "Past slips under a late decision are:",
+    "opts": [
+     "Reopened and recomputed",
+     "Edited",
+     "Cancelled",
+     "Left standing — correct when computed by the records as they stood; the arrears lane exists so history can stand"
+    ],
+    "ans": 3,
+    "why": "Pattern 3's fix.",
+    "src": "Ch4"
+   },
+   {
+    "q": "The arrears sheet shows:",
+    "opts": [
+     "Per-month deltas through the package rates, summed — its working files with the letter",
+     "One number",
+     "The tax only",
+     "The old base"
+    ],
+    "ans": 0,
+    "why": "For percentage structures, it is arithmetic.",
+    "src": "Ch4"
+   },
+   {
+    "q": "Arrears enter as:",
+    "opts": [
+     "A base edit",
+     "An Additional Salary on a registered Arrears component — taxable, sheet and letter attached, the tax-flag policy applied",
+     "Cash",
+     "A new structure"
+    ],
+    "ans": 1,
+    "why": "Module 5's machinery at its most important standing use.",
+    "src": "Ch4"
+   },
+   {
+    "q": "The quarterly arrears count tells the owner:",
+    "opts": [
+     "Payroll is slow",
+     "Nothing",
+     "Decision timing is slow — arrears exist because decisions were late, handed over as data",
+     "Tax rose"
+    ],
+    "ans": 2,
+    "why": "Data instead of complaint.",
+    "src": "Ch4"
+   },
+   {
+    "q": "The Employee Promotion record:",
+    "opts": [
+     "Changes pay",
+     "Is optional",
+     "Is the letter",
+     "Documents the role event and applies the property changes — the role history readable as a chain"
+    ],
+    "ans": 3,
+    "why": "The pay half is the new assignment.",
+    "src": "Ch5"
+   },
+   {
+    "q": "The promotion preview's extra care is for:",
+    "opts": [
+     "The structure move's silent differences — an allowance the new package lacks is flagged back before entry",
+     "The tax",
+     "The bank",
+     "The date"
+    ],
+    "ans": 0,
+    "why": "The employee finds it on the slip if nobody found it before.",
+    "src": "Ch5"
+   },
+   {
+    "q": "The round's batch verification ties:",
+    "opts": [
+     "Budget to actual",
+     "The list both ways — every name has its assignment, every new assignment is on the list",
+     "Slips to letters",
+     "Tax to pension"
+    ],
+    "ans": 1,
+    "why": "Catches dropped and invented alike.",
+    "src": "Ch5"
+   },
+   {
+    "q": "The round's timetable exists because:",
+    "opts": [
+     "Meetings need dates",
+     "The budget says so",
+     "A round straggling across months manufactures arrears out of pure scheduling",
+     "Letters expire"
+    ],
+    "ans": 2,
+    "why": "Inside one payroll cycle.",
+    "src": "Ch5"
+   },
+   {
+    "q": "The movement record answers:",
+    "opts": [
+     "The tax rate",
+     "The budget",
+     "The bank file",
+     "Any base's history — every value, each with its decision, letter, and approver"
+    ],
+    "ans": 3,
+    "why": "The assignment chain with its governance columns.",
+    "src": "Ch6"
+   },
+   {
+    "q": "A naked assignment is:",
+    "opts": [
+     "A base change with no movement line and no letter — the comparison's most serious finding",
+     "Routine",
+     "A draft",
+     "A promotion"
+    ],
+    "ans": 0,
+    "why": "Error and mischief indistinguishable.",
+    "src": "Ch6"
+   },
+   {
+    "q": "The consistency read presents:",
+    "opts": [
+     "Recommendations",
+     "Base spreads per role family as aggregates — the operator surfaces the question; the answer is management's",
+     "Names and blame",
      "Nothing"
     ],
-    "ans": 0,
-    "why": "The two-track consultant sells them as the pair they are.",
-    "src": "Ch3"
-   },
-   {
-    "q": "The band unmoved for three years has:",
-    "opts": [
-     "Saved money",
-     "Drifted down the market by arithmetic alone — inflation moved it without a decision",
-     "Stayed neutral",
-     "Improved"
-    ],
     "ans": 1,
-    "why": "The annual band review's second force.",
-    "src": "Ch4"
+    "why": "Outliers seen before the round, not after a grievance.",
+    "src": "Ch6"
    },
    {
-    "q": "The national minimum wage is:",
+    "q": "A round's true cost includes:",
     "opts": [
-     "A guideline",
-     "Negotiable",
-     "The absolute floor tested against the lowest band every year — a compliance event, not a negotiation",
-     "Advisory"
+     "Bases only",
+     "Tax only",
+     "The employer statutory riding — the employer pension moves with every base; the modelling sheet says so",
+     "Net only"
     ],
     "ans": 2,
-    "why": "The band floor below the legal floor is a violation wearing a structure.",
-    "src": "Ch4"
+    "why": "Read against the budget line before approval.",
+    "src": "Ch6"
    },
    {
-    "q": "The band move and the increment cycle are:",
+    "q": "The operator's boundary on amounts:",
     "opts": [
-     "One instrument",
-     "Both annual favours",
-     "Interchangeable",
-     "Separate instruments — the floor effect corrects now; the position effect feeds NEXT cycle's matrix"
+     "Recommend freely",
+     "Veto large ones",
+     "Decide small ones",
+     "Data without editorial — spreads, costs, counts; the deciders decide"
     ],
     "ans": 3,
-    "why": "Conflating them double-spends the envelope.",
-    "src": "Ch4"
+    "why": "The discipline is the value.",
+    "src": "Ch6"
    },
    {
-    "q": "Blending COLA and merit into one number:",
+    "q": "A structure redesign runs:",
     "opts": [
-     "Teaches that merit is automatic — named separately, the firm gets credit for both",
-     "Simplifies fairly",
-     "Saves letters",
-     "Is required"
+     "Module 8's change discipline — owner and accountant together, new assignments at batch scale, history standing",
+     "Chapter 3's lane",
+     "A slip edit",
+     "No lane"
     ],
     "ans": 0,
-    "why": "One letter, two lines, twice the trust.",
-    "src": "Ch4"
+    "why": "The B/H/T split moves statutory amounts.",
+    "src": "Ch7"
    },
    {
-    "q": "The frozen band feels free because:",
+    "q": "A pay reduction requires:",
     "opts": [
-     "It is free",
-     "No decision, no cost, no letter — and is the most expensive pay decision made by not making it",
-     "Inflation is low",
-     "Staff prefer it"
+     "An instruction",
+     "The employee's signed agreement to varied terms before any record — else the operator executes a breach",
+     "A memo",
+     "A freeze"
     ],
     "ans": 1,
-    "why": "The panic correction costs five years' maintenance at once.",
-    "src": "Ch4"
+    "why": "The heaviest change, legally and personally.",
+    "src": "Ch7"
    },
    {
-    "q": "The promoted person is priced:",
+    "q": "Temporary pay changes ride:",
     "opts": [
-     "Percent on old pay",
-     "At old pay",
-     "Into the new band by the placement convention — the promotion is a re-pricing event, not an increment",
-     "Above the band"
+     "The base",
+     "The structure",
+     "A recurring Additional Salary with honest From/To dates — the base moves only for permanent decisions",
+     "The slip"
     ],
     "ans": 2,
-    "why": "Percent-on-old manufactures the trade's commonest inequity by arithmetic.",
-    "src": "Ch5"
+    "why": "'Permanent or for a period?' routes the lane.",
+    "src": "Ch7"
    },
    {
-    "q": "Compression inversion means:",
+    "q": "'His base was entered wrong' is:",
     "opts": [
-     "Bands overlap by design",
-     "A rounding issue",
-     "Normal markets",
-     "The newcomer or the supervised out-earning the layer above — urgent, and a resignation letter in draft"
+     "A pay change",
+     "A promotion",
+     "A rise",
+     "A correction — evidenced against the offer letter, arrears or recovery lane, logged with its cause"
     ],
     "ans": 3,
-    "why": "The market's message that internal maintenance fell behind.",
-    "src": "Ch5"
+    "why": "Corrections and changes carry different signals.",
+    "src": "Ch7"
    },
    {
-    "q": "The equity scan's flagged pattern is:",
+    "q": "The routing questions are:",
     "opts": [
-     "A question for investigation — walked against documents; sometimes explained, and the none is the finding",
-     "A verdict",
-     "An announcement",
-     "Ignored"
+     "Permanent or temporary? Individual or structural? Decision or correction?",
+     "Who, what, when",
+     "Gross or net? Tax or pension? Old or new?",
+     "Fast or slow?"
     ],
     "ans": 0,
-    "why": "Numbers-are-questions, at the scan with legal weight.",
-    "src": "Ch5"
+    "why": "Thirty seconds before any record is touched.",
+    "src": "Ch7"
    },
    {
-    "q": "Red-circled pay is managed by:",
+    "q": "HealthTrade's off-cycle test ended with:",
     "opts": [
-     "Confrontation",
-     "Patience by design — held flat while the band rises toward it, then re-absorbed",
-     "Cuts",
-     "Compounding"
+     "A corridor rise",
+     "The matrix quoted, the letter issued, same-day execution, a slip matching the letter to the naira",
+     "A refusal forever",
+     "A dispute"
     ],
     "ans": 1,
-    "why": "The debt the structure retires by growth.",
-    "src": "Ch5"
+    "why": "The lane faster than the corridor.",
+    "src": "Ch8"
    },
    {
-    "q": "The payroll budget decomposes by:",
-    "opts": [
-     "Guesswork",
-     "Survey",
-     "Branch and function via the journal's cost-center addresses — a report, not a research project",
-     "Memory"
-    ],
-    "ans": 2,
-    "why": "The trilogy's machinery answering the owner's biggest cost question.",
-    "src": "Ch6"
-   },
-   {
-    "q": "The envelope with named compartments:",
-    "opts": [
-     "Is bureaucracy",
-     "Is optional",
-     "Is slower",
-     "Survives the cycle — the single number gets eaten by whoever moves first"
-    ],
-    "ans": 3,
-    "why": "Maintenance share, merit pool, named repair lines.",
-    "src": "Ch6"
-   },
-   {
-    "q": "The inflated envelope is:",
-    "opts": [
-     "Next year's retrenchment conversation prepaid — the sustainable raise beats the impressive one",
-     "Generosity",
-     "Retention",
-     "Harmless"
-    ],
-    "ans": 0,
-    "why": "Defended in both directions.",
-    "src": "Ch6"
-   },
-   {
-    "q": "The increment's true cost is:",
-    "opts": [
-     "The gross delta",
-     "The third number's delta — employer statutory included, monthly and annual",
-     "The net delta",
-     "The letter"
-    ],
-    "ans": 1,
-    "why": "The what-if model's honesty.",
-    "src": "Ch6"
-   },
-   {
-    "q": "Matrix deviations require:",
+    "q": "The consistency read surfaced:",
     "opts": [
      "Nothing",
-     "Seniority",
-     "Written reasons — the adjustment without one is the favour system re-entering through the exception door",
-     "A meeting"
+     "A tax error",
+     "Two pharmacists, one role, bases eighteen percent apart — presented as data, resolved inside the round",
+     "A ghost"
     ],
     "ans": 2,
-    "why": "The matrix proposes, humans decide, governance records.",
-    "src": "Ch7"
+    "why": "Before the round, not after a grievance.",
+    "src": "Ch8"
    },
    {
-    "q": "Nobody adjusts their own row means:",
+    "q": "The batch verification caught:",
     "opts": [
-     "Rows are fixed",
-     "Founders excepted",
-     "No adjustments",
-     "The cycle's participants with pay in the grid have their rows decided by their principals"
+     "A dropped name",
+     "Nothing",
+     "A tax error",
+     "A duplicate import row's extra assignment — cancelled before it computed"
     ],
     "ans": 3,
-    "why": "Nobody-files-their-own-case, at the pay table.",
-    "src": "Ch7"
+    "why": "Both-ways: none dropped, none invented.",
+    "src": "Ch8"
    },
    {
-    "q": "The letter shows the net effect because:",
+    "q": "The promotion's silent difference was:",
     "opts": [
-     "The un-shown net difference is payday's guaranteed query — ₦20k gross yielding ₦14k net, shown",
-     "Law requires it",
-     "Nets are secret",
-     "It is polite"
+     "The Retail meal allowance absent from Management — flagged back; the letter amended before entry",
+     "A tax change",
+     "A date error",
+     "A bank change"
     ],
     "ans": 0,
-    "why": "Module 1's modeling in the year's biggest communication.",
-    "src": "Ch7"
+    "why": "The slip she received matched the letter she signed.",
+    "src": "Ch8"
    },
    {
-    "q": "The quiet raise is:",
+    "q": "The corridor rise is fixed by:",
     "opts": [
-     "Forbidden by memo",
-     "Made impossible — the assignment writable only by its owning events, and no third path owns it",
-     "Occasional",
-     "The founder's right"
+     "Faster corridors",
+     "The four-element standard, the letter anchor, the procedural refusal, and same-day execution",
+     "Bigger rises",
+     "No rises"
     ],
     "ans": 1,
-    "why": "The academy's preferred kind of rule.",
-    "src": "Ch7"
+    "why": "Pattern 1.",
+    "src": "Ch9"
    },
    {
-    "q": "HealthTrade's compression repair reasoned:",
+    "q": "Module 6's law is:",
     "opts": [
-     "She should ask",
-     "New hires earn more",
-     "'Market moved; her increments lagged; the gap is ours, not hers'",
-     "Nothing"
+     "Pay changes are informal",
+     "Dates are flexible",
+     "A pay change is a decision executed as a record — approved on the matrix, anchored to its letter, effective from its honest date, arrears by document, history standing, every movement explained",
+     "History reopens"
     ],
     "ans": 2,
-    "why": "The lag's invoice, paid deliberately.",
-    "src": "Ch8"
-   },
-   {
-    "q": "The maintenance line's branch reaction was:",
-    "opts": [
-     "Confusion",
-     "Silence",
-     "Complaints",
-     "Respect — 'they named the inflation instead of pretending it was a raise'"
-    ],
-    "ans": 3,
-    "why": "The two-line letter's design, validated.",
-    "src": "Ch8"
-   },
-   {
-    "q": "The counter-offer case was handled by:",
-    "opts": [
-     "The machinery — band checked, position reviewed, one documented exception with its reason, and the systemic note filed",
-     "Mood",
-     "Refusal",
-     "A quiet raise"
-    ],
-    "ans": 0,
-    "why": "'If this recurs, it is a band question, not a counter-offer policy.'",
-    "src": "Ch8"
-   },
-   {
-    "q": "The MD's cycle summary was:",
-    "opts": [
-     "More arguments",
-     "Twenty-seven arguments became one season, one grid, one envelope — the answers moved into the structure",
-     "Higher costs",
-     "Slower reviews"
-    ],
-    "ans": 1,
-    "why": "The cycle's whole promise.",
-    "src": "Ch8"
-   },
-   {
-    "q": "This module's law is:",
-    "opts": [
-     "Raises reward asking",
-     "Bands are permanent",
-     "Reviews run on structure and evidence — one cycle, envelope first, the matrix pricing calibrated evidence, bands maintained, promotions re-priced, equity read, no path outside the machinery",
-     "Pay is static"
-    ],
-    "ans": 2,
-    "why": "The layer's last leak, closed.",
+    "why": "The sixth law.",
     "src": "Ch9"
    }
   ]
