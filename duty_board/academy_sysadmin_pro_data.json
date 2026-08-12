@@ -2844,946 +2844,946 @@
  },
  "monitoring_health": {
   "title": "Sysadmin 7 — Monitoring, Performance & the Health Reads",
-  "desc": "The system read before it is felt: the error log by shape with a documented baseline, the scheduler as every calendar's heartbeat, the login and access silhouettes with evidence before conversation, the storage waistline, the slow-screen craft that converts feelings into findings, and the weekly health page with thresholds that act.",
+  "desc": "Monitoring in ZhiftERP: the three reading rules (trend not point, exception not census, silence is a finding); the Error Log triage and its four patterns; the Scheduled Job Type/Log pulse check with the all-jobs-silent diagnosis; Background Jobs as the on-demand instrument with the three user-facing translations; the weekly people-read with its privacy posture; storage and reference-timing trends with evidenced escalation; the one-page health page and the three assembled cadences; and the incident log with its quarterly cause read.",
   "lessons": [
    {
     "title": "Chapter 1 — The system is read before it is felt",
+    "est": "11",
+    "html": "<p>This module covers monitoring: the Error Log, the scheduler and its job logs, the background job queue, the login and activity reads, storage and performance trends, the health page that assembles them, and the incident log that closes the loop.</p><p><b>The principle.</b> Every system state that matters can be discovered two ways: <b>read</b> from the system's own instruments while it is small, or <b>felt</b> by the business when it is large — the backup that quietly stopped, felt at the restore; the scheduler that died, felt when the accruals never posted; the storage that filled, felt when attachments start failing at month-end. Monitoring is choosing to read. Every instrument in this module already exists on the site; the module's work is the <b>habit</b> — the reads on the calendar, the numbers trended, the exceptions investigated.</p><p><b>The three reading rules.</b></p><p>1. <b>Trend, not point.</b> A single number means little; its direction means everything. Storage at 60% is a fact; storage that moved 40 → 50 → 60 in three months is a forecast. The health page (Chapter 7) exists to hold last month's numbers beside this month's.<br>2. <b>Exception, not census.</b> The reads are built to surface what changed — new error types, jobs that stopped, counts that jumped — not to re-read the unchanged. A five-minute daily read stays five minutes only if it is exception-shaped.<br>3. <b>Silence is a finding.</b> The statement run's queue spike that did not happen, the nightly backup that is not listed, the scheduler log with no entries since Tuesday — the absence of expected activity is the loudest signal in this module, and the one untrained readers miss, because nothing looks wrong.</p><p><b>The escalation posture.</b> Monitoring feeds two lanes: the site-custody findings the sysadmin fixes (a misconfigured notification looping, a permission error pattern), and the platform-custody findings raised to CloudERP.One <b>with evidence</b> — the five-item report of module 1, now armed with this module's instruments: the exact Error Log entries, the job log timestamps, the trend numbers. Monitoring is what turns \"the system is slow\" into a report the host can act on in one pass.</p><p><b>Module contents.</b> Chapter 2: the Error Log. Chapter 3: the scheduler and its logs. Chapter 4: background jobs and the queues. Chapter 5: logins, lockouts, and the Activity Log. Chapter 6: storage and performance trends. Chapter 7: the health page and the assembled reads. Chapter 8: the incident log and the HealthTrade case. Chapter 9: review and the law.</p>"
+   },
+   {
+    "title": "Chapter 2 — The Error Log",
     "est": "12",
-    "html": "<p>Every platform problem the firm ever FEELS — the slow screen, the missed reminder, the invoice that never sent, the morning the site is down — existed as a READABLE signal first: the error that started clustering last week, the scheduler that stopped on Tuesday, the queue that began deepening, the storage line that bent. The module's thesis is the track's seventh law: <b>the system is read before it is felt — because the read costs minutes and the felt costs mornings.</b></p><p><b>The gross-reads pattern, at the platform layer.</b> The academy's oldest diagnostic instinct, arriving home: every functional track taught its function to read gross signals before drilling (the aging's shape before the account, the variance's line before the row) — and the platform has its own gross reads, which this module builds into the admin's working instrument: the ERROR log's shape (Chapter 2), the SCHEDULER's heartbeat (3), the LOGIN patterns (4), the STORAGE line (5), and the PERFORMANCE feel made measurable (6) — assembled into the health page (7) that makes the platform's condition a FACT the admin states rather than a feeling the firm debates. The posture's economics, restated from module 1 and now fully priced: the daily glance is five minutes; the weekly read is fifteen; the monthly assembly is thirty — an hour a week, total, against the alternative every un-watched site eventually pays: the problem that incubated readable for weeks and detonated felt on the worst morning available.</p><p><b>The reading discipline.</b> The epistemics, imported whole from six tracks and sharpened for machines: TREND before level (the error count of forty means nothing; the error count that was four last month means everything — every read in this module is a line, not a number), SHAPE before detail (the glance reads silhouettes — the log's size, the queue's depth, the login map's density: the anomalous silhouette earns the drill-down; the normal one earns a tick and a closed tab — the admin who reads every log line daily has confused diligence with method and will stop within a month), DECOMPOSE before concluding (the anomaly opened by its parts — which error, which job, which user, which report — before any story is told about it), and ROUTE before fixing (the module's standing split, one more time: the reads are the admin's; the findings belong to their owners — the error in a customisation to the change register's owner, the login anomaly to the conduct layer, the slow report to its function's design conversation, the capacity signal to the boundary: the monitoring desk is a triage desk, and the admin who fixes everything they read has quietly collected every function's keys, which module 8 will not allow).</p>"
+    "html": "<p>Open <b>Error Log</b> (awesome bar). Every unhandled failure inside the site writes an entry here — the site's own complaint channel, and the daily read's first stop.</p><p><b>Reading an entry.</b> Each record carries the timestamp, the method or context that failed, and the traceback — the technical text describing where and why. The sysadmin does not need to program to read it usefully; three fields carry the triage:</p><p>• <b>The first and last lines of the traceback</b> — the error's name and its immediate cause, often plain enough (\"PermissionError\", a missing value, a timeout).<br>• <b>The method/context</b> — which machinery failed: a report, a notification, a scheduled job, a document event.<br>• <b>The count and clustering</b> — one entry is an event; forty identical entries since 9am is a pattern with a start time, and the start time usually names the cause (what changed at 9am?).</p><p><b>The triage, as a procedure.</b></p><p>1. <b>New or known?</b> The daily read scans for error types not seen before. Known noise — the benign entries every site accumulates — is recognised and passed; a <b>new</b> type is investigated the day it appears, because day one it has a fresh trail and day thirty it has folklore.<br>2. <b>Site custody or platform custody?</b> The custody map's question, asked with better evidence now: a permission error on one user is module 2's territory; a repeating failure inside platform machinery is a raise — with the entry's full text copied whole into the five-item report (the error text is the single highest-value item a support report carries).<br>3. <b>User-facing or silent?</b> An error a user saw has a person to follow up with; an error nobody saw is this module's speciality — the failing notification, the dying import — found here or not at all.</p><p><b>The patterns worth memorising.</b></p><p>• <b>The 9am cluster</b> — errors starting when a change deployed: module 5's verify-live step missed something; the change lane's log names the suspect.<br>• <b>The nightly regular</b> — the same entry every night at the same minute: a scheduled job failing on schedule (Chapter 3 confirms which).<br>• <b>The permission drizzle</b> — scattered PermissionErrors from one role after a permission change: the change was too tight; module 2's diagnosis path.<br>• <b>The integration silence-with-errors</b> — the channel register's health check failing while its errors accumulate here: Chapter 6-of-module-6's procedures, with the entries as evidence.</p><p>Practical rule: the Error Log read is sixty seconds when clean — filter to the last day, scan the types, done. Its value compounds through the calendar: the sysadmin who reads daily recognises \"new\" on sight, which is the entire skill.</p>"
    },
    {
-    "title": "Chapter 2 — The error log: the site's own complaint channel",
+    "title": "Chapter 3 — The scheduler and its logs",
+    "est": "12",
+    "html": "<p>Half the programme's automation runs on the <b>scheduler</b> — the machinery that fires time-based work: the nightly backups, the Auto Repeat entries (the Accounts track's monthly rent journal), the Notifications on their date rules, the Auto Email Reports, the statement run's schedule, the queue's dispatch. A dead or limping scheduler silently stops all of it at once, which makes this chapter's read the daily list's most consequential thirty seconds.</p><p><b>The instruments.</b></p><p>• <b>Scheduled Job Type</b> (awesome bar) — the catalogue: every scheduled job the site knows, with its frequency and whether it is stopped. The read here is the census — what should be running.<br>• <b>Scheduled Job Log</b> — the record: each job's executions with status and time. The read here is the pulse — what actually ran, and when it last did.</p><p><b>The daily pulse check.</b> Open the Scheduled Job Log, sorted newest first: entries from the last few minutes and hours confirm the scheduler lives. Then the two exception reads:</p><p>1. <b>Failures:</b> filter to failed status in the last day — each failure is an Error Log companion entry (Chapter 2's nightly-regular pattern lands here); repeated failure of one job is a raise or a fix depending on custody.<br>2. <b>Silence:</b> the last-execution ages. A job that should run hourly showing a last run of Tuesday is the finding — and if <b>all</b> jobs show Tuesday, the scheduler itself died Tuesday, and everything time-based has been off since: backups, reminders, queues. That discovery is a same-day, highest-severity raise — and the reason this read is daily, because every day undetected multiplies the recovery: the missed Auto Repeats to post manually, the queued documents to drain, the backup gap to acknowledge in the continuity log.</p><p><b>The business-side verification.</b> The logs prove the machinery ran; the tracks prove the <b>work</b> arrived — and both checks exist because each catches what the other misses:</p><p>• The Accounts close confirms the Auto Repeat entries posted (checklist line 2 — \"confirmed fired\").<br>• The queue's volume read confirms the statement run's spike (module 6).<br>• The backup presence check confirms the nightly set (module 4).</p><p>When a track-side check fails (\"the rent journal didn't post\"), this chapter is the diagnosis path: the Scheduled Job Log says whether the machinery ran; the Error Log says why not; the custody map says who fixes it.</p><p>Practical rule: after any platform update or incident recovery, the pulse check runs immediately even though it is \"not time\" — schedulers are the classic casualty of disturbed systems, and the thirty-second read is cheaper than discovering it at month-end.</p>"
+   },
+   {
+    "title": "Chapter 4 — Background jobs and the queues",
+    "est": "12",
+    "html": "<p>Beside the clock-driven scheduler, the site runs <b>background jobs</b> — work handed off to run behind the interface so the user is not held waiting: the large report, the bulk import's processing, the heavy document submissions, the email dispatch. This chapter is reading that machinery.</p><p><b>The instrument.</b> Open the <b>Background Jobs</b> page (awesome bar): the current queues with their jobs — queued, started, and failed — and each job's method and age. The healthy picture is a short, fast-moving list: jobs appear, run, vanish. The unhealthy pictures:</p><p>• <b>The growing queue</b> — jobs arriving faster than they finish: the site is under load or a worker has stalled. Users feel this as \"the system is slow\" and \"my import is stuck\"; the queue read converts the feeling into evidence (how many jobs, how old, which methods) for the raise.<br>• <b>The failed cluster</b> — failed jobs naming one method: the Error Log holds the why (Chapter 2's companion pattern); the fix follows custody.<br>• <b>The stuck head</b> — one long-running job blocking a queue: the age column names it; the raise carries it.</p><p><b>The user-facing translations.</b> Three standing situations where this page answers the front line:</p><p>1. <b>\"My import has been running forever.\"</b> The import's processing is a background job — find it: still running (patience, with an age estimate), failed (the Data Import document carries the error rows; module 3's procedure), or absent (it never queued — resubmit).<br>2. <b>\"The report never loads.\"</b> Heavy reports queue in the background; a queue backlog delays them all. The read distinguishes \"this report is heavy\" (one job, running) from \"the site is congested\" (many jobs, aging) — two different escalations.<br>3. <b>\"Emails are delayed.\"</b> The email dispatch rides this machinery too — the Email Queue (module 6) shows the documents; this page shows whether the machinery that drains it is moving. The pair together diagnose in one minute what either alone only suspects.</p><p><b>Where it sits in the calendar.</b> Not a standing daily line — the daily read's instruments (Error Log, Scheduled Job Log, Email Queue, backup presence) catch the failures that matter overnight. Background Jobs is the <b>on-demand instrument</b>: opened when slowness is reported, when an import stalls, when the queue is suspected — plus a weekly glance riding the performance read (Chapter 6) so its normal picture stays familiar. An instrument read only during incidents is read badly; the weekly glance is what keeps \"normal\" recognisable.</p><p>Practical rule: every \"the system is slow\" report gets this page opened <b>while the slowness is live</b> — the evidence evaporates with the queue. A screenshot of the live queue state is worth three paragraphs in the raise.</p>"
+   },
+   {
+    "title": "Chapter 5 — Logins, lockouts, and the Activity Log",
+    "est": "12",
+    "html": "<p>Who is using the system, from where, and who is failing to — the people-side reads, sitting between this module and module 8's security layer.</p><p><b>The instruments.</b></p><p>• <b>The User list's last-login read</b> (module 2 introduced it): Enabled users sorted by last login. The two ends carry the findings — never-logged-in accounts (granted but unused: a joiner who never started, or an account created for no one) and the ninety-day-quiet accounts the quarterly recertification disables.<br>• <b>The Activity Log</b> (awesome bar): the stream of logins and significant actions, filterable by user and time. The read is exception-shaped: <b>failed login clusters</b> (many failures on one account: a forgotten password if the owner confirms, a guessing attempt if not — the lockout setting from module 1's settings walk is the automatic answer, and the cluster is the read that proves it fired), <b>off-hours patterns</b> (logins at hours the job does not explain — a conversation, not an accusation: legitimate reasons abound, but the pattern is read, not ignored), and <b>the after-event reconstruction</b> (when module 8's audit questions arrive — who was in the system Tuesday evening — this log is the first answer).</p><p><b>The weekly read (module 1's calendar line, now fully specified).</b></p><p>1. Failed-login clusters in the last week: each cluster attributed (owner confirms the fumble) or escalated (module 8's security-event response for the unexplained).<br>2. Lockouts fired: read as the control working; repeated lockouts on one account get the owner conversation (training or trouble).<br>3. The user delta (module 2's read) — the same sitting, the same five minutes.</p><p><b>The session angle.</b> Module 1's settings walk set session expiry; this read verifies the policy is livable: complaints about constant re-login mean the expiry is too tight for the work pattern (a governed settings conversation, not a silent loosening), while sessions that never seem to end mean the setting drifted or a change reverted it — the annual walk's reconciliation catches the second; the complaints catch the first.</p><p><b>The privacy posture, stated once.</b> These reads exist to protect the system and its users — the honest account holder is <b>defended</b> by the log that shows their account guessed-at and locked, exactly as the honest cashier is defended by the till count. The reads are performed by the named sysadmin, on the calendar, for the written purposes; browsing colleagues' activity outside the reads is itself an access-review finding. The instrument that guards the system is governed like everything else that touches it.</p><p>Practical rule: the weekly people-read is five minutes because it is exception-shaped — clusters, lockouts, deltas. The month it takes twenty minutes is the month something is happening; that is the read working.</p>"
+   },
+   {
+    "title": "Chapter 6 — Storage and performance trends",
+    "est": "12",
+    "html": "<p>The slow-growing numbers: disk and speed. Neither fails suddenly — both drift, which makes them the purest case for the trend-not-point rule.</p><p><b>Storage.</b> The site's footprint is the database plus the files (module 4's two components, now read as sizes). The platform exposes the numbers through the host's panel or the support channel; the sysadmin records them <b>monthly on the health page</b> — database size, files size, and the deltas.</p><p>• <b>The reads:</b> steady growth proportional to trading is health; a <b>delta jump</b> names an event (a heavy import month, an attachment-happy new process, a runaway log) — identified while it is one month old, not archaeologised at 90% full.<br>• <b>The attachment economy:</b> files usually outgrow the database, because evidence habits (this programme's own doing) attach documents everywhere. The governance is sizing, not abstinence: module 1's settings walk set the attachment size limit; scans are made at document resolution, not photo resolution; and the occasional bulk offender (the 40MB video someone attached to a delivery note) is found by asking the host for the largest-files read when a jump appears.<br>• <b>The forecast conversation:</b> the trend line answers \"when do we need more\" months ahead, which converts a storage crisis into a plan-and-budget line with the host.</p><p><b>Performance.</b> Speed has no single gauge; the read is assembled:</p><p>1. <b>The user-report channel, disciplined:</b> \"slow\" reports are logged with the what/when/where (which screen, which report, what time, how many users) — the pattern across reports is the instrument. One person's slow afternoon is noise; everyone's slow month-end mornings is a signal with a shape.<br>2. <b>The reference timings:</b> a small set of standing operations timed monthly — the Trial Balance for the current month, one heavy standard report, one list view of the busiest doctype — the same operations, the same filters, logged on the health page. Drift across months is the evidence that survives the \"it feels slower\" argument in both directions.<br>3. <b>The background-jobs glance</b> (Chapter 4) riding the same monthly sitting.</p><p><b>The escalation, evidenced.</b> Performance raises to the host carry: the reference-timing trend, the pattern from the user reports (times, screens, concurrency), and the live-state evidence where captured. That package lets the host act in one pass — resource sizing, query attention, whatever the platform side needs — instead of a week of \"can you describe the slowness\".</p><p>Practical rule: both numbers are boring by design — two lines on the health page, five minutes monthly. The boredom is the point: the month either line becomes interesting, it does so with three months of context already attached.</p>"
+   },
+   {
+    "title": "Chapter 7 — The health page and the assembled reads",
+    "est": "12",
+    "html": "<p>The module's instruments assemble into one page and three cadences. This chapter is the assembly — the reads module 1's calendar promised, now fully built.</p><p><b>The health page.</b> One page, kept with the ops log, holding the standing numbers month by month:</p><p>• Storage: database size, files size, deltas (Chapter 6).<br>• The reference timings (Chapter 6).<br>• Error Log: new types this month, and the noise register (the known-benign list that keeps the daily read fast).<br>• Scheduler: failures this month, and any silence incidents.<br>• Email: queue error count, and the big runs confirmed (the statement spike).<br>• Users: enabled count, System Manager count (always two), lockouts, ninety-day-quiet count.<br>• Backups: presence-check misses (target zero), the drill's minutes (module 4's RTO evidence).<br>• Incidents: count by custody, with repeat-cause flags (Chapter 8).</p><p>Twelve columns a year. The page's value is the <b>row beside last month's row</b> — every trend rule in this module lands here.</p><p><b>The daily read (five minutes), assembled:</b></p><p>1. Error Log — last day, new types (Chapter 2).<br>2. Scheduled Job Log — the pulse and the failures (Chapter 3).<br>3. Email Queue — errors and the drain (module 6).<br>4. Backup presence (module 4).</p><p><b>The weekly read (ten minutes):</b> the people-read — failed-login clusters, lockouts, the user delta (Chapter 5) — plus the Background Jobs familiarity glance (Chapter 4).</p><p><b>The monthly read (thirty minutes):</b> the health page's row filled — storage, timings, the counts — the restore drill (module 4), the integration health checks (module 6), and the incident log's month read (Chapter 8). The row's anomalies each get one line of cause or one open action.</p><p><b>Delegation and continuity.</b> The reads are procedures with owners, which means they delegate: the daily read is an ideal early responsibility for the sysadmin's backstop (module 1's design) — it builds the recognise-normal skill that every other duty needs, and it means the reads survive leave and departure. The health page itself is the handover test's monitoring chapter: a newcomer reading twelve months of rows knows the system's normal better than most incumbents who never wrote it down.</p><p>Practical rule: resist adding numbers to the page. Every number must have a reader and a rule (what makes it a finding); a page of forty unowned metrics is a dashboard nobody reads, and the five-minute daily read stays five minutes only because the page stayed one page.</p>"
+   },
+   {
+    "title": "Chapter 8 — The incident log & the HealthTrade case",
     "est": "13",
-    "html": "<p>The site complains in one place: the ERROR log — every failure, exception, and refusal recorded as it happens. The admin who reads it holds the site's own account of its troubles. The error chapter.</p><p><b>Reading for shape.</b> The method before the content: the log read as a SHAPE first (the daily glance's question is not 'what does each error say?' but 'what does the log look like?' — its size against yesterday's, its growth rate, its clustering: the quiet log is the tick; the log that doubled overnight is the day's first question, opened before any user feels what caused it), the shape's anatomy taught: the BASELINE known (every site has its noise floor — the known, benign, recurring entries the admin has previously triaged and named: the baseline documented in the site book so the glance compares against knowledge, not memory, and so the next admin inherits the floor instead of re-triaging it), the NEW SPECIES flagged (the error type never seen before is always worth a read — new species are how changes announce their side effects: the post-update morning's log being read with Chapter 2 of the change module's walk exactly because new species cluster there), and the CLUSTER read (one error once is weather; the same error forty times since Tuesday is a system saying something specific — the cluster's timestamp pattern telling the story: the burst at month-end is a load story; the steady drum since a deploy date is a change story; the cluster tied to one user is a training or permission story).</p><p><b>The triage.</b> The findings routed by kind, per the module's split: the error in a CUSTOMISATION's territory (the custom script's exception, the format's rendering failure — routed to the change register's entry and its owner: the customisation debt of module 5 announcing an interest payment), the error post-UPDATE (the timing read against the update log — the correlation routed to the boundary's ticket with module 1's hygiene: the log excerpt, the timestamps, the affected flow), the error in a FUNCTION's flow (the validation failing on real work — often a design or training finding for the owning function: the error log as the functions' own workaround detector, because the users who hit walls generate errors before they generate complaints), and the INFRASTRUCTURE-scented error (the timeout, the connection failure — the boundary's side, ticketed with the evidence attached), with the triage's discipline: the log worked to a KNOWN state (every entry either baseline-known, routed, or resolved — the unread error log of the module's indictment being the complaint channel nobody answers: the site that has been reporting its disease daily to an empty room).</p><p><b>The rhythm.</b> The error read's calendar: the DAILY shape glance (the silhouette, thirty seconds), the WEEKLY triage (the new species named, the clusters opened, the routings made — the fifteen minutes that keeps the log a known quantity), and the MONTHLY trend (the error count's line on the health page — falling as the site matures, and every sustained rise carrying a name: the new customisation bedding in, the update's wake, the growing branch's load: the trend that cannot be explained being itself a finding). The chapter's closing frame: the error log is the cheapest consultant the firm employs — it reports every problem, in writing, timestamped, the moment it happens, for free — and the certified admin is simply the person who finally reads its reports.</p>"
-   },
-   {
-    "title": "Chapter 3 — The scheduler: every calendar's heartbeat",
-    "est": "13",
-    "html": "<p>Beneath every rhythm this academy built — the reminders, the recurring documents, the auto-emails, the queue's pump — runs one machine: the SCHEDULER and its background jobs. When it stops, every calendar stops, silently. The heartbeat chapter.</p><p><b>What rides the heartbeat.</b> The dependency map, drawn so the stakes are visible: the scheduled jobs carry the REMINDER engines (the expiry alerts of the HR track, the renewal warnings, the approval nudges — module 6 of this track's notification rules all fire FROM here), the RECURRING documents (the auto-generated entries, the standing orders), the EMAIL queue's pump (Chapter 3 of module 6's ledger moves because a job moves it — the stuck pump being the invoice-that-never-sent disease's actual mechanism), the INTEGRATION synchronisations (the doors' scheduled exchanges), and the MAINTENANCE cycles (the log rotations, the cleanup jobs) — which yields the chapter's central sentence: <b>the scheduler's failure is every calendar's silent failure at once</b> — nothing errors visibly, nothing complains, the site works perfectly for every interactive purpose, and the firm's automated nervous system is simply not firing: the licence expiry that never alerted, the recurring invoice that never generated, discovered weeks later by their consequences.</p><p><b>The reads.</b> The heartbeat watched: the SCHEDULER's status confirmed on the daily glance (running, and recently — the last-execution timestamps read: the scheduler that last fired hours ago on a minutes-cadence site IS the finding, before any consequence surfaces), the JOB list's health (the failed jobs read like the error log — by shape and cluster: the one job failing repeatedly is a specific disease; jobs failing broadly is the machinery's), the QUEUE depth (the pending-jobs count as a silhouette — the deepening queue meaning the machinery is falling behind its work: the depth that grows through the day and clears at night is load; the depth that only grows is a stall), and the LONG-RUNNER read (the job that used to take minutes taking hours — the growth story of Chapter 5 arriving at the job layer, and the candidate for the quiet-window rescheduling conversation).</p><p><b>The stopped-heartbeat procedure.</b> The finding's runbook: the stall confirmed (status, timestamps, queue depth — the three-line diagnosis), the RESTART path exercised per the boundary (the site-level restart within the admin's reach through the managed relationship's provided controls, or the ticket with the diagnosis attached — the boundary map's page answering which, in advance, because the stalled scheduler at 8 a.m. is not when to research the question), the BACKLOG's handling decided deliberately (the queue that accumulated during the stall — released to run, watched: the hundred pent reminders arriving at once being module 6's flood in miniature, and the known-stall's backlog sometimes pruned deliberately with the owning functions), and the stall LOGGED with its cause when found (the stall history being a trend of its own — the recurring stall is a capacity or defect conversation with the boundary, evidenced by its log). The chapter's closing tie: module 6's test-fire calendar (the notification rules verified quarterly) is this chapter's insurance — the heartbeat watched from above by the glance AND proven from below by the test-fires, the two directions meeting in the middle exactly as the backup layer's logs-and-drills did: the machinery proven backward and forward, the academy's standing pattern for everything invisible.</p>"
-   },
-   {
-    "title": "Chapter 4 — Login & access reads: the security glance",
-    "est": "13",
-    "html": "<p>The site's doors are used all day — and the usage writes a record the admin reads: the login patterns, the failures, the anomalies. The security glance, seated between module 2's fences and module 8's incident thinking. The access chapter.</p><p><b>The reads.</b> The access layer's silhouettes: the FAILED-LOGIN read (the shape first — the scattered singles are typos and Mondays; the CLUSTER against one account is someone guessing at a door, and the cluster across many accounts is someone guessing at the site: the two clusters carrying different weights and the same instruction — read, evidence, route), the ODD-HOUR and odd-place read (the login at 3 a.m. from an unfamiliar network — sometimes the MD abroad, sometimes not: the anomaly's job is to earn a question, not an accusation — the verification conversation quiet and standard: 'was this you?' asked as routine hygiene, normalised so it alarms nobody and skips nobody), the CONCURRENT-session awareness (the account active from two places at once — the shared-password signature, module 2's one-person-one-account law being violated in the pattern before anyone admits it in words), and the DORMANT scan (module 2's monthly read, seated here on the calendar — the account unused for the horizon flagged to the lifecycle's reconciliation).</p><p><b>The evidence discipline.</b> The access reads' special standing: unlike the error log's mechanical entries, access anomalies touch PEOPLE — so the discipline tightens: EVIDENCE before conversation (the pattern captured — timestamps, sources, the account's history — before any question is asked: the question with its evidence is hygiene; the question without it is an accusation), INVESTIGATION before conclusion (the odd login has a dozen innocent explanations, and the academy's oldest fairness law — the payroll track's investigation-before-conclusion, the HR track's heard-before-judged — applies to access exactly: the pattern is a fact; the story about the pattern waits), and ROUTING by weight (the confirmed innocent anomaly logged and closed; the unexplained one escalated to module 8's incident thinking — the admin's job ending at the evidence's edge: the CONDUCT questions belong to the people layer, with the platform supplying facts, never verdicts — the boundary between 'this account did X' and 'this person did X' being real, stated, and held, because accounts are shared, sessions are left open, and the admin who skips from log line to accusation has exceeded both their evidence and their office).</p><p><b>The access log sampling.</b> The deeper record, read on rhythm: the activity trails (who touched what, when — the audit layer module 8 governs) SAMPLED periodically rather than monitored continuously (the monthly sample of sensitive-tier access — the pay-bearing doctypes' access log read for its population: the readers being who the tier design expects, the volumes being work-shaped — the sample that finds an unexpected reader routing straight to module 2's shouldn't-see procedure with its was-it-used discipline), and the sampling's honesty about its own limits (the sample detects patterns, not everything — which is exactly why module 2 built preventive fences and module 8 builds the conduct standard: the reads are one layer of a defence, never the defence). The chapter's closing frame: the access glance is the firm's cheapest security team — five minutes of silhouettes daily, the evidence discipline when a silhouette earns it, and the humility to route people-questions to people-processes: the platform watches doors; it does not judge the people who walk through them.</p>"
-   },
-   {
-    "title": "Chapter 5 — Storage & growth: the site's waistline",
-    "est": "13",
-    "html": "<p>The site only grows — every document, attachment, log line, and version adds to a line that never naturally bends down. The line watched monthly, its bends explained. The growth chapter.</p><p><b>The trend read.</b> The waistline's discipline: the STORAGE figure read monthly onto its line (the number itself meaning little; the line meaning everything — the steady slope is the firm trading; the BEND is the question: the slope that doubled has a cause with a name, found by decomposition), the growth DECOMPOSED when it bends (what grew — the database or the files? which doctype's volume, which attachment class? — the platform's own size breakdowns read the way the accounts track read variance: the biggest mover first), and the growth's stories told honestly: the GOOD growth (the trading volume rising, the new branch's documents — the firm's success, showing up as bytes: budgeted for, welcomed, and priced into the boundary's capacity conversation ahead of need), and the MISUSE growth (below).</p><p><b>The misuse patterns.</b> The bends with bad causes, catalogued from the trade's reality: the BACKUP-INSIDE-THE-SITE habit (the exported spreadsheets and document dumps re-attached to records 'for safekeeping' — the site storing copies of itself: the habit read as the trust signal it is — someone doesn't believe the system keeps things, and the cure is module 4's evidence shown, not just the files removed), the WRONG-CLASS attachments (the site as a general file server — the videos, the personal archives, the whole-folder uploads riding the attachment door: the attachment policy stated and the outliers conversed with — the storage read naming its heaviest attachers not for shame but for the design conversation: what are they actually trying to do, and where should that live?), the LOG and version bloat (the technical residue growing past its useful horizon — the retention conversation of module 4 applied to the site's own exhaust, with the adviser-confirmed horizons governing what may age), and the DUPLICATE loads (module 3's import residue showing up as bulk — the botched load's remnants found by size as well as by count).</p><p><b>The capacity conversation.</b> The boundary's side, engaged ahead of need: the site's plan and its headroom KNOWN (the current usage against the arrangement's capacity — the number in the site book, refreshed at the monthly read: the capacity surprise being entirely a failure to read a line that was public all along), the growth PROJECTED simply (the slope extended — the twelve-month arrival at the ceiling foreseeable a year out: the upgrade conversation held calm and budgeted, not urgent and reactive), and the ARCHIVE conversation routed properly when the line demands it (module 4's records-retention discipline — the functions and the adviser deciding what may age out, never the admin's storage tidiness: the chapter re-stating the standing law because storage pressure is exactly when admins are tempted to break it — the waistline is managed by governance, not by deletion). The chapter's closing economics: the monthly storage read is two minutes and a dot on a line — against the site that hits its ceiling mid-quarter, uploads failing at the counter, the upgrade negotiated under duress, and the archaeology of 'what is all this?' performed in a panic that the line had been announcing for a year.</p>"
-   },
-   {
-    "title": "Chapter 6 — Performance: the slow-screen craft",
-    "est": "14",
-    "html": "<p>'The system is slow' — the trade's commonest platform complaint, and the least diagnosed. This chapter is the craft that converts the feeling into a finding, at the site admin's altitude. The performance chapter.</p><p><b>Felt versus measured.</b> The discipline first: slowness is a FEELING until it is measured — the complaint met with the diagnostic questions (WHAT is slow — one screen, one report, or everything? WHEN — always, or at month-end's peak? For WHOM — one user, one branch, or all?), because the three answers route to entirely different findings (the one-screen slowness is that screen's story; the everyone-always slowness is a capacity conversation; the month-end slowness is a load pattern; the one-branch slowness is that branch's network before it is anyone's site), and the measurement habit installed: the slow thing TIMED (the report's duration noted, reproduced, recorded — the number that turns 'it's slow' into 'this report takes four minutes at 9 a.m. and forty seconds at 2 p.m.', which is a diagnosis half-made by its own phrasing).</p><p><b>The usual suspects, at admin altitude.</b> The site-level causes the admin can actually address — the honest scope (the deeper layers belong to the boundary and the partner; the admin's terrain is the site's own habits, which cause most of the felt slowness at trade scale): the HEAVY REPORT (the report over years of unfiltered data — the commonest suspect: the report designed in year one, querying everything since, slower every month by the site's own growth — the cure being the FILTER discipline below), the UNFILTERED LIST (the list view loading an entire doctype's history because its default filters were never set — the screen that opens 'slow' opening, in fact, everything), the PEAK-HOUR pile-up (the heavy reads scheduled against the counter's rush — the month-end report that everyone runs at 9 a.m. on the 1st: the scheduling conversation, and the quiet-window habit for the heavy work), the COLUMN and length habits (the report surfacing forty columns because nobody pruned it — the width carried on every row of every run), and the DEVICE and network reality named honestly (the site is only as fast as the slowest link the user sits behind — the branch on a struggling connection feels 'system slowness' that no site-side cure will fix: the network's half of the diagnosis asked early, because it is the commonest false accusation against the platform).</p><p><b>The report discipline.</b> The craft's centrepiece, because reports are where growth meets habit: reports run FILTERED (the date range mandatory in practice — the report's default period set to the useful window, not to 'everything': the saved report that queries five years for a question about last month is the site taxing itself), the DEFAULTS governed (the shared report's saved filters being configuration — set deliberately, per module 5's small-change ceremony, because the default everyone inherits is a policy), the HEAVY legitimate reads scheduled (the genuine full-history analysis run in the quiet window, welcomed there — the discipline is placement, not prohibition), and the report inventory's slow list maintained (the known-heavy reports named in the site book with their windows — the health page's performance line fed by the list's behaviour over time).</p><p><b>The routing honesty.</b> The chapter's boundary discipline: the admin's craft exhausts at the site's habits — and the slowness that survives the habits' repair routes honestly: the CAPACITY conversation with the boundary (the site that is slow with clean habits and growing load — the evidence assembled: the timings, the growth line, the peak patterns: module 1's ticket hygiene producing the capacity case in one round), and the DESIGN conversation with the partner where customisation is implicated (the custom report or script that grew slow — module 5's owned-forever debt presenting its performance invoice), with the admin's value in both being the DIAGNOSIS (the certified admin does not fix the deep layers — the certified admin arrives at them with the finding pre-made, which is the difference between 'it's slow, help' and a one-round resolution). The chapter's closing reframe: performance is a governance topic wearing a technical costume — most trade-scale slowness is habits, growth, and scheduling, all of which are readable, ownable, and cheap to fix — and the site that 'got slow' almost always got unread first.</p>"
-   },
-   {
-    "title": "Chapter 7 — The health page & escalation thresholds",
-    "est": "13",
-    "html": "<p>The module's reads assembled into its deliverable: the HEALTH PAGE — the platform's condition as one weekly page of facts — and the thresholds that turn readings into actions. The assembly chapter.</p><p><b>The page's lines.</b> The weekly assembly, line by line — each a silhouette with its trend: the BACKUP line (module 4's weekly glance — cycles confirmed, sizes trended, the last drill's date standing), the ERROR line (the count against baseline, new species noted, the routings open), the HEARTBEAT line (scheduler status, failed-job count, queue depth's shape), the ACCESS line (failed-login shape, anomalies open, the dormant scan's last result), the STORAGE line (the waistline's dot, the headroom figure), the PERFORMANCE line (the slow list's behaviour, complaints logged versus measured), the OUTBOUND line (the email queue's failure count, module 6's ledger), and the DOORS line (the integrations' reconciliations current, rejection queues at zero or owned) — eight lines, each already read during the week, the page being the ASSEMBLY of glances, not new work: fifteen minutes on Friday, the platform's week stated as facts.</p><p><b>The thresholds.</b> The judgment mechanised — when a reading becomes an action: the page's each line carrying its ESCALATION thresholds, decided in calm and written down (the error count that doubles week-over-week opens a triage; the scheduler stalled twice in a month opens a boundary conversation; the storage headroom under the horizon opens the capacity case; the failed-login cluster past the line opens module 8's incident path — the thresholds being the page's difference from a diary: the diary records; the instrument ACTS, and the pre-written threshold removes the daily re-litigation of 'is this bad enough yet?', which is exactly the decision that drifts when made fresh each time under workload), and the threshold's discipline honest: thresholds REVIEWED annually (the site that grew re-prices its normals — last year's alarming queue depth is this year's Tuesday), and the threshold-crossing LOGGED with its action (the health page's history being the site's medical record — the recurring crossing being itself a chronic finding).</p><p><b>The page's readers.</b> The audiences served: the ADMIN (the working instrument — the week held in one view, the drift visible before it is felt), the COVERAGE and successor (the absence test's platform edition — the health page's history being the fastest possible orientation: the site's normals, its known issues, its trends, readable in an hour), the BOUNDARY (the capacity and defect conversations armed with the page's evidence — the trend line being the ticket's strongest attachment), and the OWNER (the quarterly platform summary — the MD's 'is the system healthy?' answered the way this academy answers everything: by pointing — the four-line quarterly digest: backups drilled and clean, errors trending down, capacity headroom at X months, zero open incidents — the platform's condition a FACT on a page, which is this module's entire thesis delivered as a deliverable).</p><p><b>The page's law.</b> The chapter's closing cadence, the module's economics stated once more: every line on the health page is minutes; every line's absence is an incubation — the un-watched site does not have fewer problems, it has later ones, discovered by feel on the mornings least convenient — and the certified admin's whole monitoring craft compresses into the sentence the track's seventh law states: the system is read before it is felt, weekly, on one page, with thresholds that act.</p>"
-   },
-   {
-    "title": "Chapter 8 — Case study: HealthTrade's watched year",
-    "est": "16",
-    "html": "<p>The reads installed, the page assembled, the year watched. Every chapter clocks in.</p><p><b>The heartbeat catch (Ch. 3).</b> Month two delivers the module's signature save: the daily glance finds the scheduler's last-execution timestamp six hours stale — the stall confirmed in three lines (status, timestamps, queue depth), the restart path exercised per the boundary's provided controls, the backlog released and watched (ninety pent notifications reviewed with the functions before release — the flood-in-miniature pruned of the stale, the licence-expiry alerts among the released: the alert that mattered arriving one day late instead of never). The counterfactual is written into the log deliberately: <i>unwatched, this stall runs until someone misses a reminder that matters — the pharmacist licence alert in this queue would have surfaced at month three as a compliance lapse. Caught at day two as a restart.</i></p><p><b>The access read's find (Ch. 4).</b> Quarter two: the concurrent-session silhouette flags one account active from two branches simultaneously, repeatedly — the evidence assembled first (timestamps, sources, a fortnight's pattern), the routine verification conversation held ('was this you?' — it was not, exactly: the till supervisor had shared credentials with a relief cover 'to save the request delay'), and the finding routed by weight: the shared-password violation to module 2's machinery (the relief cover granted their OWN account through the channel in a day — the delay excuse dissolved by the SLA being real), the conduct conversation to the people layer with the platform's facts and no verdicts, and the pattern logged. The deeper fix is the module's split honoured: the admin surfaced a fact; the function owned the conversation; and the request channel's speed — not a lecture — retired the workaround's reason.</p><p><b>The waistline and the slow report (Ch. 5-6).</b> The storage line bends in month six — decomposed in ten minutes: the files layer, one branch, one habit (a supervisor re-attaching weekly stock exports 'for safekeeping' — the backup-inside-the-site pattern, met as designed: the module-4 evidence shown, the restore drill's log walked through, the habit retired by trust rather than prohibition, the attachments archived by ceremony). The performance craft earns its keep in month eight: the month-end stock valuation report measured at four minutes and worsening — the diagnosis at admin altitude (unfiltered since implementation, querying every movement since go-live, run by three people at 9 a.m. on the 1st), the cure entirely within the craft (the default period set to the useful window through the small-change ceremony, the full-history version scheduled to the quiet window, the report pruned from forty columns to the eleven its readers used) — twelve seconds at the next month-end, and the finding's note quotes the chapter: <i>the site didn't get slow; it got unread. Four minutes of that report was five years of growth nobody re-filtered.</i></p><p><b>The page's year (Ch. 2, 7).</b> The health page's fifty-two Fridays close the case: the error baseline documented in month one (eleven known-benign species named — the next admin inherits the floor), the trend lines maturing (errors down as the change ceremony beds in; the storage slope re-priced after the archive pass; two threshold crossings all year, both acted within their windows), and the quarterly owner's digest landing exactly as designed — the MD's year-note entering the site book: <i>I used to ask 'is the system okay?' and receive a mood. Now I receive four lines and a trend. The difference is the whole module.</i></p>"
+    "html": "<p><b>The incident log.</b> Every finding that required action — from any module — closes with a log entry: what, when detected, how detected (which read — the instrument's credit matters, Chapter 9 explains why), custody, cause, fix, duration, and the follow-up if any. The log's two standing reads:</p><p>• <b>Monthly:</b> the month's incidents counted by custody for the health page.<br>• <b>Quarterly (module 1's calendar):</b> the read <b>by cause</b> — the same cause twice is a process fault, and the fix moves upstream: the procedure amended, the checklist line added, the setting corrected. The quarterly read is where incidents stop repeating, which is the log's entire purpose.</p><p><b>The HealthTrade case — the monitoring year.</b></p><p><b>The reads installed.</b> The daily five-minute read starts in module 1's month three; this module completes the set: the health page opens with its first row (storage recorded from the host's numbers, the three reference timings logged — Trial Balance 4 seconds, the stock report 11, the invoice list 2), the noise register is built in the first fortnight (six known-benign error types listed, after which the daily Error Log scan drops to its promised sixty seconds), and the weekly and monthly sittings take their calendar slots.</p><p><b>The scheduler death, caught same-day (Chapter 3).</b> A Thursday daily read finds the Scheduled Job Log's newest entry aged nine hours — the pulse check's all-jobs-silent picture. Raised same-day at incident severity with the log timestamps; the host restores the scheduler by afternoon; the recovery checklist runs: the backup presence check confirms the night's set must be watched (the next nightly lands normally), two Auto Repeat entries that missed their slot are posted through the close's confirmed-fired line, and the queue drains its held mail. The incident log entry credits the read: <i>detected by daily pulse check, nine hours after failure; prior detection method: month-end, twenty days away.</i> The entry becomes the case for the calendar the next time anyone calls the daily read bureaucratic.</p><p><b>The slow month-end, escalated with evidence (Chapter 6).</b> Three users report slowness in the same close week; the discipline turns it into a package: the reports logged with times and screens (all morning, all report-heavy), the reference timings re-run mid-slowness (the stock report at 31 seconds against its 11-second baseline), the Background Jobs screenshot showing the aged queue. The raise lands with the host in one pass; the platform side resizes the site's resources; the next close's timings return to baseline — and the health page's timing row carries the whole story in three numbers: 11, 31, 12.</p><p><b>The storage jump, named in a month (Chapter 6).</b> Month five's files delta triples. The largest-files read from the host names the cause inside a day: a new branch process attaching full-resolution photos to every goods receipt. The fix is process, not storage: the scan-resolution guidance lands at the branch, the attachment size limit is confirmed doing its job, and the delta returns to trend. The quarterly incident read later flags nothing — one cause, one occurrence, closed.</p><p>The MD's line for the year file: <i>the system now tells us about its problems before we feel them — and the page proves it.</i></p>"
    },
    {
     "title": "Chapter 9 — Common mistakes & the seventh law",
-    "est": "13",
-    "html": "<p>The monitoring layer's scar tissue. Symptom → disease → fix.</p><p><b>Pattern 1 — the felt-first firm.</b> Symptom: every platform problem announced by its consequences; the missed reminder discovered as a lapsed licence; the site's condition a debate of moods. Disease: no reads at all (Ch. 1). Fix: the glance, the weekly triage, the monthly assembly — an hour a week against the mornings.</p><p><b>Pattern 2 — the unread error log.</b> Symptom: the site reporting its disease daily to an empty room; the cluster that drummed for weeks before the failure everyone felt. Disease: the complaint channel nobody answers (Ch. 2). Fix: shape daily, triage weekly, baseline documented, every entry known, routed, or resolved.</p><p><b>Pattern 3 — the silent scheduler.</b> Symptom: every calendar stopped at once and nothing visibly wrong; the reminder engines dark for weeks; the consequences surfacing as compliance lapses. Disease: the heartbeat unwatched (Ch. 3). Fix: the status and timestamps on the daily glance, the test-fire calendar proving from below, the stall runbook with its boundary path pre-answered.</p><p><b>Pattern 4 — the unwatched doors.</b> Symptom: the failed-login cluster nobody saw; the shared password living in the concurrent sessions; the anomaly that was a fact for weeks before it was a question. Disease: the access layer writing records nobody reads (Ch. 4). Fix: the security glance's silhouettes, evidence before conversation, facts routed without verdicts.</p><p><b>Pattern 5 — the storage surprise.</b> Symptom: the ceiling hit mid-quarter; uploads failing at the counter; the upgrade negotiated under duress; a year of announcements unread. Disease: the waistline never on a line (Ch. 5). Fix: the monthly dot, bends decomposed, misuse patterns met by design conversations, capacity engaged a year ahead.</p><p><b>Pattern 6 — slowness accepted as weather.</b> Symptom: 'the system is slow' as ambient truth; no timings, no questions, no findings; the complaint chronic and the diagnosis never made. Disease: feelings never converted to measurements (Ch. 6). Fix: the three questions, the timing habit, the report discipline, and the honest routing — habits fixed at the site, capacity cases made with evidence.</p><p><b>The seventh law.</b> The custodian, the fences, the masters, the survival, the evolution, the voice — and now the watching: <b>the system is read before it is felt — the error log by shape, the scheduler as every calendar's heartbeat, the doors by silhouette with evidence before conversation, the waistline monthly, slowness measured into findings, and the whole assembled weekly onto one page whose thresholds act — because the read costs minutes and the felt costs mornings.</b> The un-watched site has no fewer problems; it has later, louder ones. Module 8 closes the track — and the academy's seventh certification — with the structural layer: security, audit, and the administration that survives its administrator.</p>"
+    "est": "11",
+    "html": "<p>The monitoring layer's recurring failures, then the review list.</p><p><b>Pattern 1 — the unread instruments.</b> Symptom: the Error Log opened for the first time during an incident, holding six months of the answer; the scheduler dead for weeks; every failure felt before it is read. Cause: the instruments exist and the habit does not (Chapter 1). Fix: the three cadences installed with owners — the reads are minutes precisely because they are regular — and the incident log's how-detected field building the case that keeps them funded.</p><p><b>Pattern 2 — the census read.</b> Symptom: monitoring that takes an hour and gets skipped; dashboards of forty metrics nobody owns; the important exception buried in the unchanged. Cause: reads built as censuses instead of exceptions (Chapters 1, 7). Fix: exception-shaping — new types, deltas, silences — the noise register keeping the known out of the way, and the one-page rule on the health page.</p><p><b>Pattern 3 — the ignored silence.</b> Symptom: the missing backup nobody missed; the statement spike that did not happen; the job log quiet since Tuesday — all invisible because nothing looked wrong. Cause: reads that only scan for red (Chapter 1's third rule untaught). Fix: the expected-activity checks built into the reads — presence, pulse, spike — each one an absence made loud.</p><p><b>Pattern 4 — the evidence-free escalation.</b> Symptom: \"the system is slow\" raised with heat and nothing else; the host's week of diagnostic ping-pong; the slowness gone before it is measured. Cause: escalation without instruments (Chapters 4, 6). Fix: the discipline — live-state captures while the problem is live, reference timings for the drift argument, the five-item report armed with log entries — turning every raise into a one-pass action.</p><p><b>Pattern 5 — the repeating incident.</b> Symptom: the same failure quarterly, fixed the same way, surprising everyone each time. Cause: incidents closed without the log, or logged without the quarterly cause read (Chapter 8). Fix: the log as every finding's closing step, and the quarterly read moving fixes upstream — procedure, checklist, setting — until the cause stops producing.</p><p><b>Pattern 6 — the person-shaped monitor.</b> Symptom: monitoring that lives in one person's habits and dies with their leave; the backstop who has never run the daily read. Cause: reads as personal practice instead of owned procedure (Chapter 7). Fix: the reads written as procedures, the daily read delegated to the backstop as their standing apprenticeship, and the health page carrying the system's \"normal\" on paper where the handover test can find it.</p><p><b>The review list.</b> Before the quiz, confirm you can: state the three reading rules and the two escalation lanes; triage an Error Log entry — new/known, custody, seen/silent — and name the four patterns; run the scheduler pulse check and its silence diagnosis, and the business-side verifications; read Background Jobs and translate the three user-facing situations; run the weekly people-read with its privacy posture; keep the storage and timing trends and build an evidenced escalation; assemble the health page and the three cadences with the one-page rule; and keep the incident log with its quarterly cause read.</p><p><b>The seventh law: the system is read before it is felt — numbers trended, exceptions investigated, and silence treated as a finding.</b> Module 8 closes the track: security, audit, and structure.</p>"
    }
   ],
   "questions": [
    {
-    "q": "Every felt problem:",
+    "q": "Monitoring is choosing to:",
     "opts": [
-     "Existed as a readable signal first — the read costs minutes; the felt costs mornings",
-     "Is sudden",
-     "Is the host's",
-     "Is random"
+     "Read system states from the instruments while they are small",
+     "Feel failures at scale",
+     "Buy dashboards",
+     "Wait for users"
     ],
     "ans": 0,
-    "why": "The module's thesis.",
+    "why": "Read or felt — every state offers both.",
     "src": "Ch1"
    },
    {
-    "q": "The monitoring posture's total cost is:",
+    "q": "The three reading rules are:",
     "opts": [
-     "A hire",
-     "About an hour a week — glance daily, read weekly, assemble monthly",
-     "Half the hat",
-     "Software"
+     "Fast, cheap, daily",
+     "Trend not point; exception not census; silence is a finding",
+     "Red, amber, green",
+     "Log, raise, fix"
     ],
     "ans": 1,
-    "why": "Against the problem that detonates on the worst morning.",
+    "why": "Every read in the module is built on them.",
     "src": "Ch1"
    },
    {
-    "q": "The reads' epistemics are:",
+    "q": "Silence as a finding means:",
     "opts": [
-     "Read everything",
-     "Trust feelings",
-     "Trend before level, shape before detail, decompose before concluding, route before fixing",
-     "Fix everything"
+     "Quiet is good",
+     "Muting alerts",
+     "The absence of expected activity — the missing backup, the absent spike — is the loudest signal",
+     "Fewer reports"
     ],
     "ans": 2,
-    "why": "The admin who reads every line daily will stop within a month.",
+    "why": "Nothing looks wrong, which is the trap.",
     "src": "Ch1"
    },
    {
-    "q": "The monitoring desk is:",
+    "q": "Monitoring turns 'the system is slow' into:",
     "opts": [
-     "A repair desk",
-     "Optional",
-     "A help desk",
-     "A triage desk — the reads are the admin's; the findings belong to their owners"
-    ],
-    "ans": 3,
-    "why": "The admin who fixes everything has collected every function's keys.",
-    "src": "Ch1"
-   },
-   {
-    "q": "The error log is read:",
-    "opts": [
-     "As a SHAPE first — size, growth, clustering; the anomalous silhouette earns the drill-down",
-     "Line by line daily",
-     "Never",
-     "Monthly"
-    ],
-    "ans": 0,
-    "why": "The quiet log is the tick.",
-    "src": "Ch2"
-   },
-   {
-    "q": "The baseline is documented so:",
-    "opts": [
-     "Audits pass",
-     "The glance compares against knowledge, not memory — and the next admin inherits the floor",
-     "Errors vanish",
-     "The host sees it"
-    ],
-    "ans": 1,
-    "why": "Known noise, named once.",
-    "src": "Ch2"
-   },
-   {
-    "q": "One error once vs the same error forty times since Tuesday:",
-    "opts": [
-     "Both weather",
-     "Both incidents",
-     "Weather vs a system saying something specific — the cluster's timestamps tell the story",
-     "Both ignorable"
-    ],
-    "ans": 2,
-    "why": "Burst at month-end = load; steady drum since a deploy = change.",
-    "src": "Ch2"
-   },
-   {
-    "q": "The error log is:",
-    "opts": [
-     "Noise",
-     "Legal risk",
-     "The host's record",
-     "The cheapest consultant the firm employs — every problem reported in writing, timestamped, free"
-    ],
-    "ans": 3,
-    "why": "The certified admin finally reads its reports.",
-    "src": "Ch2"
-   },
-   {
-    "q": "The scheduler's failure is:",
-    "opts": [
-     "Every calendar's silent failure at once — the site works interactively while the nervous system doesn't fire",
-     "One feature down",
-     "Visible immediately",
-     "Rare"
-    ],
-    "ans": 0,
-    "why": "The licence alert that never fired, discovered as a lapse.",
-    "src": "Ch3"
-   },
-   {
-    "q": "The email queue moves because:",
-    "opts": [
-     "It is automatic",
-     "A background job pumps it — the stuck pump is the invoice-that-never-sent's actual mechanism",
-     "Users refresh",
-     "The host pushes"
-    ],
-    "ans": 1,
-    "why": "The dependency map's stakes.",
-    "src": "Ch3"
-   },
-   {
-    "q": "The stalled scheduler at 8 a.m. is not when to:",
-    "opts": [
-     "Act",
-     "Read timestamps",
-     "Research the restart path — the boundary's answer is in the runbook, in advance",
-     "Confirm the stall"
-    ],
-    "ans": 2,
-    "why": "The three-line diagnosis, then the pre-answered path.",
-    "src": "Ch3"
-   },
-   {
-    "q": "The stall's backlog is:",
-    "opts": [
-     "Always released blind",
-     "Ignored",
-     "Deleted",
-     "Handled deliberately — the hundred pent reminders are a flood in miniature, sometimes pruned with the functions"
-    ],
-    "ans": 3,
-    "why": "Released and watched.",
-    "src": "Ch3"
-   },
-   {
-    "q": "The failed-login cluster against one account vs across many:",
-    "opts": [
-     "Someone guessing at a door vs someone guessing at the site — different weights, same instruction: read, evidence, route",
-     "The same",
-     "Both typos",
-     "Both attacks"
-    ],
-    "ans": 0,
-    "why": "The two clusters, distinguished.",
-    "src": "Ch4"
-   },
-   {
-    "q": "The odd-hour login's job is:",
-    "opts": [
-     "An accusation",
-     "To earn a question — 'was this you?' as routine hygiene, normalised so it alarms nobody and skips nobody",
-     "A lockout",
-     "Nothing"
-    ],
-    "ans": 1,
-    "why": "The anomaly earns a question, not a verdict.",
-    "src": "Ch4"
-   },
-   {
-    "q": "Concurrent sessions from two places is:",
-    "opts": [
-     "Efficiency",
-     "Normal",
-     "The shared-password signature — the violation visible in the pattern before anyone admits it in words",
-     "The network"
-    ],
-    "ans": 2,
-    "why": "One person, one account, read from the logs.",
-    "src": "Ch4"
-   },
-   {
-    "q": "'This account did X' versus 'this person did X':",
-    "opts": [
-     "The same claim",
-     "Legal only",
-     "Pedantry",
-     "A real boundary — accounts are shared, sessions left open; the platform supplies facts, never verdicts"
-    ],
-    "ans": 3,
-    "why": "The admin's office ends at the evidence's edge.",
-    "src": "Ch4"
-   },
-   {
-    "q": "The storage number vs the storage line:",
-    "opts": [
-     "The number means little; the LINE means everything — the bend is the question with a name",
-     "Both meaningless",
-     "Both critical",
-     "Number only"
-    ],
-    "ans": 0,
-    "why": "Trend before level, at the waistline.",
-    "src": "Ch5"
-   },
-   {
-    "q": "The backup-inside-the-site habit signals:",
-    "opts": [
-     "Diligence",
-     "Someone doesn't believe the system keeps things — cured by module 4's evidence shown, not just files removed",
-     "Storage abuse only",
-     "Nothing"
-    ],
-    "ans": 1,
-    "why": "The trust signal read correctly.",
-    "src": "Ch5"
-   },
-   {
-    "q": "Storage pressure is exactly when:",
-    "opts": [
-     "Deletion is fine",
-     "Rules relax",
-     "Admins are tempted to break the retention law — the waistline is managed by governance, not deletion",
-     "The host decides"
-    ],
-    "ans": 2,
-    "why": "The archive conversation routed to functions and adviser.",
-    "src": "Ch5"
-   },
-   {
-    "q": "The capacity surprise is:",
-    "opts": [
-     "Bad luck",
-     "Inevitable",
-     "The host's fault",
-     "A failure to read a line that was public all along — the ceiling foreseeable a year out"
-    ],
-    "ans": 3,
-    "why": "The upgrade held calm and budgeted, not urgent.",
-    "src": "Ch5"
-   },
-   {
-    "q": "'The system is slow' is met with:",
-    "opts": [
-     "What, when, for whom — three answers routing to entirely different findings",
+     "A complaint",
      "A restart",
-     "A ticket",
-     "Sympathy"
-    ],
-    "ans": 0,
-    "why": "One screen, month-end, one branch: three different stories.",
-    "src": "Ch6"
-   },
-   {
-    "q": "The timing habit turns:",
-    "opts": [
-     "Nothing",
-     "'It's slow' into 'four minutes at 9 a.m., forty seconds at 2 p.m.' — a diagnosis half-made by its phrasing",
-     "Users honest",
-     "Reports fast"
-    ],
-    "ans": 1,
-    "why": "Felt, converted to measured.",
-    "src": "Ch6"
-   },
-   {
-    "q": "The commonest suspect is:",
-    "opts": [
-     "The server",
-     "The network",
-     "The heavy report over years of unfiltered data — slower every month by the site's own growth",
-     "The browser"
-    ],
-    "ans": 2,
-    "why": "Designed in year one, querying everything since.",
-    "src": "Ch6"
-   },
-   {
-    "q": "The saved report querying five years for last month's question is:",
-    "opts": [
-     "Thorough",
-     "Standard",
-     "Safe",
-     "The site taxing itself — the default period set to the useful window"
+     "A ticket queue",
+     "A report the host can act on in one pass — entries, timestamps, trends attached"
     ],
     "ans": 3,
-    "why": "The shared default is a policy, set by ceremony.",
-    "src": "Ch6"
+    "why": "The evidence posture.",
+    "src": "Ch1"
    },
    {
-    "q": "The heavy legitimate read is:",
+    "q": "An Error Log entry is triaged by:",
     "opts": [
-     "Scheduled to the quiet window — the discipline is placement, not prohibition",
-     "Prohibited",
-     "Discouraged",
-     "Removed"
+     "New or known; site or platform custody; user-facing or silent",
+     "Deleting it",
+     "Size",
+     "Colour"
     ],
     "ans": 0,
-    "why": "Welcomed, in its window.",
+    "why": "Three questions, sixty seconds when clean.",
+    "src": "Ch2"
+   },
+   {
+    "q": "Forty identical entries since 9am are:",
+    "opts": [
+     "Forty problems",
+     "A pattern with a start time — and the start time usually names the cause",
+     "Noise",
+     "The host's issue"
+    ],
+    "ans": 1,
+    "why": "What changed at 9am?",
+    "src": "Ch2"
+   },
+   {
+    "q": "A new error type is investigated:",
+    "opts": [
+     "At month-end",
+     "Quarterly",
+     "The day it appears — day one has a fresh trail; day thirty has folklore",
+     "Never"
+    ],
+    "ans": 2,
+    "why": "The daily scan's whole purpose.",
+    "src": "Ch2"
+   },
+   {
+    "q": "The highest-value item in a support report is:",
+    "opts": [
+     "Urgency",
+     "A guess",
+     "A phone number",
+     "The error text copied whole, with its Error Log entry"
+    ],
+    "ans": 3,
+    "why": "Module 1's five items, armed.",
+    "src": "Ch2"
+   },
+   {
+    "q": "Scheduled Job Type versus Scheduled Job Log:",
+    "opts": [
+     "The catalogue of what should run versus the record of what actually ran",
+     "The same screen",
+     "Old and new",
+     "Host and site"
+    ],
+    "ans": 0,
+    "why": "Census and pulse.",
+    "src": "Ch3"
+   },
+   {
+    "q": "All jobs showing a last run of Tuesday means:",
+    "opts": [
+     "A quiet week",
+     "The scheduler died Tuesday — everything time-based has been off since; a same-day highest-severity raise",
+     "Jobs finished",
+     "Normal weekend"
+    ],
+    "ans": 1,
+    "why": "Backups, reminders, queues — all silent.",
+    "src": "Ch3"
+   },
+   {
+    "q": "The scheduler read is daily because:",
+    "opts": [
+     "It is quick",
+     "The host asks",
+     "Every undetected day multiplies the recovery — missed Auto Repeats, held queues, backup gaps",
+     "Logs expire"
+    ],
+    "ans": 2,
+    "why": "The most consequential thirty seconds.",
+    "src": "Ch3"
+   },
+   {
+    "q": "When the rent journal didn't post, the diagnosis path is:",
+    "opts": [
+     "Guesswork",
+     "A restart",
+     "Re-posting silently",
+     "Scheduled Job Log (did the machinery run) → Error Log (why not) → custody map (who fixes)"
+    ],
+    "ans": 3,
+    "why": "The track-side check meets the instruments.",
+    "src": "Ch3"
+   },
+   {
+    "q": "After any update or recovery, the pulse check:",
+    "opts": [
+     "Runs immediately — schedulers are the classic casualty of disturbed systems",
+     "Waits for its slot",
+     "Is skipped",
+     "Is the host's job"
+    ],
+    "ans": 0,
+    "why": "Thirty seconds versus month-end discovery.",
+    "src": "Ch3"
+   },
+   {
+    "q": "The healthy Background Jobs picture is:",
+    "opts": [
+     "A long queue",
+     "A short, fast-moving list — jobs appear, run, vanish",
+     "Empty always",
+     "All failed"
+    ],
+    "ans": 1,
+    "why": "The unhealthy pictures are growth, failure clusters, stuck heads.",
+    "src": "Ch4"
+   },
+   {
+    "q": "'My import has been running forever' is answered by:",
+    "opts": [
+     "Patience always",
+     "Restarting the site",
+     "Finding its background job — running, failed, or never queued; three different responses",
+     "A new import"
+    ],
+    "ans": 2,
+    "why": "The user-facing translations.",
+    "src": "Ch4"
+   },
+   {
+    "q": "Background Jobs sits in the calendar as:",
+    "opts": [
+     "A daily line",
+     "Monthly only",
+     "Never opened",
+     "The on-demand instrument plus a weekly familiarity glance — 'normal' must stay recognisable"
+    ],
+    "ans": 3,
+    "why": "An instrument read only during incidents is read badly.",
+    "src": "Ch4"
+   },
+   {
+    "q": "'The system is slow' reports get:",
+    "opts": [
+     "This page opened while the slowness is live — the evidence evaporates with the queue",
+     "Sympathy",
+     "A ticket number",
+     "A reboot"
+    ],
+    "ans": 0,
+    "why": "A live screenshot beats three paragraphs.",
+    "src": "Ch4"
+   },
+   {
+    "q": "A failed-login cluster is:",
+    "opts": [
+     "Ignored",
+     "Attributed (the owner confirms the fumble) or escalated as a security event — and the lockout read as the control firing",
+     "A password reset",
+     "The host's problem"
+    ],
+    "ans": 1,
+    "why": "The weekly people-read.",
+    "src": "Ch5"
+   },
+   {
+    "q": "Never-logged-in and ninety-day-quiet accounts are:",
+    "opts": [
+     "Fine",
+     "Licences saved",
+     "Findings — granted-but-unused access is pure risk; the recertification disables",
+     "Backups"
+    ],
+    "ans": 2,
+    "why": "The last-login read's two ends.",
+    "src": "Ch5"
+   },
+   {
+    "q": "Constant re-login complaints mean:",
+    "opts": [
+     "Users are careless",
+     "Nothing",
+     "Attacks",
+     "The session expiry may be too tight for the work pattern — a governed settings conversation"
+    ],
+    "ans": 3,
+    "why": "Livability verified, never silently loosened.",
+    "src": "Ch5"
+   },
+   {
+    "q": "The privacy posture states:",
+    "opts": [
+     "The reads run by the named sysadmin, on the calendar, for written purposes — browsing outside them is itself a finding",
+     "Logs are secret",
+     "Anyone may browse",
+     "Logs are disabled"
+    ],
+    "ans": 0,
+    "why": "The instrument is governed like everything it guards.",
+    "src": "Ch5"
+   },
+   {
+    "q": "Storage is read as:",
+    "opts": [
+     "A point",
+     "Monthly sizes and deltas on the health page — a delta jump names an event while it is one month old",
+     "A yearly total",
+     "The host's secret"
+    ],
+    "ans": 1,
+    "why": "Trend, not point, at its purest.",
     "src": "Ch6"
    },
    {
-    "q": "The certified admin's value at the deep layers is:",
+    "q": "The attachment economy is governed by:",
     "opts": [
-     "Fixing them",
-     "Arriving with the finding pre-made — the difference between 'it's slow, help' and a one-round resolution",
-     "Escalating loudly",
-     "Waiting"
+     "Banning attachments",
+     "Deleting evidence",
+     "Sizing — the settings limit, document-resolution scans, and the largest-files read when a jump appears",
+     "More disk only"
     ],
-    "ans": 1,
-    "why": "The diagnosis is the craft.",
+    "ans": 2,
+    "why": "Evidence habits are the programme's own doing.",
+    "src": "Ch6"
+   },
+   {
+    "q": "Reference timings are:",
+    "opts": [
+     "Ad hoc",
+     "Optional",
+     "The host's numbers",
+     "The same operations, same filters, timed monthly — the drift evidence that survives 'it feels slower'"
+    ],
+    "ans": 3,
+    "why": "Trial Balance, one heavy report, one busy list.",
+    "src": "Ch6"
+   },
+   {
+    "q": "An evidenced performance raise carries:",
+    "opts": [
+     "The timing trend, the user-report pattern, and live-state captures — one-pass action instead of ping-pong",
+     "Frustration",
+     "A deadline",
+     "A comparison to competitors"
+    ],
+    "ans": 0,
+    "why": "The escalation, evidenced.",
     "src": "Ch6"
    },
    {
     "q": "The health page is:",
     "opts": [
-     "New work",
-     "A report to the host",
-     "The ASSEMBLY of the week's glances — eight lines, fifteen minutes on Friday, the platform's week as facts",
-     "Optional"
-    ],
-    "ans": 2,
-    "why": "Each line already read during the week.",
-    "src": "Ch7"
-   },
-   {
-    "q": "Thresholds are pre-written because:",
-    "opts": [
-     "Formality",
-     "The host asks",
-     "Audits",
-     "'Is this bad enough yet?' drifts when re-decided fresh under workload — the instrument acts; the diary records"
-    ],
-    "ans": 3,
-    "why": "The page's difference from a diary.",
-    "src": "Ch7"
-   },
-   {
-    "q": "Thresholds are reviewed annually because:",
-    "opts": [
-     "The grown site re-prices its normals — last year's alarming queue depth is this year's Tuesday",
-     "Habit",
-     "Compliance",
-     "They expire"
-    ],
-    "ans": 0,
-    "why": "The normals move with the firm.",
-    "src": "Ch7"
-   },
-   {
-    "q": "The owner's quarterly digest answers 'is the system healthy?':",
-    "opts": [
-     "With assurance",
-     "By pointing — four lines and a trend: the platform's condition as a fact on a page",
-     "With a meeting",
-     "With a mood"
+     "A dashboard of forty metrics",
+     "One page of owned numbers, month by month — its value is the row beside last month's row",
+     "The host's report",
+     "A screenshot"
     ],
     "ans": 1,
-    "why": "'I used to receive a mood. Now I receive four lines.'",
+    "why": "Twelve columns a year.",
     "src": "Ch7"
    },
    {
-    "q": "HealthTrade's scheduler stall was caught:",
+    "q": "The daily read assembles:",
     "opts": [
-     "At month three as a lapse",
-     "By users",
-     "At day two as a restart — the licence alert arriving one day late instead of never",
-     "By the host"
+     "Everything",
+     "Storage and timings",
+     "Error Log new types, the scheduler pulse, the Email Queue, backup presence — five minutes",
+     "User interviews"
     ],
     "ans": 2,
-    "why": "The counterfactual written into the log deliberately.",
-    "src": "Ch8"
+    "why": "Exception-shaped, or it stops being five minutes.",
+    "src": "Ch7"
    },
    {
-    "q": "The shared-credential finding was retired by:",
+    "q": "The daily read is delegated to:",
     "opts": [
-     "A lecture",
-     "A lockout",
-     "A warning",
-     "The request channel's speed — the relief cover's own account in a day; the workaround's reason dissolved"
+     "Nobody",
+     "The host",
+     "The newest user",
+     "The backstop as their standing apprenticeship — it builds the recognise-normal skill"
     ],
     "ans": 3,
-    "why": "The admin surfaced a fact; the function owned the conversation.",
-    "src": "Ch8"
+    "why": "The reads survive leave and departure.",
+    "src": "Ch7"
    },
    {
-    "q": "The four-minute report became twelve seconds by:",
+    "q": "Every health-page number needs:",
     "opts": [
-     "The craft — default period set, full-history moved to the quiet window, forty columns pruned to eleven",
-     "A server upgrade",
-     "The host's fix",
-     "Magic"
+     "A reader and a rule — what makes it a finding; otherwise it is dashboard decoration",
+     "A colour",
+     "A target",
+     "A chart"
     ],
     "ans": 0,
-    "why": "'The site didn't get slow; it got unread.'",
+    "why": "The one-page rule.",
+    "src": "Ch7"
+   },
+   {
+    "q": "The incident log's quarterly read is:",
+    "opts": [
+     "A count",
+     "By cause — the same cause twice is a process fault, and the fix moves upstream",
+     "By severity",
+     "By person"
+    ],
+    "ans": 1,
+    "why": "Where incidents stop repeating.",
     "src": "Ch8"
    },
    {
-    "q": "The un-watched site has:",
+    "q": "HealthTrade's scheduler death was detected:",
     "opts": [
-     "Fewer problems",
-     "Later, louder ones — discovered by feel on the least convenient mornings",
-     "The same outcomes",
-     "Cheaper operations"
+     "At month-end",
+     "By a user",
+     "Nine hours after failure by the daily pulse check — versus twenty days by the prior method",
+     "Never"
+    ],
+    "ans": 2,
+    "why": "The entry that funds the calendar.",
+    "src": "Ch8"
+   },
+   {
+    "q": "The slow month-end raise carried:",
+    "opts": [
+     "A complaint",
+     "Nothing",
+     "A threat",
+     "Logged reports, the 31-versus-11-second reference timing, and the live queue screenshot"
+    ],
+    "ans": 3,
+    "why": "The health page tells it in three numbers: 11, 31, 12.",
+    "src": "Ch8"
+   },
+   {
+    "q": "The storage jump's cause was:",
+    "opts": [
+     "Full-resolution photos on goods receipts — fixed as process, not storage",
+     "A hack",
+     "The database",
+     "Backups"
+    ],
+    "ans": 0,
+    "why": "Named inside a day by the largest-files read.",
+    "src": "Ch8"
+   },
+   {
+    "q": "The person-shaped monitor is fixed by:",
+    "opts": [
+     "Hiring more",
+     "Reads written as owned procedures, the daily read delegated, and the health page carrying 'normal' on paper",
+     "Alerts only",
+     "Outsourcing"
     ],
     "ans": 1,
-    "why": "The seventh law's economics.",
+    "why": "Pattern 6.",
     "src": "Ch9"
    },
    {
-    "q": "This module's law is:",
+    "q": "Module 7's law is:",
     "opts": [
-     "Monitoring is optional",
-     "Feelings suffice",
-     "The system is read before it is felt — shapes, heartbeats, silhouettes, the waistline, measured slowness, one weekly page with thresholds that act",
-     "The host watches"
+     "Feel first",
+     "Dashboards fix everything",
+     "The system is read before it is felt — numbers trended, exceptions investigated, silence treated as a finding",
+     "Monitoring is the host's job"
     ],
     "ans": 2,
-    "why": "The read costs minutes; the felt costs mornings.",
+    "why": "The seventh law.",
     "src": "Ch9"
    }
   ]
  },
  "advanced_sysadmin": {
   "title": "Sysadmin 8 — Advanced Sysadmin: Security, Audit & Structure",
-  "desc": "The structural layer closing the platform certification: the security constitution with tiered 2FA and sessions, the audit trail configured and proven, the five-verb incident procedure, the watched watcher's conduct standard, the sysadmin calendar with names, the handover test for the platform's single-head, and the owner's four-line page answered by pointing — completing the ZhiftERP Sysadmin Professional track and the seven-track academy.",
+  "desc": "Security and audit in ZhiftERP: the five layers and the honest threat picture; the completed password/session layer with the lost-device path; the two-factor rollout with method policy, written recovery procedure, and coverage read; the Version trail's three disciplines with track-changes confirmed on governed doctypes; the Deleted Document review and access-log reads; the security calendar and the six-section annual review; the six-step incident response with containment first; and the structural close — the handover and absence tests, and the track's eight laws.",
   "lessons": [
    {
-    "title": "Chapter 1 — The security constitution: passwords, 2FA & sessions",
+    "title": "Chapter 1 — The security layers",
+    "est": "11",
+    "html": "<p>This final module covers security and audit: proving identity (passwords and two-factor), the audit trail (the Version history, the Activity and access logs, the Deleted Document list), the security calendar, the annual review, incident response, and the structural close — the handover test and the track's eight laws.</p><p><b>The layered design.</b> No single control secures a system; the design is layers, each catching what the previous missed — and the sysadmin's competence is knowing which layer answers which threat:</p><p>1. <b>Identity</b> — is this login really its person? Passwords enforced by policy, two-factor authentication, session controls (Chapters 2-3).<br>2. <b>Authorisation</b> — may this person do this? Module 2's entire machinery: roles, profiles, fences, the recertification. This module recaps it only as a layer in the stack.<br>3. <b>Audit</b> — what happened, by whom, when? The trail that deters, detects, and reconstructs (Chapters 4-5).<br>4. <b>Custody</b> — credentials, backups, and channels under named control: modules 4 and 6, recapped as layers.<br>5. <b>Structure</b> — the function surviving its people: the calendar, the review, the handover test (Chapters 6-8).</p><p><b>The threat picture, honestly sized.</b> A trading business's real threats are ranked by frequency, and the ranking should drive the effort:</p><p>• <b>The careless everyday</b> — shared passwords, phishing clicks, the leaver's live login, the credential in a chat: the overwhelming majority, and every one answered by discipline already built in this track.<br>• <b>The insider opportunity</b> — the over-mighty account, the unwatched adjustment power: module 2's separations and this module's audit trail are the answer pair.<br>• <b>The outside attack</b> — credential guessing and stolen passwords: the lockout (module 1's settings), two-factor (Chapter 3), and the platform's own defences (the host's layer).</p><p>The exotic attack scenarios that dominate security conversation are the host's professional territory; the site's layer defends against the threats that actually arrive, which are the boring ones above.</p><p><b>Module contents.</b> Chapter 2: passwords and sessions, completed. Chapter 3: two-factor authentication and its rollout. Chapter 4: the audit trail — Versions and track-changes. Chapter 5: the access logs and the Deleted Document review. Chapter 6: the security calendar and the annual review. Chapter 7: security incident response. Chapter 8: the HealthTrade close and the structural tests. Chapter 9: the track's laws.</p>"
+   },
+   {
+    "title": "Chapter 2 — Passwords and sessions, completed",
+    "est": "12",
+    "html": "<p>Module 1's settings walk set the password and session policy; this chapter completes the layer with the practices around the settings.</p><p><b>The password stack, recapped and finished.</b></p><p>• <b>The enforced minimum:</b> System Settings' password strength requirement — the policy users cannot decline. Already set at the walk; verified at the annual review.<br>• <b>The lockout:</b> consecutive-failure lockout with its window — the automatic answer to guessing, whose firing Chapter 5-of-module-7's weekly read observes.<br>• <b>The reset flow:</b> self-service, logged, and the only lane — the admin never sets or knows a user's password (module 2's rule). The reset flow is also the standing phishing target, which is Chapter 3's strongest argument: a stolen password meets a second factor.<br>• <b>The human layer:</b> the three teachable rules that survive training — passwords are individual (module 2's first mortal sin), never typed anywhere but the site's own login page (the phishing defence in one sentence), and never sent, stored, or requested by anyone including the sysadmin (the social-engineering defence in one more).</p><p><b>Sessions, completed.</b></p><p>• <b>Expiry</b> per the settings walk — hours, livability verified by module 7's read.<br>• <b>The active-sessions view:</b> a user's sessions are visible and revocable — the tool for the lost-device afternoon: the user reports the phone gone, the sessions are revoked, the password reset, and two-factor (Chapter 3) means the finder holds nothing useful. Minutes, on a written path.<br>• <b>Simultaneous-session policy:</b> where the platform exposes limits, the decision is written like every setting; where it does not, the Activity Log's patterns (module 7) are the compensating read.</p><p><b>The privileged accounts, one notch stricter.</b> The two System Managers (module 2's rule) carry the strictest hygiene: the strongest passwords, two-factor first and mandatory (Chapter 3's rollout order), and their sessions the first reviewed after any suspicious event — because the account that can change everything is the account worth stealing.</p><p><b>Devices, one paragraph of honesty.</b> The site is reached from browsers on machines the sysadmin does not manage. The site-side compensations are exactly the layers above — expiry that limits a stolen session's life, two-factor that limits a stolen password's worth, the revocation path for the lost device — plus the one device rule worth teaching: the shared or public machine gets a logout, not a closed tab. The rest of device security belongs to the business's general IT hygiene, named in the security policy so nobody believes the site's layers cover what they cannot.</p><p>Practical rule: the password layer's health is read in one number at the annual review — the count of accounts exempted from any part of the policy. The target is zero; every exemption is a documented decision with an expiry.</p>"
+   },
+   {
+    "title": "Chapter 3 — Two-factor authentication and its rollout",
+    "est": "12",
+    "html": "<p>Two-factor authentication is the single highest-value security upgrade available to the site: it converts the stolen password — the most common real attack — from a breach into a failed login.</p><p><b>The mechanics.</b> System Settings carries the two-factor switch (<b>Enable Two Factor Auth</b>) and its method options; enabled, each user enrols — the standard method pairs an authenticator app generating time-based codes, with the platform's supported alternatives (email or SMS OTP) available where the policy accepts them. The design decisions, made once and written:</p><p>• <b>The method policy:</b> the authenticator app is the strong default (codes generated on the device, no delivery channel to intercept); SMS/email OTP is the accommodation, accepted knowingly where the app is impractical.<br>• <b>The scope:</b> which users must enrol — the rollout below answers it in phases, ending at all Desk users.<br>• <b>The recovery path:</b> the lost-phone procedure, written <b>before</b> the first lost phone: identity verified by a defined check (not \"sounds like them on the phone\" — the reset request is itself a social-engineering target), the factor reset by the sysadmin, re-enrolment same day, the event logged. The recovery path is the layer's weakest point exactly because it is the bypass; it gets procedure-grade treatment.</p><p><b>The rollout, in phases.</b></p><p>1. <b>The two System Managers first</b> — the highest-value accounts, and the sysadmin learning the enrolment and recovery flows personally before asking anyone else to.<br>2. <b>The money and adjustment powers next:</b> Payment Entry release, the Journal Entry pen, the frozen-edit role, write-off approvers — module 2's consequential grants, each now behind a second factor.<br>3. <b>All remaining Desk users</b>, branch by branch, with the enrolment done in person or on a call (the five-minute walkthrough that prevents the week of confusion), the recovery path explained at enrolment, and the standing test at the end of each phase: the phase's users listed, enrolment confirmed, exceptions documented with expiry dates.</p><p><b>The coverage read.</b> Two-factor coverage joins the health page (module 7): enrolled count against Desk-user count, target one hundred percent, exemptions listed by name with their documented reasons and expiries. The annual review (Chapter 6) walks the exemptions — an exemption that survives two reviews is a decision that needs re-making.</p><p><b>The resistance, answered once.</b> The friction argument arrives on schedule: <i>it slows login.</i> The honest answer: seconds per session, against the alternative priced by any single credential incident — and the login that stays fast for an attacker is not a convenience, it is the vulnerability. The rollout order helps here too: when the MD and the accountant enrolled first, the argument has already lost its best advocates.</p><p>Practical rule: enrol the backstop in the recovery procedure, not just the factor — the sysadmin's own lost phone is the scenario nobody rehearses, and module 4's rule applies: the backstop executes every scenario alone.</p>"
+   },
+   {
+    "title": "Chapter 4 — The audit trail: Versions and track-changes",
+    "est": "12",
+    "html": "<p>The audit layer answers three questions about anything in the system: <b>what happened, who did it, when</b>. This chapter is the document-level trail; Chapter 5 adds the access-level reads.</p><p><b>The Version history.</b> Doctypes with change tracking enabled write a <b>Version</b> record for every edit: the fields changed, the before and after values, the user, the timestamp. On any document, the timeline shows its history; the Version list (awesome bar) is the same trail searchable across documents. What this makes routine:</p><p>• <b>The who-changed-this question</b> — the price that moved, the credit limit that grew, the bank detail that changed on a supplier: answered in two clicks with names and times, which converts a suspicion-shaped conversation into a fact-shaped one.<br>• <b>The reconstruction</b> — a master's state at any past date, walked back through its versions: what the credit limit <i>was</i> when the disputed order shipped.<br>• <b>The deterrence</b> — known history changes behaviour before it records it: the quiet edit is not quiet, and everyone knowing so is half the control.</p><p><b>Where tracking is confirmed on.</b> Track Changes is a per-doctype setting (visible in Customize Form); the sysadmin's job is confirming it is enabled on every doctype where history matters — the masters above all (Customer, Supplier, Item, Employee, the credit and bank-detail fields' homes), settings-like doctypes, and anywhere module 2 placed a consequential grant. The annual review (Chapter 6) includes this confirmation, because a customisation or update can disturb it and nothing visible changes until the day the history is needed and is not there.</p><p><b>What the trail does not cover, honestly.</b> Transactions barely need it — the docstatus design (module 1) already forbids editing submitted documents, and Cancel/Amend keeps its own lineage. The trail's real estate is the <b>masters and settings</b>: the records edited in place, where change tracking is the only memory. The gap to know: reads are not versions — who <i>looked</i> at a record is Chapter 5's territory, and only partially; the trail records change, not curiosity.</p><p><b>Using the trail well — the three disciplines.</b></p><p>1. <b>Ask the trail before asking people.</b> The Version history first, the conversation second — armed, shorter, and fairer.<br>2. <b>Pair it with the change lane:</b> a Version on a governed doctype should correspond to a register entry or a documented decision (module 5's logic applied to data-shaped changes like settings) — the version without a story is the finding.<br>3. <b>Never treat the trail as surveillance theatre:</b> module 7's privacy posture applies verbatim — the trail defends the honest editor (their reasonable change has its record) and is read for causes, on procedures, by the named roles.</p><p>Practical rule: demonstrate the trail once to the management team on a harmless example — the who-changed-this answered live in two clicks. The demonstration does more for careful editing than any memo, and it teaches the owners to ask the system before asking around.</p>"
+   },
+   {
+    "title": "Chapter 5 — Access logs and the Deleted Document review",
+    "est": "12",
+    "html": "<p>The trail's second half: who entered, who touched, who removed.</p><p><b>The Activity Log, in its audit role.</b> Module 7 read it for operational health (logins, failures, lockouts); the audit role adds the reconstruction use: for any event window — the disputed evening, the incident's hours — the log answers who was in the system and when, the first frame of any investigation. The read discipline is unchanged: on procedure, by the named roles, for written purposes.</p><p><b>The access-log family.</b> Where the platform records document access and export events (the <b>Access Log</b> doctype family — exports, prints, and report downloads logged with user and time), the sysadmin knows the read exists and uses it for the questions it answers: <i>who exported the customer list</i> is answerable — which pairs with module 2's export-permission design: the permission governs who may; the log records who did. The honest limit from Chapter 4 stands: coverage is partial by design, and the permission layer — not the log — is the control; the log is the reconstruction aid.</p><p><b>The Deleted Document review — the chapter's standing procedure.</b> The platform retains deletions: the <b>Deleted Document</b> list (awesome bar) records documents deleted from the site, with what, who, and when — the recycle-bin read. Its governance role is precise, because this programme's rules make deletion rare by construction:</p><p>• Transactions: Delete is off daily roles everywhere (module 2), and Cancel/Amend is the lawful correction path — so a deleted transaction is <b>always</b> a question.<br>• Masters: retirement is the Disabled checkbox (module 3) — so a deleted master with history is always a question too.</p><p>The monthly review (riding the monthly sitting):</p><p>1. Open the Deleted Document list, filtered to the month.<br>2. The expected residue passes: the smoke test's cleaned artifacts, the draft created in error and removed same-day by its author, the governed cleanups with their log lines.<br>3. Everything else gets its question: what was it, who deleted it, under what authority? An unexplained deletion of a document with any consequence is treated as an incident — the audit trail reconstructs what it was, module 2 reviews how the actor held Delete at all, and the permission is corrected.<br>4. The count and its exceptions join the health page: the target picture is a short list of boring rows.</p><p><b>Why this review carries weight beyond its minutes.</b> Deletion is the one act that attacks the record itself — every other mischief leaves the trail intact, and the Accounts track's equity pattern named deletions as where broken books hide. The monthly read makes the site's answer structural: deletion is visible, rare, explained, and everyone knows it.</p><p>Practical rule: the review's power is its regularity, not its findings — eleven boring months are the control working. The month it is interesting, everything needed for the response is already in this module.</p>"
+   },
+   {
+    "title": "Chapter 6 — The security calendar and the annual review",
+    "est": "12",
+    "html": "<p>The layers hold because they are maintained. Two instruments: the standing calendar lines, and the annual review that walks everything once.</p><p><b>The security calendar (the lines this track has placed, gathered):</b></p><p>• <b>Weekly:</b> the people-read — failed-login clusters, lockouts, the user delta (module 7 / module 2).<br>• <b>Monthly:</b> the permission delta and System Manager count (module 2); the Deleted Document review (Chapter 5); two-factor coverage on the health page (Chapter 3); the integration health checks (module 6).<br>• <b>Quarterly:</b> the access recertification (module 2's strongest control); the door count reconciling the integration register (module 6); the incident log's cause read (module 7).<br>• <b>At events, immediately:</b> the leaver's same-day disable with sessions, keys, and mandate lines (modules 2, 6); credential rotation at exposure or departure (module 6); the security-event response (Chapter 7).<br>• <b>Annually:</b> the review below, plus credential rotation on schedule and the continuity full dress (module 4).</p><p><b>The annual security review — the walk, in one sitting scheduled across a week:</b></p><p>1. <b>Settings:</b> the System Settings security block re-walked against the recorded decisions (module 1's rule: the walk is the routine occasion for change) — password policy, lockout, session expiry, the two-factor switch.<br>2. <b>Identity:</b> two-factor coverage and its exemptions (each re-decided or expired); the policy-exemption count at its target of zero; the privileged accounts' hygiene confirmed.<br>3. <b>Authorisation:</b> the four quarterly recertifications on file; the System Manager count's twelve monthly reads all at two; the permission log's year read for unlogged changes.<br>4. <b>Audit:</b> track-changes confirmed on the governed doctypes (Chapter 4's silent-disturbance risk); the Deleted Document reviews on file; one audit-trail spot-reconstruction performed as a drill.<br>5. <b>Custody:</b> credentials rotated per schedule with both ends updated; the credential store's access list current; the integration register reconciled; backup custody confirmed (module 4's off-platform chain).<br>6. <b>Structure:</b> the runbook current with the year's amendments; the backstop's solo capability confirmed (every scenario, alone); the incident log's year read closed.</p><p>The review's output is one page: confirmations, findings with owners and dates, and the exemptions re-decided. It files beside the health page and the recertifications — the year's security posture, evidenced.</p><p>Practical rule: the review is scheduled in a quiet month, never bundled into year-end — module 7's close weeks are protected, and a review done in a rush confirms instead of examining. The calendar's whole design is that nothing here is ever urgent, because everything here is regular.</p>"
+   },
+   {
+    "title": "Chapter 7 — Security incident response",
+    "est": "12",
+    "html": "<p>Module 4's runbook holds the security scenario; this chapter completes it with the response discipline the layers make possible.</p><p><b>The triggers.</b> A credential suspected exposed (the phishing click confessed, the password typed somewhere wrong, the laptop stolen); a session or login that should not exist (module 7's unexplained cluster, the off-hours pattern with no story); an insider question (the audit trail's version without a story, the unexplained deletion); an integration credential exposed (the key in a chat, the departed holder).</p><p><b>The response, in order — speed first, understanding second:</b></p><p>1. <b>Contain:</b> disable the affected account (reversible; waiting is not — module 4's rule verbatim), revoke its sessions, revoke its API keys where any exist. For an integration credential: rotate at both ends immediately (module 6's procedure).<br>2. <b>Preserve:</b> before anything is \"tidied\", the evidence is captured — the Activity Log window exported, the relevant Error Log and access entries noted, the timeline started in the incident log. Investigation needs the state as found.<br>3. <b>Assess with the instruments:</b> what could this credential reach (the account's roles and fences answer it — module 2's matrix earning its keep), and what did it touch (the Activity Log, the Version trail, the access logs, the Deleted Document list — Chapters 4-5 in their operational role). The assessment separates \"exposed but unused\" (the common case when containment was fast) from \"used\" (the escalation case).<br>4. <b>Escalate on the map:</b> platform-side involvement raised to the host at incident severity with the evidence package; business-side consequences (a touched payment path, a data exposure with legal weight) escalated to the owner and the professionals — the sysadmin runs the machinery response and never sits alone on a business-consequence decision.<br>5. <b>Recover:</b> the account re-enabled only after the cause is closed — password reset through the flow, factor re-enrolled, the user walked through what happened; the fenced re-entry beats the rushed one.<br>6. <b>Learn:</b> the incident log entry closed with cause and timeline; the quarterly read asks whether the cause is structural (the phishing click that argues for the training refresh; the shared credential that argues the custody rule harder); the runbook amended where the response found friction.</p><p><b>The rehearsed hour.</b> The response above is a written procedure in the runbook with names against the steps — and the annual full dress (module 4) includes one security scenario tabletop: the stolen-laptop afternoon walked verbally, fifteen minutes, the gaps noted. The businesses that respond in minutes are the ones that have said the steps aloud before; the layers built across this track are what make minutes possible — containment is one checkbox because module 2 built identities; assessment is one matrix read because the roles are clean; the trail answers because Chapter 4 confirmed it on.</p><p>Practical rule: the response's first minute belongs to containment, not diagnosis — the instinct to \"first understand what happened\" is how exposure windows grow. Disable, revoke, then think; the layers guarantee the thinking has evidence waiting.</p>"
+   },
+   {
+    "title": "Chapter 8 — Case study: HealthTrade's security close & the structural tests",
     "est": "13",
-    "html": "<p>The final module opens where the platform's defence begins: the SECURITY CONSTITUTION — the site-level settings that decide how hard every door is to force, walked as the track's last settings walk. The security chapter.</p><p><b>The password layer.</b> The policy as configuration, per module 2's oldest lesson: the PASSWORD rules enforced by the machinery, not the memo (the minimum strength, the complexity posture, the reuse and rotation stance — each field a policy the settings make physics: the weak-password site is not a user failure but a configuration choice someone made by not making it), with the trade's realities addressed head-on: the SHARED password convicted one final time (module 7's concurrent-session signature having shown how it is CAUGHT; this chapter states how it is PREVENTED — one person, one account, enforced by the lifecycle, with the request channel fast enough that sharing has no excuse: the workaround retired by service, the standing cure), and the password MANAGER posture stated for the credential-holding seats (the custody of Chapter 6 of the connections module extended to human passwords — governed storage over memory and sticky notes, for the accounts that matter most).</p><p><b>The second factor.</b> The 2FA discipline, prioritised honestly: the second factor MANDATORY on the powerful accounts first (the administrative account, the configure-class holders, the payment-adjacent and tightest-tier seats — the accounts whose compromise is a firm-level event carrying the protection proportional to that fact: the admin account with only a password is the master key under the doormat), EXTENDED by risk tier rather than blanket decree (the rollout sequenced — the powerful first, the sensitive-data seats next, the general population as the firm's maturity allows: the sequencing being an honest trade-scale judgment, because the 2FA rollout that starts with everyone often ends with no one after the first week's friction), and the RECOVERY paths governed (the lost-device procedure through the channel with identity verification — the 2FA reset request being a favourite social-engineering door, and the verification discipline being the answer: the reset that requires only a phone call has re-installed the doormat).</p><p><b>The session layer & the device reality.</b> The remaining constitution: the SESSION policies (the expiry balancing security against the counter's rhythm — the till account that logs out mid-queue breeds the workaround that never logs out: the tiers differentiated, the powerful accounts' sessions short, the operational accounts' sized to the shift), the SIMULTANEOUS-session posture decided per module 7's signature, and the DEVICE reality named for the trade: the shared branch machines (the terminal three people use across a shift — the lock-screen habit between users, the personal-account-on-shared-device hygiene, the browser's saved-password trap on communal machines: the device layer being where site security meets shop-floor reality, and the branch walk-through being part of the security constitution's verification — the fences of module 2 mean less if the till's browser remembers the manager's password). The chapter's summary for the site book: <b>strength enforced by settings, the second factor on every powerful door, sessions sized to their risk, and the shop floor walked — the constitution that makes the easy attack expensive.</b></p>"
+    "html": "<p>The security layer installed, exercised, and the function proven structural. Every chapter appears.</p><p><b>The rollout (Chapters 2-3).</b> The password policy was set in module 1; the completion is two-factor: <b>Enable Two Factor Auth</b> switched on with the authenticator-app default, the two System Managers enrolled first (the sysadmin runs the lost-phone recovery on themselves as the rehearsal), the money powers next — the MD's Payment Entry release and the accountant's journal pen behind second factors within the fortnight — then the Desk population branch by branch. Coverage joins the health page; the year closes at one hundred percent with <b>two documented exemptions</b>, both expiring, both re-decided at the review. The friction argument arrives on schedule from a branch manager and is answered by the rollout order: the MD enrolled three weeks ago.</p><p><b>The trail earns its demonstration (Chapter 4).</b> Track-changes is confirmed on the governed doctypes (one master found silently untracked after an old customisation — corrected, and the check joins the annual review). The demonstration moment arrives unplanned: a supplier disputes their payment terms \"changed without agreement\" — the Version history answers in two clicks: the change, the date, the user, and the attached email that authorised it. The suspicion-shaped meeting becomes a two-minute fact check, and the management team asks for the same demonstration on the credit-limit fields the same afternoon.</p><p><b>The deleted-document month (Chapter 5).</b> Month four's review finds its first interesting row: a cancelled Purchase Invoice <b>deleted</b> by a branch user who held Delete through a role missed in module 2's cleanup. The response runs the procedure: the trail reconstructs the document (no financial consequence — it was cancelled first), the role is corrected the same day, the permission delta logs it, and the incident entry's cause line — <i>residual Delete grant from implementation era</i> — feeds the quarterly read. Eleven other months: boring rows, which is the control working.</p><p><b>The incident tabletop (Chapter 7).</b> The full dress includes the stolen-laptop scenario: fifteen minutes verbal, two gaps found (the after-hours contact path for the host had one name, and nobody had written where the loaner phone lives for re-enrolment) — both fixed in the runbook that week.</p><p><b>The structural tests (Chapter 6 and module 1's promise).</b> The annual review runs across its week and files its page: all confirmations green, three findings closed by month-end. Then the function's own handover test: the sysadmin's documentation — the custody map, the settings records, the profiles and matrix, the registers (customisation, channel, integration), the health page, the runbook, the calendar — is handed to the backstop, who runs the function for three weeks of the sysadmin's leave: every read on schedule, one minor incident handled solo on the runbook, zero questions only the absent person could answer. The absence test passes on its first run — the same clean sheet the Accounts track's finance function scored, now on the platform beneath it. The MD's closing note: <i>every function in this business now survives its holder — including the one that keeps the machine.</i></p>"
    },
    {
-    "title": "Chapter 2 — The audit layer: versions, trails & the site's memory of acts",
-    "est": "13",
-    "html": "<p>Six tracks relied on trails; module 2's was-it-used and module 4's first recovery rung both READ one; this chapter GOVERNS it: the audit layer — the site's memory of who did what, when. The evidence chapter.</p><p><b>The layer's anatomy.</b> The trails, named: the VERSION history (the document's tracked changes — every edit's before-and-after, the recovery ladder's first rung and the dispute's quiet resolver), the ACTIVITY trail (the acts on a document — created, submitted, cancelled, by whom, when: the workflow history module 5 protected, the approvals' evidence), the ACCESS records (the views and exports on the sensitive tiers — module 4 of this track's sampling source), and the LOGIN history (module 7's silhouette source) — together the site's testimony, and the chapter's first discipline is that the testimony is CONFIGURED deliberately: tracking enabled on what MATTERS (the transactional doctypes, the masters, the sensitive tiers — decided with the functions at implementation: the audit configuration being a policy walk like every constitution in this academy), not on everything indiscriminately (the track-everything site drowns its own testimony in noise and storage — the audit layer sized to the evidence needs, per the functions' laws and the adviser's horizons), and VERIFIED as on (the constitution walk's check — the version history someone assumes exists, discovered absent during the dispute that needed it, being the untested-backup disease at the evidence layer: the audit configuration proven, not presumed, which module 4's rung-1 usage does quarterly for free).</p><p><b>Reading the trail properly.</b> The evidence discipline, consolidated from its scattered appearances: the trail read with the SAME epistemics as every register (the acts attributed to ACCOUNTS, with module 7's account-versus-person boundary held — the trail says which login did what; the person behind the login is an investigation's conclusion, not a log line's), the was-it-used question answered from here (module 2's open-fence finding weighted by this layer's answer — the trail turning 'the door was open' into 'the door was open and unused' or 'and used, twice, in March': the severity's whole difference), the trail's GAPS honest (what the layer does not record, known — the read that leaves no trace where access logging is not configured: the sampling of module 4 designed around the layer's actual coverage, never an imagined one), and the trail ITSELF protected (the audit records' own integrity — the trail nobody can quietly edit being the point: the platform's design carrying this, and the admin's duty being not to break it — the log-cleaning 'tidiness' that deletes activity history is destroying evidence, refused with module 3's bulk-delete firmness).</p><p><b>The retention & the testimony's horizons.</b> The layer's calendar: the trails retained per the EVIDENCE horizons (the same adviser-confirmed reach as the documents they testify about — the version history that ages out before its document's dispute window is testimony that resigns early), the storage cost of memory priced honestly (module 7's waistline including the trails' growth — the retention conversation, again, governed by the functions and the horizons, never by tidiness), and the layer's quiet economics closing the chapter: the audit trail costs storage and configuration once — and pays in every dispute shortened, every investigation grounded, every was-it-used answered, and every recovery's first rung standing: the site that remembers its acts is the site whose word means something, which is six tracks' entire evidence philosophy, installed at the layer where acts actually live.</p>"
-   },
-   {
-    "title": "Chapter 3 — The incident procedure: when something is wrong",
-    "est": "13",
-    "html": "<p>The suspected breach, the confirmed anomaly, the compromised credential — the moments the platform's calm breaks. Met by procedure, not improvisation. The incident chapter.</p><p><b>What is an incident.</b> The definition drawn deliberately: an INCIDENT is any event where the platform's INTEGRITY is in question — the credential suspected leaked (the phishing message someone may have answered, the key found in the wrong place), the access anomaly that survived module 7's innocent explanations, the data apparently altered outside process, the door apparently forced — distinguished from the OUTAGE (module 4's terrain — the system down is continuity; the system untrusted is an incident: different runbooks, sometimes both at once), and the threshold deliberately LOW for declaring one (the incident declared and closed cheap beats the incident debated while it grows — module 7's pre-written thresholds feeding this door, and the culture point stated: the person who reports the phishing click within minutes is the hero of the story, and the firm that punishes the report teaches the next click to hide for three weeks, which is the entire game lost in one HR decision).</p><p><b>The procedure.</b> Five verbs, in order: <b>CONTAIN</b> (the suspected credential rotated NOW, the suspected account disabled NOW — containment before investigation, because the open question with an open door is compounding: the rotation that proves unnecessary cost minutes; the investigation that ran while the door stood open cost whatever walked through it), <b>PRESERVE</b> (the evidence captured before it churns — the logs exported, the timestamps recorded, the affected records noted: Chapter 2's trail read and SAVED, because investigation alters the scene it walks through), <b>INVESTIGATE</b> (the questions in order — what happened, through which door, touching what, since when: the trail's testimony assembled with module 7's evidence discipline and module 2's account-versus-person boundary held throughout), <b>REMEDIATE</b> (the door fixed, the damage assessed and repaired through the functions' own machinery — the altered records corrected by their owners' correction processes, per every track's law: incident recovery does not suspend document governance), and <b>LEARN</b> (the post-incident review — module 4's pattern: what let this happen, what caught it, what the runbook missed: the procedure amended while memory is fresh).</p><p><b>The communication duties.</b> The incident's people layer: the OWNER informed by severity (the threshold for the MD's phone ringing decided in calm — the owner who learns of the incident from the story's third act has a governance grievance on top of a security one), the AFFECTED functions told what they need (the tier whose data was in question told so, with the facts — the payroll seat learning its register was exposed from a corridor rumour being the communication failure that costs more trust than the incident), the BOUNDARY engaged where the platform layer is implicated (the host's security channel, per the map), and the EXTERNAL duties flagged honestly (the data-protection obligations where personal data was exposed — the adviser's terrain, the notification questions LEGAL questions answered by counsel, not by hope: the admin's duty being the facts assembled and the escalation prompt, never the legal judgment). The chapter's closing frame, in the academy's oldest cadence: the incident procedure is the deceased-employee procedure of the platform layer — written in peacetime, rehearsed in tabletop, and carrying everyone through the day nobody wanted: the firm with the procedure has a bad day; the firm without it has a bad quarter.</p>"
-   },
-   {
-    "title": "Chapter 4 — The watched watcher: the admin's own governance",
-    "est": "13",
-    "html": "<p>Seven modules have said it in passing; this chapter says it as the standard: the admin — holder of every key — is the firm's most-governed user, not its least. The conduct chapter.</p><p><b>The standard, consolidated.</b> The rules gathered from their scattered statements into one page: the TWO-ACCOUNT discipline (module 1 — the daily self under ordinary fences; the powerful self used deliberately, briefly, loggedly: the admin doing daily work from the administrative account has made every browsing moment a privileged act), the SELF-GRANT ban (module 2 — the admin's own access changed only by another's authorisation and hands), the PLATFORM-ACTS-ONLY law (modules 1 and 4 of this track — the keys used for administration, never for reading what the fences guard: the postman's ethics of the communications module, formalised: the admin who CAN see everything and is TRUSTED because they demonstrably don't look), the DATA-ACT prohibition given its teeth (the admin's access to the sensitive tiers LOGGED by Chapter 2's layer and the log READ by someone else — the monthly sample of module 7 pointing at the administrative account first, because the watcher watched is the whole design), and the CONFLICT declarations (the admin's relative in the workforce, the admin's own records — the acts touching them performed by the coverage or witnessed, per the nobody-files-their-own-case law at its final desk).</p><p><b>Nobody audits their own keys.</b> The principle's machinery: the admin's OWN access review as the permission walk's standing last page (module 2 — reviewed and signed by the MD or the designated second: the one page of the walk the admin does not self-certify), the admin's acts SAMPLED by the same second (the quarterly look at the administrative account's activity — brief, standing, normalised: the review that exists is the review that deters, and the admin who requested the review's existence has made the strongest possible statement about their own conduct — the certified admin ASKS for the watching, because the watched watcher is trusted with more, promoted safer, and suspected never: module 5 of the payroll track's argument, at the seat with the most keys), and the second's role honest at trade scale (the MD, the accountant, or the external partner's periodic review — the perfect independence unavailable at eleven people, the adequate version entirely available: someone who is not the admin, looking, on a rhythm, with the right to ask).</p><p><b>The temperament, named.</b> The chapter's closing portrait, because the standard is lived by a person: the role rewards the temperament the academy has described seven times — the precision that reads before acting, the patience that refuses the corridor, the humility that routes rather than fixes, the steadiness that runs the same checklist in the incident as in the drill — and the failure modes are temperamental too (the admin who enjoys the power is the wrong admin; the hero who fixes everything at 2 a.m. and documents nothing is building the single-head module 6 exists to prevent; the curious browser of other people's data is the breach already in progress), with the selection guidance stated for every implementation: the best trade-scale admin is almost never the most technical person available — it is the most GOVERNED person available, taught the technical, which is a curriculum (this one); the reverse is a temperament transplant, which is not.</p>"
-   },
-   {
-    "title": "Chapter 5 — The sysadmin calendar: every rhythm, one page",
-    "est": "13",
-    "html": "<p>Seven modules installed rhythms; the consolidation is the operating system — the academy's seventh and final calendar. The page the platform runs on.</p><p><b>Daily — the glance.</b> Five minutes, four silhouettes: the error log's shape, the scheduler's heartbeat and queue depth, the login pattern's anomalies, the email queue's failures (modules 6-7) — the tick that keeps every invisible layer visible.</p><p><b>Weekly — the read and the page.</b> The error triage to a known state (the new species named, the clusters routed), the backup completion glance with the size trend (module 4's silent-failure detector), and Friday's HEALTH PAGE assembly (module 7 — eight lines, fifteen minutes, the week as facts with thresholds standing).</p><p><b>Monthly — the registers.</b> The dormant-account scan (module 2), the access-register-to-HR reconciliation (the ghost's homelessness maintained), the storage dot on the waistline (module 7), the compliance doors' reconciliations supported (module 6's issued-minus-accepted read with the owning functions), and the sensitive-tier access sample (the administrative account first, read by the second — module 4 of this module).</p><p><b>Quarterly — the proofs.</b> The RESTORE DRILL (module 4 — the calendar's most important line, the checklist full, the log signed), the notification and reminder TEST-FIRES (modules 5-7's insurance), the dedup hunt and quality reads (module 3 — the four numbers per master type), the credential register's rotation review (module 6), and the tabletop incident rehearsal annually rotated through scenarios (module 3 of this module — the procedure exercised before it is needed).</p><p><b>Annually — the constitutional season.</b> Scheduled across weeks, never stacked: the PERMISSION WALK (module 2 — the leaver scan, the roles walked empirically, the admin's own page signed by the second), the SETTINGS and SECURITY constitution walks (modules 1 of the track and of this module — every default re-confirmed as a decision), the SERIES and customisation register audits (modules 3, 5 — the unexplainable retired), the INTEGRATION reviews (module 6 — each door justifying its hinges), the RETENTION and plan reviews (module 4 — the RPO/RTO re-priced, the runbook copies re-versioned), the health thresholds re-priced (module 7 — the normals moved with the firm), and the SITE BOOK's own walk (module 1 — the eight sections read, the stale corrected, the copies outside refreshed).</p><p><b>The page's law, seventh and final telling.</b> Every line a NAME (at trade scale: the admin's hat, the second's review lines, the functions' owned reconciliations — three or four names covering the page), the page sized honestly (the daily is minutes; the weekly a half-hour; the quarterly an afternoon; the annual a season of scheduled mornings — the four-hour hat of module 1, fully accounted), and the sentence the academy has now earned seven times, at the layer beneath the other six: <b>the calendar with owners IS the implementation</b> — every disaster this track described (the untested backup, the silent scheduler, the sprawled permissions, the stale runbook, the unwatched watcher) was a calendar line that had no name, and the certified admin's final deliverable is this page, because the platform governed by rhythms is a function, and the platform governed by moods is a countdown.</p>"
-   },
-   {
-    "title": "Chapter 6 — The handover test: the platform survives its keeper",
-    "est": "13",
-    "html": "<p>The academy's deepest thread, at its seventh and final surfacing: could the platform survive its administrator? The handover chapter.</p><p><b>The test, platform edition.</b> Could a competent successor, given what exists, hold the hat within a month with ZERO questions answerable only by the person who left? The walk, module by module: the SITE BOOK's eight sections (module 1 — the boundary map orienting the relationships, the configuration record explaining every setting's why), the ACCESS machinery legible (module 2 — the role catalogue readable aloud, the register reconciling, the walk's reports showing the method), the MASTER governance documented (module 3 — the custodianship map, the import logs, the series catalogue), the CONTINUITY standing (module 4 — the runbooks reachable, the drill log proving the machinery, the RPO/RTO signed), the CHANGE story readable (module 5 — the log with its how-to-reverse lines, the customisation register with its purpose sentences), the CONNECTIONS owned (module 6 — the inventory, the credential register, the communication map), the HEALTH normals inherited (module 7 — the baselines documented, the thresholds written, the page's history orienting in an hour), and this module's structure holding the rest. Every NO is a module incompletely done — the test is the audit; the audit is the goal: the seventh telling, verbatim by design.</p><p><b>The admin-in-one-head disease, closed.</b> The single-head's final conviction, with the platform's specific severity: the undocumented admin is the firm's ENTIRE operational memory in one resignation letter — the passwords in one head, the customisations' reasons in one memory, the incident procedure in one set of reflexes: the departure (or the illness, or the dispute) that takes the head takes the firm's ability to safely operate, change, or recover its own system — and the trade's actual pattern named honestly: the 'IT person' who left two years ago and the site nobody has dared touch since (the frozen site being the disease's monument — improvements stopped, updates feared, the firm operating a system it no longer understands: every consultant has walked into one), with the cure being this track ITSELF, said one final time: the eight modules ARE the extraction — the head's contents converted into the book, the registers, the runbooks, and the calendar a governed successor can hold.</p><p><b>The absence test & the succession.</b> The proof and the plan: the admin's planned ABSENCE with the hat held by the coverage (the mandatory-leave control pointed at its final target — the two-week test where the glance, the weekly read, and whatever the fortnight brings run on the documents: the drill of module 4 having already rehearsed the coverage's hardest scenario, the rest being the book's readability proven live), the COVERAGE named and developed in advance (the second — often the same second who reads the admin's logs: the deputy pattern of the HR track at the platform seat, with the coverage's development being literally this curriculum), and the handover CEREMONY defined for the real transition (the walk-through of the eight sections, the credentials rotated INTO the new custody — never copied, rotated: the leaver-admin's every ambient possibility closed by the same sweep any leaver gets, plus the administrative account's own succession — the shadowed period, and the sign-off by the second: the platform changing hands like the controlled function it now is). The chapter's closing sentence, for the seat itself: <b>the admin whose platform survives them has converted the firm's scariest technical dependency into its most boring — and has freed themselves in the process: documented custodians take holidays, get promoted, and are trusted with more, which is the deal this academy has offered every seat it certified, honoured one last time.</b></p>"
-   },
-   {
-    "title": "Chapter 7 — The owner's platform page & the seat's certification",
-    "est": "13",
-    "html": "<p>What the owner should know, ask, and receive about the platform — and how the seat itself is certified. The accountability chapter.</p><p><b>The owner's platform page.</b> The quarterly digest formalised (module 7's four lines, given their standing): the BACKUP line (drills current, last date, findings closed — the 'are we safe?' answer), the SECURITY line (the walk's date and finds, incidents open or zero, 2FA coverage on the powerful accounts), the CAPACITY line (the headroom in months, the growth's slope), and the CHANGE line (the quarter's changes logged, rollbacks exercised, the update stream current) — four lines, each answerable BY POINTING (the drill log, the walk report, the waistline chart, the change log: the owner's platform questions all having documents behind them being this track's whole achievement, stated as a page), plus the owner's ASKING duty stated plainly (the questions the MD should ask quarterly and expect pointed answers to: when was the last restore drill and what did it find? when was the last permission walk and who signed your page? — the owner who asks these twice a year keeps the whole layer honest at the cost of two conversations, and the owner who never asks has delegated their insurance to hope).</p><p><b>The seat's certification.</b> The admin certified the way every seat in this academy is: the LITERACY demonstrated (the boundary map explained, a permission diagnosis walked live, the recovery ladder narrated with its rungs' reasons), the RITUALS observed (a restore drill run under observation, a change taken through the full ceremony, a health page assembled — the go-live gate's platform half), and the standard MAINTAINED by the artifacts (the drill logs, the walk reports, the change log's how-to-reverse lines, the health page's history — the file that proves the platform monthly ALSO proving the professional holding it: the self-assembling appraisal folder of the payroll track, at its final seat), with the certification's renewal implicit in the calendar (the seat that keeps the rhythms keeps the certificate's meaning — the lapsed calendar being the lapsed certification in practice, whatever the paper says).</p><p><b>The consultant's platform lens.</b> The chapter's professional close, for the certified consultant who now holds this track beside the functional six: the platform read added to the walk-in diagnostic (the prospect's site assessed in an hour by this track's questions — the site book's existence or absence, the admin population's size, the last drill's date if any, the change log's existence, the error log's staleness: the five-question platform health check that prices the foundation before any function is assessed, because the functional remediation built on an ungoverned platform is a renovation on an unsurveyed foundation), and the engagement pattern honest (the platform track's findings usually sequence FIRST in remediation — the custodian named, the access rebuilt, the backup proven — because every functional fix assumes the floor: the sequencing instinct the seven-track graduate carries, and Chapter 8 demonstrates). The chapter's one-line summary: the platform is certified the way everything in this academy is certified — by artifacts, rhythms, and answers that point — and the owner, the seat, and the consultant each hold their page of it.</p>"
-   },
-   {
-    "title": "Chapter 8 — Case study: the platform year closes — and the seven-track graduate",
-    "est": "16",
-    "html": "<p>The final case study of the seventh track, in two acts: HealthTrade's platform becomes structure that survives everyone, and the academy's graduate — seven certifications deep — walks a firm one last time.</p><p><b>Act one — the structural year.</b> <b>Q1, the constitutions (Ch. 1-2):</b> the security walk lands 2FA on the powerful accounts first (the administrative account, the configure-class holders, the payroll seat — eleven days, zero drama, the sequenced rollout working as designed), the session tiers differentiated (the till accounts sized to the shift; the powerful accounts shortened), the branch device walk-through retiring two saved-password traps on communal machines — and the audit configuration verified deliberately (one gap found: version tracking absent on a sensitive master, enabled through the ceremony; the trail proven, not presumed). <b>Q2, the incident (Ch. 3):</b> the year's test arrives as a phishing message the accountant ALMOST answered — reported within minutes (the hero-of-the-story culture paying immediately), the procedure run by its verbs: contained (the credential rotated inside the hour, the sessions cleared), preserved (the logs exported, timestamped), investigated (the trail showing no successful entry — the was-it-used answer clean), remediated (nothing to repair), learned (the tabletop scenario updated with the real message's anatomy, the report-fast culture reinforced at the branch meeting by thanks, not blame). The MD's note: <i>we had our first security incident and it was boring. I understand now that boring was the entire purchase.</i> <b>Q3, the watched watcher and the absence (Ch. 4, 6):</b> the admin's quarterly log review by the MD normalises into routine (the ops lead having requested it herself in Q1 — the strongest statement, made), and the absence test runs in month eight: two weeks' leave, the hat held by the accountant-second on the book — the glance kept, the health page assembled twice, one scheduler stall handled by the runbook's three-line diagnosis and pre-answered restart path, the return to a clean page. Her note closes the arc that began in module 1: <i>the floor survived its keeper. The book held. Apparently that was the point all along.</i> <b>Q4, the year seals (Ch. 5, 7):</b> the calendar's first full cycle completes (the annual season run across five scheduled mornings — the walk, the constitutions, the audits, the reviews), and the owner's platform page stands beside the six functional pages: drills current, walks signed, incidents zero-open, headroom fourteen months.</p><p><b>Act two — the seven-track graduate.</b> The consultant holding all seven certifications takes the complete call one final time: <i>we want to computerise — everything is chaos.</i> The walk now reads the firm AND its floor: the six functional lenses find their familiar diseases (the undocumented counter, the unverified gate, the phantom stock, the unclosable books, the spreadsheet workforce, the remittance hole) — and the PLATFORM lens completes the survey in five questions: no site book, six administrator accounts, no drill ever, no change log, an error log two years unread — the foundation priced before the functions, and the remediation sequenced by the full curriculum: <b>the floor first</b> (the custodian named, the access rebuilt, the backup proven — weeks one to four, because every functional fix assumes it), the people and pay layers on the governed floor, the money and goods layers on their foundations — and the graduate's proposal closes with the sentence seven tracks earned: <i>I will leave you a firm that runs on documents, pays on structure, proves itself monthly — and stands on a floor with a named keeper, a tested recovery, and a book that survives us all.</i> That consultant — able to read a firm's counter, gate, warehouse, books, people, payslips, AND the platform they all stand on, price its diseases, and repair them in the right order from the foundation up — is what the complete academy exists to produce. Take the assessment; then go build firms that outlive their heroes — every layer of them.</p>"
-   },
-   {
-    "title": "Chapter 9 — Patterns, the eighth law & the academy at seven",
-    "est": "14",
-    "html": "<p>The structural layer's final scar tissue, the law that closes the track — and the academy, complete at seven.</p><p><b>Pattern 1 — the weak-door site.</b> Symptom: passwords by preference; the admin account with no second factor; the shared credential living in the sessions. Disease: the security constitution never walked (Ch. 1). Fix: strength as settings, 2FA on the powerful doors first, sessions tiered, the shop floor walked.</p><p><b>Pattern 2 — the testimony assumed.</b> Symptom: the version history discovered absent during the dispute that needed it; the audit layer's coverage imagined, not known. Disease: the trail presumed, never proven (Ch. 2). Fix: the audit configuration walked as a constitution, verified empirically, retained per the evidence horizons.</p><p><b>Pattern 3 — incident improvisation.</b> Symptom: the phishing click hidden for three weeks; the credential debated while the door stands open; the owner learning from the third act. Disease: no procedure, and a culture that punishes reports (Ch. 3). Fix: the five verbs written in peacetime, the low declaration threshold, the reporter as the story's hero, the tabletop rehearsed.</p><p><b>Pattern 4 — the unwatched watcher.</b> Symptom: the admin nobody audits; the powerful account used for browsing; the keys' holder outside every fence. Disease: the most-governed seat governed least (Ch. 4). Fix: the two accounts, the self-grant ban, the logs read by the second, the admin's own page signed by another — the watching the certified admin requests.</p><p><b>Pattern 5 — the admin-in-one-head.</b> Symptom: the IT person who left and the site nobody has dared touch since; the frozen system the firm no longer understands. Disease: the platform's memory in one resignation letter (Ch. 6). Fix: the track itself as the extraction — the book, the registers, the runbooks, the calendar — and the absence test as the proof.</p><p><b>Pattern 6 — the hatless site.</b> Symptom: everyone and no one administering; the floor unowned while six functions govern above it; every platform question answered 'whoever set it up'. Disease: the first law never installed (Ch. 5, and module 1). Fix: the custodian named, the calendar with names, the rhythms owned — the platform as a governed function among governed functions.</p><p><b>The eighth law.</b> The custodian named, the fences proven, the masters governed, the survival drilled, the evolution ceremonied, the voice owned, the watching installed — and now the whole layer stands in structure: <b>administration lives in structure — a security constitution walked, testimony configured and proven, incidents met by five rehearsed verbs, the watcher watched by a named second, every rhythm on a calendar with owners, a platform that survives its keeper by the book it wrote governing itself, and an owner who can ask four questions and be answered by pointing.</b></p><p><b>The seventh track — and the academy at seven.</b> Eight modules: the custodian (1), the fences (2), the masters' machinery (3), the survival (4), the change (5), the voice and doors (6), the watching (7), the structure (8). And the academy now stands at SEVEN tracks — <b>Selling, Procurement, Inventory, Accounts, HR, Payroll</b>, and beneath them all, <b>Sysadmin</b> — 56 modules, 56 laws, seven continuous case studies through one firm's whole anatomy AND the floor it stands on, and the conviction told in seven vocabularies: <b>documents over memory, masters over improvisation, rhythms over heroics, structure over trust — at every layer, including the one the layers run on.</b> The professional who holds all seven can walk into any trading firm in Nigeria and read it whole — from the counter to the configuration — price its diseases from the foundation up, sequence its cure floor-first, and leave it able to run, hire, pay, prove, and recover itself without them. That is the complete certification, completed. Take the assessment; then go read a business — all of it, and everything it stands on.</p>"
+    "title": "Chapter 9 — Common mistakes, the eighth law & the track's laws",
+    "est": "12",
+    "html": "<p>The security layer's recurring failures, the module's law, and the track's eight laws assembled.</p><p><b>Pattern 1 — the single-layer belief.</b> Symptom: \"we have strong passwords\" as the whole security story; one control asked to do everything. Cause: the layered design unknown (Chapter 1). Fix: the five layers named with their threats — identity, authorisation, audit, custody, structure — and the annual review walking all five.</p><p><b>Pattern 2 — two-factor postponed.</b> Symptom: the highest-value upgrade permanently \"next quarter\"; the stolen password still a breach. Cause: friction argued louder than risk (Chapter 3). Fix: the phased rollout starting at the top — System Managers, then money powers, then everyone — with coverage on the health page and exemptions that expire.</p><p><b>Pattern 3 — the trail assumed on.</b> Symptom: the audit question arriving and the history not being there — track-changes silently off on the doctype that mattered. Cause: the setting assumed rather than confirmed (Chapter 4). Fix: the governed-doctype confirmation in the annual review, and the version-without-a-story read pairing the trail with the change lane.</p><p><b>Pattern 4 — deletion in the dark.</b> Symptom: documents vanishing without questions; the recycle bin never opened; the record attacked at its root and nobody reading. Cause: the Deleted Document review unknown (Chapter 5). Fix: the monthly review with its expected-residue pass and everything-else-gets-a-question rule, Delete kept off daily roles, and the count on the health page.</p><p><b>Pattern 5 — the recovery bypass.</b> Symptom: the strongest front door and an unlocked side gate — factor resets granted to a convincing phone voice; the reset flow socially engineered. Cause: the recovery path built casually (Chapter 3). Fix: the written recovery procedure with its defined identity check, the sysadmin and backstop rehearsed on it, and the reset events logged and reviewed.</p><p><b>Pattern 6 — the diagnosis-first response.</b> Symptom: the exposed account left live while everyone investigates; the exposure window growing under discussion. Cause: understanding prioritised over containment (Chapter 7). Fix: the order taught as reflex — disable, revoke, preserve, <i>then</i> think — with the runbook's names against the steps and the annual tabletop keeping it said-aloud.</p><p><b>The review list.</b> Before the quiz, confirm you can: name the five layers and size the real threat picture; complete the password/session layer including the lost-device path and the privileged-account notch; run the two-factor rollout with its method policy, recovery procedure, and coverage read; use the Version trail's three disciplines and confirm track-changes; run the Deleted Document review and the access-log reads with the privacy posture; walk the security calendar and the annual review's six sections; execute the six-step incident response with containment first; and run the function's own handover and absence tests.</p><p><b>The eighth law: security is layered and audited — identity proven, changes remembered, deletions questioned, responses rehearsed, and the function survives its holder.</b></p><p><b>The track's eight laws.</b></p><p>1. The platform has a named owner — every setting is a written decision, and the machinery is governed like the books it carries.<br>2. Access follows the job — granted by profile, fenced by record, logged as events, and removed the day the job ends.<br>3. Masters enter governed, once — named by the scheme, owned by name, merged never duplicated, disabled never deleted.<br>4. A backup untested is a hope — two custodies, complete to the file, restores rehearsed monthly, continuity written on paper.<br>5. Every change is staged in test, signed by its owner, deployed behind a backup, verified live, and written in the register.<br>6. Every channel has an owner, a controlled identity, a credential under custody, and a health read — silence is a finding.<br>7. The system is read before it is felt — numbers trended, exceptions investigated, silence treated as a finding.<br>8. Security is layered and audited — identity proven, changes remembered, deletions questioned, responses rehearsed, and the function survives its holder.</p><p>This completes the Sysadmin Professional track.</p>"
    }
   ],
   "questions": [
    {
-    "q": "The weak-password site is:",
+    "q": "The five security layers are:",
     "opts": [
-     "A configuration choice someone made by not making it — strength enforced by settings, not memos",
-     "A user failure",
-     "Inevitable",
-     "The host's fault"
+     "Identity, authorisation, audit, custody, structure",
+     "Passwords, firewalls, locks, guards, luck",
+     "Read, write, create, delete, admin",
+     "Daily, weekly, monthly, quarterly, annual"
     ],
     "ans": 0,
-    "why": "Policy as physics, at the front door.",
+    "why": "Each catches what the previous missed.",
     "src": "Ch1"
    },
    {
-    "q": "2FA is rolled out:",
+    "q": "The real threat picture is dominated by:",
     "opts": [
-     "To everyone at once",
-     "Powerful accounts first, extended by risk tier — the blanket rollout often ends with no one after the first week's friction",
-     "Never",
-     "To juniors first"
+     "Exotic attacks",
+     "The careless everyday — shared passwords, phishing, live leaver logins, credentials in chats",
+     "Nation states",
+     "Hardware failure"
     ],
     "ans": 1,
-    "why": "The admin account with only a password is the master key under the doormat.",
+    "why": "The ranking drives the effort.",
     "src": "Ch1"
    },
    {
-    "q": "The 2FA reset that requires only a phone call:",
+    "q": "The exotic attack scenarios are:",
     "opts": [
-     "Is convenient",
-     "Is standard",
-     "Has re-installed the doormat — the reset is a favourite social-engineering door; identity verification is the answer",
-     "Is secure"
+     "The site's job",
+     "Ignored",
+     "The host's professional territory — the site's layer defends against what actually arrives",
+     "The MD's job"
     ],
     "ans": 2,
-    "why": "The recovery path governed.",
+    "why": "The boring threats are the real ones.",
     "src": "Ch1"
    },
    {
-    "q": "The till account that logs out mid-queue:",
+    "q": "The admin and user passwords:",
     "opts": [
-     "Is secure",
-     "Is rare",
-     "Is correct",
-     "Breeds the workaround that never logs out — sessions tiered: powerful accounts short, operational sized to the shift"
+     "Admin sets them",
+     "Never change",
+     "Are shared",
+     "The reset flow is the only lane — self-service, logged; the admin never sets or knows one"
     ],
     "ans": 3,
-    "why": "Security balanced against the counter's rhythm.",
-    "src": "Ch1"
-   },
-   {
-    "q": "Audit tracking is enabled:",
-    "opts": [
-     "On what MATTERS, decided with the functions — the track-everything site drowns its own testimony",
-     "On everything",
-     "On nothing",
-     "By default only"
-    ],
-    "ans": 0,
-    "why": "Sized to the evidence needs.",
+    "why": "Module 2's rule, completed here.",
     "src": "Ch2"
    },
    {
-    "q": "The version history assumed present and discovered absent is:",
+    "q": "The three teachable password rules are:",
     "opts": [
-     "Bad luck",
-     "The untested-backup disease at the evidence layer — the audit configuration proven, not presumed",
-     "The host's gap",
-     "Rare"
+     "Individual; typed only on the site's own login page; never sent, stored, or requested by anyone",
+     "Long, complex, rotated",
+     "Written down safely",
+     "Changed weekly"
     ],
-    "ans": 1,
-    "why": "Rung-1 usage proves it quarterly for free.",
+    "ans": 0,
+    "why": "The phishing and social-engineering defences in two sentences.",
     "src": "Ch2"
    },
    {
-    "q": "The trail attributes acts to:",
+    "q": "The lost-device afternoon runs:",
     "opts": [
-     "People",
-     "Roles",
-     "ACCOUNTS — the person behind the login is an investigation's conclusion, not a log line's",
-     "Devices"
+     "A panic",
+     "Sessions revoked, password reset, and two-factor means the finder holds nothing useful — minutes, on a written path",
+     "A new phone order",
+     "A police report only"
     ],
-    "ans": 2,
-    "why": "The account-versus-person boundary, held.",
+    "ans": 1,
+    "why": "The active-sessions view is the tool.",
     "src": "Ch2"
    },
    {
-    "q": "Log-cleaning that deletes activity history is:",
+    "q": "Privileged accounts get:",
     "opts": [
-     "Tidiness",
-     "Storage saving",
-     "Maintenance",
-     "Destroying evidence — refused with the bulk-delete's firmness"
+     "The same treatment",
+     "Fewer checks",
+     "One notch stricter — strongest passwords, two-factor first and mandatory, sessions first-reviewed after events",
+     "No sessions"
     ],
-    "ans": 3,
-    "why": "The trail nobody can quietly edit is the point.",
+    "ans": 2,
+    "why": "The account worth stealing.",
     "src": "Ch2"
    },
    {
-    "q": "An incident versus an outage:",
+    "q": "The policy-exemption count's target is:",
     "opts": [
-     "The system untrusted versus the system down — different runbooks, sometimes both at once",
-     "The same",
-     "Both downtime",
-     "Both technical"
-    ],
-    "ans": 0,
-    "why": "Integrity in question is the incident's definition.",
-    "src": "Ch3"
-   },
-   {
-    "q": "The person who reports the phishing click within minutes is:",
-    "opts": [
-     "Embarrassed",
-     "The hero of the story — the firm that punishes the report teaches the next click to hide for three weeks",
-     "Disciplined",
-     "Retrained"
-    ],
-    "ans": 1,
-    "why": "The entire game lost in one HR decision, otherwise.",
-    "src": "Ch3"
-   },
-   {
-    "q": "Containment comes before investigation because:",
-    "opts": [
-     "Procedure says so",
-     "It is easier",
-     "The open question with an open door is compounding — the unnecessary rotation cost minutes",
-     "Evidence waits"
-    ],
-    "ans": 2,
-    "why": "The first of five verbs, in order.",
-    "src": "Ch3"
-   },
-   {
-    "q": "Evidence is preserved before investigating because:",
-    "opts": [
-     "Formality",
-     "Auditors",
-     "Storage",
-     "Investigation alters the scene it walks through — logs exported, timestamps recorded first"
+     "Ten",
+     "Unset",
+     "Half the users",
+     "Zero — every exemption a documented decision with an expiry"
     ],
     "ans": 3,
-    "why": "The trail read and SAVED.",
-    "src": "Ch3"
+    "why": "Read at the annual review.",
+    "src": "Ch2"
    },
    {
-    "q": "Incident remediation of altered records travels:",
+    "q": "Two-factor converts the stolen password into:",
     "opts": [
-     "The functions' own correction machinery — incident recovery does not suspend document governance",
-     "The admin's quick fixes",
-     "Bulk edits",
-     "Restores only"
+     "A failed login — the highest-value upgrade available to the site",
+     "A breach",
+     "A lockout",
+     "Nothing"
     ],
     "ans": 0,
-    "why": "Every track's law holds even on the bad day.",
+    "why": "The most common real attack, answered.",
     "src": "Ch3"
    },
    {
-    "q": "Data-protection notification questions are:",
+    "q": "The strong default method is:",
     "opts": [
-     "The admin's judgment",
-     "Legal questions answered by counsel — the admin assembles facts and escalates promptly",
-     "Optional",
-     "The host's"
+     "SMS",
+     "The authenticator app — codes on the device, no delivery channel to intercept",
+     "Email",
+     "Security questions"
     ],
     "ans": 1,
-    "why": "The adviser boundary at the incident's edge.",
+    "why": "OTP by SMS/email is the knowing accommodation.",
     "src": "Ch3"
    },
    {
-    "q": "The admin doing daily work from the administrative account has:",
+    "q": "The rollout order is:",
     "opts": [
-     "Saved time",
-     "Nothing at risk",
-     "Made every browsing moment a privileged act — the two-account discipline exists for this",
-     "Simplified life"
+     "Everyone at once",
+     "Volunteers first",
+     "System Managers first, money and adjustment powers next, then all Desk users in phases",
+     "New hires only"
     ],
     "ans": 2,
-    "why": "The daily self under ordinary fences.",
-    "src": "Ch4"
+    "why": "The MD enrolling first defeats the friction argument.",
+    "src": "Ch3"
    },
    {
-    "q": "The admin's sensitive-tier access is:",
+    "q": "The recovery path is:",
     "opts": [
-     "Unlogged",
-     "Private",
-     "Assumed clean",
-     "Logged and read by someone else — the monthly sample pointing at the administrative account FIRST"
+     "Informal",
+     "Automatic",
+     "A quick call",
+     "A written procedure with a defined identity check — it is the bypass, so it gets procedure-grade treatment"
     ],
     "ans": 3,
-    "why": "The watcher watched is the whole design.",
-    "src": "Ch4"
+    "why": "The layer's weakest point by construction.",
+    "src": "Ch3"
    },
    {
-    "q": "The certified admin ASKS for the watching because:",
+    "q": "A Version record carries:",
     "opts": [
-     "The watched watcher is trusted with more, promoted safer, and suspected never",
-     "Rules require it",
-     "It looks good",
-     "The MD insists"
+     "The fields changed with before/after values, the user, the timestamp",
+     "The document total",
+     "A backup",
+     "A comment"
     ],
     "ans": 0,
-    "why": "The strongest possible statement about one's own conduct.",
+    "why": "The who-changed-this answered in two clicks.",
     "src": "Ch4"
    },
    {
-    "q": "The best trade-scale admin is:",
+    "q": "The trail's real estate is:",
     "opts": [
-     "The most technical person",
-     "The most GOVERNED person, taught the technical — the reverse is a temperament transplant",
-     "The founder",
-     "The youngest"
+     "Transactions",
+     "Masters and settings — records edited in place, where change tracking is the only memory",
+     "Reports",
+     "Logins"
     ],
     "ans": 1,
-    "why": "The selection guidance for every implementation.",
+    "why": "Docstatus already guards submitted transactions.",
     "src": "Ch4"
    },
    {
-    "q": "The calendar's most important quarterly line is:",
+    "q": "Track Changes is:",
     "opts": [
-     "The dedup hunt",
-     "The storage dot",
-     "The restore drill — the checklist full, the log signed",
-     "The test-fires"
+     "Always on",
+     "The host's setting",
+     "Confirmed on per governed doctype at the annual review — a disturbance shows nothing until the history is needed",
+     "Automatic"
     ],
     "ans": 2,
-    "why": "Module 4's heart, on its seat.",
+    "why": "The trail assumed on is Pattern 3.",
+    "src": "Ch4"
+   },
+   {
+    "q": "A version without a story is:",
+    "opts": [
+     "Normal",
+     "Deleted",
+     "A backup",
+     "The finding — governed changes should correspond to register entries or documented decisions"
+    ],
+    "ans": 3,
+    "why": "The trail paired with the change lane.",
+    "src": "Ch4"
+   },
+   {
+    "q": "The trail's demonstration to management:",
+    "opts": [
+     "Answers who-changed-this live in two clicks — teaching owners to ask the system before asking around",
+     "Is surveillance",
+     "Is forbidden",
+     "Needs the host"
+    ],
+    "ans": 0,
+    "why": "Does more than any memo.",
+    "src": "Ch4"
+   },
+   {
+    "q": "Who exported the customer list is answered by:",
+    "opts": [
+     "Nobody",
+     "The access-log read — pairing with the export permission: the permission governs who may; the log records who did",
+     "A survey",
+     "The firewall"
+    ],
+    "ans": 1,
+    "why": "The reconstruction aid beside the control.",
     "src": "Ch5"
    },
    {
-    "q": "The platform governed by rhythms versus by moods is:",
+    "q": "A deleted transaction is:",
     "opts": [
-     "The same platform",
-     "A style choice",
-     "A cost question",
-     "A function versus a countdown"
+     "Routine",
+     "A cancel",
+     "Always a question — Delete is off daily roles and Cancel/Amend is the lawful path",
+     "The host's doing"
     ],
-    "ans": 3,
-    "why": "The calendar with owners IS the implementation — seventh telling.",
+    "ans": 2,
+    "why": "Deletion is rare by construction.",
     "src": "Ch5"
    },
    {
-    "q": "The handover test asks:",
+    "q": "The Deleted Document review's monthly picture should be:",
     "opts": [
-     "Could a competent successor hold the hat in a month with zero questions answerable only by the person who left?",
-     "Is the admin smart?",
-     "Are passwords shared?",
-     "Is the site fast?"
-    ],
-    "ans": 0,
-    "why": "Every NO is a module incompletely done.",
-    "src": "Ch6"
-   },
-   {
-    "q": "The undocumented admin is:",
-    "opts": [
-     "A quiet asset",
-     "The firm's operational memory in one resignation letter — the frozen site is the disease's monument",
-     "Efficient",
-     "Normal"
-    ],
-    "ans": 1,
-    "why": "The site nobody has dared touch since.",
-    "src": "Ch6"
-   },
-   {
-    "q": "The leaver-admin's credentials are:",
-    "opts": [
-     "Copied to the successor",
-     "Kept as backup",
-     "ROTATED into the new custody — never copied; every ambient possibility closed by the same sweep any leaver gets",
-     "Archived"
-    ],
-    "ans": 2,
-    "why": "The platform changing hands like the controlled function it is.",
-    "src": "Ch6"
-   },
-   {
-    "q": "The documented custodian's deal is:",
-    "opts": [
-     "More work",
-     "Lower pay",
-     "Less power",
-     "Holidays, promotion, and trust — the firm's scariest dependency made its most boring"
+     "Interesting",
+     "Long",
+     "Empty always",
+     "A short list of boring rows — eleven boring months are the control working"
     ],
     "ans": 3,
-    "why": "The academy's offer, honoured one last time.",
+    "why": "The power is the regularity.",
+    "src": "Ch5"
+   },
+   {
+    "q": "Deletion carries special weight because:",
+    "opts": [
+     "It attacks the record itself — every other mischief leaves the trail intact",
+     "It is common",
+     "It is loud",
+     "It is reversible"
+    ],
+    "ans": 0,
+    "why": "The equity pattern named it.",
+    "src": "Ch5"
+   },
+   {
+    "q": "The security calendar's quarterly lines include:",
+    "opts": [
+     "The smoke test",
+     "The access recertification, the integration door count, and the incident cause read",
+     "The backup drill",
+     "The chart walk"
+    ],
+    "ans": 1,
+    "why": "Gathered from across the track.",
     "src": "Ch6"
    },
    {
-    "q": "The owner's four platform lines are answered:",
+    "q": "The annual review's output is:",
     "opts": [
-     "BY POINTING — the drill log, the walk report, the waistline chart, the change log",
-     "With assurance",
-     "In meetings",
-     "Annually"
-    ],
-    "ans": 0,
-    "why": "Every platform question has a document behind it.",
-    "src": "Ch7"
-   },
-   {
-    "q": "The owner who never asks the two quarterly questions has:",
-    "opts": [
-     "Saved time",
-     "Delegated their insurance to hope",
-     "Shown trust",
-     "Done fine"
-    ],
-    "ans": 1,
-    "why": "Two conversations keep the whole layer honest.",
-    "src": "Ch7"
-   },
-   {
-    "q": "The lapsed calendar is:",
-    "opts": [
-     "A scheduling issue",
-     "Recoverable silently",
-     "The lapsed certification in practice, whatever the paper says",
-     "Normal"
+     "A feeling",
+     "A new policy",
+     "One page — confirmations, findings with owners and dates, exemptions re-decided",
+     "A meeting"
     ],
     "ans": 2,
-    "why": "The seat that keeps the rhythms keeps the certificate's meaning.",
-    "src": "Ch7"
+    "why": "The year's security posture, evidenced.",
+    "src": "Ch6"
    },
    {
-    "q": "The consultant's five-question platform check:",
+    "q": "The review is scheduled:",
     "opts": [
-     "Is optional",
-     "Is technical",
-     "Comes last",
-     "Prices the foundation before any function is assessed — the site book, the admin count, the last drill, the change log, the error log"
+     "At year-end",
+     "Ad hoc",
+     "During the close",
+     "In a quiet month — nothing here is urgent because everything here is regular"
     ],
     "ans": 3,
-    "why": "The renovation on an unsurveyed foundation, avoided.",
+    "why": "A rushed review confirms instead of examining.",
+    "src": "Ch6"
+   },
+   {
+    "q": "The incident response's order is:",
+    "opts": [
+     "Contain, preserve, assess, escalate, recover, learn — disable and revoke before thinking",
+     "Understand, then act",
+     "Meet, discuss, decide",
+     "Wait and watch"
+    ],
+    "ans": 0,
+    "why": "The first minute belongs to containment.",
     "src": "Ch7"
    },
    {
-    "q": "HealthTrade's first incident was:",
+    "q": "Containment means:",
     "opts": [
-     "Boring — reported in minutes, contained in an hour, the trail's was-it-used answer clean: 'boring was the entire purchase'",
+     "A meeting",
+     "The account disabled, sessions revoked, keys revoked — reversible; waiting is not",
+     "A memo",
+     "A password hint"
+    ],
+    "ans": 1,
+    "why": "Module 4's rule verbatim.",
+    "src": "Ch7"
+   },
+   {
+    "q": "The assessment separates:",
+    "opts": [
+     "Big from small",
+     "Old from new",
+     "Exposed-but-unused from used — fast containment makes the first the common case",
+     "Site from host"
+    ],
+    "ans": 2,
+    "why": "The matrix and the trails answer what it could reach and did touch.",
+    "src": "Ch7"
+   },
+   {
+    "q": "Business-consequence decisions are:",
+    "opts": [
+     "The sysadmin's alone",
+     "The host's",
+     "Postponed",
+     "Escalated to the owner and the professionals — the sysadmin runs the machinery response"
+    ],
+    "ans": 3,
+    "why": "Never sat on alone.",
+    "src": "Ch7"
+   },
+   {
+    "q": "The annual tabletop exists because:",
+    "opts": [
+     "The businesses that respond in minutes have said the steps aloud before",
+     "Auditors require it",
+     "It is fun",
+     "The host runs it"
+    ],
+    "ans": 0,
+    "why": "Fifteen minutes, gaps noted, runbook amended.",
+    "src": "Ch7"
+   },
+   {
+    "q": "HealthTrade's terms dispute was settled by:",
+    "opts": [
+     "A negotiation",
+     "The Version history in two clicks — change, date, user, and the authorising email attached",
+     "A write-off",
+     "A new supplier"
+    ],
+    "ans": 1,
+    "why": "The suspicion-shaped meeting became a fact check.",
+    "src": "Ch8"
+   },
+   {
+    "q": "Month four's deleted invoice traced to:",
+    "opts": [
+     "Fraud",
+     "The host",
+     "A residual Delete grant from the implementation era — role corrected same day, cause fed to the quarterly read",
+     "A backup failure"
+    ],
+    "ans": 2,
+    "why": "The review's first interesting row.",
+    "src": "Ch8"
+   },
+   {
+    "q": "The function's absence test showed:",
+    "opts": [
+     "Chaos",
      "A crisis",
-     "Hidden",
-     "Expensive"
-    ],
-    "ans": 0,
-    "why": "The hero-of-the-story culture, paying immediately.",
-    "src": "Ch8"
-   },
-   {
-    "q": "The ops lead's absence test note read:",
-    "opts": [
-     "'Never again'",
-     "'The floor survived its keeper. The book held. Apparently that was the point all along.'",
-     "'Too risky'",
-     "'The MD covered'"
-    ],
-    "ans": 1,
-    "why": "The arc that began in module 1, closed.",
-    "src": "Ch8"
-   },
-   {
-    "q": "The seven-track remediation sequences:",
-    "opts": [
-     "Functions first",
-     "Money first",
-     "The FLOOR first — the custodian, the access, the backup — because every functional fix assumes it",
-     "Randomly"
-    ],
-    "ans": 2,
-    "why": "Weeks one to four, before the layers above.",
-    "src": "Ch8"
-   },
-   {
-    "q": "The academy now stands at:",
-    "opts": [
-     "Six tracks",
-     "Five tracks",
-     "Eight tracks",
-     "SEVEN tracks — 56 modules, 56 laws: six functions and the floor they stand on"
+     "Postponed reads",
+     "Three weeks run by the backstop — every read on schedule, one incident handled solo, zero holder-only questions"
     ],
     "ans": 3,
-    "why": "The whole anatomy AND its foundation, certified.",
-    "src": "Ch9"
+    "why": "The clean sheet on the platform layer.",
+    "src": "Ch8"
    },
    {
-    "q": "The conviction in seven vocabularies is:",
+    "q": "The recovery-bypass pattern is fixed by:",
     "opts": [
-     "Documents over memory, masters over improvisation, rhythms over heroics, structure over trust — at every layer, including the one the layers run on",
-     "Speed over care",
-     "Trust over control",
-     "Growth first"
+     "The written recovery procedure with its defined identity check, rehearsed and logged",
+     "Stronger passwords",
+     "No recovery",
+     "The host"
     ],
     "ans": 0,
-    "why": "The academy's single sentence, final telling.",
+    "why": "The unlocked side gate beside the strong front door.",
     "src": "Ch9"
    },
    {
-    "q": "The seven-track graduate reads a firm:",
+    "q": "Two-factor postponed is fixed by:",
     "opts": [
-     "Function by function only",
-     "Whole — from the counter to the configuration — and repairs it floor-first",
-     "From reports",
-     "In a week"
+     "Waiting",
+     "The phased rollout from the top with coverage on the health page and expiring exemptions",
+     "A memo",
+     "SMS for all"
     ],
     "ans": 1,
-    "why": "What the complete academy exists to produce.",
+    "why": "Pattern 2.",
     "src": "Ch9"
    },
    {
-    "q": "This module's law is:",
+    "q": "Module 8's law is:",
     "opts": [
-     "Admins need freedom",
-     "Security is the host's",
-     "Administration lives in structure — the constitution walked, testimony proven, five rehearsed verbs, the watcher watched, a calendar with owners, and a platform that survives its keeper",
-     "Trust suffices"
+     "Passwords suffice",
+     "The host secures everything",
+     "Security is layered and audited — identity proven, changes remembered, deletions questioned, responses rehearsed, and the function survives its holder",
+     "Audit is optional"
     ],
     "ans": 2,
-    "why": "The eighth law, closing the seventh track and the academy.",
+    "why": "Completing the track's eight laws.",
     "src": "Ch9"
    }
   ]
