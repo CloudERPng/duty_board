@@ -14,7 +14,7 @@ import os
 
 import frappe
 
-ORDER = ["counter_system", "pos_profile", "terminal_estate", "shift_sale", "concessions_returns", "extended_counters", "voucher_programme"]
+ORDER = ["counter_system", "pos_profile", "terminal_estate", "shift_sale", "concessions_returns", "extended_counters", "voucher_programme", "honest_counter"]
 
 TRACK = {
 	"title": "ZhiftPOS Professional",
