@@ -1898,946 +1898,946 @@
  },
  "concessions_returns": {
   "title": "POS 5 — Concessions, Returns & Overrides",
-  "desc": "Everything that takes money off or gives money back: the concession event's five-part anatomy, the three discount modes as lived at the till, the markdown-reason craft with budget percentages, the discount-request code cycle end to end, promotions and bundles as the priced automatic concession, rate edits and credit releases under the override machinery, and the Return & Exchange console's three steps with loyalty recovery — generosity spent like the money it is.",
+  "desc": "Discounts and returns as controlled exceptions: the five parts of every exception, the three discount modes at the till, markdown reasons with budget percentages, the discount request cycle through category leads, promotions that lock the line and bundles retired by deactivation, rate edits and credit releases under the approval mechanics, and the Return & Exchange console's three steps with loyalty recovery.",
   "lessons": [
    {
-    "title": "Chapter 1 — The pressure valve: money off, money back",
+    "title": "Chapter 1 — Discounts and returns: controlled exceptions",
+    "est": "10",
+    "html": "<p>This module covers everything that reduces a price or gives money back: the three discount modes in practice, markdown reasons, the discount request cycle, promotions and bundles, rate edits, credit limit releases, and the Return &amp; Exchange console. The module's law: <b>every discount and every return carries a reason and an approver.</b></p><p><b>Why these belong together.</b> A discount and a return look like different subjects, but on ZhiftPOS they share the same machinery: both are exceptions to the normal arithmetic of a sale, both use the Power Approver system, both require reasons, and both leave a record. They also share the same risk: the exception path is where margin quietly disappears, and where most counter fraud is dressed up as customer service. ZhiftPOS does not try to eliminate exceptions — a shop that can never bend loses customers it should keep — it makes every exception a recorded, authorised event.</p><p><b>The five parts of every exception.</b> Every discount and every return on ZhiftPOS records the same five things. Learn the list once; you will recognise it in every screen this module covers:</p><p>1. <b>What</b> — the line or invoice the exception applies to.<br>2. <b>Who asked</b> — the cashier.<br>3. <b>Who approved</b> — the approver, by password or one-time code, where the profile requires one.<br>4. <b>Why</b> — the reason, chosen from a list and (in approval mode) explained.<br>5. <b>The record</b> — the marker on the line, the stamp on the invoice, or the timestamped stages of a request.</p><p>When reviewing any exception later, a missing part is the finding: a discount with no reason, a return with no original invoice, an override with no approver — these are the three most common leaks, and each one is a missing part from this list.</p><p><b>Module contents.</b> Chapter 2: the three discount modes as the cashier experiences them, and what cannot be discounted. Chapter 3: markdown reasons — how to build the list and what the budget percentages do. Chapter 4: the discount request cycle in Code-based mode. Chapter 5: promotions and bundles — discounts decided centrally and applied automatically. Chapter 6: rate edits and credit limit releases, and the approval mechanics in detail. Chapter 7: the Return &amp; Exchange console, step by step. Chapter 8: Okelewo's first quarter of discount and returns data. Chapter 9: review.</p><p><b>One framing to keep.</b> Margin given away is money spent. ZhiftPOS treats it that way: someone approves the spend, the reason is recorded, and the reports show where it went. That is all this module's machinery does, in different forms.</p>"
+   },
+   {
+    "title": "Chapter 2 — The three discount modes at the till",
+    "est": "13",
+    "html": "<p>Module 2 covered choosing the discount mode; this chapter covers using each one at the counter.</p><p><b>Standard mode.</b> Press the percentage icon on a cart line, switch between percentage and amount, enter the discount, and Apply. Two built-in limits: a percentage cannot exceed 100, and an amount cannot exceed the line's rate — a discount can never turn a price negative. If the profile requires an override, the approver clears it at the moment of discounting, by password or one-time code.</p><p><b>Approval-based mode.</b> The same discount window, with two required fields added:</p><p>• <b>Discount reason</b> — chosen from the markdown reason list.<br>• <b>Explanation</b> — typed free text.</p><p><b>Neither field can be left blank.</b> The reason is stored on the sale line and appears in markdown reporting, so month-end figures show not just how much was discounted, but why. Two working habits: pick the reason that is actually true, not the first one in the list (Chapter 3 explains why the list is kept short enough to make that easy); and write the explanation for someone who was not there — <i>display unit, box damaged, customer shown</i> tells a reviewer everything; <i>customer asked</i> tells them nothing.</p><p><b>Code-based mode.</b> The cashier cannot type a discount at all. Instead:</p><p>1. Press <b>Request Discount</b> on the cart header.<br>2. Search the item, set the quantity, choose percentage or amount, enter the request, and submit.<br>3. Wait for the approval (Chapter 4 covers what happens in the back office).<br>4. When approved, press the ticket icon on the line and enter the code you were given.</p><p>Rule at the line: <b>a line that already carries a discount code cannot be discounted again.</b> The code is the whole concession for that line.</p><p><b>What cannot be discounted.</b> Five kinds of line refuse discounts, each for a reason:</p><p>• <b>Bonus items</b> from a promotion — already free.<br>• Lines already carrying a <b>promotional discount</b> — the promotion locks the line (Chapter 5).<br>• Lines carrying a <b>discount code</b> — the code is the concession.<br>• <b>Gift voucher lines</b> — a voucher always sells at face value.<br>• <b>Bundle components</b> — the bundle price governs the parts.</p><p><b>The tooltip.</b> When a discount control is greyed out, hover over it: the tooltip states the reason — discounts disabled on the profile, a promotion or code already applied, or no approvers configured. Read it and you can give the customer the real answer instead of guessing.</p>"
+   },
+   {
+    "title": "Chapter 3 — Markdown reasons",
     "est": "12",
-    "html": "<p>Four modules built a counter that takes money correctly. This one governs the harder motion: money going the OTHER way — the discount, the rate cut, the credit release, the refund. The pressure-valve module, under the track's fifth law: <b>every concession and every return carries a reason and an authoriser.</b></p><p><b>Why one module.</b> The unification argued: discounts and returns look like different subjects — one is selling's generosity, the other service's obligation — but structurally they are ONE subject: authorised exceptions to the sale's normal arithmetic, sharing one control machinery (the Power Approver table, the override modes, the reason disciplines) and one risk shape (the exception path is where margin leaks and where fraud dresses as service — module 8's map draws most of its lines through this module's ground). The counter needs the valve — the shop that can never bend loses customers it should keep, and the damaged item genuinely is worth less — so the discipline is never 'no exceptions'; it is the law above: every exception a governed EVENT, with a reason that survives and an authoriser who owns it.</p><p><b>The event's anatomy.</b> The shape every concession and return shares, taught once and recognised everywhere after: a SUBJECT (the line or invoice the exception touches), an ACTOR (the cashier proposing), an AUTHORISER (the approver disposing — by password or code, per the profile), a REASON (chosen, and in approval mode explained), and a TRAIL (the marker on the line, the stamp on the invoice, the timestamped stages of a request). Five parts; the module's every mechanism is one of them made concrete — and the diagnostic habit follows: the exception missing any part is the finding (the discount with no reason, the return with no invoice, the override with no approver are the trade's three commonest leaks, and each is a part of the anatomy amputated).</p><p><b>The module's map.</b> The ground ahead: the three discount modes as lived at the till (Chapter 2 — module 2 chose them; this module works them), the markdown-reason craft that makes approval mode's data worth having (3), the code cycle's full walk (4), the promotion and bundle machinery that concedes AUTOMATICALLY so the till doesn't have to (5), the stronger powers — rate edits and credit releases — under the override machinery in action (6), the Return &amp; Exchange console's three steps with the loyalty-recovery arithmetic (7), Okelewo's concession quarter (8), and the patterns and the law (9). One frame carries throughout, set now: the margin is a quantity the firm OWNS — every naira conceded is spent, and spending needs what spending always needs in this academy: an authoriser, a reason, and a record that lets the owner read where it went.</p>"
+    "html": "<p>Approval-based mode depends on the markdown reason list. The list is configured in the back office, and how it is built decides whether the reporting is useful.</p><p><b>Keep the list short and non-overlapping.</b> Five reasons cover most shops: <b>damaged stock, price match, display item, expiring stock, goodwill.</b> Resist the urge to add more. A list of thirty reasons produces useless data: under queue pressure, cashiers pick the first plausible entry, categories blur into each other, and the month-end report answers nothing. The design target is a reason a cashier can pick in two seconds <b>and</b> have it be true — a short list of clearly different reasons achieves that; a long list of precise ones does not.</p><p><b>The budget percentage.</b> Each reason carries a <b>budget percentage</b> — the share of total markdown spend that reason is expected to account for. This turns the markdown report into a comparison of planned against actual, per cause. Examples of what the comparison shows:</p><p>• Damaged stock budgeted at 40% of markdowns but running at 70% → a receiving or storage problem, or the reason being used as the easy pick — either way, a specific question to investigate.<br>• Goodwill budgeted at 10% but running at 40% → a floor habit to look at.<br>• Price match spiking in one branch → a competitor has moved; useful information arriving through the till.</p><p><b>Set up the reasons before switching the mode on.</b> The rule from the system: in Approval-based mode, <b>if no markdown reasons exist, no discount can be applied at all</b> — the required field has nothing to offer. This is the same pattern as the no-approvers trap in module 2: a control that requires an input becomes a wall when the input was never supplied. Add it to the go-live checklist: before switching a profile to Approval-based, confirm the reasons exist, then process one test discount end to end — reason picked, explanation typed, override cleared.</p><p><b>What the discipline buys.</b> Each discount costs the cashier about thirty seconds of reason-picking and typing. In return, the month-end markdown report can be broken down by cause, branch, cashier and period, against budget. The difference in practice: <i>we discount too much</i> is a feeling nobody can act on; <i>expiring-stock markdowns doubled at the flagship in March, eleven approvals, all one supplier's short-dated deliveries</i> is a specific problem with a specific owner. Chapter 8 shows Okelewo's first quarter of exactly this.</p><p><b>Maintenance.</b> Review the reason list and the budget percentages when the business changes — a new product category, a new competitor, a policy change. The list is small enough to review in ten minutes, which is another argument for keeping it small.</p>"
    },
    {
-    "title": "Chapter 2 — The three modes at the till: what the cashier lives",
+    "title": "Chapter 4 — The discount request cycle",
+    "est": "12",
+    "html": "<p>Code-based mode routes every discount through a request-and-approval cycle. This chapter follows one request end to end.</p><p><b>Stage 1 — the request.</b> At the till: Request Discount → search the item → set quantity → choose percentage or amount → enter the ask → submit. The request is now a record in the back office, carrying the item, the quantity, the amount asked, the cashier, the branch, and the time.</p><p><b>Stage 2 — routing.</b> The request is routed to the <b>category leads for that item's group</b>. Approval authority follows the goods, not the location: whoever owns the electronics category's margin answers electronics requests, whichever branch they come from.</p><p><b>Stage 3 — the decision.</b> A category lead reviews the request in the back office and either:</p><p>• <b>Approves</b> it — optionally <b>changing the amount</b> (the cashier asked for 15%; the lead grants 10%), or<br>• <b>Rejects</b> it, with the outcome recorded.</p><p><b>Stage 4 — the code.</b> An approved request produces a <b>discount code</b>, which reaches the cashier.</p><p><b>Stage 5 — application.</b> The cashier enters the code on the line. On entry, the code is <b>reserved briefly against that cashier</b> — so two tills cannot apply the same code at once — then marked <b>used</b>, and <b>stamped on the resulting invoice</b>. A used code cannot be applied again.</p><p>Every stage is timestamped with who performed it, so any discount can later be traced from the original request to the final invoice.</p><p><b>Setup requirement: category leads.</b> Item groups must have category leads assigned in the request routing configuration. <b>Without leads, requests have nobody to approve them</b> — the same required-input pattern as approvers (module 2) and markdown reasons (Chapter 3). Before enabling Code-based mode anywhere, confirm every relevant item group has at least one lead, and process one test request end to end.</p><p><b>Where Code-based mode fits.</b> The cycle gives the strongest control available — the decision is made away from counter pressure, by the person who owns the margin, with time to think — at the cost of a round trip: the customer waits, or comes back. That trade suits high-value negotiated goods (electronics, furniture — one request an hour, each worth the wait) and does not suit fast-moving counters (thirty requests a day would stall the queue). Mixed businesses run mixed modes on different profiles: Okelewo's setup (Chapter 8) puts Code-based on the Lagos electronics profile only, with Approval-based everywhere else.</p><p><b>Summary.</b> Request → route to category lead → approve (possibly adjusted) or reject → code → apply once, stamped on the invoice. Leads must exist first. Use the mode where negotiation is normal and volumes are low.</p>"
+   },
+   {
+    "title": "Chapter 5 — Promotions and bundles",
     "est": "13",
-    "html": "<p>Module 2 chose the discount mode as policy; this chapter is the same ground from the chair — what each mode feels like, line by line. The lived-modes chapter.</p><p><b>Standard mode.</b> The direct path: the percentage icon on the line, the switch between percentage and amount, the discount entered — with the arithmetic fences known (a percentage cannot exceed one hundred; an amount cannot exceed the line's rate — the discount that inverts a price into a payment does not exist), and Apply. Where the profile requires an override, the approver clears it AT THE MOMENT of discounting — password typed, or a one-time code requested and entered. The mode's honest character restated from the chair: fast, floor-supervised, and exactly as governed as the approver's presence.</p><p><b>Approval-based mode.</b> The same window with two additions that change everything: a <b>discount reason</b> chosen from the list, and a typed <b>explanation</b> — <b>neither can be left blank</b>. The reason is stored ON the sale line and surfaces in markdown reporting — which is the mode's whole point, felt at the till as thirty seconds of friction and read at month-end as the only margin report that answers WHY. The cashier's craft in this mode is honesty at speed: the reason picked is the TRUE one, not the top one (Chapter 3 owns why the list is short enough to make truth easy), and the explanation is a sentence a stranger can use ('display unit, box damaged, customer shown') — the discipline every evidence layer in this academy asks: written for the reader who wasn't there.</p><p><b>Code-based mode.</b> The till's side of Chapter 4's cycle: the cashier CANNOT type a discount at all — Request Discount on the cart header instead: the item searched, the quantity set, percentage or amount chosen, the ask entered, submitted — then the wait, and on approval, the ticket icon on the line and the code entered. One rule at the line: <b>a line already carrying a discount code cannot be discounted again</b> — the code is the concession, whole.</p><p><b>What cannot be discounted.</b> The refusal list, taught with its reasons because the tooltip will cite it: <b>bonus items</b> from a promotion (already free — a discount on free is a fiction), lines already carrying a <b>promotional discount</b> (the campaign locked the line — Chapter 5's stacking prevention), lines carrying a <b>discount code</b> (above), <b>gift voucher lines</b> (a voucher sells at face value, always — module 4's closed loop), and <b>bundle components</b> (the bundle price governs the parts). And the disabled control's grammar, closing the chapter as it closed module 1: the greyed discount control is HOVERED, and the tooltip states the reason — discounts disabled on the profile, a promotion or code already applied, or no approvers configured — the machine explaining its constitution so the cashier can explain it to the queue, which is the difference between a refusal and an argument, sixty times a week.</p>"
+    "html": "<p>Promotions and bundles are discounts decided once, centrally, and applied automatically by the till whenever a basket qualifies. Cashiers do not have to remember campaigns, and campaigns cannot be remembered generously.</p><p><b>The three promotion types.</b></p><p>• <b>Product Discount</b> — a percentage or fixed amount off qualifying lines.<br>• <b>Bonus Item</b> — a free item added to the basket. The bonus line cannot be edited or discounted at the till.<br>• <b>Bonus Loyalty Points</b> — extra points on a named loyalty programme, optionally with their own validity period.</p><p><b>Setting up a promotion.</b> The fields, in order:</p><p>1. <b>Title and description</b> — both are visible to cashiers, so write them for the counter.<br>2. <b>Valid From / Valid To</b> — outside this window the promotion is <b>ignored, even if its status is Active</b>. Campaigns end by calendar, not by someone remembering to switch them off.<br>3. <b>Trigger</b> — a specific item, an item group, a brand, or the transaction total.<br>4. <b>Thresholds</b> — minimum and maximum qualifying quantity (item triggers) or transaction value (basket triggers). Set the maximums: a capped promotion has a known worst-case cost.<br>5. <b>Reward</b> — the discount type and value, the bonus item, or the points and programme.<br>6. <b>Automatic or code</b> — the promotion either applies itself when the basket qualifies, or requires a <b>promotion code</b> the cashier enters via the tag icon above the grid. Applied codes appear as removable chips on the cart footer.<br>7. <b>Status</b> — set Active.</p><p><b>Promotions lock the line.</b> Once a promotional discount lands on a cart line, <b>that line's rate can no longer be edited and no manual discount can be added to it</b>. Reason: the promotion's cost was calculated when the campaign was designed; a manual discount stacked on top would be an unplanned, compounding giveaway. The lock prevents the stack, and the tooltip explains it at the till.</p><p><b>Bundles.</b> A bundle sells a group of items at one price:</p><p>• Configuration: a <b>main item</b>, a <b>bundle price</b>, and the component items with quantities.<br>• At the till: adding the main item where a bundle exists offers the choice — bundle or single item. Choosing the bundle brings the components in as indented child lines under the main line.<br>• Child lines have fixed quantity, rate and discount — <b>the bundle price governs the parts</b>. To remove a bundle, remove its main line.</p><p><b>Retiring a bundle.</b> Set it <b>inactive</b> rather than deleting it. Deleting loses the component list; an inactive bundle can be reactivated next season with its configuration intact.</p><p><b>Practical rule.</b> Wherever a regular, repeated discount exists on the floor — the seasonal offer, the multi-buy, the staple combo — convert it into a promotion or bundle. Every giveaway moved from floor habit into a configured campaign gains a validity window, a cost cap, and a report line.</p>"
    },
    {
-    "title": "Chapter 3 — The markdown-reason craft: why the list is short",
+    "title": "Chapter 6 — Rate edits, credit releases, and the approval mechanics",
     "est": "13",
-    "html": "<p>Approval-based mode is only as good as its reason list — and the list is a designed instrument, not a form field. The craft chapter.</p><p><b>The list's discipline.</b> The manual's design rules, adopted with their reasoning: the list SHORT and <b>mutually exclusive</b> — damaged stock, price match, display item, expiring stock and goodwill cover most shops — because <b>a list of thirty reasons produces unusable data</b>: cashiers pick the first plausible entry, every reason becomes 'other' wearing a costume, and the month-end report answers nothing. The design logic is the academy's category discipline (few buckets, purpose-clear, no overlaps) applied where the data is born under queue pressure: the reason pickable in two seconds AND true is the design target, and five well-cut reasons beat thirty precise ones every month of the year.</p><p><b>The budget percentage.</b> The field that turns the list from taxonomy into control: each reason carries a <b>budget percentage</b> — the share of markdown budget it is EXPECTED to account for — letting finance compare planned against actual concessions. The read taught as module 8 will use it: the shop that budgeted damaged-stock at forty percent of markdowns and reads it running at seventy has a QUESTION (a receiving problem, a storage problem, or a reason being borrowed as the easy pick); goodwill budgeted at ten and running at forty is a floor-culture read; and price-match spiking in one branch is competitive intelligence arriving through the till. The budget line makes the markdown report a variance report — expectation against actual, per cause — which is this academy's epistemics (the reconciliation as the read) applied to generosity.</p><p><b>The empty-list trap.</b> The commissioning rule, stated as the manual states it: in Approval-based mode, <b>a discount cannot be applied at all if no markdown reasons exist</b> — create them BEFORE switching a profile into the mode. The trap's shape is module 2's no-approvers pattern exactly (the required input with no supply — the control that becomes a wall), and it joins the go-live checklist beside it: the mode switch rehearsed with a real discounted sale, reason picked, explanation typed, override cleared, before the first customer meets it.</p><p><b>The analytics dividend.</b> The chapter's closing argument, made to the owner: the reason discipline costs each discount thirty seconds and buys the firm the one report suspicion cannot fake — the margin's leak DECOMPOSED by cause, per branch, per cashier, per period, against budget. The Okelewo preview (Chapter 8 cashes it): the first quarter's markdown read replaced three standing arguments with three decisions — because 'we discount too much' is a mood, but 'expiring-stock markdowns doubled at the flagship in March, concentrated in provisions, eleven approvals, all one supplier's short-dated deliveries' is a purchasing conversation with a name on it. The reasons are the difference; the list's shortness is why the reasons are true; and the budget line is why the report reads itself.</p>"
+    "html": "<p>Two powers go beyond ordinary discounting, and both run through the Power Approver machinery. This chapter covers the powers, then the machinery itself in detail.</p><p><b>Rate edits.</b> Where the profile allows it, the pencil icon on a line opens <b>Edit Rate</b>, and the unit price itself can be overwritten. Facts:</p><p>• A rate edit is stronger than a discount: a discount is limited by the price, a rate edit <b>replaces</b> the price.<br>• Every edited line is marked <b>Rate override</b>, permanently visible on review.<br>• Where <b>Require Override for Rate Edit</b> is on (module 2 recommended it wherever rate editing is allowed), an approver clears every change.</p><p>Supervision note: rate-edit frequency per cashier is worth checking weekly. A till whose sales regularly carry Rate override markers has prices being set by memory — the exact habit the price list exists to end. Okelewo hits this in Chapter 8.</p><p><b>Credit limit releases.</b> When a customer is over their limit, the cart shows <b>Sales suspended due to customer outstanding</b> and payment is blocked. An approver holding the <b>Credit Limit Override</b> permission can release the sale. Treat the release as what it is: a decision to extend the business's exposure beyond the recorded limit, made on the approver's name, for this sale. If the same customer needs releasing week after week, the limit itself needs a decision — raise it formally or hold it — rather than repeated releases by momentum.</p><p><b>The approval mechanics.</b> Wherever an approval is required — discounts, returns, cart clearing, rate edits, credit releases — it works one of two ways, per the profile's override mode:</p><p>• <b>Password.</b> The approver enters their email and password at the till. Fast, works offline, requires the approver physically present.<br>• <b>One-time code.</b> The till requests a code. A <b>six-digit code is emailed to every approver holding the relevant permission</b>; any of them can read it to the cashier over the phone. The code <b>expires after one hour</b>, and the terminal must be <b>online</b> to request one.</p><p>Troubleshooting a code that never arrives — three causes, in order:</p><p>1. The approver's account has no email address (or a wrong one).<br>2. The terminal was offline when the request was made.<br>3. The code is past its hour — request a fresh one.</p><p><b>A useful property of the code design.</b> Because every code request is emailed to <b>all</b> holders of that permission, no override can be quietly arranged between one cashier and one obliging approver — the whole approver group sees every request. And because every completed approval records who approved what and when, approvals can be counted <b>by approver</b>: an approver whose password clears forty discounts a week is either genuinely the floor's only available approver (a staffing problem) or approving without looking (a supervision problem). The count is how you tell which. Module 8 puts this check on the weekly routine.</p>"
    },
    {
-    "title": "Chapter 4 — The code cycle: negotiation, governed",
+    "title": "Chapter 7 — The Return & Exchange console",
     "est": "13",
-    "html": "<p>Code-based mode's machinery, walked end to end — the trade's counter negotiation, rebuilt as a governed cycle. The cycle chapter.</p><p><b>The five stages.</b> The cycle as the manual gives it, each stage read for its control: <b>(1) The request.</b> At the till, Request Discount — the item searched, the quantity, the ask as a percentage or an amount per unit, submitted. The request is born as a DOCUMENT (the proposal on record before any answer — the anatomy's subject and actor, captured). <b>(2) The routing.</b> The request is created against the requesting BRANCH and routed to the <b>category leads for that item's group</b> — authority following the goods, not the org chart's nearest warm body: the person who owns electronics margin answers electronics asks, whichever branch asked. <b>(3) The decision.</b> A lead reviews in the back office and APPROVES — optionally CHANGING the amount (the counter asked for fifteen; the lead grants ten — the negotiation happening at the authoriser, recorded) — or REJECTS with the outcome recorded. <b>(4) The code.</b> An approved request carries a <b>discount code</b>; the cashier types it into the cart. <b>(5) The application.</b> Applying the code <b>reserves it briefly against that cashier</b> so two tills cannot consume the same approval, then marks it USED and <b>stamps it against the resulting invoice</b>. And over all five: <b>every stage is timestamped with who did it</b> — a complete audit trail from request to sale, which is the anatomy of Chapter 1 achieved in full: subject, actor, authoriser, reason, trail, each a database fact.</p><p><b>The routing's precondition.</b> The setup rule with the manual's own warning: item groups must have <b>category leads assigned</b> on the request routing — <b>without leads, requests have nobody to approve them</b>: the no-approvers trap's third appearance (approvers, reasons, leads — the pattern the certified consultant now checks by reflex: every required-supply control staffed before the mode that requires it goes live), and the lead assignment is itself an authority-map decision (who owns this category's margin is answered in writing, per group).</p><p><b>The mode's economics.</b> The judgment restated with the cycle visible: code-based buys the STRONGEST separation (the concession decided away from the counter's pressure, by the margin's owner, at review speed) at the cost of ROUND-TRIP latency (the customer waits, or returns) — which is why the mode suits high-value negotiated goods (the electronics wall, the furniture floor — one code per hour, each worth the wait) and punishes the provisions queue (thirty asks a day would queue the shop). The mixed estate runs mixed modes — module 2's profile-per-policy logic cashing here: Okelewo's pilot (Chapter 8) puts code-based on the Lagos electronics profile ONLY, approval-based everywhere else — and the certified consultant designs the split by the goods' negotiation reality, not by uniformity's tidiness. The chapter's closing line: the cycle is the trade's oldest counter ritual — 'oga, wetin be your last price' — answered not with a wall but with a governed channel: the ask recorded, the owner deciding, the code single-use, the invoice stamped. Negotiation survives; leakage doesn't.</p>"
+    "html": "<p>The Return &amp; Exchange console appears in the sidebar when the profile enables at least one of: cash refund, exchange, or the return policy (module 2). A return runs in three steps.</p><p><b>Step 1 — Find Invoice.</b> Scan the receipt barcode, or type the reference — either the till reference or the back-office invoice number works (offline sales can be found by their local reference too). Multiple matches offer a choice. The invoice summary then shows: date, outstanding amount, item count, and <b>whether the sale is still inside the return window</b>.</p><p>Rule: <b>no invoice, no return.</b> There is no path through this console that starts from nothing — which is the wall in front of the phantom-return fraud from module 1. And read the window flag now: it tells you immediately whether this return is routine or will need the beyond-window override, before the conversation goes further.</p><p><b>Step 2 — Build Return.</b> Two forms:</p><p>• <b>Refund.</b> Select the lines and quantities coming back. Choose a <b>reason</b> from the list: <i>defective item, wrong item delivered, customer changed mind, damaged in transit, quality issues, size or colour issue, other</i>. Then choose where the money goes: <b>Store Credit</b>, or <b>Cash Refund</b> — cash appears only if the profile permits it.<br>• <b>Exchange.</b> As above, plus search and add the replacement goods. The difference is calculated in both directions: if the customer owes more, choose a payment method for the balance; if the customer is owed, choose the refund method.</p><p>Serial-numbered items: the console asks <b>which serials</b> are coming back. The unit returned must be the unit sold — the same link that was created at the sale, checked in reverse.</p><p><b>Step 3 — Complete.</b> Where the profile requires it, an approver authorises the return (password or code, per the return override mode). The return posts, and a return or exchange receipt prints.</p><p><b>Loyalty recovery.</b> If the original sale earned loyalty points that have <b>since been spent</b>, the system calculates the amount to recover and <b>adds it to what the customer owes, showing the figure before completion</b>. Why: refunding the goods while ignoring the spent points would pay the customer twice — once in the refund, once in the points already redeemed. Read the figure from the screen to the customer; it is the system's calculation, not your estimate.</p><p><b>Returns need the connection.</b> The Return &amp; Exchange console is <b>unavailable while the terminal is offline</b> — the original invoice, the loyalty ledger and the balances all live on the server. During an outage, take the customer's details or ask them to return when the connection is back.</p><p><b>Summary of the safeguards.</b> Find the invoice first; a reason on every return; cash only where the profile allows; an approver where required; serials checked in reverse; spent points recovered; and the whole flow online-only. Each safeguard is one of the five parts from Chapter 1, built into the screens.</p>"
    },
    {
-    "title": "Chapter 5 — Promotions & bundles: the automatic concession",
+    "title": "Chapter 8 — Case study: Okelewo's first quarter of exceptions",
     "est": "13",
-    "html": "<p>The machinery that concedes WITHOUT the till asking anyone — campaigns and bundles, governed at creation instead of at application. The automatic chapter.</p><p><b>The three promotion kinds.</b> The catalogue: <b>Product Discount</b> (a percentage or fixed amount off qualifying lines), <b>Bonus Item</b> (a free item added to the basket — the bonus line uneditable and undiscountable at the till, per Chapter 2's refusal list), and <b>Bonus Loyalty Points</b> (extra points against a named programme, optionally with their own validity). Three shapes of generosity, all sharing the design property that makes them safe: the concession is DECIDED ONCE, centrally, by the campaign's owner — and applied by the machinery when the basket qualifies, identically at every till, with no counter judgment involved: cashiers do not have to remember campaigns, and campaigns cannot be 'remembered' generously.</p><p><b>Setting one up.</b> The eight-step walk, each step a policy: the TITLE and DESCRIPTION (both visible to cashiers — written for the floor), <b>Valid From and Valid To</b> (outside the window the promotion is IGNORED even if active — the campaign that ends by calendar, not by memo: the expiring-access discipline of two tracks, applied to generosity), the <b>TRIGGER</b> (a specific item, an item group, a brand, or the transaction as a whole) with its subject named, the qualifying THRESHOLDS (minimum and maximum quantity for item-level triggers; minimum and maximum transaction value for basket-level ones — the maximums mattering: the promotion capped is the promotion whose worst case is priced), the REWARD defined (discount type and value, the bonus item, or the points and programme), the AUTOMATIC decision (applies itself, or carries a <b>promotion code</b> the cashier types — the tag icon above the grid, applied codes showing as removable chips on the footer), and the STATUS set Active.</p><p><b>Promotions lock the line.</b> The stacking rule, taught as the control it is: once a promotional discount lands on a cart line, the cashier can <b>no longer edit that line's rate or add a manual discount to it</b> — preventing a manual concession stacked on top of a campaign. The design read: the promotion is a PRICED concession (the campaign's owner computed its cost); the stack would be an unpriced one (campaign plus counter generosity, compounding invisibly) — and the lock is the machinery refusing the compound, with the tooltip explaining it to the till.</p><p><b>Bundles.</b> The grouped sale's machinery: a bundle names a <b>main item</b>, a <b>bundle price</b>, and the component items with quantities; at the till, adding the main item where a bundle exists offers the CHOICE — bundle or single — and choosing the bundle brings components in as indented child lines under the main line, with the governance known from module 4's cart: child lines' quantity, rate and discount are FIXED individually — <b>the bundle price governs</b>. And the lifecycle rule, small and load-bearing: set a bundle <b>inactive rather than deleting</b> if it may return — deleting loses the component list (disable-not-delete, at the bundle). The chapter's closing frame: promotions and bundles are the concession machinery at its safest — generosity designed, priced, windowed and locked in the back office, executed identically by every till — and the certified counter prefers them for exactly that reason: every campaign moved from 'the floor knows' to a record is a leak converted to a line item.</p>"
+    "html": "<p>Ninety days after go-live, the discount and returns data comes up for its first serious review. Four findings and two events, each tied to a chapter.</p><p><b>Finding 1 — expiring stock over budget (Chapter 3).</b> Expiring-stock markdowns run at double their budget percentage at the flagship. Breaking the figure down takes twenty minutes: eleven approvals, all in provisions, all traceable to one supplier's short-dated deliveries. The finding goes to purchasing with the report attached — a supplier conversation, not a counter problem. This is the budget comparison doing its job: the number pointed at a cause.</p><p><b>Finding 2 — thin explanations (Chapter 2).</b> Goodwill markdowns are under budget everywhere except one Lagos cashier, whose explanations read <i>customer asked</i> three times in a month. Because the explanations exist, the review is a five-minute coaching conversation about writing useful ones — not an accusation, and not a mystery.</p><p><b>Finding 3 — price match spike (Chapter 3).</b> Price-match markdowns spike in Abeokuta the same week a competitor opens nearby. Nothing to fix — but the till has just delivered competitive intelligence with dates on it.</p><p><b>Finding 4 — the Friday rate edits (Chapter 6).</b> The weekly rate-override check shows one flagship till repeatedly carrying Rate override markers on Fridays. The cause: a senior cashier matching prices from memory for regular customers. The response: <b>Require Override for Rate Edit</b> is switched on for that profile the same week. The marker did its job — the habit was visible, and the fix was one checkbox.</p><p><b>Event 1 — the Code-based pilot (Chapter 4).</b> The Lagos electronics section goes Code-based. Setup order followed: the category lead assigned first, one test request processed end to end, then the mode switched. First month's cycle data: nineteen requests; fourteen approved, six of them with the amount adjusted down by the lead; five rejected with outcomes recorded. One attempted reuse of a morning's code in the afternoon is refused — used codes stay used — and becomes a training note.</p><p><b>Event 2 — the first hard returns (Chapter 7).</b> Three firsts at the returns desk: the first <b>beyond-window</b> return (day 34, a defective kettle) — the window flag shows at Find Invoice, the supervisor's override clears it, the reason is on record; the first <b>loyalty recovery</b> — the spent points appear in the amount owed before completion, the cashier reads the figure from the screen, and there is no argument because the number is the system's; and the <b>ninety-day cash refund decision</b>, scheduled at go-live, comes due — the quarter's returns volumes are low and clean, so cash refunds are enabled <b>at the flagship only</b>, with the override required, while store credit remains the default elsewhere. The conservative launch setting is relaxed on evidence, on schedule.</p><p><b>The MD's quarter note:</b> <i>we gave away less, argued less, and I can see where every conceded naira went.</i></p>"
    },
    {
-    "title": "Chapter 6 — The stronger powers: rate edits & credit releases",
-    "est": "13",
-    "html": "<p>Two powers outrank the discount — rewriting the price itself, and releasing a suspended credit sale — and both live under the override machinery this chapter watches in action. The stronger-powers chapter.</p><p><b>The rate edit.</b> The power and its governance: where the profile allows it, the pencil icon opens <b>Edit Rate</b> — the new unit price typed, the line thereafter marked <b>Rate override</b> so it is visible on review, and, where the require-override companion is on (module 2 called it near-mandatory), an approver clearing every change. The power's rank argued once: a discount is bounded by the rate (the amount cannot exceed it — Chapter 2's fence); the rate edit REPLACES the bound itself — it is the price list overruled at one line, the memory-price disease readmitted for one sale — which is why the marker exists (the overridden line announces itself to module 8's reader), why the override companion is the default posture, and why the rate-edit pattern per cashier is a standing supervision read (the till whose Tuesday sales carry a dozen Rate override markers has a story to tell, and the marker means it will be told).</p><p><b>The credit release.</b> Module 4's suspend, resolved: the cart showing <i>Sales suspended due to customer outstanding</i> unblocks only through a Power Approver holding the <b>credit-limit permission</b> — and the release is read as the credit DECISION it is: the approver is not waving a screen past; they are extending the firm's exposure beyond its recorded limit, on their name, for this sale — the Selling track's credit governance executed in one prompt, and the release pattern (which customers, how often, released by whom) is the counter's contribution to the receivables conversation: the customer released weekly is a limit that needs re-deciding, one way or the other, by credit's owner rather than by the till's momentum.</p><p><b>The override machinery in action.</b> The prompt's mechanics, gathered once for the whole module: the approver's <b>email and password</b> typed at the till — or the <b>one-time code</b> path per the action's override mode: the code REQUESTED (the terminal must be online), <b>six digits emailed to every approver holding the relevant permission</b>, <b>valid for one hour</b>, entered at the prompt. The troubleshooting inherited from the manual: the code that never arrives is an approver with no email address, a terminal that was offline at request time, or a code past its hour — request a fresh one. And the design's audit property restated as this module's spine: the all-holders email means every override REQUEST is announced to the whole approver group — the quiet arrangement between one cashier and one soft approver is structurally noisy — and the completed override is an event (who approved, what, when) that module 8's page counts by type and by approver: the approver whose password clears forty discounts a week is either the floor's whole valve (a staffing read) or its rubber stamp (a governance read), and the counting is what tells which. The chapter's closing line: the stronger powers are exactly where the anatomy of Chapter 1 earns its keep — the actor proposing, the authoriser owning, the marker surviving — because the price rewritten and the credit extended are the two concessions the margin and the balance sheet feel directly.</p>"
-   },
-   {
-    "title": "Chapter 7 — Return & Exchange: money's reverse gear, in three steps",
-    "est": "14",
-    "html": "<p>The console the profile revealed (module 2's visibility rule) and the module's second half: the return, walked as the three-step, policy-aware flow the product builds. The returns chapter.</p><p><b>Step one — Find Invoice.</b> The return BEGINS at the original sale, always: the receipt barcode scanned, or the reference typed — the till reference or the back-office invoice number, either working (module 4's two-reference law cashing at the desk), multiple matches offering a choice — and the invoice SUMMARY read before anything is built: its date, outstanding amount, item count, and <b>whether it is still within the return window</b>. The step's law is module 1's inheritance made procedural: no invoice, no return — the phantom return's first wall — and the summary's window flag telling the cashier NOW whether this return is routine or needs the out-of-window override, before the conversation deepens.</p><p><b>Step two — Build Return.</b> The two shapes: <b>REFUND</b> — the lines and quantities coming back selected, a REASON chosen from the list (<i>defective item, wrong item delivered, customer changed mind, damaged in transit, quality issues, size or colour issue, or other</i> — the fixed vocabulary that makes returns reporting readable, the markdown-list logic at the returns desk), and the money's route chosen: <b>Store Credit</b>, or <b>Cash Refund</b> — with cash appearing ONLY if the profile permits it (Okelewo's launch posture shows store credit alone, by design). <b>EXCHANGE</b> — as above, plus the replacement goods searched and added, the DIFFERENCE computed both ways: the customer owing more chooses a payment method for the balance; the customer owed chooses the refund method. And the tracked-goods gate: returning a serial-numbered item asks <b>which serials</b> are coming back — the identity law running in reverse, the unit returned being the unit sold.</p><p><b>Step three — Complete.</b> The authorisation and the paper: where the profile requires it, the approver clears the return — password or one-time code, per the return override mode — the return POSTS, and a return or exchange receipt prints. The event whole: subject (the found invoice), actor, authoriser, reason, trail — the anatomy, at the desk where it matters most.</p><p><b>Loyalty recovery.</b> The arithmetic the product does so the cashier doesn't guess: where the original sale EARNED points that have since been SPENT, the system works out how much must be recovered and <b>adds it to what the customer owes — shown before completion</b>, so the cashier explains it from the screen. The design's point taught: the return that refunds the goods but ignores the spent points quietly pays the customer twice (the refund plus the points' value already redeemed) — the recovery closes the loop, and the certified cashier's script treats it as the system's fairness, visible and explainable, not a negotiation.</p><p><b>The connection rule.</b> The console's honest limit: <b>Return &amp; Exchange is unreachable while the terminal is offline</b> — the return needs the server (the original invoice, the loyalty ledger, the credit balance all live there) — so the offline counter takes the customer's details or asks them to return when the line is back: the same balance-verification honesty as store credit, at the desk. The chapter's closing frame: the console's whole shape — find first, reason always, route by policy, authorise where required, recover the points, need the line — is the fifth law implemented as software; the certified professional's job is running it as designed and reading what it records.</p>"
-   },
-   {
-    "title": "Chapter 8 — Case study: Okelewo's concession quarter",
-    "est": "16",
-    "html": "<p>Ninety days of governed generosity — the modes at work, the data arriving, and the first hard returns. Every chapter clocks in.</p><p><b>The markdown data's first read (Ch. 2-3).</b> Approval-based mode has run at all three branches for a quarter, and the first serious markdown review replaces moods with names, exactly as promised: EXPIRING-STOCK markdowns run double budget at the flagship — decomposed in twenty minutes to eleven approvals, all provisions, all one supplier's short-dated deliveries (a purchasing conversation, held that week, with the report on the table); GOODWILL runs under budget everywhere except one Lagos cashier whose explanations read thin ('customer asked' three times — a coaching conversation, not an accusation: the explanations were read because they exist); and PRICE MATCH spikes in Abeokuta the week a competitor opens — competitive intelligence through the till, priced. The MD's margin argument with himself, standing since module 1, ends: the leak has causes, the causes have owners, and two of three arguments become decisions.</p><p><b>The code-based pilot (Ch. 4).</b> The Lagos electronics wall goes code-based per the economics: the category lead assigned (the precondition checked — the leads exist BEFORE the mode switches), and the first month's cycle data reads clean — nineteen requests, fourteen approved (six with the amount CHANGED down by the lead — the negotiation moved to the margin's owner, visibly), five rejected with outcomes recorded, every code single-use and stamped. One designed refusal earns its keep: a cashier attempts to reuse a morning's code on an afternoon sale — consumed, refused, and the attempt itself a read (a training note, this time; the reserved-against-cashier design meanwhile having made the two-till double-spend structurally impossible).</p><p><b>A promotion, priced and locked (Ch. 5).</b> The first campaign — provisions basket discount, windowed two weeks, transaction-triggered with a maximum — runs without a single till decision: the lock survives its test when a cashier tries to add goodwill on top of a promoted line (refused, tooltip read aloud to the queue, no argument), and the campaign closes BY ITS WINDOW while the old counter's habit — the promo that lingers by memory for a month — dies quietly. The bundle machinery launches with the season's hamper: main item, bundle price, components indented and fixed, and the January decision made properly — the hamper set INACTIVE, not deleted, its component list preserved for next year.</p><p><b>The returns quarter (Ch. 6-7).</b> The desk's three firsts: the first OUT-OF-WINDOW return (day thirty-four, defective kettle) walks the designed path — the summary flags the lapsed window at find-invoice, the supervisor's override clears it with the reason on record, and the desk learns the difference between a wall and a governed gate; the first LOYALTY RECOVERY is explained from the screen (the customer's spent points computed into what she owes, shown before completion — one raised eyebrow, zero disputes, because the number was the system's and visible); and the RATE-OVERRIDE read catches the quarter's one real governance item — a flagship till's Friday sales carrying repeated Rate override markers, traced to one senior cashier 'matching' prices from memory for regulars: the require-override companion switched on for that profile the same week (module 2's near-mandatory posture, adopted the moment its absence was read). At ninety days the CASH-REFUND decision comes due as scheduled: the quarter's returns data (volumes low, reasons clean, overrides working) supports enabling cash refunds at the flagship only — override required, drawer impact briefed to module 8's close ritual — store credit remaining the default elsewhere: the conservative posture relaxed by evidence, not by sympathy. The MD's quarter note: <i>we gave away less, argued less, and I can read where every conceded naira went. The valve works better than the wall did.</i></p>"
-   },
-   {
-    "title": "Chapter 9 — Common mistakes & the fifth law",
-    "est": "13",
-    "html": "<p>The valve's scar tissue. Symptom → disease → fix.</p><p><b>Pattern 1 — the amputated event.</b> Symptom: discounts with no reason, returns with no invoice, overrides with no approver; the exception path as the leak path. Disease: the anatomy incomplete (Ch. 1). Fix: five parts, always — subject, actor, authoriser, reason, trail — and the missing part treated as the finding.</p><p><b>Pattern 2 — the thirty-reason list.</b> Symptom: every markdown filed under the first plausible entry; month-end data that answers nothing; 'other' wearing costumes. Disease: taxonomy built for completeness instead of truth-at-speed (Ch. 3). Fix: five mutually exclusive reasons with budget percentages — short enough to pick honestly in two seconds, budgeted so the report reads itself.</p><p><b>Pattern 3 — the unstaffed control.</b> Symptom: approval mode with no reasons; overrides with no approvers; code mode with no category leads — the wall where a gate was designed. Disease: required supply not staffed before the requiring mode (Ch. 3-4). Fix: the reflex check — reasons, approvers, leads created and rehearsed on the go-live list before any mode that needs them switches on.</p><p><b>Pattern 4 — the stacked concession.</b> Symptom: campaign discounts with manual generosity on top; promotions whose real cost nobody priced; the compound leak. Disease: concessions allowed to combine unpriced (Ch. 5). Fix: the lock respected as designed — promotions lock the line, codes are the whole concession, and every campaign carries its window and its maximums.</p><p><b>Pattern 5 — the unmarked rewrite.</b> Symptom: prices 'matched' from memory line by line; rate edits without overrides; the memory-price disease back through the pencil icon. Disease: the strongest power under the weakest governance (Ch. 6). Fix: require-override on wherever rate editing is allowed, the Rate override marker read per cashier per week, and the pattern answered the week it appears.</p><p><b>Pattern 6 — the sympathetic return.</b> Symptom: refunds without the invoice found; cash out of the drawer on a wave; spent loyalty points refunded twice; the window ignored because the customer was insistent. Disease: service instincts overriding the machinery (Ch. 7). Fix: the three steps as designed — find first, reason always, route by policy, authorise where required, recover the points — with the out-of-window override as the governed mercy the design already provides.</p><p><b>The fifth law.</b> The valve, governed: <b>every concession and every return carries a reason and an authoriser — the modes worked as chosen, the reason lists short and budgeted, the cycle staffed, promotions priced windowed and locked, the stronger powers marked and counted, and the return built on its found invoice with the points recovered — generosity spent like the money it is.</b> Module 6 opens the extended counters: Lay-By, Staff Purchase, Airtime and the Customer Desk — money in its other costumes.</p>"
+    "title": "Chapter 9 — Review & the fifth law",
+    "est": "11",
+    "html": "<p>Check yourself against each section before the quiz.</p><p><b>The five parts (Chapter 1).</b> Every exception records: what, who asked, who approved, why, and the record itself. A missing part — the discount with no reason, the return with no invoice, the override with no approver — is the finding.</p><p><b>The modes at the till (Chapter 2).</b> Standard: direct entry, percentage capped at 100, amount capped at the rate, override at the moment where required. Approval-based: reason plus typed explanation, neither blank, stored on the line; pick the true reason and write for someone who was not there. Code-based: no typed discounts — request, wait, apply the code; a coded line cannot be discounted again. Cannot be discounted: bonus items, promoted lines, coded lines, voucher lines, bundle components. Hover the greyed control for the reason.</p><p><b>Markdown reasons (Chapter 3).</b> Five short, non-overlapping reasons beat thirty precise ones. Budget percentages turn the report into planned-versus-actual per cause. In Approval-based mode with no reasons configured, no discount can be applied at all — reasons first, then the mode, then one test discount.</p><p><b>The request cycle (Chapter 4).</b> Request → routed to the item group's category leads → approved (amount adjustable) or rejected → code → applied once, reserved against the cashier, marked used, stamped on the invoice. Every stage timestamped. Leads must exist before the mode goes live. Fits low-volume negotiated goods.</p><p><b>Promotions and bundles (Chapter 5).</b> Three types: product discount, bonus item, bonus points. Outside the validity window a promotion is ignored even if Active. Set the maximum thresholds. A promotional discount locks its line against further edits. Bundles: main item, bundle price, fixed child lines; retire by setting inactive, never deleting.</p><p><b>The stronger powers (Chapter 6).</b> A rate edit replaces the price and is always marked Rate override; require the override wherever it is allowed; check the markers per cashier weekly. A credit release extends exposure on the approver's name; a customer released weekly needs a limit decision instead. Approval mechanics: password (fast, offline, present) or one-time code (six digits, emailed to every holder, one hour, online to request). Code not arriving: no email, offline request, or expired. Count approvals by approver monthly.</p><p><b>Returns (Chapter 7).</b> Find Invoice first — no invoice, no return; the summary shows the window status. Build: refund (reason from the fixed list; store credit, or cash only where permitted) or exchange (difference both ways); serials asked in reverse. Complete: approver where required. Loyalty recovery is calculated and shown before completion. The console is unavailable offline.</p><p><b>The quarter (Chapter 8).</b> Budget comparisons pointed at a supplier; explanations enabled coaching; markers exposed the Friday habit; the pilot's leads-first order; the beyond-window override; cash refunds relaxed on evidence at ninety days.</p><p><b>The fifth law: every discount and every return carries a reason and an approver.</b> Module 6 covers Lay-By, Staff Purchase, Airtime and the Customer Desk.</p>"
    }
   ],
   "questions": [
    {
     "q": "Discounts and returns share one module because:",
     "opts": [
-     "Structurally they are one subject — authorised exceptions sharing one control machinery and one risk shape",
+     "Both are exceptions to a sale's normal arithmetic, sharing the same approver machinery, reasons and records",
      "They share a screen",
      "Both are rare",
-     "Tradition"
+     "Both need managers"
     ],
     "ans": 0,
-    "why": "The exception path is where margin leaks and fraud dresses as service.",
+    "why": "And the same risk: the exception path is where margin leaks.",
     "src": "Ch1"
    },
    {
-    "q": "The concession event's anatomy is:",
+    "q": "The five parts of every exception are:",
     "opts": [
-     "Amount and date",
-     "Subject, actor, authoriser, reason, trail — the missing part is the finding",
-     "Item and price",
-     "Cashier and till"
+     "Item, price, tax, total, change",
+     "What, who asked, who approved, why, and the record",
+     "Date, time, till, shift, branch",
+     "Reason, code, stamp, note, receipt"
     ],
     "ans": 1,
-    "why": "Five parts, recognised everywhere.",
+    "why": "A missing part is the finding.",
     "src": "Ch1"
    },
    {
-    "q": "Standard mode's arithmetic fences are:",
+    "q": "Standard mode's built-in limits are:",
     "opts": [
      "None",
-     "Manager-set",
-     "A percentage cannot exceed one hundred; an amount cannot exceed the line's rate",
-     "Daily caps"
+     "Manager-set daily caps",
+     "A percentage cannot exceed 100 and an amount cannot exceed the line's rate",
+     "One discount per shift"
     ],
     "ans": 2,
-    "why": "The discount that inverts a price does not exist.",
+    "why": "A discount can never turn a price negative.",
     "src": "Ch2"
    },
    {
-    "q": "In Approval-based mode, blank reason or explanation:",
+    "q": "In Approval-based mode:",
     "opts": [
-     "Is allowed",
-     "Needs a code",
-     "Defaults to other",
-     "Is refused — neither can be left blank; the reason is stored on the sale line"
+     "The reason is optional",
+     "Codes are needed",
+     "Only managers discount",
+     "Reason and typed explanation are both required — neither can be blank — and the reason is stored on the line"
     ],
     "ans": 3,
-    "why": "The mode's whole point is the WHY surviving.",
+    "why": "Month-end reporting can then say why.",
     "src": "Ch2"
    },
    {
-    "q": "A line carrying a discount code:",
+    "q": "A good explanation reads like:",
     "opts": [
-     "Cannot be discounted again — the code is the concession, whole",
-     "Can be discounted further",
+     "Display unit, box damaged, customer shown — written for someone who was not there",
+     "Customer asked",
+     "Ok",
+     "See manager"
+    ],
+    "ans": 0,
+    "why": "The reviewer's test.",
+    "src": "Ch2"
+   },
+   {
+    "q": "A line already carrying a discount code:",
+    "opts": [
+     "Can take a further discount",
+     "Cannot be discounted again — the code is the whole concession for that line",
      "Can be rate-edited",
      "Resets on hold"
     ],
-    "ans": 0,
-    "why": "One concession per line, by design.",
+    "ans": 1,
+    "why": "One concession per line.",
     "src": "Ch2"
    },
    {
     "q": "Gift voucher lines cannot be discounted because:",
     "opts": [
      "They are small",
-     "A voucher always sells at face value — the closed loop",
      "Tax rules",
+     "A voucher always sells at face value",
      "They are bundles"
     ],
-    "ans": 1,
-    "why": "Stored value at face, always.",
+    "ans": 2,
+    "why": "Face value, always.",
     "src": "Ch2"
    },
    {
     "q": "A thirty-reason markdown list produces:",
     "opts": [
-     "Precision",
+     "Precise data",
+     "Faster sales",
      "Better audits",
-     "Unusable data — cashiers pick the first plausible entry",
-     "Faster tills"
-    ],
-    "ans": 2,
-    "why": "Five mutually exclusive reasons beat thirty precise ones.",
-    "src": "Ch3"
-   },
-   {
-    "q": "The budget percentage per reason enables:",
-    "opts": [
-     "Payroll",
-     "Pricing",
-     "Tax filing",
-     "Planned-versus-actual concession reads — the markdown report as a variance report"
+     "Useless data — cashiers pick the first plausible entry under queue pressure"
     ],
     "ans": 3,
-    "why": "Expectation against actual, per cause.",
+    "why": "Five short, non-overlapping reasons work.",
     "src": "Ch3"
    },
    {
-    "q": "In Approval-based mode with no markdown reasons:",
+    "q": "The budget percentage on each reason enables:",
     "opts": [
-     "A discount cannot be applied at all — create reasons before switching the mode",
-     "Discounts work normally",
-     "Codes appear",
-     "Approvers decide"
+     "A planned-versus-actual comparison per cause on the markdown report",
+     "Payroll deductions",
+     "Price updates",
+     "Tax filing"
     ],
     "ans": 0,
-    "why": "The empty-list trap, on the go-live checklist.",
+    "why": "Damaged at 70% against a 40% budget is a specific question.",
     "src": "Ch3"
    },
    {
-    "q": "Discount requests route to:",
+    "q": "In Approval-based mode with no markdown reasons configured:",
     "opts": [
-     "The branch manager",
-     "The category leads for that item's group — authority following the goods",
-     "Any approver",
-     "Head office"
+     "Discounts work normally",
+     "No discount can be applied at all — create the reasons before switching the mode on",
+     "Codes are used instead",
+     "Approvers type reasons"
     ],
     "ans": 1,
-    "why": "The electronics owner answers electronics asks.",
+    "why": "The required field has nothing to offer.",
+    "src": "Ch3"
+   },
+   {
+    "q": "Discount requests are routed to:",
+    "opts": [
+     "The branch manager",
+     "Any approver",
+     "The category leads for the item's group — authority follows the goods",
+     "Head office"
+    ],
+    "ans": 2,
+    "why": "Electronics requests go to whoever owns electronics margin.",
     "src": "Ch4"
    },
    {
-    "q": "A lead reviewing a request may:",
+    "q": "A category lead reviewing a request can:",
     "opts": [
      "Only approve",
+     "Reassign it",
      "Delete it",
-     "Approve — optionally changing the amount — or reject with the outcome recorded",
-     "Forward it"
+     "Approve — optionally changing the amount — or reject, with the outcome recorded"
     ],
-    "ans": 2,
-    "why": "The negotiation moved to the authoriser, recorded.",
+    "ans": 3,
+    "why": "Asked 15, granted 10 — recorded.",
     "src": "Ch4"
    },
    {
     "q": "Applying a discount code:",
     "opts": [
-     "Is repeatable",
-     "Emails finance",
-     "Prints it",
-     "Reserves it briefly against that cashier, marks it used, and stamps it on the invoice"
+     "Reserves it briefly against that cashier, marks it used, and stamps it on the invoice",
+     "Can be repeated",
+     "Prints a slip",
+     "Emails the MD"
     ],
-    "ans": 3,
-    "why": "Two tills cannot consume one approval.",
+    "ans": 0,
+    "why": "Two tills cannot apply one code; a used code stays used.",
     "src": "Ch4"
    },
    {
     "q": "Without category leads assigned:",
     "opts": [
-     "Requests have nobody to approve them — the unstaffed-control pattern again",
      "Requests auto-approve",
-     "The MD decides",
-     "Codes generate anyway"
-    ],
-    "ans": 0,
-    "why": "Reasons, approvers, leads: the reflex check.",
-    "src": "Ch4"
-   },
-   {
-    "q": "Code-based mode suits:",
-    "opts": [
-     "The provisions queue",
-     "High-value negotiated goods — the strongest separation, priced in round-trip latency",
-     "Every counter",
-     "Offline shops"
+     "Requests have nobody to approve them — assign leads before enabling the mode",
+     "Cashiers approve",
+     "The system picks someone"
     ],
     "ans": 1,
-    "why": "One code per hour is worth the wait; thirty a day queues the shop.",
+    "why": "The same required-input pattern as approvers and reasons.",
     "src": "Ch4"
    },
    {
-    "q": "A promotion outside its validity window is:",
+    "q": "Code-based mode fits:",
     "opts": [
-     "Applied anyway",
-     "Half-applied",
-     "IGNORED even if active — the campaign ends by calendar, not memo",
-     "Code-only"
+     "Fast-moving counters",
+     "All counters equally",
+     "Low-volume, high-value negotiated goods — the strongest control, at the cost of a round trip",
+     "Offline shops"
     ],
     "ans": 2,
-    "why": "Valid From and Valid To govern.",
-    "src": "Ch5"
+    "why": "One request an hour is worth the wait.",
+    "src": "Ch4"
    },
    {
-    "q": "Promotions lock the line because:",
+    "q": "A promotion outside its Valid From/To window:",
     "opts": [
-     "Screens require it",
-     "Tax",
-     "Cashiers err",
-     "The campaign is a priced concession — the stack would be an unpriced compound"
+     "Still applies if Active",
+     "Needs a code",
+     "Applies at half value",
+     "Is ignored even if its status is Active"
     ],
     "ans": 3,
-    "why": "The machinery refusing the compound.",
+    "why": "Campaigns end by calendar.",
     "src": "Ch5"
    },
    {
-    "q": "Bundle components at the till:",
+    "q": "A promotional discount on a line:",
     "opts": [
-     "Have fixed quantity, rate and discount — the bundle price governs",
-     "Edit freely",
-     "Can be removed singly",
-     "Repriced daily"
+     "Locks the line — no rate edit or manual discount can be added on top",
+     "Can be topped up manually",
+     "Removes the line",
+     "Doubles points"
     ],
     "ans": 0,
-    "why": "Remove the main line to remove the bundle.",
+    "why": "The campaign's cost stays as designed.",
+    "src": "Ch5"
+   },
+   {
+    "q": "Bundle child lines:",
+    "opts": [
+     "Edit freely",
+     "Have fixed quantity, rate and discount — the bundle price governs the parts",
+     "Can be removed singly",
+     "Carry their own tax"
+    ],
+    "ans": 1,
+    "why": "Remove the bundle by its main line.",
     "src": "Ch5"
    },
    {
     "q": "A seasonal bundle is retired by:",
     "opts": [
      "Deleting it",
+     "Zeroing its price",
      "Setting it inactive — deleting loses the component list",
-     "Emptying it",
      "Renaming it"
     ],
-    "ans": 1,
-    "why": "Disable-not-delete, at the bundle.",
+    "ans": 2,
+    "why": "Reactivate next season with the configuration intact.",
     "src": "Ch5"
    },
    {
-    "q": "The rate edit outranks the discount because:",
+    "q": "Repeated floor discounts should be:",
     "opts": [
-     "It is faster",
-     "It needs no marker",
-     "It replaces the bound itself — the price list overruled at one line",
-     "It is offline"
-    ],
-    "ans": 2,
-    "why": "Hence the marker and the near-mandatory override.",
-    "src": "Ch6"
-   },
-   {
-    "q": "The Rate override marker exists so that:",
-    "opts": [
-     "Printing works",
-     "Codes apply",
-     "Tax computes",
-     "The overridden line announces itself on review — the pattern per cashier is a standing read"
+     "Left as habits",
+     "Verbal only",
+     "Banned",
+     "Converted into promotions or bundles — gaining a window, a cost cap and a report line"
     ],
     "ans": 3,
-    "why": "The story will be told.",
+    "why": "Configured campaigns replace remembered ones.",
+    "src": "Ch5"
+   },
+   {
+    "q": "A rate edit is stronger than a discount because:",
+    "opts": [
+     "A discount is limited by the price; a rate edit replaces the price",
+     "It is faster",
+     "It skips approval",
+     "It is unmarked"
+    ],
+    "ans": 0,
+    "why": "Hence the marker and the override requirement.",
     "src": "Ch6"
    },
    {
-    "q": "A credit release is:",
+    "q": "Every rate-edited line carries:",
     "opts": [
-     "A credit decision — exposure extended beyond the recorded limit, on the approver's name",
-     "A screen tap",
-     "Automatic",
-     "The cashier's call"
+     "Nothing",
+     "A permanent Rate override marker, visible on review",
+     "A red price",
+     "A manager's initials"
     ],
-    "ans": 0,
-    "why": "The customer released weekly is a limit needing re-deciding.",
+    "ans": 1,
+    "why": "Check the markers per cashier weekly.",
+    "src": "Ch6"
+   },
+   {
+    "q": "A customer needing a credit release every week signals:",
+    "opts": [
+     "A loyal customer",
+     "A till fault",
+     "The limit itself needs a decision — raise it formally or hold it",
+     "Nothing"
+    ],
+    "ans": 2,
+    "why": "Releases by momentum are not a credit policy.",
     "src": "Ch6"
    },
    {
     "q": "The one-time code is:",
     "opts": [
-     "Four digits, daily",
-     "Six digits, emailed to every holder of the relevant permission, valid one hour",
-     "Printed",
-     "Reusable"
-    ],
-    "ans": 1,
-    "why": "Requested online, expiring by the clock.",
-    "src": "Ch6"
-   },
-   {
-    "q": "The all-holders email makes:",
-    "opts": [
-     "Spam",
-     "Approvals slower",
-     "Every override request announced to the whole approver group — the quiet arrangement structurally noisy",
-     "Codes safer to share"
-    ],
-    "ans": 2,
-    "why": "The audit property in the delivery design.",
-    "src": "Ch6"
-   },
-   {
-    "q": "A code that never arrives means:",
-    "opts": [
-     "The system failed",
-     "Skip the override",
-     "Use a password twice",
-     "No email on the approver, the terminal offline at request, or the hour expired — request afresh"
+     "Four digits, reusable",
+     "Sent to one approver",
+     "Printed at the till",
+     "Six digits, emailed to every approver holding the permission, valid for one hour, requested online"
     ],
     "ans": 3,
-    "why": "The manual's triage, inherited.",
+    "why": "The whole approver group sees every request.",
     "src": "Ch6"
    },
    {
-    "q": "Every return begins at:",
+    "q": "A code that never arrives means, in order:",
     "opts": [
-     "Find Invoice — no invoice, no return; the phantom return's first wall",
-     "The refund amount",
-     "The reason",
-     "The drawer"
+     "No email on the approver, the terminal was offline at request time, or the hour expired",
+     "Server down, till broken, code banned",
+     "Wrong permission, wrong till, wrong day",
+     "Spam filter, always"
     ],
     "ans": 0,
-    "why": "The document-against-document law, procedural.",
-    "src": "Ch7"
+    "why": "Three causes, checked in order.",
+    "src": "Ch6"
    },
    {
-    "q": "The invoice summary shows the return window so that:",
+    "q": "Counting approvals by approver reveals:",
     "opts": [
-     "Dates print",
-     "The cashier knows NOW whether this is routine or needs the out-of-window override",
-     "Tax adjusts",
-     "Loyalty pauses"
+     "Nothing useful",
+     "Whether a heavy approver is the floor's only option (staffing) or approving without looking (supervision)",
+     "The best cashier",
+     "Sales trends"
     ],
     "ans": 1,
-    "why": "Read before the conversation deepens.",
+    "why": "Forty a week is a number that needs one of two explanations.",
+    "src": "Ch6"
+   },
+   {
+    "q": "Every return starts with:",
+    "opts": [
+     "The refund amount",
+     "A manager",
+     "Find Invoice — no invoice, no return",
+     "The reason"
+    ],
+    "ans": 2,
+    "why": "The wall in front of the phantom return.",
     "src": "Ch7"
    },
    {
-    "q": "With cash refund off on the profile, the build step offers:",
+    "q": "The invoice summary at Find Invoice shows:",
     "opts": [
+     "Only the total",
+     "The customer's balance",
+     "The cashier's name only",
+     "Date, outstanding amount, item count, and whether the sale is inside the return window"
+    ],
+    "ans": 3,
+    "why": "Read the window flag before the conversation deepens.",
+    "src": "Ch7"
+   },
+   {
+    "q": "With cash refund disabled on the profile, the refund options show:",
+    "opts": [
+     "Store Credit only",
      "Cash anyway",
      "Exchange only",
-     "Store Credit only — cash appears only where the profile permits it",
      "Nothing"
     ],
-    "ans": 2,
-    "why": "The launch posture, visible at the desk.",
+    "ans": 0,
+    "why": "Cash appears only where the profile permits it.",
     "src": "Ch7"
    },
    {
     "q": "Returning a serial-numbered item:",
     "opts": [
-     "Skips serials",
-     "Voids the sale",
-     "Needs a manager",
-     "Asks which serials are coming back — the unit returned being the unit sold"
+     "Skips the serials",
+     "Asks which serials are coming back — the unit returned must be the unit sold",
+     "Voids the invoice",
+     "Needs head office"
     ],
-    "ans": 3,
-    "why": "The identity law in reverse.",
+    "ans": 1,
+    "why": "The sale's link, checked in reverse.",
     "src": "Ch7"
    },
    {
     "q": "Loyalty recovery exists because:",
     "opts": [
-     "A return ignoring spent points pays the customer twice — the recovery is computed and shown before completion",
      "Points expire",
-     "Members complain",
+     "Members ask for it",
+     "Refunding goods while ignoring already-spent points would pay the customer twice — the figure is shown before completion",
      "Tax requires it"
     ],
-    "ans": 0,
-    "why": "Explained from the screen, never estimated.",
-    "src": "Ch7"
-   },
-   {
-    "q": "Return & Exchange offline is:",
-    "opts": [
-     "Available",
-     "Unreachable — the original invoice, loyalty ledger and balances live on the server",
-     "Cash-only",
-     "Manager-only"
-    ],
-    "ans": 1,
-    "why": "Take details, or return when the line is back.",
-    "src": "Ch7"
-   },
-   {
-    "q": "Okelewo's expiring-stock spike decomposed to:",
-    "opts": [
-     "Theft",
-     "A pricing error",
-     "Eleven approvals, one supplier's short-dated deliveries — a purchasing conversation with the report on the table",
-     "A season"
-    ],
     "ans": 2,
-    "why": "Moods replaced with names.",
-    "src": "Ch8"
+    "why": "Read it from the screen; never estimate.",
+    "src": "Ch7"
    },
    {
-    "q": "The reused-code attempt was:",
+    "q": "Return & Exchange while offline is:",
     "opts": [
-     "Successful",
-     "Ignored",
-     "Approved twice",
-     "Refused — consumed codes stay consumed; the two-till double-spend is structurally impossible"
+     "Available for cash",
+     "Store-credit-only",
+     "Manager-only",
+     "Unavailable — the invoice, loyalty ledger and balances live on the server"
     ],
     "ans": 3,
-    "why": "The designed refusal earning its keep.",
-    "src": "Ch8"
+    "why": "Take details, or return when the connection is back.",
+    "src": "Ch7"
    },
    {
-    "q": "The Friday Rate-override pattern was answered by:",
+    "q": "Okelewo's expiring-stock overrun traced to:",
     "opts": [
-     "Switching require-override on for that profile the same week",
-     "Dismissal",
-     "A memo",
-     "A bonus"
+     "Eleven approvals, all provisions, one supplier's short-dated deliveries — a purchasing conversation",
+     "Theft",
+     "Wrong budgets",
+     "A season"
     ],
     "ans": 0,
-    "why": "The near-mandatory posture, adopted when its absence was read.",
+    "why": "The budget comparison pointed at a cause.",
     "src": "Ch8"
    },
    {
-    "q": "Okelewo enabled cash refunds:",
+    "q": "The Friday Rate override pattern was fixed by:",
     "opts": [
-     "Everywhere at once",
-     "At the flagship only, override required — relaxed by evidence, not sympathy",
-     "Nowhere ever",
-     "Without overrides"
+     "A warning letter",
+     "Switching Require Override for Rate Edit on for that profile",
+     "Removing the cashier",
+     "Ignoring it"
     ],
     "ans": 1,
-    "why": "The ninety-day revisit, as scheduled.",
+    "why": "The marker made the habit visible; one checkbox ended it.",
     "src": "Ch8"
    },
    {
-    "q": "This module's law is:",
+    "q": "Module 5's law is:",
     "opts": [
      "Never discount",
-     "Returns are walls",
-     "Every concession and every return carries a reason and an authoriser — generosity spent like the money it is",
-     "Codes are optional"
+     "Returns are refused",
+     "Every discount and every return carries a reason and an approver",
+     "Codes for everything"
     ],
     "ans": 2,
-    "why": "The fifth law.",
+    "why": "Margin given away is money spent.",
     "src": "Ch9"
    }
   ]
  },
  "extended_counters": {
   "title": "POS 6 — The Extended Counters",
-  "desc": "Money in another costume: Lay-By created whole and managed to its authorised end, Staff Purchase as an employee credit line proven through payroll, Airtime under the consumed-on-issue law with reprint-by-invoice, Sales History and the Customer Desk with the return-rate read and the reversible monthly merge, and Inventory Ops with documented requests, confirmed-quantity receiving, offline-capable labels and the Message Hub as the one channel.",
+  "desc": "The extended counters as financial arrangements: creating and managing lay-bys through completion or manager-gated termination, staff purchases with the payroll recovery chain proven end to end, airtime under the consumed-on-issue rule with reprint-by-invoice, Sales History and the Customer Desk with the reversible monthly merge, and Inventory Ops with prioritised requests, confirmed-quantity receiving, offline label printing and the Message Hub.",
   "lessons": [
    {
-    "title": "Chapter 1 — Money in another costume",
+    "title": "Chapter 1 — The extended counters",
+    "est": "10",
+    "html": "<p>Beyond the Sales Console, the sidebar carries a set of consoles that look like customer services: Lay-By, Staff Purchase, Airtime Sales, Sales History, Customer Desk, and Inventory Ops. This module covers each one. The module's law: <b>every extended counter is a financial arrangement, and each is run with the controls its money deserves.</b></p><p><b>What each console really handles.</b> Look past the service and name the money:</p><p>• <b>Lay-By</b> holds a customer's deposit against reserved goods. The business is holding the customer's money (owed back if the arrangement fails) <b>and</b> the customer's goods (out of the sellable pool). Two exposures in one arrangement.<br>• <b>Staff Purchase</b> is employee credit — the business lending against future wages, with a limit, a running balance, and repayment through payroll.<br>• <b>Airtime</b> is prepaid stock whose entire value is a code. It is the closest thing the counter sells to cash itself.<br>• <b>Customer Desk</b> is the customer's financial record — balances, invoices and payments per person.<br>• <b>Inventory Ops</b> is stock moving between locations — requests, transfers, and the receiving check.</p><p><b>Why the naming matters.</b> These counters are exactly where informal shops leak: the lay-by book nobody reconciles, staff purchases sorted out at month end, an airtime float that is about right, a customer file with four spellings of one person. Each of those is a money control skipped because the arrangement looked like a service. ZhiftPOS builds the controls in — deposits computed and taken, limits enforced, codes counted, records merged — and this module shows how each works and what to check.</p><p><b>Module contents.</b> Chapter 2: creating a lay-by. Chapter 3: managing lay-bys through to completion or termination. Chapter 4: staff purchases and the payroll connection. Chapter 5: airtime sales and the consumed-on-issue rule. Chapter 6: Sales History and the Customer Desk, including duplicate merging. Chapter 7: Inventory Ops, Label Printing and the Message Hub. Chapter 8: Okelewo's rollout of all of them. Chapter 9: review.</p><p><b>One connection to note now.</b> Everything these consoles do posts into the same system as ordinary sales: lay-by instalments appear in the shift close, staff purchase balances sit in a real account and are recovered through payroll, airtime is stocked and counted like inventory, and transfers move real stock. There are no side books — which is the point.</p>"
+   },
+   {
+    "title": "Chapter 2 — Creating a lay-by",
     "est": "12",
-    "html": "<p>Beyond the Sales Console, the sidebar carries a row of consoles that look like services — reservations, staff perks, phone credit, customer lookups, stock moves. This module's thesis strips the costumes: <b>every extended counter is money in another costume</b> — each console a financial instrument wearing a service's clothes, and each governed accordingly. The track's sixth law, previewed.</p><p><b>The instruments named.</b> The walk-through that reframes the module: <b>LAY-BY</b> is a customer deposit held against reserved stock — the firm holding the customer's money (a liability) AND the customer's goods (stock committed but not sold): two exposures in one friendly arrangement, which is why its deposit percentage, its schedule and its termination all got profile-level governance in module 2. <b>STAFF PURCHASE</b> is employee credit — the firm lending against future wages, with a limit, an exposure, and a payroll recovery: the Payroll track's variable-pay machinery wearing a shopping basket. <b>AIRTIME</b> is prepaid stock whose value IS the code — inventory that is spent the moment it is revealed, the closest thing the counter sells to cash itself. The <b>CUSTOMER DESK</b> is the receivable's face — balances, invoices and payments read per person. And <b>INVENTORY OPS</b> is custody in motion — stock asked for, sent, and received under signatures. Five costumes, one wearer.</p><p><b>Why the reframe governs.</b> The consequence drawn: the trade runs these counters casually precisely BECAUSE they look like services — the lay-by book nobody reconciles, the staff purchases 'sorted at month end', the airtime float that is 'about right', the phone-number customer file with four spellings of one woman — and every casualness is a money control skipped because the money wore a costume. The certified counter reverses the instinct: each console gets the governance its INSTRUMENT deserves — the lay-by aged like the receivable it is, the staff limit enforced like the credit line it is, the airtime slip guarded like the cash it is — and the module teaches each console twice over: the mechanics (what the screens do) and the instrument (what the money is doing underneath).</p><p><b>The module's map.</b> Lay-By created (Chapter 2) and managed to its end (3), Staff Purchase with its payroll mesh (4), Airtime and the consumed-on-issue law (5), Sales History and the Customer Desk with the merge machinery (6), Inventory Ops and Label Printing with the Message Hub as their channel (7), Okelewo's extended quarter (8), and the patterns and the law (9). One discipline carries from the door: every console in this module produces documents into the same posted world the Sales Console does — the extended counters are not side ledgers; they are the one ledger, extended — and module 8's reconciliations will read them all.</p>"
+    "html": "<p>A lay-by reserves goods against a deposit, with the balance paid over scheduled instalments. Creating one properly takes four steps and four habits.</p><p><b>Procedure.</b></p><p>1. <b>Add the items</b> the customer is reserving, exactly as in a normal sale — including batch and serial entry where the goods are tracked. Reserved goods are still tracked goods.<br>2. <b>Identify the customer by phone number.</b> A lay-by is never anonymous: the arrangement will need follow-up, and the phone number is how the follow-up happens. Read the number back or ring it once at entry.<br>3. <b>Review the total and the deposit.</b> The required deposit is computed from the profile's Lay-By Deposit % (module 2). At Okelewo this is 15%.<br>4. <b>Take the deposit.</b> On payment, the instalment schedule is created from the profile's instalment count and day spacing.</p><p><b>The schedule.</b> Each instalment carries: <b>due date, amount due, amount paid, balance, and status</b> — unpaid, partly paid, paid, or overdue. The schedule is, in effect, a small receivables ledger for this one arrangement, and the statuses are what Chapter 3's management works from.</p><p><b>Four habits that prevent the classic lay-by problems.</b></p><p>• <b>Take the deposit before setting anything aside.</b> A lay-by without its deposit is a free reservation — the customer risks nothing, and abandoned arrangements pile up. The profile computes the minimum; collect it at creation, always.<br>• <b>Print and explain the schedule.</b> The customer should leave holding the dates and amounts. A payment reminder weeks later should be a reminder, not a surprise.<br>• <b>Physically separate reserved goods.</b> A lay-by shelf, away from the sales floor. A reserved item left on the shelf gets sold on a busy Saturday, and the business then owes a customer goods it no longer has.<br>• <b>Verify the phone number at entry.</b> Everything in Chapter 3 — the overdue call, the termination notice — depends on the number being real.</p><p><b>Decide the forfeiture policy before the first dispute.</b> What happens to the deposit if the customer abandons the lay-by? Whatever the answer, decide it as policy, print it on the schedule, and say it at creation. A forfeiture rule announced at the start generates no argument later; one invented during a dispute generates nothing else. (Okelewo's version, and how it played out, is in Chapter 8.)</p><p><b>Summary.</b> Items in, phone verified, deposit computed and taken, schedule created, printed and explained, goods physically set aside, forfeiture terms known. A lay-by created this way is easy to manage; every shortcut here becomes a problem in Chapter 3.</p>"
    },
    {
-    "title": "Chapter 2 — Lay-By: the reservation created",
+    "title": "Chapter 3 — Managing lay-bys",
+    "est": "12",
+    "html": "<p>Every lay-by ends one of two ways — completed or terminated. The console manages both, and the long middle between.</p><p><b>The Open Lay-Bys panel.</b> All outstanding lay-bys, each with its schedule and statuses. Read it as an ageing list: the <b>overdue</b> instalments are the work. Check the panel weekly (it is on module 8's calendar), and follow up overdue instalments by phone from the recorded number. A lay-by left silent for months becomes the classic mess: goods held for someone unreachable, a deposit nobody can match to a person, and stock in limbo.</p><p><b>Taking an instalment: Make Payment.</b></p><p>1. Open the lay-by and choose Make Payment.<br>2. Enter the amount and choose the payment method.<br>3. The schedule updates — instalments move to paid or partly paid.</p><p>Notes: payments in any workable pattern are fine — two instalments at once, or half of one; that is what partly paid exists for. Each payment lands on its payment method and is included in the shift close — <b>lay-by activity is summarised in the Close Shift window</b>, so these takings are counted with everything else. Print the updated schedule for the customer each time.</p><p><b>Completion.</b> When the final instalment is paid, the goods are released to the customer. The reservation becomes a completed sale, and the shelf clears.</p><p><b>Termination.</b> Terminate cancels the lay-by. The procedure has controls built in:</p><p>1. Choose Terminate on the lay-by.<br>2. Select the refund method for what the customer has paid (subject to the forfeiture policy, and routed like any refund — store credit where cash refunds are off).<br>3. <b>A manager's email and password are required.</b> Termination is always an authorised event: money is going backwards and goods are being released from a customer arrangement, and cancelling-and-pocketing is the lay-by's classic fraud. The manager step is the control.<br>4. On completion, <b>the goods return to stock</b> — the reservation is released and the inventory is correct again.</p><p>The terminated lay-by's record survives: who reserved, what was paid, who authorised the end. Nothing about a termination is deleted.</p><p><b>The three numbers a healthy lay-by book shows.</b> At any moment, the console should be able to answer: total deposits and instalments held, total balances still due, and which goods are reserved. All three reconcile against reality — the money against the accounts, the goods against the lay-by shelf. Module 8's routines include exactly that check.</p>"
+   },
+   {
+    "title": "Chapter 4 — Staff purchases",
+    "est": "12",
+    "html": "<p>Staff Purchase lets employees buy at a staff discount and repay through payroll. It is employee credit with the controls built in — a limit, a visible balance, automatic recovery — and this chapter covers the flow and the setup that makes it real.</p><p><b>The purchase, step by step.</b></p><p>1. Open the Staff Purchase console and enter the <b>employee identifier</b>.<br>2. The screen shows the employee's credit position: <b>purchase limit, current exposure, remaining balance, and estimated monthly repayment</b>. The employee sees their own position before anything is added.<br>3. Add the items. The <b>staff discount applies automatically to every line</b> — the percentage from the profile (which takes precedence over any company-wide staff discount at this counter).<br>4. Complete. Two things happen: the purchase is <b>booked to the employee purchase account</b>, and it is <b>scheduled for recovery through payroll</b>.</p><p><b>The hard limit.</b> A purchase that would take the employee past their limit is <b>refused</b>. There is no override at the till, by design: the limit is set on the employee's record by whoever manages employment terms, and that is where any exception belongs. The refusal is rarely contested in practice, because the screen showed the arithmetic before the attempt.</p><p><b>The wiring that must exist.</b> Three records make the feature work end to end — confirm all three before enabling it:</p><p>1. A <b>purchase limit</b> on each participating employee's record.<br>2. The <b>employee purchase account</b> named in the company-wide settings — where outstanding balances sit, visible to finance per person.<br>3. The <b>salary component</b> named in the company-wide settings — the payroll deduction that recovers the balances.</p><p>Then prove the chain once: one real purchase, through the account, into a payroll run, recovered by the component. A half-wired setup — purchases booking but recovery never configured — is an interest-free loan book growing quietly under a staff-benefit label. The one-time test prevents it.</p><p><b>The Open Staff Purchases panel.</b> Lists outstanding balances, searchable by staff name or reference, each showing total and remaining balance. Review it on the same weekly rhythm as the lay-by panel.</p><p><b>Take Payment.</b> Records a <b>direct repayment outside payroll</b> — an employee clearing some or all of a balance in cash before the payroll run. The payment lands on its method, the exposure reduces, and the payroll recovery adjusts to the remainder.</p><p><b>Summary.</b> Identifier → position shown → discount automatic → limit enforced with no till override → booked to the account → recovered by payroll (or by Take Payment). Wire all three records and test the chain before the first purchase.</p>"
+   },
+   {
+    "title": "Chapter 5 — Airtime sales",
+    "est": "12",
+    "html": "<p>The Airtime console sells mobile recharge vouchers. The product is a code: reveal it and it is spent. That one fact drives every rule in this chapter.</p><p><b>The sale, in three steps.</b></p><p>1. <b>Select Carrier</b> — choose the network.<br>2. <b>Choose Amount</b> — pick a denomination and set the quantity. Availability is shown, and <b>the sale is capped at what is in stock</b>: airtime is inventory, and the console will not sell codes it does not hold.<br>3. <b>Complete Payment</b> — choose the method and finish.</p><p>Each voucher then prints on <b>its own slip with its recharge code</b> — one slip per code.</p><p><b>The consumed-on-issue rule.</b> Memorise this: <b>an airtime code is consumed the moment it is issued.</b> When the sale completes, that code is revealed from stock and is spent — whether or not the paper reached the customer's hand. Two instructions follow:</p><p>• <b>Print before the customer leaves.</b> The slip is the product.<br>• <b>If the printer fails, reprint from the invoice — never sell again.</b> Vouchers can be reprinted by looking up the invoice number: the same code is recovered, on the same sale, with no second consumption. Ringing a new sale instead consumes a <b>second</b> code against one payment — one code in the customer's hand, one lost (or worse, in a pocket). The reflex to train: printer fails → note the invoice number → reprint. Never resell.</p><p><b>Airtime as stock.</b> Treat the codes like the inventory they are:</p><p>• The availability display is the stock count — watch it, and reorder from the sales figures before running out. (At Okelewo, recharge vouchers turned out to be the flagship's top-selling item — an airtime stockout there is a revenue event.)<br>• The reconciliation is simple arithmetic: <b>codes received − codes issued = codes held.</b> It is as countable as the cash drawer, and it goes on the same routine: a count that does not reconcile has a story that needs finding.</p><p><b>Reprints and disputes.</b> Any airtime voucher can be reprinted from its invoice. A customer returning with a code they say did not work is handled from the record: the invoice shows the code that was issued, when, and on which sale — the conversation starts from facts, not memory.</p><p><b>Summary.</b> Carrier → amount and quantity (stock-capped) → payment → one slip per code. The code is consumed at issue: print before the customer leaves, reprint by invoice on failure, never resell. Count received − issued = held on the regular routine.</p>"
+   },
+   {
+    "title": "Chapter 6 — Sales History and the Customer Desk",
     "est": "13",
-    "html": "<p>The customer wants the goods and hasn't the money today; the shop wants the sale and cannot give the goods away. Lay-by is the governed middle: goods reserved against a deposit, the balance paid over time. The creation chapter.</p><p><b>Creating a lay-by.</b> The four steps: the items the customer is reserving searched and added (the cart's craft from module 4, unchanged — batches and serials included, because reserved goods are still tracked goods); the customer identified by <b>phone number</b> (the lay-by is never anonymous — a reservation needs a reachable party, and the phone is the identity the follow-up call will use); the total reviewed with the required <b>deposit computed from the profile's deposit percentage</b> (module 2's number doing its work — Okelewo's fifteen percent, priced against the abandoned-basket risk); and the deposit TAKEN — upon which the <b>instalment schedule is created from the profile's instalment count and day spacing</b> (the 0-30-60 arithmetic, materialised as dated obligations).</p><p><b>The schedule as the instrument.</b> The created lay-by read as what it is: each instalment carries its <b>due date, amount due, amount paid, balance and status — unpaid, partly paid, paid or overdue</b> — which is a receivables ledger in miniature, per customer, per reservation. The instrument's two sides restated from Chapter 1 and made concrete: the DEPOSIT is the customer's money held (the firm's liability until the sale completes or the lay-by terminates — module 8's reconciliation will expect the lay-by deposits to be countable, because they are), and the RESERVED GOODS are stock committed (out of the sellable pool in practice, still the firm's in law — the reservation that is never tracked is how the trade sells one popular item twice).</p><p><b>The creation's disciplines.</b> The craft around the mechanics: the deposit is TAKEN, never promised (the lay-by without its deposit is a free reservation — the profile computes the minimum, and the counter collects it before the goods are set aside), the schedule is EXPLAINED at creation (the customer leaves knowing the dates and amounts — the printed schedule doing the explaining, so the week-forty phone call is a reminder, not a surprise), the reserved goods are physically SEGREGATED where the shop's layout allows (the lay-by shelf — custody made visible, per the Inventory track's instincts: the reserved kettle on the sales floor is an accident waiting for a busy Saturday), and the phone number is VERIFIED at entry (rung once, or read back — the reservation reachable being the whole design's precondition). The chapter's closing line: the lay-by created properly is a clean instrument — money held, goods held, obligations dated, party reachable — and everything Chapter 3 manages flows from this creation being done right.</p>"
+    "html": "<p>Two lookup consoles turn the counter's records into answers: Sales History for transactions, the Customer Desk for people.</p><p><b>Sales History.</b> Recent transactions, with tools to find any of them:</p><p>• <b>Filter</b> by date range; <b>search</b> by reference or customer name; <b>narrow</b> to voucher activity, a single cashier, or a single shift.<br>• Returns are marked with a <b>Return label</b>, so they are never mistaken for sales.<br>• Any entry opens to its lines and recorded payments, and the receipt can be reprinted from there.</p><p>The everyday use case — <b>the lost receipt</b>: search by the customer's name, or any fragment of the reference. Offline sales are found by their local reference just as posted sales are found by their invoice number. A lost receipt is a one-minute lookup, not a dead end.</p><p>Note for supervisors: the cashier and shift filters make this console the starting point for reviewing any specific person or period — module 8 uses them.</p><p><b>The Customer Desk.</b> One customer's full picture, in three views:</p><p>• <b>Details</b> — contact information, price list, credit limit, payment terms and loyalty points, plus the statistics: <b>outstanding balance, total invoiced, total paid, total orders, average order value, purchase frequency, last purchase, and return rate</b>. Read the return rate: a customer returning a third of what they buy is a pattern worth understanding, whatever the explanation turns out to be.<br>• <b>Invoices</b> — everything bought, filterable by status and date, searchable by number, printable.<br>• <b>Payments</b> — receipts with reference, date and amount.</p><p><b>Edit Customer</b> updates the name, mobile, email and loyalty card from the same screen.</p><p><b>Duplicate customers and merging.</b> Two protections keep one person as one record:</p><p>• <b>Automatic merge at creation</b> (on by default): a new customer whose <b>mobile number matches</b> an existing record merges into it immediately. Leave this on unless customers genuinely share phone numbers.<br>• <b>The merge tool</b>, for duplicates that slip through: it scans for customers sharing a mobile or email, you choose the surviving record, and the history merges into it. The merge is <b>reversible</b> — a snapshot is kept, and cancelling the merge restores both records.</p><p><b>Run the duplicate scan monthly.</b> The practical reason: loyalty depends on it. A customer split across two records has their points split too — half their history on each — and they will notice. The desk's statistics also assume one person per record; duplicates quietly corrupt every figure on the Details view.</p><p><b>Summary.</b> Sales History: filter, search, Return labels, reprints — the lost receipt answered in a minute. Customer Desk: details with statistics (watch the return rate), invoices, payments, edit. Duplicates: mobile-match auto-merge at creation, the reversible merge tool monthly.</p>"
    },
    {
-    "title": "Chapter 3 — Lay-By: managed to its end",
+    "title": "Chapter 7 — Inventory Ops, Label Printing, and the Message Hub",
     "est": "13",
-    "html": "<p>Every lay-by ends one of two ways — completed or terminated — and the console manages both, plus the long middle. The management chapter.</p><p><b>The Open Lay-Bys panel.</b> The working list: everything outstanding, each with its schedule visible — and the panel read as the aging report it is: the instalment statuses (unpaid, partly paid, paid, <b>overdue</b>) are the read, and the OVERDUE line is the action — the follow-up call made from the recorded phone number, on a rhythm (module 8's calendar gives the lay-by review a weekly line), because the lay-by left to age silently converges on the trade's classic mess: goods held for a ghost, a deposit nobody can match to a person, and a shelf of inventory in limbo.</p><p><b>Make Payment.</b> The instalment collected: the amount entered, the payment method chosen — <b>the schedule updates, instalments moving to paid or partly paid</b> — and the payment landing on its method for the close's per-method count (module 4's tender-truth law: the lay-by instalment is money like any other, counted at the shift close like any other — and the manual's own note that <b>lay-by activity is summarised in the shift close</b> makes the ritual's window include this console explicitly). The collection craft: payments accepted in any pattern the schedule tolerates (the customer paying two instalments at once, or half of one — partly paid exists for a reason), the printed receipt updating the customer's picture each time, and the final instalment's completion RELEASING the goods — the reservation becoming a sale, the deposit and instalments becoming revenue, the shelf clearing.</p><p><b>Terminate.</b> The other ending, governed hard because it is money moving backwards: <b>Terminate cancels the lay-by</b> — the refund method chosen, and <b>a manager's email and password required</b> (the termination is an authorised event by construction — module 5's anatomy: actor, authoriser, trail — because the terminate-and-pocket is the lay-by's native fraud shape, and the manager gate is its wall), upon which <b>goods return to stock</b> (the reservation released, the shelf restored, the inventory truthful again). The termination's policy layer, for the consultant: the refund's ROUTE follows the returns posture (store credit where cash refund is off — the deposit coming back as stored value keeps the money in the ledger), the deposit-forfeiture question is decided as POLICY before the first dispute (the profile's deposit is a minimum, not a penalty schedule — the firm that intends to keep abandoned deposits writes it on the printed schedule and says it at creation, or it keeps arguments instead), and the terminated lay-by's record survives (the instrument's history readable — who reserved, who paid what, who authorised the end). The chapter's closing frame: managed properly, the lay-by book at any moment is three honest numbers — deposits held, balances due, goods reserved — each reconcilable, which is all module 8 will ask of it.</p>"
+    "html": "<p>Three consoles connect the counter to stock: what is held, what is requested, what is moving — plus the labels for the shelf and the hub that carries the traffic.</p><p><b>The Inventory tab.</b> Stock as this terminal knows it:</p><p>• Filter by <b>warehouse</b> (where the profile permits viewing other warehouses — the is-it-at-the-other-branch question answered from the chair), by item group, or by free search on code, name or brand.<br>• Counters summarise items <b>in stock, low on stock, and out of stock</b>.<br>• A <b>synchronising marker</b> appears while figures refresh — the number on screen is the local copy's number, and the marker shows when it is being updated.</p><p><b>Material Requests — asking another location for stock.</b></p><p>1. Choose New Request. Confirm the requesting warehouse and select the <b>source</b> warehouse.<br>2. Set a <b>priority</b>: low, medium, high or urgent.<br>3. Add each item and quantity, plus a <b>note</b> explaining what is needed and why.<br>4. Submit.</p><p>Both directions are visible: requests you have raised <b>and</b> requests raised against your branch, each opening to its full item list and status. The request replaces the phone call and the chat message with a document the other branch can act on and everyone can see.</p><p><b>Stock Transfers — goods actually moving.</b> A transfer is raised at the sending side and <b>received</b> at yours. The receiving rule is the one to memorise: <b>confirm the quantities as you accept them.</b> If twelve were sent and eleven arrived, record eleven. A short delivery confirmed at receiving creates the discrepancy record at the boundary between branches, where it can be investigated cheaply. A short delivery waved through at the paper quantity disappears into your branch's stock figures and resurfaces months later as an unexplainable count variance. Ten seconds of counting at the door, or a mystery in December — that is the trade.</p><p><b>Label Printing.</b> Shelf and product labels, printed from the till:</p><p>• Add items singly by search, or <b>in bulk</b> — an entire item group, or all the lines from a goods receipt or stock entry (a new delivery labelled without retyping).<br>• Set the label count per row, choose the template (module 3's proven presets), preview, print.<br>• <b>Works offline</b> — the shelf can be priced through an outage.</p><p><b>The Message Hub.</b> The counter's inbox: notices, transfer alerts and requests, filed like mail — unread, starred, transfers, requests, system, alerts, archived — searchable, with important notices pinned and the unread count on the top-bar envelope. The operational point: <b>transfer and request messages carry their underlying details and can be acted on directly from the hub</b>. Keep the counter's operational traffic here, in one visible stream, rather than scattered across personal phones.</p>"
    },
    {
-    "title": "Chapter 4 — Staff Purchase: the employee credit line",
+    "title": "Chapter 8 — Case study: Okelewo's extended counters",
     "est": "13",
-    "html": "<p>The staff member buys today and repays from wages — a benefit the trade runs on trust and this counter runs on a limit. The employee-credit chapter.</p><p><b>The purchase flow.</b> The four steps with the instrument visible in each: the <b>employee identifier</b> entered — and the screen showing the credit picture whole: <b>purchase limit, current exposure, remaining balance, and estimated monthly repayment</b> (the employee sees their own position before adding a single item — the transparency that makes the limit a fact rather than a surprise); the items added with the <b>staff discount applied automatically to every line</b> (module 2's percentage — profile precedence over company-wide — executing without counter judgment: the staff price is policy, not favour); the total reviewed against the remaining balance with the hard rule: <b>a purchase that would exceed the limit is REFUSED</b> (the credit fence as physics — no override path by design, because the limit's owner is the employee record's owner, and the exception belongs there, not at the till); and completion <b>booking the purchase to the employee purchase account and scheduling it for payroll recovery</b>.</p><p><b>The Payroll mesh.</b> The wiring restated from module 2 and read as the control chain it is: the company-wide settings name the <b>employee purchase account</b> (where exposures sit until repaid — a receivable from staff, visible to finance as a balance, reconcilable per person) and the <b>default salary component</b> (the payroll deduction that recovers it — the Payroll track's variable-input law receiving the counter's feed), while the <b>purchase limit lives on the employee record</b> (set by the employment relationship's owner, not by the shop floor). The mesh's discipline: the counter ORIGINATES the exposure, payroll RECOVERS it, finance READS the account — three functions, three records, one instrument — and the certified consultant verifies the whole chain at enablement (a test purchase, through the account, into a payroll cycle, recovered) because the half-wired version (purchases booked, recovery never configured) is an interest-free loan book growing quietly under a benefits banner.</p><p><b>The panel and the direct repayment.</b> The management layer: <b>Open Staff Purchases</b> lists outstanding balances — searchable by staff name or reference, each showing total and balance — the staff receivable's aging view, read on the same weekly rhythm as the lay-by book; and <b>Take Payment</b> records a <b>direct repayment outside payroll</b> (the staff member clearing a balance in cash before a payroll run — the money on its method, the exposure reduced, the payroll recovery adjusting to the remainder). The chapter's closing frame: staff purchase done right is a benefit with a balance sheet — the limit set by the right owner, the exposure visible to everyone including its holder, the recovery automatic, the direct repayment possible — and done wrong it is the trade's oldest quiet leak: goods leaving through the family door, sorted at month end, until month end stops sorting it. The counter's version has no such door; it has a ledger.</p>"
+    "html": "<p>Okelewo enables the extended counters in its second quarter, demand first. The events worth learning from:</p><p><b>Lay-by (Chapters 2-3).</b> Launched first — customers had been asking, especially for big-ticket items. The creation habits hold from day one: 15% deposits taken at creation, schedules printed and explained, a lay-by shelf established behind the flagship counter, phone numbers read back at entry. The forfeiture policy is decided <b>before launch</b> and printed on every schedule.</p><p>The test arrives on schedule: one lay-by goes two instalments overdue. The weekly panel check flags it; two calls to the recorded number go unanswered; the termination runs by the book — manager credentials at the gate, the refundable portion routed to store credit (cash refunds are still off), the goods back to stock the same hour, the record intact. The retained portion follows the printed policy, and there is no argument, because <b>the schedule said what the schedule said</b> from the day it was created.</p><p><b>Staff purchase (Chapter 4).</b> Enabled at the flagship only, and only after the full-chain test: one real purchase, through the employee purchase account, into a payroll run, recovered by the salary component — proven before the second employee bought anything. The quarter stays uneventful, which is the point: limits visible to their holders, one over-limit attempt refused without argument (the screen had shown the arithmetic), one Take Payment repayment ahead of payroll, and finance reading the account per person at month end. The old informal habit — staff goods sorted out at month end from memory — simply stops, because the ledger replaced it.</p><p><b>Airtime (Chapter 5).</b> The surprise of the quarter: recharge vouchers are the flagship's <b>top-selling item</b> — six hundred units of one denomination in a month. Airtime stock is promoted to a managed float: availability checked daily, reorders triggered from the sales report. The consumed-on-issue drill pays off in week nine: a printer jams mid-sale, and the cashier's trained reflex runs — invoice number noted, slip reprinted, same code recovered. The untrained response (ring it again) would have consumed a second code against one payment. The received − issued = held count joins the daily routine and reconciles all quarter.</p><p><b>The record consoles (Chapter 6).</b> A lost-receipt customer is served in ninety seconds from Sales History — name search, an offline-era local reference found, receipt reprinted. The Customer Desk's return-rate figure flags one account at 31%; investigation finds a genuine cause — a sizing problem in one product line — which goes to purchasing as buying feedback. The figure was worth reading either way. The first monthly duplicate scan finds nine pairs; they are merged with survivors chosen — and one merge is <b>reversed</b> the next day when a shared family phone number comes to light. The snapshot restores both records exactly as promised.</p><p><b>Receiving (Chapter 7).</b> The first short delivery is caught at the flagship door: twelve sent from the Distribution Centre, eleven received, eleven <b>confirmed</b>. The discrepancy record points the investigation at the sending warehouse, where a pick error is found within the week. Under the old routine, the missing unit would have dissolved into the flagship's stock figures and reappeared in December as unexplained shrinkage.</p><p><b>The MD's quarter note:</b> <i>the side counters turned out to be money wearing disguises. We run them with the same controls now, and the month-end sorting-out meetings have nothing left to sort.</i></p>"
    },
    {
-    "title": "Chapter 5 — Airtime: the code that is money",
-    "est": "13",
-    "html": "<p>The counter's purest instrument: airtime — recharge vouchers whose entire value is a string of digits, spent the moment it is seen. The consumed-on-issue chapter.</p><p><b>The three-step sale.</b> The console's flow: <b>Select Carrier</b> (the network chosen), <b>Choose Amount</b> (a denomination picked, a quantity set — with <b>availability shown and the sale capped at what is in stock</b>: airtime is inventory, counted like inventory, and the console refuses to sell codes it does not hold), and <b>Complete Payment</b> (the method chosen, the sale completed). Then the paper that IS the product: <b>each voucher prints on its own slip with its recharge code clearly set out</b> — one slip per code, handed over like the money it is.</p><p><b>The consumed-on-issue law.</b> The manual's warning, elevated to the module's sharpest engraving: <b>an airtime code is consumed the moment it is issued</b> — so <b>print before the customer leaves</b>, and if the printer fails, <b>reprint from the invoice number immediately rather than reselling</b>. The law's logic taught so the discipline survives pressure: the moment of issue REVEALED the code from stock — that unit is spent whether or not the paper made it into a hand — so the failed print answered by a fresh sale creates two consumed codes against one payment: one in the customer's hand, one leaked into the void (or into a pocket — module 8's map notes what a 'failed print, sold again' habit is worth). The reprint-by-invoice path exists precisely for this: <b>vouchers can be reprinted by looking up the invoice number</b> — the same code recovered, the same sale, no second consumption — and the certified cashier's printer-failure reflex is invoice number first, reseller never.</p><p><b>The instrument's stock.</b> Airtime as inventory, governed accordingly: the codes arrive as PREPAID stock (money already spent to acquire them — the float's cousin, sitting in denominations), the availability display is the stock count (the sale capped at holdings — and the reorder read coming from exactly this screen plus Revenue Intelligence's detailed sales: Okelewo's own dashboard shows recharge vouchers as the flagship's TOP sellers, which makes airtime stockouts a revenue event, not a shrug), and the reconciliation is arithmetic module 8 will formalise: codes received minus codes issued equals codes held — a count as countable as the drawer, run on the same rhythms. The chapter's closing line: the airtime counter compresses this track's whole philosophy into its smallest form — stock that is money, a slip that is the product, a law that survives printer jams, and a count that either reconciles or tells a story.</p>"
-   },
-   {
-    "title": "Chapter 6 — Sales History & the Customer Desk: the record, per person",
-    "est": "13",
-    "html": "<p>Two lookup consoles that turn the counter's past into answers: the transaction record, and the customer's whole picture. The record chapter.</p><p><b>Sales History.</b> The counter's own register: recent transactions FILTERED by date range, SEARCHED by reference or customer name, NARROWED to voucher activity, a single cashier, or a single shift — with <b>returns marked by a Return label</b> so they are never mistaken for sales — and any entry OPENED to its lines and recorded payments, reprintable from there. The console's daily use case, taught as the manual gives it: <b>the customer with a lost receipt</b> — searched by name, or by any fragment of the reference — served in a minute from the record (module 4's two-reference law completing here: the offline local reference finds the sale as surely as the posted one). And the supervision preview: the cashier and shift filters are module 8's investigation entrance — the specific person, the specific period, read from the same console the floor uses.</p><p><b>The Customer Desk.</b> The receivable's face, in three views: <b>DETAILS</b> — contact information, price list, credit limit, payment terms and loyalty points, alongside the figures that make the desk an instrument reader: <b>outstanding balance, total invoiced, total paid, total orders, average order value, purchase frequency, last purchase and return rate</b> (the customer read as a relationship AND a risk in one screen — the return rate line being the desk's quiet fraud sensor: the customer whose return rate is a third of purchases is a pattern module 8 reads by name); <b>INVOICES</b> — everything bought, filterable by status and date, searchable by number, printable; <b>PAYMENTS</b> — receipts with reference, date and amount. Plus <b>Edit Customer</b> for the name, mobile, email and loyalty card — the master maintained where it is used.</p><p><b>The merge machinery.</b> Module 2's duplicate defences, completed with the repair tools: the <b>automatic merge on creation</b> (on by default — a new customer merging into an existing one when the MOBILE NUMBER matches: dedup at birth, left on unless numbers are genuinely shared), and the <b>merge tool</b> for the ones that slipped through — scanning for customers sharing a mobile or email, the surviving record CHOSEN, history merged into it — with the property that makes it safe to use: <b>the merge is REVERSIBLE</b> — a snapshot kept, cancellation restoring both records. The rhythm and the reason, from the manual: run the duplicate scan <b>monthly</b>, because <b>loyalty depends on it</b> — a customer split across two records has their points split too, and will complain — and the desk's whole value (the balances, the rates, the history) presumes one person, one record: the master hygiene law, at the counter's file. The chapter's closing frame: these two consoles are where the counter's evidence layer pays out daily — the lost receipt found, the dispute settled from the record, the customer read whole — and the certified professional treats them as the first stop for every 'the customer says' conversation, because the record was built precisely so nobody has to remember.</p>"
-   },
-   {
-    "title": "Chapter 7 — Inventory Ops, labels & the Message Hub: custody in motion",
-    "est": "13",
-    "html": "<p>The counter's stock consoles: what is held, what is asked for, what is moving — plus the labels that price the shelf and the hub that carries the traffic. The custody chapter.</p><p><b>The Inventory tab.</b> Stock as the terminal knows it: filtered by WAREHOUSE (where the profile's other-warehouses permission allows — the 'do you have it at the other shop?' answered from the chair), by item group, and by free search over code, name or brand; the COUNTERS summarising items in stock, low on stock and out of stock (the shelf's health in three numbers); and the <b>synchronising marker</b> shown while figures refresh — the local-copy honesty visible (the number on screen is the copy's number; the marker says when it is being trued).</p><p><b>Material Requests.</b> Stock asked for, as a document: <b>New request</b> — the requesting warehouse confirmed, the SOURCE warehouse chosen, a <b>priority</b> set (low, medium, high or urgent — the queue's triage vocabulary), each item and quantity added, and a NOTE telling the supplying branch what is needed and why, then submitted. Both directions visible: <b>requests you have raised and requests raised against you</b> both appear, with a detail panel carrying the full item list and status — the inter-branch ask as a governed conversation (documented, prioritised, answerable) instead of the trade's version: a WhatsApp voice note and a hope.</p><p><b>Stock Transfers.</b> Goods actually moving, under signatures: a transfer RAISED, and — the receiving discipline the manual states and this academy underlines — a transfer RECEIVED by <b>confirming quantities as you accept them, so a short delivery is RECORDED rather than absorbed</b>. The one clause carries the Inventory track's whole custody law: the receiver who confirms what actually arrived (eleven of twelve) creates the discrepancy record at the boundary where it is cheap; the receiver who accepts the paper quantity absorbs the short into their own branch's shrink, where it surfaces months later as an unattributable count variance — the confirm-quantities habit is the difference, and it costs ten seconds per line.</p><p><b>Label Printing and the Hub.</b> The two supporting consoles: <b>Label Printing</b> — items added singly by search, or IN BULK (an entire item group, or the lines pulled from a goods receipt or stock entry — the new delivery labelled without retyping), per-row label COUNTS, the template chosen (module 3's proofed presets), preview, print — and <b>available even offline</b> (the shelf priced through the outage). The <b>Message Hub</b> — notices, transfer requests and alerts filed like a mailbox (unread, starred, transfers, requests, system, alerts, archived; searchable; important notices pinned) — with the operational teeth: <b>transfer and request messages carry the underlying detail and can be ACTED ON without leaving the hub</b>, and the unread count rides the top-bar envelope. The hub read as the channel discipline of two tracks: the counter's operational traffic in ONE governed stream — acknowledged, actioned, archived — rather than scattered across personal phones. The chapter's closing line: custody in motion is still custody — the request documented, the transfer confirmed at the boundary, the shelf labelled from the receipt, the traffic in the channel — and the counter that runs these four consoles as designed has extended the warehouse's laws to its own back corner.</p>"
-   },
-   {
-    "title": "Chapter 8 — Case study: Okelewo's extended quarter",
-    "est": "16",
-    "html": "<p>The extended counters go live in their second quarter — demand-led, instrument-governed. Every chapter clocks in.</p><p><b>Lay-by, launched and tested (Ch. 2-3).</b> Customer demand brings lay-by first (the season's big-ticket items — the reservation questions arriving daily at the flagship). The creation discipline holds from day one: deposits computed at the profile's fifteen percent and TAKEN, schedules printed and explained, the lay-by shelf physically established behind the counter, phone numbers read back at entry. The quarter's test arrives on schedule: an overdue lay-by ages through two missed instalments — the weekly panel read flags it, two recorded calls go unanswered, and the TERMINATION runs as designed: manager's credentials at the gate, the refund routed to store credit per the returns posture, the goods returned to stock the same hour, the record surviving whole. The MD's note on the forfeiture question — decided as policy BEFORE this case, printed on the schedule since launch — means the retained deposit portion generates zero argument: <i>the schedule said what the schedule said.</i></p><p><b>Staff purchase, wired whole (Ch. 4).</b> The flagship's benefit launches only after the consultant's full-chain test: one real purchase through the employee purchase account, into a payroll cycle, recovered by the salary component — proven end to end before the second employee touches it. The quarter's numbers stay boring by design: limits visible to their holders, one exceed-limit refusal (absorbed without argument — the screen showed the arithmetic), one direct repayment through Take Payment ahead of a payroll run, and finance reading the account balance per person at month end. The old 'family door' — goods sorted at month end from memory — closes without an announcement; the ledger simply replaced it.</p><p><b>Airtime, the surprise flagship (Ch. 5).</b> The dashboard's truth from module 1's screenshots becomes the quarter's operational focus: recharge vouchers are the flagship's TOP sellers — six hundred units of one denomination in a month — which promotes airtime stock to a managed float: availability read daily, reorders triggered from the detailed sales report, and the consumed-on-issue law drilled until reflexive. The drill pays in week nine: a printer jam mid-sale, and the cashier's reflex runs the designed path — invoice number looked up, slip REPRINTED, the same code recovered — where the untrained answer (sell another) would have leaked a unit into the void. The received-issued-held count joins the close ritual's rhythm and reconciles all quarter.</p><p><b>The record consoles at work (Ch. 6-7).</b> The quarter's daily wins, logged: a lost-receipt customer served in ninety seconds from Sales History (name search, offline-era local reference found, reprint — the two-reference law in the wild); the Customer Desk's return-rate line flags one account at thirty-one percent — read, investigated, and resolved as genuine (a size-run issue with one product line: a buying insight wearing a fraud sensor's clothes — the reading mattered either way); the first MONTHLY merge scan finds nine duplicate pairs (four auto-merge misses with typo'd numbers, five legacy), merged with the survivor chosen and one merge REVERSED next day when a shared family number surfaces — the snapshot doing exactly what the design promised; and the receiving discipline records its first short delivery — eleven of twelve confirmed at the flagship against a Distribution Centre transfer, the discrepancy documented at the boundary and resolved to a warehouse pick error within the week, where the old counter would have absorbed it into December's mystery shrink. The MD's quarter note: <i>the side counters turned out to be the main counters wearing disguises. We govern them the same now, and the month-end 'sorting out' meetings have nothing left to sort.</i></p>"
-   },
-   {
-    "title": "Chapter 9 — Common mistakes & the sixth law",
-    "est": "13",
-    "html": "<p>The costumes' scar tissue. Symptom → disease → fix.</p><p><b>Pattern 1 — the service illusion.</b> Symptom: lay-bys in a notebook, staff purchases 'sorted at month end', airtime 'about right'; money controls skipped because the money wore a costume. Disease: the instrument unrecognised (Ch. 1). Fix: the reframe — every extended counter named for the instrument it is, and governed as that instrument.</p><p><b>Pattern 2 — the free reservation.</b> Symptom: goods set aside on a promise; deposits promised, not taken; the popular item sold twice; a shelf of inventory held for ghosts. Disease: lay-by without its creation disciplines (Ch. 2). Fix: deposit taken at the profile's percentage, schedule printed and explained, goods segregated, phone verified — and the panel's overdue line worked weekly.</p><p><b>Pattern 3 — the terminate-and-pocket door.</b> Symptom: lay-bys cancelled casually; deposits refunded to hands, not records; the reservation's end nobody authorised. Disease: the termination ungated (Ch. 3). Fix: the manager gate used as built — credentials, refund route per policy, goods to stock, record surviving — and the forfeiture policy written before the first dispute.</p><p><b>Pattern 4 — the half-wired benefit.</b> Symptom: staff purchases booked, recovery never configured; the interest-free loan book growing under a benefits banner. Disease: the payroll mesh assumed instead of proven (Ch. 4). Fix: the full-chain test at enablement — purchase, account, payroll cycle, recovery — before the second employee buys.</p><p><b>Pattern 5 — the resold code.</b> Symptom: printer fails, sale rung again; two consumed codes against one payment; airtime shrink nobody can explain. Disease: the consumed-on-issue law unknown (Ch. 5). Fix: print before the customer leaves; on failure, reprint from the invoice number, never resell — and the received-issued-held count on the close rhythm.</p><p><b>Pattern 6 — the absorbed short.</b> Symptom: transfers accepted at paper quantities; shorts surfacing months later as unattributable count variances; branch shrink carrying the supply chain's sins. Disease: receiving without confirmation (Ch. 7). Fix: quantities confirmed as accepted — the short recorded at the boundary where it is cheap — plus the request documented, the traffic in the hub, the duplicates merged monthly.</p><p><b>The sixth law.</b> The costumes, retired: <b>every extended counter is money in another costume — the lay-by a deposit against reserved goods, created whole and ended under authority; the staff purchase a credit line proven through payroll; the airtime code consumed on issue and recovered by invoice, never resold; the customer one record, merged reversibly; and custody in motion confirmed at every boundary.</b> Module 7 opens the programme built entirely of stored value: the vouchers — from mint to breakage.</p>"
+    "title": "Chapter 9 — Review & the sixth law",
+    "est": "11",
+    "html": "<p>Check yourself against each section before the quiz.</p><p><b>The consoles named (Chapter 1).</b> Lay-By = a deposit held against reserved goods (two exposures). Staff Purchase = employee credit recovered through payroll. Airtime = prepaid stock whose value is the code. Customer Desk = the customer's financial record. Inventory Ops = stock in motion. No side books — everything posts into the same system.</p><p><b>Creating a lay-by (Chapter 2).</b> Items (with batches/serials), customer by verified phone number, deposit computed from the profile percentage and <b>taken</b>, schedule created from the count and spacing. Print and explain the schedule; separate the goods physically; decide and print the forfeiture policy before the first dispute. Each instalment: due date, amounts, balance, status (unpaid / partly paid / paid / overdue).</p><p><b>Managing lay-bys (Chapter 3).</b> Check the Open Lay-Bys panel weekly; the overdue lines are the work. Make Payment updates the schedule, lands on its method, and is included in the shift close. Completion releases the goods. Termination requires a <b>manager's email and password</b>, routes the refund per policy, returns the goods to stock, and keeps the full record.</p><p><b>Staff purchases (Chapter 4).</b> The screen shows limit, exposure, remaining balance and estimated repayment before anything is added. The discount applies automatically. Over-limit purchases are refused with no till override — the exception belongs with the employee record's owner. Wiring: the employee limit, the purchase account, the salary component — and one full-chain test before launch. Take Payment records direct repayment outside payroll.</p><p><b>Airtime (Chapter 5).</b> Carrier → denomination and quantity (capped at stock) → payment → one slip per code. The code is consumed the moment it is issued: print before the customer leaves; on printer failure, reprint from the invoice number — never sell again. Count: received − issued = held.</p><p><b>The record consoles (Chapter 6).</b> Sales History: filters by date, reference, customer, voucher, cashier, shift; Return labels; reprints; the lost receipt found by either reference. Customer Desk: details with statistics (watch the return rate), invoices, payments, edit. Duplicates: mobile-match auto-merge at creation; the monthly merge tool, reversible by snapshot; loyalty depends on one person, one record.</p><p><b>Stock consoles (Chapter 7).</b> Inventory tab: warehouse filter where permitted, the three stock counters, the synchronising marker. Material requests: source, priority, items, note — both directions visible. Transfers: <b>confirm quantities at receiving</b> — record the short at the boundary instead of absorbing it. Label Printing: bulk from a goods receipt, works offline. Message Hub: one stream, actionable transfer and request messages.</p><p><b>The quarter (Chapter 8).</b> The printed forfeiture policy ending arguments before they start; the full-chain staff purchase test; the printer-jam reprint reflex; the 31% return rate that turned out to be buying feedback; the reversed merge; the short delivery caught at the door.</p><p><b>The sixth law: every extended counter is a financial arrangement, run with the controls its money deserves.</b> Module 7 covers the gift voucher programme end to end.</p>"
    }
   ],
   "questions": [
    {
-    "q": "The extended counters are governed as:",
+    "q": "A lay-by involves two exposures because:",
     "opts": [
-     "Financial instruments wearing service costumes — each gets the governance its instrument deserves",
-     "Services",
-     "Optional extras",
-     "Reports"
+     "The business holds the customer's money and the customer's goods at the same time",
+     "Two customers sign",
+     "Two branches share it",
+     "Tax applies twice"
     ],
     "ans": 0,
-    "why": "The trade runs them casually because they look like services.",
+    "why": "A deposit owed back, and stock out of the sellable pool.",
     "src": "Ch1"
    },
    {
-    "q": "A lay-by is, structurally:",
+    "q": "Airtime is described as the closest thing to selling cash because:",
     "opts": [
-     "A discount",
-     "A customer deposit held against reserved stock — two exposures in one arrangement",
-     "A sale",
-     "A quote"
+     "It is popular",
+     "The product's entire value is a code — reveal it and it is spent",
+     "It is untaxed",
+     "Carriers demand it"
     ],
     "ans": 1,
-    "why": "The firm holds the money AND the goods.",
+    "why": "One fact that drives every airtime rule.",
+    "src": "Ch1"
+   },
+   {
+    "q": "The extended counters post:",
+    "opts": [
+     "Into side books",
+     "Into spreadsheets",
+     "Into the same system as ordinary sales — shift closes, payroll, accounts and stock all see them",
+     "Nowhere until month end"
+    ],
+    "ans": 2,
+    "why": "No side books is the point.",
     "src": "Ch1"
    },
    {
     "q": "A lay-by customer is identified by:",
     "opts": [
      "Name only",
+     "Address",
      "Loyalty card",
-     "Phone number — a reservation needs a reachable party",
-     "Address"
+     "Phone number, verified at entry — the follow-up depends on it"
     ],
-    "ans": 2,
-    "why": "The identity the follow-up call will use.",
+    "ans": 3,
+    "why": "Read it back or ring it once.",
     "src": "Ch2"
    },
    {
     "q": "The lay-by deposit is:",
     "opts": [
+     "Computed from the profile's percentage and taken at creation, before goods are set aside",
      "Optional",
-     "Post-paid",
      "A flat fee",
-     "Computed from the profile's percentage and TAKEN before goods are set aside"
+     "Collected later"
     ],
-    "ans": 3,
-    "why": "The lay-by without its deposit is a free reservation.",
+    "ans": 0,
+    "why": "Without it, the reservation is free and abandonment is likely.",
     "src": "Ch2"
    },
    {
-    "q": "Each instalment carries:",
+    "q": "Each instalment on the schedule carries:",
     "opts": [
-     "Due date, amount due, amount paid, balance and status — unpaid, partly paid, paid or overdue",
-     "An amount only",
+     "Only an amount",
+     "Due date, amount due, amount paid, balance, and status — unpaid, partly paid, paid, overdue",
      "A code",
      "A serial"
     ],
-    "ans": 0,
-    "why": "A receivables ledger in miniature.",
-    "src": "Ch2"
-   },
-   {
-    "q": "Reserved lay-by goods are:",
-    "opts": [
-     "Left on the floor",
-     "Physically segregated where layout allows — the reserved kettle on the sales floor is an accident waiting",
-     "Sold if needed",
-     "Written off"
-    ],
     "ans": 1,
-    "why": "Custody made visible.",
+    "why": "A small receivables ledger per arrangement.",
     "src": "Ch2"
    },
    {
-    "q": "The Open Lay-Bys panel is read as:",
+    "q": "Reserved lay-by goods should be:",
     "opts": [
-     "A sales list",
-     "A stock count",
-     "An aging report — the overdue line is the action, worked weekly",
-     "A payroll input"
+     "Left on the sales floor",
+     "Sold if demand is high",
+     "Physically separated on a lay-by shelf — or a busy Saturday sells them",
+     "Returned to the warehouse"
     ],
     "ans": 2,
-    "why": "The lay-by left silent converges on goods held for ghosts.",
+    "why": "The business must not owe goods it no longer has.",
+    "src": "Ch2"
+   },
+   {
+    "q": "The forfeiture policy is decided:",
+    "opts": [
+     "During the first dispute",
+     "Never",
+     "By the cashier",
+     "Before launch, printed on the schedule, and stated at creation"
+    ],
+    "ans": 3,
+    "why": "Announced at the start, it generates no argument later.",
+    "src": "Ch2"
+   },
+   {
+    "q": "The Open Lay-Bys panel is checked:",
+    "opts": [
+     "Weekly, with the overdue instalments as the work list",
+     "Yearly",
+     "Only at audits",
+     "When customers call"
+    ],
+    "ans": 0,
+    "why": "Silence for months creates goods held for the unreachable.",
     "src": "Ch3"
    },
    {
-    "q": "Lay-by instalments at the shift close:",
+    "q": "Lay-by payments at shift close are:",
     "opts": [
-     "Are excluded",
-     "Wait for month end",
-     "Count as cash",
-     "Are included — lay-by activity is summarised in the close, each payment on its method"
+     "Ignored",
+     "Included — lay-by activity is summarised in the Close Shift window, each payment on its method",
+     "Counted monthly",
+     "Cash only"
     ],
-    "ans": 3,
-    "why": "Money like any other, counted like any other.",
+    "ans": 1,
+    "why": "Counted with everything else.",
     "src": "Ch3"
    },
    {
     "q": "Terminating a lay-by requires:",
     "opts": [
-     "A manager's email and password — the refund routed, goods returning to stock, the record surviving",
-     "A cashier tap",
-     "Head office",
-     "Nothing"
+     "A cashier's click",
+     "Head office approval",
+     "A manager's email and password, with the refund routed per policy and the goods returned to stock",
+     "The customer present"
     ],
-    "ans": 0,
-    "why": "Terminate-and-pocket is the native fraud shape; the gate is its wall.",
+    "ans": 2,
+    "why": "Cancel-and-pocket is the classic lay-by fraud; the gate is the control.",
     "src": "Ch3"
    },
    {
-    "q": "The deposit-forfeiture question is:",
+    "q": "After termination, the lay-by's record:",
     "opts": [
-     "Decided per dispute",
-     "Decided as policy before the first dispute — written on the printed schedule",
-     "Illegal",
-     "The cashier's call"
+     "Is deleted",
+     "Moves to paper",
+     "Shows only the refund",
+     "Survives — who reserved, what was paid, who authorised the end"
     ],
-    "ans": 1,
-    "why": "The schedule said what the schedule said.",
+    "ans": 3,
+    "why": "Nothing about a termination is deleted.",
     "src": "Ch3"
    },
    {
     "q": "The staff purchase screen shows the employee:",
     "opts": [
-     "Nothing",
-     "Only the total",
-     "Purchase limit, current exposure, remaining balance and estimated monthly repayment",
-     "The MD's approval"
+     "Purchase limit, current exposure, remaining balance, and estimated monthly repayment — before items are added",
+     "Nothing until payment",
+     "Only the discount",
+     "The manager's phone"
     ],
-    "ans": 2,
-    "why": "The limit as a fact, not a surprise.",
+    "ans": 0,
+    "why": "The refusal is rarely contested because the arithmetic was visible.",
     "src": "Ch4"
    },
    {
-    "q": "A staff purchase exceeding the limit is:",
+    "q": "A staff purchase over the limit is:",
     "opts": [
-     "Approved by override",
-     "Deferred",
-     "Split",
-     "REFUSED — no override path at the till; the exception belongs with the employee record's owner"
+     "Approved by an override",
+     "Refused, with no override at the till — exceptions belong with whoever sets the limit on the employee record",
+     "Split into two",
+     "Allowed once"
     ],
-    "ans": 3,
-    "why": "The credit fence as physics.",
+    "ans": 1,
+    "why": "The limit is enforced where it was set.",
     "src": "Ch4"
    },
    {
     "q": "A completed staff purchase is:",
     "opts": [
+     "Petty cash",
+     "A gift",
      "Booked to the employee purchase account and scheduled for payroll recovery",
-     "Cash income",
-     "A discount",
-     "A gift"
+     "Cash only"
     ],
-    "ans": 0,
-    "why": "The counter originates; payroll recovers; finance reads.",
+    "ans": 2,
+    "why": "Employee credit with the controls built in.",
+    "src": "Ch4"
+   },
+   {
+    "q": "Before enabling staff purchase, confirm:",
+    "opts": [
+     "The printer works",
+     "A separate till exists",
+     "The MD approves each sale",
+     "The employee limits, the employee purchase account, and the salary component — then test the full chain once"
+    ],
+    "ans": 3,
+    "why": "Half-wired = an interest-free loan book under a benefits label.",
     "src": "Ch4"
    },
    {
     "q": "Take Payment on a staff purchase records:",
     "opts": [
+     "A direct repayment outside payroll — exposure reduces, payroll recovery adjusts",
      "A new sale",
-     "A direct repayment outside payroll — the exposure reduced, recovery adjusting",
      "A refund",
-     "A bonus"
+     "A discount"
     ],
-    "ans": 1,
+    "ans": 0,
     "why": "Cash before the payroll run, on its method.",
     "src": "Ch4"
    },
    {
-    "q": "The half-wired staff benefit is:",
+    "q": "The airtime console caps quantity at:",
     "opts": [
-     "Fine",
-     "Cheaper",
-     "An interest-free loan book growing under a benefits banner — hence the full-chain test at enablement",
-     "Standard"
-    ],
-    "ans": 2,
-    "why": "Purchase, account, payroll cycle, recovery — proven once.",
-    "src": "Ch4"
-   },
-   {
-    "q": "The airtime console caps sales at:",
-    "opts": [
-     "Any quantity",
+     "Ten per customer",
+     "What is in stock — it will not sell codes it does not hold",
      "The float",
-     "Ten per day",
-     "What is in stock — availability shown; codes are inventory, counted like inventory"
+     "No cap"
     ],
-    "ans": 3,
-    "why": "It refuses to sell codes it does not hold.",
+    "ans": 1,
+    "why": "Airtime is inventory.",
     "src": "Ch5"
    },
    {
     "q": "An airtime code is consumed:",
     "opts": [
-     "The moment it is issued — that unit is spent whether or not the paper reached a hand",
-     "When recharged",
-     "At the close",
+     "When the customer recharges",
+     "At shift close",
+     "The moment it is issued — spent whether or not the paper reached a hand",
      "When printed"
     ],
-    "ans": 0,
-    "why": "The module's sharpest engraving.",
-    "src": "Ch5"
-   },
-   {
-    "q": "If the printer fails mid-airtime-sale:",
-    "opts": [
-     "Sell another",
-     "Reprint from the invoice number immediately — the same code recovered, no second consumption",
-     "Refund",
-     "Wait"
-    ],
-    "ans": 1,
-    "why": "Invoice number first, reseller never.",
-    "src": "Ch5"
-   },
-   {
-    "q": "The airtime reconciliation is:",
-    "opts": [
-     "Impossible",
-     "Monthly only",
-     "Codes received minus codes issued equals codes held — as countable as the drawer",
-     "The carrier's job"
-    ],
     "ans": 2,
-    "why": "A count that reconciles or tells a story.",
+    "why": "The rule behind print-first and reprint-by-invoice.",
     "src": "Ch5"
    },
    {
-    "q": "Sales History marks returns with:",
+    "q": "If the printer fails during an airtime sale:",
     "opts": [
-     "Red text",
-     "Nothing",
-     "An asterisk",
-     "A Return label — never mistaken for sales"
+     "Ring the sale again",
+     "Wait for the printer",
+     "Refund and retry",
+     "Reprint from the invoice number — the same code, no second consumption; never resell"
     ],
     "ans": 3,
-    "why": "Plus filters by date, reference, customer, voucher, cashier, shift.",
-    "src": "Ch6"
+    "why": "Reselling consumes a second code against one payment.",
+    "src": "Ch5"
    },
    {
-    "q": "The lost-receipt customer is served by:",
+    "q": "The airtime count is:",
     "opts": [
-     "Searching name or any reference fragment in Sales History — offline local references find the sale too",
-     "Refusing them",
-     "Head office",
-     "A new sale"
+     "Codes received minus codes issued equals codes held — as countable as the drawer",
+     "Impossible",
+     "The carrier's job",
+     "Quarterly"
     ],
     "ans": 0,
-    "why": "The two-reference law completing at the desk.",
+    "why": "A count that fails has a story to find.",
+    "src": "Ch5"
+   },
+   {
+    "q": "Returns in Sales History are:",
+    "opts": [
+     "Hidden",
+     "Marked with a Return label so they are never mistaken for sales",
+     "Listed separately",
+     "Deleted after a week"
+    ],
+    "ans": 1,
+    "why": "Plus filters by date, reference, customer, voucher, cashier and shift.",
     "src": "Ch6"
    },
    {
-    "q": "The Customer Desk's quiet fraud sensor is:",
+    "q": "A customer with a lost receipt is served by:",
     "opts": [
-     "The address",
-     "The return rate figure — the customer returning a third of purchases is a pattern read by name",
-     "The email",
-     "The price list"
+     "Refusing the return",
+     "Calling head office",
+     "Searching Sales History by name or any reference fragment — offline local references work too",
+     "Re-ringing the sale"
     ],
-    "ans": 1,
-    "why": "A relationship AND a risk in one screen.",
+    "ans": 2,
+    "why": "A one-minute lookup.",
+    "src": "Ch6"
+   },
+   {
+    "q": "The Customer Desk's return rate figure:",
+    "opts": [
+     "Is decoration",
+     "Affects tax",
+     "Sets refund limits",
+     "Flags patterns worth understanding — a third of purchases returned needs an explanation, whatever it is"
+    ],
+    "ans": 3,
+    "why": "At Okelewo it turned out to be buying feedback.",
     "src": "Ch6"
    },
    {
     "q": "Automatic customer merge triggers on:",
     "opts": [
-     "Name match",
-     "Email only",
-     "Mobile number match at creation — dedup at birth, on by default",
+     "A matching mobile number at creation",
+     "Similar names",
+     "Same email domain",
      "Manager review"
     ],
-    "ans": 2,
-    "why": "Left on unless numbers are genuinely shared.",
-    "src": "Ch6"
-   },
-   {
-    "q": "The merge tool is safe to use because:",
-    "opts": [
-     "It is slow",
-     "It emails first",
-     "It merges nothing",
-     "The merge is REVERSIBLE — a snapshot kept, cancellation restoring both records"
-    ],
-    "ans": 3,
-    "why": "Run the duplicate scan monthly; loyalty depends on it.",
-    "src": "Ch6"
-   },
-   {
-    "q": "A customer split across two records has:",
-    "opts": [
-     "Their points split too — and will complain",
-     "Double points",
-     "No points",
-     "Merged points"
-    ],
     "ans": 0,
-    "why": "One person, one record — the desk's precondition.",
+    "why": "On by default; leave on unless numbers are genuinely shared.",
     "src": "Ch6"
    },
    {
-    "q": "Material requests carry:",
+    "q": "The merge tool is safe because:",
     "opts": [
-     "Item lists only",
-     "Source and requesting warehouses, a priority, items and quantities, and a note — both directions visible",
-     "Prices",
-     "Approvals only"
+     "It never merges",
+     "The merge is reversible — a snapshot is kept and cancelling restores both records",
+     "It emails first",
+     "Only admins run it"
     ],
     "ans": 1,
-    "why": "The governed conversation replacing the voice note.",
-    "src": "Ch7"
+    "why": "Okelewo reversed one the next day.",
+    "src": "Ch6"
    },
    {
-    "q": "Receiving a transfer, quantities are:",
+    "q": "The duplicate scan runs monthly because:",
     "opts": [
-     "Accepted as papered",
-     "Estimated",
-     "CONFIRMED as accepted — a short delivery recorded rather than absorbed",
-     "Counted monthly"
+     "The system requires it",
+     "Auditors ask",
+     "Loyalty depends on it — a split customer has split points, and the desk's statistics assume one person, one record",
+     "It is fast"
     ],
     "ans": 2,
-    "why": "The discrepancy created at the boundary, where it is cheap.",
+    "why": "Duplicates corrupt every figure on the Details view.",
+    "src": "Ch6"
+   },
+   {
+    "q": "A material request carries:",
+    "opts": [
+     "Items only",
+     "An approval code",
+     "A price",
+     "Requesting and source warehouses, a priority, items with quantities, and a note — visible in both directions"
+    ],
+    "ans": 3,
+    "why": "A document the other branch can act on.",
     "src": "Ch7"
    },
    {
-    "q": "The absorbed short surfaces later as:",
+    "q": "At receiving, transfer quantities are:",
     "opts": [
-     "Nothing",
-     "A supplier claim",
-     "A credit",
-     "An unattributable count variance in the receiving branch's shrink"
+     "Confirmed as accepted — a short delivery is recorded at the boundary, not absorbed",
+     "Accepted as papered",
+     "Estimated",
+     "Counted at month end"
     ],
-    "ans": 3,
-    "why": "Ten seconds of confirming versus months of mystery.",
+    "ans": 0,
+    "why": "Ten seconds at the door, or a mystery in December.",
+    "src": "Ch7"
+   },
+   {
+    "q": "An absorbed short delivery resurfaces as:",
+    "opts": [
+     "A supplier credit",
+     "An unexplainable count variance in the receiving branch months later",
+     "Nothing",
+     "A price change"
+    ],
+    "ans": 1,
+    "why": "Why the receiving rule exists.",
     "src": "Ch7"
    },
    {
     "q": "Label Printing offline is:",
     "opts": [
-     "Available — the shelf priced through the outage, with bulk adds from a goods receipt",
      "Unavailable",
      "Read-only",
-     "Manager-only"
+     "Available — including bulk adds from a goods receipt, so a delivery is labelled without retyping",
+     "Single labels only"
     ],
-    "ans": 0,
-    "why": "One of the offline state's working consoles.",
+    "ans": 2,
+    "why": "The shelf can be priced through an outage.",
     "src": "Ch7"
    },
    {
     "q": "Message Hub transfer messages:",
     "opts": [
-     "Are read-only",
-     "Carry the underlying detail and can be acted on without leaving the hub",
-     "Auto-delete",
-     "Go to email"
+     "Are notifications only",
+     "Expire daily",
+     "Forward to email",
+     "Carry their underlying details and can be acted on directly from the hub"
     ],
-    "ans": 1,
-    "why": "The counter's traffic in one governed stream.",
+    "ans": 3,
+    "why": "One visible stream instead of personal phones.",
     "src": "Ch7"
    },
    {
     "q": "Okelewo's overdue lay-by ended with:",
     "opts": [
-     "An argument",
+     "A by-the-book termination — manager gate, store-credit refund, goods to stock, record intact, forfeiture per the printed schedule",
+     "A shouting match",
      "A write-off",
-     "The designed termination — manager gate, store-credit refund, goods to stock, record surviving, forfeiture per the printed schedule",
      "A discount"
     ],
-    "ans": 2,
-    "why": "Zero argument: the schedule said what the schedule said.",
+    "ans": 0,
+    "why": "The schedule said what the schedule said.",
     "src": "Ch8"
    },
    {
     "q": "The week-nine printer jam proved:",
     "opts": [
-     "The printer",
-     "The float",
-     "The warranty",
-     "The drilled reflex — invoice looked up, slip reprinted, the same code recovered"
-    ],
-    "ans": 3,
-    "why": "The untrained answer would have leaked a unit into the void.",
-    "src": "Ch8"
-   },
-   {
-    "q": "The thirty-one percent return rate resolved as:",
-    "opts": [
-     "A genuine size-run issue — a buying insight wearing a fraud sensor's clothes; the reading mattered either way",
-     "Fraud",
-     "An error",
-     "Nothing"
-    ],
-    "ans": 0,
-    "why": "Read, investigated, resolved by name.",
-    "src": "Ch8"
-   },
-   {
-    "q": "The first confirmed short delivery:",
-    "opts": [
-     "Was absorbed",
-     "Was recorded at the boundary and resolved to a warehouse pick error within the week",
-     "Was ignored",
-     "Became shrink"
+     "The printer's warranty",
+     "The reprint-by-invoice reflex — the same code recovered, no second consumption",
+     "The float count",
+     "The sync service"
     ],
     "ans": 1,
-    "why": "Where the old counter fed December's mystery.",
+    "why": "The untrained response would have leaked a code.",
     "src": "Ch8"
    },
    {
-    "q": "This module's law is:",
+    "q": "Module 6's law is:",
     "opts": [
-     "Side counters are simple",
-     "Services need no ledger",
-     "Every extended counter is money in another costume — created whole, ended under authority, proven through payroll, recovered by invoice, merged reversibly, confirmed at every boundary",
-     "Costumes are fine"
+     "Services need no controls",
+     "Side books are fine",
+     "Every extended counter is a financial arrangement, run with the controls its money deserves",
+     "Month end sorts it out"
     ],
     "ans": 2,
-    "why": "The sixth law.",
+    "why": "The disguises come off.",
     "src": "Ch9"
    }
   ]
