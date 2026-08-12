@@ -1435,7 +1435,7 @@
    {
     "title": "Chapter 3 — Count preparation",
     "est": "12",
-    "html": "<p>A count's quality is decided before anyone touches a shelf. This chapter is the preparation procedure.</p><p><b>1. Scope and schedule.</b> Define the scope (the warehouse, or the cycle slice per Chapter 7's calendar) and the date. Full counts are scheduled clear of peak trading and announced to operations — the count competes with the work otherwise; cycle counts run on their standing calendar; spot counts are unannounced by design.</p><p><b>2. The cut-off.</b> The count compares shelf to records <b>as of one moment</b>. Two ways to hold the moment:</p><p>1. <b>Movements stopped</b> — for full counts: receiving, despatch, and issues for the scope pause for the count window; documents in flight are completed or excluded explicitly (the transit warehouse holds the in-motion stock cleanly — module 2's design paying off at count time).<br>2. <b>The freeze setting</b> — Stock Settings carries the stock-freeze controls: postings dated up to the freeze date are blocked for ordinary roles, with the authorised role named for exceptions. Set the freeze for full counts and year-end; the exception role is held per the sysadmin matrix and every exceptional posting during a freeze carries its reason.</p><p><b>3. Pre-count hygiene.</b> The week before a full count:</p><p>1. Open documents for the scope cleared: drafts submitted or deleted, transit lines received or investigated (the count must not discover what the weekly reads should have), pending returns processed.<br>2. The physical area prepared: stock in its locations, damaged goods already in quarantine by document, unlabelled items resolved.<br>3. The identity audit prepared for controlled lines (module 3): batch labels checkable against records during the count.</p><p><b>4. The blind sheets.</b> Count sheets print the item lines for the scope — item, description, unit, batch lines for controlled items — <b>without system quantities</b>. The blind rule is the count's core control: a counter who can see the expected figure confirms it; a counter who cannot must establish it. Sheets are numbered, issued per area, and every sheet returns signed — issued-versus-returned is the completeness check.</p><p><b>5. The teams.</b></p><p>1. <b>Counter and checker</b> — two people per area: one counts, one records and verifies. The keeper joins the counting (nobody knows the stock better) but per Chapter 1's separation is never the sole counter of their own custody and never the enterer of their own results.<br>2. <b>The coordinator</b> — the stock manager or delegate: issues sheets, resolves questions during the count, receives signed sheets, owns the entry and review stages.<br>3. <b>The auditor's seat</b> — at year-end full counts, the external auditor observes per their procedures; their test counts are facilitated, not shadowed.</p><p><b>6. The briefing.</b> Fifteen minutes before start: the scope, the sheet procedure, the counting unit per line (cartons versus strips — the UoM confusion is the most common count error and the briefing names the unit column explicitly), the damaged-goods rule (found damage is listed and left in place for the document lane, not shuffled off-scope), and the question route to the coordinator.</p>"
+    "html": "<p>A count's quality is decided before anyone touches a shelf. This chapter is the preparation procedure.</p><p><b>1. Scope and schedule.</b> Define the scope (the warehouse, or the cycle slice per Chapter 7's calendar) and the date. Full counts are scheduled clear of peak trading and announced to operations — the count competes with the work otherwise; cycle counts run on their standing calendar; spot counts are unannounced by design.</p><p><b>2. The cut-off.</b> The count compares shelf to records <b>as of one moment</b>. Two ways to hold the moment:</p><p>1. <b>Movements stopped</b> — for full counts: receiving, despatch, and issues for the scope pause for the count window; documents in flight are completed or excluded explicitly (the transit warehouse holds the in-motion stock cleanly, per module 2's design).<br>2. <b>The freeze setting</b> — Stock Settings carries the stock-freeze controls: postings dated up to the freeze date are blocked for ordinary roles, with the authorised role named for exceptions. Set the freeze for full counts and year-end; the exception role is held per the sysadmin matrix and every exceptional posting during a freeze carries its reason.</p><p><b>3. Pre-count hygiene.</b> The week before a full count:</p><p>1. Open documents for the scope cleared: drafts submitted or deleted, transit lines received or investigated (the count must not discover what the weekly reads should have), pending returns processed.<br>2. The physical area prepared: stock in its locations, damaged goods already in quarantine by document, unlabelled items resolved.<br>3. The identity audit prepared for controlled lines (module 3): batch labels checkable against records during the count.</p><p><b>4. The blind sheets.</b> Count sheets print the item lines for the scope — item, description, unit, batch lines for controlled items — <b>without system quantities</b>. The blind rule is the count's core control: a counter who can see the expected figure confirms it; a counter who cannot must establish it. Sheets are numbered, issued per area, and every sheet returns signed — issued-versus-returned is the completeness check.</p><p><b>5. The teams.</b></p><p>1. <b>Counter and checker</b> — two people per area: one counts, one records and verifies. The keeper joins the counting (nobody knows the stock better) but per Chapter 1's separation is never the sole counter of their own custody and never the enterer of their own results.<br>2. <b>The coordinator</b> — the stock manager or delegate: issues sheets, resolves questions during the count, receives signed sheets, owns the entry and review stages.<br>3. <b>The auditor's seat</b> — at year-end full counts, the external auditor observes per their procedures; their test counts are facilitated, not shadowed.</p><p><b>6. The briefing.</b> Fifteen minutes before start: the scope, the sheet procedure, the counting unit per line (cartons versus strips — the UoM confusion is the most common count error and the briefing names the unit column explicitly), the damaged-goods rule (found damage is listed and left in place for the document lane, not shuffled off-scope), and the question route to the coordinator.</p>"
    },
    {
     "title": "Chapter 4 — Executing the count",
@@ -1455,7 +1455,7 @@
    {
     "title": "Chapter 7 — ABC cycle counting",
     "est": "12",
-    "html": "<p>The cycle count converts the annual count's mountain into a daily routine. This chapter is the design and the metric.</p><p><b>1. The ABC classification.</b> Rank the warehouse's items by annual consumption value (or stock value where consumption data is young):</p><p>1. <b>A items</b> — the top of the ranking holding the bulk of the value (typically a small fraction of the lines holding most of the money).<br>2. <b>B items</b> — the middle band.<br>3. <b>C items</b> — the long tail: many lines, little value.</p><p>The classification is computed from the reports (module 7's value analytics), reviewed twice a year, and stored as the item's class field or the count calendar's list — a living output of the data, not a one-time label.</p><p><b>2. The count frequencies.</b> Per the written policy, the standing shape: A items counted most often (monthly or better), B quarterly, C annually or by rotation. The design principle: <b>counting effort follows value at risk.</b> The A-class line miscounted for a quarter is real money moving unwatched; the C-class line can wait for its rotation.</p><p><b>3. The cycle calendar.</b> The frequencies compile into a daily list: a fixed small number of lines per warehouse per day, sequenced so every item meets its frequency across the period. The daily slice runs as a miniature of the full procedure — blind lines, counter and checker, the same entry and variance lanes at small scale — and takes minutes, which is the point: a control that costs minutes daily runs; the control that costs a weekend quarterly gets postponed.</p><p><b>4. The accuracy metric.</b> Per cycle period, per warehouse: <b>lines counted correct ÷ lines counted</b> (correct meaning within the de-minimis band), expressed as a percentage, trended. The metric is the count programme's output number:</p><p>1. It states record reliability to everyone who plans on the records — purchasing, replenishment, the accountant's stock figure.<br>2. Its trend evaluates process changes: the receiving fix that lifts accuracy two points has proven itself in the metric.<br>3. Its per-warehouse comparison directs attention: the site running below the network's accuracy gets the next spot count and the process review, as data.</p><p><b>5. The full count's place.</b> Cycle counting does not retire the full count where policy or the auditor requires one (the year-end count with observation stands per the Accounts track); it makes the full count boring — a confirmation of a figure the cycle programme already evidences, instead of an annual archaeology. A mature cycle programme's year-end variance report is short, and short is the goal.</p><p><b>6. The cycle count's controls.</b> The full procedure's separations apply daily: blind lines, the keeper never sole-counting their own custody, adjustments through the same ladder. Familiarity is the cycle count's risk — the daily routine drifting into confirmation — and the countermeasures are the random double-count sample and the periodic team rotation, both on the policy page.</p>"
+    "html": "<p>The cycle count converts the annual count's mountain into a daily routine. This chapter is the design and the metric.</p><p><b>1. The ABC classification.</b> Rank the warehouse's items by annual consumption value (or stock value where consumption data is young):</p><p>1. <b>A items</b> — the top of the ranking holding the bulk of the value (typically a small fraction of the lines holding most of the money).<br>2. <b>B items</b> — the middle band.<br>3. <b>C items</b> — the long tail: many lines, little value.</p><p>The classification is computed from the reports (module 7's value analytics), reviewed twice a year, and stored as the item's class field or the count calendar's list — a living output of the data, not a one-time label.</p><p><b>2. The count frequencies.</b> Per the written policy, the standing shape: A items counted most often (monthly or better), B quarterly, C annually or by rotation. The design principle: <b>counting effort follows value at risk.</b> The A-class line miscounted for a quarter is real money moving unwatched; the C-class line can wait for its rotation.</p><p><b>3. The cycle calendar.</b> The frequencies compile into a daily list: a fixed small number of lines per warehouse per day, sequenced so every item meets its frequency across the period. The daily slice runs as a miniature of the full procedure — blind lines, counter and checker, the same entry and variance lanes at small scale — and takes minutes: a control that costs minutes daily is run consistently, while a control that requires a full weekend each quarter is postponed.</p><p><b>4. The accuracy metric.</b> Per cycle period, per warehouse: <b>lines counted correct ÷ lines counted</b> (correct meaning within the de-minimis band), expressed as a percentage, trended. The metric is the count programme's output number:</p><p>1. It states record reliability to everyone who plans on the records — purchasing, replenishment, the accountant's stock figure.<br>2. Its trend evaluates process changes: the receiving fix that lifts accuracy two points has proven itself in the metric.<br>3. Its per-warehouse comparison directs attention: the site running below the network's accuracy gets the next spot count and the process review, as data.</p><p><b>5. The full count's place.</b> Cycle counting does not retire the full count where policy or the auditor requires one (the year-end count with observation stands per the Accounts track); it makes the full count boring — a confirmation of a figure the cycle programme already evidences, instead of an annual archaeology. A mature cycle programme's year-end variance report is short, and short is the goal.</p><p><b>6. The cycle count's controls.</b> The full procedure's separations apply daily: blind lines, the keeper never sole-counting their own custody, adjustments through the same ladder. Familiarity is the cycle count's risk — the daily routine drifting into confirmation — and the countermeasures are the random double-count sample and the periodic team rotation, both on the policy page.</p>"
    },
    {
     "title": "Chapter 8 — Worked example: HealthTrade's counting year",
@@ -3312,473 +3312,473 @@
  },
  "advanced_inventory": {
   "title": "Inventory 8 — Advanced Inventory: Settings, Roles & Structure",
-  "desc": "The structural layer: Stock Settings as the constitution, the freeze and period discipline, item lifecycle governance, quality integration, the four stock authorities with the adjust permission's governance, the stock calendar, and the handover test — closing the track's eighth law.",
+  "desc": "Settings, roles, and structure in ZhiftERP inventory: the Stock Settings walk — negative stock off, the freeze controls, tolerances with named exception roles, and reorder automation only on data-set levels — with the annual owner review; the stock control register with its row format and quarterly confirmation; the item lifecycle — the creation gate with the duplicate check, change governance, and the four-step retirement flow; the consolidated role matrix, the quarterly recertification, and the monthly adjustments read; the filing map, retention, the retrieval test, and the handover files; multi-company structure with the inter-company document rule; and the track recap of the eight module rules.",
   "lessons": [
    {
-    "title": "Chapter 1 — Stock Settings: the warehouse constitution",
-    "est": "14",
-    "html": "<p>The final module of the final foundation track, and it opens where its siblings did: the settings screen, read as a constitution — because every default here is a policy the whole stock system will enforce silently, thousands of times, forever. The walk, field by consequential field, with the owner and the accountant in the room:</p><ul><li><b>Allow negative stock</b> — module 5's sternest conviction, now as configuration: OFF as default and discipline, ON only for the bounded, eyes-open exceptions (the go-live window, the deliberate fast-trade model with same-day posting) — and never, ever, flipped to silence an error message, because the message IS the control. The setting's review belongs to the annual walk; its emergency toggle belongs to nobody.</li><li><b>Default valuation method</b> — the most consequential default in the stock system (module 5's words): the accountant's policy, chosen with the whiteboard conversation, applied consistently, changed only as a formal accounting event. The field encodes the decision; the walk is where the decision is confirmed to still be the decision.</li><li><b>UOM and conversion enforcement</b> — the settings that make Buying 2's arithmetic structural: conversions validated at entry, the unit disciplines enforced where configuration allows, because the factor-of-twelve disease (module 4's count signatures) is cheapest to refuse at the field level.</li><li><b>Auto-creation toggles</b> — the material-request automation switches (Procurement 3's machinery has its master switches here), batch and serial naming series (the identity system's registrar — series chosen once, at setup, with the same decade view as every naming decision).</li><li><b>The tolerance links</b> — over-receipt and over-delivery allowances' global fallbacks (the gate numbers of both trading tracks, with their per-item overrides riding above).</li><li><b>Stock frozen up to</b> — the period lock, important enough to own the next chapter whole.</li></ul><p><b>The walk's discipline.</b> As in both trading tracks: each field read as the policy question it is, the answers written into the implementation record, the annual re-walk on the calendar (the firm changed this year; did its constitution keep up?) — and the corridor toggle convicted one final time: a setting that keeps obstructing honest work is RETUNED in the walk, deliberately, with the owner; it is never flipped in the hallway to make one afternoon easier, because the hallway flip repeals the constitution for everyone to answer one letter. Three tracks have now taught this in three vocabularies; the consultant who holds it has a career's worth of prevented disasters that will never appear on any invoice.</p>"
+    "title": "Chapter 1 — Advanced inventory: scope and structure",
+    "est": "11",
+    "html": "<p>This module completes the Inventory track with the structural layer: the settings, the register of control decisions, the item lifecycle, the role design, the records, and the multi-company structure. On completing this module you will be able to: complete the Stock Settings walk and operate its annual review; maintain the stock control register; run the item lifecycle from the creation gate to the retirement flow; operate the role matrix with the recertification and the adjustments read; apply the records and handover conventions; and configure multi-company stock structure correctly.</p><p><b>Why the structural layer is its own module.</b> Modules 1-7 taught the operating procedures. Each of those procedures depends on decisions made once and held: which settings are on, who holds which powers, how items enter and leave the register, where the evidence files. When the structural layer is maintained, the procedures run the same way regardless of who is present; when it is not, the procedures degrade into individual habits. The module's standing test — Chapter 8's worked example — is whether the stock function operates correctly through an extended absence of its most experienced people.</p><p><b>The three instruments.</b></p><p>1. <b>The Stock Settings page</b> (Chapter 2) — the system-wide switches, each set by decision and reviewed annually.<br>2. <b>The control register</b> (Chapter 3) — the one-table record of every stock control decision: what is set, to what value, decided by whom, for what reason, reviewed when.<br>3. <b>The lifecycle and access procedures</b> (Chapters 4-5) — how items and permissions change: by gate, by governance, by recertification.</p><p><b>Custody.</b> The stock manager maintains the register and runs the reads; the owner decides the settings and the powers at the annual review and at every change; the sysadmin executes permission changes per the Sysadmin track's procedures. Setting changes follow the standing change discipline: written first, decided by the named owner, applied in a maintenance window where the change affects posting behaviour, and recorded in the register with the date of application.</p><p><b>Module contents.</b> Chapter 2: the Stock Settings walk. Chapter 3: the control register. Chapter 4: the item lifecycle. Chapter 5: roles, access, and the adjustments read. Chapter 6: records and handover. Chapter 7: multi-company structure. Chapter 8: worked example. Chapter 9: review, the module rule, and the track recap.</p>"
    },
    {
-    "title": "Chapter 2 — The freeze: period discipline for stock",
+    "title": "Chapter 2 — The Stock Settings walk",
     "est": "13",
-    "html": "<p>The accounting close taught both money tracks that closed is closed; this chapter is the stock system's version — the machinery that makes the past stop moving.</p><p><b>Stock frozen up to.</b> The setting names a date; stock entries dated on or before it are locked — no new postings into the frozen past, no edits to its truth — except by the ROLE the companion setting names (the narrow door: the accountant or controller who may, deliberately, post into frozen periods when the close's own corrections require it). The mechanics are simple; the discipline they enable is the point: module 5 showed how backdated entries recompute everything forward — valuations re-blend, COGS revises, reported figures move — and the freeze is how the firm draws the line behind which that may no longer happen casually: <b>reported truth stays reported</b>.</p><p><b>The monthly rhythm.</b> The freeze advances with the close, as a ritual with an order: the month's stragglers swept IN first (the late paperwork posted with honest dates — the batched, announced sweep of module 5's governance, run deliberately before the door shuts); the reconciliations run (the stock-to-accounts bridge agreeing — module 5's certificate — plus the month's standing audits: the stock-entry review, the unallocated reads); THEN the frozen date advances to the month's end, and the period is closed in both systems at once — stock and accounts freezing together, because a stock period open behind a closed accounting period is an invitation for the two to diverge, and the bridge's whole job is that they never do. The close that runs this order takes an hour; the close that freezes first and sweeps after generates its own exceptions.</p><p><b>The narrow door's governance.</b> The frozen-edit role is held by few (two names is a healthy number), its use is EVENTFUL (a posting into a frozen period carries its reason and its accountant-awareness — the module 5 boundary: closed-period entries are accounting decisions, not warehouse conveniences), and its usage is READ (the quarterly look at what went through the door, because a narrow door used weekly is a wide door with paperwork). The pattern to prevent is the freeze theatre: the date set once at go-live and never advanced (the lock that locks nothing), or advanced but with the edit role granted broadly (the lock with keys under the mat) — both leaving the past as editable as ever while the setting claims otherwise, which is worse than no freeze because it manufactures false assurance. The freeze that works is boring: advances monthly, guards absolutely, opens rarely, and logs when it does — the profile of every control this academy has built.</p>"
+    "html": "<p>Open Stock Settings (awesome bar). Walk the fields in order. Each carries a recommended posture, and every departure from it is a register entry with a reason.</p><p><b>1. Item defaults.</b></p><p>1. <b>Item Naming By</b> — item code entry convention (manual codes per the written coding scheme, or a naming series). Decided once at implementation; changing it mid-register is a governed event.<br>2. <b>Default Warehouse</b> — the final fallback of module 1's resolution chain. Set to the main central store; the monthly fallback read (module 1, Chapter 5) treats anything landing here as a wiring gap.<br>3. <b>Default Valuation Method</b> — the method items inherit where their own field is unset (module 5, Chapter 3). Set per the accountant's policy; the item-level field carries the exceptions.</p><p><b>2. Stock transaction controls.</b></p><p>1. <b>Allow Negative Stock</b> — <b>off.</b> The recommended posture from modules 1 and 5: a posting that would drive a balance negative is refused, forcing the missing document to be entered instead. The register records the posture and the module 5 remediation that enforced it.<br>2. <b>Over-delivery and over-receipt allowances</b> — the percentage tolerances for deliveries and receipts exceeding their orders. Set low per the policy; the tolerance is a control decision because it defines how far a document can depart from its authorisation before the system refuses.<br>3. <b>Role Allowed to Over-deliver/Receive</b> — where exceptional tolerance is granted, the named role holds it, per the register.</p><p><b>3. The freeze controls.</b></p><p>1. <b>Stock Frozen Up To</b> (date) — postings dated on or before this date are blocked for ordinary roles. Advanced with each period close per the Accounts track's calendar, and set for count windows (module 4, Chapter 3).<br>2. <b>Stock Frozen Up To (days)</b> — the rolling variant: postings older than the set number of days are blocked, which enforces module 2's same-day discipline as a system rule rather than a briefing point.<br>3. <b>Role Allowed to Edit Frozen Stock</b> — the exception role for postings into frozen dates. Held narrowly per the matrix; every use carries its reason per module 2's backdating lane.</p><p><b>4. Batch, serial, and reorder controls.</b> The system-level defaults that support module 3's identity settings and module 6's reorder machinery — including the automatic Material Request generation switch for reorder rows. Each is set to serve the written procedures, and the reorder automation in particular is enabled only after module 6's levels are set from data, because automation ordering on unset levels generates requests nobody reviewed.</p><p><b>5. The annual settings review.</b> Once a year, the stock manager and the owner walk this page against the control register: each setting confirmed still correct, each departure re-justified or corrected, the review dated in the register. Settings drift when nobody reads them; the annual walk is the standing correction, and the review's output is the register's next revision.</p>"
    },
    {
-    "title": "Chapter 3 — Item lifecycle governance: birth, change & retirement",
+    "title": "Chapter 3 — The stock control register",
+    "est": "12",
+    "html": "<p>The control register is one table holding every stock control decision. This chapter is its structure and operation.</p><p><b>1. The row format.</b> Per control: the control's name, its current value or posture, the owner who decided it, the reason in one line, the date decided, and the next review date. One row per control; the register lives with the stock function's documents and is version-kept — superseded rows retained with their dates, so any past posture is answerable.</p><p><b>2. The register's contents.</b> The rows collect the decisions modules 1-7 made, in one place:</p><p>1. <b>Structure:</b> the warehouse tree convention and level rule (module 1); the special warehouses in use; the default wiring convention.<br>2. <b>Movement:</b> the named Stock Entry Types; the issue and receipt lawful-case tables with the approval ladder; the backdating posture and its role; the transfer hygiene rules.<br>3. <b>Identity:</b> the item-class control table — batch posture, expiry, serials per class (module 3, Chapter 2); the recall procedure's owner and drill calendar.<br>4. <b>Counting:</b> the count cadences per warehouse; the threshold ladder's bands; the ABC review dates; the accuracy target.<br>5. <b>Valuation:</b> the method policy per class; the landed-cost consignment rule; the tie-out procedure; the revaluation lane's owner.<br>6. <b>Network:</b> the replenishment cadence; the allocation rules with the essential floor list; the branch purchasing boundary and its exception threshold; the lateral approval rule.<br>7. <b>Health:</b> the aging bands and the over-ninety target; the markdown ladder; the probation window; the review calendar.<br>8. <b>Settings:</b> every Chapter 2 posture with its reason.</p><p><b>3. Why one table.</b> Distributed decisions are unauditable: the answer to how the stock function is controlled should not require reading seven procedures. The register is the one-lookup answer — for the owner's annual review, the external auditor's walkthrough, the new stock manager's first week, and the absence test (Chapter 8). It also exposes contradictions: two procedures carrying different thresholds for the same decision are visible only when both sit in one table.</p><p><b>4. The register's maintenance.</b> Every control change lands in the register the day it is decided — the change is not complete until its row is updated. The quarterly review confirms the register against the live system (the settings page, the role matrix, the procedure documents); differences are corrected in whichever direction the owner's decision requires. A register that trails the system is a record of what used to be true, which for control purposes is the same as no register.</p>"
+   },
+   {
+    "title": "Chapter 4 — The item lifecycle",
+    "est": "12",
+    "html": "<p>Items enter the register by gate, change by governance, and leave by the retirement flow. This chapter is the three procedures.</p><p><b>1. The creation gate.</b> New items are created against the checklist, by the roles the matrix permits:</p><p>1. <b>The duplicate check first</b> — the register searched by name fragments, barcode, and supplier reference before creation. A duplicate item splits one product's history across two records: stock in two places, reorder arithmetic on half the data, and counts that disagree by construction. The gate's search takes one minute; the merge remediation later takes days.<br>2. <b>The class row applied</b> — module 3's control table: the identity flags per the item's class, set at creation because retro-fitting over existing stock is a remediation.<br>3. <b>The defaults wired</b> — module 1's Item Defaults row per the convention; the UoM and conversion table per module 2's register where the item converts.<br>4. <b>The commercial fields per their tracks</b> — item group, prices, tax template (the Selling and Accounts tracks' territory), completed per the checklist so the item is fully operable at first receipt.<br>5. <b>The probation flag</b> — module 7's new-item window starts at creation.</p><p><b>2. Change governance.</b> Item changes that affect posting behaviour — the valuation method, the identity flags, the UoM structure, the item group where accounts derive from it — are governed events per the standing change discipline: decided by the named owner, dated, and recorded. Descriptive changes (names, descriptions, images) are ordinary edits. The distinction is written in the procedure so the difference is a rule, not a judgment call per edit.</p><p><b>3. The retirement flow.</b> Items leave the register by procedure, never by deletion:</p><p>1. <b>The delisting decision</b> — from the range review (module 7, Chapter 6), recorded with its reason.<br>2. <b>Stock resolved through the lanes</b> — the remaining balance cleared per module 7's preference order; the flow does not complete while stock remains.<br>3. <b>The machinery disconnected</b> — reorder rows removed at every site; the item taken off active price lists and offers per the selling procedures.<br>4. <b>Disabled at zero</b> — the item's Disabled flag set once every warehouse's balance is zero. The record remains readable forever: ledger history, past documents, and reports all reference it, which is why deletion is never the instrument.<br>5. <b>The execution status tracked</b> — module 7's rule: each delisting on the review's list until all four steps close.</p><p><b>4. The lifecycle reads.</b> Monthly: items created in the month against the checklist (sampled); the duplicate-candidate report where the site runs one (near-identical names flagged for review). Quarterly: disabled items with non-zero balances (a retirement flow that skipped its steps — corrected through the lanes); active items with no movement and no probation flag feeding module 7's classification.</p>"
+   },
+   {
+    "title": "Chapter 5 — Roles, access, and the adjustments read",
+    "est": "12",
+    "html": "<p>The stock role design was built across modules 1-7. This chapter consolidates it and adds the standing reads that keep it true.</p><p><b>1. The matrix, consolidated.</b> The stock section of the site's permission matrix, one row per power:</p><p>1. <b>Stock User</b> — daily movement documents within site scope (module 1's user permissions).<br>2. <b>Stock Manager</b> — reconciliations, backdated postings, cancellations and amendments, the settings pages, lateral and allocation approvals. Held by named individuals, not by convenience.<br>3. <b>The exception roles</b> — frozen-stock editing, over-delivery tolerance, the recall freeze authority: each a register row with its named holders.<br>4. <b>The separations</b> — the keeper does not approve their own adjustments (module 1); the counter does not enter their own counts (module 4); the preparer and reviewer split on value-moving documents (module 2).</p><p><b>2. The quarterly recertification.</b> Per the Sysadmin track's procedure, applied to stock: the matrix's stock rows walked against the live role assignments; leavers and movers confirmed removed (the HR lifecycle feed); exception-role holders re-confirmed by the owner; the recertification dated in the register.</p><p><b>3. The adjustments read.</b> Monthly, network-wide: every Stock Reconciliation and every Material Issue above the de-minimis band, listed with its author, approver, warehouse, and value. The read answers two questions:</p><p>1. <b>Concentration</b> — adjustment powers should resolve to a small set of named people. The healthy result is that the month's adjustments across the network trace to the named Stock Manager holders and no one else; an unfamiliar name on the list is a permission drift found by reading rather than by incident.<br>2. <b>Pattern</b> — the same warehouse, item class, or author recurring across months joins module 4's pattern file. The read is data assembly; conclusions and responses belong to the owner per the standing rule.</p><p><b>4. The access boundary cases, stated.</b> Temporary elevation (the deputy covering leave) is granted by the procedure with an expiry date and removed on return — the recertification checks expired grants specifically. Shared logins are prohibited for stock roles without exception: every adjustment must resolve to an individual, because the separations of point 1 are meaningless between accounts two people share. Service and integration accounts that post stock documents are register rows like human holders, with their scopes stated.</p>"
+   },
+   {
+    "title": "Chapter 6 — Records and handover",
+    "est": "12",
+    "html": "<p>The track's procedures generate evidence. This chapter is where it files, how long it is kept, and how a role hands over.</p><p><b>1. The filing map.</b> One location per file class, named in the procedure:</p><p>1. <b>Count files</b> — per count: signed sheets, the variance report, investigation notes, the posted reconciliation reference (module 4). Filed per warehouse per date.<br>2. <b>Recall files</b> — per event or drill: the notice, timings, snapshot, transfers, trace, disposition (module 3, Chapter 7).<br>3. <b>Remediation files</b> — per project: scope, before-state, batches, verification (module 5's discipline).<br>4. <b>Review packs</b> — monthly: the health page with its decision list and worksheets (modules 6-7); the run notes and allocation worksheets (module 6).<br>5. <b>The register and matrix</b> — current versions plus superseded rows (Chapters 3, 5).</p><p><b>2. Retention.</b> Stock records support financial reporting and, for regulated goods, compliance obligations: retention follows the longer of the accounting retention the Accounts track sets and the regulatory retention the compliance owner sets, per record class, written in the filing map. Nothing in the map is deleted informally; disposal at end of retention is itself a logged action per the site's records procedure.</p><p><b>3. The one-lookup standard, restated as a test.</b> Any question about any stock event — a count adjustment two years back, a recall's customer list, an allocation's arithmetic — is answerable from one file location in one sitting. The quarterly test: the stock manager picks three past events and retrieves each file; a retrieval that requires reconstruction from memory or from multiple locations is a filing-map correction.</p><p><b>4. The handover file.</b> Per role, maintained current rather than written at departure:</p><p>1. <b>The stock manager's file</b> — the register, the matrix section, the review calendar, the run procedure (module 6's closing notes), the open items list (current investigations, in-flight remediations, pending delistings).<br>2. <b>The keeper's file per warehouse</b> — the custody row, the count cadence, the site's procedures, the current exceptions.<br>3. <b>The standard:</b> a competent successor operates the role from the file within a week, with questions but without reconstruction. Chapter 8's absence test is this standard, tested by an absence rather than a departure.</p><p><b>5. The records read.</b> Riding the quarterly recertification: the filing map walked, the retrieval test run, the handover files confirmed current (the open-items lists dated within the quarter). Records maintenance is scheduled work; records reconstructed at need are the expensive alternative the schedule exists to prevent.</p>"
+   },
+   {
+    "title": "Chapter 7 — Multi-company structure",
+    "est": "12",
+    "html": "<p>Where the site runs more than one legal entity, stock structure follows the legal boundary. This chapter is the rules.</p><p><b>1. Per-company structure.</b> Each company holds its own warehouse tree from its own root (module 1, Chapter 3), its own default wiring, and its own settings postures where the system scopes them per company. The control register carries per-company rows where postures differ, and the annual settings review walks each company.</p><p><b>2. The item register decision.</b> Items are shared across companies on one register, with per-company rows carrying the defaults (module 1's Item Defaults per company) and the accounts derivations per the Accounts track. The decision recorded in the register: which item classes both companies trade, and which are single-company by policy — because a shared register with unshared intentions produces items ordered by the wrong entity through an unconsidered default.</p><p><b>3. Inter-company stock movement.</b> Stock crossing the legal boundary is a sale and a purchase, not a transfer:</p><p>1. <b>The documents</b> — the selling company's Delivery Note and Sales Invoice; the buying company's Purchase Receipt and Purchase Invoice; the inter-company document links where the site's configuration creates the counterpart automatically. The Accounts track owns the pricing and settlement rules; this module's rule is the stock side: <b>an internal Material Transfer never crosses a company boundary.</b><br>2. <b>Why</b> — a cross-company transfer moves value between legal entities with no sale recorded: both companies' accounts misstate, and the correction is an accounting remediation. The system's company scoping refuses the direct case; the rule exists for the indirect ones (the shared building's informal handover between two entities' shelves).<br>3. <b>The shared-building procedure</b> — where two entities occupy one site (module 1, Chapter 3), the physical segregation is explicit, the keepers know which shelves belong to which company's warehouses, and any goods crossing between them move by the inter-company documents on the same day the goods move.</p><p><b>4. Identity and counts across companies.</b> Batch and serial records follow the item register's sharing: a batch received by one company and sold to the other carries through both companies' documents, and a recall trace (module 3) runs across both entities' delivery records — the recall file notes the entity per holding. Counts run per company per warehouse; the accuracy metric reports per company; and the tie-out (module 5) runs per company's stock accounts, because each entity's balance sheet stands alone.</p><p><b>5. The multi-company read.</b> Quarterly: inter-company stock document pairs reconciled (every despatch matched to its counterpart receipt and both invoices); unmatched pairs investigated as the month-end items they are. The read belongs to the accounts close checklist; the stock function's part is the document discipline that keeps the read short.</p>"
+   },
+   {
+    "title": "Chapter 8 — Worked example: the structural year and the absence test",
     "est": "13",
-    "html": "<p>Modules 1-7 assumed items exist and behave; this chapter governs their LIVES — because the item master is the stock system's genome, and ungoverned item creation is how a clean implementation becomes a jungle in eighteen months.</p><p><b>Birth: the creation gate.</b> Who may create items is a PERMISSION decision made deliberately: narrow (the controller, the master-data owner) for most firms, because every new item is a permanent commitment — a code, a UOM architecture, identity flags with their ten-year consequences (module 3), planning fields, tax templates — and the casually-created item gets all of these wrong at once. The gate's disciplines: the <b>duplicate check</b> first, always (search by every name the thing might wear — the jungle's dominant species is the same product under three codes, splitting its stock, its history, and its reorder logic three ways: the duplicate is not untidy, it is three lying bins wearing one product's face); the <b>template discipline</b> (item groups carrying defaults — new items born from their group's template inherit the architecture instead of improvising it); and the naming convention held (module 1's decade rule, item edition).</p><p><b>Change: amendment rights.</b> The item's structural fields — UOM conversions, identity flags, valuation-relevant settings — are guarded harder than its descriptive ones, because structural changes on an item WITH history are events (the conversion changed under existing stock re-reads every quantity; the identity flag flipped is module 3's managed cutover, not an edit). The permission layer separates the two: descriptions and images broadly editable; structure behind the narrow door with the same eventfulness as frozen-period posting.</p><p><b>Retirement: the delisting flow.</b> Items die too — the pruning quadrant (module 7) executed — and the flow is a sequence, not a click: open documents closed (no live orders or requests referencing it), stock cleared through the ladder's honest rungs (the item disabled with stock stranded is a bin nobody can act on), THEN disabled — out of every dropdown and search, history intact forever (never deleted: the ledger's testimony includes retired witnesses). The annual range review (module 7's pruning) feeds this flow its candidates; the flow's discipline is what keeps the assortment a decision instead of an accumulation.</p><p><b>Variants, briefly and honestly.</b> Where products differ only by attribute — size, colour, strength — the variant machinery (one template, many variants) beats separate free-standing items: shared architecture, coherent reporting, one place to govern. The boundary judgment the consultant owns: genuine attribute families are variants; genuinely different products are items; and the wrong choice in either direction costs (variants stretched over different products entangle them; separate items for one product's sizes rebuild the duplicate jungle deliberately). The full variant machinery is its own study; this track's requirement is recognising the decision and making it at architecture time — the item chapter's ten-year view, one last time.</p>"
+    "html": "<p>This chapter runs Chapters 2-7 through HealthTrade's structural year. Values and outcomes are listed per step.</p><p><b>Step 1 — the settings walk with the MD (Chapter 2).</b> The first annual review walks Stock Settings against the draft register: the negative-stock posture confirmed off (module 5's remediation recorded as its reason); the freeze controls aligned to the close calendar with the rolling-days rule enforcing same-day posting; the over-delivery tolerance reduced to the policy figure with the exception role named; reorder automation confirmed on only for the sites whose levels were set from data. The walk's output is the register's first complete revision — every posture with an owner, a reason, and a review date.</p><p><b>Step 2 — the adjustments read establishes its baseline (Chapter 5).</b> The first monthly read lists the network's reconciliations and banded issues: every adjustment traces to <b>two names network-wide</b> — the named Stock Manager holders — and no one else. The result files as the baseline; the read thereafter is a five-minute confirmation that the concentration holds, and one quarter's list showing a third name resolves to a documented temporary elevation with its expiry date, verified against the register.</p><p><b>Step 3 — the creation gate catches its case (Chapter 4).</b> A new-item request duplicates an existing line under a supplier's alternative product name; the gate's duplicate search matches on the barcode and stops the creation. The counterfactual files in the training note: the duplicate would have split the item's history, doubled its reorder arithmetic, and produced count disagreements at every site stocking both records.</p><p><b>Step 4 — the retirement flow at scale (Chapter 4).</b> The range review's delisting batch — <b>60 delistings</b> — executes through the four-step flow: stock resolved through module 7's lanes, reorder rows removed at every site, price lists cleared, each item disabled at zero. Execution status tracks on the review list until all sixty close; two items found with residual balances mid-flow are returned to the lanes rather than disabled over stock.</p><p><b>Step 5 — the absence test (Chapters 3-6).</b> The founder — the business's most experienced stock decision-maker — is abroad for <b>three weeks</b>. The structural layer's test:</p><p>1. The weekly replenishment runs execute from the run procedure and closing notes; the deputy approves per the documented ladder.<br>2. The <b>two-name controls hold for the twenty-one days</b> — the temporary elevation granted by procedure with its expiry, and removed on return, verified at the next recertification.<br>3. <b>One incident — a transit shortfall</b> — is resolved entirely from the documents: the despatch entry, the receiving count, the investigation lane, the closure under the ladder, per module 2's procedure. The resolution requires no individual's recollection: the file answers every question the investigation asks.<br>4. The monthly health page compiles on schedule by the deputy from the documented method.</p><p>The test's conclusion files with the register review: the stock function operates from its structure. The findings list is short — one procedure step ambiguously worded, corrected; one handover file's open-items list found a month stale, corrected and added to the quarterly records read.</p>"
    },
    {
-    "title": "Chapter 4 — Quality integration: the inspection layer",
-    "est": "13",
-    "html": "<p>Quality has threaded through three tracks — the receiving fork, the pencil-whipped checklist, the batch quality notes. This chapter assembles the machinery into its structural form: inspections as configured, binding process.</p><p><b>The template.</b> Per item (or item group), the <b>Quality Inspection Template</b> names the checks: parameters, acceptable ranges or criteria, reading types. The template is the quality standard MADE OPERATIONAL — the difference between <i>check it properly</i> (a wish) and a named list a person completes and signs (a control). Templates are written with whoever owns the standard (the pharmacist superintendent, the QA lead, the regulator's checklist transcribed) and versioned as standards change.</p><p><b>The binding points.</b> Inspections attach where the flags say: <b>at purchase receipt</b> (the gate — Procurement 6's machinery: goods flagged inspection-required cannot be received into accepted stock without a completed inspection; the fork's evidence document); <b>in-process</b> (where repack or light production warrants a mid-flow check — the strips inspected before they join sellable stock); and <b>at delivery</b> (the outbound check for trades where what leaves must be verified — the serialized equipment powered on before dispatch, the export order's documented pre-shipment check). Each binding is proportionate by design: the flags sit on the items whose stakes warrant them (pharma actives yes, stationery no — the module 3 economics, quality edition), and the binding is REAL: where the flag is on, the document flow refuses to proceed without the inspection — the structural version of the discipline, which is the whole point of configuring it rather than requesting it.</p><p><b>The honest inspection.</b> The pencil-whip conviction, final form: an inspection performed at the desk without the goods opened manufactures evidence of diligence not done — worse than no layer, because it converts YOUR OWN quality file into perjury. The defences are the audit family's: inspections spot-checked against reality (the QA lead re-opening a sampled carton against its filed inspection), inspection times read (the checklist completed in forty seconds was not performed), and the inspector's accountability framed as module 1 framed every custody — the signed inspection protects the honest inspector the day the batch goes wrong, because their diligence is on file.</p><p><b>The quality calendar and its reads.</b> Quality's rhythms join the structure: inspection results trended (failure rates by supplier feeding the scorecard — Procurement 8's thread; by item feeding the spec conversations), quarantine's weekly review (the standing ritual, three tracks old), the disposal compliance file maintained (module 3's governed endings), and the annual template review (standards drift; checklists must follow). Quality integrated this way is not a department; it is a set of binding points in the same document flows everything else uses — which is exactly why it works at an 11-person firm: no quality team required, just flags, templates, and the calendar's eye.</p>"
-   },
-   {
-    "title": "Chapter 5 — Roles & the adjust permission: separating stock's authorities",
-    "est": "14",
-    "html": "<p>Both trading tracks separated their money authorities; stock's authorities are subtler and the stakes are the same. This chapter is the separation design — and the permission that deserves the module's sternest paragraph.</p><p><b>The four authorities.</b> Across this track, four distinct powers have moved stock's truth: <b>MOVE</b> — transfers and stock entries (custody changing hands: the network's daily verbs); <b>ADJUST</b> — the reconciliation (truth OVERRIDDEN by count: the dialogue's final word); <b>VALUE</b> — rate-asserting documents (Material Receipts with typed rates, revaluations: money created or moved by assertion); and <b>CONFIGURE</b> — the settings, the item structure, the tree (the constitution itself). Each is a different kind of trust, and the design principle is the familiar one: the authorities CHECK each other only if they are separated — the person who moves stock daily should not casually hold the power to adjust the record their movements produce, and nobody's routine role includes rewriting the constitution.</p><p><b>The adjust permission — the eraser's license.</b> Module 4 built the discipline (investigate, then adjust, in the open); this chapter builds its enforcement: the reconciliation permission is <b>the most dangerous grant in the stock system</b>, because it is the one document that overrides the ledger's computed truth with an asserted number — every other document ADDS truth; this one REPLACES it. Held broadly, it dissolves every control upstream: the custodian who can adjust their own custody can erase their own differences (the count's fairness dead), the shrinkage number reads whatever the adjusters left it (module 4's managed number, unmanaged), and the investigation discipline becomes optional the day everyone holds the eraser. The design: adjust held by TWO names (the controller and one senior backstop), never by warehouse operators, never by branch managers for their own branches (the self-adjustment ban is absolute — the custody and its correction never share a hand), with value thresholds routing large adjustments to a second sign-off even among the two. Every adjustment carries its investigation reference (module 4's file), and the monthly adjustments read — by author, value, warehouse, reason — is the permission's audit.</p><p><b>The rest of the map.</b> MOVE: broad by necessity (the network runs on transfers) but shaped by module 1's warehouse restrictions (branch users to their leaves; van users to their vans) — the wrong choice made impossible, not just un-defaulted. VALUE: narrow (rate-asserting documents behind thresholds — modules 2 and 5's convictions as permissions). CONFIGURE: narrowest (settings, item structure, tree changes — the constitution's editors named, and few). And the sizing honesty, three tracks old: eleven people means hats share heads, but the irreducible core holds — the adjuster is not adjusting their own custody, the configurer's changes are eventful, and the two-names rule for the eraser survives every org chart, because it is two PEOPLE, not two departments.</p><p><b>Permissions enforce the design; they do not substitute for one.</b> The closing principle from every structural module: the role matrix is the design made binding — and the design conversation (who SHOULD hold what, and why) is the deliverable; the matrix is its encoding. A permissions setup nobody can explain is a design nobody made.</p>"
-   },
-   {
-    "title": "Chapter 6 — The stock calendar: every rhythm, one page",
-    "est": "13",
-    "html": "<p>Eight modules installed rhythms; the consolidation, as ever, is the operating system. The stock function's recurring work, one page, with owners — the third and final calendar of the academy.</p><p><b>Daily.</b> The exceptions scan: negative flags (counted same-day — module 5's drill), unclosed runs from yesterday (module 6), identity exceptions queued (module 3); the cycle counts (the day's lines, fifteen minutes — module 4); the van tailgates (evening reconciliation, every van, every day — module 6's smallest gate); and the bins read at the desks that trade on them.</p><p><b>Weekly.</b> The transit review (runs closed, the room breathing, aging at zero — modules 2 and 6); the quarantine review (contents, reasons, next steps — three tracks' standing ritual); the expiry horizon (the worklist walked, ladder rungs assigned — module 3); the network dashboard (one page at the centre — module 6); and the branch weekly pages pushed out.</p><p><b>Monthly.</b> The health page compiled, read with the MD, ambers owned (module 7); the stock-to-accounts bridge agreed (module 5); the stock-entry audit (purpose, value, author — module 2's boring page); the shrinkage and adjustments reads (module 4; Chapter 5's permission audit); the straggler sweep and the freeze advance (Chapter 2's ordered ritual); and the FEFO/override and identity exception reads (module 3).</p><p><b>Quarterly.</b> The ABC and matrix refresh (module 7); the branch scorecards and reviews (module 6); the dead-stock cause read to procurement (module 7's letter); the allocation and lateral logs read (module 6's letters); the frozen-door usage read (Chapter 2); and the planning-fields exception review with buying (the joint ritual both tracks share).</p><p><b>Annually.</b> The full count (module 4's production); the mock recall (module 3's drill, timed and filed); the tree review (module 1 — rooms without twins hunted both directions); the settings walk (Chapter 1); the range review feeding the delisting flow (Chapter 3); the quality template review (Chapter 4); and the calendar itself re-read — rhythms that earned their keep confirmed, decorations retired honestly.</p><p><b>The page's law, final statement.</b> A rhythm without a name is a hope; the deliverable is this page WITH the names — sized to the firm (the eleven-person company's page has four names appearing often; the hundred-branch network's has a department), reviewed when people change, and treated as what it is: the stock function's entire operating system on one sheet. The consultant who leaves configured software has done half the job; three tracks have now said it, and the third saying is the summary: <b>the calendar with owners IS the implementation</b> — everything else is preparation for it.</p>"
-   },
-   {
-    "title": "Chapter 7 — The handover test: custody that survives its custodian",
-    "est": "13",
-    "html": "<p>The academy's deepest thread surfaces one last time: every structural module of every track has been building toward the same test, and stock — the function most often trapped in one trusted person's head — needs it most.</p><p><b>The test, stock edition.</b> Could a competent newcomer, given what exists, run the warehouse function for a month with ZERO questions answerable only by the person who left? Walk what <i>what exists</i> must mean, module by module: the TREE tells them where stock can be and who answers for each room (1); the DOCUMENTS tell them how it moves and every movement's why (2); the IDENTITY system tells them what everything is, when it expires, and how to run the letter that might come (3 — the run-book on the shelf, drilled and timed); the COUNTING programme tells them what to verify and when, with the investigation discipline written (4); the VALUATION setup tells them what everything costs and forbids the shortcuts (5); the NETWORK playbook tells them the runs, the policy, the tailgates (6); the HEALTH page tells them what good looks like and where this month is amber (7); and THIS module's calendar tells them what to do every day, week, month, quarter — with the settings guarding the constitution while they learn. Every NO in the walk is a module incompletely done — the test is the audit, and the audit is the goal.</p><p><b>The storekeeper's path.</b> The handover test read from the other side is a career ladder, and the consultant who frames it this way changes implementations: the CUSTODIAN (module 1's framing — answerable for a room, protected by documents, confirmed by counts) grows into the CONTROLLER (the adjust permission's holder, the calendar's owner, the health page's compiler) precisely BY the system existing — because a structured function has legible seniority (the clean-close streak, the accuracy rate, the owned rhythms are a promotion case written in numbers), while the unstructured one promotes whoever the owner trusts, which is a ceiling for everyone including the owner. The training deliverable that serves this: each role's slice of the calendar as their run-book, the disciplines taught as their protection (three tracks of that framing), and the path named — people keep disciplines that visibly lead somewhere.</p><p><b>The documentation set.</b> The handover test passes on artifacts, and this track's are now enumerable: the opening file (module 4 — how the truth began), the tree and defaults record (1), the policy pages (allocation, thresholds, dead-stock definition, short-dating ladder — every written number the modules demanded), the run-books (recall, negative-stock drill, count production, van cycle), the calendar with names (6), and the settings record with its walk history (1-2). None of these is created FOR the handover; every one is a by-product of doing the modules properly — which is the academy's quiet thesis, stated once more: <b>the system that runs well and the system that hands over well are the same system</b>, and the founder-bottleneck (the concern that began these tracks' structural chapters) is solved not by finding a hero to trust but by building the structure a competent person can hold. The three-week absence, attempted deliberately before circumstance imposes it, is the test run in production — and the case study runs it.</p>"
-   },
-   {
-    "title": "Chapter 8 — Case study: the structural year — and the graduate",
-    "est": "16",
-    "html": "<p>The final case study, in two acts: HealthTrade's stock function becomes structure, and the certification's graduate shows what three tracks buy.</p><p><b>Act one — the structural year.</b> <b>Q1, the constitution (Ch. 1-2):</b> the settings walk with the MD and accountant — allow-negative confirmed OFF (the go-live window long closed), the method confirmed and recorded, frozen-upto instituted on the monthly rhythm with the ordered ritual (sweep, reconcile, advance), the narrow door held by the accountant and the ops lead. <b>Q2, the incident and the narrowing (Ch. 5):</b> the adjustments read flags a pattern — a branch supervisor with the reconciliation permission adjusting their own small variances, uninvestigated; nothing sinister found on review, but the design flaw is the finding: the eraser was distributed. The permission narrows to two names network-wide, the self-adjustment ban is written, and the next quarter's shrinkage read becomes honest for the first time (it RISES slightly — the differences previously erased now surface, investigate, and trend — the number getting worse because the truth got better, explained to the MD in exactly those words). <b>Q3, item governance (Ch. 3):</b> the creation gate catches a duplicate at birth — a new supplier's brand name for a paracetamol formulation already coded under its generic — merged before it splits a single bin; the annual range review feeds 60 delistings through the retirement flow, each cleared then disabled, history intact. <b>Q4, the absence test (Ch. 7):</b> the founder's three weeks abroad — the trading tracks passed their functions last year; this year the WAREHOUSE runs on its calendar, its run-books, and its two-name controls: twenty-one days, one incident (a transit shortfall, worked by the protocol, resolved from documents), zero founder-only questions. The handover test, passed by the function that used to live entirely in one storekeeper's memory.</p><p><b>Act two — the graduate (the academy's closing argument).</b> A consultant holding all three certifications walks a prospect's warehouse — the distressed distributor from module 5's vignette — and reads it in a day, because every symptom now names its module: the flat sixty-warehouse tree (Inv 1), receipts at supplier-like rates (Inv 2's side door), batch fields empty on pharma lines (Inv 3 — the recall that cannot run), no count since the audit two years ago (Inv 4), allow-negative on since week two (Inv 5), branches buying retail from a network whose runs slip weekly (Inv 6 — and the diagnostic mercy: the branches are escaping, not rebelling), no page anyone reads (Inv 7), and every permission held by everyone (Inv 8). The findings deck writes itself in the modules' order; the remediation quote prices in the sequence module 5 taught; and the engagement it wins is delivered by the same curriculum run forward. That consultant — able to see a trading firm whole, from the supplier's master record to the branch's tailgate arithmetic to the naira of margin on the year's page — is what 24 modules, 216 lessons, and three certifications exist to produce. The academy's three tracks close where they began: with the conviction that a business runs on documents, masters, and rhythms — and that the professional who commands all three can walk into any trading firm in Nigeria and leave it structurally better than they found it.</p>"
-   },
-   {
-    "title": "Chapter 9 — Patterns, the eighth law & the track complete",
-    "est": "14",
-    "html": "<p>The structural layer's scar tissue, then the law that closes the track — and the academy's foundation.</p><p><b>Pattern 1 — the corridor toggle.</b> Symptom: allow-negative on since an error message annoyed someone; frozen-upto never advanced; tolerances changed per complaint. Disease: the constitution edited casually (Ch. 1-2). Fix: settings behind the narrowest door, the annual walk as the only editing room, the corridor answered with the override paths every control provides.</p><p><b>Pattern 2 — the distributed eraser.</b> Symptom: everyone adjusts; shrinkage reads suspiciously clean; the same custodies never vary. Disease: the reconciliation permission held broadly, self-adjustment unbanned (Ch. 5) — every upstream control dissolved by the one that overrides them. Fix: two names, the ban written, thresholds inside even the two, and the monthly adjustments read as the permission's standing audit — expecting shrinkage to RISE when the fix lands, and briefing the owner that worse numbers mean truer ones.</p><p><b>Pattern 3 — the duplicate jungle.</b> Symptom: one product, three codes; stock, history, and reorder logic split three ways; nobody can say what the firm holds of anything. Disease: ungoverned creation (Ch. 3). Fix: the gate narrowed, the duplicate check mandatory, the templates carrying architecture, and the existing jungle merged deliberately — item by item, stock consolidated by document, the survivors' history preserved.</p><p><b>Pattern 4 — the freeze theatre.</b> Symptom: the frozen date set at go-live and never moved, or moved with edit keys under every mat. Disease: false assurance manufactured (Ch. 2) — the past as editable as ever while the setting claims otherwise. Fix: the monthly advance in the close's ordered ritual, the narrow door with its usage read, and the theatre named for what it is.</p><p><b>Pattern 5 — quality theatre.</b> Symptom: inspections filed in forty seconds; checklists perfect forever; the batch that fails in the market with a clean inspection on file. Disease: the pencil-whip at structural scale (Ch. 4) — the firm's own quality file converted to perjury. Fix: spot-checks against reality, inspection-time reads, and the inspector's protection framing that makes honesty the self-interested choice.</p><p><b>Pattern 6 — the unowned calendar.</b> Symptom: rhythms that ran while the consultant watched and stopped when they left. Disease: the page without names (Ch. 6) — the implementation's second half never delivered. Fix: the calendar with owners as the closing deliverable, reviewed at every staffing change — and the follow-up visit that checks the rhythms, not the software.</p><p><b>The eighth law.</b> The tree is the map of custody; stock moves only by documents; identity is operational; the count is a dialogue; valuation is written at the moment of movement; the network is one stock in many rooms; stock health is read, not felt. The eighth closes the track as its siblings closed theirs, because it is the same truth in its third and final vocabulary: <b>custody that lives in structure — masters, documents, rhythms, and separated authorities — survives growth, turnover, and absence; custody that lives in a trusted head survives exactly as long as the head stays.</b> The settings are the constitution, the freeze is the past's guardian, the adjust permission is the eraser licensed to two, the calendar is the heartbeat, and the handover test is the audit of all of it.</p><p><b>The track — and the foundation — complete.</b> Eight modules: the map (1), the movements (2), the identities (3), the count (4), the money (5), the network (6), the reading (7), the structure (8). And with it the academy's third certification closes the foundation triad: <b>Selling</b> (money in), <b>Procurement</b> (money out), <b>Inventory Management</b> (the goods both of them move) — 24 modules, 24 laws, three continuous case studies, and one repeated conviction wearing every vocabulary the trade owns: documents over memory, masters over improvisation, rhythms over heroics, structure over trust. Take the assessment; then go read a warehouse.</p>"
+    "title": "Chapter 9 — Review, the module rule, and the track recap",
+    "est": "12",
+    "html": "<p>The errors that recur in the structural layer, the module rule, and the track's eight rules.</p><p><b>Error 1 — settings nobody owns.</b> Symptom: postures set at implementation and never reviewed; departures nobody can explain. Correction: the settings walk run, the register built. Prevention: the annual review with the owner, dated in the register.</p><p><b>Error 2 — the register that trails the system.</b> Symptom: control changes made but not recorded; the register describing a past configuration. Correction: the quarterly confirmation against the live system. Prevention: the rule that a change is not complete until its row is updated.</p><p><b>Error 3 — items created around the gate.</b> Symptom: duplicates splitting histories; identity flags missing at first receipt; defaults absent. Correction: duplicates merged by remediation; flags and defaults completed. Prevention: the creation gate as the only entry path, with the monthly sample read.</p><p><b>Error 4 — deletion as retirement.</b> Symptom: items deleted with history referencing them; reports and documents breaking. Correction: records restored per the incident lane. Prevention: the retirement flow — lanes, disconnection, disabled at zero, never deleted.</p><p><b>Error 5 — adjustment powers spreading.</b> Symptom: reconciliations posted by names outside the matrix; separations collapsing quietly. Correction: the permissions corrected; the affected adjustments reviewed. Prevention: the monthly adjustments read against the named holders, and the quarterly recertification.</p><p><b>Error 6 — the transfer across the company boundary.</b> Symptom: stock moved between entities without sale documents; both balance sheets misstating. Correction: the accounting remediation with the inter-company documents entered. Prevention: the rule that an internal transfer never crosses a company boundary, and the quarterly pair reconciliation.</p><p><b>Review list.</b> Before the quiz, confirm you can: complete the Stock Settings walk with the recommended postures and the annual review; maintain the control register with its row format and quarterly confirmation; run the item lifecycle — the creation gate, change governance, the four-step retirement flow, and the lifecycle reads; operate the consolidated matrix, the recertification, and the adjustments read with its concentration and pattern questions; apply the filing map, retention rules, the retrieval test, and the handover files; and configure multi-company structure with the inter-company document rule.</p><p><b>Module rule 8: the stock function runs on structure — settings decided, registered, and reviewed annually; items entering by gate and leaving by the retirement flow; powers named, separated, recertified, and read monthly; evidence filed to the one-lookup standard; and the whole operable through any absence from its documents alone.</b></p><p><b>The track's eight rules.</b></p><p>1. A warehouse is a named accountability unit — designed into a shallow tree by written convention, stocked only at leaf level, wired into defaults once and verified, held by a named keeper, and changed only by document.<br>2. Every internal movement is a Stock Entry with its purpose — transfers received against what physically arrived, issues and receipts carrying reason, account, evidence, and approval, repacks held to their register, and every entry posted on its honest date.<br>3. Identity travels with the stock — captured once from the physical goods at the dock, named on every movement and confirmed at every handover, expiries read on their horizons, and any batch freezable and locatable across the network in minutes.<br>4. A count proves custody — blind sheets counted and entered by separate hands, variances recounted then investigated before anything posts, adjustments approved by band with their evidence attached, and accuracy measured on a cycle that costs minutes a day.<br>5. Value follows the documents — rates born at their four doors and nowhere else, landed costs on every named consignment, methods set by recorded policy, the stock ledger tied to the accounts at zero every month, backdating carrying its repost cost consciously, and every strange rate stopped at entry.<br>6. The network replenishes by procedure — requests reasoned on projected quantities, a weekly run with reasoned adjustments, scarcity allocated by written rule and shown as arithmetic, branches opened by transfer and reviewed weekly for ninety days, and every flow through the standard documents with a recorded reason.<br>7. Stock health is read on schedule and resolved by lane — aging and movement compiled monthly by the documented method, every listed item assigned a lane with its document, rebalancing before markdown and write-off last, findings routed upstream, and the whole reported on one page whose first figure is the accuracy of the records it stands on.<br>8. The stock function runs on structure — settings registered and reviewed, items by gate and retirement flow, powers named and read, evidence to the one-lookup standard, and the whole operable through any absence from its documents alone.</p>"
    }
   ],
   "questions": [
    {
-    "q": "Stock Settings is walked with:",
+    "q": "The structural layer exists so that:",
     "opts": [
-     "The owner and the accountant — each field read as the policy question it is",
-     "The consultant alone",
-     "The storekeeper",
-     "Nobody; defaults suffice"
+     "The procedures run the same way regardless of who is present",
+     "Reports look complete",
+     "Settings change often",
+     "Audits pass faster"
     ],
     "ans": 0,
-    "why": "Every default is a policy enforced silently, thousands of times.",
+    "why": "Without it, procedures degrade into individual habits.",
     "src": "Ch1"
    },
    {
-    "q": "Allow-negative's emergency toggle belongs to:",
+    "q": "The module's standing test is:",
     "opts": [
-     "The storekeeper",
-     "Nobody — the setting's review belongs to the annual walk",
-     "Whoever is on shift",
-     "The MD's mood"
+     "A quiz",
+     "Whether the stock function operates correctly through an extended absence of its most experienced people",
+     "A speed benchmark",
+     "A cost target"
     ],
     "ans": 1,
-    "why": "The message is the control; silencing it is the disease.",
+    "why": "Chapter 8's worked example.",
     "src": "Ch1"
    },
    {
-    "q": "Batch and serial naming series are chosen:",
+    "q": "Setting changes follow:",
     "opts": [
-     "Per receipt",
-     "Monthly",
-     "Once, at setup, with the decade view — the identity system's registrar",
-     "By suppliers"
+     "Convenience",
+     "The IT calendar",
+     "The change discipline — written first, decided by the named owner, applied in a window where posting behaviour is affected, recorded with the date",
+     "No process"
     ],
     "ans": 2,
-    "why": "Every naming decision in three tracks got the same rule.",
+    "why": "Custody of the structural layer.",
     "src": "Ch1"
    },
    {
-    "q": "Stock frozen up to enforces:",
+    "q": "Allow Negative Stock is set:",
     "opts": [
-     "Faster closes",
-     "Nothing real",
-     "Slower trading",
-     "Reported truth stays reported — no casual postings into the reported past"
+     "On for flexibility",
+     "Seasonally",
+     "On at branches",
+     "Off — a posting that would drive a balance negative is refused, forcing the missing document"
     ],
     "ans": 3,
-    "why": "The line behind which the recompute may no longer happen casually.",
+    "why": "The recommended posture with its register reason.",
     "src": "Ch2"
    },
    {
-    "q": "The close's ordered ritual is:",
+    "q": "The rolling freeze (days) enforces:",
     "opts": [
-     "Sweep the stragglers in, reconcile, THEN advance the freeze",
-     "Freeze, then sweep",
-     "Advance, then reconcile",
-     "Any order"
+     "The same-day posting discipline as a system rule rather than a briefing point",
+     "Faster counting",
+     "Longer months",
+     "Slower closes"
     ],
     "ans": 0,
-    "why": "Freeze-first generates its own exceptions.",
+    "why": "Postings older than the set days are blocked.",
     "src": "Ch2"
    },
    {
-    "q": "Stock and accounting periods freeze:",
+    "q": "Reorder automation is enabled:",
     "opts": [
-     "Independently",
-     "Together — an open stock period behind a closed accounting period invites divergence",
-     "Stock first by a month",
-     "Never"
+     "Immediately everywhere",
+     "Only after levels are set from data — automation on unset levels generates unreviewed requests",
+     "Never",
+     "At year end"
     ],
     "ans": 1,
-    "why": "The bridge's whole job is that they never diverge.",
+    "why": "The system serves the written procedure.",
     "src": "Ch2"
    },
    {
-    "q": "A narrow door used weekly is:",
+    "q": "The over-delivery tolerance is a control decision because:",
     "opts": [
-     "Efficient",
-     "Secure",
-     "A wide door with paperwork — the usage read exists to catch exactly this",
-     "Required"
+     "It affects speed",
+     "It is a percentage",
+     "It defines how far a document can depart from its authorisation before the system refuses",
+     "Suppliers ask"
     ],
     "ans": 2,
-    "why": "Opens rarely, logs when it does.",
+    "why": "Set low, with the exception role named.",
     "src": "Ch2"
    },
    {
-    "q": "Freeze theatre is:",
+    "q": "The annual settings review:",
     "opts": [
-     "A drill",
-     "Harmless",
-     "A close ritual",
-     "The date never advanced, or advanced with keys under every mat — false assurance manufactured"
+     "Is optional",
+     "Is automatic",
+     "Changes everything",
+     "Walks the page against the register with the owner — each setting confirmed, each departure re-justified, the review dated"
     ],
     "ans": 3,
-    "why": "Worse than no freeze.",
-    "src": "Ch2, Ch9"
+    "why": "Settings drift when nobody reads them.",
+    "src": "Ch2"
    },
    {
-    "q": "Item creation is gated because:",
+    "q": "A control register row carries:",
     "opts": [
-     "Every new item is a permanent commitment — code, UOMs, flags, fields — wrong all at once when casual",
-     "Items are scarce",
-     "Storage costs",
-     "Naming is hard"
+     "The control, its value, the owner, the one-line reason, the decision date, and the next review date",
+     "The value only",
+     "A signature",
+     "The cost"
     ],
     "ans": 0,
-    "why": "The item master is the stock system's genome.",
+    "why": "Superseded rows retained with dates.",
     "src": "Ch3"
    },
    {
-    "q": "A duplicate item is:",
+    "q": "One table matters because:",
     "opts": [
-     "Untidy",
-     "Three lying bins wearing one product's face — stock, history, and reorder logic split",
-     "A backup",
-     "Harmless"
+     "Tables are tidy",
+     "Distributed decisions are unauditable, and contradictions are visible only when both rows sit together",
+     "It prints well",
+     "The system requires it"
     ],
     "ans": 1,
-    "why": "The jungle's dominant species; the check is mandatory.",
+    "why": "The one-lookup answer to how stock is controlled.",
     "src": "Ch3"
    },
    {
-    "q": "Structural item changes (conversions, flags) on items WITH history are:",
+    "q": "A register that trails the system is:",
+    "opts": [
+     "Still useful",
+     "Preferred",
+     "A record of what used to be true — for control purposes the same as no register",
+     "Historical data"
+    ],
+    "ans": 2,
+    "why": "A change is not complete until its row updates.",
+    "src": "Ch3"
+   },
+   {
+    "q": "The creation gate's first step is:",
+    "opts": [
+     "Pricing",
+     "The reorder row",
+     "The photo",
+     "The duplicate check — by name fragments, barcode, and supplier reference before creation"
+    ],
+    "ans": 3,
+    "why": "One minute at the gate against days of merge remediation.",
+    "src": "Ch4"
+   },
+   {
+    "q": "A duplicate item causes:",
+    "opts": [
+     "One product's history split across two records — stock in two places, reorder arithmetic on half the data, counts disagreeing",
+     "Nothing",
+     "Better choice",
+     "Faster search"
+    ],
+    "ans": 0,
+    "why": "Why the gate searches first.",
+    "src": "Ch4"
+   },
+   {
+    "q": "Changes that affect posting behaviour are:",
     "opts": [
      "Ordinary edits",
+     "Governed events — decided by the named owner, dated, recorded; descriptive changes are ordinary edits, and the distinction is written",
      "Forbidden",
-     "Events — guarded like frozen-period postings, sometimes managed cutovers",
      "Automatic"
     ],
-    "ans": 2,
-    "why": "The conversion changed under existing stock re-reads every quantity.",
-    "src": "Ch3"
+    "ans": 1,
+    "why": "A rule, not a judgment call per edit.",
+    "src": "Ch4"
    },
    {
-    "q": "The delisting flow is:",
+    "q": "The retirement flow completes when:",
     "opts": [
-     "Delete the item",
-     "Rename it",
-     "Hide it",
-     "Open documents closed, stock cleared through the ladder, THEN disabled — history intact forever"
+     "The decision is made",
+     "The item is hidden",
+     "Stock is resolved, machinery disconnected, and the item disabled at zero — never deleted",
+     "Prices are removed"
+    ],
+    "ans": 2,
+    "why": "Ledger history references the record forever.",
+    "src": "Ch4"
+   },
+   {
+    "q": "A disabled item with a non-zero balance is:",
+    "opts": [
+     "Complete",
+     "An asset",
+     "Normal",
+     "A retirement flow that skipped its steps — corrected through the lanes"
     ],
     "ans": 3,
-    "why": "The ledger's testimony includes retired witnesses.",
-    "src": "Ch3"
+    "why": "The quarterly lifecycle read finds it.",
+    "src": "Ch4"
    },
    {
-    "q": "Variants vs separate items:",
+    "q": "Stock Manager powers are held:",
     "opts": [
-     "Attribute families are variants; different products are items — the wrong choice costs either way",
-     "Always variants",
-     "Always items",
-     "Coin flip"
+     "By named individuals — reconciliations, backdated postings, cancellations, settings, approvals",
+     "By whoever is free",
+     "By all users",
+     "By the till"
     ],
     "ans": 0,
-    "why": "The decision is made at architecture time.",
-    "src": "Ch3"
+    "why": "The matrix's elevated row.",
+    "src": "Ch5"
    },
    {
-    "q": "A quality template converts:",
+    "q": "The adjustments read lists:",
     "opts": [
-     "Wishes to reports",
-     "'Check it properly' into a named list a person completes and signs",
-     "Costs to assets",
-     "Nothing"
+     "All documents",
+     "Every reconciliation and banded issue with author, approver, warehouse, and value — network-wide, monthly",
+     "Only errors",
+     "Only Central"
     ],
     "ans": 1,
-    "why": "The standard made operational.",
-    "src": "Ch4"
+    "why": "Concentration and pattern are its two questions.",
+    "src": "Ch5"
    },
    {
-    "q": "Where the inspection flag is on:",
+    "q": "An unfamiliar name on the adjustments read is:",
     "opts": [
-     "Inspection is suggested",
-     "A note appears",
-     "The document flow refuses to proceed without it — the structural version of the discipline",
-     "Nothing changes"
+     "Ignored",
+     "A new hire's welcome",
+     "A permission drift found by reading rather than by incident",
+     "A system bug"
     ],
     "ans": 2,
-    "why": "Configured, not requested.",
-    "src": "Ch4"
+    "why": "The concentration question.",
+    "src": "Ch5"
    },
    {
-    "q": "The pencil-whipped inspection converts:",
+    "q": "Shared logins for stock roles are:",
     "opts": [
-     "Time to savings",
+     "Efficient",
+     "Required offline",
+     "Fine at branches",
+     "Prohibited without exception — the separations are meaningless between accounts two people share"
+    ],
+    "ans": 3,
+    "why": "Every adjustment resolves to an individual.",
+    "src": "Ch5"
+   },
+   {
+    "q": "Temporary elevation is:",
+    "opts": [
+     "Granted by procedure with an expiry date and removed on return — the recertification checks expired grants",
+     "Permanent in practice",
+     "Informal",
+     "Forbidden"
+    ],
+    "ans": 0,
+    "why": "The deputy case, controlled.",
+    "src": "Ch5"
+   },
+   {
+    "q": "Retention follows:",
+    "opts": [
+     "One year always",
+     "The longer of the accounting retention and the regulatory retention, per record class, written in the filing map",
+     "The keeper's judgment",
+     "Disk space"
+    ],
+    "ans": 1,
+    "why": "Disposal itself is a logged action.",
+    "src": "Ch6"
+   },
+   {
+    "q": "The retrieval test is:",
+    "opts": [
+     "An audit",
+     "A backup check",
+     "Three past events retrieved from their files quarterly — reconstruction from memory is a filing-map correction",
+     "A speed drill"
+    ],
+    "ans": 2,
+    "why": "The one-lookup standard, tested.",
+    "src": "Ch6"
+   },
+   {
+    "q": "The handover file standard is:",
+    "opts": [
+     "A departure memo",
+     "An org chart",
+     "A password list",
+     "A competent successor operates the role from the file within a week — maintained current, not written at departure"
+    ],
+    "ans": 3,
+    "why": "The absence test is this standard tested by an absence.",
+    "src": "Ch6"
+   },
+   {
+    "q": "The stock manager's handover file includes:",
+    "opts": [
+     "The register, the matrix section, the review calendar, the run procedure, and the dated open-items list",
+     "Passwords",
+     "Personal notes",
+     "The ledger"
+    ],
+    "ans": 0,
+    "why": "Current within the quarter.",
+    "src": "Ch6"
+   },
+   {
+    "q": "Stock crossing a company boundary is:",
+    "opts": [
+     "A transfer",
+     "A sale and a purchase — the selling company's delivery and invoice, the buying company's receipt and invoice",
+     "A loan",
+     "A journal"
+    ],
+    "ans": 1,
+    "why": "An internal transfer never crosses the boundary.",
+    "src": "Ch7"
+   },
+   {
+    "q": "A cross-company transfer would:",
+    "opts": [
+     "Save documents",
+     "Be faster",
+     "Move value between legal entities with no sale recorded — both companies' accounts misstate",
+     "Be reversible freely"
+    ],
+    "ans": 2,
+    "why": "The correction is an accounting remediation.",
+    "src": "Ch7"
+   },
+   {
+    "q": "The shared-building procedure requires:",
+    "opts": [
+     "One warehouse set",
+     "A wall",
      "Nothing",
-     "Risk to zero",
-     "Your own quality file into perjury — worse than no layer"
+     "Explicit physical segregation, keepers knowing which shelves belong to which company, and same-day inter-company documents for any crossing"
     ],
     "ans": 3,
-    "why": "Spot-checks, time reads, and the protection framing defend it.",
-    "src": "Ch4"
-   },
-   {
-    "q": "The signed honest inspection:",
-    "opts": [
-     "Protects them the day the batch goes wrong — their diligence is on file",
-     "Exposes the inspector",
-     "Is decorative",
-     "Slows trade"
-    ],
-    "ans": 0,
-    "why": "The custody framing, quality edition.",
-    "src": "Ch4"
-   },
-   {
-    "q": "Stock's four authorities are:",
-    "opts": [
-     "Buy, sell, count, report",
-     "Move, adjust, value, configure — separated so they check each other",
-     "In, out, up, down",
-     "Daily, weekly, monthly, yearly"
-    ],
-    "ans": 1,
-    "why": "Each a different kind of trust.",
-    "src": "Ch5"
-   },
-   {
-    "q": "The adjust permission is the most dangerous because:",
-    "opts": [
-     "It is complex",
-     "It is slow",
-     "Every other document ADDS truth; the reconciliation REPLACES it with an asserted number",
-     "It is rare"
-    ],
-    "ans": 2,
-    "why": "The eraser's license.",
-    "src": "Ch5"
-   },
-   {
-    "q": "The self-adjustment ban means:",
-    "opts": [
-     "Nobody adjusts",
-     "Adjustments are annual",
-     "Only the MD adjusts",
-     "The custody and its correction never share a hand — no one adjusts their own warehouse"
-    ],
-    "ans": 3,
-    "why": "Absolute, surviving every org chart.",
-    "src": "Ch5"
-   },
-   {
-    "q": "Broad adjust permission dissolves:",
-    "opts": [
-     "The count's fairness, the shrinkage number, and the investigation discipline — every upstream control",
-     "Nothing",
-     "Only reports",
-     "The freeze"
-    ],
-    "ans": 0,
-    "why": "The day everyone holds the eraser, investigation is optional.",
-    "src": "Ch5"
-   },
-   {
-    "q": "A permissions setup nobody can explain is:",
-    "opts": [
-     "Secure",
-     "A design nobody made — the matrix encodes the design conversation",
-     "Fine",
-     "Standard"
-    ],
-    "ans": 1,
-    "why": "Permissions enforce the design; they do not substitute for one.",
-    "src": "Ch5"
-   },
-   {
-    "q": "The daily beats include:",
-    "opts": [
-     "The full count",
-     "The settings walk",
-     "Negative flags, unclosed runs, cycle counts, van tailgates, the bins",
-     "ABC refresh"
-    ],
-    "ans": 2,
-    "why": "The exceptions scan plus the standing gates.",
-    "src": "Ch6"
-   },
-   {
-    "q": "The monthly beats include:",
-    "opts": [
-     "The mock recall",
-     "The range review",
-     "The tree review",
-     "The health page, the bridge, the stock-entry audit, the adjustments read, the sweep-and-freeze"
-    ],
-    "ans": 3,
-    "why": "The close's ritual anchors the month.",
-    "src": "Ch6"
-   },
-   {
-    "q": "The annual beats include:",
-    "opts": [
-     "The full count, the mock recall, the tree and settings walks, the range and template reviews",
-     "The tailgates",
-     "The health page",
-     "The transit review"
-    ],
-    "ans": 0,
-    "why": "And the calendar itself re-read.",
-    "src": "Ch6"
-   },
-   {
-    "q": "The calendar with owners is:",
-    "opts": [
-     "A nice extra",
-     "THE implementation — everything else is preparation for it",
-     "The software's job",
-     "Optional at small firms"
-    ],
-    "ans": 1,
-    "why": "Three tracks have said it; the third saying is the summary.",
-    "src": "Ch6"
-   },
-   {
-    "q": "The handover test asks:",
-    "opts": [
-     "Is the newcomer smart",
-     "Are reports pretty",
-     "Could a competent newcomer run the function a month with zero founder-only questions",
-     "Is the warehouse tidy"
-    ],
-    "ans": 2,
-    "why": "Every NO is a module incompletely done.",
+    "why": "The indirect case the rule exists for.",
     "src": "Ch7"
    },
    {
-    "q": "The custodian-to-controller path exists because:",
+    "q": "A recall across two companies:",
     "opts": [
-     "Titles motivate",
-     "Owners promote friends",
-     "Turnover is low",
-     "A structured function has legible seniority — the promotion case written in numbers"
+     "Traces across both entities' delivery records, the file noting the entity per holding",
+     "Stops at the boundary",
+     "Runs twice independently",
+     "Is impossible"
     ],
-    "ans": 3,
-    "why": "People keep disciplines that visibly lead somewhere.",
+    "ans": 0,
+    "why": "Identity follows the shared item register.",
     "src": "Ch7"
    },
    {
-    "q": "The handover documentation set is:",
+    "q": "The multi-company quarterly read reconciles:",
     "opts": [
-     "A by-product of doing the modules properly — the same system that runs well hands over well",
-     "Written specially for handover",
-     "The consultant's secret",
-     "Unnecessary"
+     "Prices",
+     "Inter-company document pairs — every despatch matched to its counterpart receipt and both invoices",
+     "Staff lists",
+     "Warehouses"
     ],
-    "ans": 0,
-    "why": "The academy's quiet thesis.",
+    "ans": 1,
+    "why": "On the accounts close checklist.",
     "src": "Ch7"
    },
    {
-    "q": "HealthTrade's Q2 shrinkage ROSE after the permission narrowed because:",
+    "q": "The adjustments baseline at HealthTrade was:",
     "opts": [
-     "Theft increased",
-     "Previously-erased differences now surface and investigate — the number got worse because the truth got better",
-     "Counting failed",
-     "The read broke"
-    ],
-    "ans": 1,
-    "why": "Explained to the MD in exactly those words.",
-    "src": "Ch8"
-   },
-   {
-    "q": "The duplicate caught at the creation gate was:",
-    "opts": [
-     "A new product",
-     "A variant",
-     "A supplier's brand name for an already-coded formulation — merged before it split a single bin",
-     "Deleted"
+     "Ten names",
+     "Unknown",
+     "Two names network-wide — the named Stock Manager holders and no one else",
+     "Per branch"
     ],
     "ans": 2,
-    "why": "The gate working at birth, not at cleanup.",
+    "why": "The five-minute monthly confirmation thereafter.",
     "src": "Ch8"
    },
    {
-    "q": "The graduate reads the distressed warehouse in a day because:",
+    "q": "The 60 delistings executed:",
     "opts": [
-     "Experience is magic",
-     "Software scanned it",
-     "The prospect confessed",
-     "Every symptom names its module — the findings deck writes itself in the curriculum's order"
+     "By deletion",
+     "By price removal",
+     "By hiding items",
+     "Through the four-step retirement flow with execution status tracked — two residual-balance items returned to the lanes rather than disabled over stock"
     ],
     "ans": 3,
-    "why": "And the remediation prices in module 5's sequence.",
+    "why": "Step 4.",
     "src": "Ch8"
    },
    {
-    "q": "The academy's foundation triad is:",
+    "q": "The three-week absence test showed:",
     "opts": [
-     "Selling (money in), Procurement (money out), Inventory Management (the goods both move)",
-     "Buy, hold, sell",
-     "CRM, POS, HMS",
-     "Three levels of one exam"
+     "The function operating from its structure — runs from procedure, controls holding twenty-one days, the incident resolved from documents alone",
+     "Operations paused",
+     "Backlogs",
+     "Rule changes"
     ],
     "ans": 0,
-    "why": "24 modules, 24 laws, one repeated conviction.",
-    "src": "Ch8, Ch9"
+    "why": "The resolution required no individual's recollection.",
+    "src": "Ch8"
    },
    {
-    "q": "The repeated conviction in every vocabulary is:",
+    "q": "The transit-shortfall incident was resolved by:",
     "opts": [
-     "Speed over care",
-     "Documents over memory, masters over improvisation, rhythms over heroics, structure over trust",
-     "Cheap over good",
-     "Trust over control"
+     "Memory",
+     "The documents — the despatch entry, the receiving count, the investigation lane, the closure under the ladder",
+     "A meeting",
+     "Waiting"
     ],
     "ans": 1,
-    "why": "The academy's one sentence.",
-    "src": "Ch9"
+    "why": "The file answered every question the investigation asked.",
+    "src": "Ch8"
    },
    {
-    "q": "The eighth law is:",
+    "q": "Module 8's rule is:",
     "opts": [
-     "Custody needs heroes",
-     "Settings are optional",
-     "Custody that lives in structure survives growth, turnover, and absence; custody in a trusted head survives as long as the head stays",
-     "Structure slows trade"
+     "Structure is optional",
+     "Settings are IT's",
+     "The stock function runs on structure — settings registered and reviewed, items by gate and retirement flow, powers named and read, evidence to the one-lookup standard, operable through any absence from documents alone",
+     "Registers are paperwork"
     ],
     "ans": 2,
-    "why": "The same truth in its third and final vocabulary.",
+    "why": "The module rule.",
     "src": "Ch9"
    }
   ]
