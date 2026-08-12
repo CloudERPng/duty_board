@@ -952,946 +952,946 @@
  },
  "master_governance": {
   "title": "Sysadmin 3 — Master Data Governance & Imports",
-  "desc": "The machinery the six tracks' master laws run on: the naming series administered with forward-only counters, the import door with its legitimate catalogue and validate-before-load discipline, bulk updates governed by blast radius, rename/merge/deduplicate as identity surgery, and the quality reads with the custodianship map.",
+  "desc": "Master data governance in ZhiftERP: the four properties of a governed register and master-error leverage; naming decided per register (Customer/Supplier Naming By, Item Code schemes) and the Naming Series tool with its lawful counter uses; duplicate detection and the Rename > Merge with existing procedure; creation governance with the request lane and walk-in rule; field completeness (Item Group, Item Defaults, Territory, Tax Withholding Category) enforced by mandatory fields and saved-filter reads; and the six-step governed Data Import with Insert versus Update discipline.",
   "lessons": [
    {
-    "title": "Chapter 1 — Masters enter governed, once",
+    "title": "Chapter 1 — Masters: the registers everything links to",
+    "est": "11",
+    "html": "<p>This module covers master data governance: what masters are and why they concentrate risk, naming, duplicate control and the merge tool, creation governance, the Data Import tool, field hygiene, the monthly register reads, and the HealthTrade cleanup.</p><p><b>What a master is.</b> Module 1 split the doctypes into transactions (docstatus, posted, immutable) and masters (current-state records, edited in place): <b>Customer, Supplier, Item, Warehouse, Employee, Item Group, Territory, UOM, Price List</b> — the registers. Every transaction links into them through Link fields: an invoice is mostly pointers — this Customer, these Items, this Warehouse — plus quantities and dates.</p><p><b>Why masters concentrate risk.</b> The Link structure means a master error multiplies by its usage:</p><p>• A transaction error is <b>one</b> wrong document, corrected by one correction.<br>• A master error is wrong in <b>every document that links to it, forever, until fixed</b>: the Item with the wrong default income account mis-posts every sale; the Customer created twice splits one relationship's history across two records — two partial statements, two partial agings, neither true; the Supplier with unverified bank details is the fraud channel module 3-of-Accounts guards.</p><p>This is why masters get their own governance module while transactions get form validations: the leverage is different.</p><p><b>The four properties of a governed register.</b> Everything in this module serves one of these:</p><p>1. <b>Unique</b> — one real-world entity, one record. Chapter 4's duplicate control.<br>2. <b>Named</b> — records identified by a deliberate scheme that reads well for years. Chapters 2-3.<br>3. <b>Complete</b> — the fields the machinery depends on (defaults, groups, tax categories) filled at creation, not discovered empty at posting time. Chapter 6.<br>4. <b>Owned</b> — each register has a named owner who approves creation and answers for hygiene. Chapter 5.</p><p><b>The sysadmin's position.</b> As with permissions: the sysadmin owns the <b>machinery</b> — naming series configured, create rights narrowed, the import tool governed, the merge performed, the hygiene reads scheduled — while the register <b>content</b> belongs to its owner: the item book to stock/procurement, the customer book to sales, the supplier book to procurement, the employee register to HR.</p><p><b>Module contents.</b> Chapter 2: naming — series and field-based. Chapter 3: the Naming Series tool. Chapter 4: duplicates and the Rename/Merge tool. Chapter 5: creation governance. Chapter 6: field hygiene and completeness. Chapter 7: the Data Import tool. Chapter 8: the monthly reads and the HealthTrade case. Chapter 9: review and the law.</p>"
+   },
+   {
+    "title": "Chapter 2 — Naming: series or field, decided per register",
     "est": "12",
-    "html": "<p>Six tracks made master data their opening argument — the item file, the customer book, the supplier register, the chart, the employee master, the salary structures — and every one of them said the same three things: masters are created by the narrowest pens, named by the registrar's series, and kept clean forever. This module is where the MACHINERY behind all three lives, and its thesis is the track's third law: <b>masters enter governed, once — through the series that names them, the imports that load them, and the hygiene that keeps them singular.</b></p><p><b>The custodianship split, restated for this terrain.</b> Module 1's authority map, at the master layer: the FUNCTIONS own their masters' CONTENT (what items exist is inventory's decision; which customers, selling's; the chart's shape, the accountant's — the six tracks assigned every master type its narrow pen, and nothing in this module reassigns them), while the ADMIN owns the master MACHINERY: the naming series' administration (Chapter 2), the import tooling and its discipline (Chapters 3-4), the bulk-change instruments (Chapter 5), the rename-merge-deduplicate operations (Chapter 6), and the quality reads (Chapter 7) — the admin as the registrar's clerk, the loading dock's operator, and the hygiene inspector, never the author of a single master's content. The split's practical shape: the function owner DECIDES (this supplier exists; these two customers are one), the admin EXECUTES through the machinery (the merge run properly, the import validated), and both are named in the record — the pattern seven modules old, at the layer where its breach is most common (the 'helpful' admin who creates the missing item at a user's request has just authored inventory content with a platform pen — the corridor grant's master-data twin).</p><p><b>Why the machinery needs its own module.</b> The stakes, argued from six tracks' evidence: every master law this academy taught is only as strong as the machinery beneath it — the registrar's number-retired-with-its-subject law is a SERIES configuration (Chapter 2); the duplicate-customer disease the selling track fought is prevented by naming and validation and cured only by MERGE (Chapter 6); the record-level fences of module 2 ride the masters' link fields (the territorial fence on a duplicated branch master is a fence with a hole); and the implementation load that every engagement begins with is an IMPORT whose discipline decides the site's data quality for years (the unvalidated opening load being the original sin most cleanup engagements trace to — the SLOT-class remediations of the trade being, overwhelmingly, imports done casually a long time ago, compounding since). The module's map: the series (2), the import door (3) and its discipline (4), the bulk instruments (5), the singular-identity operations (6), the quality layer (7), HealthTrade's master year (8), and the law (9).</p>"
+    "html": "<p>Every document's name is its permanent identity — printed on statements, quoted in disputes, filed with returns. Each master doctype names its records by one of two schemes, and the choice is made deliberately per register, at birth.</p><p><b>Field-based naming.</b> The record is named by one of its own fields. <b>Customer Naming By</b> in Selling Settings and <b>Supplier Naming By</b> in Buying Settings offer exactly this choice: name customers by <b>Customer Name</b> (the record's ID is the trading name itself) or by <b>Naming Series</b> (CUST-00042 with the name as a field).</p><p>• Field-based reads beautifully — lists, links, and reports show the actual name.<br>• Its cost is collision and drift: two \"Emeka Stores\" cannot both exist under name-based IDs, and a legal rename leaves the ID carrying the old name (the Rename tool fixes the display, Chapter 4, but references show history).</p><p><b>Series naming.</b> The record is named by a counter pattern — CUST-.####, ITEM-.####. Neutral, collision-proof, rename-proof; the human-readable name lives in its field and can change freely. Its cost: IDs mean nothing without the record open.</p><p><b>The working defaults, per register.</b></p><p>• <b>Items:</b> the <b>Item Code</b> is the identity, and it deserves a designed scheme — module owners decide between structured codes (category prefixes) and plain sequences, but the sysadmin enforces one rule either way: <b>codes are assigned by the scheme, never invented at the keyboard.</b> The stock track's barcode and search behaviour all hang off this field.<br>• <b>Customers and Suppliers:</b> smaller books read best name-based; large or fast-growing books, or any book expecting name collisions (common personal trading names), run series-based with the name as a field. Decide once, record the reason.<br>• <b>Transactions:</b> always series — SINV-, PINV-, PE- — with the year segment where the business wants year-readable numbers (SINV-2026-). Module 8-of-Accounts' rule repeats here because the sysadmin implements it: <b>series are never restarted and never reused</b>; the invoice numbers on a filed VAT return must still make sense to an auditor in year seven.</p><p><b>The decision record.</b> One page in the implementation file: per doctype, the naming scheme, the reason, and the owner who agreed it. Naming disputes and \"why is this called that\" questions are answered by pointing — the same page-answers-it pattern as every policy in this programme.</p><p>Practical rule: naming changes after go-live are governed events of the heaviest kind, because names are woven through history. Get the decision right at birth; Chapter 3 sets the machinery.</p>"
    },
    {
-    "title": "Chapter 2 — The naming series: the registrar's machinery",
+    "title": "Chapter 3 — The Naming Series tool",
+    "est": "12",
+    "html": "<p>Open <b>Naming Series</b> (awesome bar). This tool defines the series patterns per doctype and manages their counters. Small screen, permanent consequences.</p><p><b>Setting the series.</b> Select the transaction type; the tool shows its current series options and lets you set the list — one or several patterns, one marked default. The pattern grammar:</p><p>• Fixed prefix text: <b>SINV-</b><br>• Year and month segments: <b>SINV-.YYYY.-</b> gives SINV-2026-00042; month segments where volume wants monthly readability.<br>• The counter: <b>.####</b> — four digits rolls at ten thousand; size the digits to a decade of volume, not a year.</p><p><b>Multiple series on one doctype — the lawful uses.</b> Several patterns on one doctype serve real needs: per-company series on a multi-company site (each entity's invoices numbered in its own stream — the legal-separation rule expressed in numbering), or per-branch series where the business wants branch-readable documents. The unlawful use is decorative proliferation: every added series is another counter to govern and another choice a user can get wrong at entry — where a series choice exists on the form, the <b>default per user or company must be wired</b> so the front line never chooses.</p><p><b>The current-value control.</b> The tool can read and set each series' current counter. Two lawful uses, one forbidden:</p><p>• <b>Lawful:</b> setting the opening counter at go-live so the new system continues the old numbering (the business's invoice history reads as one stream across the migration); and aligning a counter after a governed correction, documented.<br>• <b>Forbidden:</b> resetting a counter to reuse numbers. A reused invoice number is two different documents answering one identity — a filing-integrity failure the year-seven auditor finds.</p><p><b>Amended documents.</b> The framework names amendments as successors (the amended document carries its lineage) — the sysadmin's job is not to fight this: attempts to make amended documents reuse the original number break the audit chain the docstatus design exists to keep.</p><p><b>The series register.</b> The one-page record from Chapter 2 gains its machinery column: per doctype — the pattern, the default, the counter's opening value and date, and any per-company/per-branch mapping. Reviewed at the annual walk; every change between walks is a logged event with a reason.</p><p>Practical rule: test a new series by creating and cancelling one document in the test environment, and read the produced name aloud against the register. Ten seconds; it catches the misplaced dot, the missing year segment, and the wrong default before a month of documents inherits them.</p>"
+   },
+   {
+    "title": "Chapter 4 — Duplicates and the Rename/Merge tool",
     "est": "13",
-    "html": "<p>Every track's registrar law — the number that identifies, the number retired with its subject — runs on one piece of machinery: the NAMING SERIES. The admin administers it. The series chapter.</p><p><b>The series' anatomy.</b> The mechanics: each doctype's documents named by a configured pattern — the PREFIX (the human-readable class: the invoice's, the employee's, the order's), the COUNTER (the incrementing number the series holds), and the optional PERIOD segments (the year or month embedded — the series that resets yearly versus the series that runs forever: a design decision with retrieval consequences, decided per doctype with the owning function, because the yearly-reset invoice series reads naturally against fiscal years while the never-reset employee series serves the registrar's retirement law), with the admin's duties precise: the series CONFIGURED per the design (the formats documented in the site book's master page), the counters' CURRENT state known (the series position is a fact the admin can read and, in governed circumstances, set — the power that makes Chapter's collision discipline necessary), and the DEFAULT-versus-selectable posture decided (one series per doctype as the default sanity; the multi-series doctype — the per-branch invoice series where the design wants it — as a deliberate choice with its selection governed, never a free-text field users improvise in).</p><p><b>The registrar laws, seated.</b> Six tracks' rules, landing on their machinery: numbers are IDENTITY, not information (the series that encodes meaning beyond its prefix — the customer number embedding a category — is a design smell the academy has convicted before: categories change, identities must not), numbers RETIRE with their subjects (the disabled employee's number never reissued — the series simply never reused, which the counter's forward-only life guarantees UNLESS someone resets it: the reset-counter power being exactly why series administration is an admin duty and not a user setting), and GAPS are tolerable but explained (the cancelled draft's consumed number is an honest gap; the series that jumps a thousand is a question — the gap read as the series' own audit trail).</p><p><b>The series diseases.</b> The failure modes the admin prevents: the COLLISION (the counter set backwards — by migration accident or misguided tidiness — colliding with existing names: the load that fails halfway or, worse, the near-miss that doesn't; prevented by the rule that counters move forward only, and set manually only in the governed migration moment with the existing maximum verified first), the FORMAT change mid-life (the series renamed or reshaped with history live — the old and new formats coexisting forever after: legitimate when decided and documented, chaos when drifted into; the change through module 5's discipline, with the old format's records untouched — history is history), the FREE-TEXT naming leak (the doctype configured to accept manual names beside the series — the 'Chidi's customer' entries the selling track's cleanup found: the leak closed by configuration, the series made mandatory where the design says), and the SERIES SPRAWL (a new series invented per mood — the prefix museum: the catalogue of series documented like the role catalogue, few, purposeful, owner-assigned). The chapter's one-liner for the site book: <b>the series is the registrar; the admin is its clerk — forward-only counters, documented formats, closed leaks, and every master born already named by law.</b></p>"
+    "html": "<p>Duplicates are the register disease: one real entity, two records, history split. This chapter is prevention, detection, and the cure.</p><p><b>How duplicates are born.</b> Three standard births: the search that failed (\"Emeka Stores\" exists as \"EMEKA STORES VENTURES\"; the creator searched, missed, created), the import that appended instead of updating (Chapter 7's first governance rule), and the open-creation site where every user can create and nobody checks. Prevention maps to each: search-first taught as the creation habit, import mode discipline, and Chapter 5's narrowed create rights.</p><p><b>What a duplicate costs while it lives.</b> The split history: two partial customer statements neither of which supports the collections call; two supplier records with two balances hiding one exposure; two item codes carrying one product's stock in two ledgers — the stock track's count variances born at the keyboard. Every month a duplicate lives, the split deepens.</p><p><b>Detection — the monthly duplicate read.</b> No single button finds them; the read is a procedure:</p><p>1. The register's list sorted by name, scanned for near-neighbours — the ten-minute eyeball that catches most.<br>2. The report view grouped where grouping exposes: customers by mobile number or tax ID (two records, one phone, one TIN — a duplicate confessing), items by barcode.<br>3. Candidates logged to the register owner for verdict: same entity, or genuinely two.</p><p><b>The cure — Rename with Merge.</b> Open the surviving record, choose <b>Rename</b> from the menu, enter the duplicate's name as the target... the direction matters, so state it as the procedure:</p><p>1. Decide the <b>survivor</b> (usually the older, fuller record) with the register owner.<br>2. On the <b>duplicate</b>, use Rename → enter the survivor's name → tick <b>Merge with existing</b>. The framework re-points the duplicate's entire linked history — invoices, payments, stock entries — onto the survivor and retires the duplicate.<br>3. Merging is heavier for some registers: <b>Items</b> merge only when their properties agree (stock UOM and similar structural fields), and merging warehouses or accounts is a planned event, not a hygiene click.<br>4. Log the merge: the two names, the survivor, the date, the owner's approval. The Rename tool's power is exactly why its use is a recorded event — and why <b>rename/merge rights stay with the sysadmin</b>, not the register's daily users.</p><p>After the merge, the reunited record tells the whole story: one statement, one aging, one stock history — which is the payoff to show the register owner the first time, because it converts search-first from a rule into a conviction.</p>"
    },
    {
-    "title": "Chapter 3 — The import machinery: bulk data's governed door",
+    "title": "Chapter 5 — Creation governance: who may create masters",
+    "est": "12",
+    "html": "<p>Chapter 4's third duplicate birth — open creation — is fixed structurally: master creation is a governed act, narrower than master use.</p><p><b>The permission design (module 2's machinery applied).</b> In the Role Permission Manager, split <b>Create from Read/Use</b> on each master doctype:</p><p>• Everyone whose job uses customers holds Read on Customer; the roles that may <b>create</b> customers are one or two — the register owner's role and, where volume demands, a named deputy.<br>• Items narrower still: the item book is the highest-leverage register (defaults, valuation, tax categories all hang on it), so Item create/write typically sits with stock or procurement ownership only.<br>• Employees: HR only. Suppliers: procurement only — with the bank-detail custody rules from the Accounts track riding on the same record.</p><p><b>The request flow.</b> Narrow creation needs a fast lane or the front line routes around it:</p><p>1. The requester (a salesperson meeting a new customer) submits the details through the agreed channel — a request doctype where the site has one, or the owner's standing form.<br>2. The owner (or deputy) searches first, then creates governed: named by the scheme, fields complete per Chapter 6, and linked back to the requester the same day.<br>3. The service standard is written — same-day for customers, agreed lead time for items — because a slow lane is how \"just this once\" exceptions are born.</p><p><b>Walk-in reality at the till.</b> Retail cannot wait for a request flow, and the design answers it without opening the register: POS sales run against the standing walk-in customer, and a <b>real</b> customer record is created only when a real relationship starts (credit, statements, history) — through the flow. The stock track's companion rule mirrors it: no selling against items that do not exist; emergency item creation is the owner's phone call, not the cashier's keyboard.</p><p><b>New-master verification, by register.</b> Creation governance carries the verification duties this programme has already placed:</p><p>• <b>Suppliers:</b> bank details entered from documents received through a known channel, and every later change treated as the governed master-data event the Accounts track specifies.<br>• <b>Customers taking credit:</b> the credit fields (limit, terms) set by the owner of credit policy, not defaulted.<br>• <b>Items:</b> the completeness checklist of Chapter 6 before first transaction.</p><p>Practical rule: measure the flow, not the rule. The monthly read (Chapter 8) counts masters created, by whom, and duplicates found — a rising duplicate count with narrowed rights means the request lane is too slow, and the fix is the lane.</p>"
+   },
+   {
+    "title": "Chapter 6 — Field hygiene: complete at creation",
+    "est": "12",
+    "html": "<p>A master that exists but is incomplete fails at posting time — the invoice that cannot find an income account, the item that will not stock-post, the customer invisible to their territory's reports. Completeness is enforced at creation, register by register.</p><p><b>The item book — the completeness checklist.</b> The Item is the most field-dependent master; an item is complete when:</p><p>• <b>Identity:</b> Item Code by the scheme, Item Name, <b>Item Group</b> (the reporting tree — an ungrouped item vanishes from every grouped read), stock UOM chosen deliberately (UOM changes after stock exists are surgery).<br>• <b>Behaviour flags:</b> Maintain Stock for stocked goods; Is Fixed Asset routing capital items to the Asset machinery; batch/serial flags where the stock design says so.<br>• <b>Defaults per company:</b> the Item Defaults table — income and expense accounts, default warehouses, buying/selling cost centres — the fields that make every future document post right without anyone thinking.<br>• <b>Tax:</b> the Item Tax Template where the item's rate differs from standard (the mixed-supply rule from the tax module, enforced at this keyboard).<br>• <b>Commerce:</b> the selling price on its Price List (Item Price record), barcodes where scanning runs.</p><p><b>Parties.</b> A customer is complete with: group and <b>Territory</b> (the analytical dimensions sales reads by), contact and address records (statements need somewhere to go — Process Statement Of Accounts mails these), payment terms, and the credit fields where credit is granted. A supplier adds: the bank details under custody rules, the <b>Tax Withholding Category</b> where WHT applies (the tax module's agent side starts at this field), and payment terms.</p><p><b>Enforcement — machinery over memos.</b></p><p>1. <b>Mandatory fields:</b> the high-dependency fields are made mandatory on the form (a governed customisation, module 5), so incomplete cannot save. Item Group and stock UOM are the classic candidates.<br>2. <b>Templates and defaults:</b> new-item templates per category pre-fill the defaults table; group-level defaults catch what item-level misses.<br>3. <b>The completeness read:</b> saved filters per register for the gaps that matter — items without Item Group, items without defaults for the active company, customers without territory or contact, suppliers without withholding category where the business withholds. Run monthly (Chapter 8); each hit routes to the register owner.</p><p>Practical rule: every field on this chapter's lists exists because some module's track depends on it — when a register owner asks why a field is mandatory, the answer names the downstream machinery: <i>this is what breaks when it is empty.</i></p>"
+   },
+   {
+    "title": "Chapter 7 — The Data Import tool",
     "est": "13",
-    "html": "<p>Data enters the site one document at a time through the functions' daily work — and in bulk through one door: the IMPORT machinery. This chapter governs the door. The import chapter.</p><p><b>The machinery.</b> The import tool's shape: the TEMPLATE downloaded per doctype (the columns as the fields — the template is the doctype's flat-file mirror, and its exactness matters because the import is a mass creation event riding it), the file FILLED (the rows as would-be documents), the VALIDATION pass (the tool checking the load before it lands — Chapter 4's whole discipline hangs on using this properly), and the LOAD (the rows becoming documents — each one as real as if typed, which is the power and the peril in one sentence: the import creates a hundred documents with one click, and every governance question the academy asks of one document multiplies by the row count).</p><p><b>When imports are legitimate.</b> The honest catalogue, drawn narrowly: the IMPLEMENTATION loads (the master files' initial population — the items, customers, suppliers, employees, opening balances: the engagement's founding imports, done under Chapter 4's full discipline because their quality echoes for years), the BULK MASTER events (the new branch's warehouse set, the acquired product line's items, the price list's seasonal revision — each a genuine bulk-creation moment with its owning function's authorisation), the MIGRATION moments (the data moving between systems in a governed cutover), and the CORRECTION loads in their governed rarity (the mass update of Chapter 5, where the import tool is the instrument). The list is short by design — and everything outside it is Chapter's disease.</p><p><b>When imports are the disease.</b> The pattern named plainly, because every consultant meets it: the ROUTINE TRANSACTION import — the daily sales loaded from a spreadsheet, the month's invoices imported in a batch, the stock movements arriving as files — is the process BYPASSED wearing a tool (the documents created without the workflow that governs them: the validations skipped, the permissions sidestepped by whoever holds the import right, the approvals never asked, the linked-document logic — the stock that should have moved, the ledger that should have posted — firing all at once or wrongly), and the firm importing its transactions routinely has not computerised its process; it has computerised its spreadsheet, with the system demoted to an expensive filing cabinet. The admin's posture: the import RIGHT held narrowly (module 2's export-class caution applying to the inbound door too — the import capability on the dangerous-roles register), routine-import requests read as DESIGN signals (the team importing daily has a process gap the owning function should fix at the process layer — the workaround-cluster read of module 2, at the loading dock), and the legitimate-catalogue test applied to every request through the channel.</p><p><b>The import as an event.</b> The governance shell, closing the chapter: every import is an EVENT in the change-log sense — WHAT was loaded (the doctype, the row count, the file retained), WHY (the authorising decision and its owner), WHO ran it, WHEN, and the VERIFICATION's result (Chapter 4's post-load checks, referenced) — because the import that nobody can explain two years later is the data archaeology every cleanup engagement performs, and the import log is the site's data provenance: the answer to 'where did these three hundred customers come from?' being a log line, not a shrug.</p>"
+    "html": "<p>Open <b>Data Import</b> (awesome bar). Bulk creation and bulk update run through this tool, and it is governed like the power it is: an import is a hundred keyboards typing at once.</p><p><b>The tool's anatomy.</b> A Data Import document names the target doctype and the <b>Import Type</b> — the single most consequential field on the screen:</p><p>• <b>Insert New Records</b> — creates. Used for genuine first loads and genuinely new populations.<br>• <b>Update Existing Records</b> — modifies matched records via their ID column. Used for corrections and enrichment.</p><p>Choosing Insert when the records exist is Chapter 4's duplicate factory at industrial scale; choosing Update with a wrong ID column writes one record's data onto another. The type is confirmed against the job before every run, out loud.</p><p><b>The template.</b> The tool's <b>Download Template</b> produces the doctype's own spreadsheet: correct columns, mandatory fields marked, one row per record (child tables as their own columns/sheets per the template's layout). Work in the downloaded template, never a hand-built sheet — half of import pain is column-name archaeology the template makes unnecessary.</p><p><b>The governed import, as a procedure.</b></p><p>1. <b>Source and owner:</b> the data's origin named, the register owner's approval on record. An import without an owner is someone bulk-editing a register they do not answer for.<br>2. <b>Prepare in the template:</b> IDs present for updates; naming per the scheme for inserts; the completeness fields of Chapter 6 filled — an import that creates incomplete masters creates a hundred failures-at-posting-time.<br>3. <b>Dry-run a slice:</b> ten rows into the <b>test environment</b> first (module 5's test discipline applies to data as much as code). Read the created records against expectations.<br>4. <b>Back up first:</b> the on-demand backup before any large import (module 4's before-change rule). The import that goes wrong at row 3,000 is recovered by restore or by reversal; both start from the backup and the import's own log.<br>5. <b>Run, then read the result:</b> the tool reports successes and error rows with reasons. Error rows are fixed and re-run — not abandoned (a half-imported register is two half-truths).<br>6. <b>Log the event:</b> what, from where, how many, by whom, approved by whom — into the incident/ops book. The Data Import list itself is the technical trail; the log adds the governance.</p><p><b>Import rights.</b> Module 2's matrix flagged Import as a real permission: it stays with the sysadmin and the register owners who have run the procedure — never a general grant. One unauthorised \"helpful\" import can undo a quarter of register hygiene.</p>"
    },
    {
-    "title": "Chapter 4 — The import discipline: validate before load",
-    "est": "14",
-    "html": "<p>The door governed, now the craft: the discipline that makes any load land clean — walked as a procedure because the certified admin will run it dozens of times. The discipline chapter.</p><p><b>Stage 1 — the template's exactness.</b> The file prepared against the CURRENT template (downloaded fresh, not reused from last year — the doctype's fields drift with updates and customisations, and the stale template is the mysterious column-mismatch error), the MANDATORY fields identified and filled (the load that omits a required field fails — or worse, half-fails), the LINK fields resolved (the import that references masters — the item's group, the customer's territory, the employee's branch — must reference masters that EXIST, spelled exactly: the link validation being the discipline's most frequent catch, and the reason master loads are SEQUENCED — the groups before the items, the territories before the customers: the dependency order drawn before any file is filled), and the formats honest (the dates in the expected format, the numbers unpolluted by currency symbols and thousands separators — the spreadsheet's cosmetics being the import's poison).</p><p><b>Stage 2 — the rehearsal.</b> Module 1's iron habit, at the loading dock: the significant load REHEARSED on the test site first (the same file, the same procedure, the full run — the errors met in rehearsal costing minutes; the same errors in production costing a cleanup), with 'significant' judged honestly (the ten-row addition may proceed on validation alone; the five-hundred-row founding load rehearses, always — the threshold a site-book policy, not a mood), and the rehearsal's second dividend named: the TIMING read (the big load's duration and system impact known before production schedules it — the load run in the quiet window, not against the counter's busy hour).</p><p><b>Stage 3 — the validation pass and the batched load.</b> The tool's validation run and READ (the pass is not a formality to click through — every warning triaged: the row that will skip, the value that will default, the link that resolves to nothing), the load executed in BATCHES for size (the five-hundred-row load as manageable tranches — the failure at row 340 of a batched load being a contained restart, versus the monolith's half-landed mess), and the partial-failure posture decided in advance (the rows that failed logged, corrected, and re-run — never hand-created in a hurry to 'finish', because the hand-created stragglers are the ones that skip the very validations the import enforced).</p><p><b>Stage 4 — the post-load verification.</b> The load proven, not assumed: the COUNT reconciled (rows in the file = documents created + failures explained — to the row, always), the SPOT CHECKS walked (a sample of created documents opened and read against the source — the fields landed where they should, the links resolved to the right masters), the AGGREGATE checks where the load carries values (the opening-balance load's totals against the source system's — the accounts track's migration reconciliation being exactly this at its most consequential: the opening stock value, the receivables total, the trial balance's agreement, verified before anyone builds on them), and the verification FILED with the import's log entry (Chapter 3's event, completed by its evidence). The chapter's closing cadence, in the academy's oldest shape: the discipline costs an hour per significant load — against the alternative six tracks' cleanup case studies have priced in months: the unvalidated founding import is the phantom stock, the duplicate books, and the wrong opening balances of every remediation war story, and the certified admin is the person who makes those stories impossible to start.</p>"
-   },
-   {
-    "title": "Chapter 5 — Bulk updates: power governed by blast radius",
+    "title": "Chapter 8 — The monthly reads & the HealthTrade cleanup",
     "est": "13",
-    "html": "<p>The machinery can change hundreds of documents at once — the bulk edit, the mass update, the update-via-import. Power of that radius is governed accordingly. The bulk chapter.</p><p><b>The instruments.</b> The bulk-change toolkit named: the BULK EDIT on list views (the selected records' field changed in one act — quick, visible, and bounded by the selection), the UPDATE-VIA-IMPORT (the existing records modified by a keyed file — the precise instrument for the large or complex change: the price list's revision, the category re-mapping), and the report-driven update patterns beyond — each carrying the same character: one act, many documents, and the mistake multiplied by the same arithmetic as the intention.</p><p><b>The governed procedure.</b> The bulk change as a ceremony, its steps in order: the DECISION by the owning function (the price update is selling's decision; the admin executes — the authority map's most-repeated clause, at the instrument where its breach is largest), the SCOPE defined precisely (which records, by what filter — the filter itself reviewed, because the bulk edit's classic disaster is the selection wider than the intention: the 'all items' that meant 'these items'), the BEFORE-SNAPSHOT taken (the affected records exported as they stand — the cheap insurance that makes 'undo' a re-import instead of an archaeology: the snapshot being this layer's version of every track's frozen history, taken voluntarily because bulk edits don't freeze anything), the REHEARSAL for the significant change (the test site again — the update run, the results read), the EXECUTION in the quiet window, and the VERIFICATION (the count, the spot checks, the aggregate where values moved — Chapter 4's stage four, applied to changes as to creations), all LOGGED as the event it is.</p><p><b>The refused operations.</b> The lines the admin holds: the BULK DELETE (refused as a category — the mass removal of documents is the trail-punching delete of module 2 at industrial scale, and the legitimate ends it claims to serve have governed means: the master no longer used is DISABLED, not deleted — the retirement pattern of every track, at the data layer; the truly-wrong records from a botched load are removed under the botched load's own remediation event, narrowly, logged, with the before-snapshot in hand), the bulk change on SUBMITTED documents (the sealed layers of six tracks — the bulk instrument does not unseal what the process sealed: corrections to submitted history travel the functions' own correction machinery, document by document, per their laws), and the bulk change as FAVOUR (the 'just update all their territories quickly' corridor ask — met with the channel and the owner, per the craft of module 1: the radius makes the refusal easier to explain, not harder).</p><p><b>The blast-radius habit.</b> The chapter's closing instinct, taught as a reflex: before any bulk act, the admin says the radius OUT LOUD (the count of affected records, the downstream links they carry, the reports and fences that read the changed field) — because the field that looks cosmetic is load-bearing somewhere (the item group that drives the fences, the territory that drives the pricing, the branch that drives the record-level permissions of module 2: the changed field rippling through every design that reads it), and the two-minute radius statement is the difference between the governed bulk change and the Tuesday everyone remembers. Power proportional to procedure: the academy's oldest trade, at the layer with the biggest lever.</p>"
-   },
-   {
-    "title": "Chapter 6 — Rename, merge & deduplicate: the singular identity",
-    "est": "14",
-    "html": "<p>The master laws demand each real-world thing exist ONCE — and when reality drifts (the duplicate customer, the misnamed item), three operations restore it: rename, merge, deduplicate. The most irreversible chapter, handled with proportional care.</p><p><b>The rename.</b> The master's identity changed — the mechanics and the caution: the platform's rename carries the LINKS along (the documents referencing the old name follow to the new — the mechanical half handled), but the admin's checklist covers what machinery cannot: the HISTORY's readability (the old name in printed documents, filed evidence, and human memory — the rename that confuses three years of archives weighed against its benefit), the EXTERNAL references (the name in the bank's records, the collector's filings, the integration's mappings — module 6's inventory consulted before any externally-visible master renames), and the AUTHORISATION (the rename is the owning function's decision — the customer renamed because selling says the legal name changed, never because someone prefers a spelling), with renames LOGGED and rare: identity is the point of a master, and stable identity is most of its value.</p><p><b>The merge.</b> The operation that unites duplicates — taught as the layer's most consequential act: the merge takes two masters that are ONE real thing and makes them one record (the survivor keeps the identity; the duplicate's documents, balances, and history transfer to it; the duplicate ceases), which makes the pre-merge discipline everything: the DUPLICATION confirmed by the owner (the two customers that look alike may be a branch relationship, a father and son, two genuine entities — the function's knowledge, not the admin's guess: the merge on a false duplicate is two histories scrambled into one lie), the SURVIVOR chosen deliberately (the record with the correct identity, the richer history, the referenced name — the choice documented), the BALANCES understood (the merged customer's receivables uniting — the accounts view read before and after, because the merge moves money's addresses), the REHEARSAL for the consequential merge (test site, again — the merge run, the united record read), and the act LOGGED with both names (the merge log being the answer to 'where did that customer go?' forever after). The irreversibility stated without softening: <b>the merge does not un-merge</b> — the operation's care is proportional to that sentence, and the admin who feels rushed toward a merge has found a reason to slow down.</p><p><b>The deduplicate hunt.</b> The prevention-and-cure system: PREVENTION first (the naming series closing the free-text leak — Chapter 2; the creation pens narrow — the functions' own master laws; the duplicate-check habits at creation: the search-before-create discipline the functions teach their narrow pens), the HUNT as a standing read (the duplicate scan per master type on the quarterly hygiene calendar — the exact-name doubles trivially found; the FUZZY duplicates — the spelling variants, the abbreviated twins, the swapped word orders — found by the sorted-list eyeball and the similarity reads: the hunt is craft, and the admin learns each master type's duplication signatures: customers duplicate by spelling, items by unit variants, suppliers by branch confusion), the FINDINGS routed (the candidate list to the owning function for confirmation — the admin hunts; the owner rules; the confirmed duplicates merge by the discipline above), and the SOURCES fixed (each duplicate's origin asked — the import that loaded variants, the pen that skipped the search, the leak the series left open: the hunt that only merges treats symptoms; the hunt that closes origins retires the species, the module-2 lesson at the data layer).</p><p><b>The operations' shared law.</b> The chapter's closing frame: rename, merge, and dedup all touch IDENTITY — the layer beneath the layers, where every link, fence, balance, and history keys — and the shared governance follows: the owner decides, the admin executes, the test site rehearses the consequential, the log remembers both names, and the irreversible is treated as irreversible. Identity operations are the master machinery's surgery: rare, scheduled, consented, and never performed in the corridor.</p>"
-   },
-   {
-    "title": "Chapter 7 — Data quality reads & the custodianship map",
-    "est": "13",
-    "html": "<p>The layer's maintenance rhythm: the quality reads that keep the masters clean, and the map that keeps every master type owned. The hygiene chapter.</p><p><b>The quality reads.</b> The quarterly scan, read by read: the INCOMPLETE masters (the mandatory-in-spirit fields empty — the customer without a territory, the item without its group, the employee record's gaps: the incompleteness that breaks fences, reports, and imports downstream, listed per master type and routed to the owning pens for filling), the ORPHANED records (the documents referencing disabled or absent masters — the invoice against the merged-away customer that predates the merge log's era, the stock in a warehouse nobody owns: each orphan a small archaeology with a routing), the STALE masters (the untouched-for-years read — the customer with no transactions since the old era, the item never sold: candidates for the DISABLE retirement, per the owner's ruling — the master list that only grows is the museum every track convicted, and disabling is how master lists breathe), the FREE-TEXT drift (the fields that should be selects filled with variants — 'Lagos', 'lagos', 'LAGOS' as three territories: the variants unified by the governed bulk instrument, the field tightened to a link or select through the change discipline), and the DUPLICATE scan (Chapter 6's hunt, on its calendar seat).</p><p><b>The custodianship map.</b> The site book's master page, completed: every master TYPE listed with its CONTENT OWNER (the function's narrow pen — items to inventory's named authority, customers to selling's, the chart to the accountant, employees to HR, structures to payroll: the six tracks' assignments, gathered on one page), its SERIES (Chapter 2's format, documented), its CREATION path (the pen, the mandatory standard, the duplicate-check habit), and its HYGIENE owner for the reads above (the admin runs the scans; the owner rules the findings — the standing split, written down per type so the quarterly read is a routing exercise, not a negotiation), with the map's second service noted: it is the IMPORT sequencing chart (Chapter 4's dependency order readable from the link structure) and the new admin's data orientation in one page.</p><p><b>The quality metrics.</b> The layer's trend line, kept simple: the counts per read per quarter (incomplete, orphaned, stale, duplicate — four numbers per master type), TRENDED (the falling counts as the pens tighten and the origins close — the layer measured by its own quieting, the academy's standard success shape), and escalated by exception (the count that climbs names its origin — the new pen that skips the search, the import that landed variants, the leak reopened: the quality metrics as the master machinery's own health read, feeding module 7's monitoring posture).</p><p><b>The hygiene economics.</b> The chapter's closing argument, for the owner conversation: master hygiene is the cheapest layer to maintain and the most expensive to restore — the quarterly read costs an afternoon; the neglected master file costs a remediation engagement (the trade's cleanup war stories being, at root, master stories: the duplicate customers that split one debtor's history, the item variants that made stock uncountable, the free-text territories that broke every report) — and the certified admin's quiet value proposition is exactly this: the site whose masters stay clean never needs the engagement that fixes them, which is invisible on every invoice and priceless on all of them.</p>"
-   },
-   {
-    "title": "Chapter 8 — Case study: HealthTrade's master year",
-    "est": "16",
-    "html": "<p>The master machinery, governed through a year. Every chapter clocks in.</p><p><b>The residue cleaned (Ch. 6).</b> The dedup hunt's first quarter finds the implementation era's expected sediment: the customer scan surfaces four candidate pairs — three confirmed by Selling's owner as true duplicates (spelling variants from the founding import — 'Chidera Pharmacy Ltd' beside 'Chidera Pharm.'), one REFUSED (two genuinely distinct outlets sharing a family name — the owner's knowledge doing exactly what Chapter 6 said the admin's guess cannot). The three merges run by the book: survivors chosen for correct legal names, the receivables read before and after (one united balance now telling one debtor's true story — the selling track's aging report visibly cleaner the same day), rehearsed on test, logged with both names. The origins closed: the founding import's variant-spelling source identified, and the customer creation pen's search-before-create habit added to Selling's own checklist.</p><p><b>The new-branch load (Ch. 3-4).</b> The Abeokuta branch expansion delivers the year's big legitimate import: the master set loaded in dependency order (the branch and cost center, the warehouse set, the opening price list rows) — template fresh, links validated, the five-hundred-row price file REHEARSED on test (the rehearsal catching a decimal-format pollution in forty rows — the spreadsheet's cosmetics caught in rehearsal, exactly as priced), loaded in batches in the Sunday quiet window, and verified to the row: counts reconciled, spot checks walked, the price list's aggregate spot-totals against the source file. The import log's entry carries the whole event — and the MD's note reads the chapter back: <i>the last branch opening took three weeks of data arguments; this one took a Sunday and a checklist.</i></p><p><b>The bulk update governed (Ch. 5).</b> The year's price revision arrives as the ceremony: Selling's owner decides (the supplier increase passing through), the scope filtered and REVIEWED (the filter's first draft catching a category too many — the selection-wider-than-intention classic, caught at the review step it exists for), the before-snapshot exported, the update-via-import rehearsed and run, the verification's spot checks against the approved sheet — and the radius said out loud before execution (<i>214 items, feeding the price fences and every open quotation's refresh behaviour</i> — the blast-radius habit, performed). One refused operation enters the log the same quarter: a corridor request to bulk-delete 'old test items' — met with the retirement pattern instead (the items DISABLED through Inventory's owner, the histories intact, the list breathing without amputation).</p><p><b>The series and the reads (Ch. 2, 7).</b> The series audit finds one live risk: the new branch's invoice series proposal nearly collides with an existing prefix — caught at the design review (the format catalogue consulted before configuration, the collision averted on paper instead of in production: the cheapest possible version of that story). The quality reads' first year trends exactly as designed: incomplete masters from 31 to 6 (the owning pens filling their lists), free-text drift unified in two governed bulk passes (the territory variants collapsed, the field tightened to a link), stale masters' first retirement wave disabling nineteen museum pieces through their owners, and the quarterly four-numbers-per-type page entering the site book beside the custodianship map. The ops lead's year-note closes the case: <i>the masters used to be where data went to drift; now every type has a series, an owner, a read, and a door — and nothing enters twice.</i></p>"
+    "html": "<p><b>The monthly master hygiene read (fifteen minutes, from saved filters).</b></p><p>1. <b>Creation review:</b> masters created this month, by register — each list read for scheme-named, owner-approved, complete. Off-process creations route to their owners; a rising count with clean process is growth, with dirty process it is drift.<br>2. <b>The duplicate scan:</b> Chapter 4's procedure per register; candidates to owners; merges performed and logged.<br>3. <b>The completeness gaps:</b> Chapter 6's saved filters run; hits routed; the counts trended — gaps should shrink toward zero and stay there.<br>4. <b>The disabled review:</b> masters retired this month (the <b>Disabled</b> checkbox is the master world's leaver procedure — records with history are disabled, never deleted, exactly like users), and any transacting-against-disabled errors read for pattern.<br>5. <b>Import log reconciliation:</b> every Data Import document this month matched to a governance log line.</p><p><b>The HealthTrade cleanup.</b> The register inventory after module 2's access work finds the item book carrying the years of open creation: <b>3,940 items</b>, of which a scan-and-group read surfaces <b>212 duplicate candidates</b>; customers name-based with <b>17 near-neighbour pairs</b>; and no naming decision on record anywhere.</p><p><b>Week one — the decisions.</b> The naming page is written with the owners: items keep their structured code scheme (codes by the scheme, never keyboard-invented); customers move to series naming for all <b>new</b> records (the collision history decided it) with existing names left standing; transaction series confirmed with year segments and counters sized to the decade. The Naming Series tool is set accordingly and one test document per series is created-and-cancelled in the test site, names read aloud.</p><p><b>Weeks two to four — the merges.</b> The 212 item candidates go to the stock owner for verdict: <b>74 confirmed duplicates</b> merged via Rename → Merge with existing (batched, logged, stock histories reunited — two counts that had argued for months agree the week their item codes become one), 96 confirmed distinct (variants mis-suspected), 42 retired outright as dead entries via the Disabled checkbox. The 17 customer pairs yield 11 merges — and the first reunited statement settles a standing dispute: the customer's \"missing\" payments had lived on the twin.</p><p><b>Week five — the fences go up.</b> Create rights narrowed per Chapter 5 (item creation to two names; customer creation to the sales owner and deputy with the same-day lane; the walk-in rule confirmed at the tills). Mandatory fields land on Item Group and stock UOM. The completeness filters are built and the first run routes <b>118 ungrouped items</b> to the stock owner — cleared inside the month.</p><p><b>The steady state.</b> Three months on, the monthly read runs its fifteen minutes: single-digit creations per register, all on-process; duplicate candidates near zero; completeness filters empty; one import (a price-list update) logged with its before-backup. The MD's line for the file: <i>the registers used to be a swamp we drained yearly; now they are a garden somebody weeds monthly.</i></p>"
    },
    {
     "title": "Chapter 9 — Common mistakes & the third law",
-    "est": "13",
-    "html": "<p>The master machinery's scar tissue. Symptom → disease → fix.</p><p><b>Pattern 1 — the import as routine bypass.</b> Symptom: daily transactions arriving as files; validations skipped, approvals never asked; the system demoted to an expensive filing cabinet. Disease: the process bypassed wearing a tool (Ch. 3). Fix: the legitimate catalogue applied at the channel, the import right on the dangerous register, and routine-import requests read as the design signals they are — fixed at the process layer through the owning function.</p><p><b>Pattern 2 — the unvalidated load.</b> Symptom: the founding import's errors compounding for years; the phantom stock, duplicate books, and wrong opening balances of every remediation story. Disease: the discipline skipped at the moment it mattered most (Ch. 4). Fix: template exactness, dependency sequencing, rehearsal for the significant, batched loads, and verification to the row — an hour per load against months per cleanup.</p><p><b>Pattern 3 — the casual rename.</b> Symptom: identities shifting by preference; archives that no longer match their subjects; external references broken silently. Disease: identity treated as a label (Ch. 6). Fix: renames authorised by owners, checked against history and external references, logged, and rare — stable identity being most of a master's value.</p><p><b>Pattern 4 — duplicate sprawl.</b> Symptom: one debtor split across three records; stock uncountable across item variants; every report a merge nobody ran. Disease: the leaks open and the hunt never scheduled (Ch. 2, 6). Fix: the series closing free-text leaks, the quarterly hunt with owner-confirmed merges, and every duplicate's origin closed — the species retired, not just the specimens.</p><p><b>Pattern 5 — the bulk edit disaster.</b> Symptom: the selection wider than the intention; hundreds changed in one act; no snapshot, no rehearsal, no way back. Disease: power without ceremony (Ch. 5). Fix: the governed procedure — owner's decision, reviewed scope, before-snapshot, rehearsal, quiet window, verification, log — and the radius said out loud before every act.</p><p><b>Pattern 6 — series chaos.</b> Symptom: counters reset into collisions; formats drifting mid-life; free-text names beside the series; prefixes multiplying by mood. Disease: the registrar's machinery unadministered (Ch. 2). Fix: forward-only counters, documented formats in the catalogue, leaks closed by configuration, and series changes through the change discipline — every master born already named by law.</p><p><b>The third law.</b> The custodian named, the fences proven — and now the data governed at its door: <b>masters enter governed, once — named by administered series, loaded through the validated door in dependency order, changed in bulk only by ceremony, united by owner-confirmed merges that never un-merge, retired by disabling, and kept singular by the quarterly hunt that closes origins.</b> The functions own what the masters say; the admin owns how they enter, change, and stay clean — and the site whose masters are governed this way never becomes the cleanup engagement, which is the certified admin's quietest and largest gift. Module 4 turns to the layer that guarantees all of it survives anything: backups, recovery, and business continuity.</p>"
+    "est": "11",
+    "html": "<p>The register layer's recurring failures, then the review list.</p><p><b>Pattern 1 — the open register.</b> Symptom: everyone creates everything; duplicates monthly; naming by keyboard mood; nobody answerable for any register. Cause: create rights never split from use rights (Chapter 5). Fix: the Role Permission Manager split, owners named per register, the request lane with its service standard, and the walk-in rule at the tills.</p><p><b>Pattern 2 — the duplicate swamp.</b> Symptom: split statements, split agings, stock in twin item codes, collection calls made on half a history. Cause: search-first never taught, imports run in Insert against existing populations, detection never scheduled (Chapters 4, 7). Fix: the drain — the scan, the owner verdicts, the Rename/Merge batches, logged — then the monthly scan keeping the water low.</p><p><b>Pattern 3 — the incomplete master.</b> Symptom: failures at posting time — invoices that cannot find accounts, items that will not stock-post, statements with nowhere to go; each fixed \"quickly\" at the counter by whoever is blocked. Cause: completeness unenforced at creation (Chapter 6). Fix: mandatory fields on the high-dependency columns, templates pre-filling defaults, and the completeness filters run monthly with hits routed to owners.</p><p><b>Pattern 4 — the ungoverned import.</b> Symptom: a register transformed overnight; nobody knows what ran, from what source, on whose approval; error rows abandoned; the counter reads a half-truth. Cause: Import held broadly and run casually (Chapter 7). Fix: Import rights narrowed, the six-step procedure (owner, template, test slice, backup, run-and-read, log) as the only lane, and the monthly import-log reconciliation.</p><p><b>Pattern 5 — deletion as tidying.</b> Symptom: masters with history deleted to \"clean up\"; broken links; reports whose totals reference records that no longer exist; the audit trail orphaned. Cause: the Disabled checkbox unknown or ignored. Fix: the rule taught as the user rule's twin — <b>history is never deleted; retirement is the Disabled checkbox</b> — and Delete kept off master doctypes for daily roles in the permission matrix.</p><p><b>Pattern 6 — series drift.</b> Symptom: counters reset, numbers reused, parallel series nobody chose, an invoice number the filed return cannot match. Cause: the Naming Series tool touched casually (Chapter 3). Fix: the series register page, current-value changes as logged events with lawful reasons only, and the annual walk reconciling tool to page.</p><p><b>The review list.</b> Before the quiz, confirm you can: state the four properties of a governed register and the master-error multiplication; choose field-based versus series naming per register and defend the Customer/Supplier Naming By decision; operate the Naming Series tool — patterns, counters, the two lawful current-value uses and the forbidden one; run the duplicate read and the Rename → Merge with existing procedure with its logging; design creation governance with the request lane and the walk-in rule; enforce completeness by mandatory fields, templates, and the saved-filter reads; run the six-step governed import in the right Import Type; and run the monthly hygiene read.</p><p><b>The third law: masters enter governed, once — named by the scheme, owned by name, merged never duplicated, disabled never deleted.</b> Module 4 covers the layer beneath everything: backups and continuity.</p>"
    }
   ],
   "questions": [
    {
-    "q": "The custodianship split at the master layer is:",
+    "q": "A master error differs from a transaction error because:",
     "opts": [
-     "Functions own the masters' CONTENT; the admin owns the MACHINERY — series, imports, merges, hygiene",
-     "The admin authors content",
-     "The host owns both",
-     "Nobody owns masters"
+     "It multiplies — wrong in every document that links to it until fixed",
+     "It is smaller",
+     "It self-corrects",
+     "It is cosmetic"
     ],
     "ans": 0,
-    "why": "The registrar's clerk, never the author.",
+    "why": "The Link structure is the leverage.",
     "src": "Ch1"
    },
    {
-    "q": "The admin creating a missing item at a user's request is:",
+    "q": "The four properties of a governed register are:",
     "opts": [
-     "Helpful",
-     "Authoring inventory content with a platform pen — the corridor grant's master-data twin",
-     "Standard",
-     "Efficient"
+     "Fast, big, new, cheap",
+     "Unique, named, complete, owned",
+     "Read, write, create, delete",
+     "Daily, weekly, monthly, annual"
     ],
     "ans": 1,
-    "why": "The owner decides; the admin executes.",
+    "why": "Every chapter serves one of them.",
     "src": "Ch1"
    },
    {
-    "q": "Most cleanup engagements trace to:",
+    "q": "The sysadmin owns the registers':",
     "opts": [
-     "Bad users",
-     "The host",
-     "Imports done casually a long time ago, compounding since — the unvalidated founding load",
-     "Bad luck"
+     "Content",
+     "Budgets",
+     "Machinery — series, rights, imports, merges, reads; content belongs to the register owners",
+     "History"
     ],
     "ans": 2,
-    "why": "The original sin of the remediation war stories.",
+    "why": "The same split as the permission layer.",
     "src": "Ch1"
    },
    {
-    "q": "Numbers are:",
+    "q": "Customer Naming By is set in:",
     "opts": [
-     "Information",
-     "Reusable",
-     "Decorative",
-     "Identity, not information — the number encoding categories is a design smell; categories change, identities must not"
+     "System Settings",
+     "The host panel",
+     "The Customer form",
+     "Selling Settings — Customer Name or Naming Series; Buying Settings mirrors it for suppliers"
     ],
     "ans": 3,
-    "why": "The registrar law, seated on its machinery.",
+    "why": "Decided per register, at birth, with the reason recorded.",
     "src": "Ch2"
    },
    {
-    "q": "Counters move:",
+    "q": "Field-based naming's cost is:",
     "opts": [
-     "Forward only — set manually only in the governed migration moment with the existing maximum verified first",
-     "Either way",
-     "Backward at year-end",
-     "Randomly"
+     "Collision and drift — two identical trading names cannot coexist, and renames leave old IDs in history",
+     "Ugly lists",
+     "Slower search",
+     "No cost"
     ],
     "ans": 0,
-    "why": "The collision discipline.",
+    "why": "Series naming is collision-proof and rename-proof.",
     "src": "Ch2"
    },
    {
-    "q": "The series that jumps a thousand is:",
+    "q": "Item Codes are:",
     "opts": [
-     "Normal",
-     "A question — gaps are tolerable but explained; the gap is the series' own audit trail",
-     "Broken",
-     "Ignored"
-    ],
-    "ans": 1,
-    "why": "The honest gap versus the mystery.",
-    "src": "Ch2"
-   },
-   {
-    "q": "Free-text naming beside the series is:",
-    "opts": [
-     "Flexibility",
-     "Convenient",
-     "The leak the cleanup found as 'Chidi's customer' — closed by configuration, the series made mandatory",
-     "Rare"
-    ],
-    "ans": 2,
-    "why": "The series diseases, named.",
-    "src": "Ch2"
-   },
-   {
-    "q": "Each import row becomes:",
-    "opts": [
-     "A suggestion",
-     "A log line",
-     "A draft",
-     "A document as real as if typed — every governance question multiplied by the row count"
-    ],
-    "ans": 3,
-    "why": "The power and the peril in one sentence.",
-    "src": "Ch3"
-   },
-   {
-    "q": "Legitimate imports are:",
-    "opts": [
-     "The short catalogue — implementation loads, bulk master events, migrations, governed corrections",
-     "Anything bulk",
-     "Daily sales",
-     "Whatever saves time"
-    ],
-    "ans": 0,
-    "why": "Everything outside it is the disease.",
-    "src": "Ch3"
-   },
-   {
-    "q": "The routine transaction import means:",
-    "opts": [
-     "Efficiency",
-     "The process bypassed wearing a tool — the firm computerised its spreadsheet, not its process",
-     "Modern practice",
-     "Scale"
-    ],
-    "ans": 1,
-    "why": "The system demoted to an expensive filing cabinet.",
-    "src": "Ch3"
-   },
-   {
-    "q": "The import log answers:",
-    "opts": [
-     "Nothing",
-     "Audit trivia",
-     "'Where did these three hundred customers come from?' with a log line, not a shrug",
-     "Storage questions"
-    ],
-    "ans": 2,
-    "why": "The site's data provenance.",
-    "src": "Ch3"
-   },
-   {
-    "q": "Templates are:",
-    "opts": [
-     "Reusable forever",
-     "The host's",
+     "Invented at the keyboard",
+     "Assigned by the designed scheme, never keyboard-invented",
      "Optional",
-     "Downloaded fresh — fields drift with updates, and the stale template is the column-mismatch mystery"
-    ],
-    "ans": 3,
-    "why": "Stage one's first rule.",
-    "src": "Ch4"
-   },
-   {
-    "q": "Master loads are sequenced because:",
-    "opts": [
-     "Link fields must reference masters that EXIST — groups before items, territories before customers",
-     "Alphabets",
-     "Size",
-     "Habit"
-    ],
-    "ans": 0,
-    "why": "The dependency order drawn before any file is filled.",
-    "src": "Ch4"
-   },
-   {
-    "q": "The significant load is:",
-    "opts": [
-     "Run directly",
-     "Rehearsed on the test site — errors in rehearsal cost minutes; in production, a cleanup",
-     "Estimated",
-     "Skipped"
+     "Set by the host"
     ],
     "ans": 1,
-    "why": "The iron habit at the loading dock.",
-    "src": "Ch4"
+    "why": "Barcodes and search hang off this field.",
+    "src": "Ch2"
    },
    {
-    "q": "Failed rows are:",
+    "q": "Transaction series are:",
     "opts": [
-     "Hand-created quickly",
-     "Ignored",
-     "Logged, corrected, and re-run — the hand-created stragglers skip the very validations the import enforced",
-     "Deleted"
+     "Restarted yearly",
+     "Reused after cancels",
+     "Never restarted, never reused — filed returns must match in year seven",
+     "Random"
     ],
     "ans": 2,
-    "why": "The partial-failure posture, decided in advance.",
-    "src": "Ch4"
+    "why": "The Accounts track's rule, implemented here.",
+    "src": "Ch2"
    },
    {
-    "q": "Post-load verification includes:",
+    "q": "The counter digits are sized to:",
     "opts": [
-     "A glance",
-     "An email",
-     "Nothing",
-     "The count to the row, spot checks against source, and aggregate checks where values moved"
+     "This year's volume",
+     "The screen width",
+     "Ten records",
+     "A decade of volume"
     ],
     "ans": 3,
-    "why": "The load proven, not assumed.",
-    "src": "Ch4"
+    "why": ".#### rolls at ten thousand.",
+    "src": "Ch3"
    },
    {
-    "q": "The bulk edit's classic disaster is:",
+    "q": "Multiple series on one doctype lawfully serve:",
     "opts": [
-     "The selection wider than the intention — the 'all items' that meant 'these items'",
-     "Slow servers",
-     "Typos",
-     "Timing"
-    ],
-    "ans": 0,
-    "why": "The scope reviewed, because of exactly this.",
-    "src": "Ch5"
-   },
-   {
-    "q": "The before-snapshot makes:",
-    "opts": [
-     "Reports",
-     "'Undo' a re-import instead of an archaeology — the voluntary frozen history bulk edits don't provide",
-     "Backups redundant",
-     "Audits happy"
-    ],
-    "ans": 1,
-    "why": "The cheap insurance, taken always.",
-    "src": "Ch5"
-   },
-   {
-    "q": "Bulk delete is:",
-    "opts": [
-     "A cleanup tool",
-     "Monthly hygiene",
-     "Refused as a category — the master no longer used is DISABLED; retirement, not amputation",
-     "Fast"
-    ],
-    "ans": 2,
-    "why": "The trail-punching delete at industrial scale.",
-    "src": "Ch5"
-   },
-   {
-    "q": "Bulk changes to submitted documents:",
-    "opts": [
-     "Save time",
-     "Need no log",
-     "Are standard",
-     "Do not happen — corrections to sealed history travel the functions' own machinery, document by document"
-    ],
-    "ans": 3,
-    "why": "The bulk instrument does not unseal what the process sealed.",
-    "src": "Ch5"
-   },
-   {
-    "q": "The blast-radius habit is:",
-    "opts": [
-     "The radius said OUT LOUD before any bulk act — the cosmetic-looking field is load-bearing somewhere",
-     "Paperwork",
-     "Fear",
-     "Optional"
-    ],
-    "ans": 0,
-    "why": "Two minutes against the Tuesday everyone remembers.",
-    "src": "Ch5"
-   },
-   {
-    "q": "The rename's machinery handles links; the admin's checklist covers:",
-    "opts": [
-     "Nothing more",
-     "History's readability, external references, and the owner's authorisation",
-     "Fonts",
+     "Per-company or per-branch streams — with the default wired so the front line never chooses",
+     "Decoration",
+     "User preference",
      "Speed"
     ],
-    "ans": 1,
-    "why": "Stable identity is most of a master's value.",
-    "src": "Ch6"
+    "ans": 0,
+    "why": "Every added series is another counter to govern.",
+    "src": "Ch3"
    },
    {
-    "q": "The two similar customers may be:",
+    "q": "The lawful current-value uses are:",
     "opts": [
-     "Always duplicates",
-     "Always merged",
-     "A branch relationship, a father and son, two genuine entities — the owner's knowledge, not the admin's guess",
-     "Ignored"
+     "Any correction",
+     "The go-live opening counter and a documented alignment after a governed correction",
+     "Monthly resets",
+     "There are none"
+    ],
+    "ans": 1,
+    "why": "Resetting to reuse numbers is forbidden.",
+    "src": "Ch3"
+   },
+   {
+    "q": "A reused invoice number is:",
+    "opts": [
+     "Efficient",
+     "Normal after cancel",
+     "Two documents answering one identity — a filing-integrity failure",
+     "Harmless"
     ],
     "ans": 2,
-    "why": "The merge on a false duplicate scrambles two histories into one lie.",
-    "src": "Ch6"
+    "why": "The year-seven auditor finds it.",
+    "src": "Ch3"
    },
    {
-    "q": "The merge:",
+    "q": "A new series is tested by:",
     "opts": [
-     "Can be undone",
-     "Is automatic",
-     "Is routine",
-     "Does not un-merge — care proportional to that sentence; the rushed admin has found a reason to slow down"
+     "Waiting a month",
+     "A screenshot",
+     "The host",
+     "Creating and cancelling one document in the test site and reading the name against the register"
     ],
     "ans": 3,
-    "why": "The layer's most consequential act.",
-    "src": "Ch6"
+    "why": "Ten seconds; catches the misplaced dot and wrong default.",
+    "src": "Ch3"
    },
    {
-    "q": "The dedup hunt that only merges:",
+    "q": "Duplicates' three standard births are:",
     "opts": [
-     "Treats symptoms — the hunt that closes origins retires the species",
-     "Is complete",
-     "Is enough",
-     "Is fast"
+     "The failed search, the Insert import against existing records, and open creation",
+     "Bugs, hacks, crashes",
+     "Renames, merges, deletes",
+     "Updates"
     ],
     "ans": 0,
-    "why": "Each duplicate's origin asked and fixed.",
-    "src": "Ch6"
+    "why": "Prevention maps to each.",
+    "src": "Ch4"
    },
    {
-    "q": "Fuzzy duplicates are found by:",
+    "q": "The duplicate read includes:",
     "opts": [
-     "Exact matching only",
-     "Craft — sorted-list eyeballs and similarity reads; each master type has its duplication signatures",
-     "Luck",
-     "Users"
+     "One button",
+     "Name-sorted scans plus report views grouped by phone, tax ID, or barcode — a duplicate confessing",
+     "Only imports",
+     "The Error Log"
     ],
     "ans": 1,
-    "why": "Customers by spelling, items by unit variants, suppliers by branch confusion.",
-    "src": "Ch6"
+    "why": "Candidates go to the register owner for verdict.",
+    "src": "Ch4"
    },
    {
-    "q": "Identity operations are:",
+    "q": "The merge is performed by:",
     "opts": [
-     "Corridor work",
-     "Daily tasks",
-     "The master machinery's surgery — rare, scheduled, consented, never performed in the corridor",
-     "Automated"
+     "Deleting one record",
+     "An import",
+     "Rename on the duplicate → the survivor's name → Merge with existing — history re-pointed, duplicate retired",
+     "The host"
     ],
     "ans": 2,
-    "why": "Rename, merge, dedup share one governance.",
-    "src": "Ch6"
+    "why": "Survivor decided with the owner; the merge logged.",
+    "src": "Ch4"
    },
    {
-    "q": "Stale masters are:",
+    "q": "Item merges:",
     "opts": [
-     "Deleted",
-     "Renamed",
-     "Kept forever",
-     "DISABLED through their owners — the list that only grows is the museum; disabling is how master lists breathe"
+     "Always work",
+     "Delete stock",
+     "Are automatic",
+     "Require structural agreement — stock UOM and similar fields must match"
     ],
     "ans": 3,
-    "why": "The retirement pattern at the data layer.",
-    "src": "Ch7"
+    "why": "Warehouse and account merges are planned events.",
+    "src": "Ch4"
    },
    {
-    "q": "'Lagos', 'lagos', 'LAGOS' as three territories is:",
+    "q": "Rename/merge rights sit with:",
     "opts": [
-     "Free-text drift — unified by the governed bulk instrument, the field tightened to a link",
-     "Harmless",
-     "A feature",
-     "Rare"
+     "The sysadmin — a recorded event, not a daily-user power",
+     "All users",
+     "The newest hire",
+     "The host"
     ],
     "ans": 0,
-    "why": "The variants that break every report.",
-    "src": "Ch7"
+    "why": "The tool's power is why its use is logged.",
+    "src": "Ch4"
    },
    {
-    "q": "The custodianship map doubles as:",
+    "q": "Master creation is:",
     "opts": [
-     "Decoration",
-     "The import sequencing chart and the new admin's data orientation in one page",
-     "A org chart",
-     "A backup"
+     "Open to all users",
+     "Narrower than master use — Create split from Read in the Role Permission Manager",
+     "Automatic",
+     "The host's job"
     ],
     "ans": 1,
-    "why": "The link structure read as dependency order.",
-    "src": "Ch7"
+    "why": "One or two creating roles per register.",
+    "src": "Ch5"
    },
    {
-    "q": "Master hygiene economics:",
+    "q": "The request lane needs:",
     "opts": [
-     "Expensive to keep, cheap to restore",
-     "Equal both ways",
-     "The cheapest layer to maintain, the most expensive to restore — an afternoon quarterly versus a remediation engagement",
-     "Unknowable"
+     "A committee",
+     "A form only",
+     "A written service standard — same-day for customers — or the front line routes around it",
+     "Nothing"
     ],
     "ans": 2,
-    "why": "The certified admin's quiet value proposition.",
+    "why": "A slow lane breeds exceptions.",
+    "src": "Ch5"
+   },
+   {
+    "q": "Walk-in retail customers are handled by:",
+    "opts": [
+     "Creating each one",
+     "The cashier's keyboard",
+     "Refusing the sale",
+     "The standing walk-in customer — real records created only when a real relationship starts"
+    ],
+    "ans": 3,
+    "why": "The register stays closed without blocking the till.",
+    "src": "Ch5"
+   },
+   {
+    "q": "An ungrouped item:",
+    "opts": [
+     "Vanishes from every grouped read — Item Group is a mandatory-field candidate",
+     "Posts fine",
+     "Cannot exist",
+     "Is a duplicate"
+    ],
+    "ans": 0,
+    "why": "The reporting tree depends on it.",
+    "src": "Ch6"
+   },
+   {
+    "q": "The Item Defaults table carries:",
+    "opts": [
+     "Prices only",
+     "Per-company income/expense accounts, warehouses, and cost centres — future documents post right without thinking",
+     "Barcodes",
+     "Suppliers"
+    ],
+    "ans": 1,
+    "why": "Completeness enforced at creation.",
+    "src": "Ch6"
+   },
+   {
+    "q": "Customer completeness includes:",
+    "opts": [
+     "Only the name",
+     "A photo",
+     "Group, Territory, contact and address (statements need somewhere to go), terms, and credit fields where granted",
+     "A password"
+    ],
+    "ans": 2,
+    "why": "Process Statement Of Accounts mails those addresses.",
+    "src": "Ch6"
+   },
+   {
+    "q": "Completeness is enforced by:",
+    "opts": [
+     "Memos",
+     "The host",
+     "Training only",
+     "Mandatory fields, templates pre-filling defaults, and monthly saved-filter gap reads routed to owners"
+    ],
+    "ans": 3,
+    "why": "Machinery over memos.",
+    "src": "Ch6"
+   },
+   {
+    "q": "The Import Type field:",
+    "opts": [
+     "Decides create versus modify — Insert New Records or Update Existing Records; confirmed before every run",
+     "Is cosmetic",
+     "Sets the speed",
+     "Chooses the file"
+    ],
+    "ans": 0,
+    "why": "Insert against existing records is the duplicate factory.",
     "src": "Ch7"
    },
    {
-    "q": "HealthTrade's refused merge pair was:",
+    "q": "Import preparation uses:",
     "opts": [
-     "An error",
+     "Any spreadsheet",
+     "The tool's Download Template — correct columns, mandatory fields marked",
+     "A photo",
+     "The old system's export as-is"
+    ],
+    "ans": 1,
+    "why": "Half of import pain is column archaeology.",
+    "src": "Ch7"
+   },
+   {
+    "q": "Before a large import:",
+    "opts": [
+     "Nothing special",
+     "An email",
+     "A test-site slice of ten rows and the on-demand backup",
+     "A meeting"
+    ],
+    "ans": 2,
+    "why": "Module 4's before-change rule and module 5's test discipline.",
+    "src": "Ch7"
+   },
+   {
+    "q": "Error rows are:",
+    "opts": [
+     "Abandoned",
+     "Ignored if few",
      "Deleted",
-     "Merged later",
-     "Two genuinely distinct outlets sharing a family name — the owner's knowledge doing what the admin's guess cannot"
+     "Fixed and re-run — a half-imported register is two half-truths"
     ],
     "ans": 3,
-    "why": "Chapter 6's discipline, live.",
+    "why": "The tool reports them with reasons.",
+    "src": "Ch7"
+   },
+   {
+    "q": "Import permission is:",
+    "opts": [
+     "Narrow — the sysadmin and trained register owners; one 'helpful' import can undo a quarter of hygiene",
+     "General",
+     "Automatic with Create",
+     "The host's"
+    ],
+    "ans": 0,
+    "why": "Module 2's matrix flagged it.",
+    "src": "Ch7"
+   },
+   {
+    "q": "Masters with history are retired by:",
+    "opts": [
+     "Deletion",
+     "The Disabled checkbox — the master world's leaver procedure",
+     "Renaming to OLD-",
+     "Archiving offline"
+    ],
+    "ans": 1,
+    "why": "History is never deleted.",
     "src": "Ch8"
    },
    {
-    "q": "The rehearsal caught:",
+    "q": "HealthTrade's item verdicts split:",
     "opts": [
-     "Decimal-format pollution in forty rows — the spreadsheet's cosmetics, caught at the priced moment",
+     "All merged",
+     "All deleted",
+     "74 merged, 96 confirmed distinct, 42 retired via Disabled — from 212 candidates",
+     "None resolved"
+    ],
+    "ans": 2,
+    "why": "Owner verdicts before merges.",
+    "src": "Ch8"
+   },
+   {
+    "q": "The first reunited customer statement:",
+    "opts": [
+     "Changed nothing",
+     "Was disputed",
+     "Created a duplicate",
+     "Settled a standing dispute — the 'missing' payments had lived on the twin"
+    ],
+    "ans": 3,
+    "why": "The payoff that converts search-first into conviction.",
+    "src": "Ch8"
+   },
+   {
+    "q": "HealthTrade's first completeness run found:",
+    "opts": [
+     "118 ungrouped items, routed and cleared inside the month",
      "Nothing",
-     "A virus",
-     "A collision"
+     "One error",
+     "Duplicate series"
     ],
     "ans": 0,
-    "why": "Errors in rehearsal cost minutes.",
+    "why": "Saved filters, run monthly after.",
     "src": "Ch8"
    },
    {
-    "q": "The 'old test items' corridor request was met with:",
+    "q": "The ungoverned import pattern is fixed by:",
     "opts": [
-     "Bulk delete",
-     "The retirement pattern — DISABLED through Inventory's owner, histories intact, the list breathing without amputation",
-     "Silence",
-     "A quick yes"
+     "Banning imports",
+     "Narrowed Import rights, the six-step lane, and monthly import-log reconciliation",
+     "Bigger templates",
+     "The host"
     ],
     "ans": 1,
-    "why": "The refused operation, logged.",
-    "src": "Ch8"
+    "why": "Owner, template, test slice, backup, run-and-read, log.",
+    "src": "Ch9"
    },
    {
-    "q": "This module's law is:",
+    "q": "Module 3's law is:",
     "opts": [
-     "Data enters freely",
-     "Imports are always fine",
-     "Masters enter governed, once — administered series, the validated door in dependency order, bulk by ceremony, merges that never un-merge, retirement by disabling, the quarterly hunt closing origins",
-     "Deletes clean up"
+     "Create freely",
+     "Delete monthly",
+     "Masters enter governed, once — named by the scheme, owned by name, merged never duplicated, disabled never deleted",
+     "Import weekly"
     ],
     "ans": 2,
-    "why": "The site that never becomes the cleanup engagement.",
+    "why": "The third law.",
     "src": "Ch9"
    }
   ]
  },
  "backups_continuity": {
   "title": "Sysadmin 4 — Backups, Recovery & Business Continuity",
-  "desc": "A backup untested is a hope: the backup's full anatomy with the offsite principle, RPO and RTO as the owner's two numbers, the quarterly restore drill against the full checklist, the recovery ladder matched to damage, the continuity plan with numbered-pad fallback mode and governed re-entry, and the evidence layer that proves the machinery backward and forward.",
+  "desc": "Backups and continuity on the managed platform: the two custodies; the database-plus-files completeness rule; RPO and RTO held in writing; the Download Backups page with the daily presence check and the monthly off-platform copy; the three restore paths with sets named by timestamp; the monthly restore drill and the annual full dress; the before-change backup with the no-timestamp-no-run reflex; and the four-scenario continuity runbook with degraded tills and governed re-entry.",
   "lessons": [
    {
     "title": "Chapter 1 — A backup untested is a hope",
+    "est": "11",
+    "html": "<p>This module covers the survival layer: what a backup contains, the two custodies and their schedules, the Download Backups page, restores and the drill, the before-change backup, the continuity runbook beyond data, and the HealthTrade rehearsal.</p><p><b>The stakes, stated flat.</b> The site holds the books, the stock ledger, the customer relationships, the tax evidence — the business's memory. Hardware fails, mistakes at scale happen (the import gone wrong, the bulk edit misfired), and hostile events exist. Backups are the difference between an incident and an ending. Every other module of this track assumes this one works.</p><p><b>The law, stated first because everything serves it: a backup untested is a hope.</b> A backup file that exists proves storage was consumed; only a <b>restore</b> proves the business can come back. The industry's standing tragedy is the business that backed up faithfully for years and discovered at the fire that the files were empty, partial, or unrestorable. The restore drill (Chapter 5) is therefore not an advanced topic — it is the module's centre, and the monthly calendar line module 1 already placed.</p><p><b>The two custodies.</b> On the managed platform, backup runs in both custodies of module 1's map, and the sysadmin must know exactly what each holds:</p><p>• <b>The host's custody (CloudERP.One):</b> the scheduled platform backups — nightly database and file backups on the infrastructure, replicated off-site per the hosting agreement. The sysadmin does not operate these but must hold their terms <b>in writing</b>: frequency, retention, off-site arrangement, and the two recovery numbers of Chapter 2.<br>• <b>The site's custody (this certification):</b> the periodic <b>downloaded copy</b> kept outside the platform entirely (Chapter 3's procedure), the <b>before-change backup</b> preceding every risky operation (Chapter 6), and the <b>restore verification</b> that tests the whole chain (Chapter 5).</p><p>Two custodies because each covers the other's failure mode: the host's machinery covers the site's daily risks at professional grade; the site's own off-platform copy covers the un-thinkable — the platform relationship itself failing, the account dispute, the regional event. A business whose only backups live inside the platform they back up has one custody, not two.</p><p><b>Module contents.</b> Chapter 2: what a backup contains, and the two recovery numbers. Chapter 3: the Download Backups page and the off-platform copy. Chapter 4: restore paths on a managed platform. Chapter 5: the restore drill. Chapter 6: the before-change backup. Chapter 7: the continuity runbook. Chapter 8: the HealthTrade rehearsal. Chapter 9: review and the law.</p>"
+   },
+   {
+    "title": "Chapter 2 — What a backup contains, and the two numbers",
     "est": "12",
-    "html": "<p>Every law this academy has written assumes one thing so completely that no track ever said it aloud: the data SURVIVES. The frozen runs, the forever archives, the registers that answer years later — all of them rest on the layer this module governs, and its thesis is the track's fourth law, stated in its full severity: <b>a backup untested is a hope, not a backup — and hope is not a continuity plan.</b></p><p><b>The layer's character.</b> What makes this module different from every other in the academy: the backup layer is the only one whose failure is invisible until the exact moment it is catastrophic — every other discipline announces its neglect in dribbles (the drifting masters, the aging queue, the sprawling permissions each visible to their reads), but the broken backup looks IDENTICAL to the working one for months or years, revealing itself only on the day something must be recovered, which is the one day no repair is possible. The consequence for the admin's posture: this is the layer where VERIFICATION is the entire discipline — not configuration (largely the host's, per the boundary), not operation (automated by design), but the standing, scheduled, evidenced PROOF that recovery actually works, which Chapter 4 makes the module's heart.</p><p><b>The boundary, cashed.</b> Module 1's sentence — <i>'the host has backups' and 'we have tested that we can recover' are different sentences</i> — now unpacked into duties: the HOST runs the backup machinery (the automated cycles, the infrastructure redundancy, the platform-level protections — real, valuable, and not the firm's plan), while the ADMIN owns the firm's RECOVERABILITY: knowing what the backups contain (Chapter 2's anatomy — and whether that is everything the firm needs), knowing the firm's tolerances (Chapter 3's RPO/RTO — decisions no host can make for it), PROVING recovery periodically (Chapter 4's drill), holding the runbooks for the scenarios (Chapter 5), and planning the business's continuity beyond the system entirely (Chapter 6 — the counter that must trade while the site is down being nobody's problem but the firm's). The division's one-line memory aid, for the site book: <b>the host insures the platform; the admin insures the firm's tomorrow morning.</b></p><p><b>The two questions.</b> The module's organising pair, introduced now and decided in Chapter 3: <b>how much can we afford to LOSE?</b> (the work since the last backup — the recovery point) and <b>how long can we afford to be DOWN?</b> (the time until trading resumes — the recovery time). Every technical choice in this module is downstream of those two answers, and both are BUSINESS decisions the owner makes with the admin pricing the options — which is the module's quiet reframe for every implementation: backups are not an IT topic the owner delegates entirely; they are the firm's insurance policy, and nobody signs an insurance policy without reading the two numbers on its face.</p>"
+    "html": "<p><b>The anatomy.</b> A complete site backup is <b>two things</b>, and the distinction is this chapter's most practical fact:</p><p>1. <b>The database</b> — every document, master, setting, permission, and log: the structured memory. This is the file most people mean by \"the backup\".<br>2. <b>The files</b> — the attachments: the invoice scans, the signed contracts, the voucher images, the product photos — stored as public and private file archives <b>separate from the database dump</b>.</p><p>A database-only backup restores a system whose every attachment link is broken — and since this programme attaches evidence to entries as standard practice (remittance returns, import approvals, count sheets), the files <b>are</b> part of the books. The completeness rule: <b>a backup is database plus files, always, in both custodies.</b> Chapter 8 shows HealthTrade learning this the cheap way.</p><p><b>What is not in the site backup.</b> The apps (code) and platform configuration live in the host's custody and update stream — after a restore, the host re-provisions the site on current platform code with the restored data. This is why version notes matter in the backup log: data from a much older app version restores with a migration step the host performs.</p><p><b>The two recovery numbers — held in writing.</b> The hosting agreement's continuity terms compress into two numbers the sysadmin must be able to quote:</p><p>• <b>RPO — recovery point objective:</b> how much recent work can be lost. Nightly backups mean an RPO of up to twenty-four hours: a failure at 5pm can lose the day. The business decides — as a policy, with the owner — whether that is acceptable for its trade; where it is not, the answer is raising backup frequency with the host, not hoping.<br>• <b>RTO — recovery time objective:</b> how long a restore takes end to end — from decision to a working site. The number shapes Chapter 7's runbook: an RTO of hours means the degraded-operation procedures must carry hours, not minutes.</p><p>Both numbers are confirmed with the host, written on the continuity page, and re-confirmed at the annual review — because the numbers people assume are always better than the numbers the agreement states, and the gap is discovered at the worst possible moment.</p><p>Practical rule: the monthly backup verification (Chapter 5) checks three completeness facts before anything else: the database file present, <b>both</b> file archives present, and the dates matching the schedule. Presence is the cheap check; the restore is the real one.</p>"
    },
    {
-    "title": "Chapter 2 — The backup's anatomy: what 'everything' means",
+    "title": "Chapter 3 — The Download Backups page and the off-platform copy",
+    "est": "12",
+    "html": "<p>Open <b>Download Backups</b> (awesome bar). This page is the site's own window on its backups: the recent backup sets listed with timestamps, each set offering its <b>database</b> download and its <b>files</b> downloads, plus the on-demand trigger to generate a fresh backup now. Two of this module's procedures run from this page.</p><p><b>Procedure one — the daily presence check (module 1's calendar line).</b> Open the page; confirm yesterday's set exists with a plausible size and today's schedule ran. Thirty seconds. A missing or shrunken backup is raised the same day with the five-item report — this is the check that catches the silently-dead schedule <b>before</b> the month that needed it.</p><p><b>Procedure two — the off-platform copy (monthly, after the restore drill).</b></p><p>1. Trigger a fresh on-demand backup (or take the latest nightly set).<br>2. Download <b>all components</b> — the database file and both file archives. The database-only download habit is this module's classic quiet failure.<br>3. Store the set <b>outside the platform</b>: the business's own encrypted storage — a cloud drive under the business's account, plus, where the policy wants it, an offline copy. The point of this copy is surviving events that include the platform, so it cannot live on the platform.<br>4. Verify the copy: sizes match, the archive opens, the set is complete.<br>5. Log it: date, set timestamp, components, where stored, verified by whom.<br>6. Retention per the written policy — typically a rolling set of monthly copies plus the year-end copies kept long-term with the audit file. The retention line is written on the continuity page beside the recovery numbers, so the question of how far back the business can reach has one answer in one place.</p><p><b>Custody of the copies.</b> The downloaded backup <b>is the entire business in a file</b> — every customer, every price, every salary. It is protected like the crown jewels it is:</p><p>• Stored encrypted, in storage the <b>business</b> controls (not a personal drive that leaves when a person does — the leaver procedure cannot chase personal storage).<br>• Access limited to the sysadmin and backstop, listed on the continuity page.<br>• Old copies beyond retention are properly destroyed, not abandoned on forgotten drives.</p><p>Practical rule: the off-platform copy is scheduled <b>after</b> the monthly restore drill on the calendar, so what goes off-platform each month is a set whose sibling was just proven restorable — the copy inherits the drill's confidence.</p>"
+   },
+   {
+    "title": "Chapter 4 — Restore paths on a managed platform",
+    "est": "12",
+    "html": "<p>Restores on a managed platform run through defined paths, and the sysadmin's competence is knowing which path fits which event <b>before</b> the event.</p><p><b>Path one — the full restore (the host performs it).</b> The site is lost or corrupted beyond repair: the restore is a support request of the highest severity — the five-item report plus three restore-specific facts: <b>which backup set</b> (the timestamp, chosen deliberately: the last set <b>before</b> the damaging event, which is not always the latest set), <b>restore where</b> (over the live site, or to a parallel site for inspection first — the cautious default when time allows), and <b>the authorisation</b> (a full restore discards everything after the restore point; the decision is the owner's, on the record, because the restore's cost is the RPO made real: the work since the set is re-entered from the paper trail).</p><p><b>Path two — the test-site restore (the drill's path, Chapter 5).</b> The same mechanics pointed at the test environment: a backup set restored to the test site, where it can be opened and read without touching production. This path is exercised monthly, which means the people, the request format, and the timing are all rehearsed when path one is suddenly needed — the drill is a fire drill precisely because it uses the real stairs.</p><p><b>Path three — the surgical recovery (restore-to-read).</b> The most common real-world case is not a lost site but a damaged <b>slice</b>: the import that mangled a register, the bulk edit that overwrote a field, the cancellation cascade. A full restore would sacrifice everything since the set to fix one register — the wrong trade. The surgical path:</p><p>1. Restore the pre-event backup <b>to the test site</b> (path two's mechanics).<br>2. Read the damaged slice from the test site — the correct values, exported.<br>3. Repair production <b>forward</b>: a governed Update-type Data Import (module 3's procedure) or documented corrections, applying the correct values as a new, logged change.<br>4. Production's history stays intact — the damage and the repair both on the record, which is this programme's correction philosophy applied at scale.</p><p><b>Choosing the path — the three questions.</b> What is damaged (everything, or a slice)? When was the last good state (which set)? What would a full restore cost (everything since the set — is the slice worth it)? The answers route the event; the runbook (Chapter 7) has them pre-printed.</p><p>Practical rule: in any restore conversation, name the backup set by timestamp in writing before anything runs. \"Restore the backup\" has destroyed more data than it has recovered; \"restore the 03:12 set from the 14th, to the test site\" is a procedure.</p>"
+   },
+   {
+    "title": "Chapter 5 — The restore drill",
+    "est": "12",
+    "html": "<p>The module's centre. The drill converts backup files into proven recoverability, monthly, on the calendar.</p><p><b>The monthly drill, as a procedure.</b></p><p>1. <b>Pick this month's set</b> — vary it: sometimes the latest nightly, sometimes the off-platform copy from storage (the copy must prove itself too, or it is decoration).<br>2. <b>Restore to the test site</b> — path two. On the managed platform this is the standing arrangement with the host or the self-service test-site mechanism, whichever the agreement provides; the drill also keeps that arrangement itself exercised.<br>3. <b>Open and read.</b> Presence is not the test — <b>readability</b> is: log in; open the Trial Balance and compare a known figure; open a recent Sales Invoice <b>and its attachment</b> (the files archive proving itself); run one report; check the restored set's document count against production's for the same date.<br>4. <b>Time it.</b> The end-to-end minutes are the site's real RTO evidence — trended, and compared against the number on the continuity page. A drifting drill time is a finding.<br>5. <b>Sign it.</b> One log line: date, set, path, checks passed, minutes, by whom. Twelve lines a year; the auditor's favourite page in this module.</p><p><b>What the drill catches — each one a real failure mode found cheap:</b> the empty or truncated dump (storage consumed, nothing inside); the missing files archive (the database-only habit); the schedule that died silently weeks ago; the off-platform copy that never verified; the restore arrangement that changed at the host's end without the runbook noticing; and the RTO drifting from the promised number.</p><p><b>The annual full dress.</b> Once a year the drill scales to the continuity rehearsal: the restore run as if real — the runbook followed literally from its first line, the communications step actually drafted, the degraded-operation procedures walked at one branch (the paper fallback from the POS track's till procedures), and the re-entry of a simulated gap rehearsed from the paper trail. The full dress is scheduled, announced, and reviewed — its findings amend the runbook, which is the point.</p><p><b>The psychology, stated once.</b> Drills feel like waste precisely until they are survival, and the pressure to skip \"just this month\" arrives the first busy quarter. The counter is structural: the drill is a calendar line with an owner and an artifact, and a skipped drill is logged as skipped — visible in the twelve-line page. Two consecutive skips are an incident by policy.</p><p>Practical rule: the first drill ever run at a site is the most valuable single hour in this track — it converts every assumption on the continuity page into either evidence or a finding. Run it in week one of taking the role, not month one.</p>"
+   },
+   {
+    "title": "Chapter 6 — The before-change backup",
+    "est": "12",
+    "html": "<p>Backups defend against two event families: the catastrophic (rare) and the <b>self-inflicted</b> (regular). This chapter is the second family's discipline: the on-demand backup as the standing precondition for risky operations.</p><p><b>The rule.</b> Before any operation that changes data or structure at scale, a fresh on-demand backup is taken from the Download Backups page and its timestamp is written into the operation's log line — <i>backup 14:22 taken; import run 14:31.</i> The operations that qualify:</p><p>• Every <b>Data Import</b> beyond trivial size (module 3's step 4 — this chapter is where it comes from).<br>• Every <b>bulk edit</b> or bulk rename/merge batch.<br>• Every <b>customisation deployment</b> and settings change with data reach (module 5's change procedure includes this line).<br>• Every <b>update window</b> the host announces (the host backs up too; the site's own set is the belt to their braces).<br>• Anything the sysadmin hesitates over. Hesitation is the trigger; the backup costs one minute.</p><p><b>Why the timestamp matters.</b> The before-change backup's whole value is being <b>the last set before the event</b> — the exact restore point Chapter 4's surgical path needs. A recovery that has to choose between \"the nightly from before, losing the morning's trade\" and \"the nightly from after, containing the damage\" is a recovery the one-minute backup would have made trivial.</p><p><b>The paired habit — the operation log.</b> The backup timestamp lives in the ops log line that every governed operation already writes (imports: module 3; changes: module 5; incidents: module 7). The pairing means any operation can be unwound with precision: the log names what ran and when; the timestamp names the recovery point; the surgical path does the rest. An operation with no log line and no backup is the definition of ungoverned — whatever it was.</p><p><b>The recovery decision, when a change goes wrong.</b> The paths from Chapter 4, applied small:</p><p>1. <b>Reversible in-system?</b> The mis-imported records disabled or corrected by a counter-import; the bulk edit re-run with correct values. First choice — history stays whole.<br>2. <b>Surgical restore-to-read?</b> The before-change set to the test site; correct values read; production repaired forward. Second choice.<br>3. <b>Full restore to the before-change set?</b> Only when the damage is pervasive and the window since the backup is small — which, because the backup was taken <b>immediately</b> before, it usually is. This is the one scenario where full restore is routinely cheap: the window is minutes.</p><p>Practical rule: teach the rule as a reflex with one sentence — <b>no backup timestamp in the log line, no run.</b> It survives staff changes better than any paragraph.</p>"
+   },
+   {
+    "title": "Chapter 7 — The continuity runbook",
     "est": "13",
-    "html": "<p>A backup is only as complete as its contents — and the incomplete backup is the layer's cruellest failure, because it passes every casual check and fails the real one. The anatomy chapter.</p><p><b>The three constituents.</b> What a COMPLETE site backup comprises: the <b>DATABASE</b> (every document, every master, every register — the site's memory in its entirety: the constituent everyone remembers), the <b>FILES</b> (the attachments in both their strata — the public files and the PRIVATE files where the sensitive attachments live: the signed contracts, the scanned delivery notes, the payslip PDFs, the licence copies — module 1's anatomy taught this layer as documents' companions, and here is why: the database restored without the files is every evidence file in the academy amputated — the invoice present, its signed proof gone; the employee record intact, the contract it references a dead link: the DB-only backup being Chapter 9's classic disease precisely because it looks complete until a document's attachment is needed), and the <b>CONFIGURATION AWARENESS</b> (the site's shape beyond its data — the customisations, the settings constitutions, the integration wiring: largely captured within the database's own tables, but VERIFIED as recoverable rather than assumed, and mirrored in the site book's configuration record — the book being, among its other jobs, the human-readable backup of every decision the walk recorded).</p><p><b>The cycles and retention.</b> The rhythm's shape, at boundary altitude: the backup CYCLES run on the host's automated schedule (the daily cycle as the standing floor, with the platform's finer-grained protections beneath — the admin KNOWS the actual schedule rather than assuming it: the boundary conversation of module 1 producing a written answer in the site book), RETENTION defines how far back the ladder reaches (how many dailies, weeklies, monthlies survive — the horizon mattering because some disasters are discovered late: the corruption or the fraud found after ninety days is recoverable only if a ninety-day-old copy still exists, which links retention to the audit horizons the functions' evidence laws assume), and the admin's duty is the MAP: the cycle, the retention ladder, and the request path (how a specific backup is obtained when needed) documented on one page — because the recovery that begins with 'let me find out how our backups work' has already spent its calmest hour.</p><p><b>The offsite principle.</b> The anatomy's last constituent, stated as a principle because its implementation varies: a copy of the firm's recoverable data exists OUTSIDE the platform's own fate — the periodic backup downloaded and held in the firm's own custody (the monthly copy in the firm's independent storage, encrypted, access-governed per module 2's disciplines) — not because the host's redundancy is doubted, but because the principle predates any particular host: the firm whose entire recoverable history lives inside one provider relationship has coupled its survival to that relationship's every possible future (the commercial dispute, the account lockout, the provider's own catastrophe — each remote, none impossible), and the offsite copy is the decoupling: cheap, quarterly-verified (Chapter 4's drill includes it), and the difference between a hosting relationship and a hostage situation. The chapter's summary line for the site book: <b>database plus files plus the map plus the offsite copy — 'everything' defined, written down, and verified to mean everything.</b></p>"
-   },
-   {
-    "title": "Chapter 3 — RPO & RTO: the owner's two numbers",
-    "est": "13",
-    "html": "<p>The module's two questions, formalised and decided: the Recovery Point Objective and the Recovery Time Objective — the two numbers that turn continuity from a mood into a plan. The decisions chapter.</p><p><b>RPO: how much work can we lose?</b> The recovery point objective — the maximum age of the backup the firm would restore from, which equals the maximum work RE-ENTERED after a recovery: the day's transactions since the morning's backup (the counter's sales, the receipts, the payments — re-entered from the paper trail Chapter 6 guarantees exists), priced honestly for the owner (a day's re-entry at HealthTrade's volume is an evening's work with the fallback records in hand; a week's is a crisis — the RPO conversation being exactly this arithmetic, walked with the firm's real volumes), and the answer's consequences drawn: the RPO the owner accepts defines the backup rhythm the firm needs (the daily cycle serving a one-day RPO; the firm that decides it cannot lose more than an hour has bought a different conversation with the host — the tolerance driving the machinery, never the reverse).</p><p><b>RTO: how long can we be down?</b> The recovery time objective — the maximum time from incident to trading-again: decomposed for honesty (the DETECTION time — module 7's monitoring shortening it; the DECISION time — Chapter 5's runbooks shortening it: the recovery that stalls on 'who decides we restore?' is organisational downtime wearing technical clothes; the RESTORE time itself — the host's work, its typical duration asked and recorded; and the VERIFICATION time before the site reopens — Chapter 4's checklist, run before users return), and priced against the trading reality: the counter that cannot sell is the clock's real face (the RTO conversation at a trading firm is about the tills, the gate, and the pay run's calendar — the site down on payday's eve is a different severity than the quiet Tuesday, which the runbooks acknowledge with their severity tiers).</p><p><b>The decisions, made and documented.</b> The chapter's ceremony: the RPO and RTO DECIDED by the owner (the admin prices the options — the tolerances against their costs; the owner signs the numbers: the insurance-policy framing of Chapter 1, executed), DOCUMENTED in the continuity plan (the two numbers on its first page — every runbook beneath them calibrated to them), REVIEWED annually (the firm that doubled its branches has different arithmetic — the numbers re-priced at the walk), and COMMUNICATED where they touch the functions (the fallback capacity Chapter 6 builds is sized by the RPO: the paper pads that must hold a day's trade are a different stationery order than an hour's). The chapter's closing reframe, for every implementation conversation: most trade-scale firms have never decided these numbers — they hold, implicitly, an RPO of 'whatever happens' and an RTO of 'however long it takes', which are not tolerances but surrender — and the certified admin's second-cheapest high-value deliverable (after Chapter 4's drill) is one meeting that replaces both with numbers the owner chose.</p>"
-   },
-   {
-    "title": "Chapter 4 — The restore test: the discipline's heart",
-    "est": "14",
-    "html": "<p>Everything before this chapter is preparation; everything after is application. This is the discipline itself: the RESTORE DRILL — the scheduled, evidenced proof that the firm can actually recover. The heart chapter.</p><p><b>The drill's shape.</b> The procedure, walked: a REAL backup obtained (the actual artifact the recovery would use — yesterday's cycle, or the offsite copy on its rotation: never a special 'test backup', because the drill proves the real thing or proves nothing), RESTORED to the test site (module 1's second environment earning its second great purpose — the restore performed by the actual path the incident would use, the host's restore process exercised where the boundary places it there: the drill that also rehearses the REQUEST is the drill that has timed the RTO's restore segment with evidence), and VERIFIED against the checklist below — with the whole exercise LOGGED (the drill's date, the backup's age, the duration, the findings, the sign-off: the restore log being the site book's most important page precisely because its absence is undetectable until it is unforgivable).</p><p><b>The verification checklist.</b> The restored copy proven, not admired: the RECENCY check (the most recent documents present — yesterday's last invoice findable: the backup that is silently three weeks stale caught HERE, in the drill, not in the disaster), the COUNT sanity (the key doctypes' totals against production's — the gross reads that catch the partial restore), the ATTACHMENT check (files OPENED, not just listed — the private attachment rendered: Chapter 2's amputation caught empirically, which is the check that finds the DB-only disease), the LOGIN-and-permission check (a role's account entered, its fences intact — the restored site being a real site, its tiers included), the FUNCTION spot-walk (one document created, one report run — the copy alive, not just present), and the OFFSITE copy's turn on its rotation (the quarterly drill alternating sources — the copy in the firm's own custody proven restorable too, or it is Chapter 1's hope in a different location).</p><p><b>The cadence.</b> The drill's calendar seat: QUARTERLY as the standing floor (the trade-scale firm's honest rhythm — frequent enough that the machinery's drift is caught inside a season, light enough that it is actually done: the annual drill being better than none and worse than its name suggests, because a year of silent failure is a year of hope), EVENT-TRIGGERED extras at the moments that change the machinery (the major platform update, the site's structural changes, the admin handover — each a 'does recovery still work?' question deserving an answer), and the drill's duration honest (the first drill is an afternoon of learning; the fourth is ninety minutes of routine — the practice-makes-boring economics of every ritual in this academy, applied to the ritual that matters most).</p><p><b>The drill's second yield.</b> The chapter's closing observation, from every firm that has run one: the restore drill teaches beyond its purpose — the admin who has restored under no pressure is a different person in the incident (the runbook's steps rehearsed into muscle memory; the RTO's segments timed with real numbers instead of guesses; the panic replaced by procedure — Chapter 5's scenarios executed by someone who has done the hard part four times this year already), and the FIRM that knows drills happen holds its continuity confidence honestly (the owner's 'are we safe?' answered by the log's dates and findings, not by assurance — the answered-by-pointing law, at the question owners ask in the dark). The chapter's one-liner, the module's law in operational clothes: <b>the drill is the difference between a backup and a hope — quarterly, real, verified, logged.</b></p>"
-   },
-   {
-    "title": "Chapter 5 — The recovery ladder: scenarios by scale",
-    "est": "13",
-    "html": "<p>Recovery is not one procedure — it is a LADDER of responses matched to the damage's scale, and the full restore is its last rung, not its first. The scenarios chapter, each rung a runbook page.</p><p><b>Rung 1 — the damaged document.</b> The commonest 'recovery' need, met without any restore at all: the document mangled by an edit, the field overwritten, the record 'lost' (usually mis-filtered, found by search) — answered by the platform's own memory: the VERSION history (the document's tracked changes — the field's prior value read and restored from the trail the audit layer keeps), the trash-and-restore paths where deletion left them, and the discipline note: the version layer answers because module 8's audit configuration keeps it on for what matters — the recovery ladder's first rung resting on a setting, which is why the constitution walk verified it.</p><p><b>Rung 2 — the botched operation.</b> The bulk change gone wrong (module 3's warned-against Tuesday): answered by the BEFORE-SNAPSHOT (the export taken by the ceremony — re-imported through the governed door, the operation reversed as a re-import instead of an archaeology: module 3's cheap insurance, cashing exactly as designed), with the honest note where no snapshot exists (the ungoverned bulk change's reversal is a reconstruction from versions, reports, and the paper trail — expensive, partial, and the ceremony's best advertisement).</p><p><b>Rung 3 — the compromised or corrupted site.</b> The full-restore rung: the site's state untrusted (the corruption event, the security incident, the damage too broad for document-level repair) — answered by the RESTORE DECISION (made by the named authority per the runbook — the owner informed, the decision logged, because the restore that erases the gap's work is a business decision with the RPO's price tag, never a technical reflex), the COMMUNICATION first (the functions told before the site changes under them — the counter switching to Chapter 6's fallback mode, the timestamp of the restore point announced so everyone knows what will need re-entry), the RESTORE executed through the boundary's path (the host's process, exercised calm by Chapter 4's drills), the VERIFICATION checklist run before reopening (the drill's checklist, now in earnest — the site reopened proven, not hoped), and the RE-ENTRY of the gap governed (Chapter 6's discipline — the lost hours' work re-entered through the functions' own processes, validated as it lands, never mass-imported casually: the recovery that ends with an ungoverned import has traded one corruption for another).</p><p><b>Rung 4 — the disaster.</b> The rung beyond the site: the host-level failure, the prolonged outage, the scenario where the platform relationship itself is the problem — answered by the ESCALATION path (the boundary map's contacts and expectations, exercised), the OFFSITE copy's moment (Chapter 2's decoupling principle cashing — the firm's own custody copy being the recovery of last resort, quarterly-proven restorable), and the continuity plan's outer ring (Chapter 6 — the business trading on paper while the platform question resolves: the disaster rung being where the system module hands to the business module, which is exactly the next chapter). The ladder's governing rule, closing the chapter: <b>match the rung to the damage</b> — the full restore for a mangled document is a sledgehammer erasing a day's good work to fix one field (the RPO spent on a rung-1 problem); the version-history fiddle attempted on a corrupted site is denial with a user interface — the runbook's first question is always 'which rung?', and the certified admin answers it in one minute because the ladder is written down.</p>"
-   },
-   {
-    "title": "Chapter 6 — The continuity plan: the business beyond the system",
-    "est": "13",
-    "html": "<p>The site can be down and the firm must not be — the module's widest chapter: business continuity beyond the system, where the platform track serves the trading functions' survival. The continuity chapter.</p><p><b>The 9 a.m. scenario.</b> The plan built around one concrete morning: the site unreachable as the branches open — and the plan answering, in order: the DETECTION and declaration (who notices, who confirms it is an outage and not a local network hiccup — the two-minute triage the runbook scripts; the DECLARATION explicit, because the branches guessing individually is the chaos the plan exists to prevent), the COMMUNICATION tree (one message, one channel, all branches — the announcement template pre-written: 'fallback mode from now; keep every paper; updates at...' — the calm being a template's dividend), and the FALLBACK MODE engaged (below).</p><p><b>The fallback mode.</b> The degraded-but-trading state, designed per function with the functions' owners (the plan co-authored, because the paper fallback is THEIR process run manually): the COUNTER's paper instruments (the manual invoice pads — pre-printed, serially numbered per the registrar instinct, stocked at every branch, sized by the RPO's arithmetic: a day's trade must fit in the drawer's stationery), the GATE's paper receipts (the deliveries recorded, signed, held for entry), the PAYMENTS logged (the cash and transfers recorded against the pads' numbers), and the boundaries of degraded mode honest (what does NOT happen offline: the credit decisions that need the ledger's aging wait or escalate; the stock answers are approximate and say so — the fallback trades, it does not pretend to govern), with the mode's discipline being paper HYGIENE: every fallback document numbered, kept, and reconciled — because the fallback's papers are the re-entry's source and the RPO's insurance in physical form.</p><p><b>The re-entry.</b> The recovery's final mile, governed as strictly as the outage itself: when the site returns (restored or simply back), the gap's work RE-ENTERED through the functions' own processes (the pad invoices entered as invoices — by the counter's own hands, through the counter's own screens, with the validations firing: the entry clerks racing through a backlog still beats the casual import, because module 3's whole argument applies at double strength to crisis data), RECONCILED as it lands (the pads' serial runs complete — every number entered or voided with a reason; the cash counted against the entered totals — the fallback period CLOSED like a trading day, because it was one), and the fallback documents FILED (the pads retained as the period's evidence layer — the audit that asks about the outage week answered by pointing, as always). The plan's last section: the POST-INCIDENT review (what failed, what the plan got right, what it missed — the runbook amended while the memory is fresh: the plan that never updates is the stale documentation module 1 convicted, at the document that matters most).</p><p><b>The plan's economics.</b> The chapter's closing argument for the owner: the continuity plan costs two meetings, a stationery order, and a laminated page per branch — against the uninsured alternative every consultant has watched: the outage morning where branches close ('the system is down' told to customers as if it were a reason), sales walk to the competitor across the road, and the recovered site fills with reconstructed guesses — the plan being the difference between an outage the firm remembers as a nuisance and one it remembers as the week it lost its reputation for being open. The counter must always be able to sell; everything else in this module exists so that sentence stays true.</p>"
-   },
-   {
-    "title": "Chapter 7 — The evidence layer: logs, retention & the plan's own custody",
-    "est": "13",
-    "html": "<p>The module's record-keeping: the logs that prove the machinery ran, the horizons that govern how far back the firm can reach, and the plan's own storage. The evidence chapter.</p><p><b>The backup log.</b> The standing verification beneath the quarterly drill: the backup CYCLES confirmed as having RUN (the completion checked on its rhythm — the weekly glance at the cycle's health, per module 7's monitoring posture: the silent backup failure being the layer's nightmare precisely because Chapter 1 said so — the failure invisible until catastrophic — and the weekly confirmation being the cheap detector that shrinks the invisible window from months to days), the SIZES trended (the backup that suddenly halved is a question — the trend read catching the partial cycle the completion flag missed), and the confirmations LOGGED lightly (the glance's tick — minutes weekly, the evidence that the floor's floor was watched).</p><p><b>The retention horizons.</b> How far back, decided deliberately: the retention ladder (Chapter 2) set against the firm's REACH-BACK needs — the operational horizon (the recent dailies serving rungs 1-3), the AUDIT horizon (the functions' evidence laws assuming years of reach: the statutory registers, the settlement files, the closed periods — the retention conversation joining the adviser-confirmed record-keeping horizons the accounts and payroll tracks documented, because 'how long must we keep records' and 'how long must we be able to recover them' are one question asked twice), the late-discovery scenarios priced (the fraud found at month four recoverable only if month-four-old copies exist — the retention ladder's depth as the investigation's reach), and the OFFSITE rotation's own retention (the firm's custody copies on their documented cycle — the monthly downloads kept per the same horizons, encrypted, access-logged per module 2).</p><p><b>The archive question.</b> The old data's fate, handled honestly: the site that grows forever (module 7's storage trend) eventually asks the archive question — and the admin's posture is conservative by academy instinct: the trading history IS the firm's memory (the drill-down culture of six tracks assuming the years are there — the five-year sales comparison, the old employee's re-hire check, the supplier's full history: the data's value compounding with its depth), archival decisions belong to the FUNCTIONS and the adviser (what may age out is a records-retention policy question, never a storage-tidiness reflex), and the technical archive (the old data moved but reachable) preferred over deletion always — the museum-versus-amputation distinction of module 3, at the timescale of years.</p><p><b>The plan's own custody.</b> Module 1's joke, formally resolved: the continuity plan, the runbooks, and the escalation contacts live in COPIES OUTSIDE the site they recover (the printed runbook in the branch drawer beside the invoice pads; the digital copy in the firm's independent storage beside the offsite backups; the contact card in the admin's and the MD's actual wallets — the redundancy proportional to the document's job, which is to be readable when nothing else is), VERSIONED (the plan's copies replaced when the plan updates — the stale runbook in the drawer being worse than none, per the believed-documentation conviction), and TESTED for reachability in the drills (the drill's first step being 'find the runbook' — timed, because the incident's first step will be too). The chapter's closing symmetry: the evidence layer proves the machinery backward (the logs — it ran) and forward (the drills — it works), and the firm holding both directions has replaced faith with files, which is this academy's entire method applied to its own safety net.</p>"
+    "html": "<p>Backups recover data; <b>continuity</b> keeps the business operating while recovery happens. The runbook is one document, printed and stored where a dead site cannot take it, covering the four scenarios.</p><p><b>Scenario 1 — the site is down.</b></p><p>1. Confirm and scope (one user or all? the custody map's first question), note the exact time.<br>2. Raise with the host at incident severity — the five-item report; the runbook carries the support channel's details and the escalation path <b>on paper</b>.<br>3. Communicate inward: one message to staff from the sysadmin — what is known, what to do meanwhile, when the next update comes. Silence breeds improvisation; improvisation breeds the un-entered sale.<br>4. Degraded operation begins (scenario 4's procedures).<br>5. On restoration: the gap re-entered from the paper trail, the incident logged with timeline and cause.</p><p><b>Scenario 2 — data damage, site up.</b> The import/bulk-edit family: Chapter 4's three questions, the surgical path as default, the before-change set as the anchor, the repair forward, the log.</p><p><b>Scenario 3 — the security event.</b> A credential suspected compromised, a session that should not exist, an integration key exposed: the affected account disabled first and investigated second (disabling is reversible; the damage of waiting is not), passwords and keys rotated per module 8's procedures, the host informed where platform-side action is needed, and the event logged with its timeline. The runbook lists, on paper, who may order these steps.</p><p><b>Scenario 4 — degraded operation.</b> The business trades through the outage:</p><p>• <b>The tills:</b> the paper fallback from the POS track — pre-printed sale slips, the count discipline unchanged, everything re-entered in order on restoration. The runbook states where the pads live and who owns the re-entry.<br>• <b>Payments:</b> the release rules do not relax because the system is down — the mandate and the separation hold on paper; anything that cannot be verified waits.<br>• <b>The re-entry:</b> owned, sequenced (documents re-entered in occurrence order with honest dates), and reconciled — the first post-restoration close pays extra attention to the gap days.</p><p><b>The people layer.</b> The runbook's last page is names: the sysadmin, the backstop, the owner, the host's channel, the off-platform storage's location and access holders — with the standing rule that <b>the backstop can execute every scenario alone</b>, because incidents schedule themselves for leave days. Module 1's backstop design is load-bearing exactly here.</p><p><b>Keeping it live.</b> The runbook is amended by every drill's findings and every real incident's lessons, re-printed on amendment, and walked in the annual full dress. A runbook last touched two years ago is a museum piece describing a system that no longer exists.</p>"
    },
    {
     "title": "Chapter 8 — Case study: HealthTrade's continuity year",
-    "est": "16",
-    "html": "<p>The safety net, built and then used. Every chapter clocks in.</p><p><b>The two numbers (Ch. 3).</b> The RPO/RTO meeting runs as the chapter scripted: the MD walks the arithmetic with the admin (a day's re-entry priced against the branches' real volumes — an evening's work with clean pads; the counter's downtime priced by the hour), and signs the numbers: RPO one day, RTO four trading hours — documented on the continuity plan's first page, with the MD's margin note entering the site book verbatim: <i>I have insured the buildings for years and never the mornings. These two numbers are the mornings.</i></p><p><b>The first drill and its find (Ch. 2, 4).</b> The inaugural restore drill delivers the module's signature catch: the backup restores, the recency check passes, the counts reconcile — and the ATTACHMENT check fails: the private files absent from the tested copy (the backup path covering the database and the public files only — the incomplete-backup disease, caught in a drill instead of a disaster: the signed contracts, licence scans, and settlement PDFs that WOULD have been amputated, present in production and absent from the recovery). The boundary conversation runs the same week (the ticket precise per module 1's hygiene; the backup scope corrected and confirmed in writing; the site book's backup map updated), and the SECOND drill a month later passes the full checklist — the drill log's first two entries being, together, the fourth law's proof: the first drill found the hope; the second proved the backup.</p><p><b>The rhythm and the real events (Ch. 4, 5).</b> The quarterly cadence settles (drill three: ninety minutes, offsite copy's rotation turn, clean; drill four: post-update trigger, clean) — and the year supplies the ladder's live tests: a RUNG-2 event in month five (a bulk price update's filter error caught after execution — the before-snapshot re-imported, the operation reversed in forty minutes, the ceremony's insurance cashing exactly as module 3 priced it; the post-incident note tightening the scope-review step), and a RUNG-1 stream all year (the version history answering a dozen mangled-field queries without a single restore — the ladder's first rung carrying the daily load, as designed).</p><p><b>The outage (Ch. 6).</b> Month nine delivers the 9 a.m. scenario in its commonest costume: a regional connectivity failure, the site unreachable from two branches at opening. The plan runs: detection and declaration in six minutes (the triage script separating 'our network' from 'the site' — it is the network, but the fallback does not care about the distinction and neither does the counter), the communication tree's one message to all branches, and FALLBACK MODE at the affected pair: the numbered pads sell the morning (₦380,000 across 41 pad invoices — the counter never stops), the gate's two deliveries signed on paper, the cash logged against pad numbers. Connectivity returns after four hours; the RE-ENTRY runs that evening by the book — the pads entered through the counter's own screens by the branch's own hands, the serial runs reconciled complete (41 of 41, no voids), the cash counted against the entered totals to the naira, the pads filed as the period's evidence, the fallback period closed like the trading day it was. The post-incident review amends one line (the triage script gains a mobile-data check) — and the branch supervisor's comment enters the file as the module's thesis from the shop floor: <i>the system went down and nothing stopped. The customers never knew.</i> The MD's year-note closes the case: <i>we drilled four times and needed it twice — once for a filter, once for a morning. Cheapest insurance I have ever renewed.</i></p>"
+    "est": "13",
+    "html": "<p>The survival layer, installed and tested. Every chapter appears.</p><p><b>The ground.</b> Module 1's audit line — <i>an untested backup</i> — unpacks into the standard findings: the host's nightly backups running faithfully (confirmed in writing: nightly, thirty-day retention, off-site replication; RPO twenty-four hours, RTO stated in hours); no site-side copy anywhere; no drill ever; no runbook; and the previous \"backup habit\" — an occasional database download by the old implementation partner — <b>database-only</b>, no files archives, ever.</p><p><b>Week one — the first drill.</b> Run per Chapter 5's advice in the first week of the role. The latest nightly set restores to the test site; the Trial Balance matches; the document counts agree — and check 3's attachment test <b>fails on the partner's old downloads</b>: the database-only habit is exposed on the spot as a restore that opens invoices whose evidence is gone. Finding logged; the completeness rule (database <b>plus both files archives</b>) written into the procedure; the drill signed at forty minutes end to end. The continuity page gets its first honest numbers.</p><p><b>Month one — the custodies established.</b> The off-platform copy procedure starts: full set downloaded after the drill, stored encrypted in business-controlled storage, access limited to the sysadmin and backstop, logged. The before-change rule is instituted with the reflex sentence — <i>no backup timestamp in the log line, no run</i> — and its first exercise arrives within weeks: module 3's price-list import runs with its 14:22 timestamp on record.</p><p><b>Month three — the rule pays for itself.</b> A supplier-record bulk edit misfires — a wrong field written across <b>136 suppliers</b>. The response is Chapter 6's decision tree run calmly: reversible in-system? No — the old values are gone from production. Surgical path: the before-change set (taken eleven minutes earlier) restores to the test site; the correct field values export; a governed Update-type import repairs production forward; total damage window, one hour of procurement queries; total data lost, <b>zero</b>. The incident log's closing line: <i>the one-minute backup bought back the afternoon.</i></p><p><b>Month six — the full dress.</b> The annual rehearsal runs early, announced: the runbook followed from line one for a simulated outage, the staff communication actually drafted and sent to a test list, the Ibadan tills trading ninety minutes on the paper pads with the count discipline holding, and the re-entry rehearsed in order the next morning. Findings: the runbook's paper copy was only at head office (branch copies printed), and one till had no pad (stocked). The runbook is amended, re-printed, and signed.</p><p><b>The year's page.</b> Twelve drill lines, zero skips. Off-platform copies: twelve, all verified. Before-change backups: every logged operation carries its timestamp. One real recovery, surgical, zero loss. The MD's note: <i>we used to hope; now we rehearse.</i></p>"
    },
    {
     "title": "Chapter 9 — Common mistakes & the fourth law",
-    "est": "13",
-    "html": "<p>The continuity layer's scar tissue. Symptom → disease → fix.</p><p><b>Pattern 1 — the untested backup.</b> Symptom: years of cycles, zero restores; confidence by assumption; the recovery attempted for the first time on the worst day. Disease: hope wearing a backup's name (Ch. 1, 4). Fix: the quarterly drill — real backup, test site, full checklist, logged — the machinery proven on calm days so it works on the other kind.</p><p><b>Pattern 2 — the DB-only backup.</b> Symptom: the database restores; the attachments are gone; every evidence file amputated at the moment it is needed. Disease: 'everything' never defined (Ch. 2). Fix: the anatomy documented — database plus files plus the map — and the attachment check in every drill: files OPENED, not listed.</p><p><b>Pattern 3 — the undefined tolerances.</b> Symptom: no RPO, no RTO; the implicit plan of 'whatever happens, however long it takes'; every recovery decision improvised in the incident. Disease: surrender mistaken for flexibility (Ch. 3). Fix: the owner's meeting — the two numbers priced, chosen, signed, and documented on the plan's first page, reviewed annually.</p><p><b>Pattern 4 — the missing runbook.</b> Symptom: the incident's first hour spent deciding who decides; the sledgehammer restore for a rung-1 problem; the ladder climbed in the wrong direction. Disease: scenarios never scripted (Ch. 5). Fix: the recovery ladder written — each rung's runbook page, the 'which rung?' question answerable in a minute, the restore decision's authority named.</p><p><b>Pattern 5 — the casual re-entry.</b> Symptom: the outage's gap mass-imported from hurried spreadsheets; the recovered site polluted by its own recovery; one corruption traded for another. Disease: crisis data exempted from governance (Ch. 6) — exactly backwards. Fix: re-entry through the functions' own processes, reconciled serial runs, the fallback period closed like the trading day it was.</p><p><b>Pattern 6 — the silent failure.</b> Symptom: the cycle that stopped months ago; the backup that halved and nobody noticed; the drill that discovers the last good copy predates the rainy season. Disease: the layer's invisibility unwatched (Ch. 7). Fix: the weekly completion glance, the size trend read, the log's light tick — the invisible window shrunk from months to days.</p><p><b>The fourth law.</b> The custodian named, the fences proven, the masters governed — and now the survival guaranteed: <b>a backup untested is a hope, not a backup — 'everything' defined and offsite, the two numbers chosen by the owner, the restore drilled quarterly against the full checklist, the ladder matched to the damage, the counter trading on numbered paper through any morning, the gap re-entered governed, and the whole layer evidenced in logs that prove it backward and drills that prove it forward.</b> Every archive, register, and frozen month in six tracks rests on this module being done — and the certified admin is the person the firm never has to find out it needed. Module 5 turns to change itself: updates, customisations, and the test discipline.</p>"
+    "est": "11",
+    "html": "<p>The survival layer's recurring failures, then the review list.</p><p><b>Pattern 1 — the untested backup.</b> Symptom: years of backup files, zero restores ever; confidence proportional to file count rather than evidence. Cause: presence mistaken for recoverability (Chapters 1, 5). Fix: the first drill this week, the monthly drill on the calendar with its signed line, and the skipped-drill-is-logged rule with two skips an incident.</p><p><b>Pattern 2 — the database-only habit.</b> Symptom: downloads and copies that carry the dump and never the files archives; a restore that opens invoices whose attachments are gone — the books stripped of their evidence. Cause: \"the backup\" misunderstood as one file (Chapter 2). Fix: the completeness rule — database plus both files archives, always, in both custodies — and the drill's attachment check enforcing it monthly.</p><p><b>Pattern 3 — the single custody.</b> Symptom: every backup living inside the platform it backs up; nothing the business itself holds. Cause: the host's competence mistaken for the whole design (Chapters 1, 3). Fix: the monthly off-platform copy — complete, encrypted, business-controlled, verified, logged — scheduled after the drill so it inherits proven restorability.</p><p><b>Pattern 4 — the assumed numbers.</b> Symptom: nobody can quote the RPO or RTO; everyone assumes better than the agreement states; the gap surfaces mid-incident. Cause: the recovery numbers never confirmed in writing (Chapter 2). Fix: both numbers on the continuity page, confirmed with the host, re-confirmed annually, and tested against the drill's timings.</p><p><b>Pattern 5 — the unlogged operation.</b> Symptom: a damaged register and no before-change set; the recovery forced to choose between losing the morning and keeping the damage. Cause: the before-change rule absent or skipped under pressure (Chapter 6). Fix: the reflex sentence — no backup timestamp in the log line, no run — enforced by the ops-log pairing and audited in the monthly import-log reconciliation.</p><p><b>Pattern 6 — the museum runbook.</b> Symptom: a continuity document nobody has opened in years, naming departed people and dead channels; the incident improvised around it. Cause: the runbook written once and never exercised (Chapter 7). Fix: amendment after every drill and incident, the annual full dress walking it literally, branch paper copies current, and the backstop able to execute every scenario alone.</p><p><b>The review list.</b> Before the quiz, confirm you can: state the two custodies and what each covers; name a backup's two components and why files are part of the books; quote and source the RPO and RTO; run the daily presence check and the monthly off-platform copy from the Download Backups page with its custody rules; choose among the three restore paths with the three questions, and name sets by timestamp; run the monthly drill's five steps and the annual full dress; apply the before-change rule and its decision tree; and walk the runbook's four scenarios including degraded tills and governed re-entry.</p><p><b>The fourth law: a backup untested is a hope — copies in two custodies, complete to the file, restores rehearsed monthly, and continuity written where a dead site cannot take it.</b> Module 5 covers updates, changes, and the test discipline.</p>"
    }
   ],
   "questions": [
    {
-    "q": "The backup layer is unique because:",
+    "q": "The module's law, stated first:",
     "opts": [
-     "Its failure is invisible until the exact moment it is catastrophic — verification IS the discipline",
-     "It is technical",
-     "The host owns it",
-     "It is expensive"
+     "A backup untested is a hope — only a restore proves the business can come back",
+     "Backups are the host's job",
+     "Weekly is enough",
+     "Files are optional"
     ],
     "ans": 0,
-    "why": "The broken backup looks identical to the working one.",
+    "why": "The restore drill is the module's centre.",
     "src": "Ch1"
    },
    {
-    "q": "The boundary's memory aid is:",
+    "q": "The two custodies are:",
     "opts": [
-     "The host does everything",
-     "The host insures the platform; the admin insures the firm's tomorrow morning",
-     "Backups are IT's problem",
-     "Nobody insures anything"
+     "Two admins",
+     "The host's scheduled platform backups, and the site's own off-platform copies, before-change backups, and drills",
+     "Two servers",
+     "Two files"
     ],
     "ans": 1,
-    "why": "Module 1's two sentences, unpacked into duties.",
+    "why": "Each covers the other's failure mode.",
     "src": "Ch1"
    },
    {
-    "q": "RPO and RTO are:",
+    "q": "A business whose only backups live inside the platform has:",
     "opts": [
-     "Technical settings",
-     "The host's defaults",
-     "Business decisions the owner makes with the admin pricing options — the insurance policy's two face numbers",
-     "Annual guesses"
+     "Full cover",
+     "Two custodies",
+     "One custody, not two — nothing survives an event that includes the platform",
+     "No risk"
     ],
     "ans": 2,
-    "why": "Nobody signs insurance without reading the numbers.",
+    "why": "The off-platform copy exists for the un-thinkable.",
     "src": "Ch1"
    },
    {
-    "q": "A complete backup comprises:",
+    "q": "A complete site backup is:",
     "opts": [
-     "The database",
+     "One database file",
+     "A screenshot",
+     "The apps",
+     "The database plus the public and private files archives — the attachments are part of the books"
+    ],
+    "ans": 3,
+    "why": "A database-only restore breaks every attachment link.",
+    "src": "Ch2"
+   },
+   {
+    "q": "RPO measures:",
+    "opts": [
+     "How much recent work can be lost — nightly backups mean up to twenty-four hours",
+     "Restore speed",
+     "File size",
+     "Retention"
+    ],
+    "ans": 0,
+    "why": "The business decides if that is acceptable, as policy.",
+    "src": "Ch2"
+   },
+   {
+    "q": "RTO measures:",
+    "opts": [
+     "Data loss",
+     "How long a restore takes end to end — it shapes how long degraded operation must carry",
+     "Backup size",
+     "The schedule"
+    ],
+    "ans": 1,
+    "why": "Both numbers held in writing, re-confirmed annually.",
+    "src": "Ch2"
+   },
+   {
+    "q": "The recovery numbers are:",
+    "opts": [
+     "Assumed",
+     "Secret",
+     "Confirmed with the host in writing — assumed numbers are always better than stated ones",
+     "Irrelevant on managed hosting"
+    ],
+    "ans": 2,
+    "why": "The gap is discovered at the worst moment.",
+    "src": "Ch2"
+   },
+   {
+    "q": "The Download Backups page provides:",
+    "opts": [
      "Settings",
-     "Reports",
-     "Database plus FILES (public and private) plus configuration awareness — 'everything' defined"
+     "The Error Log",
+     "User lists",
+     "The recent backup sets with database and files downloads, plus the on-demand trigger"
     ],
     "ans": 3,
-    "why": "The DB restored without files amputates every evidence file.",
-    "src": "Ch2"
+    "why": "Two procedures run from this page.",
+    "src": "Ch3"
    },
    {
-    "q": "The DB-only backup:",
+    "q": "The daily presence check:",
     "opts": [
-     "Passes every casual check and fails the real one — the invoice present, its signed proof gone",
-     "Is sufficient",
-     "Is faster",
-     "Is standard"
+     "Confirms yesterday's set exists at plausible size — thirty seconds; a missing set is raised same day",
+     "Restores a set",
+     "Downloads everything",
+     "Emails the host"
     ],
     "ans": 0,
-    "why": "The layer's cruellest failure.",
-    "src": "Ch2"
+    "why": "Catches the silently-dead schedule early.",
+    "src": "Ch3"
    },
    {
-    "q": "Retention depth matters because:",
+    "q": "The off-platform copy is stored:",
     "opts": [
-     "Storage is cheap",
-     "Some disasters are discovered late — the fraud found at month four needs month-four-old copies",
-     "Audits demand it",
-     "Habits"
+     "On the platform",
+     "Outside it — encrypted, in storage the business controls, access-limited and logged",
+     "On a personal drive",
+     "Unencrypted for speed"
     ],
     "ans": 1,
-    "why": "Retention linked to the reach-back horizons.",
-    "src": "Ch2"
+    "why": "The copy is the entire business in a file.",
+    "src": "Ch3"
    },
    {
-    "q": "The offsite copy exists because:",
+    "q": "The off-platform copy is scheduled:",
     "opts": [
-     "The host is doubted",
-     "It is required",
-     "The firm's survival must not couple to one provider relationship's every possible future — the decoupling",
-     "It is free"
+     "Before the drill",
+     "Randomly",
+     "After the monthly drill — it inherits the drill's proven restorability",
+     "Annually"
     ],
     "ans": 2,
-    "why": "The difference between a hosting relationship and a hostage situation.",
-    "src": "Ch2"
+    "why": "What goes off-platform was just proven restorable.",
+    "src": "Ch3"
    },
    {
-    "q": "RPO equals:",
+    "q": "A full restore's cost is:",
     "opts": [
-     "Downtime",
-     "A percentage",
-     "The backup size",
-     "The maximum work RE-ENTERED after recovery — priced with the firm's real volumes"
+     "Nothing",
+     "The host's fee",
+     "One hour",
+     "Everything after the restore point — the RPO made real; the owner authorises on the record"
     ],
     "ans": 3,
-    "why": "The tolerance drives the machinery, never the reverse.",
-    "src": "Ch3"
+    "why": "The set is chosen deliberately: the last before the event.",
+    "src": "Ch4"
    },
    {
-    "q": "RTO decomposes into:",
+    "q": "The surgical path:",
     "opts": [
-     "Detection, decision, restore, and verification time — organisational downtime counted honestly",
-     "One number",
-     "The host's SLA",
-     "Guesswork"
+     "Restores the pre-event set to the test site, reads the correct slice, and repairs production forward",
+     "Restores over live",
+     "Deletes the damage",
+     "Waits for the host"
     ],
     "ans": 0,
-    "why": "The recovery that stalls on 'who decides?' is downtime in organisational clothes.",
-    "src": "Ch3"
+    "why": "History stays intact — damage and repair both on record.",
+    "src": "Ch4"
    },
    {
-    "q": "The implicit RPO of 'whatever happens' is:",
+    "q": "The three routing questions are:",
     "opts": [
-     "Flexibility",
-     "Surrender mistaken for tolerance — replaced by one meeting and two chosen numbers",
-     "Realistic",
-     "Standard"
+     "Who, why, cost",
+     "What is damaged, when was the last good state, what would a full restore cost",
+     "Fast, cheap, good",
+     "Host, site, user"
     ],
     "ans": 1,
-    "why": "The certified admin's second-cheapest high-value deliverable.",
-    "src": "Ch3"
-   },
-   {
-    "q": "The drill uses:",
-    "opts": [
-     "A special test backup",
-     "A sample",
-     "A REAL backup — yesterday's cycle or the offsite copy; the drill proves the real thing or proves nothing",
-     "A simulation"
-    ],
-    "ans": 2,
-    "why": "The heart chapter's first rule.",
+    "why": "Pre-printed in the runbook.",
     "src": "Ch4"
    },
    {
-    "q": "Attachments in the drill are:",
+    "q": "In any restore conversation, the set is named by:",
     "opts": [
-     "Listed",
-     "Skipped",
-     "Counted",
-     "OPENED — the check that finds the DB-only disease empirically"
-    ],
-    "ans": 3,
-    "why": "Files rendered, not enumerated.",
-    "src": "Ch4"
-   },
-   {
-    "q": "The drill's cadence is:",
-    "opts": [
-     "Quarterly as the floor, plus event-triggered extras — a year of silent failure is a year of hope",
-     "Annual",
-     "Monthly",
-     "Once"
-    ],
-    "ans": 0,
-    "why": "Frequent enough to catch drift inside a season.",
-    "src": "Ch4"
-   },
-   {
-    "q": "The drill's second yield is:",
-    "opts": [
-     "Paperwork",
-     "The admin rehearsed into procedure — a different person in the incident, with real RTO numbers",
-     "Cost",
-     "Nothing"
-    ],
-    "ans": 1,
-    "why": "Practice makes the ritual that matters most boring.",
-    "src": "Ch4"
-   },
-   {
-    "q": "'Are we safe?' is answered by:",
-    "opts": [
-     "Assurance",
-     "Confidence",
-     "The restore log's dates and findings — pointing, at the question owners ask in the dark",
+     "'The backup'",
+     "Size",
+     "Timestamp, in writing — 'the 03:12 set from the 14th, to the test site'",
      "The host"
     ],
     "ans": 2,
-    "why": "Faith replaced with files.",
+    "why": "'Restore the backup' has destroyed more than it recovered.",
     "src": "Ch4"
    },
    {
-    "q": "The recovery ladder's first rung is:",
+    "q": "The drill's real test is:",
     "opts": [
-     "The full restore",
-     "A ticket",
-     "The offsite copy",
-     "The version history — the field's prior value restored from the trail, no restore at all"
+     "File presence",
+     "The host's word",
+     "Speed only",
+     "Readability — login, a known Trial Balance figure, a recent invoice and its attachment, a report, the counts"
     ],
     "ans": 3,
-    "why": "The full restore is the LAST rung, not the first.",
+    "why": "Presence is the cheap check.",
     "src": "Ch5"
    },
    {
-    "q": "The botched bulk operation is reversed by:",
+    "q": "The drill's set is:",
     "opts": [
-     "The before-snapshot re-imported — the ceremony's cheap insurance cashing as designed",
-     "A full restore",
+     "Varied — sometimes the nightly, sometimes the off-platform copy, which must prove itself too",
+     "Always the latest",
+     "Always the oldest",
+     "The host's choice"
+    ],
+    "ans": 0,
+    "why": "A copy never restored is decoration.",
+    "src": "Ch5"
+   },
+   {
+    "q": "The drill's timing matters because:",
+    "opts": [
+     "Drills are billed",
+     "The end-to-end minutes are the real RTO evidence, trended against the continuity page",
+     "Speed is safety",
+     "The host requires it"
+    ],
+    "ans": 1,
+    "why": "A drifting drill time is a finding.",
+    "src": "Ch5"
+   },
+   {
+    "q": "A skipped drill is:",
+    "opts": [
+     "Fine when busy",
+     "Made up later",
+     "Logged as skipped — visible on the twelve-line page; two consecutive skips are an incident",
+     "The backstop's fault"
+    ],
+    "ans": 2,
+    "why": "The pressure to skip arrives the first busy quarter.",
+    "src": "Ch5"
+   },
+   {
+    "q": "The first drill at a site is run:",
+    "opts": [
+     "Month three",
+     "Annually",
+     "After an incident",
+     "Week one of taking the role — it converts every assumption into evidence or a finding"
+    ],
+    "ans": 3,
+    "why": "The most valuable single hour in the track.",
+    "src": "Ch5"
+   },
+   {
+    "q": "The before-change rule is:",
+    "opts": [
+     "A fresh on-demand backup before any at-scale operation, its timestamp written into the operation's log line",
+     "Backups weekly",
+     "Ask the host first",
+     "Test in production"
+    ],
+    "ans": 0,
+    "why": "No backup timestamp in the log line, no run.",
+    "src": "Ch6"
+   },
+   {
+    "q": "The before-change set's value is:",
+    "opts": [
+     "Its size",
+     "Being the last set before the event — the exact restore point the surgical path needs",
+     "Its age",
+     "Compression"
+    ],
+    "ans": 1,
+    "why": "It makes the recovery window minutes, not a day.",
+    "src": "Ch6"
+   },
+   {
+    "q": "When a change goes wrong, the first choice is:",
+    "opts": [
+     "Full restore",
+     "Blame",
+     "Reversible in-system — counter-import or correction, history whole; then surgical; full restore last",
+     "Waiting"
+    ],
+    "ans": 2,
+    "why": "The paths applied small.",
+    "src": "Ch6"
+   },
+   {
+    "q": "Full restore is routinely cheap only when:",
+    "opts": [
+     "Never",
+     "The host is fast",
+     "The site is big",
+     "The set was taken immediately before — the window is minutes"
+    ],
+    "ans": 3,
+    "why": "The before-change scenario.",
+    "src": "Ch6"
+   },
+   {
+    "q": "The runbook lives:",
+    "opts": [
+     "Printed, where a dead site cannot take it — with branch copies current",
+     "In the site",
+     "In one inbox",
+     "At the host"
+    ],
+    "ans": 0,
+    "why": "The site-down scenario needs it on paper.",
+    "src": "Ch7"
+   },
+   {
+    "q": "During an outage, staff receive:",
+    "opts": [
+     "Silence",
+     "One message from the sysadmin — what is known, what to do, when the next update comes",
+     "Rumours",
+     "A day off"
+    ],
+    "ans": 1,
+    "why": "Silence breeds improvisation; improvisation breeds the un-entered sale.",
+    "src": "Ch7"
+   },
+   {
+    "q": "In a security event, the first step is:",
+    "opts": [
+     "Investigation",
+     "A meeting",
+     "Disable the affected account first, investigate second — disabling is reversible; waiting is not",
+     "A password memo"
+    ],
+    "ans": 2,
+    "why": "The runbook lists who may order it.",
+    "src": "Ch7"
+   },
+   {
+    "q": "Degraded tills run on:",
+    "opts": [
      "Memory",
-     "Versions alone"
-    ],
-    "ans": 0,
-    "why": "Without it: reconstruction — expensive, partial, the ceremony's best advert.",
-    "src": "Ch5"
-   },
-   {
-    "q": "The full-restore decision is:",
-    "opts": [
-     "A technical reflex",
-     "A business decision with the RPO's price tag — made by the named authority, the owner informed, logged",
-     "Automatic",
-     "The host's"
-    ],
-    "ans": 1,
-    "why": "The restore erases the gap's work.",
-    "src": "Ch5"
-   },
-   {
-    "q": "Recovery ending with a casual mass-import has:",
-    "opts": [
-     "Finished faster",
-     "Saved effort",
-     "Traded one corruption for another — the gap re-enters through the functions' own processes",
-     "No downside"
-    ],
-    "ans": 2,
-    "why": "Module 3's argument at double strength for crisis data.",
-    "src": "Ch5"
-   },
-   {
-    "q": "The full restore for one mangled field is:",
-    "opts": [
-     "Thorough",
-     "Standard",
-     "Safe",
-     "A sledgehammer erasing a day's good work — the RPO spent on a rung-1 problem"
+     "A spare site",
+     "Closed doors",
+     "The paper fallback — pre-printed slips, unchanged count discipline, ordered re-entry on restoration"
     ],
     "ans": 3,
-    "why": "Match the rung to the damage.",
-    "src": "Ch5"
+    "why": "The POS track's procedure, owned in the runbook.",
+    "src": "Ch7"
    },
    {
-    "q": "The outage DECLARATION is explicit because:",
+    "q": "The backstop must be able to:",
     "opts": [
-     "Branches guessing individually is the chaos the plan exists to prevent",
-     "Formality",
-     "Hosts require it",
-     "Records"
+     "Execute every scenario alone — incidents schedule themselves for leave days",
+     "Watch",
+     "Approve only",
+     "Call the host"
     ],
     "ans": 0,
-    "why": "One message, one channel, all branches.",
-    "src": "Ch6"
+    "why": "Module 1's backstop design is load-bearing here.",
+    "src": "Ch7"
    },
    {
-    "q": "The fallback pads are:",
-    "opts": [
-     "Plain paper",
-     "Pre-printed, serially numbered, stocked per branch, sized by the RPO's arithmetic",
-     "Optional",
-     "Digital"
-    ],
-    "ans": 1,
-    "why": "The registrar instinct in stationery form.",
-    "src": "Ch6"
-   },
-   {
-    "q": "Degraded mode honestly excludes:",
+    "q": "HealthTrade's first drill exposed:",
     "opts": [
      "Nothing",
-     "Selling",
-     "What needs the ledger — credit decisions wait or escalate; stock answers are approximate and say so",
-     "Cash"
-    ],
-    "ans": 2,
-    "why": "The fallback trades; it does not pretend to govern.",
-    "src": "Ch6"
-   },
-   {
-    "q": "The re-entry runs through:",
-    "opts": [
-     "A fast import",
-     "The host",
-     "The admin's hands",
-     "The functions' own processes with validations firing — the backlog raced still beats the casual import"
-    ],
-    "ans": 3,
-    "why": "The pads entered as invoices, by the counter's own hands.",
-    "src": "Ch6"
-   },
-   {
-    "q": "The fallback period is:",
-    "opts": [
-     "Closed like a trading day — serial runs complete, cash counted against entries, pads filed as evidence",
-     "Forgotten",
-     "Estimated",
-     "Written off"
-    ],
-    "ans": 0,
-    "why": "Because it was one.",
-    "src": "Ch6"
-   },
-   {
-    "q": "The continuity plan costs:",
-    "opts": [
-     "A fortune",
-     "Two meetings, a stationery order, and a laminated page per branch",
-     "Consultants",
-     "New servers"
+     "The old database-only download habit — restored invoices whose evidence was gone",
+     "A dead site",
+     "A billing error"
     ],
     "ans": 1,
-    "why": "Against the week the firm loses its reputation for being open.",
-    "src": "Ch6"
-   },
-   {
-    "q": "The weekly backup glance exists because:",
-    "opts": [
-     "Habit",
-     "The host asks",
-     "It shrinks the silent failure's invisible window from months to days",
-     "Logs are fun"
-    ],
-    "ans": 2,
-    "why": "The cheap detector for the layer's nightmare.",
-    "src": "Ch7"
-   },
-   {
-    "q": "The backup that suddenly halved is:",
-    "opts": [
-     "Efficient",
-     "Ignored",
-     "Good news",
-     "A question — the size trend catching the partial cycle the completion flag missed"
-    ],
-    "ans": 3,
-    "why": "Trended, not just ticked.",
-    "src": "Ch7"
-   },
-   {
-    "q": "Archival decisions belong to:",
-    "opts": [
-     "The functions and the adviser — a records-retention question, never a storage reflex; archive over deletion",
-     "The admin's tidiness",
-     "The host",
-     "Nobody"
-    ],
-    "ans": 0,
-    "why": "The museum-versus-amputation distinction at the timescale of years.",
-    "src": "Ch7"
-   },
-   {
-    "q": "The runbook's copies live:",
-    "opts": [
-     "In the site only",
-     "Outside the site — the branch drawer, the independent storage, the actual wallets — versioned and reachability-tested",
-     "With the host",
-     "In email"
-    ],
-    "ans": 1,
-    "why": "Readable when nothing else is.",
-    "src": "Ch7"
-   },
-   {
-    "q": "The drill's first timed step is:",
-    "opts": [
-     "The restore",
-     "The login",
-     "'Find the runbook' — because the incident's first step will be too",
-     "The ticket"
-    ],
-    "ans": 2,
-    "why": "Reachability tested with everything else.",
-    "src": "Ch7"
-   },
-   {
-    "q": "HealthTrade's first drill found:",
-    "opts": [
-     "Nothing",
-     "Slow restores",
-     "A virus",
-     "Private files absent from the tested copy — the incomplete backup caught in a drill instead of a disaster"
-    ],
-    "ans": 3,
-    "why": "The first drill found the hope; the second proved the backup.",
+    "why": "The completeness rule written into the procedure on the spot.",
     "src": "Ch8"
    },
    {
-    "q": "The outage morning's result was:",
+    "q": "The month-three bulk-edit misfire ended with:",
     "opts": [
-     "₦380,000 across 41 numbered pad invoices — 'the system went down and nothing stopped'",
-     "Closed branches",
-     "Lost sales",
-     "Chaos"
-    ],
-    "ans": 0,
-    "why": "The customers never knew.",
-    "src": "Ch8"
-   },
-   {
-    "q": "The MD's verdict on the year was:",
-    "opts": [
-     "Too many drills",
-     "'We drilled four times and needed it twice — cheapest insurance I have ever renewed'",
-     "Unnecessary cost",
-     "The host's credit"
-    ],
-    "ans": 1,
-    "why": "Once for a filter, once for a morning.",
-    "src": "Ch8"
-   },
-   {
-    "q": "This module's law is:",
-    "opts": [
-     "Backups are the host's job",
-     "Restores are rare",
-     "A backup untested is a hope — 'everything' defined and offsite, the two numbers owner-chosen, the restore drilled quarterly, the ladder matched to damage, the counter trading through any morning",
-     "Hope suffices"
+     "A day lost",
+     "A full restore",
+     "Zero data lost — the eleven-minutes-earlier before-change set fed the surgical repair",
+     "136 suppliers deleted"
     ],
     "ans": 2,
-    "why": "Every archive and frozen month in six tracks rests on this module.",
+    "why": "The one-minute backup bought back the afternoon.",
+    "src": "Ch8"
+   },
+   {
+    "q": "The full dress's findings were:",
+    "opts": [
+     "None",
+     "A staff refusal",
+     "A failed restore",
+     "Runbook paper copies only at head office, and one till without a pad — both fixed, runbook amended"
+    ],
+    "ans": 3,
+    "why": "Findings amend the runbook; that is the point.",
+    "src": "Ch8"
+   },
+   {
+    "q": "The museum runbook is fixed by:",
+    "opts": [
+     "Amendment after every drill and incident, the annual full dress walking it literally, and current branch copies",
+     "Rewriting it once",
+     "Laminating it",
+     "Deleting it"
+    ],
+    "ans": 0,
+    "why": "A two-year-old runbook describes a system that no longer exists.",
+    "src": "Ch9"
+   },
+   {
+    "q": "The single custody pattern is fixed by:",
+    "opts": [
+     "More host backups",
+     "The monthly off-platform copy — complete, encrypted, business-controlled, verified, logged",
+     "Bigger retention",
+     "Hope"
+    ],
+    "ans": 1,
+    "why": "Two custodies, or one.",
+    "src": "Ch9"
+   },
+   {
+    "q": "Module 4's law is:",
+    "opts": [
+     "Backups are files",
+     "Restore annually",
+     "A backup untested is a hope — two custodies, complete to the file, restores rehearsed monthly, continuity written on paper",
+     "The host owns survival"
+    ],
+    "ans": 2,
+    "why": "The fourth law.",
     "src": "Ch9"
    }
   ]
