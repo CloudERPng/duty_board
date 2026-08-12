@@ -947,473 +947,473 @@
  },
  "quotations": {
   "title": "Selling 3 — Quotations",
-  "desc": "The offer document: creating quotations, validity, taxes on the offer, the status lifecycle, losing gracefully, and converting to an order.",
+  "desc": "Quotations in ZhiftERP: the field walk — party and list header checks, the row discipline, taxes per template, terms selected not typed, and the pre-issue verification; the rate discipline — pre-fill first, the deviation ladder with specific named concessions, margin visibility, and the monthly deviations read; validity and the revision procedure with the negotiation file; the offer pack — owned terms templates, print discipline, and the transmission record; the pipeline reads — open quotations, outcome marking with reason codes, the conversion read, and deviation-versus-outcome; and conversion to order with the four checks, partial acceptance, and the clean handoff.",
   "lessons": [
    {
-    "title": "Chapter 1 — The quotation, field by field",
-    "est": "16",
-    "html": "<p>The quotation is the first formal document of the selling cycle — the written offer a customer can accept, dispute, or file. Selling 1 built <i>who</i>; Selling 2 built <i>what at what rate</i>; this document is where they meet in front of a customer for the first time, so its craft is customer-facing craft. Create from <b>Selling &gt; Quotation &gt; New</b>, and walk the fields:</p><ul><li><b>Quotation To &amp; Party</b> — the offer can address a <b>Customer</b> or a <b>Lead</b>. That flexibility is deliberate and important: you do not create a customer master just to price an enquiry (Chapter 2 covers the lead path end to end). Selecting the party pulls their defaults — price list, currency, primary contact, primary address — exactly as Selling 1 promised.</li><li><b>Date &amp; series</b> — the quotation number comes from its naming series; the date defaults to today. Both print on the document; both are how the customer's procurement office will refer to your offer for months (\"your QTN-2026-00871 of 12 August\").</li><li><b>Valid Till</b> — how long the offer stands. After this date the status flips to <b>Expired</b> automatically (Chapter 6). Fill it on every quotation, always: an open-ended offer is a standing invitation to accept last quarter's prices in this quarter's cost reality. Thirty days is a common Nigerian B2B default; volatile-cost goods deserve less.</li><li><b>Price list &amp; currency</b> — inherited from the party (Selling 2's defaulting chain). Visible on the document; changeable when a deal genuinely belongs to another list.</li><li><b>The items grid</b> — per row: item, quantity, <b>UOM</b> (cartons vs units — Selling 2's discipline lives here), the fetched <b>Price List Rate</b>, the charged <b>Rate</b>, and the amount. The item's <b>description</b> prints beneath the name — remember Selling 2: that text is your offer's line copy, written for the buyer's eyes.</li><li><b>Taxes</b> — the template section (Chapter 4).</li><li><b>Payment terms, Terms &amp; Conditions</b> — the commercial fine print (Chapter 5).</li></ul><p><b>Draft vs Submitted.</b> Save produces a Draft — editable, internal, not yet an offer. <b>Submit</b> makes it formal: numbered, immutable (changes now require amendment, Chapter 6), and ready to send. The distinction matters behaviourally: build and check in Draft; the customer only ever sees Submitted.</p><p><b>Who fills what.</b> The rep chooses party, items, quantities, UOMs, and any negotiated Rate; the system supplies the number, the fetched rates, the tax arithmetic, and the totals section — including the rounding adjustment that keeps the grand total payable to the kobo. Respect the division: a rep hand-typing what the system computes (totals, taxes, conversions) is manufacturing the discrepancies that Selling 7 will meet as payment-allocation mismatches months later.</p>"
+    "title": "Chapter 1 — The Quotation: scope and position",
+    "est": "11",
+    "html": "<p>This module covers the Quotation in ZhiftERP. On completing this module you will be able to: complete the Quotation field walk; apply the rate discipline including the deviation ladder; operate validity and the revision procedure; assemble the offer pack with terms templates; run the pipeline reads; and convert won quotations to Sales Orders.</p><p><b>What a Quotation is.</b> The Quotation is the business's written offer: these items, these quantities, these prices, these terms, valid until this date. Everything downstream — the Sales Order, the deliveries, the invoices — inherits what the quotation states, which is why the offer is built from the registers (modules 1-2) rather than composed freehand: the customer from the gate, the items from the register, the rates from the lists and rules, the terms from the templates.</p><p><b>Where quotations sit in the flow.</b></p><p>1. <b>Upstream:</b> the request arrives from an existing customer, or from a prospect. Prospect and opportunity handling belongs to the CRM lane where the site runs one; the boundary rule is that a Quotation to a prospect still runs through the customer gate before or at conversion — no order ships to a party the register has not onboarded.<br>2. <b>Downstream:</b> the accepted quotation converts to the Sales Order (module 4) — the commitment document. The quotation is the offer; the order is the agreement; the distinction carries through every procedure in this module.</p><p><b>When a quotation is required.</b> Per the written policy: counter and routine trade sales transact without quotations (the standing lists price them); quotations are required for enterprise and institutional business, for anything negotiated, for tender responses, and above the value threshold the policy sets. The requirement exists because a negotiated arrangement without a written offer becomes a dispute conducted from memory.</p><p><b>Custody.</b> The sales function prepares and issues quotations; rate deviations follow the approval ladder (Chapter 3); revisions follow the versioning procedure (Chapter 4); and the standing rule for the module: <b>an issued offer is a record — it expires by its date, changes by revision, and is never silently edited.</b></p><p><b>Module contents.</b> Chapter 2: the Quotation field walk. Chapter 3: rates and the deviation ladder. Chapter 4: validity and revisions. Chapter 5: terms and the offer pack. Chapter 6: the pipeline reads. Chapter 7: conversion to order. Chapter 8: worked example. Chapter 9: review and the module rule.</p>"
    },
    {
-    "title": "Chapter 2 — Leads, CRM & the offer's origin",
-    "est": "13",
-    "html": "<p>Where does a quotation come from? The answer shapes your pipeline's honesty.</p><p><b>Quoting a Lead.</b> A <b>Lead</b> is a party that is not yet a customer — an enquiry with a name. The quotation addresses the lead directly: no customer master is created, no defaults exist to inherit (you choose price list and currency by hand), and your customer table stays clean of parties who never bought. This is the correct handling of \"send us a price for…\" enquiries — the wrong handling being a customer record created per enquiry, which within a year fills the master with hundreds of never-transacted ghosts that every report must wade through and every duplicate-check trips over (Selling 1, Chapter 9's duplicate disease, self-inflicted at scale).</p><p><b>The conversion moment.</b> When a lead accepts, the win path runs through conversion: the lead becomes a <b>Customer</b> (created properly — group, territory, currency, the full Selling 1 Chapter 1 discipline applied at the moment it becomes real), and the order proceeds against the new customer. The quotation's history remains linked: enquiry → offer → customer → order, one chain, auditable forever.</p><p><b>From opportunity.</b> Where the CRM pipeline runs ahead of documents — an opportunity being worked, then priced — create the quotation <b>from the opportunity</b> so the linkage is born, not reconstructed. Deal history that reads \"opportunity → quotation v1 → quotation v2 (amended) → sales order\" is a deal that can be studied later; loose documents with matching company names are archaeology.</p><p><b>Your own house's version.</b> In this firm the pre-document pipeline lives on the Duty Board Sales face — radar, leads, next steps, meetings. The principle transfers exactly: the quotation is where a <i>worked</i> relationship becomes a <i>written</i> offer, and the working (dated next steps, meeting outcomes) is what makes the offer's timing right. A quotation fired at an unworked lead is a price list with a stamp; a quotation landing after the third meeting, priced to what was learned, is a close in progress.</p><p><b>One list, one truth.</b> However it originates, the offer's commercial content comes from the same masters: the party's list, the item's price, the tax template. Origin changes the <i>path</i>, never the <i>pricing machinery</i> — which is why Selling 1 and 2 came first.</p><p><b>Qualify before you price.</b> A lead carries a source (referral, exhibition, web) and an owner — fill both, because loss analysis by source (Chapter 7) is how you learn which channels send buyers and which send browsers. And the standing rule of offer timing: an unqualified enquiry gets a conversation, not a quotation; the document goes out when budget, authority, and need have at least been probed. Quotations broadcast to every enquiry train the market to treat your offers as brochures.</p>"
-   },
-   {
-    "title": "Chapter 3 — Rates & negotiation on the document",
-    "est": "13",
-    "html": "<p>The rate arrives from the price list; the negotiation happens on the document. This chapter is the discipline of the gap between those two numbers.</p><p><b>The two fields, again, now in anger.</b> Selling 2 introduced them; the quotation is where they earn their keep. <b>Price List Rate</b> is what the lookup returned — the list's truth, untouchable by the negotiation. <b>Rate</b> is what THIS offer charges. They start equal; a negotiated concession lowers Rate while Price List Rate stands as the reference. The consequence is override <i>reporting</i>: any analysis can compare charged against list across every quotation, per rep, per customer, per period — negotiation is empowered AND measured. Overriding is allowed, visible, and reportable: not forbidden (deals are negotiated in the real world), not manager-only by default (though approval workflows can be added where a client's policy demands), and never invisible.</p><p><b>The override discipline, taught to reps.</b> Three rules make overrides an instrument instead of a leak: (1) override the <b>Rate</b>, never doctor quantity or UOM to fake a price (a \"free\" 13th unit hidden in a carton conversion is a stock lie); (2) a concession has a <i>reason</i> that belongs in the deal's record — volume, competitor pressure, relationship — so the review conversation is about strategy, not memory; (3) recurring overrides are a message: when the same customer gets the same \"exception\" monthly, the exception is actually their price, and Selling 2's answer applies — move them to the right list (or a pricing rule), and let \"override\" mean something again.</p><p><b>Free and promotional lines.</b> The honest way to give 20 free units on 100: two rows — 100 at rate, 20 at zero — made possible by Selling 1 Chapter 7's <i>Allow Item to be Added Multiple Times</i>. The dishonest ways (a blended average rate; 120 units at a doctored rate) survive until the first margin report or the first stock count, whichever humiliates first.</p><p><b>Margin awareness.</b> With <i>Validate Selling Price Against Purchase Rate</i> on (Selling 8), a below-cost override blocks at entry — the floor under every negotiation. Where it's off, the floor is the rep's knowledge of cost; a professional negotiates knowing the number below which the deal loses money, because \"we'll make it up on volume\" is how volume becomes losses at scale.</p><p><b>The three discount instruments, distinguished.</b> A row's <b>Rate</b> edit (this chapter) reprices one line. A row's <b>discount percentage</b> does the same arithmetic but records the concession AS a percentage against Price List Rate — preferable when the deal was struck in percentage language. The document-level <b>Additional Discount</b> cuts the total after the rows — Selling 6 treats it, and its proper use is rare, visible, whole-deal concessions. Knowing which instrument was used is what makes discount reporting legible later.</p>"
-   },
-   {
-    "title": "Chapter 4 — Taxes on the offer",
+    "title": "Chapter 2 — The Quotation doctype",
     "est": "12",
-    "html": "<p>Selling 6 owns tax <i>architecture</i>; this chapter owns tax <i>presentation</i> — what the customer sees on the offer, and why it must be there.</p><p><b>The mechanics.</b> Select a <b>Sales Taxes and Charges Template</b> on the quotation — for standard Nigerian trade, the VAT 7.5% template — and the document computes the tax rows and the grand total. VAT is never typed into item rates, never inferred from customer group, never left \"to be added at invoice\": the template row does it uniformly, and the totals section shows net, tax, and grand total in plain sight.</p><p><b>Why quote taxes — the commercial argument, in full.</b> The customer's decision number is what they will PAY, not your net. Quote ₦10,000,000 clean and invoice ₦10,750,000 later, and you have manufactured a dispute at the worst possible moment — after commitment, before payment, when the procurement officer must now explain to their MD why the bill grew 7.5%. Some will pay angrily; some will \"round down\" unilaterally; all will trust your next quotation less. It is not a legal formality that drives tax-on-the-quote — it is that <b>no late surprises</b> is the cheapest customer-retention policy that exists. The offer's grand total and the invoice's grand total should be the same number for the same goods.</p><p><b>Inclusive display.</b> Where the commercial custom is tax-inclusive pricing (retail-adjacent trade), the tax row's inclusive setting (Selling 6 teaches the arithmetic: ₦1,075 inclusive = ₦1,000 + ₦75) lets the offer show inclusive line rates while the totals still break out VAT for the customer's input-credit paperwork. Choose per the customer's world; never mix regimes on one document.</p><p><b>The template travels.</b> The taxes selected here <b>flow onto the Sales Order</b> made from this quotation, and onward to invoice — Selling 4 and 7 inherit what you choose now. Nobody re-enters tax at each stage; the arithmetic the customer accepted is the arithmetic they are billed. Which is also why choosing the WRONG template on the quotation is worth catching in Draft: the error travels just as faithfully as the correction would have.</p><p><b>Beyond VAT: charges rows.</b> The same template machinery carries non-tax charges — delivery fees, installation surcharges — as additional rows with their own account heads, computed on net total or as fixed amounts. The quotation then presents goods, charges, and VAT as distinct lines summing to one grand total: the customer sees exactly what is product, what is service charge, and what is government — which is precisely the transparency that pre-empts the invoice-time line-by-line interrogation from a professional procurement office.</p>"
+    "html": "<p>Open Quotation (awesome bar) &gt; New. Complete the fields in order.</p><p><b>1. Quotation To and Party.</b> Customer (the register record) or Lead where the site quotes prospects. Selecting the customer pulls module 1's machinery: the price list, the currency, the terms default, the addresses and contact. The pre-fill is the point — verify it rather than retype it.</p><p><b>2. Date and Valid Till.</b> The issue date, and the expiry date of the offer. Valid Till is a commitment boundary, not a formality: Chapter 4 covers its discipline. It is set per the policy's standard window (and shortened for volatile-cost items), never left blank.</p><p><b>3. Order Type.</b> Sales for the standing case; the other types where the site uses them (maintenance, shopping cart) per their flows.</p><p><b>4. Currency and Price List.</b> Pre-filled from the customer's resolution chain (module 2, Chapter 4). A quotation on the wrong list is wrong on every row; the header check takes two seconds and precedes any row work.</p><p><b>5. The items table.</b> One row per offered line:</p><p>1. <b>Item Code</b> — from the register; the description prints as module 2 entered it.<br>2. <b>Qty and UOM</b> — the quantity in the stated unit, per module 2's unit-column discipline.<br>3. <b>Rate</b> — pre-filled from the list and any applying Pricing Rules; deviations only per Chapter 3's ladder.<br>4. <b>Amount</b> — quantity times rate, per row, readable arithmetic.</p><p><b>6. Taxes and Charges.</b> The tax template per the customer and document context; item-level treatments (module 2, Chapter 7) compute per line. The tax total on the offer is the tax total the invoice will show — quoting exclusive and invoicing inclusive is a dispute generator, and the template discipline prevents it.</p><p><b>7. Terms and Conditions.</b> The T&C template per Chapter 5 — selected, not typed.</p><p><b>8. Totals, discounts, and margin.</b> The document-level discount fields exist and are governed by the same ladder as row deviations (Chapter 3). Before submission, the margin view (where the site exposes it per role) is read: an offer is a commercial commitment, and the preparer confirms it clears the floor the policy sets or carries the approval that authorises the exception.</p><p><b>9. Save, review, submit, send.</b> Draft for internal review per the value threshold; submit to issue; send as the offer pack (Chapter 5). Submission fixes the record — from this point the offer changes only by Chapter 4's revision procedure.</p><p><b>Verification per quotation.</b> The party and list correct; validity set; every row's unit and rate read; taxes per template; terms selected; margin cleared or approved; then the print preview read as the customer will read it, because the document the customer receives is the record the business must honour.</p>"
    },
    {
-    "title": "Chapter 5 — Validity, terms & presentation",
+    "title": "Chapter 3 — Rates and the deviation ladder",
     "est": "12",
-    "html": "<p>An offer is a package: numbers, conditions, and the face it wears. This chapter finishes the package.</p><p><b>Valid Till, as policy.</b> Chapter 1 said fill it always; here is how to choose it. The validity window is your <i>price risk</i> window: for stable-cost goods, 30 days reads as professional patience; for FX-exposed or volatile-cost items, 7–14 days — with Selling 2's currency machinery noted in the terms (\"USD-linked items converted at prevailing rate\") — keeps a falling naira from turning old offers into losses. A customer who needs longer can ask; granting it is then a decision, not an accident of a blank field.</p><p><b>Payment terms on the offer.</b> The quotation carries payment terms — Net 30, 50% advance / balance on delivery — inherited from the customer's default (Selling 1) or set for the deal. Stating them on the OFFER means the cash conversation happens before commitment, when leverage is mutual, rather than at invoice time when the goods are gone (Selling 7 inherits what is agreed here). An offer silent on terms is an offer to have that argument later.</p><p><b>Terms &amp; Conditions.</b> The T&amp;C field takes a reusable template — delivery scope, warranty, installation exclusions, price-validity language — maintained once, selected per document. Deal-specific clauses append below the template. The discipline: the standard terms are STANDARD (legal has seen them once, not per-deal), and deviations are visible additions, not silent edits.</p><p><b>Presentation.</b> The print format wears your letterhead and prints what the fields hold: item descriptions (Selling 2 said write them for the buyer), quantities in trade UOMs, rates, taxes broken out, totals, validity, terms. Send from the system — the email tracks against the document, so \"did we ever send them the revised offer?\" is a lookup, not an inbox excavation. Attachments (spec sheets, drawings) ride the document too.</p><p><b>The standard of craft.</b> A quotation is often the first artefact of your firm a customer's decision-makers ever hold. Clean descriptions, honest totals, stated validity, stated terms, letterhead, no typos: ten minutes of craft that prices the firm, not just the goods. Sloppy offers negotiate against themselves.</p><p><b>The Draft checklist, enumerated.</b> Before Submit, thirty seconds against six boxes: right party and contact? right price list and currency? every row's UOM sane? the correct tax template? validity and payment terms filled? descriptions readable by a stranger? Six checks catch the six errors that account for nearly every embarrassing offer — and Chapter 9's patterns 1 and 4 are simply this checklist, skipped, presenting as tickets weeks later.</p>"
+    "html": "<p>Quotation rates start at the register's prices and deviate only by decision. This chapter is the discipline.</p><p><b>1. The pre-fill is the default.</b> Rates arrive from module 2's machinery: the customer's list, the per-UoM rows, the Pricing Rules whose conditions the rows meet. For most quotations the pre-fill is the offer, and the preparer's job is verification, not composition: the right list resolved, the expected rule fired (the 50-unit row showing its break), the units matching the rates.</p><p><b>2. The deviation ladder.</b> Negotiated business deviates — and deviations are decisions with owners, per the written ladder:</p><p>1. <b>Within the sales function's band</b> — deviations up to the policy's percentage on standard lines: applied by the preparer, reason noted on the document.<br>2. <b>Within the manager's band</b> — deeper deviations or sensitive lines: approved by the sales manager before issue, the approval recorded on the document (the site's approval mechanism or the documented note per the procedure).<br>3. <b>Above the bands</b> — owner approval, documented. Enterprise negotiations routinely live here, and the approval names the specific concession (the line, the rate, the condition), not a blanket permission.</p><p>The ladder mirrors the credit ladder (module 1) deliberately: prices and credit are the two places a sales document spends the business's money, and both move only with named approval.</p><p><b>3. Concessions are specific.</b> A negotiated concession states its scope: which lines, what rate or percentage, tied to what (the volume, the bundle, the term). Scope matters at revision time (Chapter 4) and at order time (module 4): the concession granted on terminals does not silently spread to scanners in round two, because the approval named terminals. The document's rows and notes carry the scope; the approval file carries the decision.</p><p><b>4. Margin visibility.</b> Where the role's view exposes valuation-based margin, the pre-issue read is standing procedure: the offer's gross margin per line and total against the policy floor. Deviations that breach the floor are exactly the cases the upper ladder bands exist for — the approval is the business deciding, with the arithmetic visible, that this offer is worth winning at this price. An offer issued below floor without that decision is Chapter 9's first error.</p><p><b>5. The deviations read — monthly.</b> Quotations issued in the month with rates below list, listed with line, list rate, offered rate, band, and approver — reconciled against the ladder. The read is the pricing control's offer-side audit, the sibling of module 2's price changes read: list prices move by governed update; document prices deviate by laddered approval; and both leave monthly evidence.</p>"
    },
    {
-    "title": "Chapter 6 — The status lifecycle & working the Open pipeline",
-    "est": "14",
-    "html": "<p>A quotation's status is one word of truth about where the deal stands. This chapter is the vocabulary — and the weekly practice that keeps the vocabulary honest.</p><p><b>The lifecycle.</b> <b>Draft</b> (being written; not an offer) → submit → <b>Open</b> (formal, awaiting the customer's answer — THE working state). From Open, four exits: <b>Ordered</b> (won — a Sales Order was created from it, Chapter 8's moment), <b>Lost</b> (conceded, with a reason — Chapter 7), <b>Expired</b> (Valid Till passed with no order — automatic, no human needed), <b>Cancelled</b> (withdrawn by you — a mispriced offer pulled back before acceptance).</p><p><b>Amending a submitted quotation.</b> The customer pushes back; the offer must change. Submitted documents are not edited — <b>cancel, then Amend</b>: the amendment carries the same number with a revision suffix, the original is preserved, and the negotiation's history reads as v1 → v2 in the record (exactly the Sales Order discipline of Selling 4, learned here first). Editing-by-new-document — a fresh quotation pretending v1 never existed — orphans the trail and doubles your Open count with a ghost.</p><p><b>Working the Open list — the weekly ritual.</b> Filter Quotations to <b>Open</b>. That list IS your offers-awaiting-answer pipeline — not Draft (not offers yet), not All (history). The ritual, oldest first: (1) <b>chase</b> — every Open offer has a dated follow-up; in this house that means a next step on the Duty Board lead, not a hope; (2) <b>refresh the stale</b> — an offer near expiry that's still live gets amended with fresh validity (and current prices — that's the point of expiry); (3) <b>kill the dead honestly</b> — no answer after the third chase is a Lost with reason \"no response\", not an Open kept warm to flatter the pipeline. An Open list you can trust is worth more than any forecast, because it isn't a forecast — it is the actual set of live offers, and management reads it as such.</p><p><b>Expired is a feature.</b> Teams sometimes resent auto-expiry; it is protecting them. An expired quotation cannot be accepted at stale prices — the customer who returns after 60 days gets a refreshed offer at current reality, and the awkward \"that price was then\" conversation is had by the system, politely, in advance.</p><p><b>Reading the pipeline by age.</b> Sort the Open list by date, oldest first, and read it as three bands: this week's offers (working normally), two-to-four weeks (chase actively — the decision window for most Nigerian B2B), and beyond validity horizon (refresh or kill, no third option). The bands turn a list into a worklist; and the amendment numbering (QTN-00871-1, -2) means even the refreshed offers carry their age honestly in their names.</p>"
-   },
-   {
-    "title": "Chapter 7 — Losing well: lost reasons as intelligence",
+    "title": "Chapter 4 — Validity and revisions",
     "est": "12",
-    "html": "<p>Half of selling is losing. The difference between an amateur pipeline and a professional one is what the losses leave behind.</p><p><b>The mechanics.</b> Marking a quotation <b>Lost</b> prompts for a <b>Lost Reason</b> — and supports recording which <b>competitor</b> took it. Ten seconds per loss. The reason taxonomy should be short and honest: <i>Price · Competitor · Timing/postponed · No budget · Spec mismatch · No response</i>. Six options a rep can pick without a philosophy seminar; \"Other\" exists but a category that wins the usage stats is a category list that needs redesign.</p><p><b>Why it matters — the compounding asset.</b> One lost reason is an anecdote. Six months of honest ones is a strategy document nobody had to write: <b>Price</b> dominating in one segment says your list rates are wrong there (or your value story is — same signal, two fixes); one <b>competitor's</b> name recurring says build the battle-card, study their gaps, price their weaknesses; <b>Timing</b> clusters say your offers land too early in the buying cycle — a next-step cadence problem (Selling 3 Chapter 2's working-the-lead discipline), not a pricing one; <b>Spec mismatch</b> patterns are product feedback wearing a sales costume — route them to whoever owns the catalog. Lost reasons are competitive and pricing intelligence. They are not a blame record for reps — the moment they're used punitively, every loss becomes \"Timing\" and the asset is destroyed; not noise; and never a deletion queue (a purged loss history is a firm that pays to relearn its own lessons).</p><p><b>Reading the intelligence.</b> Quarterly: losses grouped by reason, by segment (customer group — Selling 1's tree earning rent again), by competitor. One page. The questions it answers are the ones boards actually ask: where do we lose, to whom, and about what?</p><p><b>Reopening.</b> A lost deal that comes back to life is a NEW offer at current prices — refresh rather than resurrect, and let the record show both chapters of the story.</p><p><b>The quarterly one-pager, specified.</b> Four cuts, one page: losses by reason (the headline mix), by customer group (which segments resist), by competitor (who beats you, where), and by source (which channels send losers). Build it once from the quotation list's filters; read it in the quarterly commercial review beside the win data. The firms that do this treat lost deals as tuition already paid — the ones that don't, pay the same tuition annually.</p><p><b>Owning the taxonomy.</b> The reason list itself needs an owner — usually the sales lead — who prunes it yearly: a reason nobody picks gets merged away; an 'Other' that wins the counts gets split into what people were actually meaning. Taxonomies drift out of truth exactly like price lists drift out of market, and the maintenance discipline is the same: scheduled, owned, and boring.</p>"
+    "html": "<p>An issued offer binds the business while valid. This chapter is the validity discipline and the revision procedure.</p><p><b>1. Valid Till discipline.</b></p><p>1. <b>Every quotation carries a validity date</b> — the policy's standard window, shortened for volatile-cost lines (imported goods in a moving exchange environment carry the short window the policy names).<br>2. <b>The offer is honoured within its validity</b> — a customer accepting on the last valid day gets the quoted terms; that is what issuing a dated offer means, and the pricing of the offer accounts for the window's exposure.<br>3. <b>Expired offers are not resurrected by editing</b> — acceptance after expiry triggers a re-quote (a revision at current prices, Chapter 4.3), because the costs behind the offer have had time to move and the old document's arithmetic no longer states the business's position.</p><p><b>2. The no-silent-edit rule.</b> A submitted, sent quotation is a record of what was offered. It is never edited in place to reflect a new round — the customer holds the old version, the business would hold a different one, and the negotiation would proceed from two disagreeing documents. Every change after issue is a revision.</p><p><b>3. The revision procedure.</b> Per negotiation round:</p><p>1. <b>The new version is created from the prior</b> — amend or duplicate per the site's convention, carrying the reference to the version it supersedes, so the thread reads in order.<br>2. <b>The changes are the round's changes only</b> — the conceded lines at their approved rates, the adjusted quantities, the revised terms — each within its ladder approval (Chapter 3).<br>3. <b>The superseded version is closed</b> — marked per the convention so the pipeline reads (Chapter 6) count one live offer per negotiation, not one per round.<br>4. <b>The new version issues with its own validity</b> — the window restarts from the revision date.</p><p><b>4. The negotiation file.</b> Enterprise negotiations produce a thread: versions, approvals, the customer's responses. The file — the versions in sequence, each approval against its round, the correspondence — is the negotiation's record, and it answers the two questions that always arrive later: what did we offer when, and who approved the movement. Module 4 consumes this file at order time: the order is checked against the final version, and the file is where any discrepancy is resolved from.</p><p><b>5. The validity read — weekly.</b> Open quotations by days-to-expiry: offers expiring within the follow-up window get their Chapter 6 follow-up before the date; offers past expiry are closed as expired (or revived by deliberate re-quote), so the pipeline holds only live commitments. An open expired quotation is a misstated pipeline and a latent dispute — the read keeps both at zero.</p>"
    },
    {
-    "title": "Chapter 8 — Case study: the enterprise quotation, end to end",
-    "est": "16",
-    "html": "<p>One deal, worked from enquiry to order, every chapter earning its place. The client is recognisable on purpose.</p><p><b>The deal.</b> Montaigne AH — luxury retail, 30+ branches — requests an offer: POS hardware for 12 branches (12 terminals, 12 scanners, 12 printers), installation, and a year of support. Procurement is professional; legal will read the terms; the decision will take three weeks and two rounds.</p><p><b>Step 1 — The party (Ch. 1-2).</b> Montaigne exists as a customer (Selling 1's onboarding was done at contract stage): Corporate group, Lagos Island, NGN, Key Accounts NGN price list. The quotation addresses the customer; contact defaults to their procurement lead (primary contact doing its job).</p><p><b>Step 2 — The grid (Ch. 1, 3).</b> Six rows: terminals, scanners, printers (12 each — hardware descriptions written for a buyer: model, spec, warranty line); Installation (service item, Maintain Stock off — Selling 2 Ch. 1); Support Plan — Year 1; and a training line. Rates fetch from Key Accounts NGN. Negotiation from the prior meetings (worked on the Duty Board lead, next steps and all) justifies one override: terminals cut 4% against list — <b>Rate</b> edited, <b>Price List Rate</b> standing witness, reason noted in the deal record.</p><p><b>Step 3 — Taxes and terms (Ch. 4-5).</b> VAT 7.5% template selected; grand total shows what Montaigne will actually pay. Payment terms: 50% advance, 40% on delivery, 10% on commissioning — stated ON the offer, inherited later by every invoice (Selling 7 will thank this step). T&amp;C template: standard supply-and-install terms, plus one deal clause — site-readiness responsibilities per branch. Valid Till: 30 days.</p><p><b>Step 4 — Submit and send (Ch. 1, 5).</b> Draft reviewed against a checklist (right list? right template? descriptions clean? totals sane?), then Submit → QTN number → emailed from the system on letterhead, spec sheets attached. Status: <b>Open</b>. A dated next step lands on the lead: follow up in 5 days.</p><p><b>Step 5 — The pushback and the amendment (Ch. 6).</b> Round two: Montaigne wants the support plan cut 10% and 45-day validity for their board cycle. Cancel → <b>Amend</b> → v2: support rate adjusted, Valid Till extended, one line added to terms. The record now reads v1 → v2 — the negotiation IS the document history. (A fresh quotation pretending v1 never existed was the rejected path.)</p><p><b>Step 6 — The win (Ch. 6; Selling 4 begins).</b> Acceptance email arrives. From the v2 quotation: <b>Create &gt; Sales Order</b> — items, the negotiated rates, VAT, the staged payment terms, all carried without retyping; the quotation flips to <b>Ordered</b>; the lead on the Duty Board closes won. The chain of custody — enquiry, meetings, v1, v2, order — is unbroken and readable by anyone, forever.</p><p><b>What the craft bought:</b> two rounds closed in three weeks with zero transcription errors, terms legal had pre-approved, a payment schedule collections will enforce verbatim, and a file that the delivery team (Selling 5) and the billing team (Selling 7) can execute without one clarifying phone call. That is what a quotation is FOR.</p>"
+    "title": "Chapter 5 — Terms and the offer pack",
+    "est": "12",
+    "html": "<p>The offer is more than its rows. This chapter is the terms machinery and the pack the customer receives.</p><p><b>1. Terms and Conditions templates.</b> Open Terms and Conditions (awesome bar) &gt; New: named templates carrying the standing text — delivery terms, payment terms restated in words, warranty and support statements, the validity restatement, the legal boilerplate the business's counsel approved. The rules:</p><p>1. <b>Templates are the only source of terms text</b> — selected on the document, not typed per quotation. Typed terms are unreviewed terms, and unreviewed terms are what the business discovers it agreed to during a dispute.<br>2. <b>Templates are owned</b> — the register row names the owner (the owner or counsel for legal text) and the review date; changes are governed with effective dates.<br>3. <b>Template per context</b> — the standard trade template, the enterprise template with its support and training clauses, the tender template per the tender's requirements. The document selects the context's template; deviations for one negotiation are the negotiation file's documented exception, approved like any concession.</p><p><b>2. The offer pack.</b> What the customer receives, assembled per the policy:</p><p>1. <b>The quotation print</b> — the document on the letterhead, per the print format the site standardises. The print is read before sending, as the customer will read it: rows, units, taxes, totals, validity, terms.<br>2. <b>The attachments per context</b> — specification sheets for equipment lines, the company profile for new prospects, the tender's required documents per its checklist.<br>3. <b>The transmission record</b> — the pack sends from the system (the email with the PDF) or is dispatched with its record; either way the file holds what was sent, to whom, when. The sent pack is the offer; the internal draft is not.</p><p><b>3. Print discipline.</b></p><p>1. <b>One standard format per document type</b> — the format the business's documents carry, maintained by the sysadmin lane; per-user format improvisation produces offers that look like different companies.<br>2. <b>What prints is what the record says</b> — no manual PDF editing after generation; a correction is a revision (Chapter 4), regenerated and re-sent.<br>3. <b>The letterhead and registration details</b> — current and correct per the compliance owner, because the offer is a business document carrying the business's legal identity.</p><p><b>4. The terms read — annually.</b> With the pricing review: templates against their owners and review dates; the legal text reconfirmed or updated by counsel; superseded templates disabled; and a sample of the year's enterprise offers checked for typed-terms exceptions that should have been template updates.</p>"
    },
    {
-    "title": "Chapter 9 — Common mistakes & support patterns",
+    "title": "Chapter 6 — The pipeline reads",
+    "est": "12",
+    "html": "<p>Open quotations are the sales pipeline's commitments. This chapter is the reads that keep the pipeline true and worked.</p><p><b>1. The open-quotations read — weekly.</b> All open quotations, by age and days-to-validity:</p><p>1. <b>The follow-up cadence</b> — per the policy: the issue-week contact confirming receipt and questions; the mid-validity follow-up; the pre-expiry contact. Each contact notes on the document or its thread, so the negotiation file (Chapter 4) is complete and any colleague can pick up the thread.<br>2. <b>The expiry hygiene</b> — Chapter 4's read folded in: expiring offers followed up, expired offers closed.</p><p><b>2. Outcome marking.</b> Every quotation ends in a state, marked when known:</p><p>1. <b>Ordered</b> — converted per Chapter 7; the system links the order.<br>2. <b>Lost</b> — marked with the lost reason from the reason code set (price, availability, specification, relationship, no decision), because a pipeline that only records wins cannot answer why it loses. Reason codes are a register set: few, defined, reviewed — free-text reasons aggregate into nothing.<br>3. <b>Expired</b> — the passive loss, closed by the weekly read.</p><p><b>3. The conversion read — monthly.</b> Quotations issued, ordered, lost, and expired across the window; the conversion rate by count and by value; the lost reasons distribution. The read's uses, stated flatly:</p><p>1. <b>The rate trend</b> — a falling conversion rate is a pricing, availability, or follow-up question; the lost-reason distribution says which.<br>2. <b>The value-weighted view</b> — winning many small offers while losing the large ones reads differently from the count alone; both figures are compiled.<br>3. <b>The aging tail</b> — offers open beyond the standard cycle without outcome marks are follow-up failures or marking failures; the read lists them to zero.</p><p><b>4. The deviation-versus-outcome read — quarterly.</b> The monthly deviations read (Chapter 3) joined to outcomes: what the conceded offers won, at what margin, against what the list-price offers won. The read is data for the owner's pricing review — whether the ladder's bands are calibrated, whether concessions are buying volume or merely spending margin — presented as figures with the offers named, per the standing data-not-editorial rule.</p><p><b>5. The pipeline's filing.</b> The reads file with the sales function's records; the pipeline figures feed the sales page the owner reads monthly (the selling track's reporting is consolidated in module 7 alongside receivables); and the quotation file per negotiation remains the one-lookup answer for any offer's history.</p>"
+   },
+   {
+    "title": "Chapter 7 — Conversion to order",
+    "est": "12",
+    "html": "<p>A won quotation becomes a Sales Order. This chapter is the conversion procedure and its checks.</p><p><b>1. The conversion mechanics.</b> From the accepted quotation: Create &gt; Sales Order. The system carries the party, the rows, the rates, the taxes, and the terms into the order draft — the inheritance is the point: the agreement the customer accepted is what the order states, without re-keying and without re-keying's errors.</p><p><b>2. The conversion checks, in order.</b></p><p>1. <b>The accepted version</b> — the order is created from the final revision, verified against the negotiation file (Chapter 4). Creating from a superseded version ships the wrong round's prices; the file's version thread is the defence.<br>2. <b>Validity standing</b> — acceptance within the validity window (Chapter 4's rule; expired acceptance re-quotes first).<br>3. <b>The customer's standing</b> — for prospects quoted as leads, the customer gate completes now (module 1): the record, the terms and credit per the ladder, before the order submits. For existing customers, the credit check runs at order submission per module 1's machinery — a won offer that exceeds the limit routes to the credit decision, not around it.<br>4. <b>Acceptance evidence</b> — the customer's acceptance (the signed offer, the purchase order document, the written confirmation) attaches to the order. The agreement's evidence lives with the commitment document, because module 4's delivery and invoicing disputes resolve from it.</p><p><b>3. Partial acceptance.</b> The customer accepts part of the offer: the order carries the accepted rows only; the quotation's remaining rows stay open or close per the negotiation's reality (the declined lines marked lost with their reason; the deferred lines carried in a follow-on quotation with current validity). The order never carries rows the customer did not accept, and the quotation's outcome marking reflects what actually happened per line group.</p><p><b>4. Changes at acceptance.</b> The customer accepts with one change — a quantity, a delivery split, a term. The change routes by size: within the ladder's bands, the order draft carries it with the approval noted; beyond them, a final revision issues and is accepted before the order proceeds. The rule is the same as everywhere in the module: the order states what was agreed, and what was agreed has its approval.</p><p><b>5. The handoff.</b> The submitted order opens module 4's territory: the commitment schedule, the reservation of stock, the delivery planning. This module's contribution ends with a clean handoff — the order matching the final offer, the evidence attached, the quotation marked ordered and linked — and the negotiation file closed into the order's record.</p>"
+   },
+   {
+    "title": "Chapter 8 — Worked example: the Montaigne AH offer",
     "est": "13",
-    "html": "<p>The quotations scar-tissue chapter: the tickets and habits you will actually meet, symptom → disease → fix.</p><p><b>Pattern 1 — \"Customer accepted at the old price and we're stuck.\"</b> Disease: blank or generous Valid Till (Ch. 1, 5) — the offer outlived its cost basis. Fix forward: validity policy by item volatility; fix now: a commercial conversation, because the document did commit you. The system's version of this protection — auto-expiry — was disabled by the blank field.</p><p><b>Pattern 2 — \"Our Open pipeline is huge but nothing closes.\"</b> Disease: Open-list dishonesty (Ch. 6) — dead deals kept warm, no-response offers never marked Lost, stale offers never expired-and-refreshed. Fix: the weekly ritual, enforced; the number shrinks to the truth and management can finally steer by it. A big fake pipeline is worse than a small real one because it licenses complacency.</p><p><b>Pattern 3 — \"Every quotation has overrides.\"</b> Disease: list rates diverged from market, so everything is an 'exception' (Ch. 3; Selling 2 Ch. 9's coupling cousin). Fix: reprice the lists (Selling 2 Ch. 6's import workflow), or migrate structural cases to their proper list/pricing rule — and reserve Rate for genuine negotiation again.</p><p><b>Pattern 4 — \"We quoted the wrong tax and it reached the invoice.\"</b> Disease: wrong template chosen in Draft, faithfully travelling (Ch. 4). Fix: the Draft checklist (right template is a checkbox on it); for the live case, amend the quotation if pre-order, or handle downstream per Selling 7's correction discipline if it's already billed.</p><p><b>Pattern 5 — \"We can't find what we offered them last time.\"</b> Disease: offers made outside the system (a PDF from someone's desktop) or fresh-document 'edits' orphaning the trail (Ch. 6). Fix: every offer is a Quotation, every revision an Amend — then \"what did we offer?\" is a filter, not a forensic exercise.</p><p><b>Pattern 6 — \"A customer record exists for every enquiry that ever emailed us.\"</b> Disease: quoting enquiries as customers instead of leads (Ch. 2). Fix: leads for the unconverted, conversion at the win — and a one-time cleanup of the ghost customers (Selling 1 Ch. 9's merge discipline).</p><p><b>Pattern 7 — \"Lost reasons are all 'Timing'.\"</b> Disease: the taxonomy is being used defensively — usually because it's read punitively (Ch. 7). Fix is managerial, not technical: losses reviewed as strategy, never as prosecution; the data honestifies within a quarter.</p><p><b>The meta-pattern, extended.</b> Selling 1 and 2 taught: documents are downstream of masters. This module adds the second law: <b>the pipeline is downstream of discipline</b>. Statuses kept true, validity enforced, losses recorded honestly, revisions amended not forked — the quotation layer is where process integrity becomes visible to management, because the Open list is the one report everyone reads as a promise. Keep it worthy of that reading.</p>"
+    "html": "<p>This chapter runs Chapters 2-7 through an enterprise negotiation: Montaigne AH, a chain requesting a POS hardware and setup offer for <b>12 branches — 12 terminals, 12 scanners, 12 printers</b> — plus installation and training. The cycle runs <b>three weeks and two rounds</b>. Values and outcomes are listed per step.</p><p><b>Step 1 — the request and the draft (Chapter 2).</b> The request arrives from an onboarded customer (module 1's gate completed at relationship start). The quotation drafts from the registers: the equipment lines from the item register with their units, installation and training as the service lines the register carries, rates pre-filling from the Trade list. Validity set to the policy's enterprise window; the enterprise T&C template selected (support and training clauses standing). The margin view is read; the draft clears review at the value threshold and issues as round one — the offer pack: the print on letterhead, the equipment specification sheets attached, the transmission recorded.</p><p><b>Step 2 — round one's response (Chapters 3-4).</b> Montaigne AH responds inside the validity window: the specification is accepted; the commercial ask is a concession on the terminal lines and a training restructure. The deviation routes per the ladder: the terminal concession sits above the manager's band and goes to the owner with the margin arithmetic — approved as a named, specific concession: <b>the terminal lines at the conceded rate, tied to the 12-branch volume</b>; scanners and printers stay at list, because the approval names terminals only.</p><p><b>Step 3 — round two issues (Chapter 4).</b> The revision creates from round one, carrying the reference: the terminal rows at the approved concession, the training line restructured per the discussion, everything else unchanged. Round one closes as superseded; round two issues with fresh validity. The negotiation file now holds: two versions in sequence, the owner's approval against round two's concession, and the correspondence thread.</p><p><b>Step 4 — acceptance and conversion (Chapter 7).</b> Acceptance arrives in week three, inside round two's validity, as Montaigne AH's purchase order document. The conversion runs its checks: the order creates from round two (the final version, verified against the file); the credit check passes at the customer's limit; the acceptance document attaches to the order. One change at acceptance — a delivery scheduling request — is a module 4 scheduling matter carrying no commercial movement, noted for the order's schedule rather than re-quoted.</p><p><b>Step 5 — the record closes (Chapters 6-7).</b> The quotation marks Ordered with the order linked; the conversion read counts the win at value; the deviations read carries the terminal concession with its owner approval — the quarter's deviation-versus-outcome read will show what the concession bought. The negotiation is answerable from one file: two versions, one approval, the acceptance, the order. Module 4 opens with this order — the commitment, its schedule, and the delivery waves across the 12 branches.</p>"
+   },
+   {
+    "title": "Chapter 9 — Common errors and the module rule",
+    "est": "11",
+    "html": "<p>The errors that recur in quotations, each with its correction and prevention.</p><p><b>Error 1 — the below-floor offer without a decision.</b> Symptom: offers issued under the margin floor by composition rather than approval; concessions nobody authorised. Correction: the deviations read run, the ladder applied retroactively where defensible, the offers re-quoted where not. Prevention: pre-fill as the default, the ladder for every deviation, the margin read before issue.</p><p><b>Error 2 — the silently edited offer.</b> Symptom: a sent quotation edited in place; the customer and the business holding disagreeing documents; the dispute conducted from two versions. Correction: the record reconstructed from the transmission file; a clean revision issued. Prevention: the no-silent-edit rule — every post-issue change is a referenced revision.</p><p><b>Error 3 — the immortal offer.</b> Symptom: quotations without validity or expired ones honoured months later at stale prices; the pipeline full of dead offers. Correction: the validity read run, expired offers closed, resurrections re-quoted at current prices. Prevention: Valid Till on every offer and the weekly read.</p><p><b>Error 4 — the spreading concession.</b> Symptom: a concession approved for one line appearing on others in the next round; approvals treated as blanket permissions. Correction: the revision corrected against the approval's named scope. Prevention: concessions specific — line, rate, condition — and revisions checked against the approval file.</p><p><b>Error 5 — typed terms.</b> Symptom: per-quotation terms text; commitments counsel never reviewed; support obligations discovered at dispute. Correction: the offers sampled, exceptional terms escalated, templates updated where the exception was right. Prevention: templates as the only terms source, owned and reviewed.</p><p><b>Error 6 — the unmarked pipeline.</b> Symptom: quotations without outcomes; conversion rates uncomputable; lost reasons unknown. Correction: the tail worked to zero with outcomes marked. Prevention: the weekly open read, the reason code set, and the monthly conversion read.</p><p><b>Review list.</b> Before the quiz, confirm you can: complete the Quotation walk including the header checks, the row discipline, and the pre-issue verification; apply the pre-fill-first rate discipline with the deviation ladder and specific concessions; operate validity and the revision procedure with the negotiation file; assemble the offer pack from owned templates with print discipline; run the pipeline reads — open, outcomes, conversion, deviation-versus-outcome; and convert with the four checks, partial acceptance, and the clean handoff.</p><p><b>Module rule 3: an issued offer is a record — built from the registers, deviating only by the ladder's named approvals, valid to its date, changed only by referenced revision, sent as the pack the file preserves, and converted to order only from the final accepted version with its evidence attached.</b> Module 4 covers Sales Orders.</p>"
    }
   ],
   "questions": [
    {
-    "q": "A submitted quotation awaiting the customer's answer shows status:",
+    "q": "A Quotation is:",
     "opts": [
-     "Open",
-     "Draft",
-     "Ordered",
-     "Pending"
+     "The written offer — items, quantities, prices, terms, valid until a date — built from the registers",
+     "A draft order",
+     "An invoice",
+     "A price list"
     ],
     "ans": 0,
-    "why": "Submit moves Draft to Open — the awaiting-answer state.",
-    "src": "Lifecycle §3"
-   },
-   {
-    "q": "After Valid Till passes with no order, the quotation shows:",
-    "opts": [
-     "Lost",
-     "Expired",
-     "Cancelled",
-     "Closed"
-    ],
-    "ans": 1,
-    "why": "Expiry is automatic from the Valid Till date.",
-    "src": "Lifecycle §3"
-   },
-   {
-    "q": "Making a Sales Order from a quotation flips the quotation to:",
-    "opts": [
-     "Closed",
-     "Won",
-     "Ordered",
-     "Fulfilled"
-    ],
-    "ans": 2,
-    "why": "Ordered records that the offer converted.",
-    "src": "Converting §4"
-   },
-   {
-    "q": "Marking a quotation Lost prompts for:",
-    "opts": [
-     "A discount",
-     "A replacement quote",
-     "Manager approval",
-     "A Lost Reason"
-    ],
-    "ans": 3,
-    "why": "Lost reasons accumulate into competitive intelligence.",
-    "src": "Losing §4"
-   },
-   {
-    "q": "Nigerian VAT on a quotation is applied via:",
-    "opts": [
-     "A Sales Taxes and Charges Template",
-     "Typing 7.5% into the rate",
-     "The item master",
-     "The customer group"
-    ],
-    "ans": 0,
-    "why": "The tax template carries VAT onto the document.",
-    "src": "Taxes §2"
-   },
-   {
-    "q": "Why quote taxes on the offer rather than adding them at invoice?",
-    "opts": [
-     "It's legally required on quotes",
-     "The customer sees the true payable total — no late surprises",
-     "It changes the rate",
-     "Templates only work on quotations"
-    ],
-    "ans": 1,
-    "why": "Late tax surprises sour closed deals.",
-    "src": "Taxes §2"
-   },
-   {
-    "q": "Overriding a price-list rate on one quotation row is:",
-    "opts": [
-     "Impossible",
-     "Only for System Managers",
-     "Allowed, visible, and reportable",
-     "Automatic"
-    ],
-    "ans": 2,
-    "why": "Row overrides are permitted and transparent.",
-    "src": "Creating §1"
-   },
-   {
-    "q": "Your live offers-awaiting-answer list is the Quotation list filtered to:",
-    "opts": [
-     "Draft",
-     "All",
-     "Ordered",
-     "Open"
-    ],
-    "ans": 3,
-    "why": "Open = submitted, unanswered, unexpired.",
-    "src": "Lifecycle §3"
-   },
-   {
-    "q": "Converting via Create > Sales Order matters because:",
-    "opts": [
-     "Items, rates, taxes and terms carry over with no transcription errors",
-     "It's faster to type fresh",
-     "It skips approval",
-     "It hides the quotation"
-    ],
-    "ans": 0,
-    "why": "Document flow preserves the agreed offer exactly.",
-    "src": "Converting §4"
-   },
-   {
-    "q": "A quotation can be made against:",
-    "opts": [
-     "Only a customer",
-     "A customer or a lead",
-     "Only an existing order",
-     "A supplier"
-    ],
-    "ans": 1,
-    "why": "Quotations support leads as well as customers.",
-    "src": "Creating §1"
-   },
-   {
-    "q": "The taxes chosen on the quotation:",
-    "opts": [
-     "Must be re-entered on the order",
-     "Apply only to the quote",
-     "Flow onto the Sales Order made from it",
-     "Are locked to VAT"
-    ],
-    "ans": 2,
-    "why": "The template travels forward through the cycle.",
-    "src": "Taxes §2"
-   },
-   {
-    "q": "Six months of Lost Reasons is best used as:",
-    "opts": [
-     "A blame record",
-     "Nothing — it's noise",
-     "A deletion queue",
-     "Competitive and pricing intelligence for strategy"
-    ],
-    "ans": 3,
-    "why": "Patterns in why deals die tell you what to fix.",
-    "src": "Losing §4"
-   },
-   {
-    "q": "A price enquiry from a company that has never bought should be quoted against:",
-    "opts": [
-     "A Lead — conversion to customer happens at the win",
-     "A new customer record",
-     "The generic 'Walk-in' customer",
-     "No document — email a PDF"
-    ],
-    "ans": 0,
-    "why": "Leads keep the customer master free of never-transacted ghosts.",
-    "src": "Ch2"
-   },
-   {
-    "q": "On a quotation row, a negotiated concession changes:",
-    "opts": [
-     "Price List Rate",
-     "Rate, while Price List Rate stands as the reference",
-     "Both fields",
-     "The item's Item Price"
-    ],
-    "ans": 1,
-    "why": "The pair makes negotiation measurable against list.",
-    "src": "Ch3"
-   },
-   {
-    "q": "The honest way to give 20 free units on an order of 100 is:",
-    "opts": [
-     "A blended average rate on one row",
-     "120 units at a doctored rate",
-     "Two rows — 100 at rate, 20 at zero",
-     "A remark promising the extras"
-    ],
-    "ans": 2,
-    "why": "Two visible rows; enabled by Allow-Multiple-Times.",
-    "src": "Ch3"
-   },
-   {
-    "q": "The same customer gets the same 'exception' override every month. The right response:",
-    "opts": [
-     "Keep overriding — it works",
-     "Raise their credit limit",
-     "Ban overrides",
-     "Move them to the correct price list or rule; overrides return to meaning exceptions"
-    ],
-    "ans": 3,
-    "why": "A recurring exception is actually their price.",
-    "src": "Ch3"
-   },
-   {
-    "q": "A quotation left with a blank Valid Till:",
-    "opts": [
-     "Never expires — last quarter's prices stay acceptable indefinitely",
-     "Expires in 30 days anyway",
-     "Cannot be submitted",
-     "Is automatically cancelled"
-    ],
-    "ans": 0,
-    "why": "Auto-expiry only protects you if the field is filled.",
-    "src": "Ch1, Ch9"
-   },
-   {
-    "q": "Validity for FX-exposed goods should be:",
-    "opts": [
-     "The standard 30 days",
-     "Short (7–14 days), with conversion language in terms",
-     "One year",
-     "Blank"
-    ],
-    "ans": 1,
-    "why": "The validity window is your price-risk window.",
-    "src": "Ch5"
-   },
-   {
-    "q": "Payment terms belong on the quotation because:",
-    "opts": [
-     "Invoices can't carry terms",
-     "It's legally required",
-     "The cash conversation should happen before commitment, and invoices inherit what's agreed",
-     "It shortens the document"
-    ],
-    "ans": 2,
-    "why": "Terms stated at offer time are enforced, not argued, at billing time.",
-    "src": "Ch5"
-   },
-   {
-    "q": "The customer pushes back on a submitted quotation. The change is made by:",
-    "opts": [
-     "Editing the submitted document",
-     "A phone agreement",
-     "A fresh quotation ignoring v1",
-     "Cancel then Amend — v2 carries the history"
-    ],
-    "ans": 3,
-    "why": "Amendments keep the negotiation readable as v1 → v2.",
-    "src": "Ch6"
-   },
-   {
-    "q": "An Open offer with no response after the third chase should be:",
-    "opts": [
-     "Marked Lost with reason 'no response'",
-     "Kept Open to flatter the pipeline",
-     "Deleted",
-     "Re-submitted"
-    ],
-    "ans": 0,
-    "why": "An Open list you can trust beats a big fake one.",
-    "src": "Ch6, Ch7"
-   },
-   {
-    "q": "Auto-expiry of quotations protects the seller by:",
-    "opts": [
-     "Punishing slow customers",
-     "Preventing acceptance at stale prices — refresh happens by design",
-     "Reducing database size",
-     "Hiding old offers"
-    ],
-    "ans": 1,
-    "why": "Expired offers force a repriced conversation politely, in advance.",
-    "src": "Ch6"
-   },
-   {
-    "q": "A lost-reason taxonomy that works is:",
-    "opts": [
-     "Twenty precise categories",
-     "A free-text field",
-     "Short and honest — Price, Competitor, Timing, No budget, Spec, No response",
-     "Optional"
-    ],
-    "ans": 2,
-    "why": "Reps must pick truthfully in seconds for the data to compound.",
-    "src": "Ch7"
-   },
-   {
-    "q": "Lost reasons all read 'Timing'. The likeliest cause:",
-    "opts": [
-     "Deals genuinely all mistimed",
-     "The taxonomy is too short",
-     "A system bug",
-     "The data is read punitively, so reps answer defensively"
-    ],
-    "ans": 3,
-    "why": "Intelligence dies the day it becomes prosecution.",
-    "src": "Ch7, Ch9"
-   },
-   {
-    "q": "'Price' dominating lost reasons in one segment signals:",
-    "opts": [
-     "List rates or the value story are wrong there — same signal, two fixes",
-     "Reps need discipline",
-     "Stop selling to that segment",
-     "Nothing"
-    ],
-    "ans": 0,
-    "why": "Loss patterns are strategy wearing sales data.",
-    "src": "Ch7"
-   },
-   {
-    "q": "A dead deal that revives after two months gets:",
-    "opts": [
-     "The old quotation reopened as-is",
-     "A refreshed offer at current prices, with both chapters in the record",
-     "A discount for returning",
-     "A verbal price"
-    ],
-    "ans": 1,
-    "why": "Refresh rather than resurrect.",
-    "src": "Ch7"
-   },
-   {
-    "q": "The email sending a quotation should go:",
-    "opts": [
-     "From any personal inbox",
-     "Via WhatsApp only",
-     "From the system, tracking against the document",
-     "After the order"
-    ],
-    "ans": 2,
-    "why": "'Did we send the revised offer?' becomes a lookup, not an excavation.",
-    "src": "Ch5"
-   },
-   {
-    "q": "Item description on the quotation row matters because:",
-    "opts": [
-     "It's searchable",
-     "It controls stock",
-     "It sets the tax",
-     "It prints as your offer's line copy for the buyer's eyes"
-    ],
-    "ans": 3,
-    "why": "The description IS the customer-facing spec line.",
-    "src": "Ch1, Ch5"
-   },
-   {
-    "q": "The Draft/Submit distinction means:",
-    "opts": [
-     "Build and check in Draft; the customer only ever sees Submitted",
-     "Drafts are visible to customers",
-     "Submit deletes the draft",
-     "Drafts expire"
-    ],
-    "ans": 0,
-    "why": "Formality begins at submission.",
+    "why": "Everything downstream inherits what it states.",
     "src": "Ch1"
    },
    {
-    "q": "Choosing the wrong tax template on a quotation is worth catching in Draft because:",
+    "q": "Quotations are required for:",
     "opts": [
-     "It can't be fixed later",
-     "The error travels to order and invoice as faithfully as the correct choice would",
-     "Taxes don't recalculate",
-     "FIRS reads drafts"
+     "Every sale",
+     "Enterprise, institutional, negotiated, and above-threshold business per the policy — routine trade sells from the lists",
+     "Counter sales",
+     "Nothing"
     ],
     "ans": 1,
-    "why": "The template flows through the whole cycle.",
-    "src": "Ch4"
+    "why": "A negotiated arrangement without a written offer is a dispute from memory.",
+    "src": "Ch1"
    },
    {
-    "q": "Terms & Conditions on quotations should be:",
+    "q": "The offer and the order differ as:",
     "opts": [
-     "Written fresh per deal",
-     "Omitted for speed",
-     "A standard template, with deal-specific clauses as visible additions",
-     "Only in the email body"
+     "Synonyms",
+     "Formats",
+     "The offer versus the agreement — the distinction carries through every procedure",
+     "Print styles"
     ],
     "ans": 2,
-    "why": "Standard terms stay legally pre-approved; deviations stay visible.",
-    "src": "Ch5"
+    "why": "The accepted quotation converts to the commitment.",
+    "src": "Ch1"
    },
    {
-    "q": "Quoting from an opportunity (rather than loose) matters because:",
+    "q": "The header check before row work is:",
     "opts": [
-     "It's faster",
-     "It changes pricing",
-     "It skips approval",
-     "The deal's history — opportunity, offers, order — is born linked and studyable"
+     "The date",
+     "The order type",
+     "The letterhead",
+     "The party and price list — a quotation on the wrong list is wrong on every row"
     ],
     "ans": 3,
-    "why": "Linked chains beat archaeology.",
+    "why": "Two seconds, first.",
     "src": "Ch2"
    },
    {
-    "q": "In the Montaigne case, the 4% terminal concession was recorded as:",
+    "q": "Quoting exclusive and invoicing inclusive is:",
     "opts": [
-     "A Rate override with the reason noted, Price List Rate standing",
-     "A quantity bump",
-     "A new price list",
-     "A hidden rebate"
+     "A dispute generator — the template discipline keeps the offer's tax total equal to the invoice's",
+     "Normal",
+     "Efficient",
+     "Required"
     ],
     "ans": 0,
-    "why": "Negotiation visible, measurable, and explained.",
-    "src": "Ch8"
+    "why": "The tax template per customer and context.",
+    "src": "Ch2"
    },
    {
-    "q": "The weekly Open-pipeline ritual, oldest first, is:",
+    "q": "Submission of a quotation:",
     "opts": [
-     "Print and file",
-     "Chase, refresh the stale, kill the dead honestly",
-     "Convert everything to orders",
-     "Delete expired offers"
+     "Ends nothing",
+     "Fixes the record — changes thereafter only by the revision procedure",
+     "Sends it automatically",
+     "Creates the order"
     ],
     "ans": 1,
-    "why": "Three verbs keep the pipeline true.",
+    "why": "The pre-issue verification precedes it.",
+    "src": "Ch2"
+   },
+   {
+    "q": "The final pre-send step is:",
+    "opts": [
+     "Spellcheck",
+     "The margin view",
+     "Reading the print preview as the customer will read it — the received document is the honoured record",
+     "The follow-up"
+    ],
+    "ans": 2,
+    "why": "Verification per quotation.",
+    "src": "Ch2"
+   },
+   {
+    "q": "For most quotations the preparer's job is:",
+    "opts": [
+     "Composing rates",
+     "Typing terms",
+     "Discounting",
+     "Verifying the pre-fill — the right list, the expected rules fired, units matching rates"
+    ],
+    "ans": 3,
+    "why": "The pre-fill is the default.",
+    "src": "Ch3"
+   },
+   {
+    "q": "The deviation ladder's bands are:",
+    "opts": [
+     "The sales band with noted reasons, the manager's band with recorded approval, and owner approval above — mirroring the credit ladder",
+     "Advisory",
+     "For managers only",
+     "Annual"
+    ],
+    "ans": 0,
+    "why": "Prices and credit both move only with named approval.",
+    "src": "Ch3"
+   },
+   {
+    "q": "A concession states:",
+    "opts": [
+     "A general discount",
+     "Its scope — which lines, what rate, tied to what — so it cannot silently spread in later rounds",
+     "A feeling",
+     "A range"
+    ],
+    "ans": 1,
+    "why": "The approval names the specific concession.",
+    "src": "Ch3"
+   },
+   {
+    "q": "An offer below the margin floor:",
+    "opts": [
+     "Never issues",
+     "Is automatic",
+     "Issues only with the upper-ladder decision — the business deciding, arithmetic visible, that the price is worth winning at",
+     "Is illegal"
+    ],
+    "ans": 2,
+    "why": "Without that decision it is the module's first error.",
+    "src": "Ch3"
+   },
+   {
+    "q": "The deviations read reconciles:",
+    "opts": [
+     "Stock",
+     "Terms",
+     "Invoices",
+     "Below-list quotations against the ladder — the offer-side sibling of the price changes read"
+    ],
+    "ans": 3,
+    "why": "Monthly evidence on both pricing controls.",
+    "src": "Ch3"
+   },
+   {
+    "q": "Valid Till is:",
+    "opts": [
+     "A commitment boundary — the offer is honoured within it, and its pricing accounts for the window's exposure",
+     "A formality",
+     "Optional",
+     "The delivery date"
+    ],
+    "ans": 0,
+    "why": "Set per policy, shortened for volatile costs.",
+    "src": "Ch4"
+   },
+   {
+    "q": "Acceptance after expiry:",
+    "opts": [
+     "Revives the offer",
+     "Triggers a re-quote at current prices — the old arithmetic no longer states the business's position",
+     "Is refused",
+     "Discounts further"
+    ],
+    "ans": 1,
+    "why": "Expired offers are not resurrected by editing.",
+    "src": "Ch4"
+   },
+   {
+    "q": "A sent quotation is edited:",
+    "opts": [
+     "In place when needed",
+     "By managers",
+     "Never — every post-issue change is a revision referencing what it supersedes",
+     "Monthly"
+    ],
+    "ans": 2,
+    "why": "Two disagreeing documents otherwise.",
+    "src": "Ch4"
+   },
+   {
+    "q": "Each revision carries:",
+    "opts": [
+     "Everything reopened",
+     "No reference",
+     "New items freely",
+     "The round's changes only, each within its ladder approval, with fresh validity, the prior version closed"
+    ],
+    "ans": 3,
+    "why": "The thread reads in order.",
+    "src": "Ch4"
+   },
+   {
+    "q": "The negotiation file answers:",
+    "opts": [
+     "What was offered when, and who approved the movement — and module 4 checks the order against it",
+     "Nothing",
+     "Only totals",
+     "The forecast"
+    ],
+    "ans": 0,
+    "why": "Versions, approvals, correspondence.",
+    "src": "Ch4"
+   },
+   {
+    "q": "Terms text comes from:",
+    "opts": [
+     "Per-quotation typing",
+     "Owned templates — typed terms are unreviewed terms discovered during disputes",
+     "The customer",
+     "Memory"
+    ],
+    "ans": 1,
+    "why": "Selected, not typed.",
+    "src": "Ch5"
+   },
+   {
+    "q": "Template changes are:",
+    "opts": [
+     "Casual",
+     "Forbidden",
+     "Governed, with owners, review dates, and effective dates — legal text by counsel",
+     "Weekly"
+    ],
+    "ans": 2,
+    "why": "The register pattern applied to terms.",
+    "src": "Ch5"
+   },
+   {
+    "q": "The sent pack matters because:",
+    "opts": [
+     "It is polite",
+     "It saves paper",
+     "PDFs are standard",
+     "The transmission record holds what was sent, to whom, when — the sent pack is the offer"
+    ],
+    "ans": 3,
+    "why": "The internal draft is not the offer.",
+    "src": "Ch5"
+   },
+   {
+    "q": "A correction after PDF generation is:",
+    "opts": [
+     "A revision, regenerated and re-sent — what prints is what the record says",
+     "A manual PDF edit",
+     "A phone call",
+     "Ignored"
+    ],
+    "ans": 0,
+    "why": "Print discipline.",
+    "src": "Ch5"
+   },
+   {
+    "q": "Lost reasons are:",
+    "opts": [
+     "Free text",
+     "A small defined code set, reviewed — free-text reasons aggregate into nothing",
+     "Optional",
+     "Automatic"
+    ],
+    "ans": 1,
+    "why": "A pipeline recording only wins cannot answer why it loses.",
     "src": "Ch6"
    },
    {
-    "q": "The second law this module adds to 'documents are downstream of masters' is:",
+    "q": "The follow-up cadence notes:",
     "opts": [
-     "Taxes are downstream of totals",
-     "Offers are downstream of luck",
-     "The pipeline is downstream of discipline",
-     "Reports are downstream of IT"
+     "Nowhere",
+     "In personal files",
+     "On the document or its thread — any colleague can pick up the negotiation",
+     "In memory"
     ],
     "ans": 2,
-    "why": "Status truth, validity, honest losses, amended revisions — discipline made visible.",
+    "why": "The file stays complete.",
+    "src": "Ch6"
+   },
+   {
+    "q": "The conversion read compiles:",
+    "opts": [
+     "Counts only",
+     "Values only",
+     "Wins only",
+     "Issued, ordered, lost, expired — the rate by count and by value, and the lost-reason distribution"
+    ],
+    "ans": 3,
+    "why": "The value-weighted view reads differently from the count.",
+    "src": "Ch6"
+   },
+   {
+    "q": "The deviation-versus-outcome read shows:",
+    "opts": [
+     "What conceded offers won at what margin against list-price offers — data for the ladder's calibration",
+     "Blame",
+     "Nothing",
+     "Targets"
+    ],
+    "ans": 0,
+    "why": "Figures with offers named, per the standing rule.",
+    "src": "Ch6"
+   },
+   {
+    "q": "Conversion carries into the order:",
+    "opts": [
+     "Nothing",
+     "The party, rows, rates, taxes, and terms — the accepted agreement without re-keying",
+     "Only items",
+     "Only totals"
+    ],
+    "ans": 1,
+    "why": "The inheritance is the point.",
+    "src": "Ch7"
+   },
+   {
+    "q": "The first conversion check is:",
+    "opts": [
+     "Stock",
+     "The driver",
+     "The final revision — creating from a superseded version ships the wrong round's prices",
+     "The print"
+    ],
+    "ans": 2,
+    "why": "Verified against the negotiation file.",
+    "src": "Ch7"
+   },
+   {
+    "q": "A won offer exceeding the credit limit:",
+    "opts": [
+     "Ships anyway",
+     "Splits silently",
+     "Cancels",
+     "Routes to the credit decision, not around it — module 1's machinery at order submission"
+    ],
+    "ans": 3,
+    "why": "The customer's standing check.",
+    "src": "Ch7"
+   },
+   {
+    "q": "Acceptance evidence:",
+    "opts": [
+     "Attaches to the order — delivery and invoicing disputes resolve from it",
+     "Stays in email",
+     "Is optional",
+     "Goes to the driver"
+    ],
+    "ans": 0,
+    "why": "The agreement's evidence lives with the commitment.",
+    "src": "Ch7"
+   },
+   {
+    "q": "Partial acceptance produces:",
+    "opts": [
+     "The full order",
+     "An order of the accepted rows only, with the remaining lines marked per the negotiation's reality",
+     "Two orders always",
+     "A cancelled quote"
+    ],
+    "ans": 1,
+    "why": "The order never carries unaccepted rows.",
+    "src": "Ch7"
+   },
+   {
+    "q": "The Montaigne AH concession was approved as:",
+    "opts": [
+     "A blanket discount",
+     "A percentage on all",
+     "The terminal lines at the conceded rate, tied to the 12-branch volume — scanners and printers staying at list",
+     "A verbal agreement"
+    ],
+    "ans": 2,
+    "why": "The approval named terminals only.",
+    "src": "Ch8"
+   },
+   {
+    "q": "Round two issued as:",
+    "opts": [
+     "An edit of round one",
+     "An order",
+     "A new negotiation",
+     "A revision from round one with the reference, the round's changes only, fresh validity, round one superseded"
+    ],
+    "ans": 3,
+    "why": "The versioning procedure.",
+    "src": "Ch8"
+   },
+   {
+    "q": "The scheduling request at acceptance was:",
+    "opts": [
+     "A module 4 scheduling matter with no commercial movement — noted for the order's schedule",
+     "A re-quote trigger",
+     "A concession",
+     "Refused"
+    ],
+    "ans": 0,
+    "why": "Changes route by size.",
+    "src": "Ch8"
+   },
+   {
+    "q": "The negotiation is answerable from:",
+    "opts": [
+     "Memory",
+     "One file — two versions, one approval, the acceptance, the order",
+     "The rep",
+     "Emails scattered"
+    ],
+    "ans": 1,
+    "why": "The one-lookup standard.",
+    "src": "Ch8"
+   },
+   {
+    "q": "Module 3's rule is:",
+    "opts": [
+     "Offers are informal",
+     "Validity is optional",
+     "An issued offer is a record — built from the registers, deviating only by named approvals, valid to its date, changed only by referenced revision, sent as the preserved pack, converted only from the final accepted version with evidence",
+     "Terms are typed"
+    ],
+    "ans": 2,
+    "why": "The module rule.",
     "src": "Ch9"
    }
   ]
