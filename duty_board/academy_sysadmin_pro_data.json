@@ -1898,946 +1898,946 @@
  },
  "changes_updates": {
   "title": "Sysadmin 5 — Updates, Changes & the Test Discipline",
-  "desc": "Every change staged, documented, reversible: the host's update stream received by ritual with the post-update walk, customisations gated by make-vs-take and owned forever, custom fields born with their permission levels, print formats that never contradict their sealed records, workflow edits as authority changes, and the one change ceremony with how-to-reverse in every log entry.",
+  "desc": "Updates and change control in ZhiftERP: the staged/documented/reversible discipline across the host's update stream and the site's customisations; the test site with its refresh rhythm and identity rules; the layer ladder from Customize Form through Custom Fields to scripts with the lowest-layer rule; the five-part customisation register and its annual reconciliation; the eight-step change procedure scaled by weight; and the twelve-minute smoke test with its amendment rule.",
   "lessons": [
    {
     "title": "Chapter 1 — Every change is staged, documented, reversible",
+    "est": "11",
+    "html": "<p>This module covers changes to the system itself: platform updates from the host's stream, the test environment, the customisation layers from Customize Form to code, the customisation register, the change procedure, and the smoke test.</p><p><b>Why change is its own module.</b> Every other module governs data inside a stable system. This one governs changes <b>to the system</b> — new versions, new fields, changed forms, new logic. Change is where stable systems break, and the breakage has a signature: it lands on the busiest doctype, at the busiest hour, and its cause is whatever nobody wrote down. The discipline is three words, and every chapter serves them:</p><p>• <b>Staged</b> — every change runs in the test environment before it runs in production. No exceptions for \"small\" changes: the field relabel that hides a mandatory field breaks posting exactly as thoroughly as a code change.<br>• <b>Documented</b> — every change has a register entry: what, why, who owns it, when, and the test evidence. Chapter 5's register is the module's central artifact.<br>• <b>Reversible</b> — every change deploys behind a before-change backup (module 4's rule, applied to structure as well as data) and with its undo path named in advance.</p><p><b>The two change streams.</b></p><p>1. <b>The host's stream — updates.</b> CloudERP.One updates the platform and the apps: security patches, fixes, version upgrades. The sysadmin does not write these but <b>receives them governed</b>: release notes read, the test site updated first, the smoke test run, the window scheduled. Chapter 2.<br>2. <b>The site's stream — customisations.</b> The business's own changes: form adjustments, custom fields, notifications, workflows, and — governed hardest — scripts. Chapters 3-5.</p><p><b>The standing tension, named honestly.</b> The business wants changes fast; the discipline adds a day. The answer is not to argue the discipline down but to make its fast lane genuinely fast: a Customize Form change staged, signed, and deployed inside one day is the standard this module builds — slow governance breeds cowboy changes exactly as module 3's slow request lane breeds duplicate masters.</p><p><b>Module contents.</b> Chapter 2: the host's update stream, received governed. Chapter 3: the test environment. Chapter 4: the customisation layers — Customize Form, Custom Fields, and code. Chapter 5: the customisation register. Chapter 6: the change procedure end to end. Chapter 7: the smoke test. Chapter 8: the HealthTrade case. Chapter 9: review and the law.</p>"
+   },
+   {
+    "title": "Chapter 2 — The update stream, received governed",
     "est": "12",
-    "html": "<p>The site the firm went live on is not the site it runs today, and never will be again: the platform updates beneath it, the firm customises above it, and the configurations drift with every governed decision. Change is the platform's only constant — and this module's thesis is the track's fifth law: <b>every change is staged, documented, and reversible — or it is a gamble wearing a fix's name.</b></p><p><b>The two change streams.</b> The module's map begins with the distinction that organises everything: changes arrive from TWO directions — the HOST'S stream (the platform updates the managed relationship applies on its announced cycle: not the firm's choice to receive, entirely the firm's duty to receive WELL — Chapter 2) and the FIRM'S stream (the customisations and configuration changes the firm chooses: the custom fields, the print formats, the workflows — Chapters 3-6, every one a decision the firm owns forever) — with both streams governed by ONE procedure (Chapter 7's ceremony), because the discipline that makes a change safe does not care who initiated it: the staging, the documentation, and the reversibility apply identically to the update the firm received and the field the firm added.</p><p><b>Why change is where sites die.</b> The stakes, argued from the consultant's case files: the healthy site degrades through exactly two mechanisms, and both are change mechanisms — the DRIFT (the accumulated small changes nobody staged, logged, or can explain: the site three years on where every screen carries someone's forgotten improvisation, every report a mystery layer, and every new problem undebuggable because the baseline is unknown — the archaeology sites every consultant inherits, built one unlogged change at a time) and the BREAK (the single change that collided with something it never tested against: the update that shifted a report the pay run reads, the field that leaked through a permission level, the workflow edit that orphaned a live approval — each survivable when caught in staging and expensive when discovered by the counter). The cure for both is the same ceremony, and the ceremony's cost is minutes per change — which makes this module the academy's standing economics argument (the storm-into-weather trade) applied to the platform's own evolution.</p><p><b>The test site, promoted.</b> Module 1 introduced the second environment and its iron habit; this module makes it the working instrument: the TEST SITE as the rehearsal stage for both streams (the update previewed where the boundary provides the preview; the customisation built and proven there first, always), refreshed on a rhythm (the test site that diverged from production two years ago rehearses nothing — the periodic refresh from a production backup being the drill of module 4 doing double duty: one restore, two purposes: recovery proven AND the stage re-set), and the habit's phrasing sharpened for this module's use: <i>nothing reaches production that was not seen working somewhere else first</i> — the sentence that governs every chapter that follows.</p>"
+    "html": "<p>The host maintains the platform: security patches, bug fixes, and version upgrades arrive on CloudERP.One's schedule. The sysadmin's job is receiving them so the site never learns by surprise.</p><p><b>The update kinds, by weight.</b></p><p>• <b>Security patches</b> — applied promptly by the host, sometimes without a scheduling conversation; the sysadmin's job is the after-check (the smoke test's short form) and staying informed.<br>• <b>Maintenance releases</b> — fixes within the current version; low risk, still received governed: notes read, test first where the window allows.<br>• <b>Version upgrades</b> — the heavy events: new major versions change behaviour, layouts, and occasionally the ground under customisations. These are scheduled like the projects they are.</p><p><b>The receiving procedure.</b></p><p>1. <b>Read the release notes against the site.</b> The host announces what changes; the sysadmin reads with the module map open (module 1) and the customisation register beside it (Chapter 5): which of our modules are touched, which of our customisations sit on ground that is moving. Ten minutes that convert an announcement into an impact list.<br>2. <b>Update the test site first.</b> The standing arrangement with the host: the test environment receives the update ahead of production. The smoke test (Chapter 7) runs there, plus targeted checks on the impact list.<br>3. <b>Schedule the production window.</b> Off-peak for the business — never the close week, never month-end filing days; the calendar (module 1) marks the standing no-update windows. Staff are told: when, how long, what to expect.<br>4. <b>The before-change backup</b> — the site's own on-demand set, timestamped in the log, belt to the host's braces (module 4's rule).<br>5. <b>The update runs (the host's hands), then the smoke test runs (the sysadmin's).</b> Chapter 7's checklist, immediately, before staff resume — findings raised on the spot while the window is still open.<br>6. <b>Log and announce.</b> The version change recorded (the About page's new numbers into the register), the all-clear sent, anything user-visible noted in one line.</p><p><b>The deferral question.</b> Can updates be postponed? Maintenance and features, within reason and by agreement. Security patches, no — a known vulnerability on a system holding the books is not a scheduling preference. The written update policy states both halves so the conversation never happens under pressure.</p><p>Practical rule: the update that has never caused a problem is the one that breeds the skipped smoke test — and the skipped smoke test is how the print-format break trades quietly for three days until a customer receives a broken invoice. Run the checklist every time; it is twelve minutes.</p>"
    },
    {
-    "title": "Chapter 2 — The update cycle: the host's stream, received governed",
+    "title": "Chapter 3 — The test environment",
+    "est": "12",
+    "html": "<p>The test site is the module's load-bearing infrastructure: a second site, provisioned by the host, that exists to absorb risk production must never see.</p><p><b>What runs there — the standing list.</b></p><p>• <b>Restore drills</b> (module 4's monthly line — the drill and this chapter share the site).<br>• <b>Update previews</b> (Chapter 2's step 2).<br>• <b>Customisation builds and sign-offs</b> (Chapters 4-6): every change is built here, and the requesting owner approves it <b>here</b>, on realistic data, before production hears of it.<br>• <b>Import slices</b> (module 3's ten-row dry runs).<br>• <b>Training and experiments:</b> the new cashier's practice sessions, the \"what happens if\" questions — answered here where the answer costs nothing.</p><p><b>The refresh cycle.</b> A test site drifts from production — data ages, settings diverge — and a stale test site gives stale answers: the customisation that worked in test against last year's data meets this year's volumes differently. The procedure: <b>refresh the test site from a production backup on a schedule</b> (monthly rides naturally on the restore drill — the drill's restore <i>is</i> the refresh) and always before a heavy piece of work (a version-upgrade preview, a big import rehearsal). The refresh is logged like the backups it comes from.</p><p><b>The two rules that keep the test site honest.</b></p><p>1. <b>Test data discipline.</b> The refreshed test site contains real business data — the same customers, salaries, and prices as production — so it is protected by the same access design: module 2's permissions apply, test-site accounts are real named accounts, and the leaver procedure covers both sites. A test site with an open door is a production data breach with extra steps.<br>2. <b>Unmistakable identity.</b> The test site must announce itself — the site name distinct, and where the platform supports it, a visual banner — because the standing accident is the document entered into the wrong site: the real invoice typed into test (lost work) or the test experiment typed into production (a correction case). Every training session opens by pointing at the identity markers.</p><p><b>What test does not prove.</b> Honest limits, stated once: the test site proves function, not scale (production's concurrent load and full history behave differently at the margins), and proves the change, not the users (the front line will find the path no tester walked). The smoke test after production deployment (Chapter 7) exists because test passing is necessary, never sufficient.</p><p>Practical rule: the test site's health is a monthly calendar line — reachable, refreshed on schedule, access list current. A dead test site quietly converts every future change into test-in-production, which is Chapter 9's first pattern.</p>"
+   },
+   {
+    "title": "Chapter 4 — The customisation layers",
     "est": "13",
-    "html": "<p>The platform updates arrive on the host's cycle — the firm does not choose whether; it chooses HOW WELL. The receiving discipline. The updates chapter.</p><p><b>The cycle, known.</b> The boundary's update facts documented in the site book: the host's update CADENCE (the routine maintenance rhythm, the major-version cycle — asked, answered, recorded), the ANNOUNCEMENT channel (where update notices arrive — subscribed, read, and routed: the update notice that lands in an unwatched inbox is the surprise the whole chapter exists to prevent), and the WINDOW conventions (when updates land — the timing the firm's own calendar reads: the major update scheduled against the firm's critical dates, because the platform upgrade on payroll-run week is a collision the calendar could have prevented, and the boundary conversation about timing is legitimate and expected — the managed relationship serves the firm's rhythm where it reasonably can, and the firm that never asks never benefits).</p><p><b>The release notes, read.</b> The admin's first duty per update: the RELEASE NOTES read for the FIRM (not skimmed for interest — read against the firm's actual flows: what changes in the modules the firm uses, which behaviours move, what is deprecated that the firm touches — the reading being a triage: most notes affect nothing the firm does; the ones that do get flagged to the owning functions BEFORE the update lands, per the never-surprised law now applied to the functions themselves: the selling function told that the pricing behaviour changes beats the selling function discovering it mid-quote), and the customisation COLLISION check (Chapter 3's register consulted — the firm's custom fields and formats read against the update's touched areas: the customisation is maintenance debt, and update time is when the interest is paid).</p><p><b>The post-update walk.</b> The chapter's core procedure: after every significant update, the firm's CRITICAL PATHS walked on production (the checklist maintained in the site book — the invoice created and printed, the payment entered, the stock movement posted, the payslip previewed, the key reports opened: fifteen minutes of deliberate walking, per the paths the firm actually lives on), the walk performed BEFORE the branches open where the window allows (the update landed overnight, the walk at dawn — the break caught by the admin's checklist instead of the till's queue), findings routed immediately (the shifted report to its owner, the broken format to Chapter 5's repair, the genuine regression to the boundary's ticket with module 1's hygiene: symptom, steps, impact), and the walk LOGGED (the update's entry in the change log — the version received, the walk's result, the findings: the update history being half the answer to every 'when did this start?' question the future will ask).</p><p><b>The preview discipline.</b> Where the boundary provides pre-update access (the test site updated ahead, the staging preview): the preview USED (the walk run there first — the finding moved from production-morning to preview-week, which is the whole point of having one), and where it does not, the walk's promptness doing the work — with the chapter's honest closing note about the managed trade-off: the managed platform's updates are one of its greatest values (the security patches applied, the features arriving, the reform-resilience of the payroll track's configuration resting on a current platform) AND a standing change stream the firm must receive with discipline — the firm that resents updates has misunderstood the bargain; the firm that ignores them has misunderstood the risk; the certified admin does neither, and the receiving ritual above is what 'neither' looks like in practice.</p>"
+    "html": "<p>Site customisations come in layers, ordered by power and therefore by governance weight. The standing rule: <b>solve at the lowest layer that solves it.</b></p><p><b>Layer 1 — Customize Form.</b> Open <b>Customize Form</b> (awesome bar), select the doctype, and adjust its presentation and behaviour without code:</p><p>• Relabel fields to the business's language; reorder; hide fields the business never uses (a hidden field simplifies every day at that keyboard).<br>• Set fields <b>mandatory</b> (module 3's completeness enforcement lives here), set defaults, set read-only.<br>• Adjust list settings and search fields.</p><p>Customize Form changes are stored as overrides on top of the standard doctype — they <b>survive updates</b> and can be reverted per property. This is the workhorse layer: most business requests (\"can this field be required\", \"can we hide that section\") end here, and its fast lane should run inside a day. Two cautions carry its whole risk: hiding or requiring a field affects <b>every role that touches the form</b> (impact analysis is still real), and mandatory-with-history means old incomplete records now block on edit — decided knowingly.</p><p><b>Layer 2 — Custom Fields.</b> Adding fields the business needs that the standard form lacks — the delivery route on an invoice, the licence number on a customer. Created through Customize Form (or the Custom Field doctype directly), with the discipline:</p><p>• <b>Named to be recognisable as custom</b> (the platform prefixes internally; the label and description state the business meaning).<br>• <b>Typed correctly at birth</b> — a Link to a proper master beats free text every time it will be filtered or reported on (a free-text \"route\" field yields seventeen spellings of one route; a Link to a Route master yields a report).<br>• <b>Positioned deliberately</b> in the form's flow, and added to list/print views where it earns it.<br>• <b>Registered</b> — every custom field is a register entry (Chapter 5) with an owner and a purpose. The field nobody can explain is this module's version of the account nobody can explain.</p><p>Custom fields survive updates; their <b>meaning</b> is what decays without the register.</p><p><b>Layer 3 — logic: Notifications, Workflows, and scripts.</b> Notifications (module 6) and Workflows (module 2) are configuration-level logic — governed, but codeless. <b>Client and Server Scripts</b> are the code layer: real programming inside the site, capable of anything and therefore governed hardest — specified in writing, built and tested in the test site, reviewed, registered with an owner, and — the platform reality — server-side code on managed hosting may be restricted or routed through the host's review, which is a feature: the constraint is the governance. The rule that keeps this layer small: <b>a script is the last resort after Customize Form, a custom field, a Notification, and a Workflow have each been ruled out in writing.</b></p>"
    },
    {
-    "title": "Chapter 3 — Customisations: the make-vs-take discipline",
-    "est": "13",
-    "html": "<p>The firm's own change stream begins with a decision this chapter governs: whether to change the system at all. The make-vs-take chapter — the module's most valuable and least technical.</p><p><b>The customisation catalogue.</b> The instruments, named for the chapters ahead: CUSTOM FIELDS (the doctype's shape extended — Chapter 4), PROPERTY changes (the existing field's behaviour adjusted — the label, the default, the mandatory flag), PRINT FORMATS (the documents' faces — Chapter 5), WORKFLOWS and automation rules (the process's shape — Chapter 6), CLIENT SCRIPTS and server logic (the behaviour layer — flagged here as the deepest end: legitimate, powerful, and carrying the highest ownership cost, engaged through the implementation partner's discipline rather than improvised), and CUSTOM DOCTYPES (whole new document types — the largest make, weighed accordingly). Every instrument shares one property the chapter exists to teach: <b>a customisation is owned forever</b> — it must survive every future update (the collision check of Chapter 2, paid at every cycle), be understood by every future admin (the documentation debt), and be maintained against every future change of the flows it touches (the field that feeds a report that feeds a decision — the dependency owned as long as any link in it lives).</p><p><b>The make-vs-take test.</b> The decision procedure, run on every customisation request: <b>first, does the standard way serve?</b> (the platform's existing capability searched honestly — the request for a custom field that duplicates a standard one the requester never found being the commonest case, and the admin's product knowledge being the cheapest customisation-avoidance technology the firm owns), <b>second, is the gap real or is it habit?</b> (the request that recreates the old spreadsheet's shape inside the new system — the 'we've always had a column for...' request — tested against whether the firm USES the thing or merely inherited it: the migration's great opportunity being the shedding, not the reproduction, of the old system's accidents), <b>third, is it a software gap or a process gap?</b> (the request that patches a process problem with a field — the 'add a status field so we can track...' that is really an ungoverned flow wanting a workflow, or a discipline wanting a calendar line: routed to the owning function as the design signal it is, per the standing read), and <b>only then, make</b> — with the making sized (the smallest instrument that serves: the property change before the custom field, the custom field before the custom doctype) and the ownership priced aloud (the request's owner told what forever costs, because the function that wants the field maintains the reason it exists).</p><p><b>The customisation register.</b> The catalogue's governance memory: every customisation LISTED in the site book (the instrument, its purpose sentence, its owner, its dependencies — the register being Chapter 2's collision-check input, the future admin's orientation, and the make-vs-take test's own audit: the customisation whose purpose sentence nobody can complete is a retirement candidate at the annual review, exactly as the roles and series were), and the register's health read honest: the customisation COUNT trended (the site accreting fields at pace has a make-vs-take discipline failing upstream — the count as the discipline's own metric, read at the walk), and the ownership current (the field whose owning function forgot it exists is debt with no creditor watching — reassigned or retired, never orphaned). The chapter's one-liner, for every implementation conversation: <b>the best customisation is the one the standard way made unnecessary — and the certified admin earns more by preventing fields than by adding them.</b></p>"
+    "title": "Chapter 5 — The customisation register",
+    "est": "12",
+    "html": "<p>The register is one page per customisation, and the collection is the site's memory of how it differs from standard. It is the module's central artifact because every other discipline depends on it: update impact analysis reads it, the change procedure writes it, and the annual reconciliation proves it.</p><p><b>The entry, per customisation.</b></p><p>1. <b>What</b> — the object, precisely: the doctype, the field/property/script name, the layer (Customize Form / Custom Field / Notification / Workflow / Script).<br>2. <b>Why</b> — the business purpose in one sentence, in the owner's words. This line is the one that saves the next sysadmin.<br>3. <b>Who</b> — the requesting owner (the person who answers \"do we still need this\") and the builder.<br>4. <b>When</b> — requested, tested, deployed — with the test sign-off and the before-change backup timestamp.<br>5. <b>The undo path</b> — how this comes out cleanly if retired: revert the property, hide-don't-delete the field (a custom field with data is retired by hiding, never deleting — the data is history), disable the notification, version the script.</p><p><b>Why the register earns its keep, three ways.</b></p><p>• <b>Update safety:</b> Chapter 2's step 1 reads release notes <b>against the register</b> — \"the invoice form is changing in this version; we have three customisations on it\" is a sentence only a register can produce.<br>• <b>The explanation debt:</b> without the register, every field accumulates the question \"what does this do, who wanted it, can we remove it\" — and the safe answer to unexplained structure is always \"leave it\", which is how sites fossilise. With the register, retirement is routine.<br>• <b>Continuity:</b> the register is the customisation chapter of module 4's handover — a new sysadmin reads it and knows the site.</p><p><b>The annual reconciliation.</b> Once a year (the calendar's customisation line): the site's actual customisations are listed from the system's own records — the Customize Form overrides, the Custom Field list, the Notification and Workflow lists, the script list — and reconciled against the register. Three findings and their handling:</p><p>1. <b>On the site, not in the register</b> — the undocumented change: registered retroactively with its archaeology, and the gap in the change procedure that admitted it is fixed.<br>2. <b>In the register, not on the site</b> — the ghost entry: closed with a note.<br>3. <b>Registered but unowned</b> — the owner left; the entry is re-homed or the customisation is nominated for retirement at the owner review: each owner re-confirms annually that their customisations still earn their place. Sites accrete; the review is the pruning.</p><p>Practical rule: the register's quality test is the stranger test — could a competent stranger, given only the register, explain every difference between this site and a standard install? Module 4's handover test, applied to structure.</p>"
    },
    {
-    "title": "Chapter 4 — Custom fields: the commonest change, fully governed",
-    "est": "14",
-    "html": "<p>When make wins the test, the commonest instrument is the custom field — small enough to seem casual, connected enough to deserve the full ceremony. The field chapter.</p><p><b>The field's anatomy, decided deliberately.</b> Every property a policy: the LABEL (the human name — clear, the firm's vocabulary), the FIELDNAME (the technical name that lives FOREVER — set once, never casually: the fieldname is the identity every report, template, and script will reference, and the renamed fieldname breaks them all silently: the registrar law of module 3, at the field layer — named right at birth because rebirth is not offered), the TYPE (the data's shape — the select versus the free text being module 3's drift lesson pre-empted at design: the field that should be a governed list born as one, because the free-text field is the 'Lagos/lagos/LAGOS' factory), the PLACEMENT (the form's readability owned — the field landed in its logical section, not appended to the bottom of a form that becomes an archaeology of afterthoughts), and — the property this academy will not let be forgotten — the <b>PERMISSION LEVEL</b> (module 2's field-level fencing applying to new fields from birth: the custom field on a sensitive doctype DECIDED into its level deliberately — the pay-adjacent field born at the elevated level its content demands, because the field added at level 0 by default is the leak module 2's walk will find a year late: the tier design consulted at every field's birth, and the level noted in the register).</p><p><b>The behaviour options as policy.</b> The field's rules, each an owner's decision: MANDATORY (the field that blocks saving — a process rule imposed on every user forever: set by the owning function's explicit choice, because the casual mandatory is the data-entry friction that breeds workarounds), DEFAULTS (the value pre-filled — convenience when right, silent error at scale when wrong: the default that stops being true keeps being filled), READ-ONLY and dependency conditions (the field's visibility and editability tied to the document's state — the behaviour layer used to make forms honest: the field that only matters when a condition holds, shown only then), and VALIDATION expectations routed properly (the rule beyond the field's own options — the cross-field check, the format enforcement — being the deeper end of the catalogue, engaged through the partner discipline when the need is real).</p><p><b>The downstream map.</b> The field's connections, walked before creation because they are owned after: the IMPORT templates (module 3's fresh-template rule existing partly because fields change — the new field appearing in tomorrow's template, the load documentation updated), the REPORTS (the field created to be reported on actually added to the reports that need it — the field captured but never surfaced being effort without yield; the field surfaced in reports its viewers shouldn't see being module 2's report-leak, pre-empted), the PRINT formats where the field must appear (Chapter 5's coordination), and the FENCES (the level above, plus the field's interaction with the record-level territories where relevant). The chapter's procedure summary: the field request through the channel with its owner → the make-vs-take test → the anatomy decided property by property (level included, always) → the test-site build → the verification as the roles (the field present for those who should see it, ABSENT for those who shouldn't — the empirical habit at the field's birth) → production by the ceremony → the register's entry. Small instrument, full governance — because the field is small exactly once, at creation, and connected forever after.</p>"
+    "title": "Chapter 6 — The change procedure, end to end",
+    "est": "12",
+    "html": "<p>One procedure covers every site-stream change, scaled by weight. Eight steps; the light version runs inside a day.</p><p><b>1. The request, written.</b> Who wants it, what outcome, why — in the requester's words. \"Add a field\" is not a request; \"we need to record the delivery route on invoices so dispatch can plan\" is. The outcome framing matters because step 2 may find a lower-layer answer than the requester imagined.</p><p><b>2. Impact analysis, with the maps.</b> The module map (who works in this doctype), the register (what already customises it), and the layer question (Chapter 4's lowest-layer rule). Output: the chosen layer, the affected roles and prints and reports, and the undo path — three sentences for a small change, a page for a script.</p><p><b>3. Build in test.</b> On the refreshed test site, never production. For Customize Form work this is minutes; the discipline is the venue, not the effort.</p><p><b>4. Owner sign-off in test.</b> The requesting owner exercises the change on the test site against realistic data and approves in writing (a message suffices; it goes in the register entry). This step kills the commonest failure — the change that technically matches the request and practically misses the need — while it is still free.</p><p><b>5. The before-change backup.</b> Module 4's rule: the on-demand set, timestamp into the log line. For structure changes as for data.</p><p><b>6. Deploy, in a sane window.</b> Small changes: any quiet moment, announced where user-visible. Anything touching posting paths or many roles: the same off-peak discipline as updates. Never the close week.</p><p><b>7. Verify live.</b> The smoke test's targeted form: the changed path exercised in production immediately — the field appears, the mandatory enforces, the notification fires — plus one standard document through the touched doctype (the posting map check where posting is anywhere near the change).</p><p><b>8. Register and announce.</b> The register entry completed (Chapter 5's five parts), and the one-line announcement to the affected roles: what changed, what it looks like, who to tell if something is off. An unannounced change generates a week of \"is this broken?\" tickets that one sentence prevents.</p><p><b>Scaling by weight.</b> The steps never drop; their depth scales. A relabel: steps 1-2 are two sentences, 3-4 ten minutes, the whole lane a morning. A script: every step is real work and the timeline is honest about it. What never happens at any weight: skipping test (\"it's tiny\"), skipping the owner (\"it's obvious\"), skipping the register (\"I'll remember\") — Chapter 9's patterns are exactly these three skips, aged.</p><p>Practical rule: pre-print the eight steps as the change ticket's template. A procedure that lives in the ticket gets followed; one that lives in a manual gets remembered selectively.</p>"
    },
    {
-    "title": "Chapter 5 — Print formats: the document's face",
-    "est": "13",
-    "html": "<p>The print format is where the system meets the world: the invoice the customer holds, the payslip the worker files, the purchase order the supplier fulfils. The firm's outward face, governed accordingly. The formats chapter.</p><p><b>The format's standing.</b> Why formats get their own chapter: the printed document is the EVIDENCE LAYER'S public half (the archives, disputes, and audits of six tracks hold PRINTED documents — the format is what they hold), the firm's brand in its counterparties' hands (the invoice that looks improvised prices the firm in its customers' minds — the letterhead, the layout, the completeness reading as competence exactly as the payslip-with-the-credit did), and the STATUTORY carrier (the invoice's tax content, the payslip's anatomy — the format is where the functions' legal requirements physically render, which makes format content a FUNCTION decision the admin implements: the invoice's tax lines confirmed by the accountant, the payslip's blocks per the payroll track's anatomy chapter, the statutory particulars per the adviser's reading — the admin owns the rendering; the functions own the rendered).</p><p><b>The format discipline.</b> The governance, mapped to the ceremony: formats built and changed on the TEST SITE (the format is code-adjacent — the edit that breaks rendering breaks it for every user printing that doctype: rehearsed, always), VERIFIED against real documents (the format proven on the awkward cases, not the demo row — the long item list that paginates, the discount line, the zero-tax row, the credit note's negatives: the format that only works on pretty data fails at the counter's first ugly document), VERSIONED by the ceremony (the format's change logged — the before-copy retained so the rollback is a restore, not a rebuild: module 3's snapshot instinct at the format layer), and the DEFAULT governance explicit (which format prints by default per doctype, who may choose alternates — the format selection being a small permission with a large face: the draft-watermarked internal format on a customer's invoice is a governance miss the defaults prevent).</p><p><b>The sealed-data law.</b> The format's deepest rule, inherited from six tracks: the format renders the DOCUMENT'S data — it does not improve it (the format that 'fixes' a value in rendering — the rounded total, the relabeled line, the hidden inconvenient field — has created a second version of a sealed document: the printed invoice disagreeing with the stored invoice is the one-version law broken at the layer the counterparty holds, and the dispute where the customer's paper contradicts the system's record is the exact scenario the law exists to prevent), with the corollary for changes: the format change applies to future prints of any document, so the REPRINT of a sealed document must render faithfully what was sealed (the archive's integrity extending to its printed face — the payslip reprinted for the visa file matching the payslip issued, per module 4 of the payroll track's reissued-slip conviction: this chapter is where that conviction gets its machinery).</p><p><b>The format inventory.</b> The register's format page: every active format per doctype listed (its purpose, its owner-function, its default status, its last change), the retired formats disabled rather than deleted (the museum discipline — the old format may need to render an old document's reprint faithfully), and the annual review beside the customisation register's (the format nobody prints retired; the format whose statutory content aged — the reform that changed the invoice's requirements — flagged to its owning function at the pre-season reviews the functions already run: the format inventory joining the compliance calendar where the content is compliance). The chapter's closing frame: the print format is the only part of the system most counterparties will ever see — and the certified admin treats it with the care that fact deserves: function-owned content, ceremony-governed changes, awkward-case verification, and a face that never contradicts the record behind it.</p>"
-   },
-   {
-    "title": "Chapter 6 — Workflows & automation: authority as configuration",
-    "est": "13",
-    "html": "<p>The approval chains, notification rules, and automations — the layer where six tracks' separations physically live, changed with the care that fact demands. The automation chapter.</p><p><b>Workflows: the separations, materialised.</b> The recognition first: the WORKFLOW definitions are where the academy's authority designs run — the document's states and transitions (draft → submitted for approval → approved → sealed), WHO may move each transition (the roles at each gate — the preparer-approver separations of the payroll run, the two-names patterns of the money tracks, the requisition approvals of procurement: every one a workflow rule or a submit-permission, which module 2 taught as configuration and this chapter teaches as CHANGEABLE configuration), and the consequence stated plainly: <b>a workflow change is an authority change</b> — the transition's role edited is a separation redrawn, decided by the owning function's named authority exactly as a mandate change would be (the workflow edit that 'streamlines' an approval out of existence has repealed a control some track built deliberately — the admin who receives that request routes it to the control's owner with the design's reason attached, because the streamlining request is sometimes right and the deciding is never the admin's).</p><p><b>The workflow change's special cares.</b> Beyond the standard ceremony, the layer's own checks: the IN-FLIGHT documents considered (the live documents mid-workflow when the definition changes — the change tested against them on the test site: the edit that orphans forty pending approvals in an unreachable state is this layer's classic break, caught in rehearsal), the STATE-permission interaction verified (module 2's union-filter-state model — the workflow's states and the roles' rights proven together, as the roles), and the audit face preserved (the workflow's history on documents — who approved what, when — being evidence the functions rely on: the change that would blur past approvals weighed against that evidence's standing).</p><p><b>Notifications & auto-communication.</b> The rules that make the system speak: the NOTIFICATION rules (the alert on the event — the approval waiting, the threshold crossed, the expiry approaching: the reminder engines every track's calendar relies on, administered here and TESTED per the HR track's dummy-certificate discipline — the notification that silently stopped is the calendar's silent failure, and the periodic test-fire is its detector), the AUTO-EMAIL rules (the document dispatched on the event — the invoice to the customer, the slip released with the credit: the payroll track's choreography having a rule behind it, owned and verified), and the FLOOD governance (the notification volume read deliberately — the users drowning in alerts stop reading alerts, which un-builds every reminder the calendars depend on: the notification set pruned to the actionable, per the owning functions' choices — the quiet, relevant notification stream being a designed artifact, not a default).</p><p><b>Assignment & scheduling rules.</b> The remaining automation briefly and completely: the ASSIGNMENT rules (the document routed to its owner automatically — the request channel's own queue running on one), the SCHEDULED automations (the recurring documents, the auto-generated entries — each a standing decision reviewed annually: the automation that outlives its reason generates artifacts nobody reads, the museum discipline at the automation layer), and the shared law across all of it, closing the chapter: automation is AUTHORITY EXERCISED REPEATEDLY — the rule that fires a hundred times a month is a decision made a hundred times a month, which is exactly why its creation deserves the full ceremony and its owner's name: the automation register beside the customisation register, every rule with its purpose sentence, its owner, and its last test-fire date — the system that speaks and routes by itself, governed like the staff member it effectively is.</p>"
-   },
-   {
-    "title": "Chapter 7 — The change ceremony: one procedure for everything",
-    "est": "13",
-    "html": "<p>The module's instruments assembled into its single procedure: the CHANGE CEREMONY — every change, both streams, one shape. The procedure chapter.</p><p><b>The ceremony's steps.</b> Walked once, applied always: <b>1 — the REQUEST</b> (through module 1's channel, with the owning function named — the change begins as a document, like everything in this academy), <b>2 — the DECISION</b> (the make-vs-take test where it applies; the owner's authorisation always — the admin executes decisions, never makes the functions'), <b>3 — the DESIGN NOTE</b> (what will change, why, the expected effect, the affected flows — a paragraph, not a thesis: the note's job is that the verification has a target and the log has a story), <b>4 — the REHEARSAL</b> (the test site, refreshed recently enough to rehearse honestly — the change built and proven there: nothing first in production, the module's spine), <b>5 — the WINDOW</b> (the change landed in the quiet hour, scheduled against the firm's calendar — the format rebuilt during the counter's rush is self-inflicted downtime), <b>6 — the EXECUTION</b> (the change applied to production exactly as rehearsed — the 'small improvement while I'm in here' refused: the ceremony covers what it covers, and the drive-by addition is an unceremonied change hiding inside a ceremonied one), <b>7 — the VERIFICATION</b> (the affected flows walked AS THE ROLES — the empirical habit: the change proven present, correct, and non-leaking on production, per the design note's targets), and <b>8 — the LOG</b> (below).</p><p><b>The change log entry.</b> The ceremony's permanent residue, its fields fixed: WHAT changed (the instrument and its specifics), WHY (the request and its owner), WHO executed, WHEN, the VERIFICATION's result, and — the field that makes the log a safety system rather than a diary — <b>HOW TO REVERSE</b> (the rollback path recorded while it is obvious: the before-copy's location, the field's removal steps, the format version to restore — the reversibility clause of the module's law, cashed as a log field: the change whose reversal requires archaeology was never reversible in any sense that matters at 8 a.m. on the bad morning).</p><p><b>The rollback readiness.</b> The ceremony's insurance layer: the BEFORE-STATE captured per instrument (the format's copy, the field's specification, the workflow's export, module 3's snapshot for data-touching changes — the capture proportional to the instrument, always cheap, occasionally priceless), the rollback REHEARSED for the consequential change (the big change's undo proven on test alongside its do — the reversal that was never tried is module 4's untested backup wearing a different hat), and the rollback DECISION pre-named (who calls it, on what evidence, inside what window — the change that is failing in production needs its retreat decided in minutes, and the pre-named authority is the difference between a rollback and a debate).</p><p><b>The ceremony's proportionality.</b> The honest sizing, closing the chapter: the ceremony SCALES (the label typo fixed with a two-line log entry and a glance; the workflow redesign with the full eight steps and a rehearsed rollback — the judgment being the certified admin's craft, with the floor absolute: even the smallest change gets its log line, because the drift of Chapter 1 is made of changes that were each too small to log), and the ceremony's cost restated as the module's economics: minutes per change, against the archaeology site and the counter-morning break — the fifth law being, like every law before it, the cheap discipline that makes the expensive disaster structurally unavailable.</p>"
+    "title": "Chapter 7 — The smoke test",
+    "est": "12",
+    "html": "<p>After every update and every significant deployment, the smoke test proves the site's critical paths before staff resume. It is a written checklist, owned, timed at roughly twelve minutes, and its logic is the posting map exercised live.</p><p><b>The standing checklist.</b></p><p>1. <b>Login and Desk</b> — a standard (non-admin) account logs in; the workspaces render; the awesome bar answers.<br>2. <b>The trading path</b> — one test Sales Invoice: created, submitted, <b>View &gt; Accounting Ledger read</b> (the rows match the posting map), printed to PDF (the print path proves the format and letterhead survived — the classic silent casualty of updates), then cancelled clean.<br>3. <b>The stock path</b> — one Stock Entry or Delivery Note cycle where stock is live: submit, ledger read, cancel.<br>4. <b>The payment path</b> — one Payment Entry against the test invoice before its cancellation: references resolve, the bank leaf posts.<br>5. <b>The reports</b> — the Trial Balance and one standard report per live module open and render with plausible figures.<br>6. <b>The channels</b> — one email sends from the site and arrives (the queue moves — module 6); one Notification fires where quickly testable.<br>7. <b>The customisation spot-checks</b> — from the register: the custom fields visible, the key Customize Form properties holding (the mandatory still mandatory), any script's happy path exercised. The register makes this step a list, not a memory exercise.<br>8. <b>The integrations</b> — each registered integration's health check (module 6's register defines it; for the e-invoicing rail, the check the tax module relies on).</p><p><b>The rules around it.</b></p><p>• <b>Run before staff resume</b>, inside the window — a finding raised while the host's hands are still on the update is a fix; the same finding on Thursday is an incident with three days of consequences.<br>• <b>Documents are test-marked and cleaned:</b> the test invoice is cancelled, the test entries reversed — the smoke test must not leave droppings in the books (use the standing test customer/item so even the residue is recognisable).<br>• <b>Log the run:</b> date, trigger (which update/change), checks passed, minutes, by whom — one line beside the update's register entry. Findings get the incident treatment: logged, raised or fixed, and — where the smoke test itself missed something that surfaced later — <b>the checklist is amended</b>, which is how the list earns its shape over the years.</p><p>Practical rule: the smoke test is deliberately shallow and wide — every critical path touched once, nothing exhaustively. Depth belongs in the test site before deployment; the smoke test only proves the deployment landed. Twelve minutes, every time, no exceptions for boring updates: the boring update that breaks printing is this module's oldest story.</p>"
    },
    {
     "title": "Chapter 8 — Case study: HealthTrade's change year",
-    "est": "16",
-    "html": "<p>Both streams, one ceremony, twelve months. Every chapter clocks in.</p><p><b>The update stream (Ch. 2).</b> The receiving ritual installs: the announcement channel routed to the admin's watched queue, the update calendar cross-checked against the firm's (one maintenance window successfully moved off payroll-run week through the boundary conversation — asked, and answered: the firm that never asks never benefits, proven), and the post-update walk's checklist drawn from the firm's real critical paths. The year's major platform update delivers the chapter's classic: the dawn walk catches a shifted column layout in a stock report the Ibadan branch reads every morning — flagged to Inventory's owner and repaired before the branch opens (the break that would have been a support-ticket morning caught by fifteen minutes of deliberate walking), and the release notes' triage flags one deprecation touching a custom format — the collision fixed in preview week, not production morning.</p><p><b>The firm's stream (Ch. 3-4).</b> The make-vs-take test earns its chapter in month two: Selling requests a custom 'customer priority' field — the test walks it and finds a PROCESS gap wearing a field (the request is really an ungoverned follow-up flow wanting the standing machinery) — the customisation REFUSED with the routing that makes refusal constructive, and the process fixed at the process layer through Selling's own design (<i>the best customisation is the one the standard way made unnecessary</i> — the register's note quotes the chapter). The year's one genuine field lands by full ceremony: a regulatory-reference field on the supplier doctype (Procurement's real gap, the test passed) — anatomy decided property by property, the fieldname set for forever, and the PERMISSION LEVEL decided at birth (the field placed at the elevated level its content warranted — the module-2 walk finding nothing a year later because there was nothing to find: the leak pre-empted at the moment of creation, exactly as designed).</p><p><b>The face and the authority (Ch. 5-6).</b> The invoice format is rebuilt in quarter two: content confirmed line by line with the accountant (the tax lines per the current reading — the function owning the rendered, the admin the rendering), rehearsed against the awkward cases (the long-list pagination catching a footer collision on test — the ugly-document verification doing its one job), versioned with its before-copy, and defaulted by the ceremony. One workflow change travels the year: Selling's owner redraws a discount-approval threshold — routed as the authority change it is (the owner decides; the design note names the separation being adjusted), tested against in-flight documents on rehearsal (two pending approvals verified to survive the transition), verified as the roles. And one notification prune lands in quarter three: the flood read finds users ignoring a twelve-alert daily stream — pruned to four actionable rules with the owning functions, and the reminder engines' quarterly test-fire calendar established (the dummy-expiry test of the HR track, adopted as the platform's own rhythm).</p><p><b>The log at year end (Ch. 7).</b> The change log's twelfth month reads as the module intends: thirty-one entries — two platform updates with their walks, one field, one format rebuild, one workflow change, one refusal (logged deliberately: the road not taken is part of the site's story), one notification prune, and twenty-four small ceremonied changes each with its how-to-reverse line. One rollback exercised in anger (a report tweak that slowed a heavy screen — reversed in four minutes by its own log entry's path, the pre-named decision working as written). The ops lead's year-note closes the case: <i>a year ago every change was a small gamble we mostly won. Now every change is a rehearsal we already watched succeed — and the one that failed was undone before anyone finished complaining about it.</i></p>"
+    "est": "13",
+    "html": "<p>The change discipline, installed and exercised. Every chapter appears.</p><p><b>The ground.</b> The site carries the implementation era's accumulation: customisations nobody listed, a test site that exists but was last refreshed \"sometime last year\", and update history in the host's records only. The first annual reconciliation (Chapter 5) is run retroactively: the site's actual overrides, custom fields, notifications, and workflows are listed from the system's own records — <b>14 customisations</b> found, of which <b>9</b> are explained and registered with owners, and <b>5</b> defy explanation. The five get the archaeology: two turn out to be abandoned experiments (retired — the custom fields hidden, not deleted, per the undo rule), one is a duplicate of standard behaviour (retired), and two are quietly load-bearing (registered with their reconstructed purpose and new owners). The register exists by month's end; the stranger test passes.</p><p><b>The test site brought honest.</b> The refresh cycle is tied to the restore drill (module 4's monthly restore <b>is</b> the refresh), the identity banner is confirmed unmistakable after one near-miss in training week (a practice invoice nearly typed into production — the trainer's story becomes the standing example), and the access list is aligned with module 2's matrix.</p><p><b>A change through the lane (Chapters 4, 6).</b> Dispatch requests delivery-route tracking on invoices. The lane runs as designed: the written request names the outcome; impact analysis chooses <b>Layer 2</b> — a custom <b>Route</b> master (a tiny doctype) and a Link field on the Sales Invoice, explicitly rejecting the free-text shortcut (\"seventeen spellings of one route yields no report\"); built in test in an afternoon; the dispatch owner signs off in test after one adjustment (the field moved next to the shipping address, where the eye goes); before-change backup at 07:14; deployed in the morning quiet; verified live (field present, link resolves, one test invoice through the posting map); registered; announced in one line. Elapsed: two working days, most of it the owner's sign-off latency. The fast lane earns its reputation, and the next three requests arrive <b>through</b> the lane rather than around it.</p><p><b>An update cycle (Chapters 2, 7).</b> The host announces a maintenance release. The notes are read against the register (one touched area: printing). The test site updates first; the targeted check passes there — but the production smoke test's step 2 catches it anyway: the invoice PDF renders with the letterhead displaced. Raised inside the window with the exact reproduction; the host applies the fix before staff resume; the smoke-test log's line reads <i>finding raised and closed in-window</i>. The checklist's print step, already the list's veteran, keeps its seat. The MD's note for the quarter: <i>the system now changes the way the books close — on a procedure, with evidence, and nothing by surprise.</i></p>"
    },
    {
     "title": "Chapter 9 — Common mistakes & the fifth law",
-    "est": "13",
-    "html": "<p>The change layer's scar tissue. Symptom → disease → fix.</p><p><b>Pattern 1 — the untested update.</b> Symptom: the platform update discovered by the counter; the shifted report found by the branch that reads it; the break's first detector a support ticket. Disease: the host's stream received passively (Ch. 2). Fix: the receiving ritual — notes triaged, previews used, the post-update walk at dawn, findings routed before opening.</p><p><b>Pattern 2 — customisation sprawl.</b> Symptom: the site accreting fields at pace; forms as archaeologies of afterthoughts; every update a collision lottery; nobody able to say why half of it exists. Disease: make-vs-take never run (Ch. 3). Fix: the test on every request, the register with purpose sentences and owners, the count trended, and the annual retirement of the unexplainable.</p><p><b>Pattern 3 — the level-0 leak.</b> Symptom: the sensitive custom field visible to every role that opens the record; the tier design defeated by a default nobody decided. Disease: the permission level unconsidered at the field's birth (Ch. 4). Fix: the level as a mandatory birth decision — the tier design consulted, the level in the register, the verification as the roles before production.</p><p><b>Pattern 4 — the format that improves the data.</b> Symptom: the printed invoice disagreeing with the stored one; the reprint that contradicts the original; the dispute where the customer's paper beats the system's record. Disease: the one-version law broken at the rendering layer (Ch. 5). Fix: the sealed-data law — the format renders faithfully, reprints match issues, and format changes never rewrite the archive's face.</p><p><b>Pattern 5 — the workflow edited live.</b> Symptom: approvals orphaned mid-flight; a separation quietly repealed; the control some track built streamlined out of existence by a helpful edit. Disease: authority changed without its owner, on production, untested (Ch. 6). Fix: the workflow change as an authority change — the owner decides, the in-flight documents rehearsed, the roles verified, the design's reason attached to every streamlining request.</p><p><b>Pattern 6 — the changes nobody remembers.</b> Symptom: 'when did this start?' unanswerable; the baseline unknown; every debug an excavation; the new admin inheriting a mystery. Disease: the log never kept (Ch. 1, 7) — the drift made of changes each too small to record. Fix: the ceremony's absolute floor — every change its log line, every consequential change its how-to-reverse — the site's story readable, forever.</p><p><b>The fifth law.</b> The custodian, the fences, the masters, the survival — and now the evolution governed: <b>every change is staged, documented, and reversible — the host's stream received by ritual, the firm's stream gated by make-vs-take, fields born with their levels, formats that never contradict their records, workflow edits as the authority changes they are, and one ceremony whose log tells the site's whole story with the way back written beside every step forward.</b> The site that changes this way improves for years without accumulating mysteries — and the certified admin is why. Module 6 turns to the system's connections: printing's siblings — email, notifications at the boundary, and the integration inventory.</p>"
+    "est": "11",
+    "html": "<p>The change layer's recurring failures, then the review list.</p><p><b>Pattern 1 — test-in-production.</b> Symptom: experiments run live; \"let's just try it\" on the real books; the correction traffic that follows. Cause: no test site, or a dead one (Chapter 3). Fix: the test site as standing infrastructure — refreshed on the drill's rhythm, identity unmistakable, health on the calendar — and the venue rule absolute: every change builds in test, at every weight.</p><p><b>Pattern 2 — the undocumented site.</b> Symptom: fields nobody can explain; the \"what does this do\" question answered with \"leave it\"; a site that fossilises because removal is riskier than accretion. Cause: changes without register entries (Chapter 5). Fix: the retroactive reconciliation once — archaeology, ownership, retirements — then the register as step 8 of every change, and the annual owner review pruning what no longer earns its place.</p><p><b>Pattern 3 — the surprise update.</b> Symptom: the platform changes and the business discovers it from breakage; printing dies on a Tuesday; nobody read the notes. Cause: the host's stream received ungoverned (Chapter 2). Fix: the receiving procedure — notes against the register, test first, scheduled window, before-change backup, smoke test before staff resume — and the update policy's written line on what may be deferred and what may not.</p><p><b>Pattern 4 — the script reflex.</b> Symptom: code as the first answer; a thicket of scripts doing what Customize Form, a custom field, a Notification, or a Workflow would do; every update a minefield. Cause: the lowest-layer rule unknown or unenforced (Chapter 4). Fix: the layer ladder applied in writing at impact analysis, the script bar set high (last resort, specified, reviewed, owned), and the thicket thinned at the annual review.</p><p><b>Pattern 5 — the skipped smoke test.</b> Symptom: \"the update was boring\" — and the break trades quietly for days until a customer or the close finds it. Cause: the checklist treated as optional for routine events (Chapter 7). Fix: the twelve minutes every time, the run logged beside the update entry, and the checklist amended by every miss so it compounds instead of decaying.</p><p><b>Pattern 6 — the free-text field.</b> Symptom: a custom field filled seventeen ways; reports impossible; the cleanup import annual. Cause: typed wrong at birth (Chapter 4). Fix: the Link-to-master discipline for anything that will be filtered or reported, and the retype done once, properly — a small master, a governed migration of values, the register entry updated.</p><p><b>The review list.</b> Before the quiz, confirm you can: state the three-word discipline and the two change streams; run the update receiving procedure including the deferral policy's two halves; keep the test site honest — refresh rhythm, data discipline, unmistakable identity — and state what test does not prove; walk the layer ladder from Customize Form through Custom Fields to scripts with the lowest-layer rule; write a five-part register entry and run the annual reconciliation's three findings; execute the eight-step change procedure scaled by weight; and run the smoke test's eight checks with its rules.</p><p><b>The fifth law: every change is staged in test, signed by its owner, deployed behind a backup, verified live, and written in the register — the site never learns by surprise.</b> Module 6 covers the channels: printing, email, and integrations.</p>"
    }
   ],
   "questions": [
    {
+    "q": "The three-word change discipline is:",
+    "opts": [
+     "Staged, documented, reversible",
+     "Fast, cheap, good",
+     "Plan, do, check",
+     "Request, build, deploy"
+    ],
+    "ans": 0,
+    "why": "Every chapter serves them.",
+    "src": "Ch1"
+   },
+   {
     "q": "The two change streams are:",
     "opts": [
-     "The host's updates (received, not chosen) and the firm's customisations (chosen, owned forever) — one ceremony governs both",
      "Big and small",
-     "Fast and slow",
-     "Free and paid"
+     "The host's updates, received governed; and the site's customisations, built governed",
+     "Code and data",
+     "Test and live"
     ],
-    "ans": 0,
-    "why": "The discipline doesn't care who initiated the change.",
+    "ans": 1,
+    "why": "Different origins, one discipline.",
     "src": "Ch1"
    },
    {
-    "q": "Sites die through:",
+    "q": "Slow governance breeds:",
     "opts": [
-     "Age",
-     "Drift (unlogged accumulation) and break (the untested collision) — both change mechanisms, one cure",
-     "Usage",
-     "Updates alone"
+     "Patience",
+     "Fewer requests",
+     "Cowboy changes — the fast lane must be genuinely fast",
+     "Better tests"
     ],
-    "ans": 1,
-    "why": "The archaeology site is built one unlogged change at a time.",
+    "ans": 2,
+    "why": "A Customize Form change should stage, sign, and deploy inside a day.",
     "src": "Ch1"
    },
    {
-    "q": "The test site that diverged two years ago:",
+    "q": "Security patches:",
     "opts": [
-     "Still serves",
-     "Is fine",
-     "Rehearses nothing — refreshed periodically from a production backup, doing double duty with the restore drill",
-     "Is faster"
-    ],
-    "ans": 2,
-    "why": "One restore, two purposes.",
-    "src": "Ch1"
-   },
-   {
-    "q": "The update landing on payroll-run week is:",
-    "opts": [
-     "Unavoidable",
-     "Rare",
-     "The host's right",
-     "A collision the calendar could have prevented — the timing conversation with the host is legitimate and expected"
+     "Defer freely",
+     "Are optional",
+     "Wait for month-end",
+     "Are not a scheduling preference — the written policy states what may be deferred and what may not"
     ],
     "ans": 3,
-    "why": "The firm that never asks never benefits.",
+    "why": "A known vulnerability on the books is not negotiable.",
     "src": "Ch2"
    },
    {
-    "q": "Release notes are read:",
+    "q": "Release notes are read against:",
     "opts": [
-     "Against the firm's actual flows — affected functions told BEFORE the update lands",
-     "For interest",
-     "Never",
-     "After problems"
+     "The module map and the customisation register — producing an impact list",
+     "The news",
+     "The budget",
+     "Last year's notes"
     ],
     "ans": 0,
-    "why": "The never-surprised law, applied to the functions.",
+    "why": "Ten minutes that convert an announcement into a plan.",
     "src": "Ch2"
    },
    {
-    "q": "Update time is when:",
+    "q": "Update windows avoid:",
     "opts": [
-     "Nothing happens",
-     "The customisation debt's interest is paid — the register consulted for collisions",
-     "Costs drop",
-     "Backups run"
+     "Mondays",
+     "The close week and filing days — the calendar marks standing no-update windows",
+     "Mornings",
+     "Quarters"
     ],
     "ans": 1,
-    "why": "The collision check against the update's touched areas.",
+    "why": "Off-peak, announced, backed up.",
     "src": "Ch2"
    },
    {
-    "q": "The post-update walk is:",
+    "q": "After the production update:",
     "opts": [
-     "Optional",
-     "The host's job",
-     "The firm's critical paths walked deliberately, before the branches open where the window allows",
-     "Annual"
-    ],
-    "ans": 2,
-    "why": "The break caught by the checklist instead of the till's queue.",
-    "src": "Ch2"
-   },
-   {
-    "q": "A customisation is:",
-    "opts": [
-     "A one-time change",
-     "The host's problem",
-     "Free",
-     "Owned FOREVER — surviving every update, understood by every future admin, maintained against every dependent flow"
-    ],
-    "ans": 3,
-    "why": "The catalogue's shared property.",
-    "src": "Ch3"
-   },
-   {
-    "q": "The make-vs-take test asks first:",
-    "opts": [
-     "Does the standard way serve? — the duplicate-of-standard request being the commonest case",
-     "The price",
-     "The timeline",
-     "The requester's rank"
-    ],
-    "ans": 0,
-    "why": "Product knowledge is the cheapest customisation-avoidance technology.",
-    "src": "Ch3"
-   },
-   {
-    "q": "'We've always had a column for...' is tested against:",
-    "opts": [
-     "Tradition",
-     "Whether the firm USES it or merely inherited it — migration's opportunity is shedding, not reproducing",
-     "Cost",
-     "Speed"
-    ],
-    "ans": 1,
-    "why": "The old system's accidents, not reproduced.",
-    "src": "Ch3"
-   },
-   {
-    "q": "The 'add a status field so we can track...' request is often:",
-    "opts": [
-     "A field need",
-     "Urgent",
-     "A process gap wearing a field — an ungoverned flow wanting a workflow, routed to the owning function",
-     "Simple"
-    ],
-    "ans": 2,
-    "why": "The design signal, read as such.",
-    "src": "Ch3"
-   },
-   {
-    "q": "The best customisation is:",
-    "opts": [
-     "The cleverest",
-     "The fastest",
-     "The biggest",
-     "The one the standard way made unnecessary — the admin earns more by preventing fields than adding them"
-    ],
-    "ans": 3,
-    "why": "The chapter's one-liner.",
-    "src": "Ch3"
-   },
-   {
-    "q": "The fieldname is:",
-    "opts": [
-     "Set once and lives forever — every report, template, and script references it; renaming breaks them silently",
-     "Changeable freely",
-     "Cosmetic",
-     "Auto-generated safely"
-    ],
-    "ans": 0,
-    "why": "Named right at birth because rebirth is not offered.",
-    "src": "Ch4"
-   },
-   {
-    "q": "The free-text field that should be a select is:",
-    "opts": [
-     "Flexible",
-     "The 'Lagos/lagos/LAGOS' factory — module 3's drift lesson pre-empted at design",
-     "Faster",
-     "Standard"
-    ],
-    "ans": 1,
-    "why": "The governed list, born as one.",
-    "src": "Ch4"
-   },
-   {
-    "q": "The custom field's permission level is:",
-    "opts": [
-     "A default",
-     "Automatic",
-     "A mandatory birth decision — the tier design consulted; the level-0 default is next year's walk finding",
-     "The host's"
-    ],
-    "ans": 2,
-    "why": "The leak pre-empted at creation.",
-    "src": "Ch4"
-   },
-   {
-    "q": "The casual mandatory field breeds:",
-    "opts": [
-     "Compliance",
-     "Quality",
-     "Speed",
-     "Workarounds — a process rule imposed on every user forever deserves the owner's explicit choice"
-    ],
-    "ans": 3,
-    "why": "The behaviour options as policy.",
-    "src": "Ch4"
-   },
-   {
-    "q": "The field captured but never surfaced is:",
-    "opts": [
-     "Effort without yield — the downstream map walked before creation: templates, reports, formats, fences",
-     "Complete",
-     "Safe",
-     "Standard"
-    ],
-    "ans": 0,
-    "why": "Connected forever after being small exactly once.",
-    "src": "Ch4"
-   },
-   {
-    "q": "Print formats are:",
-    "opts": [
-     "Cosmetic",
-     "The evidence layer's public half, the firm's brand, and the statutory carrier — function-owned content, admin-owned rendering",
-     "The admin's art",
-     "Templates only"
-    ],
-    "ans": 1,
-    "why": "The only part most counterparties ever see.",
-    "src": "Ch5"
-   },
-   {
-    "q": "Formats are verified against:",
-    "opts": [
-     "The demo row",
-     "One sample",
-     "The awkward cases — the paginating long list, the discounts, the credit note's negatives",
+     "Staff resume immediately",
+     "A week of caution",
+     "The smoke test runs first — findings raised while the window is open are fixes, not incidents",
      "Nothing"
     ],
     "ans": 2,
-    "why": "The format that only works on pretty data fails at the first ugly document.",
+    "why": "Chapter 7's checklist, immediately.",
+    "src": "Ch2"
+   },
+   {
+    "q": "The test site's refresh:",
+    "opts": [
+     "Never happens",
+     "Is the host's secret",
+     "Is automatic",
+     "Rides the monthly restore drill — the drill's restore is the refresh — and precedes heavy work"
+    ],
+    "ans": 3,
+    "why": "A stale test site gives stale answers.",
+    "src": "Ch3"
+   },
+   {
+    "q": "The refreshed test site's data is:",
+    "opts": [
+     "Real business data — protected by the same access design as production",
+     "Fake",
+     "Public",
+     "Empty"
+    ],
+    "ans": 0,
+    "why": "A test site with an open door is a breach with extra steps.",
+    "src": "Ch3"
+   },
+   {
+    "q": "The test site's identity must be:",
+    "opts": [
+     "Subtle",
+     "Unmistakable — distinct name and banner; the standing accident is the document in the wrong site",
+     "Identical to production",
+     "Hidden"
+    ],
+    "ans": 1,
+    "why": "Every training session opens by pointing at it.",
+    "src": "Ch3"
+   },
+   {
+    "q": "Test passing is:",
+    "opts": [
+     "Sufficient",
+     "The end of the procedure",
+     "Necessary, never sufficient — test proves function, not scale, and the change, not the users",
+     "Optional"
+    ],
+    "ans": 2,
+    "why": "Hence the live smoke test after deployment.",
+    "src": "Ch3"
+   },
+   {
+    "q": "The lowest-layer rule states:",
+    "opts": [
+     "Always script",
+     "Ask the host",
+     "Highest first",
+     "Solve at the lowest layer that solves it — Customize Form before fields before logic before code"
+    ],
+    "ans": 3,
+    "why": "The governance weight follows the power.",
+    "src": "Ch4"
+   },
+   {
+    "q": "Customize Form can:",
+    "opts": [
+     "Relabel, reorder, hide, set mandatory/default/read-only — stored as update-surviving overrides",
+     "Only relabel",
+     "Write scripts",
+     "Change the database engine"
+    ],
+    "ans": 0,
+    "why": "The workhorse layer; most requests end here.",
+    "src": "Ch4"
+   },
+   {
+    "q": "A field that will be filtered or reported is typed as:",
+    "opts": [
+     "Free text",
+     "A Link to a proper master — free text yields seventeen spellings of one route",
+     "A number",
+     "Hidden"
+    ],
+    "ans": 1,
+    "why": "Typed correctly at birth.",
+    "src": "Ch4"
+   },
+   {
+    "q": "Scripts are:",
+    "opts": [
+     "The first answer",
+     "Forbidden",
+     "The last resort — after Customize Form, a field, a Notification, and a Workflow are ruled out in writing",
+     "Unowned"
+    ],
+    "ans": 2,
+    "why": "The code layer is governed hardest.",
+    "src": "Ch4"
+   },
+   {
+    "q": "The register entry's five parts are:",
+    "opts": [
+     "Name, date, size, cost, colour",
+     "Field, form, print, report, script",
+     "Request, build, test, deploy, log",
+     "What, why, who, when (with evidence), and the undo path"
+    ],
+    "ans": 3,
+    "why": "One page per customisation.",
     "src": "Ch5"
    },
    {
-    "q": "The format that 'fixes' a value in rendering:",
+    "q": "A custom field with data is retired by:",
     "opts": [
-     "Is helpful",
-     "Is common practice",
-     "Is efficient",
-     "Creates a second version of a sealed document — the customer's paper contradicting the system's record"
+     "Hiding — the data is history; the undo path says so in advance",
+     "Deletion",
+     "Renaming",
+     "Exporting"
     ],
-    "ans": 3,
-    "why": "The one-version law at the layer the counterparty holds.",
+    "ans": 0,
+    "why": "Hide-don't-delete.",
     "src": "Ch5"
    },
    {
-    "q": "The reprint of a sealed document must:",
+    "q": "The annual reconciliation compares:",
     "opts": [
-     "Render faithfully what was sealed — the archive's integrity extending to its printed face",
-     "Use the newest format",
-     "Be watermarked",
-     "Be refused"
+     "Two backups",
+     "The site's actual customisations (from the system's own lists) against the register",
+     "Test to live",
+     "Costs"
     ],
-    "ans": 0,
-    "why": "The reissued-slip conviction, given its machinery.",
+    "ans": 1,
+    "why": "Three findings: unregistered, ghost, unowned.",
     "src": "Ch5"
    },
    {
-    "q": "A workflow change is:",
+    "q": "The register's quality test is:",
     "opts": [
-     "A layout tweak",
-     "An AUTHORITY change — the transition's role edited is a separation redrawn, decided by the control's owner",
-     "Routine",
-     "The admin's call"
-    ],
-    "ans": 1,
-    "why": "The streamlining request is sometimes right; the deciding is never the admin's.",
-    "src": "Ch6"
-   },
-   {
-    "q": "The workflow edit's classic break is:",
-    "opts": [
-     "Slow screens",
-     "Colours",
-     "In-flight documents orphaned in an unreachable state — tested against them in rehearsal",
-     "Logins"
+     "Length",
+     "Age",
+     "The stranger test — could a stranger explain every difference from standard, given only the register?",
+     "The owner's memory"
     ],
     "ans": 2,
-    "why": "The layer's special care.",
-    "src": "Ch6"
+    "why": "The handover test applied to structure.",
+    "src": "Ch5"
    },
    {
-    "q": "The notification that silently stopped is:",
+    "q": "A proper change request names:",
     "opts": [
-     "Harmless",
-     "Rare",
-     "The user's fault",
-     "The calendar's silent failure — the periodic test-fire is its detector"
+     "A field to add",
+     "The budget",
+     "The deadline only",
+     "The outcome and the why, in the requester's words — step 2 may find a lower-layer answer"
     ],
     "ans": 3,
-    "why": "The dummy-certificate discipline, adopted platform-wide.",
+    "why": "'Record the delivery route so dispatch can plan.'",
     "src": "Ch6"
    },
    {
-    "q": "Users drowning in alerts:",
+    "q": "Owner sign-off happens:",
     "opts": [
-     "Stop reading alerts — un-building every reminder the calendars depend on; pruned to the actionable",
-     "Stay informed",
-     "Adapt",
-     "Complain only"
+     "In the test site, on realistic data, in writing — killing the matches-request-misses-need failure free",
+     "In production",
+     "After deployment",
+     "Never"
     ],
     "ans": 0,
-    "why": "The quiet, relevant stream is a designed artifact.",
+    "why": "Step 4.",
     "src": "Ch6"
    },
    {
-    "q": "Automation is:",
+    "q": "The three skips that never happen at any weight:",
     "opts": [
-     "Set and forget",
-     "Authority exercised repeatedly — the rule firing a hundred times a month is a decision made a hundred times",
-     "Neutral",
-     "The host's"
+     "Test, owner, register",
+     "Skipping test, skipping the owner, skipping the register — the aged versions are Chapter 9's patterns",
+     "Backup, deploy, verify",
+     "Request, build, announce"
     ],
     "ans": 1,
-    "why": "Governed like the staff member it effectively is.",
+    "why": "Steps never drop; depth scales.",
     "src": "Ch6"
    },
    {
-    "q": "The 'small improvement while I'm in here' is:",
+    "q": "The unannounced change generates:",
     "opts": [
-     "Efficiency",
-     "A bonus",
-     "An unceremonied change hiding inside a ceremonied one — refused; the ceremony covers what it covers",
-     "Standard"
+     "Silence",
+     "Praise",
+     "A week of 'is this broken?' tickets that one sentence prevents",
+     "Nothing"
     ],
     "ans": 2,
-    "why": "Step six's discipline.",
-    "src": "Ch7"
+    "why": "Step 8's announcement line.",
+    "src": "Ch6"
    },
    {
-    "q": "The log's safety-system field is:",
+    "q": "The smoke test's trading-path check includes:",
     "opts": [
-     "The date",
-     "The title",
-     "The author",
-     "HOW TO REVERSE — recorded while obvious; the change needing archaeology to reverse was never reversible when it matters"
+     "Only saving",
+     "Ten invoices",
+     "A real sale",
+     "A test invoice submitted, its Accounting Ledger read, printed to PDF, then cancelled clean"
     ],
     "ans": 3,
-    "why": "Reversibility cashed as a log field.",
+    "why": "The print path is the classic silent casualty.",
     "src": "Ch7"
    },
    {
-    "q": "The consequential change's rollback is:",
+    "q": "Smoke-test documents are:",
     "opts": [
-     "REHEARSED alongside the change — the untried reversal is the untested backup in a different hat",
-     "Assumed",
-     "Impossible",
-     "The host's"
+     "Test-marked, cancelled, and reversed — the standing test customer/item makes residue recognisable",
+     "Left in the books",
+     "Real trades",
+     "Deleted"
     ],
     "ans": 0,
-    "why": "The do and the undo, both proven on test.",
+    "why": "The test must not leave droppings.",
     "src": "Ch7"
    },
    {
-    "q": "The rollback decision is:",
+    "q": "The smoke test is deliberately:",
     "opts": [
-     "Improvised",
-     "Pre-named — who calls it, on what evidence, in what window: the difference between a rollback and a debate",
-     "The requester's",
-     "Automatic"
+     "Deep and narrow",
+     "Shallow and wide — every critical path once; depth belonged in the test site",
+     "Exhaustive",
+     "Optional"
     ],
     "ans": 1,
-    "why": "The failing change needs its retreat decided in minutes.",
+    "why": "It proves the deployment landed.",
     "src": "Ch7"
    },
    {
-    "q": "The ceremony's absolute floor is:",
+    "q": "When the smoke test misses something that surfaces later:",
     "opts": [
-     "The big changes only",
-     "Verbal notes",
-     "Every change gets its log line — the drift is made of changes each too small to log",
-     "Monthly summaries"
+     "Nothing changes",
+     "The tester is blamed",
+     "The checklist is amended — the list compounds instead of decaying",
+     "The test is dropped"
     ],
     "ans": 2,
-    "why": "Proportional above the floor; the floor absolute.",
+    "why": "How the list earns its shape.",
     "src": "Ch7"
    },
    {
-    "q": "HealthTrade's 'customer priority' field request was:",
+    "q": "HealthTrade's reconciliation found:",
     "opts": [
-     "Built",
-     "Escalated",
-     "Deferred",
-     "REFUSED by make-vs-take — a process gap wearing a field, fixed at the process layer through Selling's design"
-    ],
-    "ans": 3,
-    "why": "The refusal logged deliberately: the road not taken is part of the story.",
-    "src": "Ch8"
-   },
-   {
-    "q": "The dawn walk caught:",
-    "opts": [
-     "A shifted stock-report layout — repaired before the Ibadan branch opened, instead of a support-ticket morning",
+     "A clean site",
+     "Fifty scripts",
      "Nothing",
-     "A virus",
-     "A login failure"
+     "14 customisations — 9 registered, 5 archaeologised: two retired experiments, one duplicate, two load-bearing"
+    ],
+    "ans": 3,
+    "why": "The register exists by month's end.",
+    "src": "Ch8"
+   },
+   {
+    "q": "The route request was solved with:",
+    "opts": [
+     "A Route master and a Link field — the free-text shortcut explicitly rejected",
+     "Free text",
+     "A script",
+     "A workflow"
     ],
     "ans": 0,
-    "why": "Fifteen minutes of deliberate walking.",
+    "why": "Layer 2, through the lane, in two days.",
     "src": "Ch8"
    },
    {
-    "q": "The rollback in anger took:",
+    "q": "The maintenance release's letterhead break was caught by:",
     "opts": [
-     "A day",
-     "Four minutes by its own log entry's path — the pre-named decision working as written",
-     "A restore",
-     "A ticket"
+     "A customer",
+     "The production smoke test's print step, raised and fixed in-window",
+     "Month-end",
+     "The host"
     ],
     "ans": 1,
-    "why": "'Undone before anyone finished complaining about it.'",
+    "why": "Test passed; the live check still earned its seat.",
     "src": "Ch8"
    },
    {
-    "q": "This module's law is:",
+    "q": "The fast lane's reputation matters because:",
     "opts": [
-     "Change is risk to avoid",
-     "Updates are optional",
-     "Every change is staged, documented, and reversible — both streams, one ceremony, the way back written beside every step forward",
-     "Fields are free"
+     "Speed is fun",
+     "The host requires it",
+     "The next requests arrive through the lane rather than around it",
+     "It reduces backups"
     ],
     "ans": 2,
-    "why": "The site that improves for years without accumulating mysteries.",
+    "why": "Governance that works gets used.",
+    "src": "Ch8"
+   },
+   {
+    "q": "Test-in-production is fixed by:",
+    "opts": [
+     "Care",
+     "More backups",
+     "Smaller changes",
+     "The test site as standing infrastructure with the absolute venue rule"
+    ],
+    "ans": 3,
+    "why": "Pattern 1.",
+    "src": "Ch9"
+   },
+   {
+    "q": "The fossilised site is caused by:",
+    "opts": [
+     "Unregistered changes — unexplained structure's safe answer is always 'leave it'",
+     "Old hardware",
+     "Too few fields",
+     "Updates"
+    ],
+    "ans": 0,
+    "why": "The register makes retirement routine.",
+    "src": "Ch9"
+   },
+   {
+    "q": "The free-text field pattern is fixed by:",
+    "opts": [
+     "More training",
+     "The Link-to-master discipline and one governed retype — small master, migrated values, updated register",
+     "A bigger field",
+     "Deletion"
+    ],
+    "ans": 1,
+    "why": "Typed correctly at birth, or fixed once properly.",
+    "src": "Ch9"
+   },
+   {
+    "q": "Module 5's law is:",
+    "opts": [
+     "Change fast",
+     "Never change",
+     "Every change is staged in test, signed by its owner, deployed behind a backup, verified live, and written in the register",
+     "The host decides"
+    ],
+    "ans": 2,
+    "why": "The site never learns by surprise.",
     "src": "Ch9"
    }
   ]
  },
  "email_integrations": {
   "title": "Sysadmin 6 — Printing, Email & Integrations",
-  "desc": "Every message and integration has an owner: the email machinery with firm-domain identity and custodied credentials, the queue as the outbound ledger, the communication map with recipient hygiene, the integration inventory with the build boundary, API key custody with rotation by events, and designed failure modes with monthly reconciliation where money and statute flow.",
+  "desc": "Channels in ZhiftERP: the channel rule and inventory; Letter Head and Print Settings with the specimen discipline; Print Formats by the three levels with nothing hard-typed; the domain sending identity on the Email Account record with the identity test; the Email Queue's daily glance, stuck-queue procedure, and volume read; scoped Notifications and Auto Email Reports with the annual review; and integration governance — dedicated users, credential custody, the register with health checks, and the quarterly door count, with the NGE Portal e-invoicing rail as the standing example.",
   "lessons": [
    {
-    "title": "Chapter 1 — The system speaks and connects: every channel owned",
+    "title": "Chapter 1 — The channels: every one owned",
+    "est": "11",
+    "html": "<p>This module covers the system's faces to the world: printed documents, email, and integrations. Each is a <b>channel</b> — a path by which the system speaks or connects — and the module's design is one rule applied three ways: <b>every channel has an owner, an identity the business controls, credentials under custody, and a health read on the calendar.</b></p><p><b>Why channels get a module.</b> Channels fail differently from data. A data error is wrong inside the system, found by the system's own checks. A channel failure is <b>silence or embarrassment outside</b> the system:</p><p>• The email queue stalls, and the statements Process Statement Of Accounts faithfully generated arrive nowhere — collections weakens for a month before anyone connects the dots.<br>• The invoice prints with a stretched logo and a missing tax line — every customer receives the business's carelessness in PDF form.<br>• The e-invoicing integration's credential expires, and the compliance rail the tax module depends on goes quiet.</p><p>None of these announce themselves in a list view. The module's machinery — the queue read, the print standards, the integration register with its health checks — exists to make channel failures loud and fast instead of quiet and slow.</p><p><b>The channel inventory.</b> The sysadmin keeps one page listing every channel:</p><p>1. <b>Print</b> — the document formats and the letterhead (Chapters 2-3).<br>2. <b>Email out</b> — the sending identity, the queue, the automated senders: Notifications, Auto Email Reports, the statement run (Chapters 4-6).<br>3. <b>Email in</b> — where inbound mail creates or updates records, where configured.<br>4. <b>Integrations</b> — every external system connected: the e-invoicing rail (NGE Portal), payment or SMS gateways where used, and anything with an API key (Chapters 7-8).</p><p>Per channel: the owner, the identity (domain, sender address, credential), where the credential lives, the health check, and the known failure mode. This inventory is the module's register, and module 1's monthly integration line reads from it — a channel missing from the inventory is a channel whose failure will be diagnosed from zero, at the worst time.</p><p><b>Module contents.</b> Chapter 2: Letter Head and Print Settings. Chapter 3: Print Formats. Chapter 4: Email Accounts — the sending identity. Chapter 5: the Email Queue. Chapter 6: Notifications and Auto Email Reports. Chapter 7: integrations and credential custody. Chapter 8: the integration register and the HealthTrade case. Chapter 9: review and the law.</p>"
+   },
+   {
+    "title": "Chapter 2 — Letter Head and Print Settings",
     "est": "12",
-    "html": "<p>The site does not only store and compute — it SPEAKS (the invoice emailed, the slip released, the reminder fired, the document printed) and it CONNECTS (the SMS gateway, the payment confirmation, the statutory e-invoicing endpoint, the partner-built bridges). Every one of those surfaces carries the firm's name, the firm's data, or the firm's legal obligations into the world — and the module's thesis is the track's sixth law forming: <b>every message and every integration has an owner — because the unowned channel fails silently, leaks quietly, and embarrasses publicly.</b></p><p><b>The two surface families.</b> The module's map: the OUTBOUND surfaces (Chapters 2-4 — the email machinery, its deliverability and queue, and the communication map of everything the system sends: the printed document's operational life included, its design having been Chapter 5 of the change module — this module owns the SENDING, the previous owned the shape), and the CONNECTED surfaces (Chapters 5-7 — the integrations' inventory, their credentials' custody, and their failure modes: the doors in the site's walls, each one deliberate, documented, and watched). The families share the module's one discipline, previewed: each channel carries a NAME (the function that owns its content and its consequences — the invoice email is selling's channel; the statutory connection is the accountant's; the admin custodians the plumbing of all of them, per the split now seven modules old), a MAP entry (the site book's communication and integration pages — Chapters 4 and 5's deliverables), and a FAILURE ANSWER (what happens when it stops — designed in calm, per module 4's whole philosophy, because the channel's failure mode chosen in advance is a degraded mode, and the one discovered live is an incident).</p><p><b>The unowned channel, convicted in advance.</b> The diseases this module prevents, named as its opening indictment: the invoice that stopped sending in March and nobody noticed until the debtors' calls (the unread queue — Chapter 3), the payslip emailed to a stale address (the recipient hygiene breach — Chapter 4, with the payroll track's tightest tier bleeding through a typo), the credential pasted in a group chat and never rotated after the leaver (Chapter 6 — the key to the firm's SMS identity or worse, walking out the door in someone's chat history), the integration that a departed consultant built and nobody can name (the orphaned door — Chapter 5), and the statutory connection whose rejected submissions accumulate unread (Chapter 7 — the compliance channel failing in a queue nobody owns, which is the unremitted-month disease of the payroll track wearing an API's clothes). Each disease is an ownership absence — and the module's cure, chapter by chapter, is the register that makes every channel answer to a name.</p>"
+    "html": "<p>Every printed document carries the business's face before it carries its figures. Two doctypes set the standard once.</p><p><b>The Letter Head doctype.</b> Open <b>Letter Head</b> (awesome bar): the header (and optionally footer) that rides every printed document — the logo, the legal name, addresses, registration and tax identifiers, contacts. The rules:</p><p>• <b>Content is a policy decision, not a design whim:</b> what must legally appear on an invoice (registration numbers, tax identity) is confirmed with the accountant; the letterhead is where it lives once so no format forgets it.<br>• <b>One default, marked:</b> the default letterhead applies everywhere automatically; additional letterheads exist only for real cases (a second company on the site gets its own — the multi-company rule reaching into print; a branch variant only if genuinely needed).<br>• <b>The image discipline:</b> the logo uploaded at proper resolution, sized in the letterhead itself, and tested to PDF before the letterhead ships — the stretched-logo invoice is this chapter's classic failure, and it is a two-minute test.<br>• <b>Changes are governed events:</b> a letterhead change alters every document printed from that day — module 5's change lane applies (test site, sign-off, register), and old printed documents in circulation mean the change date is worth logging.</p><p><b>Print Settings.</b> Open <b>Print Settings</b>: the site-wide print policy page, walked once like every settings page:</p><p>• The PDF page size (A4 for Nigerian business correspondence), fonts and text sizing where exposed.<br>• <b>Letterhead-by-default</b> on, so nothing prints naked.<br>• Currency and amount formatting confirmed against System Settings' precision decisions (module 1) — the amount that displays differently on screen and paper is a settings mismatch, not a bug.<br>• The print server / PDF generation options as provided by the platform, noted in the walk record.</p><p><b>The standing test.</b> After any change to letterhead, print settings, or formats — and inside every smoke test (module 5's step 2) — one document of each critical kind is printed to PDF and <b>read like a customer would</b>: logo clean, identity complete, figures aligned, totals and tax lines present, footer intact. The PDF is the product here; the screen preview approximates it but the PDF is what leaves the building.</p><p>Practical rule: collect one signed-off specimen PDF per critical document (invoice, statement, receipt, purchase order) in the channel register. The specimen is the standard the smoke test compares against — \"does it still look like this\" is a faster and stricter test than \"does it look right\".</p>"
    },
    {
-    "title": "Chapter 2 — The email machinery: accounts, identity & custody",
+    "title": "Chapter 3 — Print Formats",
+    "est": "12",
+    "html": "<p>The <b>Print Format</b> decides how each doctype renders on paper. The letterhead is the frame; the format is the body.</p><p><b>The three levels, by governance weight (module 5's layer ladder, applied to print).</b></p><p>1. <b>The standard formats</b> — every doctype ships with one. Adequate for internal documents; the default starting point.<br>2. <b>The Print Format Builder</b> — the codeless editor: open a doctype's print view, choose to customise, and arrange fields, columns, and sections by drag and configuration. This is the workhorse for business-facing documents: the invoice showing the fields <b>this</b> business's customers need (the custom Route field from module 5 earning its print placement here), columns ordered for readability, the remarks section where signatures go.<br>3. <b>Custom HTML formats</b> — code-level control for pixel-specific needs. Module 5's script rules apply verbatim: last resort, specified, tested in the test site, registered with an owner — and every platform update's smoke test exercises them, because code-level formats are the update's favourite casualty.</p><p><b>The assignment discipline.</b> Each doctype has a <b>default format</b>; users with print access can often choose among available formats at print time. Governance:</p><p>• The default per critical doctype is a <b>decision in the channel register</b> — the invoice's default is the signed-off specimen's format, full stop.<br>• Redundant and draft formats are cleaned up or clearly named (<i>DRAFT — do not use</i> beats a menu of five plausible invoices).<br>• Where a real second format exists (a delivery-note variant without prices for drivers, a proforma), it is named for its purpose and listed in the register with its use case.</p><p><b>Format content rules, carried from the tracks.</b> The programme's modules have already decided much of what must print; the sysadmin implements:</p><p>• The invoice: the tax lines and identifiers the tax module requires, the payment terms and bank details the receivables routine relies on (details from the <b>system's</b> master records — never typed into the format, where they fossilise).<br>• The statement: the format Process Statement Of Accounts sends — tested by sending one to a test address and reading it as the customer.<br>• The receipt and the POS print: the POS track's till formats, referenced here for completeness.</p><p>Practical rule: fields print from the document; identity prints from the letterhead; nothing prints from text hard-typed into a format. The hard-typed bank account that survived three real account changes is a known way businesses direct customer payments to a closed account — the channel register's specimen review catches it.</p>"
+   },
+   {
+    "title": "Chapter 4 — Email Accounts: the sending identity",
+    "est": "12",
+    "html": "<p>Open <b>Email Account</b> (awesome bar). Every email the site sends or receives runs through an Email Account record, and the identity question is settled here.</p><p><b>The outgoing account.</b> The record carries the sender address, the mail service's connection settings (as the platform and the business's mail provider require), and the flags that matter:</p><p>• <b>Enable Outgoing</b> — this account may send.<br>• <b>Default Outgoing</b> — the site's standing sender: transaction emails, statements, notifications all leave under this identity unless a specific account overrides.</p><p><b>The identity rule — the chapter's core.</b> The sending address is an address <b>at the business's own domain</b> (accounts@ the business's domain), never a personal mailbox and never a free-mail address. Three reasons, each sufficient:</p><p>1. <b>Deliverability:</b> business mail systems increasingly distrust free-mail senders for commercial documents; the domain identity with the provider's proper authentication is what lands statements in inboxes rather than spam folders. The deliverability setup (the domain's mail authentication records) is done once with the domain's custodian — the difference between the statement run working and silently decorating spam folders.<br>2. <b>Continuity:</b> a personal mailbox leaves with its person — the leaver procedure cannot chase it, and the sent history goes with them.<br>3. <b>Identity:</b> the customer's reply, the dispute, the audit trail — all anchored to an address the business controls.</p><p><b>The credential custody.</b> The mail account's password/app-credential is an integration credential (Chapter 7's rules apply): held in the business's credential custody, not in one person's head; rotated on the security calendar and at relevant leavers; and — the operational note that saves a future incident — <b>rotation includes updating the Email Account record</b>, because the rotated password that never reached the site is the stuck-queue incident of Chapter 5 waiting to happen.</p><p><b>Incoming accounts, where used.</b> An Email Account can also receive — <b>Enable Incoming</b> — and file inbound mail against a doctype (the support-desk pattern: mail to support@ creating Issue records). Where the business uses this: the same identity and custody rules, plus a named owner for the receiving doctype's queue, because an inbound channel nobody reads is worse than none — senders believe they have been heard.</p><p>Practical rule: send the identity test after any mail change — one email from the site to an external mailbox at a major provider, and confirm it arrives in the <b>inbox</b>, sender displayed correctly. Thirty seconds; it is the difference between configured and working.</p>"
+   },
+   {
+    "title": "Chapter 5 — The Email Queue",
+    "est": "12",
+    "html": "<p>Open <b>Email Queue</b> (awesome bar). Every outbound email the site generates passes through this list on its way out, and the queue is the channel's health instrument.</p><p><b>Reading the queue.</b> Each row is one email with its status:</p><p>• <b>Not Sent</b> — generated, awaiting dispatch. A handful, briefly, is normal traffic; a growing pile is the alarm.<br>• <b>Sending / Sent</b> — in flight / delivered to the mail service.<br>• <b>Error</b> — dispatch failed, with the error recorded on the row. The error text is the diagnosis: authentication failures point at credentials (Chapter 4's rotation note), connection failures at the mail service or its settings, rejection messages at the recipient side or deliverability.</p><p><b>The daily glance (module 1's calendar line).</b> Thirty seconds: the queue's recent rows scanned for Error status and for a Not Sent pile that is not draining. The stakes justify the ritual: the queue carries <b>business documents</b> — invoices to customers, statements from the monthly run, purchase orders to suppliers, the compliance calendar's Notification reminders. A stuck queue is all of those silently not arriving, and nothing else in the system will mention it.</p><p><b>The stuck-queue procedure.</b></p><p>1. <b>Read the newest errors</b> — the error text names the family (credential, connection, rejection).<br>2. <b>Fix the cause:</b> the rotated-but-not-updated password corrected on the Email Account record; the mail-service settings re-verified; the deliverability problem escalated to the domain custodian.<br>3. <b>Confirm the drain:</b> queued mail retries; watch Not Sent convert to Sent. Where rows aged beyond usefulness (the reminder for a meeting past), the business decision is made deliberately: send late or cancel, and for customer-facing documents late is almost always right — the invoice must arrive.<br>4. <b>The identity test</b> (Chapter 4) as the closing check.<br>5. <b>Log the incident</b> with cause and duration — a queue that sticks twice for the same cause is a process fault (the rotation procedure missing its update step, usually).</p><p><b>The volume read.</b> Beside errors, the queue's volume tells stories: the statement run's monthly spike confirms it fired (the absence of the spike is the finding); an unexplained surge points at a misconfigured Notification looping (Chapter 6's standing caution); near-zero traffic on a site that should hum means senders are failing upstream.</p><p>Practical rule: after any mail-related change — credentials, Email Account settings, the provider's side — the queue is watched through one natural send. Configured is not working; the queue draining is working.</p>"
+   },
+   {
+    "title": "Chapter 6 — Notifications and Auto Email Reports",
     "est": "13",
-    "html": "<p>The system's voice begins with its email accounts — the machinery that determines whether the firm's messages arrive, from whom they appear to come, and who controls the voice. The accounts chapter.</p><p><b>The outgoing account.</b> The sender, governed: the system sends through a configured OUTGOING account — and the first discipline is IDENTITY: the firm's documents sent from the FIRM'S domain address (the invoices from the firm's billing identity, not from anyone's personal mailbox — the personal-address sender being Chapter 9's opening disease: the firm whose invoices arrive from a staff member's private account has coupled its billing voice to one person's employment, mixed its evidence trail into a private mailbox it cannot search or retain, and taught its customers to trust a sender the firm does not control: the identity fixed as the module's first act at every implementation), the account's shape decided deliberately (the single firm voice versus the purpose addresses — the billing address, the payroll's notifications, the support inbox: few, named, and mapped — each a communication-map entry, not a proliferation), and the DELIVERABILITY foundations confirmed at boundary altitude (the domain's authentication records — the signatures that tell receiving servers the firm's mail is genuinely the firm's — confirmed with the domain's custodian and the host through the boundary conversation: the admin does not administer the records; the admin verifies the answer is yes and files it in the site book, because the unauthenticated domain's mail lands in spam folders, and the firm's invoices in spam is a collections problem wearing a technical costume).</p><p><b>The incoming accounts.</b> Where the system LISTENS: the inbound account pulling a mailbox into the system (the support address becoming tickets, the documents channel receiving — legitimate, powerful, and each one a door: the inbound account's scope decided — what it creates, who triages it — and its own hygiene watched: the inbox-to-system bridge that creates records from whatever arrives is an import door in disguise, and module 3's governance instincts apply), with the unused kept closed (the fewer listening doors, the smaller the surface — the minimalism of module 2's least-privilege, applied to mailboxes).</p><p><b>The account custody.</b> The credentials' governance, joining module 2's lifecycle: the email accounts' credentials held in the firm's custody (the password known to the CUSTODY, not to a person's memory alone — stored per Chapter 6's credential disciplines), the shared-purpose mailbox governed (the billing address read by the role, its access granted and revoked by the same events as everything else — the mailbox being a resource like any other, on the access register), and the ROTATION events wired (the leaver who knew the account's credentials triggers its rotation — HR 7's checklist and module 2's lifecycle both pointing at this desk: the separation that disables the user but leaves the shared mailbox's password unchanged has closed the front door and left the side window open, and the module's custody register makes the side windows enumerable). The chapter's summary for the site book: <b>few accounts, firm-domain identity, authenticated delivery, custodied credentials, rotation by events — the voice owned before a single message is judged.</b></p>"
+    "html": "<p>Two doctypes turn the email channel into the programme's reminder and reporting machinery — the \"set system Notifications against the dates\" line that every track's calendar has been assuming is built here.</p><p><b>The Notification doctype.</b> Open <b>Notification</b> (awesome bar) &gt; New. Each record is one automated message rule:</p><p>• <b>The document type and event</b> — on save, on submit, on cancel, on a value change, or — the calendar workhorse — <b>days before or after a date field</b> (three days before a Purchase Order's expected date; on the compliance calendar's filing dates via their carrying doctype).<br>• <b>The condition</b> — the filter that scopes the rule (only submitted documents, only where a status field says so, only above a value). The condition discipline is the chapter's core caution: <b>an unscoped notification is spam at machine scale</b>, and spam teaches recipients to ignore the channel — after which the notification that matters dies in the same ignored folder.<br>• <b>The recipients</b> — by role, by a field on the document (the document's owner, the assigned user), or fixed addresses. Prefer roles and document fields to named people: the notification wired to a person breaks at their leaving; wired to a role it survives (module 2's access-follows-the-job, applied to mail).<br>• <b>The message</b> — subject and body, with the document's fields available as placeholders; the document link included so the recipient lands one click from action.</p><p><b>The notification register.</b> Every active Notification is a channel register line: purpose, owner, recipients, last reviewed. The annual review reads them all — the notification for the process that no longer exists is retired, and the one nobody remembers requesting gets the module 5 archaeology. The looping notification (a rule that fires on save and edits that trigger saves) is the classic incident; the queue's volume read (Chapter 5) is what catches it.</p><p><b>The Auto Email Report doctype.</b> Open <b>Auto Email Report</b>: a saved report, emailed on a schedule — daily, weekly, monthly — to named recipients, with filters fixed and the format chosen. This is the push layer over module 1's report machinery, and its lawful uses are the standing reads the tracks defined: the branch P&amp;L to each branch manager monthly, the aged receivables to the collections owner weekly, the draft-documents list to the close owner on day one.</p><p>The same two rules govern: <b>recipients by role/need</b> (the report to someone who never opens it is noise plus a data-exposure surface — the report email carries business data into mailboxes, so the recipient list is a permission decision), and <b>the register line</b> with an annual review that retires the unread.</p><p>Practical rule: the test for every automated message is the recipient's verdict, asked annually: <i>do you act on this?</i> Keep the ones that move work; retire the rest. A lean automated channel is one people actually read.</p>"
    },
    {
-    "title": "Chapter 3 — Deliverability & the queue: the outbound ledger",
+    "title": "Chapter 7 — Integrations and credential custody",
+    "est": "12",
+    "html": "<p>An integration is another system connected to the site — reading it, writing to it, or both. Each one is a door, and doors get the module's full treatment.</p><p><b>The standing example.</b> The e-invoicing rail: ZhiftERP transmits invoices to the tax authority through the <b>NGE Portal</b> integration (the tax module's compliance machinery). It carries every property this chapter governs: an external endpoint, a credential, a data flow of consequence, a failure mode (invoices not transmitting) that is silent locally and loud legally, and a health check the business must own. Payment gateways, SMS gateways (the <b>SMS Settings</b> page where the business sends transactional SMS), and any partner system connected by API follow the same pattern.</p><p><b>Credentials — the custody rules.</b> Integration credentials are keys to the business's data, and they concentrate the module's risk:</p><p>1. <b>Issued minimal:</b> where the platform supports API keys per user (the <b>API Access</b> section on the User record generates a key/secret pair), the integration gets its <b>own dedicated user</b> with exactly the roles its function needs (module 2's least-privilege applied to machines) — never a person's credentials, and never a System Manager's. The integration user is named for its function (<i>nge-portal-integration</i>), fenced like any user, and visible in every access review.<br>2. <b>Stored in custody:</b> the business's credential store — not chat history, not a spreadsheet, not one person's head. Access to the store: the sysadmin and backstop, listed.<br>3. <b>Rotated on the calendar and at events:</b> the security calendar's rotation line (module 8), plus immediate rotation when a holder leaves or exposure is suspected — and the rotation updates <b>both ends</b> (the store and the connected system's configuration), or Chapter 5's stuck-queue lesson repeats with a different channel.<br>4. <b>Revoked when the integration retires:</b> the dead integration's live credential is a door with no doorman; retirement is a checklist (credential revoked, user disabled, register entry closed).</p><p><b>The data-flow question, asked at connection time.</b> Before any integration connects: what data flows out, what flows in, and who approved that flow? The answer goes in the register entry — because \"what does this integration actually see?\" is a question the business will eventually be asked (by an auditor, a customer, or its own owner), and connection time is when the answer is cheap.</p><p>Practical rule: count the doors quarterly — the integration register's entries against the actual API-enabled users and connected apps on the site. A door not in the register is the finding; module 5's reconciliation logic, applied to connections.</p>"
+   },
+   {
+    "title": "Chapter 8 — The integration register & the HealthTrade case",
     "est": "13",
-    "html": "<p>Every message the system sends passes through the EMAIL QUEUE — which makes the queue the outbound ledger: the complete, timestamped record of what the firm's system said, to whom, and whether it arrived. Read accordingly. The queue chapter.</p><p><b>The queue as ledger.</b> The reframe that organises the chapter: the queue is not plumbing to ignore but a REGISTER to read — every outbound message a row with a state (queued, sent, failed), which gives the admin two things the academy prizes: the EVIDENCE function (the dispute's 'we never received the invoice' answered by pointing — the queue's sent record with its timestamp and recipient being the outbound half of the evidence layer, filed beside the document it carried: the answered-by-pointing law extended to the sending itself) and the HEALTH function (the queue's shape read on the daily glance — module 1's posture now given its email column: the failure count, the stuck messages, the volume anomaly).</p><p><b>The failure read.</b> The failed message triaged by its kind: the BOUNCE (the recipient address dead or wrong — routed to the CONTACT'S owner for correction, because the bounce is a master-data finding wearing an email costume: the customer's stale address fixed in the customer record by selling's pen, per module 3's custodianship — the admin routes; the function corrects), the REJECTION (the receiving server refusing — the deliverability signal read: the pattern of rejections at one domain is a conversation; the pattern everywhere is the authentication check of Chapter 2 re-run), the STUCK message (the queue jammed — the background machinery's health, module 7's terrain, glanced daily exactly because the silent jam is the invoice-that-never-sent disease incubating), and the RETRY discipline honest (the transient failure retried by the machinery; the permanent failure CLOSED with its cause — the queue that accumulates ancient failures unread is the unread queue of Chapter 1's indictment: triaged to zero on its rhythm, like every worked list in this academy).</p><p><b>The spam reality.</b> The deliverability hygiene, at the admin's altitude: the firm's mail lands where the receiving world decides — and the admin's levers are the foundations (Chapter 2's authentication, confirmed), the CONTENT discipline (the outbound templates professional and consistent — the all-caps urgent subject line is a spam signal the firm sends about itself), the VOLUME shape (the sudden bulk blast from a transactional address teaches receiving servers suspicion — the mass communication need served deliberately, not improvised through the invoice channel), and the FEEDBACK read (the customers who report 'it went to spam' being a signal logged and investigated, not shrugged at — the firm's deliverability being a reputation maintained by hygiene, exactly as its trade reputation is).</p><p><b>The evidence discipline.</b> The chapter's closing tie to six tracks: the sent-record RETAINED per the evidence horizons (the queue's history and the communication log kept per the retention conversations of module 4 — the 'was it sent?' question answerable for as long as the dispute horizon runs), and the sending's provenance clean (the message sent by the system, from the governed account, logged in the queue — versus the document downloaded and forwarded from personal mailboxes, which exits the evidence layer entirely: the staff habit of personal forwarding read as the workaround signal it is, and the governed send made easier than the workaround, per the academy's oldest adoption law).</p>"
-   },
-   {
-    "title": "Chapter 4 — The communication map: what the system sends, to whom",
-    "est": "13",
-    "html": "<p>The module's first register: the COMMUNICATION MAP — every stream the system sends, on one page, each with its owner. The map chapter.</p><p><b>The map's rows.</b> The outbound inventory, drawn from six tracks' choreographies: the INVOICES and statements to customers (selling's channel — the trigger, the template, the sender identity, the attachment's format), the PURCHASE orders to suppliers (procurement's), the PAYSLIPS to staff (payroll's — with its special standing below), the REMINDERS and notifications (the expiry alerts, the approval nudges, the calendar's engine — each rule from module 5's automation register cross-referenced here by its audience), the RECEIPTS and confirmations (the payment acknowledged, the order confirmed), and the STATUTORY dispatches where the functions use them — each row carrying the same columns: WHAT goes out, TRIGGERED by what, TO whom, FROM which account, OWNED by which function, and last VERIFIED when (the map being the site book's page that answers, in one look, the question every new admin and every auditor asks: what does this system say to the world, and on whose authority?).</p><p><b>The recipient hygiene.</b> The map's data-quality dependency, stated with module weight: every stream is aimed by CONTACT DATA (the customer's email on the customer master, the employee's address on the employee record) — which makes recipient quality a master-data discipline with a confidentiality edge: the WRONG-RECIPIENT dispatch being this chapter's central disaster (the payslip to a stale address is the payroll track's tightest tier breached by a typo; the customer statement to the wrong customer is two relationships damaged in one send), and the hygiene mechanised: the sensitive streams' recipients verified on their events (the joiner's address confirmed at onboarding; the change-of-address event updating the master BEFORE the next cycle — HR's events feeding the map's aim), the bounce loop closing corrections fast (Chapter 3's routing), and the highest-sensitivity streams DOUBLE-KEYED (the payslip channel's recipient source read from the governed master only — never a manually-maintained side list, because the side list is where stale addresses live: the one-version law aiming the most dangerous mail).</p><p><b>The sensitive streams' standing.</b> The map's tiers, honest: not all streams are equal — the payslip and anything pay-adjacent carries module 2's tightest-tier weight IN TRANSIT (the delivery choices the payroll track designed — the attachment protections, the self-service pull versus the push — administered here as configuration, with the admin's conduct rule explicit: the admin who can see the queue does not open the payslip attachments passing through it — the custodian-not-owner law at the mail bag: the postman's ethics, enforced by module 8's conduct standard and its logs), and the statutory streams carrying legal weight (the dispatch that discharges an obligation — its proof-of-send retained per the adviser's horizons).</p><p><b>The map's maintenance.</b> The register's life: updated by the ceremony (every new stream or changed template through module 5's change process, the map's row updated in the same act), verified on the walk (the annual re-verification — each stream test-fired or evidenced live within the year: the stream that hasn't demonstrably fired in a year is either dead weight or a silent failure, and the walk decides which), and read at every incident ('what does the system send?' being the first question of half the module's diagnoses — answered by the page, in seconds, which is the entire reason the page exists).</p>"
-   },
-   {
-    "title": "Chapter 5 — Integrations: the inventory & the boundary",
-    "est": "13",
-    "html": "<p>The connected surfaces: the doors in the site's walls where other systems reach in and the firm's data reaches out. Every door deliberate, documented, and owned. The inventory chapter.</p><p><b>What the doors are.</b> The trade-scale integration landscape, named honestly: the PAYMENT rails (the gateway confirmations, the bank-adjacent feeds — money's arrival told to the system by machines), the MESSAGING gateways (the SMS and messaging channels the notifications ride — the delivery confirmations, the customer alerts), the STATUTORY connections (the e-invoicing and compliance endpoints where the regulator's machinery receives the firm's documents — the connection where an API failure is a COMPLIANCE event, given its own weight in Chapter 7), the PARTNER bridges (the connections the implementation partner built — the custom flows, the external tools), and the INBOUND doors (the webhooks and endpoints where outside events arrive — each one a listening surface with Chapter 6's verification duties). The chapter's frame for all of them: an integration is a STANDING RELATIONSHIP between systems — it has a purpose, a counterparty, credentials, a data flow, and a failure mode, exactly like a supplier relationship has terms, contacts, and risks — and it is governed like one: on a register, with an owner, reviewed on a rhythm.</p><p><b>The integration inventory.</b> The register's columns, fixed: each integration's PURPOSE (one sentence — the connection that cannot be described joins the retirement candidates, per the standing catalogue law), its OWNING FUNCTION (the payment confirmation is treasury's; the statutory endpoint the accountant's; the SMS gateway owned by whoever owns its messages' content — the admin custodians plumbing, never consequences), its COUNTERPARTY and support path (the provider, the contact, the escalation — the boundary map's pattern per connection), its CREDENTIALS' custody entry (Chapter 6's register cross-referenced), its DATA FLOW (what crosses, in which direction, how sensitive — the flow's tier read against module 2's designs: the integration that exports pay-adjacent data is a tightest-tier door and audited as one), its FAILURE MODE (Chapter 7's designed answer), and its last REVIEW date.</p><p><b>The build boundary.</b> Who makes the doors: integrations are BUILT through the implementation partner's discipline (the deep end of module 5's catalogue — the connection's construction, its error handling, its mapping logic being engineering the site admin commissions, not improvises: the admin's role in the build being the REQUIREMENTS side — the purpose, the owner, the data flow, the failure mode specified — and the acceptance side — the integration proven on test, the inventory's row completed, before production), and OPERATED by the admin thereafter (the monitoring, the credential rotations, the review rhythm — the custody handed over WITH documentation, because the partner-built door whose workings left with the partner is the orphaned integration of Chapter 1's indictment: the acceptance checklist includes the door's own runbook, or the acceptance is not complete). The chapter's closing rule, the module's law in inventory form: <b>no door without a row; no row without an owner; no owner without a failure answer</b> — the site whose connections all answer to names is the site where 'what is this connection?' is never asked in an incident for the first time.</p>"
-   },
-   {
-    "title": "Chapter 6 — Credentials & API custody: the keys to the firm",
-    "est": "14",
-    "html": "<p>Every integration, account, and automated connection runs on CREDENTIALS — the API keys, tokens, and passwords that ARE the firm's identity to machines. Held accordingly. The custody chapter.</p><p><b>What a credential is.</b> The weight set first: the API key is not a password-like inconvenience — it IS the firm, to every system that accepts it (the key to the SMS gateway can speak to customers AS the firm; the statutory connection's credentials can file AS the firm; the payment rail's token can read money's movements — each credential a signature stamp, and the academy's oldest custody instincts applying at full strength: the cheque-signing disciplines of the money tracks, at the machine layer), which sets the custody bar: credentials are held the way the firm holds its most consequential keys — enumerated, stored properly, issued narrowly, rotated on events, and never, ever ambient.</p><p><b>The storage law.</b> The disciplines, plainly: credentials live in GOVERNED storage (the credential store or sealed register the firm designates — access-controlled per module 2, its readers enumerable), and never in the ambient places the trade actually keeps them (the group chat where the key was pasted 'temporarily' three years ago — the chat history being a credential store with no access control, no rotation, and no leaver process; the spreadsheet named passwords.xlsx; the sticky note; the one person's memory — each an ambient copy the firm cannot enumerate, which means cannot rotate, which means does not control), with the module's honest note about the trade's reality: the cleanup engagement's credential audit always finds the ambient copies, and the certified admin's first custody act is the ENUMERATION (every credential found, listed, and re-homed) followed by the ROTATION (every credential whose ambient history is unknowable rotated on principle — the key that lived in a chat is treated as leaked because its readership is unknowable, which is the conservative instinct every custody track taught).</p><p><b>The issuance disciplines.</b> The keys' lifecycle, mirroring module 2's: ONE credential per connection (the shared key serving three integrations cannot be rotated for one without breaking two, and cannot be revoked for a compromised door without closing the innocent ones — the per-door key being the blast-radius discipline at the credential layer), scoped NARROWLY (the key issued with the least capability the connection needs — the read-only feed holding a read-only token: least privilege for machines, exactly as for humans), ROTATED on events (the leaver who knew or could know a credential triggers its rotation — module 2's lifecycle and HR 7's checklist both landing here: the credential register's rotation column making the leaver-event's credential sweep a checklist line instead of a guess; plus the calendar rotation for the long-lived keys the events never touched), and RETIRED with their doors (the integration decommissioned has its credentials revoked in the same ceremony — the dead door with a live key being an entrance nobody watches).</p><p><b>The key register & webhook hygiene.</b> The chapter's deliverables: the CREDENTIAL REGISTER (every key: what it opens, what it can do, where it is stored, who may access it, when last rotated — the register that makes the leaver sweep, the audit answer, and the incident response each a lookup), and the INBOUND door's verification (the webhook that receives outside events VERIFIES its callers — the endpoint that believes whatever arrives is an open gate for forged events: the verification's presence confirmed at acceptance, per Chapter 5's checklist, because the listening door's hygiene is part of the door). The chapter's closing sentence, for the site book's custody page: <b>a credential is the firm's signature in a machine's hands — enumerated, stored, scoped, rotated, retired: the five verbs that separate custody from exposure.</b></p>"
-   },
-   {
-    "title": "Chapter 7 — Integration health: designed failure & the reconciliation instinct",
-    "est": "13",
-    "html": "<p>Every door will fail — the gateway down, the endpoint rejecting, the confirmation lagging. The difference between an incident and a degraded mode is whether the failure was DESIGNED. The health chapter.</p><p><b>The designed failure mode.</b> The inventory's hardest column, completed per door: for each integration, the answer to 'what happens when it stops?' written in calm — the SMS gateway down (the notifications queue and retry? fall silent? — decided: the critical alerts carrying a fallback channel per the continuity instincts of module 4, the routine ones waiting), the PAYMENT confirmation lagging (the money's arrival told late — the receipt process's manual verification path standing, per the money tracks' own disciplines: the integration ACCELERATES the confirmation, it does not replace the reconciliation), and the STATUTORY endpoint rejecting or unreachable (the weightiest door's failure — the submission that cannot land does not suspend the obligation: the failure mode here includes the DEADLINE awareness (the retry window against the statutory clock), the rejection queue's triage (below), and the escalation to the owning function while time remains — the compliance door's outage being a calendar event, not just a technical one).</p><p><b>The rejection queue, owned.</b> The chapter's central discipline, weighted for the statutory doors: the integration that submits documents accumulates a REJECTION stream (the invoice the endpoint refused — the validation failure, the mismatched particulars, the schema drift after an update) — and the stream is a WORKED LIST with an owner (triaged on its rhythm to zero, each rejection corrected at its source and resubmitted — the rejected statutory submission being a compliance document in limbo, and the queue nobody reads being Chapter 1's gravest indictment: the firm that believes it is compliant because the system 'sends automatically' while rejections accumulate unread has automated its way into the unremitted-month disease with better technology), the rejection PATTERNS read (the cluster of one failure kind is a master-data or configuration finding routed per module 3 — the rejections as the endpoint's own quality feedback), and the queue's health on the glance (module 7 of this track formalises the read; this chapter establishes the duty).</p><p><b>The reconciliation instinct.</b> The trio discipline of the payroll track, generalised to every door where money or statute flows: the integration's records reconciled against the system's on a rhythm — the gateway's delivery report against the sent register (the messages the firm paid for matching the messages the system dispatched), the payment rail's settlement report against the receipts entered (the money the machines announced matching the money the books recorded — the money tracks' bank reconciliation extended to its feeder), and the statutory endpoint's ACCEPTED register against the firm's issued documents (the compliance door's reconciliation being the one that catches the silent gap: the documents issued minus the documents accepted equals the rejection queue plus the never-submitted — an equation read monthly, because its non-zero answer is a finding with a deadline), each reconciliation owned by the door's owning function with the admin providing the machinery — the split, one last time.</p><p><b>The review rhythm.</b> The doors' calendar: the integration REVIEW annually per door (the purpose still true, the volume read, the credentials' rotation current, the failure mode still correct, the counterparty relationship live — the door re-justified or retired: the museum discipline at the connection layer), the acceptance re-run after major changes (the platform update that touches an integration's terrain triggers its verification — module 5's collision check, cashed), and the incident learning loop (the door that failed teaches its runbook — the post-incident amendment, per module 4's pattern). The chapter's one-liner: <b>doors fail; owned doors fail gracefully — designed modes, worked rejection queues, monthly reconciliations, and an annual look that asks each door to justify its hinges.</b></p>"
-   },
-   {
-    "title": "Chapter 8 — Case study: HealthTrade's connected year",
-    "est": "16",
-    "html": "<p>The voice and the doors, governed through a year. Every chapter clocks in.</p><p><b>The voice fixed (Ch. 2-3).</b> The email overhaul opens the year: the audit finds the classic — invoices sending from the accountant's personal address ('it was set up that way at go-live and worked, so nobody touched it') — the sender identity moved to the firm's billing address, the domain's authentication confirmed with the host in one boundary ticket, and the deliverability difference measurable within a month (two customers who 'never got invoices' start getting them — the spam folder's tax, refunded). The queue read enters the daily glance and pays for itself in week three: a stuck-queue jam caught at 7 a.m. (a configuration hiccup after a mail-provider change) — cleared before the day's statements went out late, the invoice-that-never-sent disease caught in its incubation.</p><p><b>The map and the near-miss (Ch. 4).</b> The communication map's first draft lists eleven streams — and its recipient-hygiene pass delivers the chapter's sober moment: the payslip channel found reading addresses from a hand-maintained list predating the HR track's master (the side list three addresses stale — one belonging to a LEAVER: the payslip that would have gone to a departed employee's inbox, caught by the map's double-key rule before the next run instead of by the breach after it). The channel re-pointed to the governed master the same week; the side list deleted; the finding logged with the severity it deserved — and the MD's note enters the site book: <i>we nearly posted a payslip through a dead man's letterbox. The map earns its page.</i></p><p><b>The doors inventoried (Ch. 5-6).</b> The integration inventory's first census finds four doors: the SMS gateway (notifications and delivery alerts), the statutory e-invoicing connection (the accountant's door), a payment-confirmation feed, and one ORPHAN — a bridge built by a departed consultant during implementation, purpose unknown, still holding live credentials. The orphan's investigation (the partner consulted, the data flow read) finds it long-dead in function — decommissioned by ceremony, its credentials revoked (the dead door's live key, closed). The credential enumeration re-homes every key from its ambient places (two from a WhatsApp thread, one from a drawer notebook — each rotated on the leaked-until-proven-otherwise principle), and the register's rotation column meets its first leaver event in month seven: the checklist's credential sweep rotating the two keys the departing supervisor's role could reach — a checklist line, not a guess, exactly as designed.</p><p><b>The failures, designed and met (Ch. 7).</b> The failure modes written in quarter one are used twice: the SMS gateway's regional outage in month five runs its designed mode (critical expiry alerts re-routed to the fallback channel, routine notifications queued — no incident, a degraded Tuesday), and the statutory door delivers the year's compliance catch: the monthly issued-minus-accepted reconciliation finds a non-zero answer — a batch of rejections accumulated after a schema update (a particulars mismatch the automatic sender never announced) — triaged to zero inside the deadline window, the root cause fixed at the master (module 3's routing), and the reconciliation's monthly seat vindicated in one read: the firm that would have discovered the gap in a penalty letter discovered it in its own equation. The ops lead's year-note closes the case: <i>every message now has a sender we own, and every door has a name on it. The system talks to the world like a firm, not like a hobby.</i></p>"
+    "html": "<p><b>The integration register — the channel inventory's heaviest section.</b> Per integration, one entry:</p><p>1. <b>What and why</b> — the system, the business purpose, the data flow in both directions.<br>2. <b>The owner</b> — the person who answers \"do we still need this\" and receives its failures.<br>3. <b>The credential</b> — which dedicated user, where the secret lives, last rotated.<br>4. <b>The health check</b> — the specific read that proves it is working, and its cadence: for the e-invoicing rail, the transmitted-invoices confirmation the tax module's routine expects; for a gateway, the last successful transaction's recency.<br>5. <b>The failure mode and response</b> — what silence looks like, who is told, what the workaround is (the runbook's scenario 4 logic, per channel).</p><p>The monthly integration line (module 1's calendar) walks the register's health checks; the quarterly door count (Chapter 7) reconciles it against reality.</p><p><b>The HealthTrade case — the channels year.</b></p><p><b>The identity move (Chapter 4).</b> The ground: all system mail leaving from a personal free-mail address the old implementation era configured. The move runs as a project: the domain's mail authentication set up with the domain custodian, the Email Account record rebuilt on <i>accounts@</i> the business domain, Default Outgoing set, credential into custody, the identity test passed to three external providers — and the next monthly statement run lands in inboxes. Collections notices two replies in the first week from customers who <i>had never been receiving</i> the statements: the old identity had been decorating spam folders for months. The deliverability lesson writes itself into the register.</p><p><b>The stuck queue, closed properly (Chapter 5).</b> Module 1's month-three catch — the stuck email queue — gets its root cause on this module's procedure: Error rows naming authentication failure; the cause, a well-meant password rotation that never reached the Email Account record; the fix, the record updated, the queue drained, <b>41 queued documents</b> sent late-but-sent (the customer-facing rule), and the rotation procedure amended with its update-both-ends step. The incident log's closing line becomes the training example.</p><p><b>The reminder layer built (Chapter 6).</b> The compliance calendar's dates get their Notifications (days-before rules, recipients by role), the close owner gets the day-one draft-documents Auto Email Report, and the branch P&amp;L mails monthly to each manager. The first annual do-you-act-on-this review retires <b>5 of 17</b> automated messages — the lean channel principle applied.</p><p><b>The doors counted (Chapters 7-8).</b> The register is built: the NGE Portal e-invoicing integration (dedicated integration user, credential into custody, the transmitted-invoices health check joining the monthly line) and the SMS gateway (same treatment). The first quarterly door count finds one undocumented API key on a former consultant's user — revoked the same day, the user long disabled but the key never was; the leaver checklist gains its \"and API keys\" line. The MD's note: <i>the system's mouths and doors now have names on them.</i></p>"
    },
    {
     "title": "Chapter 9 — Common mistakes & the sixth law",
-    "est": "13",
-    "html": "<p>The connected layer's scar tissue. Symptom → disease → fix.</p><p><b>Pattern 1 — the personal-address sender.</b> Symptom: invoices from a staff member's private mailbox; the evidence trail in an account the firm cannot search; the billing voice coupled to one person's employment. Disease: identity never governed (Ch. 2). Fix: firm-domain sender identities, few and mapped; authentication confirmed; the voice owned before a message is judged.</p><p><b>Pattern 2 — the unread queue.</b> Symptom: the invoice that stopped sending in March, discovered by the debtors' calls in June; failures accumulating unread; the outbound ledger treated as plumbing. Disease: the queue never made a register (Ch. 3). Fix: the daily glance's email column, failures triaged by kind to zero, bounces routed to the contact's owner, the sent-record retained as evidence.</p><p><b>Pattern 3 — the stale-recipient breach.</b> Symptom: the payslip to a departed employee's inbox; the statement to the wrong customer; the tightest tier defeated by a typo. Disease: recipient data ungoverned, side lists live (Ch. 4). Fix: sensitive streams aimed from the governed master only, addresses verified on their events, the bounce loop closing corrections fast.</p><p><b>Pattern 4 — the credential in the group chat.</b> Symptom: keys pasted 'temporarily' years ago; readership unknowable; the leaver's chat history a credential store; rotation never. Disease: ambient custody (Ch. 6). Fix: enumeration, governed storage, one key per door, narrow scopes, rotation by events and calendar — leaked-until-proven-otherwise for every ambient survivor.</p><p><b>Pattern 5 — the orphaned integration.</b> Symptom: the door a departed consultant built; purpose unknown, credentials live, workings undocumented; 'what is this connection?' asked for the first time in an incident. Disease: acceptance without custody (Ch. 5). Fix: the inventory — no door without a row, no row without an owner — the build boundary's acceptance checklist including the door's own runbook, and the orphans decommissioned by ceremony.</p><p><b>Pattern 6 — the unreconciled compliance door.</b> Symptom: rejections accumulating in a queue nobody owns; 'the system sends automatically' mistaken for 'we are compliant'; the gap discovered in a penalty letter. Disease: automation trusted without reconciliation (Ch. 7). Fix: the rejection queue as a worked list with a deadline-aware owner, and the monthly equation — issued minus accepted equals rejections plus never-submitted — read to zero.</p><p><b>The sixth law.</b> The custodian, the fences, the masters, the survival, the evolution — and now the voice and the doors: <b>every message and every integration has an owner — the firm's voice sent from identities it controls through a queue read as a ledger, every stream mapped and aimed from governed masters, every door on an inventory with custodied keys and a designed failure, and every money- or statute-bearing connection reconciled monthly to zero.</b> The system that speaks and connects this way faces the world like a firm — and the certified admin is why. Module 7 turns inward: monitoring, performance, and the health reads that let the admin know before anyone feels.</p>"
+    "est": "11",
+    "html": "<p>The channel layer's recurring failures, then the review list.</p><p><b>Pattern 1 — the personal-mailbox identity.</b> Symptom: system mail from a free-mail or personal address; statements in spam folders; the sent history leaving with a person. Cause: the identity rule unknown at setup (Chapter 4). Fix: the domain identity project — authentication with the domain custodian, the Email Account rebuilt, custody, the identity test — and the deliverability payoff measured at the next statement run.</p><p><b>Pattern 2 — the silent queue.</b> Symptom: documents \"sent\" for weeks that never arrived; collections weakening; the discovery made by an annoyed customer. Cause: the queue never read (Chapter 5). Fix: the daily thirty-second glance, the stuck-queue procedure, and the volume read that confirms the big runs fired.</p><p><b>Pattern 3 — notification spam.</b> Symptom: automated mail everyone ignores; the important alert dead in the same folder; a looping rule flooding the queue. Cause: unscoped conditions and unreviewed rules (Chapter 6). Fix: the condition discipline at creation, recipients by role, the register with its annual do-you-act-on-this review, and the queue's volume read as the loop alarm.</p><p><b>Pattern 4 — the hard-typed format.</b> Symptom: the invoice showing a bank account the business closed two years ago; identity details that survived three reprints of reality. Cause: business data typed into print formats instead of printing from records (Chapters 2-3). Fix: the rule — fields from the document, identity from the letterhead, nothing hard-typed — enforced by the specimen review, and the offending formats corrected through module 5's lane.</p><p><b>Pattern 5 — the credential in someone's head.</b> Symptom: the integration only one person can fix; the rotation that breaks the channel because only one end was updated; the leaver who takes the mail password with them. Cause: custody never established (Chapters 4, 7). Fix: the credential store with its access list, dedicated integration users at least privilege, rotation with the update-both-ends step, and the leaver checklist's credential lines.</p><p><b>Pattern 6 — the unregistered door.</b> Symptom: an API key nobody can explain; an integration discovered during an incident; the dead connection with the live credential. Cause: doors opened without register entries (Chapters 7-8). Fix: the register as the connection procedure's output, the quarterly door count reconciling register to reality, and the retirement checklist closing what is no longer needed.</p><p><b>The review list.</b> Before the quiz, confirm you can: state the channel rule and keep the inventory; configure Letter Head and Print Settings and run the specimen discipline; govern Print Formats by the three levels and the assignment rules; set up the domain sending identity on the Email Account record and run the identity test; read the Email Queue's statuses and run the stuck-queue procedure; build scoped Notifications and Auto Email Reports with recipients by role and the annual review; apply the four credential custody rules with dedicated integration users; and keep the integration register with its health checks and the quarterly door count.</p><p><b>The sixth law: every channel has an owner, an identity the business controls, a credential under custody, and a health read on the calendar — silence is a finding, not a comfort.</b> Module 7 covers monitoring and the health reads.</p>"
    }
   ],
   "questions": [
    {
-    "q": "The unowned channel:",
+    "q": "The channel rule is:",
     "opts": [
-     "Fails silently, leaks quietly, and embarrasses publicly — every disease in the module is an ownership absence",
-     "Works fine",
-     "Is cheaper",
-     "Is rare"
+     "Every channel has an owner, a controlled identity, credentials under custody, and a health read",
+     "Channels run themselves",
+     "Email is IT's job",
+     "Print is cosmetic"
     ],
     "ans": 0,
-    "why": "The module's opening indictment.",
+    "why": "One rule applied three ways.",
     "src": "Ch1"
    },
    {
-    "q": "A channel's failure mode chosen in advance is:",
+    "q": "Channel failures differ from data errors because:",
     "opts": [
-     "Pessimism",
-     "A degraded mode — the one discovered live is an incident",
-     "Wasted effort",
+     "They are smaller",
+     "They are silence or embarrassment outside the system — nothing in a list view announces them",
+     "They self-heal",
+     "They are the host's"
+    ],
+    "ans": 1,
+    "why": "The machinery makes them loud and fast.",
+    "src": "Ch1"
+   },
+   {
+    "q": "The channel inventory lists:",
+    "opts": [
+     "Only email",
+     "Only integrations",
+     "Print, email out, email in, and integrations — each with owner, identity, credential, health check, failure mode",
+     "Users"
+    ],
+    "ans": 2,
+    "why": "The module's register.",
+    "src": "Ch1"
+   },
+   {
+    "q": "Letterhead content is:",
+    "opts": [
+     "A design whim",
+     "Optional",
+     "The printer's choice",
+     "A policy decision — the legal identity confirmed with the accountant, living in one place"
+    ],
+    "ans": 3,
+    "why": "So no format forgets it.",
+    "src": "Ch2"
+   },
+   {
+    "q": "A letterhead change is:",
+    "opts": [
+     "A governed event through the change lane — it alters every document printed from that day",
+     "A quick edit",
+     "Automatic",
      "The host's job"
     ],
-    "ans": 1,
-    "why": "Module 4's philosophy at every door.",
-    "src": "Ch1"
-   },
-   {
-    "q": "Invoices from a staff member's personal address mean:",
-    "opts": [
-     "Convenience",
-     "Faster sending",
-     "The billing voice coupled to one employment, the evidence trail in a mailbox the firm cannot search",
-     "Nothing"
-    ],
-    "ans": 2,
-    "why": "The identity fixed as the first act.",
+    "ans": 0,
+    "why": "Test to PDF; log the change date.",
     "src": "Ch2"
    },
    {
-    "q": "The domain's authentication records are:",
+    "q": "The specimen discipline is:",
     "opts": [
-     "The admin's to administer",
-     "Automatic",
-     "Optional",
-     "Confirmed with the domain custodian and host — the unauthenticated domain's invoices land in spam"
-    ],
-    "ans": 3,
-    "why": "A collections problem wearing a technical costume.",
-    "src": "Ch2"
-   },
-   {
-    "q": "The shared mailbox left unrotated after a leaver is:",
-    "opts": [
-     "The front door closed and the side window open — rotation wired to the same events",
-     "Fine if the user is disabled",
-     "Standard",
-     "The host's issue"
-    ],
-    "ans": 0,
-    "why": "The custody register makes side windows enumerable.",
-    "src": "Ch2"
-   },
-   {
-    "q": "The email queue is:",
-    "opts": [
-     "Plumbing",
-     "The outbound ledger — every message a row, serving evidence and health at once",
-     "Temporary",
-     "Hidden"
-    ],
-    "ans": 1,
-    "why": "'We never received the invoice' answered by pointing.",
-    "src": "Ch3"
-   },
-   {
-    "q": "A bounce is:",
-    "opts": [
-     "An email problem",
-     "Ignorable",
-     "A master-data finding wearing an email costume — routed to the contact's owner for correction",
-     "The recipient's fault"
-    ],
-    "ans": 2,
-    "why": "The admin routes; the function corrects.",
-    "src": "Ch3"
-   },
-   {
-    "q": "The queue accumulating ancient failures unread is:",
-    "opts": [
-     "Normal",
-     "Evidence",
-     "Storage",
-     "The unread-queue disease — triaged to zero on its rhythm, like every worked list"
-    ],
-    "ans": 3,
-    "why": "The invoice-that-never-sent, incubating.",
-    "src": "Ch3"
-   },
-   {
-    "q": "Personal forwarding of documents:",
-    "opts": [
-     "Exits the evidence layer entirely — read as a workaround signal; the governed send made easier",
-     "Is initiative",
-     "Is faster",
-     "Is fine"
-    ],
-    "ans": 0,
-    "why": "The adoption law at the outbound layer.",
-    "src": "Ch3"
-   },
-   {
-    "q": "The communication map answers:",
-    "opts": [
-     "Storage questions",
-     "What the system says to the world, and on whose authority — in one look",
-     "Nothing new",
-     "Budgets"
-    ],
-    "ans": 1,
-    "why": "The page every new admin and auditor asks for.",
-    "src": "Ch4"
-   },
-   {
-    "q": "The wrong-recipient payslip is:",
-    "opts": [
-     "A minor slip",
-     "The employee's fault",
-     "The tightest tier breached by a typo — sensitive streams aimed from the governed master ONLY",
-     "Rare enough to ignore"
-    ],
-    "ans": 2,
-    "why": "The side list is where stale addresses live.",
-    "src": "Ch4"
-   },
-   {
-    "q": "The admin's conduct at the mail bag is:",
-    "opts": [
-     "Full access",
-     "Unregulated",
-     "Curiosity",
-     "The postman's ethics — the queue visible, the payslip attachments never opened"
-    ],
-    "ans": 3,
-    "why": "Custodian-not-owner, in transit.",
-    "src": "Ch4"
-   },
-   {
-    "q": "The stream that hasn't demonstrably fired in a year is:",
-    "opts": [
-     "Dead weight or a silent failure — the walk decides which",
-     "Fine",
-     "Efficient",
-     "Archived"
-    ],
-    "ans": 0,
-    "why": "Every stream test-fired or evidenced within the year.",
-    "src": "Ch4"
-   },
-   {
-    "q": "An integration is governed like:",
-    "opts": [
-     "Software",
-     "A standing relationship — purpose, counterparty, credentials, data flow, failure mode: a supplier with an API",
-     "A file",
-     "A report"
-    ],
-    "ans": 1,
-    "why": "On a register, with an owner, reviewed on a rhythm.",
-    "src": "Ch5"
-   },
-   {
-    "q": "The integration exporting pay-adjacent data is:",
-    "opts": [
-     "Ordinary",
-     "Efficient",
-     "A tightest-tier door — audited as one, its flow read against the tier designs",
-     "The provider's concern"
-    ],
-    "ans": 2,
-    "why": "The data flow's sensitivity column.",
-    "src": "Ch5"
-   },
-   {
-    "q": "The admin's role in integration builds is:",
-    "opts": [
-     "The engineering",
-     "Approval only",
-     "Nothing",
-     "Requirements and acceptance — purpose, owner, flow, failure mode specified; proven on test; the runbook received"
-    ],
-    "ans": 3,
-    "why": "Built through the partner; operated by the admin.",
-    "src": "Ch5"
-   },
-   {
-    "q": "The inventory's rule is:",
-    "opts": [
-     "No door without a row; no row without an owner; no owner without a failure answer",
-     "Doors as needed",
-     "Annual counts",
-     "Trust the partner"
-    ],
-    "ans": 0,
-    "why": "'What is this connection?' never asked first in an incident.",
-    "src": "Ch5"
-   },
-   {
-    "q": "An API key is:",
-    "opts": [
-     "A password",
-     "The firm's signature in a machine's hands — the key can speak, file, or read AS the firm",
-     "Technical trivia",
-     "The provider's property"
-    ],
-    "ans": 1,
-    "why": "The custody bar set by what it is.",
-    "src": "Ch6"
-   },
-   {
-    "q": "The credential pasted in a group chat is:",
-    "opts": [
-     "Stored",
-     "Convenient",
-     "In a store with no access control, no rotation, no leaver process — treated as leaked because readership is unknowable",
-     "Retrievable"
-    ],
-    "ans": 2,
-    "why": "Rotated on principle at enumeration.",
-    "src": "Ch6"
-   },
-   {
-    "q": "One credential per connection because:",
-    "opts": [
-     "Neatness",
-     "Provider rules",
-     "Cost",
-     "The shared key cannot be rotated for one door without breaking others — blast radius at the credential layer"
-    ],
-    "ans": 3,
-    "why": "Scoped narrowly, too: least privilege for machines.",
-    "src": "Ch6"
-   },
-   {
-    "q": "The decommissioned integration's credentials are:",
-    "opts": [
-     "Revoked in the same ceremony — the dead door with a live key is an entrance nobody watches",
-     "Kept as backup",
-     "Archived",
-     "Forgotten"
-    ],
-    "ans": 0,
-    "why": "Retired with their doors.",
-    "src": "Ch6"
-   },
-   {
-    "q": "The webhook that believes whatever arrives is:",
-    "opts": [
-     "Efficient",
-     "An open gate for forged events — caller verification confirmed at acceptance",
-     "Standard",
-     "Fast"
-    ],
-    "ans": 1,
-    "why": "The listening door's hygiene is part of the door.",
-    "src": "Ch6"
-   },
-   {
-    "q": "The payment integration:",
-    "opts": [
-     "Replaces reconciliation",
-     "Is the record",
-     "Accelerates the confirmation — the reconciliation still runs; machines announce, books verify",
-     "Ends manual checks"
-    ],
-    "ans": 2,
-    "why": "The money tracks' disciplines, kept.",
-    "src": "Ch7"
-   },
-   {
-    "q": "The statutory endpoint's outage is:",
-    "opts": [
-     "A technical event",
-     "Waitable",
-     "The provider's problem",
-     "A calendar event too — the submission that cannot land does not suspend the obligation; escalated while time remains"
-    ],
-    "ans": 3,
-    "why": "The retry window against the statutory clock.",
-    "src": "Ch7"
-   },
-   {
-    "q": "'The system sends automatically' while rejections accumulate is:",
-    "opts": [
-     "The unremitted-month disease with better technology — the rejection queue is a worked list with a deadline-aware owner",
-     "Compliance",
-     "Efficiency",
-     "Acceptable"
-    ],
-    "ans": 0,
-    "why": "Automated into the oldest disease.",
-    "src": "Ch7"
-   },
-   {
-    "q": "The compliance door's monthly equation is:",
-    "opts": [
-     "Volume sent",
-     "Issued minus accepted equals rejections plus never-submitted — its non-zero answer is a finding with a deadline",
-     "Cost per message",
-     "Uptime"
-    ],
-    "ans": 1,
-    "why": "The reconciliation that catches the silent gap.",
-    "src": "Ch7"
-   },
-   {
-    "q": "The annual integration review asks:",
-    "opts": [
-     "For renewal fees",
-     "Nothing",
-     "Each door to justify its hinges — purpose true, volume read, rotation current, failure mode correct, or retired",
-     "For upgrades"
-    ],
-    "ans": 2,
-    "why": "The museum discipline at the connection layer.",
-    "src": "Ch7"
-   },
-   {
-    "q": "HealthTrade's deliverability fix showed as:",
-    "opts": [
-     "Nothing visible",
-     "Lower costs",
-     "Faster emails",
-     "Two customers who 'never got invoices' starting to get them — the spam folder's tax, refunded"
-    ],
-    "ans": 3,
-    "why": "The unauthenticated era's measurable cost.",
-    "src": "Ch8"
-   },
-   {
-    "q": "The payslip channel was found reading from:",
-    "opts": [
-     "A hand-maintained side list with three stale addresses — one a LEAVER's; caught before the run, not after the breach",
-     "The governed master",
-     "The HR system",
-     "The queue"
-    ],
-    "ans": 0,
-    "why": "'We nearly posted a payslip through a dead man's letterbox.'",
-    "src": "Ch8"
-   },
-   {
-    "q": "The orphan integration was:",
-    "opts": [
-     "Left running",
-     "Investigated, found dead in function, decommissioned by ceremony, its live credentials revoked",
-     "Renamed",
-     "Sold"
-    ],
-    "ans": 1,
-    "why": "The dead door's live key, closed.",
-    "src": "Ch8"
-   },
-   {
-    "q": "The leaver's credential sweep was:",
-    "opts": [
-     "A guess",
-     "Skipped",
-     "A checklist line — the register's rotation column listing the two keys the role could reach",
+     "A style guide",
+     "One signed-off PDF per critical document in the register — 'does it still look like this' as the test",
+     "A printout on the wall",
      "Annual"
     ],
-    "ans": 2,
-    "why": "Exactly as designed.",
-    "src": "Ch8"
+    "ans": 1,
+    "why": "Faster and stricter than 'does it look right'.",
+    "src": "Ch2"
    },
    {
-    "q": "The statutory reconciliation caught:",
+    "q": "The screen preview versus the PDF:",
     "opts": [
-     "Nothing",
-     "An outage",
-     "A fraud",
-     "A rejection batch after a schema update — triaged to zero inside the deadline, the root fixed at the master"
+     "Identical always",
+     "The preview matters more",
+     "The PDF is what leaves the building — it is the product to test",
+     "Neither matters"
+    ],
+    "ans": 2,
+    "why": "Print to PDF and read as the customer.",
+    "src": "Ch2"
+   },
+   {
+    "q": "The Print Format Builder is:",
+    "opts": [
+     "Code only",
+     "Deprecated",
+     "The host's tool",
+     "The codeless workhorse — fields, columns, and sections arranged for business-facing documents"
     ],
     "ans": 3,
-    "why": "Discovered in the firm's own equation, not a penalty letter.",
-    "src": "Ch8"
+    "why": "Custom HTML formats follow the script rules.",
+    "src": "Ch3"
    },
    {
-    "q": "The SMS outage ran as:",
+    "q": "Draft and redundant print formats are:",
     "opts": [
-     "The designed degraded mode — critical alerts on the fallback channel, routine ones queued: a degraded Tuesday",
-     "An incident",
-     "A crisis",
-     "Downtime"
+     "Cleaned up or clearly named — a menu of five plausible invoices is an error factory",
+     "Left in the menu",
+     "The default",
+     "Hidden data"
     ],
     "ans": 0,
-    "why": "Designed failure, met calmly.",
-    "src": "Ch8"
+    "why": "The default per critical doctype is a register decision.",
+    "src": "Ch3"
    },
    {
-    "q": "Sensitive streams are aimed from:",
+    "q": "Bank details on the invoice print from:",
     "opts": [
-     "Any list",
-     "The governed master only — never a manually-maintained side list",
-     "Memory",
-     "The queue"
+     "Text typed into the format",
+     "The system's master records — hard-typed details fossilise and outlive reality",
+     "The letterhead image",
+     "Memory"
     ],
     "ans": 1,
-    "why": "The one-version law aiming the most dangerous mail.",
+    "why": "The closed-account payment story.",
+    "src": "Ch3"
+   },
+   {
+    "q": "The site's standing sender is set by:",
+    "opts": [
+     "Any user",
+     "The host",
+     "The Email Account record with Enable Outgoing and Default Outgoing",
+     "System Settings"
+    ],
+    "ans": 2,
+    "why": "All transaction mail leaves under it unless overridden.",
     "src": "Ch4"
    },
    {
-    "q": "This module's law is:",
+    "q": "The sending identity is:",
     "opts": [
-     "Channels manage themselves",
-     "Email is simple",
-     "Every message and every integration has an owner — the voice from controlled identities, every door inventoried with custodied keys and designed failures, money and statute reconciled monthly to zero",
-     "Providers own the risk"
+     "Any working mailbox",
+     "The sysadmin's address",
+     "A personal Gmail",
+     "An address at the business's own domain — deliverability, continuity, and identity each suffice as the reason"
+    ],
+    "ans": 3,
+    "why": "Free-mail senders decorate spam folders.",
+    "src": "Ch4"
+   },
+   {
+    "q": "Mail credential rotation must:",
+    "opts": [
+     "Update the Email Account record too — the rotated password that never reached the site is the stuck queue waiting",
+     "Happen never",
+     "Only change the provider side",
+     "Be verbal"
+    ],
+    "ans": 0,
+    "why": "Update both ends.",
+    "src": "Ch4"
+   },
+   {
+    "q": "The identity test is:",
+    "opts": [
+     "A password check",
+     "One email from the site to an external major-provider mailbox, arriving in the inbox with the sender correct",
+     "A DNS printout",
+     "A support ticket"
+    ],
+    "ans": 1,
+    "why": "Thirty seconds; configured versus working.",
+    "src": "Ch4"
+   },
+   {
+    "q": "An inbound email account (Enable Incoming) needs:",
+    "opts": [
+     "Nothing extra",
+     "A second domain",
+     "A named owner for the receiving doctype's queue — senders believe they have been heard",
+     "System Manager"
     ],
     "ans": 2,
-    "why": "The system that faces the world like a firm.",
+    "why": "An unread inbound channel is worse than none.",
+    "src": "Ch4"
+   },
+   {
+    "q": "The Email Queue's statuses are:",
+    "opts": [
+     "New and old",
+     "In and out",
+     "Red and green",
+     "Not Sent, Sending, Sent, and Error — with the error text as the diagnosis"
+    ],
+    "ans": 3,
+    "why": "Authentication, connection, or rejection families.",
+    "src": "Ch5"
+   },
+   {
+    "q": "The daily queue glance matters because:",
+    "opts": [
+     "It carries business documents — a stuck queue is invoices and statements silently not arriving",
+     "The queue is pretty",
+     "The host bills it",
+     "Errors are rare"
+    ],
+    "ans": 0,
+    "why": "Nothing else in the system will mention it.",
+    "src": "Ch5"
+   },
+   {
+    "q": "Aged queued customer documents are:",
+    "opts": [
+     "Cancelled",
+     "Sent late — the invoice must arrive; late is almost always right for customer-facing mail",
+     "Deleted",
+     "Reprinted"
+    ],
+    "ans": 1,
+    "why": "The deliberate decision in the drain step.",
+    "src": "Ch5"
+   },
+   {
+    "q": "The statement run's monthly queue spike:",
+    "opts": [
+     "Is a problem",
+     "Should be smoothed",
+     "Confirms the run fired — its absence is the finding",
+     "Is spam"
+    ],
+    "ans": 2,
+    "why": "The volume read tells stories.",
+    "src": "Ch5"
+   },
+   {
+    "q": "A Notification's condition exists because:",
+    "opts": [
+     "Forms need filters",
+     "Speed",
+     "The host requires it",
+     "An unscoped notification is spam at machine scale — and spam kills the channel's credibility"
+    ],
+    "ans": 3,
+    "why": "The chapter's core caution.",
+    "src": "Ch6"
+   },
+   {
+    "q": "Notification recipients are preferably:",
+    "opts": [
+     "Roles or document fields — wired to a person it breaks at their leaving",
+     "Named people",
+     "Everyone",
+     "The sysadmin"
+    ],
+    "ans": 0,
+    "why": "Access-follows-the-job, applied to mail.",
+    "src": "Ch6"
+   },
+   {
+    "q": "An Auto Email Report is:",
+    "opts": [
+     "A newsletter",
+     "A saved report emailed on a schedule with fixed filters — the push layer over the report machinery",
+     "A backup",
+     "A notification"
+    ],
+    "ans": 1,
+    "why": "The branch P&L to each manager, monthly.",
+    "src": "Ch6"
+   },
+   {
+    "q": "The report's recipient list is:",
+    "opts": [
+     "Cosmetic",
+     "Unlimited",
+     "A permission decision — the report email carries business data into mailboxes",
+     "The host's call"
+    ],
+    "ans": 2,
+    "why": "Noise plus a data-exposure surface.",
+    "src": "Ch6"
+   },
+   {
+    "q": "The annual automated-message review asks:",
+    "opts": [
+     "Is it pretty?",
+     "Who built it?",
+     "Is it fast?",
+     "Do you act on this? — keep what moves work, retire the rest"
+    ],
+    "ans": 3,
+    "why": "A lean channel is one people read.",
+    "src": "Ch6"
+   },
+   {
+    "q": "Integrations authenticate as:",
+    "opts": [
+     "A dedicated integration user with exactly the roles the function needs — visible in every access review",
+     "A person's login",
+     "System Manager",
+     "The MD"
+    ],
+    "ans": 0,
+    "why": "Least privilege applied to machines.",
+    "src": "Ch7"
+   },
+   {
+    "q": "Credentials live in:",
+    "opts": [
+     "Chat history",
+     "The business's credential store, access-listed to the sysadmin and backstop",
+     "A spreadsheet",
+     "One person's head"
+    ],
+    "ans": 1,
+    "why": "Not custody's opposite.",
+    "src": "Ch7"
+   },
+   {
+    "q": "Retiring an integration includes:",
+    "opts": [
+     "Nothing",
+     "Just unplugging",
+     "Credential revoked, user disabled, register entry closed — a dead integration's live credential is a door with no doorman",
+     "An email"
+    ],
+    "ans": 2,
+    "why": "The retirement checklist.",
+    "src": "Ch7"
+   },
+   {
+    "q": "The data-flow question is asked:",
+    "opts": [
+     "At the audit",
+     "After incidents",
+     "Never",
+     "At connection time, when the answer is cheap — what flows out, in, and who approved it"
+    ],
+    "ans": 3,
+    "why": "It goes in the register entry.",
+    "src": "Ch7"
+   },
+   {
+    "q": "The e-invoicing rail's register entry includes:",
+    "opts": [
+     "The NGE Portal integration's owner, dedicated user, credential custody, transmitted-invoices health check, and failure response",
+     "Only the name",
+     "A password",
+     "The tax rate"
+    ],
+    "ans": 0,
+    "why": "The standing example carries every property.",
+    "src": "Ch8"
+   },
+   {
+    "q": "HealthTrade's identity move produced:",
+    "opts": [
+     "Nothing visible",
+     "Statement replies from customers who had never been receiving them — months of spam-folder decoration exposed",
+     "Fewer emails",
+     "A new logo"
+    ],
+    "ans": 1,
+    "why": "The deliverability payoff, measured.",
+    "src": "Ch8"
+   },
+   {
+    "q": "The stuck queue's root cause was:",
+    "opts": [
+     "The host",
+     "A full disk",
+     "A password rotation that never reached the Email Account record — 41 documents sent late-but-sent",
+     "Spam filters"
+    ],
+    "ans": 2,
+    "why": "The procedure gained its update-both-ends step.",
+    "src": "Ch8"
+   },
+   {
+    "q": "The quarterly door count found:",
+    "opts": [
+     "Nothing",
+     "A billing error",
+     "A new integration",
+     "An undocumented API key on a long-disabled user — revoked same day; the leaver checklist gained its API line"
+    ],
+    "ans": 3,
+    "why": "Register reconciled to reality.",
+    "src": "Ch8"
+   },
+   {
+    "q": "The hard-typed format pattern is fixed by:",
+    "opts": [
+     "Fields from the document, identity from the letterhead, nothing hard-typed — enforced by the specimen review",
+     "Retyping carefully",
+     "More formats",
+     "Smaller fonts"
+    ],
+    "ans": 0,
+    "why": "Pattern 4.",
+    "src": "Ch9"
+   },
+   {
+    "q": "Notification spam is fixed by:",
+    "opts": [
+     "More notifications",
+     "Scoped conditions, role recipients, the register, and the annual do-you-act-on-this review",
+     "Bigger subjects",
+     "Turning email off"
+    ],
+    "ans": 1,
+    "why": "Plus the queue's volume read as the loop alarm.",
+    "src": "Ch9"
+   },
+   {
+    "q": "Module 6's law is:",
+    "opts": [
+     "Channels are free",
+     "Email is optional",
+     "Every channel has an owner, a controlled identity, a credential under custody, and a health read — silence is a finding",
+     "Print is decoration"
+    ],
+    "ans": 2,
+    "why": "The sixth law.",
     "src": "Ch9"
    }
   ]
