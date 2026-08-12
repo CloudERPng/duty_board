@@ -474,474 +474,474 @@
  },
  "items_prices": {
   "title": "Selling 2 — Items & Price Lists",
-  "desc": "Sellable items, units of measure, selling price lists and Item Prices — where every rate on every quotation actually comes from.",
+  "desc": "Items and price lists in ZhiftERP selling: the commercial field walk on the one register record — codes, names as customers read them, item groups, Is Sales Item, and the sales defaults; units of measure with verified conversion factors, the Sales UOM, and the unit-column discipline; the class-based price list architecture with the resolution chain and what lists are not; Item Price maintenance through the governed update with the changes and completeness reads; Pricing Rules — scope, condition, effect, priority, and the register — for quantity breaks and promotions; and item tax classification by the accountant's ruling with the quarterly read.",
   "lessons": [
    {
-    "title": "Chapter 1 — The Item master for selling, field by field",
-    "est": "16",
-    "html": "<p>If the customer master answers <i>who</i>, the item master answers <i>what</i> — and just as in Selling 1, the quality of the master decides the quality of every document that touches it. This chapter walks the item record through a seller's eyes: which fields make an item sellable, findable, priceable, and reportable.</p><p><b>The gate: Is Sales Item.</b> One checkbox decides whether an item can appear on selling documents at all. Ticked, the item is offered on quotations, orders, delivery notes, invoices; unticked, it is invisible to the selling side no matter how much stock exists. This is deliberate: purchase-only components, internal consumables, packaging materials, and fixed assets live in the same item table but must never be quotable. The support reflex this creates — and it is the FIRST check, before price, before customer, before warehouse — is: <i>\"an item refuses to appear on a quotation\" → open the item → is Is Sales Item ticked?</i> Thirty seconds; ticket closed.</p><p><b>Item Code and Item Name.</b> The code is the permanent identity — short, unique, never recycled, never changed once transactions exist (a changed code orphans history). The name is the human label that prints on documents. Discipline for codes in Nigerian retail practice: a scheme the warehouse can read (PARA-500-TAB tells a picker more than ITM-0042), agreed once, enforced always. Duplicate items — the same product created twice under slightly different names — are the item-side twin of Selling 1's duplicate customers, and Chapter 9 treats the cure; here, build the habit: <b>search before you create</b>.</p><p><b>Item Group.</b> The reporting dimension. It serves for items <i>exactly</i> what Customer Group serves for customers: the segment/rollup axis every sales report slices by — Beverages, Antibiotics, Hardware, Services. It is a tree, designed (Chapter 3), not accreted. Note the symmetry consciously, because exam questions and client conversations both lean on it: customer group answers <i>what kind of buyer</i>; item group answers <i>what kind of product</i>; territory answers <i>where</i> — the three axes of every serious sales analysis.</p><p><b>Description.</b> What prints on documents beneath the name. Write it for the customer's eyes — spec, pack size, grade — because this text IS your quotation line. A blank description on a ₦5m line item reads as carelessness to the buyer's procurement office.</p><p><b>Maintain Stock.</b> Ticked for physical goods (the system tracks quantity); unticked for services and for bundle parents (Selling 8's Product Bundles). A consulting-fee item with Maintain Stock ticked will one day block an invoice for \"insufficient stock\" of something that never existed — a classic mis-setup found in the wild.</p><p><b>Flags that matter later.</b> <b>Has Serial No</b> and <b>Has Batch No</b> switch on per-unit and per-lot identity — their operational weight lands at delivery time (Selling 5: exact serials on the DN, recall-by-batch), but they are <i>set here</i>, at item creation, and retro-fitting them after transactions exist is painful. Pharma and electronics implementations decide these flags on day one.</p><p><b>Standard Selling Rate.</b> A convenience field used when no Item Price exists — a fallback, not the pricing system. Real rates live in Item Price records against price lists (Chapters 4-5); treat this field as scaffolding for brand-new setups, not as where pricing happens.</p>"
+    "title": "Chapter 1 — The item's selling side: scope and structure",
+    "est": "11",
+    "html": "<p>This module covers items and price lists from the selling side in ZhiftERP. On completing this module you will be able to: complete the item's commercial field set; configure units of measure and sales units with their conversions; design the price list architecture; maintain Item Price records by governed update; build Pricing Rules for quantity breaks and structured discounts; verify the item-side tax fields; and run the pricing reads.</p><p><b>One record, several owners.</b> The Item is one record read by several functions, and each function owns its section: the Inventory track owns the stock flags, defaults, and identity settings (Inventory modules 1 and 3); the Accounts track owns the account derivations and tax correctness; this module owns the commercial section — how the item names, sells, converts, and prices. The one-record principle means the selling side never creates a second record for a product that exists; it completes the commercial section of the record the register already holds, through the item creation gate the Inventory track defined, so one product always has one history across stock and sales.</p><p><b>What selling reads from the Item.</b></p><p>1. <b>The identity fields</b> — code, name, description, image: what prints on quotations, orders, and invoices.<br>2. <b>The item group</b> — the classification driving sales reporting, tax and account derivations, and pricing rule scopes.<br>3. <b>The units</b> — the stock unit and the sales units with conversion factors (Chapter 3): what quantity means on a document.<br>4. <b>The prices</b> — through the price lists and Item Price records (Chapters 4-5), and the Pricing Rules layered above them (Chapter 6).<br>5. <b>The tax classification</b> — the item-side field the tax machinery reads (Chapter 7; module 6 covers the machinery).</p><p><b>Custody.</b> The sales function maintains the commercial section; price changes move only by the governed update procedure (Chapter 5); pricing rules are register entries with owners and reasons (Chapter 6); and the module's standing rule follows the programme's pattern: <b>a price is a decision with a record, never a figure typed at document time.</b></p><p><b>Module contents.</b> Chapter 2: the commercial field walk. Chapter 3: units of measure and sales units. Chapter 4: the price list architecture. Chapter 5: Item Price maintenance. Chapter 6: Pricing Rules. Chapter 7: item tax fields. Chapter 8: worked example. Chapter 9: review and the module rule.</p>"
    },
    {
-    "title": "Chapter 2 — Units of Measure: the carton walkthrough",
-    "est": "15",
-    "html": "<p>Nigerian trade sells in cartons, packs, dozens, bundles, jerrycans — and counts stock in pieces. The UOM machinery is how one item lives honestly in both worlds, and getting it wrong double-counts or twelfth-counts stock with real money attached. This chapter makes the arithmetic reflexive.</p><p><b>Default Unit of Measure — the counting unit.</b> The item's Default UOM is the unit stock is <i>kept and counted</i> in — the stock-keeping unit. If the warehouse counts pieces, Default UOM is Unit (Nos), full stop. Every stock report, every valuation, every bin quantity speaks this unit. It is not the carton size, not the price-list unit, not the selling unit — it is the physical count language of the warehouse, chosen once and never casually changed (a changed default UOM re-denominates history).</p><p><b>Sales UOM — the selling unit.</b> When you <i>sell</i> in a different unit than you count, set the Sales UOM. Stock in Units, sell in Cartons: Sales UOM = Carton. Selling documents then default to cartons for this item, which is how the trade actually talks.</p><p><b>The conversion factor — where the arithmetic lives.</b> In the item's UOM table, add the row: Carton, conversion factor <b>12</b> (one carton = twelve stock units). Now the system does the arithmetic everywhere, forever: a quotation for 5 Cartons prices 5 × the carton rate, and its delivery deducts <b>60 Units</b> from stock. One item record, two honest languages.</p><p><b>The wrong answers, and why they fail.</b> (1) <i>Two item records</i> — \"Paracetamol (Unit)\" and \"Paracetamol (Carton)\" — splits one physical stock into two ledgers that instantly disagree: sell a carton and the unit item's stock doesn't move; every stocktake becomes a reconciliation between two records of the same shelf. (2) <i>Manual arithmetic on rows</i> — \"just type 60 units when they order 5 cartons\" — survives until the first tired Friday, when 6 cartons ships as 6 units and a customer receives a twelfth of their order. The conversion factor exists so no human does trade arithmetic under deadline.</p><p><b>Multiple UOMs.</b> The table holds as many as trade needs: Unit (factor 1, the default), Pack of 4 (factor 4), Carton (factor 12), Pallet (factor 288). Documents can transact any of them; stock always resolves to the default UOM underneath.</p><p><b>Pricing meets UOM — a preview with teeth.</b> Item Prices (Chapter 5) are stated against a UOM. Price the Carton at ₦10,200 for carton-trade lists; the unit-retail list prices the Unit at ₦1,000. Keep list, UOM, and rate coherent — the classic field bug is a carton rate sitting on a unit row (an order of \"5\" priced as 5 cartons but understood by the warehouse as 5 units), and Chapter 9 shows how that ticket presents. The prevention is discipline you now have: <i>every rate knows its unit</i>.</p>"
-   },
-   {
-    "title": "Chapter 3 — Item Groups: designing the product tree",
+    "title": "Chapter 2 — The commercial field walk",
     "est": "12",
-    "html": "<p>Selling 1 Chapter 2 taught segmentation-tree design for customers; this chapter is its mirror for products, shorter because the design logic transfers — and it should transfer consciously, since the symmetry itself is the lesson.</p><p><b>The mechanics.</b> Item Groups form a tree (group nodes and leaves); items attach to leaves; reports roll leaves up through parents. \"Analgesics\" and \"Antibiotics\" sum into \"Pharma\", which sums into the root. Sales Analytics grouped by Item Group is your product-mix instrument (Selling 6), and the tree you design here is the shape of every answer it will ever give.</p><p><b>The three rules, transferred.</b> (1) <b>One question per tree</b> — item group answers <i>what kind of product</i>. Do not encode supplier (that's the buying side), location (warehouses), or price tier (price lists) into group names. (2) <b>Mirror management's language</b> — if the MD asks \"how did Pharma do against FMCG?\", those are the top branches. (3) <b>Two-second leaves</b> — every item obviously belongs somewhere; if creation-time filing needs a debate, the tree is too clever. Ten to twenty leaves serves most mid-market catalogs.</p><p><b>A worked tree for a dual-channel distributor:</b> All Item Groups → <i>Pharma</i> (→ Analgesics · Antibiotics · Supplements), <i>FMCG</i> (→ Beverages · Personal Care · Home Care), <i>Equipment</i> (→ Retail Hardware · Spare Parts), <i>Services</i> (→ Installation · Support Plans). Note Services as a first-class branch: service items (Maintain Stock off, Chapter 1) deserve reporting identity too — firms that dump services into \"Misc\" cannot answer \"how much of our revenue is recurring service?\", which is exactly the question a SaaS-minded MD asks.</p><p><b>Groups as machinery.</b> As with customers, the group is a <i>condition</i> elsewhere: pricing rules target item groups (\"10% off all Beverages in Q4\", Selling 6), and sales-person targets are set per item group (Selling 8). A clean tree makes policy aimable; a mushy one makes every rule a special case.</p><p><b>Hygiene.</b> Same habits as Selling 1: a real default leaf in settings rather than a landfill, search-before-create, and a periodic review of recently created items. Re-parenting is cheap and takes effect in reports immediately; history filed into \"All Item Groups\" for a year is unsegmentable forever.</p><p><b>Two adjacent fields, placed correctly.</b> <b>Brand</b> is its own field on the item — Coca-Cola vs Rite Foods across the Beverages leaf — so brand analysis never needs brand-flavoured group names; keep brand out of the tree and in its field. And <b>item variants</b> (one template, many size/colour children) are the machinery for true variations of one product — a polo shirt in five sizes is one template with variants, not five leaves and not five unrelated items; if you find yourself designing group leaves per size, the variant system is what you actually wanted. Both belong to deeper item-master work, but knowing they exist stops the tree absorbing jobs that aren't its.</p>"
+    "html": "<p>Open the Item record (created through the Inventory track's gate). Complete the commercial fields in order.</p><p><b>1. Item Code.</b> Per the written coding convention — short, unique, structured (PARA-500 for Paracetamol 500mg). The code is the register's handle: it prints on documents, keys every report, and is typed and scanned daily. Codes are permanent; a product whose code must change is retired and re-created through the lifecycle procedures, because documents reference codes forever.</p><p><b>2. Item Name and Description.</b> The name as customers should read it on documents — <i>Paracetamol 500mg Tablets</i> — complete, consistently formatted, without internal abbreviations customers will not recognise. The description field carries the longer print text where documents need it. Both print exactly as entered; the verification is reading a draft document, not the form.</p><p><b>3. Item Group.</b> The classification from the item group tree — analgesics, antibiotics, consumables, per the register's design. The group is a working field on the selling side: sales reports aggregate by it, tax and account derivations can key on it, and Pricing Rules scope by it (Chapter 6). The tree follows the standing design rules: classes the business treats differently, three levels or fewer, changes by decision.</p><p><b>4. The unit fields.</b> The Stock UOM (the unit balances count in — the Inventory track's decision) and the sales-side unit configuration Chapter 3 covers. The commercial walk confirms them; it does not change them casually, because unit changes are posting-behaviour changes under the lifecycle's change governance.</p><p><b>5. Is Sales Item.</b> The flag that admits the item to selling documents. Items the business stocks but does not sell (consumables, spares) leave it off; the flag is the clean answer to why an item does not appear in a document picker.</p><p><b>6. The sales defaults.</b> Per company where used: the default income account and cost center derivations the Accounts track governs — confirmed present per the accountant's design, because a missing derivation surfaces as an accounting question on the first invoice.</p><p><b>7. Image.</b> Where the business prints or displays catalogues and the POS uses images, the image field per the site's convention.</p><p><b>Verification per item.</b> The code per convention; the name as a customer should read it; the group per the tree; the units confirmed; Is Sales Item correct; the defaults present; then one draft quotation row — the code, name, unit, and price appearing as intended — deleted after reading.</p>"
    },
    {
-    "title": "Chapter 4 — Price Lists: the architecture of who pays what",
-    "est": "15",
-    "html": "<p>A <b>Price List</b> is a named collection of selling rates in <b>exactly one currency</b> — and that constraint is structural: the list IS a currency context, not a folder with a currency sticker. This chapter is about using lists as what they really are: the architecture of your commercial arrangements.</p><p><b>The defaulting chain — machinery you must recite cold.</b> Every selling document carries a price list field. The list lands there from the <b>customer's Default Price List</b> (Selling 1 Chapter 1); if the customer has none, the global default from Selling Settings applies. Each document row's rate is then looked up from <i>that document's list</i> in the Item Price table (Chapter 5). Customer → document → row: three links, and every pricing support ticket is a break in one of them.</p><p><b>Lists over discounts — the design principle with the reasons attached.</b> Retail pays ₦1,000; distributors pay ₦850. The clean model is <b>two lists — Standard Selling and Distributor NGN — each with its own Item Price</b>. The rejected alternatives, and why:</p><ul><li><i>A 15% distributor discount</i> — now every report shows ₦1,000 minus noise; margin analysis must mentally un-discount every row; \"discount\" as a word stops meaning anything exceptional; and the day you reprice retail, the distributor price moves too, whether you meant it or not. Coupled prices are accidental prices.</li><li><i>Two item records</i> — Chapter 2 already convicted this: one product, two stock ledgers.</li><li><i>Manual rate edits per document</i> — pricing by memory, enforced by nobody, invisible to every report.</li></ul><p>With separate lists, each channel's report shows its <b>true agreed rate</b>, each reprices independently, and discounts (Selling 6) are reserved for genuine exceptions — which keeps them visible, which keeps them controllable.</p><p><b>How many lists?</b> One per <i>commercial arrangement per currency</i>: Standard Selling (NGN retail), Distributor NGN, Key Accounts NGN (if negotiated tiers truly differ), Export USD. Four or five lists is architecture; fifteen is pricing chaos wearing a filing system — at that point the real structure you need is pricing rules over fewer lists.</p><p><b>Selling vs buying lists.</b> The same Price List doctype serves both sides, distinguished by its Selling / Buying checkboxes. A consultant never confuses which side a list feeds; the checkbox says. (Your purchase-cost story lives in the Buying track.)</p><p><b>Enabled/disabled.</b> Lists can be disabled — the right end for a retired arrangement, preserving history without offering the list on new documents. Deleting a list with history is the wrong end.</p>"
-   },
-   {
-    "title": "Chapter 5 — Item Price records & the rate-0 clinic",
-    "est": "14",
-    "html": "<p>The price list is the folder; the <b>Item Price</b> is the atom: <b>one item + one price list + one rate</b>, optionally scoped. ₦1,000 for PARA-500 on Standard Selling is one record. Everything a document charges traces to one of these atoms — which is why the most common selling support ticket in existence resolves here.</p><p><b>The clinic: \"why is my rate 0?\"</b> A quotation row shows rate 0.00. The overwhelming cause: <b>no Item Price exists for that item on the document's price list</b>. The document asked its list; the list had no row for the item; zero came back — not an error, an honest empty answer. The diagnostic sequence, in order: (1) what price list is on the <i>document</i>? (2) does an Item Price exist for <i>this item on that list</i>? (3) if scoped — is today inside its validity window, and does the row's quantity meet its minimum? Ninety percent of tickets end at step 2 with a missing record; the rest at step 3 with an expired promo or an unmet min-qty. What the cause is NOT: the item being inactive (inactive items don't appear at all — Chapter 1), taxes (they compute after the rate), or the customer's territory (a reporting dimension, not a pricing input).</p><p><b>Scoping an Item Price.</b> Two optional fields turn a flat rate into a policy: <b>valid from / valid upto</b> dates — a September promo rate that starts and expires itself, no memo, no cleanup — and <b>minimum quantity</b> — ₦950 from 50 units up, coexisting with the standard ₦1,000 row; the document picks by quantity. These two, and only these two, are how an Item Price is scoped: not by warehouse, not by salesperson, not by payment terms (those concerns belong to other machinery entirely — pricing rules, sales-person assignment, terms templates).</p><p><b>UOM on the price.</b> From Chapter 2: every rate knows its unit. The carton rate is stated against the Carton UOM; the unit rate against Unit. A rate on the wrong UOM row is the silent 12× error, and Chapter 9 shows its ticket face.</p><p><b>Where rates come from — the recitation.</b> A document row's rate comes from <b>the Item Price for the document's price list</b> — not from the item's standard rate whenever a real Item Price exists (that field is fallback scaffolding, Chapter 1), not from the last invoice (there is no \"price memory\" between documents), not from Selling Settings. Say it until it's reflex, because half of pricing support is repeating this sentence with the screen open.</p><p><b>Coexisting rows, resolved.</b> When several Item Prices legitimately coexist for one item on one list — standard ₦1,000; promo ₦950 min-qty 50, dated — the document resolves by scope: quantity meets the minimum and today sits in the window → the scoped row wins; otherwise the standard row. And on the document itself notice the two fields per row: <b>Price List Rate</b> (what the lookup returned — the list's truth) and <b>Rate</b> (what this document charges). They start equal; a negotiated override changes Rate while Price List Rate stands as the reference — which is exactly how override reporting (Selling 3) can compare charged against list without archaeology.</p>"
-   },
-   {
-    "title": "Chapter 6 — Bulk price maintenance: the import workflow",
+    "title": "Chapter 3 — Units of measure and sales units",
     "est": "12",
-    "html": "<p>Quarter-start. Costs moved, FX moved, and 300 selling rates must change by Monday. This chapter is the workflow that does it in an hour without a single typo becoming an invoice.</p><p><b>The principle: bulk price maintenance is an import job.</b> The cycle: <b>export → edit in the sheet → re-import</b>. Concretely: from the Item Price list, filter to the target price list, export via the data-export tool including the record IDs; open the sheet; update the rate column (this is where spreadsheet skill earns money — a formula applying +8% to a cost-driven subset beats 300 manual edits); re-import in <i>update</i> mode, matching on ID so each existing record is amended in place.</p><p><b>Why not the alternatives.</b> <i>Editing each Item Price by hand</i> — 300 open-edit-save cycles at human error rates; the one typo (₦10,200 entered as ₦1,020) ships on a real order before anyone notices. <i>Deleting the list and rebuilding</i> — history evaporates, scoped promo rows die with it, and for the rebuild window the list is empty: every document raised meanwhile prices at 0 (Chapter 5's clinic, self-inflicted, fleet-wide). <i>Patching with pricing rules</i> — a rule stacking +8% on stale base rates buries the true price under arithmetic; rules are for conditional policy (Selling 6), not for deferred maintenance of base rates.</p><p><b>The safety habits.</b> Export a backup copy of the list <i>before</i> editing (the rollback is then itself a one-import job). Spot-check ten rows after import against the sheet. Announce the effective date to the sales floor — quotations already in Draft keep their fetched rates until refreshed, and reps should know which world they're quoting in.</p><p><b>Validity-dated repricing — the elegant variant.</b> For a planned future change, import the <i>new</i> rates as additional Item Price rows with <b>valid from</b> = the effective date, and set <b>valid upto</b> on the old rows to the day before. The price change then executes itself at midnight, atomically, with zero downtime and a perfect audit trail of what was charged when — the professional's version of \"remember to update prices on the 1st\".</p><p><b>Cadence.</b> In an FX-exposed market, price review is a rhythm, not an event: a monthly thirty-minute review of cost-driven lists (with Chapter 7's currency machinery absorbing pure FX drift on export lists) keeps repricing boring — and boring is the goal.</p><p><b>Who owns repricing.</b> Give bulk price maintenance a named owner and a change log kept as the export files themselves — dated backup exports ARE the price history, reconstructible to any Monday. And pair the workflow with the Chapter 4 permission stance: with Allow-User-to-Edit-Price-List-Rate off for the sales floor (Selling 8), the import workflow is the ONLY door prices move through — one owner, one method, one trail. Firms that can answer \"who changed this rate, when, from what to what?\" in one minute are firms whose margins survive audits and arguments alike.</p>"
+    "html": "<p>Customers buy in different units of the same product. This chapter is the unit machinery.</p><p><b>1. The UOM records.</b> Open UOM (awesome bar): the unit master — Unit, Carton-12, Box, Pack. Units are shared records created once per the register's naming; a new unit is a register decision, not a per-item improvisation, because Carton-12 and Ctn-12 as separate records split conversion history.</p><p><b>2. The item's conversion table.</b> On the Item, the UOM conversion table: one row per alternative unit with its factor — <i>Carton-12 = 12 units</i> where the stock unit is the single unit. The rules:</p><p>1. <b>The factor states how many stock units one alternative unit contains.</b> Every document row entered in an alternative unit converts to stock units by this factor for all stock and value arithmetic.<br>2. <b>Factors come from the physical product</b>, verified at the register (the supplier's carton contents counted, not assumed) — a wrong factor mis-converts every document that uses the unit, and the Inventory track's UoM error family (the carton-rate-against-unit-line receipt, the fractional batch balances) is this table wrong or misread.<br>3. <b>Factor changes are governed events:</b> a supplier changing carton contents is a dated change with the affected prices reviewed (Chapter 5), because the price per carton and the factor move together or the per-unit price silently changes.</p><p><b>3. The Sales UOM.</b> The item's default selling unit — the unit document rows pre-fill with. Set it to how the majority channel buys; rows can select any converted unit per transaction. The standing retail-and-trade pattern: retail counters buy by the unit; chains and institutions buy by the carton — one item record serving both through the conversion table, with the price architecture (Chapters 4-6) carrying the price per unit and per carton per list.</p><p><b>4. Units on documents.</b> The document row carries the quantity, the unit, and the conversion — and prints the unit the customer ordered in. The operator's rules:</p><p>1. <b>The unit column is read, not assumed:</b> 50 on a row means 50 of the row's unit; the order for 50 cartons entered as 50 units under-ships by the factor, and the checking discipline on orders and deliveries (modules 4-5) names the unit column explicitly for this reason.<br>2. <b>Prices follow the unit</b> (Chapter 5's per-UoM prices where used): the rate on the row is per the row's unit, and the row amount is quantity times rate in that unit — readable arithmetic on every row.</p><p><b>5. The conversion read.</b> Quarterly, riding the item lifecycle reads: conversion factors sampled against physical products for the top-selling items; new units created in the quarter checked against the register; items selling in units their table does not carry (a workaround pattern) corrected by adding the decided unit rather than by per-document arithmetic.</p>"
    },
    {
-    "title": "Chapter 7 — Multi-currency pricing",
+    "title": "Chapter 4 — The price list architecture",
     "est": "12",
-    "html": "<p>One list, one currency — so what happens when currencies meet? This chapter is the machinery and the architecture for pricing across the naira boundary.</p><p><b>The mechanics.</b> A <b>USD price list</b> is selected (or defaults) onto a document whose currency is <b>NGN</b>. The result is: not an error, not zero rates, not dollars printing on a naira invoice — ZhiftERP <b>converts automatically</b>, using the <b>Currency Exchange</b> rate, into the document's currency, and the document displays the conversion rate it used. The customer sees naira; the list stays dollars; the bridge is explicit and auditable on the document itself.</p><p><b>Where rates come from.</b> Currency Exchange records hold the rates, datestamped, and can auto-fetch daily from providers. For manual regimes (or CBN-vs-parallel realities), rates can be entered deliberately — and a document can carry an overridden conversion rate when a deal was struck at an agreed rate. The audit principle: <i>every converted amount traces to a visible rate on the document</i>.</p><p><b>The architecture win — import-priced goods.</b> Electronics, equipment, anything dollar-costed: hold the <b>stable dollar price on the USD list</b> and let conversion happen per document at the current rate. Your naira quotations then track FX automatically — no human reprices anything when the rate moves. The rejected alternative — maintaining a naira copy of dollar prices — goes stale the day the rate moves and turns every FX swing into Chapter 6's bulk-import job. One source of truth per price; conversion is computation, not maintenance.</p><p><b>The structuring rule, restated with currency.</b> One price list per <b>currency per commercial arrangement</b>: Distributor USD for the Ghana channel, Export USD for other West Africa, Standard Selling in NGN — and the <b>customer's default does the choosing</b> (Selling 1): the Accra distributor's master points at Distributor USD; the Surulere pharmacy at Standard Selling; nobody picks lists at quotation time and nobody quotes the wrong currency by accident.</p><p><b>The boundary of this module.</b> Multi-currency also touches the receivable's currency, exchange-gain/loss on settlement, and revaluation — accounting depths that belong to the Accounts track. A Sales <i>Professional</i> owns everything above: the pricing mechanics, the conversion trail on documents, and the architecture that keeps FX a computation instead of a monthly emergency.</p><p><b>Two field realities to handle gracefully.</b> First, <b>agreed-rate deals</b>: an export order struck at a locked ₦/$ rate carries that rate as the document's conversion override — deliberate, visible, and better than editing prices to fake it; the list stays pure, the deal stays honest. Second, <b>rounding</b>: converted amounts produce kobo-level fractions; currency precision settings and the invoice's rounding row absorb them so totals stay payable — never hand-round a converted rate on the row, because the payment allocation (Selling 7) must later match the document to the kobo.</p>"
+    "html": "<p>Prices live on lists; customers resolve to a list. This chapter is the architecture.</p><p><b>1. The Price List record.</b> Open Price List (awesome bar) &gt; New: the name, the currency, and the Selling flag (buying lists belong to the Procurement track). A price list is a named pricing context — a set of Item Prices (Chapter 5) that applies to the customers who resolve to it.</p><p><b>2. The standing architecture.</b> Design the list set from the commercial classes module 1's Customer Group tree defined — the lists and the groups are the same design read from two sides:</p><p>1. <b>Standard Selling (retail)</b> — the counter and default prices.<br>2. <b>Trade</b> — the chain, institution, and distributor prices.<br>3. <b>Additional lists only where a class genuinely prices differently as a class</b> — a list per customer is an anti-pattern (customer-specific arrangements are Pricing Rules or negotiated document prices with their approvals, not private lists), because every list is a full price set to maintain, and the maintenance cost of Chapter 5 multiplies by the list count.</p><p><b>3. The resolution, restated.</b> Module 1 wired it: the document's price list resolves from the customer's default, else the customer group's, else the selling default. The consequence for this module: <b>putting a customer in the right group is a pricing act.</b> The classification read (module 1, Chapter 3) is therefore also a pricing control, and the wrong-group customer is the wrong-list customer.</p><p><b>4. Currency rules.</b> Each list carries one currency; a customer billing in another currency needs a list in that currency or the exchange-rate machinery the Accounts track governs applied at document time per the site's configuration. For the standing Nigeria-first case: naira lists, with foreign-currency arrangements as the documented exception they are.</p><p><b>5. What price lists are not.</b></p><p>1. <b>Not discounts:</b> a percentage relationship between lists (trade at a margin below retail) is maintained by the update procedure's arithmetic, not by a discount mechanism — the list states the price, and the document shows the price, which keeps document reading simple and disputes short.<br>2. <b>Not history:</b> superseded prices are history the Item Price records and the update files carry (Chapter 5); the list always states the current price.<br>3. <b>Not per-document overrides:</b> the negotiated price on one order is that document's rate with its approval per module 4's rules; the list does not move for one order.</p><p><b>6. The architecture read.</b> Annually, with the pricing review: the list set against the customer groups (one behavioural class, one list), orphan lists (no customers resolve to them) retired, and the resolution sampled — five customers per group, a draft document each, the pre-filled list confirmed.</p>"
    },
    {
-    "title": "Chapter 8 — Case study: pricing architecture for a dual-channel vendor",
-    "est": "16",
-    "html": "<p>Everything in this module, executed once, end to end. The client is your own commercial reality in miniature; every step names its chapter.</p><p><b>The business.</b> HealthTrade Ltd sells pharmacy consumables two ways: retail counters buy by the <i>unit</i> at list; distributors buy by the <i>carton</i> (12s) at trade rates; and a Ghana distributor buys the same cartons priced in USD. A Q4 promo is planned: units at ₦950 from 50 units up, September–November. Build the whole pricing architecture.</p><p><b>Step 1 — The item, once (Ch. 1-2).</b> Item PARA-500, \"Paracetamol 500mg Tablets\", Is Sales Item ✓, Maintain Stock ✓, Item Group <i>Pharma → Analgesics</i> (Ch. 3's tree). Default UOM: <b>Unit</b> — the warehouse counts pieces. UOM table: add <b>Carton, factor 12</b>. One item record; both trade languages; the conversion factor owns the arithmetic forever. (Two item records was rejected in Chapter 2 and stays rejected.)</p><p><b>Step 2 — The lists (Ch. 4).</b> Three, one per arrangement per currency: <i>Standard Selling</i> (NGN — exists), <i>Distributor NGN</i>, <i>Distributor USD</i>. Not a \"distributor discount\" on the retail list — separate lists so each channel reports its true rate and reprices independently.</p><p><b>Step 3 — The Item Prices (Ch. 5).</b> Four atoms: PARA-500 · Standard Selling · <b>Unit</b> · ₦1,000. PARA-500 · Distributor NGN · <b>Carton</b> · ₦10,200. PARA-500 · Distributor USD · <b>Carton</b> · $6.80. And the promo: PARA-500 · Standard Selling · Unit · <b>₦950, min qty 50, valid 01-Sep → 30-Nov</b> — it will switch itself on, apply itself only to qualifying quantities, and expire itself, no memo ever written (Ch. 5-6). Note every rate declaring its UOM — the carton rate on the Carton row, the silent-12×-error made impossible.</p><p><b>Step 4 — Customers choose lists by default (Ch. 4; Selling 1).</b> Retail customers' masters: Standard Selling. Nigerian distributors: Distributor NGN. The Accra distributor: Distributor USD, currency USD on their master. From this moment, every quotation for every channel prices itself correctly with nobody choosing anything.</p><p><b>Step 5 — Verify end-to-end.</b> Draft quotations, one per channel (delete after): retail 60 units → ₦950 rate fires (min qty met, in window) ✓; retail 20 units → ₦1,000 ✓; distributor 5 Cartons → ₦10,200/carton, and the stock projection shows <b>60 Units</b> committed ✓ (Ch. 2's arithmetic, working); Accra 5 Cartons on an NGN document → converted at today's Currency Exchange rate, rate visible on the document ✓ (Ch. 7).</p><p><b>Step 6 — The maintenance plan (Ch. 6-7).</b> Distributor NGN reprices via export-edit-reimport when costs move, with validity-dated rows for planned changes; Distributor USD never chases FX — conversion does; the promo needs no cleanup — it dies on schedule. Handover note, four lines, filed in the client room.</p><p><b>What the architecture buys:</b> three channels, two currencies, one item, one stock ledger, self-managing promos, FX absorbed by computation — and every report showing true agreed rates per channel. Total build: under an hour. The firms that skip it spend that hour weekly, in support tickets, forever.</p>"
+    "title": "Chapter 5 — Item Price maintenance",
+    "est": "12",
+    "html": "<p>An Item Price is one item's price on one list. This chapter is the record and the governed update.</p><p><b>1. The Item Price record.</b> Open Item Price (awesome bar): the item, the price list, the rate, and — where the site uses them — the UOM the rate applies to, minimum quantity, and validity dates. The standing shape:</p><p>1. <b>One row per item per list</b> for the base case: PARA-500 on Standard Selling at the unit rate; PARA-500 on Trade at the trade rate.<br>2. <b>Per-UoM rows where the same list prices units and cartons separately</b> — the unit rate and the Carton-12 rate as two rows on the same list, each applying when the document row's unit matches. The carton rate and the conversion factor are maintained together (Chapter 3's rule).<br>3. <b>Validity dates where prices are scheduled</b> — the dated price change entered in advance, effective automatically.</p><p><b>2. The governed update procedure.</b> Prices change by decision, on a cycle, through one procedure:</p><p>1. <b>The decision</b> — the pricing review (the owner's cadence: monthly or per supplier cost events) produces the approved price file: item, list, old rate, new rate, effective date, and the basis (the cost change, the margin decision — module 5 of Inventory supplies the cost side; the margin arithmetic is the accountant's review).<br>2. <b>The load</b> — the approved file applied by governed import or entry, by the roles the matrix permits, on the effective date or with validity dates.<br>3. <b>The verification</b> — a sample of updated items drafted on documents per list, rates confirmed; the file and verification filed with the review.</p><p><b>3. Why the procedure is strict.</b> The price fields are among the most financially consequential editable figures in the system: a wrong rate prices every document until noticed, and an unauthorised change is a margin leak with a login attached. The controls follow: price-write permission held narrowly per the matrix; the monthly price changes read (below) listing every Item Price change against the approved files; and no price typed at document time except as the negotiated, approved document rate module 4 governs.</p><p><b>4. The price changes read — monthly.</b> Every Item Price created or modified in the month, with who and when, reconciled against the approved price files. Changes without a file are corrected and their permission gap closed — the same fields-move-only-by-decision audit as the credit changes read, applied to prices.</p><p><b>5. The completeness read — monthly.</b> Sales items without a current price on their group's list (the picker will fetch nothing, and the document will demand a typed rate — the exact door the module keeps closed); expired validity rows whose successors were never loaded. Both lists worked to zero with the update cycle.</p>"
    },
    {
-    "title": "Chapter 9 — Common mistakes & support patterns",
+    "title": "Chapter 6 — Pricing Rules",
     "est": "13",
-    "html": "<p>The scar tissue chapter for items and pricing: the tickets you will actually receive, the disease behind each, and the fix — plus the meta-pattern that by now you can predict.</p><p><b>Pattern 1 — \"Item doesn't appear on the quotation.\"</b> Disease: <b>Is Sales Item unticked</b> (Ch. 1). The first check, always. Runner-up disease: the item is disabled entirely. What it is not: pricing (an unpriced item appears at rate 0; a non-sales item doesn't appear at all — the symptom distinguishes the diseases).</p><p><b>Pattern 2 — \"Rate shows 0.\"</b> The clinic (Ch. 5): no Item Price for the item on <i>the document's</i> price list — or a scoped one whose window/min-qty doesn't match. Run the three-step diagnostic; fix the atom, not the document. Typing the rate onto the quotation \"just this once\" closes today's ticket and books tomorrow's — the next document asks the same empty list.</p><p><b>Pattern 3 — \"Customer was quoted 12× too much / warehouse shipped a twelfth of the order.\"</b> Disease: UOM incoherence (Ch. 2, 5) — a carton rate on a Unit row, or an order taken in the wrong UOM. Fix: correct the Item Price's UOM, verify the item's conversion table, re-issue the document. Prevention is the discipline: <i>every rate knows its unit</i>, checked at entry.</p><p><b>Pattern 4 — \"Distributor prices moved when we repriced retail.\"</b> Disease: channels coupled by a discount instead of separated by lists (Ch. 4). The %-off-retail \"distributor pricing\" faithfully tracked a retail change nobody meant to pass through. Fix: build the second list, migrate customers' defaults to it, retire the discount — decoupled channels reprice independently by construction.</p><p><b>Pattern 5 — \"Half the catalog priced at 0 since Tuesday.\"</b> Disease: a list rebuild done by delete-and-recreate, or an import that <i>created new</i> rows instead of <i>updating</i> existing ones, leaving the live list orphaned (Ch. 6). Fix: restore from the pre-edit export (you kept one — the workflow said so) and redo the import in update mode, matched on ID.</p><p><b>Pattern 6 — \"The Ghana invoice used a strange exchange rate.\"</b> Disease: a stale or manually mistyped Currency Exchange record, or a forgotten per-document override (Ch. 7). The document displays the rate it used — read it there first; the audit trail is on the page. Fix the exchange record or the override; re-issue if the deal rate was agreed differently.</p><p><b>Pattern 7 — \"Same product exists three times.\"</b> Disease: creation without search — PARA-500, \"Paracetamol 500\", \"Panadol tabs (white box)\" — each with partial stock and partial history (Ch. 1). Cure: pick the survivor, re-point and merge, retire the duplicates; then prevention — code discipline and search-before-create — because duplicates regrow wherever the habit that made them survives.</p><p><b>The meta-pattern, confirmed.</b> Seven tickets; seven master-data diseases wearing document symptoms — the same law Selling 1 closed on: <b>documents are downstream of masters</b>. On the selling side the masters are two: <i>who</i> (customer, Selling 1) and <i>what + at what rate</i> (item and Item Price, this module). Command both and the document layer — quotations onward, starting next module — becomes almost boring. That is the goal. Boring documents are correct documents.</p>"
+    "html": "<p>Structured price behaviour — quantity breaks, class discounts, promotions — is configured as Pricing Rules, not typed as document discounts. This chapter is the doctype and its register.</p><p><b>1. The Pricing Rule doctype.</b> Open Pricing Rule (awesome bar) &gt; New. The record in three parts:</p><p>1. <b>The scope — what it applies to:</b> item, item group, or brand; and for whom — customer, customer group, or territory. The scope fields make the rule as narrow or broad as the decision: one item for one customer group, or a whole group for all trade customers.<br>2. <b>The condition — when it applies:</b> minimum (and maximum) quantity or amount thresholds, and validity dates. Quantity thresholds are the quantity-break mechanism: <i>from 50 units, the rate becomes ₦950</i> is a rule with min qty 50.<br>3. <b>The effect — what it does:</b> a rate (replacing the list price), a discount percentage, or a discount amount, applied per the rule's price-or-discount configuration.</p><p><b>2. Priority and interaction.</b> Where multiple rules could apply to one row, the priority field and the rule settings decide which wins; the site's standing convention: rules are designed not to overlap, and where an overlap is intended (a promotion superseding a standing break), the priority is set explicitly and recorded. An undesigned overlap prices documents by accident, and the register (below) exists to make every rule's scope visible before a new one is added.</p><p><b>3. Pricing Rules versus the other pricing instruments — the decision table.</b></p><p>1. <b>The price list</b> — the standing price per class: who you are decides the list.<br>2. <b>The Pricing Rule</b> — structured, conditional behaviour on top of the list: how much or when you buy changes the price, by a written rule with dates.<br>3. <b>The document-level discount or negotiated rate</b> — the one-off commercial decision on one document, with its approval per module 4's rules.</p><p>Each instrument leaves its own evidence, and the separation exists for that reason: the list states the standing position, the rule states the standing condition, and the document shows the exception with its approver.</p><p><b>4. The pricing rules register.</b> One table, per the standing register pattern: each active rule with its scope, condition, effect, owner, reason, and validity — reviewed at the pricing review. Rules without owners or with lapsed reasons are disabled at the review; promotions carry end dates at creation so lapsing is automatic rather than remembered.</p><p><b>5. The rules read — monthly.</b> New and changed rules against the register; expired promotions confirmed inactive; and the effect sample — three documents drafted inside rule conditions (the 50-unit row confirming ₦950) and three outside them (the 49-unit row confirming the list rate), verifying the machinery prices as the register says it should.</p>"
+   },
+   {
+    "title": "Chapter 7 — Item tax fields",
+    "est": "12",
+    "html": "<p>Tax computation is module 6's subject; this chapter is the item's side of it — the classification the machinery reads.</p><p><b>1. The item tax template field.</b> On the Item (or derived from its item group per the site's design): the Item Tax Template that states the item's tax treatment — standard-rated or exempt, per the tax categories the accountant defines. For a Nigerian pharmaceutical register the distinction is live: many pharmaceutical items are VAT-exempt while general goods are standard-rated, and the item-side field is where each product's treatment is stated once.</p><p><b>2. Why the field lives on the item.</b> The document's tax computation (module 6) combines the document-level tax template with the item-level treatment: a mixed basket — exempt pharmaceuticals and standard-rated consumables on one invoice — taxes correctly per line because each item carries its own classification. The alternative (per-document tax editing) taxes whole documents by operator memory, which is a compliance error generator.</p><p><b>3. Setting the classification.</b></p><p>1. <b>By class, at the gate:</b> the item's tax treatment follows its class per the accountant's ruling table — the item group or the class row states the template, and the gate applies it at creation with the other class-row settings (the Inventory track's control register pattern extended to tax).<br>2. <b>Changes are governed:</b> a reclassification (a product's exemption status changing by regulation) is a dated decision from the accountant, applied through the change procedure, with the effective date recorded — because tax treatment changes are exactly the changes an auditor asks about.</p><p><b>4. The item tax read — quarterly, with the accountant.</b> The register sampled by class: exempt classes carrying exempt templates, standard classes carrying standard ones, exceptions listed and resolved. New items created in the quarter checked against the ruling table. The read is the selling side's contribution to the tax compliance the Accounts track owns; module 6 adds the document-side reads.</p><p><b>5. The boundary, stated.</b> The selling function applies the accountant's rulings; it does not make them. A customer's request to be invoiced without tax, an item whose treatment seems wrong, a new product class without a ruling — each routes to the accountant as a question, and the document waits for the ruling rather than improvising one. The item tax field carries a decided answer or it carries nothing; there is no operator-judgment lane in tax classification.</p>"
+   },
+   {
+    "title": "Chapter 8 — Worked example: HealthTrade's selling architecture",
+    "est": "13",
+    "html": "<p>This chapter applies Chapters 2-7 to HealthTrade's item and pricing build. Configuration values and outcomes are listed per step.</p><p><b>Step 1 — the commercial section completed (Chapter 2).</b> The register's items — created through the Inventory gate — receive their commercial walk: codes per the convention (<b>PARA-500</b>), names as customers read them (<b>Paracetamol 500mg Tablets</b>), groups per the tree (Analgesics under Pharmaceuticals), Is Sales Item confirmed, defaults per the accountant's design. The draft-row verification runs per class sample.</p><p><b>Step 2 — the unit set (Chapter 3).</b> The two-channel reality is configured on one record: stock unit <i>Unit</i>; the conversion table carrying <b>Carton-12 = 12 units</b>, the factor verified against the physical carton at the register. Sales UOM set to Unit (the retail majority); trade documents select Carton-12 per row. The rule filed with the register: the carton price and the factor are maintained together.</p><p><b>Step 3 — the lists (Chapter 4).</b> Two selling lists, matching the customer group design from module 1: <b>Standard Selling</b> (retail counters) and <b>Trade</b> (chain pharmacies, institutions, distributors — the module 1 chain resolves here through its group). No per-customer lists; the architecture note records the rejection with the reason.</p><p><b>Step 4 — the prices loaded (Chapter 5).</b> The approved price file loads per list, with per-UoM rows where trade sells cartons: PARA-500 carrying its unit rate on Standard Selling, and its unit and Carton-12 rates on Trade. The verification sample drafts documents per list; the file and sample file with the review.</p><p><b>Step 5 — the quantity break as a rule (Chapter 6).</b> The trade volume decision — <b>from 50 units, the rate becomes ₦950</b> — is configured as a Pricing Rule: scope PARA-500 for the Trade customer groups, condition min qty 50, effect the rate, validity open, owner and reason in the register. The rules read's effect sample confirms both sides: the 50-unit draft row prices at ₦950; the 49-unit row prices at the list rate.</p><p><b>Step 6 — the tax classifications (Chapter 7).</b> The ruling table applies by class: the exempt pharmaceutical classes carry the exempt template; consumables carry standard-rated. The mixed-basket draft — pharmaceuticals and consumables on one document — taxes per line correctly, and the quarterly read's first pass returns clean.</p><p><b>Step 7 — the first update cycle (Chapter 5).</b> A supplier cost change triggers the month's pricing review: the affected items' new rates approved with the margin arithmetic, loaded on the effective date, verified by sample, filed. The price changes read reconciles the month's Item Price modifications to the approved file exactly — the fields-move-only-by-decision audit passing on its first live month.</p><p><b>The architecture evidence.</b> The register holds: the coding and naming conventions, the unit register with verified factors, the two-list architecture note, the approved price files with verifications, the pricing rules register with the one active rule, and the tax ruling table — the pricing system answerable from one set of documents.</p>"
+   },
+   {
+    "title": "Chapter 9 — Common errors and the module rule",
+    "est": "11",
+    "html": "<p>The errors that recur in items and pricing, each with its correction and prevention.</p><p><b>Error 1 — the typed price.</b> Symptom: rates entered at document time because the list has no price; margins varying by operator; disputes with no reference. Correction: the completeness read run, missing prices loaded by the update procedure. Prevention: every sales item priced on its group's list, and document-time rates reserved for approved negotiated cases only.</p><p><b>Error 2 — the second item record.</b> Symptom: a selling-side duplicate created for a product the register holds; stock and sales history split. Correction: the merge remediation per the lifecycle rules. Prevention: the one-record principle — the commercial section is completed on the existing record, through the gate.</p><p><b>Error 3 — the wrong conversion factor.</b> Symptom: carton documents mis-converting; fractional balances; the carton price and per-unit price disagreeing silently. Correction: the factor corrected as a governed change with affected prices reviewed. Prevention: factors verified against physical product, and the factor-and-price-together rule.</p><p><b>Error 4 — the list per customer.</b> Symptom: dozens of lists, each a full price set; updates missing lists; maintenance consuming the pricing function. Correction: lists consolidated to the class architecture; customer specifics moved to rules or approved document rates. Prevention: one behavioural class, one list — and the annual architecture read.</p><p><b>Error 5 — the unregistered rule.</b> Symptom: pricing rules accumulating without owners; overlaps pricing documents by accident; expired promotions still firing. Correction: the register rebuilt, orphan rules disabled, priorities set explicitly. Prevention: every rule a register row at creation, end dates on promotions, and the monthly rules read with its effect sample.</p><p><b>Error 6 — tax by operator memory.</b> Symptom: per-document tax editing; mixed baskets taxed wholesale; exemptions applied on request. Correction: item classifications completed per the ruling table; document tax editing withdrawn per the matrix. Prevention: the item-side template by class at the gate, changes only by the accountant's dated ruling, and the quarterly read.</p><p><b>Review list.</b> Before the quiz, confirm you can: complete the commercial field walk with the code and naming conventions; operate the UoM table with verified factors and the sales unit; design the class-based list architecture and state what lists are not; maintain Item Prices through the governed update with the changes and completeness reads; build Pricing Rules with scope, condition, effect, and the register; and apply item tax classifications by ruling with the boundary respected.</p><p><b>Module rule 2: a price is a decision with a record — items selling from their one register record, units converting by verified factors, prices living on class lists and moving only by the governed update, conditions expressed as registered Pricing Rules, and tax treatment stated per the accountant's ruling — never a figure typed at document time.</b> Module 3 covers quotations.</p>"
    }
   ],
   "questions": [
    {
-    "q": "An item refuses to appear on a quotation. First thing to check:",
+    "q": "The Item record is:",
     "opts": [
-     "Is Sales Item is ticked on the item",
-     "Its price",
-     "The customer group",
-     "The warehouse"
+     "One record with sections owned by different functions — selling completes the commercial section, never creates a second record",
+     "Per function",
+     "Duplicated per track",
+     "Selling's alone"
     ],
     "ans": 0,
-    "why": "Only sales items appear on selling documents.",
-    "src": "Items §1"
-   },
-   {
-    "q": "Stock kept in Units but sold in Cartons of 12 uses:",
-    "opts": [
-     "Two item records",
-     "A Sales UOM with a conversion factor",
-     "A pricing rule",
-     "Manual arithmetic on each row"
-    ],
-    "ans": 1,
-    "why": "Sales UOM + conversion factor handles the unit difference.",
-    "src": "Items §1"
-   },
-   {
-    "q": "A quotation row shows rate 0. The most common cause:",
-    "opts": [
-     "The item is inactive",
-     "Taxes not set",
-     "No Item Price exists for the document's price list",
-     "The customer has no territory"
-    ],
-    "ans": 2,
-    "why": "Rates come from Item Price records; missing record = zero.",
-    "src": "Item Price §3"
-   },
-   {
-    "q": "Retail pays ₦1,000, distributors pay ₦850 for the same item. Cleanest model:",
-    "opts": [
-     "A 15% discount for distributors",
-     "Edit the rate manually each time",
-     "Two item records",
-     "Two price lists with their own Item Prices"
-    ],
-    "ans": 3,
-    "why": "Separate price lists show true agreed rates without discount noise.",
-    "src": "Price lists §2"
-   },
-   {
-    "q": "The rate a quotation uses comes from:",
-    "opts": [
-     "The Item Price for the document's price list",
-     "The item's standard rate always",
-     "The last invoice",
-     "Selling Settings"
-    ],
-    "ans": 0,
-    "why": "The document's price list is looked up in Item Price.",
-    "src": "Item Price §3"
-   },
-   {
-    "q": "A price list can contain:",
-    "opts": [
-     "Multiple currencies",
-     "Exactly one currency",
-     "Only NGN",
-     "One item"
-    ],
-    "ans": 1,
-    "why": "One price list, one currency.",
-    "src": "Currency §4"
-   },
-   {
-    "q": "Updating 300 selling rates at quarter start is best done by:",
-    "opts": [
-     "Editing each Item Price",
-     "Deleting the price list",
-     "Export, update in sheet, re-import Item Prices",
-     "A pricing rule per item"
-    ],
-    "ans": 2,
-    "why": "Bulk price maintenance is an import job.",
-    "src": "Item Price §3"
-   },
-   {
-    "q": "Which field defaults the price list onto a new quotation?",
-    "opts": [
-     "Selling Settings only",
-     "The territory",
-     "The item group",
-     "The customer's Default Price List"
-    ],
-    "ans": 3,
-    "why": "The customer default drives document defaulting.",
-    "src": "Price lists §2"
-   },
-   {
-    "q": "Item Group serves the same purpose for items that ______ serves for customers.",
-    "opts": [
-     "Customer Group",
-     "Territory",
-     "Credit limit",
-     "Contact"
-    ],
-    "ans": 0,
-    "why": "Both are the segment/reporting dimension of their master.",
-    "src": "Items §1"
-   },
-   {
-    "q": "A USD price list on a naira document results in:",
-    "opts": [
-     "An error",
-     "Automatic conversion at the exchange rate into document currency",
-     "The rate showing in USD",
-     "Zero rates"
-    ],
-    "ans": 1,
-    "why": "Currency Exchange converts into the document currency.",
-    "src": "Currency §4"
-   },
-   {
-    "q": "An Item Price can be limited by:",
-    "opts": [
-     "Warehouse",
-     "Salesperson",
-     "Validity dates and minimum quantity",
-     "Payment terms"
-    ],
-    "ans": 2,
-    "why": "Valid-from/upto and min qty scope an Item Price.",
-    "src": "Item Price §3"
-   },
-   {
-    "q": "The unit stock is counted in is the item's:",
-    "opts": [
-     "Sales UOM",
-     "Price list unit",
-     "Carton size",
-     "Default Unit of Measure"
-    ],
-    "ans": 3,
-    "why": "Default UOM is the stock-keeping unit; Sales UOM is for selling.",
-    "src": "Items §1"
-   },
-   {
-    "q": "On a document row, 'Price List Rate' vs 'Rate' means:",
-    "opts": [
-     "List's looked-up truth vs what this document charges — overrides change Rate only",
-     "They are always equal",
-     "Rate is tax-inclusive",
-     "Price List Rate is editable, Rate is not"
-    ],
-    "ans": 0,
-    "why": "The pair is how override reporting compares charged against list.",
-    "src": "Ch5"
-   },
-   {
-    "q": "A planned price change for the 1st of next month is executed cleanly by:",
-    "opts": [
-     "A reminder to edit prices that morning",
-     "Validity-dated new Item Price rows (valid-from the 1st) with old rows ended the day before",
-     "A pricing rule",
-     "Editing rates on open quotations"
-    ],
-    "ans": 1,
-    "why": "The change executes itself at midnight with a perfect trail.",
-    "src": "Ch6"
-   },
-   {
-    "q": "Bulk repricing imports must run in:",
-    "opts": [
-     "Create mode — new rows are safer",
-     "Delete-then-create",
-     "Update mode matched on record ID",
-     "Any mode"
-    ],
-    "ans": 2,
-    "why": "Create mode orphans the live rows; update amends the real records.",
-    "src": "Ch6"
-   },
-   {
-    "q": "Before editing the exported price sheet, the workflow requires:",
-    "opts": [
-     "Manager sign-off",
-     "Disabling the price list",
-     "Closing all quotations",
-     "A dated backup export — it IS the rollback and the price history"
-    ],
-    "ans": 3,
-    "why": "Dated exports make any Monday's prices reconstructible.",
-    "src": "Ch6"
-   },
-   {
-    "q": "Brand analysis across Beverages should rely on:",
-    "opts": [
-     "The Brand field on items, keeping the tree one-question",
-     "Brand-flavoured item group leaves",
-     "Separate price lists per brand",
-     "Item codes containing brand names"
-    ],
-    "ans": 0,
-    "why": "Brand has its own field; the tree answers only 'what kind of product'.",
-    "src": "Ch3"
-   },
-   {
-    "q": "A polo shirt in five sizes is correctly modelled as:",
-    "opts": [
-     "Five unrelated items",
-     "One template item with variants",
-     "Five item-group leaves",
-     "One item, sizes in remarks"
-    ],
-    "ans": 1,
-    "why": "Variants exist precisely for true variations of one product.",
-    "src": "Ch3"
-   },
-   {
-    "q": "An export deal struck at a locked exchange rate is handled by:",
-    "opts": [
-     "Editing the USD price list",
-     "A new price list per deal",
-     "A deliberate conversion-rate override on that document",
-     "Charging in naira cash"
-    ],
-    "ans": 2,
-    "why": "The list stays pure; the deal's rate is visible on the document.",
-    "src": "Ch7"
-   },
-   {
-    "q": "Kobo-level fractions from currency conversion are absorbed by:",
-    "opts": [
-     "Hand-rounding the row rate",
-     "A discount",
-     "Ignoring them",
-     "Currency precision and the document's rounding row"
-    ],
-    "ans": 3,
-    "why": "Payment allocation must later match the document to the kobo.",
-    "src": "Ch7"
-   },
-   {
-    "q": "Standard Selling Rate on the item is:",
-    "opts": [
-     "A fallback used when no Item Price exists — scaffolding, not policy",
-     "The pricing system",
-     "The maximum price",
-     "The cost price"
-    ],
-    "ans": 0,
-    "why": "Real rates live in Item Price records against lists.",
+    "why": "The one-record principle.",
     "src": "Ch1"
    },
    {
-    "q": "Item and Item Price rows both declare a UOM so that:",
+    "q": "The module's standing rule is:",
     "opts": [
-     "Print formats look complete",
-     "The carton rate can never silently price a unit row — the 12x error",
-     "Stock reports run faster",
-     "Imports validate"
+     "Prices are flexible",
+     "A price is a decision with a record, never a figure typed at document time",
+     "Lists are optional",
+     "Rules are informal"
     ],
     "ans": 1,
-    "why": "Every rate knows its unit; incoherence is the silent multiplier bug.",
-    "src": "Ch2, Ch5"
-   },
-   {
-    "q": "A service item blocking invoices for 'insufficient stock' has:",
-    "opts": [
-     "Is Sales Item unticked",
-     "No item group",
-     "Maintain Stock ticked in error",
-     "No price"
-    ],
-    "ans": 2,
-    "why": "Services must not maintain stock; the flag was mis-set at creation.",
+    "why": "The programme's pattern applied to pricing.",
     "src": "Ch1"
    },
    {
-    "q": "Distributor prices moved when retail was repriced. The structural fix is:",
+    "q": "Item codes are:",
     "opts": [
-     "Reprice distributors back",
-     "Locking the retail list",
-     "A memo",
-     "A separate distributor price list replacing the %-off coupling"
-    ],
-    "ans": 3,
-    "why": "Channels coupled by a discount reprice together; separate lists decouple.",
-    "src": "Ch9"
-   },
-   {
-    "q": "With sales-floor rate editing off, prices change through:",
-    "opts": [
-     "The owned import workflow — one owner, one method, one trail",
-     "Any user's document edits",
-     "Support tickets",
-     "Month-end journals"
-    ],
-    "ans": 0,
-    "why": "One door for price movement is what survives audits and arguments.",
-    "src": "Ch6"
-   },
-   {
-    "q": "An item with Is Sales Item unticked:",
-    "opts": [
-     "Appears at rate 0",
-     "Is invisible to selling documents no matter how much stock exists",
-     "Appears with a warning",
-     "Can be quoted but not invoiced"
-    ],
-    "ans": 1,
-    "why": "Rate-0 means unpriced; absence means not a sales item — the symptom distinguishes the diseases.",
-    "src": "Ch1, Ch9"
-   },
-   {
-    "q": "Standard Selling Rate on the item is:",
-    "opts": [
-     "The pricing system",
-     "The cost",
-     "A fallback for brand-new setups — real rates live in Item Price records",
-     "The carton rate"
+     "Editable freely",
+     "Cosmetic",
+     "Permanent — documents reference them forever; a code change is retire-and-recreate through the lifecycle",
+     "Auto-generated always"
     ],
     "ans": 2,
-    "why": "Scaffolding, not where pricing happens.",
-    "src": "Ch1"
-   },
-   {
-    "q": "The item's Default UOM is:",
-    "opts": [
-     "The selling unit",
-     "Whatever the customer wants",
-     "The carton",
-     "The stock-keeping unit — what the warehouse counts"
-    ],
-    "ans": 3,
-    "why": "Every bin quantity and valuation speaks this unit.",
+    "why": "The register's handle.",
     "src": "Ch2"
    },
    {
-    "q": "The classic UOM field bug is:",
+    "q": "The item name is verified by:",
     "opts": [
-     "A carton rate sitting on a unit row — 5 priced as cartons, picked as units",
-     "A missing conversion factor",
-     "Too many UOMs",
-     "Fractional units"
+     "The form",
+     "The code",
+     "The supplier",
+     "Reading a draft document — it prints exactly as entered"
     ],
-    "ans": 0,
-    "why": "Every rate must know its unit.",
-    "src": "Ch2, Ch9"
+    "ans": 3,
+    "why": "As customers should read it.",
+    "src": "Ch2"
    },
    {
-    "q": "Designing item-group leaves per size (S, M, L) means:",
+    "q": "Is Sales Item:",
     "opts": [
-     "Good granularity",
-     "You actually wanted the variant system — one template, size variants",
-     "More reports",
-     "Faster entry"
+     "Admits the item to selling documents — the clean answer to why an item is missing from a picker",
+     "Is decorative",
+     "Sets the price",
+     "Sets tax"
+    ],
+    "ans": 0,
+    "why": "Stocked-not-sold items leave it off.",
+    "src": "Ch2"
+   },
+   {
+    "q": "A new UOM is:",
+    "opts": [
+     "Per-item improvisation",
+     "A register decision — Carton-12 and Ctn-12 as separate records split conversion history",
+     "Automatic",
+     "Forbidden"
     ],
     "ans": 1,
-    "why": "Variants stop the tree absorbing jobs that aren't its.",
+    "why": "Shared records, created once.",
     "src": "Ch3"
    },
    {
-    "q": "A Price List and currency relate as:",
+    "q": "Conversion factors come from:",
     "opts": [
-     "A list can hold many currencies",
-     "Currency is per item",
-     "One list, exactly one currency — the list IS a currency context",
-     "Currency is per customer only"
+     "Assumption",
+     "The supplier's word",
+     "The physical product, verified at the register — a wrong factor mis-converts every document using the unit",
+     "The price"
     ],
     "ans": 2,
-    "why": "Structural, not a sticker on a folder.",
-    "src": "Ch4"
+    "why": "The UoM error family starts here.",
+    "src": "Ch3"
    },
    {
-    "q": "A document's price list lands from:",
+    "q": "A supplier changing carton contents is:",
     "opts": [
-     "Random selection",
-     "The warehouse",
-     "The last document",
-     "The customer's default list, else the global default in Selling Settings"
+     "A note",
+     "A new item",
+     "Ignored",
+     "A governed, dated factor change with affected prices reviewed — factor and carton price move together"
     ],
     "ans": 3,
-    "why": "The defaulting chain, recited cold.",
-    "src": "Ch4"
+    "why": "Or the per-unit price silently changes.",
+    "src": "Ch3"
    },
    {
-    "q": "A retired price list with history is:",
+    "q": "50 on a document row means:",
     "opts": [
-     "Disabled — history preserved, list withheld from new documents",
-     "Deleted",
-     "Renamed Misc",
-     "Emptied"
+     "50 of the row's unit — the unit column is read, not assumed",
+     "50 units always",
+     "50 cartons always",
+     "50 naira"
     ],
     "ans": 0,
-    "why": "Deleting a list with history is the wrong end.",
+    "why": "The under-shipment case the checking discipline names.",
+    "src": "Ch3"
+   },
+   {
+    "q": "A price list is:",
+    "opts": [
+     "A discount table",
+     "A named pricing context — a set of Item Prices applying to the customers who resolve to it",
+     "History",
+     "A report"
+    ],
+    "ans": 1,
+    "why": "Name, currency, Selling flag.",
     "src": "Ch4"
    },
    {
-    "q": "The bulk repricing workflow is:",
+    "q": "The list architecture follows:",
     "opts": [
-     "300 manual edits",
-     "Export with record IDs → edit in the sheet → re-import in update mode",
-     "A support ticket",
-     "New price lists per quarter"
+     "One list per customer",
+     "Alphabet",
+     "The customer group design — one behavioural class, one list",
+     "Suppliers"
+    ],
+    "ans": 2,
+    "why": "The same design read from two sides.",
+    "src": "Ch4"
+   },
+   {
+    "q": "A list per customer is:",
+    "opts": [
+     "Best practice",
+     "Cheaper",
+     "Required",
+     "An anti-pattern — every list is a full price set to maintain; customer specifics are rules or approved document rates"
+    ],
+    "ans": 3,
+    "why": "Maintenance multiplies by list count.",
+    "src": "Ch4"
+   },
+   {
+    "q": "Putting a customer in the right group is:",
+    "opts": [
+     "A pricing act — the wrong-group customer is the wrong-list customer",
+     "Administrative",
+     "Optional",
+     "Cosmetic"
+    ],
+    "ans": 0,
+    "why": "The classification read is a pricing control.",
+    "src": "Ch4"
+   },
+   {
+    "q": "Lists state:",
+    "opts": [
+     "History and discounts",
+     "The current price — superseded prices are history in the records and files; one order's negotiated rate does not move the list",
+     "Estimates",
+     "Costs"
     ],
     "ans": 1,
-    "why": "With floor edit-rate off, this import is the only door prices move through.",
+    "why": "What price lists are not.",
+    "src": "Ch4"
+   },
+   {
+    "q": "Per-UoM price rows exist so that:",
+    "opts": [
+     "Units are optional",
+     "Prices vary daily",
+     "The same list prices units and cartons separately, each applying when the row's unit matches",
+     "Factors change"
+    ],
+    "ans": 2,
+    "why": "The unit rate and the Carton-12 rate as two rows.",
+    "src": "Ch5"
+   },
+   {
+    "q": "Prices change by:",
+    "opts": [
+     "Whoever notices costs",
+     "The supplier",
+     "Document typing",
+     "The governed update — the approved file, the load by permitted roles, the verification sample, all filed"
+    ],
+    "ans": 3,
+    "why": "Decision, load, verify.",
+    "src": "Ch5"
+   },
+   {
+    "q": "Price-write permission is:",
+    "opts": [
+     "Held narrowly per the matrix — a wrong rate prices every document until noticed",
+     "Broad",
+     "Universal",
+     "The cashier's"
+    ],
+    "ans": 0,
+    "why": "Among the most consequential editable figures.",
+    "src": "Ch5"
+   },
+   {
+    "q": "The price changes read reconciles:",
+    "opts": [
+     "Nothing",
+     "Every Item Price change in the month against the approved files — changes without a file are corrected and the gap closed",
+     "Invoices",
+     "Stock"
+    ],
+    "ans": 1,
+    "why": "Fields move only by decision.",
+    "src": "Ch5"
+   },
+   {
+    "q": "The completeness read finds:",
+    "opts": [
+     "Old items",
+     "New customers",
+     "Sales items without a current price on their group's list, and expired validity rows without successors",
+     "Tax errors"
+    ],
+    "ans": 2,
+    "why": "Both worked to zero with the cycle.",
+    "src": "Ch5"
+   },
+   {
+    "q": "A quantity break is configured as:",
+    "opts": [
+     "A typed discount",
+     "A note",
+     "A second list",
+     "A Pricing Rule — scope, a min-qty condition, and a rate or discount effect"
+    ],
+    "ans": 3,
+    "why": "From 50 units, the rate becomes ₦950.",
     "src": "Ch6"
    },
    {
-    "q": "A USD price list on an NGN document produces:",
+    "q": "Rule overlaps are:",
     "opts": [
-     "An error",
-     "Dollars on a naira invoice",
-     "Automatic conversion at the exchange rate, shown on the document",
-     "Zero rates"
+     "Designed not to occur — intended overlaps carry explicit, recorded priorities",
+     "Random",
+     "Frequent",
+     "Harmless"
+    ],
+    "ans": 0,
+    "why": "An undesigned overlap prices documents by accident.",
+    "src": "Ch6"
+   },
+   {
+    "q": "The three pricing instruments are:",
+    "opts": [
+     "Interchangeable",
+     "The list (who you are), the rule (how much or when you buy), and the approved document rate (the one-off)",
+     "All lists",
+     "All rules"
+    ],
+    "ans": 1,
+    "why": "Each leaves its own evidence.",
+    "src": "Ch6"
+   },
+   {
+    "q": "Promotions carry:",
+    "opts": [
+     "No dates",
+     "Open validity",
+     "End dates at creation — lapsing is automatic rather than remembered",
+     "Monthly renewals"
     ],
     "ans": 2,
-    "why": "Customer sees naira; the list stays dollars; the bridge is auditable — and converted rates are never hand-rounded.",
+    "why": "The register pattern.",
+    "src": "Ch6"
+   },
+   {
+    "q": "The rules read's effect sample drafts:",
+    "opts": [
+     "One document",
+     "Real orders",
+     "Nothing",
+     "Rows inside and outside conditions — the 50-unit row at ₦950, the 49-unit row at list"
+    ],
+    "ans": 3,
+    "why": "The machinery prices as the register says.",
+    "src": "Ch6"
+   },
+   {
+    "q": "The item tax template states:",
+    "opts": [
+     "The item's treatment — standard-rated or exempt — read by the document computation per line",
+     "The document's tax",
+     "The rate manually",
+     "Nothing"
+    ],
+    "ans": 0,
+    "why": "Stated once, on the item side.",
     "src": "Ch7"
+   },
+   {
+    "q": "A mixed basket taxes correctly because:",
+    "opts": [
+     "The operator remembers",
+     "Each item carries its own classification and the computation runs per line",
+     "Tax is averaged",
+     "Exempt wins"
+    ],
+    "ans": 1,
+    "why": "The alternative is a compliance error generator.",
+    "src": "Ch7"
+   },
+   {
+    "q": "Tax reclassifications are:",
+    "opts": [
+     "Operator edits",
+     "Automatic",
+     "The accountant's dated decisions, applied through the change procedure with the effective date recorded",
+     "Annual"
+    ],
+    "ans": 2,
+    "why": "Exactly the changes an auditor asks about.",
+    "src": "Ch7"
+   },
+   {
+    "q": "A customer asking to be invoiced without tax:",
+    "opts": [
+     "Gets it",
+     "Sets a rule",
+     "Is refused rudely",
+     "Routes to the accountant as a question — the document waits for the ruling"
+    ],
+    "ans": 3,
+    "why": "No operator-judgment lane in tax classification.",
+    "src": "Ch7"
+   },
+   {
+    "q": "HealthTrade's two channels run on:",
+    "opts": [
+     "One record — stock unit Unit, Carton-12 = 12 in the conversion table, Sales UOM Unit, trade rows selecting Carton-12",
+     "Two item records",
+     "Two registers",
+     "Two codes"
+    ],
+    "ans": 0,
+    "why": "The factor verified against the physical carton.",
+    "src": "Ch8"
+   },
+   {
+    "q": "The list set was:",
+    "opts": [
+     "Per customer",
+     "Standard Selling and Trade, matching the customer groups — the per-customer alternative rejected with its reason recorded",
+     "One list",
+     "Five lists"
+    ],
+    "ans": 1,
+    "why": "The architecture note.",
+    "src": "Ch8"
+   },
+   {
+    "q": "The ₦950 break applies:",
+    "opts": [
+     "To all rows",
+     "Always on PARA-500",
+     "From 50 units, for the Trade groups, as a registered Pricing Rule — the 49-unit row prices at list",
+     "By request"
+    ],
+    "ans": 2,
+    "why": "Both sides confirmed by the effect sample.",
+    "src": "Ch8"
+   },
+   {
+    "q": "The first update cycle's audit result was:",
+    "opts": [
+     "Unreconciled",
+     "Failed",
+     "Skipped",
+     "The month's Item Price changes reconciling to the approved file exactly"
+    ],
+    "ans": 3,
+    "why": "The audit passing on its first live month.",
+    "src": "Ch8"
+   },
+   {
+    "q": "A product the register already holds:",
+    "opts": [
+     "Has its commercial section completed on the existing record, through the gate",
+     "Gets a selling record",
+     "Is duplicated",
+     "Is renamed"
+    ],
+    "ans": 0,
+    "why": "Error 2's prevention.",
+    "src": "Ch9"
+   },
+   {
+    "q": "Document-time rates are reserved for:",
+    "opts": [
+     "Any busy day",
+     "Approved negotiated cases only — module 4 governs their approval",
+     "New items",
+     "Fridays"
+    ],
+    "ans": 1,
+    "why": "The door the module keeps closed.",
+    "src": "Ch9"
+   },
+   {
+    "q": "Module 2's rule is:",
+    "opts": [
+     "Prices float",
+     "Lists are private",
+     "A price is a decision with a record — one register record, verified factors, class lists moved only by governed update, conditions as registered rules, tax by ruling; never a figure typed at document time",
+     "Rules are secret"
+    ],
+    "ans": 2,
+    "why": "The module rule.",
+    "src": "Ch9"
    }
   ]
  },
