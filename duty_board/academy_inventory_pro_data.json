@@ -947,946 +947,946 @@
  },
  "serial_batch": {
   "title": "Inventory 3 — Serial & Batch Operations",
-  "desc": "The identity layer in full: the two identity systems and the architecture decision, serial and batch lifecycles, expiry operations with FEFO and the markdown ladder, the recall run-book, identity hygiene and audits, and identity in the daily flow.",
+  "desc": "Serial and batch operations in ZhiftERP: the two identities and what each buys; item configuration — Has Batch No, the manual manufacturer-number posture, expiry and shelf life, serial series and warranty — from the control register; the Batch record and the Serial and Batch Bundle mechanics with first-expiry-first-out; the Serial No record with dock capture and delivery verification; identity on every movement — mixed lots split honestly, transfers confirmed by identity, repack inheritance, per-batch counts; the expiry reads and lanes on their horizons; and the recall and freeze procedure with its time targets and the twice-yearly drill.",
   "lessons": [
    {
-    "title": "Chapter 1 — Two identity systems, one architecture decision",
+    "title": "Chapter 1 — Identity tracking: scope and record structure",
+    "est": "11",
+    "html": "<p>This module covers serial and batch operations in ZhiftERP. On completing this module you will be able to: configure items for batch or serial control with the full flag set; create and read Batch and Serial No records; move controlled items with their identity on every document; run expiry management on the standing reads; and execute the recall and freeze procedure that locates any batch across the network in minutes.</p><p><b>The two kinds of identity.</b></p><p>1. <b>Batch identity</b> — the lot: units made together share a batch number, an expiry date, and a fate. One Batch record covers many units. Pharmaceuticals, foods, chemicals — anything where the manufacturer's lot is the unit of quality and recall — run under batch control.<br>2. <b>Serial identity</b> — the unit: each piece has its own number and its own history. One Serial No record per unit. Equipment, devices, high-value items under warranty run under serial control.</p><p>An item can carry both (a serialised device manufactured in lots). The decision per item is Chapter 2's register.</p><p><b>What identity tracking buys, stated as capabilities.</b></p><p>1. <b>Location by identity</b> — the batch-wise balance answers where every unit of a lot sits, per warehouse, in one report.<br>2. <b>Expiry management</b> — expiry lives on the Batch record; the expiring-stock reads (Chapter 6) run from it.<br>3. <b>Recall execution</b> — a named batch is blocked, located, quarantined, and traced downstream in minutes (Chapter 7). For a pharmaceutical distributor this capability is a regulatory obligation, not a convenience.<br>4. <b>Unit history</b> — a serial number's full movement record: received when, sold to whom, returned when (Chapter 4).</p><p><b>The cost, stated honestly.</b> Identity tracking adds a step to every movement of a controlled item: the numbers must be captured, named, and confirmed. The discipline is front-loaded at the receiving dock (Chapter 5) — numbers entered once from the physical goods, then carried by the documents. A business that skips the dock discipline pays it back at every count, every recall drill, and every expiry write-off it saw too late.</p><p><b>Custody.</b> The stock function operates the records; the compliance owner (the superintendent pharmacist at a pharmaceutical business) owns the recall procedure and the disposal rules; the item-control decisions are made once per item class and recorded. The module 1 rule extends naturally: <b>nothing moves without its document, and for controlled items the document names the identity.</b></p><p><b>Module contents.</b> Chapter 2: item configuration. Chapter 3: the Batch record and the bundle mechanics. Chapter 4: the Serial No record. Chapter 5: movements with identity. Chapter 6: expiry management. Chapter 7: the recall and freeze procedure. Chapter 8: worked example. Chapter 9: review and the module rule.</p>"
+   },
+   {
+    "title": "Chapter 2 — Item configuration for identity",
+    "est": "12",
+    "html": "<p>Identity control is switched on per item, on the Item record's inventory section. Walk the flags in order; each is set from the written control register, not per-item improvisation.</p><p><b>1. Has Batch No.</b> Tick to place the item under batch control: every stock movement of the item will require a batch number, and balances hold per batch.</p><p><b>2. Automatically Create New Batch</b> and <b>Batch Number Series.</b> Two receiving postures:</p><p>• <b>Manual batches (the pharmaceutical standard):</b> auto-create OFF — the receiver creates or selects the Batch record carrying the <b>manufacturer's own batch number</b> from the physical carton. The manufacturer's number is what a recall letter names, and a system-generated substitute would make Chapter 7's procedure a translation exercise under time pressure.<br>• <b>Auto batches:</b> auto-create ON with a series — for goods where the business's own lot identity suffices (internally produced lots, goods without manufacturer lots). The series is configured once per the naming rules.</p><p><b>3. Has Expiry Date</b> and <b>Shelf Life.</b> Tick where the item expires; the Batch record then requires an expiry date. Shelf Life (in days) lets the system propose expiry from manufacture date — a proposal the receiver corrects to the printed label, never a substitute for reading it.</p><p><b>4. Retain Sample</b> (where the site uses it) — the sample-retention quantity per batch for businesses whose quality process keeps reference samples; the retained stock sits in the sample warehouse the setting names.</p><p><b>5. Has Serial No</b> and <b>Serial Number Series.</b> Tick for unit-identity items. The series generates numbers where the business assigns its own; where the manufacturer's serial is the identity (devices), the receiver enters the physical numbers — the same manual-identity logic as batches.</p><p><b>6. Warranty Period.</b> On serialised items with warranty, the period in days: the Serial No record computes warranty expiry from delivery, read by the service flows.</p><p><b>The control register.</b> One page listing each item class, its flags, and the reason: <i>all NAFDAC-regulated pharmaceuticals — batch + expiry, manual batches (recall obligation); refrigerated lines — the same plus cold-chain warehouse defaults; equipment above the value threshold — serial + warranty.</i> New items inherit their class's row at creation (the item-creation checklist carries it), and an item created without its class's flags is caught by the monthly register read: controlled classes filtered against their flags, exceptions fixed before stock arrives — because <b>flags cannot be retro-fitted painlessly once un-batched stock exists</b>; the conversion of existing stock to batch control is a documented remediation, not a checkbox.</p><p><b>Verification.</b> Per new controlled item: the flags match the class row; the series or manual posture correct; shelf life entered where used; the first receipt observed end to end (Chapter 5's dock discipline proving the configuration).</p>"
+   },
+   {
+    "title": "Chapter 3 — The Batch record and the bundle mechanics",
+    "est": "12",
+    "html": "<p>One Batch record per lot per item. This chapter covers the record and how documents carry batch identity.</p><p><b>1. The Batch record's fields.</b> Open Batch (awesome bar) &gt; New (or created at receipt per Chapter 2's posture):</p><p>• <b>Batch ID</b> — the manufacturer's batch number under the manual posture; the series value under auto-create. The ID is the record's name and prints everywhere.<br>• <b>Item</b> — one batch belongs to one item.<br>• <b>Manufacturing Date</b> and <b>Expiry Date</b> — from the physical label at receipt. The expiry date is the field Chapter 6's entire read structure hangs on; it is entered from the printed label, at the dock, by the receiver, and checked by the second signature on the receiving document.<br>• <b>Supplier reference fields</b> where the site adds them — the supplier's delivery reference against the lot, useful in recall correspondence.<br>• <b>Disabled</b> — the block switch: a disabled batch cannot post on new transactions. Chapter 7's freeze uses it.</p><p><b>2. Reading a batch.</b> The batch dashboard and the <b>batch-wise balance</b> view answer, per batch: quantity on hand per warehouse, and the movement history. This one lookup is the recall procedure's location step — from a batch number to the network-wide holdings in under a minute, which is the capability the whole module's discipline exists to keep true.</p><p><b>3. How documents carry batch identity — the bundle.</b> On stock documents, controlled rows carry their identity through the <b>Serial and Batch Bundle</b>: the row references a bundle record listing the batch (or serial) numbers and quantities that make up the row's total. Mechanics the operator needs:</p><p>1. One row can draw from several batches — the bundle lists each batch and its quantity; the row's total equals the bundle's sum.<br>2. The bundle is created on the document (the row's identity picker) and stands as the row's identity record; the ledger entries post per batch from it.<br>3. Reports and traces read through bundles: the question of which deliveries carried batch B-1147 is answered by the bundles that name it (Chapter 7's downstream trace).</p><p><b>4. Batch selection at issue and delivery.</b> When stock leaves, the picker proposes available batches. The selection rule is the written policy's — for expiring goods, <b>first-expiry-first-out</b>: the earliest-expiry batch ships first, and the picker's expiry visibility makes the rule executable at the bench. The configuration options that automate or default the selection are set per the policy; the operator's rule stands either way: the batch on the document is the batch physically picked — a document naming batch A over goods picked from batch B is an identity error that surfaces at the next count or the next recall, whichever is more expensive.</p><p><b>5. Batch hygiene.</b> Monthly, with the stock reads: zero-balance expired batches disabled; batches with residual fractions investigated (a 0.5-unit batch balance is usually a UoM or repack arithmetic error); the repack inheritance check — produced retail units carrying their source batch identity per module 2's register (the produced strips of a carton belong to the carton's manufacturer lot, because the recall letter will not distinguish forms).</p>"
+   },
+   {
+    "title": "Chapter 4 — The Serial No record",
+    "est": "12",
+    "html": "<p>One Serial No record per unit. This chapter covers the record, capture, and the unit-history reads.</p><p><b>1. The Serial No record's fields.</b> Open Serial No (awesome bar) — normally created at receipt, read thereafter:</p><p>• <b>Serial No</b> — the unit's number: the manufacturer's serial under manual capture, the series value where the business assigns its own.<br>• <b>Item</b> — the unit's item.<br>• <b>Status and location</b> — the record shows where the unit stands: in which warehouse, delivered, or otherwise disposed; maintained by the documents that move it.<br>• <b>Warranty fields</b> — the warranty expiry computed from the item's period and the delivery date; the amc/maintenance fields where the service flows use them.<br>• <b>The movement history</b> — the unit's document trail: received on which Purchase Receipt, transferred on which entries, delivered on which Delivery Note. The history is the answer to every unit-level question — the warranty claim, the theft report, the customer dispute — and it is complete exactly to the degree Chapter 5's discipline held.</p><p><b>2. Capture at receipt.</b> Serial numbers enter the system once, at the dock:</p><p>1. The receiver scans or types each unit's number from the physical unit (not from the supplier's packing list — the list states intent; the units state fact, and the two differ often enough to make the rule).<br>2. The receipt row's bundle lists the serials; the count of serials equals the row quantity or the row does not submit.<br>3. Discrepancies (a duplicate number, a number already in the system) stop the line at the dock — a duplicate serial is either a supplier error to bounce or a data error to fix now, and both are cheaper standing at the dock than discovered at delivery.</p><p><b>3. Verification at delivery.</b> Serials leave against documents exactly as they entered: the Delivery Note's bundle names the units shipped, confirmed against the physical units at picking. The delivered serial is what the warranty record, the customer's file, and any later dispute stand on.</p><p><b>4. The serial reads.</b></p><p>1. <b>The location census</b> (quarterly, or monthly for high-value classes): the Serial No list filtered to in-stock status per warehouse, sampled against the shelf — five units picked from the list and found physically, five picked from the shelf and found in the list. Identity accuracy is proven both directions, in ten minutes.<br>2. <b>The status hygiene read:</b> serials in impossible states — in-stock in a disabled warehouse, delivered against no document — each an incident to trace, because a serial record that disagrees with its own documents means a movement bypassed the bundle.<br>3. <b>The warranty horizon</b> (where service flows run): units whose warranty expires in the next quarter, to the service owner.</p><p><b>5. Serial-and-batch items.</b> Items carrying both controls capture both at the dock; the bundle rows carry the serial with its batch. The recall trace (Chapter 7) then resolves to named units — the strongest identity the system offers, purchased with the strictest dock discipline.</p>"
+   },
+   {
+    "title": "Chapter 5 — Movements with identity",
+    "est": "12",
+    "html": "<p>Every module 2 movement, re-run for controlled items: the identity travels on the document. This chapter is the per-document discipline.</p><p><b>1. The receiving dock — where identity is born.</b> The Purchase Receipt of a controlled item is the module's most important fifteen minutes:</p><p>1. <b>Batches:</b> per lot on the pallet — the Batch record created or selected with the manufacturer's number, the expiry entered from the printed label, the bundle listing batch and quantity. Mixed-lot deliveries are split honestly: three lots on one line is three bundle entries, not one batch chosen for convenience.<br>2. <b>Serials:</b> Chapter 4's capture — physical units, count equals quantity, discrepancies stopped at the dock.<br>3. <b>The second signature:</b> the receiving check (the Procurement track's receiving controls) extends to identity — the checker confirms batch numbers and expiries against labels, because a wrong expiry entered at the dock mis-schedules every downstream read for the life of the lot.</p><p><b>2. Transfers.</b> The despatch entry's rows carry their bundles; the receiving site confirms <b>identity, not just quantity</b> — 40 cartons arriving is half the check; 40 cartons of the named batch is the check. A transfer received against the wrong batch corrupts both sites' batch balances while the totals look perfect, which is why the receiving procedure names the batch comparison explicitly.</p><p><b>3. Issues.</b> Damage, expiry, and write-off issues of controlled items name their batches — the expiry write-off in particular is a per-batch document (Chapter 6's lane), because the disposal record the compliance owner keeps is batch-level and the two must cite each other.</p><p><b>4. Repack.</b> Module 2's inheritance rule, restated as the mechanic: the produced rows' bundles carry the identity the conversion register assigns — for pharmaceutical carton-to-strip conversion, the source manufacturer batch, so the lot's recall reach includes every form it was sold in. The repack entry that produces an anonymous batch has cut the recall trace at exactly the point a regulator will ask about.</p><p><b>5. Sales and deliveries.</b> The Delivery Note and POS sale of batched goods carry the batch on the row (the ZhiftPOS track covers the till's batch prompt). The delivered batch is the downstream trace's raw material: Chapter 7's who-received-it question is answered by delivery bundles, and it is answerable exactly where this discipline held.</p><p><b>6. Counts.</b> Module 4's counts of controlled items count <b>per batch</b> — the count sheet lists batch lines, and the identity audit rides the count: expiries on labels re-checked against Batch records, unlisted batches on the shelf flagged (stock present under a batch the system never received is a receiving bypass surfacing). The count is where dock-discipline debt comes due; a clean identity count is the cheapest evidence the whole module is working.</p><p><b>The one-line summary of the chapter:</b> identity is captured once, from the physical goods, at the boundary — and after that, every document names it and every handover confirms it. There is no later, cheaper place to fix identity than the dock.</p>"
+   },
+   {
+    "title": "Chapter 6 — Expiry management",
+    "est": "12",
+    "html": "<p>Expiry management is arithmetic on Batch expiry dates plus three lanes. This chapter is the reads and the lanes.</p><p><b>1. The data precondition.</b> Every read below computes from the Expiry Date on Batch records, entered at the dock from printed labels (Chapters 3, 5). The reads are exactly as good as that field; the monthly identity audit riding the counts (Chapter 5) is what keeps it good.</p><p><b>2. The expiry reads, by horizon.</b></p><p>1. <b>The expired list (weekly):</b> batches past expiry with balance on hand, per warehouse. Target: zero — expired stock should have left the trading warehouses through the lanes below before its date. Every line on this list is a lane that did not run in time, and the line's age is the process gap's size.<br>2. <b>The 90-day list (monthly, with the close):</b> batches expiring within ninety days, with quantities, values, and locations. This is the working list — the horizon at which the near-expiry lanes below still have room to act. The ninety-day window is the policy's number; set it to the longest lane's lead time (a return-to-vendor negotiation takes weeks; a markdown programme takes a sell-through cycle).<br>3. <b>The horizon profile (quarterly, to the owner):</b> stock value by expiry band — beyond a year, six-to-twelve months, ninety days to six months, inside ninety. The profile is purchasing feedback: a fattening short band means buying is outrunning sell-through, and the figure goes to the procurement owner as data with the affected items named.</p><p><b>3. The near-expiry lanes.</b> Per the written policy, in preference order:</p><p>1. <b>Accelerated sale</b> — the markdown per the concession rules (the ZhiftPOS track's markdown machinery, with the near-expiry reason code), moving the stock while it is lawful to sell, at a price the policy sets by remaining life.<br>2. <b>Return to vendor</b> — where supplier terms allow near-expiry returns: the Procurement track's return flow, initiated inside the terms' window, with the batch named on the return.<br>3. <b>Inter-branch rebalancing</b> — the batch moved to the site that sells it fastest (module 7's sell-through data names the site), through the standard transfer with its identity.</p><p><b>4. The expired lane.</b> Stock that reaches expiry:</p><p>1. <b>Blocked from sale</b> — the expiry controls stop expired batches from posting on outgoing sales documents per the site's configuration, and the batch is disabled per Chapter 3's hygiene where the block needs reinforcing.<br>2. <b>Moved to quarantine by document</b> — off the pickable balance, awaiting disposal.<br>3. <b>Written off through the damage/expiry lane</b> (module 2, Chapter 3): the issue naming the batch, the value to the expiry account, the approval per the ladder, and the disposal per the regulatory procedure the compliance owner runs — the stock issue and the disposal record citing each other.</p><p><b>5. The monthly expiry meeting note.</b> One paragraph with the close: the expired list's state (target zero, exceptions aged and explained), the 90-day list's total and its three largest lines with their chosen lanes, and the write-off total for the month against its approvals. Expiry losses are decided expenses; the note is how they stay decided rather than discovered.</p>"
+   },
+   {
+    "title": "Chapter 7 — The recall and freeze procedure",
     "est": "13",
-    "html": "<p>Both trading tracks met identity at their gates — Selling reading it out, Procurement writing it in. This module is identity's own curriculum: the warehouse lives with these records every day, and the warehouse is where they earn their keep or rot.</p><p><b>The two systems, distinguished precisely.</b> A <b>serial number</b> makes each UNIT an individual: one serial, one physical thing, one biography — received here, sits there, delivered to them, returned, serviced. A serial exists in exactly one place at a time (or one state: delivered, in stock, returned), which is what makes it a biography rather than a tally. A <b>batch</b> makes units MEMBERS of a lot: one batch, many units, one shared story — the same production run, the same expiry, the same recall fate. A batch, unlike a serial, lives in many places at once: B-1147 can hold 60 cartons at Central, 25 at Ibadan, 5 in transit, and the batch's position is a per-warehouse read. Serial answers <i>which one?</i>; batch answers <i>which lot, and how much of it, where?</i></p><p><b>What each enables — the coverage bought.</b> Serials buy: warranty and service anchoring (the chiller's plate number opening its file), theft and swap detection (the unit that returns is provably the unit that left), unit-level custody in transfers and audits. Batches buy: expiry management and FEFO (Chapter 4), the recall in both directions (Chapter 5), and quality attribution by production run. Neither is free: every gate slows by the capture minutes, every movement carries the bookkeeping, and the flags are why — which makes the flag decision an ARCHITECTURE decision, not a preference.</p><p><b>The flag decision, revisited as architecture.</b> Buying 2 set the flags at item creation; this chapter is the reasoning at full depth. Serialize where the unit is individually valuable, serviceable, or fraud-attractive (equipment, devices, high-value electronics); batch where goods expire, are regulated, or fail by production run (pharma, food, cosmetics — for your clients, most of the shelf); NEITHER where the item is cheap, stable, and interchangeable (the biro needs no biography). The costs of getting it wrong are asymmetric and both real: flags ON without operational need is a permanent tax on every gate for coverage nobody reads (Chapter 9's identity theatre); flags OFF where regulation or service needs them is a retrofit — and the retrofit is genuinely painful: existing unidentified stock cannot retroactively acquire provenance, so the transition is a managed cutover (existing stock counted into identified form with honest unknowns marked), not a checkbox. Decide at item birth with the ten-year view; the item architecture chapter said it, and now you can see everything it was protecting.</p>"
+    "html": "<p>A recall names a batch; the business must stop it, find it, and account for it — fast. This chapter is the written procedure, executable by whoever is on duty.</p><p><b>1. The trigger.</b> A regulator's letter, a manufacturer's notice, or the business's own quality finding names an item and a batch (or a batch range). The procedure starts the moment the notice is read; the steps below are sequenced for speed, and each has a time target.</p><p><b>2. Step 1 — freeze (target: fifteen minutes from notice).</b></p><p>1. Open the Batch record; set <b>Disabled</b> — new transactions on the batch are blocked network-wide from that moment: no till can sell it, no transfer can move it, at every site simultaneously. This single switch is why manual manufacturer batch numbers matter (Chapter 2): the letter's number is the record's ID, found in one search.<br>2. Notify the sites: one message to the keepers naming the item and batch, instructing physical segregation pending the transfers below.</p><p><b>3. Step 2 — locate (target: minutes, not hours).</b> The batch-wise balance for the batch: quantity per warehouse, network-wide, including transit and subcontract holdings. Print it — this snapshot is the recall file's opening page and the reconciliation base for everything recovered.</p><p><b>4. Step 3 — quarantine (same day).</b> Per site with holdings: a Material Transfer of the batch's balance to the site's quarantine warehouse (module 1's specials doing their job), the physical stock moved and shelf-checked against the batch balance. The transfer documents are the recall file's custody evidence.</p><p><b>5. Step 4 — the downstream trace (same day).</b></p><p>1. <b>Deliveries and sales:</b> the documents whose bundles name the batch — which customers received it, in what quantities, on which dates. The customer-notification list per the regulator's instruction builds from this trace.<br>2. <b>The produced-from trace:</b> repack entries citing the batch (module 2's register and Chapter 5's inheritance) — every form the lot was converted into joins the recall with its own locate-and-quarantine pass. The trace is complete exactly where the inheritance discipline held.<br>3. <b>Returns handling:</b> recalled units returning from customers are received into quarantine by document, against the notification list.</p><p><b>6. Step 5 — the account and the file.</b> The recall file: the notice, the freeze time, the location snapshot, the quarantine transfers, the downstream trace with the notification list, the returns received, and the final disposition (return to manufacturer or destruction per the notice, through the appropriate documented lane, values to the accounts the case rules). The file answers the regulator's follow-up in one folder — the standing one-lookup standard, at its highest stakes.</p><p><b>7. The drill.</b> Twice a year, the compliance owner names a batch and the procedure runs for real up to the quarantine step (transfers reversed after). The drill's two metrics — notice-to-freeze time, freeze-to-located time — are recorded, and every drill finding (the site that missed the message, the repack whose inheritance broke) is fixed at its source. A recall procedure that has never run is a document; the drill is what makes it a capability.</p>"
    },
    {
-    "title": "Chapter 2 — The serial lifecycle: a biography in states",
+    "title": "Chapter 8 — Worked example: the B-1147 recall at HealthTrade",
     "est": "13",
-    "html": "<p>A serialized unit's record is a small dossier the system maintains for life. Reading and trusting that dossier is the skill; this chapter walks the life.</p><p><b>Birth.</b> The serial is born on a Purchase Receipt (Procurement 6's most consequential data entry): captured from the physical unit — the plate, the engraving, the manufacturer's label — never from the packing list. From that entry the dossier opens: item, supplier, purchase document, receipt date, cost. Everything after appends.</p><p><b>The states of a life.</b> At any moment the serial is in exactly one state, and the state answers the operational question: <b>in stock</b> — at a named warehouse (the serial's location is a fact, not a search); <b>in transit</b> — riding a two-step transfer, the room answering for it by name; <b>delivered</b> — with a named customer via a named Delivery Note (the warranty clock's anchor, the proof in any dispute about what was supplied when); <b>returned</b> — back through the return documents, the biography recording the round trip and the triage verdict (restock, quarantine, repair path); and terminal states — written off with its governance, or expired from the system's concern by policy. The dossier is the union of the states: any serial, any moment, one screen answers where it is, where it has been, and by which documents.</p><p><b>Movements by name.</b> Serialized stock never moves as a quantity — every movement names its serials: the transfer lists which units ride the truck (and the receiving branch confirms those units arrived — the swap-en-route catch), the delivery lists which units the customer got (the exact-unit dispute-ender), the write-off names its dead. The bookkeeping cost is real and the purchase is precision: quantity-level custody says three chillers left; serial-level custody says WHICH three, and only one of those statements survives contact with a warranty claim, a theft investigation, or an insurance file.</p><p><b>The service anchor.</b> For equipment trade, the serial is where after-sales lives: the service history appended per unit, the warranty window computed from the delivery's date, the repeat-failure pattern visible per unit and per batch-of-units (three failures on units from one receipt is a supplier conversation with evidence). The consultant selling serialization to a client sells THIS — not compliance, but the end of every argument that begins <i>the one we bought from you</i>: the dossier either shows that unit, that date, that document — or shows the unit was never yours, which ends a different and more expensive argument (the counterfeit warranty claim, the unit bought elsewhere seeking your service). The impossible return from Selling 5 is this chapter's machinery doing its outbound job.</p><p><b>Reading the dossier as diagnosis.</b> Like the stock ledger it lives inside, the serial's history is the first stop when a unit's story is disputed: the state that surprises decomposes into its documents. A serial in stock that cannot be found is a count matter (module 4); a serial delivered that the customer denies is a POD matter (the DN's evidence); a serial that appears twice is Chapter 6's ghost hunt. The dossier does not argue; it cites.</p>"
+    "html": "<p>This chapter runs the Chapter 7 procedure on a real morning. Values and timings are listed per step.</p><p><b>The trigger.</b> A regulator's letter arrives at 08:40 on a Tuesday: a manufacturer-level quality recall naming PARA-500, batch <b>B-1147</b>.</p><p><b>Step 1 — freeze, 08:40-08:55.</b> The stock manager opens Batch B-1147 — one search, because receiving discipline stored the manufacturer's own number — and sets Disabled. All three sites see the block at once: the Ibadan till's attempt to sell a strip of the batch at 09:10 is refused by the system before the branch has finished reading the notification message. The keeper message goes out at 08:52 naming the item, the batch, and the segregation instruction. Notice-to-freeze: fifteen minutes.</p><p><b>Step 2 — locate, by 09:05.</b> The batch-wise balance prints the network snapshot: <b>34 cartons at Central, 12 at Ibadan, 0 at Akure</b> (Akure's PARA-500 stock was always a different lot — the batch balance proves it in one line, sparing Akure the shelf sweep), <b>0 in transit</b>. The snapshot files as page one.</p><p><b>Step 3 — quarantine, same morning.</b> Central: one transfer, 34 cartons to <i>Central - Quarantine</i>, shelf-checked. Ibadan: 12 cartons to a segregated, labelled area per the branch procedure and transferred in the system to the quarantine designation the site uses. Both transfers file as custody evidence.</p><p><b>Step 4 — the downstream trace, same day.</b></p><p>1. The delivery and sales documents citing B-1147 list the wholesale customers who received the batch and the quantities; the notification list builds from it and goes out per the letter's instruction.<br>2. The produced-from trace: module 2's repack register shows the standing carton-to-strip conversion, and the repack entries citing B-1147 account for <b>88 retail strips at Central produced from the batch</b> — the strips inherit the recall, are located by the same batch balance (the inheritance discipline paying at the exact moment it exists for), and join the quarantine transfer.<br>3. Returns: two wholesale customers return their holdings over the following week, received into quarantine against the notification list.</p><p><b>Step 5 — the account.</b> The final disposition per the manufacturer's instruction: the quarantined stock returns to the manufacturer, documented through the return flow with the batch named, the credit handled by the Procurement track's lanes. The recall file closes: notice, timings, snapshot, transfers, trace, notification list, returns, disposition — one folder, and the regulator's follow-up inspection three weeks later is answered from it in one sitting.</p><p><b>The findings, flat.</b> Two process notes from the live run, both fixed within the week: the Ibadan keeper message went to the keeper's personal line rather than the duty channel (the notification list on the procedure corrected to the duty channel); and one wholesale delivery from the trace pre-dated batch capture on that customer's document type (a configuration gap from the go-live era — the affected document class confirmed batch-mandatory, and the customer contacted from the receipt-date range instead). The drill calendar adopts the real run's timings as its baseline: fifteen minutes to freeze, twenty-five to located.</p>"
    },
    {
-    "title": "Chapter 3 — The batch lifecycle: the lot across the network",
-    "est": "13",
-    "html": "<p>A batch is a population, and managing it is demography: how much of lot B-1147 exists, where, in what states, expiring when. The mechanics differ from serials in exactly the ways that matter operationally.</p><p><b>Birth and the shared facts.</b> The batch is born at receipt — lot number and <b>expiry</b> keyed from the physical cartons (the entry FEFO and the recall both stand on). Its shared facts bind every member unit: one expiry, one supplier provenance (via the receipt), one quality fate. Multiple receipts can feed one batch (the same lot arriving in two drops — the same lot number keys to the same batch record) and one item holds many live batches simultaneously — the normal state of a pharmacy shelf.</p><p><b>The per-warehouse position.</b> Unlike a serial, a batch disperses: its balance is a GRID — batch × warehouse — and the batch-wise stock read answers the demographic questions: B-1147 holds 60 at Central, 25 at Ibadan, 5 in transit; B-1152, younger, holds 180 at Central untouched. Movements draw down the batch at the source and build it at the target — the batch splits across rooms without losing identity, and every split is ledgered. The read matters daily (which batch does Ibadan actually hold?) and existentially in the recall (Chapter 5's first question is exactly this grid).</p><p><b>Batches do not merge.</b> The rule with no exceptions: two lots are two lots forever. The temptation arrives at the shelf (the half-carton of B-1147 topped up from B-1152's carton — one bin, mixed physically) and at the desk (the clerk recording the mixed shelf as one batch for tidiness). Physical mixing may be a shelf reality the firm manages (or prohibits — pharma practice generally prohibits it precisely for this reason); LEDGER mixing is never acceptable: the recorded quantities stay per-batch, picked per-batch, sold per-batch — because a merged record cannot be unmerged the day NAFDAC names one of the two lots, and the merged shelf's whole quantity inherits the recall. Keep lots distinct in the record, and where the physical shelf must hold two, the pick discipline (Chapter 4's FEFO plus batch selection at the till) keeps the record true.</p><p><b>Batch attributes beyond expiry.</b> The batch record carries what the lot shares: manufacturing date where captured, the supplier's own lot references (the cross-walk NAFDAC correspondence uses), and quality notes appended by inspections or incidents — the batch that drew a customer complaint carries the note, and the second complaint against the same lot is a pattern the record surfaces (quarantine the remainder pending review: the fork, batch-triggered).</p><p><b>The batch as cost carrier.</b> Where valuation runs at batch granularity, each lot carries its own cost story (the January import's landed rate vs March's), and margin reads per batch become possible — the operational payoff being honest answers to <i>are we making money on the old stock we discounted?</i> Module 5 owns valuation's mechanics; plant the connection: identity granularity and cost granularity are the same decision seen from two chairs.</p>"
-   },
-   {
-    "title": "Chapter 4 — Expiry operations: the horizon, FEFO & the markdown",
-    "est": "14",
-    "html": "<p>For your pharmacy, food, and FMCG clients, expiry is the identity system's daily workout — and the difference between a managed horizon and an annual write-off shock is entirely operational discipline. This chapter is that discipline.</p><p><b>The horizon read.</b> The standing report: batch balances by days-to-expiry — expired (should be zero in stock, quarantined pending disposal), 0-30 days, 31-60, 61-90, beyond. Read weekly at minimum, per warehouse (the network's expiry is not one number: Central's fresh pallets and Ibadan's aging shelf are different problems), and read as a WORKLIST: each near bucket's lines carry a decision owner. The horizon's whole purpose is converting expiry from an event that happens TO the firm into a pipeline the firm works.</p><p><b>FEFO in operation.</b> First-Expired-First-Out: picks and sales draw the earliest-expiring batch first. The system's role is suggestion and enforcement at the pick/sale moment (the batch offered first is the earliest-dated with stock at that warehouse); the human role is compliance and honest exception — the override exists (the customer who needs the longest dating for their own shelf life gets it; an export order's minimum-dating clause binds), and the override is LOGGED, because habitual override is how FEFO dies quietly: the pickers grabbing the front row, the fresh batch bleeding out while the old one ages to death at the back. The FEFO-compliance read (overrides by user and reason, monthly) is the discipline's heartbeat — near-total compliance with occasional explained exceptions is health; drift is the write-off line's future.</p><p><b>The markdown ladder.</b> Between fresh and dead sits the decision zone, and the firm's SHORT-DATING POLICY is a ladder written in advance: at N days remaining, flag for push (front-of-shelf, staff awareness); at M days, markdown per the discount authority (Selling 3's rules — the policy IS a pricing rule, pre-approved, not a per-carton negotiation); at the floor, the channels of last honest resort where the trade allows (the bulk-to-institutional sale with dating disclosed); past saleable, quarantine for disposal. Every rung is cheaper than the rung below it, which is the whole argument for working the horizon early: the ₦9,600 carton sold at ₦8,200 in month one of the window beats the ₦9,600 write-off in month three, every time, and the ladder makes the arithmetic routine instead of painful.</p><p><b>The disposal endgame.</b> Expired regulated goods exit through governance, not the bin: quarantined on expiry (out of sellable truth the day the date passes — the horizon read's expired bucket must be empty of SELLABLE stock, always), written off with Inv 2's signatures and batch-level identity, and physically destroyed per the compliance regime — pharma disposal is witnessed, documented, and filed, with the write-off document part of the evidence chain, not a substitute for it. The batch biography ends: born at receipt, lived across the grid, died with paperwork.</p><p><b>The upstream feedback.</b> Expiry losses are a message, and the horizon's trend is the envelope: chronic short-dating losses on a line indict buying quantities (Procurement 2-3's planning fields — buying past the sell-through), gate acceptance (Procurement 6's minimum-dating rule too loose), or velocity assumptions (the item slowed and the buying never heard). The monthly expiry-loss read, by item and cause, is the warehouse telling procurement the truth — and this track giving the earlier tracks their feedback loop.</p>"
-   },
-   {
-    "title": "Chapter 5 — The recall run-book",
-    "est": "15",
-    "html": "<p>The recall is the identity system's final exam, and it is taken under time pressure with a regulator watching. This chapter turns the drill both earlier tracks previewed into a RUN-BOOK — the written procedure a competent team executes in hours, not weeks.</p><p><b>The trigger.</b> NAFDAC (or the manufacturer) names a batch. The clock starts. The run-book's steps, in order, each with its instrument:</p><ul><li><b>Step 1 — freeze the batch (minutes).</b> The named lot is blocked from sale and movement network-wide: batch-level hold, tills and pickers warned, the batch's per-warehouse grid (Chapter 3) pulled as the working document. Nothing else proceeds until nothing of the lot can move.</li><li><b>Step 2 — the inbound trace (minutes).</b> The receipt(s) that brought the batch: supplier, PO, dates, quantities, the supplier's own lot references and documentation from the shipment file (Procurement 1 and 6 built this shelf; today it is opened). This is the packet the NAFDAC and manufacturer correspondence runs on.</li><li><b>Step 3 — the holdings sweep (within the hour).</b> Current stock of the lot, per warehouse INCLUDING the logical rooms — the transit balance, the quarantine bay, the repacker's supplier-side room (the repack mapping from Inv 2 traces which produced strips carry the lot). Physical verification against the grid: the counted lot moved to quarantine, every warehouse confirming.</li><li><b>Step 4 — the outbound trace (within hours).</b> Every Delivery Note and sale carrying the batch: customers, branches, quantities, dates — Selling 5's drill executed from the warehouse chair. The output is the CONTACT LIST: who must be told, what they received, when.</li><li><b>Step 5 — customer contact & retrieval.</b> Per the firm's recall policy and the regulator's instruction: notifications out (documented), returns in through the return machinery with batch identity confirmed at the gate (what comes back is provably the lot), retrieved stock into quarantine joining the sweep.</li><li><b>Step 6 — the reconciliation.</b> The closing arithmetic, and the step that separates a defensible recall from a hopeful one: <b>received − sold − held − returned − written-off = zero</b>, per warehouse, documented. Every unit of the lot accounted for by a ledger line; the residual, if any, named and hunted. This page is what the regulator, the manufacturer, and your own counsel each want, and the identity disciplines of two tracks exist so this page can be produced.</li></ul><p><b>The run-book as artifact.</b> Written, owned, and DRILLED: the annual mock recall (pick a batch, run the book, time it) is cheap insurance that finds the gaps on a Tuesday instead of during the real letter — the transit room someone forgot to sweep, the branch that receives batch-blind, the repack mapping nobody spot-checked. Target times are set honestly per the firm (hours for a disciplined single-region network) and the mock's timing is the identity system's health certificate. A firm that can produce the reconciliation page in four hours is a firm whose gates, movements, and records all held; every failure mode in this module's Chapter 9 shows up first as a mock-recall gap.</p>"
-   },
-   {
-    "title": "Chapter 6 — Identity hygiene: ghosts, orphans & the audits",
-    "est": "13",
-    "html": "<p>Identity records drift from reality exactly as quantities do, and the drift has its own bestiary. This chapter names the creatures and installs the audits that hunt them.</p><p><b>The bestiary.</b> <b>Ghost serials</b>: recorded units that do not physically exist — born from packing-list capture (the list said five, four arrived), duplicate keying, or receipts of units later swapped. A ghost sits in stock forever, inflates the count expectation, and surfaces as the impossible situation (the unit sold that was never here, the audit that cannot find it). <b>Orphan batches</b>: quantity in a batch the physical shelf cannot show, or shelf stock whose batch the record cannot name — born from batch-blind movements (the transfer that carried quantity but not lot), lazy till picks (sold from B-1147 on screen, handed from B-1152 by hand), and capture skipped at busy gates. Orphans are the recall's nightmare: the reconciliation that will not zero. <b>The double life</b>: one physical unit under two records (re-keyed on a correction that never voided the original) — the audit finds it as a serial in two states at once.</p><p><b>The serial audit.</b> Periodic, warehouse by warehouse: the system's in-stock serial list against a physical scan or sight of the units. Three outcomes per line: matched (the healthy majority), recorded-not-found (ghost candidates — investigated before written off: mis-shelved? in an unrecorded state? actually gone, which is a custody matter for module 4's machinery), found-not-recorded (the reverse ghost — a unit with no record, entered with Inv 2's found-stock discipline and a hard look at which gate leaked). Cadence follows value: high-value serial stock quarterly; the audit rides the counting programme module 4 builds rather than duplicating it.</p><p><b>The batch integrity read.</b> The batch equivalent, run as arithmetic before it is run as legwork: per item, the sum of batch balances must equal the bin's actual (a gap means quantity moving batch-blind somewhere — find the leaking document type); expired batches must show zero sellable (the horizon's standing rule); and the spot-check at counts — shelf cartons' printed lots against the recorded batch mix for that warehouse — catches the till-pick drift (screen says B-1147, hand said B-1152) before it compounds. Where drift is found, the correction is a documented batch adjustment with a reason, and the FIX is upstream: the till discipline retrained, the gate's capture tightened, the transfer receiving made batch-level (Inv 2's rule, now with its enforcement audit).</p><p><b>Overrides and exceptions, read monthly.</b> The identity system's pressure valves — FEFO overrides, manual batch selections, serial substitutions at delivery — are each legitimate singly and diagnostic in aggregate: the monthly exceptions read by user, item, and reason shows where the discipline bends, and chronic bending at one till, one gate, or one item is a training or design conversation the read triggers. The principle across all of it is module 1's, applied to identity: <b>the records are testimony, and the audits are how testimony keeps its credibility</b> — cheap, calendared, and boring when everything is fine, which is precisely the state they exist to certify.</p>"
-   },
-   {
-    "title": "Chapter 7 — Identity in the daily flow",
-    "est": "13",
-    "html": "<p>Identity is not a crisis feature; it is a daily habit, and this chapter walks it through the ordinary day so the crisis chapters stay theoretical.</p><p><b>At the till and the counter.</b> Batch-tracked sales pick a batch at the moment of sale — FEFO offering the earliest, the pick confirmed against the physical carton in hand (the two-second glance at the printed lot that keeps the record true). The friction is real and small; the design answers keep it small: barcodes carrying batch where the trade supports them, the shelf discipline that FEFO's physical layout mirrors the system's suggestion (earliest at the front — the stocker enforces FEFO before the till ever asks), and the till trained that the batch line is custody, not ceremony. Serial sales are rarer and slower by nature (the unit's number confirmed at handover) and the slowness is the product: the customer watches their unit's identity recorded, which is the warranty's first document.</p><p><b>In transfers.</b> Inv 2 gave the rule; identity gives it teeth: dispatches list the batches and serials riding; the receiving branch confirms IDENTITY, not just quantity — 20 cartons arrived, but WHICH lots? The batch-level receipt is minutes and it is the only defence against the swap-en-route (good dating dispatched, short dating arrived, the difference sold out the back — a real pattern, and batch-blind receiving is what makes it invisible). The transit shortfall protocol inherits identity too: what is missing is named by lot, which scopes the loss (and the recall exposure, if the lot ever matters) precisely.</p><p><b>In returns.</b> The identity match is the gate's first question: the returning serial is checked against its delivery (the impossible-return catch — the unit we never sold, the unit sold elsewhere seeking our refund); the returning batch is confirmed against what that customer received (the credit claimed on goods from another source). Matches proceed to triage with biography intact; mismatches become a different conversation, held politely and from documents. The return desk with identity discipline is a fraud filter; without it, a laundry.</p><p><b>In repack and internal movements.</b> The mapping rule from Inv 2, now as daily habit: consumed batches to produced outputs recorded per entry, spot-checked per Chapter 6; write-offs and issues naming their lots always (the biography's ending is a ledger line, not a shrug); and quarantine's contents batch-labelled physically and in record — the bay the recall sweeps first should be the bay that answers fastest.</p><p><b>The habit's economics, told honestly.</b> Identity discipline costs seconds at every gate, till, and truck — a real, recurring, visible cost — and pays in events that are rare, invisible when prevented, and catastrophic when unprevented. Teams do not sustain disciplines they experience as pointless taxation, so the consultant's implementation job is making the payoff visible on ordinary days: the monthly identity page (audit results, exceptions read, FEFO compliance, expiry losses trending down) shown to the team that earned it; the mock recall's time posted like a fire-drill record; the war stories (the swap caught, the impossible return refused) told. The firms whose identity systems still work in year three are the firms where the team can say what the seconds buy.</p>"
-   },
-   {
-    "title": "Chapter 8 — Case study: the letter arrives at HealthTrade",
-    "est": "16",
-    "html": "<p>The module's threads converge on one Tuesday morning: a NAFDAC letter names <b>batch B-1147</b> of PARA-500 — a manufacturer-level quality recall, all stock to be quarantined and accounted. The run-book comes off the shelf. Clock: 08:40.</p><p><b>08:40-08:55 — freeze (Ch. 5 step 1).</b> Batch hold applied network-wide; tills at all three sites see the block; the working grid pulled: B-1147 shows 34 cartons at Central, 12 at Ibadan, 0 at Abeokuta (their stock was always B-1152), 0 in transit — and, via the repack mapping, 88 retail strips at Central produced from the lot (Inv 2's entry cited by line). The physical freeze is confirmed by each storekeeper against the grid.</p><p><b>08:55-09:20 — inbound packet (step 2).</b> The receipt that bore B-1147 (Emzor drop one — Procurement 6's case study, now evidence): PO, receipt, quantities, the expiry as captured, Emzor's own lot documentation from the shipment file. The packet goes to the MD for the NAFDAC and Emzor correspondence — twenty-five minutes from letter to a documented inbound story.</p><p><b>09:20-10:30 — holdings verified, outbound traced (steps 3-4).</b> Physical counts confirm the grid (34 + 12 + 88 strips), all moved to quarantine bays, batch-labelled. The outbound trace runs: every DN and sale carrying B-1147 — 118 cartons across six weeks: 74 to four wholesale customers (named, quantified, dated), 44 across branch retail (aggregate, per the trade's nature and the regulator's tiering — retail-level recall handled by point-of-sale notice per the policy). The contact list is real by 10:30.</p><p><b>10:30-12:40 — contact & retrieval begin (step 5).</b> The four wholesale customers notified with their exact quantities and dates (documented); two confirm stock on hand for uplift — the returns will arrive through the gate with batch identity checked (what comes back must BE B-1147). Point-of-sale notices posted per policy. NAFDAC's acknowledgment records the response began same-morning.</p><p><b>12:40 — the reconciliation page (step 6).</b> Received 180 − sold 118 − held 46 (34+12) − repacked-held 16 (the strip equivalent) − written-off 0 = <b>zero unaccounted</b>, per warehouse, every figure a ledger line. Four hours from letter to a page the regulator, the manufacturer, and counsel can each hold. The mock drill run last quarter (3h 50m) predicted the time within minutes — and had already fixed the one gap it found (Ibadan's receiving was confirming quantity but not lot; retrained then, decisive today).</p><p><b>The quiet epilogues (Ch. 4, 6).</b> The same week's serial audit finds one ghost: a chiller serial recorded from a setup-era packing list, never physically present — investigated, written off with its story, and the capture-from-the-unit rule re-taught with a live exhibit. And the expiry horizon, doing its undramatic weekly work, flags B-1152's Ibadan balance entering the 90-day window with velocity too low to clear it: the markdown ladder's first rung (push and front-shelf) executes, and six weeks later the balance clears at full-to-first-rung prices — the write-off that never happened, invisible precisely because the horizon was read. The identity system's year: one crisis passed in four hours, one ghost exorcised, one markdown that saved ₦300k of quiet money — the seconds at the gates, priced.</p>"
-   },
-   {
-    "title": "Chapter 9 — Common mistakes & the third law",
-    "est": "13",
-    "html": "<p>The identity layer's scar tissue — and every disease here shares one anatomy: coverage paid for at the gates and destroyed by a habit. Symptom → disease → fix.</p><p><b>Pattern 1 — the recall that cannot run.</b> Symptom: the letter arrives; the batch's whereabouts are a research project. Disease: capture skipped or faked at the gates (the identity theatre — flags on, discipline off), movements batch-blind, the grid fictional. Fix: painful reconstruction once (supplier documents against sales records — weeks, in the newspapers' shadow), then the gate disciplines with their audits, and the mock recall as the standing certificate that it cannot happen again.</p><p><b>Pattern 2 — FEFO dead by a thousand overrides.</b> Symptom: expiry write-offs climbing while the FEFO flag sits proudly on. Disease: habitual override (Ch. 4) — the front-row grab, the unlogged exception, the fresh batch bleeding out first. Fix: the compliance read by user and reason, the shelf layout that makes FEFO physical, and the ladder worked early so the horizon never becomes a cliff.</p><p><b>Pattern 3 — ghosts in the serial file.</b> Symptom: in-stock serials nobody can produce; impossible sales; audits that will not close. Disease: packing-list capture and duplicate keying (Ch. 2, 6). Fix: capture from the unit as gate law, the periodic serial audit with its three-outcome triage, and ghosts exorcised by documented write-off with the leak that born them named and fixed.</p><p><b>Pattern 4 — the batch-blind branch.</b> Symptom: branch batch records diverge from shelves; the swap-en-route invisible; recall sweeps stall at one site. Disease: quantity-only receiving at transfers (Ch. 7) — identity dying at the network's joints. Fix: batch-level receipt as the transfer gate's rule, the integrity arithmetic (batch sums vs bin actuals) per warehouse monthly, and the mock recall timing each site separately so the weak joint names itself.</p><p><b>Pattern 5 — the merged lot.</b> Symptom: one recorded batch, two physical lots; a recall that must take everything. Disease: ledger mixing for tidiness (Ch. 3). Fix: lots distinct in record without exception, the physical mixing policy decided deliberately (and for pharma, usually prohibited), and the spot-check that compares printed cartons against the recorded mix.</p><p><b>Pattern 6 — identity as decoration.</b> Symptom: the flags are on, the reports unread, the audits never run, the team cannot say what the seconds buy. Disease: coverage without operation — cost with no product (Ch. 1, 7). Fix: either OPERATE it (the monthly identity page, the calendar rhythms, the drill) or, for items where the honest answer is that nobody will ever read it, revisit the architecture decision consciously — a flag removed deliberately beats a discipline performed falsely.</p><p><b>The third law.</b> Module 1: the tree is the map of custody. Module 2: stock moves only by documents. This module: <b>identity is operational, not decorative — a serial or batch captured but never read is cost without coverage, and a discipline read daily makes the crisis drill just Tuesday.</b> Capture from the goods, move by name, receive by lot, pick by expiry, audit on the calendar, and drill the run-book — and the letter, when it comes, is four hours of executing a procedure instead of four weeks of archaeology.</p>"
+    "title": "Chapter 9 — Common errors and the module rule",
+    "est": "11",
+    "html": "<p>The errors that recur in identity operations, each with its correction and prevention.</p><p><b>Error 1 — system batches over manufacturer lots.</b> Symptom: auto-created batch numbers on regulated goods; a recall letter naming a number the system has never heard of; the freeze step becoming a research project. Correction: the posture switched to manual capture; existing lots re-identified by remediation where feasible. Prevention: the control register's posture per class — manual manufacturer numbers wherever a recall can name them.</p><p><b>Error 2 — expiry from the packing list.</b> Symptom: expiry dates entered from paperwork rather than labels; the expiry reads mis-scheduled for the life of every mis-entered lot. Correction: the identity audit re-checking labels against Batch records; corrections documented. Prevention: the dock rule — dates from the printed label, confirmed by the second signature.</p><p><b>Error 3 — identity unconfirmed at handover.</b> Symptom: transfers received on quantity alone; batch balances wrong at both sites while totals reconcile. Correction: the affected batches recounted per site and corrected by document. Prevention: the receiving procedure's explicit batch comparison — identity, not just quantity.</p><p><b>Error 4 — the broken inheritance.</b> Symptom: repacks producing anonymous or new batches; the recall trace stopping at the conversion; retail stock unreachable by the lot that made it. Correction: produced batches re-linked to sources where records allow; the register's inheritance rule enforced. Prevention: module 2's conversion register carrying the batch handling per conversion, and the monthly repack read checking it.</p><p><b>Error 5 — the paper procedure.</b> Symptom: a recall procedure that exists as a document and has never run; the first live recall spent learning the tools. Correction: the drill run now. Prevention: the twice-yearly drill with recorded timings and source-fixed findings.</p><p><b>Error 6 — expired stock on the shelf.</b> Symptom: the expired list carrying aged lines; expired goods pickable; write-offs discovered rather than decided. Correction: the expired lane run — quarantine, write-off with approvals, disposal per compliance. Prevention: the weekly expired read at target zero and the 90-day working list feeding the near-expiry lanes in time.</p><p><b>Review list.</b> Before the quiz, confirm you can: state the two identities and what each buys; configure an item from the control register — batch posture, expiry, shelf life, serials, warranty — and state why flags precede stock; create and read Batch records, the batch-wise balance, and the bundle mechanics including multi-batch rows and first-expiry-first-out; operate Serial No capture at receipt, verification at delivery, and the location census; run every movement with identity — the dock discipline, transfer confirmation, per-batch issues, repack inheritance, delivery bundles, per-batch counts; run the expiry reads and lanes on their cadences; and execute the recall procedure to its time targets with the drill.</p><p><b>Module rule 3: identity travels with the stock — captured once from the physical goods at the dock, named on every movement and confirmed at every handover, expiries read on their horizons, and any batch freezable and locatable across the network in minutes.</b> Module 4 covers stock reconciliation and counting.</p>"
    }
   ],
   "questions": [
    {
-    "q": "A serial vs a batch:",
+    "q": "Batch identity tracks:",
     "opts": [
-     "One unit's biography vs a lot's shared story — which one? vs which lot, how much, where?",
-     "Are interchangeable",
-     "Differ only in length",
-     "Are both per-warehouse grids"
+     "The lot — units made together sharing a number, an expiry, and a fate",
+     "Each unit",
+     "The price",
+     "The supplier"
     ],
     "ans": 0,
-    "why": "A serial exists in one place/state; a batch disperses.",
+    "why": "One Batch record covers many units.",
     "src": "Ch1"
    },
    {
-    "q": "The flag decision is:",
+    "q": "Serial identity tracks:",
     "opts": [
-     "A preference toggled anytime",
-     "Architecture — set at item birth with the ten-year view; the retrofit is a managed cutover",
-     "Automatic",
-     "The storekeeper's call"
+     "The lot",
+     "The unit — each piece with its own number and its own document history",
+     "The warehouse",
+     "The invoice"
     ],
     "ans": 1,
-    "why": "Existing unidentified stock cannot retroactively acquire provenance.",
+    "why": "One Serial No record per unit.",
     "src": "Ch1"
    },
    {
-    "q": "Flags ON without operational need is:",
+    "q": "Identity tracking's cost is:",
     "opts": [
-     "Safe redundancy",
-     "Best practice",
-     "A permanent tax on every gate for coverage nobody reads — identity theatre",
-     "Free"
+     "Storage",
+     "Licence fees",
+     "A step on every movement — front-loaded at the receiving dock",
+     "Slower reports"
     ],
     "ans": 2,
-    "why": "Both wrong directions cost; this one costs daily.",
-    "src": "Ch1, Ch9"
+    "why": "Skipped dock discipline is paid back at every count and recall.",
+    "src": "Ch1"
    },
    {
-    "q": "A serial's state at any moment:",
+    "q": "The manual-batch posture on pharmaceuticals exists because:",
     "opts": [
-     "Is ambiguous",
-     "Is a range",
-     "Depends on reports",
-     "Is exactly one — in stock at a place, in transit, delivered, returned, or terminal"
+     "It is faster",
+     "Auditors prefer it",
+     "Series cost money",
+     "The recall letter names the manufacturer's number — the system must hold that number, not a substitute"
     ],
     "ans": 3,
-    "why": "The dossier answers where, where it has been, and by which documents.",
+    "why": "One search at freeze time.",
     "src": "Ch2"
    },
    {
-    "q": "Serialized stock moves:",
+    "q": "Shelf Life proposes expiry:",
     "opts": [
-     "By name — every movement lists its serials; the receiver confirms those units",
-     "As quantities",
-     "By weight",
-     "Without documents"
+     "As a proposal the receiver corrects to the printed label — never a substitute for reading it",
+     "As the final value",
+     "From the invoice",
+     "Randomly"
     ],
     "ans": 0,
-    "why": "Quantity custody says three left; serial custody says WHICH three.",
+    "why": "The label rule.",
     "src": "Ch2"
    },
    {
-    "q": "The serial's commercial sales pitch is:",
+    "q": "Identity flags are set:",
     "opts": [
-     "Compliance",
-     "The end of every argument that begins 'the one we bought from you' — the dossier cites",
-     "Speed",
-     "Cheaper gates"
-    ],
-    "ans": 1,
-    "why": "Including the counterfeit warranty claim it refuses.",
-    "src": "Ch2"
-   },
-   {
-    "q": "A batch's balance is:",
-    "opts": [
-     "One number",
-     "The receipt quantity forever",
-     "A grid — batch × warehouse, drawn down and built up by ledgered movements",
-     "Unknowable"
-    ],
-    "ans": 2,
-    "why": "The recall's first question is exactly this grid.",
-    "src": "Ch3"
-   },
-   {
-    "q": "Batches merge:",
-    "opts": [
-     "When convenient",
-     "At the shelf's discretion",
+     "After stock arrives",
+     "Before stock exists — retro-fitting over un-batched stock is a documented remediation, not a checkbox",
      "Monthly",
-     "Never — two lots are two lots forever; a merged record cannot be unmerged when NAFDAC names one"
-    ],
-    "ans": 3,
-    "why": "The merged shelf's whole quantity inherits the recall.",
-    "src": "Ch3"
-   },
-   {
-    "q": "A second complaint against the same lot:",
-    "opts": [
-     "Is a pattern the batch record surfaces — quarantine the remainder pending review",
-     "Is coincidence",
-     "Closes the file",
-     "Blames the till"
-    ],
-    "ans": 0,
-    "why": "Quality notes append to the lot's shared story.",
-    "src": "Ch3"
-   },
-   {
-    "q": "The horizon read buckets stock by:",
-    "opts": [
-     "Price",
-     "Days-to-expiry, per warehouse, read as a worklist with decision owners",
-     "Supplier",
-     "Color"
+     "Per transaction"
     ],
     "ans": 1,
-    "why": "Expiry becomes a pipeline the firm works, not an event that happens to it.",
-    "src": "Ch4"
+    "why": "The register read catches exceptions before receipt.",
+    "src": "Ch2"
    },
    {
-    "q": "FEFO overrides are:",
+    "q": "The control register carries:",
     "opts": [
-     "Forbidden",
-     "Automatic",
-     "Legitimate singly and LOGGED — habitual override is how FEFO dies quietly",
-     "Unrecorded"
-    ],
-    "ans": 2,
-    "why": "The compliance read is the discipline's heartbeat.",
-    "src": "Ch4"
-   },
-   {
-    "q": "The markdown ladder's economics:",
-    "opts": [
-     "Favor waiting",
-     "Require negotiation per carton",
-     "Are neutral",
-     "Every rung is cheaper than the rung below — ₦8,200 in month one beats ₦0 in month three"
-    ],
-    "ans": 3,
-    "why": "The policy is a pre-approved pricing rule.",
-    "src": "Ch4"
-   },
-   {
-    "q": "The horizon's expired bucket must show:",
-    "opts": [
-     "Zero SELLABLE stock — quarantined the day the date passes",
-     "Whatever it shows",
-     "Discounted goods",
-     "Central only"
-    ],
-    "ans": 0,
-    "why": "Then governed write-off and compliant destruction.",
-    "src": "Ch4"
-   },
-   {
-    "q": "Chronic expiry losses indict:",
-    "opts": [
-     "Only the warehouse",
-     "Buying quantities, gate dating rules, or velocity assumptions — the warehouse telling procurement the truth",
-     "The weather",
-     "Customers"
-    ],
-    "ans": 1,
-    "why": "This track gives the earlier tracks their feedback loop.",
-    "src": "Ch4"
-   },
-   {
-    "q": "The recall run-book's first step is:",
-    "opts": [
-     "Calling customers",
-     "The press release",
-     "Freezing the batch network-wide — nothing else until nothing of the lot can move",
-     "The write-off"
-    ],
-    "ans": 2,
-    "why": "Hold, warn, pull the grid.",
-    "src": "Ch5"
-   },
-   {
-    "q": "The holdings sweep includes:",
-    "opts": [
-     "Sales floors only",
-     "Whatever is convenient",
-     "Central only",
-     "Every warehouse INCLUDING the logical rooms — transit, quarantine, the repacker's stock, repack outputs"
-    ],
-    "ans": 3,
-    "why": "The repack mapping traces which strips carry the lot.",
-    "src": "Ch5"
-   },
-   {
-    "q": "The reconciliation page computes:",
-    "opts": [
-     "Received − sold − held − returned − written-off = zero, per warehouse, every figure a ledger line",
-     "A rough estimate",
-     "Sales totals",
-     "Blame"
-    ],
-    "ans": 0,
-    "why": "The page regulator, manufacturer, and counsel each want.",
-    "src": "Ch5"
-   },
-   {
-    "q": "The annual mock recall:",
-    "opts": [
-     "Is theatre",
-     "Finds the gaps on a Tuesday instead of during the real letter — its timing is the health certificate",
-     "Wastes a day",
-     "Is for big firms only"
-    ],
-    "ans": 1,
-    "why": "Every Chapter 9 failure shows up first as a mock gap.",
-    "src": "Ch5"
-   },
-   {
-    "q": "A ghost serial is:",
-    "opts": [
-     "A deleted record",
-     "An old unit",
-     "A recorded unit that does not physically exist — born from packing-list capture or duplicate keying",
-     "A returned unit"
-    ],
-    "ans": 2,
-    "why": "It inflates expectations and surfaces as the impossible situation.",
-    "src": "Ch6"
-   },
-   {
-    "q": "The serial audit's three outcomes are:",
-    "opts": [
-     "Pass, fail, retry",
-     "In, out, lost",
-     "Good, bad, ugly",
-     "Matched; recorded-not-found (investigate before write-off); found-not-recorded (enter with the found-stock discipline)"
-    ],
-    "ans": 3,
-    "why": "And the leaking gate gets named.",
-    "src": "Ch6"
-   },
-   {
-    "q": "The batch integrity arithmetic checks:",
-    "opts": [
-     "Per item, batch balances sum to the bin's actual — a gap means quantity moving batch-blind",
+     "Batch balances",
      "Prices",
-     "Expiry format",
-     "Supplier names"
-    ],
-    "ans": 0,
-    "why": "Find the leaking document type.",
-    "src": "Ch6"
-   },
-   {
-    "q": "The identity exceptions read (overrides, substitutions) is:",
-    "opts": [
-     "Punitive",
-     "Diagnostic in aggregate — chronic bending at one till or gate triggers the conversation",
-     "Ignored",
-     "Daily per line"
-    ],
-    "ans": 1,
-    "why": "Legitimate singly; a pattern in bulk.",
-    "src": "Ch6"
-   },
-   {
-    "q": "At the till, the batch pick is confirmed by:",
-    "opts": [
-     "Trust",
-     "The manager",
-     "The two-second glance at the printed lot in hand — custody, not ceremony",
-     "The customer"
+     "Each item class, its flags, and the reason — new items inherit their class's row at creation",
+     "Keepers"
     ],
     "ans": 2,
-    "why": "Screen-says-B-1147, hand-says-B-1152 is how orphans breed.",
-    "src": "Ch7"
+    "why": "The per-class decision, recorded once.",
+    "src": "Ch2"
    },
    {
-    "q": "Shelf layout under FEFO:",
+    "q": "The Batch expiry date is entered:",
     "opts": [
-     "Is irrelevant",
-     "Is random",
-     "Is newest-first",
-     "Mirrors the system — earliest at the front, the stocker enforcing FEFO before the till asks"
+     "From the packing list",
+     "At month-end",
+     "From shelf life alone",
+     "From the printed label, at the dock, by the receiver, checked by the second signature"
     ],
     "ans": 3,
-    "why": "The physical discipline that makes the system's suggestion natural.",
-    "src": "Ch7"
+    "why": "Chapter 6 hangs on this field.",
+    "src": "Ch3"
+   },
+   {
+    "q": "The batch-wise balance answers:",
+    "opts": [
+     "Where every unit of a lot sits, per warehouse, in one report — the recall's location step",
+     "The price history",
+     "The supplier's name",
+     "The reorder point"
+    ],
+    "ans": 0,
+    "why": "From batch number to network holdings in under a minute.",
+    "src": "Ch3"
+   },
+   {
+    "q": "A document row drawing from several batches:",
+    "opts": [
+     "Is forbidden",
+     "Carries a bundle listing each batch and quantity, summing to the row total",
+     "Picks one batch",
+     "Splits the document"
+    ],
+    "ans": 1,
+    "why": "The Serial and Batch Bundle mechanics.",
+    "src": "Ch3"
+   },
+   {
+    "q": "First-expiry-first-out means:",
+    "opts": [
+     "Oldest receipt ships first",
+     "Cheapest ships first",
+     "The earliest-expiry batch ships first — the picker's expiry visibility makes it executable",
+     "Random picking"
+    ],
+    "ans": 2,
+    "why": "The selection rule for expiring goods.",
+    "src": "Ch3"
+   },
+   {
+    "q": "A document naming batch A over goods picked from batch B is:",
+    "opts": [
+     "A rounding issue",
+     "A discount",
+     "Normal",
+     "An identity error surfacing at the next count or recall, whichever is more expensive"
+    ],
+    "ans": 3,
+    "why": "The batch on the document is the batch picked.",
+    "src": "Ch3"
+   },
+   {
+    "q": "The monthly batch hygiene read covers:",
+    "opts": [
+     "Zero-balance expired batches disabled, fractional balances investigated, and repack inheritance checked",
+     "Prices",
+     "Suppliers",
+     "Warranty claims"
+    ],
+    "ans": 0,
+    "why": "With the stock reads.",
+    "src": "Ch3"
+   },
+   {
+    "q": "Serial numbers are captured from:",
+    "opts": [
+     "The packing list",
+     "The physical units — the list states intent; the units state fact",
+     "Memory",
+     "The order"
+    ],
+    "ans": 1,
+    "why": "Capture at receipt, rule 1.",
+    "src": "Ch4"
+   },
+   {
+    "q": "A duplicate serial at the dock is:",
+    "opts": [
+     "Accepted",
+     "Renumbered silently",
+     "A stopped line — a supplier error to bounce or a data error to fix now",
+     "Ignored"
+    ],
+    "ans": 2,
+    "why": "Cheaper at the dock than at delivery.",
+    "src": "Ch4"
+   },
+   {
+    "q": "The serial location census proves accuracy by:",
+    "opts": [
+     "Value totals",
+     "Estimates",
+     "One direction",
+     "Both directions — five from the list found on the shelf, five from the shelf found in the list"
+    ],
+    "ans": 3,
+    "why": "Ten minutes, quarterly.",
+    "src": "Ch4"
+   },
+   {
+    "q": "A serial in an impossible state means:",
+    "opts": [
+     "A movement bypassed the bundle — an incident to trace",
+     "A feature",
+     "A discount",
+     "Nothing"
+    ],
+    "ans": 0,
+    "why": "The record must agree with its documents.",
+    "src": "Ch4"
+   },
+   {
+    "q": "Mixed-lot deliveries are received as:",
+    "opts": [
+     "One convenient batch",
+     "Split honestly — three lots on one line is three bundle entries",
+     "A rejection",
+     "An average"
+    ],
+    "ans": 1,
+    "why": "The dock discipline.",
+    "src": "Ch5"
    },
    {
     "q": "Transfer receiving confirms:",
     "opts": [
-     "IDENTITY — which lots arrived, the only defence against the swap-en-route",
      "Quantity only",
-     "The driver's name",
-     "Nothing"
-    ],
-    "ans": 0,
-    "why": "Good dating out, short dating in, difference sold out the back — invisible to batch-blind receiving.",
-    "src": "Ch7"
-   },
-   {
-    "q": "The return desk with identity discipline is:",
-    "opts": [
-     "Slower and worse",
-     "A fraud filter — the impossible return and the foreign-source credit refused from documents",
-     "A laundry",
-     "Optional"
-    ],
-    "ans": 1,
-    "why": "Mismatches become a different, polite, documented conversation.",
-    "src": "Ch7"
-   },
-   {
-    "q": "Identity discipline's economics are:",
-    "opts": [
-     "Cost-free",
-     "Always negative",
-     "Visible recurring seconds against rare invisible catastrophes — sustained only when the payoff is shown",
-     "Only regulatory"
+     "Value only",
+     "Identity, not just quantity — 40 cartons of the named batch is the check",
+     "The driver's name"
     ],
     "ans": 2,
-    "why": "The monthly identity page, the drill times, the war stories.",
-    "src": "Ch7"
+    "why": "Wrong-batch receipt corrupts both sites while totals look perfect.",
+    "src": "Ch5"
    },
    {
-    "q": "In the case study, the freeze-to-grid took:",
+    "q": "Repack inheritance means:",
     "opts": [
-     "A day",
-     "An hour per site",
-     "A week",
-     "Fifteen minutes — hold applied, tills blocked, grid pulled including repack outputs"
+     "New anonymous batches",
+     "No batches",
+     "The vendor's batch",
+     "Produced units carry the source manufacturer batch — the lot's recall reach includes every form sold"
     ],
     "ans": 3,
-    "why": "34 + 12 + 88 strips, confirmed by storekeepers.",
-    "src": "Ch8"
+    "why": "The trace must survive conversion.",
+    "src": "Ch5"
    },
    {
-    "q": "The reconciliation landed at:",
+    "q": "Counts of controlled items run:",
     "opts": [
-     "Zero unaccounted in four hours — every figure a ledger line",
-     "Estimates",
-     "Close enough",
-     "Next month"
+     "Per batch, with the identity audit riding the count — labels re-checked, unlisted batches flagged",
+     "By total quantity",
+     "By value",
+     "Annually only"
     ],
     "ans": 0,
-    "why": "The mock drill predicted the time within minutes.",
-    "src": "Ch8"
+    "why": "Where dock-discipline debt comes due.",
+    "src": "Ch5"
    },
    {
-    "q": "The mock drill's one prior finding was:",
+    "q": "The expired list's target is:",
+    "opts": [
+     "Ten lines",
+     "Zero — every line is a lane that did not run in time",
+     "Stable",
+     "Growing"
+    ],
+    "ans": 1,
+    "why": "Weekly, per warehouse.",
+    "src": "Ch6"
+   },
+   {
+    "q": "The 90-day window is sized by:",
+    "opts": [
+     "Tradition",
+     "The regulator",
+     "The longest lane's lead time — returns take weeks; markdowns take a sell-through cycle",
+     "The quarter"
+    ],
+    "ans": 2,
+    "why": "The working list's horizon.",
+    "src": "Ch6"
+   },
+   {
+    "q": "The horizon profile is:",
+    "opts": [
+     "A stock count",
+     "An audit",
+     "A price list",
+     "Purchasing feedback — a fattening short band means buying outruns sell-through, sent as data with items named"
+    ],
+    "ans": 3,
+    "why": "Quarterly, to the owner.",
+    "src": "Ch6"
+   },
+   {
+    "q": "The near-expiry lanes in preference order are:",
+    "opts": [
+     "Accelerated sale, return to vendor inside terms, inter-branch rebalancing to the fastest-selling site",
+     "Write off first",
+     "Hide, hold, hope",
+     "Donate always"
+    ],
+    "ans": 0,
+    "why": "Per the written policy.",
+    "src": "Ch6"
+   },
+   {
+    "q": "The expiry write-off cites:",
     "opts": [
      "Nothing",
-     "Ibadan receiving confirmed quantity but not lot — retrained then, decisive on the day",
-     "A slow printer",
-     "A bad driver"
+     "The batch — and the disposal record and stock issue cite each other",
+     "The supplier",
+     "The till"
     ],
     "ans": 1,
-    "why": "The weak joint named itself on a Tuesday.",
-    "src": "Ch8"
+    "why": "Batch-level documents, both sides.",
+    "src": "Ch6"
    },
    {
-    "q": "The horizon's B-1152 flag produced:",
+    "q": "The freeze step is:",
     "opts": [
-     "A write-off",
-     "A recall",
-     "The ladder's first rung — cleared at full-to-first-rung prices; the write-off that never happened",
-     "Panic"
+     "A memo",
+     "A phone chain",
+     "Disabled on the Batch record — new transactions blocked network-wide from that moment",
+     "A recount"
     ],
     "ans": 2,
-    "why": "Invisible precisely because the horizon was read.",
-    "src": "Ch8"
+    "why": "Fifteen-minute target from notice.",
+    "src": "Ch7"
    },
    {
-    "q": "Expiry write-offs climbing while FEFO is flagged on means:",
+    "q": "The location snapshot is:",
     "opts": [
-     "FEFO works",
-     "Blame suppliers",
-     "Buy less",
-     "FEFO is dead by a thousand overrides — the fresh batch bleeding out first"
+     "Optional",
+     "The invoice list",
+     "A shelf sweep",
+     "The batch-wise balance printed — the recall file's opening page and the recovery reconciliation base"
     ],
     "ans": 3,
-    "why": "The compliance read and the physical shelf revive it.",
-    "src": "Ch9"
+    "why": "Minutes, not hours.",
+    "src": "Ch7"
    },
    {
-    "q": "Identity as decoration is fixed by:",
+    "q": "The downstream trace reads:",
     "opts": [
-     "Operating it — or consciously revisiting the architecture; a flag removed deliberately beats a discipline performed falsely",
-     "More flags",
-     "Bigger reports",
-     "Ignoring it"
+     "The bundles — deliveries naming the batch, and repack entries for every produced form",
+     "Emails",
+     "The price list",
+     "The org chart"
     ],
     "ans": 0,
-    "why": "Cost without coverage is the worst of both.",
-    "src": "Ch9"
+    "why": "Complete exactly where inheritance held.",
+    "src": "Ch7"
    },
    {
-    "q": "The batch-blind branch is caught by:",
+    "q": "The recall drill runs:",
     "opts": [
-     "Luck",
-     "Batch-level receiving as gate rule, monthly integrity arithmetic, and per-site mock timing",
-     "Annual counts",
-     "The driver"
+     "Never",
+     "Twice a year to the quarantine step, timings recorded, findings fixed at source",
+     "Only after incidents",
+     "Weekly"
     ],
     "ans": 1,
-    "why": "Identity dies at the network's joints first.",
-    "src": "Ch9"
+    "why": "A procedure that never ran is a document, not a capability.",
+    "src": "Ch7"
    },
    {
-    "q": "This module's law is:",
+    "q": "B-1147's freeze took:",
     "opts": [
-     "Identity is for audits",
-     "Serials beat batches",
-     "Identity is operational, not decorative — read daily, the crisis drill is just Tuesday",
-     "Flags suffice"
+     "A day",
+     "A week",
+     "Fifteen minutes — one search on the manufacturer's number, Disabled set, all sites blocked at once",
+     "An hour"
     ],
     "ans": 2,
-    "why": "Capture from the goods, move by name, receive by lot, pick by expiry, drill the book.",
+    "why": "08:40 notice, 08:55 frozen.",
+    "src": "Ch8"
+   },
+   {
+    "q": "Akure was spared the shelf sweep because:",
+    "opts": [
+     "It is small",
+     "Nobody called",
+     "It was closed",
+     "The batch balance showed zero — its PARA-500 was always a different lot, proven in one line"
+    ],
+    "ans": 3,
+    "why": "Step 2's snapshot.",
+    "src": "Ch8"
+   },
+   {
+    "q": "The 88 retail strips joined the recall through:",
+    "opts": [
+     "The produced-from trace — repack entries citing B-1147, the strips inheriting the batch",
+     "Luck",
+     "A tip-off",
+     "A recount"
+    ],
+    "ans": 0,
+    "why": "Inheritance paying at the moment it exists for.",
+    "src": "Ch8"
+   },
+   {
+    "q": "The live run's two findings were:",
+    "opts": [
+     "None",
+     "The keeper message on a personal line (moved to the duty channel) and one pre-capture document class (confirmed batch-mandatory)",
+     "Ten failures",
+     "A missing batch"
+    ],
+    "ans": 1,
+    "why": "Both fixed within the week.",
+    "src": "Ch8"
+   },
+   {
+    "q": "Module 3's rule is:",
+    "opts": [
+     "Identity is optional",
+     "Batches are paperwork",
+     "Identity travels with the stock — captured at the dock, named on every movement, confirmed at handovers, expiries read on horizons, any batch freezable and locatable in minutes",
+     "Serials are for equipment only"
+    ],
+    "ans": 2,
+    "why": "The module rule.",
     "src": "Ch9"
    }
   ]
  },
  "counting": {
   "title": "Inventory 4 — Stock Reconciliation & Counting",
-  "desc": "The dialogue between ledger and shelf: the reconciliation document, opening stock at cost, the full count with freeze discipline, the ABC cycle counting programme, variance investigation before adjustment, and shrinkage as a managed number.",
+  "desc": "Stock reconciliation and counting in ZhiftERP: the Stock Reconciliation field walk — the two purposes, the set-to rule, the valuation-rate caution, the Difference Account, and what submission posts; count preparation with cut-off, the freeze setting, blind numbered sheets, and team separations; the floor rules including the double-count pass and the during-count procedure; entry, the recount pass, the threshold ladder, and the keeper review; the variance investigation — the document sweep first, the physical causes, the loss finding with the pattern file, and the upstream fix; and ABC cycle counting with the daily slice and the accuracy metric.",
   "lessons": [
    {
-    "title": "Chapter 1 — Why count: the dialogue",
+    "title": "Chapter 1 — Counting: scope and instruments",
+    "est": "11",
+    "html": "<p>This module covers stock counting and the Stock Reconciliation in ZhiftERP. On completing this module you will be able to: complete the Stock Reconciliation field walk and state what submission posts; prepare a count with cut-off, freeze, and blind sheets; execute the physical count with its team rules; enter results and run the variance review with its threshold ladder; investigate variances to their causes before adjusting; and operate ABC cycle counting with the accuracy metric.</p><p><b>Why counts exist.</b> The records say what should be on the shelf; the count establishes what is. The difference — the variance — is information: a missing document, a process gap, a loss. Counting is not suspicion of the keepers; it is the periodic proof of custody the keepers themselves rely on, and the module's controls protect the counters as much as the stock.</p><p><b>The two instruments.</b></p><p>1. <b>The count procedure</b> — the human process: preparation, blind sheets, teams, execution, review (Chapters 3-5). The procedure produces a verified physical truth.<br>2. <b>The Stock Reconciliation</b> — the document that aligns the records to the verified truth (Chapter 2). It is the last step, never the first: an adjustment posted before investigation converts information into silence.</p><p><b>The count types.</b></p><p>1. <b>The full count</b> — every line in a warehouse (or the business), typically annual, often with the external auditor observing per the Accounts track's year-end.<br>2. <b>The cycle count</b> — a rotating slice counted on a calendar, weighted by value (Chapter 7's ABC design). The cycle count is the working control: small daily effort, continuous accuracy evidence.<br>3. <b>The spot count</b> — unannounced, targeted: a variance pattern, an incident, a handover. Ordered by the stock manager or owner; same procedure at small scale.</p><p><b>Custody and the separations.</b> Module 1's rule operates throughout: the keeper participates in counting but <b>does not approve their own adjustments</b>; sheets are blind (no system quantities shown); the counter and the enterer verify each other through the signed sheet; adjustments post under Stock Manager authority per the value ladder (Chapter 5). No single person can hold the stock, count it, and rewrite its record.</p><p><b>Module contents.</b> Chapter 2: the Stock Reconciliation doctype. Chapter 3: count preparation. Chapter 4: executing the count. Chapter 5: entry and the variance review. Chapter 6: the variance investigation. Chapter 7: ABC cycle counting. Chapter 8: worked example. Chapter 9: review and the module rule.</p>"
+   },
+   {
+    "title": "Chapter 2 — The Stock Reconciliation doctype",
+    "est": "12",
+    "html": "<p>Open Stock Reconciliation (awesome bar) &gt; New. Complete the fields in order, and know what submission posts before ever submitting one.</p><p><b>1. Purpose.</b> Two values:</p><p>• <b>Stock Reconciliation</b> — the standing purpose: aligning existing records to a count.<br>• <b>Opening Stock</b> — the implementation-era purpose: loading opening balances at go-live, with opening rates from the accountant's verified costing (the go-live procedure's territory; the rate check against recent purchase documents is part of it, because an opening rate wrong by a factor propagates into every valuation after it).</p><p><b>2. Posting Date and Time.</b> The count's cut-off moment (Chapter 3) — the reconciliation posts as of the instant the physical truth was established, which is what makes the comparison honest.</p><p><b>3. The Items table.</b> One row per counted line:</p><p>• <b>Item Code</b> and <b>Warehouse</b> — the pair being aligned.<br>• <b>Qty</b> — the verified physical quantity. A row with quantity entered sets the balance <b>to</b> that figure (not by that figure): the reconciliation states the truth, and the system computes the difference itself.<br>• <b>Valuation Rate</b> — normally left to the current ledger rate; entered only when the reconciliation is deliberately revaluing (the accountant's decision, documented — module 5 covers valuation corrections). A rate typed casually here is a valuation event typed casually.<br>• <b>Batch / serial handling</b> — controlled items reconcile per batch (module 3's per-batch counting), the rows carrying their identity.<br>• The <b>fetch tools</b> pull current system quantities into the table for the counted scope — used at entry time to build the comparison, never printed onto count sheets (the blind rule, Chapter 3).</p><p><b>4. The Difference Account.</b> The account the value delta posts to — the stock adjustment account the chart provides, per the accountant's design. The account is set deliberately; the reconciliation's value effect is an accounting entry like any other and lands where the chart says shrinkage and count adjustments live.</p><p><b>5. What submission posts.</b> Per row where the entered quantity differs from the system's: a Stock Ledger Entry adjusting the balance to the stated figure, and the value difference posting between the stock account and the Difference Account. In one sentence: <b>a Stock Reconciliation moves real value with one document</b> — which is why it sits behind the Stock Manager role, the draft review, and the approval ladder, and why every row above the investigation threshold carries its investigation reference (Chapter 6) before submission.</p><p><b>6. Scope discipline.</b> One reconciliation per counted scope (a warehouse, a cycle slice), rows limited to what was actually counted. The reconciliation that includes uncounted lines to tidy them adjusts records against no physical truth — the exact inversion of the instrument's purpose.</p>"
+   },
+   {
+    "title": "Chapter 3 — Count preparation",
+    "est": "12",
+    "html": "<p>A count's quality is decided before anyone touches a shelf. This chapter is the preparation procedure.</p><p><b>1. Scope and schedule.</b> Define the scope (the warehouse, or the cycle slice per Chapter 7's calendar) and the date. Full counts are scheduled clear of peak trading and announced to operations — the count competes with the work otherwise; cycle counts run on their standing calendar; spot counts are unannounced by design.</p><p><b>2. The cut-off.</b> The count compares shelf to records <b>as of one moment</b>. Two ways to hold the moment:</p><p>1. <b>Movements stopped</b> — for full counts: receiving, despatch, and issues for the scope pause for the count window; documents in flight are completed or excluded explicitly (the transit warehouse holds the in-motion stock cleanly — module 2's design paying off at count time).<br>2. <b>The freeze setting</b> — Stock Settings carries the stock-freeze controls: postings dated up to the freeze date are blocked for ordinary roles, with the authorised role named for exceptions. Set the freeze for full counts and year-end; the exception role is held per the sysadmin matrix and every exceptional posting during a freeze carries its reason.</p><p><b>3. Pre-count hygiene.</b> The week before a full count:</p><p>1. Open documents for the scope cleared: drafts submitted or deleted, transit lines received or investigated (the count must not discover what the weekly reads should have), pending returns processed.<br>2. The physical area prepared: stock in its locations, damaged goods already in quarantine by document, unlabelled items resolved.<br>3. The identity audit prepared for controlled lines (module 3): batch labels checkable against records during the count.</p><p><b>4. The blind sheets.</b> Count sheets print the item lines for the scope — item, description, unit, batch lines for controlled items — <b>without system quantities</b>. The blind rule is the count's core control: a counter who can see the expected figure confirms it; a counter who cannot must establish it. Sheets are numbered, issued per area, and every sheet returns signed — issued-versus-returned is the completeness check.</p><p><b>5. The teams.</b></p><p>1. <b>Counter and checker</b> — two people per area: one counts, one records and verifies. The keeper joins the counting (nobody knows the stock better) but per Chapter 1's separation is never the sole counter of their own custody and never the enterer of their own results.<br>2. <b>The coordinator</b> — the stock manager or delegate: issues sheets, resolves questions during the count, receives signed sheets, owns the entry and review stages.<br>3. <b>The auditor's seat</b> — at year-end full counts, the external auditor observes per their procedures; their test counts are facilitated, not shadowed.</p><p><b>6. The briefing.</b> Fifteen minutes before start: the scope, the sheet procedure, the counting unit per line (cartons versus strips — the UoM confusion is the most common count error and the briefing names the unit column explicitly), the damaged-goods rule (found damage is listed and left in place for the document lane, not shuffled off-scope), and the question route to the coordinator.</p>"
+   },
+   {
+    "title": "Chapter 4 — Executing the count",
+    "est": "12",
+    "html": "<p>The physical procedure, stated as rules the teams follow on the floor.</p><p><b>1. Count what is there.</b> The sheet records the physical quantity found, in the sheet's stated unit, per line and per batch line for controlled items. Rules:</p><p>1. <b>Count, do not infer:</b> sealed cartons are counted as cartons only where the policy accepts seal integrity (and the policy says which classes; high-value and regulated classes open per the sampling rule); part cartons are opened and counted in units.<br>2. <b>The unit column governs:</b> every figure is written in the line's stated unit. A count written in strips against a carton line is the error the briefing warned about; the checker's job is exactly this verification.<br>3. <b>Location sweep:</b> the team counts the area, not the list — stock found that is not on the sheet is written onto the sheet's exceptions section with its location (unlisted stock is either mis-shelved, mis-scoped, or a receiving bypass, and each is worth knowing).<br>4. <b>Identity riding along</b> (module 3): batch numbers and expiry labels checked against the sheet's batch lines; disagreements noted on the line — the count is the identity audit's vehicle.</p><p><b>2. Damage and condition.</b> Found damage is recorded on the line's note and the goods left in place: the damage lane (module 2, Chapter 3) runs by document after the count, with the count note as part of its evidence. The count establishes quantity and condition; it does not execute disposals.</p><p><b>3. The double-count rule.</b> Lines the coordinator designates — high value, historically variant, or randomly sampled per the policy's percentage — are counted independently by a second team before sheets return. Two independent physical figures that agree are the strongest truth the count can produce; where they disagree, the line is counted a third time with the coordinator present.</p><p><b>4. Sheet discipline.</b></p><p>1. Figures in ink, corrections struck through and initialled — the sheet is the count's primary evidence and it must read as what happened.<br>2. Both team members sign each sheet; the keeper's signature joins for their custody's sheets (the keeper attests the count happened over their stock; the separation rules govern what happens next, not whether they participate).<br>3. Sheets return to the coordinator as areas complete; the issued-versus-returned check closes before anyone leaves.</p><p><b>5. During-count movements.</b> Where an unavoidable movement must happen inside the window (the emergency despatch the business cannot refuse), the coordinator executes it explicitly: the affected lines re-counted after, the movement documented with its during-count flag, the reconciliation's cut-off arithmetic told about it. An undocumented mid-count movement invalidates every affected line silently — the one thing the procedure cannot survive.</p>"
+   },
+   {
+    "title": "Chapter 5 — Entry and the variance review",
+    "est": "12",
+    "html": "<p>The counted truth meets the records. This chapter is the entry procedure and the review that decides what posts.</p><p><b>1. Entry.</b> The coordinator's team enters the sheets: the counted quantities per line into the working comparison (the reconciliation draft's fetch tools pulling system figures beside them — Chapter 2). Entry rules:</p><p>1. The enterer works from signed sheets only, and is not the counter of the lines being entered (the separation completing its loop).<br>2. Entry is checked line-for-line against the sheets by a second person for full counts; sampled for cycle counts per the policy.<br>3. The exceptions section (unlisted stock) enters as its own list for Chapter 6's lanes.</p><p><b>2. The variance report.</b> The comparison produces, per line: system quantity, counted quantity, variance in units, variance in value (at the ledger's valuation rate). Sort by absolute value — the review works the money, not the row count.</p><p><b>3. The recount pass.</b> Before any investigation: every line above the recount threshold (the policy's figure) is physically recounted by a fresh team against the specific line. Recounts kill the cheap causes first — the transcription slip, the missed second location, the unit error — and the variance that survives recount is real information worth Chapter 6's effort. The recount result replaces the count figure on the working comparison with its own initialled sheet note.</p><p><b>4. The threshold ladder.</b> The written policy sets the bands; the standing shape:</p><p>1. <b>Below the de-minimis band</b> — small variances post on the reconciliation with the count as their evidence, batched, reviewed as a total (the total's trend is Chapter 7's accuracy metric in value form).<br>2. <b>The investigation band</b> — lines above it do not post until Chapter 6's investigation attaches its outcome reference to the row.<br>3. <b>The escalation band</b> — lines above it go to the owner with the investigation, because a variance of that size is a business event, not a stock adjustment.</p><p><b>5. The posting.</b> One Stock Reconciliation per scope (Chapter 2's discipline): rows for the verified lines, quantities set to counted truth, the Difference Account per the chart, investigation references on every banded row, the draft reviewed by the second authority, submitted under Stock Manager per the ladder. The signed sheets, the variance report, and the investigation notes attach to the reconciliation — the count answers from one document set, per the standing one-lookup standard.</p><p><b>6. The keeper conversation.</b> The scope's keeper sees the variance report before posting and signs the reconciliation's review: their custody, their right to explain, and their attestation that the process ran fairly. The count that posts adjustments behind the keeper's back has traded a control for a grievance.</p>"
+   },
+   {
+    "title": "Chapter 6 — The variance investigation",
+    "est": "12",
+    "html": "<p>A variance that survives recount is a question with a findable answer. This chapter is the investigation procedure and its outcome lanes.</p><p><b>1. The document sweep — always first.</b> Most real variances are paperwork, and the sweep finds them in this order:</p><p>1. <b>The unposted movement</b> — the despatch physically gone but never entered, the receipt shelved but never posted: the item's recent physical events walked against its ledger. The stock entry drafts, the pending purchase and delivery documents for the item, and the branch's paper trail all check here.<br>2. <b>The transit and boundary check</b> — stock counted at neither end because it sits in transit (correctly — the count's scope arithmetic verifies it) or incorrectly (module 2's shortfall lane never run).<br>3. <b>The pending-document check</b> — submitted orders awaiting receipt entry, returns awaiting processing: the movement exists in intent, the posting lagged.<br>4. <b>The timing check</b> — a movement posted after the cut-off but performed before it (or the reverse): the cut-off arithmetic corrected, not the stock.</p><p><b>2. The physical causes.</b> Where the documents are whole:</p><p>1. <b>The identity confusion</b> — the variance mirrored by an opposite variance on a similar item (the two strengths of the same drug counted into each other's lines): corrected as the pair it is.<br>2. <b>The UoM arithmetic</b> — carton/unit conversion errors in past postings (module 3's fractional-batch symptom): the causing document found and corrected through the lane.<br>3. <b>The repack drift</b> — module 2's register comparison for converted items.</p><p><b>3. The loss finding.</b> Where the sweep and the physical causes close nothing, the variance is a loss (or a gain) with no document — and the finding is handled as the business event it is:</p><p>1. The write-off (or the found-stock receipt) posts through its lane with the investigation attached, approved per the band — a loss is a decided expense even when its mechanism is unknown.<br>2. The incident enters the <b>pattern file</b>: item, warehouse, value, date, and whatever the investigation established. One unexplained loss is a data point; the pattern file is where three data points become a shape — the same item class, the same shift window, the same handover — and the shape is what the owner acts on. The file is reviewed quarterly with the counts' accuracy read.<br>3. Where the pattern or the value indicates it, the security response is the owner's decision, informed by the file — the investigation's job is facts, per the standing data-not-editorial rule.</p><p><b>4. The upstream fix.</b> Every investigation closes with one line: what would have prevented this variance, and which procedure now carries it. The unposted-despatch finding tightens the same-day entry rule at its site; the identity confusion adds the look-alike pair to the count briefing; the timing error adjusts the cut-off procedure. The investigation that only adjusts the number has done half its job; the count exists to improve the process that feeds it.</p>"
+   },
+   {
+    "title": "Chapter 7 — ABC cycle counting",
+    "est": "12",
+    "html": "<p>The cycle count converts the annual count's mountain into a daily routine. This chapter is the design and the metric.</p><p><b>1. The ABC classification.</b> Rank the warehouse's items by annual consumption value (or stock value where consumption data is young):</p><p>1. <b>A items</b> — the top of the ranking holding the bulk of the value (typically a small fraction of the lines holding most of the money).<br>2. <b>B items</b> — the middle band.<br>3. <b>C items</b> — the long tail: many lines, little value.</p><p>The classification is computed from the reports (module 7's value analytics), reviewed twice a year, and stored as the item's class field or the count calendar's list — a living output of the data, not a one-time label.</p><p><b>2. The count frequencies.</b> Per the written policy, the standing shape: A items counted most often (monthly or better), B quarterly, C annually or by rotation. The design principle: <b>counting effort follows value at risk.</b> The A-class line miscounted for a quarter is real money moving unwatched; the C-class line can wait for its rotation.</p><p><b>3. The cycle calendar.</b> The frequencies compile into a daily list: a fixed small number of lines per warehouse per day, sequenced so every item meets its frequency across the period. The daily slice runs as a miniature of the full procedure — blind lines, counter and checker, the same entry and variance lanes at small scale — and takes minutes, which is the point: a control that costs minutes daily runs; the control that costs a weekend quarterly gets postponed.</p><p><b>4. The accuracy metric.</b> Per cycle period, per warehouse: <b>lines counted correct ÷ lines counted</b> (correct meaning within the de-minimis band), expressed as a percentage, trended. The metric is the count programme's output number:</p><p>1. It states record reliability to everyone who plans on the records — purchasing, replenishment, the accountant's stock figure.<br>2. Its trend evaluates process changes: the receiving fix that lifts accuracy two points has proven itself in the metric.<br>3. Its per-warehouse comparison directs attention: the site running below the network's accuracy gets the next spot count and the process review, as data.</p><p><b>5. The full count's place.</b> Cycle counting does not retire the full count where policy or the auditor requires one (the year-end count with observation stands per the Accounts track); it makes the full count boring — a confirmation of a figure the cycle programme already evidences, instead of an annual archaeology. A mature cycle programme's year-end variance report is short, and short is the goal.</p><p><b>6. The cycle count's controls.</b> The full procedure's separations apply daily: blind lines, the keeper never sole-counting their own custody, adjustments through the same ladder. Familiarity is the cycle count's risk — the daily routine drifting into confirmation — and the countermeasures are the random double-count sample and the periodic team rotation, both on the policy page.</p>"
+   },
+   {
+    "title": "Chapter 8 — Worked example: HealthTrade's counting year",
     "est": "13",
-    "html": "<p>Three modules built a ledger worth believing. This module tests the belief: the <b>count</b> — the moment the ledger's testimony and the shelf's reality are held against each other, and the differences are made to speak.</p><p><b>The count is a dialogue, not a verdict.</b> The ledger says 96; the shelf says 93. Neither is automatically right: the ledger may have missed a movement (the transfer receipt never entered), the shelf may be hiding stock (the mis-shelved cartons two aisles over), or three units may genuinely be gone. The count's product is not a corrected number — it is the QUESTION, held open long enough to be answered (Chapter 6's investigation discipline), and only then the adjustment, in the open, with its reason. A firm that treats counting as typing shelf numbers over ledger numbers has built an eraser, not a control — and Chapter 9 convicts that eraser by name.</p><p><b>What counting confirms — and what it cannot fix.</b> Where modules 1-3 were kept (movements documented, gates honest, identity captured), the count is a CONFIRMATION: small differences, explainable, adjusted with confidence. Where they were not, the count is a CONFESSION — and the critical understanding is that counting cannot substitute for the disciplines it tests: the firm that counts weekly because its movements are chaos is bailing a boat it refuses to patch; every count resets the water level and the leak remains. Counting frequency is not a virtue by itself; the virtue is a ledger that counting keeps AGREEING with, which is earned upstream.</p><p><b>The three jobs of a counting regime.</b> <b>Accuracy</b>: the operational numbers everyone trades on (the four numbers of every bin) verified on a cadence proportionate to their importance. <b>Accountability</b>: the custodian's number (module 1) made fair — the storekeeper answerable for ₦11m deserves the periodic, documented moment where their custody is confirmed, which protects the honest custodian exactly as much as it exposes the other kind. <b>Deterrence</b>: the counted warehouse steals from itself less — not because counts catch everything, but because the KNOWLEDGE of counting changes behaviour; the cadence's very existence is a control, and irregular, unpredictable elements in the programme (Chapter 5) sharpen it.</p><p><b>The count's own economics.</b> Counting costs hours and interrupts trade, which is why this module spends two chapters on making it cheap: the full count made rare by the cycle programme, the cycle programme weighted by value so effort lands where money sits, and the freeze disciplines that keep a count from being a moving target counted twice. The end state — the well-run firm's relationship with counting — is undramatic by design: small, scheduled, boring counts whose variances are small, explained, and trending nowhere. Boring is the certificate.</p>"
+    "html": "<p>This chapter applies Chapters 2-7 to HealthTrade's first counting year. Values and outcomes are listed per step.</p><p><b>Step 1 — the opening baseline.</b> The go-live Stock Reconciliation (purpose Opening Stock) loads the opening balances per warehouse. One check runs before submission: opening valuation rates sampled against recent purchase documents — one line found carrying a rate that disagreed with its latest invoice cost and corrected from the document before the figure could propagate. The opening posts with the accountant's sign-off.</p><p><b>Step 2 — the ABC design (Chapter 7).</b> The first classification computes from six months of consumption data: <b>62 A items carry 71% of the value</b> at Central; B and C bands set behind them. The cycle calendar compiles to <b>five lines per day per warehouse</b> — A items monthly, B quarterly, C by rotation — briefed to the keepers as a ten-minute daily routine with blind lines and the checker rule.</p><p><b>Step 3 — the cycle in operation (Chapters 3-5 at daily scale).</b> The daily slices run; the de-minimis and investigation bands apply from the written ladder. Quarter one's accuracy computes at <b>96.8%</b> across the network — adopted as the baseline, trended monthly per warehouse thereafter. Ibadan trails the network by two points in month two; the spot review finds the checker step skipped on busy days; the routine re-briefed, the gap closes in month three.</p><p><b>Step 4 — the variance that survived recount (Chapter 6).</b> A cycle line at Central shows <b>8 cartons of amoxicillin</b> short; the recount confirms it — a real variance above the investigation band, so the row holds unposted. The document sweep runs: the unposted-movement check finds nothing at first pass; the pending-document check finds it — a supplier receipt from <b>twelve days prior</b>, physically shelved but never posted, its paperwork in a tray (the receiving clerk's leave week; no deputy processed the tray). The correction is the missing document entered on its honest date, not a reconciliation adjustment — the shelf was right and the records were behind. The upstream line closes the loop: the deputy rule added to the receiving procedure, and the finding cross-references module 7's aging read, which had flagged the item's stale movement pattern the same week — two reads converging on one gap.</p><p><b>Step 5 — the identity audit riding the counts (module 3 tie).</b> The batch lines on cycle sheets carry the expiry checks; quarter two's audit finds three labels disagreeing with Batch records — all three traced to one dock week and corrected from labels, with the second-signature rule re-briefed at Central receiving.</p><p><b>Step 6 — the year-end full count (Chapters 3-5 at full scale).</b> Scheduled clear of December trading, freeze set, sheets blind, the auditor observing with facilitated test counts. The variance report runs short — the cycle programme's promise — with the posted reconciliation carrying signed sheets, the variance report, and two investigation references. The keeper signatures close each warehouse's file.</p><p><b>The year's close.</b> The pattern file holds four entries, no shape; the accuracy trend sits above baseline at every site; the year-end reconciliation's value total lands inside the de-minimis expectation. The count programme's numbers go to the MD as one page: accuracy per site, variance value posted per band, the two investigations with their upstream fixes.</p>"
    },
    {
-    "title": "Chapter 2 — The Stock Reconciliation document",
-    "est": "13",
-    "html": "<p>The count's instrument is the <b>Stock Reconciliation</b> — the document that records what was counted and writes the ledger entries that make the books agree with the shelves. Its anatomy, and the weight each field carries.</p><ul><li><b>Purpose</b> — the document serves two distinct jobs under one roof: <b>Opening Stock</b> (Chapter 3's set piece — loading a warehouse's starting truth at go-live) and the ongoing <b>Stock Reconciliation</b> (the count adjustment). Same machinery, very different governance, and the purpose field says which is happening.</li><li><b>Posting date and time</b> — WHEN the count's truth applies. The chronology law at its most sensitive: the reconciliation asserts the counted quantity AS OF this moment, and every ledger read after it builds on that assertion — which is why the count's cutoff discipline (Chapter 4) and the posting timestamp must agree, and why backdated reconciliations are accountant-supervised territory (module 5 walks the valuation ripple they cause).</li><li><b>The rows</b> — item, warehouse, <b>counted quantity</b>, and (where the document is also asserting value — opening stock, or a deliberate revaluation) the <b>valuation rate</b>. Submission computes the difference against the ledger's current quantity and writes the adjusting entries: ins for surpluses, outs for shortfalls, valued per the item's costing. The adjustment IS a ledger movement like any other — appended, attributed, dated — which is the append-only law keeping even corrections honest.</li><li><b>Identity rows</b> — for batch-tracked items the count is per BATCH (the counted quantity of B-1147 at Ibadan, not just PARA-500 at Ibadan — the integrity arithmetic of module 3 depends on counts feeding it at batch level); for serialized items the reconciliation names serials (which units exist here — the serial audit's formal instrument). A reconciliation that counts identity-tracked items identity-blind repairs the quantity while corrupting the grid beneath it — half a fix that module 3's audits will re-flag.</li><li><b>Reason and reference</b> — the count sheet, the variance investigation's outcome, the reason CODE (Chapter 7's aggregation lives on these): the adjustment without a stated reason is the eraser wearing a document's clothes.</li></ul><p><b>What submission does — and its blast radius.</b> The adjusting entries change actual quantities, therefore projected quantities, therefore everything that reads them: availability promises, reorder triggers, valuations. A large reconciliation is a large event — reviewed before submission (the two-eyes threshold, by value of adjustment, exactly as write-offs and Material Receipts earned), and timed deliberately (the mid-trading-day reconciliation of a busy warehouse fights its own moving target; Chapter 4's windows exist for this). Draft, verify against the signed count records, check identity rows, check the rate columns are doing what you intend — the rate column on an ordinary count adjustment should usually assert nothing (quantity correction at existing valuation), and a rate typed carelessly there is a revaluation nobody meant to perform. Then submit, and the dialogue's answer becomes the ledger's next line.</p>"
-   },
-   {
-    "title": "Chapter 3 — Opening stock done right: the at-cost law",
-    "est": "15",
-    "html": "<p>Every implementation has one moment where years of a client's stock truth are keyed into a new system in a week — and one mistake at that moment poisons every number the system will ever produce. This chapter is the set piece: <b>go-live opening stock</b>, and the conviction that headlines it.</p><p><b>The sequence.</b> Opening stock is loaded by Stock Reconciliation (purpose: Opening Stock), warehouse by warehouse, and the sequence is not negotiable: <b>count first, then load</b> — the physical count of what actually exists at cutover, not the old system's report (the old system's errors are precisely what the fresh start should shed, and loading its numbers uncounted imports every ghost it accumulated), and not memory. The count runs with Chapter 4's disciplines (teams, sheets, verification) because it IS a full count — the most important one the firm will ever do, since every future count dialogues against the truth established here.</p><p><b>THE AT-COST LAW.</b> Opening stock enters at <b>cost — the item's honest acquisition cost — never at selling price</b>. This error is common enough, and catastrophic enough, to deserve its own wall: the client's team, keying under deadline, reaches for the price everyone knows (the shelf price, the price list) instead of the cost fewer people know — and the consequences cascade: the stock ASSET inflates by the entire embedded margin (a ₦30m inventory at cost booked as ₦42m at retail is a ₦12m fiction on the balance sheet); COGS inflates the moment selling begins (goods costed at selling price produce ZERO margin on paper — the firm sells briskly for months while reports insist it earns nothing); the distortion cannot be waved away, because valuation flows entry by entry (module 5) and every sale, transfer, and report inherits the poisoned rates until a supervised revaluation exercise — weeks of accountant-led correction — cleans what one week of care would have prevented. When a go-live's first-quarter margins look inexplicably terrible, this is the FIRST suspect, and the consultant who checks the opening rates against purchase records in hour one has usually found it.</p><p><b>Sourcing honest costs.</b> The rate column per item, filled from evidence: recent purchase invoices (the best source — last honest buy, landed where imports apply), the supplier's current lists where purchases are stale, and for the tail with no clean evidence, a defensible estimate DOCUMENTED as such with the accountant's sign-off. The discipline is proportionate: the A-value items (where the money sits) get invoice-level sourcing; the long tail gets a sensible method applied consistently. What no item gets: the selling price, zero (the opposite distortion — module 2's conviction), or a guess nobody wrote down.</p><p><b>Identity at opening.</b> Batch-tracked stock opens per batch WITH expiries — the counting team reads cartons, not just counts them, because an opening that loads PARA-500 as 400 units batch-blind has destroyed FEFO, the horizon, and the recall for every unit of that opening stock forever (the provenance cannot be invented later — module 3's retrofit warning at its sharpest). Serialized stock opens serial by serial from the physical units. Yes, this makes opening slower; it is the identity architecture's admission price, paid once, and the alternative is an identity system that begins life already broken.</p><p><b>The opening file.</b> Count sheets signed, rate sources referenced, the accountant's sign-off on method, the reconciliation documents themselves: the go-live's evidence bundle, filed. The balance sheet's stock figure was BORN here, and the auditor's first question at year one — <i>how was opening stock established?</i> — is answered from this file in minutes or from archaeology in weeks.</p>"
-   },
-   {
-    "title": "Chapter 4 — The full count: freeze, count, verify",
-    "est": "13",
-    "html": "<p>The wall-to-wall count — annual for most firms, plus the opening set piece — is a production, and productions succeed on planning. The run-book:</p><p><b>Plan.</b> Date chosen against trade (the quiet season, the weekend, the overnight); scope declared (which warehouses, all items); teams assigned in PAIRS with areas mapped (no aisle counted by its own daily custodian ALONE — the second pair of eyes is the accountability design, not an insult); count sheets or devices prepared — and the sheets are <b>blind</b>: the counter records what they SEE, without the ledger's expectation printed beside it, because a sheet showing expected 96 harvests 96 (the anchoring is human and universal; blindness is the cheap cure and Chapter 9's count-theatre conviction is its violation).</p><p><b>Freeze.</b> The count's enemy is movement: stock counted at 10:00 and moved at 10:30 is counted wrong somewhere. The clean solution is the <b>freeze window</b> — no movements in the counted warehouse during the count: receiving paused (trucks scheduled around it), issues and transfers held, sales stopped or (where trade cannot stop) strictly cut over: a hard timestamp, everything before it posted, everything after it segregated and excluded — physically set aside, documented, counted into the NEXT period's truth. The freeze is announced, short, and absolute; a leaky freeze produces variances that are artifacts of the leak, and the investigation chapter's first question about any surprising variance is always <i>did the freeze hold?</i></p><p><b>Count.</b> Pairs count their areas: physical units, honest UOMs (the carton-and-loose-units discipline — 47 cartons and 6 singles recorded as exactly that, the conversion arithmetic done by the system not the counter's head), identity read where tracked (batches from printed lots WITH quantities per lot; serials sighted). Completed sheets signed by the pair and surrendered — not corrected in the aisle, not reconciled on the fly.</p><p><b>Recount and verify.</b> Entries keyed (or synced) against the ledger; the variance list emerges; and the discipline that separates professionals: <b>material variances are RECOUNTED before they are believed</b> — a second, different pair to the same location, because the largest single source of count variances is the count itself (the missed shelf, the double-counted pallet, the UOM slip). Only variances that survive recount graduate to Chapter 6's investigation. Thresholds make this proportionate: kobo-level noise adjusts without ceremony; value and percentage lines route to recount; the biggest items get counted twice by design regardless.</p><p><b>Close.</b> The reconciliation document(s) drafted from verified counts, reviewed against thresholds, submitted with the count file referenced (sheets, recounts, investigation notes); the freeze lifted; the segregated cutover stock processed into the new period. Sign-offs: the count lead, the custodian (who is confirming their own custody's verdict — the fairness ritual), and finance above the value line. The whole production, well run, is one long day and a filed bundle; badly run, it is a weekend that generates more errors than it finds — and the difference is entirely this run-book.</p>"
-   },
-   {
-    "title": "Chapter 5 — Cycle counting: the programme",
-    "est": "13",
-    "html": "<p>The annual count is a storm; the <b>cycle counting programme</b> is weather — small counts, continuously, tuned so every item is verified on a cadence its value deserves. This is the counting regime a serious multi-branch firm actually lives on.</p><p><b>The ABC engine.</b> Stock stratified by value-velocity (the analysis module 7 formalises; the programme consumes it): <b>A items</b> — the vital few holding most of the money — counted frequently (monthly is a working default); <b>B items</b> quarterly; <b>C items</b> — the trivial many — annually, effectively riding the full count. The arithmetic that sells the programme: a few lines counted per day per warehouse, fifteen minutes, covers the entire A-class monthly — the effort lands where the money sits, and the annual count shrinks from a discovery expedition to a formality, because everything valuable was verified eleven times since the last one.</p><p><b>The schedule's craft.</b> Published rhythm, unpublished selection: the team knows counts happen daily; WHICH lines today is not posted in advance (predictable counts are gameable counts — the deterrence job needs the element of surprise), and the selection mixes the scheduled cadence with triggers: items with recent variances (re-verified sooner — a variance is a question about a location, and the follow-up count is the answer's confirmation), items touched by incident (the transit shortfall's item, the return desk's disputed line), negative-stock flags (module 5's alarm — counted the day they appear), and a random seasoning. Identity audits ride the same visits (module 3's serial sightings and batch spot-checks appended to the day's lines — one trip, two verifications).</p><p><b>Mechanics in miniature.</b> Each cycle count is the full count's disciplines at teaspoon scale: blind, counted by someone other than the line's daily handler where the roster allows, material variances recounted, survivors investigated (Chapter 6), adjustments reason-coded (Chapter 7). No freeze is needed for a two-line count — the cutover discipline is simply counting at a quiet moment and posting the reconciliation with an honest timestamp — which is exactly why the cycle programme scales where the full count cannot: it never fights the trading day.</p><p><b>The programme's outputs.</b> Beyond corrected bins: the <b>count accuracy rate</b> (lines counted clean ÷ lines counted — the warehouse's ongoing grade, trended per warehouse and per class), the variance pipeline feeding Chapter 7's shrinkage read with fresh, small, investigable differences instead of an annual heap, and the accountability rhythm — every custodian's areas verified continuously, which is the fairness design running on autopilot. A firm with a healthy cycle programme knows its accuracy this month, its shrinkage this quarter, and faces its auditor with a counting FILE instead of a counting weekend.</p><p><b>Right-sizing.</b> The eleven-person single-site firm runs the same idea smaller: a page of A items counted weekly by rotation, the annual full count, the same blindness and recount rules. The programme is a shape, not a headcount — and the consultant's deliverable is the shape sized to the client: the strata, the cadences, the daily line quota, the trigger list, and the named owner of the schedule.</p>"
-   },
-   {
-    "title": "Chapter 6 — Variance investigation: before you adjust",
-    "est": "14",
-    "html": "<p>A variance that survives recount is a fact: the ledger and the shelf disagree, and the disagreement is real. The amateur move is adjusting it away; the professional move is this chapter — the investigation that makes the adjustment TRUE instead of merely tidy.</p><p><b>Why investigate first.</b> The adjustment writes history (the append-only ledger accepts it forever) and closes the question — and a question closed wrong stays wrong twice: the root cause survives to generate next month's variance, and the adjustment itself may be backwards (the shortage adjusted away at warehouse A that was really a surplus mis-shelved at warehouse B now becomes TWO wrong bins made permanent). The investigation window — variances held open, worked, and only then adjusted — is the discipline; its length is policy (days, not weeks: an aging variance list is its own disease), and its output is a CAUSE attached to every material adjustment.</p><p><b>The taxonomy — where differences actually come from, in rough order of frequency:</b></p><ul><li><b>Unposted or mis-posted documents</b> — the transfer dispatched but never received (the goods sit in transit; the branch counted short against a bin that never received them), the delivery picked but the DN unsubmitted, the receipt keyed to the wrong date. The ledger walk (module 1's diagnostic) finds these in minutes: the item's recent entries against the physical paper trail, and the fix is POSTING the missing truth, not adjusting around it — an adjustment that papers over an unposted document creates a double error the day the document finally posts.</li><li><b>Wrong-warehouse postings</b> — the mirror shortage-and-surplus pair (module 1's disease): warehouse A short exactly what warehouse B is over. The cross-check is cheap (the same item's variances across warehouses, netted) and the fix is the correcting transfer, not two adjustments.</li><li><b>UOM errors</b> — the factor-of-twelve signatures: variances at suspicious ratios (short 110 on a Carton-12 item is one mis-keyed carton row, not 110 missing units). The conversion arithmetic checked before the loss is believed.</li><li><b>Identity drift</b> — quantity right, batches wrong (module 3's orphans): not a stock adjustment at all, but a batch correction with its own discipline.</li><li><b>Count error residue</b> — the recount missed something too; a third look at stubborn variances before the expensive conclusions.</li><li><b>Genuine loss</b> — what remains when the ledger walk, the cross-checks, and the recounts all hold: damage unrecorded, theft, leakage. Now — and only now — the adjustment, reason-coded as loss, feeding the shrinkage read, and (by value and pattern) the escalation the firm's policy names: the custody conversation, the security review, the incident file.</li></ul><p><b>The investigation's own file.</b> Material variances carry their working: what was checked, what was found, who concluded. Thirty lines of notes that turn the adjustment from an assertion into a finding — the difference an auditor, an insurer, or a dismissal hearing will care about intensely. And the aggregate of causes (Chapter 7) is management information of the first order: a warehouse whose variances are 80% unposted documents has a discipline problem with a training fix; one whose variances are unexplained loss has a different problem with a different fix — and only investigation, done every time, can tell the two apart.</p>"
-   },
-   {
-    "title": "Chapter 7 — Shrinkage: the managed number",
-    "est": "13",
-    "html": "<p>Every investigated variance ends as a reason-coded adjustment, and the codes aggregate into the number this chapter is about: <b>shrinkage</b> — the value of stock the firm lost, stated, trended, and managed like any other cost of trading.</p><p><b>The read.</b> Adjustments-as-loss, aggregated: by period (the trend line), by warehouse (the custody comparison), by category (where the leakage concentrates — the pilferable smalls vs the bulky staples), by cause code (process failures vs damage vs unexplained). Expressed as a RATE — shrinkage value against throughput or holding value — because the raw naira grows with the business and the rate is the honest comparator: quarter on quarter, warehouse against warehouse, the firm against its trade's rough benchmarks. The read exists the moment reason codes are used consistently, which is why Chapter 6 insisted on them: shrinkage is not a special report; it is the investigation discipline's exhaust, collected.</p><p><b>Reading it like management.</b> The rate's LEVEL sets the response scale (a fraction of a percent is the cost of doing business managed well; multiples of it are a program, not a number); the TREND is the alarm (a stable 0.4% is peace; 0.4% becoming 0.9% in two quarters is a change with a cause — new staff? new category? a control that lapsed?); the DISTRIBUTION is the map (one branch at triple the network rate is a located problem — custody, security, or discipline, and the branch comparison is what locates it); and the CAUSE MIX is the prescription: process-heavy shrinkage (unposted, mis-posted, UOM) is fixed by training and the earlier modules' disciplines; damage-heavy by handling and storage; unexplained-heavy by the harder conversations — access control, the counting programme's unpredictability turned up, and where pattern warrants, the investigation the firm's policy and the law provide for. The consultant's framing for owners: you cannot price, insure, or staff against a number you refuse to know — and the firms shocked annually by stocktake write-offs are not unlucky; they are unread.</p><p><b>The deterrence dividend.</b> The read's existence changes the number it reads: custodians who know shrinkage is computed per custody, counts arrive unpredictably, and variances get investigated (not just adjusted) work in a different atmosphere — the honest are protected by the same machinery that exposes the other kind, which is module 1's custodian framing paying its dividend. The atmosphere is the cheapest control in this entire module, and it is built from nothing but consistency: counts that happen, investigations that conclude, and a number that someone visibly reads.</p><p><b>What shrinkage is not.</b> Not a bucket for lazy differences (the uninvestigated variance coded unexplained is a lie with a category), not a write-off holiday (the quarterly shrinkage posting does not replace item-level, reason-coded adjustments — aggregation without granularity manages nothing), and not shameful to report (the owner who wants shrinkage hidden from the monthly pack is asking to be surprised annually instead — the number's job is to be seen small and often). The mature end state: shrinkage on the monthly management page beside consumables and write-offs, boring, small, and watched — the warehouse's cost of reality, priced.</p>"
-   },
-   {
-    "title": "Chapter 8 — Case study: HealthTrade's counting year",
-    "est": "16",
-    "html": "<p>The counting regime, lived for a year. Every chapter clocks in.</p><p><b>The go-live opening (Ch. 3).</b> Cutover weekend: full count first — pairs, blind sheets, batches read from cartons with expiries, the chiller serials sighted. Then the load... and the near-miss that justifies the module: the draft opening reconciliation, keyed by the client's team from their price list <i>because those were the numbers we had</i>, shows Central's stock at ₦61m. The consultant's hour-one check — opening rates against recent purchase invoices — catches it: the rates are SELLING prices. Re-sourced at cost (invoice-level for the A items, documented method for the tail, accountant's sign-off), the honest figure is ₦42m. The ₦19m phantom dies in Draft — the balance sheet never carries it, the margins never lie, and the client's accountant becomes the implementation's loudest advocate. The opening file closes: sheets, sources, sign-offs, documents.</p><p><b>The programme designed (Ch. 5).</b> ABC run on the opening data: 62 A items (71% of value), counted monthly — five lines per day per warehouse, fifteen minutes; B quarterly; C rides the annual. Selection unpublished; triggers wired (variance follow-ups, incident items, negative-stock flags — plus module 3's identity audits riding the visits). The schedule has an owner, and the first month's count accuracy posts at 96.8%.</p><p><b>The investigation (Ch. 6).</b> Month three, a cycle count finds Ibadan short 8 cartons of amoxicillin — survives recount. The investigation window opens: the ledger walk shows a transfer dispatched from Central twelve days prior... and never received — the goods sat in In-Transit the whole time (module 2's aging read had flagged the room that same morning; the two diagnostics converge on one truth). Physical check: the cartons are AT Ibadan — arrived, shelved, receipt never entered by a leave-covering stand-in. The fix is the missing POSTING (the transfer receipt, entered with its honest story), not an adjustment — which would have created the double error the day anyone found the paperwork. Cause coded: unposted document; the stand-in trained; the variance list closes at zero adjustment. The system worked BECAUSE nobody reached for the eraser.</p><p><b>The full count (Ch. 4).</b> Year-end, one Sunday: freeze announced and absolute (trucks rescheduled, tills dark 06:00-14:00), pairs on mapped areas, blind sheets, material variances recounted by fresh pairs. The verified list is short — the cycle programme spent a year keeping it short — and the biggest surviving item is a UOM signature (short exactly 24 on a Carton-12 line: two carton rows keyed as units at a February cycle count, corrected with the conversion checked). Sign-offs: count lead, each custodian, finance. One day, one file, no drama.</p><p><b>The shrinkage read (Ch. 7).</b> Four quarters posted: 0.42%, 0.38%, 0.44%, 0.41% — stable, small, cause-mix dominated by damage and process residue, unexplained under a third of the total and flat. One distribution flag mid-year: Abeokuta's Q2 rate at double the network — investigated (a rear-door access pattern, resolved with a lock policy and two months of trigger counts), back on-trend by Q3. The number lived on the monthly page all year; nobody was surprised in December. Boring — which was the point, and the certificate.</p>"
-   },
-   {
-    "title": "Chapter 9 — Common mistakes & the fourth law",
-    "est": "13",
-    "html": "<p>The counting layer's scar tissue. Symptom → disease → fix.</p><p><b>Pattern 1 — the reconciliation as eraser.</b> Symptom: variances adjusted same-day, uninvestigated; the same lines varying every count. Disease: the question closed without being answered (Ch. 1, 6) — root causes immortal, wrong-way adjustments compounding. Fix: the investigation window as unskippable routine, causes coded on every material adjustment, and the follow-up count that verifies the answer held.</p><p><b>Pattern 2 — opening at selling price.</b> Symptom: inflated stock asset; first-quarter margins near zero while trade is brisk. Disease: the at-cost law broken at the one moment it cannot be cheaply unbroken (Ch. 3). Fix: caught in Draft — the hour-one check of opening rates against purchase records; caught late — the supervised revaluation exercise with the accountant, weeks of it, and the lesson institutionalised.</p><p><b>Pattern 3 — counting a moving target.</b> Symptom: variances that vanish on recount; count weekends that generate more errors than they find. Disease: the freeze leaked (Ch. 4) — movements mid-count making every sheet a snapshot of a different moment. Fix: the freeze window absolute or the cutover strict; the first investigation question, always: did the freeze hold?</p><p><b>Pattern 4 — effort inverted.</b> Symptom: the trivial tail counted obsessively while A items drift for quarters. Disease: the programme unweighted (Ch. 5) — effort spread by item count instead of value. Fix: the ABC engine, the daily quota landing on the vital few, and the accuracy rate reported per class so the inversion is visible.</p><p><b>Pattern 5 — count theatre.</b> Symptom: sheets that match the ledger perfectly, always. Disease: counting from the screen (Ch. 4) — expectations printed, aisles skipped, the blindness rule dead and with it the entire exercise. Fix: blind sheets structurally, pairs and rotation, spot re-counts of counted areas by the schedule owner — and the accuracy rate treated with suspicion when it is TOO perfect.</p><p><b>Pattern 6 — the unread number.</b> Symptom: adjustments posted for years; nobody can state the shrinkage rate. Disease: the exhaust never collected (Ch. 7) — reason codes inconsistent or absent, the annual shock arriving on schedule. Fix: the code list short and enforced, the quarterly read on the management page, and the trend owned by a name.</p><p><b>The fourth law.</b> Module 1: the tree is the map of custody. Module 2: stock moves only by documents. Module 3: identity is operational. This module: <b>the count is a dialogue between the ledger and the shelf — investigate before you adjust, and adjust in the open.</b> Open at cost, count blind, freeze honestly, recount before believing, name every cause, and read the number the causes add up to. A firm that keeps this law faces auditors with files, custodians with fairness, and December with boredom — and its ledger, tested continuously and found truthful, becomes the asset the next module prices: valuation, where every quantity this module verified meets the money it represents.</p>"
+    "title": "Chapter 9 — Common errors and the module rule",
+    "est": "11",
+    "html": "<p>The errors that recur in counting, each with its correction and prevention.</p><p><b>Error 1 — adjustment before investigation.</b> Symptom: reconciliations posted straight from the variance report; information converted into silence; the same variances recurring because their causes were never found. Correction: banded rows re-opened where feasible, investigated late. Prevention: the threshold ladder — investigation references on every banded row before submission.</p><p><b>Error 2 — sheets with system quantities.</b> Symptom: counts that confirm the records with suspicious perfection; variances surfacing only at handovers and incidents. Correction: the next count run blind and its results compared honestly. Prevention: the blind rule as the procedure's core control, with the sheet template enforcing it.</p><p><b>Error 3 — the keeper counting alone.</b> Symptom: single-signature sheets; the custody separation collapsed; counts that cannot protect the keeper from suspicion or the stock from loss. Correction: the affected scopes recounted with teams. Prevention: counter-and-checker per area, the keeper never sole counter or enterer of their own custody.</p><p><b>Error 4 — the moving target.</b> Symptom: movements during the count window without the coordinator's procedure; lines invalidated silently; the reconciliation arguing with reality. Correction: affected lines identified and recounted. Prevention: the cut-off held — movements stopped or the freeze set, and the explicit during-count procedure for the unavoidable exception.</p><p><b>Error 5 — the postponed mountain.</b> Symptom: no cycle programme; one heroic annual count; accuracy unknown for eleven months of the year. Correction: the ABC design built from the value data, the daily slice started. Prevention: the cycle calendar — minutes daily instead of a weekend quarterly, with the accuracy metric proving it.</p><p><b>Error 6 — the metric nobody reads.</b> Symptom: accuracy computed and filed; sites drifting apart; process changes unevaluated. Correction: the trend rebuilt and reviewed. Prevention: the monthly per-warehouse trend to the stock manager and the quarterly page to the owner — the metric as the programme's output, not its by-product.</p><p><b>Review list.</b> Before the quiz, confirm you can: state the two instruments and why the reconciliation is the last step; complete the Stock Reconciliation walk — purposes, the set-to rule, the valuation-rate caution, the Difference Account, what submission posts, and scope discipline; prepare a count — cut-off, freeze, pre-count hygiene, blind numbered sheets, teams, the briefing; execute with the floor rules — count-do-not-infer, the unit column, the location sweep, identity riding along, the double-count rule, sheet discipline; run entry, the recount pass, the threshold ladder, and the keeper conversation; investigate through the document sweep, the physical causes, the loss finding with the pattern file, and the upstream fix; and design ABC cycle counting with the accuracy metric.</p><p><b>Module rule 4: a count proves custody — blind sheets counted and entered by separate hands, variances recounted then investigated before anything posts, adjustments approved by band with their evidence attached, and accuracy measured on a cycle that costs minutes a day.</b> Module 5 covers valuation and the stock ledger.</p>"
    }
   ],
   "questions": [
    {
-    "q": "The count's product is:",
+    "q": "A variance is:",
     "opts": [
-     "The QUESTION — held open, investigated, then adjusted in the open with a reason",
-     "A corrected number, immediately",
-     "A report",
-     "Blame"
+     "Information — a missing document, a process gap, or a loss, findable by investigation",
+     "A crime",
+     "A rounding artefact",
+     "The keeper's fault"
     ],
     "ans": 0,
-    "why": "Typing shelf numbers over ledger numbers builds an eraser, not a control.",
+    "why": "Counting is proof of custody, not suspicion.",
     "src": "Ch1"
    },
    {
-    "q": "Counting weekly because movements are chaos is:",
+    "q": "The Stock Reconciliation is:",
     "opts": [
-     "Best practice",
-     "Bailing a boat you refuse to patch — every count resets the water; the leak remains",
-     "Thorough",
-     "Required"
+     "The first step",
+     "The last step — aligning records to verified truth; posted before investigation it converts information into silence",
+     "The count itself",
+     "A report"
     ],
     "ans": 1,
-    "why": "Counting cannot substitute for the disciplines it tests.",
+    "why": "The two instruments in order.",
     "src": "Ch1"
    },
    {
-    "q": "The counting regime's three jobs are:",
+    "q": "The three count types are:",
     "opts": [
-     "Speed, cost, blame",
-     "Audit, tax, insurance",
-     "Accuracy, accountability, deterrence — the counted warehouse steals from itself less",
-     "None"
+     "Fast, slow, none",
+     "Blind, open, mixed",
+     "Full, cycle, and spot",
+     "Annual, monthly, never"
     ],
     "ans": 2,
-    "why": "The cadence's existence is itself a control.",
+    "why": "The cycle count is the working control.",
     "src": "Ch1"
    },
    {
-    "q": "The reconciliation's two purposes are:",
+    "q": "The Opening Stock purpose:",
     "opts": [
-     "Draft and final",
-     "Annual and monthly",
-     "In and out",
-     "Opening Stock and the ongoing count adjustment — same machinery, different governance"
+     "Is the standing lane",
+     "Skips rates",
+     "Is deprecated",
+     "Loads go-live balances with verified opening rates — a wrong opening rate propagates into every valuation after it"
     ],
     "ans": 3,
-    "why": "The purpose field says which is happening.",
+    "why": "The rate check against recent purchases is part of it.",
     "src": "Ch2"
    },
    {
-    "q": "A rate typed carelessly on an ordinary count adjustment:",
+    "q": "A reconciliation row's quantity:",
     "opts": [
-     "Performs a revaluation nobody meant — the rate column should usually assert nothing",
-     "Is harmless",
-     "Speeds entry",
-     "Is required"
+     "Sets the balance TO the figure — the reconciliation states truth and the system computes the difference",
+     "Adjusts by the figure",
+     "Is the variance",
+     "Is optional"
     ],
     "ans": 0,
-    "why": "Quantity correction at existing valuation is the default intent.",
+    "why": "The set-to rule.",
     "src": "Ch2"
    },
    {
-    "q": "Batch-tracked items are counted:",
+    "q": "The Valuation Rate on a reconciliation row is:",
     "opts": [
-     "By total quantity",
-     "Per BATCH — identity-blind counting repairs the quantity while corrupting the grid",
-     "By value",
-     "Annually only"
+     "Always typed",
+     "Normally left to the ledger — entered only for a documented, deliberate revaluation",
+     "The selling price",
+     "Zero"
     ],
     "ans": 1,
-    "why": "Module 3's integrity arithmetic depends on counts feeding it.",
+    "why": "A casual rate is a casual valuation event.",
     "src": "Ch2"
    },
    {
-    "q": "Opening stock's non-negotiable sequence is:",
-    "opts": [
-     "Load, then verify",
-     "Load from memory",
-     "Count first, then load — the old system's report imports every ghost it accumulated",
-     "Skip to trading"
-    ],
-    "ans": 2,
-    "why": "The most important count the firm will ever do.",
-    "src": "Ch3"
-   },
-   {
-    "q": "Opening stock at selling prices produces:",
-    "opts": [
-     "Conservative books",
-     "Better reports",
-     "Faster go-live",
-     "An inflated asset and zero paper margins — a ₦12m fiction that ripples until supervised revaluation"
-    ],
-    "ans": 3,
-    "why": "The FIRST suspect when first-quarter margins look inexplicably terrible.",
-    "src": "Ch3"
-   },
-   {
-    "q": "Opening rates are sourced from:",
-    "opts": [
-     "Recent purchase invoices first, documented methods for the tail, accountant's sign-off",
-     "The price list",
-     "Guesses",
-     "Round numbers"
-    ],
-    "ans": 0,
-    "why": "Evidence, proportionate to value.",
-    "src": "Ch3"
-   },
-   {
-    "q": "Batch-blind opening of tracked stock:",
-    "opts": [
-     "Saves harmless time",
-     "Destroys FEFO, the horizon, and the recall for that stock forever — provenance cannot be invented later",
-     "Is standard",
-     "Is reversible"
-    ],
-    "ans": 1,
-    "why": "The identity architecture's admission price, paid once.",
-    "src": "Ch3"
-   },
-   {
-    "q": "Count sheets are blind because:",
-    "opts": [
-     "Printing costs",
-     "Counters prefer it",
-     "A sheet showing expected 96 harvests 96 — anchoring is human and universal",
-     "Ledgers are secret"
-    ],
-    "ans": 2,
-    "why": "Blindness is the cheap cure.",
-    "src": "Ch4"
-   },
-   {
-    "q": "The freeze exists because:",
-    "opts": [
-     "Rules require it",
-     "Trucks are loud",
-     "Staff need breaks",
-     "Stock counted at 10:00 and moved at 10:30 is counted wrong somewhere"
-    ],
-    "ans": 3,
-    "why": "Absolute window, or strict cutover with segregation.",
-    "src": "Ch4"
-   },
-   {
-    "q": "Material variances are recounted before belief because:",
-    "opts": [
-     "The largest single source of count variances is the count itself",
-     "Policy says so",
-     "Recounts are free",
-     "Auditors watch"
-    ],
-    "ans": 0,
-    "why": "The missed shelf, the double-counted pallet, the UOM slip.",
-    "src": "Ch4"
-   },
-   {
-    "q": "No aisle is counted by its daily custodian ALONE because:",
-    "opts": [
-     "Custodians are suspects",
-     "The second pair of eyes is the accountability design — protecting the honest custodian too",
-     "They count slowly",
-     "They know too much"
-    ],
-    "ans": 1,
-    "why": "Fairness and control in one rule.",
-    "src": "Ch4"
-   },
-   {
-    "q": "The ABC engine counts:",
-    "opts": [
-     "Everything equally",
-     "Alphabetically",
-     "A items monthly, B quarterly, C annually — effort landing where the money sits",
-     "By shelf order"
-    ],
-    "ans": 2,
-    "why": "Fifteen minutes a day covers the A-class monthly.",
-    "src": "Ch5"
-   },
-   {
-    "q": "Count selection is unpublished because:",
-    "opts": [
-     "Schedules are hard",
-     "Nobody asks",
-     "Printing is slow",
-     "Predictable counts are gameable counts — deterrence needs surprise"
-    ],
-    "ans": 3,
-    "why": "Published rhythm, unpublished lines, plus triggers and random seasoning.",
-    "src": "Ch5"
-   },
-   {
-    "q": "Cycle count triggers include:",
-    "opts": [
-     "Recent variances, incident items, negative-stock flags — plus identity audits riding the visits",
-     "Nothing special",
-     "Only A items",
-     "Manager moods"
-    ],
-    "ans": 0,
-    "why": "One trip, two verifications.",
-    "src": "Ch5"
-   },
-   {
-    "q": "The count accuracy rate is:",
-    "opts": [
-     "Vanity",
-     "Lines counted clean over lines counted — the warehouse's ongoing grade, trended",
-     "Always 100%",
-     "Secret"
-    ],
-    "ans": 1,
-    "why": "And treated with suspicion when TOO perfect.",
-    "src": "Ch5, Ch9"
-   },
-   {
-    "q": "Adjusting before investigating risks:",
+    "q": "Submission posts:",
     "opts": [
      "Nothing",
-     "Only paperwork",
-     "Immortal root causes and backwards adjustments — two wrong bins made permanent",
-     "Slower counts"
+     "An email",
+     "Adjusting ledger entries per differing row, and the value delta between the stock account and the Difference Account",
+     "A report"
     ],
     "ans": 2,
-    "why": "A question closed wrong stays wrong twice.",
-    "src": "Ch6"
+    "why": "Real value moves with one document.",
+    "src": "Ch2"
    },
    {
-    "q": "The most frequent variance cause is:",
+    "q": "Including uncounted lines to tidy them is:",
     "opts": [
-     "Theft",
-     "Suppliers",
-     "Weather",
-     "Unposted or mis-posted documents — found by the ledger walk in minutes"
+     "Efficient",
+     "Harmless",
+     "Required",
+     "Adjusting records against no physical truth — the instrument's purpose inverted"
     ],
     "ans": 3,
-    "why": "The fix is POSTING the missing truth, never adjusting around it.",
-    "src": "Ch6"
+    "why": "Scope discipline.",
+    "src": "Ch2"
    },
    {
-    "q": "Warehouse A short exactly what B is over signals:",
+    "q": "The cut-off is held by:",
     "opts": [
-     "A wrong-warehouse posting — fixed by a correcting transfer, not two adjustments",
-     "Two thefts",
-     "Coincidence",
-     "A recount error"
+     "Movements stopped for the window, or the stock-freeze setting with a named exception role",
+     "Hope",
+     "Fast counting",
+     "The keeper"
     ],
     "ans": 0,
-    "why": "The mirror pair, netted cheaply.",
+    "why": "The count compares as of one moment.",
+    "src": "Ch3"
+   },
+   {
+    "q": "Count sheets print:",
+    "opts": [
+     "System quantities",
+     "Item lines WITHOUT system quantities — a counter who can see the figure confirms it; one who cannot must establish it",
+     "Values",
+     "Last count's results"
+    ],
+    "ans": 1,
+    "why": "The blind rule.",
+    "src": "Ch3"
+   },
+   {
+    "q": "The keeper's counting role is:",
+    "opts": [
+     "Excluded entirely",
+     "Sole counter",
+     "Participates — but never sole counter or enterer of their own custody",
+     "Approver"
+    ],
+    "ans": 2,
+    "why": "The separation preserved.",
+    "src": "Ch3"
+   },
+   {
+    "q": "The briefing names the unit column because:",
+    "opts": [
+     "It is polite",
+     "Units change",
+     "Sheets are long",
+     "The carton-versus-strip confusion is the most common count error"
+    ],
+    "ans": 3,
+    "why": "The checker verifies exactly this.",
+    "src": "Ch3"
+   },
+   {
+    "q": "Stock found that is not on the sheet is:",
+    "opts": [
+     "Written into the exceptions section with its location — mis-shelved, mis-scoped, or a receiving bypass",
+     "Ignored",
+     "Removed",
+     "Counted as the nearest item"
+    ],
+    "ans": 0,
+    "why": "The team counts the area, not the list.",
+    "src": "Ch4"
+   },
+   {
+    "q": "Found damage during the count is:",
+    "opts": [
+     "Disposed of on the spot",
+     "Noted on the line and left in place — the damage lane runs by document after, with the note as evidence",
+     "Hidden",
+     "Moved off-scope"
+    ],
+    "ans": 1,
+    "why": "The count establishes; it does not execute.",
+    "src": "Ch4"
+   },
+   {
+    "q": "The double-count rule covers:",
+    "opts": [
+     "Every line",
+     "Nothing",
+     "Designated lines — high value, historically variant, or the random sample — counted independently by a second team",
+     "C items"
+    ],
+    "ans": 2,
+    "why": "Two agreeing independent figures are the strongest truth.",
+    "src": "Ch4"
+   },
+   {
+    "q": "An undocumented mid-count movement:",
+    "opts": [
+     "Is fine if small",
+     "Is the keeper's call",
+     "Speeds the count",
+     "Invalidates every affected line silently — the one thing the procedure cannot survive"
+    ],
+    "ans": 3,
+    "why": "The coordinator's explicit procedure exists for the exception.",
+    "src": "Ch4"
+   },
+   {
+    "q": "The recount pass exists to:",
+    "opts": [
+     "Kill the cheap causes first — transcription, missed locations, unit errors — so surviving variances are real information",
+     "Delay posting",
+     "Blame counters",
+     "Double the work"
+    ],
+    "ans": 0,
+    "why": "Before any investigation.",
+    "src": "Ch5"
+   },
+   {
+    "q": "The variance report is worked:",
+    "opts": [
+     "Top of the page down",
+     "By absolute value — the review works the money, not the row count",
+     "Alphabetically",
+     "By warehouse name"
+    ],
+    "ans": 1,
+    "why": "Sort by value.",
+    "src": "Ch5"
+   },
+   {
+    "q": "The threshold ladder's investigation band means:",
+    "opts": [
+     "Post then investigate",
+     "Ignore the row",
+     "The row does not post until the investigation's outcome reference attaches",
+     "Escalate everything"
+    ],
+    "ans": 2,
+    "why": "The ladder's middle band.",
+    "src": "Ch5"
+   },
+   {
+    "q": "The keeper sees the variance report:",
+    "opts": [
+     "Never",
+     "Only if accused",
+     "After posting",
+     "Before posting, and signs the review — their custody, their right to explain, their attestation of fairness"
+    ],
+    "ans": 3,
+    "why": "A control, not a grievance.",
+    "src": "Ch5"
+   },
+   {
+    "q": "The document sweep runs:",
+    "opts": [
+     "Always first — most real variances are paperwork: unposted movements, transit, pending documents, timing",
+     "Last",
+     "Never",
+     "Only for large lines"
+    ],
+    "ans": 0,
+    "why": "In its stated order.",
     "src": "Ch6"
    },
    {
-    "q": "A variance of exactly 110 on a Carton-12 item suggests:",
+    "q": "A variance mirrored on a similar item is:",
     "opts": [
-     "110 stolen units",
-     "A UOM signature — one mis-keyed carton row; check the arithmetic before believing the loss",
-     "A recall",
+     "Two losses",
+     "An identity confusion — two lines counted into each other, corrected as the pair it is",
+     "A theft",
+     "A discount"
+    ],
+    "ans": 1,
+    "why": "The two strengths of the same drug.",
+    "src": "Ch6"
+   },
+   {
+    "q": "An unexplained surviving loss:",
+    "opts": [
+     "Waits for answers",
+     "Is absorbed silently",
+     "Posts through its lane with the investigation attached, approved per the band — a decided expense even with the mechanism unknown",
+     "Reverses the count"
+    ],
+    "ans": 2,
+    "why": "And enters the pattern file.",
+    "src": "Ch6"
+   },
+   {
+    "q": "The pattern file exists because:",
+    "opts": [
+     "Files are tidy",
+     "Losses are rare",
+     "Auditors ask",
+     "Three data points become a shape — the same class, window, or handover — and the shape is what the owner acts on"
+    ],
+    "ans": 3,
+    "why": "Reviewed quarterly with the accuracy read.",
+    "src": "Ch6"
+   },
+   {
+    "q": "Every investigation closes with:",
+    "opts": [
+     "The upstream line — what would have prevented this, and which procedure now carries it",
+     "A number",
+     "A suspect",
+     "A meeting"
+    ],
+    "ans": 0,
+    "why": "The count exists to improve the process that feeds it.",
+    "src": "Ch6"
+   },
+   {
+    "q": "ABC classification ranks items by:",
+    "opts": [
+     "Alphabet",
+     "Annual consumption value — a small fraction of lines holding most of the money",
+     "Size",
+     "Age"
+    ],
+    "ans": 1,
+    "why": "Recomputed twice a year from the data.",
+    "src": "Ch7"
+   },
+   {
+    "q": "Count frequency follows:",
+    "opts": [
+     "Convenience",
+     "Shelf order",
+     "Value at risk — A items most often, C by rotation",
+     "Supplier terms"
+    ],
+    "ans": 2,
+    "why": "The design principle.",
+    "src": "Ch7"
+   },
+   {
+    "q": "The daily cycle slice works because:",
+    "opts": [
+     "It is thorough",
+     "It is annual",
+     "It is blind",
+     "A control that costs minutes daily runs; the weekend-sized control gets postponed"
+    ],
+    "ans": 3,
+    "why": "The calendar's point.",
+    "src": "Ch7"
+   },
+   {
+    "q": "The accuracy metric is:",
+    "opts": [
+     "Lines counted correct over lines counted, within the de-minimis band, trended per warehouse",
+     "Value counted",
+     "Sheets returned",
+     "Variances found"
+    ],
+    "ans": 0,
+    "why": "The programme's output number.",
+    "src": "Ch7"
+   },
+   {
+    "q": "A mature cycle programme makes the year-end count:",
+    "opts": [
+     "Unnecessary",
+     "Boring — a short variance report confirming what the cycle already evidences",
+     "Longer",
+     "Monthly"
+    ],
+    "ans": 1,
+    "why": "Short is the goal.",
+    "src": "Ch7"
+   },
+   {
+    "q": "HealthTrade's ABC baseline was:",
+    "opts": [
+     "Ten A items",
+     "All items equal",
+     "62 A items carrying 71% of value; five lines per day per warehouse; 96.8% first-quarter accuracy",
+     "No baseline"
+    ],
+    "ans": 2,
+    "why": "Steps 2-3.",
+    "src": "Ch8"
+   },
+   {
+    "q": "The 8-carton amoxicillin variance resolved as:",
+    "opts": [
+     "A write-off",
+     "A recount error",
+     "A theft",
+     "A supplier receipt from twelve days prior, shelved but never posted — the missing document entered, not an adjustment"
+    ],
+    "ans": 3,
+    "why": "The shelf was right; the records were behind.",
+    "src": "Ch8"
+   },
+   {
+    "q": "That investigation's upstream fix was:",
+    "opts": [
+     "The deputy rule added to receiving — and the finding converged with the aging read that had flagged the same gap",
+     "A camera",
+     "A new keeper",
      "Nothing"
     ],
-    "ans": 1,
-    "why": "The factor-of-twelve leaves fingerprints.",
-    "src": "Ch6"
-   },
-   {
-    "q": "An adjustment papering over an unposted document:",
-    "opts": [
-     "Solves it",
-     "Is faster and fine",
-     "Creates a double error the day the document finally posts",
-     "Is required"
-    ],
-    "ans": 2,
-    "why": "The case study's investigation refused exactly this.",
-    "src": "Ch6, Ch8"
-   },
-   {
-    "q": "Shrinkage is expressed as a RATE because:",
-    "opts": [
-     "Rates look smaller",
-     "Auditors demand it",
-     "Percentages are fashionable",
-     "The raw naira grows with the business — the rate is the honest comparator"
-    ],
-    "ans": 3,
-    "why": "Quarter on quarter, warehouse against warehouse.",
-    "src": "Ch7"
-   },
-   {
-    "q": "A stable 0.4% becoming 0.9% in two quarters is:",
-    "opts": [
-     "A change with a cause — the trend is the alarm, not the level alone",
-     "Fine — still small",
-     "A rounding issue",
-     "Expected growth"
-    ],
     "ans": 0,
-    "why": "New staff, new category, or a lapsed control.",
-    "src": "Ch7"
+    "why": "Two reads, one gap.",
+    "src": "Ch8"
    },
    {
-    "q": "One branch at triple the network shrinkage rate is:",
+    "q": "Ibadan's accuracy dip traced to:",
     "opts": [
-     "Bad luck",
-     "A located problem — the distribution is the map",
-     "Normal variance",
-     "A reporting error"
+     "Theft",
+     "The checker step skipped on busy days — re-briefed, closed in a month",
+     "Bad stock",
+     "The freeze"
     ],
     "ans": 1,
-    "why": "Custody, security, or discipline — and now you know where.",
-    "src": "Ch7"
+    "why": "Step 3.",
+    "src": "Ch8"
    },
    {
-    "q": "Process-heavy vs unexplained-heavy cause mixes prescribe:",
+    "q": "Module 4's rule is:",
     "opts": [
-     "The same fix",
-     "Nothing",
-     "Training and discipline vs access control and harder conversations — only investigation tells them apart",
-     "More counting only"
+     "Counts are suspicion",
+     "Adjust first, ask later",
+     "A count proves custody — blind sheets by separate hands, variances recounted then investigated before posting, adjustments approved by band, accuracy measured on a daily-scale cycle",
+     "Annual counts suffice"
     ],
     "ans": 2,
-    "why": "The cause mix is the prescription.",
-    "src": "Ch7"
-   },
-   {
-    "q": "The uninvestigated variance coded 'unexplained' is:",
-    "opts": [
-     "Honest",
-     "Standard",
-     "Efficient",
-     "A lie with a category — shrinkage is not a bucket for lazy differences"
-    ],
-    "ans": 3,
-    "why": "Aggregation without granularity manages nothing.",
-    "src": "Ch7"
-   },
-   {
-    "q": "In the case study, the ₦19m phantom was:",
-    "opts": [
-     "Caught in Draft by the hour-one check of opening rates against purchase invoices",
-     "Submitted and fixed later",
-     "Never found",
-     "The auditor's find"
-    ],
-    "ans": 0,
-    "why": "₦61m at selling prices became ₦42m at cost before the books ever carried it.",
-    "src": "Ch8"
-   },
-   {
-    "q": "The Ibadan amoxicillin variance resolved as:",
-    "opts": [
-     "Theft, adjusted",
-     "An unposted transfer receipt — the missing POSTING entered, zero adjustment, stand-in trained",
-     "A write-off",
-     "A mystery"
-    ],
-    "ans": 1,
-    "why": "Two diagnostics (cycle count and transit aging) converged on one truth.",
-    "src": "Ch8"
-   },
-   {
-    "q": "The year-end full count was short and calm because:",
-    "opts": [
-     "Luck",
-     "Nobody looked hard",
-     "The cycle programme spent a year keeping the variance list short",
-     "The freeze failed"
-    ],
-    "ans": 2,
-    "why": "The annual count shrank to a formality.",
-    "src": "Ch8"
-   },
-   {
-    "q": "Abeokuta's Q2 shrinkage spike was:",
-    "opts": [
-     "Ignored as noise",
-     "Adjusted away",
-     "Blamed on customers",
-     "Located by the distribution read, investigated, resolved with a lock policy and trigger counts"
-    ],
-    "ans": 3,
-    "why": "Back on-trend by Q3; nobody surprised in December.",
-    "src": "Ch8"
-   },
-   {
-    "q": "Count theatre is detected by:",
-    "opts": [
-     "Suspicion of too-perfect accuracy, blind sheets structurally, spot re-counts by the schedule owner",
-     "Perfect sheets celebrated",
-     "Nothing",
-     "Longer counts"
-    ],
-    "ans": 0,
-    "why": "Sheets that always match the ledger are counting the screen.",
-    "src": "Ch9"
-   },
-   {
-    "q": "The first investigation question for any surprising full-count variance is:",
-    "opts": [
-     "Who was on shift",
-     "Did the freeze hold?",
-     "What is the item worth",
-     "When was the last audit"
-    ],
-    "ans": 1,
-    "why": "A leaky freeze manufactures variances that are artifacts.",
-    "src": "Ch4, Ch9"
-   },
-   {
-    "q": "This module's law is:",
-    "opts": [
-     "Adjust fast, move on",
-     "Count everything daily",
-     "The count is a dialogue between the ledger and the shelf — investigate before you adjust, and adjust in the open",
-     "Trust the ledger always"
-    ],
-    "ans": 2,
-    "why": "Open at cost, count blind, freeze honestly, name every cause, read the number.",
+    "why": "The module rule.",
     "src": "Ch9"
    }
   ]
