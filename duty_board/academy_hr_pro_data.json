@@ -2844,946 +2844,946 @@
  },
  "lifecycle": {
   "title": "HR 7 — Lifecycle Events & Separation",
-  "desc": "Every lifecycle event is a document: promotions and transfers as custody events with served joins, the grievance channel, the disciplinary process built for the innocent, integrity cases investigated before concluded, resignation and the managed notice period, and the separation checklist as the join map reversed.",
+  "desc": "Lifecycle events in ZhiftERP: the Employee Transfer with its property table, honest dates, and cross-track lines; the Employee Promotion with the silent-difference check and the pay boundary; the Employee Grievance entered as stated, routed per policy, investigated as observations, and resolved on the record; the Employee Separation generated from its template beside the payroll exit, with the Exit Interview on its rules; probation confirmations and contract renewals decided on time from the monthly reads; and the movement record with its quarterly both-ways reconciliation.",
   "lessons": [
    {
-    "title": "Chapter 1 — Every lifecycle event is a document",
+    "title": "Chapter 1 — Lifecycle events: scope and record structure",
+    "est": "11",
+    "html": "<p>This module covers the employment lifecycle events between joining and exit in ZhiftERP. On completing this module you will be able to: execute transfers through the Employee Transfer document; execute promotions through the Employee Promotion document with the pay boundary operated; record and resolve grievances through the Employee Grievance document; run separations through the Employee Separation document and its template; conduct the Exit Interview; and operate probation confirmations and contract renewals on their standing reads.</p><p><b>The record structure.</b> Lifecycle events use five record types:</p><p>1. <b>Employee Transfer</b> — the document that moves an employee between branches, departments, or companies, applying the property changes from its date (Chapter 2).<br>2. <b>Employee Promotion</b> — the document that changes designation and related properties from its date (Chapter 3).<br>3. <b>Employee Grievance</b> — the record of a raised grievance, its investigation, and its resolution (Chapter 4).<br>4. <b>Employee Separation</b> — the exit's task checklist, generated from a template like onboarding (Chapter 5).<br>5. <b>Exit Interview</b> — the structured exit conversation's record (Chapter 5).</p><p><b>The design principle, carried from module 1.</b> Every lifecycle event is a change to the Employee master executed as a document: the document carries the decision, the date, and the property changes; the master's history shows what changed, when, and on whose authority. The alternative — editing Employee fields directly when someone moves — leaves the same fields changed with no document stating why, and the standing rule applies: no change without its record.</p><p><b>The boundaries with other tracks, stated once.</b></p><p>1. <b>Pay:</b> a transfer or promotion that changes pay executes the pay change through the Payroll track's lanes (the approval matrix, the letter, the Salary Structure Assignment — its module 6). The lifecycle document applies the organisational properties; it does not carry the pay change.<br>2. <b>The exit:</b> the Payroll track's module 7 owns the exit's money — the final slip, encashment, the settlement, the release checklist. This module owns the exit's HR side — the separation checklist, the exit interview, the record closure — and the two run together: the separation template's activities include the payroll lines, and both meet at the two-field rule (Relieving Date, Status).<br>3. <b>Access:</b> the sysadmin's joiner/mover/leaver procedures execute the access side of every event here; the checklists carry the confirmation lines.</p><p><b>Module contents.</b> Chapter 2: the Employee Transfer. Chapter 3: the Employee Promotion. Chapter 4: the Employee Grievance. Chapter 5: the Employee Separation and the Exit Interview. Chapter 6: probation confirmations and contract renewals. Chapter 7: the lifecycle reads. Chapter 8: worked example. Chapter 9: review and the module rule.</p>"
+   },
+   {
+    "title": "Chapter 2 — The Employee Transfer",
     "est": "12",
-    "html": "<p>Between the hire (module 2) and the last working day, a career inside a firm is a sequence of EVENTS — the confirmation, the promotion, the transfer, the warning, the grievance, the resignation, the exit — and this module's thesis governs all of them: <b>every lifecycle event is a document.</b> Not because paperwork is a virtue, but because of what these events ARE.</p><p><b>Why documents, here of all places.</b> Three reasons, in ascending weight: <b>the record's integrity</b> — module 1 made the employee master a record written by its owning events (the status set by the separation process, the grade by the promotion letter — never by edits), and this module is where those owning events live: an employee history that reads as a document sequence is a career; one that reads as unexplained field changes is the folder-and-memory system's ghost. <b>Procedural fairness</b> — these events touch livelihoods: the warning that shapes a dismissal case, the promotion that passes someone over, the transfer that uproots — and fairness in employment is substantially PROCEDURAL (the person told, heard, and answered, with the trail to prove it), which means the document is not the bureaucracy around the fairness; it largely IS the fairness, and Nigerian employment practice — like employment practice everywhere — tests exactly this when disputes arrive. <b>The downstream readers</b> — every event this module documents is consumed elsewhere: the promotion re-prices across the payroll boundary, the transfer re-homes custody across three other tracks, the separation revokes access across everything the firm runs — and an undocumented event leaves its consumers unserved, which is how the departed keep their logins and the transferred keep two warehouses' keys.</p><p><b>The event catalogue.</b> The module's map: the MOVEMENT events (promotion, transfer, acting roles — Chapter 2), the VOICE event (the grievance — Chapter 3), the CONDUCT events (the disciplinary process and its hard edge, the integrity case — Chapters 4-5), and the EXIT events (resignation and notice — Chapter 6; the separation machinery — Chapter 7). Each with the same anatomy this academy has taught five tracks: the document raised, the process run, the record written, the joins served — and each carrying the maintenance thread module 1 planted: the spine re-pointed, the status honest, the joins updated, at the event, by the event.</p><p><b>The tone, carried forward.</b> Module 1's custody framing governs hardest here, because this module holds the record's most sensitive layer — the warnings, the investigations, the grievances: data whose mishandling harms people directly, fenced by the permission design (module 8 finalises it), discussed on need, and written throughout in the discipline module 5 taught for the manager's log — as if the person will read it, because in these processes especially, they may, and the file that was written professionally is the file that protects everyone in the room. The module's machinery is heavy because its subject is heavy; the consultant who installs it well has given the firm the thing disputes test and cultures remember: a way of dealing with people that is the same way, every time, on paper.</p>"
+    "html": "<p>Open Employee Transfer (awesome bar) &gt; New. One document per move. Complete the fields in order.</p><p><b>1. Employee.</b> Select the employee being transferred.</p><p><b>2. Transfer Date.</b> The effective date, from the documented decision (the transfer memo, the approved request). The properties apply from this date; the date is the decision's, entered exactly — the honest-date rule from the payroll track applies to organisational changes identically.</p><p><b>3. The transfer details table.</b> One row per Employee property the transfer changes:</p><p>• <b>Property</b> — the field being changed: Branch, Department, Designation (where the move changes role), Reports To, Holiday List (where the destination's working pattern differs), Payroll Cost Center (where cost addressing is per employee — the branch move that forgets this row posts the salary to the old branch's P&amp;L from the transfer date).<br>• <b>Current</b> — pre-filled from the record.<br>• <b>New</b> — the destination value, from its master.</p><p>Build the row set from a standing transfer checklist of properties, not from memory — the table's completeness is the transfer's quality: each property forgotten is a report, a routing, or a posting that stays wrong until someone notices.</p><p><b>4. Inter-company transfers.</b> Where the move crosses legal entities, the transfer handles the company change per the site's configuration (including the new-employee-record option where the destination company requires its own record — the Payroll track, module 8's rule: employment is per company). An inter-company move is an exit-and-join in legal substance: the payroll and statutory consequences run with the accountant (final computations in the origin company per its rules, fresh assignment in the destination), and the transfer document coordinates the organisational side.</p><p><b>5. Submit.</b> On submission the property changes apply to the Employee record from the transfer date. Verify after submission: the Employee record's changed fields, the Organizational Chart where Reports To moved, and the destination's approver routing picking the employee up (module 1, Chapter 7's designs).</p><p><b>The transfer procedure.</b></p><p>1. The decision documented and approved per the business's design; attached to the transfer.<br>2. The property rows built from the checklist; the pay question answered explicitly — pay changes, if any, routed to the payroll lanes with the transfer referenced.<br>3. The document submitted effective the honest date.<br>4. The cross-track lines confirmed: access changes per the sysadmin mover procedure (role/branch scoping); compliance obligations triggered by the destination population (module 6, Chapter 7 — the stores-to-dispensing move's training line); the destination Holiday List and shift arrangements (module 3) in place before the first working day.<br>5. The verification reads run (step 5 above) and the transfer noted on the movement record (Chapter 7).</p>"
    },
    {
-    "title": "Chapter 2 — Promotions, transfers & acting roles: the movement events",
-    "est": "14",
-    "html": "<p>People move — up, across, and temporarily — and each movement is a document with joins to serve. The movement chapter.</p><p><b>The promotion.</b> The event that module 5 built the case for (the folder, the rationale, the panel where scale permits) and module 6 built the readiness for (the rung's certifications held) — executed as a document: the promotion letter (the new designation and grade, the EFFECTIVE DATE that everything downstream reads, the new terms referenced to the grade band — module 2's offer discipline at the internal market), the record's fields written by the event (designation, grade, the reporting line where the rung changes it — never edited loose), and the joins served in sequence: the payroll boundary notified through the standing handoff (the re-pricing is theirs; the effective date is the contract), the SPINE re-pointed where the promotion creates reports (the new supervisor's people moved under them — and their OWN former reports re-pointed to whoever inherits: module 1's spine-maintenance law at its busiest moment), the authority map updated (the rung's new authorities granted per module 6's certification gating; the outgrown ones reviewed — the promoted person who keeps every old permission plus the new is permission sprawl growing a career at a time), and the announcement made (the promotion communicated with its evidence-based why where appropriate — module 5's visible-standard culture compounding).</p><p><b>The transfer: the custody event.</b> The movement the multi-branch trade runs constantly, and the one this academy is uniquely equipped to govern — because a branch transfer is not an address change; it is a CUSTODY event across three other tracks: the warehouse custody handed over (the outgoing custodian's closing count SIGNED before custody changes — Inventory's law, now scheduled by the HR event that knows the date first; the incoming custodian's opening count the same document), the till and session authorities remapped (the closing roster of the old branch exits them; the new branch's admits them per certification — module 6's register consulted, not assumed), the cost-center address moved (Accounts 6's dimension following the person, effective-dated, so the payroll boundary's addressed cost lands on the right branch from day one), the SPINE re-pointed (the new manager, the old reports), and the practical layer (the roster released here, assigned there — module 3's coverage checked on both ends: the transfer that strands the old branch's Saturday is the swap-approval logic at event scale). The transfer document carries the checklist; the checklist has owners; and the day-one-ready discipline of module 2's onboarding applies in miniature — the transferred person arriving to granted access and an expecting manager is the same lesson taught again.</p><p><b>Acting roles: the temporary movement.</b> The gap-cover appointment (the maternity cover of module 4, the vacancy pending module 2's pipeline, the leave-season stretch) — governed lightly but governed: the acting appointment in writing (the scope of the acting authority — WHICH of the role's powers transfer, because the acting branch manager may hold the roster and the till oversight without the disciplinary pen; the END condition — the date or the event that closes it), the allowance question routed to policy and the boundary (acting pay is a policy the firm sets and payroll computes — never a corridor arrangement), the authorities granted temporarily and REVOKED at the end (the acting period that quietly never ends is a promotion nobody approved — the expiry-tracked appointment, module 1's worklist carrying one more date), and the development read taken (the acting period is the richest audition the firm runs — module 6's succession machinery reading its results deliberately).</p>"
+    "title": "Chapter 3 — The Employee Promotion",
+    "est": "12",
+    "html": "<p>Open Employee Promotion (awesome bar) &gt; New. One document per promotion. The Payroll track's module 6 covered this document from the pay side; this chapter is the HR execution.</p><p><b>1. Employee and Promotion Date.</b> The employee and the effective date from the approved decision — the promotion letter is the anchor document (the payroll track's letter rule), and the date here is the letter's date.</p><p><b>2. The promotion details table.</b> One row per property the promotion changes:</p><p>• <b>Designation</b> — the new title, from the Designation master (the promotion's defining row).<br>• <b>Grade</b> — where grades are in use, the new grade (and the payroll consequence of a grade's Default Salary Structure is verified against the letter at the assignment — never assumed from the default).<br>• <b>Department / Reports To</b> — where the promotion changes the reporting position (the new supervisor's own reports re-pointed per module 1, Chapter 7 where the promotion creates a manager).</p><p><b>3. The silent-difference check.</b> The payroll track's finding, restated as the HR-side procedure: when the promotion moves the employee between salary structures (a different package family), the two structures' component lists are compared line by line before the letter finalises — a component present in one and absent in the other (the meal allowance absent from the Management structure) is a difference the letter must state, or payday delivers it as a surprise. The comparison is the promotion checklist's line, run with the payroll operator.</p><p><b>4. Submit.</b> The property changes apply from the promotion date. The pay change — where the promotion carries one — travels the payroll lanes in full: the approval on the matrix, the letter, the Salary Structure Assignment from the same effective date. The promotion document and the assignment reference each other; the payroll track's quarterly naked-assignment sweep verifies the pairing from its side, and the movement record (Chapter 7) carries the event from this side.</p><p><b>The promotion procedure.</b></p><p>1. The case assembled: the appraisal history (module 5's records — the readiness evidence), the role's requirements (the Designation description), the training record (module 6).<br>2. The decision approved per the matrix; the letter issued stating title, effective date, pay terms, and any structure differences (step 3's check).<br>3. The Employee Promotion document entered and submitted effective the letter's date; the assignment entered by the payroll operator from the same letter.<br>4. The cross-track lines: access changes where the new role carries them (the sysadmin mover procedure — the new manager's approver roles); approver-table updates where the promotion makes the employee an approver (module 1's department tables); compliance obligations of the new population where any.<br>5. Verification: the Employee record's properties, the Organizational Chart, the first slip after the effective date read against the letter (the payroll operator's line, confirmed jointly).</p>"
    },
    {
-    "title": "Chapter 3 — Grievances: the employee's channel",
+    "title": "Chapter 4 — The Employee Grievance",
+    "est": "12",
+    "html": "<p>Open Employee Grievance (awesome bar) &gt; New. One record per raised grievance. The record's discipline is the chapter's substance: grievances handled off the record produce disputes with no facts.</p><p><b>1. The record's fields.</b></p><p>• <b>Raised By / Subject</b> — the employee raising it and the grievance's subject line.<br>• <b>Grievance Type</b> — from the type master (create the categories per the written grievance policy: working conditions, conduct, pay dispute, harassment, other). The type routes and reports; a harassment type in particular carries the policy's specific handling requirements.<br>• <b>Grievance Against</b> — the party the grievance concerns, per the form's structure.<br>• <b>Date</b>, <b>Description</b>, and <b>Cause</b> — the account as raised, entered as stated: the record holds the raiser's account in the raiser's terms, and the investigation's findings are entered separately (below), not blended into the original account.<br>• <b>Status</b> — Open → Investigated → Resolved (or Invalid per the policy's finding).<br>• <b>Resolution fields</b> — the resolution detail, the resolved-by, and the date.</p><p><b>2. The handling procedure, per the written grievance policy.</b></p><p>1. <b>Receipt:</b> the grievance entered on the day it is raised (by the employee through self-service where enabled, or by HR on the employee's behalf with the authority noted — the no-proxy rule from module 4 applies in kind). The raiser receives the acknowledgment the policy promises, with the timeline.<br>2. <b>Routing:</b> per type and per the policy — the line manager for working-conditions matters, HR and the owner for conduct matters, the policy's named route for harassment (which never routes through the person complained about — the routing design is checked for this before the first grievance, not during it).<br>3. <b>Investigation:</b> the investigator gathers the facts and enters findings in the resolution section as observations with their sources — the recruitment module's rule (observations, not speculation) applies with full weight here. Pay-dispute grievances route through the payroll query procedure (its module 4) for the arithmetic and return here for any policy matter the arithmetic exposes.<br>4. <b>Resolution:</b> the decision per the policy's authority, entered with its reasoning; the status moved; the raiser informed per the policy's communication line.<br>5. <b>Confidentiality:</b> grievance records are among the most sensitive records in the system — the access matrix restricts them to the handling roles, and the module 1 sensitive-data rules apply at their strictest.</p><p><b>3. The grievance reads.</b> Quarterly, to the owner, as figures: grievances by type, by status age (an Open grievance aging past the policy's timeline is a process failure regardless of its merits), and by unit. The read is data per the standing rule — a unit's grievance cluster is the owner's signal to look, and the records give the look its facts.</p><p><b>4. What the record protects.</b> Both parties. The raiser has a dated record that the matter was raised and what was done; the business has a dated record of its handling; the person complained about has findings entered as observations rather than accumulated impressions. The employment disputes that reach lawyers are argued from exactly these records — or from their absence.</p>"
+   },
+   {
+    "title": "Chapter 5 — The Employee Separation and the Exit Interview",
     "est": "13",
-    "html": "<p>The voice event: the employee's formal channel for raising what is wrong — and the machinery that makes raising it safe, answered, and useful. The grievance chapter.</p><p><b>Why the channel must exist.</b> The pressure-valve argument, made to owners who think a grievance procedure invites grievances: the grievances EXIST regardless — the pay dispute, the roster unfairness, the supervisor's conduct, the colleague conflict — and the only question is where they go: into a CHANNEL (raised, heard, answered, recorded) or into the CORRIDOR (festering, recruiting sympathisers, surfacing eventually as attrition, sabotage-adjacent disengagement, or the tribunal claim that opens with <i>I had no one to complain to</i>). The channel is cheaper in every currency — and its mere credible existence resolves half its cases upstream, because the supervisor who knows complaints have somewhere to go supervises differently.</p><p><b>The process.</b> The shape (the adviser confirms the firm's specifics): RAISED (the grievance in writing — the form or the self-service flow; the informal-first norm honoured where appropriate: many matters resolve at the manager's desk, and the formal channel is for what didn't or can't — including anything about the manager themselves, which routes AROUND the spine to HR or the named alternative: the channel that only runs through the person complained about is a wall with a suggestion-box painted on), ACKNOWLEDGED (within the stated days — the grievance that vanishes into silence teaches the corridor was right), INVESTIGATED (proportionately: the facts gathered, the people spoken to, the records consulted — the reads and documents of six modules frequently settling factual disputes in minutes that memory would litigate for weeks), DECIDED and ANSWERED (the outcome and its reasons to the person, in writing — including the honest 'not upheld, and here is why'), and RECORDED (the case file complete, fenced by the custody rules).</p><p><b>The protections.</b> The channel's load-bearing guarantees: CONFIDENTIALITY (the grievance known to those who must know — the complainant who becomes branch gossip was punished for using the channel, whatever the outcome), NO RETALIATION (the guarantee stated, meant, and watched — the complainant's subsequent treatment read deliberately: the roster that worsens, the rating that dips, the coldness that follows are the channel being poisoned, and the firm that permits it has a channel in name only), and TIMELINESS (the stated clock, kept — justice delayed at trading-firm scale is a person coming to work distressed for weeks).</p><p><b>The altitude read.</b> The layer's aggregate honesty, in the pattern of every module: grievances read per period at altitude — the CLUSTER reads (the theme recurring — pay queries clustering means the boundary's communication is failing, not that people are difficult; the branch clustering means that branch has a management question; the roster-fairness cluster means module 3's rotation rule needs its audit), the VOLUME read with its honest interpretation (zero grievances in a sizeable firm is not harmony; it is more often a channel nobody trusts — the silence read as a flag, not a trophy), and the RESOLUTION read (time-to-answer, upheld rates, the outcomes' follow-through). The grievance layer read this way is a management information system wearing a complaints box — the firm's own people telling it where the machinery grinds, for free, in writing.</p>"
+    "html": "<p>The exit's HR machinery: the separation checklist and the structured exit conversation. The Payroll track's module 7 runs the money; this chapter runs beside it.</p><p><b>1. The Employee Separation Template.</b> Open Employee Separation Template (awesome bar) &gt; New — built once, like the onboarding template (module 2, Chapter 7), with one row per exit activity:</p><p>• The activity, the responsible user or role, and the timing relative to the relieving date.<br>• Standard rows: the two-field entry — Relieving Date and Status — on the decision's day (HR); the leave balance confirmation with the employee at the exit's start (HR — the payroll track's encashment reads it); the handover of duties documented (the manager); the direct reports re-pointed where the leaver manages (HR, module 1's rule); the exit interview scheduled and held (HR — below); company property collected against the custody list (Administration); access closure on the relieving date (the sysadmin's leaver procedure — confirmed, not assumed); the payroll settlement lines (the payroll operator — the settlement sheet, the statutory tail, the release checklist per that track); the record closure — Reason for Leaving, exit fields, attachments complete (HR).</p><p><b>2. The Employee Separation document.</b> Open Employee Separation &gt; New at exit confirmation: the employee, the relieving date, the template. Submission generates the activity tasks to their owners with dates — the exit as a visible checklist across four functions instead of a corridor coordination. The boarding status tracks completion; the exit closes when every activity does, and the payroll track's release checklist and this document confirm each other's lines at the end.</p><p><b>3. The Exit Interview.</b> Open Exit Interview (awesome bar) &gt; New — the structured exit conversation's record:</p><p>• The employee (the relieving date and details pulled from the record), the interviewer (per the policy — HR or a manager not in the leaver's line, so the conversation can be candid), the scheduled date, and the status.<br>• The interview runs on the policy's standing question set — the reasons for leaving in the leaver's terms, the experience of the role and management, what the business should know — and the responses are recorded as given (the as-stated rule from Chapter 4).<br>• Held before the last day where possible (the last-afternoon interview competes with goodbyes and loses), and never made a condition of the settlement — the payroll track's release checklist does not include it, deliberately: the interview is the business asking a favour of someone leaving, and its honesty depends on that being true.</p><p><b>4. Reading the exits.</b> Two instruments, quarterly and annually:</p><p>1. <b>The attrition read</b> — leavers by Reason for Leaving (module 1's field), by unit, by tenure band: the turnover picture as figures. A unit whose leavers cluster in the first year is an onboarding or management signal; a reason category rising across units is a policy signal. Data to the owner per the standing rule.<br>2. <b>The exit-interview themes</b> — the interviews read together for recurring themes, summarised without attribution per the policy's confidentiality line. The themes join the attrition figures in the annual review: the numbers say who leaves; the interviews say why in their own words; the two together are the retention conversation's facts.</p>"
    },
    {
-    "title": "Chapter 4 — The disciplinary process: conduct, governed",
-    "est": "14",
-    "html": "<p>The conduct events — where module 5's capability/conduct fork sends its second branch — and the machinery whose fairness is tested harder than any other in the track. The disciplinary chapter, at consultant altitude with the adviser's boundary bright throughout.</p><p><b>The procedural spine.</b> The shape fairness takes (the firm's specific procedure is the adviser's drafting; the consultant installs and enforces its machinery): the ALLEGATION in writing (the person told exactly what conduct is alleged — specific incident, date, rule engaged: the vague charge is unanswerable and therefore unfair), the person HEARD (the response invited before any decision — in the meeting whose notice gave time to prepare, with the accompaniment norms the firm's procedure provides), the decision by someone IMPARTIAL (not the accuser judging their own accusation — the small firm's honest version: the manager raises, the founder or HR decides; the separation of roles that every track's two-names law prepared this firm to understand), the sanction PROPORTIONATE (matched to the conduct and the history — the ladder below), the decision in WRITING with reasons, and the APPEAL route stated (the second look by someone above or beside the decider — the safety valve that catches the process's own errors). Every step documented; the file the process's proof.</p><p><b>The warning ladder.</b> The graduated response for conduct short of the summary threshold: the NOTED verbal warning (the formal conversation, recorded as held — module 3's documented stage arriving at its destination), the WRITTEN warning (the conduct, the expectation, the timeline, the consequence of recurrence — the document that makes the next step fair), the FINAL written warning (the last rung named as such), and DISMISSAL with notice where the ladder exhausts — with the ladder's disciplines: warnings have SHELF LIVES (the policy's expiry — the five-year-old warning resurrected for today's case is the file weaponised; spent warnings spend), rungs can be SKIPPED only as the procedure provides for graver conduct (the skip justified in writing), and the ladder is climbed for CONDUCT, not capability (module 5's fork, enforced at the gate — the struggling performer on the warning ladder is the confused case both processes fail).</p><p><b>Suspension, governed.</b> The instrument most misused in the wild: suspension is NOT a punishment — it is a neutral holding measure pending investigation (the person whose presence could compromise the inquiry or the workplace stepped aside while facts are gathered), governed accordingly: in writing (the reason, the expected duration, the contact terms), normally on pay (the unpaid 'suspension' that is really a sanction-before-hearing is the procedure inverted — the adviser's terrain, and the firm's exposure), time-bounded (the suspension that drifts for months is a constructive verdict nobody signed), and CLOSED formally (the return with the matter resolved, or the process's next step — never the limbo that punishes by uncertainty). Module 4's boundary line completes here: suspension is not leave, appears in no leave ledger, and carries its own attendance category — the taxonomies kept honest on both sides.</p><p><b>The evidence base.</b> The quiet advantage a structured firm brings to every conduct case: the FACTS are usually already recorded — the attendance marks against the published roster (module 3), the session records, the receiving trails, the regularisation history, the manager's log, the training record answering was-the-rule-communicated (module 2's acknowledgments; module 6's completions) — so the disciplinary process in this firm argues about MEANING, rarely about facts, which shortens every case and protects every party: the person facing records can answer records; the person facing recollections is fighting fog. The chapter's closing conviction, for the consultant to carry into every installation: <b>the disciplinary machinery is not built for the guilty; it is built for the innocent</b> — the wrongly accused person's best friend is a process that demands specifics, hears them, decides impartially, and writes everything down.</p>"
+    "title": "Chapter 6 — Probation confirmations and contract renewals",
+    "est": "12",
+    "html": "<p>Two scheduled lifecycle events that fail silently when untracked. Both run on standing reads from module 1's fields.</p><p><b>1. Probation confirmations.</b></p><p>1. <b>The read:</b> monthly, the Employee list filtered on probation-period fields — probation end dates falling in the next sixty days, by manager. The list goes to the managers with the confirmation procedure attached.<br>2. <b>The assessment:</b> the probation review runs as a small appraisal cycle (module 5, Chapter 7's rule): the probation template, the manager's assessment on the record, the decision informed by the score.<br>3. <b>The outcomes, each as a record:</b> <b>confirmed</b> — the confirmation letter issued, the confirmation date field completed on the Employee record, any terms that change at confirmation (the policy's probation terms) executed through their lanes; <b>extended</b> — where the policy allows extension: the letter stating the extension and its reasons, the field updated, the next review scheduled; <b>not confirmed</b> — the exit per the probation terms, through the full separation machinery (Chapter 5 and the payroll track's module 7 — a probation exit is an exit, with every checklist line).<br>4. <b>The failure mode named:</b> the probation that lapses into confirmation by silence — the end date passing with no assessment, the employee confirmed by default with no record. The monthly read exists to make the silent lapse impossible: every end date gets a decision, dated, on the record.</p><p><b>2. Contract renewals.</b></p><p>1. <b>The read:</b> monthly, the expiring-contracts report (module 1, Chapter 3's contract end date field) — contracts ending in the next ninety days, by unit. Ninety days because the decision needs time on both sides: the business deciding, the employee planning.<br>2. <b>The decision, each as a record:</b> <b>renewed</b> — the new contract signed before the old expires; the contract end date updated from the new document; the terms changes, if any, through their lanes; <b>converted</b> — the fixed-term becoming permanent per the decision: the letter, the Employment Type updated (module 1's master), the policy consequences (leave policy differences by type — module 4) executed from the conversion date; <b>ended</b> — the contract expiring per its terms: the exit through the separation machinery, scheduled from the known date (the most schedulable exit there is — the payroll track's retirement observation applies: known dates make clean exits).<br>3. <b>The failure mode named:</b> the contract that expires unnoticed — the employee working on, the legal position unclear, the eventual regularisation done backwards. The blank end date on a fixed-term record (module 1's warning) and the skipped monthly read are the two causes; the register hygiene filter and the standing read are the two preventions.</p><p><b>3. The shared pattern.</b> Both events are date arithmetic on maintained fields plus a decision lane. The pattern repeats across the programme — the compliance expiries (module 6), the payroll year lines, the holiday list build — and it is the module's demonstration case for Chapter 9's rule: scheduled events are read from the records on a calendar, decided on time, and executed as documents.</p>"
    },
    {
-    "title": "Chapter 5 — Integrity cases: the trade's hard edge",
-    "est": "14",
-    "html": "<p>The gravest conduct cases — theft, fraud, falsification — where the trade's realities, four tracks of controls, and the law converge. The hard chapter, handled with the care it demands.</p><p><b>Where these cases come from.</b> In a structured firm, integrity cases rarely arrive as anonymous tips — they arrive as READS: the session variance pattern (Accounts 3's till data — the operator whose shortages cluster on their shifts), the count discrepancy that localises (Inventory 4's variance taxonomy pointing at a location, a shift, a hand), the seal broken between checkpoints (Inventory 6's forensics), the proxy check-in surfaced (module 3's orphan reads), the unexplained adjustment authored (the two-names log), the never-on-leave tell (module 4's mandatory-leave conviction closing its loop). The controls were built to prevent and detect; when they detect, this chapter governs what happens next — and the first discipline is the reads' own epistemics: <b>a pattern is a question, not a verdict</b> (module 3's law, at its heaviest application) — the variance cluster has innocent explanations (the shift's traffic, the float process, the training gap) that the investigation must genuinely test, because the integrity case that starts as a conclusion ends as an injustice or a tribunal loss, and usually both.</p><p><b>The investigation discipline.</b> Facts before accusations, mechanised: the evidence PRESERVED first (the records exported and secured, the documents copied, the till or stock frozen for counting where the case needs it — the money tracks' freeze discipline serving its gravest customer), the scope defined (what period, what records, what question), the facts assembled from the machinery (the structured firm's advantage again — the timeline built from records, not recollections), the person's ACCOUNT taken properly (within the disciplinary procedure's protections — heard, on notice, accompanied per the procedure; their explanation genuinely weighed, because it is sometimes right), corroboration sought where accounts conflict, and the file built to the standard its consumers demand — the disciplinary decision, possibly the criminal process, possibly the tribunal: three audiences, one file, written once, professionally.</p><p><b>The boundaries, bright.</b> The lines the consultant never crosses and teaches the firm not to: the CRIMINAL boundary (theft and fraud are crimes; the decision to involve the police is the firm's, taken with the adviser — and the internal process and any criminal process are DISTINCT tracks with distinct standards: the firm's disciplinary decision runs on its own procedure and evidence, and neither waits for nor substitutes the other; the adviser choreographs where both run), the RECOVERY boundary (restitution and its instruments — the guarantor framework of module 2 finally cashing its purpose — are the adviser's drafting; the improvised salary-deduction 'agreement' extracted in the heat of discovery is exposure wearing efficiency), and the CUSTODY boundary at its most acute (the case file's confidentiality absolute — the accused person's name in branch circulation before any finding is a wrong the firm cannot un-do, and a liability it authored).</p><p><b>The dismissal done properly — versus the quiet resignation.</b> The chapter's ethical summit: the proven case concluded through the procedure — the dismissal with its documented why — versus the trade's common shortcut: the quiet resignation (the person 'allowed to resign', the matter unrecorded, the reference unremarkable) — and the shortcut's true price named: it EXPORTS the problem (the till-skimmer hired by the pharmacy across town on a clean reference — the trading community's integrity commons, polluted), it forfeits the deterrence (the workforce that watched theft resolve into a tidy exit has been taught the actual odds), and it corrupts the reference layer this track's module 2 depends on (the firm that gives sanitised references receives them — the verification gate everyone's pipeline runs is only as honest as everyone's exits). The honest practice, adviser-shaped: conclude the process, record the truth, and answer reference requests factually within the law's bounds — the firm's contribution to the commons it draws from. The chapter closes where it opened: the controls' purpose was never prosecution — four tracks said 'protect the honest' at every layer, and the integrity process run properly is that promise kept at its hardest moment: the honest majority watching learns the machinery is real, fair, and on their side.</p>"
+    "title": "Chapter 7 — The lifecycle reads and the movement record",
+    "est": "12",
+    "html": "<p>The standing instruments across all lifecycle events.</p><p><b>1. The movement record.</b> The payroll track (module 6) keeps the movement record for pay events; the HR side extends it to all lifecycle events — one register, one line per event:</p><p>• The employee, the event type (transfer, promotion, confirmation, extension, renewal, conversion, separation), the effective date, the document reference, and the decision reference.<br>• Maintained as events execute (the procedure chapters each end by noting the event here), and read quarterly against the documents: every line has its document; every lifecycle document has its line. The reconciliation is the same both-ways read as everywhere else in the programme.</p><p><b>2. The quarterly lifecycle read, to the owner.</b> One page of figures:</p><p>1. Events by type for the quarter (the movement record's counts).<br>2. The attrition figures (Chapter 5's read).<br>3. The scheduled-event health: probation decisions made versus due; contract decisions made versus due; any lapse listed with its cause (Chapter 6's failure modes, counted).<br>4. Open grievances by age against the policy timeline (Chapter 4).</p><p><b>3. The cross-track confirmations, gathered.</b> Every lifecycle event touches other tracks, and each procedure chapter carried confirmation lines. Gathered here as the standing checklist rows any event's document should show completed:</p><p>1. <b>Access</b> — the sysadmin's joiner/mover/leaver procedure line, confirmed on the event's checklist (the transfer's scoping change, the promotion's new roles, the separation's same-day closure).<br>2. <b>Pay</b> — where the event carries a pay consequence: the payroll lanes' documents referenced from the lifecycle document (the assignment, the letter).<br>3. <b>Compliance</b> — population changes triggering training obligations (module 6's mover rule).<br>4. <b>Routing</b> — approver tables and Reports To updated where the event changes them (module 1).</p><p><b>4. The history discipline, restated for lifecycle.</b> Lifecycle documents apply changes forward from honest dates; the Employee record's history (track changes per the standing audit configuration) shows the sequence. Three rules:</p><p>1. Backdating is the honest-date lane only: an event executed late is entered with its true effective date and processed with its true entry date — the arrears pattern from the payroll track, applied to organisational changes (the transfer applied a month late corrects reports and routing forward, and the gap is noted, not hidden).<br>2. Documents are never cancelled to rewrite outcomes: a wrong transfer is corrected by a correcting transfer with its cause noted.<br>3. The Employee record's Version history plus the movement record together answer any question of the form <i>when did this person's role change and on whose authority</i> — the answer is two lookups, which is the standard the whole module builds to.</p>"
    },
    {
-    "title": "Chapter 6 — Resignation & notice: the voluntary exit",
+    "title": "Chapter 8 — Worked example: a HealthTrade quarter of lifecycle events",
     "est": "13",
-    "html": "<p>Most exits are chosen — the resignation — and the firm's handling of its notice period is a discipline with compounding returns. The voluntary-exit chapter.</p><p><b>The resignation as document.</b> The letter received and ACKNOWLEDGED in writing (the acceptance stating the notice terms as the contract sets them, the last working day computed and confirmed — the date every downstream process will read; the ambiguity that surfaces at full-and-final was born here if it was born at all), the notice period per the contract and grade (the terms module 2's offer set, now cashing), and the record's status machinery engaged (the notice-period state — module 1's taxonomy — with the separation checklist of Chapter 7 OPENED the same day, because the checklist's longest lines start immediately).</p><p><b>The notice period, managed.</b> The weeks between letter and last day, run deliberately: the HANDOVER begins day one (the academy's handover test — every track's module 8 — now run live and compressed: the documents current?, the deputy ready?, the successor named or the acting appointment drafted? — the notice period is the handover test with a deadline, and the firm that built module 6's succession machinery discovers its notice periods are calm while its competitors' are scrambles), the leave-during-notice rules applied as module 4 set them (the balance's fate resolved by policy toward the final settlement — not negotiated at the door), the duties honest (the notice-period employee doing real work, not ghosted at their desk nor loaded with the backlog as a parting gift — both patterns read by everyone watching), and the security judgment made where the role demands it (the departing employee in a sensitive seat — the finance roles, the systems administrator — may serve notice away from the controls per the firm's policy and the adviser's shape: garden-leave logic at trade scale, applied by risk, not routine).</p><p><b>The counter-offer question.</b> Handled honestly, because every owner asks: the counter-offer that addresses a REAL and fixable cause (the pay genuinely under band — the grade conversation that should have happened at module 5's cycle happening late) sometimes holds; the counter-offer that outbids a decided departure usually buys months, not years (the decided leaver re-resigns on schedule, now with a raise), and the systematic counter-offer culture teaches the workforce that resignation is the negotiation channel — the corridor's politics given a formal doorway. The consultant's framing: the counter-offer is a symptom conversation — WHY the resignation, answered honestly, is worth more than the retention, and Chapter's exit interview is where the answer gets recorded even when the person still leaves.</p><p><b>The signals read.</b> The resignation layer at altitude, closing the chapter: the pre-resignation drift (module 3's attendance decay named exactly this — the signal that wanted a check-in months ago: each resignation audited briefly against its warning signs, not for blame but for the detector's tuning), the CLUSTER reads (the manager whose team resigns in series is a management finding — the exit data of Chapter 7's interviews aggregating into the read; the role that churns is module 2's mis-scoped role finding; the post-change wave is the change's bill), and the tenure read (the firm losing its people at year two has an entry problem or a ladder problem — module 6's rungs answering). Attrition read this way is the workforce's referendum, published in resignations — expensive to ignore, free to read.</p>"
+    "html": "<p>This chapter applies Chapters 2-7 to one HealthTrade quarter. Configuration values and outcomes are listed per event.</p><p><b>Event 1 — a transfer (Chapter 2).</b> A warehouse assistant moves from Central Lagos to the Akure branch on the operations manager's approved memo. Employee Transfer entered: transfer date the 1st; property rows — Branch (Central Lagos → Akure), Department (unchanged), Reports To (the Akure branch manager), Holiday List (Standard → Retail Branches — Akure works Saturdays), Payroll Cost Center (Central Lagos → Akure). Submitted; verification: the record's fields, the chart, and the first post-transfer slip's cost center confirmed with the payroll operator. The compliance line fires: Akure's role includes dispatch handling — the Cold Chain obligation triggers from the move date and the employee joins the Q2 event's table (module 6's mover rule executed). Movement record: one line, memo referenced.</p><p><b>Event 2 — a promotion (Chapter 3).</b> A senior pharmacy technician is promoted to Pharmacy Counter supervisor. The case: two appraisal cycles' records, the training record showing the supervision programme completed. The silent-difference check runs with the payroll operator: the destination structure carries a Responsibility Allowance absent from the origin — stated in the letter. Employee Promotion entered effective the letter's date: Designation and Reports To rows; the counter staff re-pointed to the new supervisor; the department approver table updated (the new supervisor joins the leave approvers). The assignment enters from the same letter; the first slip is read jointly against it. Movement record: one line, letter referenced.</p><p><b>Event 3 — a grievance (Chapter 4).</b> A driver raises a working-conditions grievance (vehicle safety) through self-service. Entered as stated, type Working Conditions, routed to the operations manager per the policy. Investigation findings entered as observations: two of the raised items verified (a worn tyre set, a faulty jack), one not reproduced. Resolution: the verified items fixed with dates, the resolution recorded, the raiser informed; status Resolved in eleven days against the policy's fourteen-day timeline. The quarterly read carries it as one line.</p><p><b>Event 4 — a separation (Chapter 5).</b> An accounts assistant resigns with notice (the payroll track's module 7 worked example is this exit's money side; this is the HR side). Employee Separation generated from the template: nine activities across HR, the manager, Administration, the sysadmin, and the payroll operator. The Exit Interview is held four days before the last day by the HR lead (not the line manager); responses recorded as given. All activities close by the relieving date; the separation's checklist and the payroll release checklist confirm each other's lines. The attrition read gains one line: resignation, Finance, tenure three years.</p><p><b>Event 5 — the scheduled reads (Chapter 6).</b> The monthly probation read lists one name — assessed as a small cycle, confirmed, the letter issued and the confirmation date field completed. The contract read lists two contracts ending inside ninety days: one renewed (new contract signed three weeks before expiry, end date updated), one converted to permanent (Employment Type updated, the leave policy difference executed from the conversion date per module 4).</p><p><b>The quarter's close.</b> The movement record shows seven lines, each with its document; the both-ways reconciliation is clean. The quarterly page to the MD: seven events by type, one resignation, probation and contract decisions two-for-two on time, zero lapses, one grievance resolved inside the timeline. Every figure traces to a document in two lookups.</p>"
    },
    {
-    "title": "Chapter 7 — The separation checklist: the join map reversed",
-    "est": "14",
-    "html": "<p>The exit's machinery — and the chapter where module 1's deepest promise (<i>HR knows about departures before every other control does</i>) is delivered as a checklist. The clean-exit chapter.</p><p><b>The checklist as the join map reversed.</b> Module 1 built the joins — the employee linked to users, tills, warehouses, approvals, mandates; this chapter walks them BACKWARDS: the separation checklist enumerates every link the person holds and resolves each before Left is final. The access layer: the USER account (disabled on the last day — not the following month: the departed with live logins is the security failure every audit finds first), the till and session authorities (the closing roster exits them — module 3's roster adjusted the same week), the warehouse permissions and restrictions (Inventory's fences dismantled), the APPROVER roles (every two-names pattern the person held re-named — the write-off signatures, the payment-run seat, the journal pen: Accounts 3's mandate-review discipline fired by the HR event, exactly as module 1 promised — including the BANK mandates themselves, the same-week signatory removal the money track demanded, now scheduled by the checklist that knew the date first), and the system roles beyond (the report subscriptions, the shared credentials rotated where any existed — the rotation being also the audit that finds them).</p><p><b>The custody layer.</b> The physical and accountable holdings: the warehouse or till CUSTODY handed over with its closing count SIGNED (Inventory's custody law — the count before custody changes, run before the last day, because the discrepancy found after departure is a dispute with an empty chair), the ASSETS recovered against the register (the laptop, the phone, the keys, the vehicle — Accounts 7's asset register consulted per person: the register that tracked the holding now proves the return), the documents and materials in the person's keeping retrieved, and the guarantor file's status noted where the trade's framework applies (module 2's paperwork, closing its loop at exit).</p><p><b>The settlement inputs: the boundary's last package.</b> The full-and-final computation is the payroll function's (the boundary's final crossing) — and HR's checklist hands it clean inputs: the last working day confirmed, the leave balance from the ledger (module 4's ledger settling the payout or the shortfall — the minus-eight-days conversation module 4 warned about, arriving here if governance leaked), the notice terms' status (served, paid in lieu, or shortfall per contract), the deductions with their DOCUMENTS (the loan balance, the governed recovery — never the improvised deduction Chapter 5 convicted), and the acting or allowance ends dated. The package complete, categorised, final — the attendance close's properties (module 3), applied to a career's last month — and the settlement computed once, from one version, which is how full-and-final stops being a negotiation.</p><p><b>The exit interview & the status's last write.</b> The leaving conversation, held by HR (not the line manager — the honesty depends on it), structured briefly (why leaving, what worked, what didn't, would you return, may we contact), recorded to the aggregate (Chapter 6's reads consuming it — the individual interview is a courtesy; the aggregated interviews are a management information stream), and closed with dignity (the thanks meant, the reference process explained, the door's status honest — module 1's rehire machinery remembering this person accurately either way). Then the record's last write: the status set LEFT by the completed process — the checklist signed off, the date entered, the employee number retired with the person (module 1's law, honoured at the end it was written for) — and the file complete: a career, readable start to finish as documents, which is what this track promised in its first chapter and delivers in its last ordinary one.</p>"
-   },
-   {
-    "title": "Chapter 8 — Case study: HealthTrade's lifecycle year",
-    "est": "16",
-    "html": "<p>The event machinery, run through a full year. Every chapter clocks in.</p><p><b>The promotion executed (Ch. 2).</b> Module 6's succession cashes in: the Ibadan storekeeper's ops-lead promotion — the folder argued (module 5's records), the rung's certifications held (module 6's register), the letter effective-dated, and the joins served in sequence: payroll notified through the boundary, the spine re-pointed (his former reports to the new senior storekeeper — the deputy developed before the vacancy, exactly as designed), the authority map updated with the old permissions REVIEWED (two warehouse fences dismantled, not inherited), and the announcement carrying its why. The transfer that follows (the new ops lead relocating to head office's distribution unit) runs the custody event in full: the closing count signed at Ibadan on his second-last day, the incoming custodian's opening count the same document, the cost center effective-dated — one person, five systems, zero loose ends.</p><p><b>The channel and the ladder (Ch. 3-4).</b> One grievance through the channel: a Lagos till assistant's roster-fairness complaint (her Saturday share running heavy) — acknowledged in two days, investigated in one (module 3's shift-share read settling the FACT in minutes: she was right — the rotation had drifted after a colleague's accommodation), answered in writing with the fix (the pattern rebalanced, the accommodation re-priced into the rotation as module 3's rule always required), and the altitude read noting the theme for the annual rotation audit. One warning ladder engaged: a driver's repeated documentation shortcuts (the tailgate variances of Inventory 6, twice coached through module 5's conversation path, persisting) — the noted verbal, then the written warning with its expectation and timeline; the shortcuts stop; the warning ages toward its shelf life doing exactly what the ladder is for: correcting without ending.</p><p><b>The integrity case (Ch. 5).</b> The hard one, handled properly: month seven's session reads localise a variance pattern — one operator, shortages clustering on solo shifts, ₦47,000 across nine weeks. The discipline holds: evidence preserved first (the session records exported, the till counted under freeze), the pattern treated as a question (the innocent explanations genuinely tested — the float process checked, the training record confirmed current, the shift traffic compared), the account taken within the procedure (on notice, heard, accompanied) — and the explanation failing against the records' specificity. The decision impartial (the founder deciding on the branch manager's file), the dismissal documented with its why, the guarantor framework engaged for recovery under the adviser's drafting, the police question decided WITH the adviser (pursued), and the reference stance settled: factual, within the law. The quiet-resignation shortcut is explicitly declined in the file's closing note — <i>we do not export our problems</i> — and the branch's reaction, watched carefully, is the chapter's thesis proven: the honest majority's trust in the tills VISIBLY rises; two operators separately thank the manager for the variance reads that protect their names.</p><p><b>The resignation and the clean exit (Ch. 6-7).</b> The Lagos accountant resigns (a bigger firm, a real ladder-rung the eleven-person structure could not offer — the exit interview records it honestly: <i>would return; leaving for scope, not grievance</i>). The notice period runs the compressed handover test — and passes, because Accounts 8's structural year built the documentation: the close's checklist transfers in two sittings, the deputy-prepared bookkeeper steps up under a written acting appointment with its end condition, and the security judgment is made calmly (the finance seat's notice served with the payment-release authority remapped week one — risk-based, explained, undramatic). The separation checklist walks the join map reversed: user disabled on the last day, the journal pen and release seat re-named, the BANK mandate removed same-week (the letter to the bank dated before the leaving drinks), assets recovered against the register, the leave ledger settling six days into the final package — computed once, from one version, no negotiation. The status writes LEFT by the process; the number retires; the file reads start to finish as documents. The year's note from the MD closes the case: <i>five events, five documents, zero corridors — and the one we dreaded most is the one the branch trusts us more for.</i></p>"
-   },
-   {
-    "title": "Chapter 9 — Common mistakes & the seventh law",
-    "est": "13",
-    "html": "<p>The lifecycle layer's scar tissue. Symptom → disease → fix.</p><p><b>Pattern 1 — the undocumented movement.</b> Symptom: grades and designations that changed without letters; effective dates nobody can establish; the promotion the payroll boundary learned about from a complaint. Disease: fields edited instead of events run (Ch. 1-2). Fix: the movement documents with effective dates, fields written only by their owning events, the joins served in sequence — and the record's history readable as a career.</p><p><b>Pattern 2 — the transfer that broke custody.</b> Symptom: the discrepancy discovered after the transfer, disputed with an empty chair; two branches' authorities held at once; the cost still landing on the old branch. Disease: the movement run as an address change instead of a custody event (Ch. 2). Fix: the transfer checklist — the signed closing count BEFORE custody changes, authorities remapped by certification, the dimension effective-dated — one person, every system, no loose ends.</p><p><b>Pattern 3 — discipline by explosion.</b> Symptom: nothing said for months, then dismissal-grade fury over the accumulated file; sanctions improvised at the desk; the procedure discovered during the tribunal. Disease: the process absent until it is needed, which is precisely when it cannot be built (Ch. 4). Fix: the procedural spine installed in peacetime — allegation in writing, the person heard, impartial decision, proportionate sanction, appeal — the ladder climbed rung by rung, and the conviction taught: the machinery is built for the innocent.</p><p><b>Pattern 4 — the quiet resignation.</b> Symptom: proven theft resolving into a tidy exit and a clean reference; the same person surfacing at the competitor's till; the workforce recalibrating the odds. Disease: the shortcut that exports the problem and corrupts the reference commons (Ch. 5). Fix: the process concluded, the truth recorded, references factual within the law — and the deterrence and trust dividends collected from the honest majority watching.</p><p><b>Pattern 5 — the departed with live access.</b> Symptom: the ex-employee's login active for months; the bank mandate bearing a name that left in March; the approval workflow routing to an empty desk. Disease: the join map never reversed (Ch. 7) — the exit as an HR formality instead of a cross-system event. Fix: the separation checklist opened the day the letter lands, the access lines dated to the last day, the mandate letters same-week, and the checklist's sign-off gating the Left status — HR knowing first, and acting first.</p><p><b>Pattern 6 — the full-and-final negotiation.</b> Symptom: settlements haggled at the door; leave balances disputed from memory; deductions improvised; the ex-employee and the firm both feeling robbed. Disease: the inputs never governed upstream (Ch. 7) — the ledger absent, the terms ambiguous, the package assembled from recollections. Fix: the ledger-fed, document-backed settlement package — complete, categorised, final — computed once from one version; the negotiation dissolved by machinery, which is this track's whole method at its last application.</p><p><b>The seventh law.</b> The record, the pipeline, the capture, the entitlement, the conversation, the manufacture — and now the events: <b>every lifecycle event is a document — movements with effective dates and served joins, grievances through a channel that answers, discipline through a procedure built for the innocent, integrity cases investigated before concluded and concluded without exporting, exits through the join map reversed, and the record's every field written by the event that owns it.</b> A career in this firm reads start to finish as documents — which is fairness, security, and history in one design. One module remains: the structure that holds the whole people function — settings, the permission fences, the analytics, the calendar, and the handover test that closes the certification.</p>"
+    "title": "Chapter 9 — Common errors and the module rule",
+    "est": "11",
+    "html": "<p>The errors that recur in lifecycle administration, each with its correction and prevention.</p><p><b>Error 1 — the fields edited instead of the document.</b> Symptom: Branch, Designation, or Reports To changed directly on the Employee record; the change real but undocumented; the movement record silent. Correction: the event documented retrospectively — the lifecycle document entered with the honest dates and the late entry noted. Prevention: the rule that lifecycle changes travel through their documents, and the quarterly both-ways reconciliation catching direct edits.</p><p><b>Error 2 — the incomplete property table.</b> Symptom: the transfer that moved the branch but not the cost center, the holiday list, or the reporting line; the salary posting to the old branch, the leave counting the wrong calendar. Correction: the missing rows applied by a correcting document. Prevention: the standing property checklist at transfer entry — the table built from the list, not from memory.</p><p><b>Error 3 — the promotion pay surprise.</b> Symptom: the promoted employee's first slip differing from expectation; a component present in one structure and absent in the other, discovered on payday. Correction: the payroll query procedure, then the letter or structure corrected per the decision. Prevention: the silent-difference check — the two structures compared line by line with the payroll operator before the letter finalises.</p><p><b>Error 4 — the grievance off the record.</b> Symptom: complaints handled in conversations; no dated record of what was raised or done; the eventual dispute argued from recollections. Correction: the matter entered when it resurfaces, with its history as reconstructable. Prevention: the entry-on-the-day rule, the routing design checked in advance, and the quarterly age read.</p><p><b>Error 5 — the silent lapse.</b> Symptom: probations confirmed by default; contracts expired with the employee working on; the regularisation done backwards under pressure. Correction: the position regularised through the proper documents with honest dates and the gap noted. Prevention: the monthly probation and contract reads — date arithmetic on maintained fields, decided on time.</p><p><b>Error 6 — the separation as one person's memory.</b> Symptom: exits coordinated by corridor; the property unreturned, the access alive, the interview skipped, the reports orphaned — each discovered later. Correction: the open items closed through their owners. Prevention: the Employee Separation template — the exit as generated tasks with owners and dates, confirmed against the payroll release checklist.</p><p><b>Review list.</b> Before the quiz, confirm you can: state the five lifecycle record types and the three track boundaries; execute a transfer with the complete property table and the cross-track lines; execute a promotion with the silent-difference check and the pay boundary; record, route, investigate, and resolve a grievance per the written policy with the as-stated and observations rules; run a separation from the template with the Exit Interview held on its rules; operate the probation and contract reads with every outcome as a record; and maintain the movement record with the quarterly reconciliation and owner's page.</p><p><b>Module rule 7: lifecycle events are documents — transfers and promotions applying their property rows from honest dates, grievances entered as stated and resolved on the record, separations run as generated checklists beside the payroll exit, and every scheduled event decided on time from the standing reads.</b> Module 8 closes the track: settings, the assembled controls, and the handover test.</p>"
    }
   ],
   "questions": [
    {
-    "q": "Lifecycle events are documents because:",
+    "q": "The five lifecycle record types are:",
     "opts": [
-     "The record's integrity, procedural fairness, and the downstream readers all depend on it",
-     "Paperwork is a virtue",
-     "Auditors ask",
-     "Templates exist"
+     "Employee Transfer, Employee Promotion, Employee Grievance, Employee Separation, Exit Interview",
+     "Letter, memo, note, file, list",
+     "Join, move, rise, leave, close",
+     "Transfer, promotion, slip, run, register"
     ],
     "ans": 0,
-    "why": "The document largely IS the fairness.",
+    "why": "The record structure.",
     "src": "Ch1"
    },
    {
-    "q": "An employee history reading as unexplained field changes is:",
+    "q": "The lifecycle design principle is:",
     "opts": [
-     "Efficient",
-     "The folder-and-memory system's ghost — fields are written by their owning events",
-     "Normal",
-     "Compact"
+     "Edit fields directly",
+     "Every change to the Employee master executes as a document carrying the decision, date, and properties",
+     "Change monthly",
+     "HR memory"
     ],
     "ans": 1,
-    "why": "A career reads as a document sequence.",
+    "why": "No change without its record.",
     "src": "Ch1"
    },
    {
-    "q": "The promotion's joins include:",
+    "q": "A lifecycle event's pay change:",
     "opts": [
-     "Payroll only",
-     "The announcement",
-     "The boundary notified, the spine re-pointed both directions, authorities updated with old ones REVIEWED",
-     "Nothing"
+     "Rides the lifecycle document",
+     "Is automatic",
+     "Travels the payroll lanes — matrix, letter, assignment; the lifecycle document applies organisational properties",
+     "Is verbal"
     ],
     "ans": 2,
-    "why": "The promoted person keeping every old permission is sprawl growing a career at a time.",
-    "src": "Ch2"
+    "why": "The pay boundary.",
+    "src": "Ch1"
    },
    {
-    "q": "A branch transfer is:",
+    "q": "The Transfer Date is:",
     "opts": [
-     "An address change",
-     "Informal",
-     "A roster note",
-     "A custody event across tracks — the signed closing count BEFORE custody changes, authorities by certification, the dimension effective-dated"
+     "Entry day",
+     "The old date",
+     "Month-end always",
+     "The decision's effective date, entered exactly — the honest-date rule"
     ],
     "ans": 3,
-    "why": "One person, five systems, zero loose ends.",
+    "why": "Properties apply from it.",
     "src": "Ch2"
    },
    {
-    "q": "The acting period that never ends is:",
+    "q": "The transfer property table is built from:",
     "opts": [
-     "A promotion nobody approved — the appointment carries an end condition, expiry-tracked",
-     "Flexibility",
-     "Efficient",
-     "Standard"
+     "A standing checklist of properties — each forgotten row is a report, routing, or posting wrong until noticed",
+     "Memory",
+     "The old record only",
+     "The new branch's list"
     ],
     "ans": 0,
-    "why": "Scope, end, allowance by policy, authorities revoked at close.",
+    "why": "Completeness is the transfer's quality.",
     "src": "Ch2"
    },
    {
-    "q": "Grievances without a channel:",
-    "opts": [
-     "Disappear",
-     "Go to the corridor — festering, recruiting, surfacing as attrition or the tribunal claim",
-     "Resolve themselves",
-     "Are rare"
-    ],
-    "ans": 1,
-    "why": "The channel is cheaper in every currency.",
-    "src": "Ch3"
-   },
-   {
-    "q": "A grievance about the manager routes:",
-    "opts": [
-     "Through the manager",
-     "Nowhere",
-     "AROUND the spine to HR or the named alternative — or the channel is a wall with a suggestion-box painted on",
-     "To colleagues"
-    ],
-    "ans": 2,
-    "why": "The channel that only runs through the person complained about.",
-    "src": "Ch3"
-   },
-   {
-    "q": "Zero grievances in a sizeable firm is:",
-    "opts": [
-     "Harmony",
-     "Proof of culture",
-     "The goal",
-     "More often a channel nobody trusts — the silence read as a flag, not a trophy"
-    ],
-    "ans": 3,
-    "why": "The volume read's honest interpretation.",
-    "src": "Ch3"
-   },
-   {
-    "q": "Grievance clusters are read as:",
-    "opts": [
-     "Management information — the theme, the branch, the roster-fairness pattern each naming a repair",
-     "Difficult people",
-     "Noise",
-     "HR's failure"
-    ],
-    "ans": 0,
-    "why": "A management information system wearing a complaints box.",
-    "src": "Ch3"
-   },
-   {
-    "q": "The vague disciplinary charge is:",
-    "opts": [
-     "Flexible",
-     "Unanswerable and therefore unfair — the allegation is specific: incident, date, rule engaged",
-     "Safer legally",
-     "Standard"
-    ],
-    "ans": 1,
-    "why": "The procedural spine's first vertebra.",
-    "src": "Ch4"
-   },
-   {
-    "q": "The accuser judging their own accusation violates:",
+    "q": "The forgotten cost-center row causes:",
     "opts": [
      "Nothing",
-     "Efficiency",
-     "Impartiality — the manager raises, the founder or HR decides; the separation of roles",
-     "Tradition"
-    ],
-    "ans": 2,
-    "why": "Every track's two-names law prepared this firm to understand it.",
-    "src": "Ch4"
-   },
-   {
-    "q": "Warnings have:",
-    "opts": [
-     "Eternal life",
-     "No expiry",
-     "No records",
-     "Shelf lives — the five-year-old warning resurrected is the file weaponised; spent warnings spend"
-    ],
-    "ans": 3,
-    "why": "The ladder's discipline.",
-    "src": "Ch4"
-   },
-   {
-    "q": "Suspension is:",
-    "opts": [
-     "A neutral holding measure pending investigation — written, normally paid, time-bounded, formally closed",
-     "A punishment",
-     "Unpaid leave",
-     "A verdict"
-    ],
-    "ans": 0,
-    "why": "The unpaid 'suspension' is the procedure inverted.",
-    "src": "Ch4"
-   },
-   {
-    "q": "The disciplinary machinery is built for:",
-    "opts": [
-     "The guilty",
-     "The innocent — the wrongly accused person's best friend is a process that demands specifics and writes everything down",
-     "HR",
-     "Managers"
+     "The salary posting to the old branch's P&L from the transfer date",
+     "A blocked run",
+     "Double pay"
     ],
     "ans": 1,
-    "why": "The chapter's closing conviction.",
-    "src": "Ch4"
+    "why": "The named consequence.",
+    "src": "Ch2"
    },
    {
-    "q": "Integrity cases in a structured firm arrive as:",
+    "q": "An inter-company transfer is:",
     "opts": [
-     "Anonymous tips",
-     "Confessions",
-     "READS — session variances, count discrepancies, seal forensics, the never-on-leave tell",
-     "Rumours"
+     "A simple field change",
+     "Forbidden",
+     "An exit-and-join in legal substance — payroll and statutory consequences run with the accountant",
+     "Automatic"
     ],
     "ans": 2,
-    "why": "The controls detecting; this chapter governing what happens next.",
-    "src": "Ch5"
+    "why": "Employment is per company.",
+    "src": "Ch2"
    },
    {
-    "q": "A variance pattern is:",
+    "q": "The promotion's anchor document is:",
     "opts": [
-     "A verdict",
-     "Ignored",
-     "Proof",
-     "A question — the innocent explanations genuinely tested, or the case ends as injustice or tribunal loss"
+     "The appraisal",
+     "The org chart",
+     "The old slip",
+     "The promotion letter — the date on the document is the letter's date"
     ],
     "ans": 3,
-    "why": "The reads' epistemics at their heaviest application.",
-    "src": "Ch5"
+    "why": "The letter rule.",
+    "src": "Ch3"
    },
    {
-    "q": "The investigation's first act is:",
+    "q": "The silent-difference check compares:",
     "opts": [
-     "Evidence PRESERVED — records secured, documents copied, the freeze where counting is needed",
-     "The accusation",
-     "The meeting",
-     "The dismissal"
+     "The origin and destination structures' component lists line by line before the letter finalises",
+     "Two employees",
+     "Two branches",
+     "Two grades"
     ],
     "ans": 0,
-    "why": "Facts before accusations, mechanised.",
-    "src": "Ch5"
+    "why": "Differences the letter must state.",
+    "src": "Ch3"
    },
    {
-    "q": "The internal process and the criminal process are:",
+    "q": "A promotion creating a manager also requires:",
     "opts": [
-     "The same track",
-     "Distinct tracks with distinct standards — neither waits for nor substitutes the other; the adviser choreographs",
-     "Sequential always",
-     "Exclusive"
-    ],
-    "ans": 1,
-    "why": "The criminal boundary, bright.",
-    "src": "Ch5"
-   },
-   {
-    "q": "The quiet resignation:",
-    "opts": [
-     "Solves the problem",
-     "Is kind",
-     "Exports it — the commons polluted, the deterrence forfeited, the reference layer corrupted",
-     "Is required"
-    ],
-    "ans": 2,
-    "why": "The firm that gives sanitised references receives them.",
-    "src": "Ch5"
-   },
-   {
-    "q": "The improvised salary-deduction 'agreement' at discovery is:",
-    "opts": [
-     "Efficient recovery",
-     "Fair",
-     "Standard",
-     "Exposure wearing efficiency — recovery instruments are the adviser's drafting"
-    ],
-    "ans": 3,
-    "why": "The guarantor framework cashes its purpose under proper drafting.",
-    "src": "Ch5"
-   },
-   {
-    "q": "The resignation's acknowledgment fixes:",
-    "opts": [
-     "The notice terms and the last working day — the ambiguity at full-and-final was born here if anywhere",
      "Nothing",
-     "The reference",
-     "The counter-offer"
-    ],
-    "ans": 0,
-    "why": "The date every downstream process reads.",
-    "src": "Ch6"
-   },
-   {
-    "q": "The notice period is:",
-    "opts": [
-     "A wind-down",
-     "The handover test with a deadline — succession machinery making it calm where competitors scramble",
-     "Optional",
-     "A holiday"
+     "The new manager's reports re-pointed and the approver tables updated where they become an approver",
+     "A new company",
+     "A new template"
     ],
     "ans": 1,
-    "why": "The checklist's longest lines start day one.",
-    "src": "Ch6"
+    "why": "The cross-track lines.",
+    "src": "Ch3"
    },
    {
-    "q": "The counter-offer that outbids a decided departure:",
-    "opts": [
-     "Retains for years",
-     "Always works",
-     "Usually buys months — and the systematic counter-offer culture makes resignation the negotiation channel",
-     "Is cheap"
-    ],
-    "ans": 2,
-    "why": "The symptom conversation is worth more than the retention.",
-    "src": "Ch6"
-   },
-   {
-    "q": "Attrition read at altitude is:",
-    "opts": [
-     "Gossip",
-     "HR's metric",
-     "Inevitable",
-     "The workforce's referendum — the manager cluster, the churning role, the tenure read each a finding"
-    ],
-    "ans": 3,
-    "why": "Expensive to ignore, free to read.",
-    "src": "Ch6"
-   },
-   {
-    "q": "The separation checklist is:",
-    "opts": [
-     "The join map reversed — every link enumerated and resolved before Left is final",
-     "A form",
-     "Optional",
-     "Payroll's job"
-    ],
-    "ans": 0,
-    "why": "Module 1's promise delivered as a checklist.",
-    "src": "Ch7"
-   },
-   {
-    "q": "The departed with live logins is:",
-    "opts": [
-     "A convenience",
-     "The security failure every audit finds first — the user disabled on the last day, not the following month",
-     "Harmless",
-     "Rare"
-    ],
-    "ans": 1,
-    "why": "The access layer's first line.",
-    "src": "Ch7"
-   },
-   {
-    "q": "Bank mandates at separation get:",
-    "opts": [
-     "Eventual review",
-     "Annual cleanup",
-     "The same-week signatory removal — fired by the HR event that knew the date first",
-     "Nothing"
-    ],
-    "ans": 2,
-    "why": "The money track's discipline, scheduled by the checklist.",
-    "src": "Ch7"
-   },
-   {
-    "q": "The custody count runs:",
-    "opts": [
-     "After departure",
-     "Monthly",
-     "Never",
-     "BEFORE the last day — the discrepancy found after departure is a dispute with an empty chair"
-    ],
-    "ans": 3,
-    "why": "The count before custody changes, at its final application.",
-    "src": "Ch7"
-   },
-   {
-    "q": "Full-and-final stops being a negotiation when:",
-    "opts": [
-     "The inputs are ledger-fed and document-backed — complete, categorised, final; computed once from one version",
-     "Lawyers attend",
-     "HR is firm",
-     "Both sides tire"
-    ],
-    "ans": 0,
-    "why": "The negotiation dissolved by machinery — the track's whole method.",
-    "src": "Ch7"
-   },
-   {
-    "q": "The exit interview is held by:",
-    "opts": [
-     "The line manager",
-     "HR — the honesty depends on it; the aggregate is the management information stream",
-     "The founder always",
-     "Nobody"
-    ],
-    "ans": 1,
-    "why": "The individual interview is a courtesy; the aggregation is the product.",
-    "src": "Ch7"
-   },
-   {
-    "q": "HealthTrade's roster grievance was settled by:",
+    "q": "The promotion case is assembled from:",
     "opts": [
      "Opinion",
-     "Seniority",
-     "The shift-share read — the FACT established in minutes; she was right, and the rotation rebalanced",
-     "Compromise"
+     "Tenure alone",
+     "The appraisal history, the role's requirements, and the training record",
+     "The letter"
     ],
     "ans": 2,
-    "why": "Records settling in minutes what memory would litigate for weeks.",
-    "src": "Ch8"
+    "why": "The readiness evidence.",
+    "src": "Ch3"
    },
    {
-    "q": "The integrity case's branch reaction was:",
+    "q": "The grievance description holds:",
     "opts": [
-     "Fear",
-     "Silence",
-     "Resignations",
-     "Trust visibly rising — two operators thanking the manager for the reads that protect their names"
+     "The investigator's view",
+     "The resolution",
+     "A summary",
+     "The raiser's account as stated — findings enter separately as observations"
     ],
     "ans": 3,
-    "why": "'Protect the honest' kept at its hardest moment.",
-    "src": "Ch8"
+    "why": "The as-stated rule.",
+    "src": "Ch4"
    },
    {
-    "q": "The accountant's exit was calm because:",
+    "q": "Harassment grievances route:",
     "opts": [
-     "The structural year built the documentation — the handover test passed compressed, the acting appointment written",
-     "Luck",
-     "The role was simple",
-     "Nobody checked"
+     "Per the policy's named route — never through the person complained about; the routing checked in advance",
+     "Through the line always",
+     "To payroll",
+     "Nowhere"
     ],
     "ans": 0,
-    "why": "'Five events, five documents, zero corridors.'",
+    "why": "Checked before the first grievance, not during it.",
+    "src": "Ch4"
+   },
+   {
+    "q": "An Open grievance aging past the policy timeline is:",
+    "opts": [
+     "Fine if complex",
+     "A process failure regardless of merits — the quarterly age read lists it",
+     "Closed automatically",
+     "Escalated to the raiser"
+    ],
+    "ans": 1,
+    "why": "The reads.",
+    "src": "Ch4"
+   },
+   {
+    "q": "The grievance record protects:",
+    "opts": [
+     "Only the business",
+     "Only the raiser",
+     "Both parties — dated accounts, documented handling, findings as observations",
+     "Nobody"
+    ],
+    "ans": 2,
+    "why": "Disputes are argued from these records or their absence.",
+    "src": "Ch4"
+   },
+   {
+    "q": "The Employee Separation document:",
+    "opts": [
+     "Is the settlement",
+     "Is the interview",
+     "Pays the leaver",
+     "Generates the exit's activity tasks to their owners with dates, from the template"
+    ],
+    "ans": 3,
+    "why": "The exit as a visible checklist across functions.",
+    "src": "Ch5"
+   },
+   {
+    "q": "The separation and payroll release checklists:",
+    "opts": [
+     "Confirm each other's lines at the end — the two run beside each other",
+     "Are the same document",
+     "Never meet",
+     "Replace each other"
+    ],
+    "ans": 0,
+    "why": "The exit's two sides.",
+    "src": "Ch5"
+   },
+   {
+    "q": "The Exit Interview's interviewer is:",
+    "opts": [
+     "The line manager",
+     "Per policy, someone not in the leaver's line — so the conversation can be candid",
+     "The MD always",
+     "The payroll operator"
+    ],
+    "ans": 1,
+    "why": "Candour by design.",
+    "src": "Ch5"
+   },
+   {
+    "q": "The exit interview is:",
+    "opts": [
+     "A settlement condition",
+     "Mandatory for pay",
+     "Never a settlement condition — its honesty depends on being a favour freely given",
+     "Held after leaving only"
+    ],
+    "ans": 2,
+    "why": "Deliberately absent from the release checklist.",
+    "src": "Ch5"
+   },
+   {
+    "q": "The attrition read shows:",
+    "opts": [
+     "Names and blame",
+     "Interviews verbatim",
+     "Salaries",
+     "Leavers by reason, unit, and tenure band — figures to the owner"
+    ],
+    "ans": 3,
+    "why": "The numbers say who; the interviews say why.",
+    "src": "Ch5"
+   },
+   {
+    "q": "The probation lapse-by-silence is prevented by:",
+    "opts": [
+     "The monthly read of end dates — every end date gets a dated decision on the record",
+     "Longer probations",
+     "Shorter probations",
+     "No probations"
+    ],
+    "ans": 0,
+    "why": "The failure mode named.",
+    "src": "Ch6"
+   },
+   {
+    "q": "A not-confirmed probation outcome is:",
+    "opts": [
+     "A quiet non-renewal",
+     "An exit through the full separation machinery — every checklist line",
+     "A field change",
+     "An extension"
+    ],
+    "ans": 1,
+    "why": "A probation exit is an exit.",
+    "src": "Ch6"
+   },
+   {
+    "q": "The contract read runs at:",
+    "opts": [
+     "Expiry day",
+     "A year ahead",
+     "Ninety days ahead — the decision needs time on both sides",
+     "Never"
+    ],
+    "ans": 2,
+    "why": "Business deciding, employee planning.",
+    "src": "Ch6"
+   },
+   {
+    "q": "A conversion to permanent executes:",
+    "opts": [
+     "A memo only",
+     "A new company",
+     "Nothing",
+     "The letter, the Employment Type update, and the policy consequences from the conversion date"
+    ],
+    "ans": 3,
+    "why": "Each outcome as a record.",
+    "src": "Ch6"
+   },
+   {
+    "q": "Both scheduled events share the pattern:",
+    "opts": [
+     "Date arithmetic on maintained fields plus a decision lane",
+     "Guesswork",
+     "Annual batches",
+     "Owner memory"
+    ],
+    "ans": 0,
+    "why": "The module's demonstration case.",
+    "src": "Ch6"
+   },
+   {
+    "q": "The movement record carries:",
+    "opts": [
+     "Pay events only",
+     "One line per lifecycle event — type, date, document reference, decision reference",
+     "Grievances only",
+     "Exits only"
+    ],
+    "ans": 1,
+    "why": "Extended from the payroll track's register.",
+    "src": "Ch7"
+   },
+   {
+    "q": "The quarterly reconciliation checks:",
+    "opts": [
+     "Salaries",
+     "The org chart",
+     "Every line has its document and every lifecycle document has its line — both ways",
+     "The calendar"
+    ],
+    "ans": 2,
+    "why": "The standing both-ways read.",
+    "src": "Ch7"
+   },
+   {
+    "q": "A late-executed event is entered:",
+    "opts": [
+     "With today's effective date",
+     "Skipped",
+     "Backdated silently",
+     "With its true effective date and its true entry date, the gap noted — the honest-date lane"
+    ],
+    "ans": 3,
+    "why": "The arrears pattern for organisational changes.",
+    "src": "Ch7"
+   },
+   {
+    "q": "A wrong transfer is fixed by:",
+    "opts": [
+     "A correcting transfer with its cause noted — documents are never cancelled to rewrite outcomes",
+     "Cancelling to rewrite",
+     "Direct edits",
+     "Deletion"
+    ],
+    "ans": 0,
+    "why": "History discipline rule 2.",
+    "src": "Ch7"
+   },
+   {
+    "q": "HealthTrade's transfer fired which compliance line:",
+    "opts": [
+     "None",
+     "Cold Chain — the destination role's population obligation from the move date",
+     "Fire safety",
+     "Dispensing"
+    ],
+    "ans": 1,
+    "why": "The mover rule executed.",
     "src": "Ch8"
    },
    {
-    "q": "Discipline by explosion means:",
+    "q": "The promotion's silent-difference check found:",
     "opts": [
-     "High standards",
-     "Nothing said for months, then fury over the accumulated file — the process absent until needed, when it cannot be built",
-     "Efficiency",
-     "Clarity"
+     "Nothing",
+     "A tax error",
+     "A Responsibility Allowance in the destination structure absent from the origin — stated in the letter",
+     "A wrong grade"
+    ],
+    "ans": 2,
+    "why": "Event 2.",
+    "src": "Ch8"
+   },
+   {
+    "q": "The grievance resolved in:",
+    "opts": [
+     "Fourteen days exactly",
+     "It stayed open",
+     "A month",
+     "Eleven days against the fourteen-day timeline, with verified items fixed and dated"
+    ],
+    "ans": 3,
+    "why": "Event 3.",
+    "src": "Ch8"
+   },
+   {
+    "q": "The quarter's owner page showed:",
+    "opts": [
+     "Seven events by type, decisions two-for-two on time, zero lapses, one grievance inside timeline — every figure two lookups from its document",
+     "Opinions",
+     "Only exits",
+     "Raw interviews"
+    ],
+    "ans": 0,
+    "why": "The quarter's close.",
+    "src": "Ch8"
+   },
+   {
+    "q": "Direct field edits are caught by:",
+    "opts": [
+     "Luck",
+     "The quarterly both-ways reconciliation between the movement record and the documents",
+     "The payroll run",
+     "The chart"
     ],
     "ans": 1,
-    "why": "The procedural spine is installed in peacetime.",
+    "why": "Error 1's prevention.",
     "src": "Ch9"
    },
    {
-    "q": "This module's law is:",
+    "q": "Module 7's rule is:",
     "opts": [
-     "Events are HR's business",
-     "Exits are formalities",
-     "Every lifecycle event is a document — movements with served joins, channels that answer, procedure built for the innocent, exits through the join map reversed",
-     "Discretion beats process"
+     "Events are informal",
+     "Transfers are edits",
+     "Lifecycle events are documents — property rows from honest dates, grievances on the record, separations as generated checklists beside the payroll exit, scheduled events decided on time from the reads",
+     "Exits are corridor work"
     ],
     "ans": 2,
-    "why": "A career reads start to finish as documents.",
+    "why": "The module rule.",
     "src": "Ch9"
    }
   ]
  },
  "advanced_hr": {
   "title": "HR 8 — Advanced HR: Settings, Analytics & Structure",
-  "desc": "The structural layer: HR settings as the people constitution, the confidentiality permission design finalised with the four tiers, the HR calendar with names, people analytics that walk to documents, the handover test, HR authorities and the professional ecosystem, and the payroll boundary consolidated — closing the ZhiftERP HR Professional track and bringing the academy to five tracks.",
+  "desc": "The structural close of the HR track: the HR Settings walk — naming, retirement age, approval and backdating flags, vacancy checking, mobile checkin — recorded with reasons; the control register assembling the track's reads with owners, cadences, and evidence locations; the HR calendar from daily reads to the annual block scheduled before its season; the standing reports built to the two-lookup traceability standard; data protection by access matrix and retention convention; multi-company HR on the legal separation; the handover and absence tests; and the track's eight rules.",
   "lessons": [
    {
-    "title": "Chapter 1 — HR settings: the people constitution",
+    "title": "Chapter 1 — The structural close of the HR track",
+    "est": "11",
+    "html": "<p>The final module assembles the HR function. On completing this module you will be able to: walk the HR Settings page and record its decisions; assemble the track's controls into one register with the HR calendar; run the standing HR reports as management data; operate the data-protection rules across the HR doctypes; run the handover and absence tests for the HR function; and state the track's eight rules.</p><p><b>Where the track stands.</b> Modules 1-7 built the machinery: the Employee master and its hygiene, the recruitment pipeline, attendance, leave, performance, training, and the lifecycle documents. Each module left artifacts — registers, procedures, reads, checklists. This module's work is structure: the same close the other tracks ran — making the collection into a function that runs the same regardless of who runs it.</p><p><b>The three structural claims.</b></p><p>1. <b>The settings are written decisions</b> (Chapter 2): the HR Settings page walked field by field, each value carrying its owner, date, and reason — the payroll track's settings rule applied to the HR configuration.<br>2. <b>The controls are one system</b> (Chapters 3-4): the modules' reads and registers gathered onto one control page with one calendar, visible to the operator, the owner, and the auditor.<br>3. <b>The function survives its operator</b> (Chapters 5-7): the data handled lawfully and consistently, the reports answering from records, and the handover test passed — the programme's standing final test.</p><p><b>Custody, closed where it opened.</b> HR operates the machinery and keeps its evidence; the policies — employment terms, leave, performance, grievance, training — are the business's written decisions; the owner decides; the other functions (payroll, sysadmin, accounts) meet HR at the documented boundaries every module stated. The operator's standing rule holds to the last page: the records state what the decisions stated, and every figure traces to its document.</p><p><b>How this module is used.</b> Chapters 2-4 are built once and then operated: the settings walk and the register in one working session each, the calendar published at year start. Chapters 5-7 are standing disciplines: the reports on their cadence, the data rules continuously, the absence test on its schedule. Chapter 8 shows the whole set running for one business year; Chapter 9 closes the track.</p><p><b>Module contents.</b> Chapter 2: the HR Settings walk. Chapter 3: the control register. Chapter 4: the HR calendar. Chapter 5: the reports and data protection. Chapter 6: multi-company HR. Chapter 7: the handover test. Chapter 8: worked example. Chapter 9: the eight rules.</p>"
+   },
+   {
+    "title": "Chapter 2 — The HR Settings walk",
     "est": "13",
-    "html": "<p>The fifth structural module opens where its four siblings did: the settings screen, read as a constitution — every default a policy the people layer will enforce silently, for everyone, until deliberately changed. The walk, field by consequential field, with the owner and — for this layer — the confidentiality lens already on:</p><ul><li><b>Employee naming & the number series</b> — module 1's registrar law configured: the series chosen for the decade, retirement-not-reuse confirmed as the standing behaviour, and the naming display rules (the record that will appear on certificates and letters showing names as legal documents state them).</li><li><b>Attendance & shift settings</b> — the marking rules' constitutional home: the auto-marking behaviour from check-ins, the grace and threshold defaults the shift types inherit, the regularisation windows (module 3's time bounds as configuration, not memory), and the manual-mark visibility guaranteed (the setting that lets manual marks masquerade as captured ones repeals module 3's whole capture argument in one checkbox).</li><li><b>Leave settings</b> — the counting rules (working-days versus calendar-days netting — decided once, applied to every application), the negative-balance switch (module 4's governed edge: OFF as the default, the advance exception by policy), the carry-forward execution behaviour, and the approval routing confirmed along the spine.</li><li><b>Expiry & reminder configuration</b> — the worklist's engine: the reminder horizons (60/30 days as module 1 set them) wired for contract ends, probation dues, licences, and certifications — the settings that convert calendar entries into fired reminders, and whose silent failure is discovered by the lapsed licence it was built to prevent (the reminder configuration TESTED annually, not assumed).</li><li><b>Lifecycle & exit settings</b> — the separation checklist's enforcement points (the status change gated on the checklist's completion where the configuration supports it), the notice computations' defaults from contract terms.</li></ul><p><b>The walk's discipline, fifth telling.</b> Each field a policy question; the answers in the implementation record; the annual re-walk on the calendar; and the corridor toggle convicted in its people clothes — the grace widened in a hallway to end one argument, the regularisation window stretched for one month-end, the negative-balance switch flipped for one emergency: each a constitutional amendment made casually, binding everyone, remembered by no one — the fifth vocabulary's telling of the academy's deepest habit, and the one where the stakes are livelihoods: <b>the people constitution is edited in the annual walk, with the owner, deliberately — or the layer's evenness, which is its entire authority, erodes one favour at a time.</b></p>"
+    "html": "<p>Open HR Settings (awesome bar). Walk every field, decide each with its owner, and record the decision on the settings page — value, owner, date, one-line reason. The walk is the routine change occasion; between walks the page is stable.</p><p><b>1. The employee block.</b></p><p>1. <b>Employee Naming By</b> — naming series, employee number, or full name. The naming-series decision (module 1, Chapter 3) is confirmed here; changing it mid-register renames nothing retroactively and confuses everything, so the value is set at implementation and left.<br>2. <b>Retirement Age</b> — feeds the retirement-date computation from Date of Birth (module 1). Set from the written employment policy; the annual read of approaching retirement dates joins the calendar (Chapter 4) — the retirement is the payroll track's best-case exit precisely because this field makes its date known years ahead.<br>3. <b>Standard Working Hours</b> — where the site uses a standard-hours figure in computations, set from the policy and recorded with what reads it.</p><p><b>2. The leave and expense approval block.</b></p><p>4. <b>Leave Approver Mandatory / Expense Approver Mandatory</b> — whether applications require a named approver to submit. Set per the routing design (module 1, Chapter 7): with department-table routing maintained, mandatory flags enforce that no application floats unrouted.<br>5. <b>Restrict Backdated Leave Application</b> (and the role permitted where restricted) — whether ordinary users can enter leave for past dates. The recommended posture: restricted, with the permitted role held by HR — backdated leave is the honest-date lane's controlled exception (the sickness applied for on return — module 4), entered by the role that documents it, and the restriction is what keeps the exception a lane instead of a habit.<br>6. <b>The leave notification settings</b> — the application and approval notifications per the site's options: on, so the workflow moves without chasing, with the templates checked once for tone and content.</p><p><b>3. The hiring block.</b></p><p>7. <b>Check Vacancies</b> — whether Job Openings validate against the Staffing Plan (module 2, Chapter 2's control). On where plans are in use — this switch is the plan-first order's enforcement.<br>8. <b>The interview reminder settings</b> — interview and feedback reminders per the options: on, with the same-day feedback rule (module 2, Chapter 5) stated in the reminder text where the template allows.</p><p><b>4. The attendance block.</b></p><p>9. <b>Allow Employee Checkin from Mobile App</b> (and the location-capture option where present) — per the business's field-staff policy (module 3, Chapter 3's mobile source). Where enabled, the policy states who may use it and the location-capture posture is communicated to staff before it is switched on — a tracking capability enabled silently is a grievance generator; the same capability stated in policy is a working tool.</p><p><b>5. The record.</b> The settings page's record carries every field above with its four columns. Fifteen minutes at the walk; re-walked annually with the control register (Chapter 3); changed between walks only through the standing change discipline with the record updated.</p>"
    },
    {
-    "title": "Chapter 2 — The permission design: confidentiality, finalised",
-    "est": "14",
-    "html": "<p>Module 1 promised it, five modules leaned on it, and this chapter delivers it whole: the permission design that makes confidentiality a CONFIGURATION — the people layer's defining governance, finalised. The custody chapter.</p><p><b>The tiers.</b> The visibility architecture, tier by tier: <b>SELF</b> — every employee sees their own record, balances, attendance, path, and documents, and nothing of anyone else's (the self-service dividend fenced to its owner); <b>TEAM</b> — the manager sees their reports (the spine defining the boundary exactly as it defines the routing: the leave calendar, attendance reads, goal sheets, and logs of THEIR people — and the spine's maintenance law acquires its final stake: the mis-pointed spine is now a confidentiality leak, not just a routing error); <b>HR</b> — the population view for the function that administers it (the record layer, the process files); and <b>SENSITIVE</b> — the innermost fence, tighter than HR-general: the disciplinary and grievance files (module 7's case custody), the medical notes where held, the investigation materials, and the compensation-adjacent fields that cross from the boundary — each visible to the named few the process requires, because 'HR can see it' is still too wide for the file that could wound.</p><p><b>The edges, audited.</b> Chapter 5 of module 1 named where people data actually leaks — over-broad permissions, not dramatic breaches — and the permission WALK audits exactly those edges, annually: the LIST VIEWS (the employee list every user can open, checked column by column — the list that shows date-of-birth or phone numbers to the whole firm leaked by default), the REPORTS (each people report's audience read against its content — the attendance summary a branch manager needs is not the population export a curious user runs), the API-and-export edge (who can pull people data OUT — the bulk export right held as narrowly as the sensitive tier), the linked-document trail (the leave application visible in a workflow should not expose the medical reason field to the queue), and the ROLE drift (the permissions accumulated by the long-tenured — module 7's promotion-sprawl conviction, audited at the layer where it costs most). The walk's method is the academy's: evidence, not assertion — log in AS the roles, open the lists, run the reports, see what they see.</p><p><b>The data-protection duty, at altitude.</b> The legal frame the consultant holds at working height: Nigerian data-protection law (the NDPA and its regime) places registered duties on organisations processing personal data — lawful basis, purpose limitation, security safeguards, breach obligations, the data subject's rights — and employee data is squarely inside it. The consultant's altitude, stated in the tax module's exact grammar: know the DUTY exists and what the system contributes (the fences of this chapter, the access trails, the retention discipline), configure the structural half, and route the compliance specifics — the registration questions, the policy drafting, the breach protocols — to the professional who owns them. The retention note the walk carries: people data has LIFECYCLES (the applicant pool's retention bounds — module 2; the departed employee's record kept per the legal and business horizons the adviser confirms, then handled per policy — never the indefinite everything-forever default that is both a liability and a duty breach waiting for its inspector).</p><p><b>The culture half.</b> The configuration's necessary partner, closing the chapter: the fences enforce need-to-know; the CULTURE makes it meant — the HR seat trained that curiosity is not need (module 1's rule, now with its machinery), the sensitive tier's access LOGGED and the log read (the fence that is never checked is the designed-but-dead control of Accounts 8, at the layer where its death harms people), and the breach taken seriously at any size (the salary figure mentioned at lunch is a breach; the disciplinary file summarised in the corridor is a breach — the firm that treats small leaks as culture treats large ones as luck). Confidentiality is a configuration before it is a policy — module 1 said it; this chapter built it; the annual walk keeps it true.</p>"
+    "title": "Chapter 3 — The HR control register",
+    "est": "12",
+    "html": "<p>The track's controls, gathered from their modules onto one page — every control with its owner, cadence, and evidence location. Three readers use it: the operator as the working map, the owner for oversight sampling, the auditor as the visit's starting point.</p><p><b>The register's rows, by module.</b></p><p><b>Module 1 — the Employee register:</b> the joiner verification per new record (HR, per event, the verification comment); the monthly blank-field filters — Reports To, Holiday List, Preferred Contact Email, Payroll Cost Center — target zero (HR, monthly, the filter results); the quarterly approver sweep and attachment sample (HR, quarterly, the sweep note).</p><p><b>Module 2 — recruitment:</b> the plan-first order with Check Vacancies on (system-enforced, continuous); the weekly funnel and aging reads during active hiring (HR, weekly, the read list); the offer-equals-assignment check at joining (HR + payroll, per hire, the verification comment).</p><p><b>Module 3 — attendance:</b> the daily sync-and-count read per device location (HR/sysadmin, daily, the day note); the weekly sheet gap read (HR, weekly, the closed gaps); the records-close completeness line (HR, monthly, the payroll checklist's line 4); the monthly pattern and request-lane reads (HR, monthly, the summaries).</p><p><b>Module 4 — leave:</b> the annual entitlement round with the completeness verification (HR, annual, allocations = employees × rows); the monthly close read — no Open applications on the closed month, the LWP list to payroll (HR, monthly, the list); the quarterly ledger reconciliation sample (HR, quarterly, the sample note).</p><p><b>Module 5 — performance:</b> the weekly completion read in windows (HR, per cycle, the overdue lists); the monthly goal-freshness read (HR, monthly in-period, the stale list); the calibration read before release (HR + owner, per cycle, the distribution page).</p><p><b>Module 6 — training:</b> results-within-the-week per event (HR, per event, the result document's date); the monthly compliance-expiry read (HR + compliance owner, monthly, the bucket list); the quarterly plan read (HR to owner, quarterly, the plan page).</p><p><b>Module 7 — lifecycle:</b> the monthly probation and contract reads (HR, monthly, the decision records); the quarterly movement-record reconciliation (HR, quarterly, the both-ways note); the quarterly grievance age read (HR to owner, quarterly, the age list).</p><p><b>The register's operation.</b></p><p>1. The page is reviewed annually with the settings walk: controls confirmed, owners current, evidence locations true. A control that found nothing all year is assessed by the standing question — redundant or working — and the payroll track's answer usually holds: the control that finds nothing is usually preventing what it would find.<br>2. The owner samples unannounced: any row, its evidence produced in one lookup. The sample failing — evidence that needs assembly — is itself the finding.<br>3. Every control's output that is management data (patterns, distributions, ages) goes to its named reader per the data-not-editorial rule, on the register's cadence.</p>"
    },
    {
-    "title": "Chapter 3 — The HR calendar: every rhythm, one page",
+    "title": "Chapter 4 — The HR calendar",
+    "est": "12",
+    "html": "<p>The function's scheduled lines, gathered from the modules into one calendar. Each line carries its owner and its module reference; the calendar is published at year start and reviewed with the register.</p><p><b>Daily.</b></p><p>1. The attendance sync-and-count read per device location (module 3).<br>2. New grievances entered on the day raised (module 7).</p><p><b>Weekly.</b></p><p>3. The attendance sheet gap read per location (module 3).<br>4. During active hiring: the funnel and aging reads (module 2).<br>5. During assessment windows: the completion read (module 5).</p><p><b>Monthly.</b></p><p>6. The Employee register blank-field filters (module 1).<br>7. The records-close block, aligned to the payroll close date: attendance complete, leave decided, the LWP list handed over (modules 3-4 — the two tracks' standing meeting point).<br>8. The compliance-expiry read (module 6).<br>9. The probation and contract reads — sixty and ninety days ahead respectively (module 7).<br>10. The joiners and leavers lists to the payroll reconciliation (module 1).<br>11. In-period: the goal-freshness read (module 5).</p><p><b>Quarterly.</b></p><p>12. The approver sweep and attachment sample (module 1).<br>13. The leave ledger reconciliation sample (module 4).<br>14. The training plan read to the owner; the feedback pattern read (module 6).<br>15. The movement-record reconciliation and the lifecycle page to the owner (module 7).<br>16. The grievance age read (module 7).<br>17. The source-effectiveness read where hiring ran (module 2).</p><p><b>Annually.</b></p><p>18. The Holiday List build for the new year, with the per-employee assignment sweep (module 3 — scheduled in the last quarter).<br>19. The leave entitlement round: the new Leave Period, the policy confirmation, the Policy Assignments, carry-forward, the completeness verification (module 4 — December, before the year turns).<br>20. The appraisal cycle per the performance policy's calendar (module 5).<br>21. The training plan drafted from the three intakes and approved (module 6 — with the compliance lines placed from known expiries).<br>22. The programme and compliance register reviews (module 6); the type register re-read (module 4); the template reviews (module 5).<br>23. The HR Settings walk and the control register review (Chapters 2-3).<br>24. The retirement-dates read from the Retirement Age computation (Chapter 2).<br>25. The attrition and exit-theme annual review to the owner (module 7).</p><p><b>The calendar's rule.</b> The payroll track's month-eleven lesson applies to the whole HR year: the annual block is scheduled in writing before its season, owners named per line, the December items placed clear of the payroll year-end's own pressure. A calendar line without an owner is a hope; the register (Chapter 3) gives every line one.</p>"
+   },
+   {
+    "title": "Chapter 5 — The HR reports and data protection",
+    "est": "12",
+    "html": "<p>Two closing disciplines: what the function reports, and how it protects what it holds.</p><p><b>1. The standing reports, as management data.</b> Each derives from records the modules maintain; each goes to its reader on the calendar's cadence; all follow the data-not-editorial rule.</p><p>1. <b>Headcount</b> — the Employee list grouped by company, branch, department, designation, type, Status = Active (module 1's lookup); trended quarterly.<br>2. <b>Joiners and leavers</b> — the monthly lists (module 1), annualised into the attrition read: leavers by reason, unit, tenure band (module 7).<br>3. <b>Absence and lateness patterns</b> — module 3's monthly summaries, trended.<br>4. <b>Leave position</b> — balances by unit ahead of peak seasons; the year's carry, lapse, encashment, and usage per type (module 4's data pack).<br>5. <b>Recruitment effectiveness</b> — time-to-hire, source effectiveness, offer-acceptance rates (module 2's registers).<br>6. <b>Performance distributions</b> — per cycle, calibrated (module 5).<br>7. <b>Training delivery and compliance currency</b> — the plan read and the expiry buckets (module 6).<br>8. <b>The lifecycle page</b> — events, scheduled-event health, grievance ages (module 7).</p><p>The construction rule: every figure on every report is a count or computation over records, reproducible by the reader from the named source. A report figure that cannot be traced to records in two lookups fails the programme's standard.</p><p><b>2. Data protection across the HR doctypes.</b> HR holds the system's most personal data. The rules, gathered:</p><p>1. <b>The access matrix per doctype:</b> Employee (HR write; scoped read per function; self-service for own record), the appraisal and feedback doctypes (the disclosure rule — module 5), grievances (handling roles only — module 7), applicant records (recruiting roles — module 2), health and identification fields (the narrowest read that the work requires — module 1). The matrix is written, configured, and included in the sysadmin track's quarterly access recertification.<br>2. <b>The retention conventions, decided and executed:</b> employment records per the statutory periods (the payroll track's seven-year discipline governs the overlapping records); rejected-applicant data per the recruitment convention (module 2); grievance records per the policy. Each convention written, each executed on the calendar.<br>3. <b>The handling rules:</b> documents on records, not personal drives; the one-recipient rule for anything personal (the payroll track's delivery discipline applied in kind); changes to personal data on the employee's written instruction (module 1's governed fields); and the standing principle — data collected for a purpose is used for that purpose, and a new use (the mobile checkin's location capture — Chapter 2) is stated in policy before it is switched on.</p>"
+   },
+   {
+    "title": "Chapter 6 — Multi-company HR",
+    "est": "12",
+    "html": "<p>Where the site carries more than one company, HR respects the legal separation — the payroll track's module 8 rule, executed on the HR records.</p><p><b>1. The per-company records.</b></p><p>1. <b>Employment is per company</b> (module 1, Chapter 3): the Employee record belongs to its employing entity; the dual-role person is two records or a documented cross-charge per the accountant's design.<br>2. <b>The organisational masters split where they must:</b> Departments are per company by design (module 1, Chapter 2); Designations and Employment Types are shared masters used across companies; Holiday Lists are built per company where the working calendars differ.<br>3. <b>The policy machinery is per company:</b> Leave Periods and Leave Policies attach per company (module 4); a group-wide policy is entered as matching per-company records, and a deliberate difference between companies is a written policy difference, not a configuration accident found later.<br>4. <b>The pipelines and cycles scope per company:</b> Staffing Plans, Job Openings, Appraisal Cycles, and Training Events carry their company; the reads filter accordingly.</p><p><b>2. The cross-company reads.</b> The owner of a group reads both views:</p><p>1. <b>Per company</b> — every report in Chapter 5 filtered to the entity, which is also the only view an entity's auditor sees.<br>2. <b>Group totals</b> — headcount, attrition, and cost views summed across entities for the owner's page, always constructed from the per-company figures (the group number that cannot be decomposed back to its entities fails the traceability standard).</p><p><b>3. The movement between companies.</b> The inter-company transfer (module 7, Chapter 2) is the boundary's crossing point, run as the exit-and-join it legally is: the origin company's closure lines (payroll settlement per its rules, the statutory tail in its name), the destination's joiner lines (the verification, the assignment, the policy allocations, the compliance obligations), and the lifecycle document coordinating the organisational side. The person's history remains readable across both records — the movement record notes the crossing with both references.</p><p><b>4. The shared-services note.</b> Where one HR operator serves all entities (the common small-group arrangement), the operator's access spans companies while every record they touch stays entity-pure — the operator is shared; the data is not. The access matrix states the span; the recertification confirms it; and the per-entity audit answer (Chapter 5's rule) is unaffected by who operates, which is the point of the whole design.</p>"
+   },
+   {
+    "title": "Chapter 7 — The handover test",
+    "est": "12",
+    "html": "<p>The programme's standing final test, applied to HR: could a competent successor, given only the function's documentation, run next month's HR correctly?</p><p><b>1. The artifact list the test reads.</b> Gathered from the modules:</p><p>1. The Employee register with its verification comments and the hygiene filter procedure (module 1).<br>2. The recruitment pipeline records and the offer/onboarding templates (module 2).<br>3. The Holiday Lists, Shift Types with their configuration notes, the per-location marking procedures with named markers and deputies (module 3).<br>4. The leave type register, the policies, the annual round procedure, the close-date rules (module 4).<br>5. The appraisal templates with decision references, the cycle calendar and procedures (module 5).<br>6. The programme and compliance registers, the training plan, the result-entry rule (module 6).<br>7. The separation and onboarding templates, the lifecycle procedures, the movement record (module 7).<br>8. The settings record, the control register, the HR calendar, the access matrix and retention conventions (this module).</p><p><b>2. The absence test.</b> Run deliberately and soon — a planned week with the operator reachable, per the payroll track's rule:</p><p>1. The trained backstop (the cross-trained deputy or the payroll operator's HR-literate colleague, per the business's arrangement) runs one full cycle from the documentation: the daily and weekly reads, a joiner's verification if one lands, the records-close block with the payroll handover, whatever the calendar serves that week.<br>2. The operator answers no question the file should answer; every question asked is a documentation finding, fixed on return.<br>3. The test's pass is the month closing on the calendar with the evidence in its locations — confirmed by the register's owner sample the following week.</p><p><b>3. The annual confirmation.</b> The control register's review (Chapter 3) confirms yearly: the backstop's training current, the artifact list complete against this chapter's list, the calendar's owners all present in the business (the owner row naming a leaver is itself a finding the movement record should have caught).</p><p><b>4. Why this closes the track.</b> The HR function holds the records every other function starts from — the payroll run selects from module 1's register; the sysadmin's access follows module 7's events; the accounts' cost lines follow module 1's cost centers. An HR function that lives in one person's memory makes every one of those functions hostage to the same absence. The track built the alternative module by module: masters verified at entry, events as documents, reads on a calendar, evidence in named locations — and the handover test is the proof that the construction holds without its builder, which is the professional standard this certification names.</p>"
+   },
+   {
+    "title": "Chapter 8 — Worked example: the HealthTrade HR year close",
     "est": "13",
-    "html": "<p>Seven modules installed rhythms; the consolidation is the operating system — the academy's fifth and final functional calendar. The page the people layer runs on.</p><p><b>Daily.</b> The no-show protocol live (module 3 — coverage, contact, category), the exceptions scan (the failed check-ins, the pending regularisations aging), and the joiner/leaver day-of checklists where the week has them (module 2's day-one readiness; module 7's last-day access lines — the two checklists that CANNOT slip a day).</p><p><b>Weekly.</b> The capture-health read (module 3 — rates, manual-mark share, orphan events), the pipeline pulse where recruiting is live (module 2 — the pool aging, the stage conversions, the verification gate's queue), and the approval-queue sweep (the applications and requests aging past their SLAs — the corridor-reversion risk read young).</p><p><b>Monthly — the anchor.</b> The STATUS read (module 1's smallest highest-yield ritual — the Active list against reality), the ATTENDANCE CLOSE and its boundary package (module 3 — the fixed date payroll's calendar relies on), the boundary MEETING where scale warrants (the ten minutes that keep the functions meshed), the leave-calendar forward glance (the coming month's approved leave against the coming month's rosters), the expiry worklist worked (module 1 — contracts, probations, licences: the reminders fired are only half; the WORKED is the ritual), and the regulated-coverage check (module 6's register — the licence-bearing roles current).</p><p><b>Quarterly.</b> The needs-register read with dispositions (module 6), the SUCCESSION read off the certified register (the single-name capabilities listed and answered), the grievance-and-discipline altitude read (module 7 — clusters, volumes, resolution times), the balance-distribution read with its nudges (module 4's Q3 discipline), the shift-share fairness read (module 3's rotation audit), and the attrition read (module 7's referendum — tenure, clusters, the exit-interview aggregate).</p><p><b>Annually — the constitutional season.</b> Scheduled ACROSS weeks, never stacked: the settings walk (Chapter 1), the PERMISSION walk (Chapter 2 — logged in as the roles), the annual data verification (module 1 — every record confirmed by its person), the holiday list adopted (module 4), the allocation run and carry-forward execution (module 4's year-end ritual), the appraisal season with its calibration (module 5), the skill map and curricula versions reviewed (module 6), the policy pages re-confirmed with the adviser (the statutory floors, the procedure texts — dated, filed), and the mandate-and-authority review joined with the other tracks' (the two-names holdings verified against the living org).</p><p><b>The page's law, final telling.</b> Every line a NAME; the page sized to the firm (at eleven people, two names and the founder cover it — the shape, small); reviewed when people change. The fifth and final saying closes the set: <b>the calendar with owners IS the implementation</b> — and the people layer, of all layers, proves it: every disaster this track described (the ghost, the lapsed licence, the December collapse, the ambush, the departed with live access) was a calendar line that had no name.</p>"
+    "html": "<p>This chapter applies Chapters 2-7 to HealthTrade's year. Configuration values and outcomes are listed per step.</p><p><b>Step 1 — the settings walk (Chapter 2).</b> Run with the MD in one sitting; nine fields recorded with owner, date, reason. Key decisions: Employee Naming By confirmed as naming series (set at implementation, untouched); Retirement Age entered from the employment policy — the computation immediately lists one approaching date four years out, which joins the annual read; backdated leave restricted with the permitted role held by HR (the sickness-on-return lane documented); Check Vacancies switched on (the plan validation had been advisory — now enforced); mobile checkin left off with the reason recorded (no field staff yet; to be revisited with the policy when vans get route staff).</p><p><b>Step 2 — the register and calendar (Chapters 3-4).</b> The control register assembles in an afternoon: twenty-three rows across the seven modules, each with owner, cadence, evidence location. The calendar publishes with the register: the annual block scheduled in writing in October — the Holiday List build and the leave entitlement round placed in November and early December, deliberately clear of the payroll year-end. The MD's first unannounced sample: two rows (the blank-field filters, the compliance read) — both evidenced in one lookup each.</p><p><b>Step 3 — the annual block executes (Chapter 4).</b> November: the 2027 Holiday Lists built, the assignment sweep confirms every Active employee on a current list. Early December: the 2027 Leave Period, the policy confirmed unchanged, Policy Assignments run — ninety-three allocations (thirty-one staff by then × three rows), completeness verified; carry-forward processes with the cap, and the year-turn communication states the lapse rule. The training plan for 2027 drafts from the three intakes — the compliance lines placed from known expiries, four appraisal needs carried from the cycle, one initiative line — and the MD approves it with its cost column.</p><p><b>Step 4 — the reports settle into rhythm (Chapter 5).</b> The quarterly owner pack standardises at six pages: headcount trend, attrition (three leavers for the year: two resignations, one contract end — by reason, unit, tenure), the leave data pack, compliance currency (100% current at year-end, the retake closed in Q3), the training plan read (eleven of twelve lines delivered and resulted; one slipped with cause), the lifecycle page (zero scheduled-event lapses for the year). Every figure traces in two lookups; the MD's stated test — ask any number, see its records — passes on each pack.</p><p><b>Step 5 — data protection (Chapter 5).</b> The access matrix written and configured across the HR doctypes; grievance access confirmed to the handling roles; the retention conventions decided (rejected applicants: eighteen months; the clearing run for the first time removes forty-one records past convention). The matrix joins the sysadmin's Q1 recertification.</p><p><b>Step 6 — the absence test (Chapter 7).</b> A planned week in February: the accounts assistant (cross-trained through the quarter) runs the calendar's week from the file — the daily reads, the weekly sheet read, the records-close block into payroll. Three questions get asked; three documentation fixes result (the sheet read's filter steps written down; the LWP handover's format specified; one evidence location corrected on the register). The month closes on the calendar; the owner sample the following week confirms the evidence. The MD's year note records the structural result: the HR function ran a week without its operator, answered every pack question from records, and enters the new year with its calendar, register, and backstop in place.</p>"
    },
    {
-    "title": "Chapter 4 — People analytics: the reads, consolidated",
-    "est": "14",
-    "html": "<p>Seven modules each built reads; assembled, they are the people layer's management information — the analytics page, and the discipline for reading it. The numbers chapter.</p><p><b>The page, section by section.</b> <b>Headcount</b> — actual against plan, per branch and department (module 2's staffing frame reporting; the trend that answers 'are we growing where we said?'), with the composition cuts (type, grade, tenure bands). <b>Movement</b> — the attrition rate with its honest denominator, the tenure distribution (the year-two exodus flag), the internal-movement rate (promotions and transfers — the ladder working or the structure frozen), and the exit-interview aggregate (module 7's stream, themed). <b>Attendance &amp; leave</b> — absence rates by category and branch (module 3's taxonomy paying its analytics dividend), punctuality trends, the leave-liability figure and trend (module 4's accountant-facing number), the balance distribution (the hoarding heat-map). <b>Pipeline</b> — time-to-fill, the source scorecard (module 2's supplier-scorecard, now with module 7's stay-data closing its loop: which channels produce hires who confirm AND remain), offer-acceptance and decline reasons, and the confirmation rate per source and interviewer (the number module 2 said would finally grade the funnel — graded here). <b>Capability</b> — training completion and pass rates, the certified-coverage view per authority per branch (module 6's register summarised), the single-name capability count (the succession read's headline: the number the owner should want at zero). <b>Voice &amp; conduct</b> — the grievance and disciplinary aggregates at altitude (volumes, themes, resolution times — module 7's reads, never the case details: the analytics page holds NO sensitive-tier content, by design).</p><p><b>The reading discipline.</b> The academy's epistemics, fifth application: TREND before level, COMPARE like with like (the branch against its own history and its genuine peers), DECOMPOSE before concluding (the attrition spike splits by branch, role, tenure, and manager before it means anything), and — the people layer's own addition — <b>numbers about people are questions about people</b>: every read on this page terminates in a conversation somewhere (the absence trend in a manager's check-in, the hoarding cluster in a planning nudge, the confirmation-rate outlier in an interviewer's coaching), because the layer's subjects can be ASKED — the analytics that skip the asking and go straight to conclusions are managing spreadsheets, not people.</p><p><b>The audiences.</b> The page's consumers, served differently: the OWNER's monthly cut (headcount vs plan, attrition headline, the single-name count, the leave liability — four numbers and their stories, beside the branch P&amp;Ls of Accounts 6: the people numbers and the money numbers describing one firm), the MANAGERS' team cuts (their own vitals, pushed — the pushed-scorecard law of Inventory 6, at the people layer), and HR's working page (everything above, plus the operational queues). The boundary discipline holds throughout: the analytics respect the permission tiers — the manager's cut is their team; the owner's cut is aggregates; and the temptation to decorate the owner's page with individual detail is declined by design.</p><p><b>The reads' maturity arc.</b> The closing honesty for consultants selling this page: the analytics are only as true as the layers beneath (the headcount is the status discipline; the absence rates are the capture; the source scorecard is the field someone filled) — which is why this chapter is module EIGHT and not module one: the firm that buys 'HR analytics' before building modules 1-7 buys charts of noise, and the consultant's honest sequencing — the pyramid built base-first — is the difference between a dashboard and a decoration. The page earns its place exactly when its numbers can be walked to their documents; every read three clicks from its records is the drill-down culture of five tracks, at the layer that describes the firm's people.</p>"
-   },
-   {
-    "title": "Chapter 5 — The HR handover test: the function survives its people",
-    "est": "13",
-    "html": "<p>The academy's deepest thread, at its fifth and most ironic surfacing: the PEOPLE function itself — the layer that manages everyone else's succession — locked, in most firms, in one trusted head. The test, the path, and the documentation set.</p><p><b>The test, HR edition.</b> Could a competent newcomer, given what exists, run the people function for a month with ZERO questions answerable only by the person who left? The walk, module by module: the EMPLOYEE MASTER tells them who works here, where, reporting to whom, with every record's documents attached (1); the PIPELINE's criteria, paths, and verification checklists tell them how hiring runs — with the last searches' files showing the pattern (2); the CAPTURE machinery runs itself, the shift set and roster rules are written, and the attendance close's checklist has its date (3); the LEAVE policies, allocation records, and ledger answer every balance question by pointing (4); the GOAL SHEETS, appraisal files, and calibration notes show the performance system mid-flight (5); the SKILL MAP, curricula, and certified register tell them who can do and teach what (6); the EVENT catalogue's processes — the procedure texts, the checklists, the case-file conventions — govern whatever the month brings (7); and THIS module's calendar, permission design, and settings record hold the structure while they learn. Every NO is a module incompletely done — the test is the audit, and the audit is the goal.</p><p><b>The HR-in-one-head disease.</b> The pattern named plainly, because it is near-universal at this scale: the founder or the trusted admin holding the people function as relationships and recollections — who was promised what, who has which arrangement, why that person's Saturday differs — and its costs enumerated by seven modules' diseases: the favour systems (the arrangements nobody else can see are arrangements nobody else can defend), the fragility (the holder's absence stalling confirmations, closes, and processes — the absence test failing in the function that administers absence), and the ceiling (the firm that cannot delegate its people function cannot scale past its holder's attention — the founder-bottleneck's most personal organ, and for this academy's own user base, often the LAST one solved). The cure is the track itself: seven modules of relationships-become-records, arrangements-become-policy, recollections-become-files — the structure a competent professional can hold.</p><p><b>The HR path.</b> The handover test read from the growth side: the ADMIN who keeps the records grows into the HR OFFICER (the processes' runner — the closes, the pipelines, the files) grows into the PEOPLE LEAD (the calendar's owner, the policies' custodian, the analytics' first reader, the adviser's counterpart) — the ladder legible by the track's own machinery (the clean closes, the worked worklists, the defensible files are the promotion case), and the firm's sequencing honest: the eleven-person firm's 'HR' is four hours of a shared hat run well — the SHAPE, small — and the first dedicated hire is made when the calendar's lines outgrow the hat, from a specification this track just wrote.</p><p><b>The documentation set.</b> Every artifact the test walks is a BY-PRODUCT of the modules done properly — the policy pages (leave, attendance, discipline, the floors adviser-confirmed and dated), the process checklists with owners (onboarding, transfer, separation), the registers (certified, expiry, needs), the ledgers and files, the calendar with names (Chapter 3), the permission design documented (Chapter 2). Nothing written FOR handover; the function that runs well hands over well — the academy's quiet thesis at its fifth organ, and the sentence that sells this track to every founder who has ever been unable to take a holiday: <b>the firm whose people function survives its people-person has freed its founder from the last job they were secretly still doing.</b></p>"
-   },
-   {
-    "title": "Chapter 6 — HR authorities & the professional ecosystem",
-    "est": "13",
-    "html": "<p>Who may do what in the people layer — the authorities separated at HR scale — and the professionals the layer works beside. The structure-and-ecosystem chapter, compressed to its load-bearing walls.</p><p><b>The four HR authorities.</b> The people layer's powers, separated on the pattern five tracks have taught: <b>RECORD</b> — creating and maintaining people data (the HR seat's daily pen — governed by Chapter 2's tiers and module 1's field ownership); <b>RUN</b> — executing the processes (the closes, the allocations, the pipelines, the checklists — the officer's work, distinct from deciding); <b>DECIDE</b> — the judgment calls the processes route to their proper deciders (the hire approved by the requisition's authority, the sanction decided by the impartial role, the promotion by the panel, the policy exception by the owner — the deciding deliberately NOT concentrated in the HR seat, because HR administers fairness rather than owning every verdict: the process designs of modules 2, 4, and 7 each named their deciders, and this chapter confirms the pattern); and <b>CONFIGURE</b> — the constitution itself (Chapter 1's settings, the policies, the permission design — the narrowest door, the annual walk its editing room). The separations at trade scale: the HR seat that records and runs everything while the founder decides and configures is the eleven-person shape done RIGHT — the irreducible pair being the decider distinct from the case's presenter (module 7's impartiality law, generalised), and the configure door distinct from the daily pen.</p><p><b>HR's own conduct standard.</b> The paragraph most HR implementations skip and this track will not: the people function holds the layer's most consequential trust — the sensitive tier's keys, the process's administration, every colleague's file — and its own conduct is therefore governed HARDEST: the HR seat's access logged and read (Chapter 2), its conflicts declared (the process involving the HR person's relative administered by the alternate — the routing-around-the-spine logic of module 7's grievances, applied to the administrator), its own records maintained by the alternate or the founder (nobody files their own disciplinary case), and its evenness watched as the layer's constitution — because the workforce calibrates its trust in every process by how the process-keeper behaves, and one visible exception spends what seven modules built.</p><p><b>The ecosystem.</b> The professionals beside the layer, boundary-mapped in the academy's settled grammar: the EMPLOYMENT ADVISER owns the LAW (the statutory floors, the procedure texts, the hard cases of modules 4-5-7-8, the reform landscape — engaged at design, at the annual policy review, and at every case with legal weight; the consultant's識别 rule: any sentence containing 'the Act provides' is the adviser's sentence); the DATA-PROTECTION professional owns the compliance regime Chapter 2 oriented (the registration, the policies, the breach protocols); the payroll function owns everything across the boundary (the standing grammar of module 1, consolidated next chapter); and the CONSULTANT owns the MACHINERY — the identity sentence, fifth edition: <i>I build and maintain the structure that makes your policies enforceable, your processes even, and your people data safe — I do not write your policies' legal content, decide your cases, or compute your salaries.</i> The boundaries are the armour, the ethics, and — five tracks have proven it — the trust engine: the consultant whose lanes are clean is the one every professional in the ecosystem recommends, which is where the next engagement comes from.</p>"
-   },
-   {
-    "title": "Chapter 7 — The boundary consolidated: HR, payroll & finance",
-    "est": "13",
-    "html": "<p>Module 1 drew the line — HR owns the inputs payroll consumes — and seven modules crossed it in pieces. The consolidation: every standing handoff on one page, with its calendar and its meshing discipline. The boundary chapter.</p><p><b>The standing handoffs, listed.</b> The complete crossing inventory: the <b>attendance package</b> (module 3's monthly close — days, absences by category, approved overtime: the boundary's largest regular cargo, on the fixed date payroll's timetable relies on); the <b>leave interface</b> (module 4 — the takings by pay-treatment category riding the attendance package; the encashment list at the year ritual; the accrued-liability figure to the accountant's provision — Accounts 4's machinery fed by HR's ledger); the <b>movement notifications</b> (module 7 — promotions and grade changes with effective dates, acting allowances with end dates, transfers with their cost-center addresses: Accounts 6's addressed payroll landing right because the HR event carried the dimension); the <b>joiner package</b> (module 2 — the new record's boundary fields: bank details under the masters-not-messages discipline, the PFA choice, the tax identifiers, the start date that prorates everything); the <b>separation package</b> (module 7 — the last day, the leave settlement from the ledger, the notice status, the documented deductions: the full-and-final's clean inputs); and the <b>statutory-adjacent stream</b> (the records the compliance filings read — the boundary's quiet passenger, complete because the record layer is).</p><p><b>The boundary calendar.</b> The crossings scheduled: the monthly line (the attendance close's date, the package's delivery, the boundary meeting's ten minutes), the event-driven lines (movements and separations notified within the stated days of their documents — the SLA that prevents the retroactive-adjustment archaeology payroll otherwise inherits), and the annual lines (the allocation ritual's encashment list, the liability figure at the accountant's provision date, the policy-change notifications when the annual review moves a number payroll computes from). The calendar published to BOTH functions — the dependency lines visible from each side, which is what makes the mesh a mesh instead of a negotiation.</p><p><b>The meshing discipline.</b> The three rules that keep the boundary invisible: ONE VERSION (every package final and locked at handoff — module 3's close properties governing every crossing: payroll computes once, from one version, always), ONE CHANNEL (the standing handoff, never the side note — the movement mentioned in a corridor and never notified is the salary error with a two-month fuse), and ONE OWNER PER SIDE (the named HR sender, the named payroll receiver — the boundary meeting being these two people, and the escalation path being their principals). The disagreement disease of module 3, generalised and buried: HR and payroll disagreeing about ANY month, any balance, any date is always the same anatomy — no close, no category, no single package — and always the same cure, now installed at every crossing.</p><p><b>The deeper point.</b> The chapter closes with the design insight the whole track has been demonstrating: the boundary is not a wall between rival functions; it is a WELL-DEFINED INTERFACE between complementary ones — HR the system of record for people facts, payroll the computation engine that consumes them, finance the ledger that prices them — and the firm that wires the interface has three functions that each do one thing well, while the firm that blurs it has three functions doing each other's jobs badly. Interfaces over blur: the academy's architecture instinct, at the boundary where it protects both the salaries and the relationships — and the last machinery this track needed to build.</p>"
-   },
-   {
-    "title": "Chapter 8 — Case study: the structural year — and the five-track graduate",
-    "est": "16",
-    "html": "<p>The final case study of the fifth track, in two acts: HealthTrade's people function becomes structure, and the academy's graduate — now five certifications deep — walks one last firm.</p><p><b>Act one — the structural year.</b> <b>Q1, the constitution (Ch. 1):</b> the settings walk with the MD — the regularisation window found silently stretched (a month-end favour from the implementation era, binding everyone since: the corridor toggle's fifth conviction, live), reset in the walk with its announcement; the reminder engine TESTED (a dummy certificate dated 45 days out — the reminder fires; the test filed). <b>Q2, the permission walk (Ch. 2):</b> logged in as the roles, the walk finds the classic: the employee list showing dates of birth to every user (a default nobody chose), and one long-tenured user holding HR-report access from a covered maternity leave two years prior — both closed the same day; the sensitive-tier access log instituted and read quarterly. <b>Q3, the absence test (Ch. 5):</b> the founder's three weeks — the trading functions passed in prior years, finance last year; this year the PEOPLE function runs on its calendar: the attendance close lands on its date (the officer's graduation), a resignation arrives mid-absence and the separation checklist runs without a single call (the join map reversed by the book — the departing person's own comment in the exit interview: <i>smoothest exit I've had anywhere</i>), and the handover walk scores its clean sheet in the function everyone assumed was the founder's forever. <b>Q4, the analytics page (Ch. 4):</b> the owner's four numbers stand up beside the branch P&amp;Ls — headcount on plan, attrition at 11% with its tenure story, the single-name capability count driven from three to ONE (the year's succession work — the last one is the superintendent's licence, and the development plan for the second pharmacist is the next year's line), the leave liability trending down a second year. The MD's note closes the act: <i>the firm now runs on documents in every organ — including the one that runs the people who run the rest.</i></p><p><b>Act two — the five-track graduate.</b> The consultant holding all five certifications takes the fuller version of the call every consultant gets: <i>our numbers make no sense — and our people keep leaving.</i> The walk now covers the WHOLE firm: the books' diseases (the four-track diagnosis of Accounts 8's finale) — and beneath them, this track's layer: the workforce in a spreadsheet three versions old, the register at the counter, rosters in the supervisor's head and Saturdays by favour, leave as negotiation with balances nobody can prove, the star storekeeper resigned last month (no exit interview — but the attendance drift was visible for a quarter in data nobody read), the till shortages 'handled' by a quiet resignation two towns ago, and the founder holding every arrangement in memory. The graduate reads the CONNECTIONS the five tracks trained: the books' phantom stock and the people layer's ghost employees are the same disease in two organs; the counter's gate failures trace to till staff who were never trained because no curriculum exists; the attrition traces to the favour systems the missing structure guarantees — and the findings deck writes itself across five tracks, the remediation sequenced by the curriculum that diagnosed it, the people layer scheduled FIRST this time (because every other layer's disciplines are performed by people the favour system is currently bleeding out). That consultant — able to walk a firm from its supplier masters to its branch tailgates to its closed books to its people's whole lifecycle, and leave every organ structurally better — is what five tracks, forty modules, and one repeated conviction exist to produce. Take the assessment; then go read a business — all of it, now.</p>"
-   },
-   {
-    "title": "Chapter 9 — Patterns, the eighth law & the fifth track complete",
-    "est": "14",
-    "html": "<p>The structural layer's final scar tissue, the law that closes the track — and the academy's fifth track, sealed.</p><p><b>Pattern 1 — the corridor toggle, people edition.</b> Symptom: graces widened in hallways; regularisation windows stretched for month-ends; negative-balance switches flipped for emergencies and never back. Disease: the constitution edited casually where the stakes are livelihoods and the currency is evenness (Ch. 1). Fix: the settings behind the walk, the annual re-walk with the owner, changes announced — the fifth vocabulary's telling, and the layer's authority preserved.</p><p><b>Pattern 2 — everything-eyes.</b> Symptom: the employee list leaking birthdays firm-wide; the maternity-cover access still live years on; the disciplinary file one click from the curious. Disease: confidentiality as policy without configuration (Ch. 2). Fix: the four tiers, the edges audited by logging in AS the roles, the sensitive-tier log read, the permission walk annual — configuration first, culture beside it.</p><p><b>Pattern 3 — the unowned calendar.</b> Symptom: rituals that ran while the consultant watched; the status read that faded; the worklist that fires reminders nobody works. Disease: the page without names (Ch. 3). Fix: the calendar with owners as the closing deliverable — and the follow-up that checks rhythms, not software: every disaster this track described was a calendar line with no name.</p><p><b>Pattern 4 — the dashboard before the base.</b> Symptom: 'HR analytics' purchased atop spreadsheet records; attrition charts of noise; headcounts three answers wide. Disease: the pyramid built top-first (Ch. 4). Fix: the honest sequencing — modules 1-7 before module 8's page — and the test that every number walks to its documents in three clicks.</p><p><b>Pattern 5 — the hero HR.</b> Symptom: the people function as one head's relationships and recollections; arrangements nobody else can see or defend; the founder who cannot holiday because confirmations stall. Disease: the founder-bottleneck's most personal organ (Ch. 5) — the layer that administers everyone's succession having none of its own. Fix: the handover test as the audit, the seven modules as the cure (relationships → records, arrangements → policy, recollections → files), and the absence test run deliberately.</p><p><b>Pattern 6 — the blurred boundary.</b> Symptom: payroll assembling its own attendance; HR promising salary figures; the two functions disagreeing about March and both computing it. Disease: the interface undefined (Ch. 7). Fix: the standing handoffs listed, the boundary calendar published both ways, one version / one channel / one owner per side — interfaces over blur.</p><p><b>The eighth law.</b> The record, the pipeline, the capture, the entitlement, the conversation, the manufacture, the events — and now the structure: <b>HR that lives in structure — a constitution walked annually, confidentiality as configuration, a calendar with names, analytics that walk to documents, authorities separated with the deciders distinct, boundaries as interfaces, and a function that survives its people — is HR that can be trusted with people; HR that lives in a hero is a favour system with a filing cabinet, and it survives exactly as long as the hero's memory and the workforce's patience.</b></p><p><b>The fifth track, complete.</b> Eight modules: the record (1), the pipeline (2), the capture (3), the entitlement (4), the conversation (5), the manufacture (6), the events (7), the structure (8). And the academy now stands at FIVE tracks — <b>Selling</b> (money in), <b>Procurement</b> (money out), <b>Inventory</b> (the goods), <b>Accounts</b> (the ledger), and <b>HR</b> (the people who run all four) — 40 modules, 40 laws, five continuous case studies through one firm, and the conviction now told in five vocabularies: <b>documents over memory, masters over improvisation, rhythms over heroics, structure over trust.</b> The professional who holds all five can walk into any trading firm in Nigeria — its counter, its gate, its warehouse, its books, and its people — and read it, price it, repair it, and leave it able to run without them, staffed by people it can now hire, develop, and keep without them too. That is the certification. Take the assessment; then go build one — and staff it.</b></p>"
+    "title": "Chapter 9 — Common errors and the track's eight rules",
+    "est": "12",
+    "html": "<p>The structural layer's recurring failures, then the track assembled.</p><p><b>Error 1 — the unexamined settings.</b> Symptom: approval flags, backdating permissions, and validation switches in whatever state implementation left them; behaviours nobody chose governing everybody's records. Correction: the walk run, each field decided and recorded. Prevention: the annual re-walk with the register review.</p><p><b>Error 2 — controls as habits.</b> Symptom: reads that happen when remembered; evidence that needs assembly; oversight that must ask. Correction: the control register built — owner, cadence, evidence location per row. Prevention: the owner's unannounced samples and the annual review.</p><p><b>Error 3 — the calendar in one head.</b> Symptom: the entitlement round remembered in January; holiday lists built after the year turned; annual items colliding with the payroll year-end. Correction: the calendar written with owners, the annual block scheduled before its season. Prevention: the October scheduling rule and the register's owner column.</p><p><b>Error 4 — reports as impressions.</b> Symptom: management pages built from recollection and adjustment; figures that cannot be traced; the same question answered differently twice. Correction: every figure rebuilt as a count over named records. Prevention: the two-lookup traceability standard applied to every pack.</p><p><b>Error 5 — data handled by convenience.</b> Symptom: personal documents in inboxes and drives; access accumulated, never recertified; retention indefinite by default; capabilities switched on without policy. Correction: the matrix written and configured, the conventions decided and executed, the handling rules applied. Prevention: the matrix in the quarterly recertification and the conventions on the calendar.</p><p><b>Error 6 — the indispensable operator.</b> Symptom: HR stops when one person is away; the joiner unverified, the close missed, the reads skipped for a week and the gaps discovered downstream. Correction: the artifact list completed, the backstop trained. Prevention: the deliberate absence test, run soon, its questions fixed as documentation findings.</p><p><b>The track's eight rules.</b></p><p>1. The Employee record is the master every HR and payroll document reads — built from the organisational masters, completed from source documents, verified before first use, retired by status, and kept complete by the standing filters.<br>2. Hiring runs through the pipeline — vacancies approved on the plan, candidates processed on recorded statuses, assessments structured and same-day, offers issued from the document with complete terms, and joiners onboarded on a generated checklist confirmed before the joining date.<br>3. Attendance is recorded per day per employee — checkins as evidence, the Shift Type's settings as the ruling, manual locations marked daily by named people, corrections through the request lane, and the month complete at the records close.<br>4. Leave is entitlement executed as records — types configured from the written policy, allocations generated by the annual policy round, applications decided in the system by the records close, pay-affecting leave documented like the pay decision it is, and every balance answerable from the ledger.<br>5. Performance is assessed on records — templates weighted by decision, cycles run on a published calendar, scores computed from confirmed goals and submitted feedback, calibrated through the raters, and handed to the decision lanes as information, never as execution.<br>6. Training is delivered as records — programmes catalogued once, events run from the plan with full tables, results entered within the week, compliance tracked by arithmetic on passing results, and every question answered from the rows as kept.<br>7. Lifecycle events are documents — transfers and promotions applying their property rows from honest dates, grievances entered as stated and resolved on the record, separations run as generated checklists beside the payroll exit, and every scheduled event decided on time from the standing reads.<br>8. The HR function survives its operator — settings written, controls registered, the year on its calendar, data protected by matrix and convention, every report traceable in two lookups, and the whole function proven by absence.</p><p>This completes the HR Professional track.</p>"
    }
   ],
   "questions": [
    {
-    "q": "The manual-mark masquerade setting:",
+    "q": "Module 8's work is:",
     "opts": [
-     "Repeals module 3's whole capture argument in one checkbox — manual marks stay visible as manual",
-     "Is cosmetic",
-     "Saves time",
-     "Is required"
+     "Structure — the modules' artifacts made into a function that runs the same regardless of who runs it",
+     "New doctypes",
+     "More reads",
+     "Faster hiring"
     ],
     "ans": 0,
-    "why": "The constitution's fields have arguments behind them.",
+    "why": "The programme's standing close.",
     "src": "Ch1"
    },
    {
-    "q": "The reminder engine is:",
+    "q": "The three structural claims are:",
     "opts": [
-     "Assumed working",
-     "TESTED annually — a dummy certificate dated 45 days out; the silent failure is discovered by the lapse it was built to prevent",
-     "Optional",
-     "Payroll's"
+     "Speed, cost, size",
+     "Settings as written decisions, controls as one system, and the function surviving its operator",
+     "Hire, pay, exit",
+     "Plan, do, check"
     ],
     "ans": 1,
-    "why": "Fired reminders are only half; tested engines are the discipline.",
+    "why": "Chapters 2-7 deliver them.",
     "src": "Ch1"
    },
    {
-    "q": "The people constitution edited casually costs:",
+    "q": "Employee Naming By is:",
     "opts": [
-     "Nothing",
-     "Minutes",
-     "The layer's evenness — which is its entire authority — one favour at a time",
-     "Only admin time"
+     "Changed freely",
+     "Monthly",
+     "Set at implementation and left — changing it mid-register renames nothing and confuses everything",
+     "Per branch"
     ],
     "ans": 2,
-    "why": "The corridor toggle where the stakes are livelihoods.",
-    "src": "Ch1"
+    "why": "The employee block.",
+    "src": "Ch2"
    },
    {
-    "q": "The four visibility tiers are:",
+    "q": "Retirement Age feeds:",
     "opts": [
-     "Public, private, secret, top",
-     "None",
-     "Admin and user",
-     "Self, team via the spine, HR, and sensitive — with 'HR can see it' still too wide for the file that could wound"
+     "Pay",
+     "Shifts",
+     "Leave",
+     "The retirement-date computation from Date of Birth — the annual approaching-dates read"
     ],
     "ans": 3,
-    "why": "The innermost fence is tighter than HR-general.",
+    "why": "Known dates make the best exits.",
     "src": "Ch2"
    },
    {
-    "q": "The mis-pointed spine is now:",
+    "q": "Restrict Backdated Leave Application's recommended posture is:",
     "opts": [
-     "A confidentiality leak — the manager tier is defined by the spine",
-     "A routing error only",
-     "Harmless",
-     "Rare"
+     "Restricted, with the permitted role held by HR — the honest-date lane's controlled exception",
+     "Open to all",
+     "Fully blocked",
+     "Manager-only"
     ],
     "ans": 0,
-    "why": "The spine-maintenance law's final stake.",
+    "why": "Keeps the exception a lane, not a habit.",
     "src": "Ch2"
    },
    {
-    "q": "The permission walk's method is:",
+    "q": "Check Vacancies enforces:",
     "opts": [
-     "Reading the config",
-     "Logging in AS the roles — open the lists, run the reports, see what they see",
-     "A questionnaire",
-     "Trust"
+     "Interview reminders",
+     "Job Opening validation against the Staffing Plan — the plan-first order's switch",
+     "Leave balances",
+     "Attendance"
     ],
     "ans": 1,
-    "why": "Evidence, not assertion.",
+    "why": "The hiring block.",
     "src": "Ch2"
    },
    {
-    "q": "Employee data and the NDPA:",
+    "q": "Mobile checkin with location capture is enabled:",
     "opts": [
-     "Unrelated",
-     "Exempt",
-     "Squarely inside the regime — the system contributes the structural half; the professional owns the compliance specifics",
+     "Silently",
+     "Never",
+     "With the policy stated to staff first — the capability stated in policy is a tool; enabled silently it is a grievance generator",
+     "For managers"
+    ],
+    "ans": 2,
+    "why": "The attendance block's rule.",
+    "src": "Ch2"
+   },
+   {
+    "q": "The settings record carries per field:",
+    "opts": [
+     "The value only",
+     "The default",
+     "A screenshot",
+     "Value, owner, date, and the one-line reason"
+    ],
+    "ans": 3,
+    "why": "Fifteen minutes at the walk.",
+    "src": "Ch2"
+   },
+   {
+    "q": "Standard Working Hours is set from:",
+    "opts": [
+     "The written policy, recorded with what reads it",
+     "A guess",
+     "The device",
+     "The default"
+    ],
+    "ans": 0,
+    "why": "The employee block's third field.",
+    "src": "Ch2"
+   },
+   {
+    "q": "The control register lists per row:",
+    "opts": [
+     "A wish",
+     "The control, its owner, its cadence, and its evidence location",
+     "A report",
+     "A date only"
+    ],
+    "ans": 1,
+    "why": "Three readers use the page.",
+    "src": "Ch3"
+   },
+   {
+    "q": "The owner's unannounced sample expects:",
+    "opts": [
+     "A presentation",
+     "A meeting",
+     "Any row's evidence produced in one lookup — evidence needing assembly is itself the finding",
+     "A summary"
+    ],
+    "ans": 2,
+    "why": "The register's operation.",
+    "src": "Ch3"
+   },
+   {
+    "q": "A control that found nothing all year is:",
+    "opts": [
+     "Retired at once",
+     "Doubled",
+     "Broken",
+     "Assessed — and usually working: preventing what it would find"
+    ],
+    "ans": 3,
+    "why": "The standing question and its usual answer.",
+    "src": "Ch3"
+   },
+   {
+    "q": "The records-close block aligns:",
+    "opts": [
+     "To the payroll close date — attendance complete, leave decided, the LWP list handed over",
+     "To month-end always",
+     "To Fridays",
+     "To quarter-end"
+    ],
+    "ans": 0,
+    "why": "The two tracks' standing meeting point.",
+    "src": "Ch4"
+   },
+   {
+    "q": "The annual block is scheduled:",
+    "opts": [
+     "In January",
+     "In writing before its season — the December items clear of the payroll year-end's pressure",
+     "At need",
+     "By the auditor"
+    ],
+    "ans": 1,
+    "why": "The month-eleven lesson, HR-wide.",
+    "src": "Ch4"
+   },
+   {
+    "q": "A calendar line without an owner is:",
+    "opts": [
+     "Efficient",
+     "Automatic",
+     "A hope — the register gives every line one",
      "Optional"
     ],
     "ans": 2,
-    "why": "The tax module's grammar: know the duty, configure the structure, route the specifics.",
-    "src": "Ch2"
+    "why": "The calendar's rule.",
+    "src": "Ch4"
    },
    {
-    "q": "Everything-forever data retention is:",
+    "q": "The probation and contract reads run:",
     "opts": [
-     "Safe",
-     "Required",
-     "Thorough",
-     "A liability and a duty breach waiting for its inspector — people data has lifecycles"
+     "At expiry",
+     "Weekly",
+     "Annually",
+     "Monthly, sixty and ninety days ahead respectively"
     ],
     "ans": 3,
-    "why": "The applicant pool's bounds; the departed record's horizons.",
-    "src": "Ch2"
+    "why": "Module 7's lines on the calendar.",
+    "src": "Ch4"
    },
    {
-    "q": "The fence never checked is:",
+    "q": "Every report figure must be:",
     "opts": [
-     "The designed-but-dead control at the layer where its death harms people — the sensitive-tier log is READ",
-     "Still a fence",
-     "Fine",
-     "Standard"
+     "A count or computation over records, reproducible from the named source in two lookups",
+     "Plausible",
+     "Rounded",
+     "Approved"
     ],
     "ans": 0,
-    "why": "The salary figure at lunch is a breach; small leaks as culture makes large ones luck.",
-    "src": "Ch2"
-   },
-   {
-    "q": "The two daily checklists that cannot slip are:",
-    "opts": [
-     "Any two",
-     "The joiner's day-one readiness and the leaver's last-day access lines",
-     "Reports",
-     "Backups"
-    ],
-    "ans": 1,
-    "why": "Module 2's entry and module 7's exit, on the daily line.",
-    "src": "Ch3"
-   },
-   {
-    "q": "Every disaster this track described was:",
-    "opts": [
-     "Bad luck",
-     "Software failure",
-     "A calendar line that had no name",
-     "Inevitable"
-    ],
-    "ans": 2,
-    "why": "The ghost, the lapsed licence, the December collapse, the ambush, the live access.",
-    "src": "Ch3"
-   },
-   {
-    "q": "The expiry worklist's ritual is:",
-    "opts": [
-     "The reminders firing",
-     "The report",
-     "The configuration",
-     "The WORKED — fired is only half"
-    ],
-    "ans": 3,
-    "why": "Monthly, owned, worked.",
-    "src": "Ch3"
-   },
-   {
-    "q": "The source scorecard closes its loop with:",
-    "opts": [
-     "Module 7's stay-data — which channels produce hires who confirm AND remain",
-     "Nothing",
-     "The budget",
-     "The adverts"
-    ],
-    "ans": 0,
-    "why": "The number module 2 promised, graded here.",
-    "src": "Ch4"
-   },
-   {
-    "q": "The single-name capability count is:",
-    "opts": [
-     "Trivia",
-     "The succession read's headline — the number the owner should want at zero",
-     "HR's secret",
-     "Fixed"
-    ],
-    "ans": 1,
-    "why": "Driven from three to one in the case study.",
-    "src": "Ch4"
-   },
-   {
-    "q": "Numbers about people are:",
-    "opts": [
-     "Verdicts",
-     "Sufficient",
-     "Questions about people — every read terminates in a conversation somewhere",
-     "Private"
-    ],
-    "ans": 2,
-    "why": "The layer's subjects can be ASKED.",
-    "src": "Ch4"
-   },
-   {
-    "q": "The analytics page holds sensitive-tier content:",
-    "opts": [
-     "Summarised",
-     "Quarterly",
-     "For owners",
-     "Never — aggregates at altitude, no case details, by design"
-    ],
-    "ans": 3,
-    "why": "The permission tiers govern the analytics too.",
-    "src": "Ch4"
-   },
-   {
-    "q": "Buying HR analytics before modules 1-7 buys:",
-    "opts": [
-     "Charts of noise — the pyramid built base-first is the honest sequencing",
-     "A head start",
-     "Efficiency",
-     "Insight"
-    ],
-    "ans": 0,
-    "why": "The analytics are only as true as the layers beneath.",
-    "src": "Ch4"
-   },
-   {
-    "q": "The HR handover test asks:",
-    "opts": [
-     "Is HR qualified?",
-     "Could a competent newcomer run the people function a month with zero founder-only questions?",
-     "Are files tidy?",
-     "Is payroll happy?"
-    ],
-    "ans": 1,
-    "why": "Every NO is a module incompletely done.",
+    "why": "The construction rule.",
     "src": "Ch5"
    },
    {
-    "q": "The HR-in-one-head disease means:",
+    "q": "The access matrix covers:",
     "opts": [
-     "Efficiency",
-     "Loyalty",
-     "Arrangements nobody else can see or defend, fragility, and the founder-bottleneck's most personal organ",
-     "Savings"
+     "Employee only",
+     "Every HR doctype — Employee, appraisals, grievances, applicants, health fields — written, configured, recertified",
+     "Payroll only",
+     "Reports"
     ],
-    "ans": 2,
-    "why": "The layer administering everyone's succession, having none of its own.",
+    "ans": 1,
+    "why": "Included in the quarterly recertification.",
     "src": "Ch5"
    },
    {
-    "q": "The HR documentation set is:",
+    "q": "Retention conventions are:",
     "opts": [
-     "Written for handover",
-     "Optional",
-     "A manual",
-     "A by-product of modules done properly — the function that runs well hands over well"
-    ],
-    "ans": 3,
-    "why": "The academy's quiet thesis at its fifth organ.",
-    "src": "Ch5"
-   },
-   {
-    "q": "The DECIDE authority is:",
-    "opts": [
-     "Routed to proper deciders — HR administers fairness rather than owning every verdict",
-     "Concentrated in HR",
-     "The founder's alone",
+     "Indefinite by default",
+     "The auditor's job",
+     "Decided per record class, written, and executed on the calendar",
      "Automatic"
     ],
-    "ans": 0,
-    "why": "The processes of modules 2, 4, and 7 each named their deciders.",
-    "src": "Ch6"
-   },
-   {
-    "q": "The irreducible HR pair at eleven people is:",
-    "opts": [
-     "Two HR staff",
-     "The decider distinct from the case's presenter, and the configure door distinct from the daily pen",
-     "HR and payroll",
-     "None"
-    ],
-    "ans": 1,
-    "why": "Module 7's impartiality law, generalised.",
-    "src": "Ch6"
-   },
-   {
-    "q": "Nobody files their own disciplinary case means:",
-    "opts": [
-     "HR is exempt",
-     "Files are optional",
-     "The HR seat's own records are maintained by the alternate or the founder — conflicts declared, access logged",
-     "Founders decide all"
-    ],
     "ans": 2,
-    "why": "The process-keeper's conduct calibrates everyone's trust.",
-    "src": "Ch6"
+    "why": "The rejected-applicant convention is module 2's example.",
+    "src": "Ch5"
    },
    {
-    "q": "Any sentence containing 'the Act provides' is:",
+    "q": "A new use of collected data is:",
     "opts": [
-     "The consultant's",
-     "Nobody's",
-     "The owner's",
-     "The adviser's sentence — the law is theirs; the machinery is the consultant's"
+     "Fine if useful",
+     "The vendor's call",
+     "Silent",
+     "Stated in policy before it is switched on — data is used for the purpose it was collected for"
     ],
     "ans": 3,
-    "why": "The identity sentence, fifth edition.",
+    "why": "The standing principle.",
+    "src": "Ch5"
+   },
+   {
+    "q": "Group-wide leave policy across companies is entered as:",
+    "opts": [
+     "Matching per-company records — deliberate differences are written policy differences",
+     "One shared record",
+     "The larger company's",
+     "No records"
+    ],
+    "ans": 0,
+    "why": "The policy machinery is per company.",
     "src": "Ch6"
    },
    {
-    "q": "The boundary's largest regular cargo is:",
+    "q": "The inter-company transfer runs as:",
     "opts": [
-     "The attendance package — the monthly close on the fixed date payroll relies on",
-     "The joiner package",
-     "Movements",
-     "The liability figure"
-    ],
-    "ans": 0,
-    "why": "The standing handoffs, listed on one page.",
-    "src": "Ch7"
-   },
-   {
-    "q": "The movement mentioned in a corridor and never notified is:",
-    "opts": [
-     "Handled",
-     "The salary error with a two-month fuse — one channel, always the standing handoff",
-     "Efficient",
-     "Rare"
+     "A field edit",
+     "The exit-and-join it legally is — origin closure lines, destination joiner lines, the document coordinating",
+     "A promotion",
+     "A secondment memo"
     ],
     "ans": 1,
-    "why": "Event-driven crossings carry SLAs.",
-    "src": "Ch7"
+    "why": "The boundary's crossing point.",
+    "src": "Ch6"
    },
    {
-    "q": "The meshing discipline's three rules are:",
+    "q": "Group totals for the owner are:",
     "opts": [
-     "Fast, cheap, good",
-     "Daily, weekly, monthly",
-     "One version, one channel, one owner per side",
-     "None"
+     "Estimated",
+     "The auditor's",
+     "Constructed from per-company figures — decomposable back to entities",
+     "Rounded"
     ],
     "ans": 2,
-    "why": "The disagreement disease, generalised and buried.",
-    "src": "Ch7"
+    "why": "The traceability standard at group level.",
+    "src": "Ch6"
    },
    {
-    "q": "The boundary is:",
+    "q": "The shared HR operator across entities means:",
     "opts": [
-     "A wall between rivals",
-     "Payroll's problem",
-     "Unnecessary",
-     "A well-defined interface between complementary functions — interfaces over blur"
+     "Shared data",
+     "One payroll",
+     "One register",
+     "The operator is shared; the data is not — every record stays entity-pure and the matrix states the span"
     ],
     "ans": 3,
-    "why": "Three functions each doing one thing well.",
+    "why": "The shared-services note.",
+    "src": "Ch6"
+   },
+   {
+    "q": "The handover test asks:",
+    "opts": [
+     "Could a competent successor run next month's HR from the documentation alone?",
+     "Is the operator good?",
+     "Is the software good?",
+     "Are staff happy?"
+    ],
+    "ans": 0,
+    "why": "The programme's standing final test.",
     "src": "Ch7"
    },
    {
-    "q": "The permission walk's finds were:",
+    "q": "During the absence test:",
     "opts": [
-     "Birthdays leaking firm-wide by default, and maternity-cover access live two years on — both closed same day",
+     "The operator coaches",
+     "The operator answers no question the file should answer — every question asked is a documentation finding",
+     "The reads pause",
+     "The backstop guesses"
+    ],
+    "ans": 1,
+    "why": "Fixed on return.",
+    "src": "Ch7"
+   },
+   {
+    "q": "The first absence test runs:",
+    "opts": [
+     "In an emergency",
+     "Never",
+     "Deliberately and soon — a planned week with the operator reachable",
+     "After a resignation"
+    ],
+    "ans": 2,
+    "why": "The rehearsal is cheap.",
+    "src": "Ch7"
+   },
+   {
+    "q": "HR's structural weight comes from:",
+    "opts": [
+     "Its size",
+     "Its reports",
+     "Its budget",
+     "Every other function starting from its records — payroll selects from the register, access follows the events, cost lines follow the fields"
+    ],
+    "ans": 3,
+    "why": "Why the test closes the track.",
+    "src": "Ch7"
+   },
+   {
+    "q": "HealthTrade's Check Vacancies change was:",
+    "opts": [
+     "Advisory validation made enforced — the plan-first order switched on",
+     "Cosmetic",
+     "A removal",
+     "A reminder"
+    ],
+    "ans": 0,
+    "why": "Step 1.",
+    "src": "Ch8"
+   },
+   {
+    "q": "The 2027 entitlement round generated:",
+    "opts": [
+     "Ninety allocations",
+     "Ninety-three — thirty-one staff by then × three rows, completeness verified",
+     "Thirty",
+     "Three hundred"
+    ],
+    "ans": 1,
+    "why": "Step 3.",
+    "src": "Ch8"
+   },
+   {
+    "q": "The retention clearing removed:",
+    "opts": [
      "Nothing",
-     "A breach",
-     "New roles"
-    ],
-    "ans": 0,
-    "why": "The classic edges, audited as the roles.",
-    "src": "Ch8"
-   },
-   {
-    "q": "The absence test's separation ran:",
-    "opts": [
-     "By phone calls",
-     "Without a single call — 'smoothest exit I've had anywhere' from the departing person",
-     "Late",
-     "By the founder"
-    ],
-    "ans": 1,
-    "why": "The join map reversed by the book, mid-absence.",
-    "src": "Ch8"
-   },
-   {
-    "q": "The five-track graduate connects:",
-    "opts": [
-     "Nothing new",
-     "Only the books",
-     "Phantom stock and ghost employees as one disease in two organs — and sequences the people layer FIRST",
-     "Only HR"
+     "All applicants",
+     "Forty-one rejected-applicant records past the eighteen-month convention",
+     "Ten employees"
     ],
     "ans": 2,
-    "why": "Every layer's disciplines are performed by people the favour system bleeds.",
+    "why": "Step 5's first run.",
     "src": "Ch8"
    },
    {
-    "q": "HR that lives in a hero is:",
+    "q": "HealthTrade's absence test produced:",
     "opts": [
-     "Lean",
-     "Cheap",
-     "Ideal",
-     "A favour system with a filing cabinet — surviving as long as the hero's memory and the workforce's patience"
+     "A crisis",
+     "A new hire",
+     "No test",
+     "Three questions, three documentation fixes — the month closed on the calendar"
     ],
     "ans": 3,
-    "why": "The eighth law's second half.",
-    "src": "Ch9"
+    "why": "Step 6.",
+    "src": "Ch8"
    },
    {
-    "q": "The academy now stands at:",
+    "q": "Reports-as-impressions are fixed by:",
     "opts": [
-     "FIVE tracks, 40 modules, 40 laws — Selling, Procurement, Inventory, Accounts, and HR",
-     "Four tracks",
-     "One track",
-     "Three tracks"
+     "Every figure rebuilt as a count over named records — the two-lookup standard",
+     "Better memory",
+     "Fewer reports",
+     "Longer packs"
     ],
     "ans": 0,
-    "why": "The people who run all four, certified last.",
+    "why": "Error 4.",
     "src": "Ch9"
    },
    {
-    "q": "The conviction in five vocabularies is:",
+    "q": "The track's first rule concerns:",
     "opts": [
-     "Speed over care",
-     "Documents over memory, masters over improvisation, rhythms over heroics, structure over trust",
-     "Trust over control",
-     "Growth first"
+     "The calendar",
+     "The Employee record — the master every HR and payroll document reads, verified before first use",
+     "Grievances",
+     "Settings"
     ],
     "ans": 1,
-    "why": "The academy's single sentence, fifth telling.",
+    "why": "Where the track began.",
     "src": "Ch9"
    },
    {
-    "q": "This module's law is:",
+    "q": "The track's eighth rule is:",
     "opts": [
-     "HR needs heroes",
-     "Settings are preferences",
-     "HR that lives in structure — constitution walked, confidentiality configured, calendar named, boundaries as interfaces, the function surviving its people — is HR that can be trusted with people",
-     "Analytics first"
+     "HR needs its operator",
+     "Reports are optional",
+     "The HR function survives its operator — settings written, controls registered, the year on its calendar, data protected, reports traceable, proven by absence",
+     "Settings are defaults"
     ],
     "ans": 2,
-    "why": "The fifth structural law, closing the fifth track.",
+    "why": "The rule completing the track.",
     "src": "Ch9"
    }
   ]
