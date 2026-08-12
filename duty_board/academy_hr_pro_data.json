@@ -1,946 +1,946 @@
 {
  "employee_master": {
   "title": "HR 1 — The Employee Master & Organisational Structure",
-  "desc": "The foundation of the people certification: the employee as the fifth master, the person's record and its custody frame, the organisational trees and the reporting spine, employment types and the status discipline, the user link and self-service, master governance, and the joins to every other track.",
+  "desc": "The Employee master in ZhiftERP: the organisational masters (Branch, Department tree with approver tables, Designation, Employment Type, Employee Grade) in build order; the Employee record's identity, joining, organisational, contact, personal, and bank field groups with what reads each field; the joiner verification procedure; the status lifecycle with the two-field exit rule and recorded changes; the Reports To structure and the Organizational Chart page; and the monthly and quarterly register hygiene reads.",
   "lessons": [
    {
-    "title": "Chapter 1 — The people layer: the fifth master",
+    "title": "Chapter 1 — The Employee master: scope and structure",
+    "est": "11",
+    "html": "<p>This module covers the Employee master in ZhiftERP and the organisational masters it depends on. On completing this module you will be able to: create the organisational masters (Company, Branch, Department, Designation, Employment Type, Grade); create a complete Employee record and explain the purpose of each field group; operate the status lifecycle; build the reporting structure and read the organisational chart; and run the register hygiene checks.</p><p><b>The Employee record's position in the system.</b> Employee is a master doctype. The following records link to it:</p><p>1. <b>Salary Structure Assignment and Salary Slip</b> (the Payroll track) — pay is computed for Employee records.<br>2. <b>Leave Allocation, Leave Application, and Attendance</b> (this track, modules 3-4) — leave and attendance are recorded against Employee records.<br>3. <b>Appraisal, Training Event, and the lifecycle documents</b> (modules 5-7).<br>4. <b>The User account</b> — the Employee record links to the person's login; this link scopes employee self-service (the Payroll track, module 4).<br>5. <b>Expense Claim, Employee Advance, and asset custody records.</b></p><p>Because every one of these reads the Employee record, an error in the record repeats in every linked document until corrected. The verification procedure in Chapter 5 exists for this reason.</p><p><b>Custody.</b> HR owns the Employee register: creation, changes, and status. The permission design follows the Sysadmin track's rules: HR roles hold Create and Write on Employee; other functions hold Read where their work requires it; the employee sees their own record through self-service. Changes to bank details and contact details follow the governed master-data rules stated in the Payroll track (written instruction from the employee, filed on the record).</p><p><b>Build order.</b> The organisational masters are created before Employee records, because Employee fields link to them. The order used in this module:</p><p>1. Company (exists from implementation).<br>2. Branch — one record per physical location.<br>3. Department — the tree, with each department linked to its company.<br>4. Designation — one record per job title.<br>5. Employment Type — the employment categories (Full-time, Part-time, Contract, Intern, and others the business defines).<br>6. Grade — where the business uses grades, the Employee Grade records with their default salary structures.<br>7. Employee records, in Chapter 3's field order.</p><p><b>Module contents.</b> Chapter 2: the organisational masters. Chapter 3: the Employee record — identity and joining fields. Chapter 4: the organisational fields. Chapter 5: contact, personal, and bank fields, with the verification procedure. Chapter 6: the status lifecycle and exit fields. Chapter 7: the reporting structure and the organisational chart. Chapter 8: worked example. Chapter 9: review and the module rule.</p>"
+   },
+   {
+    "title": "Chapter 2 — The organisational masters",
+    "est": "12",
+    "html": "<p>Create each master below before creating Employee records. Each section states the doctype, the fields to complete, and the records that read it.</p><p><b>1. Branch.</b> Open Branch (awesome bar) &gt; New. Enter the branch name. Create one record per physical location. Read by: the Employee record's Branch field; branch filters on HR reports; the Payroll Entry's branch filter.</p><p><b>2. Department.</b> Open Department &gt; New. Fields:</p><p>• <b>Department name.</b><br>• <b>Company</b> — required; departments are per company.<br>• <b>Parent Department</b> — departments form a tree. Set Is Group on parent nodes that contain sub-departments. Example structure: All Departments &gt; Operations &gt; Warehouse; All Departments &gt; Finance.<br>• <b>Leave Approver and Expense Approver tables</b> — the users authorised to approve leave applications and expense claims for this department's employees. Module 4 reads the leave approvers; complete these tables when the approvers are known.<br>• <b>Payroll Cost Center</b> — where the site is configured to default the employee's cost center from the department, set it here. The Payroll track's cost-addressing depends on this value or the per-employee field.</p><p>Read by: the Employee record's Department field; department filters on every HR report; the approval routing in modules 3-4.</p><p><b>3. Designation.</b> Open Designation &gt; New. Enter the designation name and, where useful, the required skills and description. Create one record per job title in use — Pharmacist, Warehouse Assistant, Branch Manager, Driver, Accounts Assistant. Read by: the Employee record; Job Opening and Job Offer (module 2); Appraisal templates (module 5). Do not encode seniority into free text on the employee; the Designation record is the single definition of each title.</p><p><b>4. Employment Type.</b> Open Employment Type &gt; New. Create the employment categories the business uses: Full-time, Part-time, Contract, Intern, Probation where the business tracks it as a type. Read by: the Employee record; headcount reports by type; policy rules that differ by category (leave entitlement for contract staff, for example — module 4's leave policies can differ by type).</p><p><b>5. Employee Grade.</b> Where the business uses grades: open Employee Grade &gt; New. Enter the grade name and the <b>Default Salary Structure</b> where grades map to pay packages — this default pre-fills at assignment and is verified against the offer letter per the Payroll track's rules. Read by: the Employee record's Grade field; grade-based reports and policies.</p><p><b>Verification.</b> After creating the masters, run these checks:</p><p>1. The Department tree renders correctly (open the Department list in tree view; every node under the correct parent; Is Group set on parents only).<br>2. Every department carries its company.<br>3. The Designation list contains one record per real job title, no duplicates, no obsolete titles left active.<br>4. Approver tables completed on departments where the approvers are known; a note recorded for those pending.</p>"
+   },
+   {
+    "title": "Chapter 3 — The Employee record: identity and joining fields",
+    "est": "12",
+    "html": "<p>Open Employee (awesome bar) &gt; New. This chapter walks the identity and joining fields. Complete them in order.</p><p><b>1. Series.</b> The Employee record is named by naming series (HR-EMP- by default). The series is configured once in the Naming Series tool per the Sysadmin track's rules. Do not rename Employee records after creation; the ID appears on every linked document.</p><p><b>2. First Name, Middle Name, Last Name.</b> Enter the legal names as they appear on the employee's identification documents. The full name prints on the salary slip, the statutory schedules, and every HR document; a name entered casually here is a name wrong on a PAYE certificate later.</p><p><b>3. Gender and Date of Birth.</b> Enter from the identification documents. Date of Birth feeds the retirement-date computation where the business configures a retirement age, and the birthday reads on HR reports.</p><p><b>4. Date of Joining.</b> The first day of employment, from the signed offer or contract. This field is read by:</p><p>• The payment-days proration on the first Salary Slip (the Payroll track, module 1).<br>• Leave allocation proration for the joining year (module 4).<br>• Length-of-service computations on reports and at exit.</p><p>Enter the exact contractual date. Do not enter the date the record was created.</p><p><b>5. Status.</b> New records are created as Active. The full lifecycle is Chapter 6.</p><p><b>6. Company.</b> The employing legal entity. On a multi-company site this field determines which company's payroll, leave policies, and reports include the employee. A person employed by two entities is two Employee records (the Payroll track, module 8).</p><p><b>7. The joining detail fields.</b> Complete the employment section: the offer date and confirmation date where tracked; the contract end date for fixed-term contracts — the contract end date is read by the standing report of expiring contracts, and a blank field there means an expiry nobody is warned about; the notice period in days, read at exit; the probation period where tracked.</p><p><b>8. Attachments.</b> Attach at creation: the signed offer or contract, the identification document, and the completed joining forms. The record with its attachments is the employment file's system copy; module 2's onboarding procedure (in the recruitment module) generates part of this automatically when the hire comes through the recruitment pipeline.</p><p><b>Save.</b> Save the record. The organisational fields (Chapter 4) and the contact, personal, and bank sections (Chapter 5) complete the record before the joiner verification (Chapter 5) signs it off.</p><p><b>Note on record creation paths.</b> An Employee record is created either directly (this chapter) or from an accepted Job Applicant through the recruitment pipeline (module 2, Chapter 7). The fields and the verification are identical on both paths; the pipeline pre-fills what the applicant record already holds.</p>"
+   },
+   {
+    "title": "Chapter 4 — The Employee record: organisational fields",
+    "est": "12",
+    "html": "<p>Complete the organisational section of the Employee record. Each field below links to a Chapter 2 master and drives specific behaviour.</p><p><b>1. Branch.</b> Select the employee's branch. Read by branch filters on attendance, leave, and payroll reports.</p><p><b>2. Department.</b> Select from the department tree. Read by: report grouping; the approver routing (the department's Leave Approver and Expense Approver tables apply to this employee unless a per-employee approver overrides them); the cost-center default where configured at department level.</p><p><b>3. Designation.</b> Select the job title. Read by reports, the appraisal machinery (module 5), and the recruitment records when the position is later re-hired.</p><p><b>4. Reports To.</b> Select the employee's direct manager (another Employee record). This field builds the reporting hierarchy:</p><p>• The <b>Organizational Chart</b> page (Chapter 7) renders from this field.<br>• Approval routing can follow it where the site is configured to route to the reporting manager.<br>• Every employee except the top of the structure has a value here. A blank Reports To on a non-executive record is a data gap; the Chapter 8 verification lists them.</p><p><b>5. Grade.</b> Select where grades are in use. Where the grade carries a Default Salary Structure, the payroll assignment pre-fills from it and is verified against the offer letter.</p><p><b>6. Employment Type.</b> Select the employment category. Read by headcount reports and type-dependent policies.</p><p><b>7. Holiday List.</b> Select the employee's working calendar. This field is read by:</p><p>• Payment-days proration (the Payroll track, module 1) — working days count from this list.<br>• Leave application day counts (module 4) — holidays inside a leave period do not consume leave balance when the list says so.<br>• Attendance processing (module 3) — holidays are not absence.</p><p>Assign the correct list per working pattern: the standard list for head office; the branch list for locations that work Saturdays. The Holiday List records themselves are built in module 3.</p><p><b>8. Payroll Cost Center.</b> Where the site addresses payroll cost per employee, select the branch or unit cost center. The Payroll track, module 1, Chapter 2 states the consequence: a blank value posts salary cost to the company fallback and distorts the branch profit reads. Where the department-level default is configured instead, verify the department carries it.</p><p><b>9. Leave Approver and Expense Approver (per-employee).</b> Where a specific employee's approvals route differently from their department's tables, set the per-employee approver fields. Otherwise leave them blank and let the department tables govern.</p><p><b>Verification.</b> After completing the section, confirm: every organisational field selected from its master (no blanks except documented ones); Reports To present; Holiday List matching the actual working pattern; the cost-center value present at whichever level the site's design placed it.</p>"
+   },
+   {
+    "title": "Chapter 5 — Contact, personal, and bank sections; the joiner verification",
+    "est": "12",
+    "html": "<p>Complete the remaining sections, then run the verification procedure.</p><p><b>1. Contact details.</b></p><p>• <b>Preferred Contact Email</b> — select Company Email or Personal Email, and complete the selected field. This is the address the system uses for salary slip delivery (the Payroll track, module 4) and HR notifications. Verify the address by sending one test message before relying on it.<br>• <b>Mobile</b> — the employee's number, used for records and for the identity call-back rule (the Payroll track's confidentiality procedures call back the number on record).<br>• <b>Current Address and Permanent Address</b> — enter from the employee's declaration. The <b>state of residence</b> derived from the current address is read by the PAYE state-split (the Payroll track, module 2, Chapter 5); it is mandatory at joining and updated only on the employee's written notice.<br>• <b>Emergency contact</b> — name, relation, number. Verify the number is complete; this field is read once, on the day it matters.</p><p><b>2. Personal details.</b> Marital status, blood group where tracked, and the identification numbers the business records (national identification, tax identification for the statutory chain). Enter identification numbers exactly as printed on the documents and attach the document scans.</p><p><b>3. Bank details.</b> Bank Name and Bank A/C No. Rules, restated from the Payroll track:</p><p>1. Enter from the employee's own written instruction; attach the instruction to the record.<br>2. Changes are governed events: verified with the employee through a known channel, never actioned from a forwarded message.<br>3. The Salary Mode field (Bank, Cash, Cheque) is completed with the bank fields.</p><p><b>4. Health and other sections.</b> Complete per the business's policy on what is recorded. Health details are sensitive personal data; the access rules on the Employee doctype govern who can read them, and the register hygiene read (Chapter 8) confirms the permission matrix covers them.</p><p><b>The joiner verification procedure.</b> Run before the employee's first payroll and before self-service access is issued:</p><p>1. Open the Employee record beside the physical or scanned file: the offer letter, the identification documents, the bank instruction, the address declaration.<br>2. Confirm each field group against its source: names and dates against identification; Date of Joining against the contract; bank fields against the instruction; addresses against the declaration.<br>3. Confirm the organisational fields (Chapter 4's verification list).<br>4. Confirm the attachments are on the record.<br>5. Record the verification in the record's comments: date, verified by. The Payroll track's run checklist (its module 3, line 1) assumes this comment exists.</p><p>The verification takes approximately five minutes per joiner. Every downstream document inherits any error this procedure would have caught.</p>"
+   },
+   {
+    "title": "Chapter 6 — The status lifecycle and exit fields",
+    "est": "12",
+    "html": "<p>The Status field controls whether the employee participates in the system's processes. This chapter states each status, what sets it, and what reads it.</p><p><b>The statuses.</b></p><p>1. <b>Active</b> — the working state. The employee appears in payroll runs (Get Employees selects Active employees with assignments), leave allocations, attendance processing, and headcount reports.<br>2. <b>Inactive</b> — a non-working state without termination, used per the business's policy for long unpaid absence categories where the site distinguishes them. An Inactive employee is excluded from runs. Document the reason in the record when using this status.<br>3. <b>Suspended</b> — where the business's disciplinary policy uses suspension and the site tracks it as a status. The pay consequence of a suspension is a decision executed through the Payroll track's lanes (leave without pay records, or the documented decision), not an automatic effect of the status alone; confirm the site's configuration and record the decision.<br>4. <b>Left</b> — the exit state. Set with the Relieving Date.</p><p><b>The exit fields.</b> On confirmation of an exit (the Payroll track, module 7 holds the full exit procedure; this section is the HR side):</p><p>1. <b>Relieving Date</b> — the last day of service, from the accepted resignation or the decision letter. Read by: the final slip's proration; the leave balance cutoff and encashment; exclusion from subsequent runs.<br>2. <b>Status → Left</b> — set effective the relieving date.<br>3. <b>Reason for Leaving</b> — select or enter per the business's categories (resignation, contract end, termination, retirement). Read by the attrition reports.<br>4. <b>Leave Encashed</b> — where the exit includes encashment, the flag and its linked Leave Encashment record (the Payroll track, module 7, Chapter 3).<br>5. <b>Exit interview fields</b> — where the business records exit interviews, complete the fields or attach the interview record. Module 7 of this track covers the exit interview procedure.</p><p><b>The two-field rule.</b> Relieving Date and Status are set the day the exit is confirmed. The Payroll track states the consequence of delay: a leaver who remains Active continues to be selected by payroll runs. The HR action and the payroll checklist line reference the same two fields.</p><p><b>Status changes are recorded events.</b> Every status change carries a comment or an attached document stating the reason and the authority: the resignation letter, the decision letter, the policy reference for an Inactive period. The Version history on the Employee record (track changes is confirmed on for Employee per the Sysadmin track's audit rules) records who changed the status and when; the comment records why.</p><p><b>What is never done.</b> Employee records are not deleted. A record with history is retired by status, never removed; deletion breaks every linked document and removes the employment history the statutory retention rules require the business to keep. The Deleted Document review (the Sysadmin track, module 8) treats a deleted Employee record as a finding.</p>"
+   },
+   {
+    "title": "Chapter 7 — The reporting structure and the organisational chart",
+    "est": "12",
+    "html": "<p>The Reports To field (Chapter 4) builds the reporting structure. This chapter covers reading it, maintaining it, and the approval routing that uses it.</p><p><b>The Organizational Chart page.</b> Open Organizational Chart (awesome bar). The page renders the hierarchy from the Reports To fields: each node an employee, children the employees who report to them. Use the page for:</p><p>1. <b>Structure verification</b> — the rendered chart matches the intended structure; a misplaced node is a wrong Reports To value, corrected on the Employee record.<br>2. <b>Orphan detection</b> — employees missing from the tree below the top node have blank or wrong Reports To values.<br>3. <b>Span reading</b> — the number of direct reports per manager is visible per node; the business reads it for structure decisions.</p><p><b>Maintaining the structure.</b> Reporting changes are Employee-record edits with the standing disciplines:</p><p>1. A manager change is an edit to Reports To on each affected report, made on the documented decision (the transfer memo, the promotion record — module 7 of this track covers the lifecycle documents that carry these changes).<br>2. A manager's exit re-points their reports before or at the relieving date. Add this line to the exit checklist for any leaver with direct reports: the Organizational Chart page after the exit shows no orphaned nodes.<br>3. Department moves and Reports To changes are made together when a transfer changes both; the Employee Transfer document (module 7) applies both properties from its date.</p><p><b>Approval routing.</b> Two routing designs exist on the site; know which is configured:</p><p>1. <b>Department-table routing</b> — leave applications and expense claims route to the approvers listed on the employee's Department (Chapter 2). This design survives manager changes without per-employee edits.<br>2. <b>Per-employee routing</b> — the Leave Approver / Expense Approver fields on the Employee record name the approver directly. This design overrides or replaces the department tables per the site's configuration.</p><p>The maintenance consequence differs: department-table routing is maintained on a handful of Department records; per-employee routing must be swept when an approver leaves or moves. The register hygiene read (Chapter 8) includes the sweep for sites using per-employee routing: filter the Employee list by each approver field value and confirm every named approver is a current, appropriate holder.</p><p><b>The employee-number reads.</b> Two standing lookups from the Employee list serve the structure:</p><p>1. <b>Headcount by dimension</b> — the list grouped by Company, Branch, Department, Designation, Employment Type, or Grade answers headcount questions without a report build. Filter Status = Active for current headcount.<br>2. <b>The joiners and leavers lists</b> — filtered by Date of Joining or Relieving Date within the period. The Payroll track's headcount reconciliation (its module 3) uses these lists; HR produces them.</p>"
+   },
+   {
+    "title": "Chapter 8 — Worked example: the HealthTrade employee master",
     "est": "13",
-    "html": "<p>Welcome to the fifth certification. Four tracks taught four masters — the customer, the supplier, the item, the account — and every one of them was operated BY people this academy kept naming without recording: the storekeeper whose custody Inventory 1 framed, the till operator whose sessions Accounts 3 reconciled, the approver whose two names every threshold demanded. This track records them: the <b>people layer</b> — the employee as the fifth master, and the machinery that manages a workforce from its first application to its last working day.</p><p><b>What HR-in-the-system buys.</b> The same purchase every master made, at its most personal: ONE RECORD per person (the employee master — this module), holding the whole lifecycle (hired, confirmed, promoted, transferred, developed, separated — modules 2-7 in order), operated by DOCUMENTS (the leave application, the appraisal, the transfer letter — each an auditable event, not a corridor conversation), read by RHYTHMS (the attendance reads, the leave planning, the appraisal cycles), and structured to survive its administrators (module 8's handover, because the HR-in-one-head disease is the founder-bottleneck's most personal organ). The firm whose people machinery runs on the system answers every people question — who works here, since when, on what terms, approved by whom, developed how — from one place; the firm whose HR lives in a folder and a memory answers none of them without archaeology, and pays for it precisely at the worst moments: the dispute, the audit, the departure.</p><p><b>The scope line, drawn deliberately.</b> This track EXCLUDES payroll — not because payroll is unimportant but because it is a different discipline with a different owner: the salary computation, the statutory custodies, the payment run belong to the finance function (the Accounts track's modules 2 and 5 already carry the payroll journal and the PAYE machinery), and the boundary between the two is itself curriculum: HR OWNS the inputs payroll consumes — who is employed (this module), who attended (module 3), who was on leave (module 4), who was promoted to what grade (module 7) — and the clean handoff of those inputs, on a calendar, is where the two functions mesh. A firm whose HR and payroll disagree about who worked in March has a boundary problem this track's disciplines prevent.</p><p><b>The tone this track carries.</b> One difference from every prior track, named at the door: the other masters were RECORDS OF THINGS — items, accounts, companies. This master is a record OF A PERSON, and that changes the governance's flavour throughout: the data is held in CUSTODY (confidentiality as a design requirement, not a courtesy — module 8 gives it structure), the documents affect livelihoods (the warning letter, the appraisal rating, the separation — each carrying procedural fairness as a discipline, module 7's core), and the system's job is to make the firm's dealings with its people CONSISTENT and EVIDENCED — which protects the honest employee exactly as the counting disciplines protected the honest custodian: the academy's oldest framing, now applied to the people it was always quietly about.</p>"
+    "html": "<p>This chapter applies Chapters 2-7 to HealthTrade (the pharmaceutical distributor used across the programme: Head Office plus three branches — Central/Lagos, Ibadan, Akure — approximately thirty staff). Configuration values and findings are listed per step.</p><p><b>Step 1 — organisational masters (Chapter 2).</b></p><p>• Branch: four records — Head Office, Central Lagos, Ibadan, Akure.<br>• Department tree: All Departments &gt; Operations (Is Group) &gt; Warehouse, Dispatch; All Departments &gt; Retail (Is Group) &gt; Pharmacy Counter; All Departments &gt; Finance; All Departments &gt; Administration. Each department linked to the company. Leave Approver tables completed on Operations, Retail, and Finance with the respective managers.<br>• Designation: eleven records covering the titles in use (Pharmacist, Pharmacy Technician, Warehouse Assistant, Driver, Branch Manager, Accounts Assistant, and others). Two obsolete titles from the implementation era found in the list and disabled.<br>• Employment Type: Full-time, Contract, Intern.<br>• Grade: not used; the field left ungoverned by decision, recorded.</p><p><b>Step 2 — the record sweep (Chapters 3-5).</b> The thirty existing Employee records are verified against files using the Chapter 5 procedure. Findings, each corrected on the record with its source attached:</p><p>1. Four records with Personal Email entered but Preferred Contact Email unset — delivery had been failing silently for these four; set and test-messaged.<br>2. Two records with blank Payroll Cost Center (already found by the Payroll track's walk; corrected there; confirmed here).<br>3. Three records with Date of Joining equal to the record-creation date rather than the contractual date — corrected from the contracts; one produced a leave-allocation correction in module 4.<br>4. Six records without identification attachments — collected and attached.<br>5. One bank account number failing verification against the written instruction — corrected (also found in the Payroll track's walk).</p><p><b>Step 3 — the reporting structure (Chapter 7).</b> Reports To completed on all thirty records. The Organizational Chart page renders: the MD at the top; three branch managers and the finance lead reporting to the MD; branch staff under their managers. Findings: two warehouse staff pointed at a supervisor who left the previous year — re-pointed to the current supervisor; one node orphaned by a blank Reports To — completed.</p><p><b>Step 4 — the routing decision (Chapter 7).</b> Department-table routing is confirmed as the design (fewer records to maintain). The per-employee approver fields are swept and cleared where they duplicated the department tables; one deliberate override retained and documented (a head-office employee whose leave routes to the MD directly).</p><p><b>Step 5 — the standing reads instituted.</b> Monthly: the joiners and leavers lists produced for the payroll reconciliation; the blank-field filters run (Reports To, Holiday List, Preferred Contact Email, Payroll Cost Center — target zero blanks); the contract-expiry report read for the ninety-day window. Quarterly: the approver sweep confirmed against the department tables; the attachment completeness sample (five records checked against files).</p><p><b>Result.</b> Thirty verified records, eleven corrections applied at the sweep, four standing monthly filters at zero blanks, and the organisational chart rendering the actual structure. The register is ready for modules 3-4, which read it every day.</p>"
    },
    {
-    "title": "Chapter 2 — The employee master: anatomy of the person's record",
-    "est": "14",
-    "html": "<p>The record itself, section by section — because every module ahead reads or writes some part of it, and the consultant must know exactly what lives where.</p><ul><li><b>Identity</b> — the person's names (as their legal documents state them — the record that will feed contracts, statutory filings, and certificates does not improvise spellings), the employee NUMBER (the naming-series law's fifth appearance: chosen once, never re-used — a departed employee's number is retired with them, because re-issued numbers merge two people's histories in every report forever), photograph, date of birth, gender, marital status.</li><li><b>Employment</b> — the fields the whole system reads: <b>date of joining</b> (the anchor of tenure, probation, leave accrual, and every service computation), employment TYPE (Chapter 4), STATUS (Active, on notice, Left — Chapter 4's discipline), the org placement (company, branch, department, designation, grade — Chapter 3), and <b>reports to</b> — the manager field, which Chapter 3 will crown as the approval spine.</li><li><b>Contacts &amp; emergency</b> — personal and company contact details, address, and the emergency contact whose absence is only ever discovered on the day it is needed: the field the annual verification (Chapter 6) checks first, because it is the one the firm hopes never to use and must never find stale.</li><li><b>Identifiers &amp; compliance</b> — the national and tax identifiers the Nigerian employment context requires (the tax identification the PAYE machinery will reference — held here, consumed by the payroll function across the boundary), bank details for that same handoff, and pension administrator details (the employee's chosen PFA — Accounts 5 met the remittance side; the CHOICE lives here).</li><li><b>Documents</b> — the attachment discipline: the offer and contract, the credentials as verified (Chapter's 6 verification note), the ID copies, and later the lifecycle's paper trail (confirmations, promotion letters, warnings — modules 2 and 7 file into this record). The employee master is the FILE — the paper folder's successor, complete or the folder quietly remains the real record (Chapter 9's pattern).</li><li><b>Dates that govern</b> — beyond joining: confirmation date (probation's end — module 2), contract end dates for fixed-term staff (Chapter 4 — an expiry the system must see coming), and the document-expiry family Chapter 6 tracks.</li></ul><p><b>The custody frame, operationalised.</b> This record holds a person's identity documents, bank details, family contacts, and — as the lifecycle accumulates — their disciplinary and performance history: data whose exposure harms a real person, held under a data-protection duty Nigerian law now articulates (the consultant's altitude: a registered duty of care over personal data exists, its details are the compliance professional's terrain, and the SYSTEM'S contribution is structural — the permission design of Chapter 5 and module 8 that makes <i>who can see what</i> a configuration, not a hope). The working rule taught from day one: employee data is read on NEED, not curiosity — and the system's role-based fences are how the rule survives staff turnover in HR itself.</p>"
-   },
-   {
-    "title": "Chapter 3 — The organisational structure: trees, lists & the spine",
-    "est": "14",
-    "html": "<p>The employee record places its person INTO a structure, and the structure is this academy's favourite subject wearing its people clothes: trees and lists, designed from what must be read — plus one field that outranks them all.</p><p><b>The structural vocabulary.</b> <b>Company</b> — the legal employer (the multi-company frontier of Accounts 8: people are employed by legal persons, and the employee of the trading company is not the employee of the property company); <b>branch</b> — the location (the field that will align with the warehouse tree and cost centers — Chapter 7's join); <b>department</b> — the functional grouping (Operations, Sales, Finance, Admin — the tree that mirrors how work is actually organised); <b>designation</b> — the role's name (Storekeeper, Branch Manager, Accountant — a LIST, governed like every value list this academy has met: named owner, conventions, no duplicates-by-spelling); and <b>grade</b> — the level (the band structure that will carry benefit entitlements and leave policies — module 4 reads it — and, across the boundary, the payroll structure's key).</p><p><b>Designing the structure: the accountability law, again.</b> The design hour runs on the cost-center chapter's exact logic (Accounts 6), because it is the same design: departments mirror ACCOUNTABILITY (a department exists when someone owns it and its people are managed as a group — the eleven-person firm needs three or four, not nine), the tree stays SHALLOW (the two-level rule, fifth appearance), designations name real roles (the vanity org chart — Senior Executive Assistant Coordinator titles for an eleven-person firm — is chart sprawl's people edition, and it costs real money later when grades and policies attach to inflated titles), and the whole structure aligns with the cost-center tree it shadows (the department that is also a cost center reads its people and its money as one unit — the alignment Chapter 7 completes). The change discipline transfers whole: restructures are EVENTS (the department merged, the designations renamed — with the history's treatment decided deliberately), never casual edits.</p><p><b>The reporting spine.</b> The <b>reports-to</b> field — each employee's named manager — deserves its own section because it is the structure's living part: the trees say where people SIT; the spine says who ANSWERS FOR whom, and the system runs its workflows along it — the leave application routing to the applicant's manager (module 4), the appraisal conducted by the manager (module 5), the expense claim, the shift change, the resignation notice all riding the same field. The disciplines that keep the spine honest: EVERY active employee has a manager (the spine with gaps strands workflows — the leave request that routes nowhere), the spine is a TREE (no cycles, no self-reporting; the founder at the root), it is MAINTAINED at every lifecycle event (the promotion that moves a manager without re-pointing their reports breaks every workflow beneath them — module 7's transfer discipline), and it reflects REALITY (the spine that says A reports to B while everyone knows A reports to C routes every approval to the wrong desk — the org chart of record and the org chart of fact must be the same chart, which is a governance conversation before it is a data entry).</p><p><b>The structure's readers.</b> Why the design matters beyond tidiness: headcount reads by department and branch (module 8's analytics), leave and attendance policies attach by grade and branch (modules 3-4), approval chains ride the spine, and the payroll boundary consumes the grades — every downstream module reads this chapter's decisions, which is the definition of a master done right, and the reason the design hour happens at implementation with the owner in the room rather than being reverse-engineered from habits later.</p>"
-   },
-   {
-    "title": "Chapter 4 — Employment types & the status discipline",
-    "est": "13",
-    "html": "<p>Two small fields govern more downstream behaviour than any others on the record: the employment TYPE and the STATUS. The taxonomy, and the discipline.</p><p><b>The types.</b> The working set for Nigerian trading firms: <b>full-time</b> (the permanent core), <b>part-time</b> (the retail reality — the weekend till staff, the market-day extras), <b>contract / fixed-term</b> (employed to a date — the type whose END DATE is a first-class field the system must see coming: the contract expiring unnoticed converts a deliberate arrangement into an accidental one, with legal implications the employment lawyer owns and the expiry-tracking machinery of Chapter 6 prevents), <b>intern / trainee</b> (the pipeline the academy's own onboarding curriculum serves — module 6's terrain), and the <b>casual</b> labour reality of warehouse peaks (engaged properly or not at all — the daily-paid loader who exists in no system is a liability wearing a wheelbarrow: unrecorded, uninsured, and unprovable in every direction). The type drives policy attachment (leave entitlements differ by type — module 4), benefits eligibility, and the statutory obligations the accountant confirms per type — which is why the type is set at CREATION from the offer's terms (module 2's handoff) and changed only as the lifecycle event it is (the intern confirmed to full-time is module 7's promotion machinery, not an edit).</p><p><b>The statuses.</b> The record's lifecycle state: <b>Active</b> (the working population — every report's default filter), the notice-period states where used (resignation submitted, exit in progress — module 7's machinery), <b>Left</b> (separated — the terminal state that Chapter 2's number-retirement law protects), and the probation overlay (the confirmed/unconfirmed distinction riding the confirmation-date field — module 2 runs probation as a process; this field records its outcome). The <b>status discipline</b> is the chapter's conviction: statuses drive EVERYTHING downstream — the Active filter defines headcount (the analytics of module 8 are only as true as the statuses), leave accrual runs for active staff (the departed employee still accruing leave is a liability quietly growing — module 4), attendance expects the active roster (module 3's absence reads misfire when ghosts remain), approval spines break when a Left manager still holds reports (Chapter 3's maintenance law), and — across the boundary — payroll pays the active list, which makes a stale status literally expensive: <b>the ghost employee</b> (left in fact, Active in the system) is the people layer's phantom stock, and like every phantom this academy has met, it corrupts every read that touches it until someone posts the truth.</p><p><b>The status change as document.</b> The cure is the academy's standard one: statuses change by DOCUMENTED EVENTS, not edits — the separation process (module 7) sets Left with its date and its paper trail; the confirmation process sets confirmed with its letter; the contract renewal extends the end date with its addendum — each change carrying who, when, why, and the attachment. A status history that reads as a sequence of documents is an employment history that survives any dispute; one that reads as unexplained edits is the folder-and-memory system wearing a database costume — and the monthly status hygiene read (the Active list walked against reality: does everyone on it still work here? does everyone working here appear on it?) is the people layer's smallest, highest-yield ritual, module 8's calendar carrying it from this chapter forward.</p>"
-   },
-   {
-    "title": "Chapter 5 — The user link: self-service & the joined identity",
-    "est": "13",
-    "html": "<p>The employee record describes a person; the USER account lets that person act — and the link between the two is where the people layer becomes participatory instead of administrative. The join, its dividends, and its governance.</p><p><b>The join.</b> Each employee record links to a system user (their login), and the join creates the identity the workflows need: the person who logs in IS employee so-and-so, which means the system can show them THEIR record, route THEIR requests along THEIR spine, and stamp THEIR documents with an identity nobody typed. Not every employee needs a user (the warehouse loader whose attendance is captured at a device may never log in — the record exists regardless; the user is optional), but every user who is staff should link to their employee record — the unlinked staff user is a workflow orphan whose leave requests route nowhere and whose approvals carry no organisational weight.</p><p><b>Self-service: the dividend.</b> What the join buys, itemised — and it is the people layer's biggest efficiency purchase: employees SEE their own record (their details, their leave balance, their attendance history, their documents — the transparency that kills a whole category of HR queries: the balance question answered by a glance instead of an email), REQUEST through documents (the leave application, the attendance regularisation, the expense claim — each born as a document in the right queue instead of a corridor conversation someone must remember to transcribe), UPDATE what is theirs to update (the phone number, the address, the emergency contact — with the governed fields fenced: Chapter 6 draws the line between self-service fields and HR-only fields), and RECEIVE what is theirs to receive (the payslip across the boundary, the appraisal form, the policy acknowledgment). The culture note the consultant carries: self-service adoption is a TRAINING outcome, not a toggle — the workforce that learns week one that requests go through the system (because paper requests are politely redirected, every time) builds the habit; the one where both channels stay open forever builds neither.</p><p><b>Approvals riding the spine.</b> The join plus the reports-to field is the approval machinery: the leave application knows its approver (the applicant's manager, from the spine), the workflow escalates along the tree, and the approval lands stamped and dated — module 4 will run this at full depth; this chapter's contribution is the wiring insight that the SPINE is the single point of maintenance: fix the manager field and every workflow above it self-corrects, which is why Chapter 3 made its maintenance a law.</p><p><b>The permission frame.</b> The join's governance, previewed for module 8's full treatment: the employee role sees SELF (own record, own requests, own balances — and nothing of anyone else's), the manager sees their TEAM (the reports beneath them — their leave calendar, their attendance, their appraisals: the spine defining the visibility exactly as it defines the routing), and HR sees the population — with the sensitive layers (disciplinary records, medical notes where held, the compensation fields across the boundary) fenced tighter still. The design conviction, stated here because the user link is where violations happen: people data leaks along over-broad permissions, not through dramatic breaches — the report every user can run, the list view with one column too many — and the permission walk (module 8) audits exactly those edges. Confidentiality is a configuration before it is a policy.</p>"
-   },
-   {
-    "title": "Chapter 6 — Governing the people master",
-    "est": "13",
-    "html": "<p>The fifth master gets the governance every master earned — creation gated, changes evented, expiries tracked, and the annual verification — with the custody flavour Chapter 1 promised. The governance chapter.</p><p><b>Creation: one door.</b> Employee records are created by HR (or the office holding the HR hat — the sizing honesty as always) through ONE flow: the recruitment pipeline's conversion (module 2 — the applicant who accepted becomes the employee, carrying the offer's terms so the record is born from its documents), or the governed direct creation for the rare walk-in hire (with the same checklist: documents collected, credentials sighted, identifiers captured, the duplicate check run — the person who worked here before, left, and returned is a REHIRE with history, not a duplicate: the record linked or the histories merge-proofed, because two records for one person is the duplicate-jungle disease at its most personally consequential — split leave histories, split tenure, split everything).</p><p><b>Changes: fields have owners.</b> The field-level governance the custody frame demands: <b>self-service fields</b> (contacts, address, emergency contact — the person's own, updated freely with the change logged), <b>HR-governed fields</b> (the org placement, type, status, grade, dates — changed only by the lifecycle documents that own them: Chapter 4's law, generalised), and <b>the joined-function fields</b> (bank details — the fraud-relevant field: changed by a governed process with verification, because the masters-not-messages defence of the money tracks applies to salaries exactly as it applied to supplier payments — the <i>my account changed</i> email the week before payday gets the same known-channel verification, and the payroll boundary is notified of every change through the standing handoff, never a side note).</p><p><b>Expiry tracking: the calendar in the record.</b> The people master carries dates that EXPIRE, and the system's job is to see them coming: fixed-term contract end dates (Chapter 4's conviction — surfaced 60 and 30 days out, so renewal or separation is a decision, not an accident), probation ends (the confirmation due — module 2: the probation that lapses unaddressed converts to confirmation by default in most readings of Nigerian practice, which is fine when intended and expensive when not — the employment lawyer's terrain, the system's reminder), document expiries where the role carries them (the driver's licence for the van custodian — Inventory 6's driver accountability meeting this track; the professional licences of the pharmacist superintendent — the regulated trade's compliance riding an HR field; work permits for expatriate staff), and certification expiries (module 6's training layer feeding back — the forklift certificate, the first-aider's renewal). The expiry read is a standing worklist — dated, owned, worked — the aging-report discipline of four tracks applied to the calendar inside the person's record.</p><p><b>The annual verification.</b> The people master's cycle count: annually (and at every lifecycle event as a touch-point), each employee confirms their record's accuracy — contacts current, emergency contact reachable, documents complete — through self-service where the join exists, through a signed form where it does not; HR reconciles the returned confirmations, chases the silent, and files the completion. Twenty minutes per employee per year, and the dividend lands exactly where Chapter 2 warned: the emergency contact that answers, the address that receives the letter, the record that stands up in the dispute. The master that is verified annually is a master; the one that is not is a snapshot aging toward fiction — the counting law's people edition, closing the governance loop.</p>"
-   },
-   {
-    "title": "Chapter 7 — The people layer meets the other four",
-    "est": "13",
-    "html": "<p>Four tracks named people this track now records — and the joins between the employee master and the other masters are where the academy's layers become one system. The join map.</p><ul><li><b>The custodian</b> — Inventory 1 made every warehouse answer to a person; the employee record IS that person, and the join completes the design: the warehouse's custodian named as an employee (not a free-text name that survives their departure as a ghost), the user-permission restrictions (the branch user fenced to their leaves) riding the same identity, and the custody handover at transfer or separation (module 7) triggering the warehouse machinery's own handover — the count that confirms custody before it changes hands, now scheduled by an HR event instead of remembered by luck.</li><li><b>The till operator &amp; the van custodian</b> — Accounts 3's sessions and Inventory 6's tailgates both reconcile per PERSON: the operator identity on every session is the employee, their clean-close streaks and variance rates are readable per employee record — and module 5 will make the connection explicit: the operational reads four tracks built (accuracy rates, clean sessions, count records) are PERFORMANCE EVIDENCE, sitting ready for the appraisal that references records instead of impressions.</li><li><b>The salesperson</b> — the selling track's sales-team machinery joins here: the salesperson record linked to the employee, targets and attributions riding the join, the commission computations (across the payroll boundary) fed by it.</li><li><b>The approver</b> — every two-names pattern this academy installed (the write-off's signatures, the payment run's releaser, the journal's second eyes) is ultimately a PERSON holding a role; the employee lifecycle maintains those holdings (the approver who resigns triggers the mandate-review discipline — Accounts 3's same-week signatory removal, now fired by the HR event that knows first), which is the deepest join of all: <b>the HR system knows about departures before every other control does, and the separation checklist (module 7) is where every other track's access gets revoked.</b></li><li><b>The branch &amp; cost center alignment</b> — the employee's branch aligns with the warehouse tree's branches and the cost-center tree's leaves (the three trees naming the same operational units — the design hour of Chapter 3 checking the alignment deliberately), so that the branch's people, stock, and money read as one unit: the branch scorecard (Inventory 6), the branch P&amp;L (Accounts 6), and the branch headcount (module 8) describing one thing three ways — and, across the boundary, the payroll cost landing on the cost center where the person works, which is Accounts 6's addressed-payroll line closing its loop.</li></ul><p><b>The join discipline.</b> One rule governs all of them: joins are made by LINK, not by retyping (the free-text name that drifts from the record it meant is the join that silently breaks), and the separation checklist is the join map read in reverse — every link the person holds, listed and resolved before Left is final. The people layer, joined this way, is not a parallel HR system beside the business; it is the business's own structure, finally knowing who its people are.</p>"
-   },
-   {
-    "title": "Chapter 8 — Case study: HealthTrade's people layer is born",
-    "est": "16",
-    "html": "<p>The fifth master, installed. The firm this academy has grown — eleven people at the start of the Selling track, near thirty by the Accounts track's close — finally gets its people layer, and every chapter clocks in.</p><p><b>The load (Ch. 2, 6).</b> The existing workforce — 27 people across three branches and head office — enters properly: records created from documents (contracts pulled from the paper folders, identifiers captured, credentials sighted and marked verified where originals were produced; the two files with missing contracts flagged and regularised with the employment adviser — the load surfacing the paper gaps exactly as the opening stock count surfaced the phantom cartons), employee numbers issued from the series (the decade view), photographs taken in an afternoon, and the duplicate check earning its keep once: a returning employee — left year one, rehired at Akure — nearly loaded fresh; caught, linked as the rehire she is, tenure history whole.</p><p><b>The structure designed (Ch. 3).</b> The design hour with the MD: four departments (Operations, Sales &amp; Service, Finance &amp; Admin, and the Distribution unit — shallow, owned, real), designations rationalised (eleven titles collapse to eight that name actual roles — the <i>Senior Officer II</i> vanity retired), three grades (the band structure the leave policies of module 4 will attach to), and the three-tree alignment checked deliberately: branches, warehouses, cost centers naming the same units, one row per unit on the alignment sheet. The reporting spine wired last and checked as a tree: every active employee a manager, no gaps, no cycles, the MD at the root — and one reality correction made out loud (the spine said the Akure supervisor reported to head office; everyone knew she reported to the Ibadan manager who mentors the new branch; the field corrected to the fact, and the first leave request a week later routes correctly because it was).</p><p><b>The joins made (Ch. 5, 7).</b> User accounts linked for the 19 staff who log in; the custodian joins completed (every warehouse's custodian now an employee link — the free-text names of the Inventory era retired), the till operators joined to their session identities, the van custodian's driver's licence expiry entered into the tracking (14 months out — the worklist's first resident), and the approver map documented: who holds which two-names roles, so the separation checklist knows what to revoke. Self-service launches with the one-channel discipline — the first paper leave request is politely redirected the same day, and by week three the queue is the only channel anyone tries.</p><p><b>The hygiene catch (Ch. 4, 6).</b> Month two's first status read walks the Active list against reality and finds the expected ghost: a weekend till assistant who stopped coming in the previous quarter — no resignation, no process, just absence that faded into assumption — still Active, still accruing leave, still on the roster the attendance module (module 3) is about to expect. Resolved by the document the situation deserves (the abandonment process the employment adviser confirms, the separation recorded with its trail, Left set with its date), and the lesson filed for the module ahead: the ghost was harmless in a folder-and-memory world and expensive in a system world — <b>which is the system working</b>, because every machine this academy has installed made the undocumented visible by refusing to pretend alongside it. The people layer ends its first quarter with 27 true records, one clean structure, a working spine, and its first ritual — the monthly status read — on the calendar with a name.</p>"
-   },
-   {
-    "title": "Chapter 9 — Common mistakes & the first law",
-    "est": "13",
-    "html": "<p>The people master's scar tissue — the diseases every consultant meets in the first week of every HR engagement. Symptom → disease → fix.</p><p><b>Pattern 1 — the spreadsheet workforce.</b> Symptom: the staff list in a spreadsheet, three versions old, each department keeping its own; headcount answered differently by everyone asked. Disease: the fifth master never created (Ch. 1) — people data without a system of record. Fix: the governed load (records from documents, numbers from the series, duplicates checked), the spreadsheet retired to read-only history, and the status read instituted so the new record stays true.</p><p><b>Pattern 2 — the paper file as the real record.</b> Symptom: the system holds names and dates; everything that matters lives in folders; every dispute starts with a filing-cabinet search. Disease: the master as index instead of file (Ch. 2) — attachments never made, documents never migrated. Fix: the document load (contracts, IDs, letters scanned to the record — the backlog priced once), the lifecycle documents born digital thereafter, and the folder demoted to the archive it should be.</p><p><b>Pattern 3 — the broken spine.</b> Symptom: leave requests routing nowhere or to departed managers; approvals by corridor because the system's chain is wrong; an org chart nobody believes. Disease: the reports-to field unmaintained (Ch. 3) — reality and record diverged. Fix: the spine walked (every active employee, a real manager, tree-shaped), the lifecycle events re-pointing reports as they move people, and the spine's accuracy owned as part of every transfer and separation.</p><p><b>Pattern 4 — the ghost roster.</b> Symptom: headcount reports nobody trusts; leave accruing for the departed; payroll (across the boundary) paying a list HR cannot vouch for. Disease: statuses changed by memory or never (Ch. 4) — the phantom-stock disease in its people form. Fix: status changes by documented events only, the monthly Active-list walk, and the separation process (module 7) as the single door to Left.</p><p><b>Pattern 5 — the everything-eyes HR.</b> Symptom: any user able to list employees with personal columns; salary-adjacent fields visible to the curious; the disciplinary note that circulated. Disease: confidentiality as policy without configuration (Ch. 5) — the custody frame unenforced. Fix: the permission design (self / team / HR / sensitive tiers), the report and list-view edges audited, and module 8's permission walk on the annual calendar.</p><p><b>Pattern 6 — the vanity structure.</b> Symptom: nine departments for eleven people; inflated designations; grades that map to nothing. Disease: the structure designed from aspiration instead of accountability (Ch. 3). Fix: the design hour re-run honestly — departments that are owned, titles that name roles, grades that carry real policies — and the restructure executed as the event it is.</p><p><b>The first law.</b> Four tracks began with masters; the fifth begins with the most consequential one: <b>one person, one record, whole lifecycle — the employee master is a person's record held in the firm's custody: created once from documents, governed always by events, joined everywhere by link, verified annually, and read on need, not curiosity.</b> The structure places the person, the spine answers for them, the statuses tell the truth, and the joins make four tracks' named people real. Seven modules stand on this record; module 2 begins where every employee begins — the pipeline that found them.</p>"
+    "title": "Chapter 9 — Common errors and the module rule",
+    "est": "11",
+    "html": "<p>The errors that recur on the Employee register, each with its correction and prevention.</p><p><b>Error 1 — the incomplete record.</b> Symptom: payroll, leave, or delivery failures traced to blank fields (Holiday List, Preferred Contact Email, Payroll Cost Center, Reports To). Correction: complete the field from its source document. Prevention: the joiner verification procedure (Chapter 5) before first payroll, and the monthly blank-field filters (Chapter 8) at target zero.</p><p><b>Error 2 — the record-creation date entered as Date of Joining.</b> Symptom: first-month proration wrong; leave allocation wrong for the joining year; length-of-service reports wrong. Correction: the contractual date entered from the contract; downstream corrections through the Payroll track's lanes where a slip already computed. Prevention: the verification procedure checks the date against the contract explicitly.</p><p><b>Error 3 — organisational data in free text.</b> Symptom: job titles, branches, or types typed as text variants instead of selected from masters; reports that cannot group. Correction: the master record created or corrected; the employee fields re-selected. Prevention: the build order (masters before employees) and the Sysadmin track's rule that reportable fields are links to masters.</p><p><b>Error 4 — the stale reporting structure.</b> Symptom: the organisational chart showing departed managers; approvals routing to people who left; orphaned nodes. Correction: Reports To re-pointed on the affected records. Prevention: the leaver checklist line for any exit with direct reports, and the chart read after each such exit.</p><p><b>Error 5 — the unrecorded status change.</b> Symptom: statuses changed without documented reason or authority; an Inactive period nobody can explain; a Left status with no relieving date. Correction: the document obtained and attached; the fields completed. Prevention: the rule that every status change carries its comment and document, verified by the Version history.</p><p><b>Error 6 — the deleted record.</b> Symptom: an Employee record removed, breaking linked documents and the retention obligation. Correction: restoration through the platform's recovery paths and the Sysadmin track's incident procedure. Prevention: Delete withheld from HR daily roles in the permission matrix; retirement by status only; the Deleted Document review treating any occurrence as a finding.</p><p><b>Review list.</b> Before the quiz, confirm you can: state what links to the Employee record and the consequence of register errors; create the five organisational masters in build order with their key fields; complete the Employee record's identity, joining, organisational, contact, personal, and bank sections, stating what reads each field; run the joiner verification procedure; operate the status lifecycle with the two-field exit rule and the recorded-change rule; maintain the reporting structure and read the Organizational Chart page; and run the monthly and quarterly hygiene reads.</p><p><b>Module rule 1: the Employee record is the master every HR and payroll document reads — built from the organisational masters, completed from source documents, verified before first use, retired by status, and kept complete by the standing filters.</b> Module 2 covers recruitment: the pipeline from Staffing Plan to Employee Onboarding.</p>"
    }
   ],
   "questions": [
    {
-    "q": "The employee is:",
+    "q": "The Employee record is read by:",
     "opts": [
-     "The fifth master — the person every other track named without recording",
-     "An HR detail",
-     "A payroll row",
-     "A user account"
+     "Salary assignments and slips, leave and attendance records, appraisals, the User link, expense claims, and advances",
+     "Payroll documents only",
+     "Reports only",
+     "Nothing outside HR"
     ],
     "ans": 0,
-    "why": "Customer, supplier, item, account... employee.",
+    "why": "An error in the record repeats in every linked document.",
     "src": "Ch1"
    },
    {
-    "q": "This track excludes payroll because:",
+    "q": "The build order is:",
     "opts": [
-     "Payroll is unimportant",
-     "It is a different discipline with a different owner — HR owns the INPUTS payroll consumes",
-     "It is too hard",
-     "The law forbids it"
+     "Employees first",
+     "Organisational masters (Branch, Department, Designation, Employment Type, Grade) before Employee records",
+     "Any order",
+     "Reports first"
     ],
     "ans": 1,
-    "why": "Who is employed, who attended, who was on leave — the clean handoff is where the functions mesh.",
+    "why": "Employee fields link to the masters.",
     "src": "Ch1"
    },
    {
-    "q": "The people master differs from the other four because:",
+    "q": "Departments are:",
     "opts": [
-     "It is smaller",
-     "It has no documents",
-     "It records a PERSON — custody, confidentiality, and procedural fairness change the governance's flavour",
-     "It changes less"
-    ],
-    "ans": 2,
-    "why": "The academy's protections framing, applied to the people it was always about.",
-    "src": "Ch1"
-   },
-   {
-    "q": "Employee numbers are:",
-    "opts": [
-     "Reusable after departure",
-     "The phone extension",
-     "Optional",
-     "Retired with the person — re-issued numbers merge two people's histories forever"
-    ],
-    "ans": 3,
-    "why": "The naming-series law's fifth appearance.",
-    "src": "Ch2"
-   },
-   {
-    "q": "The date of joining anchors:",
-    "opts": [
-     "Tenure, probation, leave accrual, and every service computation",
-     "Nothing much",
-     "Only the contract",
-     "The user account"
-    ],
-    "ans": 0,
-    "why": "The field the whole system reads.",
-    "src": "Ch2"
-   },
-   {
-    "q": "The emergency contact is checked first at verification because:",
-    "opts": [
-     "It changes most",
-     "It is the field the firm hopes never to use and must never find stale",
-     "It is legally required",
-     "It is easy"
-    ],
-    "ans": 1,
-    "why": "Its absence is discovered only on the day it is needed.",
-    "src": "Ch2"
-   },
-   {
-    "q": "Employee data is read on:",
-    "opts": [
-     "Curiosity",
-     "Seniority",
-     "NEED — and the role-based fences are how the rule survives turnover in HR itself",
-     "Request"
-    ],
-    "ans": 2,
-    "why": "Confidentiality is a configuration before it is a policy.",
-    "src": "Ch2, Ch5"
-   },
-   {
-    "q": "Departments exist when:",
-    "opts": [
-     "The org chart looks better",
-     "Titles require them",
-     "There are ten employees",
-     "Someone owns them and their people are managed as a group — accountability, not aspiration"
-    ],
-    "ans": 3,
-    "why": "The eleven-person firm needs three or four, not nine.",
-    "src": "Ch3"
-   },
-   {
-    "q": "The reports-to field is:",
-    "opts": [
-     "The approval spine — leave, appraisals, claims, and notices all route along it",
-     "Decoration",
-     "The payroll key",
+     "Global records",
+     "Free text",
+     "Per company, arranged in a tree with Is Group on parent nodes",
      "Optional"
     ],
-    "ans": 0,
-    "why": "The trees say where people sit; the spine says who answers for whom.",
-    "src": "Ch3"
-   },
-   {
-    "q": "The spine's disciplines are:",
-    "opts": [
-     "Set once, forget",
-     "Every active employee has a manager, tree-shaped, maintained at every event, reflecting reality",
-     "Annual updates",
-     "HR's memory"
-    ],
-    "ans": 1,
-    "why": "The record's chart and the factual chart must be the same chart.",
-    "src": "Ch3"
-   },
-   {
-    "q": "The three-tree alignment means:",
-    "opts": [
-     "One tree replaces the others",
-     "HR owns all trees",
-     "Branches, warehouses, and cost centers naming the same units — people, stock, and money reading as one",
-     "Nothing"
-    ],
     "ans": 2,
-    "why": "The branch scorecard, P&L, and headcount describing one thing three ways.",
-    "src": "Ch3, Ch7"
+    "why": "The Department doctype's structure.",
+    "src": "Ch2"
    },
    {
-    "q": "A fixed-term contract's end date is:",
+    "q": "The Department record's approver tables:",
     "opts": [
-     "A note",
-     "HR's memory",
-     "The anniversary",
-     "A first-class field the system must see coming — expiry unnoticed converts deliberate into accidental"
+     "Are decorative",
+     "Set holidays",
+     "Set salaries",
+     "List the users authorised to approve leave and expense claims for the department's employees"
     ],
     "ans": 3,
-    "why": "Surfaced 60 and 30 days out; renewal or separation as a decision.",
-    "src": "Ch4"
+    "why": "Read by the approval routing.",
+    "src": "Ch2"
    },
    {
-    "q": "The daily-paid loader in no system is:",
+    "q": "Designation records exist so that:",
     "opts": [
-     "A liability wearing a wheelbarrow — unrecorded, uninsured, unprovable in every direction",
-     "Flexible labour",
-     "Standard practice",
-     "Cheap"
+     "Each job title has one definition, selected on records and grouped on reports",
+     "Titles can vary freely",
+     "Pay is set",
+     "Names print"
     ],
     "ans": 0,
-    "why": "Engaged properly or not at all.",
-    "src": "Ch4"
+    "why": "One record per real job title.",
+    "src": "Ch2"
    },
    {
-    "q": "The ghost employee is:",
+    "q": "Employee Grade can carry:",
     "opts": [
-     "Harmless",
-     "The people layer's phantom stock — corrupting every read until someone posts the truth",
-     "A payroll issue only",
-     "Rare"
+     "A holiday list",
+     "A Default Salary Structure that pre-fills at assignment, verified against the offer letter",
+     "A department",
+     "A branch"
     ],
     "ans": 1,
-    "why": "Left in fact, Active in the system.",
-    "src": "Ch4"
+    "why": "Where grades map to pay packages.",
+    "src": "Ch2"
    },
    {
-    "q": "Statuses change by:",
+    "q": "Employment Type is read by:",
     "opts": [
-     "Edits when remembered",
-     "Annual review",
-     "Documented events — separation, confirmation, renewal — each carrying who, when, why, and the attachment",
-     "The manager's word"
+     "The bank file",
+     "The org chart only",
+     "Headcount reports by type and type-dependent policies such as differing leave entitlements",
+     "The naming series"
     ],
     "ans": 2,
-    "why": "A status history of documents survives any dispute.",
-    "src": "Ch4"
+    "why": "The employment categories.",
+    "src": "Ch2"
    },
    {
-    "q": "The monthly status read asks:",
+    "q": "Employee records are named by:",
     "opts": [
-     "Who was late?",
+     "The first name",
+     "The user",
+     "The department",
+     "Naming series (HR-EMP- by default), configured once and not renamed after creation"
+    ],
+    "ans": 3,
+    "why": "The ID appears on every linked document.",
+    "src": "Ch3"
+   },
+   {
+    "q": "Date of Joining is:",
+    "opts": [
+     "The contractual first day — read by first-slip proration, joining-year leave allocation, and length of service",
+     "The record-creation date",
+     "Any date",
+     "The offer date"
+    ],
+    "ans": 0,
+    "why": "Enter the exact contractual date.",
+    "src": "Ch3"
+   },
+   {
+    "q": "The contract end date field:",
+    "opts": [
+     "Is cosmetic",
+     "Feeds the expiring-contracts report — blank means an expiry nobody is warned about",
+     "Sets the status",
+     "Sets the pay"
+    ],
+    "ans": 1,
+    "why": "Completed for fixed-term contracts.",
+    "src": "Ch3"
+   },
+   {
+    "q": "Attachments at creation include:",
+    "opts": [
      "Nothing",
-     "Who is on leave?",
-     "Does everyone Active still work here, and does everyone working here appear?"
+     "Photos only",
+     "The signed contract, the identification document, and the joining forms",
+     "The payslip"
+    ],
+    "ans": 2,
+    "why": "The record is the employment file's system copy.",
+    "src": "Ch3"
+   },
+   {
+    "q": "Reports To builds:",
+    "opts": [
+     "The pay structure",
+     "The holiday list",
+     "The tax table",
+     "The reporting hierarchy — the Organizational Chart renders from it and routing can follow it"
     ],
     "ans": 3,
-    "why": "The people layer's smallest, highest-yield ritual.",
+    "why": "Every non-top record carries a value.",
     "src": "Ch4"
    },
    {
-    "q": "An unlinked staff user is:",
+    "q": "The Holiday List field is read by:",
     "opts": [
-     "A workflow orphan — requests route nowhere, approvals carry no organisational weight",
-     "Fine",
-     "More secure",
-     "Standard"
+     "Payment-days proration, leave day counts, and attendance processing",
+     "Nothing",
+     "The bank file",
+     "The org chart"
     ],
     "ans": 0,
-    "why": "Every staff user links to their employee record.",
-    "src": "Ch5"
+    "why": "Assign per actual working pattern.",
+    "src": "Ch4"
    },
    {
-    "q": "Self-service's biggest dividend is:",
+    "q": "A blank Payroll Cost Center:",
     "opts": [
-     "Fewer meetings",
-     "Requests born as documents in the right queue, and the balance question answered by a glance",
-     "Prettier records",
-     "Less training"
+     "Is harmless",
+     "Posts salary cost to the company fallback and distorts branch profit reads",
+     "Blocks the run",
+     "Sets zero pay"
     ],
     "ans": 1,
-    "why": "It kills a whole category of HR queries.",
-    "src": "Ch5"
+    "why": "Present at employee or department level per the site's design.",
+    "src": "Ch4"
    },
    {
-    "q": "Self-service adoption is:",
+    "q": "Per-employee approver fields are used:",
     "opts": [
-     "A toggle",
-     "Automatic",
-     "A training outcome — paper requests politely redirected every time, until the habit builds",
-     "Optional"
+     "Always",
+     "Never",
+     "Only where an employee's routing differs from the department tables; otherwise left blank",
+     "For managers only"
     ],
     "ans": 2,
-    "why": "Two channels open forever builds neither.",
-    "src": "Ch5"
+    "why": "Chapter 7 states the maintenance consequence.",
+    "src": "Ch4"
    },
    {
-    "q": "People data leaks along:",
+    "q": "Preferred Contact Email:",
     "opts": [
-     "Dramatic breaches",
-     "Email",
-     "Paper only",
-     "Over-broad permissions — the report anyone can run, the list view with one column too many"
+     "Is optional",
+     "Sets the user",
+     "Is the bank field",
+     "Selects the address the system uses for slip delivery and notifications — set it and send one test message"
     ],
     "ans": 3,
-    "why": "The permission walk audits exactly those edges.",
+    "why": "Delivery fails silently where it is unset.",
     "src": "Ch5"
    },
    {
-    "q": "A returning former employee is:",
+    "q": "The state of residence derives from:",
     "opts": [
-     "A REHIRE with history — linked, not duplicated; two records for one person splits everything",
+     "The current address, mandatory at joining, updated only on the employee's written notice",
+     "The branch",
+     "The company",
+     "The department"
+    ],
+    "ans": 0,
+    "why": "Read by the PAYE state split.",
+    "src": "Ch5"
+   },
+   {
+    "q": "Bank details are entered from:",
+    "opts": [
+     "A phone call",
+     "The employee's own written instruction, attached to the record; changes are governed events",
+     "Memory",
+     "The offer letter"
+    ],
+    "ans": 1,
+    "why": "The Payroll track's rule, restated.",
+    "src": "Ch5"
+   },
+   {
+    "q": "The joiner verification runs:",
+    "opts": [
+     "After the first payroll",
+     "Annually",
+     "Before the first payroll and before self-service access — record beside file, field by field, comment recorded",
+     "Never"
+    ],
+    "ans": 2,
+    "why": "Approximately five minutes per joiner.",
+    "src": "Ch5"
+   },
+   {
+    "q": "An Active status means:",
+    "opts": [
+     "Nothing specific",
+     "Leave is blocked",
+     "Pay is doubled",
+     "The employee is selected by payroll runs, leave allocations, attendance processing, and headcount"
+    ],
+    "ans": 3,
+    "why": "The working state.",
+    "src": "Ch6"
+   },
+   {
+    "q": "A suspension's pay consequence is:",
+    "opts": [
+     "A decision executed through the payroll lanes — the status alone is confirmed against the site's configuration",
+     "Automatic from the status",
+     "Always full pay",
+     "Always zero pay"
+    ],
+    "ans": 0,
+    "why": "Record the decision.",
+    "src": "Ch6"
+   },
+   {
+    "q": "The two-field exit rule sets:",
+    "opts": [
+     "Name and email",
+     "Relieving Date and Status → Left, the day the exit is confirmed",
+     "Branch and grade",
+     "Bank and address"
+    ],
+    "ans": 1,
+    "why": "A leaver left Active is still selected by runs.",
+    "src": "Ch6"
+   },
+   {
+    "q": "Every status change carries:",
+    "opts": [
+     "Nothing",
      "A new record",
-     "A duplicate to merge later",
-     "Refused"
-    ],
-    "ans": 0,
-    "why": "The duplicate-jungle disease at its most personally consequential.",
-    "src": "Ch6"
-   },
-   {
-    "q": "Bank detail changes on the employee record get:",
-    "opts": [
-     "Quick edits",
-     "The masters-not-messages defence — known-channel verification, the payroll boundary notified",
-     "Email confirmation",
-     "No process"
-    ],
-    "ans": 1,
-    "why": "The 'my account changed' email before payday is the supplier fraud's HR twin.",
-    "src": "Ch6"
-   },
-   {
-    "q": "The expiry worklist tracks:",
-    "opts": [
-     "Birthdays",
-     "Leave balances",
-     "Contract ends, probation ends, licences, permits, and certifications — dated, owned, worked",
-     "Anniversaries"
+     "A comment or attached document stating reason and authority; the Version history records who and when",
+     "A payment"
     ],
     "ans": 2,
-    "why": "The aging-report discipline applied to the calendar inside the record.",
+    "why": "The comment records why.",
     "src": "Ch6"
    },
    {
-    "q": "A lapsed probation, in most readings of practice:",
+    "q": "Employee records are:",
     "opts": [
-     "Extends automatically",
-     "Means nothing",
-     "Ends employment",
-     "Converts to confirmation by default — fine when intended, expensive when not"
+     "Deleted at exit",
+     "Renamed",
+     "Archived offline",
+     "Never deleted — retired by status; deletion breaks links and the retention obligation"
     ],
     "ans": 3,
-    "why": "The lawyer's terrain, the system's reminder.",
+    "why": "A deleted Employee record is a review finding.",
     "src": "Ch6"
    },
    {
-    "q": "The annual verification is:",
+    "q": "The Organizational Chart page is used for:",
     "opts": [
-     "The people master's cycle count — each employee confirms their record; HR reconciles and chases",
-     "Bureaucracy",
-     "Optional",
-     "The audit"
+     "Structure verification, orphan detection, and span reading",
+     "Pay review",
+     "Tax filing",
+     "Slip delivery"
     ],
     "ans": 0,
-    "why": "The unverified master is a snapshot aging toward fiction.",
-    "src": "Ch6"
+    "why": "Rendered from Reports To.",
+    "src": "Ch7"
    },
    {
-    "q": "Warehouse custodians are recorded as:",
+    "q": "A manager's exit requires:",
     "opts": [
-     "Free-text names",
-     "Employee LINKS — the name that survives departure as a ghost is the join that silently broke",
-     "User accounts only",
-     "Cost centers"
+     "Nothing extra",
+     "Their direct reports re-pointed before or at the relieving date; the chart checked for orphans after",
+     "A new department",
+     "A pay change"
     ],
     "ans": 1,
-    "why": "Joins are made by link, not by retyping.",
+    "why": "The exit-checklist line for leavers with reports.",
     "src": "Ch7"
    },
    {
-    "q": "Operational reads (clean sessions, count records) are:",
+    "q": "Department-table routing's advantage is:",
     "opts": [
-     "Operations' business only",
-     "Deleted annually",
-     "Performance evidence sitting ready — the appraisal that references records instead of impressions",
-     "Private"
+     "Speed",
+     "Secrecy",
+     "Maintenance on a handful of Department records — it survives manager changes without per-employee edits",
+     "Cost"
     ],
     "ans": 2,
-    "why": "Module 5 makes the connection explicit.",
+    "why": "Per-employee routing must be swept at approver changes.",
     "src": "Ch7"
    },
    {
-    "q": "HR knows about departures:",
+    "q": "Current headcount by department is read from:",
     "opts": [
-     "Last",
-     "From payroll",
-     "Never officially",
-     "Before every other control does — the separation checklist is where every track's access gets revoked"
+     "A custom build",
+     "The chart only",
+     "The payroll run",
+     "The Employee list grouped by Department with Status = Active"
     ],
     "ans": 3,
-    "why": "The deepest join: the approver who resigns triggers the mandate review.",
+    "why": "The standing lookups.",
     "src": "Ch7"
    },
    {
-    "q": "HealthTrade's load surfaced:",
+    "q": "The joiners and leavers lists feed:",
     "opts": [
-     "Two missing contracts regularised and one near-duplicate rehire caught and linked",
+     "The payroll headcount reconciliation — HR produces them, filtered by joining and relieving dates",
      "Nothing",
-     "Only photographs",
-     "Payroll errors"
+     "The tax return",
+     "The org chart"
     ],
     "ans": 0,
-    "why": "The load surfacing paper gaps as the count surfaced phantoms.",
-    "src": "Ch8"
+    "why": "The two tracks meet on these lists.",
+    "src": "Ch7"
    },
    {
-    "q": "The spine's reality correction was:",
+    "q": "HealthTrade's email finding was:",
     "opts": [
-     "Cosmetic",
-     "The Akure supervisor re-pointed to her factual manager — and the first leave request routed correctly",
-     "Refused",
-     "Deferred"
+     "Wrong addresses",
+     "Four records with Preferred Contact Email unset — delivery failing silently; set and test-messaged",
+     "No emails",
+     "Duplicates"
     ],
     "ans": 1,
-    "why": "The record corrected to the fact, out loud.",
+    "why": "Step 2, finding 1.",
     "src": "Ch8"
    },
    {
-    "q": "The weekend assistant ghost was:",
+    "q": "HealthTrade's joining-date finding was:",
     "opts": [
-     "Deleted",
-     "Left Active",
-     "Resolved by the abandonment process with its trail — Left set with its date",
-     "Rehired"
+     "All correct",
+     "All wrong",
+     "Three records carrying the record-creation date instead of the contractual date — one produced a leave correction",
+     "Missing dates"
     ],
     "ans": 2,
-    "why": "The undocumented made visible because the system refused to pretend.",
+    "why": "Corrected from the contracts.",
     "src": "Ch8"
    },
    {
-    "q": "The vanity structure costs because:",
+    "q": "HealthTrade's routing decision was:",
     "opts": [
-     "Titles are free",
-     "Auditors object",
-     "It doesn't",
-     "Grades and policies attach to inflated titles later — real money on aspirational paper"
+     "Per-employee everywhere",
+     "Manager routing",
+     "No routing",
+     "Department-table routing, with one documented per-employee override retained"
     ],
     "ans": 3,
-    "why": "Nine departments for eleven people.",
-    "src": "Ch9"
+    "why": "Fewer records to maintain.",
+    "src": "Ch8"
    },
    {
-    "q": "The paper folder is demoted by:",
+    "q": "The monthly blank-field filters target:",
     "opts": [
-     "The document load priced once, lifecycle documents born digital, the folder as archive",
-     "Decree",
-     "Shredding",
-     "Time"
+     "Zero blanks on Reports To, Holiday List, Preferred Contact Email, and Payroll Cost Center",
+     "Ten blanks",
+     "Half the records",
+     "New joiners only"
     ],
     "ans": 0,
-    "why": "The master as file, not index.",
-    "src": "Ch9"
+    "why": "The standing hygiene read.",
+    "src": "Ch8"
    },
    {
-    "q": "The spreadsheet workforce's fix includes:",
+    "q": "Free-text organisational data is fixed by:",
     "opts": [
-     "Better spreadsheets",
-     "The governed load, the spreadsheet retired to read-only history, the status read keeping the record true",
-     "More versions",
-     "A bigger folder"
+     "More typing care",
+     "Masters created and fields re-selected as links — reportable fields are links to masters",
+     "Longer fields",
+     "Deletion"
     ],
     "ans": 1,
-    "why": "People data with a system of record.",
+    "why": "Error 3.",
     "src": "Ch9"
    },
    {
-    "q": "This module's law is:",
+    "q": "Module 1's rule is:",
     "opts": [
-     "HR is paperwork",
-     "Records are optional below 50 staff",
-     "One person, one record, whole lifecycle — created from documents, governed by events, joined by link, read on need",
-     "The folder is the record"
+     "Records are optional",
+     "Delete at exit",
+     "The Employee record is the master every HR and payroll document reads — built from masters, completed from sources, verified before first use, retired by status, kept complete by the filters",
+     "Free text is fine"
     ],
     "ans": 2,
-    "why": "The most consequential master, held in custody.",
+    "why": "The module rule.",
     "src": "Ch9"
    }
   ]
  },
  "recruitment": {
   "title": "HR 2 — Recruitment & Onboarding",
-  "desc": "Hiring as a pipeline: the job opening born from the structure and approved as money, the applicant pool with criteria written first, structured interviews and the practical test, offers from the grade, the verification gate before day one, the onboarding checklist, and probation as a governed trial.",
+  "desc": "Recruitment in ZhiftERP: the six-stage pipeline from Staffing Plan (details table, plan validation, plan-versus-actual) through Job Opening (status discipline, openings read), Job Applicant (status pipeline, source tracking, funnel and aging reads, data handling), Interview (Interview Round skill sets, same-day Interview Feedback), and Job Offer (complete terms table, letter print, offer register) to Employee creation from the applicant and Employee Onboarding from a template with the pre-joining check.",
   "lessons": [
    {
-    "title": "Chapter 1 — Hiring as a pipeline, not an event",
+    "title": "Chapter 1 — The recruitment pipeline",
+    "est": "11",
+    "html": "<p>This module covers recruitment in ZhiftERP: the document pipeline from planned vacancy to onboarded employee. On completing this module you will be able to: create a Staffing Plan; create and manage Job Openings; process Job Applicants through their status pipeline; schedule and record Interviews with structured feedback; issue Job Offers; create the Employee record from an accepted applicant; and run Employee Onboarding from a template.</p><p><b>The pipeline.</b> Recruitment runs through six doctypes, in order. Learn the sequence; each chapter walks one stage.</p><p>1. <b>Staffing Plan</b> — the approved vacancies per designation for a period, with estimated costs (Chapter 2).<br>2. <b>Job Opening</b> — one advertised position (Chapter 3).<br>3. <b>Job Applicant</b> — one candidate for an opening, with a status pipeline (Chapter 4).<br>4. <b>Interview</b> — scheduled assessment events with structured feedback (Chapter 5).<br>5. <b>Job Offer</b> — the offer document with its terms table and status (Chapter 6).<br>6. <b>Employee + Employee Onboarding</b> — the record created from the accepted applicant, and the onboarding task list generated from a template (Chapter 7).</p><p><b>Why the pipeline is used rather than informal hiring.</b> Each stage produces a record, and the records produce three things informal hiring cannot:</p><p>1. <b>Traceability</b> — every hire traces from its vacancy through its interviews to its offer; every offer's terms are on a document; the Employee record created at the end pre-fills from verified pipeline data instead of retyped notes.<br>2. <b>Control</b> — hiring against the Staffing Plan means vacancies are approved before they are advertised; offers are issued from a document with an approval, not from a conversation.<br>3. <b>Reporting</b> — time-to-hire, source effectiveness, and pipeline counts read from the records.</p><p><b>Custody.</b> HR operates the pipeline. The hiring decisions belong to the deciding managers and the owner per the business's approval design: the Staffing Plan's approval authorises the headcount and budget; the offer's terms follow the approved decision. The operator's rule from the Payroll track applies unchanged: no record without its approved decision, and the record states exactly what the decision stated.</p><p><b>Interaction with module 1.</b> The pipeline ends where module 1 begins: the Employee record. The joiner verification (module 1, Chapter 5) runs identically for pipeline hires; the pipeline reduces the retyping, not the verification.</p><p><b>Module contents.</b> Chapter 2: Staffing Plan. Chapter 3: Job Opening. Chapter 4: Job Applicant. Chapter 5: Interview. Chapter 6: Job Offer. Chapter 7: Employee creation and Employee Onboarding. Chapter 8: worked example. Chapter 9: review and the module rule.</p>"
+   },
+   {
+    "title": "Chapter 2 — The Staffing Plan",
+    "est": "12",
+    "html": "<p>Open Staffing Plan (awesome bar) &gt; New. The Staffing Plan records the approved vacancies for a period. Complete the fields in order.</p><p><b>1. Name and Company.</b> Name the plan for its period and scope: <i>2026 H2 — Operations</i>. Select the company.</p><p><b>2. From Date and To Date.</b> The period the plan covers. Job Openings created against the plan are validated within this period.</p><p><b>3. The Staffing Details table.</b> One row per designation being planned:</p><p>• <b>Designation</b> — from the Designation master (module 1, Chapter 2).<br>• <b>Number of Positions</b> — the approved vacancy count for the period.<br>• <b>Current Count</b> — the current headcount in that designation; the system computes the current count from Active Employee records where configured, and the row shows current against planned.<br>• <b>Estimated Cost Per Position</b> — the annual cost estimate used for the plan's budget total.<br>• <b>Total Estimated Cost</b> — computed per row; the plan totals the rows.</p><p><b>4. Department scoping.</b> Where the plan is scoped to a department, set it; company-wide plans leave the scope broad. Use one plan per approval decision — a plan is an approved document, and its rows are the approved numbers.</p><p><b>5. Submit.</b> The Staffing Plan is a submittable document. Submission records the approval state; amendments follow document rules.</p><p><b>What the plan controls.</b> With staffing plans in use, Job Opening creation validates against the plan: an opening for a designation is checked against the planned positions for the period, and openings beyond the plan are blocked or flagged per the site's configuration. This is the control stated in Chapter 1: vacancies are approved before they are advertised. Where the validation blocks a genuinely needed opening, the correction is a plan amendment through its approval, not a bypass.</p><p><b>The plan's reads.</b></p><p>1. <b>Plan versus actual</b> — the plan's rows against current Active headcount per designation: positions filled, positions open, positions over plan.<br>2. <b>The budget read</b> — the plan's total estimated cost is the hiring budget's document; the owner approved this number, and the review round's salary modelling (the Payroll track, module 6) reads beside it.<br>3. <b>The period close</b> — at the plan period's end, the plan is read against outcomes: positions filled within period, positions lapsed, cost against estimate. The next period's plan is drafted from this read.</p><p>Practical procedure: draft the plan rows with the deciding managers, attach the approval, submit, and only then open Chapter 3's openings. A hire that starts at the opening instead of the plan has skipped the approval that the pipeline exists to enforce.</p>"
+   },
+   {
+    "title": "Chapter 3 — The Job Opening",
+    "est": "12",
+    "html": "<p>Open Job Opening (awesome bar) &gt; New. One Job Opening is one advertised position. Complete the fields in order.</p><p><b>1. Job Title.</b> The advertised title. Keep it consistent with the Designation; the advertisement can elaborate, the designation stays canonical.</p><p><b>2. Designation.</b> Select from the Designation master. This link connects the opening to the Staffing Plan validation (Chapter 2) and to the applicant and offer records downstream.</p><p><b>3. Company, Department, and Location.</b> Select the employing company; the department and the branch or location fields per the position. These fields pre-fill downstream records and scope the reports.</p><p><b>4. Staffing Plan.</b> Link the opening to its plan row where plans are in use. The validation runs on this link.</p><p><b>5. Status.</b> Open or Closed. An Open opening accepts applicants; close the opening when the position is filled or withdrawn. Closing is a deliberate act: the pipeline reads count open positions from this status, and a filled position left Open overstates the vacancy report.</p><p><b>6. Description.</b> The role description: responsibilities, requirements, and terms summary as the business publishes them. Write the description once here; the applicant-facing publication and the interview rounds (Chapter 5) both read from it.</p><p><b>7. Publication.</b> Where the site publishes openings to the website portal, the publish setting on the opening controls listing. Where the business advertises externally (job boards, referrals), record the channels used — Chapter 4's source tracking reads them.</p><p><b>The opening's lifecycle.</b></p><p>1. Created against the plan; status Open.<br>2. Applicants attach to it (Chapter 4) as they apply.<br>3. Interviews and offers proceed for shortlisted applicants (Chapters 5-6).<br>4. On acceptance and joining, the opening is Closed with a note of the hire; on withdrawal, Closed with the reason.</p><p><b>The openings read.</b> The Job Opening list filtered by Status = Open is the live vacancy report: each row's age (creation date to today) is the time-open figure, and openings aging beyond the business's expected time-to-fill are flagged to the hiring manager. Run this read monthly with the plan-versus-actual read (Chapter 2).</p><p><b>One opening per position.</b> Create one opening per vacancy instance where positions are tracked individually, or one opening with the position count per the business's practice — decide once and record the convention, because the vacancy reports count differently under each convention and a mixed register counts nothing reliably.</p>"
+   },
+   {
+    "title": "Chapter 4 — The Job Applicant",
+    "est": "12",
+    "html": "<p>Open Job Applicant (awesome bar) &gt; New — or receive records created by the portal where applications arrive online. One record per candidate per opening. Complete or verify the fields in order.</p><p><b>1. Applicant Name and Email Address.</b> The candidate's name and contact email. The email is the pipeline's communication channel; verify it is entered correctly on manually created records.</p><p><b>2. Job Opening.</b> Link the applicant to the opening applied for. A candidate applying for two openings is two applicant records; the records track independently.</p><p><b>3. Source.</b> Select the Job Applicant Source — the channel that produced the candidate (Website, Referral, the named job board, Walk-in). Create the source records once in the Job Applicant Source master. The source field feeds the effectiveness read: applicants and hires per source, which tells the business where its advertising money produces hires.</p><p><b>4. The resume and documents.</b> Attach the candidate's resume and any submitted documents to the record. The record is the candidate's file; interviewers read from it (Chapter 5), and the offer stage reads it again.</p><p><b>5. Status.</b> The applicant status pipeline. The standard values and their use:</p><p>1. <b>Open</b> — received, not yet processed.<br>2. <b>Replied</b> — contact made; in process (screening, interviewing).<br>3. <b>Hold</b> — parked with a reason recorded (a strong candidate for a later vacancy; a process pause).<br>4. <b>Rejected</b> — not proceeding; set with the courtesy communication sent. Reject formally rather than by silence: unanswered applicants judge the business by the silence, and the status left Open forever makes the pipeline reads meaningless.<br>5. <b>Accepted</b> — offer accepted; proceeds to Employee creation (Chapter 7).</p><p><b>The pipeline reads.</b></p><p>1. <b>The funnel count</b> — applicants per status per opening: how many received, in process, on hold, rejected, accepted. Read weekly during active hiring; a stage where candidates accumulate without moving is the process bottleneck to fix.<br>2. <b>The aging read</b> — days since last status change per active applicant. Candidates aging at Open are unprocessed applications; candidates aging at Replied are a slow interview stage.<br>3. <b>The source read</b> — applicants and eventual hires grouped by Source, quarterly.</p><p><b>Data handling.</b> Applicant records contain personal data of people who may never join the business. Apply the standing confidentiality rules: access limited to the recruiting roles; documents stored on the record, not in personal drives; and a retention convention decided and recorded — how long rejected applicants' records and documents are kept, and the periodic clearing per that convention.</p>"
+   },
+   {
+    "title": "Chapter 5 — The Interview",
     "est": "13",
-    "html": "<p>Module 1 recorded the people a firm has; this module governs how it gets them — and its thesis inverts how most trading firms actually hire: the corridor decision, the cousin's recommendation, the CV read over lunch and the offer improvised by phone. <b>Hiring is a pipeline, not an event</b> — a staged flow from a defined need to a confirmed colleague, with documents at every stage — and the argument for the pipeline is fourfold, worth teaching to every owner before the first requisition.</p><p><b>The four arguments.</b> <b>Signal</b>: the corridor hire selects on impression and connection; the pipeline selects on evidence (the structured interview, the practical test — Chapter 4), and evidence beats impression at predicting who will actually run a till, keep a warehouse, or close a month — which matters because the firm is not hiring company; it is hiring capability. <b>Fairness</b>: candidates assessed on the same criteria, by the same process, with the record to show it — the discipline that protects the firm in dispute (the rejected candidate who alleges discrimination meets a documented process or an undocumented vibe, and only one of those defends itself) and, just as practically, protects the GOOD candidate from losing to the connected one. <b>Repeatability</b>: the pipeline that hired well for Ibadan hires well for Akure — the process is an asset the firm keeps, where the corridor's luck departs with whoever had it (the playbook law of every track, at the people gate). <b>The cost frame</b>: a bad hire costs its salary, its training, its errors, its severance, and its replacement's whole pipeline — months of cost from one skipped stage — while the pipeline's own cost is measured in days of structure; the arithmetic is not close, and the owner who has eaten one bad hire already knows it.</p><p><b>The funnel's stages.</b> The module's map: the NEED defined and approved (Chapter 2 — the opening), the POOL gathered and screened (Chapter 3), the ASSESSMENT staged and scored (Chapter 4), the OFFER made from structure and accepted (Chapter 5), the VERIFICATION completed before day one (Chapter 5's second half — the stage most skipped and most expensive to skip), the ONBOARDING that converts a signature into a working colleague (Chapter 6), and the PROBATION that confirms the hire the pipeline predicted (Chapter 7). Each stage a document; each transition a decision with an owner; the whole flow readable afterwards as a record — which is what makes the pipeline improvable: source effectiveness, stage conversion, time-to-fill all become readable numbers (module 8's analytics) the corridor never produces.</p><p><b>The sizing honesty, up front.</b> The eleven-person firm's pipeline is not a bureaucracy: the requisition is a one-page form the founder approves, the interviews are two structured conversations and a practical, the checklist fits on a card — the SHAPE at teaspoon scale, exactly as every track has sized its disciplines. What does not shrink with size: the criteria written before the CVs are read, the verification before joining, and the probation actually watched — the three stages where skipping is most tempting and most expensive, and the three this module guards hardest.</p>"
+    "html": "<p>Interviews are scheduled and recorded through two doctypes: the Interview Round (the reusable definition of an assessment stage) and the Interview (one scheduled event for one applicant). Build the rounds once; schedule interviews per applicant.</p><p><b>1. The Interview Round.</b> Open Interview Round (awesome bar) &gt; New. One record per assessment stage per role family:</p><p>• <b>Round Name</b> — <i>Technical Screen — Pharmacist</i>, <i>Final Interview — Management</i>.<br>• <b>Designation</b> — the role family the round applies to.<br>• <b>Interviewers</b> — the default panel: the users who conduct this round.<br>• <b>Expected Skill Set</b> — the skills table: one row per skill the round assesses. This table defines the feedback form's structure (see the Interview Feedback below); write the skills as assessable items (<i>dispensing accuracy</i>, <i>regulatory knowledge</i>, <i>team supervision</i>), because interviewers will rate exactly these rows.</p><p><b>2. The Interview.</b> Open Interview &gt; New per scheduled event:</p><p>• <b>Job Applicant</b> and <b>Interview Round</b> — the candidate and the stage.<br>• <b>Scheduled On, From Time, To Time</b> — the schedule. The interviewers receive the event per the site's notification configuration.<br>• <b>Interviewers</b> — pre-filled from the round; adjust per event where the panel differs.<br>• <b>Status</b> — Pending, Under Review, Cleared, Rejected. Update the status as the event concludes; the applicant's pipeline position (Chapter 4) is read alongside it.</p><p><b>3. The Interview Feedback.</b> Each interviewer submits an Interview Feedback record against the Interview: the skills table from the round rendered as rating rows, plus the overall result and remarks. The design's purpose:</p><p>1. <b>Structured comparison</b> — every candidate for the round is rated on the same skill rows; the comparison across candidates is row by row, not impression against impression.<br>2. <b>Recorded basis</b> — the hire and reject decisions have recorded assessments behind them. Write remarks that state observations, not speculation: what the candidate demonstrated, against the skill row.<br>3. <b>Independent submission</b> — each interviewer submits their own feedback record; panel discussions follow the submissions where the business's practice wants calibration.</p><p><b>The interview procedure, per applicant.</b></p><p>1. Shortlist decision recorded on the applicant (status Replied, remark stating the shortlist).<br>2. Interview created against the applicable round; scheduled; the candidate informed.<br>3. Event conducted; each interviewer submits Interview Feedback the same day (feedback written later is reconstructed impression, not assessment).<br>4. Interview status updated (Cleared or Rejected); the applicant's status and next stage follow.<br>5. Multi-round processes repeat steps 2-4 per round; the applicant's record accumulates the full assessment history.</p><p>Practical procedure: build the Interview Rounds for the standing role families once, with the hiring managers defining the skill rows. A hiring process with defined rounds runs the same regardless of who schedules it, and its records support every later question about how the decision was made.</p>"
    },
    {
-    "title": "Chapter 2 — The job opening: the need, defined and approved",
+    "title": "Chapter 6 — The Job Offer",
+    "est": "12",
+    "html": "<p>Open Job Offer (awesome bar) &gt; New. The Job Offer is the offer's document of record. Complete the fields in order.</p><p><b>1. Job Applicant.</b> Select the candidate. The applicant's details pre-fill.</p><p><b>2. Company and Designation.</b> The employing entity and the offered position, from the masters.</p><p><b>3. Offer Date.</b> The date the offer is issued.</p><p><b>4. The Job Offer Terms table.</b> One row per term of the offer: the offer term (from the Offer Term master — Base Salary, Probation Period, Notice Period, Annual Leave, and the other terms the business states) and its value. Rules:</p><p>1. The terms entered here are the terms the approved hiring decision stated — the Chapter 1 custody rule: the record states exactly what the decision stated.<br>2. The pay term entered here is the figure the Payroll track's assignment will carry as Base; the offer document and the assignment must agree, and the joiner verification checks them against each other.<br>3. Terms not in the table are not offered. The table is the complete statement; side communications that vary it create the disputes the document exists to prevent.</p><p><b>5. Status.</b> Awaiting Response → Accepted or Rejected. Update on the candidate's response; the status drives the pipeline reads and Chapter 7's Employee creation.</p><p><b>6. The offer letter print.</b> The Job Offer prints as the offer letter through its print format: the letterhead, the terms table, the validity and conditions text per the business's template. The print rules from the Sysadmin track apply: identity from the letterhead, terms from the document, nothing hard-typed into the format. The signed acceptance (physical or per the business's acceptance process) attaches to the Job Offer record.</p><p><b>The offer procedure.</b></p><p>1. The hiring decision approved per the business's design (the deciding manager and the owner per the approval ladder; the pay figure inside the Staffing Plan's budget or separately approved).<br>2. The Job Offer created with the complete terms table; reviewed against the decision; submitted.<br>3. The offer letter printed and issued; the validity period stated.<br>4. The response recorded: Accepted with the signed acceptance attached, or Rejected with the reason noted (the reasons read quarterly — offers rejected on pay tell the business its figures are off market).<br>5. On acceptance: the applicant status moves to Accepted, and Chapter 7's creation procedure runs.</p><p><b>The offer register read.</b> The Job Offer list is the standing register: offers outstanding (Awaiting Response, with age), acceptance rate per period, and the rejection reasons. Read monthly during active hiring.</p>"
+   },
+   {
+    "title": "Chapter 7 — Employee creation and Employee Onboarding",
     "est": "13",
-    "html": "<p>The pipeline begins before any candidate exists: with the NEED, defined as a document — the <b>job opening</b> — and approved as the money decision it is. The requisition stage.</p><p><b>Born from the structure.</b> The opening is not free text; it is assembled from module 1's architecture: the DESIGNATION (the role from the governed list — a new role means the list grows first, deliberately, not a title improvised in the advert), the GRADE (which pre-answers the offer's terms — Chapter 5's discipline starts here), the BRANCH and department (the org placement), and the REPORTING LINE (who this person will answer to — the spine extended before the person exists, so the manager who will own the hire owns the requisition too). An opening assembled this way carries its own downstream: the offer's terms, the onboarding checklist's role variant, the probation's objectives all derive from fields set at this stage — the pipeline's version of the master-data law: decisions made once at the top, inherited everywhere below.</p><p><b>The staffing plan frame.</b> The opening lives against a PLAN where the firm keeps one: planned headcount per department and branch (the budget's people line — Accounts 6's budget machinery has a people twin), against which openings are raised and actual headcount reads. The plan converts hiring from reactive to governed: the opening within plan approves routinely; the opening BEYOND plan is a plan conversation (the growth that justifies it, or the workaround that avoids it) — and the read of plan-vs-actual per unit is module 8's headcount analytics born. The small-firm sizing: the 'plan' may be a one-page number per branch agreed at budget time — the shape, small.</p><p><b>Approval: headcount is money.</b> The requisition's two names — the requesting manager and the approving authority (the founder, the unit head per the threshold) — because a hire is among the largest recurring financial commitments a small firm makes: the salary times twelve, times the years, plus the statutory add-ons the accountant prices — a ₦150k/month role is a multi-million-naira decision wearing a vacancy notice, and it gets the approval treatment every commitment of that size earned in every track. The approval also fixes the TERMS ENVELOPE (the grade's band — Chapter 5 will hold the offer inside it), so the negotiation later happens within a decision already made, not instead of one.</p><p><b>The opening as advert.</b> Approved, the opening publishes — the role described honestly (the actual work, the actual location, the actual shift pattern: the advert that flatters the role recruits people for a job that doesn't exist, and buys the early attrition that follows), the criteria stated (Chapter 3 will insist they were written first), and the channel chosen per the role (Chapter 3's sources). The opening's lifecycle closes the stage: open while recruiting, on-hold when paused (deliberately, with a note — not drifting), closed when filled or withdrawn — the status discipline of module 1, applied to the vacancy itself, so the openings report reads true and the time-to-fill clock (module 8) has honest ends.</p>"
+    "html": "<p>The pipeline's last stage: the accepted applicant becomes an Employee record, and the Employee Onboarding document generates the joining task list.</p><p><b>1. Creating the Employee from the applicant.</b> From the accepted Job Applicant (or the accepted Job Offer per the site's flow), use the create-Employee action. The system creates the Employee record pre-filled with the pipeline's data: name, contact email, designation, company. Then:</p><p>1. Complete the record per module 1, Chapters 3-5: the joining fields (Date of Joining from the accepted offer's agreed start date), the organisational fields, the contact, personal, and bank sections.<br>2. Attach the pipeline documents that belong on the employment file: the signed offer and acceptance (linked via the Job Offer), the identification documents collected at acceptance.<br>3. Run the joiner verification (module 1, Chapter 5) — identical for pipeline hires; the pipeline pre-fill reduces retyping, not verification.<br>4. Close the Job Opening (Chapter 3) with the hire noted.</p><p><b>2. The Employee Onboarding Template.</b> Open Employee Onboarding Template (awesome bar) &gt; New — built once per role family or company-wide:</p><p>• Company, and the Department/Designation scope where templates differ by role.<br>• <b>The Activities table</b> — one row per onboarding task: the activity name, the <b>user or role responsible</b>, the <b>required days</b> (the deadline relative to the boarding start), and whether the task is <b>required before the joining date</b>. Standard activity rows: employment file completed and verified (HR); workstation and tools prepared (Administration); system access created per the joiner procedure (the sysadmin — the Sysadmin track's joiner checklist is this row's content); payroll assignment created and previewed (the payroll operator — the Payroll track's joiner lines); orientation session scheduled (HR/manager); statutory registrations confirmed (PFA, tax — the accountant/HR).</p><p><b>3. The Employee Onboarding document.</b> Open Employee Onboarding &gt; New (or create from the accepted applicant per the flow):</p><p>• The employee (or applicant), the joining date, the template.<br>• On submission the system generates the activity tasks from the template — a project/task set assigned to the responsible users with their deadlines.<br>• <b>Boarding Status</b> tracks completion: Pending → In Process → Completed. The document is the joining checklist with owners and dates, visible as a list instead of held in one person's memory.</p><p><b>4. The completion read.</b> The onboarding is Completed when every activity closes. Two rules:</p><p>1. Activities marked required-before-joining are confirmed complete before the joining date — the joiner who arrives to no workstation, no access, and no payroll assignment is the failure this document prevents, and the pre-joining check is a dated line, not a hope.<br>2. The onboarding document's completion is read at the first payroll close for the joiner: the Payroll track's checklist line 1 (joiner verified and assigned) corresponds to this document's payroll activities.</p><p>Practical procedure: build the template with each responsible function contributing its own rows — the sysadmin writes the access row's content, the payroll operator the assignment row's — so the template is the cross-functional joining procedure in one document.</p>"
    },
    {
-    "title": "Chapter 3 — The applicant pool: capture & screen",
+    "title": "Chapter 8 — Worked example: a HealthTrade hire end to end",
     "est": "13",
-    "html": "<p>Candidates arrive; the pipeline's first working stage captures them as records and screens them by criteria written in advance. The pool chapter — and the discipline that makes everything after it fair and fast.</p><p><b>Capture: every applicant a record.</b> Each candidate becomes a <b>job applicant</b> record against the opening: the CV attached, the SOURCE captured (the field that pays for itself — Chapter's end), contact details, and the status that will walk the funnel (received → screened → interviewing → offered / rejected). The capture disciplines: ALL applicants enter (the referral and the walk-in alongside the job-board stream — the parallel track where the connected candidate skips the pool is the pipeline's first corruption, and the cure is structural: one pool, one process, referrals welcome INTO it), rejection is a status with a communication (the candidate told, briefly and professionally — the employer brand argument: today's rejected applicant is tomorrow's customer, referrer, or re-applicant, and the firm that ghosts its pool is spending reputation it will want later), and the pool is retained (the strong silver-medallist from this search is the shortlist of the next one — the pool as an asset, with the personal-data custody rules of module 1 governing its retention).</p><p><b>Screen: criteria before CVs.</b> The chapter's central discipline, stated as the rule it is: <b>the screening criteria are written before the first CV is read.</b> The reason is human and universal: criteria written after reading CVs are reverse-engineered around candidates already preferred — the impressive-but-wrong CV bends the bar toward itself, and the screen becomes a rationalisation wearing a rubric. Written first — the must-haves (the licence the role legally requires, the literacy the till demands, the availability the shift pattern needs) and the desirables (weighted, few) — the screen is a fast, fair pass: each CV against the list, in or out with a reason, the borderline batch reviewed together. Speed is a fairness feature too: the pool screened within days respects the candidates and beats competitors to the good ones — the trading firm's talent market is as real as its product market.</p><p><b>The screen's honesty rules.</b> Three convictions carried from four tracks of governance: the criteria are ROLE-derived (from the opening's actual work — not a wish-list that excludes everyone who would actually take the job at the grade's band: the criteria and the terms must describe the same hire); the screen is RECORDED (in/out with reasons — thirty seconds per CV, and the record that answers the dispute or the audit); and the must-haves are MUSTS (the candidate missing a legal requirement is out regardless of charm — the pharmacist without the licence, the driver without the class — because the screen is where compliance is cheap and the tribunal is where it is not).</p><p><b>The source read.</b> The captured source field, aggregated, is recruitment's supplier scorecard: which channels produce applicants, which produce HIRES, which produce hires who CONFIRM and STAY (the read that only closes when module 7's separation data joins it) — read per role type, because the channel that finds accountants rarely finds van drivers. The firm that reads its sources spends its next advert budget where hires actually came from; the one that doesn't spends it where habit points — the reading law of every track, at the recruitment gate, and module 8's analytics page carries the read.</p>"
+    "html": "<p>This chapter runs one hire through Chapters 2-7. Configuration values and outcomes are listed per stage.</p><p><b>Stage 1 — the plan (Chapter 2).</b> The 2026 H2 Staffing Plan for Retail is drafted with the branch managers: rows for Pharmacist (positions 2, current count 4, estimated cost per position entered from the accountant's package figures) and Pharmacy Technician (positions 1). The MD approves; the plan submits. Total estimated cost recorded as the half-year hiring budget line.</p><p><b>Stage 2 — the opening (Chapter 3).</b> A Job Opening is created: Job Title Pharmacist (Akure), Designation Pharmacist, Department Retail &gt; Pharmacy Counter, location Akure, linked to the plan row, status Open. The description is written once on the opening. The advertisement runs on one job board and the staff referral channel; both exist as Job Applicant Source records.</p><p><b>Stage 3 — the applicants (Chapter 4).</b> Nine applicant records accumulate over three weeks: six from the job board, three referrals. Weekly funnel read: week two shows five records aging at Open — the screening backlog is cleared the same week and the read returns to normal. Three candidates shortlist (status Replied, shortlist remarks); six are formally rejected with the courtesy message, statuses set.</p><p><b>Stage 4 — the interviews (Chapter 5).</b> The Pharmacist role family's two Interview Rounds exist from the build: Technical Screen (skills: dispensing accuracy, regulatory knowledge, inventory handling; panel: the senior pharmacist and the Akure branch manager) and Final Interview (skills: customer handling, team fit, availability; panel: the MD and the branch manager). Three Technical Screens run in one week; each interviewer submits Interview Feedback the same day. Two candidates clear to Final; one is rejected on the recorded ratings. Finals run; one candidate clears with consistent ratings across both interviewers.</p><p><b>Stage 5 — the offer (Chapter 6).</b> The hiring decision approves per the ladder; the Job Offer is created with the full terms table: Base Salary (the figure the assignment will carry), Probation Period six months, Notice Period one month, Annual Leave per policy. The offer letter prints on the letterhead and issues with a two-week validity. The candidate accepts; the signed acceptance attaches; status Accepted. The second finalist is placed on Hold with a remark (a strong candidate for the plan's second position).</p><p><b>Stage 6 — creation and onboarding (Chapter 7).</b> The Employee record is created from the applicant, pre-filled; the joining sections complete from the collected documents; the joiner verification runs and its comment is recorded. The Employee Onboarding document generates from the company template: eight activities across HR, Administration, the sysadmin, and the payroll operator. The pre-joining check on the joining date's eve: workstation ready, access created, payroll assignment created and previewed against the offer (the Base matching the offer's term row). The pharmacist joins on the agreed date; the opening closes with the hire noted; boarding status reaches Completed in the first week.</p><p><b>Stage 7 — the reads.</b> The quarter's recruitment reads: time-to-hire for the position, 41 days from opening to joining; source read, the hire from the job board, two of three shortlists from referrals; the plan-versus-actual row updated (one of two Pharmacist positions filled). The records answer each read without reconstruction.</p>"
    },
    {
-    "title": "Chapter 4 — Interviews & assessment: evidence over vibes",
-    "est": "14",
-    "html": "<p>The screened shortlist meets the firm — and this chapter is the machinery that makes those meetings produce EVIDENCE instead of impressions. The assessment stage, structured.</p><p><b>Rounds, defined per role.</b> The opening's role defines its assessment path, designed once and reused (the pipeline's repeatability): the till assistant's path (screen → practical → manager conversation), the storekeeper's (screen → practical → ops interview), the accountant's (screen → technical interview → case exercise → founder conversation) — each round with a PURPOSE (what this round tests that others don't), an OWNER (who conducts and scores), and a DECISION RULE (what advances a candidate). The design discipline: rounds earn existence by adding signal — the third conversational interview that re-tests charm adds nothing the first two didn't; the practical test adds what no conversation can — and the path fits the role's stakes (two rounds for the weekend till; four for the branch manager).</p><p><b>Structured interviews: the same questions, scored.</b> The evidence engine, and the chapter's core teaching: the STRUCTURED interview asks every candidate for a role the SAME core questions, anchored in the role's actual work (<i>tell me about a time a customer disputed a price — what did you do?</i> for the counter; <i>walk me through how you'd receive a delivery that came short</i> for the gate — behavioural and situational questions drawn from the very scenarios four tracks taught), scored against anchors written in advance (what a strong answer contains — the rubric that makes two interviewers comparable), with notes captured DURING (the memory that writes up interviews at day's end writes fiction by the third candidate). The argument, made once and permanently: unstructured interviews measure interview skill and interviewer mood — the confident talker beats the capable quiet one; structured interviews measure the role's evidence, and the decades of selection research the consultant can cite in one sentence say structure roughly doubles the signal. The firm hiring tills and storekeepers cannot afford to select for charm.</p><p><b>The practical test: the trade's truth-teller.</b> For operational roles, the assessment this trade trusts most: the candidate DOES the work, observed and scored — the till candidate runs a mock sale, a return, and a cash-up on the training till (Accounts 3's session, as an exam); the storekeeper candidate counts a shelf, receives a mock delivery against a document, and is watched for whether they count before signing (Inventory's laws, as selection criteria); the driver candidate drives. The practical's design rules: standardised (same test, same scoring sheet), safe (training environment, no live data — the demo instance every implementation should keep exists for exactly this too), and REVEALING by construction (the test built from the role's actual failure modes — the short delivery, the disputed price — because the candidate's instinct under the standard scenario is the best single predictor the pipeline owns).</p><p><b>Feedback as documents; decisions on evidence.</b> Every round's output is captured — scores, notes, recommendation — as the interview feedback record against the applicant, and the DECISION stage reads the file: scores compared, the rubric consulted, the decision minuted with its reasons (the panel that decides on the file decides differently — and defensibly — from the panel that decides on recollection and rank). The convictions that guard the stage: the highest-scoring candidate is passed over only WITH a recorded reason (the override that cannot be written down is the bias the structure exists to catch); feedback is written before interviewers confer (the senior voice that speaks first anchors every score after it); and speed remains a duty — the shortlist assessed and answered within the week, because the pipeline's fairness includes not wasting the candidates' hope.</p>"
-   },
-   {
-    "title": "Chapter 5 — The offer, acceptance & the verification gate",
-    "est": "14",
-    "html": "<p>The chosen candidate gets an offer — from structure, not improvisation — and then the pipeline's most-skipped stage runs: verification, BEFORE joining. The commitment chapter.</p><p><b>The offer from the grade.</b> The <b>job offer</b> document assembles from decisions already made: the terms from the GRADE's band (module 1's structure paying its dividend — the offer is a selection within the envelope the requisition approved, not a per-candidate negotiation that prices each hire by their bargaining nerve), the role, branch, reporting line and probation terms from the OPENING, and the conditions (subject to verification — the clause Chapter's second half enforces). The structural argument, taught to owners who like to improvise: per-candidate improvisation creates the pay-disparity time bomb (two colleagues, same role, different deals, one payday conversation away from a grievance — module 7's docket), destroys the grade structure's meaning, and negotiates from weakness (the candidate who senses improvisation negotiates; the one who meets a band selects). Flexibility lives WHERE the structure puts it: the band has a range, the range has rules (experience placing within it), and the exception beyond the band is an approval event with a name on it — the threshold law, at the offer desk.</p><p><b>Acceptance, captured.</b> The offer's own lifecycle: issued (with a validity window — the open-ended offer is a liability drifting), negotiated within rules, accepted (the signed acceptance attached — the document module 1's record will be born from), or declined (with the reason captured: the decline-reason read is the offer stage's source scorecard — the band losing candidates to the market is a structure conversation, readable only if declines are recorded). Acceptance triggers the pre-joining window: the start date set, the verification gate opened, and the onboarding preparation (Chapter 6) begun — the pipeline's stages overlapping deliberately so day one arrives prepared.</p><p><b>The verification gate: BEFORE joining.</b> The stage this chapter guards hardest, because its economics are brutal and its skipping is epidemic: credentials VERIFIED before the start date — the certificates confirmed with issuing institutions (the forged certificate is not rare in this market, and the practical test's existence does not excuse the paper check: the licence that lets the pharmacist practice, the qualification the role's regulator requires, are legal exposures, not formalities), references TAKEN and documented (the previous employer called — the structured three questions: role, dates, would-you-rehire — with the answers noted, because the reference that was never actually called is the pipeline's commonest quiet lie), identity confirmed against the documents module 1 will file, and — where the trade uses them — the GUARANTOR framework completed (the guarantor's own identity verified, the form signed: the cash-handling and stock-custody roles this academy has spent four tracks protecting are exactly the roles where the Nigerian trading norm of guarantors earns its paperwork). The timing law that names the chapter: verification AFTER joining is verification of a fait accompli — the failed check now means a termination (process, risk, cost) instead of a lapsed offer (a letter); the same check, two weeks earlier, is free. <b>Verify before day one, always</b> — the conditions clause exists so the offer survives the gate honestly, and the case study's catch (Chapter 8) is this paragraph made flesh.</p>"
-   },
-   {
-    "title": "Chapter 6 — Onboarding: the checklist that builds a colleague",
-    "est": "13",
-    "html": "<p>The signature is not the finish line; day one is not <i>sit with Ngozi and watch</i>. Onboarding is the machinery that converts an accepted offer into a working, connected, productive colleague — and like every conversion this academy has taught, it runs on a checklist with owners. The entry chapter.</p><p><b>Day-one readiness: prepared before arrival.</b> The pre-joining window (Chapter 5) does the preparation, from a role-variant checklist: the employee record created from the offer's documents (module 1's governed birth), the USER account linked and permissioned (the joins of module 1 made at entry: the till operator's session identity, the storekeeper's warehouse restrictions — the permissions that took four tracks to design, granted correctly on day one instead of accreted over months), the physical kit ready (the workspace, the uniform, the device, the till float assignment), and the WELCOME real (the manager knows they are coming, the team was told, someone meets them at the door). The argument for preparation, made in the employee's voice because that is where it lands: the new hire who spends day one waiting for a login learns the firm improvises; the one whose access, kit, and schedule were ready learns the firm runs on structure — and day one's lesson is the stickiest lesson the firm will ever teach them.</p><p><b>The onboarding checklist, per role.</b> The structured first weeks: the ROLE variant (the till assistant's list differs from the accountant's) covering the compliance layer (policy acknowledgments SIGNED and filed — the handbook, the code of conduct, the till and cash policies for cash-handling roles: the acknowledgment that makes module 7's disciplinary process fair, because the rule never communicated is the rule that cannot fairly be enforced), the training path ASSIGNED (module 6's machinery — the curriculum per role, with the academy's own onboarding tracks as the working example: the new consultant's twenty manuals, the new till assistant's product and till modules), the introductions scheduled (the people the role touches — the storekeeper meets the buyer whose orders they receive), and the early-days cadence (the day-one tour, the week-one check-in, the month-one review — dated, owned, done).</p><p><b>The buddy &amp; the mentor.</b> The human layer, structured lightly: a named BUDDY for the first month (the peer who answers the small questions the new hire won't ask a manager — chosen, briefed, and thanked, not assumed), distinct from the MANAGER's own cadence (the check-ins above) and from the MENTOR pattern where the firm runs one (the Ibadan manager mentoring the Akure supervisor — module 1's case study wired this into the spine; the onboarding of a branch role names it explicitly). The distinction matters because each answers different questions, and the new hire with all three lanes open asks; the one with none guesses — and guessing, at a till or a gate, is what every practical test existed to prevent.</p><p><b>The checklist's close.</b> Onboarding ENDS, formally: the checklist completed and filed (every line done, dated, owned — the record that answers <i>were they ever told?</i> forever after), the training path's first modules passed (module 6's gates), and the handoff to probation's own machinery (Chapter 7 — onboarding builds the colleague; probation confirms the hire). The read that closes the loop: onboarding completion time and completeness per hire, and the early-attrition overlay (the hires who leave in ninety days, mapped against their onboarding records — the pattern that shows whether the firm's entries or its selections are leaking, which are different repairs). The consultant's one-line summary for owners: <b>the first two weeks are the cheapest retention programme the firm will ever run.</b></p>"
-   },
-   {
-    "title": "Chapter 7 — Probation: the governed trial",
-    "est": "13",
-    "html": "<p>The pipeline's last stage runs after the hire starts: probation — the deliberate trial period that confirms, extends, or ends the employment — and the discipline that separates it from the date nobody watches. The confirmation chapter.</p><p><b>Probation as design, not default.</b> The probation period is SET in the offer (the duration per role and grade — the common Nigerian practice of three to six months, the specifics the employment adviser confirms), and it exists for both sides: the firm confirms the pipeline's prediction against reality; the employee confirms the role against the advert (the honest advert of Chapter 2 paying off here — the role that was described truly gets confirmed into; the one that was flattered gets resigned from, at month two, with the whole pipeline's cost sunk). The period's terms are stated, not assumed: what is being assessed, what confirmation requires, what the review cadence is — because a trial whose criteria are secret is not a trial; it is a mood with a deadline.</p><p><b>Objectives: what confirms.</b> The probation objectives, written at the start (the manager's duty, from the role's requirements and the onboarding's training path): the till assistant's (the training modules passed, the clean-session streak established, the mystery-count tied — the operational reads of four tracks, now serving as confirmation evidence), the storekeeper's (the receiving discipline observed, the cycle counts clean, the custody signed), the accountant's (the close participated, the reconciliations owned). The objectives law: FEW (three to five — the probation with fifteen objectives assesses nothing), OBSERVABLE (evidence the system already produces where possible — the academy's reads doing double duty again), and SHARED (the employee holds the same list the manager holds, from week one — the fairness that makes month three's decision unsurprising in either direction).</p><p><b>The cadence: watched, not remembered.</b> The probation calendar, owned: the month-one check-in (onboarding's close — early problems named while they are training problems), the MID-probation review (the formal midpoint: on track, or the honest conversation that gives the employee the second half to correct — the review that makes a non-confirmation procedurally fair, because the person was told, in writing, with time to respond), and the CONFIRMATION DUE date surfaced by module 1's expiry machinery (30 days out, to the manager and HR — the lapsed probation conviction from module 1 recapped with its full weight: the probation that expires unaddressed converts to confirmation by default in most readings of practice, which is a decision made by calendar neglect instead of judgment, and the reminder is the cure).</p><p><b>The decision as document.</b> Three outcomes, each a proper process: <b>CONFIRM</b> — the confirmation letter issued (the record's confirmation date set, the status overlay cleared — module 1's fields written by their owning event), the objectives' evidence filed with it, and the confirmation MARKED (the small ceremony the firm should not skip: the confirmed colleague told they passed, and why — the performance culture of module 5 starting on a high note); <b>EXTEND</b> — where genuine doubt remains and the adviser's guidance permits: the extension in writing, with the specific gaps named, the new date set, and the support offered (an extension without a plan is a deferral of a decision someone is avoiding); <b>SEPARATE</b> — the non-confirmation, run as the process the employment framework requires (notice per the terms, the documented trail the cadence built — the mid-review that warned, the objectives that were shared — and the exit handled with module 7's dignity disciplines, because the person who didn't fit is still a person, a reference-giver, and a voice in the market). The stage's closing read joins the pipeline's ledger: confirmation rates per source, per role, per interviewer — the number that finally grades the whole funnel, and the one module 8's analytics page waits for.</p>"
-   },
-   {
-    "title": "Chapter 8 — Case study: HealthTrade hires for Akure",
-    "est": "16",
-    "html": "<p>The pipeline, run end to end — the Akure branch (opened in Inventory 6's case study) needs a till assistant and a storekeeper, and every chapter clocks in.</p><p><b>The requisitions (Ch. 2).</b> Two openings raised from the structure: designations from the list, grade 1 and grade 2 respectively, branch Akure, reporting to the Akure supervisor — the spine extended first. Both within the branch's staffing plan (agreed at the Accounts 6 budget cycle); the founder approves in a day with the terms envelopes fixed. The adverts describe the real jobs — the Saturday shifts, the physical work, the count-before-you-sign culture — placed on one job board and the referral channel (into the pool, same process).</p><p><b>Pool and screen (Ch. 3).</b> Thirty-one applicants for the till, fourteen for the store — every one a record with a source. The criteria, written before a single CV opened: the till's must-haves (numeracy check, availability for the roster, residence within reach of the branch), the store's (literacy for documents, physical capability, prior stock-handling desirable-not-required). Screens run in two sittings, reasons recorded; nine and six advance. One referral — the supervisor's neighbour — enters the pool, is screened by the same list, and does not advance: the sentence that establishes the pipeline's integrity for every hire after (<i>she was screened like everyone; the criteria decided</i>), delivered without drama and remembered forever.</p><p><b>Assessment (Ch. 4).</b> The till path: structured interview (the disputed-price scenario, the shortpay scenario — scored against anchors) then the PRACTICAL on the training till: a mock sale, a return, a cash-up. The practical's revelation, as designed: the smoothest interviewer fumbles the cash-up arithmetic twice; a quieter candidate runs it clean, counts the drawer denominated without being told, and — the observers' note that decides it — recounts once when interrupted. The store path's practical: a shelf count and a mock short delivery against a document; two of six sign without counting (the trade's oldest failure, caught at selection for the price of a staged carton), one counts, catches the short, and annotates the document unprompted. Feedback written before conferring; decisions minuted from the file; both top scorers advanced — no overrides to record.</p><p><b>Offer and the gate (Ch. 5).</b> Offers from the grades' bands — no improvisation; the till candidate negotiates within the band's rules and accepts; validity windows held. Then the verification gate earns the module its keep: the storekeeper candidate's stock-handling certificate, checked with the issuing institute, <b>comes back unknown — the certificate is forged</b>. The conditions clause does its quiet work: the offer lapses by letter (no termination, no drama, no risk — the check two weeks early being free, exactly as Chapter 5 priced it), the file is noted, and the runner-up — the counter who caught the short — is verified clean, offered, and accepts. The guarantor forms complete for both cash-and-custody roles; references called with the three questions, answers filed.</p><p><b>Onboarding and probation (Ch. 6-7).</b> Day one arrives prepared: records born from the offer documents, users linked, the till identity and warehouse restrictions granted correctly at entry (the four tracks' permission designs, applied in an hour because the checklist knew them), kit ready, buddies named, policy acknowledgments signed — including the cash and custody policies their roles make load-bearing. Training paths assigned (the product and till modules; the receiving and counting modules — module 6's machinery previewed live). Probation objectives written and SHARED: the till's three (modules passed, clean-session streak of 30, one surprise count tied), the store's three (receiving discipline observed on five deliveries, cycle counts clean, custody count signed). Mid-reviews held on the calendar; the confirmation-due reminders fire at 30 days; and month three confirms both — the letters citing the EVIDENCE (the streak stands at 41; the five deliveries were counted before signing, every time), the small ceremony held at the branch meeting. The pipeline's ledger updates: two hires, two confirmations, one forgery caught at the gate instead of the till — and the Akure playbook (Inventory 6's <i>branch four will take a week</i>) gains its people chapter.</p>"
-   },
-   {
-    "title": "Chapter 9 — Common mistakes & the second law",
-    "est": "13",
-    "html": "<p>The hiring layer's scar tissue. Symptom → disease → fix.</p><p><b>Pattern 1 — the corridor hire.</b> Symptom: hires appearing without openings; the connected candidate who skipped the pool; nobody able to say who approved the headcount. Disease: the event instead of the pipeline (Ch. 1-2) — selection by proximity, commitment without approval. Fix: the requisition as the only door (headcount is money and gets money's governance), one pool for all candidates including referrals, and the integrity sentence delivered early — <i>screened like everyone; the criteria decided.</i></p><p><b>Pattern 2 — criteria after CVs.</b> Symptom: the bar that bends toward the impressive candidate; shortlists nobody can explain against a list. Disease: the rationalisation wearing a rubric (Ch. 3). Fix: criteria written and filed before the pool opens, the screen recorded in/out with reasons, and the must-haves held as musts — especially the legal ones.</p><p><b>Pattern 3 — the charm selection.</b> Symptom: hires who interviewed brilliantly and work badly; the confident talker beating the capable quiet one, repeatedly. Disease: unstructured interviews measuring interview skill (Ch. 4). Fix: the structured core questions with scoring anchors, feedback written before conferring, and the practical test for every operational role — the trade's truth-teller, built from its actual failure modes.</p><p><b>Pattern 4 — verification after joining, or never.</b> Symptom: the forged certificate discovered at month four; the reference never actually called; the guarantor form blank in the file of the till operator with a drawer variance. Disease: the gate skipped (Ch. 5) — the check that was free two weeks early now priced as a termination. Fix: the conditions clause in every offer, the verification checklist owned in the pre-joining window, and the rule absolute: <b>no start date before the gate clears.</b></p><p><b>Pattern 5 — 'sit with Ngozi'.</b> Symptom: new hires learning by osmosis; access accreted over months; policies never acknowledged and therefore never fairly enforceable; early attrition nobody maps. Disease: onboarding as improvisation (Ch. 6). Fix: the role-variant checklist, day-one readiness prepared in the pre-joining window, acknowledgments signed and filed, and the early-attrition overlay read against onboarding records.</p><p><b>Pattern 6 — the unwatched probation.</b> Symptom: confirmations by calendar lapse; non-performers confirmed by neglect and separated expensively later; probationers who never knew what confirmed. Disease: the trial as a mood with a deadline (Ch. 7). Fix: objectives few, observable, and shared; the mid-review on the calendar; the expiry reminder wired; and the decision — confirm, extend, separate — always a document with evidence.</p><p><b>The second law.</b> The first law made the person's record; the second governs how people enter it: <b>hiring is a pipeline, not an event — the need defined and approved before advertising, one pool screened by criteria written first, assessment on evidence with the practical as the trade's truth-teller, offers from structure, credentials verified before day one, and the first ninety days managed as deliberately as the first interview.</b> Each stage a document, each transition owned, the whole funnel readable — and the pipeline's product is not a signature but a confirmed colleague whose file already tells their story. Module 3 begins the working rhythm that story now joins: attendance, shifts, and the roster that keeps a branch trading.</p>"
+    "title": "Chapter 9 — Common errors and the module rule",
+    "est": "11",
+    "html": "<p>The errors that recur in the recruitment pipeline, each with its correction and prevention.</p><p><b>Error 1 — hiring outside the plan.</b> Symptom: openings and offers for positions no plan approved; headcount and cost growing without an approval trail. Correction: the plan amended through its approval to cover the position, or the opening withdrawn. Prevention: the plan-first order enforced; the opening's plan link and the plan validation in use.</p><p><b>Error 2 — the informal offer.</b> Symptom: terms communicated in conversation or free-form messages; the Job Offer absent or created after acceptance; the assignment's Base disagreeing with what the candidate was told. Correction: the Job Offer created with the complete terms table and reconciled with the candidate before joining. Prevention: the rule that the offer is issued from the document, and the joiner verification's check that the assignment Base equals the offer's pay term.</p><p><b>Error 3 — the silent rejection.</b> Symptom: applicant records aging at Open indefinitely; candidates never answered; pipeline reads meaningless. Correction: statuses set with the courtesy communication sent. Prevention: the weekly funnel and aging reads during active hiring.</p><p><b>Error 4 — the unstructured interview.</b> Symptom: interviews without rounds or feedback records; decisions with no recorded basis; candidates compared by recollection. Correction: feedback recorded for completed interviews where still possible; rounds built for the role family. Prevention: Interview Rounds with skill rows built before hiring starts, and same-day feedback submission as the standing rule.</p><p><b>Error 5 — the unonboarded joiner.</b> Symptom: the new employee arriving to no access, no workstation, no payroll assignment; the first week spent assembling what should have preceded it. Correction: the missing activities completed immediately through their owners. Prevention: the Employee Onboarding document generated at acceptance, and the pre-joining activities confirmed complete on a dated check before the joining date.</p><p><b>Error 6 — applicant data mishandled.</b> Symptom: resumes and personal documents in personal drives and inboxes; no retention convention; rejected candidates' data kept indefinitely. Correction: documents moved onto the records; the retention convention decided and the clearing performed. Prevention: the data-handling rules of Chapter 4 — access limited, documents on records, retention recorded and executed.</p><p><b>Review list.</b> Before the quiz, confirm you can: state the six-stage pipeline and what each stage's record produces; create a Staffing Plan with its details table and state what the plan validates; create and manage Job Openings with the status discipline and the openings read; process Job Applicants through the status pipeline with the source tracking and the three reads; build Interview Rounds with skill rows and run the interview procedure with same-day structured feedback; issue a Job Offer with the complete terms table and the letter print; and create the Employee from the applicant and run Employee Onboarding from a template with the pre-joining check.</p><p><b>Module rule 2: hiring runs through the pipeline — vacancies approved on the plan, candidates processed on recorded statuses, assessments structured and same-day, offers issued from the document with complete terms, and joiners onboarded on a generated checklist confirmed before the joining date.</b> Module 3 covers attendance and shifts.</p>"
    }
   ],
   "questions": [
    {
-    "q": "The pipeline's four arguments are:",
+    "q": "The recruitment pipeline's six stages are:",
     "opts": [
-     "Signal, fairness, repeatability, and the cost frame of a bad hire",
-     "Speed, cost, ease, habit",
-     "Legal, moral, social, financial",
-     "None"
+     "Staffing Plan, Job Opening, Job Applicant, Interview, Job Offer, Employee + Employee Onboarding",
+     "Advert, CV, chat, offer, join, file",
+     "Plan, budget, hire, pay, review, exit",
+     "Opening, offer, employee only"
     ],
     "ans": 0,
-    "why": "Evidence beats impression; the process is an asset the firm keeps.",
+    "why": "Each stage produces a record.",
     "src": "Ch1"
    },
    {
-    "q": "A bad hire costs:",
+    "q": "The pipeline produces, over informal hiring:",
     "opts": [
-     "Its salary only",
-     "Salary, training, errors, severance, and the replacement's whole pipeline",
-     "Nothing measurable",
-     "One month"
+     "Speed only",
+     "Traceability, control (approval before advertising), and reporting from the records",
+     "More paperwork only",
+     "Nothing different"
     ],
     "ans": 1,
-    "why": "Months of cost from one skipped stage; the pipeline costs days of structure.",
+    "why": "Chapter 1's three products.",
     "src": "Ch1"
    },
    {
-    "q": "The three stages that never shrink with firm size are:",
+    "q": "The Staffing Details table row carries:",
     "opts": [
-     "Adverts, offers, parties",
-     "Interviews, tests, references",
-     "Criteria before CVs, verification before joining, and probation actually watched",
-     "None shrink"
+     "Names of candidates",
+     "Interview dates",
+     "Designation, number of positions, current count, and estimated cost per position",
+     "Offer terms"
     ],
     "ans": 2,
-    "why": "The most tempting to skip and the most expensive.",
-    "src": "Ch1"
-   },
-   {
-    "q": "The job opening is assembled from:",
-    "opts": [
-     "Free text",
-     "The last hire's file",
-     "The advert",
-     "The structure — designation, grade, branch, and the reporting line extended first"
-    ],
-    "ans": 3,
-    "why": "Decisions made once at the top, inherited everywhere below.",
+    "why": "One row per designation planned.",
     "src": "Ch2"
    },
    {
-    "q": "A ₦150k/month role is:",
+    "q": "The Staffing Plan controls:",
     "opts": [
-     "A multi-million-naira commitment wearing a vacancy notice — approval-worthy",
-     "A small decision",
-     "HR's call alone",
-     "Routine"
+     "Interview scheduling",
+     "Leave",
+     "Salary slips",
+     "Job Opening creation — openings validate against the planned positions for the period"
     ],
-    "ans": 0,
-    "why": "Headcount is money; the requisition gets two names.",
+    "ans": 3,
+    "why": "Vacancies approved before advertised.",
     "src": "Ch2"
    },
    {
-    "q": "The advert that flatters the role:",
+    "q": "A blocked but genuinely needed opening is handled by:",
     "opts": [
-     "Attracts better candidates",
-     "Recruits for a job that doesn't exist and buys the early attrition that follows",
-     "Is marketing",
-     "Is required"
+     "A plan amendment through its approval",
+     "A bypass",
+     "Ignoring the plan",
+     "A free-text note"
+    ],
+    "ans": 0,
+    "why": "The control is the approval, not the block.",
+    "src": "Ch2"
+   },
+   {
+    "q": "The plan's period close reads:",
+    "opts": [
+     "Nothing",
+     "Positions filled within period, positions lapsed, cost against estimate — feeding the next plan",
+     "Applicant counts",
+     "Interview scores"
     ],
     "ans": 1,
-    "why": "The honest advert pays off at probation.",
-    "src": "Ch2, Ch7"
+    "why": "The plan-versus-actual discipline.",
+    "src": "Ch2"
    },
    {
-    "q": "Referrals enter the pipeline:",
+    "q": "A filled position left with an Open opening:",
     "opts": [
-     "Around the pool",
-     "Pre-approved",
-     "INTO the pool — one process; the parallel track is the pipeline's first corruption",
-     "Only if senior"
+     "Is harmless",
+     "Closes itself",
+     "Overstates the vacancy report — closing is a deliberate act with the hire noted",
+     "Blocks payroll"
     ],
     "ans": 2,
-    "why": "'Screened like everyone; the criteria decided.'",
+    "why": "The status discipline.",
     "src": "Ch3"
    },
    {
-    "q": "Screening criteria are written:",
+    "q": "The Job Opening's Designation link connects it to:",
     "opts": [
-     "After reading CVs",
-     "Never",
-     "By candidates",
-     "Before the first CV is read — criteria written after are reverse-engineered around preferences"
+     "The payslip",
+     "The holiday list",
+     "The org chart",
+     "The Staffing Plan validation and the downstream applicant and offer records"
     ],
     "ans": 3,
-    "why": "The rationalisation wearing a rubric.",
+    "why": "The canonical title stays on the Designation.",
     "src": "Ch3"
    },
    {
-    "q": "Rejected applicants are:",
+    "q": "The openings read is:",
     "opts": [
-     "Told, briefly and professionally — today's rejected applicant is tomorrow's customer or referrer",
-     "Ghosted",
-     "Blacklisted",
+     "The list filtered Status = Open, with age per row flagged against expected time-to-fill, monthly",
+     "Annual",
+     "The offer list",
+     "The applicant funnel"
+    ],
+    "ans": 0,
+    "why": "The live vacancy report.",
+    "src": "Ch3"
+   },
+   {
+    "q": "One-opening-per-position versus counted openings:",
+    "opts": [
+     "Never matters",
+     "Is decided once and recorded — the vacancy reports count differently under each convention",
+     "Is automatic",
+     "Is the candidate's choice"
+    ],
+    "ans": 1,
+    "why": "A mixed register counts nothing reliably.",
+    "src": "Ch3"
+   },
+   {
+    "q": "A candidate applying for two openings is:",
+    "opts": [
+     "One record",
+     "A duplicate error",
+     "Two Job Applicant records, tracked independently",
+     "One record with two links"
+    ],
+    "ans": 2,
+    "why": "One record per candidate per opening.",
+    "src": "Ch4"
+   },
+   {
+    "q": "The Source field feeds:",
+    "opts": [
+     "The payslip",
+     "The offer terms",
+     "The org chart",
+     "The effectiveness read — applicants and hires per source, quarterly"
+    ],
+    "ans": 3,
+    "why": "Where the advertising money produces hires.",
+    "src": "Ch4"
+   },
+   {
+    "q": "The applicant statuses are:",
+    "opts": [
+     "Open, Replied, Hold, Rejected, Accepted",
+     "New and old",
+     "Draft and submitted",
+     "Pass and fail"
+    ],
+    "ans": 0,
+    "why": "The status pipeline.",
+    "src": "Ch4"
+   },
+   {
+    "q": "Rejections are made:",
+    "opts": [
+     "By silence",
+     "Formally, with the courtesy communication sent and the status set",
+     "By deleting the record",
+     "Never"
+    ],
+    "ans": 1,
+    "why": "Statuses left Open make the reads meaningless.",
+    "src": "Ch4"
+   },
+   {
+    "q": "The funnel read finds:",
+    "opts": [
+     "Salaries",
+     "Tax errors",
+     "The stage where candidates accumulate without moving — the process bottleneck",
+     "Duplicates"
+    ],
+    "ans": 2,
+    "why": "Weekly during active hiring.",
+    "src": "Ch4"
+   },
+   {
+    "q": "Applicant data handling requires:",
+    "opts": [
+     "Nothing special",
+     "Indefinite keeping",
+     "Public folders",
+     "Access limited to recruiting roles, documents on the record, and a recorded retention convention executed periodically"
+    ],
+    "ans": 3,
+    "why": "Personal data of people who may never join.",
+    "src": "Ch4"
+   },
+   {
+    "q": "The Interview Round defines:",
+    "opts": [
+     "A reusable stage — designation, default interviewers, and the Expected Skill Set table",
+     "One event",
+     "The offer",
+     "The plan"
+    ],
+    "ans": 0,
+    "why": "Built once per role family.",
+    "src": "Ch5"
+   },
+   {
+    "q": "The Expected Skill Set table matters because:",
+    "opts": [
+     "It is printed",
+     "It defines the feedback form's rating rows — every candidate rated on the same items",
+     "It sets pay",
+     "It schedules events"
+    ],
+    "ans": 1,
+    "why": "Structured comparison, row by row.",
+    "src": "Ch5"
+   },
+   {
+    "q": "Interview Feedback is submitted:",
+    "opts": [
+     "Weekly",
+     "By HR only",
+     "Per interviewer, the same day — later feedback is reconstructed impression, not assessment",
+     "After the offer"
+    ],
+    "ans": 2,
+    "why": "Independent submission per interviewer.",
+    "src": "Ch5"
+   },
+   {
+    "q": "A multi-round process:",
+    "opts": [
+     "Uses one Interview record",
+     "Uses one panel",
+     "Skips feedback",
+     "Repeats the schedule-conduct-feedback steps per round; the applicant record accumulates the history"
+    ],
+    "ans": 3,
+    "why": "The full assessment history on the record.",
+    "src": "Ch5"
+   },
+   {
+    "q": "The Job Offer Terms table:",
+    "opts": [
+     "Is the complete statement — one row per term; terms not in the table are not offered",
+     "Is optional",
+     "Lists interviewers",
+     "Lists sources"
+    ],
+    "ans": 0,
+    "why": "Side communications create the disputes the document prevents.",
+    "src": "Ch6"
+   },
+   {
+    "q": "The offer's pay term must equal:",
+    "opts": [
+     "The plan's estimate",
+     "The Base the payroll assignment will carry — the joiner verification checks them against each other",
+     "The old salary",
+     "The budget line"
+    ],
+    "ans": 1,
+    "why": "The offer and the assignment agree.",
+    "src": "Ch6"
+   },
+   {
+    "q": "The offer letter prints:",
+    "opts": [
+     "From a typed template",
+     "From the applicant record",
+     "Through the print format — identity from the letterhead, terms from the document, nothing hard-typed",
+     "From the plan"
+    ],
+    "ans": 2,
+    "why": "The Sysadmin track's print rules.",
+    "src": "Ch6"
+   },
+   {
+    "q": "Offer rejection reasons are read because:",
+    "opts": [
+     "They are filed",
+     "The plan requires it",
+     "Candidates ask",
+     "Offers rejected on pay tell the business its figures are off market — quarterly read"
+    ],
+    "ans": 3,
+    "why": "The offer register's reads.",
+    "src": "Ch6"
+   },
+   {
+    "q": "Creating the Employee from the applicant:",
+    "opts": [
+     "Pre-fills the record from pipeline data — the joiner verification still runs identically",
+     "Replaces verification",
+     "Skips the joining fields",
+     "Closes onboarding"
+    ],
+    "ans": 0,
+    "why": "Pre-fill reduces retyping, not verification.",
+    "src": "Ch7"
+   },
+   {
+    "q": "The Employee Onboarding Template's activity rows carry:",
+    "opts": [
+     "Only names",
+     "The activity, the responsible user or role, the required days, and the before-joining flag",
+     "The salary",
+     "The interview scores"
+    ],
+    "ans": 1,
+    "why": "The cross-functional joining procedure in one document.",
+    "src": "Ch7"
+   },
+   {
+    "q": "Submitting the Employee Onboarding document:",
+    "opts": [
+     "Sends the offer",
+     "Creates the slip",
+     "Generates the activity tasks assigned to their owners with deadlines; Boarding Status tracks completion",
+     "Closes the opening"
+    ],
+    "ans": 2,
+    "why": "The joining checklist as a visible list.",
+    "src": "Ch7"
+   },
+   {
+    "q": "Required-before-joining activities are:",
+    "opts": [
+     "Best effort",
+     "Optional",
+     "Done in week one",
+     "Confirmed complete before the joining date on a dated check"
+    ],
+    "ans": 3,
+    "why": "The joiner arriving to nothing is the prevented failure.",
+    "src": "Ch7"
+   },
+   {
+    "q": "The template is built by:",
+    "opts": [
+     "Each responsible function contributing its own rows — sysadmin the access row, payroll the assignment row",
+     "HR alone",
+     "The MD",
+     "The candidate"
+    ],
+    "ans": 0,
+    "why": "The practical procedure.",
+    "src": "Ch7"
+   },
+   {
+    "q": "HealthTrade's week-two funnel read found:",
+    "opts": [
+     "A tax issue",
+     "Five records aging at Open — the screening backlog, cleared the same week",
+     "No applicants",
+     "A duplicate offer"
+    ],
+    "ans": 1,
+    "why": "The read finding the bottleneck.",
+    "src": "Ch8"
+   },
+   {
+    "q": "The second finalist was:",
+    "opts": [
+     "Rejected",
+     "Hired too",
+     "Placed on Hold with a remark — a strong candidate for the plan's second position",
      "Deleted"
     ],
-    "ans": 0,
-    "why": "The employer brand argument.",
-    "src": "Ch3"
-   },
-   {
-    "q": "The source field aggregated becomes:",
-    "opts": [
-     "Trivia",
-     "Recruitment's supplier scorecard — which channels produce hires who confirm and stay",
-     "A report nobody reads",
-     "Marketing data"
-    ],
-    "ans": 1,
-    "why": "Spend the next advert budget where hires actually came from.",
-    "src": "Ch3"
-   },
-   {
-    "q": "Structured interviews mean:",
-    "opts": [
-     "A formal room",
-     "Longer interviews",
-     "The same core questions per role, scored against pre-written anchors, notes during",
-     "Panel size"
-    ],
     "ans": 2,
-    "why": "Structure roughly doubles the signal.",
-    "src": "Ch4"
+    "why": "The Hold status used with its reason.",
+    "src": "Ch8"
    },
    {
-    "q": "Unstructured interviews measure:",
-    "opts": [
-     "Capability",
-     "Culture fit",
-     "Experience",
-     "Interview skill and interviewer mood — the confident talker beats the capable quiet one"
-    ],
-    "ans": 3,
-    "why": "The firm hiring tills cannot afford to select for charm.",
-    "src": "Ch4"
-   },
-   {
-    "q": "The practical test is built from:",
-    "opts": [
-     "The role's actual failure modes — the short delivery, the disputed price, the cash-up",
-     "Generic exercises",
-     "Personality quizzes",
-     "The CV"
-    ],
-    "ans": 0,
-    "why": "The candidate's instinct under the standard scenario is the best predictor.",
-    "src": "Ch4"
-   },
-   {
-    "q": "Interview feedback is written:",
-    "opts": [
-     "At day's end",
-     "During the interview, and before interviewers confer — the senior voice that speaks first anchors everyone",
-     "By HR",
-     "Optionally"
-    ],
-    "ans": 1,
-    "why": "Memory writes fiction by the third candidate.",
-    "src": "Ch4"
-   },
-   {
-    "q": "Passing over the highest scorer requires:",
+    "q": "HealthTrade's pre-joining check confirmed:",
     "opts": [
      "Nothing",
-     "Seniority",
-     "A recorded reason — the override that cannot be written down is the bias the structure catches",
-     "A revote"
-    ],
-    "ans": 2,
-    "why": "Decisions on the file, minuted.",
-    "src": "Ch4"
-   },
-   {
-    "q": "Offers come from:",
-    "opts": [
-     "Per-candidate negotiation",
-     "The market alone",
-     "The candidate's ask",
-     "The grade's band — a selection within the approved envelope, not improvisation"
+     "The plan total",
+     "The interviews",
+     "Workstation, access, and the payroll assignment previewed with Base matching the offer's term row"
     ],
     "ans": 3,
-    "why": "Improvisation builds the pay-disparity time bomb.",
-    "src": "Ch5"
-   },
-   {
-    "q": "Offer declines are:",
-    "opts": [
-     "Recorded with reasons — the band losing candidates to the market is a structure conversation",
-     "Forgotten",
-     "Personal",
-     "Rare"
-    ],
-    "ans": 0,
-    "why": "Readable only if captured.",
-    "src": "Ch5"
-   },
-   {
-    "q": "Verification after joining converts:",
-    "opts": [
-     "Nothing",
-     "A lapsed offer (a letter) into a termination (process, risk, cost)",
-     "Risk into safety",
-     "Cost into savings"
-    ],
-    "ans": 1,
-    "why": "The same check, two weeks earlier, is free.",
-    "src": "Ch5"
-   },
-   {
-    "q": "References are taken by:",
-    "opts": [
-     "Assumption",
-     "Email only",
-     "Actually calling — three structured questions, answers noted and filed",
-     "The candidate's word"
-    ],
-    "ans": 2,
-    "why": "The reference never actually called is the pipeline's commonest quiet lie.",
-    "src": "Ch5"
-   },
-   {
-    "q": "Guarantor frameworks fit:",
-    "opts": [
-     "Every role equally",
-     "Management only",
-     "No modern firm",
-     "Cash-handling and stock-custody roles — the trading norm earning its paperwork where custody lives"
-    ],
-    "ans": 3,
-    "why": "The roles four tracks spent protecting.",
-    "src": "Ch5"
-   },
-   {
-    "q": "Day one's stickiest lesson is:",
-    "opts": [
-     "Whether the firm improvises or runs on structure — taught by whether access and kit were ready",
-     "The handbook",
-     "The tour",
-     "The policies"
-    ],
-    "ans": 0,
-    "why": "Prepared in the pre-joining window from the role-variant checklist.",
-    "src": "Ch6"
-   },
-   {
-    "q": "Policy acknowledgments matter because:",
-    "opts": [
-     "Filing is tidy",
-     "The rule never communicated cannot fairly be enforced — they make the disciplinary process fair",
-     "Auditors ask",
-     "Tradition"
-    ],
-    "ans": 1,
-    "why": "Signed and filed, per role's load-bearing policies.",
-    "src": "Ch6"
-   },
-   {
-    "q": "The buddy, the manager, and the mentor:",
-    "opts": [
-     "Are the same lane",
-     "Compete",
-     "Answer different questions — the hire with all three lanes asks; the one with none guesses",
-     "Are optional extras"
-    ],
-    "ans": 2,
-    "why": "Guessing at a till or a gate is what the practical existed to prevent.",
-    "src": "Ch6"
-   },
-   {
-    "q": "The early-attrition overlay reveals:",
-    "opts": [
-     "Nothing",
-     "Market conditions",
-     "Bad luck",
-     "Whether entries or selections are leaking — different repairs"
-    ],
-    "ans": 3,
-    "why": "Ninety-day leavers mapped against onboarding records.",
-    "src": "Ch6"
-   },
-   {
-    "q": "A trial whose criteria are secret is:",
-    "opts": [
-     "A mood with a deadline — not a trial",
-     "Rigorous",
-     "Standard",
-     "Flexible"
-    ],
-    "ans": 0,
-    "why": "What is assessed, what confirms, and the cadence are stated.",
-    "src": "Ch7"
-   },
-   {
-    "q": "Probation objectives are:",
-    "opts": [
-     "Fifteen and thorough",
-     "Few, observable, and SHARED — the employee holds the same list from week one",
-     "Secret until review",
-     "The manager's notes"
-    ],
-    "ans": 1,
-    "why": "The academy's operational reads doing double duty as evidence.",
-    "src": "Ch7"
-   },
-   {
-    "q": "The mid-probation review exists so:",
-    "opts": [
-     "Paperwork accumulates",
-     "HR has meetings",
-     "The person is told in writing with time to correct — making any non-confirmation procedurally fair",
-     "Managers look busy"
-    ],
-    "ans": 2,
-    "why": "Month three's decision should surprise no one, in either direction.",
-    "src": "Ch7"
-   },
-   {
-    "q": "An extension without a plan is:",
-    "opts": [
-     "Generous",
-     "Kind",
-     "Standard",
-     "A deferral of a decision someone is avoiding"
-    ],
-    "ans": 3,
-    "why": "Gaps named, new date set, support offered — or decide.",
-    "src": "Ch7"
-   },
-   {
-    "q": "Confirmation rates per source and interviewer are:",
-    "opts": [
-     "The number that finally grades the whole funnel",
-     "Trivia",
-     "Unknowable",
-     "HR's secret"
-    ],
-    "ans": 0,
-    "why": "The pipeline's ledger, closing at module 8's analytics.",
-    "src": "Ch7"
-   },
-   {
-    "q": "The supervisor's neighbour referral:",
-    "opts": [
-     "Skipped the screen",
-     "Entered the pool, was screened by the same list, and did not advance — the integrity sentence",
-     "Was hired",
-     "Was refused entry"
-    ],
-    "ans": 1,
-    "why": "Delivered without drama, remembered forever.",
+    "why": "The eve-of-joining dated check.",
     "src": "Ch8"
    },
    {
-    "q": "The till practical's decisive note was:",
+    "q": "The quarter's time-to-hire read was:",
     "opts": [
-     "The smoothest interviewer won",
-     "A tie",
-     "The quiet candidate who counted denominated and recounted when interrupted",
-     "Speed"
-    ],
-    "ans": 2,
-    "why": "The trade's truth-teller, as designed.",
-    "src": "Ch8"
-   },
-   {
-    "q": "The forged certificate was caught:",
-    "opts": [
-     "At month four",
-     "Never",
-     "By the auditor",
-     "At the verification gate before day one — the offer lapsed by letter, no drama, no risk"
-    ],
-    "ans": 3,
-    "why": "The check two weeks early being free, exactly as priced.",
-    "src": "Ch8"
-   },
-   {
-    "q": "The confirmations cited:",
-    "opts": [
-     "Evidence — the 41-session streak; five deliveries counted before signing, every time",
-     "Impressions",
-     "Seniority",
-     "Attendance only"
+     "41 days from opening to joining, read from the records without reconstruction",
+     "Unmeasurable",
+     "One week",
+     "Six months"
     ],
     "ans": 0,
-    "why": "The letters citing the objectives' records.",
+    "why": "The records answer the reads.",
     "src": "Ch8"
    },
    {
-    "q": "'Sit with Ngozi' onboarding produces:",
+    "q": "The informal offer is prevented by:",
     "opts": [
-     "Fast learners",
-     "Osmosis learning, accreted access, unenforceable policies, and unmapped early attrition",
-     "Team bonding",
-     "Savings"
+     "Trust",
+     "Offers issued from the document with the complete terms table, and the verification's Base-equals-offer check",
+     "Verbal confirmations",
+     "Smaller offers"
     ],
     "ans": 1,
-    "why": "The role-variant checklist is the fix.",
+    "why": "Error 2.",
     "src": "Ch9"
    },
    {
-    "q": "This module's law is:",
+    "q": "Module 2's rule is:",
     "opts": [
-     "Hire fast, fix later",
-     "Referrals first",
-     "Hiring is a pipeline, not an event — defined, screened by criteria written first, assessed on evidence, offered from structure, verified before day one, and managed through ninety days",
-     "Charm wins"
+     "Hire informally",
+     "Offers are conversations",
+     "Hiring runs through the pipeline — plan-approved vacancies, recorded statuses, structured same-day assessments, complete documented offers, and onboarding confirmed before joining",
+     "Plans are optional"
     ],
     "ans": 2,
-    "why": "The product is not a signature but a confirmed colleague.",
+    "why": "The module rule.",
     "src": "Ch9"
    }
   ]
