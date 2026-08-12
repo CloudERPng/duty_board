@@ -2839,473 +2839,473 @@
  },
  "stock_health": {
   "title": "Inventory 7 — Stock Health & Analytics",
-  "desc": "The reading module: stock as capital and its vital signs, turns and coverage, aging and the dead-stock ladder, ABC and the value-velocity matrix, stockout and availability tracking, the reports shelf, and the monthly stock health page.",
+  "desc": "Stock health and analytics in ZhiftERP: the stock aging read with its bands, the over-ninety-day percentage, and the carried working list; movement classification and the two-dimensional grid with seasonal and probation exclusions; sell-through analytics — the network view, the divergence read, the group rollup, and the like-window rule; the five dead-stock lanes in preference order with the monthly review's decision list; upstream prevention — reorder hygiene, purchasing feedback, the range review and delisting execution, and the new-item probation read; and stock turns, the joined margin reading, and the five-section monthly health page.",
   "lessons": [
    {
-    "title": "Chapter 1 — Stock as capital: the vital signs",
+    "title": "Chapter 1 — Stock health: scope and reads",
+    "est": "11",
+    "html": "<p>This module covers stock health and analytics in ZhiftERP. On completing this module you will be able to: run the stock aging read and maintain the over-ninety-day working list; classify items by movement and combine the classification with value ranking; run sell-through analytics at network and site level; operate the dead-stock lanes in their preference order with their documents; apply the upstream prevention reads; compute stock turns and compile the monthly health page.</p><p><b>What stock health means.</b> Modules 1-6 keep the records accurate. This module reads those records to answer a different question: is the stock itself in good condition as an investment? Stock that does not move ties up money, occupies space, approaches expiry, and eventually writes off. The reads in this module identify that stock early, while the corrective lanes still have options; the lanes then move, reprice, return, or write off the identified stock by document.</p><p><b>The read-and-lane structure.</b> Each read produces a list; each list feeds a lane; each lane is a documented procedure with an owner and an approval level. The reads are scheduled, not occasional: a stock health problem identified at month three costs a markdown; the same problem identified at month eleven costs a write-off.</p><p><b>Custody.</b> The stock manager runs the reads and prepares the lists; the owner decides the lanes at the monthly review for items above the threshold; the stock function executes the decided lanes through the standard documents (modules 2, 3, and 6). Purchasing receives the upstream findings (Chapter 6), because most stock health problems are purchasing decisions read back three months later.</p><p><b>The data precondition.</b> Every read in this module computes from the ledger and the movement history. The reads are reliable to the degree modules 1-5 are operated: accurate quantities (module 4's counts), honest dates (module 2's posting discipline), correct values (module 5). A site with weak record discipline reads its stock health from fiction; the accuracy metric (module 4) is therefore the first figure on the health page, because it states how much the other figures can be trusted.</p><p><b>Module contents.</b> Chapter 2: the stock aging read. Chapter 3: movement classification. Chapter 4: sell-through analytics. Chapter 5: the dead-stock lanes. Chapter 6: upstream prevention. Chapter 7: turns, margin, and the health page. Chapter 8: worked example. Chapter 9: review and the module rule.</p>"
+   },
+   {
+    "title": "Chapter 2 — The stock aging read",
+    "est": "12",
+    "html": "<p>The aging read groups stock value by how long it has been held. This chapter is the report, the bands, and the working list.</p><p><b>1. The Stock Ageing report.</b> Open Stock Ageing (awesome bar) — the standing report over the ledger's receipt history. Per item per warehouse it computes the age of the held stock from the receipt dates of the quantities still on hand (the earliest-in quantities age first, consistent with the receipt-queue arithmetic), and presents the age columns with quantities and values.</p><p><b>2. The band structure.</b> The policy sets the bands; the standing shape for a trading business: 0-30 days, 31-60, 61-90, and over 90. For a pharmaceutical distributor the bands read alongside module 3's expiry horizons — age and remaining shelf life are different measures (a slow item bought with long dating ages without expiry risk; a fast item bought short-dated expires without aging), and the two reads are run separately for that reason.</p><p><b>3. The monthly compile.</b> With the close, per warehouse and for the network:</p><p>1. <b>The value per band</b> — the aging profile: how much of the stock investment sits in each band.<br>2. <b>The over-ninety-day line as a percentage of total stock value</b> — the single-figure trend. The percentage is the comparable number across months and sites; the policy sets the target and the review threshold.<br>3. <b>The over-ninety-day working list</b> — every item in the band with quantity, value, warehouse, and last movement date. This list is the module's primary working document: Chapter 5's lanes work through it item by item at the monthly review.</p><p><b>4. Reading the profile.</b> Three standing observations the compile is checked for:</p><p>1. <b>A growing over-ninety band</b> — stock entering the band faster than the lanes clear it: either the lanes are not running or purchasing is over-buying (Chapter 6's feedback loop).<br>2. <b>Band concentration by item group</b> — one group carrying a disproportionate share of the aged value directs the review to a range or supplier decision rather than item-by-item treatment.<br>3. <b>Band concentration by site</b> — aged stock concentrated at one branch feeds module 6's rebalancing read before any markdown is considered: stock aged at one site may sell at its normal price at another.</p><p><b>5. The read's discipline.</b> The working list carries forward month to month with each item's lane decision and status. An item appearing on the list for a second month without a decision is an escalation to the owner per the review procedure — the list exists to force decisions, and an undecided item is the list failing at its purpose.</p>"
+   },
+   {
+    "title": "Chapter 3 — Movement classification",
+    "est": "12",
+    "html": "<p>Value ranking (module 4's ABC) and movement speed are different measurements. This chapter combines them into the two-dimensional read that sets priorities.</p><p><b>1. The movement classes.</b> Per item per site, computed from consumption over the policy's window (the standing window: two quarters):</p><p>1. <b>Fast</b> — consistent movement across the window at or above the group's median.<br>2. <b>Slow</b> — movement present but below the median, or irregular across the window.<br>3. <b>Dead</b> — negligible or zero movement across the window. The policy defines negligible numerically (for example, fewer than a set number of units across the window), so the classification is computed, not judged.</p><p><b>2. Why value ranking alone is insufficient.</b> Module 4's ABC classification ranks by consumption value and directs counting effort. A C-class item — low individual value — can be dead in large numbers: individually each line is small, and collectively the class ties up significant value and shelf space while attracting no attention precisely because each line is small. The movement classification exists to read what value ranking passes over.</p><p><b>3. The two-dimensional read.</b> The classes cross into a priority grid, worked in this order at the review:</p><p>1. <b>High-value dead</b> (A or B class, dead movement) — the priority cell: significant money not moving. Each line is worked individually through Chapter 5's lanes at the first review it appears.<br>2. <b>Low-value dead in volume</b> (C class, dead movement) — worked as a set: the count of lines and their aggregate value are the review figures, and the treatment is usually collective — a range decision, a clearance programme, or the delisting flow (module 8) — rather than line-by-line handling.<br>3. <b>High-value slow</b> — the watch cell: reorder levels checked against the movement (Chapter 6) before more arrives.<br>4. <b>Fast items</b> — no health action; their reads belong to replenishment (module 6).</p><p><b>4. The classification cadence.</b> Computed quarterly alongside the ABC review (module 4's cadence), stored per item per site, and compared against the prior quarter: items newly entering the dead class are the early-warning list — a line that was slow last quarter and dead this quarter is identified two quarters earlier than the aging read alone would surface it, because aging measures the stock already held while movement measures the demand that stopped.</p><p><b>5. The classification's limits, stated.</b> Seasonal items classify as dead in their off season by construction; the classification read carries a seasonal flag per the range list, and flagged items are assessed against the same window of the prior year (Chapter 4's like-window rule) rather than the preceding quarter. New items inside their probation window (Chapter 6) are excluded from the dead class until the probation read completes.</p>"
+   },
+   {
+    "title": "Chapter 4 — Sell-through analytics",
+    "est": "12",
+    "html": "<p>Module 6 defined the eight-week sell-through read for replenishment. This chapter extends it into the analytical views the health reviews use.</p><p><b>1. The base figure, restated.</b> Sell-through per item per site: units sold across the window as a percentage of units available across the window (opening stock plus receipts). The figure states demand against stocking, and it is comparable across items, sites, and periods — the property the views below depend on.</p><p><b>2. The network view.</b> The same item's sell-through across all sites, side by side:</p><p>1. <b>Uniform low</b> — the item is not selling anywhere: a range or pricing question for the review, and a candidate for Chapter 5's lanes.<br>2. <b>Divergent</b> — selling at one site, standing at another: module 6's rebalancing case, proposed as a lateral with the figures attached. The divergence read runs before any markdown decision, because moving stock to where it sells at full price precedes discounting it where it does not.<br>3. <b>Uniform high with stockouts</b> — the replenishment question (module 6's reorder health read), not a health problem.</p><p><b>3. The group rollup.</b> Sell-through aggregated by item group: the view that supports range decisions. A group whose sell-through declines across two consecutive windows while its stock value holds or grows is accumulating aged stock by arithmetic — the compile flags it before the aging read shows the result, and the finding routes to the range review (Chapter 6) with the purchasing data attached.</p><p><b>4. The like-window rule.</b> Comparisons run against comparable periods: this eight-week window against the same window of the prior year for seasonal ranges, against the preceding window for stable ranges. The range list marks which items are seasonal (Chapter 3's flag); the compile applies the correct comparison per the flag. A seasonal item compared against its own peak reads as collapsing; compared against last year's same season it reads correctly, and the rule exists because the wrong comparison generates false entries on the review lists.</p><p><b>5. The compile discipline.</b> The sell-through views compile monthly with the close, from the standard reports, by the documented procedure — the same figures every month, computed the same way, filed with the review pack. The reviews depend on trend, and trend depends on consistent computation: a figure computed differently between months produces movement that is method, not demand. Where the computation changes (a window resized, a group restructured), the change is recorded and the affected trend restarts from the change date.</p>"
+   },
+   {
+    "title": "Chapter 5 — The dead-stock lanes",
     "est": "13",
-    "html": "<p>Six modules built and defended the stock truth; this module READS it — because stock is not goods on shelves, it is <b>capital wearing inventory's clothes</b>, usually the largest single asset a trading firm owns, and the reading discipline is what makes that capital WORK instead of sit.</p><p><b>The capital framing, taught to owners.</b> The ₦48m at Central is ₦48m the firm chose to hold as stock instead of cash, expansion, or debt reduction — and every stock decision is silently a capital-allocation decision: the overstock is capital parked and depreciating (expiry, obsolescence, storage); the stockout is capital ABSENT from where it earns; the dead pallet is capital in prison. The consultant who opens the analytics conversation with this framing gets the owner's attention immediately, because it converts warehouse reports into money reports — which is what they always were.</p><p><b>Health, defined.</b> Healthy stock is four things at once: the RIGHT AMOUNT (enough to serve, not enough to rot — turns and coverage, Chapter 2), in the RIGHT PLACES (the network's placement question — availability, Chapter 5), MOVING (aging and dead stock, Chapter 3), and TRUE (accuracy and valuation — modules 4-5's certificates, read here as vitals). A firm can fail any one while passing the others — the accurate, well-placed warehouse full of stock that stopped selling; the fast-turning network that stocks out weekly — which is why the health read is a PANEL of vitals, never one number, and Chapter 7 assembles the panel onto its page.</p><p><b>The reads exist because the disciplines exist.</b> Notice what this module does NOT have to build: every number it reads is exhaust from machinery already running — turns from the ledger's movements, aging from its dates, accuracy from module 4's programme, shrinkage from its reason codes, expiry losses from module 3's horizon, availability from the bins. A firm that kept modules 1-6 gets this module's analytics essentially FREE; a firm that did not has reports that read fiction — the garbage-in law that makes analytics the reward for discipline rather than its substitute. When a client asks for <i>better stock reports</i>, the diagnostic question is always whether the reports are weak or the ledger beneath them is — and by this point in the certification you know exactly how to tell.</p><p><b>The cadence law, restated for the reading room.</b> Every report in this module earns a rhythm and an owner or it is decoration (the conviction from three tracks, final appearance): the daily reads are operational (bins, exceptions), the weekly are managerial (the network dashboard's vitals), the monthly is the health page with the MD, the quarterly re-runs the structural analyses (ABC, the matrix). This module supplies the WHAT; the final module's calendar fixes the WHEN and WHO.</p>"
+    "html": "<p>Identified dead stock is resolved through one of five lanes, in preference order, each by document. This chapter is the lanes and the monthly review that assigns them.</p><p><b>1. Lane 1 — rebalancing.</b> The item sells at another site (Chapter 4's divergence read): a lateral transfer per module 6's procedure — proposed with the sell-through figures, approved at the center, executed as a standard transfer with identity on the rows. Rebalancing recovers full price and costs a transfer; it is first in preference for that reason.</p><p><b>2. Lane 2 — markdown.</b> The item sells at a lower price: the markdown per the concession machinery (the ZhiftPOS track's markdown reasons and approval rules), with the dead-stock reason code, the price set per the policy's markdown ladder, and the review tracking sell-through at the new price. A markdown that does not move the stock within its review window escalates to the next lane rather than deepening indefinitely — the ladder's steps and windows are written in the policy.</p><p><b>3. Lane 3 — return to vendor.</b> Supplier terms permit returns on the line: the Procurement track's return flow, initiated within the terms' window, batches named on the return, credit tracked to settlement. This lane's availability is a purchasing term decided at supplier onboarding; the health review's recurring use of it on one supplier's lines is feedback for the next negotiation (Chapter 6).</p><p><b>4. Lane 4 — bundling and substitution.</b> The item moves as part of an offer or as a recommended substitute per the selling policy: the bundle or promotion machinery (the ZhiftPOS track's promotion configuration), with the dead-stock lines named in the offer's file. The lane applies where the item supports another sale even though it does not sell alone.</p><p><b>5. Lane 5 — write-off.</b> The remaining case: no site sells it, no price moves it, no return applies, no offer carries it. The write-off posts through module 2's issue lane — the reason, the account, the evidence (the review's decision note), the approval per the value ladder — and the disposal follows the compliance rules where the goods are regulated. The write-off is a decided expense: it appears on the review's decision list, the owner approves it per the band, and the month's issues read (module 2) reports it with the other decided figures.</p><p><b>6. The monthly dead-stock review.</b> The standing meeting, with the close: the over-ninety working list (Chapter 2) and the dead classification (Chapter 3) consolidated; each item or set assigned its lane with a one-line reason; prior months' assignments checked for status (the markdown that moved, the return awaiting credit, the lateral completed); undecided second-month items escalated per Chapter 2's rule. The review's output is the decision list — item, value, lane, owner, date — filed with the health page, and every decision on it is executable through a standard document the same week.</p>"
    },
    {
-    "title": "Chapter 2 — Turns & coverage: is the capital working?",
-    "est": "14",
-    "html": "<p>The first vital: how fast stock converts back to cash. Two lenses, one question.</p><p><b>Stock turnover.</b> The ratio: <b>COGS over average stock value</b> for a period (units work too — units sold over average units held — for item-level reads where value distorts). Turns of 12 means the stock pool converts to sales monthly; turns of 2 means the average naira sits six months. The mechanics matter less than the reading discipline: turns are computed PER ITEM and PER WAREHOUSE and then rolled — because the firm-wide number is an average of extremes that hides both diseases (the fast seller masking the dead pallet; Chapter 9 convicts the firm-wide-only read), and the interesting information is always the DISTRIBUTION: which items turn 20, which turn 1, and what each deserves.</p><p><b>Days of cover.</b> The operational twin: current stock over average daily sell-through = <b>how many days the shelf survives at current velocity</b>. Cover is the number planning conversations actually use (the reorder fields of Buying 2 ARE cover targets in disguise: reorder level = lead-time cover plus safety cover), and its per-item-per-warehouse read is the placement dial: Akure holding 9 days of a line while Ibadan holds 60 is the lateral conversation (module 6) wearing arithmetic.</p><p><b>Interpreting both directions.</b> The reading error to train out of clients: HIGH turns are not simply good, LOW not simply bad — each end has a failure mode. Turns too high / cover too thin: the firm is surfing stockout risk — every supply hiccup becomes a lost sale, expediting costs climb, and the apparent efficiency is fragility (the availability read, Chapter 5, is this number's conscience). Turns too low / cover too deep: capital parked — holding cost, expiry exposure (for dated goods, cover beyond remaining shelf life is a write-off on a schedule), and the opportunity cost the capital framing prices. The TARGET is a band, set per category (fast FMCG lines run high turns by nature; slow specialty lines run low legitimately), and the read is exceptions against the band — the item outside its band in either direction is the worklist.</p><p><b>Category benchmarks and the honest comparison.</b> Turns compare only within like: the pharmacy's fast analgesics against ITS fast analgesics over time, branch against branch on the SAME line, the firm against its trade's rough norms where known — never the antibiotic against the generator against the hair cream in one league table. The trend beats the level (the line whose turns halved in two quarters is a story regardless of where it sits), and the decomposition beats both: a falling turn is EITHER slowing sales or growing stock, and the two have different owners — the read that says WHICH (sell-through trend against stock trend, side by side) is the read that assigns the conversation correctly.</p><p><b>What turns feed.</b> Cover targets tune the planning fields (the quarterly exception review of Buying 2, now with its data source named); the turns distribution feeds ABC and the matrix (Chapter 4); thin-cover flags feed availability watch (Chapter 5); deep-cover flags feed the aging read (Chapter 3) before the aging read has to find them the hard way. One ratio, four consumers — which is why it leads the panel.</p>"
+    "title": "Chapter 6 — Upstream prevention",
+    "est": "12",
+    "html": "<p>The lanes resolve dead stock; this chapter reduces how much is created. Four upstream reads, each routing findings to the function that acts on them.</p><p><b>1. Reorder level hygiene.</b> Module 6's quarterly reorder health read, applied with the health data: levels on items whose movement class fell (Chapter 3's early-warning list) are corrected the same quarter — a level set for a fast item continues ordering fast-item quantities into a slowing demand until someone corrects it, and the correction is the cheapest prevention in the module. The read closes with the corrections written and dated.</p><p><b>2. Purchasing feedback.</b> Two standing figures route to the procurement owner monthly:</p><p>1. <b>The aging profile by supplier</b> — aged stock grouped by the supplier it was bought from: a supplier whose lines recur in the over-ninety band is a buying-quantity or line-selection question for the next purchasing review.<br>2. <b>The expiry horizon profile</b> (module 3's quarterly read) — the short-dated band's trend as purchasing feedback: buying outrunning sell-through shows here first for dated goods.</p><p>Both route as data with items and figures attached, per the standing data-not-editorial rule; the purchasing decisions belong to the Procurement track's reviews.</p><p><b>3. The range review and delisting.</b> Twice yearly, from the group rollups (Chapter 4) and the dead classification (Chapter 3): lines the business decides to stop stocking exit through the delisting flow — remaining stock resolved through the lanes, reorder rows removed, the item retired per module 8's item lifecycle procedure (disabled at zero, never deleted). A delisting decided but not executed leaves reorder machinery ordering a discontinued line; the review's decision list therefore carries execution status until each line closes.</p><p><b>4. The new-item probation read.</b> Every newly ranged item carries a probation window (the policy's figure — the standing shape: one quarter): stocked at the opening estimate, read weekly against sell-through in its first window per module 6's new-branch discipline applied at item scale, and confirmed, adjusted, or exited at the probation review. The read exists because new items are estimates by definition, and an estimate reviewed at week twelve costs at most one quarter's mis-stocking; an estimate never reviewed becomes the aging read's finding a year later at the full cost.</p><p><b>5. The prevention summary on the health page.</b> One line per read on the monthly page (Chapter 7): reorder corrections made, the supplier aging figure, delisting execution status, probation outcomes. The summary states whether prevention is operating; a health page that reports only the lanes is reporting the cost of prevention not running.</p>"
    },
    {
-    "title": "Chapter 3 — Aging & the dead-stock ladder",
-    "est": "14",
-    "html": "<p>The second vital: is the stock MOVING? Aging finds the capital that stopped, and the ladder is the discipline that releases it.</p><p><b>The aging read.</b> Stock stratified by <b>time since last movement</b> (last sale or issue — receipts don't count as movement for this purpose; a pallet that only ever arrives is exactly the patient we're looking for): 0-30 days, 31-60, 61-90, 91-180, 180+ — by item, by warehouse, VALUED. The value column is the read's teeth: <i>₦6.8m has not moved in 90+ days</i> lands differently than a list of SKUs, and per-warehouse stratification catches the network pattern (moving fine at Central, dead at the branch that over-requested it — a rebalance, not a markdown).</p><p><b>Dead stock, defined and owned.</b> The firm writes its definition — no movement in N days (90 for fast trade, 180 for slower; per category where honesty requires) — and the definition creates the WORKLIST: every line past the threshold has an owner and a next action, reviewed monthly. Without the written threshold, dead stock is a vibe discovered annually; with it, a pipeline worked continuously — the module 4 shrinkage logic applied to slowness.</p><p><b>The ladder — every rung cheaper than the next.</b> Module 3's markdown ladder generalised beyond expiry, ordered by value recovered:</p><ul><li><b>Push</b> — visibility first: front-of-shelf, staff spiffs, the counter suggestion; costs nothing, works more often than pride expects, and is the honest first test of whether the item is dead or merely hidden.</li><li><b>Rebalance</b> — the placement fix: dead HERE may be alive THERE — the lateral (module 6's economics: the double-move priced against the alternative rungs, and usually winning); the network's whole point is that a room's dead stock gets the other rooms' demand for free.</li><li><b>Markdown</b> — price against the calendar: the pre-approved discount ladder (the pricing-rule machinery, not per-carton negotiation), stepped down on schedule; for dated goods this IS module 3's ladder, deadline-driven.</li><li><b>Bundle &amp; convert</b> — the slow-mover riding the fast one (the bundle machinery from the selling track), or repack into the form that sells (Inv 2 — the bulk that died as cartons living as strips).</li><li><b>Liquidate</b> — the bulk exit at honest salvage: the institutional buyer, the trade channel, the clearance event; margin surrendered, capital and shelf recovered.</li><li><b>Write off</b> — the governed end (Inv 2's signatures) when the recovery costs more than the recovery; the rung nobody enjoys and delay makes MORE expensive: dated goods rot toward it, storage bleeds toward it, and the ladder's whole arithmetic is that month-one action at ANY rung beats month-twelve write-off at the last one.</li></ul><p><b>The capital-release framing.</b> The ladder's report line is not <i>losses taken</i> but <b>capital released</b>: ₦4.9m of dead value converted back to cash-and-shelf (at whatever recovery each rung achieved) is ₦4.9m re-deployable into stock that turns — and shelf space, in retail, is itself inventory capacity the dead stock was renting for free. Owners who resist markdowns as <i>losses</i> usually accept them as <i>release</i>; the framing is the consultant's tool, and the ladder-progress line on the monthly page (Chapter 7) is where it lives.</p><p><b>Upstream, always.</b> Dead stock is a message with a return address: the buy that misjudged (quantity or item — the planning conversation), the assortment that drifted from the customer, the branch allocation that shipped hope. The quarterly dead-stock cause read — what died and WHY — is the third of this track's letters to procurement, and the firms whose dead-stock rate falls are the ones that answered the mail.</p>"
+    "title": "Chapter 7 — Turns, margin, and the health page",
+    "est": "12",
+    "html": "<p>The module's output figures, and the one page that carries them monthly.</p><p><b>1. Stock turns.</b> The standing efficiency figure: cost of goods sold across the period divided by average stock value across the period, annualised per the policy's convention. Computed per item group and for the whole:</p><p>1. <b>The group comparison</b> — groups compared against their own history and against the policy's expectation per group (fast-moving retail groups turn faster than equipment ranges by nature; the expectation is set per group, not globally).<br>2. <b>The trend</b> — turns improving means stock working harder: the same sales carried on less investment. The figure summarises the whole module's effect in one number, which is why it leads the health page.<br>3. <b>The computation source</b> — cost of goods sold from the accounts (module 5's perpetual postings), average stock from the Stock Balance history; both figures from the standard reports by the documented method, per Chapter 4's compile discipline.</p><p><b>2. The margin read, joined.</b> Module 5's monthly margin-by-group read joins the health view here: a group with declining turns and stable margin is over-stocked; a group with stable turns and declining margin has a cost or pricing movement (module 5's territory); a group declining on both is a range question for Chapter 6's review. The joined reading directs each finding to its own procedure — the health page presents the figures side by side for exactly this reading.</p><p><b>3. The monthly health page.</b> One page, with the close, to the owner:</p><p>1. <b>Record reliability</b> — the count accuracy metric per site (module 4): the figure that states how much the rest of the page can be trusted.<br>2. <b>Total stock value and turns</b> — the investment and its efficiency, trended.<br>3. <b>The aging profile</b> — value per band and the over-ninety percentage, trended (Chapter 2).<br>4. <b>The dead-stock position</b> — the working list's total value, the month's lane decisions and completions, the write-off total against its approvals (Chapter 5).<br>5. <b>The prevention summary</b> — Chapter 6's one-liners.</p><p><b>4. The page's discipline.</b> The same five sections every month, computed the same way, one page in length. The page is the owner's standing answer to the condition of the stock investment; its trends are the module's evidence that the reads and lanes are working; and its preparation is a documented procedure the stock manager's deputy can execute, per the programme's handover standard.</p>"
    },
    {
-    "title": "Chapter 4 — ABC & the value-velocity matrix",
+    "title": "Chapter 8 — Worked example: HealthTrade's stock health year",
     "est": "13",
-    "html": "<p>The third structural read: not every item deserves equal attention, and this chapter is the formal machinery for aiming attention where money and movement actually are.</p><p><b>ABC, mechanically.</b> Items ranked by a period's value contribution (consumption value — quantity moved × cost — is the standard basis; sales value works for commercial lenses); the cumulative curve drawn; the classes cut: <b>A</b> — the vital few (typically ~20% of items carrying ~70-80% of value), <b>B</b> — the middle (~30% of items, ~15-25%), <b>C</b> — the trivial many (~50% of items, ~5-10%). The percentages are conventions, not laws; the SHAPE is the law — every real inventory is this skewed, and the skew is the entire management insight: treat all items equally and you spend 80% of attention on 10% of the money.</p><p><b>What ABC feeds — the consumers you already know.</b> The counting programme (module 4: A monthly, B quarterly, C annually — this chapter is where those classes come from); buying attention (A items get the sourcing rigour, the market tests, the drift eye at full alertness; C items get automation and sensible defaults — the Procurement 4 machinery pointed by class); service levels (A stockouts are emergencies, C stockouts are Tuesday — availability targets set per class, Chapter 5); and master-data care (A items' planning fields reviewed quarterly by name; C items' by exception). One analysis, four consumers — recomputed on a calendar (quarterly or semi-annual: assortments drift, and the ABC computed once in 2019 is Chapter 9's museum piece), with class CHANGES read as news: the C item climbing to B is a trend the buying should hear; the A item sliding is Chapter 3's early warning.</p><p><b>The value-velocity matrix — ABC's second dimension.</b> Value alone misleads: the high-value slow-mover and the high-value fast-mover are both <i>A</i> and need opposite handling. Cross value with VELOCITY (turns, Chapter 2) and read four quadrants:</p><ul><li><b>High value, fast</b> — the franchise: guard it (availability first, counting tightest, supplier redundancy per Procurement 1's concentration logic, the drift eye sharpest). Stockouts here are the expensive kind.</li><li><b>High value, slow</b> — the danger quadrant: big money sitting — deliberate stockholding only (the genuine specialty line held for strategic reasons, documented) or Chapter 3's patient in the making; reviewed by NAME monthly, cover capped, buying gated.</li><li><b>Low value, fast</b> — the automation quadrant: the workhorse tail that runs itself — auto-replenishment tuned and trusted, counting light, attention minimal by DESIGN (the win here is spending nothing managing it).</li><li><b>Low value, slow</b> — the pruning quadrant: the assortment's barnacles — the ladder's liquidate-and-delist candidates, the range review's kill list; every SKU here costs master-data care, shelf, and count minutes for near-zero contribution, and the periodic prune is inventory hygiene at the ASSORTMENT level.</li></ul><p><b>The matrix as the buying conversation.</b> One page, four quadrants, every item placed: this is the single most persuasive artefact the warehouse hands the buyer and the owner — it converts <i>we hold too much stock</i> (an argument) into <i>we hold ₦11m in the danger quadrant and here are the twelve items</i> (a worklist). The consultant who builds this page at every engagement builds it because it works.</p>"
+    "html": "<p>This chapter runs Chapters 2-7 through HealthTrade's first stock health year. Values and outcomes are listed per step.</p><p><b>Step 1 — the first aging compile (Chapter 2).</b> The first monthly compile establishes the baseline: the over-ninety-day band holds <b>₦6.2m — 9.6% of total stock value</b> — concentrated at Central, with the working list running to several pages. The figure and the list go to the first monthly review with the band profile.</p><p><b>Step 2 — the two-dimensional read (Chapter 3).</b> The movement classification computes alongside: the priority cell (high-value dead) holds a short list worked individually; the volume cell holds <b>140 C-class SKUs with negligible movement across two quarters</b> — individually small lines, collectively a material value and a shelf-space cost, invisible to the value-ranked reads. The set is worked collectively per the procedure: a clearance programme for the bulk, and the delisting flow proposed for the tail.</p><p><b>Step 3 — the lanes run (Chapters 4-5).</b></p><p>1. <b>Rebalancing first:</b> the divergence read finds aged Central stock selling normally at the branches — <b>₦1.1m of the aged Akure-range allocation moves by two laterals</b> to the sites where the sell-through data shows demand, recovering full price for a transfer's cost.<br>2. <b>Markdown second:</b> the named clearance lines enter the markdown ladder with the dead-stock reason code; the review window tracks movement at each step.<br>3. <b>Vendor returns:</b> two suppliers' lines return within terms, batches named, credits tracked to settlement; one supplier's recurring appearance files as negotiation feedback.<br>4. <b>The residual write-off:</b> the lines no lane moved post through the issue lane at the year's third review — a decided figure with the review's note attached, approved per the band.</p><p><b>Step 4 — prevention engages (Chapter 6).</b> Reorder corrections write for every early-warning line the quarter it appears; the supplier aging figure starts routing monthly; the range review executes the first delisting batch through the retirement flow with execution status tracked to zero; the probation read exits two new lines at week twelve at one quarter's cost each.</p><p><b>Step 5 — the year's trend (Chapter 7).</b> The health page runs twelve months on the same five sections. Year end against baseline: the over-ninety percentage below its opening figure and trending down; turns per group improved on the retail ranges as the cleared value converts to working stock; the write-off total for the year on the page against its approvals — a decided expense with its documents, arrived at after the cheaper lanes ran first; and the accuracy metric above target at every site, stating the page's own reliability. The year's file — twelve pages, twelve decision lists, the lane documents — answers any question about any line's treatment in one lookup.</p>"
    },
    {
-    "title": "Chapter 5 — Stockouts & availability: the other failure",
-    "est": "13",
-    "html": "<p>Every vital so far watched stock that EXISTS; this chapter watches the stock that DOESN'T — the empty shelf, the invisible failure, and the discipline that makes it visible and priced.</p><p><b>Why stockouts hide.</b> Overstock announces itself (the pallet in the aisle, the aging read, the value on the page); the stockout leaves NO RECORD by default — the customer asked, the shelf was empty, the sale never happened, and no ledger line marks the naira that walked out. A firm that reads only its stock reports therefore systematically over-corrects toward leanness (every visible number rewards holding less; the invisible number punishing it is never seen) — and the availability discipline exists to put the missing number on the page.</p><p><b>The two measurements.</b> <b>Zero-balance tracking</b> — the systemic read: days at zero (or below safety floor) per item per warehouse, from the bin history — cheap, automatic, and honest about DURATION (the line that zeroed for three hours vs three weeks); expressed as the <b>availability rate</b> — the percentage of item-days in stock, per branch, per class (the A-class availability target is the one that matters: 98%+ for the franchise quadrant is a common posture; C-class tolerates more). <b>Lost-sale capture</b> — the demand-side read: the counter and POS discipline of recording the ask that couldn't be served (the two-tap <i>not available</i> capture where the till supports it; the counter book where it doesn't) — imperfect by nature, invaluable in pattern: the item asked-for weekly that the assortment never carried is a listing decision the zero-balance read can never surface, because you cannot zero-balance what you never stocked.</p><p><b>Pricing the stockout.</b> The lost sale's cost is the margin forgone — plus the substitution risk (the customer who found it next door and liked next door), which for retail is the expensive part. The framing arithmetic for owners: an A-item stocking out for a week costs its weekly margin CERTAINLY and a customer relationship PROBABLY, and against that price the marginal cost of two more days' cover is usually trivial — which is the availability read disciplining the leanness instinct exactly as the aging read disciplines the hoarding one. The two reads together ARE the placement dial (module 6's language): stockouts say too little or wrong room; aging says too much or wrong room; and the dial is turned per item-warehouse, not per slogan.</p><p><b>The response taxonomy.</b> A stockout's cause assigns its fix: the trigger that never fired (planning fields — retune), the trigger that fired into a phantom pipeline (the stale PO — Procurement 5's sweep), the allocation that shorted the branch (module 6's policy and its relief), the run that slipped (the calendar's on-time read), the demand spike nobody could have held (logged, forgiven, and fed to the forecast), or the supplier failure (the scorecard's evidence). The monthly stockout review — incidents by cause, per branch — is short, and it is the read that turns availability from a percentage into a programme.</p>"
-   },
-   {
-    "title": "Chapter 6 — The reports shelf: which report answers which question",
-    "est": "13",
-    "html": "<p>The track has named a dozen reads; this chapter is the shelf — organised, as the earlier tracks organised theirs, by the QUESTION each report answers, because a consultant who maps question→report in one breath teaches clients to self-serve.</p><ul><li><b>What do we hold, right now?</b> — the stock balance: item × warehouse, quantity and value, the summary snapshot. The first report every client learns, and the one they over-use for questions it cannot answer — it shows the NOW, not the HOW.</li><li><b>How did it get this way?</b> — the stock ledger: the history, entry by entry, document by document (module 1's diagnostic superpower, formalised as the second report every consultant opens). Balance surprises decompose here; the pair together (balance for the what, ledger for the why) answer most support tickets before they escalate.</li><li><b>What will we hold?</b> — the projected view: the four numbers forward (actual − reserved + incoming), per item-warehouse — the planning read, and the one whose honesty depends on the ghost and phantom sweeps (the corrupted promise corrupts THIS page first).</li><li><b>Is it fresh?</b> — the batch and expiry reads (module 3's horizon and batch-wise balances): per-warehouse, worklist-formatted, decision-owned.</li><li><b>Is it true?</b> — module 4's accuracy rate and variance trends; module 5's stock-to-accounts bridge — the certificates, read as vitals.</li><li><b>Is it working?</b> — this module's panel: turns and cover (Ch. 2), aging and dead stock (Ch. 3), ABC and the matrix (Ch. 4), availability (Ch. 5).</li><li><b>Is the network placed right?</b> — module 6's dashboard: transit health, allocation log, lateral rate, branch scorecards.</li></ul><p><b>The shelf's disciplines.</b> Three, all restatements the certification has earned: <b>question first</b> — the report request that cannot name its question is answered with the question, not a report (the custom-report ticket that begins <i>can you add a column</i> usually dissolves when the underlying question meets the existing shelf); <b>cadence and owner</b> — every shelf report carries its rhythm and its name or it decays to decoration (Chapter 1's law; the final module's calendar enforces it); and <b>drill-down over export</b> — the reading culture to build is one where numbers are interrogated in the system (page → line → document — the provenance always three clicks away) rather than exported to spreadsheets where they detach from their evidence and begin their second life as fiction. The firm whose managers drill down argues from documents; the firm whose managers export argues from tabs — and only one of those arguments ends.</p>"
-   },
-   {
-    "title": "Chapter 7 — The monthly stock health page",
-    "est": "13",
-    "html": "<p>The panel assembles. One page, monthly, owned — the stock system's report card, and the conversation it scripts with the owner.</p><p><b>The page's lines — every one a chapter of this track:</b> <b>Stock value and trend</b> (total and by room family — the capital headline, module 1's MD page matured); <b>turns / cover</b> (firm and per-branch, against the category bands — Ch. 2); <b>aging profile</b> (the strata, valued, with the 90+ line bolded — Ch. 3); <b>dead stock value and ladder progress</b> (the pipeline: entered, actioned per rung, released — Ch. 3's capital-release line); <b>shrinkage rate</b> (module 4's number, trend and distribution flags); <b>expiry and markdown losses</b> (module 3's horizon exhaust, by cause); <b>availability rate</b> (per class, with A-class bolded, and the month's stockout causes — Ch. 5); <b>accuracy rate</b> (module 4's certificate); and <b>the exceptions line</b> (open investigations, unclosed runs, negative flags — the aging exceptions from every module's machinery, counted). Twelve numbers, one page; every number drills to documents.</p><p><b>Targets and bands.</b> Each line carries its target or band, set at implementation and reviewed annually: shrinkage under X%, A-availability over Y%, dead stock under Z% of holding, accuracy over W% — the numbers themselves are the client's to choose (with the consultant supplying trade norms and the arithmetic of each choice), but the CHOOSING is mandatory: a page without targets is a weather report; a page with them is a management instrument, because every line now reads green, amber, or a conversation.</p><p><b>The MD conversation, scripted.</b> The page's monthly reading with the owner follows the same shape every time — which is its virtue: headline (the capital and its trend), the ambers (each with its owner's one-paragraph story and next action — the page holds people to narratives, not blame), the releases and saves (the ladder's line, the markdown that pre-empted a write-off, the availability point recovered — the wins made visible, because a page that only carries problems teaches people to dread it), and the ONE decision the month actually needs from the owner (the danger-quadrant review, the liquidation approval, the target reset). Twenty minutes; the owner leaves knowing their largest asset's condition; and the reading's regularity is what makes December boring — module 4's certificate, generalised to the whole system.</p><p><b>The page's owner.</b> One name — the stock controller, the ops lead, the founder-until-delegated — who compiles (fifteen minutes, because every line is standing machinery), reads first, chases the ambers before the meeting, and owns the trends between meetings. The page without an owner joins Chapter 9's bestiary; the page WITH one is, for the stock system, what the run calendar was for the network: the heartbeat that makes everything else rhythmic. The final module hands this page its calendar slot and its place in the whole track's operating structure.</p>"
-   },
-   {
-    "title": "Chapter 8 — Case study: HealthTrade's health year",
-    "est": "16",
-    "html": "<p>The reading discipline, lived. Four quarters from first page to managed system — every chapter clocking in.</p><p><b>The first page (Ch. 1, 3, 7).</b> Month one's compile is the shock the framing predicted: total stock ₦71m across the network... and the aging read's 90+ line holds <b>₦6.8m — 9.6% of the pool — that has not moved in a quarter</b>, concentrated in three stories the value column tells at a glance: an over-bought vitamin range (the promo that under-performed), a branch allocation that shipped hope to Abeokuta, and a tail of 140 C-class SKUs dying quietly. The MD's first reaction is the classic — <i>write it off?</i> — and the consultant's reframe is the chapter's: this is capital in prison, and the ladder is the release programme, cheapest rungs first.</p><p><b>The ladder's two quarters (Ch. 3).</b> Worked monthly, owned by name: PUSH recovers ₦900k at full margin (the hidden, not dead — front-shelf and counter suggestion did it); REBALANCE moves ₦1.1m of the Abeokuta allocation to where it sells (two laterals, priced and approved — module 6's machinery); MARKDOWN steps ₦2.3m through the pre-approved ladder (average recovery 71% of full price — against the write-off's zero); BUNDLE moves ₦400k of slow syrup riding the analgesic franchise; LIQUIDATE clears ₦200k of the C-tail to an institutional buyer at salvage. Two quarters in: <b>₦4.9m released</b>, the 90+ line down to 2.8%, and the write-off rung needed for just ₦180k of genuinely dead stock — signed, coded, and fed upstream: the dead-stock cause read hands procurement two findings (the vitamin buy's quantity logic; the Abeokuta allocation's velocity assumption), and both planning fields are retuned.</p><p><b>The matrix repricing attention (Ch. 4).</b> The quarter-two ABC refresh and the value-velocity matrix land on one page: 58 A items; the danger quadrant holds ₦9.4m across eleven items — nine of them deliberate (the specialty lines, documented as strategic holds with capped cover) and TWO of them drift (reviewed by name, cover halved, buying gated). The automation quadrant — 210 fast cheap SKUs — gets its planning fields tuned once and its counting lightened; the pruning quadrant's review delists 60 SKUs at the annual range review. Buying attention now follows the matrix, and the drift eye sharpens exactly where Chapter 4 pointed it.</p><p><b>Availability, lifted by placement (Ch. 5).</b> The first availability read: A-class at 94.2% network-wide — but the DISTRIBUTION says the story: Central 98%, Ibadan 96%, Akure 89% — the new branch's fields still finding their level (module 6's day-90 retune, caught mid-flight). The stockout cause review runs monthly: two phantom-pipeline incidents (stale POs swept — Procurement 5's ritual now triggered from THIS read), one allocation short (policy-governed, relief-dated), the rest field-tuning. By quarter four: <b>A-class at 98.1%</b> — lifted not by holding more stock (total holding actually FELL ₦3.2m over the year as the ladder released and the fields tuned) but by placing it right: the placement dial, turned with both hands.</p><p><b>The year's page (Ch. 7).</b> December's read: value ₦67.8m (down, deliberately — the capital released funded two months of the Akure expansion's stock); turns up 22% network-wide; dead stock 2.1% and pipelined; shrinkage 0.41% (module 4's steady state); A-availability 98.1%; accuracy 97.3%; every amber owned, every line three clicks from its documents. Twenty minutes with the MD, one decision (the next range review's date), and the sentence that closes the case study and sells the module: <i>the reports didn't improve the stock — the reading did.</i></p>"
-   },
-   {
-    "title": "Chapter 9 — Common mistakes & the seventh law",
-    "est": "13",
-    "html": "<p>The reading layer's scar tissue. Symptom → disease → fix.</p><p><b>Pattern 1 — the firm-wide-only read.</b> Symptom: healthy averages, dying branches; turns of 8 masking the item at 20 and the pallet at 0. Disease: rollup reading (Ch. 2) — the average of extremes hiding both diseases. Fix: distribution reads by construction — per item, per warehouse, exceptions against bands — the rollup reserved for the headline it honestly is.</p><p><b>Pattern 2 — dead stock as December's surprise.</b> Symptom: the annual stocktake's write-off shock; the aisle pallet everyone stopped seeing. Disease: no threshold, no worklist, no ladder (Ch. 3) — slowness invisible until it is only a write-off. Fix: the written definition, the monthly aging read with owners, the ladder worked cheapest-rung-first, and the release framing that gets owners moving.</p><p><b>Pattern 3 — the invisible stockout.</b> Symptom: lean, efficient... and quietly shrinking sales; customers drifting next door. Disease: the unrecorded failure (Ch. 5) — every visible number rewarding leanness, the punishing number never captured. Fix: zero-balance tracking and availability rates on the page, lost-sale capture at the counter, and the stockout cause review assigning fixes monthly.</p><p><b>Pattern 4 — the museum ABC.</b> Symptom: counting and buying attention aimed by an analysis computed years ago; A-items of 2019 guarding the assortment of today. Disease: the structural reads never recomputed (Ch. 4). Fix: the quarterly refresh on the calendar, class changes read as news, the matrix rebuilt beside it.</p><p><b>Pattern 5 — the exported argument.</b> Symptom: every management meeting runs on spreadsheets three exports old; numbers no one can trace; arguments that never end. Disease: the drill-down culture never built (Ch. 6) — figures detached from their documents living second lives as fiction. Fix: the reads interrogated in the system, provenance three clicks away, and the meeting discipline that any disputed number is opened live, not debated from tabs.</p><p><b>Pattern 6 — the ownerless page.</b> Symptom: the health page compiled for three months, then quietly never again; targets unset; ambers unowned. Disease: the panel without its heartbeat (Ch. 7) — reading treated as a report, not a rhythm. Fix: one name, a calendar slot, targets chosen, and the twenty-minute MD reading that makes the compile matter — the final module's structure holds the slot.</p><p><b>The seventh law.</b> The tree is the map; movements are documents; identity is operational; the count is a dialogue; valuation is written at the moment of movement; the network is one stock in many rooms. This module: <b>stock health is read, not felt — the numbers exist the day the disciplines exist, and capital works exactly as hard as the rhythm that reads it.</b> Turns ask if it's working, aging asks if it's moving, the matrix aims the attention, availability prices the empty shelf, and the page holds the panel to a heartbeat. One module remains: the structure that holds every rhythm, role, and rule this track has built — and hands the whole system to someone who isn't you.</p>"
+    "title": "Chapter 9 — Common errors and the module rule",
+    "est": "11",
+    "html": "<p>The errors that recur in stock health, each with its correction and prevention.</p><p><b>Error 1 — reads without lanes.</b> Symptom: aging reports compiled and filed; the over-ninety band growing month over month; no decisions attached. Correction: the monthly review instituted, the working list worked item by item. Prevention: the read-and-lane structure — every list feeds a lane, and second-month undecided items escalate.</p><p><b>Error 2 — markdown as the first response.</b> Symptom: aged stock discounted at the site it aged at while other sites sell it at full price. Correction: the divergence read run first; laterals where the data supports them. Prevention: the lane preference order — rebalancing before markdown, in the written procedure.</p><p><b>Error 3 — the invisible C-class accumulation.</b> Symptom: value-ranked reads showing no problem while hundreds of small dead lines accumulate. Correction: the two-dimensional read computed; the volume cell worked collectively. Prevention: the quarterly movement classification alongside the ABC review.</p><p><b>Error 4 — seasonal false positives.</b> Symptom: off-season items entering the dead lists; lanes run against demand that returns; the review lists losing credibility. Correction: the seasonal flags applied; comparisons re-run like for like. Prevention: the like-window rule and the range list's seasonal marking.</p><p><b>Error 5 — lanes without upstream fixes.</b> Symptom: the same items cleared and re-accumulating; purchasing unaware of the aging its orders create. Correction: the prevention reads instituted and routed. Prevention: reorder hygiene the same quarter, the supplier aging figure monthly, and the probation read on every new line.</p><p><b>Error 6 — the inconsistent compile.</b> Symptom: health figures computed differently between months; trends showing method changes as demand changes; reviews arguing about the numbers instead of the stock. Correction: the computation documented; affected trends restarted from the change date. Prevention: the compile discipline — the same figures, the same method, filed with the pack.</p><p><b>Review list.</b> Before the quiz, confirm you can: run the aging read with its bands, the over-ninety percentage, and the carried working list; compute the movement classes and the two-dimensional grid with the seasonal and probation exclusions; run the sell-through views — network, divergence, group rollup — under the like-window rule; operate the five lanes in preference order with their documents and the monthly review's decision list; apply the four prevention reads with their routings; and compute turns, join the margin read, and compile the five-section health page.</p><p><b>Module rule 7: stock health is read on schedule and resolved by lane — aging and movement compiled monthly by the documented method, every listed item assigned a lane with its document, rebalancing before markdown and write-off last, findings routed upstream to purchasing and the range review, and the whole reported on one page whose first figure is the accuracy of the records it stands on.</b> Module 8 covers settings, roles, and structure.</p>"
    }
   ],
   "questions": [
    {
-    "q": "Stock is best framed to owners as:",
+    "q": "Stock health reads answer:",
     "opts": [
-     "Capital wearing inventory's clothes — every stock decision is a capital-allocation decision",
-     "Goods on shelves",
-     "A necessary evil",
-     "The warehouse's business"
+     "Is the stock in good condition as an investment — identified early while corrective lanes have options",
+     "Are the records accurate",
+     "Is the warehouse tidy",
+     "Are prices correct"
     ],
     "ans": 0,
-    "why": "The framing converts warehouse reports into money reports.",
+    "why": "Modules 1-6 keep records accurate; this module reads them.",
     "src": "Ch1"
    },
    {
-    "q": "Healthy stock is:",
+    "q": "The read-and-lane structure means:",
     "opts": [
-     "Just enough stock",
-     "Right amount, right places, moving, and true — a panel of vitals, never one number",
-     "High turns always",
-     "Low value"
+     "Reports are filed",
+     "Each read produces a list, each list feeds a lane, each lane is a documented procedure with an owner",
+     "Lanes are optional",
+     "Reads are annual"
     ],
     "ans": 1,
-    "why": "A firm can fail any one while passing the others.",
+    "why": "Identified at month three costs a markdown; at month eleven, a write-off.",
     "src": "Ch1"
    },
    {
-    "q": "This module's analytics are:",
+    "q": "The accuracy metric leads the health page because:",
     "opts": [
-     "New machinery to build",
-     "Optional extras",
-     "Exhaust from machinery already running — the reward for discipline, not its substitute",
-     "Spreadsheet work"
+     "It is easy to compute",
+     "Auditors require it",
+     "It states how much the other figures can be trusted",
+     "It is the largest number"
     ],
     "ans": 2,
-    "why": "A firm that kept modules 1-6 gets them essentially free.",
+    "why": "Weak records read health from fiction.",
     "src": "Ch1"
    },
    {
-    "q": "Stock turnover is:",
+    "q": "The Stock Ageing report computes age from:",
     "opts": [
-     "Sales over price",
-     "A count",
-     "Stock over sales",
-     "COGS over average stock value — how fast the pool converts back to cash"
+     "The item creation date",
+     "The price history",
+     "The last count",
+     "The receipt dates of the quantities still on hand — earliest-in quantities age first"
     ],
     "ans": 3,
-    "why": "Turns of 2 means the average naira sits six months.",
+    "why": "The ledger's receipt history.",
     "src": "Ch2"
    },
    {
-    "q": "Days of cover is:",
+    "q": "Age and remaining shelf life are:",
     "opts": [
-     "Current stock over daily sell-through — how long the shelf survives at current velocity",
-     "Lead time",
-     "The reorder level",
-     "A guess"
+     "Different measures — read separately: slow long-dated stock ages without expiry risk; fast short-dated stock expires without aging",
+     "The same measure",
+     "Both from the batch record",
+     "Both irrelevant"
     ],
     "ans": 0,
-    "why": "The number planning conversations actually use.",
+    "why": "The two reads run separately.",
     "src": "Ch2"
    },
    {
-    "q": "High turns are:",
+    "q": "The single-figure aging trend is:",
     "opts": [
-     "Simply good",
-     "Potentially fragility — surfing stockout risk; availability is this number's conscience",
-     "Always the target",
-     "Irrelevant"
+     "Total value",
+     "The over-ninety-day value as a percentage of total stock value",
+     "The band count",
+     "The oldest item"
     ],
     "ans": 1,
-    "why": "Both ends have a failure mode; the target is a band per category.",
+    "why": "Comparable across months and sites.",
     "src": "Ch2"
    },
    {
-    "q": "A falling turn decomposes into:",
+    "q": "Aged stock concentrated at one site feeds:",
     "opts": [
-     "One cause",
-     "Theft",
-     "Slowing sales OR growing stock — different owners, so the read must say which",
-     "Seasonality only"
-    ],
-    "ans": 2,
-    "why": "Sell-through trend against stock trend, side by side.",
-    "src": "Ch2"
-   },
-   {
-    "q": "Aging measures time since:",
-    "opts": [
-     "Receipt",
-     "Expiry",
-     "The count",
-     "Last sale or issue — a pallet that only ever arrives is exactly the patient"
-    ],
-    "ans": 3,
-    "why": "Receipts don't count as movement for this read.",
-    "src": "Ch3"
-   },
-   {
-    "q": "Dead stock without a written threshold is:",
-    "opts": [
-     "A vibe discovered annually — the definition creates the worklist",
-     "Managed",
-     "Rare",
-     "The auditor's job"
-    ],
-    "ans": 0,
-    "why": "With it, a pipeline worked continuously.",
-    "src": "Ch3"
-   },
-   {
-    "q": "The ladder's first rung is:",
-    "opts": [
-     "Markdown",
-     "Push — costs nothing, and honestly tests whether the item is dead or merely hidden",
-     "Write-off",
-     "Liquidation"
-    ],
-    "ans": 1,
-    "why": "Every rung cheaper than the next; cheapest first.",
-    "src": "Ch3"
-   },
-   {
-    "q": "Rebalancing dead stock uses:",
-    "opts": [
+     "A markdown",
      "A write-off",
-     "A new purchase",
-     "The lateral — a room's dead stock gets the other rooms' demand for free",
-     "Repricing only"
+     "The rebalancing read before any markdown — it may sell at normal price elsewhere",
+     "A recount"
     ],
     "ans": 2,
-    "why": "Dead HERE may be alive THERE.",
-    "src": "Ch3"
+    "why": "Band concentration by site.",
+    "src": "Ch2"
    },
    {
-    "q": "The ladder's report framing is:",
+    "q": "A second-month undecided item on the working list is:",
     "opts": [
-     "Losses taken",
-     "Nothing",
-     "Bad buying exposed",
-     "Capital released — re-deployable into stock that turns, plus the shelf recovered"
+     "Normal",
+     "Marked down automatically",
+     "Removed",
+     "An escalation to the owner — the list exists to force decisions"
     ],
     "ans": 3,
-    "why": "Owners who resist losses accept release.",
-    "src": "Ch3"
+    "why": "The read's discipline.",
+    "src": "Ch2"
    },
    {
-    "q": "Delaying the ladder makes the write-off rung:",
+    "q": "The dead class is defined:",
     "opts": [
-     "More expensive — dated goods rot toward it, storage bleeds toward it",
-     "Cheaper",
-     "Avoidable",
-     "Someone else's"
+     "Numerically — negligible movement per the policy's figure across the window, so the classification is computed",
+     "By judgment",
+     "By the keeper",
+     "By value"
     ],
     "ans": 0,
-    "why": "Month-one action at any rung beats month-twelve write-off.",
+    "why": "Two-quarter standing window.",
     "src": "Ch3"
    },
    {
-    "q": "ABC's core insight is:",
+    "q": "Value ranking alone misses:",
     "opts": [
-     "All items matter equally",
-     "The skew — treat items equally and you spend 80% of attention on 10% of the money",
-     "Alphabetical order",
-     "Three is a good number"
+     "Fast items",
+     "Low-value dead lines in volume — individually small, collectively material, unranked because each line is small",
+     "A items",
+     "New items"
     ],
     "ans": 1,
-    "why": "The shape is the law; the percentages are conventions.",
-    "src": "Ch4"
+    "why": "The movement classification reads what ABC passes over.",
+    "src": "Ch3"
    },
    {
-    "q": "ABC feeds:",
+    "q": "The priority cell of the grid is:",
     "opts": [
-     "Reports only",
-     "The tax return",
-     "Counting cadences, buying attention, service levels, and master-data care",
+     "Fast A items",
+     "C items",
+     "High-value dead — significant money not moving, worked individually at first appearance",
+     "Seasonal items"
+    ],
+    "ans": 2,
+    "why": "Worked in grid order.",
+    "src": "Ch3"
+   },
+   {
+    "q": "The early-warning list is:",
+    "opts": [
+     "The aging report",
+     "The price list",
+     "The count list",
+     "Items newly entering the dead class — demand stopping reads two quarters before the aging shows it"
+    ],
+    "ans": 3,
+    "why": "Movement measures demand; aging measures held stock.",
+    "src": "Ch3"
+   },
+   {
+    "q": "Seasonal items are assessed against:",
+    "opts": [
+     "The same window of the prior year, per the seasonal flag",
+     "The preceding quarter",
+     "Their peak",
      "Nothing"
     ],
-    "ans": 2,
-    "why": "One analysis, four consumers, recomputed on a calendar.",
+    "ans": 0,
+    "why": "The like-window rule.",
+    "src": "Ch3"
+   },
+   {
+    "q": "Sell-through is:",
+    "opts": [
+     "Units sold",
+     "Units sold as a percentage of units available across the window — comparable across items, sites, and periods",
+     "Revenue",
+     "Stock value"
+    ],
+    "ans": 1,
+    "why": "The base figure's property the views depend on.",
     "src": "Ch4"
    },
    {
-    "q": "The high-value slow quadrant is:",
+    "q": "Divergent sell-through across sites is:",
     "opts": [
-     "The franchise",
-     "Pruned casually",
-     "Automated",
-     "The danger quadrant — big money sitting; reviewed by name, cover capped, buying gated"
+     "A pricing error",
+     "A count error",
+     "The rebalancing case — run before any markdown decision",
+     "Ignored"
     ],
-    "ans": 3,
-    "why": "Deliberate strategic holds documented; everything else is a patient in the making.",
+    "ans": 2,
+    "why": "Full price elsewhere precedes discounting here.",
     "src": "Ch4"
    },
    {
-    "q": "The low-value fast quadrant's win is:",
+    "q": "A group with declining sell-through and holding stock value is:",
     "opts": [
-     "Spending nothing managing it — automation tuned and trusted by design",
-     "Tight control",
-     "Daily counts",
-     "Delisting"
+     "Healthy",
+     "Seasonal",
+     "Growing",
+     "Accumulating aged stock by arithmetic — flagged before the aging read shows the result"
     ],
-    "ans": 0,
-    "why": "The workhorse tail runs itself.",
+    "ans": 3,
+    "why": "Routed to the range review with the data.",
     "src": "Ch4"
    },
    {
-    "q": "The matrix's persuasive power is:",
+    "q": "A figure computed differently between months produces:",
     "opts": [
-     "Its colors",
-     "Converting 'we hold too much' into '₦11m in the danger quadrant, here are the twelve items'",
-     "Its complexity",
-     "Its novelty"
-    ],
-    "ans": 1,
-    "why": "An argument becomes a worklist.",
-    "src": "Ch4"
-   },
-   {
-    "q": "Stockouts hide because:",
-    "opts": [
-     "They are rare",
-     "Staff hide them",
-     "They leave no record by default — the sale that never happened writes no ledger line",
-     "They are cheap"
-    ],
-    "ans": 2,
-    "why": "Firms reading only stock reports over-correct toward leanness.",
-    "src": "Ch5"
-   },
-   {
-    "q": "The availability rate is:",
-    "opts": [
-     "Sales growth",
-     "Supplier OTIF",
-     "A count metric",
-     "Percentage of item-days in stock, per branch, per class — A-class is the target that matters"
-    ],
-    "ans": 3,
-    "why": "Zero-balance tracking makes duration honest.",
-    "src": "Ch5"
-   },
-   {
-    "q": "Lost-sale capture matters because:",
-    "opts": [
-     "It surfaces the asked-for item never stocked — which zero-balance can never see",
-     "It is precise",
-     "Tills require it",
-     "Auditors ask"
-    ],
-    "ans": 0,
-    "why": "You cannot zero-balance what you never carried.",
-    "src": "Ch5"
-   },
-   {
-    "q": "The stockout's expensive part in retail is:",
-    "opts": [
-     "The margin forgone",
-     "The substitution risk — the customer who liked next door",
-     "The paperwork",
-     "The reorder"
-    ],
-    "ans": 1,
-    "why": "Against that price, two more days' cover is usually trivial.",
-    "src": "Ch5"
-   },
-   {
-    "q": "Aging and availability together are:",
-    "opts": [
-     "Redundant",
-     "Contradictory",
-     "The placement dial — too much/wrong room and too little/wrong room, turned per item-warehouse",
-     "Annual reads"
-    ],
-    "ans": 2,
-    "why": "Each read disciplines the other's instinct.",
-    "src": "Ch5"
-   },
-   {
-    "q": "The stock balance vs the stock ledger:",
-    "opts": [
-     "Are the same",
-     "Old vs new",
-     "Value vs quantity",
-     "The what vs the why — summary snapshot vs entry-by-entry history"
-    ],
-    "ans": 3,
-    "why": "The pair answers most tickets before they escalate.",
-    "src": "Ch6"
-   },
-   {
-    "q": "A report request that cannot name its question is:",
-    "opts": [
-     "Answered with the question — it usually dissolves against the existing shelf",
-     "Built anyway",
-     "Escalated",
-     "Refused rudely"
-    ],
-    "ans": 0,
-    "why": "Question first, report second.",
-    "src": "Ch6"
-   },
-   {
-    "q": "The drill-down culture beats the export culture because:",
-    "opts": [
-     "Exports are slow",
-     "Numbers interrogated in the system keep their provenance — exported figures live second lives as fiction",
-     "Spreadsheets crash",
-     "It is newer"
-    ],
-    "ans": 1,
-    "why": "The firm whose managers drill down argues from documents.",
-    "src": "Ch6"
-   },
-   {
-    "q": "A health page without targets is:",
-    "opts": [
-     "Fine",
-     "Conservative",
-     "A weather report — with them, every line reads green, amber, or a conversation",
-     "Complete"
-    ],
-    "ans": 2,
-    "why": "The choosing is mandatory; the numbers are the client's.",
-    "src": "Ch7"
-   },
-   {
-    "q": "The MD reading's script includes:",
-    "opts": [
-     "Only problems",
-     "Blame assignment",
-     "Every ledger line",
-     "Headline, owned ambers, the releases and saves, and the ONE decision the month needs"
-    ],
-    "ans": 3,
-    "why": "A page that only carries problems teaches people to dread it.",
-    "src": "Ch7"
-   },
-   {
-    "q": "The health page's compile takes fifteen minutes because:",
-    "opts": [
-     "Every line is standing machinery — the reads exist because the disciplines exist",
-     "It is short on content",
-     "Software is fast",
-     "Standards are low"
-    ],
-    "ans": 0,
-    "why": "Chapter 1's law, operationalised.",
-    "src": "Ch7"
-   },
-   {
-    "q": "HealthTrade's first page found:",
-    "opts": [
-     "Nothing unusual",
-     "₦6.8m unmoved in 90+ days — 9.6% of the pool, in three readable stories",
-     "Perfect health",
-     "Only shrinkage"
-    ],
-    "ans": 1,
-    "why": "The shock the capital framing predicted.",
-    "src": "Ch8"
-   },
-   {
-    "q": "The ladder's two quarters released:",
-    "opts": [
-     "Nothing recoverable",
-     "Only markdowns",
-     "₦4.9m — with the write-off rung needed for only ₦180k of genuinely dead stock",
-     "₦6.8m at full price"
-    ],
-    "ans": 2,
-    "why": "Push ₦900k, rebalance ₦1.1m, markdown ₦2.3m at 71% recovery, bundle, liquidate.",
-    "src": "Ch8"
-   },
-   {
-    "q": "Availability rose to 98.1% while total holding FELL because:",
-    "opts": [
-     "More stock was bought",
-     "Luck",
-     "Sales dropped",
-     "The stock was placed right — the dial turned with both hands, not the pool enlarged"
-    ],
-    "ans": 3,
-    "why": "The ladder released, the fields tuned, the placement corrected.",
-    "src": "Ch8"
-   },
-   {
-    "q": "The dead-stock cause read handed procurement:",
-    "opts": [
-     "Two findings — the vitamin buy's quantity logic and the allocation's velocity assumption — both retuned",
-     "Blame",
+     "Movement that is method, not demand — trends depend on consistent computation",
+     "Better insight",
      "Nothing",
-     "A budget cut"
+     "Savings"
     ],
     "ans": 0,
-    "why": "The third of this track's letters to the buyers.",
-    "src": "Ch8"
+    "why": "The compile discipline.",
+    "src": "Ch4"
    },
    {
-    "q": "The case study's closing sentence is:",
+    "q": "The lane preference order begins with:",
     "opts": [
-     "Buy better software",
-     "The reports didn't improve the stock — the reading did",
-     "Hire more staff",
-     "Count more often"
+     "Write-off",
+     "Rebalancing — full price recovered for a transfer's cost",
+     "Markdown",
+     "Returns"
     ],
     "ans": 1,
-    "why": "The module's whole argument in one line.",
+    "why": "First for that reason.",
+    "src": "Ch5"
+   },
+   {
+    "q": "A markdown that does not move stock within its window:",
+    "opts": [
+     "Deepens indefinitely",
+     "Is reversed",
+     "Escalates to the next lane per the ladder's written steps",
+     "Continues unchanged"
+    ],
+    "ans": 2,
+    "why": "The ladder has steps and windows.",
+    "src": "Ch5"
+   },
+   {
+    "q": "Return to vendor depends on:",
+    "opts": [
+     "Goodwill",
+     "The season",
+     "The driver",
+     "Supplier terms decided at onboarding — recurring use on one supplier files as negotiation feedback"
+    ],
+    "ans": 3,
+    "why": "Initiated within the terms' window, batches named.",
+    "src": "Ch5"
+   },
+   {
+    "q": "The write-off lane is:",
+    "opts": [
+     "The last lane — posted through the issue lane with reason, evidence, and approval per the band",
+     "The first response",
+     "Automatic",
+     "Undocumented"
+    ],
+    "ans": 0,
+    "why": "A decided expense on the decision list.",
+    "src": "Ch5"
+   },
+   {
+    "q": "The monthly review's output is:",
+    "opts": [
+     "A discussion",
+     "The decision list — item, value, lane, owner, date — each executable through a standard document that week",
+     "A forecast",
+     "A price file"
+    ],
+    "ans": 1,
+    "why": "Filed with the health page.",
+    "src": "Ch5"
+   },
+   {
+    "q": "A level set for a fast item in slowing demand:",
+    "opts": [
+     "Self-corrects",
+     "Stops ordering",
+     "Continues ordering fast-item quantities until corrected — the cheapest prevention in the module",
+     "Raises alerts"
+    ],
+    "ans": 2,
+    "why": "Corrected the same quarter the class falls.",
+    "src": "Ch6"
+   },
+   {
+    "q": "The supplier aging figure routes to:",
+    "opts": [
+     "The keeper",
+     "Nobody",
+     "The auditor",
+     "The procurement owner monthly, as data with items and figures attached"
+    ],
+    "ans": 3,
+    "why": "Purchasing decisions belong to the Procurement track.",
+    "src": "Ch6"
+   },
+   {
+    "q": "A delisting decided but not executed:",
+    "opts": [
+     "Leaves reorder machinery ordering a discontinued line — execution status is tracked to zero",
+     "Is complete",
+     "Saves money",
+     "Is reversed"
+    ],
+    "ans": 0,
+    "why": "The range review's list carries status.",
+    "src": "Ch6"
+   },
+   {
+    "q": "The new-item probation read exists because:",
+    "opts": [
+     "New items sell well",
+     "New items are estimates — reviewed at week twelve the error costs one quarter; never reviewed it becomes the aging read's finding at full cost",
+     "Suppliers require it",
+     "It is traditional"
+    ],
+    "ans": 1,
+    "why": "One quarter's window per the policy.",
+    "src": "Ch6"
+   },
+   {
+    "q": "Stock turns are:",
+    "opts": [
+     "Sales over stock",
+     "Counts per year",
+     "Cost of goods sold over average stock value, annualised — computed per group against per-group expectations",
+     "Deliveries per week"
+    ],
+    "ans": 2,
+    "why": "The figure that leads the health page.",
+    "src": "Ch7"
+   },
+   {
+    "q": "Declining turns with stable margin indicates:",
+    "opts": [
+     "A pricing problem",
+     "Good health",
+     "A cost problem",
+     "Over-stocking — the joined reading directs each finding to its own procedure"
+    ],
+    "ans": 3,
+    "why": "The margin read joined.",
+    "src": "Ch7"
+   },
+   {
+    "q": "The health page carries:",
+    "opts": [
+     "Five sections — reliability, value and turns, the aging profile, the dead-stock position, the prevention summary — one page, the same way monthly",
+     "Everything available",
+     "Only the write-offs",
+     "Raw ledgers"
+    ],
+    "ans": 0,
+    "why": "Preparable by the deputy per the handover standard.",
+    "src": "Ch7"
+   },
+   {
+    "q": "HealthTrade's baseline over-ninety band was:",
+    "opts": [
+     "Zero",
+     "₦6.2m — 9.6% of total stock value, concentrated at Central",
+     "Half the stock",
+     "Unknown"
+    ],
+    "ans": 1,
+    "why": "The first compile.",
     "src": "Ch8"
    },
    {
-    "q": "This module's law is:",
+    "q": "The 140 C-class SKUs were found by:",
     "opts": [
-     "Stock health is intuited",
-     "One number suffices",
-     "Stock health is read, not felt — capital works exactly as hard as the rhythm that reads it",
-     "Reports fix stock"
+     "The value ranking",
+     "A count",
+     "The two-dimensional read's volume cell — invisible to value-ranked reads, worked collectively",
+     "A customer"
     ],
     "ans": 2,
-    "why": "The numbers exist the day the disciplines exist.",
+    "why": "Negligible movement across two quarters.",
+    "src": "Ch8"
+   },
+   {
+    "q": "The ₦1.1m rebalancing moved stock:",
+    "opts": [
+     "To quarantine",
+     "To write-off",
+     "To the vendor",
+     "By two laterals to the sites where sell-through showed demand — full price for a transfer's cost"
+    ],
+    "ans": 3,
+    "why": "Rebalancing first.",
+    "src": "Ch8"
+   },
+   {
+    "q": "The year's write-off was:",
+    "opts": [
+     "The residual after the cheaper lanes ran — decided at review, approved per the band, documented",
+     "The first response",
+     "Hidden",
+     "Estimated"
+    ],
+    "ans": 0,
+    "why": "A decided expense with its documents.",
+    "src": "Ch8"
+   },
+   {
+    "q": "Probation exits at week twelve cost:",
+    "opts": [
+     "A year's stock",
+     "One quarter's mis-stocking each — the read's purpose",
+     "Nothing",
+     "The range"
+    ],
+    "ans": 1,
+    "why": "Two new lines exited on time.",
+    "src": "Ch8"
+   },
+   {
+    "q": "Module 7's rule is:",
+    "opts": [
+     "Read annually, decide never",
+     "Markdown everything",
+     "Stock health is read on schedule and resolved by lane — compiled monthly by the documented method, every listed item assigned a lane, rebalancing before markdown and write-off last, findings routed upstream, reported on one page led by record accuracy",
+     "Write off quarterly"
+    ],
+    "ans": 2,
+    "why": "The module rule.",
     "src": "Ch9"
    }
   ]
