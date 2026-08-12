@@ -19,7 +19,7 @@ ORDER = ["counter_system", "pos_profile", "terminal_estate", "shift_sale", "conc
 TRACK = {
 	"title": "ZhiftPOS Professional",
 	"serial_prefix": "ZPOS-PRO",
-	"description": "The complete counter certification: the system and its roles, the Point of Sale Profile at full depth, commissioning and the terminal estate, the shift and the sale, concessions, returns and overrides, the extended counters, the voucher programme from mint to breakage, and the honest counter — offline, the queue, reconciliation and supervision — proctored examinations from the first scan to the counter that proves itself daily.",
+	"description": "The complete counter certification: the system and its roles, the Point of Sale Profile at full depth, commissioning and the terminal estate, shift operations and sales processing, concessions, returns and overrides, the extended counters, the voucher programme, and daily verification — offline operation, the queue, reconciliation and supervision — with proctored examinations per module.",
 }
 
 
@@ -197,3 +197,29 @@ def refresh_questions(only=None):
 		print(f"bank refreshed: {m['title']} ({len(m['questions'])} questions)")
 	frappe.db.commit()
 	print("Question banks refreshed.")
+
+
+def rename_pos_modules():
+	"""One-off (v3.178.0): flatten POS module titles to the strict manual
+	register and update the track description. MUST run BEFORE
+	refresh_lessons/refresh_questions after v3.178.0, because refresh
+	matches modules by title."""
+	renames = {
+		"POS 1 — The Counter & the System": "POS 1 — The Counter System: Concepts & Architecture",
+		"POS 4 — The Shift & the Sale": "POS 4 — Shift Operations & Sales Processing",
+		"POS 6 — The Extended Counters": "POS 6 — Extended Counter Operations",
+		"POS 8 — The Honest Counter": "POS 8 — Daily Verification & Offline Operations",
+	}
+	for old, new in renames.items():
+		name = frappe.db.get_value("Duty Training Module", {"title": old}, "name")
+		if name:
+			frappe.db.set_value("Duty Training Module", name, "title", new)
+			print(f"renamed: {old} -> {new}")
+		else:
+			already = frappe.db.get_value("Duty Training Module", {"title": new}, "name")
+			print(f"skipped: {old} ({'already renamed' if already else 'NOT FOUND'})")
+	tr = frappe.db.get_value("Duty Certification Track", {"title": TRACK["title"]}, "name")
+	if tr:
+		frappe.db.set_value("Duty Certification Track", tr, "description", TRACK["description"])
+		print("track description updated")
+	frappe.db.commit()
