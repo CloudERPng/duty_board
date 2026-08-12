@@ -1,473 +1,473 @@
 {
  "customers": {
   "title": "Selling 1 — Customers & Selling Foundations",
-  "desc": "The customer master done right: groups, territories, contacts and addresses, credit limits, and the Selling Settings that shape every document after it.",
+  "desc": "Customers and selling foundations in ZhiftERP: the Customer doctype walk — type, group, territory, the price list and terms resolution chains, the credit section, tax and compliance fields, retirement by the Disabled flag; the Customer Group and Territory tree designs with the behavioural-difference test and the change discipline; contacts and addresses including the multi-site pattern decided by the paying-entity question; payment terms templates, the credit ladder, the limit machinery with the block posture and bypass controls, statements, and the credit review; the onboarding gate with the duplicate check and first-document verification; and the six customer data reads on their cadences.",
   "lessons": [
    {
-    "title": "Chapter 1 — The Customer master, field by field",
-    "est": "18",
-    "html": "<p>Every quotation, sales order, delivery note and invoice in ZhiftERP begins with a question: <i>who is this for?</i> The answer is a <b>Customer</b> record, and the quality of that record decides the quality of everything that follows. A well-built customer master means documents that default correctly, statements that reconcile, credit that is controlled, and reports that answer management's questions without a single spreadsheet. A carelessly built one means the opposite, for years. This chapter walks the record field by field.</p><p><b>Creating the record.</b> Navigate <b>Selling &gt; Customer &gt; New</b> (or press the plus from the Customer list). The form opens with the identity section on top. Before typing anything, understand the difference between the customer's <i>name</i> and the record's <i>ID</i>: what you type as Customer Name is the trading identity you'll see on documents; whether the system also uses it as the record's permanent ID, or issues a series number like CUST-00042 instead, is governed by <b>Customer Naming By</b> in Selling Settings (Chapter 7 and, in depth, Selling 8). For now: type the legal or trading name exactly, consistently cased — \"Alpha Pharmacy Ltd\", not \"alpha pharm\", not \"ALPHA PHARMACY (Mr Chidi's one)\".</p><p><b>Customer Type — Company or Individual.</b> Companies carry registration and tax identity and typically several contacts; individuals are natural persons. The choice affects which identity fields make sense (a Tax ID belongs to a company) and how you'll structure contacts. Retail chains, distributors, corporates: Company. A walk-in professional buying on account: Individual. When in doubt for B2B trade, it's Company.</p><p><b>Customer Group.</b> The first of the two great reporting dimensions. It answers <i>what kind</i> of customer this is — Retail, Pharmacy, Distributor, Corporate, Government — and every serious sales report can slice by it. Groups are covered as a design exercise in Chapter 2; at creation time the rule is simply: never leave the default unexamined. If your defaults chapter set \"All Customer Groups\" or a generic bucket, a lazily created customer disappears from segment analysis forever.</p><p><b>Territory.</b> The second great dimension: <i>where</i>. Lagos Mainland, Lagos Island, Abuja FCT, South-West. Chapter 3 designs the tree; the creation-time rule mirrors groups: choose deliberately. And two anti-patterns to refuse on sight: a territory named after a salesperson (people resign; Ikeja does not), and a territory set to a warehouse (fulfilment geography is not sales geography).</p><p><b>Default Price List.</b> Which set of selling rates this customer receives. When a quotation is raised for them, this list lands on the document and every row's rate is looked up from it (Selling 2 covers the machinery). Distributor customers point at the distributor list; retail at standard. Leave it blank and the global default from Selling Settings applies — acceptable for the common case, wrong for anyone on negotiated rates.</p><p><b>Default Currency.</b> The currency their documents are priced and their receivable is tracked in. For domestic trade: NGN. For your Ghanaian or export relationships: the trading currency. The diagnostic habit to build now: <i>when a customer's quotations keep defaulting to the wrong currency, the durable fix is this field on the master</i> — editing each quotation treats the symptom and guarantees the disease recurs on the next document.</p><p><b>Tax identity.</b> For Nigerian companies, record the <b>Tax ID (TIN)</b> — your FIRS e-invoicing pipeline (the NGE stack) and formal B2B invoicing both want it, and chasing TINs at invoice time is how billing stalls. Capture it at onboarding while the relationship is new and cooperative.</p><p><b>Accounts and terms (a preview).</b> The master also carries the customer's default <b>Payment Terms</b> (Net 30, advance-and-balance — inherited by invoices, as Selling 7 teaches), their receivable account override if your chart demands one, and the <b>Credit Limit</b> section that Chapter 6 treats end-to-end. The principle across all of them: <i>everything a document will need should already live on the master</i>, so document creation is selection, not invention.</p><p><b>The creation discipline.</b> A customer record is created once and transacted against for years. Create it deliberately: name, type, group, territory, currency, price list, TIN, terms — all set before the first quotation. \"Only a name, details later\" is the master-data equivalent of unhedged debt: later never comes, every document inherits blanks, and the dimensions you need at year-end were never captured. The master record is a contract with your future reports; sign it properly.</p>"
+    "title": "Chapter 1 — The Customer record: scope and structure",
+    "est": "11",
+    "html": "<p>This module covers the Customer master and the selling foundations in ZhiftERP. On completing this module you will be able to: create Customer records with the full field set; design the Customer Group and Territory trees; maintain contacts and addresses including multi-site customers; operate credit limits and payment terms under the owner's ladder; run the customer onboarding gate; and run the customer data reads on their cadences.</p><p><b>Where the Customer record sits.</b> Every selling document — Quotation, Sales Order, Delivery Note, Sales Invoice — names a customer, and pulls its behaviour from that customer's record: the price list, the payment terms, the credit limit, the tax treatment, the addresses. A selling document created against a well-built Customer record pre-fills correctly; one created against a thin or wrong record requires per-document correction, and per-document correction is where pricing and terms errors enter.</p><p><b>What reads the Customer record.</b></p><p>1. <b>The selling documents</b> — every transaction in modules 3-7 begins by selecting the customer.<br>2. <b>The receivables ledger</b> — the Accounts track's customer balances, statements, and aging all key on the record.<br>3. <b>The pricing machinery</b> — module 2's price lists and pricing rules resolve through the customer's group and record.<br>4. <b>The credit controls</b> — Chapter 5's limit checks run per customer per company.<br>5. <b>The reports</b> — sales by territory, receivables by group, customer-wise profitability.</p><p><b>Custody.</b> The sales function operates the records; the owner decides credit limits and payment terms per the ladder (Chapter 5); the accountant owns the receivables side and the tax fields' correctness; record creation runs through the onboarding gate (Chapter 6), by the roles the matrix permits.</p><p><b>Build order.</b> The trees before the records, the records before the documents:</p><p>1. The Customer Group tree designed (Chapter 3) — the commercial classification.<br>2. The Territory tree designed (Chapter 3) — the geography.<br>3. The onboarding gate written (Chapter 6) — the checklist and the roles.<br>4. Customers created through the gate, with contacts and addresses (Chapters 2, 4).<br>5. Credit and terms set per the ladder (Chapter 5).</p><p><b>Module contents.</b> Chapter 2: the Customer doctype walk. Chapter 3: the group and territory trees. Chapter 4: contacts and addresses. Chapter 5: credit and terms. Chapter 6: the onboarding gate. Chapter 7: the customer data reads. Chapter 8: worked example. Chapter 9: review and the module rule.</p>"
    },
    {
-    "title": "Chapter 2 — Customer Groups: designing the segmentation tree",
-    "est": "15",
-    "html": "<p>Customer Group is not a label; it is the backbone of every answer to \"how is each part of our market doing?\" This chapter treats it as what it is — a small piece of information architecture that deserves an hour of design before the first customer is created.</p><p><b>The mechanics.</b> Customer Groups live in a <b>tree</b> (Selling &gt; Customer Group, or the tree view). A group can be a <i>group node</i> (has children, holds no customers directly) or a <i>leaf</i> (customers attach here). Reports roll leaves up through their parents automatically: sales for \"Pharmacy — Independent\" and \"Pharmacy — Chain\" sum into \"Pharmacy\", which sums into \"Healthcare\", which sums into the root. You design the rollup once; every report inherits it forever.</p><p><b>Designing the tree — three rules.</b></p><ul><li><b>Rule 1: one question per tree.</b> The group tree answers <i>what kind of customer</i>. Resist the temptation to encode geography (that's Territory), size (consider a custom field or naming convention), or payment behaviour (that's credit data) into group names. \"Lagos Pharmacies (Big, Slow-paying)\" as a group is three dimensions crushed into one string — unreportable on any of them.</li><li><b>Rule 2: mirror how management actually talks.</b> If the MD asks \"how did Pharmacy do versus Distribution?\", those are your top branches. A tree that mirrors the org's mental model gets used; a taxonomically \"correct\" tree nobody recognises gets ignored and defaulted around.</li><li><b>Rule 3: leaves you can assign in two seconds.</b> Every real customer must land in exactly one obvious leaf. If your team debates where a customer goes, the tree is too clever. Six to fifteen leaves serves most Nigerian mid-market firms; thirty means you're encoding something that belongs elsewhere.</li></ul><p><b>A worked tree for a ZhiftERP retail-systems vendor:</b> All Customer Groups → <i>Retail</i> (→ Supermarket · Pharmacy · Specialty), <i>Distribution</i> (→ FMCG Distributor · Pharma Distributor), <i>Corporate &amp; Institutional</i>, <i>Government</i>. Eight leaves, every prospect obviously placeable, every board question answerable by rollup.</p><p><b>Groups as machinery, not just reporting.</b> The group is also a <i>condition</i> elsewhere in ZhiftERP: pricing rules can target a customer group (\"10% off for Distribution\", Selling 6), and defaults can hang from groups. That doubles the case for a clean tree — a pricing policy aimed at a mushy group hits mushy targets.</p><p><b>Changing your mind later.</b> Re-parenting a group or moving a customer between leaves is allowed and takes effect in reports immediately (they read current assignments). What you cannot recover is history never captured: customers dumped for a year into a generic default have a year of unsegmentable sales. Hence the Chapter 1 discipline — the tree is only as good as assignment at creation time.</p><p><b>The default group.</b> Selling Settings names a default group for hurried creation. Point it at your genuinely most common leaf — not at the root, and not at a \"Misc\" bucket that becomes a landfill. A weekly two-minute review of newly created customers (filter by creation date) catches misfiled ones while they're young.</p>"
-   },
-   {
-    "title": "Chapter 3 — Territories: geography as a reporting dimension",
-    "est": "14",
-    "html": "<p>Territory answers <i>where</i>. Like groups it is a tree, it rolls up in every report, and it is worth designing before data arrives — with one extra power groups don't have: territories can carry <b>targets</b>.</p><p><b>Designing for Nigeria.</b> The right granularity follows your commercial footprint, not the atlas. A Lagos-centric firm with national ambitions might use: All Territories → <i>Lagos</i> (→ Mainland · Island · Lagos West), <i>South-West (ex-Lagos)</i>, <i>Abuja &amp; North-Central</i>, <i>South-East</i>, <i>South-South</i>, <i>North</i>, <i>Export</i> (→ Ghana · Other West Africa). Twelve leaves. The tests: (1) every customer lands somewhere obvious; (2) each leaf is worth measuring on its own — if you'd never look at \"North-East\" alone, don't create it yet; split when the business arrives; (3) the top branches match how you'd staff regional responsibility, because territory performance and regional accountability should read off the same tree.</p><p><b>The two anti-patterns, again, with reasons.</b> A territory named after a salesperson welds an org-chart snapshot into your geography: when Tunde resigns, \"Tunde's Area\" becomes archaeology, and reassigning his customers rewrites history's meaning. People belong in the <b>Sales Person</b> tree (Selling 8), which exists precisely so geography and staffing can change independently. And a territory set to a warehouse confuses <i>where we sell</i> with <i>where we ship from</i> — a Mainland customer served from an Island warehouse is still Mainland revenue.</p><p><b>Targets on territories.</b> A territory can carry sales targets by item group and fiscal period. Set ₦120m for Lagos Mainland this year, and territory reports show actual against target with the tree rolling both up. This is the lightest-weight regional performance system you can run — no spreadsheets, no arguments about whose number is whose, because the number is computed from the same documents that raised the invoices.</p><p><b>Territory in the machinery.</b> Like groups, territories serve as conditions: pricing rules can target them (a promo for South-East only), and analytics slice by them natively (Sales Analytics grouped by Territory is your regional revenue map, Selling 6). Export as a branch matters here: separating Ghana under Export keeps cross-border pricing rules and FX-flavoured analysis clean.</p><p><b>Assignment and hygiene.</b> Every customer gets exactly one territory at creation (Chapter 1). For chains, the territory of the <i>customer</i> is where the relationship is managed — usually the head office — while individual branch geography lives on the shipping addresses (Chapter 5); don't fragment one chain across territories unless you genuinely manage the regions as separate relationships. Same weekly hygiene habit as groups: review new customers, catch misfiles early.</p>"
-   },
-   {
-    "title": "Chapter 4 — Contacts: the people layer",
-    "est": "13",
-    "html": "<p>A Customer is a company; you cannot phone a company. The people you actually deal with — the procurement officer, the pharmacist-owner, the accounts payable clerk — live as <b>Contact</b> records linked to the customer. Modelling them properly is the difference between institutional relationships and relationships that resign when one staff member (theirs or yours) does.</p><p><b>What a Contact carries.</b> First and last name, designation (\"Head of Procurement\"), one or more email addresses, one or more phone numbers (each list with its own primary), and the link to the customer (a contact can even serve multiple parties — a consultant procuring for two sister companies). Create contacts from the customer's dashboard (the linked Contacts section) so the link is born correct, or from the Contact list directly.</p><p><b>The placement rule.</b> When a buyer gives you a phone number, it goes on a Contact. Not appended to the customer name (\"Alpha Pharmacy — call Ngozi 0803…\" is a real record in many bad implementations), not buried in a quotation's remarks (unfindable in a month), not in a private phonebook (gone when your rep leaves). The Contact record is searchable, appears on documents, syncs to communications, and — critically — belongs to the <i>company's</i> relationship with the customer, not to any individual rep's.</p><p><b>Primary contact.</b> Exactly one contact per customer should carry the primary flag. Documents pull the <b>primary contact by default</b> — not the newest contact, not the first alphabetically, not whoever was used last. So the operational meaning of \"primary\" is: <i>who should a document address when nobody chooses?</i> Usually the commercial decision-maker for quotations. You can always switch a given document to another of the customer's contacts; primary just sets the sane starting point.</p><p><b>Multiple contacts, deliberately.</b> A healthy B2B customer record carries at least three people: the commercial contact (quotations, negotiations), the operational contact (deliveries — the store manager who receives goods), and the finance contact (invoices, statements, the person you chase at collections time, Selling 7). Capturing all three at onboarding costs five minutes and removes the single most common friction in fulfilment and collections: \"who do we even talk to about this?\"</p><p><b>Lifecycle.</b> People move. When the procurement officer changes, you edit or replace the contact and re-flag primary — the customer, its history, its balances are untouched. That separation (company-level customer, person-level contacts) is exactly why the layer exists; firms that encode people into customer names get to rename their history every time someone resigns.</p>"
-   },
-   {
-    "title": "Chapter 5 — Addresses & the chain-modelling walkthrough",
-    "est": "16",
-    "html": "<p>Addresses answer <i>where things happen</i>: where invoices are addressed, where goods land. Like contacts they are separate records linked to the customer — one company, many places — and they carry the single most consequential modelling decision in Nigerian retail implementations: <b>how to represent a chain</b>.</p><p><b>What an Address carries.</b> Title, address lines, city, state, country; a type — <b>Billing</b>, <b>Shipping</b>, or both; the link to its customer; and a primary flag per role. Create from the customer's dashboard so linkage is automatic.</p><p><b>Billing vs shipping.</b> The billing address is the invoice's legal face — head office, where the TIN lives. Shipping addresses are delivery reality — stores, warehouses, branches. One customer routinely has one billing address and many shipping addresses, and documents let you pick: the invoice wears billing; each delivery note wears the branch it's actually going to.</p><p><b>Primary flags.</b> As with contacts: documents pull the <b>primary address by default</b>. When a quotation shows the wrong address, the fix is almost always on the address records — the wrong one is flagged primary, or the right one was never created — not on the quotation. Diagnose at the master; the documents will follow.</p><p><b>THE CHAIN WALKTHROUGH.</b> Your customer is a pharmacy chain: head office in Ikeja, 30 branches across Lagos and Ibadan, one procurement department, one account to settle. The correct model, end to end:</p><ol><li><b>One Customer record</b> — \"MediPlus Pharmacies Ltd\". One, not thirty. The customer is the <i>commercial relationship</i>: one credit limit governing total exposure, one receivable balance, one statement, one negotiated price list, one history. Thirty customer records would shatter every one of those into thirty fragments — credit control becomes fiction (each \"customer\" under its limit while the chain owes triple your comfort), statements become a monthly reconciliation war, and \"how much did MediPlus buy this year?\" becomes a report nobody can run.</li><li><b>One billing address</b> — head office, primary billing. Every invoice addresses Ikeja, where accounts payable lives.</li><li><b>Thirty shipping addresses</b> — \"MediPlus — Surulere\", \"MediPlus — Yaba\", … \"MediPlus — Bodija\". Named so pickers and drivers recognise them instantly. Each delivery note selects its branch; the waybill prints the right street; and delivered-to history per branch is queryable forever.</li><li><b>Contacts per role</b> (Chapter 4) — procurement at HQ (primary), finance at HQ, and optionally key store managers attached as operational contacts.</li><li><b>What NOT to do</b> — addresses retyped per order (typos become failed deliveries and history becomes text nobody can group), or a hybrid \"main branches as customers, small ones as addresses\" (the worst of both: fragmented finance <i>and</i> inconsistent shipping data).</li></ol><p><b>The exception that proves the rule.</b> Model branches as separate customers only when they genuinely are separate commercial relationships — franchisees who buy and pay independently, each with its own credit standing. Then each franchisee IS a customer (perhaps grouped under a \"MediPlus Franchise\" customer group for rollup). The test is always: <i>who owes the money?</i> One payer, one customer.</p>"
-   },
-   {
-    "title": "Chapter 6 — Credit limits & the credit-control workflow",
-    "est": "16",
-    "html": "<p>Every credit sale is a loan wearing a delivery note. This chapter is the end-to-end workflow that keeps those loans deliberate: the limit, the block, the controller, and the review.</p><p><b>What the limit is — precisely.</b> The <b>Credit Limit</b>, set in the customer's Credit Limits section (settable per company if you run several), caps the customer's <b>unpaid outstanding exposure</b>: their open invoices plus committed-but-unbilled orders, now. It is not lifetime purchases (a decade-old customer hasn't \"used up\" anything by volume), not a count of orders, and not a discount ceiling. Exposure — what you'd lose if they vanished tonight.</p><p><b>Setting the number.</b> New customer, no history: start conservative — one typical order's value, or trade-reference-informed. Established customer: their payment behaviour is your underwriting; a customer who clears ₦8m monthly like clockwork can carry ₦10–15m. The limit is a policy dial, reviewed (see below), not a one-time guess.</p><p><b>The block.</b> When a new Sales Order or invoice would push outstanding past the limit, ZhiftERP <b>blocks submission</b> with a credit-limit message. Understand the timing philosophically: the block fires at the moment of maximum temptation — the deal is closing, the rep wants the number, the customer is asking nicely. That is exactly when policy must be mechanical, because \"just this once\" evaluated by the person carrying the sales target is not evaluation.</p><p><b>The bypass — the Credit Controller.</b> Exceptions must be possible (a strategic customer mid-payment-run deserves flexibility) but must be <i>owned</i>. Only a user holding the <b>Credit Controller</b> role can release a blocked document — per document, deliberately, their name on the action. Not any System Manager by default, not the salesperson who raised it, and not \"nobody until they pay\" (that's not a policy, it's an outage). Organisationally: give the role to finance, never to sales — the person who wants the deal must not be the person who waives the risk. In an 11-person firm that's the accountant or the MD; the point is the separation, not the headcount.</p><p><b>The bypass conversation, scripted.</b> Rep hits the block → rep messages the controller with three facts: how much over, what's the customer's ageing (Selling 7's AR report), and when payment is expected → controller decides: release this document, raise the limit properly, or hold the order (Selling 4) until money lands. Sixty seconds, recorded in the system's own trail. What the workflow prevents is the alternative that kills firms slowly: goods shipping on charm while finance discovers the exposure at month-end.</p><p><b>The review cadence.</b> Quarterly, run the AR ageing next to the limits: customers paying flawlessly at 80% utilisation are candidates for raises (don't strangle good growth); customers living in the 61-90 bucket get cuts or cash-only status. Limits that never move are limits nobody believes in.</p><p><b>The commercial truth to teach every rep:</b> the difference between a sales team that grows revenue and one that grows bad debt is rarely closing skill — it is whether credit policy executes automatically at the point of entry or gets \"reviewed\" by humans after the goods have left. The block is not the system doubting you; it is the system doing the one job charm cannot.</p>"
-   },
-   {
-    "title": "Chapter 7 — Selling Settings for foundations",
+    "title": "Chapter 2 — The Customer doctype",
     "est": "12",
-    "html": "<p>Selling Settings (type it in the awesome bar) is one screen of switches where selling policy becomes system behaviour. Selling 8 walks every switch as the advanced treatment; a foundations trainee needs to command the following subset now, because they shape the documents you'll make from Chapter 1's customers.</p><p><b>Customer Naming By.</b> <i>Customer Name</i> makes the typed name the record's permanent ID; <i>Naming Series</i> issues CUST-00042-style IDs with the name as display label. Preview of the Selling 8 decision rule: portfolios with duplicate or near-duplicate names — chains, common Nigerian trading names — need the series, because IDs must be unambiguous forever even when names aren't. What matters at foundations level: know that this is where record identity is decided, and that it's a day-one decision (changing naming schemes mid-life is migration surgery).</p><p><b>The defaults trio.</b> Default <b>Customer Group</b>, default <b>Territory</b>, default <b>Selling Price List</b>. These pre-fill new customers and documents when nobody chooses. Set each to your genuinely commonest case — hurried data entry then lands <i>correctly</i> instead of blank. And connect this to Chapters 2–3's hygiene: defaults are a safety net, not a filing system; the weekly new-customer review catches what fell into the net.</p><p><b>Allow Item to be Added Multiple Times in a Transaction.</b> Off: the same item cannot appear on two rows of one order (duplicate protection). On: it can — the legitimate case being the same item at two rates on one document, like 100 units at list plus 20 promotional units at zero, as two visible rows rather than a doctored average rate. This switch lives HERE — not on the item master, not on the price list, not in a print format — and knowing its address is a straight exam fact and a straight support fact.</p><p><b>Maintain Same Rate Throughout Sales Cycle.</b> The rate agreed on the Sales Order cannot silently differ on the Delivery Note or Sales Invoice made from it. What it defends against is precisely <b>rate drift between the documents of one sale</b> — the ₦850 the customer signed becoming ₦880 at invoice because someone \"tidied\" it. It is not currency management (Selling 2's conversion machinery), not discount control (Selling 6), not tax recalculation (templates). Its companion <i>action</i> setting — hard <b>Stop</b> versus <b>Warning</b> — is the Selling 8 discussion; foundations level: know the switch, know what drift means, know why a customer who signs one number and is billed another becomes a former customer.</p><p><b>The consultant's reflex to build now:</b> when a client asks \"can the system stop staff doing X?\", open this screen before you say anything. Most selling-policy questions are already switches; the expensive consultant is the one who writes a customisation for a checkbox.</p>"
+    "html": "<p>Open Customer (awesome bar) &gt; New. Complete the fields in order.</p><p><b>1. Customer Name.</b> The legal or trading name per the naming convention: the registered name for companies, consistently formatted, without abbreviations that collide. The name prints on every document and statement; it is entered once, correctly, at the gate.</p><p><b>2. Customer Type.</b> Company or Individual — the classification that drives which tax and compliance fields apply, and how the record reads in reporting.</p><p><b>3. Customer Group.</b> The commercial classification from Chapter 3's tree — retail counters, chains, institutions, distributors. The group is a working field, not a label: default price lists and payment terms can derive from it, and the receivables and sales reports aggregate by it. A customer in the wrong group prices from the wrong list.</p><p><b>4. Territory.</b> The geography from Chapter 3's tree. Sales reporting, targets, and territory-based analyses key on it.</p><p><b>5. Currency and Default Price List.</b> The billing currency, and the price list the customer's documents pre-fill from (module 2 covers the lists). The resolution order at document time: the customer's own default, else the group's, else the selling default — the same decided-chain pattern as the stock defaults, and the same rule: the chain is wired once, by convention, and verified.</p><p><b>6. Payment Terms Template.</b> The default terms the customer's invoices carry (Chapter 5). Set from the ladder's decision, not typed ad hoc per invoice.</p><p><b>7. The credit limit section.</b> Per company: the credit limit amount, and the check behaviour (Chapter 5's machinery). The limit is entered here but decided at the ladder; the field carries the decision, and Chapter 7's changes read audits that it moved only by decision.</p><p><b>8. Tax fields.</b> The tax category where the site uses category-based tax rules, and the tax identification numbers per the compliance requirements — for Nigerian B2B customers, the TIN the e-invoicing and statutory reporting require. The accountant rules which fields are mandatory per customer type; the gate enforces them at creation, because a missing TIN discovered at invoicing blocks the document at the worst moment.</p><p><b>9. Disabled.</b> Customers are retired by the Disabled flag at zero balance, never deleted — document history references every customer that ever traded, per the standing retirement pattern.</p><p><b>Verification per record.</b> The name per convention; type correct; group and territory from the trees; price list and terms per the decisions; credit per the ladder; tax fields complete for the type; primary contact and address attached (Chapter 4).</p>"
    },
    {
-    "title": "Chapter 8 — Case study: onboarding a 30-branch pharmacy chain",
-    "est": "18",
-    "html": "<p>Theory becomes competence in the doing. This chapter onboards a realistic customer end-to-end using everything in this module. Read it actively — every step names the chapter that taught it.</p><p><b>The client.</b> MediPlus Pharmacies Ltd: head office Ikeja, 30 branches (24 Lagos, 6 Ibadan), central procurement, central payment, negotiated distributor-grade pricing, requesting 45-day terms. Your firm has agreed to supply.</p><p><b>Step 1 — The customer record (Ch. 1).</b> Selling &gt; Customer &gt; New. Name: <i>MediPlus Pharmacies Ltd</i> (their CAC name). Type: Company. Customer Group: <i>Retail → Pharmacy — Chain</i> (Ch. 2's tree earning its keep: chain pharmacies report separately from independents). Territory: <i>Lagos → Mainland</i> — the relationship is managed from Ikeja; branch geography will live on addresses, and we do NOT fragment one payer across territories (Ch. 3, Ch. 5). Default Currency: NGN. Default Price List: <i>Distributor NGN</i> — their negotiated tier, so every quotation prices correctly without anyone remembering the deal (Ch. 1; machinery in Selling 2). Tax ID: their TIN, captured now while onboarding goodwill is high.</p><p><b>Step 2 — Payment terms.</b> They asked 45 days; management approved. Set default Payment Terms on the customer to the Net-45 template — every invoice will inherit it (Selling 7) and nobody improvises terms at billing time.</p><p><b>Step 3 — Contacts (Ch. 4).</b> Three people, created from the customer's dashboard: <i>Ngozi E.</i>, Head of Procurement — <b>primary</b> (quotations address her); <i>Ibrahim S.</i>, Accounts Payable (statements and collections address him — future-you at Selling 7 says thanks); <i>Kemi A.</i>, Regional Ops (delivery escalations). Five minutes now; the \"who do we even call?\" friction never exists.</p><p><b>Step 4 — Addresses (Ch. 5).</b> One billing address: head office, Ikeja — primary billing; every invoice wears it. Thirty shipping addresses, one per branch, named for humans: \"MediPlus — Surulere\", … \"MediPlus — Bodija\". (Thirty entries is an import job, not an afternoon of typing — the same import discipline Selling 2 teaches for prices.) Flag the highest-volume branch primary shipping; every delivery note picks its actual branch.</p><p><b>Step 5 — Credit (Ch. 6).</b> Projected offtake ₦6m/month on 45-day terms means roughly two months' exposure in steady state: recommend a ₦15m limit, approved by finance, entered on the customer. Confirm the Credit Controller role sits with the accountant, not the sales lead. Diarise the first review for the end of quarter one: their actual payment behaviour will tell you whether ₦15m was generous or tight.</p><p><b>Step 6 — Verify the defaults end-to-end.</b> Raise a draft test quotation for MediPlus (delete after): price list shows Distributor NGN ✓; currency NGN ✓; contact Ngozi ✓; billing address Ikeja ✓; a delivery-note address picker shows all thirty branches ✓. Ten minutes of verification beats a first live order that ships to the wrong city at retail rates.</p><p><b>Step 7 — The one-paragraph handover.</b> In the client room / CRM: \"MediPlus configured: 1 customer, 30 shipping addresses (import file attached), Distributor NGN pricing, Net-45, ₦15m limit (review 30 Sept), contacts: Ngozi (commercial), Ibrahim (finance), Kemi (ops).\" The next consultant — or you in six months — reconstructs the whole setup from four lines.</p><p><b>What this setup buys, permanently:</b> one statement Ibrahim can reconcile; one limit that actually caps the chain; branch-level delivery history; segment-true reporting (Pharmacy—Chain, Lagos Mainland); pricing that defaults right on every future document. Total work: under two hours, most of it the address import. Every hour skipped here is repaid weekly, with interest, forever.</p>"
+    "title": "Chapter 3 — The Customer Group and Territory trees",
+    "est": "12",
+    "html": "<p>Two trees classify every customer. This chapter is their design procedure.</p><p><b>1. What each tree answers.</b></p><p>1. <b>Customer Group</b> — the commercial question: what kind of buyer is this, and what pricing and terms behaviour follows? Groups drive price list and terms defaults, and the receivables and margin reports aggregate by them.<br>2. <b>Territory</b> — the geographic question: where is this customer, and which sales responsibility covers them? Territories drive sales reporting and targets.</p><p>The two are independent classifications: a chain customer in Ibadan and a retail counter in Ibadan share a territory and differ in group. Designing one tree to answer both questions produces a tree that answers neither cleanly.</p><p><b>2. The Customer Group tree design.</b> Open Customer Group Tree (awesome bar). The design procedure, on paper first per the standing pattern:</p><p>1. <b>List the commercial classes the business actually treats differently</b> — different price lists, different terms, different credit postures. For a pharmaceutical distributor: retail counters, chain pharmacies, hospitals and institutions, sub-distributors. A class with no behavioural difference is not a group; it is a report filter at most.<br>2. <b>Three levels or fewer</b>, per the standing tree rule: the root, the major classes, and subdivisions only where behaviour genuinely differs.<br>3. <b>Wire the defaults</b> — where a group's members share a price list or terms template, set it at the group so new members inherit; record the wiring in the convention.</p><p><b>3. The Territory tree design.</b> The same procedure for geography: the root, the regions the business manages against (Lagos, South-West, per the sales structure), and cities or zones only where reporting or responsibility requires them. The tree mirrors how sales responsibility is actually assigned — a territory no one owns is a reporting row without a use.</p><p><b>4. The tree change discipline.</b> Both trees change by decision, not per customer: a new group or territory is a structural decision recorded with its reason (what behaviour or responsibility it captures), because each new node fragments the history of the reports that aggregate on it. Reclassifying an existing customer is an ordinary edit with a note; restructuring a tree mid-year is a governed event with the report consumers told.</p><p><b>5. The classification read.</b> Quarterly: customers per group and territory, sampled against the definitions — the retail counter that grew into a chain and was never regrouped prices from the wrong list until this read finds it. The read closes with the corrections applied and the fragmenting-node check: groups or territories with a handful of members and no behavioural difference are merge candidates for the next structural review.</p>"
    },
    {
-    "title": "Chapter 9 — Common mistakes & support patterns",
-    "est": "14",
-    "html": "<p>Every implementation team accumulates the same scar tissue. This chapter hands you the scars pre-earned: the foundations mistakes you will meet in the field, how they present as support tickets, and the fixes — so you recognise the disease from the symptom in one move.</p><p><b>Pattern 1 — \"The quotation shows the wrong address/contact.\"</b> Disease: primary flags (Ch. 4-5) — the wrong record is flagged primary, or the right record was never created and the only one wins by default. Fix at the master: create/flag correctly; the documents follow. Anti-fix: editing the document, which cures one quotation and leaves every future one wrong.</p><p><b>Pattern 2 — \"Wrong currency/prices keep appearing for this customer.\"</b> Disease: Default Currency or Default Price List on the master (Ch. 1). The document is faithfully inheriting a wrong default. Fix the field; stop treating documents.</p><p><b>Pattern 3 — \"We can't tell how much the chain owes us\" / statements chaos.</b> Disease: the chain was modelled as many customers (Ch. 5's cardinal sin). Each fragment is individually under-limit and individually statement-ed while the real payer's exposure is invisible. Fix: consolidate to one customer with shipping addresses — a data-migration exercise (re-pointing open documents and balances) that gets harder every month it waits, which is why the walkthrough exists.</p><p><b>Pattern 4 — \"Reports say most of our sales are in 'All Customer Groups'.\"</b> Disease: creation-time laziness plus a root-level default (Ch. 2, Ch. 7). Everyone was filed in the landfill. Fix forward: set a real default leaf, institute the weekly new-customer review. Fix backward: a one-time regrouping exercise — tedious, and the reports only speak from the day assignments are true.</p><p><b>Pattern 5 — \"Sales by region is meaningless / territories named after ex-staff.\"</b> Disease: people encoded into geography (Ch. 3). Fix: rebuild territories as geography, move staffing to the Sales Person tree (Selling 8), reassign customers once.</p><p><b>Pattern 6 — \"The system blocked my order and the client is waiting!\"</b> Not a disease — the credit block working (Ch. 6). The support answer is the workflow, not a workaround: check exposure and ageing, route to the Credit Controller, release / raise / hold deliberately. The ticket to ESCALATE is its inverse: \"can you give my user the bypass so this stops happening\" — that's a request to disable credit control, and it goes to management, not to a permissions tweak.</p><p><b>Pattern 7 — \"Duplicate customers everywhere.\"</b> Disease: name-based creation without discipline (\"Alpha Pharmacy\", \"Alpha Pharmacy Ltd\", \"ALPHA PHARM\") — each with partial history. Prevention: naming-series IDs (Ch. 7 / Selling 8) plus a search-before-create habit. Cure: merge/re-point, then prevention — duplicates recreate themselves wherever the habit that made them survives.</p><p><b>The meta-pattern.</b> Read the seven again: every single one is a master-data disease presenting as a document symptom. That is the deepest lesson of this module — <i>documents are downstream of masters</i>. The consultant who fixes masters closes tickets permanently; the one who fixes documents subscribes to them. When a selling support ticket arrives, your first question is now reflex: <b>which master record is lying?</b></p>"
+    "title": "Chapter 4 — Contacts and addresses",
+    "est": "12",
+    "html": "<p>Contacts and addresses are separate records linked to the customer. This chapter is their structure and the multi-site pattern.</p><p><b>1. The Contact record.</b> One record per person: name, designation, phone, email, linked to the customer (a contact can link to several parties). Per customer:</p><p>1. <b>The primary contact</b> — the default the documents and communications pull.<br>2. <b>Role-specific contacts</b> — the buyer, the accounts payable contact for statements and collections (Chapter 5's statements go to a named person, not a company), the receiving contact per site where deliveries need one.</p><p><b>2. The Address record.</b> One record per physical address: lines, city, state, country, linked to the customer, with two flags:</p><p>1. <b>Preferred Billing Address</b> — where invoices and statements address.<br>2. <b>Preferred Shipping Address</b> — where deliveries default.</p><p>Documents pull the preferred addresses and allow per-document override — the delivery to a different site selects that site's address on the document, and the address prints on the delivery paperwork the driver carries.</p><p><b>3. The multi-site customer pattern.</b> A chain with many branches and one payer is one Customer record — the payer — with one billing address and many shipping addresses (one per branch, named by the branch: the chain's own branch codes in the address title keep the picker unambiguous). The consequences, stated:</p><p>1. <b>One receivables balance</b> — the chain owes as one account; statements, credit limit, and collections run against the payer, which is how the chain itself operates.<br>2. <b>Per-branch delivery</b> — each Delivery Note selects its branch's shipping address; the delivery history per branch remains readable by address.<br>3. <b>The alternative — child customers per branch — is used only where branches genuinely pay separately</b>, because separate Customer records mean separate balances, separate credit limits, and statements the chain's head office did not ask for. The pattern is decided at onboarding from one question: who pays?</p><p><b>4. Address and contact hygiene.</b> The details that age fastest in any register are people and addresses. The standing read, quarterly: primary contacts confirmed current for the top accounts (the collections function surfaces dead contacts naturally — a statement that bounces is a hygiene finding); shipping addresses sampled against recent delivery paperwork; leaver contacts at customer organisations replaced when known. Hygiene findings are ordinary edits with dates — the record's history shows when the business knew.</p><p><b>5. What does not go in contacts and addresses.</b> Terms, prices, and credit notes belong on the customer and its documents, not in contact remarks; delivery instructions that are permanent belong on the address record; per-order instructions belong on the order. The rule keeps each fact where the documents that need it will read it.</p>"
+   },
+   {
+    "title": "Chapter 5 — Credit and terms",
+    "est": "13",
+    "html": "<p>Credit is the business lending money to its customers. This chapter is the machinery and the controls.</p><p><b>1. Payment Terms Templates.</b> Open Payment Terms Template (awesome bar) &gt; New: named templates — Cash, 30 Days, 45 Days, or split terms (a percentage on invoice, the balance at a due interval). Templates are the only lawful source of terms: the ladder decides which template a customer receives; the template sets due dates on every invoice automatically; and the receivables aging (the Accounts track) computes from those due dates. Terms typed per invoice bypass the decision and corrupt the aging.</p><p><b>2. The terms and credit ladder.</b> The written policy, owner-approved, that decides who may extend what:</p><p>1. <b>Cash terms</b> — the default for new customers below the threshold; no approval needed.<br>2. <b>Credit terms within standard bands</b> (30 or 45 days, limits per band) — approved by the sales manager per the ladder's figures, with the customer's trade references or history documented.<br>3. <b>Above-band terms or limits</b> — the owner's decision, documented.</p><p>Every credit decision files with the customer: the approved band, the approver, the date, the basis. Credit extended without its documented decision is Chapter 9's first error.</p><p><b>3. The credit limit machinery.</b> On the Customer record, per company: the limit amount and the enforcement behaviour. At document submission the system checks outstanding balance plus the new document against the limit:</p><p>1. <b>The block</b> — the standard posture: a Sales Order or Invoice that would exceed the limit does not submit.<br>2. <b>The bypass role</b> — the named role (per the matrix) that may submit over the limit; every bypass is a decision by that role, visible in the document trail, and the monthly over-limit read lists each one with its approver.<br>3. <b>Ignore-check settings</b> exist per customer for the rare standing exception — a register row with the owner's reason, not a convenience toggle.</p><p><b>4. Statements and the collections tie.</b> The Statement of Accounts per customer — the invoice, payment, and balance history — sends on the monthly cadence to the accounts payable contact (Chapter 4), and on demand at collection conversations. Statements are the customer's view of Chapter 5 working: terms on every invoice, due dates computed, payments allocated. The collections procedures themselves belong to module 7; this chapter's contribution is the data they run on.</p><p><b>5. The credit review.</b> Per the calendar: top exposures reviewed quarterly (limit against payment behaviour — the aging per customer from the Accounts track's reports); limits raised or reduced by the ladder with the decision filed; the annual full pass over all credit customers riding the receivables year-end. Credit that is never reviewed only moves in one direction — upward, one exception at a time — which is what the review exists to prevent.</p>"
+   },
+   {
+    "title": "Chapter 6 — The onboarding gate",
+    "est": "12",
+    "html": "<p>Customers enter the register by gate. This chapter is the checklist and its operation.</p><p><b>1. Why a gate.</b> Every field Chapter 2 walked is cheap to complete at creation and expensive to fix in flight: the wrong group prices documents until the classification read finds it; the missing TIN blocks invoicing at month-end; the undecided terms become whatever the first invoice typed. The gate is fifteen minutes that ends those cases.</p><p><b>2. The gate checklist.</b> In order:</p><p>1. <b>The duplicate check first</b> — the register searched by name fragments, phone, email, and TIN before creation. A duplicate customer splits one buyer's history and balance across records: credit checked against half the exposure, statements that disagree with the customer's own ledger, and a merge remediation later. One minute at the gate.<br>2. <b>The paying-entity question</b> — who pays? The answer decides the Chapter 4 pattern: one record with many shipping addresses, or separate customers. Asked and recorded at the gate, because restructuring after documents exist is a remediation.<br>3. <b>Classification</b> — group and territory from the trees, per the definitions.<br>4. <b>Terms and credit per the ladder</b> — cash by default; credit only with its documented decision (Chapter 5).<br>5. <b>Tax and compliance fields</b> — TIN and the mandatory fields per customer type, verified against the customer's documents, because compliance fields transcribed from a phone call are the invoicing blocks of the following month.<br>6. <b>Contacts and addresses</b> — the primary pair at minimum; the accounts payable contact for credit customers; the shipping set for multi-site customers.<br>7. <b>The first-document check</b> — a draft quotation against the new record, confirming the price list, terms, and addresses pre-fill as intended; the draft deleted.</p><p><b>3. Who operates the gate.</b> Customer creation is permitted to the roles the matrix names — the sales function's designated users — with the credit fields writable per the ladder's roles only. Bulk imports (a customer book migration) run as governed imports against the same checklist columns, sampled after load per the import procedure.</p><p><b>4. The gate's monthly read.</b> Customers created in the month sampled against the checklist: fields complete, decisions filed, duplicates absent. A gate that is not read drifts into a form-filling exercise; the monthly sample is what keeps the fifteen minutes honest, and its findings feed the checklist's next revision.</p>"
+   },
+   {
+    "title": "Chapter 7 — The customer data reads",
+    "est": "12",
+    "html": "<p>The standing reads that keep the customer register true, each with its cadence and action.</p><p><b>1. The duplicate-candidate read — monthly.</b> Near-identical names, shared phones or TINs across records, flagged for review. Confirmed duplicates merge per the remediation procedure (documents re-pointed per the data-fix rules, one surviving record); near-misses are noted so the next gate search finds them. The read is cheap while the register is young and priceless once collections depend on whole balances.</p><p><b>2. The classification read — quarterly (Chapter 3).</b> Group and territory sampled against the definitions; regrades applied; fragmenting nodes flagged for the structural review.</p><p><b>3. The credit changes read — monthly.</b> Every change to a credit limit or terms template in the month, with who changed it, listed against the ladder's filed decisions. The read is the audit that the fields move only by decision: a limit that moved without its paper is corrected and the permission gap closed. The over-limit bypass list (Chapter 5) files alongside it — the two together are the credit control's monthly evidence.</p><p><b>4. The dormancy read — quarterly.</b> Customers with no documents across the window, split by class: credit customers with open balances and no activity route to collections (module 7); cash customers with no activity for the policy's period are candidates for the disabled flag at the annual pass. Dormant records with live credit limits are the specific finding — an unused limit is exposure with no relationship watching it, and the read reduces it by decision.</p><p><b>5. The hygiene read — quarterly (Chapter 4).</b> Contacts and addresses for the top accounts confirmed current; bounce findings from statements actioned.</p><p><b>6. The receivables tie.</b> The customer register's ultimate read belongs to the Accounts track: the receivables aging per customer, monthly, with the statements cycle. This module's registers exist so that read is trustworthy — one record per payer, terms from templates, limits by decision. Where the aging surfaces a register problem (a balance split across duplicates, terms that disagree with the filed decision), the finding routes back to this module's remediation lanes, and the correction is made in the register, not worked around in the report.</p><p><b>7. The reads' filing.</b> Each read's output — the list, the corrections, the date — files with the sales function's records per the one-lookup standard, and the quarterly reads ride the same calendar as the stock and access recertifications so the review rhythm is one habit, not five.</p>"
+   },
+   {
+    "title": "Chapter 8 — Worked example: HealthTrade onboards the chain",
+    "est": "13",
+    "html": "<p>This chapter applies Chapters 2-7 to a real onboarding: a chain pharmacy group approaching HealthTrade for supply. Configuration values and outcomes are listed per step.</p><p><b>The prospect.</b> A chain pharmacy group with <b>30 branches — 24 in Lagos, 6 in Ibadan</b> — requests a supply relationship: central purchasing, head-office payment, deliveries to branches.</p><p><b>Step 1 — the paying-entity question (Chapters 4, 6).</b> Asked first at the gate: who pays? The answer — head office pays for all branches — decides the pattern: <b>one Customer record</b> (the group's registered company), one receivables balance, one credit limit, with per-branch shipping addresses. The alternative (30 child customers) is recorded as considered and rejected with the reason: the chain pays as one entity, and 30 balances would manufacture reconciliation work both sides.</p><p><b>Step 2 — the record built (Chapter 2).</b> Customer Type: Company; Customer Group: <b>Chain Pharmacies</b> (the group whose defaults carry the trade price list); Territory: the group's head-office territory, with sales reporting noting the two-city footprint. Tax fields: the TIN verified against the chain's registration documents at the gate. The duplicate check runs first and returns clean.</p><p><b>Step 3 — addresses and contacts (Chapter 4).</b> One billing address (head office); <b>30 shipping addresses</b>, titled with the chain's own branch codes so document pickers are unambiguous. Contacts: the head-office buyer (primary), the accounts payable contact (statements), and the two regional operations contacts for delivery coordination.</p><p><b>Step 4 — terms and credit (Chapter 5).</b> The chain requests credit terms. Per the ladder: the requested volume places the decision above the standard bands, so it goes to the owner with the trade references and the opening-volume projection. The decision, filed with the record: <b>45-day terms</b> on the named template, an opening credit limit per the projection, review scheduled at ninety days. The limit enters the record's credit section with the block posture standard; the bypass role confirmed as the named holders only.</p><p><b>Step 5 — the first-document check and the first cycle (Chapters 6-7).</b> The draft quotation confirms pre-fill: trade price list from the group, 45-day terms from the template, head-office billing, branch shipping selectable. The first month's documents flow: orders from head office, deliveries per branch address, invoices to the payer, the first statement to the named accounts payable contact. The ninety-day credit review runs on schedule against actual payment behaviour, and the limit decision is re-filed with the review's data — the ladder operating as procedure rather than exception.</p><p><b>The register evidence.</b> The gate file holds the duplicate check, the paying-entity decision, the classification, the credit decision and review, and the first-document check — the onboarding answerable from one folder, per the standing standard.</p>"
+   },
+   {
+    "title": "Chapter 9 — Common errors and the module rule",
+    "est": "11",
+    "html": "<p>The errors that recur in customer foundations, each with its correction and prevention.</p><p><b>Error 1 — credit without a decision.</b> Symptom: terms typed per invoice; limits set in conversation; the aging computed from improvised due dates. Correction: templates applied, the ladder's decisions filed retroactively where defensible, limits reviewed. Prevention: terms only from templates, credit only from the ladder, and the monthly changes read.</p><p><b>Error 2 — the duplicate customer.</b> Symptom: one buyer's history and balance split across records; credit checked against partial exposure; statements the customer disputes. Correction: the merge remediation with documents re-pointed. Prevention: the gate's duplicate check first, and the monthly candidate read.</p><p><b>Error 3 — the wrong multi-site pattern.</b> Symptom: 30 child customers for one payer, or one record for branches that pay separately; balances that match nobody's ledger. Correction: the restructure remediation per the data-fix rules. Prevention: the paying-entity question asked and recorded at the gate.</p><p><b>Error 4 — classification drift.</b> Symptom: customers priced from the wrong list because their group no longer matches their behaviour; territory reports that mislead. Correction: regrades from the classification read. Prevention: the quarterly read against the definitions and the tree change discipline.</p><p><b>Error 5 — compliance fields at invoicing time.</b> Symptom: missing TINs discovered when the invoice will not submit; month-end blocked on data entry. Correction: the fields completed from the customer's documents. Prevention: the gate's mandatory-fields step, verified against documents at creation.</p><p><b>Error 6 — the unwatched limit.</b> Symptom: dormant customers with live limits; credit that only ever ratchets upward; bypasses nobody lists. Correction: the dormancy and over-limit reads run, limits reduced by decision. Prevention: the quarterly credit review and the monthly bypass list.</p><p><b>Review list.</b> Before the quiz, confirm you can: complete the Customer doctype walk including the resolution chains, the credit section, and the retirement rule; design both trees with the behavioural-difference test and the change discipline; structure contacts and addresses including the multi-site pattern from the paying-entity question; operate templates, the ladder, the limit machinery with its bypass controls, statements, and the credit review; run the onboarding gate end to end; and run the six data reads on their cadences.</p><p><b>Module rule 1: every selling document stands on its Customer record — created through the gate with the duplicate check and the paying-entity question, classified by the trees, carrying terms only from templates and credit only from the ladder's filed decisions, and kept true by the scheduled reads.</b> Module 2 covers items and price lists.</p>"
    }
   ],
   "questions": [
    {
-    "q": "Which three Customer fields most directly drive sales reporting in ZhiftERP?",
+    "q": "A selling document's behaviour comes from:",
     "opts": [
-     "Customer Group, Territory, and the customer name",
-     "Name, email, phone",
-     "Credit limit, currency, price list",
-     "Contact, address, tax ID"
+     "The Customer record — price list, terms, credit, tax, addresses pre-fill from it",
+     "Typing at document time",
+     "The printer",
+     "The last document"
     ],
     "ans": 0,
-    "why": "Group and territory are the analysis dimensions every sales report slices by.",
-    "src": "Customers §1"
-   },
-   {
-    "q": "A customer's quotations keep defaulting to the wrong currency. Where is the durable fix?",
-    "opts": [
-     "Edit each quotation",
-     "The customer's Default Currency field",
-     "Selling Settings",
-     "The exchange rate list"
-    ],
-    "ans": 1,
-    "why": "Document defaults flow from the customer master — fix the master, not the symptom.",
-    "src": "Customers §1"
-   },
-   {
-    "q": "One customer with 30 branches needing deliveries to each branch is modelled as:",
-    "opts": [
-     "30 customers",
-     "One customer, addresses typed per order",
-     "One customer with 30 shipping addresses",
-     "30 price lists"
-    ],
-    "ans": 2,
-    "why": "One company = one customer; locations are address records attached to it.",
-    "src": "Contacts §2"
-   },
-   {
-    "q": "Documents pull which contact and address by default?",
-    "opts": [
-     "The newest",
-     "Whichever was used last",
-     "Alphabetically first",
-     "The primary contact and primary address"
-    ],
-    "ans": 3,
-    "why": "The primary flags control defaulting.",
-    "src": "Contacts §2"
-   },
-   {
-    "q": "A Sales Order is blocked because the customer would exceed their credit limit. Who can let it through?",
-    "opts": [
-     "A user with the Credit Controller role",
-     "Any System Manager",
-     "The sales user who made it",
-     "Nobody — it must be paid first"
-    ],
-    "ans": 0,
-    "why": "Credit Controller is the deliberate bypass role for credit-limit blocks.",
-    "src": "Credit §3"
-   },
-   {
-    "q": "The credit limit measures the customer's:",
-    "opts": [
-     "Lifetime purchases",
-     "Unpaid outstanding exposure",
-     "Number of open orders",
-     "Discount ceiling"
-    ],
-    "ans": 1,
-    "why": "It caps outstanding receivables, not sales volume.",
-    "src": "Credit §3"
-   },
-   {
-    "q": "Where do you control whether the same item can appear on two rows of one order?",
-    "opts": [
-     "Item master",
-     "Price list",
-     "Selling Settings — Allow Item to be Added Multiple Times",
-     "Sales Order print format"
-    ],
-    "ans": 2,
-    "why": "It's a Selling Settings switch.",
-    "src": "Settings §4"
-   },
-   {
-    "q": "\"Maintain Same Rate Throughout Sales Cycle\" protects against:",
-    "opts": [
-     "Currency changes",
-     "Tax recalculation",
-     "Discounts",
-     "The rate silently differing between order and delivery/invoice"
-    ],
-    "ans": 3,
-    "why": "It enforces the agreed rate downstream through the cycle.",
-    "src": "Settings §4"
-   },
-   {
-    "q": "Customer Group answers which question about a customer?",
-    "opts": [
-     "What kind of customer they are",
-     "Where they are",
-     "How much they owe",
-     "Who manages them"
-    ],
-    "ans": 0,
-    "why": "Group is the kind/segment dimension; territory is the where.",
-    "src": "Customers §1"
-   },
-   {
-    "q": "The right place to record a buyer's phone number is:",
-    "opts": [
-     "The customer name field",
-     "A Contact linked to the customer",
-     "The quotation remarks",
-     "Selling Settings"
-    ],
-    "ans": 1,
-    "why": "People live on Contact records, linked to the customer.",
-    "src": "Contacts §2"
-   },
-   {
-    "q": "Territory on the customer is best set to:",
-    "opts": [
-     "The salesperson's name",
-     "The delivery driver",
-     "The geographic region used in your reporting structure",
-     "The warehouse"
-    ],
-    "ans": 2,
-    "why": "Territory is the geography dimension for analysis and targets.",
-    "src": "Customers §1"
-   },
-   {
-    "q": "A new customer record should always be created with:",
-    "opts": [
-     "Only a name — details later",
-     "A copied address from another customer",
-     "A credit limit of zero",
-     "Name, group, territory, currency and default price list set deliberately"
-    ],
-    "ans": 3,
-    "why": "Master data created deliberately keeps every later document and report clean.",
-    "src": "Customers §1"
-   },
-   {
-    "q": "At onboarding, when is the right moment to capture a company customer's TIN?",
-    "opts": [
-     "At onboarding, while goodwill is high",
-     "At first invoice",
-     "When FIRS asks",
-     "Only for government customers"
-    ],
-    "ans": 0,
-    "why": "Chasing TINs at invoice time stalls billing; capture at creation.",
+    "why": "Per-document correction is where errors enter.",
     "src": "Ch1"
    },
    {
-    "q": "A healthy B2B customer record carries at least which three contacts?",
+    "q": "The build order is:",
     "opts": [
-     "Three procurement officers",
-     "Commercial, operational, and finance contacts",
-     "MD, chairman, secretary",
-     "Any three staff"
+     "Documents first",
+     "The trees, then the gate, then the records, then credit per the ladder — before documents",
+     "Random",
+     "Credit first"
     ],
     "ans": 1,
-    "why": "Quotations, deliveries, and collections each need a named person.",
-    "src": "Ch4"
-   },
-   {
-    "q": "The customer's territory for a 30-branch chain managed from head office should be:",
-    "opts": [
-     "Split across all branch territories",
-     "The largest branch's territory",
-     "The head office's territory, with branch geography on shipping addresses",
-     "Export"
-    ],
-    "ans": 2,
-    "why": "One relationship, one territory; branch geography lives on addresses.",
-    "src": "Ch3, Ch5"
-   },
-   {
-    "q": "Franchise branches that buy and pay independently should be modelled as:",
-    "opts": [
-     "Shipping addresses of the franchisor",
-     "One customer with 30 contacts",
-     "A customer group only",
-     "Separate customers — the test is who owes the money"
-    ],
-    "ans": 3,
-    "why": "Independent payers are independent commercial relationships.",
-    "src": "Ch5"
-   },
-   {
-    "q": "What makes 'Default Customer Group' safe rather than a landfill?",
-    "opts": [
-     "A real common leaf plus a weekly review of newly created customers",
-     "Pointing it at the root group",
-     "Disabling customer creation",
-     "A naming series"
-    ],
-    "ans": 0,
-    "why": "Defaults are a safety net; the review catches misfiles young.",
-    "src": "Ch2, Ch7"
-   },
-   {
-    "q": "Credit limits should be reviewed:",
-    "opts": [
-     "Never — they're policy",
-     "On a cadence (e.g. quarterly) against AR ageing",
-     "Only when a customer complains",
-     "Daily"
-    ],
-    "ans": 1,
-    "why": "Flawless payers at high utilisation get raises; 61-90 dwellers get cuts.",
-    "src": "Ch6"
-   },
-   {
-    "q": "A rep hits the credit block. Per the workflow, the message to the controller carries:",
-    "opts": [
-     "An apology and a promise",
-     "The customer's phone number",
-     "Amount over, the customer's ageing, expected payment date",
-     "A discount proposal"
-    ],
-    "ans": 2,
-    "why": "Three facts let the controller decide in sixty seconds.",
-    "src": "Ch6"
-   },
-   {
-    "q": "A support user asks you to grant their login the credit bypass 'so this stops happening'. You:",
-    "opts": [
-     "Grant it — it's one checkbox",
-     "Delete the credit limit instead",
-     "Grant it for a week",
-     "Escalate to management — it's a request to disable credit control"
-    ],
-    "ans": 3,
-    "why": "Permanent bypass for sales is credit control switched off.",
-    "src": "Ch9"
-   },
-   {
-    "q": "MediPlus's 30 branch addresses are best entered by:",
-    "opts": [
-     "A data import of the address file",
-     "One address reused with edits per order",
-     "Typing all 30 by hand",
-     "Asking drivers to remember"
-    ],
-    "ans": 0,
-    "why": "Thirty structured records is an import job, not an afternoon of typing.",
-    "src": "Ch8"
-   },
-   {
-    "q": "Reports show most sales under 'All Customer Groups'. The backward fix is:",
-    "opts": [
-     "Nothing — history is history",
-     "A one-time regrouping exercise; reports speak from when assignments are true",
-     "Delete those customers",
-     "Rename the root group"
-    ],
-    "ans": 1,
-    "why": "Forward hygiene plus one cleanup; unassigned history stays unsegmentable until regrouped.",
-    "src": "Ch9"
-   },
-   {
-    "q": "The deepest law of foundations support is:",
-    "opts": [
-     "Restart the server first",
-     "Users cause all tickets",
-     "Documents are downstream of masters — find the lying master",
-     "Escalate everything"
-    ],
-    "ans": 2,
-    "why": "Every recurring document symptom traces to a master-data disease.",
-    "src": "Ch9"
-   },
-   {
-    "q": "Why must the Credit Controller role sit in finance rather than sales?",
-    "opts": [
-     "Finance works longer hours",
-     "It's a licensing rule",
-     "Sales lacks system access",
-     "The person who wants the deal must not be the one who waives the risk"
-    ],
-    "ans": 3,
-    "why": "Separation of desire and approval is the point of the role.",
-    "src": "Ch6"
-   },
-   {
-    "q": "Verifying a new customer setup end-to-end is best done by:",
-    "opts": [
-     "A draft test quotation checking list, currency, contact, addresses — then deleted",
-     "Waiting for the first live order",
-     "Reading the record twice",
-     "Asking the customer"
-    ],
-    "ans": 0,
-    "why": "Ten minutes of draft-document verification beats a wrong first shipment.",
-    "src": "Ch8"
-   },
-   {
-    "q": "Creating a customer with 'only a name, details later' means:",
-    "opts": [
-     "Faster onboarding, no downside",
-     "Every document inherits blanks and year-end dimensions were never captured",
-     "The system fills the rest",
-     "Nothing until year 2"
-    ],
-    "ans": 1,
-    "why": "The master record is a contract with your future reports.",
+    "why": "Trees before records, records before documents.",
     "src": "Ch1"
    },
    {
-    "q": "In the Customer Group tree, customers attach to:",
+    "q": "The Customer Group is:",
     "opts": [
-     "Any node",
-     "The root",
-     "Leaves only — group nodes hold children, not customers",
-     "Two nodes at once"
+     "A label",
+     "Optional",
+     "A working field — defaults derive from it and reports aggregate by it; the wrong group prices from the wrong list",
+     "The territory"
     ],
     "ans": 2,
-    "why": "Leaves attach; parents roll up.",
+    "why": "The commercial classification.",
     "src": "Ch2"
    },
    {
-    "q": "The extra power territories have that customer groups lack:",
+    "q": "The price list resolution order is:",
     "opts": [
-     "Colours",
-     "Currencies",
-     "More levels",
-     "Territories can carry targets"
+     "Global only",
+     "Alphabetical",
+     "Per document",
+     "The customer's own default, else the group's, else the selling default — wired once by convention"
     ],
     "ans": 3,
-    "why": "Geography as a dimension with goals attached.",
+    "why": "The decided-chain pattern.",
+    "src": "Ch2"
+   },
+   {
+    "q": "Customer tax fields are enforced:",
+    "opts": [
+     "At the gate, verified against the customer's documents — a missing TIN blocks invoicing at the worst moment",
+     "At invoicing",
+     "Never",
+     "Annually"
+    ],
+    "ans": 0,
+    "why": "Mandatory per customer type, per the accountant's ruling.",
+    "src": "Ch2"
+   },
+   {
+    "q": "Customers are retired by:",
+    "opts": [
+     "Deletion",
+     "The Disabled flag at zero balance — document history references every customer that traded",
+     "Renaming",
+     "Archiving"
+    ],
+    "ans": 1,
+    "why": "The standing retirement pattern.",
+    "src": "Ch2"
+   },
+   {
+    "q": "The two trees are:",
+    "opts": [
+     "Interchangeable",
+     "One tree",
+     "Independent — group answers the commercial question, territory the geographic one",
+     "Optional"
+    ],
+    "ans": 2,
+    "why": "One tree for both answers neither cleanly.",
     "src": "Ch3"
    },
    {
-    "q": "A 30-branch chain managed as one relationship gets its territory set:",
+    "q": "A group exists when:",
     "opts": [
-     "Where the relationship is managed — head office — with branch geography on shipping addresses",
-     "Per branch, fragmenting the chain",
-     "Randomly",
-     "As Export"
+     "Any name differs",
+     "There are ten customers",
+     "Sales asks",
+     "The business treats the class differently — different lists, terms, or credit postures"
     ],
-    "ans": 0,
-    "why": "Don't fragment one chain unless regions are genuinely separate relationships.",
-    "src": "Ch3, Ch5"
+    "ans": 3,
+    "why": "No behavioural difference means a report filter at most.",
+    "src": "Ch3"
    },
    {
-    "q": "When the client's procurement officer changes, you:",
+    "q": "Tree changes are:",
     "opts": [
-     "Rename the customer",
-     "Edit or replace the Contact and re-flag primary — the customer and history are untouched",
-     "Create a new customer",
-     "Edit old documents"
+     "Structural decisions recorded with reasons — each new node fragments report history",
+     "Per customer",
+     "Automatic",
+     "Forbidden"
+    ],
+    "ans": 0,
+    "why": "Reclassifying a customer is an ordinary edit; restructuring is governed.",
+    "src": "Ch3"
+   },
+   {
+    "q": "The classification read finds:",
+    "opts": [
+     "New customers",
+     "The retail counter that grew into a chain and was never regrouped — pricing from the wrong list",
+     "Duplicates",
+     "Bad addresses"
     ],
     "ans": 1,
-    "why": "Company-level customer, person-level contacts: that separation is why the layer exists.",
+    "why": "Quarterly, against the definitions.",
+    "src": "Ch3"
+   },
+   {
+    "q": "Statements go to:",
+    "opts": [
+     "The company generally",
+     "The buyer",
+     "The named accounts payable contact",
+     "The driver"
+    ],
+    "ans": 2,
+    "why": "Role-specific contacts exist for this.",
     "src": "Ch4"
    },
    {
-    "q": "Branches become separate customers only when:",
+    "q": "A chain with one payer is:",
     "opts": [
-     "They have different addresses",
-     "They are far apart",
-     "They are separate commercial relationships — the test is who owes the money",
-     "They sell different items"
+     "Thirty customer records",
+     "A price list",
+     "A group node",
+     "One Customer record — one balance, one limit — with per-branch shipping addresses"
+    ],
+    "ans": 3,
+    "why": "Decided by the paying-entity question.",
+    "src": "Ch4"
+   },
+   {
+    "q": "Child customers per branch apply when:",
+    "opts": [
+     "Branches genuinely pay separately — separate balances and limits are then correct",
+     "Always",
+     "Never",
+     "Deliveries differ"
+    ],
+    "ans": 0,
+    "why": "Who pays decides the pattern.",
+    "src": "Ch4"
+   },
+   {
+    "q": "Permanent delivery instructions belong on:",
+    "opts": [
+     "Contact remarks",
+     "The address record — per-order instructions belong on the order",
+     "A sticky note",
+     "The invoice"
+    ],
+    "ans": 1,
+    "why": "Each fact where the documents read it.",
+    "src": "Ch4"
+   },
+   {
+    "q": "Payment terms come from:",
+    "opts": [
+     "Per-invoice typing",
+     "Phone calls",
+     "Named templates — the only lawful source; typed terms corrupt the aging",
+     "The driver"
     ],
     "ans": 2,
-    "why": "One payer, one customer; franchisees who pay independently ARE customers.",
+    "why": "Due dates compute from templates.",
     "src": "Ch5"
    },
    {
-    "q": "The credit limit caps:",
+    "q": "The credit ladder decides:",
     "opts": [
-     "Lifetime purchases",
-     "Discount depth",
-     "Order count",
-     "Current unpaid exposure — open invoices plus committed-but-unbilled orders"
+     "Nothing",
+     "Prices",
+     "Only big customers",
+     "Who may extend what — cash default, standard bands by the sales manager, above-band by the owner, all filed"
     ],
     "ans": 3,
-    "why": "Exposure is what you'd lose now, not history.",
-    "src": "Ch6"
+    "why": "Every decision files with the customer.",
+    "src": "Ch5"
    },
    {
-    "q": "The credit block's value is that policy executes:",
+    "q": "The standard limit posture is:",
     "opts": [
-     "Automatically at the point of entry, before goods leave",
-     "In month-end review",
-     "After delivery",
-     "Only for new customers"
+     "The block — a document that would exceed the limit does not submit",
+     "Warn only",
+     "Ignore",
+     "Monthly checks"
     ],
     "ans": 0,
-    "why": "The system does the one job charm cannot.",
+    "why": "With the named bypass role and its monthly list.",
+    "src": "Ch5"
+   },
+   {
+    "q": "Every bypass is:",
+    "opts": [
+     "Invisible",
+     "A decision by the named role, visible in the trail, listed monthly with its approver",
+     "Automatic",
+     "Free"
+    ],
+    "ans": 1,
+    "why": "The over-limit read.",
+    "src": "Ch5"
+   },
+   {
+    "q": "Credit that is never reviewed:",
+    "opts": [
+     "Stays correct",
+     "Falls",
+     "Moves only upward, one exception at a time — the review exists to prevent this",
+     "Expires"
+    ],
+    "ans": 2,
+    "why": "Quarterly on top exposures, annually on all.",
+    "src": "Ch5"
+   },
+   {
+    "q": "The gate's first step is:",
+    "opts": [
+     "Pricing",
+     "The group",
+     "The address",
+     "The duplicate check — name fragments, phone, email, TIN searched before creation"
+    ],
+    "ans": 3,
+    "why": "One minute against a merge remediation.",
     "src": "Ch6"
    },
    {
-    "q": "MediPlus (30 branches, central payment) is modelled as:",
+    "q": "A duplicate customer causes:",
     "opts": [
-     "30 customers",
-     "One customer, ~30 shipping addresses, group Pharmacy — Chain",
-     "One customer per state",
-     "A supplier"
+     "One buyer's history and balance split — credit checked against half the exposure, statements that disagree",
+     "Nothing",
+     "Better tracking",
+     "Faster search"
     ],
-    "ans": 1,
-    "why": "One statement, one limit that actually caps the chain, branch delivery history intact.",
-    "src": "Ch5, Ch8"
+    "ans": 0,
+    "why": "Why the check runs first.",
+    "src": "Ch6"
    },
    {
-    "q": "'The quotation shows the wrong address' is fixed by:",
+    "q": "The paying-entity question is asked:",
     "opts": [
-     "Editing the quotation",
-     "A new customer",
-     "Correcting the primary flags on the master — documents follow",
-     "Deleting the address"
+     "At the first dispute",
+     "At the gate and recorded — restructuring after documents exist is a remediation",
+     "Never",
+     "At year-end"
+    ],
+    "ans": 1,
+    "why": "Who pays decides the record pattern.",
+    "src": "Ch6"
+   },
+   {
+    "q": "The first-document check is:",
+    "opts": [
+     "The first real order",
+     "A test invoice submitted",
+     "A draft quotation confirming pre-fill — price list, terms, addresses — then deleted",
+     "Optional"
     ],
     "ans": 2,
-    "why": "The anti-fix cures one document and subscribes to the ticket.",
+    "why": "The gate's verification step.",
+    "src": "Ch6"
+   },
+   {
+    "q": "Bulk customer imports:",
+    "opts": [
+     "Skip the gate",
+     "Need no review",
+     "Are forbidden",
+     "Run as governed imports against the same checklist columns, sampled after load"
+    ],
+    "ans": 3,
+    "why": "The gate applies at scale.",
+    "src": "Ch6"
+   },
+   {
+    "q": "The credit changes read lists:",
+    "opts": [
+     "Every limit or terms change with who changed it, against the ladder's filed decisions",
+     "All invoices",
+     "New customers",
+     "Prices"
+    ],
+    "ans": 0,
+    "why": "The audit that fields move only by decision.",
+    "src": "Ch7"
+   },
+   {
+    "q": "A dormant customer with a live limit is:",
+    "opts": [
+     "Fine",
+     "Exposure with no relationship watching it — reduced by decision at the read",
+     "An asset",
+     "A target"
+    ],
+    "ans": 1,
+    "why": "The dormancy read's specific finding.",
+    "src": "Ch7"
+   },
+   {
+    "q": "Register problems surfaced by the aging are:",
+    "opts": [
+     "Worked around in the report",
+     "Ignored",
+     "Corrected in the register through the remediation lanes",
+     "Deleted"
+    ],
+    "ans": 2,
+    "why": "The receivables tie.",
+    "src": "Ch7"
+   },
+   {
+    "q": "The quarterly reads ride:",
+    "opts": [
+     "Separate calendars",
+     "Month-end only",
+     "No calendar",
+     "The same calendar as the stock and access recertifications — one review rhythm"
+    ],
+    "ans": 3,
+    "why": "One habit, not five.",
+    "src": "Ch7"
+   },
+   {
+    "q": "The chain's 30 branches became:",
+    "opts": [
+     "One Customer record with 30 shipping addresses titled by the chain's own branch codes",
+     "30 customers",
+     "One address",
+     "A group node"
+    ],
+    "ans": 0,
+    "why": "Head office pays for all branches.",
+    "src": "Ch8"
+   },
+   {
+    "q": "The rejected alternative was recorded because:",
+    "opts": [
+     "Paperwork",
+     "The decision and its reason file at the gate — 30 balances would manufacture reconciliation work both sides",
+     "The chain asked",
+     "Audit rules"
+    ],
+    "ans": 1,
+    "why": "Considered and rejected, with the reason.",
+    "src": "Ch8"
+   },
+   {
+    "q": "The chain's credit decision went to:",
+    "opts": [
+     "The sales rep",
+     "The system",
+     "The owner — the volume placed it above the standard bands; 45-day terms filed with references and a ninety-day review",
+     "Nobody"
+    ],
+    "ans": 2,
+    "why": "The ladder operating.",
+    "src": "Ch8"
+   },
+   {
+    "q": "The ninety-day review ran:",
+    "opts": [
+     "Never",
+     "Informally",
+     "Only on default",
+     "On schedule against actual payment behaviour, the decision re-filed with the data"
+    ],
+    "ans": 3,
+    "why": "Procedure rather than exception.",
+    "src": "Ch8"
+   },
+   {
+    "q": "The onboarding is answerable from:",
+    "opts": [
+     "One folder — the gate file with the checks, decisions, and the first-document check",
+     "Memory",
+     "Emails",
+     "The rep's notes"
+    ],
+    "ans": 0,
+    "why": "The one-lookup standard.",
+    "src": "Ch8"
+   },
+   {
+    "q": "Compliance fields transcribed from a phone call become:",
+    "opts": [
+     "Verified data",
+     "The invoicing blocks of the following month — the gate verifies against documents",
+     "Optional",
+     "Automatic"
+    ],
+    "ans": 1,
+    "why": "Error 5's prevention.",
+    "src": "Ch9"
+   },
+   {
+    "q": "Module 1's rule is:",
+    "opts": [
+     "Documents first",
+     "Credit is informal",
+     "Every selling document stands on its Customer record — gated with the duplicate check and paying-entity question, classified by the trees, terms from templates, credit from the ladder's filed decisions, kept true by the reads",
+     "Trees are optional"
+    ],
+    "ans": 2,
+    "why": "The module rule.",
     "src": "Ch9"
    }
   ]
