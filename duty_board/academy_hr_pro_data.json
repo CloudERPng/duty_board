@@ -1898,946 +1898,946 @@
  },
  "performance": {
   "title": "HR 5 — Performance & Appraisals",
-  "desc": "Performance as a conversation with a record: goals and KRAs selected from the operational reads the firm already runs, the evidence layer that kills recency and halo, the appraisal cycle with calibration, ratings discipline with anchored scales, the continuous feedback layer, and underperformance met with process and support.",
+  "desc": "Performance management in ZhiftERP: the Appraisal Template with weighted Key Result Areas totalling 100 and rating criteria; the Appraisal Cycle with appraisee-template mapping, the KRA evaluation method decision, and the published calendar; Goal records with KRA links, confirmation, and the freshness discipline; self appraisal and Employee Performance Feedback with independent submission and anchored scales; the final score computed from complete components and corrected only through its records; the completion, freshness, and calibration reads; and the boundary that appraisal informs pay decisions executed through the payroll lanes.",
   "lessons": [
    {
-    "title": "Chapter 1 — Performance: the conversation with a record",
+    "title": "Chapter 1 — Performance management: scope and record structure",
+    "est": "11",
+    "html": "<p>This module covers performance management in ZhiftERP. On completing this module you will be able to: build Appraisal Templates with weighted Key Result Areas and rating criteria; run an Appraisal Cycle that generates appraisals for its appraisees; track Goals through the period; process self appraisal and Employee Performance Feedback; read the final score computation; and run the cycle's completion and distribution reads.</p><p><b>The record structure.</b> Performance uses five record types:</p><p>1. <b>Appraisal Template</b> — the reusable definition of what a role is assessed on: the KRA table with weightages and the rating criteria (Chapter 2). Built once per role family.<br>2. <b>Appraisal Cycle</b> — the dated container for one assessment round: the period, the appraisee list, and the evaluation settings. Starting the cycle generates the Appraisals (Chapter 3).<br>3. <b>Appraisal</b> — one employee's assessment for one cycle: the KRA scores, the self appraisal, the feedback, and the final score (Chapters 4-6).<br>4. <b>Goal</b> — a tracked objective for an employee, linked to a KRA, carrying progress percentage; goals can nest as parent and child (Chapter 4).<br>5. <b>Employee Performance Feedback</b> — a reviewer's structured feedback against an appraisal, rated on the template's criteria (Chapter 5).</p><p><b>The boundary with pay.</b> Stated before anything is configured: the appraisal record <b>informs</b> pay and promotion decisions; it does not execute them. A pay change that follows an appraisal travels the Payroll track's lanes in full — the approval matrix, the letter, the Salary Structure Assignment (its module 6); a promotion travels module 7's lifecycle documents. The appraisal's final score is an input the deciders read, and the score's arithmetic (this module) must therefore be explainable: weightages recorded, ratings recorded, computation visible on the record.</p><p><b>Custody.</b> HR configures templates and runs cycles; employees maintain goals and submit self appraisals; the named reviewers submit feedback; the deciders decide. The performance policy — what is assessed, how scores are used, the cycle calendar — is the business's written policy, confirmed before configuration per the standing rule.</p><p><b>What reads performance records.</b></p><p>1. The pay review round (the Payroll track, module 6) — final scores as decision inputs.<br>2. The promotion and transfer documents (module 7) — the appraisal history on the employee.<br>3. The training-needs read (module 6 of this track) — low-scored KRAs as training-need signals.<br>4. The cycle reads (Chapter 7) — completion and distribution as management data.</p><p><b>Module contents.</b> Chapter 2: the Appraisal Template. Chapter 3: the Appraisal Cycle. Chapter 4: Goals and the KRA scores. Chapter 5: self appraisal and Employee Performance Feedback. Chapter 6: the final score. Chapter 7: the cycle reads and administration. Chapter 8: worked example. Chapter 9: review and the module rule.</p>"
+   },
+   {
+    "title": "Chapter 2 — The Appraisal Template",
+    "est": "12",
+    "html": "<p>Open Appraisal Template (awesome bar) &gt; New. One template per role family that is assessed on the same result areas. Complete the fields in order.</p><p><b>1. Template Title.</b> Name the template for its role family: <i>Branch Retail Staff</i>, <i>Warehouse Operations</i>, <i>Management</i>.</p><p><b>2. The KRA table (Key Result Areas).</b> One row per result area the role is assessed on:</p><p>• <b>KRA</b> — the result area, from the KRA master (create the KRA records first: short names for assessable result areas — <i>Dispensing accuracy</i>, <i>Stock control</i>, <i>Customer service</i>, <i>Team supervision</i>).<br>• <b>Weightage (%)</b> — the KRA's share of the score. <b>The weightages must total 100</b>; the document validates the total. Set the weightages from the written performance policy: the weightage is the business's statement of what matters most in the role, and it is decided by the role's manager and the owner, not defaulted to equal splits without a decision.</p><p>Rules for the table: three to six KRAs per template (fewer than three assesses too little; more than six dilutes every weightage into noise); each KRA written as an observable result area, not a personality trait — the goal records (Chapter 4) must be able to attach measurable objectives to it.</p><p><b>3. The Rating Criteria table.</b> One row per criterion the reviewers rate on, with its weightage (also totalling 100 where the configuration weights them): the qualitative dimensions the feedback stage assesses — <i>Reliability</i>, <i>Communication</i>, <i>Policy compliance</i>. The criteria rows become the rating rows on every Employee Performance Feedback against appraisals using this template (Chapter 5) — the same structured-comparison design as the recruitment module's Expected Skill Set: every reviewer rates the same rows.</p><p><b>4. Save.</b> The template is reusable across cycles; a role family's template changes through the standing change discipline — a revised template applies to the next cycle, and past appraisals keep the template they were assessed on (history stands).</p><p><b>Template design procedure.</b></p><p>1. The role family's manager drafts the KRAs and weightages from the role's actual duties (the Designation's description — module 1 — is the starting document).<br>2. The owner confirms the weightages — the 100 points are a decision.<br>3. HR enters the template and records the decision reference on it.<br>4. The template is reviewed annually with the performance policy: KRAs that no longer match the role's duties are revised for the next cycle.</p><p><b>Verification.</b> Per template: weightages total 100 in both tables; every KRA exists in the KRA master and is observable; the criteria rows are ratable dimensions; the decision reference recorded.</p>"
+   },
+   {
+    "title": "Chapter 3 — The Appraisal Cycle",
+    "est": "12",
+    "html": "<p>Open Appraisal Cycle (awesome bar) &gt; New. One cycle per assessment round. Complete the fields in order.</p><p><b>1. Cycle Name, Start Date, End Date.</b> Name the cycle for its round — <i>2026 Annual</i>, <i>2026 H1 Probation Reviews</i> — and set the assessment period the cycle covers. Goals and feedback belong to the period; the final scores describe it.</p><p><b>2. Company and the appraisee list.</b> Select the company and build the appraisees table — the employees this cycle assesses. Use the selection tools (department, branch, designation filters) to load groups, then adjust by name. Each appraisee row carries the employee and the <b>Appraisal Template</b> that applies to them — the role-family mapping from Chapter 2 executed here: retail staff to the retail template, warehouse to warehouse, managers to management.</p><p><b>3. The KRA evaluation method.</b> The cycle-level setting that decides how KRA scores compute:</p><p>• <b>Automated based on goal progress</b> — each appraisal's KRA score derives from the progress of the Goals linked to that KRA (Chapter 4's mechanics). Use where goals are genuinely maintained through the period.<br>• <b>Manual rating</b> — the appraiser rates each KRA directly at assessment. Use where the business runs assessment-time rating without period-long goal tracking.</p><p>Choose per the written policy and the business's actual discipline — the honest-records rule from the attendance module applies: automated scoring over goals nobody updates produces scores nobody believes. Record the choice on the cycle.</p><p><b>4. The final score formula.</b> Where the configuration exposes the final score weighting (the shares of goal/KRA score, self appraisal, and reviewer feedback in the final figure — Chapter 6), confirm the settings against the policy before the cycle starts. The formula is part of the policy communication to staff: people being assessed are told how the number is built.</p><p><b>5. Create Appraisals.</b> Start the cycle: the system generates one Appraisal per appraisee, each carrying its template's KRA rows. Verify the count — appraisals generated equals appraisee rows — and spot-check three: the right template on the right role.</p><p><b>The cycle calendar.</b> Publish the round's dates when the cycle starts, per the written policy:</p><p>1. Cycle start — appraisals generated; goals confirmed (Chapter 4).<br>2. The period — goals updated as work progresses.<br>3. Assessment window opens — self appraisals due by a stated date; reviewer feedback due by a stated date.<br>4. Final scores computed and the calibration read (Chapter 7) run.<br>5. Outcome conversations held; decision inputs handed to the deciders (the Chapter 1 boundary).</p><p>The dates are the cycle's checklist; Chapter 7's completion read tracks submissions against them.</p>"
+   },
+   {
+    "title": "Chapter 4 — Goals and the KRA scores",
+    "est": "12",
+    "html": "<p>Open Goal (awesome bar) &gt; New — or through employee self-service, the standard lane. Goals carry the period's objectives and, in automated cycles, compute the KRA scores.</p><p><b>1. The Goal record's fields.</b></p><p>• <b>Employee</b> — the goal's owner.<br>• <b>Goal name</b> — the objective, written as a verifiable outcome: <i>Reduce dispensing errors below two per month</i>, <i>Complete the monthly stock count by the 3rd</i>. A goal whose completion cannot be verified cannot honestly carry a progress figure.<br>• <b>KRA</b> — the template KRA this goal serves. The link is the scoring path: in automated cycles, a KRA's score derives from its linked goals' progress.<br>• <b>Appraisal Cycle</b> — the cycle the goal belongs to.<br>• <b>Start Date / End Date</b> — the goal's own span within the period.<br>• <b>Progress (%)</b> — the completion figure, updated by the employee as work advances.<br>• <b>Parent Goal</b> — goals nest: a parent objective with child goals, the parent's progress deriving from its children. Use nesting for large objectives with staged parts; keep the tree shallow (one level of children) or the structure costs more than it informs.</p><p><b>2. Goal setting, at cycle start.</b></p><p>1. The employee drafts goals per KRA — every template KRA carries at least one goal, or that KRA has no scoring basis in an automated cycle.<br>2. The manager confirms the goals: verifiable, within the role, weighted sensibly across the KRAs. The confirmation is recorded (the manager's comment on the goal or the site's approval step where configured).<br>3. Mid-period goal changes (a project cancelled, priorities moved by the business) are edits with the manager's confirmation noted — the standing documented-change rule, applied to objectives.</p><p><b>3. Progress discipline.</b></p><p>1. Progress updates are made when the work moves, not reconstructed in the assessment week — the month-end goal read (Chapter 7) lists stale goals (no update in the period's rhythm) as data to managers.<br>2. Progress states the verifiable position: the figure the evidence supports. The manager's confirmation at assessment (step 4 below) is the check.</p><p><b>4. The KRA score, computed.</b> In an automated cycle: each KRA's score = the progress of its linked goals (averaged or weighted per the configuration), scaled by the KRA's template weightage into the appraisal's goal score. At the assessment window the manager reviews the goals behind each KRA before the score stands — a 100% progress claim on an unverifiable goal is returned for evidence, exactly as any figure without a record is returned anywhere else in the programme.</p><p><b>5. Manual-rating cycles.</b> Where the cycle's method is manual, the appraiser rates each KRA on the appraisal directly at assessment, informed by whatever period evidence exists. Goals remain available as working records even in manual cycles; they simply do not compute the score. The rating still answers to the weightages: the KRA table's 100 points distribute the rated scores identically.</p>"
+   },
+   {
+    "title": "Chapter 5 — Self appraisal and Employee Performance Feedback",
+    "est": "12",
+    "html": "<p>Two structured inputs join the goal scores at the assessment window.</p><p><b>1. The self appraisal.</b> On the Appraisal record, the employee completes the self-appraisal section by the published date:</p><p>1. <b>The self ratings</b> — the employee rates the KRAs (or the configured self-assessment rows) from their own view of the period.<br>2. <b>The reflections</b> — the free-text account: what was delivered, what blocked, what support is asked for. Instruct staff to write to the evidence — deliveries and dates — because the self appraisal is read beside the goal records and the feedback, and agreement between the three is what makes the final conversation short.</p><p>The self appraisal's weight in the final score is the configuration's setting (Chapter 6); its value is independent of its weight — the reflections are the employee's documented voice in their own assessment, and the outcome conversation (Chapter 7) starts from them.</p><p><b>2. The Employee Performance Feedback.</b> Open Employee Performance Feedback (awesome bar) &gt; New — or from the appraisal's feedback section. One record per reviewer per appraisal:</p><p>• <b>The appraisal link</b> and the <b>reviewer</b> — the manager per the reporting structure (module 1's Reports To), plus additional named reviewers where the policy uses them (a second reviewer for calibration, a cross-functional reviewer where the role serves another function).<br>• <b>The rating rows</b> — the template's Rating Criteria rendered as rating fields: every reviewer rates the same criteria (Chapter 2's structured-comparison design). Ratings follow the site's scale; anchor the scale in the policy (what a 3 means, what a 5 means) so two reviewers' numbers mean the same thing.<br>• <b>The feedback text</b> — the reviewer's account, written to observations: what was done, when, with what result. The recruitment module's rule restated: observations, not speculation.</p><p><b>3. Feedback discipline.</b></p><p>1. Feedback is submitted by the published date; the completion read (Chapter 7) lists the overdue by reviewer, and an assessment window that closes with missing feedback scores people on partial inputs — the read exists so it does not.<br>2. Each reviewer submits independently; calibration discussions happen at the calibration read (Chapter 7), on the submitted records, not before them.<br>3. Feedback is confidential per the policy's disclosure rule: the employee sees what the policy says they see, consistently for everyone. Decide the rule once, publish it with the cycle calendar, and configure access accordingly — the sensitive-data handling rules from module 1 apply to appraisal content throughout.</p><p><b>4. The period-long alternative.</b> Where the site enables continuous feedback (feedback records created during the period, not only at the window), the same record and rules carry it; the assessment window then reads an accumulated file instead of a single retrospective. Use per the written policy; the mechanics do not change.</p>"
+   },
+   {
+    "title": "Chapter 6 — The final score",
+    "est": "12",
+    "html": "<p>The Appraisal record computes a final score from its inputs. This chapter covers the computation, its verification, and its handling.</p><p><b>1. The components.</b> Per the cycle's configuration (Chapter 3, step 4), the final score combines:</p><p>1. <b>The goal/KRA score</b> — automated from goal progress, or manually rated, per the cycle's method (Chapter 4), weighted by the template's KRA weightages.<br>2. <b>The self appraisal score</b> — the employee's self ratings, at the configured share.<br>3. <b>The feedback score</b> — the reviewers' ratings averaged across the submitted Employee Performance Feedback records, at the configured share.</p><p>The shares are the policy's decision, published with the cycle calendar. The computation is visible on the appraisal: each component, its figure, its share, the total.</p><p><b>2. Verification, per appraisal, before scores are released.</b></p><p>1. Every component present: goals reviewed and confirmed (Chapter 4, step 4), self appraisal submitted, all named reviewers' feedback submitted. An appraisal scored on missing components is flagged, not released — the completeness rule.<br>2. The arithmetic spot-checked on a sample: components × shares = the final figure shown.<br>3. The template correct for the role (the Chapter 3 generation spot-check, re-run on any appraisal whose score is disputed).</p><p><b>3. What the score is and is not.</b> Restating the Chapter 1 boundary as operating rules:</p><p>1. The score is a <b>summary of recorded inputs</b> — as good as the goals, ratings, and feedback behind it, and no better. The reads in Chapter 7 protect the inputs; nothing rescues a score built on stale goals and one reviewer's late guess.<br>2. The score <b>informs decisions made elsewhere</b>: the pay review reads it beside the movement record and the budget (the Payroll track, module 6); the promotion case reads it with the lifecycle documents (module 7). No lane in this module changes pay.<br>3. Score changes are governed: a disputed score is re-examined through its components — a goal's evidence, a rating's basis — and corrected through the records, never edited at the total. The appraisal's history (track changes per the standing audit rules) records any correction with its reason.</p><p><b>4. The outcome record.</b> When the cycle's scores are final:</p><p>1. Each appraisal is submitted per document rules — the period's assessment closed as a record.<br>2. The outcome conversation (Chapter 7) is held and its summary noted on the appraisal: what was discussed, what was agreed, the training needs identified (module 6 reads these).<br>3. The cycle's decision pack (Chapter 7's distribution read plus the individual records) goes to the deciders for whatever the policy connects to the round — with every number traceable to its inputs.</p>"
+   },
+   {
+    "title": "Chapter 7 — The cycle reads and administration",
+    "est": "12",
+    "html": "<p>The reads that keep a cycle honest and complete, and the administration around them.</p><p><b>1. The completion read (weekly during the assessment window).</b> From the cycle's appraisal list:</p><p>1. Self appraisals submitted versus total, overdue names listed.<br>2. Feedback submitted versus expected (appraisals × named reviewers), overdue by reviewer — the reviewer with eight overdue feedbacks is the bottleneck the read names while there is time to act.<br>3. Goals confirmed versus total (cycle start) and reviewed versus total (assessment window).</p><p>The read goes to HR's cycle owner and the responsible managers as a list; the cycle closes complete because the gaps were chased weekly, not discovered at the deadline.</p><p><b>2. The goal-freshness read (monthly during the period).</b> Goals with no progress update in the month, by employee and manager — data to the managers per the standing rule. In automated cycles this read protects the scores directly; in manual cycles it protects the assessment's evidence.</p><p><b>3. The calibration read (before scores release).</b> The draft score distribution by manager and by department:</p><p>1. A manager whose ratings sit far above or below the company distribution is a calibration conversation — about anchoring (what a 3 means), held on the records, before release.<br>2. The distribution itself is management data: presented as figures per the data-not-editorial rule; what the business does about its shape is the policy owner's decision.<br>3. Calibration adjusts <b>ratings through their raters</b> — a reviewer persuaded their anchoring was off revises their own feedback record with the change tracked. Nobody edits another's ratings.</p><p><b>4. The outcome conversation.</b> Per appraisee, after scores are final: the manager and employee walk the record — goals, self appraisal, feedback, score — and agree the notes: outcomes, development actions, training needs. The conversation's summary is entered on the appraisal (Chapter 6, step 4). The training needs entered here are module 6's intake: a low-scored KRA with an agreed development action becomes a training-plan line.</p><p><b>5. Administration rules.</b></p><p>1. <b>The cycle is scheduled, not improvised:</b> the calendar published at start (Chapter 3), the reads on their cadence, the close on its date. An assessment round run by reminder-and-hope produces the missing-component scores Chapter 6 refuses.<br>2. <b>Probation reviews are cycles:</b> a probation confirmation runs as a small cycle (the probationers as appraisees, the probation template, the confirmation decision informed by the score) — the same machinery at smaller scale, and the confirmation date field (module 1) completed from its outcome.<br>3. <b>Appraisal content is sensitive:</b> access per the policy's disclosure rule, consistently; the permission matrix covers the appraisal doctypes; the confidentiality rules from the payroll track's slip handling apply in kind.<br>4. <b>History stands:</b> past cycles' appraisals are never revised to match later opinions; a correction has a cause and a tracked change; templates revise forward (Chapter 2).</p>"
+   },
+   {
+    "title": "Chapter 8 — Worked example: the HealthTrade annual cycle",
     "est": "13",
-    "html": "<p>The track's first four modules governed presence; this one governs contribution — and its thesis holds two ideas in one sentence: <b>performance is a conversation with a record.</b> Drop either half and the machinery fails in its own characteristic way.</p><p><b>The two failure modes.</b> <b>No performance management</b> — the commoner disease in the trade: no goals, no reviews, no record; contribution assessed by impression, promotion by proximity (the person the owner sees most rises fastest — module 1's founder-bottleneck breeding its succession the same way), correction by explosion (nothing said for months, then everything at once), and the good quiet performer invisible until they resign. <b>Performance theatre</b> — the corporate import gone hollow: forms filled annually because the calendar says so, ratings assigned from a fortnight's memory, documents filed and never referenced, the whole exercise costing days and changing nothing — the appraisal as ritual without a reader, which is this academy's definition of waste (every ritual it has ever installed had a read and a consequence). The cure is the thesis's two halves working together: the CONVERSATION continuous (feedback near events, check-ins on a cadence — Chapter 6), and the RECORD periodic and evidence-based (the appraisal that references what the year actually shows — Chapters 3-5), each keeping the other honest: conversation without record evaporates; record without conversation ambushes.</p><p><b>The never-ambush law, promoted.</b> Module 3 taught it for attendance; this module makes it the performance layer's constitution: <b>nothing in an appraisal should be news.</b> The rating that surprises, the weakness first named in the annual meeting, the goal the person learns they missed after the year ends — each is a failure of the continuous half, and each converts a development instrument into a grievance generator. The test the consultant teaches managers: before the appraisal meeting, ask <i>has everything on this form already been said, closer to when it happened?</i> — and if not, the form is not ready, the manager is.</p><p><b>What this module is for, honestly.</b> The performance layer's products, named so the machinery stays aimed: DEVELOPMENT first (the person who knows where they stand and what growth looks like — module 6 consumes this module's outputs directly), DECISIONS second (the confirmation, the promotion, the increment recommendation, the improvement plan — each better made from records than impressions, with the money computations themselves living across the payroll boundary as always), and FAIRNESS throughout (the quiet performer made visible by evidence; the connected performer measured by the same scale — the pipeline's structured-interview argument, replayed annually for everyone already inside). What it is NOT for: surveillance theatre, rank-and-punish tournaments, or the imported bell curve applied to an eleven-person firm — the sizing honesty that has closed every thesis chapter closes this one: the machinery below fits a Nigerian trading firm's scale, and its heaviest instrument is a conversation.</p>"
+    "html": "<p>This chapter applies Chapters 2-7 to HealthTrade. Configuration values and outcomes are listed per step.</p><p><b>Step 1 — templates (Chapter 2).</b> Three Appraisal Templates built with the managers and confirmed by the MD:</p><p>• <i>Branch Retail Staff</i> — KRAs: Dispensing accuracy 35, Customer service 25, Stock control 25, Policy compliance 15. Criteria: Reliability, Communication, Compliance.<br>• <i>Warehouse Operations</i> — KRAs: Stock accuracy 35, Dispatch timeliness 30, Safety compliance 20, Housekeeping 15.<br>• <i>Management</i> — KRAs: Branch performance 40, Team development 25, Controls compliance 20, Reporting timeliness 15.</p><p>Weightage totals validate at 100; decision references recorded on each template.</p><p><b>Step 2 — the cycle (Chapter 3).</b> Appraisal Cycle <i>2026 Annual</i> created for the calendar year; thirty appraisees loaded by department filters and mapped to their templates. KRA evaluation method: <b>manual rating</b> for this first cycle — recorded on the cycle with the reason (goal discipline not yet established; the honest-records rule) and the intention to move to automated scoring next cycle once the goal rhythm holds. The final score shares confirmed and published with the cycle calendar: KRA rating 60, feedback 25, self appraisal 15.</p><p><b>Step 3 — goals anyway (Chapter 4).</b> Goals are set at cycle start as working records even though this cycle scores manually: each appraisee drafts goals per KRA; managers confirm. Verification: every appraisee carries at least one confirmed goal per KRA. The monthly freshness read starts; month two lists nine stale goals across two branches — handed to the two managers as a list; month three lists two.</p><p><b>Step 4 — the assessment window (Chapters 5-6).</b> The window opens on the calendar's date. The weekly completion read runs: week one — self appraisals 18/30, feedback 12/60 (two reviewers per appraisal: the manager and one second reviewer for calibration); week two — the read names one reviewer holding eight overdue feedbacks; the cycle owner escalates and the feedbacks arrive within the week; window close — 30/30 self appraisals, 60/60 feedbacks, all KRA ratings entered. Score verification: components complete on all thirty; the arithmetic sampled on five appraisals clean.</p><p><b>Step 5 — calibration and release (Chapter 7).</b> The calibration read shows one branch's ratings averaging a full point above the company distribution; the anchoring conversation is held on the records, and the branch's second reviewer revises four of their own ratings with tracked changes and reasons. Scores release; outcome conversations run over two weeks; summaries and agreed actions entered on each appraisal.</p><p><b>Step 6 — the outputs.</b> The decision pack to the MD: the distribution, the individual records. Seven training needs identified in the outcome notes (five on stock-control KRAs, two on reporting) — entered as module 6's training-plan intake. The pay review round that follows reads the scores beside the movement record per the Payroll track's procedure; every pay change that results travels that track's lanes. The cycle's close note records the method decision for next year: goal discipline held from month three, automated KRA scoring approved for the 2027 cycle.</p>"
    },
    {
-    "title": "Chapter 2 — Goals & KRAs: what good looks like, written down",
-    "est": "13",
-    "html": "<p>The performance conversation needs a subject, and the subject is set at the year's start: the GOALS — the written answer to <i>what does good look like in this role, this year?</i> The objective-setting chapter.</p><p><b>Goals from the role's actual work.</b> The design source is the academy's own curriculum: the role's key result areas (KRAs) derive from what the role actually does and what the firm can actually observe — the till assistant's (session accuracy, the clean-close rate, service conduct), the storekeeper's (receiving discipline, count accuracy, the custody record), the collections officer's (the aging worked, the promises kept), the accountant's (the close's timeliness, the reconciliations' residue ages), the branch manager's (the branch scorecard's vitals — Inventory 6's page becoming a person's objectives). The insight that makes this trade's performance management CHEAPER than the corporate import: four tracks already built the measurements — the operational reads exist, are captured by machinery, and update without anyone filling a form — so the KRA layer largely SELECTS from evidence that already flows rather than inventing metrics that need feeding (Chapter 3's whole argument, previewed).</p><p><b>The goal disciplines.</b> Probation's law (module 2), generalised to everyone: goals are FEW (three to five — the objective sheet with twelve goals prioritises nothing), OBSERVABLE (tied to evidence the year will actually produce — the goal nobody can measure becomes a mood at appraisal time), SHARED (the person holds the same sheet the manager holds, from the setting conversation — the appraisal against secret criteria is the trial with secret charges), and WEIGHTED where roles need it (the mix of operational KRAs and development goals — module 6's training path entering the sheet as a goal, which is how development stops being optional). Plus the honest balance the trade requires: goals include the QUALITATIVE where the role's value is qualitative (the service conduct, the team contribution — assessed by described behaviours, not invented numbers: a fake metric is worse than a frank judgment, because the judgment admits what it is).</p><p><b>Cascading, lightly.</b> The firm's year shapes the sheets without drowning them: the firm-level goals (the year's few — the Akure ramp, the close's day-four target, the shrinkage band) cascade as CONTEXT and, where genuinely applicable, as shared objectives (the branch's team sharing the branch's vitals — the scorecard already published per module 6 of Inventory; the goal sheet simply points at it), and the cascade stops where relevance stops: the till assistant does not carry the firm's expansion goal; they carry the counter's excellence, which IS their contribution to it. The one-page rule closes the chapter: a person's year fits on a page — the goals, the weights, the evidence sources, the signatures of the setting conversation — and that page is the appraisal's skeleton, written in January so December can only confirm what the year already said.</p>"
-   },
-   {
-    "title": "Chapter 3 — The evidence layer: appraisals that reference records",
-    "est": "14",
-    "html": "<p>The chapter that makes this module the academy's own: the appraisal's evidence is largely ALREADY CAPTURED — by the machinery four tracks installed — and the performance layer's job is to organise it per person, not to invent it. The evidence chapter.</p><p><b>The inventory of existing evidence.</b> What the systems already know, per role, without a single performance form: the TILL roles — session records (clean closes, variances, the streaks module 2's probation already used), service interactions where captured; the WAREHOUSE roles — receiving records (the count-before-sign discipline visible in every receipt's trail), cycle-count accuracy, custody counts signed, the adjustment history (the storekeeper whose locations count clean is holding a provable standard); the DRIVER roles — the tailgate reconciliations, the run records, the seal history; the SALES roles — the attributed revenue, the margin quality, the credit outcomes of their customers (the selling track's reads per person); the FINANCE roles — the close's lines owned and their timeliness, reconciliation residue ages, correction-log entries by author (Accounts 2's aggregate tells, read per person as craft evidence); and EVERYONE — the attendance layer (module 3's rates, as context: one stream, never the whole story), the training record (module 6's completions and scores — the academy's own certifications as performance evidence), and the conduct file (recognitions and documented conversations — Chapter 6).</p><p><b>The evidence folder, accumulated.</b> The per-person organisation: through the year, the evidence ACCUMULATES against the goal sheet (the manager's log — Chapter 6 — plus the operational reads' periodic snapshots: the quarter's session summary attached, the count-accuracy read filed), so the appraisal is ASSEMBLED, not composed — the December meeting opens a folder that already tells the year's story, and the writing is synthesis, not archaeology. The economics the consultant sells: this is the audit-file argument (Accounts 7) applied to people — the system that runs well evidences well, and the firm already paying for operational discipline gets its performance evidence free.</p><p><b>Recency and halo, killed by records.</b> The two memory diseases every un-evidenced appraisal carries, named so the cure is understood: RECENCY (the year rated by its last six weeks — the strong November erasing the weak spring, or the one December error erasing a strong year) and HALO (the general impression colouring every specific rating — the likeable person scored high on accuracy nobody checked). Both die the same death: the folder's evidence is dated and spans the year, so the rating conversation reads the YEAR — the quarterly snapshots outvoting the last fortnight's impression — and disagreements resolve by opening records instead of comparing recollections (the drill-before-disputing culture of Accounts 1, at the appraisal table).</p><p><b>The evidence boundary.</b> The discipline that keeps the layer trusted: evidence is used WITH the person's knowledge (the goal sheet named its sources in January — nobody is surprised in December that their sessions were read, because the reading was the deal), CONTEXTUALISED (the variance rate of the till that handles triple the traffic is read against its volume; the count accuracy of the location with the hardest stock is read against its difficulty — evidence without context is a number pretending to be a judgment), and BALANCED (the operational reads measure what they measure; the qualitative half of the role gets its qualitative assessment — the machine's numbers inform the conversation and never replace it). The layer's one-sentence constitution: <b>records make the appraisal honest; the manager makes it fair.</b></p>"
-   },
-   {
-    "title": "Chapter 4 — The appraisal cycle: the machinery",
-    "est": "13",
-    "html": "<p>The periodic record's machinery: the cycle defined, the document structured, the ratings calibrated, and the meeting run as a conversation. The cycle chapter.</p><p><b>The cycle.</b> The working norm for the trade: the ANNUAL appraisal (the full record — goals reviewed, evidence assembled, ratings given, the development plan written) with the MID-YEAR check (the lighter formal touchpoint — on track or course-correcting, the goal sheet amended where the year changed it: the mid-probation review's logic, annualised for everyone), riding the continuous layer of Chapter 6 beneath both. The calendar discipline: the cycle's dates fixed and published (module 8's calendar), the season bounded (appraisals completed within the stated window — the season that drags to March is rating a year nobody remembers), and the sequence deliberate (self-assessment first, then the manager's, then the meeting — each stage feeding the next).</p><p><b>The appraisal document.</b> The structure, section by section: the GOAL REVIEW (each goal from January's sheet: the evidence, the outcome, the rating — the skeleton filled), the SELF-ASSESSMENT (the person's own account first — because the self-assessment read before the manager writes theirs surfaces the perception gaps early, and the person who rates themselves honestly low on a real gap has started the development conversation themselves), the MANAGER'S ASSESSMENT (evidence-referenced, specific, written in the language of behaviours and results — <i>the receiving discipline held on all forty-one receipts sampled</i> beats <i>good worker</i> in every way that matters later), the OVERALL RATING (Chapter 5's discipline), and the DEVELOPMENT PLAN (the forward half — the growth areas, the training path additions, module 6's intake: an appraisal without a development plan is a verdict without a sentence, and development is the sentence this system wants).</p><p><b>Calibration: ratings consistent across managers.</b> The multi-manager firm's quiet quality machinery, at trade scale: before ratings finalise, the managers' proposed ratings are REVIEWED TOGETHER (the calibration session — HR convening, the spine's managers present: each manager's distribution visible beside the others', the outliers discussed against evidence), because uncalibrated ratings measure the MANAGER (the lenient one whose team is uniformly outstanding; the harsh one whose identical team is uniformly average), and every downstream decision — increments, promotions, the improvement conversations — inherits the distortion. The session's rules: evidence talks (the challenged rating defends itself from the folder, not the podium), the goal is CONSISTENCY not a forced curve (the bell curve imposed on an eleven-person firm manufactures injustice to satisfy a template — the academy's sizing honesty, again: small teams can genuinely be mostly good, and the calibration confirms it rather than denying it), and the session's adjustments are made BEFORE meetings, so the person hears one message, once.</p><p><b>The meeting.</b> The conversation the whole cycle exists to enable: scheduled properly (time protected, privacy real), structured as a dialogue (the self-assessment discussed, the evidence walked, the rating explained — not a form read aloud at a silent listener), forward-weighted (the development plan getting the meeting's second half — the past is the evidence; the future is the point), and closed with signatures and the shared record (the person's comments field theirs to use, including disagreement — the appraisal they can annotate is the appraisal they can trust). The never-ambush test applied one final time at the door: if any line of the form is news, the meeting is happening a year late.</p>"
-   },
-   {
-    "title": "Chapter 5 — Ratings discipline: the scale & its honesty",
-    "est": "13",
-    "html": "<p>The rating is the appraisal's most consequential compression — a year into a mark — and this chapter is the discipline that keeps the mark meaning something. The scale chapter.</p><p><b>The scale, anchored.</b> The firm's scale (the common five points serve) defined with ANCHORS — each point a described standard, not a number with a vibe: what 'exceeds' looks like in evidence (the goals surpassed with the records to show it), what 'meets' means (the year delivered as the sheet defined — the anchor the consultant defends hardest, because 'meets' must be an honourable rating in a healthy system: the solid performer who did exactly what good looks like is the firm's backbone, and a culture where 'meets' reads as failure inflates every rating above it within two cycles), what the development points mean (the gap named, the plan attached), and what the lowest means (the improvement process engaged — Chapter 7). The anchors are published — everyone rates and is rated against the same descriptions — and the goal sheet's evidence sources make each anchor testable.</p><p><b>The rating diseases, named.</b> The distortions every rating system breeds, taught so managers recognise their own: CENTRAL TENDENCY (everything a middle rating — the manager avoiding both the difficult conversation and the increment argument, producing a distribution that says nothing), LENIENCY (everything high — kindness in the moment, cruelty at the system level: the inflated team's genuine star is indistinguishable from its passengers, the underperformer ambushed years later by a file of 'outstanding' ratings that make the honest conversation legally awkward — the leniency that feels kind is the ambush's co-author), HALO and its inverse (Chapter 3's memory disease, at rating time), and the SPILL diseases (the attendance blemish bleeding into the craft rating; the personality friction rating the work — the scale rates the goal sheet, and the goal sheet named its subjects). The calibration session (Chapter 4) is where the diseases meet daylight: distributions compared, anchors re-read, evidence opened.</p><p><b>The distribution read.</b> HR's post-season read, at altitude: the ratings' shape per team and per manager (the all-outstanding team is a leniency flag or a genuine unit — the evidence folder says which; the no-development-points team suggests avoidance; the year-on-year drift maps inflation), read as QUESTIONS for next season's calibration, never as quotas for this one — the read improves the raters, not the numbers.</p><p><b>Decoupled but connected: ratings and money.</b> The boundary discipline that keeps both systems honest: the rating FEEDS decisions (the increment recommendation, the promotion case, the improvement process — each citing the appraisal), but the money computations live where money lives (the increment matrix, the bonus arithmetic — the payroll boundary and the owner's budget), and the appraisal meeting is NOT a salary negotiation (the meeting that becomes one stops being a development conversation permanently — the two conversations scheduled apart, deliberately, so the rating can be honest without being a bid). And the WRITTEN RATIONALE closes the chapter's discipline: every rating carries its paragraph — the evidence cited, the anchor referenced — because the rating that cannot explain itself in writing is an impression wearing a number, and every process this rating will ever feed (the promotion panel, the improvement plan, the dispute) will ask for the paragraph the lazy rating didn't write.</p>"
-   },
-   {
-    "title": "Chapter 6 — The continuous layer: feedback, recognition & the log",
-    "est": "13",
-    "html": "<p>The year between appraisals is where performance actually happens — and the continuous layer is the conversation half of the thesis, structured lightly enough to survive real management. The everyday chapter.</p><p><b>Feedback near events.</b> The layer's first law: feedback lands CLOSE to what it concerns — the correction at week one (the receiving shortcut named the week it appeared: a two-minute conversation and a habit adjusted) versus the same correction at month twelve (an appraisal grievance and a habit calcified) — and the arithmetic the consultant teaches managers is the escalation-path economics of module 3, generalised: early feedback is cheap and effective; deferred feedback is expensive and resented, and the deferral is usually the manager's discomfort, not the person's unreadiness. The craft notes that make it land: specific (the behaviour, the instance, the impact — not the character), private for correction and public for recognition (the asymmetry that builds trust), and two-directional (the manager who asks <i>what should I do differently?</i> earns the right to be heard on everything else).</p><p><b>Recognition captured.</b> The record's positive half — chronically under-built in firms that only document problems: the recognition RECORDED (the clean-audit quarter, the caught fraud attempt — Inventory's seal forensics finding its heroes, the customer's compliment, the colleague's cover during the maternity leave), lightly (a dated note to the file — the machinery is a text field, not a ceremony), and deliberately (the manager's monthly discipline: what went RIGHT this month, per person, noted) — because the evidence folder that holds only corrections misrepresents every year it summarises, and the appraisal drawn from it inherits the distortion. The culture dividend is larger than the record: the workforce that sees good work NOTICED — in writing, where it counts — supplies more of it; recognition is the cheapest performance intervention the firm owns.</p><p><b>The check-in cadence.</b> The structured minimum between formal touchpoints: the manager's regular one-to-ones (monthly as the working norm for the trade — brief, scheduled, protected: the goal sheet glanced, the obstacles asked after, the notes kept), distinct from daily operational contact (the shift's traffic is not a check-in; the check-in is the fifteen minutes ABOUT the person, not the queue), and feeding the log. The sizing honesty: at eleven people this is the founder's few hours monthly, and it is precisely the founder-bottleneck's antidote in this layer — the check-ins that develop people are the delegation machinery being built, one conversation at a time.</p><p><b>The manager's log.</b> The continuous layer's memory: the dated notes per person (feedback given, recognition recorded, check-in outcomes, the operational reads' notable moments) — kept in the system against the record (the custody rules of module 1 governing visibility — the log is the manager's and HR's, per the permission design), honest (notes written as if the person will read them, because processes exist in which they may — the discipline that keeps logs professional and defensible at once), and SUFFICIENT (the log is the appraisal's raw material: the December meeting that opens a year of dated notes writes itself; the one that opens a blank log writes fiction). The chapter's closing arithmetic, for the manager who calls this bureaucracy: five minutes a week of notes versus a December of archaeology and a grievance risk — the trade this academy has priced in every layer, at its most human scale.</p>"
-   },
-   {
-    "title": "Chapter 7 — Underperformance: the governed response",
-    "est": "13",
-    "html": "<p>The layer must also handle the hard case — the performance that persistently misses — and handle it as process, not improvisation. The chapter where fairness and firmness are the same discipline.</p><p><b>Capability versus conduct: the first distinction.</b> The fork every case meets first, because the processes differ: CAPABILITY (the person trying and missing — skill, aptitude, or circumstance gaps: a performance-improvement matter, this chapter's terrain) versus CONDUCT (the person breaching rules — the lateness pattern refused, the policy violated, the integrity matter: the disciplinary machinery, module 7's terrain, with its own procedural requirements). The distinction matters legally and humanly — the capability case gets support and time; the conduct case gets the disciplinary procedure's protections — and the confused case (the capability gap prosecuted as misconduct, or the misconduct excused as a training need) fails both tests at once. The consultant's rule for managers: name which it is, in writing, before any process starts — and where genuinely mixed, run the processes as the distinct tracks they are.</p><p><b>The improvement frame.</b> The capability response, structured (the PIP shape at consultant altitude — the adviser confirms the firm's procedural specifics): the GAP named in evidence (the goal sheet's specific shortfall, the records cited — not 'attitude', but the count accuracy at 91% against the 98% standard), the SUPPORT committed (the retraining, the mentor, the adjusted load — the plan that offers nothing is a dismissal letter with a waiting period, and tribunals read it as exactly that), the TIMELINE set (long enough to be real, bounded enough to be serious — the common eight-to-twelve-week shape), the REVIEWS held on their dates (the progress documented each time — the improvement plan that is never reviewed is theatre in both directions), and the OUTCOMES honest: improvement confirmed and the plan closed with its recognition (the person who climbed back deserves the note as much as the star — Chapter 6's positive record at its most meaningful), or the gap persisting and the process concluding as the employment framework provides (module 7's separation machinery, entered with a file that shows the firm tried — which is simultaneously the legal protection, the ethical position, and the culture signal to everyone watching, because everyone IS watching how the firm treats its strugglers).</p><p><b>The dignity discipline.</b> The frame's conduct rules, because the process is a person's hardest season: confidentiality held (the improvement plan is not branch gossip — module 1's custody at its most pointed), the tone developmental (the meetings about the work, not the worth), the person heard (their account of the gap may contain the fix — the equipment, the rota, the training miss nobody made), and the manager supported too (the first PIP a manager runs needs HR beside them — the process failing on procedure helps no one, least of all the person it concerns).</p><p><b>The system read.</b> The layer's aggregate honesty, closing the chapter: improvement cases read at altitude (the cluster under one manager is a management question; the cluster in one role is a design question — the role that everyone fails was mis-scoped or mis-hired, and module 2's pipeline wants that finding; the cluster after a change is the change's bill arriving) — because a firm's underperformance pattern is diagnostic BEFORE it is disciplinary, and the consultant who reads it that way fixes systems where others cycle through people. The chapter's law in one line: <b>the response to persistent underperformance is a process with support, evidence, and an honest end — never a surprise, never a mood, never a corridor.</b></p>"
-   },
-   {
-    "title": "Chapter 8 — Case study: HealthTrade's first performance year",
-    "est": "16",
-    "html": "<p>The performance layer, run through its first full cycle. Every chapter clocks in.</p><p><b>The goal sheets (Ch. 2).</b> January's setting conversations: one page per person, three to five goals each, evidence sources named. The till roles carry session accuracy and clean-close streaks; the storekeepers carry receiving discipline and count accuracy; the branch managers carry their scorecards' vitals plus one development goal each; the accountant carries the close's day-four target and residue ages. The firm's year (the Akure ramp, the shrinkage band) cascades as context — the branch teams pointing at scorecards already published, nobody carrying goals they cannot touch. The sheets signed, the sources understood: <i>your sessions will be read — that is the deal</i>, said in January, resented by no one in December.</p><p><b>The year between (Ch. 6).</b> The monthly check-ins hold — imperfectly at first (two managers lapse in Q2; the HR nudge and the MD's modelling restore the cadence), then habitually. The logs accumulate: the recognition notes land (the Ibadan storekeeper's clean cycle-count quarter; the till assistant's handling of the disputed-price incident — the selling track's scenario, lived and noted), and the early corrections do their cheap work (a receiving shortcut named in week one at Akure — the two-minute conversation, the habit adjusted, the December that never hears of it because it ended in February).</p><p><b>The cycle runs (Ch. 3-4).</b> The mid-year checks amend three goal sheets honestly (the year changed — the clinic line's launch redrew one role). December's season: self-assessments first (two perception gaps surface early and get their conversations before the meetings), evidence folders opened (the quarterly snapshots outvoting recency — one manager's draft, leaning on a strong November, revises against the spring's records), and the CALIBRATION session earns its chapter: the Lagos manager's distribution sits visibly above the others'; the anchors are re-read, three ratings defend themselves from folders and two revise — the leniency caught before it reached a single meeting, the manager coached, not scolded (<i>'meets' is an honourable rating here — your solid people deserve a scale that says so</i>).</p><p><b>The hard case and the promotion (Ch. 5, 7).</b> One improvement case: a warehouse assistant's count accuracy persistently under standard — named in evidence (91% against 98%), supported (retraining plus a fortnight paired with the Ibadan storekeeper), timelined at ten weeks, reviewed on dates — and CLOSED with improvement confirmed at 97.5%, the recognition note filed (<i>the climb-back documented as deliberately as the gap</i>). And one promotion case built entirely from records: the Akure storekeeper — hired by module 2's practical (the candidate who caught the short), confirmed on evidence, a year of clean receiving and two caught discrepancies in the log — proposed for senior storekeeper with a file that argues itself: the panel reads for ten minutes and approves. The MD's season note joins the collection: <i>we promoted from a folder, not a feeling — and everyone could see why.</i> The layer's first year ends with ratings people trust, development plans feeding module 6's machinery, and the thesis demonstrated: the conversation happened all year; the record just proved it.</p>"
-   },
-   {
-    "title": "Chapter 9 — Common mistakes & the fifth law",
-    "est": "13",
-    "html": "<p>The performance layer's scar tissue. Symptom → disease → fix.</p><p><b>Pattern 1 — the annual ambush.</b> Symptom: ratings that surprise; weaknesses first named in December; grievances filed the week after appraisal season. Disease: the record without the conversation (Ch. 1, 6) — the continuous half missing. Fix: feedback near events, the check-in cadence, the manager's log — and the door test enforced: if any line of the form is news, the meeting is a year late.</p><p><b>Pattern 2 — performance theatre.</b> Symptom: forms completed, filed, never referenced; ratings from a fortnight's memory; the season costing days and changing nothing. Disease: ritual without a reader (Ch. 1) — the record without consequence. Fix: appraisals wired to their consumers (the development plans feeding module 6, the ratings feeding decisions with written rationales), the evidence folder replacing memory, and the cycle's outputs READ — or the cycle honestly retired, because theatre is worse than nothing: it teaches that records lie.</p><p><b>Pattern 3 — the everyone-outstanding team.</b> Symptom: uniform top ratings; the genuine star invisible; the eventual honest conversation legally awkward against years of inflated files. Disease: leniency — kindness in the moment, cruelty at the system level (Ch. 5). Fix: anchored scales with 'meets' defended as honourable, the calibration session with evidence talking, the distribution read as questions — and the manager coached that inflation is the ambush's co-author.</p><p><b>Pattern 4 — the recency appraisal.</b> Symptom: years rated by their final six weeks; strong springs erased by weak Novembers and vice versa. Disease: memory doing evidence's job (Ch. 3). Fix: the evidence folder with dated, year-spanning records; quarterly snapshots filed; disagreements resolved by opening records — the drill-before-disputing culture at the appraisal table.</p><p><b>Pattern 5 — capability confused with conduct.</b> Symptom: the struggling worker prosecuted as a misconduct case, or the rule-breaker excused into endless retraining; processes that fail both tests. Disease: the fork never named (Ch. 7). Fix: the written designation before any process starts, the improvement frame for capability with real support, the disciplinary machinery for conduct with its protections — and mixed cases run as the distinct tracks they are.</p><p><b>Pattern 6 — promotion by proximity.</b> Symptom: the person the owner sees most rising fastest; the branch's quiet excellence passed over; promotion announcements that surprise and demoralise. Disease: decisions from impressions in a layer built for evidence (Ch. 1, 8) — the founder-bottleneck breeding its succession. Fix: promotion cases built from folders (the goal sheets, the ratings with rationales, the logs), argued to a panel where scale permits, and the standard visible — the workforce that sees folders decide supplies its ambition to the folder, which is exactly the behaviour the firm wants.</p><p><b>The fifth law.</b> The record, the pipeline, the capture, the entitlement — and now the contribution: <b>performance is a conversation with a record — goals few, observable, and shared from January; evidence accumulated by the machinery the firm already runs; feedback near events and recognition in writing; ratings anchored, calibrated, and explained; underperformance met with process and support; and nothing in any appraisal ever news.</b> The conversation develops the person; the record makes it fair, and each keeps the other honest. Module 6 takes the appraisal's forward half — the development plan — and builds the machinery that delivers it: training, by design.</p>"
+    "title": "Chapter 9 — Common errors and the module rule",
+    "est": "11",
+    "html": "<p>The errors that recur in performance management, each with its correction and prevention.</p><p><b>Error 1 — templates without decisions.</b> Symptom: equal-split weightages nobody chose; KRAs copied between unrelated roles; scores that answer to no stated priority. Correction: the KRAs and weightages redrafted with the role's manager and confirmed; the revision applied to the next cycle. Prevention: the template design procedure — manager drafts, owner confirms weightages, decision reference recorded.</p><p><b>Error 2 — automated scores over dead goals.</b> Symptom: KRA scores computed from goals last updated at cycle start; assessment-week progress surges to 100%; scores nobody believes. Correction: the manager's evidence review before scores stand; unverifiable claims returned. Prevention: the honest method choice at cycle configuration and the monthly freshness read — automated scoring is adopted when the goal rhythm holds, not before.</p><p><b>Error 3 — the missing-component score.</b> Symptom: finals computed with absent feedback or unsubmitted self appraisals; people scored on partial inputs. Correction: the missing components obtained and the score recomputed. Prevention: the weekly completion read with overdue names, and the completeness rule — flagged, not released.</p><p><b>Error 4 — uncalibrated raters.</b> Symptom: one manager's team scoring systematically high or low; cross-team comparisons meaningless; the distribution driven by rater habits. Correction: the anchoring conversation on the records; raters revising their own ratings with tracked changes. Prevention: the scale anchored in the policy, and the calibration read before every release.</p><p><b>Error 5 — the score edited at the total.</b> Symptom: final figures adjusted directly to match a desired outcome; components no longer explaining the total. Correction: the edit reversed; the disputed score re-examined through its components. Prevention: the rule that corrections travel through the records — a goal's evidence, a rating's basis — and the tracked history on the appraisal.</p><p><b>Error 6 — the appraisal executing pay.</b> Symptom: pay changed on the appraisal conversation without the approval matrix, the letter, or the assignment; the payroll track's naked-assignment sweep catching the result. Correction: the change re-documented through the payroll lanes. Prevention: the Chapter 1 boundary operated — the score informs; the decision lanes execute.</p><p><b>Review list.</b> Before the quiz, confirm you can: state the five record types and the pay boundary; build an Appraisal Template with weighted KRAs totalling 100 and rating criteria, through the design procedure; create an Appraisal Cycle with appraisee-template mapping, the evaluation method chosen honestly, and the published calendar; operate Goals — verifiable objectives per KRA, confirmed, fresh, evidence-reviewed; process self appraisals and Employee Performance Feedback with independent submission and the disclosure rule; verify and release final scores on complete components; and run the completion, freshness, and calibration reads with the outcome conversation.</p><p><b>Module rule 5: performance is assessed on records — templates weighted by decision, cycles run on a published calendar, scores computed from confirmed goals and submitted feedback, calibrated through the raters, and handed to the decision lanes as information, never as execution.</b> Module 6 covers training and development.</p>"
    }
   ],
   "questions": [
    {
-    "q": "The thesis's two halves are:",
+    "q": "The five performance record types are:",
     "opts": [
-     "The conversation continuous, the record periodic and evidence-based — each keeping the other honest",
-     "Forms and files",
-     "Ratings and money",
-     "Goals and reviews"
+     "Appraisal Template, Appraisal Cycle, Appraisal, Goal, Employee Performance Feedback",
+     "Score, note, memo, letter, file",
+     "KRA, rating, score, pay, bonus",
+     "Template, cycle, slip, run, register"
     ],
     "ans": 0,
-    "why": "Conversation without record evaporates; record without conversation ambushes.",
+    "why": "Learn the structure before configuring.",
     "src": "Ch1"
    },
    {
-    "q": "Performance theatre is:",
+    "q": "The appraisal's relationship to pay is:",
     "opts": [
-     "Better than nothing",
-     "Ritual without a reader — forms filed and never referenced; worse than nothing, it teaches that records lie",
-     "Best practice",
-     "Required annually"
+     "It executes raises",
+     "It informs — pay changes travel the payroll lanes in full; no lane in this module changes pay",
+     "It blocks raises",
+     "It sets the budget"
     ],
     "ans": 1,
-    "why": "Every ritual this academy installed had a read and a consequence.",
-    "src": "Ch1, Ch9"
-   },
-   {
-    "q": "The never-ambush law states:",
-    "opts": [
-     "Surprises motivate",
-     "Save feedback for December",
-     "Nothing in an appraisal should be news — the door test: has everything been said closer to when it happened?",
-     "Ratings are secret"
-    ],
-    "ans": 2,
-    "why": "If any line is news, the meeting is a year late.",
+    "why": "The boundary stated before configuration.",
     "src": "Ch1"
    },
    {
-    "q": "KRAs for trade roles largely:",
+    "q": "The KRA table's weightages:",
     "opts": [
-     "Need new metrics invented",
-     "Are qualitative only",
-     "Come from templates",
-     "SELECT from evidence that already flows — the operational reads four tracks built"
-    ],
-    "ans": 3,
-    "why": "The firm paying for operational discipline gets performance evidence free.",
-    "src": "Ch2"
-   },
-   {
-    "q": "Goals are:",
-    "opts": [
-     "Few, observable, shared — and weighted where roles need it; the appraisal against secret criteria is a trial with secret charges",
-     "Twelve and thorough",
-     "Set in December",
-     "The manager's private list"
-    ],
-    "ans": 0,
-    "why": "Probation's law, generalised to everyone.",
-    "src": "Ch2"
-   },
-   {
-    "q": "A fake metric for qualitative work is:",
-    "opts": [
-     "Rigorous",
-     "Worse than a frank judgment — the judgment admits what it is",
-     "Objective",
-     "Required"
-    ],
-    "ans": 1,
-    "why": "Described behaviours assess the qualitative half.",
-    "src": "Ch2"
-   },
-   {
-    "q": "The cascade stops:",
-    "opts": [
-     "Never",
-     "At managers",
-     "Where relevance stops — the till assistant carries the counter's excellence, not the expansion goal",
-     "At the firm level"
+     "Are suggestions",
+     "Default equally",
+     "Must total 100 — the document validates; they are the business's decision on what matters in the role",
+     "Are per employee"
     ],
     "ans": 2,
-    "why": "The counter's excellence IS their contribution to it.",
+    "why": "Decided, not defaulted.",
     "src": "Ch2"
    },
    {
-    "q": "The appraisal is:",
+    "q": "Templates carry how many KRAs:",
     "opts": [
-     "Composed in December",
-     "Optional",
-     "Written from memory",
-     "Assembled from a folder that accumulated all year — synthesis, not archaeology"
+     "One",
+     "Exactly five",
+     "Ten or more",
+     "Three to six — fewer assesses too little; more dilutes weightages into noise"
     ],
     "ans": 3,
-    "why": "The audit-file argument applied to people.",
-    "src": "Ch3"
+    "why": "The table rule.",
+    "src": "Ch2"
    },
    {
-    "q": "Recency and halo die by:",
+    "q": "The Rating Criteria rows become:",
     "opts": [
-     "Dated, year-spanning evidence — quarterly snapshots outvoting the last fortnight's impression",
-     "Willpower",
-     "Shorter years",
-     "Anonymous ratings"
+     "The rating rows on every Employee Performance Feedback using the template — every reviewer rates the same rows",
+     "Goals",
+     "KRAs",
+     "Pay grades"
     ],
     "ans": 0,
-    "why": "Disagreements resolve by opening records.",
-    "src": "Ch3"
+    "why": "The structured-comparison design.",
+    "src": "Ch2"
    },
    {
-    "q": "Evidence is used:",
+    "q": "A revised template applies:",
     "opts": [
-     "Secretly",
-     "With the person's knowledge, contextualised, and balanced — the deal named in January",
-     "Rawly",
-     "Only when negative"
-    ],
-    "ans": 1,
-    "why": "Records make the appraisal honest; the manager makes it fair.",
-    "src": "Ch3"
-   },
-   {
-    "q": "A variance rate is read:",
-    "opts": [
-     "Absolutely",
-     "Alphabetically",
-     "Against its volume — the triple-traffic till's context; evidence without context is a number pretending to be a judgment",
+     "Retroactively",
+     "To the next cycle — past appraisals keep the template they were assessed on",
+     "Mid-cycle",
      "Never"
     ],
+    "ans": 1,
+    "why": "History stands.",
+    "src": "Ch2"
+   },
+   {
+    "q": "Each appraisee row on the cycle carries:",
+    "opts": [
+     "A salary",
+     "A goal",
+     "The employee and the Appraisal Template that applies to their role family",
+     "A reviewer"
+    ],
     "ans": 2,
-    "why": "Contextualisation is the evidence boundary's second rule.",
+    "why": "The mapping executed at the cycle.",
     "src": "Ch3"
    },
    {
-    "q": "The appraisal sequence runs:",
+    "q": "The KRA evaluation method options are:",
     "opts": [
-     "Manager first",
-     "Rating first",
-     "Meeting first",
-     "Self-assessment, then manager's assessment, then the meeting — each stage feeding the next"
+     "Fast and slow",
+     "Weekly and annual",
+     "Self and manager",
+     "Automated based on goal progress, or manual rating at assessment"
     ],
     "ans": 3,
-    "why": "The self-assessment surfaces perception gaps early.",
-    "src": "Ch4"
+    "why": "Chosen per the policy and the actual discipline.",
+    "src": "Ch3"
    },
    {
-    "q": "An appraisal without a development plan is:",
+    "q": "Automated scoring is adopted:",
     "opts": [
-     "A verdict without a sentence — development is the sentence this system wants",
-     "Complete",
-     "Efficient",
-     "Standard"
-    ],
-    "ans": 0,
-    "why": "The forward half gets the meeting's second half.",
-    "src": "Ch4"
-   },
-   {
-    "q": "Uncalibrated ratings measure:",
-    "opts": [
-     "Performance",
-     "The MANAGER — the lenient one's uniform outstanding; the harsh one's identical team rated average",
-     "The year",
-     "Nothing"
-    ],
-    "ans": 1,
-    "why": "Every downstream decision inherits the distortion.",
-    "src": "Ch4"
-   },
-   {
-    "q": "Calibration's goal is:",
-    "opts": [
-     "A forced curve",
-     "Quotas",
-     "Consistency — small teams can genuinely be mostly good, and the session confirms rather than denies it",
-     "Rank order"
-    ],
-    "ans": 2,
-    "why": "The bell curve on an eleven-person firm manufactures injustice.",
-    "src": "Ch4"
-   },
-   {
-    "q": "Calibration adjustments happen:",
-    "opts": [
-     "After meetings",
+     "When goals are genuinely maintained — scoring over goals nobody updates produces scores nobody believes",
+     "Always",
      "Never",
-     "Publicly",
-     "Before meetings — the person hears one message, once"
+     "For managers only"
     ],
-    "ans": 3,
-    "why": "The session's third rule.",
+    "ans": 0,
+    "why": "The honest-records rule.",
+    "src": "Ch3"
+   },
+   {
+    "q": "Starting the cycle:",
+    "opts": [
+     "Emails the MD",
+     "Generates one Appraisal per appraisee with its template's KRA rows — count verified, sample spot-checked",
+     "Computes scores",
+     "Sets goals"
+    ],
+    "ans": 1,
+    "why": "Appraisals = appraisee rows.",
+    "src": "Ch3"
+   },
+   {
+    "q": "A goal is written as:",
+    "opts": [
+     "A trait",
+     "A wish",
+     "A verifiable outcome — a goal whose completion cannot be verified cannot honestly carry progress",
+     "A rating"
+    ],
+    "ans": 2,
+    "why": "The goal-name rule.",
     "src": "Ch4"
    },
    {
-    "q": "'Meets' must be:",
+    "q": "The Goal's KRA link:",
     "opts": [
-     "An honourable rating — the solid performer is the firm's backbone, or every rating above inflates within two cycles",
-     "A euphemism for failure",
-     "Rare",
-     "The minimum"
-    ],
-    "ans": 0,
-    "why": "The anchor the consultant defends hardest.",
-    "src": "Ch5"
-   },
-   {
-    "q": "Leniency is:",
-    "opts": [
-     "Kindness",
-     "Kindness in the moment, cruelty at the system level — the ambush's co-author",
-     "Harmless",
-     "Motivating"
-    ],
-    "ans": 1,
-    "why": "The underperformer ambushed years later by a file of 'outstanding'.",
-    "src": "Ch5"
-   },
-   {
-    "q": "The distribution read produces:",
-    "opts": [
-     "Quotas",
-     "Punishments",
-     "Questions for next season's calibration — the read improves the raters, not the numbers",
-     "Curves"
-    ],
-    "ans": 2,
-    "why": "The all-outstanding team is a flag or a genuine unit; the folder says which.",
-    "src": "Ch5"
-   },
-   {
-    "q": "The appraisal meeting is not:",
-    "opts": [
-     "A conversation",
-     "Signed",
-     "Scheduled",
-     "A salary negotiation — the two conversations scheduled apart so the rating can be honest without being a bid"
+     "Is decorative",
+     "Names the reviewer",
+     "Sets the weightage",
+     "Is the scoring path — in automated cycles a KRA's score derives from its linked goals' progress"
     ],
     "ans": 3,
-    "why": "The meeting that becomes one stops being a development conversation permanently.",
+    "why": "Every KRA needs at least one goal in automated cycles.",
+    "src": "Ch4"
+   },
+   {
+    "q": "Mid-period goal changes are:",
+    "opts": [
+     "Edits with the manager's confirmation noted — the documented-change rule applied to objectives",
+     "Forbidden",
+     "Silent",
+     "New cycles"
+    ],
+    "ans": 0,
+    "why": "Priorities move; the record says so.",
+    "src": "Ch4"
+   },
+   {
+    "q": "A 100% progress claim on an unverifiable goal is:",
+    "opts": [
+     "Accepted",
+     "Returned for evidence at the manager's assessment review",
+     "Averaged",
+     "Deleted"
+    ],
+    "ans": 1,
+    "why": "No figure without a record.",
+    "src": "Ch4"
+   },
+   {
+    "q": "The self appraisal's reflections are:",
+    "opts": [
+     "Optional decoration",
+     "The final score",
+     "The employee's documented voice — written to evidence, read beside the goals and feedback",
+     "Confidential from the employee"
+    ],
+    "ans": 2,
+    "why": "The outcome conversation starts from them.",
     "src": "Ch5"
    },
    {
-    "q": "Every rating carries:",
+    "q": "Reviewers submit feedback:",
     "opts": [
-     "Its written rationale — evidence cited, anchor referenced; the unexplained rating is an impression wearing a number",
-     "A number only",
-     "A signature only",
-     "A curve position"
+     "Jointly after discussion",
+     "Only if scores are low",
+     "Through the employee",
+     "Independently — calibration happens on the submitted records, not before them"
     ],
-    "ans": 0,
-    "why": "Every process this rating feeds will ask for the paragraph.",
+    "ans": 3,
+    "why": "Feedback discipline rule 2.",
     "src": "Ch5"
    },
    {
-    "q": "Feedback lands:",
+    "q": "Rating scales are anchored:",
     "opts": [
-     "In December",
-     "Close to events — the correction at week one is cheap; at month twelve it is a grievance and a calcified habit",
-     "Annually",
-     "In writing only"
-    ],
-    "ans": 1,
-    "why": "The deferral is usually the manager's discomfort.",
-    "src": "Ch6"
-   },
-   {
-    "q": "The correction/recognition asymmetry is:",
-    "opts": [
-     "Public/private",
-     "Written/verbal",
-     "Private for correction, public for recognition — the asymmetry that builds trust",
-     "None"
-    ],
-    "ans": 2,
-    "why": "Specific, about the behaviour, not the character.",
-    "src": "Ch6"
-   },
-   {
-    "q": "The evidence folder holding only corrections:",
-    "opts": [
-     "Is efficient",
-     "Saves time",
-     "Is standard",
-     "Misrepresents every year it summarises — recognition is captured deliberately"
-    ],
-    "ans": 3,
-    "why": "Recognition is the cheapest performance intervention the firm owns.",
-    "src": "Ch6"
-   },
-   {
-    "q": "The manager's log is written:",
-    "opts": [
-     "As if the person will read it — professional and defensible at once",
-     "Casually",
-     "In code",
-     "Rarely"
+     "In the policy — what a 3 means, what a 5 means — so two reviewers' numbers mean the same thing",
+     "By instinct",
+     "Per branch",
+     "By the system"
     ],
     "ans": 0,
-    "why": "Processes exist in which they may.",
-    "src": "Ch6"
+    "why": "Anchoring precedes calibration.",
+    "src": "Ch5"
    },
    {
-    "q": "The log's arithmetic is:",
+    "q": "The disclosure rule for feedback is:",
     "opts": [
-     "Bureaucracy",
-     "Five minutes a week versus a December of archaeology and a grievance risk",
-     "Optional",
-     "HR's job"
+     "Improvised per case",
+     "Decided once, published with the cycle calendar, configured in access, applied consistently",
+     "Full secrecy",
+     "Full publication"
     ],
     "ans": 1,
-    "why": "The academy's trade, at its most human scale.",
-    "src": "Ch6"
+    "why": "Sensitive-data handling applies to appraisal content.",
+    "src": "Ch5"
    },
    {
-    "q": "Capability versus conduct:",
+    "q": "The final score combines:",
     "opts": [
-     "The same process",
-     "HR's choice",
-     "Different processes — support-and-time versus the disciplinary procedure; named in writing before starting",
-     "Semantic"
+     "Attendance and pay",
+     "Tenure and grade",
+     "The goal/KRA score, the self appraisal, and the feedback score, at the configured shares",
+     "Goals only"
     ],
     "ans": 2,
-    "why": "The confused case fails both tests at once.",
-    "src": "Ch7"
+    "why": "Shares published with the calendar.",
+    "src": "Ch6"
    },
    {
-    "q": "An improvement plan that offers no support is:",
+    "q": "An appraisal with missing components is:",
     "opts": [
-     "Efficient",
-     "Standard",
-     "Rigorous",
-     "A dismissal letter with a waiting period — and tribunals read it as exactly that"
+     "Scored anyway",
+     "Deleted",
+     "Averaged",
+     "Flagged, not released — the completeness rule"
     ],
     "ans": 3,
-    "why": "The gap named in evidence, support committed, timeline set, reviews held.",
-    "src": "Ch7"
+    "why": "Every component present before release.",
+    "src": "Ch6"
    },
    {
-    "q": "A confirmed improvement is closed with:",
+    "q": "A disputed score is corrected:",
     "opts": [
-     "Recognition — the climb-back documented as deliberately as the gap",
-     "Silence",
-     "Probation",
-     "A warning"
+     "Through its components — a goal's evidence, a rating's basis — with the change tracked",
+     "At the total",
+     "By the MD's number",
+     "By re-running the cycle"
     ],
     "ans": 0,
-    "why": "The person who climbed back deserves the note as much as the star.",
-    "src": "Ch7"
+    "why": "Never edited at the total.",
+    "src": "Ch6"
    },
    {
-    "q": "Underperformance clusters are:",
+    "q": "The outcome conversation's summary:",
     "opts": [
-     "Disciplinary matters first",
-     "Diagnostic first — under one manager, in one role, or after a change: three different repairs",
-     "Random",
-     "Inevitable"
+     "Stays verbal",
+     "Is entered on the appraisal — outcomes, development actions, training needs",
+     "Goes to payroll",
+     "Is deleted at close"
     ],
     "ans": 1,
-    "why": "The consultant who reads them fixes systems where others cycle through people.",
+    "why": "Module 6 reads the training needs.",
+    "src": "Ch6"
+   },
+   {
+    "q": "The weekly completion read lists:",
+    "opts": [
+     "Scores",
+     "Salaries",
+     "Self appraisals and feedback submitted versus due, with overdue names — gaps chased while there is time",
+     "Goals only"
+    ],
+    "ans": 2,
+    "why": "The cycle closes complete because of it.",
     "src": "Ch7"
    },
    {
-    "q": "The calibration session caught:",
+    "q": "The calibration read compares:",
+    "opts": [
+     "Employees to targets",
+     "Goals to KRAs",
+     "Pay to market",
+     "Draft score distributions by manager and department — outliers get the anchoring conversation before release"
+    ],
+    "ans": 3,
+    "why": "On the records, before release.",
+    "src": "Ch7"
+   },
+   {
+    "q": "Calibration adjusts ratings by:",
+    "opts": [
+     "The raters revising their own records with tracked changes — nobody edits another's ratings",
+     "HR editing them",
+     "Averaging",
+     "Deleting outliers"
+    ],
+    "ans": 0,
+    "why": "Through their raters.",
+    "src": "Ch7"
+   },
+   {
+    "q": "Probation confirmations run as:",
+    "opts": [
+     "Informal chats",
+     "Small cycles — probationers as appraisees, the probation template, the confirmation informed by the score",
+     "Pay reviews",
+     "Exit interviews"
+    ],
+    "ans": 1,
+    "why": "The same machinery at smaller scale.",
+    "src": "Ch7"
+   },
+   {
+    "q": "The goal-freshness read lists:",
+    "opts": [
+     "Completed goals",
+     "New goals",
+     "Goals with no progress update in the month, by employee and manager — data per the standing rule",
+     "Deleted goals"
+    ],
+    "ans": 2,
+    "why": "Protects automated scores directly, evidence in manual cycles.",
+    "src": "Ch7"
+   },
+   {
+    "q": "HealthTrade's first cycle scored:",
+    "opts": [
+     "Automated",
+     "Without templates",
+     "By self appraisal only",
+     "By manual rating — recorded with the reason: goal discipline not yet established"
+    ],
+    "ans": 3,
+    "why": "The honest method choice.",
+    "src": "Ch8"
+   },
+   {
+    "q": "The retail template's heaviest KRA was:",
+    "opts": [
+     "Dispensing accuracy at 35",
+     "Customer service",
+     "Housekeeping",
+     "Reporting"
+    ],
+    "ans": 0,
+    "why": "Step 1's weightages.",
+    "src": "Ch8"
+   },
+   {
+    "q": "Week two's completion read found:",
     "opts": [
      "Nothing",
-     "A fraud",
-     "The Lagos distribution sitting high — three ratings defended from folders, two revised, the manager coached",
-     "A promotion"
-    ],
-    "ans": 2,
-    "why": "'Meets is an honourable rating here.'",
-    "src": "Ch8"
-   },
-   {
-    "q": "The improvement case closed at:",
-    "opts": [
-     "Termination",
-     "Transfer",
-     "Extension",
-     "97.5% against the 98% standard's journey from 91% — improvement confirmed, the recognition note filed"
-    ],
-    "ans": 3,
-    "why": "Ten weeks, supported, reviewed on dates.",
-    "src": "Ch8"
-   },
-   {
-    "q": "The promotion case was built from:",
-    "opts": [
-     "Records — the practical that hired, the confirmation evidence, a year of clean receiving, two caught discrepancies",
-     "A feeling",
-     "Seniority",
-     "Proximity"
-    ],
-    "ans": 0,
-    "why": "'We promoted from a folder, not a feeling — and everyone could see why.'",
-    "src": "Ch8"
-   },
-   {
-    "q": "Promotion by proximity breeds:",
-    "opts": [
-     "Loyalty",
-     "The founder-bottleneck's succession — and demoralises the quiet excellence passed over",
-     "Speed",
-     "Fairness"
+     "One reviewer holding eight overdue feedbacks — escalated, arrived within the week",
+     "Wrong templates",
+     "Lost goals"
     ],
     "ans": 1,
-    "why": "The workforce that sees folders decide supplies its ambition to the folder.",
+    "why": "The read naming the bottleneck.",
+    "src": "Ch8"
+   },
+   {
+    "q": "The calibration finding was:",
+    "opts": [
+     "A pay error",
+     "A missing cycle",
+     "One branch's ratings a full point above distribution — four ratings revised by their own reviewer, tracked",
+     "A goal surge"
+    ],
+    "ans": 2,
+    "why": "Step 5.",
+    "src": "Ch8"
+   },
+   {
+    "q": "The cycle produced how many training needs:",
+    "opts": [
+     "None",
+     "Three",
+     "Thirty",
+     "Seven — five on stock-control KRAs, two on reporting — entered as the training-plan intake"
+    ],
+    "ans": 3,
+    "why": "Module 6's intake.",
+    "src": "Ch8"
+   },
+   {
+    "q": "Dead-goal automated scores are prevented by:",
+    "opts": [
+     "The honest method choice and the monthly freshness read — automation when the rhythm holds",
+     "More reminders",
+     "Bigger weightages",
+     "Manual edits"
+    ],
+    "ans": 0,
+    "why": "Error 2.",
     "src": "Ch9"
    },
    {
-    "q": "This module's law is:",
+    "q": "The appraisal-executes-pay error is caught by:",
     "opts": [
-     "Rate annually, file promptly",
-     "Impressions suffice",
-     "Performance is a conversation with a record — goals shared, evidence accumulated, feedback near events, ratings anchored and calibrated, underperformance met with process, nothing ever news",
-     "The curve decides"
+     "Nothing",
+     "The payroll track's naked-assignment sweep — and prevented by operating the boundary",
+     "The template",
+     "The goal read"
+    ],
+    "ans": 1,
+    "why": "Error 6.",
+    "src": "Ch9"
+   },
+   {
+    "q": "Module 5's rule is:",
+    "opts": [
+     "Scores are opinions",
+     "Pay follows scores automatically",
+     "Performance is assessed on records — templates weighted by decision, cycles on a published calendar, scores from confirmed goals and submitted feedback, calibrated through raters, handed to the decision lanes as information",
+     "Cycles are optional"
     ],
     "ans": 2,
-    "why": "The conversation develops; the record makes it fair.",
+    "why": "The module rule.",
     "src": "Ch9"
    }
   ]
  },
  "training": {
   "title": "HR 6 — Training & Development",
-  "desc": "People developed by design: the skill map and needs register, curricula per role built from the firm's own truth, delivery through sessions and the trainer layer, certification with serials gating authority, measurement with before/after reads, and the development ladder with succession as the two-names law for capabilities.",
+  "desc": "Training in ZhiftERP: the Training Program register with compliance flags; the Training Event — type, trainer, the employee table built from due populations, the invitation flow, and the required-training statement; Training Results entered within the week with absentee and retake lanes; Training Feedback to its two readers; the annual plan from the three intakes with owner approval, quarterly execution, and cost reconciliation; the four standing reads; and compliance training — the register, the expiry arithmetic on passing results, the renewal window, the lapse procedure, and the joiner and mover rules.",
   "lessons": [
    {
-    "title": "Chapter 1 — Developed by design, not found",
+    "title": "Chapter 1 — Training: scope and record structure",
+    "est": "11",
+    "html": "<p>This module covers training and development in ZhiftERP. On completing this module you will be able to: maintain Training Programs; create and run Training Events with their employee tables and status flow; record Training Results; collect Training Feedback; operate the training-needs intake and the annual training plan; and run the standing reads including the per-employee training record and the compliance-expiry read.</p><p><b>The record structure.</b> Training uses four record types:</p><p>1. <b>Training Program</b> — the standing definition of a course or programme: what it covers, who delivers it (Chapter 2). One record per repeatable programme.<br>2. <b>Training Event</b> — one scheduled delivery: the date, location, trainer, and the employee table with invitation and attendance statuses (Chapter 3).<br>3. <b>Training Result</b> — the outcome record per employee per event: hours, grade, comments (Chapter 4).<br>4. <b>Training Feedback</b> — the attendee's assessment of the event (Chapter 4).</p><p><b>Where training needs come from.</b> Three intakes feed the plan (Chapter 5):</p><p>1. <b>The appraisal outcomes</b> — module 5's outcome conversations produce agreed development actions per employee (the HealthTrade cycle produced seven); each is a plan line with a name attached.<br>2. <b>The compliance calendar</b> — trainings that regulation or policy requires on a cycle: the pharmacy regulatory refreshers, safety training, statutory inductions. These are obligations with expiry dates, tracked as such.<br>3. <b>The business's own initiatives</b> — new product lines, new procedures, system rollouts (the onboarding curriculum for new joiners is module 2's template; role-change training enters here).</p><p><b>Custody.</b> HR administers the records and the plan; the content and its delivery belong to the trainers (internal or external); the compliance obligations belong to the compliance owner (the pharmacist superintendent for regulatory items, per the business's structure); attendance at required training is an instruction, not an invitation, and the policy says which trainings are which.</p><p><b>What reads training records.</b></p><p>1. The per-employee training record — the employee's event and result history (Chapter 6), read at appraisals, promotions, and audits.<br>2. The compliance-expiry read — who is current, who lapses when (Chapter 6), read monthly.<br>3. The plan-versus-delivered read — the year's plan against events held (Chapter 6), read quarterly and at the annual review.</p><p><b>Module contents.</b> Chapter 2: the Training Program. Chapter 3: the Training Event. Chapter 4: Training Result and Training Feedback. Chapter 5: the needs intake and the annual plan. Chapter 6: the standing reads. Chapter 7: compliance training. Chapter 8: worked example. Chapter 9: review and the module rule.</p>"
+   },
+   {
+    "title": "Chapter 2 — The Training Program",
+    "est": "12",
+    "html": "<p>Open Training Program (awesome bar) &gt; New. One record per repeatable programme. Complete the fields in order.</p><p><b>1. Program Name.</b> Name the programme for its content: <i>Dispensing Standards Refresher</i>, <i>Stock Count Procedure</i>, <i>New Joiner Induction</i>, <i>Fire Safety</i>.</p><p><b>2. Trainer details.</b> The trainer's name, email, and contact — the internal deliverer (the senior pharmacist for dispensing standards; the operations lead for stock procedure) or the external provider's named contact. Where a programme alternates trainers, the programme record carries the default and each event (Chapter 3) carries its actual.</p><p><b>3. Description.</b> The programme's content summary: the topics covered, the intended audience, the duration, and — for programmes with an assessment — what the result records (Chapter 4's grade basis). Write the description once here; every event created from the programme inherits the context, and the plan (Chapter 5) references programmes by these records.</p><p><b>4. Status.</b> Active programmes are schedulable; retire superseded programmes by status rather than deletion (the standing never-delete rule — past events reference their programme, and the reference must stay readable).</p><p><b>The programme register.</b> The Training Program list is the business's training catalogue. Maintain it deliberately:</p><p>1. One record per genuinely distinct programme — the same course delivered at two branches is one programme with two events, not two programmes.<br>2. Compliance programmes flagged as such in the description with their cycle stated (<i>required annually for all dispensing staff</i>) — Chapter 7 builds the expiry tracking on this.<br>3. The register reviewed annually with the training plan: programmes without an event in the year are confirmed still needed or retired; needs without a programme (the plan's new lines) get programme records before events are scheduled.</p><p><b>Sequencing note.</b> Build the programme before its first event. An event created without a programme record works mechanically but leaves the catalogue incomplete: the per-employee training record (Chapter 6) groups by programme, the compliance read tracks by programme, and the plan plans by programme. The record costs two minutes; its absence costs every later read a gap.</p><p><b>Verification.</b> Per programme: the name unambiguous, the trainer details current, the description stating audience and duration, compliance programmes carrying their cycle statement, status honest.</p>"
+   },
+   {
+    "title": "Chapter 3 — The Training Event",
     "est": "13",
-    "html": "<p>Module 5 ended every appraisal with a development plan; this module builds the machinery that delivers them — and its thesis confronts the trade's favourite hiring myth head-on: <b>people are developed by design, not found.</b></p><p><b>The hire-ready myth.</b> The belief the consultant hears in every engagement: <i>we just need to find good people</i> — as if the market stocks ready-made storekeepers who count before signing, till operators who close clean, and accountants who run day-four closes, and the firm's only job is shopping well. The market rarely sells ready-made — it sells RAW MATERIAL of varying quality (module 2's pipeline selects the best of it: aptitude, integrity, the instincts the practical test surfaces), and everything after selection is MANUFACTURE: the disciplines this academy spent four tracks defining are learned behaviours, taught deliberately or absorbed accidentally, and the firm that relies on absorption gets exactly the inconsistency it observes — the branch whose standards live in whoever trained whom, informally, years ago. The reframe for owners: hiring buys potential; training converts it — and the conversion is the firm's job, because nobody else will do it to the firm's standard.</p><p><b>Training as infrastructure, not event.</b> The second reframe: training in the unstructured firm is an EVENT (the workshop someone attended once, the induction that happened to early staff and faded, the vendor session at go-live) — and events decay, because people join after them, forget past them, and drift beyond them. Training as INFRASTRUCTURE is the standing machinery: curricula that exist per role (Chapter 3), delivered on demand to every joiner and every promotion (the onboarding path of module 2; the development plans of module 5), assessed so completion means competence (Chapter 5's whole argument), refreshed as the firm's practices evolve, and READ like every other layer (Chapter 6's measurement). The economics repeat the academy's oldest trade: the curriculum built once teaches forever — the storm of every-hire-improvised-induction becomes the weather of a path assigned in an afternoon.</p><p><b>The meta note, made explicit.</b> This module has an unusual property the consultant should notice and use: the machinery it describes is the machinery DELIVERING it — a role-based curriculum, structured modules, proctored assessment, certification with serials — because the academy this certification belongs to IS the pattern at work: the consultant reading this chapter inside a training path, tracked by completion, gated by a proctored bank, is holding the proof that the pattern scales from a software vendor's consultant corps to a three-branch pharmacy's till roster. The pitch to clients writes itself: <i>the system that trained me can train your people — same machinery, your content</i> — and Chapter 3 will show exactly how the pattern transfers.</p><p><b>The scope line.</b> What this module covers: needs, curricula, delivery, certification, measurement, and paths — the people-development machinery. What stays at its boundaries: the statutory training obligations of regulated roles (the superintendent pharmacist's continuing-education requirements — tracked here, defined by the regulator and the professional), and the formal-education sponsorships with their bonds (module 4's study-leave machinery holding that edge). The module's map follows capability's life: found (needs), built (curricula and delivery), proven (certification), verified (measurement), and grown (paths) — the manufacture, end to end.</p>"
+    "html": "<p>Open Training Event (awesome bar) &gt; New. One record per scheduled delivery. Complete the fields in order.</p><p><b>1. Event Name and Training Program.</b> Name the event for its delivery — <i>Dispensing Standards Refresher — Akure — March</i> — and link the programme (Chapter 2).</p><p><b>2. Type.</b> The delivery format from the type list: Seminar, Theory, Workshop, Conference, Exam, Internet, Self-Study. The type is a reporting dimension; select the honest format (a circulated self-study pack with a sign-off is Self-Study, and its result recording — Chapter 4 — is the sign-off).</p><p><b>3. Trainer Name and Trainer Email.</b> The event's actual deliverer, pre-filled from the programme and adjusted where this delivery differs.</p><p><b>4. From Time, To Time, Location.</b> The schedule and venue. For multi-session programmes, one event per session or one event spanning the block per the business's convention — decide once and record it, because the hours figure on results (Chapter 4) follows the convention.</p><p><b>5. Introduction.</b> The attendee-facing note: what to prepare, what to bring, what the session covers. This text travels with the invitation.</p><p><b>6. The Employees table.</b> The attendee list — one row per invited employee:</p><p>1. Add employees by the selection tools (department, branch, designation filters — the compliance read's due list in Chapter 7 is the standard source for refresher events).<br>2. Each row carries the employee and their <b>status</b>: Open on addition, then the invitation flow below.<br>3. For required trainings, the table <b>is</b> the coverage record: everyone due is on the list, and the gaps read (Chapter 6) compares the table against the due population.</p><p><b>7. Event Status.</b> Scheduled → Completed (or Cancelled). The event is marked Completed when held; result recording (Chapter 4) follows completion.</p><p><b>The invitation flow.</b></p><p>1. With the event saved and the table built, send the invitations per the site's flow — attendee statuses move to Invited and the employees receive the event with the introduction text.<br>2. Confirmations per the site's self-service: attendees confirm and their status moves accordingly. For <b>required</b> trainings, the policy statement applies: attendance is an instruction; a non-confirmation is followed up by the manager, not left as a declined invitation.<br>3. On the day: attendance is recorded against the table (present rows progress; absentees stay visible as gaps). The attendance record here is the evidence the results and the compliance read stand on.</p><p><b>Scheduling procedure.</b> Events are created from the plan (Chapter 5): the plan line names the programme, the audience, and the quarter; the event fixes the date, venue, and list. Publish the schedule ahead — branch staffing has to cover the absence, and the operations calendar (stock counts, peak days) is checked before dates are fixed, or the event competes with the work and loses.</p>"
    },
    {
-    "title": "Chapter 2 — The training needs picture",
+    "title": "Chapter 4 — Training Result and Training Feedback",
+    "est": "12",
+    "html": "<p>Two records close every event: the outcome per attendee and the attendee's assessment of the event.</p><p><b>1. The Training Result.</b> Open Training Result (awesome bar) &gt; New after the event completes — one result document per event, with a row per attendee:</p><p>• <b>Employee</b> — from the event's table; every attendee who was present gets a row. Absentees get no result row — their gap stays visible for the follow-up lane (below).<br>• <b>Hours</b> — the attended hours, per the event's convention (Chapter 3, step 4).<br>• <b>Grade</b> — where the programme assesses: the score or pass/fail per the programme's stated basis (Chapter 2's description). Where the programme does not assess, the grade records completion per the convention.<br>• <b>Comments</b> — the trainer's note per attendee where useful: observed gaps, recommended follow-up. Comments follow the standing observation rule — what was demonstrated, not speculation.</p><p>Submit the result document. The result rows are what the per-employee training record (Chapter 6) and the compliance read (Chapter 7) count — an event held but never resulted is invisible to both, which is why result entry is the event's closing step, dated within the week of delivery, not batched at quarter-end from memory.</p><p><b>2. The follow-up lane for absentees and failures.</b></p><p>1. <b>Absentees from required training:</b> rebooked onto the next event of the programme; the compliance read carries them as due until a result row exists. The manager is informed per the policy's required-training statement.<br>2. <b>Failed assessments</b> (where the programme's basis has a pass mark): the retake per the programme's rule, recorded as a new result row on the retake event; the compliance read treats an employee as current only on a passing result where the programme requires one.</p><p><b>3. The Training Feedback.</b> Open Training Feedback (awesome bar) — one record per attendee per event, submitted through self-service after the event:</p><p>• The employee, the event, and the <b>feedback text</b> — the attendee's assessment of content, delivery, and usefulness.<br>• Collect feedback within the week (the same freshness rule as everywhere: assessment written later is reconstruction).</p><p><b>4. Reading the feedback.</b> Per event, the feedback set goes to two readers:</p><p>1. <b>The trainer</b> — the delivery's own improvement input.<br>2. <b>The plan owner</b> — patterns across events: a programme whose feedback repeatedly names the same gap gets a content revision on the register; a venue or format that repeatedly fails gets a scheduling change. The read is quarterly with the plan read (Chapter 6), and it is data to its owners per the standing rule.</p>"
+   },
+   {
+    "title": "Chapter 5 — The needs intake and the annual plan",
+    "est": "12",
+    "html": "<p>The training plan turns needs into scheduled events. This chapter covers the intake, the plan document, and its operation.</p><p><b>1. The intake, from the three sources (Chapter 1).</b></p><p>1. <b>Appraisal outcomes:</b> after each cycle, HR extracts the agreed development actions from the outcome notes (module 5, Chapter 7) — each becomes an intake line: employee, need, source reference.<br>2. <b>The compliance calendar:</b> each compliance programme's cycle (Chapter 7) generates its due events for the year — audience and deadline fixed by the obligation.<br>3. <b>Business initiatives:</b> the owner's and managers' lines — new procedures, product knowledge, system training — entered with their sponsor named.</p><p><b>2. The plan document.</b> One page per year, one line per planned training:</p><p>• The <b>programme</b> (from the register — needs without a programme get one first, Chapter 2), the <b>audience</b> (named employees or the population definition), the <b>quarter</b>, the <b>sponsor/source</b> (which intake line it serves), and the <b>cost estimate</b> where external.<br>• The plan is approved by the owner — training costs money and absence; the plan's approval is the budget's (the standing no-record-without-decision rule, applied to the year's training spend).<br>• Compliance lines are immovable by deadline; development and initiative lines schedule around the operations calendar.</p><p><b>3. Operating the plan through the year.</b></p><p>1. Each quarter's lines become Training Events (Chapter 3) at the quarter's start — dates fixed against the operations calendar, invitations out ahead.<br>2. The plan line closes when its event completes <b>and results are recorded</b> (Chapter 4's rule — an unresulted event closes nothing).<br>3. Mid-year additions (a new appraisal need, a regulatory change) enter as plan lines with their approval — the plan is a living document with a change record, not a January artefact.<br>4. The quarterly plan read (Chapter 6) tracks lines planned versus delivered versus resulted, and the year-end review closes the plan against outcomes.</p><p><b>4. Cost recording.</b> External training costs post through the Accounts track's standard lanes (the Purchase Invoice against the provider, the expense account per the chart); the plan's cost column is reconciled against the posted costs at the quarterly read — the plan says what was approved; the ledger says what was spent; the two are read together.</p><p><b>5. The new-joiner tie.</b> Induction training is a standing plan line executed through module 2's onboarding template (the orientation activity) plus the induction Training Event where the business runs a formal session — the joiner's first result rows begin their training record, and compliance programmes required from day one (the dispensing induction for pharmacy staff) are scheduled from the joining date per Chapter 7's cycle rules.</p>"
+   },
+   {
+    "title": "Chapter 6 — The standing reads",
+    "est": "12",
+    "html": "<p>Four reads keep training records useful. Each is stated with its source, cadence, and reader.</p><p><b>1. The per-employee training record.</b> Source: the employee's Training Result rows across events, grouped by programme. Read on demand:</p><p>1. <b>At appraisals</b> — the period's training beside the goals and feedback (module 5's outcome conversation cites it: the development action agreed last cycle either has a result row or it does not).<br>2. <b>At promotions and transfers</b> (module 7) — the training history as part of the readiness evidence.<br>3. <b>At audits</b> — the regulator's or auditor's per-person question (<i>show this pharmacist's regulatory training</i>) answered from the rows: programme, event, date, hours, grade. The one-folder discipline from the payroll track applies in kind: the answer is a lookup, not an assembly.</p><p><b>2. The coverage/gaps read.</b> Source: the event tables versus their due populations. Cadence: per required event, at scheduling and after delivery:</p><p>1. At scheduling: everyone due is on the table (Chapter 3's rule).<br>2. After delivery: attendees without result rows (absentees, failures) listed into the follow-up lane (Chapter 4) — the gap list is the rebooking list.</p><p><b>3. The plan read.</b> Source: the plan document versus events and results. Cadence: quarterly, to the owner:</p><p>1. Lines planned versus events held versus results recorded, per quarter — slippage named while the year can still absorb it.<br>2. Cost approved versus cost posted (Chapter 5's reconciliation).<br>3. Feedback patterns per programme (Chapter 4's quarterly read) — the content and delivery notes beside the delivery figures.</p><p><b>4. The compliance-expiry read.</b> Source: the compliance programmes' cycles against the latest passing result per employee. Cadence: monthly (Chapter 7 details the construction):</p><p>1. Current — employees whose latest passing result is inside the cycle.<br>2. Due — employees entering the renewal window (schedule them onto the next event).<br>3. Lapsed — employees past expiry: named to the compliance owner immediately, with the policy's consequence applied (a dispensing authorisation that lapses with the training is the compliance owner's call to make, on the read's data, the day the read shows it — not at the audit that finds it).</p><p><b>The reads' single rule.</b> Every read above is a lookup over result rows. The reads are only as good as Chapter 4's discipline — results entered within the week of delivery, absentees left visible, retakes recorded. The register comparison habit from the payroll track applies: the read that runs monthly keeps the records honest weekly.</p>"
+   },
+   {
+    "title": "Chapter 7 — Compliance training",
+    "est": "12",
+    "html": "<p>Compliance trainings are obligations with cycles and consequences. This chapter is their specific machinery on the general records.</p><p><b>1. The compliance register.</b> One page listing every training obligation:</p><p>• The <b>programme</b> (Chapter 2's record, flagged compliance with its cycle in the description), the <b>obligation source</b> (the regulation, the policy clause, the insurer's requirement), the <b>population</b> (who must hold it — by designation, by activity: all dispensing staff; all warehouse staff for safety induction), the <b>cycle</b> (annual, biennial, once-at-joining), and the <b>owner</b> (the compliance owner accountable for currency — the superintendent pharmacist for regulatory items, the operations lead for safety).</p><p>The register is confirmed with the compliance owner and reviewed annually — regulations change, and the register's review is where the change lands (a new obligation becomes a programme, a plan line, and a read, in that order).</p><p><b>2. The expiry computation.</b> Per obligation, per employee in the population: the latest <b>passing</b> result row's date plus the cycle = the expiry. The monthly read (Chapter 6, read 4) buckets the population: current, due (inside the renewal window — set the window long enough to schedule an event: ninety days for annual cycles), lapsed.</p><p><b>3. The scheduling rule.</b> Due lists drive events: the renewal event for a compliance programme is scheduled from the due bucket, inside the window, with the table built from the due names (Chapter 3, step 6). The compliance calendar's lines in the plan (Chapter 5) are placed at year start from the known expiries — compliance training is the most schedulable training there is, because the due dates are arithmetic.</p><p><b>4. The lapse procedure.</b> A lapsed employee is named to the compliance owner the day the read shows it:</p><p>1. The owner applies the policy's consequence (the activity restriction where the obligation gates an activity — the decision is the owner's, on the record).<br>2. The remedial event is booked immediately; the result row restores currency.<br>3. The lapse is logged with its cause per the standing incident discipline — a lapse caused by the read not running is a process finding; a lapse caused by repeated non-attendance is a management matter, routed as data.</p><p><b>5. Joiners and movers.</b></p><p>1. <b>Joiners:</b> obligations required from day one enter the onboarding template (module 2) as activities; the first result rows are due within the policy's induction window, and the joiner appears in the population — and therefore the read — from their joining date.<br>2. <b>Role changes</b> (module 7's transfers and promotions): a move into a population (a stores assistant moving to dispensing) triggers the population's obligations from the move date; the transfer checklist carries the line.</p><p><b>6. The audit posture.</b> Compliance training is audited by exactly the reads this module runs: the register (what obligations exist), the population definitions (who must hold what), the result rows (who holds what, with dates), and the expiry read (the currency picture). The payroll track's audit rules apply verbatim: answer from the records as kept, findings into the incident lane, never improve the past.</p>"
+   },
+   {
+    "title": "Chapter 8 — Worked example: HealthTrade training",
     "est": "13",
-    "html": "<p>Design starts from needs, and the needs are not guessed — they are READ, from sources the firm already runs. The detection chapter.</p><p><b>The skill map: the reference grid.</b> The foundation artifact: per ROLE (module 1's designation list earning another dividend), the required competences listed — the till role's (the sale, the return, the cash-up, the disputed-price handling, the till policies), the storekeeper's (receiving discipline, counting, the custody documents, the location system), the accountant's (the close's lines, the reconciliations, the correction doctrine) — at the levels the role needs (aware / competent / able-to-teach: three levels serve the trade; five serve consultancies). The map is the layer everything else references: the GAP analysis (each person against their role's row — the visual that turns 'training needs' from a mood into a list), the onboarding path's syllabus (the role's row IS the curriculum outline — Chapter 3), and the succession read (Chapter 7's single-point capabilities are the map's columns with one name in them). Built once with the managers (a half-day per role family), maintained as roles evolve — the map is a master, governed like one.</p><p><b>The intake channels.</b> Where needs arrive from, each channel already flowing: <b>appraisal development plans</b> (module 5's forward half — the plans aggregated per season become the training demand book: twelve people needing the costing module is a scheduled cohort, not twelve promises), <b>the operational reads as needs detectors</b> (the academy's quiet gift to this module: the error CLUSTERS are needs wearing incident clothes — the receiving discipline slipping at one branch is a refresher flag before it is a disciplinary question; the correction-log entries clustering on one journal type is a finance-training finding; module 5's improvement cases arriving with their gaps pre-named), <b>onboarding</b> (every hire and promotion triggering the role's path — module 2's checklist line, feeding this machinery), <b>compliance and regulation</b> (the regulated trade's mandated competences — the pharmacy's requirements, the fire-and-safety layer, the certifications with expiry dates Chapter 5 tracks), and <b>the firm's own changes</b> (the new product line, the new module going live, the policy that changed — every change this academy's other tracks taught the firm to make as an event carries a training line in its rollout, which is why the corridor-toggle conviction kept insisting changes be announced: the announcement IS micro-training).</p><p><b>The needs register.</b> The channels converge on one governed list: the training needs register — each need with its source (the appraisal, the read, the regulation), its population (who needs it), its priority (the compliance need outranks the aspiration; the bleeding read outranks both), and its disposition (the path assigned, the event scheduled, the cohort formed — or the honest deferral with a date). Read quarterly (module 8's calendar), the register converts development from a sentiment into a pipeline — and its aggregate tells its own story: the register dominated by remedial needs is a firm whose entries leak (module 2's early-attrition logic applied to competence); the one dominated by growth needs is a firm whose foundation holds. The consultant reads the register's SHAPE before its lines — the diagnosis-before-prescription habit, at the capability layer.</p>"
+    "html": "<p>This chapter applies Chapters 2-7 to HealthTrade. Configuration values and outcomes are listed per step.</p><p><b>Step 1 — the programme register (Chapter 2).</b> Six Training Programs created: <i>Dispensing Standards Refresher</i> (compliance — required annually for all dispensing staff; trainer: the superintendent pharmacist), <i>Safety &amp; Fire Induction</i> (compliance — once at joining, refresher biennial; owner: operations lead), <i>Stock Count Procedure</i>, <i>Cold Chain Handling</i> (compliance — annual for warehouse and dispatch), <i>New Joiner Induction</i>, <i>Reporting &amp; Documentation Standards</i> (created from the appraisal cycle's two reporting needs — module 5's intake).</p><p><b>Step 2 — the compliance register (Chapter 7).</b> Three obligations listed with source, population, cycle, and owner: Dispensing Refresher (regulatory; eleven dispensing staff; annual; superintendent pharmacist), Safety Induction (policy/insurer; all thirty; once + biennial; operations lead), Cold Chain (policy; nine warehouse and dispatch staff; annual; operations lead). The expiry computation runs from existing records: seven of eleven dispensing staff have passing results inside the cycle; four are due within ninety days; none lapsed.</p><p><b>Step 3 — the annual plan (Chapter 5).</b> The plan drafted from the three intakes: the compliance lines placed from the known expiries (the dispensing renewal event in Q1 for the four due, the full-population refresher in Q3; Cold Chain in Q2); the seven appraisal needs mapped (five stock-control needs → two <i>Stock Count Procedure</i> events at the branches; two reporting needs → the new <i>Reporting Standards</i> programme's first event); one initiative line (a supplier's product training, sponsor: the MD). Costs estimated on the external lines; the MD approves the plan.</p><p><b>Step 4 — an event end to end (Chapters 3-4).</b> The Q1 dispensing renewal: Training Event created from the programme — type Workshop, the superintendent pharmacist as trainer, the Akure branch training room, the table built from the four due names plus two joiners inside their induction window. Invitations out three weeks ahead; the branch rota adjusted; all six confirm. The event completes; the Training Result document is entered the same week: six rows, hours four each, grades against the programme's pass basis — five pass, one fails the assessment. The retake books onto the Q3 event; the compliance read carries the one name as due-on-retake. Six Training Feedback records arrive within the week; one pattern noted (two attendees name the same module as rushed) for the trainer's next delivery.</p><p><b>Step 5 — the reads in rhythm (Chapter 6).</b> Monthly compliance read: the due bucket empties after Q1 except the retake name; it restores at Q3. Quarterly plan read to the MD: Q1 — three lines delivered and resulted, one slipped to Q2 (venue clash with the stock count, caught at scheduling against the operations calendar the second time); costs posted match approvals. The per-employee record answers its first audit question in Q2 — the regulator's routine visit asks for two pharmacists' training evidence; the answer is two lookups: programme, event, date, hours, grade, on screen.</p><p><b>Result.</b> Six programmes, a three-line compliance register with owners, an approved plan operating on the quarterly rhythm, events closing with same-week results and feedback, and the monthly expiry read keeping the compliance picture current — the audit answered from the records as kept.</p>"
    },
    {
-    "title": "Chapter 3 — The curriculum per role: training paths",
-    "est": "14",
-    "html": "<p>The needs become teachable through CURRICULA — the role-based paths that turn the skill map's rows into structured, assessable journeys. The design chapter, and the pattern this academy itself proves.</p><p><b>The path's anatomy.</b> Per role (or role family), the training path: MODULES in sequence (each covering one competence area — the till path's product module, sales module, till-operations module, policies module; the storekeeper's receiving, counting, custody, and systems modules), each module holding LESSONS (the readable units — text, images, the short video where it earns its place: the mock delivery filmed once teaches forever) and its ASSESSMENT (Chapter 5's machinery — the quiz that gates completion), the path ordered by dependency (the product knowledge before the sale; the document flow before the exception handling), and sized honestly (the till path a new hire completes inside probation; the consultant path a quarter's journey — the path that cannot be completed alongside the job is a path that won't be).</p><p><b>Content from the firm's own truth.</b> The design law that separates working curricula from shelfware: the content teaches THE FIRM'S actual practice — its documents, its policies, its screens, its scenarios (the disputed-price lesson uses the firm's price-dispute policy; the receiving lesson walks the firm's actual receiving flow with its actual forms) — because generic content teaches generic behaviour, and the gap between the course and the counter is where training dies. The sourcing economics: the firm's practices are ALREADY WRITTEN (four tracks of policy pages, checklists, and process documents — the academy's documentation-as-byproduct thesis paying its development dividend: the curriculum is the policy page, taught), and the maintenance discipline follows (the policy that changes updates its lesson — the curriculum versioned with the practices it teaches, or it quietly becomes a museum of the old way).</p><p><b>Assessment as the gate.</b> The path's spine: each module ASSESSED (the question bank per module, the pass mark, the proctored mode where stakes warrant — timed, served from a bank large enough that retakes meet fresh questions), completion meaning DEMONSTRATED (Chapter 5 will hammer this: attendance is not learning; the certificate that only proves presence gates nothing safely), and retakes governed (allowed — the goal is competence, not filtration — with the retake pattern read: the module everyone fails twice is a content problem or a bank problem, and the read fixes the course before it blames the class).</p><p><b>Assignment and progress.</b> The path's lifecycle in the machinery: ASSIGNED at the trigger (onboarding's checklist line; the appraisal's development plan; the promotion's new-role requirements — module 7's transfer machinery will add its own trigger), tracked visibly (the person sees their path and progress in self-service — the same transparency dividend as every layer; the manager sees the team's — the path stalled at module two for a month is a check-in topic, not a mystery), and COMPLETED into the record (the completions and scores landing in module 5's evidence folder and Chapter 5's certification register — training results as performance evidence, the loop this track keeps closing). The meta note made operational: this paragraph describes the exact machinery serving this exact lesson — assignment, progress, proctored gates, records — and the consultant configuring it for a client is installing the pattern they are currently inside.</p>"
-   },
-   {
-    "title": "Chapter 4 — Programs & events: the delivery machinery",
-    "est": "13",
-    "html": "<p>Paths carry the standing curriculum; PROGRAMS and EVENTS carry the live layer — the sessions, drills, and cohorts where people learn together. The delivery chapter.</p><p><b>The internal session: the trade's workhorse.</b> The firm teaching itself, structured: the branch practical (the mock delivery run at the actual gate — Inventory's receiving discipline drilled with a staged carton and a deliberately short document; the till drill on the training instance — the disputed price, the shortpay, the cash-up rehearsed where mistakes are free), the classroom hour (the policy walkthrough, the new-module introduction), and the toolbox session (the fifteen-minute shift-start refresher — the lightest unit, and for the trade often the highest-yield: one scenario, one reminder, done before the doors open). The design disciplines: sessions have OBJECTIVES (what the attendee can DO after that they couldn't before — the session without one is a meeting wearing a flipchart), MATERIALS kept (the session pack filed — taught once, reusable), and the practical bias the trade demands (the ratio tilted toward doing: the receiving lesson that is 80% watching is 20% learning).</p><p><b>The trainer layer: teaching as development.</b> The delivery force is the firm's own seniors — and the design insight with the double dividend: the senior storekeeper teaching receiving is simultaneously delivering training AND being developed (the able-to-teach level of Chapter 2's map is a competence in its own right — the teacher must articulate what they do by instinct, which deepens the instinct; and the teaching role is the pre-supervisory test module 7's ladder will read). The governance: trainers are NAMED per module (the map's able-to-teach column populated deliberately), prepared (the trainer's session pack, the first delivery observed), and recognised (the teaching noted in module 5's recognition layer — the firm that treats teaching as extra work unpaid teaches its seniors to hoard knowledge, which is the single-point disease being actively cultivated).</p><p><b>The training event as a record.</b> Every delivery documented — the event record: what was taught (the module, the version), by whom, to whom (the attendance captured — module 3's discipline reaching the classroom), with what assessment outcome (the post-session check where the content warrants one), and filed. The record's consumers make the case for the discipline: the compliance audit (the regulated trade asked WHO was trained on the safety procedure, WHEN — the register answers or the firm improvises), the incident review (the error's actor trained or not trained is the first fork in every root-cause tree — trained-and-erred is coaching; never-trained-and-erred is the FIRM'S error wearing the person's name), and the measurement layer (Chapter 6 needs the before/after line, and the event record is the 'after' begins here marker).</p><p><b>External programs.</b> The bought layer, governed: the external course selected against the needs register (not the brochure's charisma), the attendee BRIEFED with the reuse expectation (the returning attendee teaches the toolbox session — the bought knowledge multiplied instead of filed), the certificate landing in Chapter 5's register with its expiry where it carries one, and the spend read annually against Chapter 6's evidence (the external budget that produces no behaviour change buys travel, not training). The sizing honesty as always: the eleven-person firm's delivery machinery is a senior, a checklist, and a staged carton — the SHAPE, at teaspoon scale, and fully sufficient.</p>"
-   },
-   {
-    "title": "Chapter 5 — Certification & competence: records that gate authority",
-    "est": "14",
-    "html": "<p>The layer that converts training from activity into ASSURANCE: certification — the proven-competence record — and its highest use: gating authority. The chapter where this track meets every other track's permission designs.</p><p><b>Internal certification: completion means demonstrated.</b> The proctored assessment as the gate (the timed quiz served from the bank, the pass mark set to mean something, the certificate issued with its SERIAL — the register's law, at the competence layer: numbered, dated, revocable, never reissued casually), and the conviction the chapter hammers: <b>attendance is not learning</b> — the sign-in sheet proves presence; the assessment proves competence; and everything this chapter gates (the authorities below) must gate on the assessment, because gating on attendance is gating on nothing wearing a lanyard. The certification's scope is stated on its face (certified for WHAT — the module, the version, the role level), and re-certification exists where practices drift or stakes demand currency (the annual re-take for the safety layer; the version-triggered refresh when the policy that was taught changed).</p><p><b>External certifications: tracked with expiries.</b> The bought and regulated layer in the same register: the professional licences (the pharmacist's — the regulated trade's trading licence wearing a person's name), the statutory certificates (fire safety, first aid, the forklift), and the vendor certifications — each recorded against the person with its EXPIRY, feeding module 1's expiry worklist (the machinery already built: surfaced 60 and 30 days out, owned, worked), because the expired licence discovered by the inspector is the compliance failure that was a calendar entry all along. The regulated-role read: the roles that legally REQUIRE current certification listed, the register's coverage checked monthly (the branch whose superintendent's licence lapses cannot lawfully trade its regulated lines — the certification register is trading infrastructure, exactly as the branch door's device was).</p><p><b>Competence gating authority: the chapter's summit.</b> The design pattern that makes this module load-bearing for the whole academy: the AUTHORITIES four tracks assigned — the closing-authorised roster (module 3's till count and cash-up), the adjust permission's two names (Inventory 8), the journal pen (Accounts 2), the receiving sign-off, the price-override right — each maps to a COMPETENCE, and the mature firm wires the mapping: <b>authority follows certification</b> — the closing roster admits the till-certified; the adjustment names hold the counting certification; the new branch's authority matrix (Inventory 6's playbook) is staffed from the certified register, not from availability. The dividend runs both directions: the authority granted on proven competence is defensible (the incident review that finds a certified actor asks different questions than one that finds an improvised grant), and the certification WANTED because it unlocks (the development path acquires teeth — the ambitious till assistant knows exactly what stands between them and the closing roster, and it is a curriculum, not a relationship: the anti-favouritism machinery of this whole track, expressed as a syllabus).</p><p><b>The certified register.</b> The layer's standing artifact: who holds what, current, per branch and role — the coverage view (every authority's certified population per branch: the single-certified capability is Chapter 7's succession flag raised automatically), the expiry horizon (the quarter's renewals visible), and the audit face (the register that answers the compliance question, the incident question, and the staffing question from one page). Governed as a master, read monthly, and joined everywhere — the fifth master's competence shadow, and the page module 8's analytics will summarise.</p>"
-   },
-   {
-    "title": "Chapter 6 — Measuring training: did it work?",
-    "est": "13",
-    "html": "<p>The layer's honesty chapter: training consumes hours and money, and the firm deserves to know whether it changed anything. Measurement at working altitude — the levels, the reads, and the redesign discipline.</p><p><b>The levels, at trade altitude.</b> The classic evaluation ladder, sized for a trading firm: <b>reaction</b> (did attendees rate it useful — the lightest signal, collected in a minute, predictive of little but worth having: the session everyone rated confusing needs its content read before its results), <b>learning</b> (the assessment scores — Chapter 5's gates producing this level automatically: pass rates, score distributions, the retake patterns), <b>behaviour</b> (the level that matters most and costs least in THIS firm — because the operational reads ARE behaviour measurement: the receiving discipline's error rate, the session variance rate, the count accuracy, the correction-log clusters — all captured continuously by machinery four tracks installed, so the question <i>did the training change behaviour?</i> is answered by reads the firm already runs), and <b>results</b> (the business numbers the behaviour serves — the shrinkage band, the close's day count, the collection rate: moved by many causes, read with that honesty, but read).</p><p><b>The before/after discipline.</b> The measurement pattern the consultant installs: the training intervention BOOKENDED — the baseline read taken before (the branch's receiving error rate for the quarter preceding), the intervention delivered and dated (Chapter 4's event record supplying the marker), the after read taken at the stated horizon (the following quarter's rate), and the movement attributed with appropriate modesty (the confound named where it exists — the same quarter's staff change, the season's volume shift; the honest sentence is <i>the rate moved from X to Y across the intervention; here is what else moved</i> — the epistemics of Accounts 6's variance decomposition, applied to people). The pattern's cheapness is its argument: both reads already exist; the discipline is only the bookending — dated, filed, compared.</p><p><b>Training ROI in the trade's own numbers.</b> The owner conversation, equipped: the counting refresher priced (the trainer's afternoon, the attendees' hours) against the variance trend it moved (the shrinkage naira, the recount hours saved); the till drill against the session-variance decline; the pipeline's practical-test training against the early-attrition rate — the returns denominated in the same naira the reads already count, which is what makes the case land where 'training is important' never does. The honest boundary stated with it: not everything measurable matters and not everything that matters is measurable (the service culture, the confidence of the confirmed) — the numbers carry the argument they can carry, and the qualitative half gets its qualitative account, exactly as module 5's goal sheets ruled.</p><p><b>When training didn't work: redesign, not repeat.</b> The failure discipline: the intervention whose after-read didn't move gets DIAGNOSED, not rescheduled — the fork tree: wrong diagnosis (the error cluster wasn't a knowledge gap — the equipment, the rota, the incentive: the training that teaches what people already know treats a system problem with a syllabus), wrong content (the generic course that never touched the firm's actual flow — Chapter 3's design law violated), wrong delivery (the watching-heavy session for a doing-heavy skill), or wrong gate (the pass mark that certified the incompetent — Chapter 5's bank and mark reviewed). The conviction closing the chapter: repeating failed training is the corridor toggle of the capability layer — the same intervention, expecting different behaviour, consuming goodwill each round — and the read-diagnose-redesign loop is what separates a training FUNCTION from a training calendar.</p>"
-   },
-   {
-    "title": "Chapter 7 — The development path & succession",
-    "est": "13",
-    "html": "<p>The module's forward horizon: capability built not just for today's role but for the next one — the ladder, the deputy, and the succession discipline that applies the two-names law to capabilities. The growth chapter.</p><p><b>The ladder per role family.</b> The visible progression: the till family (assistant → senior till → counter supervisor), the warehouse family (storekeeper → senior storekeeper → ops lead), the finance family (Accounts 8's bookkeeper → accountant → controller, now with its training spine), the branch family (the supervisor → branch manager path the multi-branch firm must manufacture — Inventory 6's day-one-capable branch manager does not exist in the market at the firm's standard; the firm builds them or borrows them badly). Each rung DEFINED (the skill map's rows at the next level — what the senior storekeeper must hold that the storekeeper needn't; the certifications the rung requires — Chapter 5's gating giving the ladder its teeth), and the definition PUBLISHED: the ladder everyone can see converts ambition into curriculum (module 5's promotion-from-folders culture, given its syllabus — the anti-proximity machinery completed).</p><p><b>Development plans feeding ladders.</b> The connection wired: module 5's development plans reference the ladder (the plan that says 'grow toward senior storekeeper' decomposes into the rung's named gaps — the modules to pass, the teaching to deliver, the exposure to gain), the path assigned accordingly (Chapter 3's machinery), and progress read at the check-ins (module 5's cadence carrying the development conversation, not just the performance one). The pace honesty: ladders are climbed in years, not quarters — the plan promising a rung annually to everyone is writing cheques the org structure cannot cash, and the honest ladder conversation includes the arithmetic (rungs open when the structure grows or seniors move — module 1's vanity-structure conviction guarding this exact door: the title manufactured to reward is the grade structure being spent like petty cash).</p><p><b>Succession: the two-names law for capabilities.</b> The chapter's summit, and the roster's single-point discipline (module 3) applied to the capability layer: every CRITICAL capability — the certified register's columns that keep branches trading and books closing (the closing authority, the receiving sign-off, the close's owner, the superintendent's license-bearing role) — carries the question <i>who is the second name?</i> — and the succession read (quarterly, off the certified register: the capabilities with one current holder listed automatically) drives deliberate deputy development: the second person trained BEFORE the vacancy (the deputy who learned during the maternity cover — module 4's cover plan doubling as succession machinery; the senior developed against the ladder before the ops-lead need opens), because the alternative is the trade's familiar scramble — the resignation that orphans an authority, the promotion delayed by its own vacuum, the branch that cannot trade a Thursday. The framing for owners, in the academy's oldest voice: succession is not disloyalty planning; it is the handover test (every track's module 8) applied to people — the firm whose capabilities survive their holders has solved at the human layer what the documentation solved at the process layer.</p><p><b>Mentoring, formalised lightly.</b> The pattern module 1's spine already carried (the Ibadan manager mentoring Akure): named pairs (the mentor chosen for the able-to-teach level and the temperament), a cadence (monthly, protected), a scope (the rung being climbed — the mentor walks their own old path), and the recognition loop (mentoring recorded as the senior contribution it is — module 5's log; Chapter 4's trainer dividend, extended). The chapter's closing line joins the thesis to the firm's future: the ladder is the curriculum's shadow, the deputy is the succession's answer, and both exist because the firm decided to manufacture its next generation instead of hoping to find it.</p>"
-   },
-   {
-    "title": "Chapter 8 — Case study: HealthTrade's development year",
-    "est": "16",
-    "html": "<p>The capability machinery, installed and run. Every chapter clocks in.</p><p><b>The map and the register (Ch. 2).</b> The skill map built in three half-days with the managers: five role families, competences at three levels, the able-to-teach column populated honestly (thin — two names covering most of it: the single-point finding arriving before the succession chapter needed it). The needs register convenes its channels: the appraisal season's development plans (module 5's intake — eleven plans aggregating into four cohort needs), one operational-read flag (the correction log clustering on expense journals — a finance refresher scheduled), and the compliance layer confirmed (the superintendent's licence current, two fire-safety certificates expiring in Q3 — into the worklist).</p><p><b>The curricula deployed (Ch. 3).</b> The till and storekeeper paths built from the firm's own pages — the policy documents, receiving checklists, and till procedures of four tracks becoming lessons in a fortnight (the documentation-as-byproduct dividend, cashed), each module gated by a proctored bank, sized to complete inside probation. Assigned to the two Akure hires mid-probation (their confirmation objectives already referencing the modules — module 2's machinery meshing), and to two existing staff whose gap analysis showed holes the informal era left. The retake read catches one content fault: the counting module's question everyone misses twice — a badly-anchored question, fixed in the bank, not blamed on the class.</p><p><b>The delivery layer (Ch. 4).</b> The trainer roles named: the Ibadan storekeeper (the clean-cycle-count quarter of module 5's recognition) prepared and observed teaching the receiving practical — the staged carton, the deliberately short document — and the toolbox pattern lands at the branches: fifteen minutes, one scenario, before the Saturday doors. The event records file. The teaching dividend shows inside a quarter: the trainer's own receiving notes sharpen (<i>articulating the instinct deepened it</i> — the debrief line), and his log gains the senior-contribution entries the ladder will read.</p><p><b>Certification gates authority (Ch. 5).</b> The certified register stands up, and the wiring completes: the closing-authorised roster (HR 3's Akure fix) now admits by till certification — the ambitious Akure till assistant (module 2's quiet candidate) sees the syllabus between her and the closing roster, completes it in six weeks, certifies, and joins the roster: <i>a curriculum, not a relationship</i> — the sentence the branch remembers. The adjustment names re-verified against counting certifications; the register's coverage view flags the single-certified capabilities for Chapter 7's read.</p><p><b>Measurement and succession (Ch. 6-7).</b> The receiving refresher bookended: Akure's receiving error rate read for the prior quarter, the intervention dated, the after-read two quarters on — the rate halves, the confound named honestly (the same period's second hire), the ROI sentence filed in the trade's naira. And the succession read runs off the register: three single-name capabilities listed automatically — the close's owner, the receiving sign-off at Lagos, the ops-lead capability that doesn't exist yet — and the year's deliberate answer: the Ibadan storekeeper's development plan formalises toward ops lead (the ladder's rung defined, the mentor named — the MD himself, monthly, protected), the Lagos deputy trained before any vacancy asks, and the maternity cover of module 4 retro-recognised as the succession machinery it accidentally was. The MD's year-note: <i>we used to hope the market would sell us our next ops lead; we are building him instead — and he taught the class that proved he could.</i></p>"
-   },
-   {
-    "title": "Chapter 9 — Common mistakes & the sixth law",
-    "est": "13",
-    "html": "<p>The capability layer's scar tissue. Symptom → disease → fix.</p><p><b>Pattern 1 — training as event.</b> Symptom: the workshop attended once; the induction that faded after the founding staff; go-live training decaying with every hire since. Disease: events where infrastructure belongs (Ch. 1) — training that people join after, forget past, drift beyond. Fix: the standing curricula per role, assigned at every entry and promotion, versioned with the practices — the path, not the workshop.</p><p><b>Pattern 2 — the hire-ready myth.</b> Symptom: 'we just need good people'; every gap answered by recruitment; the standards living in whoever trained whom informally. Disease: shopping where manufacture belongs (Ch. 1). Fix: the reframe (hiring buys potential; training converts it), the pipeline selecting raw quality, the curriculum doing the conversion — and the branch-consistency read as the proof the owner watches.</p><p><b>Pattern 3 — certificates without competence.</b> Symptom: sign-in sheets as training records; authorities granted on attendance; the incident actor 'trained' by a register that only proves presence. Disease: attendance mistaken for learning (Ch. 5). Fix: assessment as the gate, proctored where stakes warrant, authority following certification — and the register's face stating what was PROVEN, not what was attended.</p><p><b>Pattern 4 — the untracked expiry.</b> Symptom: the licence discovered lapsed by the inspector; the branch trading regulated lines on an expired superintendent; the first-aider whose certificate died quietly. Disease: compliance as memory (Ch. 5) — the calendar entry that was never entered. Fix: every dated certificate in the register feeding the expiry worklist, the regulated-coverage read monthly, renewals owned — the certification register treated as the trading infrastructure it is.</p><p><b>Pattern 5 — the single-point capability.</b> Symptom: the one closer, the one signer, the one licence-holder; the resignation that orphans an authority; the Thursday the branch couldn't trade. Disease: the two-names law never applied to capabilities (Ch. 7). Fix: the succession read off the certified register (single-name columns flagged automatically), the deputy developed before the vacancy, cover plans read as succession machinery — capabilities that survive their holders.</p><p><b>Pattern 6 — development promised, never delivered.</b> Symptom: appraisal plans that reference training which never happens; the same growth goals copied year to year; a workforce that learns the development plan is a pleasantry. Disease: the intake without the pipeline (Ch. 2) — module 5's forward half orphaned. Fix: the needs register with dispositions and dates, the plans aggregated into scheduled cohorts, the quarterly register read — and the credibility arithmetic taught to owners: one delivered plan buys more engagement than ten promised ones.</p><p><b>The sixth law.</b> The record, the pipeline, the capture, the entitlement, the conversation — and now the manufacture: <b>people are developed by design — needs read from the machinery the firm already runs, curricula built per role from the firm's own truth, delivery that biases toward doing, completion meaning demonstrated, authority following certification, results measured before and after, and every critical capability carrying a second name before the vacancy asks.</b> The ladder converts ambition into curriculum; the register gates authority on proof; and the firm that manufactures its people stops shopping for what the market doesn't sell. Module 7 takes the lifecycle to its events and its end: promotions, transfers, discipline, and the clean separation.</p>"
+    "title": "Chapter 9 — Common errors and the module rule",
+    "est": "11",
+    "html": "<p>The errors that recur in training administration, each with its correction and prevention.</p><p><b>Error 1 — events without results.</b> Symptom: trainings held but invisible — no result rows; the per-employee record and the compliance read blind to delivered training. Correction: the results reconstructed from the event's attendance while evidence exists, noted as late-entered. Prevention: result entry as the event's closing step, dated within the week.</p><p><b>Error 2 — the catalogue of duplicates.</b> Symptom: the same course as three programme records; per-employee histories fragmented; compliance tracking split across duplicates. Correction: the records merged to one programme per the master-data rules; events re-pointed. Prevention: one record per genuinely distinct programme, and the annual register review.</p><p><b>Error 3 — compliance by recollection.</b> Symptom: no register, no cycles, no expiry read; currency asserted from memory; the lapse discovered by the audit or the incident. Correction: the register built with the compliance owner; the expiry computation run from existing results; lapses handled through the lapse procedure. Prevention: the register, the monthly read, and the ninety-day scheduling window.</p><p><b>Error 4 — the invitation treated as optional.</b> Symptom: required trainings with voluntary-looking attendance; the same absentees every cycle; coverage gaps normalised. Correction: the policy's required-training statement applied — absentees rebooked and managers informed. Prevention: the statement published with the policy, the table-versus-population check at scheduling, and the follow-up lane after delivery.</p><p><b>Error 5 — the plan as a January artefact.</b> Symptom: a plan written and abandoned; events improvised; appraisal needs never scheduled; the year-end review finding half the lines untouched. Correction: the plan re-baselined mid-year with its change record. Prevention: the quarterly plan read to the owner — planned versus delivered versus resulted, slippage named in time.</p><p><b>Error 6 — feedback collected and unread.</b> Symptom: feedback records accumulating with no reader; the same delivery problems repeating across events. Correction: the backlog read once for patterns; the standing quarterly read instituted. Prevention: the two named readers — the trainer per event, the plan owner per quarter.</p><p><b>Review list.</b> Before the quiz, confirm you can: state the four record types and the three needs intakes; maintain the programme register with compliance flags and the annual review; run a Training Event — the employee table from the due population, the invitation flow, the required-training statement, attendance on the day; record Training Results within the week with the absentee and retake lanes, and collect Training Feedback to its two readers; operate the annual plan — intake, approval, quarterly execution, cost reconciliation; run the four standing reads; and operate compliance training — the register, the expiry computation, the scheduling window, the lapse procedure, and the joiner and mover rules.</p><p><b>Module rule 6: training is delivered as records — programmes catalogued once, events run from the plan with full tables, results entered within the week, compliance tracked by arithmetic on passing results, and every question answered from the rows as kept.</b> Module 7 covers lifecycle events and separation.</p>"
    }
   ],
   "questions": [
    {
-    "q": "The hire-ready myth believes:",
+    "q": "The four training record types are:",
     "opts": [
-     "The market sells ready-made people and the firm's job is shopping — when it sells raw material and the conversion is the firm's job",
-     "Training matters",
-     "Hiring is hard",
-     "Curricula work"
+     "Training Program, Training Event, Training Result, Training Feedback",
+     "Plan, budget, cost, read",
+     "Course, class, exam, grade",
+     "Event, invite, attend, close"
     ],
     "ans": 0,
-    "why": "Hiring buys potential; training converts it.",
+    "why": "The record structure.",
     "src": "Ch1"
    },
    {
-    "q": "Training as an event:",
+    "q": "The three needs intakes are:",
     "opts": [
-     "Scales well",
-     "Decays — people join after it, forget past it, drift beyond it",
-     "Is infrastructure",
-     "Suffices"
+     "HR's guesses",
+     "Appraisal outcomes, the compliance calendar, and business initiatives",
+     "Feedback, results, events",
+     "Budgets, plans, reads"
     ],
     "ans": 1,
-    "why": "Infrastructure is the standing machinery: curricula, assignment, assessment, refresh.",
+    "why": "What feeds the plan.",
     "src": "Ch1"
    },
    {
-    "q": "The meta note observes:",
+    "q": "Required-training attendance is:",
     "opts": [
-     "Nothing unusual",
-     "Training is theoretical",
-     "This module's machinery is the machinery delivering it — the academy IS the pattern at work",
-     "Consultants differ"
+     "An invitation",
+     "Voluntary",
+     "An instruction per the policy — which trainings are which is the policy's statement",
+     "Paid extra"
     ],
     "ans": 2,
-    "why": "'The system that trained me can train your people — same machinery, your content.'",
+    "why": "The custody paragraph's rule.",
     "src": "Ch1"
    },
    {
-    "q": "The skill map is:",
+    "q": "One programme record covers:",
     "opts": [
-     "A wish list",
-     "A survey",
-     "The org chart",
-     "Per role, the required competences at levels — the reference grid for gaps, syllabi, and succession"
+     "One event",
+     "One year",
+     "One branch",
+     "One genuinely distinct programme — the same course at two branches is one programme, two events"
     ],
     "ans": 3,
-    "why": "Built with managers, maintained as roles evolve, governed as a master.",
+    "why": "The catalogue rule.",
     "src": "Ch2"
    },
    {
-    "q": "Error clusters in the operational reads are:",
+    "q": "Superseded programmes are:",
     "opts": [
-     "Needs wearing incident clothes — the refresher flag before the disciplinary question",
-     "Disciplinary matters",
-     "Random",
-     "Ignored"
+     "Retired by status — past events reference their programme and the reference must stay readable",
+     "Deleted",
+     "Renamed",
+     "Merged into new ones"
     ],
     "ans": 0,
-    "why": "The academy's quiet gift to this module.",
+    "why": "The never-delete rule.",
     "src": "Ch2"
    },
    {
-    "q": "The needs register's shape tells:",
+    "q": "Compliance programmes carry in their description:",
     "opts": [
-     "Nothing",
-     "Remedial-dominated means entries leak; growth-dominated means the foundation holds",
-     "Budget size",
-     "Headcount"
+     "The cost",
+     "The compliance flag and the cycle statement — the expiry tracking builds on it",
+     "The venue",
+     "The trainer's rating"
     ],
     "ans": 1,
-    "why": "Diagnosis before prescription, at the capability layer.",
+    "why": "Chapter 7 reads it.",
     "src": "Ch2"
    },
    {
-    "q": "A path that cannot be completed alongside the job is:",
+    "q": "An event without a programme record:",
     "opts": [
-     "Rigorous",
-     "Prestigious",
-     "A path that won't be — sized honestly, inside probation for entry roles",
-     "Standard"
+     "Fails to save",
+     "Is invisible",
+     "Works mechanically but leaves every later read a gap — the record groups, tracks, and plans by programme",
+     "Costs nothing"
     ],
     "ans": 2,
-    "why": "The till path completes inside probation; the consultant path is a quarter.",
-    "src": "Ch3"
+    "why": "Build the programme first.",
+    "src": "Ch2"
    },
    {
-    "q": "Curriculum content teaches:",
+    "q": "The Employees table on a required event:",
     "opts": [
-     "Generic best practice",
-     "The vendor's flow",
-     "Theory",
-     "The firm's actual practice — its documents, policies, screens, scenarios"
+     "Is optional",
+     "Sets the pay",
+     "Lists trainers",
+     "Is the coverage record — everyone due is on the list, checked against the due population"
     ],
     "ans": 3,
-    "why": "The gap between the course and the counter is where training dies.",
+    "why": "Chapter 3, step 6.",
     "src": "Ch3"
    },
    {
-    "q": "The curriculum's source economics:",
+    "q": "The event Type field is:",
     "opts": [
-     "The firm's practices are already written — the policy page, taught; documentation-as-byproduct cashing its dividend",
-     "Content is expensive",
-     "Buy it all",
-     "Write from scratch"
+     "A reporting dimension — select the honest format, including Self-Study with its sign-off",
+     "Decorative",
+     "The venue",
+     "The grade basis"
     ],
     "ans": 0,
-    "why": "And the policy that changes updates its lesson.",
+    "why": "Formats from the type list.",
     "src": "Ch3"
    },
    {
-    "q": "The module everyone fails twice is:",
+    "q": "Event dates are fixed against:",
     "opts": [
-     "A weak class",
-     "A content or bank problem — the read fixes the course before it blames the class",
-     "Proof of rigour",
-     "Ignored"
+     "The trainer's diary only",
+     "The operations calendar — stock counts and peak days checked, or the event competes with the work and loses",
+     "The weather",
+     "The plan's cost"
     ],
     "ans": 1,
-    "why": "Retakes governed; the goal is competence, not filtration.",
+    "why": "The scheduling procedure.",
     "src": "Ch3"
    },
    {
-    "q": "The toolbox session is:",
+    "q": "A non-confirmation on required training is:",
     "opts": [
-     "A tool inventory",
-     "A workshop",
-     "The fifteen-minute shift-start refresher — one scenario, one reminder, often the trade's highest yield",
-     "A meeting"
+     "A declined invitation",
+     "Ignored",
+     "Followed up by the manager per the required-training statement",
+     "A resignation"
     ],
     "ans": 2,
-    "why": "The lightest delivery unit.",
-    "src": "Ch4"
+    "why": "The invitation flow, step 2.",
+    "src": "Ch3"
    },
    {
-    "q": "A session without an objective is:",
+    "q": "Multi-session programmes are recorded as:",
     "opts": [
-     "Flexible",
-     "Fine",
-     "Informal",
-     "A meeting wearing a flipchart — objectives state what attendees can DO after"
+     "Whatever fits",
+     "Always separate programmes",
+     "Always one event",
+     "One event per session or one spanning event — decided once and recorded, because the hours figure follows the convention"
     ],
     "ans": 3,
-    "why": "The practical bias: 80% watching is 20% learning.",
-    "src": "Ch4"
+    "why": "Chapter 3, step 4's convention rule.",
+    "src": "Ch3"
    },
    {
-    "q": "The senior teaching receiving is:",
+    "q": "Absentees from an event get:",
     "opts": [
-     "Delivering training AND being developed — articulating the instinct deepens it; teaching is the pre-supervisory test",
-     "Doing extra work",
-     "Wasting time",
-     "Replaceable"
+     "No result row — the gap stays visible and drives the rebooking list",
+     "A result row anyway",
+     "A pass",
+     "Deleted from the table"
     ],
     "ans": 0,
-    "why": "The double dividend; hoarded knowledge is the single-point disease cultivated.",
+    "why": "Present attendees get rows.",
     "src": "Ch4"
    },
    {
-    "q": "Never-trained-and-erred is:",
+    "q": "Results are entered:",
     "opts": [
-     "The person's error",
-     "The FIRM'S error wearing the person's name — the first fork in every root-cause tree",
-     "Equal to trained-and-erred",
-     "Rare"
+     "At quarter-end",
+     "Within the week of delivery, as the event's closing step — not batched from memory",
+     "Annually",
+     "Before the event"
     ],
     "ans": 1,
-    "why": "The event record answers the fork.",
+    "why": "An unresulted event is invisible to the reads.",
     "src": "Ch4"
    },
    {
-    "q": "The external attendee returns to:",
+    "q": "A failed assessment on a pass-mark programme:",
     "opts": [
-     "File the certificate",
-     "Rest",
-     "Teach the toolbox session — the bought knowledge multiplied instead of filed",
-     "Nothing"
+     "Counts as current",
+     "Is deleted",
+     "Takes the retake per the programme's rule — currency requires a passing result",
+     "Halves the cycle"
     ],
     "ans": 2,
-    "why": "Selected against the needs register, not the brochure's charisma.",
+    "why": "The follow-up lane.",
     "src": "Ch4"
    },
    {
-    "q": "Attendance is:",
+    "q": "Training Feedback goes to:",
     "opts": [
-     "Learning",
-     "Certification",
-     "Sufficient",
-     "Not learning — the sign-in proves presence; the assessment proves competence"
+     "Nobody",
+     "The regulator",
+     "The payroll",
+     "The trainer per event and the plan owner per quarter — two named readers"
     ],
     "ans": 3,
-    "why": "Gating on attendance is gating on nothing wearing a lanyard.",
-    "src": "Ch5"
+    "why": "Collected within the week.",
+    "src": "Ch4"
    },
    {
-    "q": "Certificates carry:",
+    "q": "Appraisal needs enter the plan as:",
     "opts": [
-     "A serial, a date, a stated scope — numbered, revocable, never reissued casually",
-     "Just a name",
-     "A photo",
-     "A grade only"
+     "Intake lines — employee, need, source reference — extracted from the outcome notes after each cycle",
+     "Rumours",
+     "Events directly",
+     "Costs"
     ],
     "ans": 0,
-    "why": "The register's law, at the competence layer.",
+    "why": "Module 5's outcome conversation is the source.",
     "src": "Ch5"
    },
    {
-    "q": "Authority follows certification means:",
-    "opts": [
-     "Titles grant access",
-     "The closing roster admits the certified; the adjustment names hold the counting certification",
-     "Seniority decides",
-     "Managers choose"
-    ],
-    "ans": 1,
-    "why": "The authority matrix staffed from the certified register.",
-    "src": "Ch5"
-   },
-   {
-    "q": "Certification-gated authority gives ambition:",
-    "opts": [
-     "Nothing",
-     "A shortcut",
-     "A syllabus, not a relationship — the anti-favouritism machinery expressed as curriculum",
-     "A ceiling"
-    ],
-    "ans": 2,
-    "why": "The till assistant knows exactly what stands between them and the closing roster.",
-    "src": "Ch5"
-   },
-   {
-    "q": "An expired regulated licence is:",
+    "q": "The plan's approval is:",
     "opts": [
      "A formality",
-     "Rare",
-     "The inspector's problem",
-     "A compliance failure that was a calendar entry all along — the register is trading infrastructure"
+     "The owner's — training costs money and absence; the approval is the budget's",
+     "The trainer's",
+     "Automatic"
     ],
-    "ans": 3,
-    "why": "The branch cannot lawfully trade its regulated lines.",
+    "ans": 1,
+    "why": "No record without its decision.",
     "src": "Ch5"
    },
    {
-    "q": "Behaviour measurement in this firm is:",
+    "q": "A plan line closes when:",
     "opts": [
-     "Nearly free — the operational reads ARE behaviour measurement, captured continuously",
-     "Expensive",
-     "Impossible",
-     "Annual"
-    ],
-    "ans": 0,
-    "why": "The question is answered by reads the firm already runs.",
-    "src": "Ch6"
-   },
-   {
-    "q": "The before/after discipline requires:",
-    "opts": [
-     "New metrics",
-     "Only the bookending — baseline read, dated intervention, after-read at the horizon, confounds named",
-     "A consultant",
-     "Software"
-    ],
-    "ans": 1,
-    "why": "Both reads already exist; the movement attributed with modesty.",
-    "src": "Ch6"
-   },
-   {
-    "q": "Training ROI lands with owners when:",
-    "opts": [
-     "Framed as important",
-     "Presented annually",
-     "Denominated in the trade's own naira — the variance moved, the recount hours saved",
-     "Benchmarked"
+     "The event is scheduled",
+     "The invitation sends",
+     "Its event completes AND results are recorded",
+     "The quarter ends"
     ],
     "ans": 2,
-    "why": "Where 'training is important' never does.",
-    "src": "Ch6"
+    "why": "An unresulted event closes nothing.",
+    "src": "Ch5"
    },
    {
-    "q": "Repeating failed training is:",
+    "q": "External training costs are reconciled:",
     "opts": [
-     "Persistence",
-     "Cheap",
-     "Thorough",
-     "The corridor toggle of the capability layer — same intervention, expecting different behaviour"
-    ],
-    "ans": 3,
-    "why": "Diagnose: wrong diagnosis, content, delivery, or gate.",
-    "src": "Ch6"
-   },
-   {
-    "q": "Training that teaches what people already know:",
-    "opts": [
-     "Treats a system problem with a syllabus — the cluster wasn't a knowledge gap",
-     "Reinforces",
-     "Is safe",
-     "Is standard"
-    ],
-    "ans": 0,
-    "why": "The equipment, the rota, the incentive — the fork tree's first branch.",
-    "src": "Ch6"
-   },
-   {
-    "q": "The published ladder converts:",
-    "opts": [
-     "Titles into pay",
-     "Ambition into curriculum — each rung defined by the map's next level and its certifications",
-     "Juniors into rivals",
-     "Nothing"
-    ],
-    "ans": 1,
-    "why": "The promotion-from-folders culture, given its syllabus.",
-    "src": "Ch7"
-   },
-   {
-    "q": "A rung promised annually to everyone is:",
-    "opts": [
-     "Motivating",
-     "Fair",
-     "Cheques the org structure cannot cash — rungs open when the structure grows or seniors move",
-     "Standard"
-    ],
-    "ans": 2,
-    "why": "The vanity-structure conviction guarding this door.",
-    "src": "Ch7"
-   },
-   {
-    "q": "The succession read lists:",
-    "opts": [
-     "Retirees",
-     "Managers",
-     "Volunteers",
-     "Capabilities with one current holder — automatically, off the certified register"
-    ],
-    "ans": 3,
-    "why": "The roster's single-point discipline applied to capabilities.",
-    "src": "Ch7"
-   },
-   {
-    "q": "The deputy is developed:",
-    "opts": [
-     "BEFORE the vacancy — the alternative is the resignation that orphans an authority",
-     "After the vacancy",
      "Never",
-     "Externally"
-    ],
-    "ans": 0,
-    "why": "The maternity cover doubling as succession machinery.",
-    "src": "Ch7"
-   },
-   {
-    "q": "Succession framed for owners is:",
-    "opts": [
-     "Disloyalty planning",
-     "The handover test applied to people — capabilities that survive their holders",
-     "Optional",
-     "Morbid"
-    ],
-    "ans": 1,
-    "why": "Solved at the human layer what documentation solved at the process layer.",
-    "src": "Ch7"
-   },
-   {
-    "q": "HealthTrade's retake read found:",
-    "opts": [
-     "A weak class",
-     "Cheating",
-     "A badly-anchored question — fixed in the bank, not blamed on the class",
-     "Nothing"
-    ],
-    "ans": 2,
-    "why": "The counting module's twice-missed question.",
-    "src": "Ch8"
-   },
-   {
-    "q": "The Akure till assistant joined the closing roster by:",
-    "opts": [
-     "Seniority",
-     "Proximity",
-     "Request",
-     "Certification — the syllabus completed in six weeks: 'a curriculum, not a relationship'"
+     "At the event",
+     "By the trainer",
+     "Plan approvals against posted costs at the quarterly read — the plan says approved; the ledger says spent"
     ],
     "ans": 3,
-    "why": "The sentence the branch remembers.",
-    "src": "Ch8"
+    "why": "Read together.",
+    "src": "Ch5"
    },
    {
-    "q": "The receiving refresher's after-read:",
+    "q": "The per-employee training record answers:",
     "opts": [
-     "Halved the error rate, with the confound named honestly — the same period's second hire",
-     "Was skipped",
-     "Showed nothing",
-     "Was disputed"
+     "Appraisal citations, promotion evidence, and the auditor's per-person question — as a lookup",
+     "Pay questions",
+     "Leave balances",
+     "Shift patterns"
     ],
     "ans": 0,
-    "why": "The ROI sentence filed in the trade's naira.",
+    "why": "Result rows grouped by programme.",
+    "src": "Ch6"
+   },
+   {
+    "q": "The coverage read after delivery lists:",
+    "opts": [
+     "The costs",
+     "Attendees without result rows — the gap list is the rebooking list",
+     "The feedback",
+     "The venues"
+    ],
+    "ans": 1,
+    "why": "Absentees and failures into the follow-up lane.",
+    "src": "Ch6"
+   },
+   {
+    "q": "The quarterly plan read shows the owner:",
+    "opts": [
+     "Feedback text only",
+     "The org chart",
+     "Planned versus delivered versus resulted, cost approved versus posted, and feedback patterns",
+     "The expiries only"
+    ],
+    "ans": 2,
+    "why": "Slippage named while the year can absorb it.",
+    "src": "Ch6"
+   },
+   {
+    "q": "The expiry read buckets the population as:",
+    "opts": [
+     "Pass and fail",
+     "Invited and confirmed",
+     "New and old",
+     "Current, due (inside the renewal window), and lapsed"
+    ],
+    "ans": 3,
+    "why": "Monthly, per obligation.",
+    "src": "Ch6"
+   },
+   {
+    "q": "The compliance register lists per obligation:",
+    "opts": [
+     "The programme, the obligation source, the population, the cycle, and the owner",
+     "The trainer's phone",
+     "The costs",
+     "The venues"
+    ],
+    "ans": 0,
+    "why": "Confirmed with the compliance owner, reviewed annually.",
+    "src": "Ch7"
+   },
+   {
+    "q": "The expiry computation is:",
+    "opts": [
+     "A judgment call",
+     "The latest passing result's date plus the cycle — arithmetic",
+     "The trainer's opinion",
+     "Annual guesswork"
+    ],
+    "ans": 1,
+    "why": "Compliance training is the most schedulable training there is.",
+    "src": "Ch7"
+   },
+   {
+    "q": "The renewal window is sized:",
+    "opts": [
+     "At one day",
+     "At a year",
+     "Long enough to schedule an event — ninety days for annual cycles",
+     "By the trainer"
+    ],
+    "ans": 2,
+    "why": "Due lists drive events inside the window.",
+    "src": "Ch7"
+   },
+   {
+    "q": "A lapsed employee is:",
+    "opts": [
+     "Noted at year-end",
+     "Retrained silently",
+     "Automatically restricted",
+     "Named to the compliance owner the day the read shows it — the consequence is the owner's call on the record"
+    ],
+    "ans": 3,
+    "why": "The lapse procedure.",
+    "src": "Ch7"
+   },
+   {
+    "q": "A role change into a population:",
+    "opts": [
+     "Triggers the population's obligations from the move date — the transfer checklist carries the line",
+     "Changes nothing",
+     "Resets all training",
+     "Ends the cycle"
+    ],
+    "ans": 0,
+    "why": "Joiners and movers, rule 2.",
+    "src": "Ch7"
+   },
+   {
+    "q": "HealthTrade's compliance register listed:",
+    "opts": [
+     "One obligation",
+     "Three — Dispensing Refresher, Safety Induction, Cold Chain — with populations, cycles, and owners",
+     "Six",
+     "None"
+    ],
+    "ans": 1,
+    "why": "Step 2.",
     "src": "Ch8"
    },
    {
-    "q": "One delivered development plan buys:",
+    "q": "The Q1 renewal event's table was built from:",
     "opts": [
-     "Nothing",
-     "More engagement than ten promised ones — the credibility arithmetic",
-     "A quarter's peace",
-     "A workshop"
+     "Volunteers",
+     "All thirty staff",
+     "The four due names plus two joiners inside their induction window",
+     "The managers"
+    ],
+    "ans": 2,
+    "why": "The due bucket drives the list.",
+    "src": "Ch8"
+   },
+   {
+    "q": "The failed assessment at the Q1 event:",
+    "opts": [
+     "Was ignored",
+     "Ended employment",
+     "Passed on appeal",
+     "Booked onto the Q3 retake; the read carried the name as due until the passing row"
+    ],
+    "ans": 3,
+    "why": "Step 4's follow-up.",
+    "src": "Ch8"
+   },
+   {
+    "q": "The Q2 audit question was answered by:",
+    "opts": [
+     "Two lookups — programme, event, date, hours, grade, on screen",
+     "A week of assembly",
+     "The trainer's memory",
+     "A letter"
+    ],
+    "ans": 0,
+    "why": "The per-employee record's purpose.",
+    "src": "Ch8"
+   },
+   {
+    "q": "The January-artefact plan is prevented by:",
+    "opts": [
+     "A better January",
+     "The quarterly plan read — planned versus delivered versus resulted, slippage named in time",
+     "Fewer lines",
+     "External trainers"
     ],
     "ans": 1,
-    "why": "The workforce learns whether the plan is a pleasantry.",
+    "why": "Error 5.",
     "src": "Ch9"
    },
    {
-    "q": "This module's law is:",
+    "q": "Module 6's rule is:",
     "opts": [
-     "Hire ready-made",
-     "Training is an event",
-     "People are developed by design — needs read, curricula from the firm's truth, completion meaning demonstrated, authority following certification, and every critical capability carrying a second name",
-     "Certificates suffice"
+     "Training is informal",
+     "Feedback is optional",
+     "Training is delivered as records — programmes catalogued once, events from the plan with full tables, results within the week, compliance by arithmetic on passing results, every question answered from the rows",
+     "Compliance is memory"
     ],
     "ans": 2,
-    "why": "The firm that manufactures its people stops shopping for what the market doesn't sell.",
+    "why": "The module rule.",
     "src": "Ch9"
    }
   ]
