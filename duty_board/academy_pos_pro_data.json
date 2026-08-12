@@ -952,333 +952,333 @@
  },
  "terminal_estate": {
   "title": "POS 3 — Commissioning & the Terminal Estate",
-  "desc": "A terminal commissioned once and governed forever: the install and four-step wizard with the branch lock, activation and licensing by device allowance with the licence's mode precedence, the hardware layer proven with real sales, label templates and the terminal's own posture, cached cashiers with the leaver's three-record sweep and the audited manager override, and the device register with who-and-why revocation and the monthly last-seen scan.",
+  "desc": "Installing and managing terminals: the installer and sync service, the four-step wizard with the branch lock, activation and licensing with the mode precedence rule, printer/drawer/display configuration tested with real sales, terminal settings and label templates, cached cashiers and the leaver procedure, and the device register with revocation and the monthly last-seen review.",
   "lessons": [
    {
-    "title": "Chapter 1 — Commissioned once, governed forever",
+    "title": "Chapter 1 — Terminals as managed equipment",
+    "est": "10",
+    "html": "<p>This module covers everything between a bare computer and a working, licensed till: installation, the setup wizard, licensing, hardware, terminal settings, cached cashiers, and the device register. The module's law: <b>a terminal is commissioned once and managed for its whole life.</b></p><p><b>Treat terminals as managed equipment.</b> Every terminal in the business should have: a clear name, a branch it is locked to, a licence slot it occupies, a record in the device list, and a note of when and by whom it was set up. ZhiftPOS provides the tools for all of this — the setup wizard, the licence system, and the registered devices list — and this module shows how to use each one.</p><p><b>Why it matters.</b> Two problems occur wherever terminals are set up casually:</p><p>• <b>The badly commissioned terminal.</b> Set up in a hurry by whoever was free: named DESKTOP-7XK2P, locked to the wrong branch (or the right one by luck), hardware half-tested. It works until the first return, the first offline period, or the first question about which shop a sale belongs to.<br>• <b>The forgotten terminal.</b> Set up correctly and then never managed again: retired machines still holding licence slots, a lost laptop still able to post sales, a device list nobody reads. Module 8's fraud chapter notes what a forgotten, still-enrolled terminal is worth to the wrong person.</p><p>Both problems have the same fix: a fixed commissioning procedure at the start, and the device register for everything after.</p><p><b>Time expectations.</b> The first terminal at a site takes about forty minutes, including hardware. Each one after that takes about ten, because the decisions are already made and the procedure is already written. If your fifth terminal still takes forty minutes, the procedure is not written down.</p><p><b>The commissioning sequence.</b> The chapters follow the order you work in:</p><p>1. Install the application and connect the hardware (Chapter 2).<br>2. Run the setup wizard: server, connection, branch lock, updates (Chapter 2).<br>3. Activate against the branch licence (Chapter 3).<br>4. Configure and test the printer, cash drawer and customer display (Chapter 4).<br>5. Set the terminal's own settings and label templates (Chapter 5).<br>6. Cache the cashiers who will use it (Chapter 6).<br>7. Confirm its entry in the device register (Chapter 7).</p><p>Chapter 8 shows Okelewo commissioning five terminals across three branches, and Chapter 9 reviews. Keep a short file per terminal as you go — the wizard choices, the licence slot, the hardware test results. That file is the terminal's service record, and Chapter 7 explains where it pays off.</p>"
+   },
+   {
+    "title": "Chapter 2 — Installation and the setup wizard",
+    "est": "13",
+    "html": "<p><b>Installing.</b></p><p>1. Run the installer with rights to install software. The installer also installs the <b>background sync service</b> and sets it to start automatically with the terminal.<br>2. Connect the hardware now — receipt printer, cash drawer, customer display — and confirm the operating system can see each device <b>before</b> configuring anything in ZhiftPOS. The application can only use devices the operating system already recognises; configuring first and plugging in later is the cause of half of all hardware problems.<br>3. Name the machine at the operating-system level <b>to match the counter</b> — the same name the profile uses, for example LALUBU-TILL-1. This name appears in the device list and in every support conversation for years. Set it now, while it costs nothing.<br>4. Launch the application. It opens on an unconfigured sign-in screen.</p><p><b>The setup wizard.</b> Open Server Settings from the gear icon. The wizard has four steps.</p><p><b>Step 1 — Server.</b> Enter the back office's full address, including the protocol (https://...), then press <b>Validate &amp; Fetch</b>. The application contacts the server, confirms it is reachable, and downloads the connection details and branch list. If validation fails, check in this order: the address is typed correctly; the server is running; the terminal has a network route to it.</p><p><b>Step 2 — Connection.</b> The web port, real-time path and real-time port are displayed for confirmation. They are filled in from the server and <b>cannot be edited here</b>. If they look wrong, the server's own configuration is wrong — fix it there. The wizard does not allow a terminal to override the server's connection facts.</p><p><b>Step 3 — Branch.</b> Choose the terminal's branch from the fetched list and confirm. <b>This choice locks the device to that branch.</b> Notes:</p><p>• If the list is empty, press Reload. If it stays empty, either the branches have no warehouse assigned, or the server address points at the wrong system.<br>• Read the branch name carefully before confirming. A terminal locked to the wrong branch posts every sale to the wrong shop, and the error is discovered in the postings.<br>• After the lock, reopening Server Settings requires <b>administrator verification</b> on the terminal. This is deliberate: it prevents a cashier from re-pointing a till at a different branch or server. Treat any unlock as an administrator action worth noting.</p><p><b>Step 4 — Updates.</b> Choose whether the terminal downloads updates automatically. Recommended <b>on</b> for shops without technical staff on site. Changeable later in System Settings.</p><p><b>After the wizard.</b> The terminal is bound to its server and branch, and is ready for activation (Chapter 3). Record in the terminal's file: the OS name, the branch chosen, the updates decision, and the date.</p>"
+   },
+   {
+    "title": "Chapter 3 — Activation and licensing",
     "est": "12",
-    "html": "<p>The constitution exists; now it meets the metal. This module takes a bare terminal to a counter that can take money — and then keeps taking it for years — under the module's thesis and the track's third law: <b>a terminal is commissioned once and governed forever.</b></p><p><b>The estate frame.</b> The reframe that organises the module: the firm's terminals are an ESTATE — a fleet of governed assets, each with an identity, a branch, a profile, a licence slot, a hardware complement, and a service history — not a pile of computers that happen to run a till. The frame imports the Sysadmin track's asset instincts wholesale: every terminal on a REGISTER (Chapter 7's device list — the platform track's access register, for machines), every change to one an EVENT (the commissioning, the repointing, the retirement — each logged with its who and why), and the estate READ on a rhythm (the last-seen scan as the fleet's dormancy check). The frame's payoff is the module's quiet promise: the manual prices the first commissioning at forty minutes and each one after at ten — and the difference is not practice alone; it is the estate discipline making every terminal the SAME governed shape, so the eleventh till is a checklist, not an adventure.</p><p><b>The commissioning as ceremony.</b> The module's structure, previewed as the ceremony it is: the INSTALL and the wizard (Chapter 2 — the terminal bound to its server and LOCKED to its branch), the ACTIVATION against the licence (Chapter 3 — the terminal claiming its slot), the HARDWARE proven (Chapter 4 — the printer, drawer and display tested with real sales, not test pages), the terminal's SETTINGS and labels (Chapter 5), its PEOPLE cached (Chapter 6 — who may sign in offline, and the leaver's forget), and its REGISTER entry opened (Chapter 7 — the estate's memory). Every step produces evidence; the finished terminal has a file before it has a customer — which is this academy's oldest pattern (the ceremony whose byproduct is the documentation) at the shop floor.</p><p><b>The two failure modes, convicted in advance.</b> The diseases this module prevents, named as its opening indictment: the IMPROVISED terminal (commissioned by whoever was free, named nothing, locked to the wrong branch or none, hardware half-tested — the till that works until the first return, the first offline hour, or the first dispute about which shop a sale belongs to) and the ABANDONED estate (terminals commissioned and never governed again — the retired till still holding a licence slot and a live enrolment, the lost machine nobody revoked, the device list nobody reads: the estate's version of the departed-user-with-live-access, and module 8's fraud map notes what a forgotten enrolled terminal is worth to the wrong hands). Both cured by the same two disciplines: ceremony at birth, register for life.</p>"
+    "html": "<p><b>How licensing works.</b> Each <b>branch</b> is licensed for a number of devices. The first time a terminal signs in successfully, it registers itself against that branch's allowance and confirms its selling mode against the licence. There is no separate activation screen — the first sign-in is the activation.</p><p><b>Activation checklist.</b></p><p>1. Confirm a licence slot is free for the branch before commissioning day. The device list (Chapter 7) shows what is currently enrolled.<br>2. Perform the first sign-in yourself as the commissioning administrator, so the enrolment is recorded under a known account on a known date.<br>3. Confirm the till presents the expected consoles — this verifies the selling mode once, at the start (see the precedence rule below).<br>4. Note the activation in the terminal's file.</p><p><b>If activation is refused.</b> A terminal is refused when the branch's allowance is already fully used. The fix is housekeeping, not a support call: open the device list, find a terminal that is no longer in use, and <b>revoke</b> it. Revoking frees its slot immediately. Retired, replaced and lost terminals should already have been revoked — an allowance full of forgotten machines is the usual cause of a refusal.</p><p><b>If the licence lapses.</b> When the licence expires or cannot be validated, the terminal signs the user out <b>gracefully</b>. Two facts to know and to reassure the counter with:</p><p>• <b>Nothing is wiped.</b> The local data stays on the terminal.<br>• <b>No queued sale is lost.</b> The queue survives a lapse exactly as it survives a restart. The terminal simply stops accepting new work until the licence is restored.</p><p>A lapse is a commercial matter with a technical symptom: renew or revalidate the licence, and the terminal resumes where it stopped.</p><p><b>The precedence rule.</b> Memorise this sentence: <b>the selling mode on the licence takes precedence over the mode on the profile.</b> A branch licensed for Standard shows the Standard consoles even if its profile is set to Pharmacy. Two consequences:</p><p>• <b>When planning:</b> if a counter needs the two-stage Pharmacy flow or Booking mode, confirm the branch's licence carries that mode <b>before</b> building the profile.<br>• <b>When troubleshooting:</b> if a till shows different consoles from what the profile says, check the licence. Module 1's rule was: a missing menu item means check the profile. This chapter adds the second rule: wrong consoles overall means check the licence.</p><p><b>Summary.</b> Know the branch's allowance before you start; activate under a known account; verify the mode once; revoke retired terminals to free slots; and remember that a lapse pauses the terminal without losing anything.</p>"
    },
    {
-    "title": "Chapter 2 — The install & the four-step wizard: the branch lock",
-    "est": "13",
-    "html": "<p>From installer to bound terminal — the wizard walked step by step, with the lock at its heart. The binding chapter.</p><p><b>The install.</b> The pre-wizard discipline: the installer obtained and run with rights to install software — the BACKGROUND SYNC SERVICE installed alongside and set to start automatically (module 1's terminal-tied piece, born here: the service that will own the local copy and the queue exists before anyone signs in), the application launched to its unconfigured sign-in screen, and the HARDWARE connected NOW — printer, drawer, customer display plugged in and visible to the operating system BEFORE they are configured in the application (the layering discipline: the OS must see the device before the till can; Chapter 4's half of every hardware mystery is this order violated). And the manual's naming instruction, adopted as estate doctrine: <b>name the machine at the operating-system level to match the counter</b> — the same name the profile carries — because the device list and every support conversation for the next five years reads that name, and 'DESKTOP-7XK2P' is a filing error committed at birth.</p><p><b>The wizard's four steps.</b> Server Settings from the gear icon, then: <b>Step one — Server.</b> The back office's full address entered WITH the protocol, then Validate &amp; Fetch — the application contacting the server, confirming reachability, and reading back the connection details and the branch list. The failure triage taught as the manual gives it: validation fails because the address is wrong, the server is down, or the terminal has no route — check all three before continuing, in that order of likelihood. <b>Step two — Connection.</b> The web port, real-time path and real-time port SHOWN for confirmation — filled from the server, not editable here: if they look wrong, the SERVER is misconfigured, and the fix belongs there (the read-back design read correctly: the wizard refuses to let a terminal 'correct' the server's own facts, which is one-version law at the connection layer). <b>Step three — Branch.</b> The terminal's branch chosen from the fetched list and confirmed — <b>this choice LOCKS the device to that branch</b> — with the empty-list triage known (Reload first; a persistently empty list means the branches have no warehouse, or the address points at the wrong system), and Chapter 2 of module 2's naming discipline cashing here: branches named clearly enough that nobody picks the wrong one, because the wrong pick is discovered in postings. <b>Step four — Updates.</b> Automatic downloads decided (recommended ON for shops without on-site technical staff — the Sysadmin track's update-stream posture, per terminal), changeable later in settings.</p><p><b>The lock's governance.</b> The design's teeth, read as the control it is: once the branch is locked, reopening server settings requires ADMINISTRATOR VERIFICATION on the terminal — deliberate, the manual says, to stop a cashier repointing a till at the wrong shop — and the academy adds the fraud-map footnote module 8 will collect: the till quietly repointed is a till whose sales land in another branch's story (the variance manufactured, the attribution scrambled), so the lock is not a convenience feature but a boundary control, its override an administrator event, logged like one. The chapter's closing line: the wizard's whole design is bind-and-verify — the terminal told once, precisely, whose it is and where it belongs — and the ten-minute commissioning the estate enjoys forever after is purchased by getting exactly that ceremony right the first time.</p>"
-   },
-   {
-    "title": "Chapter 3 — Activation & licensing: the slot, the lapse & the precedence",
-    "est": "13",
-    "html": "<p>The bound terminal now claims its place: activation against the branch's licence. The licensing chapter — short rules, long consequences.</p><p><b>Licensing by branch.</b> The model: each BRANCH is allowed a number of devices, and every terminal records itself against that allowance the first time it signs in — the first successful sign-in REGISTERING the terminal and confirming its selling mode against the licence. The allowance's arithmetic governed like every scarce resource in this academy: the slots KNOWN (the branch's allowance and its current usage on the estate map — Chapter 7), the refusal understood (activation REFUSED when the allowance is already used, the cashier told — and the remedy being estate hygiene, not a support escalation: retire an unused terminal in the device list to free a slot, which is Chapter 7's revocation doing its daily work), and the allowance conversation held ahead of need (the new branch's terminal count is a licensing line in the opening plan, not a launch-morning discovery — the capacity-ahead-of-need instinct of the Sysadmin track's waistline, at the licence).</p><p><b>The lapse, handled gracefully.</b> The design's honesty, taught because it removes a fear: if the licence lapses or cannot be validated, the terminal signs the user out GRACEFULLY — <b>nothing is wiped and no queued sale is lost</b>. The queue survives the lapse exactly as it survives a restart; the terminal simply stops admitting new work until the licence question resolves. The operational reading: the lapse is a commercial event with a technical symptom — the certified professional routes it to the relationship (the licence renewed, the validation restored) and reassures the counter from knowledge (the queued money is safe, the manual says so, and the professional has read the manual) rather than joining the panic.</p><p><b>The precedence rule.</b> The module's most consequential single sentence, flagged in module 1 and settled here: <b>the selling mode on the LICENCE takes precedence over the mode on the profile</b> — a shop licensed for Standard presents the Standard console even if its profile says Pharmacy. The consequences drawn in both directions: the DESIGN direction (module 2's mode-first discipline extends upstream — the mode conversation includes the licence from the start, and the consultant proposing the two-stage counter confirms the licence carries it before the profile is built, because the profile that promises what the licence forbids delivers confusion at first sign-in), and the DIAGNOSTIC direction (the counter showing the 'wrong' consoles despite a correct profile is a licence question — the precedence rule joining the track's first-check family: profile first for missing menu items, licence next for wrong modes).</p><p><b>The activation ceremony.</b> The chapter's checklist shape, closing: the slot confirmed available (or freed by revocation), the first sign-in performed by the commissioning administrator (the enrolment recorded — Chapter 7's register will carry who enrolled it and when), the mode verified as expected (the precedence rule checked live, once, at birth), and the activation noted in the terminal's estate entry. Minutes of ceremony against the alternative — the launch morning spent discovering that the allowance is full, the mode is wrong, or the enrolment belongs to nobody anyone remembers — which is the whole module's trade, made at its smallest and most frequent gate.</p>"
-   },
-   {
-    "title": "Chapter 4 — The hardware layer: proven with real sales",
+    "title": "Chapter 4 — Receipt printer, cash drawer, customer display",
     "est": "14",
-    "html": "<p>The counter's physical instruments — printer, drawer, display — configured, and then PROVEN the only way that counts. The hardware chapter.</p><p><b>The receipt printer.</b> The settings walked with their reasons: printing ENABLED once the printer is installed at the operating-system level (Chapter 2's layering — the OS sees it first), the MODEL family chosen (Epson or Star — the emulation families, with most thermal printers emulating Epson: the setting that decides whether the command language matches the machine), the INSTALLED printer picked from what the OS reports (Refresh after plugging in — the stale list being the commonest 'nothing prints' cause after the cable itself), the <b>PAPER WIDTH</b> (80mm or 58mm — wrong, and receipts wrap or clip their columns: the one-field mistake every estate makes once), COPIES (one or two — two where a signed copy is retained: an evidence policy wearing a printer setting), the PRINT FORMAT (Standard Receipt's compact thermal layout versus Invoice Style's fuller page for business customers), FONT size (paper cost against legibility on cheap thermal stock), AUTO-PRINT (off where customers usually decline — a waste policy, decided per shop), and the receipt's IDENTITY block (header name, address, footer lines, and the optional goods-return-policy text with its own switch and length cap — the counter's outward face carrying the firm's name and its return promise, owned by selling per the format-content law of the Sysadmin track).</p><p><b>The proving discipline.</b> The manual's instruction elevated to doctrine: <b>test with a REAL sale</b> — sell a low-value item, print, then void or return it properly — because a test print does not exercise the totals, the tax lines, or the footer: the test page that looks perfect proves the cable; the real receipt proves the CONFIGURATION, and the difference is exactly the fields that matter in a dispute. The academy's addition: the proving sale is kept as the commissioning file's artifact — the first receipt stapled to the terminal's estate entry, the hardware's birth certificate.</p><p><b>The cash drawer.</b> The drawer's three settings and their craft: ENABLED only where a drawer is fitted (on without one produces harmless but confusing errors — noise retired at source), the CONNECTION type read correctly (<b>Printer</b> for the usual arrangement — the drawer cabled to the receipt printer and opened by a pulse from it, which is why 'the drawer stopped' so often means 'check the printer cable'; <b>Custom Command</b> where the drawer needs its specific instruction, given as hexadecimal byte values from the drawer's own documentation; <b>None</b> to disable the trigger while keeping the setting), and TEST DRAWER used before going live — with the operating fact known: the drawer opens on completion of a CASH sale, which module 4's ritual relies on and module 8's fraud map watches (the drawer that opens without a sale is a read).</p><p><b>The pole display.</b> The customer-facing screen's serial-line craft, taught as the diagnostic sequence it is: the PORT (Refresh to rescan after plugging in), the BAUD rate matched to the display's documentation (9600 the common default), COLUMNS and ROWS (typically twenty by two), the PROTOCOL (the command set — and the manual's precise symptom read: text appears but never CLEARS between items → choose the variant that does not send a clear command), the LINE ENDING (changed only when lines overwrite or wrap oddly), PORT LOCK (held open unless another application needs the port), and the IDLE scroll with its message (the greeting or offer between customers — the display earning its cable even when nobody is paying). The troubleshooting order adopted from the manual: garbled or overlapping text → change ONE setting at a time, starting with protocol — the one-variable discipline of every diagnostic method this academy teaches, at 9600 baud. The chapter's closing frame: the hardware layer is where the counter meets physics, and the certified professional's edge is not knowing the settings — the manual lists them — but PROVING them the real way, one variable at a time, with the evidence filed.</p>"
+    "html": "<p>Hardware settings live in System Settings on the terminal, under the Printer and Display tabs. Configure each device, then test it the way described at the end of each section.</p><p><b>Receipt printer.</b> Settings, in order:</p><p>• <b>Enable printing</b> — once the printer is installed at the operating-system level.<br>• <b>Model family</b> — Epson or Star. This selects the command language. Most thermal printers emulate Epson; check the printer's documentation.<br>• <b>Installed printer</b> — pick from the devices the operating system reports. Press Refresh after plugging a printer in; a stale list is the most common cause of nothing printing after the cable itself.<br>• <b>Paper width</b> — 80mm or 58mm. Set wrongly, receipts wrap or cut off their columns. This is the single most common printer misconfiguration.<br>• <b>Copies</b> — one, or two where a signed copy is kept.<br>• <b>Print format</b> — Standard Receipt (compact thermal layout) or Invoice Style (fuller page, for business customers).<br>• <b>Font size</b> — balance paper use against readability.<br>• <b>Auto-print</b> — on to print every receipt automatically; off where customers usually decline one.<br>• <b>Header and footer</b> — shop name, address, footer lines, and optionally the goods return policy text (it has its own switch and a length limit).</p><p><b>Test the printer with a real sale, not a test print.</b> Procedure: sell one low-value item, print the receipt, then reverse the sale properly through Return &amp; Exchange. A test page only proves the cable and driver. A real receipt exercises the totals, tax lines, header and footer — the parts that matter in a dispute. Keep the first real receipt in the terminal's file.</p><p><b>Cash drawer.</b> Settings:</p><p>• <b>Enable</b> — only where a drawer is fitted. Enabled with no drawer produces harmless but confusing errors.<br>• <b>Connection</b> — <b>Printer</b> for the usual arrangement: the drawer is cabled to the receipt printer and opens on a pulse from it. (This is why a drawer that stops opening is often a printer-cable problem.) <b>Custom Command</b> for drawers that need their own instruction, entered as hexadecimal bytes from the drawer's documentation. <b>None</b> disables the trigger.<br>• <b>Test Drawer</b> — use it before go-live.</p><p>Operating fact: the drawer opens on completion of a <b>cash</b> sale. Module 4's shift routine depends on this, and module 8 notes that a drawer opening without a sale is something a supervisor should notice.</p><p><b>Customer (pole) display.</b> Settings:</p><p>• <b>Port</b> — press Refresh after plugging in, then select.<br>• <b>Baud rate</b> — match the display's documentation; 9600 is the common default.<br>• <b>Columns and rows</b> — typically 20 by 2.<br>• <b>Protocol</b> — the command set. Known symptom: text appears but never clears between items → select the protocol variant that does not send a clear command.<br>• <b>Line ending</b> — change only if lines overwrite or wrap oddly.<br>• <b>Port lock</b> — keep the port held open unless another application needs it.<br>• <b>Idle message</b> — the scrolling text shown between customers.</p><p>Troubleshooting rule for garbled or overlapping text: <b>change one setting at a time, starting with the protocol.</b> Changing several at once makes the working combination impossible to identify.</p>"
    },
    {
-    "title": "Chapter 5 — Labels & terminal settings: the till's own posture",
+    "title": "Chapter 5 — Label templates and terminal settings",
+    "est": "12",
+    "html": "<p><b>The profile/settings split.</b> Keep this distinction clear, because it routes every configuration question: the <b>POS Profile</b> (module 2) holds the counter's policy — what may be done. <b>System Settings</b> on the terminal holds this machine's own behaviour — how this terminal operates. The discount mode is a profile question; the paper width is a terminal question.</p><p><b>System Settings has five tabs:</b> Server &amp; App, Printer, Display, Sync &amp; Device, and Labels. Printer and Display were covered in Chapter 4; Sync &amp; Device is Chapter 6. This chapter covers the other two.</p><p><b>Server &amp; App tab.</b></p><p>• <b>Connection details</b> — the server, ports and branch from the wizard, shown read-only, with the validation status.<br>• <b>Inventory cache limit</b> — how many product rows the terminal stores locally. Rule: <b>set it at or above the catalogue size.</b> A limit below the catalogue means some items are simply not present in the local copy — and those items cannot be found while offline. When an item cannot be found offline, check sync first, then this limit. Raise it for large catalogues; lower it only on genuinely constrained hardware.<br>• <b>Full screen mode</b> — hides the title bar. Usual choice for a dedicated till.<br>• <b>Fast checkout</b> — completes sales instantly and posts them in the background. Leave it <b>off</b> at commissioning. Module 8 explains the trade-off and when to enable it; until then, the default is off.<br>• <b>Updates</b> — the wizard's step-4 choice, adjustable here. Keep the update posture consistent across the estate.</p><p><b>Labels tab.</b> Label templates control shelf-edge and product labels, printed from the Label Printing console (module 6). A template defines:</p><p>• <b>Layout</b> — name, price and barcode, or name and barcode only.<br>• <b>Label size</b> — width, height, and barcode height, in millimetres.<br>• <b>Type sizes</b> — point sizes for the name and the price.<br>• <b>Item code</b> — shown or hidden.<br>• <b>Sheet geometry</b> (for sheet printers) — paper size, the four margins, column and row gaps, and column count. A column count of zero means fit as many as the paper allows.</p><p>Working practice:</p><p>1. Start from a supplied preset rather than a blank template.<br>2. Adjust, then use <b>Save as new</b> — the preset stays intact and your variant gets its own name.<br>3. <b>Print one sheet on plain paper</b> and hold it against a real label sheet before committing label stock. One plain page costs nothing; a misaligned roll of labels is money in the bin.</p><p><b>Estate consistency.</b> Keep the terminal posture deliberate and uniform: the same cache rule, the same update stance, the same proven templates across the terminals of a branch. A uniform estate is why the tenth terminal takes ten minutes — and why any terminal can be diagnosed by comparing it with its neighbours.</p>"
+   },
+   {
+    "title": "Chapter 6 — Cached cashiers",
+    "est": "12",
+    "html": "<p>The <b>Sync &amp; Device</b> tab lists the cashiers this terminal remembers — the people who can sign in when the server is unreachable. Where the profile enables offline login (module 2), a cashier who has signed in <b>online on this terminal</b> is cached and can afterwards sign in offline.</p><p><b>The three states.</b> Each cached cashier shows one of:</p><p>• <b>Ready</b> — can sign in offline right now.<br>• <b>Re-login required</b> — the stored credentials were rejected. The cashier must sign in once while online to refresh them. Until they do, <b>their queued sales cannot post</b>. This makes a Re-login state urgent, not cosmetic: the person's completed sales are waiting on it.<br>• <b>Locked</b> — more than <b>seven days</b> have passed since their last successful online sign-in on this terminal. Offline access has expired; an online sign-in restores it.</p><p><b>The weekly rule.</b> Because of the seven-day expiry: every cashier should sign in online at least once a week on each terminal they use offline. Put this on the branch's weekly routine (module 8's calendar) rather than trusting memory — the cashier who only ever works through outages is exactly the one who gets locked out during one.</p><p><b>When a cashier leaves.</b> Use <b>Forget cashier</b> on this tab, and treat leaving as a three-record procedure, all on the same day:</p><p>1. Remove the person's row from every POS Profile that lists them (module 2's user table).<br>2. <b>Forget</b> their cached entry on every terminal they used. List the terminals from the device register rather than from memory.<br>3. Disable their back-office user account.</p><p>Why all three: a departed cashier whose cached entry survives on a back-room terminal can still sign in offline there, and sales made that way are attributed to them. Closing all three records the same day removes the possibility.</p><p><b>Manager override sign-in.</b> When an offline sign-in is refused because the terminal has no cached record of the cashier, a manager can sign the cashier in using the manager's own credentials. Two built-in properties:</p><p>• The sales made in that session are <b>tagged for audit</b>.<br>• The cashier is told about the tagging at the time.</p><p>Use the override as what it is — a way to keep a counter trading through a gap — and not as a routine substitute for proper caching. Because every override session is tagged, a monthly count of them is easy: the healthy number is near zero, and each one should have a known story. A branch that quietly runs on manager overrides because onboarding never cached anyone will show up immediately in that count.</p><p><b>Commissioning step.</b> When commissioning a terminal, have each cashier who will use it sign in online once, then confirm the list shows them all as Ready. That is the terminal's people, set deliberately.</p>"
+   },
+   {
+    "title": "Chapter 7 — The device register",
+    "est": "12",
+    "html": "<p>The <b>registered devices list</b> in the back office is the record of every terminal in the business. One row per terminal, carrying:</p><p>• <b>Identifier and label</b> — the label is the OS-level name from Chapter 2, which is why that name was worth setting properly.<br>• <b>Branch and profile</b> — what the terminal is bound to.<br>• <b>Enrolled by / enrolled on</b> — who performed the activation sign-in, and when.<br>• <b>Last seen</b> — when the terminal last communicated with the back office.<br>• <b>Status</b> — active or revoked.</p><p><b>Revoking.</b> Revoke a device when it is retired, replaced, lost, stolen or sold. Record <b>who</b> revoked it and <b>why</b> on the revocation. Effects:</p><p>• A revoked device <b>can no longer post sales</b>.<br>• Its history remains — the record is closed, not deleted.<br>• Its <b>licence slot is freed</b> immediately (Chapter 3's remedy for a full allowance).</p><p>The rule: no terminal leaves service without a revocation. A lost machine that was never revoked is still enrolled and still able to post into the business's records from wherever it is — the hardware version of a departed employee whose account was never disabled.</p><p><b>The last-seen review.</b> Once a month, scan the last-seen column for terminals that have not communicated recently. Three possible meanings, in rising order of concern:</p><p>1. <b>A closed counter</b> — seasonal or temporary. Fine; note it.<br>2. <b>A dead or retired terminal</b> — revoke it and update the register.<br>3. <b>A terminal that is trading but not syncing</b> — the serious one. Its queue is growing unposted and its prices are going stale. Investigate the same day: usually the sync service has stopped, or the network path has broken.</p><p>The monthly scan takes two minutes. Without it, case 3 is typically discovered weeks later, with a large queue to untangle and stale figures in between.</p><p><b>The terminal's file.</b> Everything this module produces per terminal belongs in one place — the file started in Chapter 1: wizard choices, licence slot, hardware test results (including the first real receipt), settings decisions, cached-cashier list, and later, any revocation. The register plus these files is the estate's memory: any terminal's history answerable without relying on whoever set it up.</p><p><b>Recurring tasks from this module</b> (collected into module 8's calendar):</p><p>• <b>Monthly</b> — last-seen review; licence allowance check.<br>• <b>On staff change</b> — the three-record procedure from Chapter 6.<br>• <b>On terminal change</b> — revoke with who-and-why; commission the replacement by the standard procedure.<br>• <b>Yearly</b> — walk the register: every row's branch, profile and label still correct; files complete.</p>"
+   },
+   {
+    "title": "Chapter 8 — Case study: Okelewo commissions five terminals",
     "est": "13",
-    "html": "<p>The remaining commissioning ground: the label templates and the terminal's System Settings — the till's own posture, distinct from the profile's policy. The settings chapter.</p><p><b>The five tabs.</b> The System Settings map, oriented once: <b>Server &amp; App</b> (connection status, the read-back details, the cache limit, full screen, fast checkout, updates), <b>Printer</b> and <b>Display</b> (Chapter 4's ground), <b>Sync &amp; Device</b> (the cached cashiers — Chapter 6), and <b>Labels</b> (below) — with the constitutional distinction drawn cleanly, because it answers a standing confusion: the PROFILE holds the counter's POLICY (what may be done — module 2's constitution, central, owned by functions), while System Settings holds THIS TERMINAL'S posture (how this machine behaves — local, owned by the administrator's pen): the discount mode is a profile question; the paper width is a terminal question; and the professional who routes each to its record answers half the estate's support traffic by routing alone.</p><p><b>Server &amp; App in detail.</b> The tab's four consequential fields: the <b>inventory cache limit</b> (how many product rows the terminal keeps locally — raised for large catalogues where memory allows, lowered on constrained hardware, and the design consequence stated in the manual's own words and this track's standing law: anything BELOW the catalogue size means some items will not be found OFFLINE — the cache sized to the catalogue being the local-copy design's one configuration duty, and the 'item cannot be found' complaint's second check after a sync), <b>full screen mode</b> (title bar hidden, edge to edge — the usual choice for a dedicated till: the machine that is a till, not a computer running one), <b>fast checkout</b> (named here, JUDGED in module 8 — the instant-complete-and-post-in-background setting whose trade-offs belong with the queue's whole story, and the commissioning default is OFF until that judgment is made deliberately), and <b>auto updates</b> (the wizard's step-four decision, adjustable — the estate's update posture kept consistent across terminals, per the fleet frame).</p><p><b>Label templates.</b> The shelf-edge machinery, configured on the terminal and used from the Label Printing console: a template controls the LAYOUT (name, price and barcode — or name and barcode alone), the LABEL size (width, height, and the barcode's height within it, in millimetres), the TYPE sizes (name and price point sizes), the item-code toggle, and the SHEET geometry for sheet printers (paper size, the four margins, the column and row gaps, and the column count — with zero columns meaning fit as many as the paper allows). The craft disciplines from the manual, adopted: start from a supplied PRESET and adjust (the make-vs-take instinct at the label), <b>Save as new</b> to keep a working template (the before-copy habit — the preset preserved, the variant named), and the proving rule in the hardware chapter's spirit: <b>print one sheet onto plain paper and hold it against a real label sheet</b> before committing a roll — the rehearsal that costs one page against the roll of misaligned stock every shop has thrown away once. The chapter's closing line: the terminal's own posture is small — a dozen fields and a template — but it is the layer the floor touches hourly, and the estate whose terminals share one deliberate posture (same cache logic, same update stance, same proven templates) is the estate where the eleventh till really does take ten minutes.</p>"
+    "html": "<p>Okelewo commissions five terminals across three branches. The events below are the ones worth learning from.</p><p><b>The first terminal (flagship).</b> The old standalone till is replaced first, following the Chapter 2 procedure exactly: hardware connected and visible to the operating system before configuration, the machine named LALUBU-TILL-1 to match the counter, and the wizard run step by step. At step 3, the branch list shows two confusingly similar names — the flagship and a draft record for the second Abeokuta shop. Rather than guessing, the administrator pauses and <b>renames the draft branch in the back office</b> so the two cannot be mistaken, then completes the lock. Total time: forty-one minutes, as expected for a first terminal. A one-page commissioning checklist is written from the session; every later terminal follows it.</p><p><b>The licence refusal (Lagos).</b> The Lagos terminal's activation is <b>refused</b>: the branch's allowance is already fully used. The device list explains it in one look — a trial-era terminal, dead in a storeroom for a year, is still enrolled and holding the slot. It is revoked (reason recorded: retired hardware, never deprovisioned), the slot frees immediately, and the new terminal activates within the hour. Follow-up: a full census of the register against physical reality runs that week and finds one more ghost — a repaired machine that had been enrolled twice. Both corrected; the monthly last-seen review goes on the calendar with the operations lead's name on it.</p><p><b>The hardware tests.</b> The flagship printer configures as Epson, 80mm, and the real-sale test prints cleanly. At the second Abeokuta shop, the settings had been copy-pasted from the flagship — and the real-sale test immediately shows wrapped, broken columns: the physical printer there is a <b>58mm</b> machine. One setting change, one more test sale, fixed — caught on a test receipt instead of on a customer's. The Lagos cash drawer does not respond to the printer pulse; its documentation supplies a custom hexadecimal command, which is entered and confirmed with Test Drawer. The flagship's pole display shows garbled text on first connection; following the one-setting-at-a-time rule, the protocol is changed first — fixed on the first change. Label templates are adjusted from a preset, saved as new, and proven on plain paper before any label stock is used.</p><p><b>The people and the valve.</b> At each terminal, the branch's cashiers each sign in online once; the Sync &amp; Device list is confirmed all-Ready. At the flagship, the manager override is deliberately tested once: a cashier who had never used that terminal is refused offline, the supervisor signs her in on his credentials, and the audit tag is then verified visible in the back office — with the counter staff watching. The point of doing it publicly: everyone now knows the override works, and everyone knows it is recorded.</p><p><b>Result.</b> The fifth terminal takes eleven minutes and produces the same one-page file as the first. The MD's note: <i>I have bought machines for nine years; this is the first time I have owned an estate.</i></p>"
    },
    {
-    "title": "Chapter 6 — Cached cashiers: the terminal's people",
-    "est": "13",
-    "html": "<p>The Sync &amp; Device tab holds the terminal's memory of its people — who may sign in when the server cannot answer. Small list, serious governance. The people chapter.</p><p><b>The cached list and its states.</b> The mechanism restated from module 2's profile switch and read at the terminal: where offline login is enabled, the terminal remembers the sign-ins of cashiers who have authenticated ONLINE on that machine — and the list shows each person's state: <b>Ready</b> (can sign in offline right now), <b>Re-login required</b> (their stored credentials were REJECTED — they must sign in once while online to refresh them, and until they do their QUEUED SALES CANNOT POST: the state that links a person's credentials to the money's movement, which is why the top bar's Re-login chip is a today problem, not an admin curiosity), and <b>Locked</b> (more than seven days since their last successful online sign-in — offline access expired, online sign-in required). The seven-day clock's discipline, from the manual's own warning: sign in online at least WEEKLY — the cashier who only ever works through outages will eventually be locked out at the worst possible moment — and the estate's answer is a rhythm, not a memo: the weekly-online line on module 8's housekeeping calendar, owned per branch.</p><p><b>The leaver's forget.</b> The lifecycle event, wired to its checklist: <b>Forget cashier</b> when someone leaves — the terminal no longer permits them offline — and the event read in its full shape across three records, because the leaver touches all three: the PROFILE's user row removed (module 2's table), the terminal's CACHED entry forgotten (this tab, on EVERY terminal they used — the multi-till leaver's sweep being a per-terminal walk, listed from the estate register), and the back-office ACCOUNT disabled per the Sysadmin track's lifecycle. The three-record shape is the manual's own housekeeping table given the academy's event framing: the separation checklist's counter lines, executed the same day, confirmed back to the checklist's owner — and module 8's fraud map notes the gap's worth: the departed cashier whose cached credentials survive on a back-room terminal is an offline sign-in away from an attributed-to-them queue, which is a sentence nobody wants to diagram after the fact.</p><p><b>The manager override sign-in.</b> The mechanism read precisely, because its design is a control worth teaching: when an offline sign-in is refused because the terminal has no record of the cashier, a MANAGER can sign them in on the manager's own credentials — and the sales rung under the override are TAGGED FOR AUDIT, with the cashier told so at the time. The reading: the override is a continuity valve (keep a counter trading through the gap), not a routine substitute for the cashier's own sign-in — and the tag is the design keeping the valve honest: every override session is visible, countable, and attributable to the manager who opened it, so the read on module 8's page is simple (override sessions near zero, each with a story) and the drift (the branch quietly running on the manager's credentials because onboarding never cached anyone) is a silhouette, not a secret. The chapter's closing line: the cached list is the terminal's guest book — kept current by the weekly rhythm, pruned by the leaver's sweep, and never allowed to become the shared login's quiet return through the back door.</p>"
-   },
-   {
-    "title": "Chapter 7 — The device register: the estate's memory",
-    "est": "13",
-    "html": "<p>The module's governance layer: every commissioned terminal, on a register, for life. The estate chapter.</p><p><b>The register's row.</b> What the device list holds per terminal, read as the asset record it is: the IDENTIFIER and the LABEL (the OS-level name of Chapter 2, earning its keep), the BRANCH and PROFILE it belongs to (the binding, recorded), the USER it ENROLLED as and WHEN (the activation's provenance — who commissioned this machine, on which day), and <b>last seen</b> (when the terminal last spoke to the back office). One row per terminal, the estate legible at a glance — the access register's sibling, for machines, and filed beside it in the site book.</p><p><b>Active and revoked.</b> The lifecycle's two states and the event between them: a device is ACTIVE or <b>REVOKED</b> — revoked when a terminal is lost, stolen, sold or retired, with WHO revoked it and WHY recorded on the event — and a revoked device <b>can no longer post sales</b>. The design read for what it protects: the revocation is the estate's disable-not-delete (the history kept, the door closed), it FREES the licence slot (Chapter 3's remedy — the retirement that pays for the replacement's activation), and it is the answer to the module's opening indictment: the lost machine that was never revoked is a live enrolment in unknown hands, still able to post into the firm's story — the departed-user-with-live-access disease, in hardware, and the terminal-change line on the housekeeping calendar exists to make it structurally impossible.</p><p><b>Last-seen as the fleet's silhouette.</b> The register's monitoring dividend, in the Sysadmin track's grammar: the <b>last-seen timestamp is the quickest way to spot a terminal that has quietly stopped talking</b> to the back office — the fleet's dormancy scan, read monthly (the manual's own housekeeping rhythm: review the device list for terminals not seen recently), with the triage taught: the stale last-seen is a closed counter (fine — noted), a dead terminal (a hardware event — the estate entry updated), or a till trading with a stopped sync service (the serious one — its queue growing unposted, its prices staling: the finding routed the day it is seen, because a till that trades without talking is accumulating exactly the backlog module 8 teaches the counter to fear). The read is two minutes against the alternative every consultant has met: the terminal discovered to have been silent for six weeks, its queue archaeology now a reconciliation project.</p><p><b>The estate's calendar.</b> The module's rhythms, gathered for module 8's page: MONTHLY — the device list's last-seen review, the licence allowance's headroom glance; ON STAFF CHANGE — the leaver's three-record sweep (profile row, cached entries per terminal, account); ON TERMINAL CHANGE — the revocation with its who-and-why, the slot freed, the replacement commissioned by the ceremony; ANNUALLY — the estate walked (every row's branch, profile and label still true; the hardware complement confirmed; the commissioning files complete). The chapter's closing frame, the module's law in register form: the estate that is commissioned by ceremony and remembered by register is the estate where every terminal has a birth certificate, a current address, and — when its day comes — a death certificate with a signature: assets, governed like assets, which is all the third law asks.</p>"
-   },
-   {
-    "title": "Chapter 8 — Case study: Okelewo commissions its estate",
-    "est": "16",
-    "html": "<p>Five terminals, three branches, one ceremony repeated until it is boring. Every chapter clocks in.</p><p><b>The first terminal: forty minutes, honestly (Ch. 2-3).</b> The flagship's aging standalone till is replaced first. The install runs by the layering discipline (hardware connected and OS-visible before configuration; the machine named <i>LALUBU-TILL-1</i> at the operating-system level — the profile's name, the estate's name, one name), and the wizard walks its four steps — with the module's promised near-miss arriving at step three: the branch list shows <i>Okelewo Lalubu Road</i> and the second Abeokuta shop's confusingly similar draft name, and the commissioning admin pauses exactly as trained — the branch RENAMED for clarity in the back office before the lock, not after (the wrong-pick-is-discovered-in-postings warning cashed for the price of a rename). Activation claims the flagship's first slot; the mode verifies Standard per the licence; the enrolment lands in the register with its who and when.</p><p><b>The licence lesson at Lagos (Ch. 3, 7).</b> Lagos's commissioning hits the module's designed refusal: activation declined — the branch's allowance already consumed. The investigation takes one register read: an OLD trial-era terminal, dead in a storeroom for a year, still enrolled and holding the slot. The remedy is the estate discipline working as written: the corpse REVOKED (who and why recorded — 'retired hardware, storeroom, never deprovisioned'), the slot freed, the new terminal activated within the hour — and the finding generalised: the estate register's first full census runs across all three branches that week, finding one more ghost enrolment (a repaired-and-returned machine double-enrolled), the device list reconciled to physical reality before the month ends, and the monthly last-seen review added to the calendar with the ops lead's name on it.</p><p><b>The hardware proven the real way (Ch. 4-5).</b> The flagship's printer configures Epson/80mm — and the proving sale catches what the test page could not: the SECOND Abeokuta shop's printer, configured by copy-paste at 80mm, is physically a 58mm machine — the real receipt's wrapped columns announcing it in one print (the one-field mistake every estate makes once, made once, on the proving sale instead of on a customer). The drawer tests fire (printer-pulse at two branches; the Lagos drawer needing its custom hex command from the documentation drawer — found, entered, tested), the pole display's garbled text yields to the one-variable sequence (protocol first — fixed on the first change), and the label template is adjusted from a preset, saved as new, and proofed on PLAIN PAPER against the label sheet — the first roll committed only after the overlay matches. Every proving artifact files into the commissioning record: five terminals, five first receipts, five birth certificates.</p><p><b>The people cached, the valve tested (Ch. 6).</b> Each terminal's cached-cashier list is set deliberately at commissioning (the branch's own cashiers signed in online once, states confirmed Ready), the weekly-online rhythm lands on each branch supervisor's calendar — and the manager override is TESTED once, on purpose, at the flagship (a cashier's sign-in refused on a terminal she'd never used; the supervisor's override opens the counter; the audit tag verified visible in the back office): the continuity valve proven and its visibility demonstrated to everyone watching, which the consultant notes is the cheapest fraud-deterrence briefing the estate will ever run. The MD's commissioning-week note closes the module: <i>the fifth terminal took eleven minutes and produced the same folder as the first. I have bought machines for nine years; this is the first time I have owned an estate.</i></p>"
-   },
-   {
-    "title": "Chapter 9 — Common mistakes & the third law",
-    "est": "13",
-    "html": "<p>The estate layer's scar tissue. Symptom → disease → fix.</p><p><b>Pattern 1 — the improvised commissioning.</b> Symptom: terminals named DESKTOP-7XK2P; hardware configured before the OS sees it; the branch picked from a confusing list under time pressure; no file, no first receipt. Disease: the ceremony skipped (Ch. 1-2). Fix: the commissioning checklist — OS name matching the counter, hardware layered, the wizard walked, the artifacts filed — forty minutes once, ten forever after.</p><p><b>Pattern 2 — the licence discovered at launch.</b> Symptom: activation refused on opening morning; the allowance full of ghosts; the mode wrong at first sign-in. Disease: slots and precedence never in the plan (Ch. 3). Fix: the allowance and the licence's mode in the design conversation from the start, the register's ghosts revoked ahead of need, the mode verified once at birth.</p><p><b>Pattern 3 — the test page mistaken for proof.</b> Symptom: the perfect test print and the wrapped real receipt; the paper width wrong across a copy-pasted estate; totals and tax lines never exercised until a customer holds them. Disease: the cable proven, the configuration assumed (Ch. 4). Fix: the real proving sale — sold, printed, properly reversed — and its receipt filed as the hardware's birth certificate.</p><p><b>Pattern 4 — the cache below the catalogue.</b> Symptom: 'item cannot be found' offline; the complaint blamed on sync; the local copy silently partial. Disease: the inventory cache limit set below the catalogue size (Ch. 5). Fix: the cache sized to the catalogue per terminal's memory, and the cannot-find complaint's two-step check — sync first, cache limit second.</p><p><b>Pattern 5 — the stale guest book.</b> Symptom: leavers still cached on back-room terminals; a branch quietly trading on the manager's override; cashiers locked out in the outage because nobody signed in online for a fortnight. Disease: the terminal's people ungoverned (Ch. 6). Fix: the weekly-online rhythm with an owner, the leaver's three-record sweep listed from the estate register, and the override read monthly — near zero, each with a story.</p><p><b>Pattern 6 — the unregistered estate.</b> Symptom: nobody knows how many terminals exist or where; the lost machine still enrolled; the silent till discovered after six weeks with a queue full of archaeology. Disease: assets without a register (Ch. 7). Fix: the device list as the estate's memory — every terminal's row current, revocations with who-and-why, and the monthly last-seen scan that turns six silent weeks into two visible days.</p><p><b>The third law.</b> The constitution met the metal, and the metal joined the books: <b>a terminal is commissioned once and governed forever — named at birth, bound and locked by the wizard, activated against a known allowance, its hardware proven with real sales, its posture deliberate, its people cached and swept by events, and its whole life remembered on a register from enrolment to revocation.</b> Module 4 now opens the counter's own craft: the shift and the sale — the counted float, the cart, the close.</p>"
+    "title": "Chapter 9 — Review & the third law",
+    "est": "11",
+    "html": "<p>Check yourself against each section before the quiz.</p><p><b>Installation (Chapter 2).</b> The installer also installs the background sync service, set to start with the terminal. Hardware is connected and OS-visible <b>before</b> it is configured in ZhiftPOS. The machine is named at the OS level to match the counter.</p><p><b>The wizard (Chapter 2).</b> Step 1: server address with protocol, Validate &amp; Fetch; failures mean wrong address, server down, or no route — in that order. Step 2: connection details are read-only; if wrong, fix the server. Step 3: the branch choice <b>locks</b> the device; an empty list means branches without warehouses or the wrong server; reopening Server Settings afterwards requires administrator verification. Step 4: auto-updates, recommended on where no technical staff are on site.</p><p><b>Licensing (Chapter 3).</b> Each branch has a device allowance; the first sign-in registers the terminal against it. A refusal means the allowance is full — revoke an unused device to free a slot. A lapse signs out gracefully: nothing is wiped, no queued sale is lost. And the precedence rule: <b>the licence's selling mode overrides the profile's</b> — wrong consoles overall means check the licence.</p><p><b>Hardware (Chapter 4).</b> Printer: model family, refreshed device list, and above all the correct paper width (80mm vs 58mm). <b>Test with a real sale, not a test print</b> — the real receipt proves totals, tax and footer. Drawer: usually opens on a pulse from the printer (so check the printer cable when it stops); custom hex command otherwise; opens on completion of a cash sale. Display: baud, columns, protocol; text that never clears means pick the no-clear-command protocol variant; and always change <b>one setting at a time</b>.</p><p><b>Terminal settings and labels (Chapter 5).</b> Profile = policy; System Settings = this machine. Inventory cache limit at or above the catalogue size, or items go missing offline. Fast checkout stays off until module 8's judgment. Labels: start from a preset, Save as new, and prove one sheet on plain paper before using label stock.</p><p><b>Cached cashiers (Chapter 6).</b> Ready / Re-login required (their queued sales cannot post until they sign in online) / Locked (seven days). Weekly online sign-in rule. Leaving = three records, same day: profile rows, cached entries on every terminal (listed from the register), back-office account. Manager override sign-ins are tagged for audit and the cashier is told; monthly count near zero.</p><p><b>The register (Chapter 7).</b> One row per terminal: label, branch, profile, enrolled by/on, last seen, status. Revoke retired/lost/replaced devices with who-and-why — revocation blocks posting, keeps history, frees the slot. Monthly last-seen review; the dangerous case is the terminal trading without syncing. One file per terminal.</p><p><b>The third law: a terminal is commissioned once and managed for its whole life</b> — named, locked, licensed, tested with real sales, its people cached and removed on time, and its record kept from enrolment to revocation. Module 4 moves to the trading day itself.</p>"
    }
   ],
   "questions": [
    {
-    "q": "The estate frame treats terminals as:",
+    "q": "The two classic terminal-management failures are:",
     "opts": [
-     "Governed assets — each with an identity, a register row, and a service history",
-     "Computers",
-     "Consumables",
-     "The vendor's problem"
+     "The badly commissioned terminal and the forgotten terminal — fixed by a standard procedure and the device register",
+     "Slow tills and old printers",
+     "Viruses and theft",
+     "Wrong prices and wrong tax"
     ],
     "ans": 0,
-    "why": "A fleet, not a pile.",
+    "why": "Ceremony at the start; register for life.",
     "src": "Ch1"
    },
    {
-    "q": "The first commissioning takes forty minutes; the tenth takes ten because:",
+    "q": "The first terminal takes about forty minutes; later ones take about ten because:",
     "opts": [
-     "Practice alone",
-     "The estate discipline makes every terminal the same governed shape — a checklist, not an adventure",
      "Hardware improves",
-     "Wizards get faster"
+     "The decisions are already made and the procedure is written down",
+     "Licences speed up",
+     "The server caches them"
     ],
     "ans": 1,
-    "why": "The module's quiet promise.",
+    "why": "If the fifth still takes forty, the procedure is not written.",
     "src": "Ch1"
    },
    {
-    "q": "Hardware is connected:",
+    "q": "Hardware should be connected:",
     "opts": [
-     "After configuration",
-     "Last",
-     "BEFORE configuration, and confirmed visible to the operating system first — the OS must see it before the till can",
-     "By the vendor"
+     "After ZhiftPOS is configured",
+     "Only by the vendor",
+     "Before configuration, and confirmed visible to the operating system first",
+     "After go-live"
     ],
     "ans": 2,
-    "why": "The layering discipline behind half of every hardware mystery.",
+    "why": "The app can only use devices the OS already sees.",
     "src": "Ch2"
    },
    {
-    "q": "The machine is named at the OS level:",
+    "q": "The machine's OS-level name should:",
     "opts": [
-     "Anything unique",
-     "By the installer",
-     "By serial number",
-     "To match the counter — the same name as the profile; DESKTOP-7XK2P is a filing error committed at birth"
+     "Be left as shipped",
+     "Be random for security",
+     "Contain the serial number",
+     "Match the counter — it appears in the device list and support conversations for years"
     ],
     "ans": 3,
-    "why": "The device list reads that name for five years.",
+    "why": "Set it while it costs nothing.",
     "src": "Ch2"
    },
    {
-    "q": "Step two's connection details:",
+    "q": "Step 2's connection details cannot be edited because:",
     "opts": [
-     "Are read back and not editable — if they look wrong, the SERVER is misconfigured and the fix belongs there",
-     "Are edited if wrong",
-     "Are typed manually",
-     "Are optional"
+     "They come from the server — if they look wrong, the server's configuration is what needs fixing",
+     "They are unimportant",
+     "Only vendors edit them",
+     "They are cached"
     ],
     "ans": 0,
-    "why": "The wizard refuses to let a terminal 'correct' the server's facts.",
+    "why": "A terminal cannot override the server's connection facts.",
     "src": "Ch2"
    },
    {
-    "q": "The branch choice at step three:",
+    "q": "Choosing the branch at step 3:",
     "opts": [
-     "Is changeable freely",
-     "LOCKS the device to that branch — reopening server settings then requires administrator verification",
-     "Is cosmetic",
-     "Follows the licence"
+     "Can be changed freely later",
+     "Locks the device to that branch; reopening Server Settings then needs administrator verification",
+     "Is optional",
+     "Only affects reports"
     ],
     "ans": 1,
-    "why": "Deliberate: it stops a cashier repointing a till.",
+    "why": "It prevents a cashier re-pointing a till.",
     "src": "Ch2"
    },
    {
-    "q": "A persistently empty branch list means:",
+    "q": "An empty branch list that stays empty after Reload means:",
     "opts": [
-     "No branches exist",
-     "The licence lapsed",
-     "The branches have no warehouse, or the address points at the wrong system",
-     "A dead printer"
+     "No licence",
+     "A dead printer",
+     "The branches have no warehouse assigned, or the address points at the wrong system",
+     "A full allowance"
     ],
     "ans": 2,
-    "why": "Reload first, then the two causes.",
+    "why": "Two causes to check.",
     "src": "Ch2"
    },
    {
-    "q": "Licensing is by:",
+    "q": "Activation happens:",
     "opts": [
-     "Company",
-     "User count",
-     "Terminal brand",
-     "BRANCH — each allowed a number of devices; every terminal records itself against that allowance at first sign-in"
+     "On a special screen",
+     "Automatically at install",
+     "By emailing support",
+     "At the first successful sign-in — the terminal registers against the branch's device allowance"
     ],
     "ans": 3,
-    "why": "The slot claimed at activation.",
+    "why": "Do it under a known admin account and note the date.",
     "src": "Ch3"
    },
    {
-    "q": "Activation refused for a full allowance is remedied by:",
+    "q": "Activation refused for a full allowance is fixed by:",
     "opts": [
-     "Estate hygiene — retire an unused terminal in the device list to free a slot",
-     "A support ticket",
-     "A new licence only",
-     "Waiting"
+     "Revoking an unused terminal in the device list — the slot frees immediately",
+     "Buying a licence immediately",
+     "Restarting",
+     "Waiting a day"
     ],
     "ans": 0,
-    "why": "The revocation doing its daily work.",
+    "why": "Usually a forgotten machine is holding the slot.",
     "src": "Ch3"
    },
    {
-    "q": "On a licence lapse:",
+    "q": "When a licence lapses:",
     "opts": [
-     "Data is wiped",
-     "The terminal signs the user out gracefully — nothing wiped, no queued sale lost",
-     "The queue empties",
+     "Local data is wiped",
+     "The terminal signs out gracefully — nothing is wiped and no queued sale is lost",
+     "The queue is cleared",
      "Sales continue"
     ],
     "ans": 1,
-    "why": "A commercial event with a technical symptom.",
+    "why": "Renew the licence; the terminal resumes where it stopped.",
     "src": "Ch3"
    },
    {
-    "q": "The selling mode precedence is:",
+    "q": "If the licence says Standard and the profile says Pharmacy:",
     "opts": [
-     "Profile over licence",
-     "Neither governs",
-     "LICENCE over profile — a shop licensed for Standard presents Standard whatever the profile says",
-     "The terminal decides"
+     "Pharmacy shows",
+     "The till errors",
+     "Standard shows — the licence's selling mode takes precedence over the profile's",
+     "Both show"
     ],
     "ans": 2,
-    "why": "The mode conversation includes the licence from the start.",
+    "why": "Wrong consoles overall = check the licence.",
     "src": "Ch3"
    },
    {
-    "q": "The 'wrong consoles despite a correct profile' diagnostic points at:",
+    "q": "Before building a two-stage Pharmacy profile you should:",
     "opts": [
-     "The network",
-     "The cache",
-     "The printer",
-     "The licence — the precedence rule joins the first-check family"
+     "Buy hardware",
+     "Print labels",
+     "Train cashiers",
+     "Confirm the branch's licence carries that mode"
     ],
     "ans": 3,
-    "why": "Profile for missing items, licence for wrong modes.",
+    "why": "The precedence rule applies at planning time too.",
     "src": "Ch3"
    },
    {
-    "q": "Wrong paper width produces:",
+    "q": "The most common printer misconfiguration is:",
     "opts": [
-     "Receipts with wrapped or clipped columns — the one-field mistake every estate makes once",
-     "No print",
-     "Faded print",
-     "Double copies"
+     "Wrong paper width — 80mm vs 58mm; receipts wrap or cut off columns",
+     "Wrong font",
+     "Wrong copies",
+     "Wrong header"
     ],
     "ans": 0,
-    "why": "80mm or 58mm, matched to the machine.",
+    "why": "One field, checked against the physical machine.",
     "src": "Ch4"
    },
    {
-    "q": "A test print proves:",
+    "q": "Printers are tested with:",
     "opts": [
-     "Everything",
-     "The cable — the REAL sale proves the configuration: totals, tax lines, footer",
-     "The totals",
-     "The tax"
+     "A test page",
+     "A real sale — sold, printed, then properly reversed; it proves totals, tax and footer",
+     "A photo",
+     "The vendor's tool"
     ],
     "ans": 1,
-    "why": "Sell, print, properly reverse — and file the receipt.",
+    "why": "A test page only proves the cable and driver.",
     "src": "Ch4"
    },
    {
-    "q": "Most cash drawers connect via:",
+    "q": "A cash drawer that stops opening is often:",
     "opts": [
-     "USB directly",
-     "Bluetooth",
-     "The receipt printer — opened by a pulse from it, which is why 'drawer stopped' often means 'check the printer cable'",
-     "The network"
+     "Broken",
+     "A licence issue",
+     "A printer problem — most drawers open on a pulse from the receipt printer",
+     "A profile setting"
     ],
     "ans": 2,
-    "why": "Custom hex commands for the exceptions.",
+    "why": "Check the printer cable first.",
     "src": "Ch4"
    },
    {
-    "q": "The drawer opens on:",
+    "q": "The drawer opens on completion of:",
     "opts": [
      "Any sale",
-     "Every print",
      "Sign-in",
-     "Completion of a CASH sale — the fact the ritual relies on and the fraud map watches"
+     "A card sale",
+     "A cash sale"
     ],
     "ans": 3,
-    "why": "The drawer that opens without a sale is a read.",
+    "why": "An operating fact the shift routine relies on.",
     "src": "Ch4"
    },
    {
-    "q": "Pole display text that never clears between items means:",
+    "q": "Display text that never clears between items means:",
     "opts": [
      "Choose the protocol variant that does not send a clear command",
-     "Bad cable",
+     "A dead display",
      "Wrong baud",
-     "Dead display"
+     "A bad cable"
     ],
     "ans": 0,
-    "why": "The manual's precise symptom read.",
+    "why": "A known symptom with a specific fix.",
     "src": "Ch4"
    },
    {
-    "q": "Garbled display text is fixed by:",
+    "q": "Garbled display text is diagnosed by:",
     "opts": [
-     "Replacing it",
-     "Changing ONE setting at a time, starting with protocol",
-     "Rebooting",
-     "New cable first"
+     "Replacing the display",
+     "Changing one setting at a time, starting with the protocol",
+     "Rebooting twice",
+     "Swapping cables first"
     ],
     "ans": 1,
-    "why": "The one-variable discipline, at 9600 baud.",
+    "why": "Several changes at once hide the working combination.",
     "src": "Ch4"
    },
    {
     "q": "The profile versus System Settings split is:",
     "opts": [
-     "Arbitrary",
      "Historical",
-     "Policy versus posture — what may be done is the profile's; how THIS machine behaves is the terminal's",
-     "By vendor"
+     "By vendor",
+     "Policy versus this machine — discount mode is a profile question; paper width is a terminal question",
+     "Arbitrary"
     ],
     "ans": 2,
-    "why": "Routing alone answers half the estate's support traffic.",
+    "why": "It routes every configuration question.",
     "src": "Ch5"
    },
    {
-    "q": "An inventory cache limit below the catalogue size means:",
+    "q": "An inventory cache limit below the catalogue size causes:",
     "opts": [
-     "Faster searches",
-     "Smaller backups",
-     "Nothing",
-     "Some items will not be found OFFLINE — the local copy silently partial"
+     "Slow printing",
+     "Licence errors",
+     "Wrong prices",
+     "Items missing from the local copy — they cannot be found while offline"
     ],
     "ans": 3,
-    "why": "The cannot-find complaint's second check after a sync.",
+    "why": "Check sync first, then this limit.",
+    "src": "Ch5"
+   },
+   {
+    "q": "Fast checkout at commissioning should be:",
+    "opts": [
+     "Off — module 8 explains the trade-off before it is enabled deliberately",
+     "On",
+     "On for cash only",
+     "Decided by cashiers"
+    ],
+    "ans": 0,
+    "why": "A judgment call, made later with full information.",
     "src": "Ch5"
    },
    {
     "q": "Label templates are proven by:",
     "opts": [
-     "One sheet on plain paper held against a real label sheet before committing a roll",
-     "The preview",
-     "A test print",
-     "Measurement"
-    ],
-    "ans": 0,
-    "why": "One page against the misaligned roll every shop has thrown away once.",
-    "src": "Ch5"
-   },
-   {
-    "q": "Fast checkout at commissioning is:",
-    "opts": [
-     "On by default",
-     "OFF until module 8's judgment is made deliberately — the setting belongs with the queue's whole story",
-     "Mandatory",
-     "The vendor's call"
+     "The on-screen preview",
+     "Printing one sheet on plain paper and holding it against a real label sheet",
+     "Measuring the printer",
+     "A test order"
     ],
     "ans": 1,
-    "why": "Named here, judged there.",
+    "why": "One plain page against a wasted roll.",
     "src": "Ch5"
    },
    {
     "q": "Re-login required means:",
     "opts": [
-     "A password expired",
-     "A locked account",
-     "Stored credentials were rejected — and until refreshed online, that cashier's QUEUED SALES CANNOT POST",
-     "Seven days passed"
+     "A seven-day lock",
+     "The password expired",
+     "The stored credentials were rejected — until an online sign-in, that cashier's queued sales cannot post",
+     "The account is disabled"
     ],
     "ans": 2,
-    "why": "A today problem, not an admin curiosity.",
+    "why": "Urgent, not cosmetic.",
     "src": "Ch6"
    },
    {
-    "q": "The Locked state arrives after:",
+    "q": "The Locked state appears after:",
     "opts": [
      "A wrong password",
      "A restart",
@@ -1286,612 +1286,612 @@
      "More than seven days since the last successful online sign-in on that terminal"
     ],
     "ans": 3,
-    "why": "Hence the weekly-online rhythm with an owner.",
+    "why": "Hence the weekly online sign-in rule.",
     "src": "Ch6"
    },
    {
-    "q": "The leaver's sweep covers:",
+    "q": "When a cashier leaves, you close:",
     "opts": [
-     "Three — the profile's user row, the cached entry on EVERY terminal they used, and the back-office account",
+     "Three, the same day — profile rows, cached entries on every terminal they used, and the back-office account",
      "One record",
-     "The password only",
-     "The register only"
+     "Two, that week",
+     "Whatever is remembered"
     ],
     "ans": 0,
-    "why": "Listed from the estate register, executed same-day.",
+    "why": "List their terminals from the register, not memory.",
     "src": "Ch6"
    },
    {
-    "q": "Manager override sales are:",
+    "q": "Manager override sessions are:",
     "opts": [
      "Invisible",
-     "TAGGED FOR AUDIT, with the cashier told at the time — a continuity valve kept honest by visibility",
-     "Unattributed",
-     "Blocked"
+     "Tagged for audit, with the cashier told at the time — count them monthly; healthy is near zero with known stories",
+     "Blocked offline",
+     "Unattributed"
     ],
     "ans": 1,
-    "why": "Override sessions near zero, each with a story.",
+    "why": "A valve for gaps, not a routine.",
     "src": "Ch6"
    },
    {
-    "q": "The departed cashier cached on a back-room terminal is:",
+    "q": "A departed cashier still cached on a back-room terminal:",
     "opts": [
-     "Harmless",
-     "Impossible",
-     "An offline sign-in away from an attributed-to-them queue",
-     "Locked automatically"
+     "Is harmless",
+     "Is auto-removed",
+     "Can still sign in offline there, with sales attributed to them — which is why the three-record procedure exists",
+     "Cannot sell"
     ],
     "ans": 2,
-    "why": "The gap's worth, on the fraud map.",
+    "why": "Close all three records the same day.",
     "src": "Ch6"
    },
    {
     "q": "A revoked device:",
     "opts": [
-     "Can still sell",
-     "Loses its queue",
      "Is deleted",
-     "Can no longer post sales — the history kept, the door closed, the licence slot freed"
+     "Loses its data",
+     "Keeps selling offline",
+     "Can no longer post sales; its history remains and its licence slot is freed"
     ],
     "ans": 3,
-    "why": "Disable-not-delete, in hardware.",
+    "why": "Closed, not erased.",
     "src": "Ch7"
    },
    {
-    "q": "Revocation records:",
+    "q": "Revocations record:",
     "opts": [
-     "WHO revoked it and WHY — lost, stolen, sold or retired",
-     "Nothing",
-     "The buyer",
-     "The price"
+     "Who revoked and why — retired, replaced, lost, stolen or sold",
+     "Nothing extra",
+     "The resale price",
+     "The buyer"
     ],
     "ans": 0,
-    "why": "The death certificate with a signature.",
+    "why": "No terminal leaves service without one.",
     "src": "Ch7"
    },
    {
-    "q": "Last-seen is:",
+    "q": "The monthly last-seen review exists mainly to catch:",
     "opts": [
-     "Trivia",
-     "The quickest way to spot a terminal that has quietly stopped talking — the fleet's dormancy scan, read monthly",
-     "A licence field",
-     "A sync setting"
+     "Closed counters",
+     "The terminal that is trading but not syncing — queue growing, prices staling; investigate same day",
+     "Old hardware",
+     "Slow networks"
     ],
     "ans": 1,
-    "why": "Two minutes against six weeks of queue archaeology.",
-    "src": "Ch7"
-   },
-   {
-    "q": "The till trading with a stopped sync service is:",
-    "opts": [
-     "Fine",
-     "Faster",
-     "Accumulating an unposted queue while its prices stale — routed the day it is seen",
-     "Offline by design"
-    ],
-    "ans": 2,
-    "why": "The serious branch of the stale last-seen triage.",
+    "why": "Two minutes monthly against weeks of untangling.",
     "src": "Ch7"
    },
    {
     "q": "Okelewo's Lagos activation was refused because:",
     "opts": [
-     "No licence existed",
-     "The network failed",
-     "The mode was wrong",
-     "A trial-era terminal, dead in a storeroom for a year, still held the slot — revoked, freed, activated within the hour"
-    ],
-    "ans": 3,
-    "why": "The designed refusal, remedied by the register.",
-    "src": "Ch8"
-   },
-   {
-    "q": "The 58mm printer configured at 80mm was caught by:",
-    "opts": [
-     "The proving sale's wrapped columns — one real receipt instead of one real customer",
-     "The test page",
-     "A customer",
-     "The vendor"
-    ],
-    "ans": 0,
-    "why": "The one-field mistake, made once, on the right print.",
-    "src": "Ch8"
-   },
-   {
-    "q": "The override test at the flagship demonstrated:",
-    "opts": [
-     "A flaw",
-     "The valve's visibility — the audit tag shown working, the cheapest fraud-deterrence briefing the estate will run",
-     "A workaround",
-     "A licence issue"
-    ],
-    "ans": 1,
-    "why": "Tested once, on purpose, with everyone watching.",
-    "src": "Ch8"
-   },
-   {
-    "q": "This module's law is:",
-    "opts": [
-     "Terminals manage themselves",
-     "Hardware is IT's problem",
-     "A terminal is commissioned once and governed forever — named, bound, activated against a known allowance, proven with real sales, its people swept by events, its life on a register",
-     "Registers are optional"
+     "The licence had expired",
+     "The branch was wrong",
+     "A storeroom terminal from a trial was still enrolled and holding the slot — revoked, slot freed, activated within the hour",
+     "The network failed"
     ],
     "ans": 2,
-    "why": "Assets, governed like assets.",
+    "why": "The register explained it in one look.",
+    "src": "Ch8"
+   },
+   {
+    "q": "The 58mm printer set to 80mm was caught by:",
+    "opts": [
+     "A customer complaint",
+     "Luck",
+     "The vendor",
+     "The real-sale test — wrapped, broken columns on the first test receipt"
+    ],
+    "ans": 3,
+    "why": "Copy-pasted settings, caught before go-live.",
+    "src": "Ch8"
+   },
+   {
+    "q": "Okelewo tested the manager override publicly so that:",
+    "opts": [
+     "Everyone knew it works and everyone knew it is recorded",
+     "It could be disabled",
+     "The MD could watch",
+     "Training was shorter"
+    ],
+    "ans": 0,
+    "why": "The audit tag was verified visible in the back office.",
+    "src": "Ch8"
+   },
+   {
+    "q": "The two confusing branch names at step 3 were handled by:",
+    "opts": [
+     "Guessing the right one",
+     "Pausing and renaming the draft branch in the back office before locking",
+     "Skipping the step",
+     "Calling support"
+    ],
+    "ans": 1,
+    "why": "A wrong lock is discovered in the postings.",
+    "src": "Ch8"
+   },
+   {
+    "q": "Module 3's law is:",
+    "opts": [
+     "Hardware is disposable",
+     "Licences are optional",
+     "A terminal is commissioned once and managed for its whole life",
+     "Registers are paperwork"
+    ],
+    "ans": 2,
+    "why": "Named, locked, licensed, tested, recorded.",
     "src": "Ch9"
    }
   ]
  },
  "shift_sale": {
   "title": "POS 4 — The Shift & the Sale",
-  "desc": "The cashier's module: sign-in and the top bar's grammar, the counted float and the opening's custody, the cart's craft with stack-vs-queue and the line markers, batches/serials/units with the bag-and-record discipline, the customer at the header with the credit suspend, hold-not-clear and every tender's rules, the voucher sale under the-slip-is-the-money, the lock, and the close counted, overwritten and explained — never accepted blindly.",
+  "desc": "The trading day: sign-in and the top-bar indicators, opening the shift with a counted float, building sales with stack/queue and the line markers, batches/serials/units done accurately, customers, loyalty and the credit suspension, hold versus clear and every payment method's rules, receipts, the gift voucher sale and the till lock, and closing the shift against pre-filled figures that are counted, overwritten and explained.",
   "lessons": [
    {
-    "title": "Chapter 1 — The cashier's module: sign-in & the screen's grammar",
+    "title": "Chapter 1 — Signing in and reading the screen",
     "est": "13",
-    "html": "<p>Three modules built the counter's constitution, metal and estate; this one sits in the chair. The cashier's module — the trading day from sign-in to close, under the track's fourth law: <b>the shift is a sealed ritual — count open, count close, explain every variance.</b> The manual's own note applies: if any part of this track is printed for the counter, it is this.</p><p><b>Signing in.</b> The three doors, each with its rules: <b>NORMAL</b> — email and password, the till loading your profile, your catalogue and your permissions, and opening on the console you are entitled to (module 2's landing rule, felt from the chair; the forgotten password's reset link needs the terminal ONLINE); <b>OFFLINE</b> — where the profile enables it, sign-in against the terminal's local record: prior successful online sign-in on THIS terminal, within SEVEN days, the top bar carrying the Offline login marker, and the queued-and-post-later promise standing behind it (module 3's cached list, from the user's side — and the weekly-online habit restated as self-interest: sign in online at least weekly, or the outage locks you out at the worst moment); <b>MANAGER OVERRIDE</b> — the continuity valve recapped in one line: the manager's credentials open the counter, the sales are tagged for audit, and you are told so at the time — keep-trading machinery, never routine.</p><p><b>The top bar's grammar.</b> The chips read as a language, because module 8 will read them as one: Online/Offline (can the terminal reach the back office), Offline login (you signed in locally — reports and lookups wait for the line), <b>Queued</b> (completed sales waiting to post — safe, not lost), <b>Re-login</b> (a cashier's stored credentials rejected — if it names you, click and refresh, or your queued sales cannot post), <b>Conflicts</b> (sales held back on a batch or serial no longer available — click to fix), <b>Stock stale / Price stale</b> (the local copies aging — click to sync now), <b>Failed</b> (sales the back office rejected — a supervisor's list), plus Store, Date, Time, your name and role, <b>Duty</b> (Active or Inactive — shown where shift management is on) with the shift button beside it, the envelope (Message Hub with its unread count), Sync (refresh now; hover shows when each copy last updated), the padlock (Chapter 7's lock), and Sign out (with confirmation). The chapter's discipline: the cashier who can READ the bar owns their terminal's state — every chip is either 'fine', 'mine to click', or 'tell the supervisor', and this module sorts them.</p><p><b>The console's geography.</b> The Sales Console mapped once: products left with the search box above, the current order right; the cart HEADER carrying the customer, the item and unit counts, and — where credit checking is on — the customer's balance and limit; the FOOTER showing sales total, discount, subtotal, tax, delivery fee if enabled, and net total, with Cash and Card beneath. The sidebar lists the consoles you are entitled to (full labels wide, icon rail narrow), and beneath it the catalogue view controls: card versus LIST view (list fits far more), product images (off by default — hiding them makes the grid noticeably faster), items per row, and Recent receipts for the quick reprint. Geography learned once, then forgotten — which is the point: the certified cashier's attention belongs on the customer and the chips, not the furniture.</p>"
+    "html": "<p>This module covers the trading day from sign-in to shift close. It is the cashier's module: if any part of this track is printed and kept at the counter, it is this one. The module's law: <b>the shift is a sealed routine — count at open, count at close, explain every variance.</b></p><p><b>Signing in.</b> Three ways, depending on circumstances:</p><p>• <b>Normal.</b> Email and password. The till loads your profile, catalogue and permissions, and opens on the first console your access row grants. A forgotten password is reset by email — the terminal must be online for the reset.<br>• <b>Offline.</b> Where the profile enables it, you can sign in against the terminal's stored record when the server is unreachable — provided you have signed in online on <b>this terminal</b> within the last <b>seven days</b>. The top bar shows an Offline login marker. Practical rule: sign in online at least weekly on every terminal you use, or an outage will lock you out at the worst time.<br>• <b>Manager override.</b> If offline sign-in is refused because the terminal has no record of you, a manager can sign you in on their credentials. The sales in that session are tagged for audit, and you are told so at the time.</p><p><b>The top bar.</b> Learn to read these indicators — each one is either fine, something you click, or something you report:</p><p>• <b>Online / Offline</b> — whether the terminal can reach the back office.<br>• <b>Offline login</b> — you signed in locally; reports and server lookups wait for the connection.<br>• <b>Queued</b> — completed sales waiting to post. They are safe; they post automatically when online.<br>• <b>Re-login</b> — a cashier's stored credentials were rejected. If it names you: click it and sign in online, or your queued sales cannot post.<br>• <b>Conflicts</b> — sales held back because a batch or serial is no longer available. Click to resolve (module 8).<br>• <b>Stock stale / Price stale</b> — the local copies need refreshing. Click to sync.<br>• <b>Failed</b> — sales the back office rejected; a supervisor handles these (module 8).<br>• <b>Duty</b> — Active or Inactive, with the shift button beside it (shown where shift management is on).<br>• Also: store, date, time, your name and role; the envelope (Message Hub, with unread count); Sync (refresh now — hover shows when each copy last updated); the padlock (lock the till); Sign out.</p><p><b>The Sales Console.</b> Products on the left with the search box above; the current order on the right. The cart header shows the customer and the item/quantity counts — and, where credit checking is on, the customer's balance and limit. The footer shows sales total, discount, subtotal, tax, delivery fee if enabled, and net total, with the payment buttons beneath. The sidebar lists the consoles your row grants. Below it: card/list view (list fits more), product images on or off (off is noticeably faster), items per row, and Recent receipts for quick reprints.</p>"
    },
    {
-    "title": "Chapter 2 — Opening the shift: the counted float",
-    "est": "13",
-    "html": "<p>Where shift management is enabled — and at Okelewo, per module 2, it is enabled everywhere — you must open a shift before you can sell. The module's first ritual, and the one the whole day's honesty hangs on. The opening chapter.</p><p><b>The mechanics.</b> The four steps, plainly: the clock icon in the top bar opens the <b>Open Shift</b> window; the float is COUNTED and the opening amount entered against each payment method (cash is the one that usually matters — the others left at zero); an opening NOTE added if anything is unusual — a short float, a missing key; and <b>Open Shift</b> chosen, the Duty indicator turning Active. Four steps, two minutes — and the second step is the module.</p><p><b>Count before you open.</b> The manual's instruction, elevated to the ritual's first commandment and taught with its full reasoning: <b>the opening figure is what your close will be measured against</b> — entering a round number you did not count is how variances appear from nowhere at the end of the day. The arithmetic of the sin walked once, because seeing it kills it: the drawer actually holds ₦19,400; the cashier types ₦20,000 because that is what the float 'should be'; the day trades perfectly; the close counts ₦600 short — and the evening is spent investigating a theft that never happened, or worse, NOT investigating it because 'it's always a bit off', which is the habituation that later hides the real ₦600. The counted float is custody taken properly (module 1's drawer-as-custody, in its first physical act: the signed receipt for what was actually received), and the opening note is its annotation — the short float DECLARED at open is context; discovered at close it is a dispute.</p><p><b>The opening's edge cases.</b> The craft around the ritual: the float PREPARED by the ritual's logic (denominations for change-making, counted into the drawer before the door opens — the supervisor's task module 8 schedules), the handover mid-day handled as two sealed shifts (the first closed with its count, the second opened with its own — never one shift passed between hands, because a shared shift is a shared variance, and shared variances are unattributable by construction: the one-person-one-account law, at the drawer), and the shift that was never opened named for what it becomes: sales rung with no shift attach to nothing — the returns-missing-from-the-summary symptom the manual's troubleshooting table traces to exactly this, repaired after the fact only by the back-office orphaned-transactions tool (Chapter 8), which exists as a correction, not a workflow. The chapter's closing line: the open is thirty seconds of counting that buys an evening of trust — the cashier who counts before opening has pre-cleared themselves of every variance the day does not actually produce, and the supervisor who enforces the count has bought variance reports worth reading.</p>"
+    "title": "Chapter 2 — Opening the shift",
+    "est": "12",
+    "html": "<p>Where shift management is enabled, you must open a shift before you can sell. Opening takes two minutes; doing it properly is what makes the end of the day painless.</p><p><b>Procedure.</b></p><p>1. Click the clock icon in the top bar. The <b>Open Shift</b> window appears.<br>2. <b>Count the float</b> — physically count the money in the drawer.<br>3. Enter the counted amount against each payment method. Cash is normally the only one with an opening amount; leave the others at zero.<br>4. Add an <b>opening note</b> if anything is unusual — a short float, a missing key.<br>5. Click <b>Open Shift</b>. The Duty indicator turns Active.</p><p><b>Why the count matters.</b> The opening amount is what your closing count will be measured against. If you type a round number instead of counting — entering 20,000 because that is what the float should be, when the drawer actually holds 19,400 — then even a perfect day ends 600 short, and the evening is spent investigating a shortage that never happened. Worse, if that becomes normal, real shortages hide inside the always-a-bit-off habit. Thirty seconds of counting buys an evening of certainty. Note: a short float <b>declared</b> in the opening note is context; the same shortfall <b>discovered</b> at close is a dispute.</p><p><b>Float preparation.</b> The float should be prepared before the shift — counted denominations suitable for change-making, sealed until the drawer is loaded. Preparing floats is a supervisor task on module 8's calendar; counting what you receive is yours.</p><p><b>Handover during the day.</b> When one cashier hands a till to another mid-day, run it as <b>two shifts</b>: the first cashier closes their shift with a full count; the second opens a new shift with their own count. Never pass one open shift between people — a shared shift produces a shared variance, and a shared variance cannot be attributed to anyone. One person, one shift, one drawer, one count.</p><p><b>If a shift was never opened.</b> Sales rung with no shift open are not attached to any shift, which is why they later seem to be missing from shift summaries. The repair is the back-office <b>orphaned transactions tool</b>, which attaches them to the shift they belong to — a supervisor task, and a correction, not a normal workflow. If you find yourself selling and Duty shows Inactive, stop and open a shift first.</p><p><b>Summary.</b> Count before you open. Declare anything unusual in the note. Handover means two shifts. Never sell without a shift open.</p>"
    },
    {
-    "title": "Chapter 3 — Building the sale: the cart's craft",
-    "est": "13",
-    "html": "<p>The trade itself: items into the cart, correctly, at speed. The craft chapter.</p><p><b>Adding items.</b> The three roads: <b>SCAN</b> the barcode — the item added straight to the cart, and the search box does not need focus (the design fact that makes scanning uninterruptible: the cashier mid-conversation scans anyway); <b>SEARCH</b> by name, code or brand, then choose; <b>TAP a tile</b> in the grid. And the toggle module 2 configured, used from the chair: where the queue option is enabled, the switch beside the search box chooses <b>stack</b> mode (re-scanning the same item increases the existing line) or <b>queue</b> mode (each scan its own line — suiting counters where each unit needs a separate serial or batch: the electronics wall's mode, per Okelewo's own split).</p><p><b>Quantities and lines.</b> The cart's grammar: each line's minus and plus buttons and the editable quantity box (type and <b>Enter</b> to commit, <b>Escape</b> to abandon — the two-key discipline that prevents the half-typed quantity from riding into payment), the bin icon removing a line — with the exceptions known and their reasons owned: <b>bonus items, bundle components and gift voucher lines have FIXED quantities</b>, and bundle components cannot be removed individually — remove the bundle's main line instead (the bundle price governs the parts; module 5 owns the promotion machinery, but the cart's behaviour is learned here).</p><p><b>Reading the line.</b> The markers taught as the audit trail they are: <b>Bundle</b> on a bundle head, <b>Rate override</b> where the price was changed by hand (module 2's marked-for-review promise, visible), <b>Customer discount</b> where the customer's own recorded discount applied, and <b>Batch assigned</b> where batches have been picked — with the item-code toggle beside Hold showing or hiding codes per preference. The markers' discipline runs both ways: the cashier reads them to know what has happened to their own cart (the line that already carries a promotion will refuse a manual discount, and the marker says why before the refusal does), and the supervisor reads them on review (the sale whose every line says Rate override is a sale with a story — module 8's reading habit, seeded at the line).</p><p><b>The craft's tempo.</b> The chapter's closing standard, because speed is part of correctness at a counter: the certified cashier's cart is built scan-first (search is the exception path), quantity-edited by keyboard (Enter committing, Escape abandoning), read by its markers before payment is touched, and never carries a line the cashier cannot explain — the ten-second review at the footer (items, counts, net total against the customer's expectation) being the cheapest dispute-prevention the counter owns: the wrong quantity caught at the cart is a keystroke; caught at payment it is a correction; caught at the door it is a return, an override, and a story.</p>"
+    "title": "Chapter 3 — Building a sale",
+    "est": "12",
+    "html": "<p>Items go into the cart three ways, and the cart has a small set of rules worth knowing precisely.</p><p><b>Adding items.</b></p><p>• <b>Scan</b> the barcode. The item goes straight into the cart — the search box does not need to be selected first, so scanning works even mid-conversation.<br>• <b>Search</b> by name, code or brand, then pick from the results.<br>• <b>Tap a tile</b> in the product grid.</p><p><b>Stack or queue.</b> Where the profile enables the item queue option, a toggle beside the search box selects the behaviour: <b>stack</b> — re-scanning an item increases its existing line; <b>queue</b> — every scan makes its own line, used where each unit needs its own serial or batch entry.</p><p><b>Editing quantities.</b> Each line has minus and plus buttons and an editable quantity box. Type the number and press <b>Enter</b> to apply it; press <b>Escape</b> to abandon the edit. Use the keys — a half-typed quantity left unconfirmed is how a wrong quantity rides through to payment.</p><p><b>Removing lines.</b> The bin icon removes a line. Exceptions with fixed behaviour:</p><p>• <b>Bonus items</b> (from promotions), <b>bundle components</b>, and <b>gift voucher lines</b> have fixed quantities and cannot be edited line by line.<br>• Bundle components cannot be removed individually — remove the bundle's main line, and the components go with it. The bundle price governs its parts (module 5 covers bundles).</p><p><b>Line markers.</b> Small labels on cart lines record what has happened to them:</p><p>• <b>Bundle</b> — the line heads a bundle.<br>• <b>Rate override</b> — the price was manually changed. Visible on review, deliberately.<br>• <b>Customer discount</b> — a discount recorded on the customer's record applied automatically.<br>• <b>Batch assigned</b> — batches have been selected for the line (clickable — see Chapter 4).</p><p>Read the markers before taking payment: a line carrying a promotion will refuse a manual discount, and the marker tells you why before the error message does. Supervisors read the same markers when reviewing sales.</p><p><b>Before payment: the ten-second check.</b> Glance at the footer — item count, quantity count, net total — against what is on the counter and what the customer expects. On multi-unit items, check the unit (Chapter 4). Read any markers you did not put there yourself. A wrong quantity caught in the cart costs a keystroke; caught at payment it costs a correction; caught after the customer leaves it costs a return, an approval and an explanation.</p>"
    },
    {
-    "title": "Chapter 4 — Batches, serials & units: the tracked sale",
+    "title": "Chapter 4 — Batches, serials and units of measure",
     "est": "13",
-    "html": "<p>Where the goods carry identity — batches, serials, multiple units — the cart asks more of the cashier, and the asking is the control. The tracked-sale chapter.</p><p><b>Batch-tracked items.</b> The flow as designed: adding a batch-tracked item, the till ASKS which batch the goods come from, showing what is available — a quantity SPLIT across batches by allocating against more than one; where AUTO-ALLOCATE is enabled (module 2's oldest-first setting), the till picks for you and only asks when it cannot cover the quantity. The mechanics' two fine points, both dispute-savers: <b>reducing a quantity releases batch allocations in REVERSE</b> (the last-allocated batch released first — the allocation unwound in order, not scrambled), and the <b>Batch assigned</b> marker on the line is clickable — review or change what was picked before payment, which is the cashier's check that the physical goods in the bag match the batches on the sale (the FEFO till that auto-picked the oldest batch while the cashier bagged from the front of the shelf is a mismatch the marker exists to catch — expiry discipline is only real when the bag and the record agree).</p><p><b>Serial-numbered items.</b> The harder gate: serial-tracked items need <b>one serial per unit</b> — scanned into the serial window or typed — and <b>the line will not proceed to payment until every unit has a serial</b>. The gate read as the control it is: the serial binds THIS physical unit to THIS sale (the warranty claim, the return, the recall all resolve to it — the Inventory track's identity law at the counter), so the gate that feels like friction at 6 p.m. is the record that settles the dispute in March — and the certified cashier scans serials from the UNITS IN THE BAG, never from a convenient box on the shelf, because a serial record that does not match the goods handed over is worse than none: it is confident fiction.</p><p><b>Units of measure.</b> The multi-unit ask: where an item sells in more than one unit — each, pack, carton — the till asks WHICH unit applies, and <b>the price follows the unit chosen</b>. The craft point: the unit ask is a pricing event (the carton price against twelve singles is a margin design someone made in module 2's groundwork), and the mis-picked unit is the counter's quietest large error — the carton sold at the single's price is an eleven-twelfths discount nobody approved, invisible until the margin report, which is why the footer's ten-second review from Chapter 3 explicitly includes units on multi-unit lines.</p><p><b>When the pick is refused.</b> The concurrency truth, taught calmly: a batch or serial can be REFUSED — another till may have sold it in the meantime — and the answer is simply to pick a different one. If the sale has already completed and been held back, it appears under the <b>Conflicts</b> marker in the top bar: module 8's territory, previewed in one sentence — the conflict is the local-copy design being honest about a race it lost, the fix is a re-pick, and the discipline is that conflicts are cleared before the shift closes, because a conflicted sale is money that has not reached the ledger. The chapter's closing line: the tracked sale is the counter carrying the warehouse's laws at retail speed — the ask is the control, the marker is the check, and the bag and the record leaving together, agreeing, is the whole point.</p>"
+    "html": "<p>Items tracked by batch or serial, and items sold in more than one unit, add a step to the sale. The step is quick — and it is the whole point of the tracking.</p><p><b>Batch-tracked items.</b> When you add a batch-tracked item, the till asks which batch the goods come from, showing available batches and quantities.</p><p>• A quantity can be <b>split across batches</b> — allocate part against one batch, part against another.<br>• Where the profile enables <b>auto-allocate</b>, the till picks batches for you, <b>oldest first</b>, and only asks when the quantity cannot be covered from one batch.<br>• Reducing a line's quantity releases batch allocations <b>in reverse order</b> — the last-allocated batch is released first.<br>• The <b>Batch assigned</b> marker on the line is clickable: use it to review or change the selection before payment.</p><p>Practical rule: make sure the batches on the sale match the goods actually going into the bag. With auto-allocate on, the till picks the oldest batch — if you physically picked from the front of the shelf, click the marker and correct it. Expiry tracking only works when the record and the bag agree.</p><p><b>Serial-numbered items.</b> Serial-tracked items require <b>one serial per unit</b>, scanned or typed into the serial window. <b>The line cannot proceed to payment until every unit has a serial.</b></p><p>Practical rule: scan the serials from the units <b>in the bag</b> — the actual items being handed over — never from a convenient box on the shelf. The serial ties this physical unit to this sale; warranty claims, returns and recalls all depend on that link being true. A serial record that does not match the goods handed over is worse than no record.</p><p><b>Units of measure.</b> Where an item sells in more than one unit (each, pack, carton), the till asks which unit applies, and <b>the price follows the unit chosen</b>.</p><p>Practical rule: check the unit on multi-unit lines during the ten-second footer check. A carton sold at the single-unit price is a large, silent discount nobody approved — it looks normal on screen and only surfaces later in the margin figures.</p><p><b>When a batch or serial is refused.</b> Occasionally the till refuses a batch or serial because another terminal sold it in the meantime. This is normal on a multi-till or offline estate: pick a different batch or serial and continue. If a completed sale is held back for this reason, it appears under the <b>Conflicts</b> indicator in the top bar; resolving conflicts is covered in module 8 — the short version is that a conflict is fixed by re-picking, and conflicts are cleared before the shift closes.</p>"
    },
    {
-    "title": "Chapter 5 — The customer at the header: attach, loyalty & credit",
-    "est": "13",
-    "html": "<p>A sale with no named customer books to the walk-in customer — correct for most of the queue. This chapter is the rest: the named customer, attached properly, with everything that follows. The customer chapter.</p><p><b>Attaching.</b> The mechanics: the person icon above the grid, or the customer chip on the cart header; SEARCH by name, phone or email and select — with the offline behaviour known (the search runs against locally CACHED customers when the line is down: the local-copy design covering the customer file); CREATE where new — name, and mobile and email if held (module 2's duplicate-name refusal and the mobile-match auto-merge standing behind the create, keeping eleven cashiers from minting eleven spellings of one woman); and the LOYALTY road — tick Issue loyalty card and scan or type the number at create, or, for an existing member, <b>scan their loyalty card</b> from the scan button above the grid: the customer loads automatically and their points appear on the header. The attach's effects, immediate and automatic: any discount recorded on the customer's record APPLIES (the Customer discount marker from Chapter 3 — recorded policy, not counter generosity), and where credit checking is on, the balance and limit appear on the header.</p><p><b>The credit suspend.</b> Module 2's fence, met from the chair: a customer over their limit shows <i>Sales suspended due to customer outstanding</i> — and <b>payment is blocked until an approver releases it</b>. The cashier's script taught, because the moment is social before it is technical: the suspend is read to the customer as the system's fact, not the cashier's judgment ('the account needs a supervisor before I can add to it' — the fence taking the blame, which is what fences are for), the release is the Power Approver's credit-limit permission doing its work (an authorised event, logged), and the cashier never routes around it — the full-cash alternative is offered where the customer prefers it (a paid sale needs no credit release), but the part-paid workaround, the split-across-two-tickets improvisation, is module 8's fraud map wearing a helpful face.</p><p><b>Loyalty's counter half.</b> The points machinery from the cashier's side: earning happens by attach (the member not attached earns nothing — the attach habit IS the programme), redemption happens at payment (Chapter 6 — online only, because the balance lives on the server), and the returns interaction is previewed for module 5: where an original sale earned points that were since SPENT, the return computes what must be recovered and shows it before completion — the cashier explains it from the screen, never estimates it. And the header's last discipline, closing the chapter: the customer attached is attached for the WHOLE sale — the mid-sale attach applies the customer's discount to what is already in the cart correctly, but the attach forgotten until after payment is a loyalty dispute and a reprint request rolled into one, so the certified habit is attach-first for any customer who mentions membership, before the first scan.</p>"
+    "title": "Chapter 5 — Customers, loyalty and credit at the counter",
+    "est": "12",
+    "html": "<p>A sale with no customer attached books to the walk-in customer, which is correct for most of the queue. Attach a named customer when the sale involves loyalty, credit, a delivery, or a customer who asks to be on record.</p><p><b>Attaching a customer.</b> Use the person icon above the grid or the customer chip on the cart header, then:</p><p>• <b>Search</b> by name, phone or email and select. Offline, the search runs against the terminal's cached customer list.<br>• <b>Create</b> a new customer — name, plus mobile and email if available. Two protections from module 2 apply here: duplicate names may be refused (if the profile says so), and a new customer whose <b>mobile number matches an existing record merges into it automatically</b>.<br>• <b>Scan a loyalty card</b> using the scan button above the grid — the member loads automatically and their points appear on the header.</p><p><b>What attaching does immediately:</b></p><p>• Any discount recorded on the customer's record applies to the cart (the <b>Customer discount</b> marker) — recorded policy, applied automatically.<br>• Where credit checking is on, the customer's balance and credit limit appear on the cart header.</p><p>Habit: attach the customer <b>before scanning items</b> whenever the sale is clearly a member's or an account customer's. Attaching late still applies discounts correctly to what is in the cart, but attaching after payment is too late for points — which becomes a dispute and a reprint request together.</p><p><b>The credit suspension.</b> A customer over their credit limit shows <b>Sales suspended due to customer outstanding</b> on the cart, and payment is blocked. Only a Power Approver holding the <b>Credit Limit Override</b> permission can release it — a recorded approval.</p><p>How to handle the moment: state it as the system's rule, not your judgment — the account needs a supervisor's approval before more can be added to it. If the customer prefers, a fully paid cash sale needs no release at all. Do not work around the suspension by splitting the purchase across tickets or under-recording it — module 8 treats exactly that pattern as a red flag, and the approval takes a minute.</p><p><b>Loyalty at the counter.</b> Three facts:</p><p>• <b>Earning requires attachment.</b> A member not attached to the sale earns nothing — attaching is the programme.<br>• <b>Redemption happens at payment</b> and needs the terminal online, because the points balance lives on the server.<br>• <b>Returns interact with points.</b> If the original sale earned points that have since been spent, the return calculates what must be recovered and shows it before completion — read the figure from the screen to the customer; never estimate it (module 5 covers returns).</p>"
    },
    {
-    "title": "Chapter 6 — Hold, clear & payment: money's minute",
+    "title": "Chapter 6 — Hold, clear, and taking payment",
     "est": "14",
-    "html": "<p>The basket parked or discarded, and then the money itself — every tender, in one chapter. The payment chapter.</p><p><b>Hold, do not clear.</b> The pair distinguished by what survives: <b>Hold</b> parks the basket and empties the cart for the next customer — held baskets KEEP their customer, discounts and batch allocations, resumed from the box icon above the grid (which shows the count), aged out automatically where module 2's housekeeping is on. <b>Clear</b> DISCARDS the basket — and where the cashier is not permitted to clear but an approver holds the permission, the button still appears and asks for approval (the authorised-discard design, per the constitution). The manual's rule is the chapter's title and the counter's habit: the customer who walks off to fetch their wallet gets a HOLD — clearing throws away the batch and serial work already done, and, per module 8's map, the clear that follows a cash-in-hand moment is a pattern the supervisor reads, so the honest counter simply never builds the habit.</p><p><b>Cash and card.</b> The two buttons beneath the totals: <b>CASH</b> — the tendered amount entered (or a quick-amount button), change calculated and displayed, completion opening the drawer and printing per configuration; <b>CARD</b> — without the integrated terminal, the amount simply RECORDED (the card machine worked as usual, then confirmed); with integration, the amount PUSHED to the terminal and the till waiting for the result (module 2's gateway, live).</p><p><b>Split payment.</b> One bill across several methods: Split payment on, a method chosen and its portion entered, <b>Add another method</b> per further portion, the REMAINING balance watched as it falls — with the over-tender rule known precisely: if CASH is among the methods, over-tendering shows change due; WITHOUT cash, the total may not exceed the amount owed. Complete when the remaining balance reaches zero. The craft note: split is the counter's honest answer to real wallets (some cash, some transfer) — and every portion lands on its own payment method for the close's per-method count, which is why the cashier who records a transfer as 'cash to balance faster' has just manufactured two variances from one sale.</p><p><b>The server-side tenders.</b> The three that need the line, each with its reason: <b>Loyalty redemption</b> — Redeem Loyalty Points, the programme picked, the points entered, their cash value deducted (the balance lives on the server; offline it cannot be trusted, so it cannot be spent); <b>Gift vouchers</b> — added from the payment window's voucher section, scanned or typed, each reducing the amount due, MORE than one applicable, full coverage asking no further tender, surplus handled by the profile's change policy (module 7 owns the programme; the tender behaviour is learned here); <b>Store credit</b> — chosen as a split method, the available credit shown, an amount above it refused. And the offline capability recap, in one breath because module 8 owns the full table: cash, manually keyed card and transfer work offline; integrated card, store credit, loyalty redemption, anything voucher, and any credit or part-paid sale do not — <b>offline, you collect the full amount</b>, because a balance that reads nil cannot be checked.</p><p><b>Back-dating.</b> Where module 2 permitted it: a transaction date field at the top of the payment window, <b>today or earlier only</b> — used for the genuinely late-rung sale, marked by its nature (revenue moved between reporting days), and rare by policy. The chapter closes at the footer: payment is the sale's seal — every tender on its own method, every server-side tender honest about the line, and the remaining balance at zero the only way out.</p>"
+    "html": "<p><b>Hold versus Clear.</b> Two different actions with different consequences:</p><p>• <b>Hold</b> parks the basket and clears the screen for the next customer. A held basket <b>keeps</b> its customer, discounts and batch allocations. Resume it from the box icon above the grid, which shows the count of held baskets. Old held baskets age out automatically where the profile's housekeeping is set.<br>• <b>Clear</b> discards the basket entirely. Where the profile does not permit the cashier to clear but an approver holds the Clear Cart permission, the Clear button appears but requires an approval.</p><p>Rule: <b>hold, do not clear.</b> The customer who steps away to fetch a wallet gets a hold — clearing throws away the batch and serial work already done. And because building a basket, taking cash, then clearing it is a known fraud pattern, cleared carts are recorded and reviewed (module 8); the honest habit is simply to hold.</p><p><b>Cash.</b> Press Cash, enter the amount tendered (or tap a quick-amount button). The till calculates and displays the change, completes the sale, opens the drawer, and prints per configuration.</p><p><b>Card.</b> Without an integrated terminal, the till simply records the card amount — process the card on the machine as usual, then confirm. With an integrated terminal (module 2, Tab 5), the amount is pushed to the device and the till waits for the result.</p><p><b>Split payment.</b> One bill across several methods:</p><p>1. Turn on Split payment in the payment window.<br>2. Choose a method and enter its portion.<br>3. <b>Add another method</b> for each further portion, watching the remaining balance fall.<br>4. Complete when the remaining balance reaches zero.</p><p>Over-tender rule: if <b>cash</b> is among the methods, over-tendering shows change due; without cash, the total cannot exceed the amount owed.</p><p>Record every portion on its true method. Recording a transfer as cash to finish faster creates <b>two</b> wrong figures at the close — cash over and transfer short — from one sale.</p><p><b>Server-verified tenders.</b> Three tenders need the terminal online, because the balance they draw on lives on the server:</p><p>• <b>Loyalty redemption</b> — Redeem Loyalty Points, choose the programme, enter the points; their cash value is deducted.<br>• <b>Gift vouchers</b> — added in the payment window's voucher section, scanned or typed. More than one voucher can be applied; if vouchers cover the whole bill no other tender is needed; any surplus follows the profile's change policy.<br>• <b>Store credit</b> — chosen as a payment method; the available balance is shown, and an amount above it is refused.</p><p><b>Offline payment summary.</b> Cash, manually keyed card, and transfer work offline. Integrated card, store credit, loyalty redemption, vouchers (unless Guarded Offline is configured), and any credit or part-paid sale do not — offline, collect the full amount.</p><p><b>Back-dating.</b> Where the profile allows transaction date editing, a date field appears at the top of the payment window — <b>today or earlier only</b>. Use it only for a genuinely late-entered sale; it moves revenue between reporting days, which is why the permission is granted sparingly.</p>"
    },
    {
-    "title": "Chapter 7 — Receipts, the voucher sale & the lock",
-    "est": "13",
-    "html": "<p>The sale's paper, the counter's one bearer-instrument moment, and the padlock. The evidence chapter.</p><p><b>Receipts and reprints.</b> The paper's rules: auto-print printing on completion where configured (one or two copies), otherwise printed from the confirmation; the RECENT RECEIPTS panel (from the catalogue controls) for the quick reprint of the last few sales; Sales History (module 6) for anything older. And the offline reference law, restated from module 1 because the chair is where it matters: a sale completed offline prints with a LOCAL reference — once posted, the back-office reference takes over — <b>both refer to the same sale, and a return can be found by either</b>: the customer's offline receipt is not a second-class document, and the cashier says so with confidence when asked.</p><p><b>Selling a gift voucher.</b> The counter's most careful sale, walked step by step: the gift voucher TILE on the grid; a face value from the denomination buttons or another amount typed; the quantity set; for PRE-PRINTED stock, each physical card SCANNED so the code binds to the value — for system-issued vouchers, codes left blank and generated on completion; added to the sale (same-value vouchers grouping onto one line — the fixed-quantity line from Chapter 3); payment taken with the tender rule absolute: <b>vouchers are bought with cash-equivalent tenders only</b> — never with another voucher, store credit, or loyalty points (stored value does not mint stored value — the closed loop that prevents value appearing from nowhere, and module 7 will give the rule its accounting spine). A NAMED customer is required (the voucher may need emailing or reprinting later); no email on file prompts for one, skippable — in which case the printed slip is the only copy. And the manual's warning, this chapter's engraving: <b>the slip is the money</b> — the full code appears on the printed slip exactly once, a reprint requires authorisation, and an unissued slip is treated like cash, because to its bearer it is.</p><p><b>Locking the till.</b> The padlock's contract: lock IMMEDIATELY on stepping away — the shift stays open, the basket stays as it is, synchronisation continues — unlocked with username and password. The habit argued once, then assumed: the lock is faster than signing out and back in, it protects the open basket (the batch and serial work, the attached customer), and it protects the CASHIER — the unattended, unlocked till trading under your name is your variance, your overrides, your story, whoever's fingers made it; the lock is the one-person-one-account law defended sixty times a day, in one keystroke. The chapter's closing frame: this is the module's evidence layer — the receipt that survives offline, the slip that is money, the lock that keeps your name yours — and none of it costs ten seconds.</p>"
+    "title": "Chapter 7 — Receipts, selling a gift voucher, and locking the till",
+    "est": "12",
+    "html": "<p><b>Receipts.</b> Where auto-print is on, the receipt prints on completion (one or two copies per the printer settings); otherwise print from the confirmation screen. Reprints: the <b>Recent receipts</b> panel (from the catalogue controls) covers the last few sales; <b>Sales History</b> (module 6) covers anything older.</p><p><b>Offline references.</b> A sale completed offline prints its receipt with a <b>local reference</b>. When the sale posts, it also receives a back-office invoice number. Both numbers refer to the same sale, and <b>a return can be found using either one</b>. An offline receipt is a fully valid document — say so with confidence if a customer asks.</p><p><b>Selling a gift voucher.</b> The procedure:</p><p>1. Tap the <b>Gift Voucher</b> tile on the product grid.<br>2. Choose a face value from the denomination buttons, or type another amount.<br>3. Set the quantity. Same-value vouchers group onto one line (a fixed-quantity line).<br>4. For <b>pre-printed</b> voucher stock, scan each physical card so its code binds to the value. For system-issued vouchers, leave codes blank — they are generated when the sale completes.<br>5. Attach a <b>named customer</b> — required, because the voucher may need emailing or reprinting later. If no email is on file the till prompts for one; it can be skipped, but then the printed slip is the only copy.<br>6. Take payment. Rule: <b>vouchers are bought with cash-equivalent tenders only</b> — never with another voucher, store credit, or loyalty points. Stored value cannot be used to create stored value.</p><p><b>The slip is the money.</b> The full voucher code is printed on the slip <b>exactly once</b>. A reprint requires authorisation. Handle unissued and issued slips like cash, because to whoever holds one, that is what it is. Hand the slip over with that sentence — customers keep them more carefully when told.</p><p><b>Locking the till.</b> The padlock in the top bar locks the terminal:</p><p>• The shift stays open.<br>• The basket stays exactly as it is.<br>• Synchronisation continues in the background.<br>• Unlocking takes a username and password.</p><p>Lock the till <b>every time</b> you step away, even for a moment. It is faster than signing out and back in, it protects the open basket (the batch and serial work, the attached customer), and it protects <b>you</b>: an unattended, unlocked till trades under your name — its sales, its overrides and its variances become yours regardless of whose hands made them. On shared terminals, the lock is also how cashiers change over quickly between their own accounts (module 1's one-person-one-account rule).</p>"
    },
    {
-    "title": "Chapter 8 — The close & Okelewo's first trading month",
-    "est": "16",
-    "html": "<p>The ritual's second seal, and the case study's first month at the new counters. The closing chapter.</p><p><b>Closing the shift.</b> The steps, with the module's second commandment inside them: the clock icon opens the <b>Close Shift</b> window — total sales, returns and transaction count for the shift, plus lay-by bookings, payments and refunds where there were any; the counted amounts arrive <b>PRE-FILLED with what the system expects</b> for each payment method — and the manual's emphasis is the academy's: <b>do not accept them blindly</b>. The drawer and each method are COUNTED, each figure OVERWRITTEN with what was actually counted; the per-method VARIANCE shows beside each — green over, red short — with a total at the foot; variances EXPLAINED in the closing notes; Close Shift chosen, Duty turning Inactive. The commandment's reasoning, taught plainly: the pre-filled figure accepted untouched is not a count — it is the system agreeing with itself, a reconciliation with one side, worth nothing on the evening the drawer is actually short; the counted close is the custody handed back with a signature, and the variance EXPLAINED at close ('₦200 over — suspected change error on a busy split sale, noted at 4pm') is context that costs a sentence, where the same variance unexplained is Monday's investigation.</p><p><b>The unclosed shift.</b> The failure mode and its repair: an unclosed shift leaves the sales unattributed and forces a supervisor to reconcile after the fact; a missed shift is REPORTED — the back-office tool attributes orphaned transactions to the shift they belong to (the manual's own correction path, and the troubleshooting table's answer to returns-missing-from-summaries) — a correction, never a workflow, and module 8's calendar makes the pattern visible if it tries to become one.</p><p><b>Okelewo's first month (every chapter clocks in).</b> The counters trade governed for the first time, and the month produces exactly the module's lessons: the COUNTED FLOAT catches its first prize in week two — the flagship's Tuesday drawer opens ₦1,500 light against the prepared float, declared in the opening note, and the discrepancy resolves to the weekend's change-making raid on the float box (a process fix: the float sealed after preparation), where the old counter would have discovered it at close and argued about it for an hour; the HOLD habit saves a serial sale in week three (a customer fetches a wallet; the held basket resumes with three scanned serials intact — the old counter would have rebuilt it or, worse, guessed); the pre-filled-close commandment survives its first temptation (a rushing Saturday cashier accepts the pre-fill once — the supervisor's review catches the untouched figures the same evening by their perfect roundness, and the re-count, done together, teaches the lesson better than the memo would have: ₦350 over, real, unexplained because uncounted); the month's variance report reads as designed — small, explained, attributable per cashier per shift — and one cashier's consistent small SHORTS on split-payment days trace not to theft but to Chapter 6's exact sin, transfers rung as cash 'to balance faster', corrected by a five-minute retrain; and the first VOUCHER sale drills the slip-is-money rule before December's programme (a pre-printed card scanned, bound, sold to a named customer with an email — the slip handed over with the sentence the consultant scripted: 'keep this like cash; the code is on it once'). The MD's month-end note: <i>for nine years the drawers were 'about right'. This month I know, per shift, per person, per method — and the arguments have simply stopped. The counting turned out to be the cheap part.</i></p>"
+    "title": "Chapter 8 — Closing the shift, and Okelewo's first month",
+    "est": "14",
+    "html": "<p><b>Closing the shift.</b></p><p>1. Click the clock icon. The <b>Close Shift</b> window shows the shift's totals — sales, returns, transaction count, and lay-by activity if there was any.<br>2. The counted-amount fields arrive <b>pre-filled with what the system expects</b> for each payment method. <b>Do not accept these figures blindly.</b><br>3. Count the drawer and each method's takings. <b>Overwrite</b> each pre-filled figure with what you actually counted.<br>4. The <b>variance</b> appears beside each method — green for over, red for short — with a total at the bottom.<br>5. Explain any variance in the <b>closing notes</b> (for example: 200 over — suspected change error on a busy split sale around 4pm).<br>6. Click <b>Close Shift</b>. Duty turns Inactive.</p><p><b>Why not accept the pre-filled figures?</b> The pre-fill is the system's expectation, not a count. Accepting it untouched just confirms the system against itself and proves nothing about the drawer. The counted close is what makes the shift's record real — and a variance explained in one sentence at close is far cheaper than the same variance investigated days later, when nobody remembers the busy split sale at 4pm.</p><p><b>Unclosed shifts.</b> An unclosed shift leaves its sales unattributed until a supervisor reconciles them after the fact with the back-office orphaned-transactions tool. Report a missed close rather than hiding it — the tool exists as a correction, and the pattern is visible either way.</p><p><b>Okelewo's first month on shifts.</b> Four events from the first month, each matching a chapter:</p><p>• <b>Week 2 — the counted float pays off.</b> The flagship's Tuesday drawer opens 1,500 short of the prepared float. Because the cashier counts and declares it in the opening note, the cause is found the same morning: the weekend crew had raided the float box for change. Fix: floats sealed after preparation. Under the old routine, the shortfall would have surfaced at close and been argued about for an hour.<br>• <b>Week 3 — hold, not clear.</b> A customer leaves to fetch a wallet mid-sale with three serials already scanned. The basket is held, not cleared; it resumes intact ten minutes later. Rebuilding it would have meant re-scanning the serials — or worse, guessing.<br>• <b>The blind close, once.</b> On a rushed Saturday a cashier accepts the pre-filled figures untouched. The supervisor spots it the same evening — untouched closes are recognisable by their perfect zeros — and the drawer is re-counted together: 350 over, real, unexplained because uncounted. The re-count teaches the lesson better than any memo.<br>• <b>The split-payment pattern.</b> One cashier shows small, consistent cash shortages on split-payment days. The variance report narrows it in minutes: transfers being rung as cash to balance faster — Chapter 6's exact warning. A five-minute retrain ends it. Note what the report did: it turned a suspicion into a specific, fixable habit, and cleared the cashier of anything worse.</p><p>The MD's month-end note: <i>for nine years the drawers were about right. Now I know per shift, per person, per method — and the arguments have stopped. The counting turned out to be the cheap part.</i></p>"
    },
    {
-    "title": "Chapter 9 — Common mistakes & the fourth law",
-    "est": "13",
-    "html": "<p>The ritual's scar tissue. Symptom → disease → fix.</p><p><b>Pattern 1 — the round-number float.</b> Symptom: variances from nowhere; the ₦600 investigation of a theft that never happened; 'it's always a bit off' as culture. Disease: the opening figure typed, not counted (Ch. 2). Fix: count before you open — the float prepared and sealed, the opening note declaring anything unusual, the custody taken with a real signature.</p><p><b>Pattern 2 — the shared shift.</b> Symptom: one shift passed between hands; variances nobody can own; the handover mid-basket becoming handover mid-drawer. Disease: two custodies under one seal (Ch. 2). Fix: two sealed shifts — the first closed with its count, the second opened with its own — one person, one account, one drawer, one variance.</p><p><b>Pattern 3 — the fiction serial.</b> Symptom: serials scanned from the shelf box, not the bag; warranty claims that resolve to units the customer never held; the record confident and wrong. Disease: the gate satisfied instead of used (Ch. 4). Fix: serials from the units in the bag, the batch marker reviewed against what was actually bagged, the bag and the record leaving together in agreement.</p><p><b>Pattern 4 — the cleared basket.</b> Symptom: batch and serial work thrown away for a wallet trip; the clear that follows cash-in-hand moments; rebuilt carts and guessed allocations. Disease: clear where hold belongs (Ch. 6). Fix: hold, do not clear — the parked basket keeping its customer, discounts and allocations; the clear an authorised, watched event.</p><p><b>Pattern 5 — the tender shortcut.</b> Symptom: transfers rung as cash 'to balance faster'; two variances from one sale; per-method counts that fight the drawer. Disease: the tender's truth traded for speed (Ch. 6). Fix: every portion on its own method — the split machinery used as built, because the close counts per method and the shortcut manufactures the very variance it was dodging.</p><p><b>Pattern 6 — the blind close.</b> Symptom: pre-filled figures accepted untouched; perfect-looking closes with nothing behind them; the real short discovered weeks later, unattributable. Disease: the system agreeing with itself and calling it a count (Ch. 8). Fix: do not accept them blindly — count, overwrite, explain; the variance with a sentence at close instead of an investigation on Monday.</p><p><b>The fourth law.</b> The counter's day, sealed at both ends: <b>the shift is a sealed ritual — the float counted before the door, the cart built by craft and read by its markers, the tracked sale's bag and record agreeing, every tender on its own method, the slip treated as the money it is, the till locked whenever the chair empties, and the close counted, overwritten and explained — never accepted blindly.</b> Module 5 opens the counter's pressure valve: concessions, returns and overrides — everything that takes money off or gives money back.</p>"
+    "title": "Chapter 9 — Review & the fourth law",
+    "est": "11",
+    "html": "<p>Check yourself against each section before the quiz.</p><p><b>Sign-in and the screen (Chapter 1).</b> Normal, offline (this terminal, within seven days), and manager override (tagged for audit, cashier told). The top bar: Online/Offline, Offline login, Queued (safe, posts automatically), Re-login (that cashier's queued sales cannot post until they sign in online), Conflicts, Stock/Price stale, Failed, Duty and the shift button, Message Hub, Sync, the padlock, Sign out. Console layout: products left, order right, totals in the footer, consoles per your access row.</p><p><b>Opening (Chapter 2).</b> Count the float physically; enter it per method; declare anything unusual in the opening note. The opening figure is what the close is measured against — a typed round number manufactures variances. Handover = two shifts, two counts. Never sell with Duty Inactive; orphaned sales need the back-office repair tool.</p><p><b>The cart (Chapter 3).</b> Scan (no focus needed), search, or tap. Stack vs queue. Enter applies a quantity, Escape abandons it. Bonus, bundle-component and voucher lines are fixed; remove a bundle by its main line. Markers: Bundle, Rate override, Customer discount, Batch assigned. Ten-second footer check before payment.</p><p><b>Tracked items (Chapter 4).</b> Batches: split allowed; auto-allocate picks oldest first; reductions release in reverse; the Batch assigned marker reviews the pick — make the record match the bag. Serials: one per unit, from the units in the bag, and the line will not reach payment without them. Units: the price follows the unit — check it. A refused batch/serial means another till took it: re-pick; a held-back sale shows under Conflicts.</p><p><b>Customers (Chapter 5).</b> Attach by search, create (mobile-match auto-merge), or loyalty scan — before the first item when you can. Attaching applies recorded discounts and shows balance/limit. Over-limit shows Sales suspended; only a Credit Limit Override approver releases it; never split tickets around it. Earning needs attachment; redemption needs the server; returns recover spent points and show the figure first.</p><p><b>Payment (Chapter 6).</b> Hold keeps everything; Clear discards and may need approval — hold, do not clear. Cash calculates change and opens the drawer. Split: each portion on its true method; over-tender only with cash in the mix. Server-verified tenders: loyalty, vouchers, store credit. Offline: collect the full amount. Back-dating: today or earlier, sparingly.</p><p><b>Receipts, vouchers, the lock (Chapter 7).</b> Reprints from Recent receipts or Sales History. Offline local reference and the later invoice number find the same sale. Voucher sale: denomination, scan pre-printed cards, named customer, cash-equivalent tender only, and the slip is the money — the code prints once, reprints need authorisation. Lock every time you step away: shift open, basket kept, sync running, your name protected.</p><p><b>Closing (Chapter 8).</b> Pre-filled figures are expectations, not counts: count, overwrite, explain. Green over, red short. Report missed closes.</p><p><b>The fourth law: the shift is a sealed routine — count at open, count at close, explain every variance.</b> Module 5 covers discounts, returns and overrides.</p>"
    }
   ],
   "questions": [
    {
-    "q": "Offline sign-in requires:",
+    "q": "Offline sign-in works only if:",
     "opts": [
-     "A prior successful online sign-in on THIS terminal within seven days",
+     "You signed in online on this terminal within the last seven days",
+     "The manager allows it",
+     "The licence permits it",
+     "The shift is open"
+    ],
+    "ans": 0,
+    "why": "Hence the weekly online sign-in habit.",
+    "src": "Ch1"
+   },
+   {
+    "q": "The Queued indicator means:",
+    "opts": [
+     "Sales were lost",
+     "Completed sales are waiting to post — safe, posting automatically when online",
+     "The printer queue is full",
+     "Customers are waiting"
+    ],
+    "ans": 1,
+    "why": "Part of the local-copy design.",
+    "src": "Ch1"
+   },
+   {
+    "q": "A Re-login indicator naming you means:",
+    "opts": [
+     "Sign out and back in offline",
+     "Change your password",
+     "Sign in online — until you do, your queued sales cannot post",
+     "Nothing urgent"
+    ],
+    "ans": 2,
+    "why": "Your completed sales are waiting on it.",
+    "src": "Ch1"
+   },
+   {
+    "q": "Turning product images off:",
+    "opts": [
+     "Breaks the grid",
+     "Is not possible",
+     "Hides prices",
+     "Makes the grid noticeably faster"
+    ],
+    "ans": 3,
+    "why": "List view also fits more items.",
+    "src": "Ch1"
+   },
+   {
+    "q": "The opening float amount should be:",
+    "opts": [
+     "What you physically counted in the drawer",
+     "The standard float figure",
+     "Yesterday's closing figure",
+     "Zero"
+    ],
+    "ans": 0,
+    "why": "It is what your close will be measured against.",
+    "src": "Ch2"
+   },
+   {
+    "q": "Typing 20,000 when the drawer holds 19,400 causes:",
+    "opts": [
      "Nothing",
-     "A manager",
-     "A licence check"
-    ],
-    "ans": 0,
-    "why": "The cached record, from the user's side.",
-    "src": "Ch1"
-   },
-   {
-    "q": "The Queued chip means:",
-    "opts": [
-     "Sales are lost",
-     "Completed sales are waiting to post — safe, not lost",
-     "The till is broken",
-     "Sync is off"
+     "A 600 shortage at close even after a perfect day — a variance manufactured at open",
+     "A system error",
+     "Extra change"
     ],
     "ans": 1,
-    "why": "The bar's grammar, chip by chip.",
-    "src": "Ch1"
+    "why": "And habitual roundings hide real shortages.",
+    "src": "Ch2"
    },
    {
-    "q": "A Re-login chip naming you means:",
+    "q": "A short float noticed at opening should be:",
     "opts": [
-     "Sign out",
-     "Ignore it",
-     "Click and refresh online — until then your queued sales cannot post",
-     "Restart"
+     "Ignored",
+     "Made up from petty cash",
+     "Declared in the opening note — context at open, a dispute at close",
+     "Reported next week"
     ],
     "ans": 2,
-    "why": "A today problem.",
-    "src": "Ch1"
+    "why": "Declare, then trade.",
+    "src": "Ch2"
    },
    {
-    "q": "List view and hidden product images:",
+    "q": "A mid-day till handover is done as:",
     "opts": [
-     "Are cosmetic",
-     "Break scanning",
-     "Are mandatory",
-     "Fit far more on screen and make the grid noticeably faster"
+     "One shift passed over",
+     "A note in the log",
+     "A manager override",
+     "Two shifts — the first closed with a count, the second opened with its own"
     ],
     "ans": 3,
-    "why": "The console's geography, tuned.",
-    "src": "Ch1"
-   },
-   {
-    "q": "The opening figure matters because:",
-    "opts": [
-     "It is what the close is measured against — a round number you did not count births variances from nowhere",
-     "It is reported daily",
-     "Auditors read it",
-     "It sets the float"
-    ],
-    "ans": 0,
-    "why": "Count before you open.",
+    "why": "A shared shift produces an unattributable variance.",
     "src": "Ch2"
    },
    {
-    "q": "A short float at open is:",
+    "q": "Sales rung with Duty Inactive:",
     "opts": [
-     "Hidden",
-     "DECLARED in the opening note — context at open, a dispute at close",
-     "The cashier's fault",
-     "Impossible"
-    ],
-    "ans": 1,
-    "why": "The annotation on the custody receipt.",
-    "src": "Ch2"
-   },
-   {
-    "q": "A mid-day handover is:",
-    "opts": [
-     "One shift passed on",
-     "A supervisor task",
-     "Two sealed shifts — the first closed with its count, the second opened with its own",
-     "Forbidden"
-    ],
-    "ans": 2,
-    "why": "A shared shift is a shared, unattributable variance.",
-    "src": "Ch2"
-   },
-   {
-    "q": "Sales rung with no shift open:",
-    "opts": [
-     "Post normally attributed",
-     "Auto-open a shift",
+     "Attach to no shift and must be repaired with the back-office orphaned-transactions tool",
+     "Post normally",
      "Are blocked",
-     "Attach to nothing — repaired only by the back-office orphaned-transactions tool"
+     "Open a shift automatically"
     ],
-    "ans": 3,
-    "why": "A correction, not a workflow.",
+    "ans": 0,
+    "why": "Open a shift before selling.",
     "src": "Ch2"
    },
    {
     "q": "Scanning a barcode:",
     "opts": [
-     "Adds the item straight to the cart — the search box does not need focus",
-     "Needs the search box focused",
+     "Requires the search box selected",
+     "Adds the item straight to the cart — no focus needed",
      "Opens a dialog",
      "Needs Enter"
     ],
-    "ans": 0,
-    "why": "Scanning is uninterruptible by design.",
-    "src": "Ch3"
-   },
-   {
-    "q": "Queue mode (vs stack) makes each scan:",
-    "opts": [
-     "Merge into the line",
-     "Its own line — suiting counters where each unit needs its own serial or batch",
-     "A held basket",
-     "A bundle"
-    ],
     "ans": 1,
-    "why": "The toggle beside search, used deliberately.",
+    "why": "Scanning works mid-conversation.",
     "src": "Ch3"
    },
    {
-    "q": "Quantity edits commit and abandon with:",
+    "q": "Queue mode means:",
     "opts": [
-     "Click and click",
-     "Tab and Tab",
-     "Enter and Escape — the two keys that stop a half-typed quantity riding into payment",
-     "Save buttons"
+     "Items merge into one line",
+     "Customers queue",
+     "Every scan makes its own line — for goods needing individual serials or batches",
+     "Sales queue offline"
     ],
     "ans": 2,
-    "why": "The cart's keyboard grammar.",
+    "why": "The toggle sits beside the search box.",
     "src": "Ch3"
    },
    {
-    "q": "Fixed-quantity lines are:",
+    "q": "Quantity edits are applied and abandoned with:",
     "opts": [
-     "Any discounted line",
-     "The first line",
-     "Batch lines",
-     "Bonus items, bundle components and gift voucher lines"
+     "Save and Cancel buttons",
+     "Plus and minus only",
+     "Double-click",
+     "Enter and Escape"
     ],
     "ans": 3,
-    "why": "And bundle components go by removing the main line.",
+    "why": "Unconfirmed edits are how wrong quantities reach payment.",
     "src": "Ch3"
    },
    {
-    "q": "Reducing a batch-allocated quantity:",
+    "q": "Bundle components are removed by:",
     "opts": [
-     "Releases allocations in REVERSE — unwound in order",
-     "Scrambles batches",
-     "Asks again",
-     "Clears the line"
+     "Removing the bundle's main line — components have fixed behaviour",
+     "The bin icon on each",
+     "An approver",
+     "Editing quantities to zero"
     ],
     "ans": 0,
-    "why": "One of the two fine points that save disputes.",
-    "src": "Ch4"
+    "why": "The bundle price governs its parts.",
+    "src": "Ch3"
    },
    {
-    "q": "The Batch assigned marker is clicked to:",
+    "q": "The Rate override marker exists so that:",
     "opts": [
-     "Decorate",
-     "Review or change what was picked — the check that the bag and the record agree",
-     "Print",
-     "Lock the line"
+     "Printing works",
+     "Manually changed prices are visible on review",
+     "Tax recalculates",
+     "The line locks"
     ],
     "ans": 1,
-    "why": "FEFO is only real when bag and record match.",
+    "why": "Supervisors read the same markers.",
+    "src": "Ch3"
+   },
+   {
+    "q": "With auto-allocate on, the till picks batches:",
+    "opts": [
+     "Newest first",
+     "Randomly",
+     "Oldest first, asking only when one batch cannot cover the quantity",
+     "By price"
+    ],
+    "ans": 2,
+    "why": "Good for expiry-dated goods.",
     "src": "Ch4"
    },
    {
-    "q": "A serial-tracked line proceeds to payment:",
+    "q": "Reducing a batch-allocated quantity releases:",
     "opts": [
-     "Anytime",
+     "A random batch",
+     "All batches",
+     "The oldest batch",
+     "Allocations in reverse order — last allocated, first released"
+    ],
+    "ans": 3,
+    "why": "The allocation unwinds tidily.",
+    "src": "Ch4"
+   },
+   {
+    "q": "Serials should be scanned from:",
+    "opts": [
+     "The units in the bag — the actual items handed over",
+     "The shelf box",
+     "The catalogue",
+     "The last delivery"
+    ],
+    "ans": 0,
+    "why": "A mismatched serial record is worse than none.",
+    "src": "Ch4"
+   },
+   {
+    "q": "A serial-tracked line reaches payment:",
+    "opts": [
+     "Any time",
+     "Only when every unit has a serial",
      "With one serial",
-     "Only when every unit has a serial — scanned from the units IN THE BAG",
-     "On approval"
+     "After an approval"
     ],
-    "ans": 2,
-    "why": "A record that mismatches the goods is confident fiction.",
+    "ans": 1,
+    "why": "The gate is the point of the tracking.",
     "src": "Ch4"
    },
    {
-    "q": "The mis-picked unit of measure is:",
+    "q": "Selling a carton at the single-unit price is:",
     "opts": [
-     "Harmless",
-     "Rare",
-     "Blocked",
-     "The counter's quietest large error — the carton at the single's price is an unapproved eleven-twelfths discount"
+     "Impossible",
+     "A promotion",
+     "A large silent discount — the price follows the unit chosen, so check units in the footer check",
+     "Rounded automatically"
     ],
-    "ans": 3,
-    "why": "The price follows the unit chosen.",
+    "ans": 2,
+    "why": "It surfaces later in the margin figures.",
     "src": "Ch4"
    },
    {
     "q": "A refused batch or serial means:",
     "opts": [
-     "Another till sold it meanwhile — pick a different one; a completed sale held back appears under Conflicts",
-     "A defect",
-     "Sync failed",
-     "The item is fake"
+     "A fault",
+     "A licence issue",
+     "The item is discontinued",
+     "Another terminal sold it in the meantime — pick another; a held-back completed sale shows under Conflicts"
     ],
-    "ans": 0,
-    "why": "The local copy being honest about a lost race.",
+    "ans": 3,
+    "why": "Normal on a multi-till estate.",
     "src": "Ch4"
    },
    {
-    "q": "Attaching a customer applies:",
+    "q": "Attaching a customer immediately:",
     "opts": [
-     "Nothing automatic",
-     "Any discount on their record, and shows balance and limit where credit checking is on",
-     "A loyalty charge",
-     "A hold"
-    ],
-    "ans": 1,
-    "why": "Recorded policy, not counter generosity.",
-    "src": "Ch5"
-   },
-   {
-    "q": "'Sales suspended due to customer outstanding' is released by:",
-    "opts": [
-     "The cashier retrying",
-     "A restart",
-     "A Power Approver holding the credit-limit permission",
-     "Splitting the ticket"
-    ],
-    "ans": 2,
-    "why": "The split-across-tickets workaround is the fraud map in a helpful face.",
-    "src": "Ch5"
-   },
-   {
-    "q": "Offline, customer search runs against:",
-    "opts": [
-     "The server",
-     "Yesterday's report",
-     "Nothing",
-     "Locally cached customers"
-    ],
-    "ans": 3,
-    "why": "The local-copy design covering the customer file.",
-    "src": "Ch5"
-   },
-   {
-    "q": "The attach-first habit exists because:",
-    "opts": [
-     "The attach forgotten until after payment is a loyalty dispute and a reprint request in one",
-     "Speed",
-     "Policy",
-     "The header looks better"
+     "Applies any discount on their record and shows balance and limit where credit checking is on",
+     "Does nothing until payment",
+     "Charges loyalty",
+     "Prints a receipt"
     ],
     "ans": 0,
-    "why": "Attach before the first scan for any member.",
+    "why": "Attach before the first item when you can.",
     "src": "Ch5"
    },
    {
-    "q": "Hold versus Clear:",
+    "q": "A new customer whose mobile number matches an existing record:",
     "opts": [
-     "Both discard",
-     "Hold parks and KEEPS customer, discounts and batch allocations; Clear discards — and may require approval",
-     "Both park",
-     "Clear is faster"
+     "Is refused",
+     "Merges into the existing record automatically",
+     "Creates a duplicate",
+     "Needs approval"
     ],
     "ans": 1,
+    "why": "One of the duplicate protections.",
+    "src": "Ch5"
+   },
+   {
+    "q": "Sales suspended due to customer outstanding is released by:",
+    "opts": [
+     "Retrying",
+     "Restarting the till",
+     "A Power Approver with the Credit Limit Override permission — a recorded approval",
+     "Splitting the purchase across tickets"
+    ],
+    "ans": 2,
+    "why": "Splitting around it is a red-flag pattern.",
+    "src": "Ch5"
+   },
+   {
+    "q": "Loyalty redemption requires:",
+    "opts": [
+     "Nothing special",
+     "Exact change",
+     "A manager",
+     "The terminal online — the points balance lives on the server"
+    ],
+    "ans": 3,
+    "why": "Earning requires attachment; spending requires the server.",
+    "src": "Ch5"
+   },
+   {
+    "q": "A held basket keeps:",
+    "opts": [
+     "Its customer, discounts and batch allocations",
+     "Only the items",
+     "Nothing",
+     "Only the total"
+    ],
+    "ans": 0,
     "why": "Hold, do not clear.",
     "src": "Ch6"
    },
    {
-    "q": "In a split payment without cash:",
+    "q": "In a split payment without cash among the methods:",
     "opts": [
      "Over-tender freely",
-     "One method only",
-     "The total may not exceed the amount owed — with cash, over-tender shows change due",
-     "The sale blocks"
+     "The total cannot exceed the amount owed",
+     "Change is given",
+     "One method only"
     ],
-    "ans": 2,
-    "why": "The over-tender rule, precisely.",
+    "ans": 1,
+    "why": "With cash, over-tender shows change due.",
     "src": "Ch6"
    },
    {
-    "q": "Ringing a transfer as cash 'to balance faster':",
+    "q": "Recording a transfer as cash creates:",
     "opts": [
-     "Saves time harmlessly",
-     "Helps the customer",
-     "Is policy",
-     "Manufactures two variances from one sale — the close counts per method"
+     "No problem",
+     "Faster closes",
+     "Two wrong figures at close — cash over and transfer short — from one sale",
+     "A discount"
     ],
-    "ans": 3,
-    "why": "The tender's truth is the close's raw material.",
+    "ans": 2,
+    "why": "Each portion on its true method.",
     "src": "Ch6"
    },
    {
     "q": "Offline, the till requires:",
     "opts": [
-     "Full payment — a balance that reads nil cannot be checked, so credit and part-paid sales are blocked",
-     "Any tender",
-     "A manager",
-     "Vouchers"
+     "Any payment plan",
+     "Manager sign-off",
+     "A voucher",
+     "Full payment — credit, part-payment and server-verified tenders are unavailable"
     ],
-    "ans": 0,
-    "why": "Cash, keyed card and transfer work; the server-side tenders wait.",
+    "ans": 3,
+    "why": "A balance the till cannot check cannot be extended or spent.",
     "src": "Ch6"
    },
    {
-    "q": "Back-dating a sale:",
+    "q": "The transaction date field allows:",
     "opts": [
-     "Allows any date",
-     "Allows today or earlier only — revenue moved between reporting days, rare by policy",
-     "Is automatic",
-     "Needs no permission"
+     "Today or earlier only — it moves revenue between reporting days, so it is granted sparingly",
+     "Any date",
+     "Future dates",
+     "This month only"
     ],
-    "ans": 1,
-    "why": "Where module 2 granted it, sparingly.",
+    "ans": 0,
+    "why": "For genuinely late-entered sales.",
     "src": "Ch6"
    },
    {
     "q": "An offline sale's local reference:",
     "opts": [
-     "Is invalid",
-     "Expires",
-     "Refers to the same sale as the later back-office reference — a return finds it by either",
-     "Must be reprinted"
+     "Expires when the sale posts",
+     "Refers to the same sale as the later invoice number — a return can be found with either",
+     "Is not valid for returns",
+     "Must be re-issued"
     ],
-    "ans": 2,
-    "why": "The offline receipt is not second-class.",
+    "ans": 1,
+    "why": "An offline receipt is fully valid.",
     "src": "Ch7"
    },
    {
-    "q": "Vouchers may be bought with:",
+    "q": "Gift vouchers are paid for with:",
     "opts": [
      "Any tender",
-     "Points",
      "Store credit",
-     "Cash-equivalent tenders only — never another voucher, store credit, or loyalty points"
+     "Cash-equivalent tenders only — never another voucher, store credit, or loyalty points",
+     "Points"
     ],
-    "ans": 3,
-    "why": "Stored value does not mint stored value.",
+    "ans": 2,
+    "why": "Stored value cannot create stored value.",
     "src": "Ch7"
    },
    {
-    "q": "'The slip is the money' means:",
+    "q": "The slip is the money means:",
     "opts": [
-     "The full code appears on the printed slip exactly once — reprints need authorisation; unissued slips are treated like cash",
-     "Slips are receipts",
-     "Slips expire",
-     "Print two copies"
+     "Print two slips",
+     "The slip is a receipt",
+     "Slips expire daily",
+     "The full code prints exactly once; reprints need authorisation; handle slips like cash"
     ],
-    "ans": 0,
-    "why": "To its bearer, it is cash.",
+    "ans": 3,
+    "why": "To whoever holds it, it is cash.",
     "src": "Ch7"
    },
    {
     "q": "Locking the till:",
     "opts": [
+     "Keeps the shift open and the basket intact while sync continues — and protects your name on an unattended till",
      "Closes the shift",
-     "Keeps the shift open and the basket intact while sync continues — and keeps your name yours",
      "Signs you out",
-     "Stops sync"
+     "Pauses sync"
     ],
-    "ans": 1,
-    "why": "One keystroke defending one-person-one-account, sixty times a day.",
+    "ans": 0,
+    "why": "Lock every time you step away.",
     "src": "Ch7"
    },
    {
-    "q": "The pre-filled close figures are:",
+    "q": "The pre-filled figures at close are:",
     "opts": [
-     "The count",
+     "Your count",
+     "The system's expectations — count the drawer and overwrite them; accepting them blindly proves nothing",
      "Always wrong",
-     "What the system expects — accepted untouched they are the system agreeing with itself, not a count",
      "Optional"
     ],
-    "ans": 2,
-    "why": "Do not accept them blindly: count, overwrite, explain.",
-    "src": "Ch8"
-   },
-   {
-    "q": "Variance colours at close:",
-    "opts": [
-     "Red good, green bad",
-     "None shown",
-     "Blue and grey",
-     "Green over, red short — each per method, with a total at the foot, explained in notes"
-    ],
-    "ans": 3,
-    "why": "The custody handed back with a signature.",
-    "src": "Ch8"
-   },
-   {
-    "q": "Okelewo's consistent split-day shorts traced to:",
-    "opts": [
-     "Transfers rung as cash — Chapter 6's exact sin, fixed by a five-minute retrain",
-     "Theft",
-     "A bad drawer",
-     "The float"
-    ],
-    "ans": 0,
-    "why": "The variance report diagnosing, not just accusing.",
-    "src": "Ch8"
-   },
-   {
-    "q": "The blind-close temptation was caught by:",
-    "opts": [
-     "Luck",
-     "The supervisor reading untouched figures by their perfect roundness — then re-counting together",
-     "A customer",
-     "The system"
-    ],
     "ans": 1,
-    "why": "₦350 over, real, unexplained because uncounted.",
+    "why": "Green over, red short, explained in notes.",
     "src": "Ch8"
    },
    {
-    "q": "This module's law is:",
+    "q": "Module 4's law is:",
     "opts": [
-     "Speed over ritual",
-     "Closing is optional",
-     "The shift is a sealed ritual — float counted, cart read by its markers, every tender on its own method, the close counted, overwritten and explained, never accepted blindly",
-     "The system counts for you"
+     "Speed first",
+     "Trust the pre-fill",
+     "The shift is a sealed routine — count at open, count at close, explain every variance",
+     "Close weekly"
     ],
     "ans": 2,
-    "why": "The fourth law.",
+    "why": "The trading day's rule.",
     "src": "Ch9"
    }
   ]
