@@ -1,946 +1,946 @@
 {
  "warehouses": {
   "title": "Inventory 1 — Warehouses & the Stock Architecture",
-  "desc": "The foundation of the inventory certification: the warehouse as an accountability unit, tree design, the append-only stock ledger, the four numbers of a bin, the logical rooms, stock as custody of value, and the defaults that wire documents to the tree.",
+  "desc": "The Warehouse master and stock architecture in ZhiftERP: the Warehouse doctype field walk — tree position, Is Group, warehouse types, the account resolution, retirement by the Disabled flag at zero; the three-level tree design with a written naming convention and the three design tests; the transit, quarantine, and subcontract warehouses; the default warehouse resolution chain with the Item Defaults table and the monthly fallback read; the Bin — actual, reserved, ordered, and projected quantities, derived and never edited; and warehouse custody — the keeper list, the role separation, and site scoping.",
   "lessons": [
    {
-    "title": "Chapter 1 — What a warehouse is (and is not)",
+    "title": "Chapter 1 — Warehouses: scope and record structure",
+    "est": "11",
+    "html": "<p>This module covers the Warehouse master and the stock architecture in ZhiftERP. On completing this module you will be able to: create Warehouse records with their full field set; design the warehouse tree with a naming convention; use the warehouse types and the special warehouses; wire the default warehouses across items and transactions; read the Bin record; and operate warehouse custody with named keepers.</p><p><b>What a warehouse is in the system.</b> A Warehouse record is a named place stock can be. It is not necessarily a building: a shelf area, a cold room, a van, a quarantine cage, and stock held at a subcontractor are all warehouses if the business needs a separate answer to two questions about them — what is here, and who answers for it. One physical building commonly contains several Warehouse records.</p><p><b>What reads the Warehouse record.</b></p><p>1. <b>Every stock transaction</b> — Purchase Receipts, Delivery Notes, Stock Entries, and Stock Reconciliations all post against warehouses; a movement is always from and/or to a named warehouse.<br>2. <b>The Stock Ledger Entry</b> — every posting writes ledger rows per item per warehouse (module 5 covers the ledger in full); the warehouse is one of the ledger's two primary dimensions.<br>3. <b>The Bin</b> — the standing per-item-per-warehouse balance record (Chapter 6).<br>4. <b>The stock reports</b> — Stock Balance, Stock Ledger, Stock Projected Qty, and the module 7 analytics all filter and group by warehouse.<br>5. <b>The accounting link</b> — under perpetual inventory, stock value posts to the account the warehouse resolves to (Chapter 2's account field; module 5 covers the postings).</p><p><b>Custody.</b> The stock function operates the records; each physical warehouse has a named keeper who answers for its contents (Chapter 7's custody list); movements between custodies are documents (module 2), and counts prove custody periodically (module 4). The standing programme rule applies from the first record: no stock change without its document.</p><p><b>Build order.</b> Warehouses are created before items carry defaults and before any stock posts, because everything above links to them:</p><p>1. The tree designed on paper first (Chapter 3) — levels, names, types.<br>2. Group nodes created, then leaf warehouses under them (Chapter 2).<br>3. The special warehouses added — transit, quarantine, subcontract (Chapter 4).<br>4. The defaults wired (Chapter 5).<br>5. The custody list written (Chapter 7).</p><p><b>Module contents.</b> Chapter 2: the Warehouse doctype field walk. Chapter 3: the tree design. Chapter 4: warehouse types and the special warehouses. Chapter 5: the default wiring. Chapter 6: the Bin. Chapter 7: custody and permissions. Chapter 8: worked example. Chapter 9: review and the module rule.</p>"
+   },
+   {
+    "title": "Chapter 2 — The Warehouse doctype",
+    "est": "12",
+    "html": "<p>Open Warehouse (awesome bar) &gt; New. Complete the fields in order.</p><p><b>1. Warehouse Name.</b> The name per the convention Chapter 3 sets — the location prefix plus the function: <i>Central - Main Store</i>, <i>Ibadan - Stock Room</i>, <i>Central - Quarantine</i>. The system appends the company abbreviation to form the record ID; the name entered here is the readable part, and it prints on every stock document and report.</p><p><b>2. Company.</b> Warehouses are per company. On a multi-company site, each entity's stock lives in its own warehouse set; the legal separation rule applies to stock exactly as to everything else.</p><p><b>3. Parent Warehouse and Is Group.</b> Warehouses form a tree:</p><p>• <b>Is Group</b> ticked makes the record a grouping node — it can contain child warehouses and <b>cannot hold stock</b>.<br>• Leaf warehouses (Is Group clear) hold stock and appear on transactions.<br>• Select the Parent Warehouse to place the record in the tree; the Stock Balance report rolls leaf balances up through the group nodes.</p><p>The rule: stock sits only at leaf level. A group node that was created as a leaf and later needs children must first be emptied — plan the tree before stocking it (Chapter 3).</p><p><b>4. Warehouse Type.</b> The classification link (Chapter 4) — Stores, Work In Progress, Finished Goods, Transit, and the types the business defines. The type is a reporting and behaviour dimension; transit type in particular participates in the two-step transfer machinery (module 2, Chapter 4).</p><p><b>5. Account.</b> Under perpetual inventory, stock value posts to an account. The resolution order: the account set on this field, else the company's default inventory account. Set per-warehouse accounts only where the chart's design wants warehouse-level value visibility (the accountant's decision, recorded); otherwise leave the field blank and let the company default carry it — a mixed pattern set without a decision produces balance-sheet lines nobody can explain.</p><p><b>6. Address and contact.</b> Complete for physical locations that receive deliveries — the address prints on documents that route goods there.</p><p><b>7. Disabled.</b> Warehouses are retired by the Disabled flag, never deleted: ledger history references every warehouse that ever held stock, and the reference must stay readable. A warehouse is disabled only at zero stock — the closing procedure is: transfer the balance out by document, verify the Bin at zero, then disable.</p><p><b>Verification per record.</b> The name follows the convention; the company correct; the tree position correct with Is Group honest; the type selected; the account field per the recorded design; physical locations carrying addresses.</p>"
+   },
+   {
+    "title": "Chapter 3 — The warehouse tree design",
+    "est": "12",
+    "html": "<p>The tree is designed once, on paper, before records are created. This chapter is the design procedure and its rules.</p><p><b>1. The design inputs.</b> List, per site the business operates: the physical rooms and areas that need separate accountability; the functions that need separation regardless of geography (quarantine, transit, subcontract); and who keeps each. The custody answer drives the structure: if two areas share one keeper and one answer, they are one warehouse; if one room has two accountable zones, it is two.</p><p><b>2. The level structure.</b> Three levels cover almost every business this track serves:</p><p>1. <b>The root</b> — All Warehouses (the system's root group node, per company).<br>2. <b>The site groups</b> — one group node per location: <i>Central</i>, <i>Ibadan</i>, <i>Akure</i>. Group nodes exist for rollup reporting: the Stock Balance report at the Ibadan node answers the whole branch in one row set.<br>3. <b>The leaf warehouses</b> — the accountability units under each site: <i>Central - Main Store</i>, <i>Central - Quarantine</i>, <i>Ibadan - Stock Room</i>.</p><p>Do not exceed three levels without a written reason. Every additional level adds a click to every lookup and a decision to every transaction, and the deep tree that mirrors shelf geography answers no question the leaf plus the item's own location note cannot.</p><p><b>3. The naming convention.</b> Written before the first record:</p><p>1. <b>Site prefix first</b> — every leaf name starts with its site: <i>Ibadan - ...</i>. Warehouse pickers on transactions sort and filter by name; the prefix keeps each site's warehouses adjacent and a mis-pick visible.<br>2. <b>Function second</b> — Main Store, Stock Room, Quarantine, Transit, Cold Room.<br>3. <b>No abbreviations that collide</b> — the convention document lists the allowed site codes.</p><p><b>4. The per-company rule.</b> On a multi-company site, each company gets its own tree from its own root. A shared physical building serving two entities holds two warehouse sets — the stock of each company in its own records, moved between companies only by the inter-company documents the Accounts track governs, never by an internal transfer that crosses a legal boundary.</p><p><b>5. The design review.</b> Before creation, the paper tree is reviewed against three tests:</p><p>1. <b>The custody test</b> — every leaf has exactly one named keeper (Chapter 7's list is drafted from the tree).<br>2. <b>The transaction test</b> — every planned movement type has a from and a to that exist (the receiving flow, the branch replenishment, the quarantine path, the transit legs — module 2's movements walked against the tree).<br>3. <b>The report test</b> — the questions the owner asks weekly (stock per branch, value per site, quarantine holdings) each answer from one node or one filter.</p><p>The tree that passes all three is created in an hour and rarely touched again; the tree improvised warehouse-by-warehouse is reorganised annually with stock in flight.</p>"
+   },
+   {
+    "title": "Chapter 4 — Warehouse types and the special warehouses",
+    "est": "12",
+    "html": "<p>Warehouse Type records classify warehouses, and three special warehouses participate in specific machinery. This chapter covers both.</p><p><b>1. The Warehouse Type master.</b> Open Warehouse Type (awesome bar) &gt; New — short classification records: Stores, Work In Progress, Finished Goods, Transit, and any the business adds (Cold Chain, Quarantine). The type is selected on each Warehouse record (Chapter 2) and read by reports and by the transfer machinery below. Create the set once with the tree design.</p><p><b>2. The transit warehouse.</b> One transit warehouse per company (or per route where the business wants route-level visibility), type Transit. Its role in the two-step transfer (module 2, Chapter 4): goods leaving a source site post <b>into</b> transit; the receiving site's entry posts them <b>out of</b> transit into the destination. The consequences:</p><p>1. Stock physically on a truck is visible in the system as transit stock — the Stock Balance report filtered to the transit warehouse is the in-motion report.<br>2. Transit stock belongs to nobody's shelf count — counts at both sites reconcile because the moving stock sits in neither.<br>3. A transit balance older than the longest route is a shortfall or an unreceived transfer surfacing — module 2, Chapter 4's standing read.</p><p><b>3. The quarantine warehouse.</b> One per site that inspects or holds stock: type per the business's classification, name per the convention. Its role: goods that must not sell or issue — awaiting inspection, recalled, damaged pending decision — are moved there <b>by document</b> the moment the condition is known. The quarantine warehouse makes the hold visible and enforceable: the selling and fulfilment flows draw from the trading warehouses, and stock in quarantine is simply not there to pick. Module 3's recall procedure and module 2's damage lane both land stock here.</p><p><b>4. The subcontract warehouse.</b> Where the business sends materials to outside processors (the Procurement track's subcontracting flow), the materials remain the business's stock while at the vendor — held in a subcontract warehouse per vendor or one shared, per volume. The warehouse makes vendor-held stock a visible balance with a custody answer, counted by statement reconciliation with the vendor rather than by shelf count.</p><p><b>5. What does not get a warehouse.</b> Two non-cases, stated to prevent them:</p><p>1. <b>Customers' premises</b> — delivered goods left the business's stock at the Delivery Note; goods on approval or consignment follow the specific flows the Selling track defines, not an improvised customer warehouse per buyer.<br>2. <b>People</b> — a van or a technician's kit can be a warehouse (a place with custody); a person's informal holding cannot. Stock handed to a person without a document is module 2's first error, whatever it is called.</p>"
+   },
+   {
+    "title": "Chapter 5 — The default warehouse wiring",
+    "est": "12",
+    "html": "<p>Transactions pre-fill their warehouses from a resolution chain. This chapter walks the chain and the wiring procedure. A default is a convenience with consequences: every mis-wired default posts silently to the wrong place until a count finds it.</p><p><b>1. The resolution order on a transaction row.</b> When a stock transaction line needs a warehouse, the system resolves, in order:</p><p>1. The warehouse typed on the row (always wins).<br>2. The document-level default (the warehouse set in the transaction's header, applied to new rows).<br>3. The <b>Item Default</b> for the item and company — the Default Warehouse row on the Item's defaults table.<br>4. The global default in <b>Stock Settings</b> (Default Warehouse).</p><p><b>2. The Item Defaults table.</b> On the Item record, one defaults row per company: the Default Warehouse (plus the accounts and cost-center defaults the Accounts track governs). Wire it per the item's home: fast-moving retail items to the site store that stocks them; centrally-held items to the central store. On a multi-site business where every site stocks the item, the item default carries the central home and the site documents override at header level — the convention is decided once and written, because a register wired half one way and half the other pre-fills wrongly somewhere every day.</p><p><b>3. The transaction-side defaults.</b></p><p>1. <b>Buying:</b> the Purchase Receipt's Set Accepted Warehouse header default; the supplier-facing flows land goods at the receiving site's store, with the Rejected Warehouse set to the quarantine warehouse where inspection is in use (the rejected line posts there automatically — the wiring that makes Chapter 4's quarantine real at the dock).<br>2. <b>Selling:</b> the Delivery Note and Sales Invoice source warehouse defaults; the POS Profile's warehouse (the ZhiftPOS track, module 2) fixes each till's source — a till pointing at the wrong warehouse sells one site's stock from another's records, and the POS profile review carries the check.<br>3. <b>Stock Settings:</b> the global Default Warehouse is the last resort of the chain — set it to the main central store and treat any posting that fell through to it as a wiring gap to fix, found by the monthly read below.</p><p><b>4. The wiring procedure.</b></p><p>1. At implementation: the convention written (which level carries which default), the Item Defaults loaded by governed import, the transaction and profile defaults set, Stock Settings last.<br>2. At item creation: the defaults row is part of the item-creation checklist — an item created without its warehouse default pre-fills from the global fallback and posts to the wrong store on its first receipt.<br>3. <b>The monthly read:</b> the Stock Ledger filtered to the global-default warehouse for the month — every line that landed there through the fallback names an item whose wiring is missing; fix the Item Default, and move the stock by document if it physically sits elsewhere.</p><p><b>Verification.</b> Sample five items per site: create a draft receipt and a draft delivery row for each and confirm the pre-filled warehouse is the intended one; delete the drafts. Ten minutes at go-live; repeated after any bulk item import.</p>"
+   },
+   {
+    "title": "Chapter 6 — The Bin",
+    "est": "12",
+    "html": "<p>The Bin is the standing balance record — one per item per warehouse, maintained by the system from postings. This chapter covers reading it, the projected quantity, and the Bin's integrity.</p><p><b>1. What a Bin holds.</b> Open any item's record and view its stock levels, or open the Bin list filtered by item or warehouse. Per item-warehouse pair:</p><p>1. <b>Actual Qty</b> — the on-hand balance: the sum of every posted stock movement for the pair. This is the figure the shelf should match.<br>2. <b>Reserved Qty</b> — committed to submitted Sales Orders not yet delivered.<br>3. <b>Ordered Qty</b> — incoming on submitted Purchase Orders not yet received.<br>4. <b>Indented / Planned Qty</b> — requested on Material Requests / planned by production, where those flows are in use.<br>5. <b>Projected Qty</b> — the forward-looking figure: <i>actual + ordered − reserved</i> (plus the planning terms where used). Replenishment decisions (module 7) read projected, not actual — actual says what is on the shelf; projected says what will be after the commitments land.</p><p><b>2. How the Bin is maintained.</b> Every submitted stock document writes Stock Ledger Entries (module 5), and the Bin is the per-pair running total of those entries. Two consequences:</p><p>1. <b>The Bin is derived, never edited.</b> There is no lawful direct edit to a Bin figure. A wrong actual quantity is corrected by the document that explains it — a Stock Reconciliation after a count (module 4), or the missing movement entered (module 2). An edit without a document would make the balance disagree with its own ledger.<br>2. <b>The Bin and the ledger must agree.</b> They do, structurally, unless damage has occurred (a failed patch, a crashed repost); module 5 covers the integrity checks, and a bin-versus-ledger disagreement is an incident for the sysadmin lane, not a figure to adjust.</p><p><b>3. Reading bins in practice.</b></p><p>1. <b>The item view</b> — one item across all warehouses: where its stock sits, what is reserved where. The first lookup for any where-is-it question.<br>2. <b>The warehouse view</b> — the Stock Balance report at a warehouse: the keeper's own holdings list, and the count sheet's source (module 4).<br>3. <b>The negative check</b> — a negative Actual Qty means more left than arrived in the records: either a movement was never entered or stock was taken without document. Stock Settings' Allow Negative Stock switch decides whether the system permits the posting at all; the recommended posture is <b>off</b> (the honest register refuses to pretend), with module 8 covering the setting's full consequences. Where negatives exist from history, the standing read lists them and each is closed by its explaining document.</p><p><b>4. Reserved-quantity hygiene.</b> Reserved figures come from submitted Sales Orders; orders that will never fulfil (stale, cancelled by conversation but not in the system) hold reservations that distort projected quantities and block replenishment arithmetic. The monthly read: reservations against orders older than the fulfilment horizon, each closed or re-dated by its document — the Selling track's order hygiene, read from the stock side.</p>"
+   },
+   {
+    "title": "Chapter 7 — Custody and permissions",
+    "est": "12",
+    "html": "<p>Stock is money on shelves. This chapter sets who can do what to it, and who answers for each place it sits.</p><p><b>1. The custody list.</b> One page, drafted from the tree (Chapter 3), maintained by the stock function:</p><p>• One row per leaf warehouse: the warehouse, the named keeper, the deputy, and the count cadence (module 4 sets the cadences).<br>• The keeper answers for the warehouse's contents: receives against documents, releases against documents, and signs the counts. The deputy covers absence — a warehouse whose keeper is on leave with no deputy is module 4's unmarked-location failure in stock form.<br>• The list is reviewed quarterly and at every staffing change; a leaver or mover on the custody list is a same-day update (the HR track's lifecycle events carry the line).</p><p><b>2. The role design.</b> Per the Sysadmin track's permission rules, the stock roles at their standard shape:</p><p>1. <b>Stock User</b> — creates and submits the daily movement documents (entries, receipts, deliveries) within their site's scope.<br>2. <b>Stock Manager</b> — the elevated set: reconciliations, backdated postings where permitted, cancellations and amendments, the settings pages. The count-adjustment power in particular sits here, because a reconciliation moves value with one document (module 4's controls).<br>3. <b>Read-only stock access</b> — the reporting roles for finance and management.</p><p>The separation rule: <b>the keeper of a warehouse does not approve their own adjustments.</b> Counts are entered by the counting procedure's rules (module 4 — counted by one, entered against the sheet, the variance approved by the stock manager or owner per the threshold), so no single person can both hold the stock and rewrite its record.</p><p><b>3. Site scoping.</b> Where the business wants branch users confined to branch warehouses, user permissions on the Warehouse doctype scope each user to their site's records — the branch storekeeper sees and posts to Ibadan warehouses only. Apply scoping per the sysadmin track's user-permission procedure and record it in the permission matrix; the quarterly access recertification covers the stock roles and scopes with everything else.</p><p><b>4. The document rule, restated as custody's mechanics.</b> Custody changes only by document:</p><p>1. Into the business: Purchase Receipt (from suppliers), Stock Entry Material Receipt (the documented non-purchase cases).<br>2. Between custodies: Stock Entry Material Transfer (module 2) — the sending keeper's release and the receiving keeper's acceptance are the document's two sides.<br>3. Out of the business: Delivery Note (to customers), Stock Entry Material Issue with reason and approval (consumption, damage, write-off — module 2).<br>4. Nothing moves on a conversation. The stock handed over to be sorted out later is the origin of most variances module 4 will ever find; the document takes ninety seconds and the variance investigation takes a day.</p>"
+   },
+   {
+    "title": "Chapter 8 — Worked example: designing HealthTrade's network",
     "est": "13",
-    "html": "<p>Welcome to the third certification. Selling taught money-in; Procurement taught money-out; this track teaches the thing both of them move: <b>stock — where it sits, how it moves, what it is worth, and who answers for it</b>. And it begins where stock begins: the warehouse.</p><p><b>A warehouse is a named place stock can be.</b> Not necessarily a building: the system's warehouse is an ACCOUNTABILITY unit — a distinct place with a distinct answer to <i>what is here and who answers for it</i>. A physical store is a warehouse; so is the quarantine bay inside it, the van doing branch deliveries, the goods sitting in transit between two branches, and the stock at your repacker's site that never stopped being yours. One building can hold several warehouses; one warehouse (the van, the transit) can have no building at all. The test is never architecture; it is custody: <b>where a distinct accountability exists, a distinct warehouse names it</b> — the principle this whole module unpacks.</p><p><b>Two kinds of node.</b> Warehouses live in a TREE: <b>leaf warehouses</b> actually hold stock — every stock movement names a leaf; <b>group warehouses</b> hold structure — they aggregate their children for reporting and hold nothing themselves. Lagos Region is a group; Ikeja Branch Store is a leaf. Trying to move stock into a group node fails by design, and the refusal is teaching you the model: stock exists in PLACES; groups exist so places can be READ together.</p><p><b>The warehouse carries money.</b> Every warehouse's stock has a value (Chapter 6 makes this operational), and in the books each warehouse's holdings roll into the firm's stock asset. This is why warehouse design is never merely logistics: creating a warehouse creates a bucket of company value with a custodian's name implicitly on it, and deleting, merging, or misusing warehouses moves the accounting ground under the operation.</p><p><b>What the item knew, the warehouse localises.</b> Buying 2 built the item — one identity, one UOM discipline, one cost story. The warehouse dimension crosses it: every stock fact in this system is an <b>item-AT-warehouse</b> fact. PARA-500 does not have a quantity; it has a quantity AT Central, AT Ibadan, AT Quarantine, AT In-Transit — and the sum is the firm's position while the parts are the operation's truth. Every screen, report, and document in this track reads or writes that two-dimensional grid, and holding the grid in your head — items down, warehouses across — is the single mental model that makes the rest of the curriculum easy.</p>"
+    "html": "<p>This chapter applies Chapters 2-7 to HealthTrade (the pharmaceutical distributor: Central/Lagos with the main operation, branches at Ibadan and Akure). Configuration values and outcomes are listed per step.</p><p><b>Step 1 — the design inputs and the tree (Chapter 3).</b> The custody walk of the physical sites lists: at Central — the main store, the cold room, the quarantine cage, the dispatch bay; at each branch — one stock room. The paper tree, three levels nowhere exceeded:</p><p>• All Warehouses (root)<br>• Central (group): <i>Central - Main Store</i>, <i>Central - Cold Room</i>, <i>Central - Quarantine</i>, <i>Central - Dispatch</i><br>• Ibadan (group): <i>Ibadan - Stock Room</i><br>• Akure (group): <i>Akure - Stock Room</i><br>• Plus the specials at root level: <i>Transit - HT</i> (type Transit), <i>Subcontract - Repack Vendor</i> (the outside repacker holding HealthTrade stock).</p><p>The three design tests run: custody — every leaf one keeper (eight rows drafted); transactions — receiving, branch replenishment via transit, the quarantine path, and the subcontract leg each have their from and to; reports — stock per branch answers at the site group nodes, quarantine holdings at one leaf.</p><p><b>Step 2 — the records (Chapter 2).</b> Warehouse Types confirmed (Stores, Transit, plus Cold Chain added); the group nodes created, then the leaves, names per the convention (site prefix, function). The account field left blank on all — the company default inventory account carries value, recorded as the accountant's decision. The dispatch bay is created as a leaf deliberately: loaded goods awaiting the truck have their own answer, separate from the main store's count.</p><p><b>Step 3 — the defaults wired (Chapter 5).</b> Item Defaults loaded by governed import: retail pharmaceuticals default to <i>Central - Main Store</i>; cold-chain items to <i>Central - Cold Room</i>. The Purchase Receipt's Rejected Warehouse set to <i>Central - Quarantine</i>. The branch POS profiles' warehouses confirmed at their own stock rooms. Stock Settings' global default set to the main store; the monthly fallback read scheduled. The five-item pre-fill verification runs per site — one miss found (a cold-chain item defaulting to the main store; corrected before go-live rather than by July's count).</p><p><b>Step 4 — custody and roles (Chapter 7).</b> The custody list finalised: eight leaves, eight keepers, deputies named for the three sites. The replenishment policy written into the procedures: <b>branches replenish by transfer only</b> — branch stock arrives from Central through the transit warehouse, never by direct branch purchasing outside the procurement lanes. Branch storekeepers scoped to their site's warehouses by user permission; Stock Manager held by two people at Central; the keeper-does-not-approve-own-adjustments separation recorded in the matrix.</p><p><b>Result.</b> Ten warehouses, three levels, one written convention, eight custody rows, defaults verified by the pre-fill sample, and the special paths (quarantine, transit, subcontract) existing before the first document needs them. Module 2 runs a month of movements across exactly this network.</p>"
    },
    {
-    "title": "Chapter 2 — Designing the tree",
-    "est": "14",
-    "html": "<p>The warehouse tree is designed once and lived with for years, which makes its design hour the same kind of hour as the settings walk: the consultant writing a constitution. The principles, in the order to apply them.</p><p><b>Start from accountability, not architecture.</b> List the distinct custodies the client actually runs: the central store, each branch's stock room, the quarantine bay, goods-in-transit between locations, the facilities/consumables store, any supplier-side stock (the subcontractor holding your materials), returns staging where returns are triaged. Each distinct custody becomes a leaf. What does NOT become a warehouse: shelf positions, aisles, and fridges inside one custody — that is bin-level detail, and modelling every shelf as a warehouse (the sprawl disease, Chapter 9) drowns the tree in places nobody separately answers for. The line to hold: <i>would a stock difference here be a different PERSON'S problem?</i> Yes — warehouse. No — location detail within one.</p><p><b>Shape the tree for reading.</b> Groups exist for rollups, so group by how the firm asks questions: All Warehouses → Branches (group) → each branch leaf; Central operations grouped with their logical rooms; regions as intermediate groups only when the firm genuinely reads by region. Depth discipline: two or three levels serve almost every trading firm — a five-level tree is bureaucracy nobody navigates. The tree can be re-shaped later (groups re-parented) far more easily than leaves can be merged, so err simple.</p><p><b>Name for the decade.</b> Names appear on every document, filter, and report forever: short, unambiguous, consistently patterned — the branch name leading (Ikeja Store, Ikeja Quarantine) so sorted lists group naturally, and no cleverness that needs explaining to the third cohort of staff. Where branches are companies-within-the-company (separate accountability entirely), the design conversation escalates beyond warehouses — flag it, don't improvise it.</p><p><b>One custody, one leaf — both directions.</b> Every physical custody has exactly one system twin, and every system leaf means one real custody. The diseases are symmetrical: the physical room with no system warehouse (its stock booked into a neighbour, its differences invisible — the storeroom that exists in the building and not in the books); and the system warehouse with no physical meaning (created for a forgotten reason, accumulating misc postings — a junk drawer with a naira value). The annual tree review (this track's calendar will own it) walks both lists.</p><p><b>Defaults finish the design.</b> A tree is used by documents, and documents choose warehouses by DEFAULTS (Chapter 7): the design is complete only when every routine flow lands in the right leaf without a human choosing — because the human, at speed, chooses wrong, and the wrong-warehouse posting is this track's most routine support ticket. Design the tree, then wire the defaults, then watch the first week's postings: the three steps of a warehouse implementation, in order.</p>"
-   },
-   {
-    "title": "Chapter 3 — The stock ledger: the append-only book",
-    "est": "14",
-    "html": "<p>Underneath every screen in this track sits one structure, and understanding it makes everything else transparent: the <b>stock ledger</b> — the append-only book of every stock movement the firm has ever made.</p><p><b>What an entry is.</b> Every time stock moves, the ledger gains a dated line: item, warehouse, quantity in or out, the running balance after, the valuation effect (Chapter 6 and module 5), and — decisively — <b>which document caused it</b>. A receipt writes IN lines; a delivery writes OUT lines; a transfer writes an OUT at source and an IN at destination; a reconciliation writes the adjusting difference. The ledger is written ONLY by documents: no screen edits it directly, no administrator pencils a balance, and this is not a limitation but the entire design — the ledger is the firm's stock testimony, and testimony that can be quietly rewritten proves nothing.</p><p><b>Append-only, permanently.</b> Corrections do not erase; they append. The wrong entry stands, and the correcting entry stands beside it, dated, attributed, explained by its own document — the same immutability doctrine both money tracks taught (the invoice never edited, the credit note appended), because it is the same ledger philosophy applied to goods. When a client asks <i>can we just fix the number</i>, the consultant's answer is this chapter: the number is a running balance COMPUTED from history; fixing it means appending the movement that makes history true (usually a reconciliation — module 4), never editing history to match a wish.</p><p><b>The bin: the ledger, summarised.</b> For each item-at-warehouse, the system maintains the current position — the running totals the ledger implies: actual quantity, plus the promised dimensions (Chapter 4). Reading a bin is reading the ledger's last line; reading the LEDGER is reading how it got there — and the second read is the diagnostic superpower: any surprising balance decomposes into its history, entry by entry, document by document, until the surprise has a name (the transfer that never completed, the receipt posted to the wrong branch, the delivery that went out twice). Consultants who reach for the ledger first resolve in minutes what screen-starers escalate.</p><p><b>Chronology is load-bearing.</b> Entries carry posting date and time, and the ledger is a TIMELINE: stock-as-at-a-date, valuation at each moment, and every dispute's evidence all read it in order. Backdating a movement rewrites every balance after it — sometimes legitimately (the receipt entered a day late, policy-governed), always consequentially (module 5 walks the valuation ripple). The gate disciplines both trading tracks taught (post at the event, never batch Friday into Monday) were protecting THIS structure; now you can see what they protect.</p><p><b>The auditor's favourite table.</b> Everything this track will do — counts, valuations, branch networks, health reports — is a conversation with this ledger. The firm whose people understand that stops arguing with screens and starts reading history; and the audit, internal or external, that can walk any balance back to documents is the audit that ends early. One book, appended forever, written only by documents: hold that sentence; the track is its elaboration.</p>"
-   },
-   {
-    "title": "Chapter 4 — The four numbers of a bin",
-    "est": "13",
-    "html": "<p>Both trading tracks used the projected-stock arithmetic; this chapter makes you its owner. For every item-at-warehouse, four numbers describe the position, and reading them together is the warehouse professional's core literacy.</p><ul><li><b>Actual</b> — what the ledger says is physically here now: the sum of every in minus every out. The number a count would verify (module 4 tests it), the number custody answers for.</li><li><b>Reserved</b> — what is promised OUT: submitted sales orders' undelivered quantities holding their claim (Selling 4's machinery). Physically present, commercially spoken for — sellable to no one else.</li><li><b>Incoming</b> — what is promised IN: submitted purchase orders' unreceived quantities (Procurement 5's machinery), plus inbound transfers en route. Not here yet, but coverage the planners may count.</li><li><b>Projected = actual − reserved + incoming</b> — the number decisions read: what will be here when promises keep. Reorder triggers watch it (Procurement 3), sales availability reads it (Selling 4), and planning plans it.</li></ul><p><b>Reading a bin like a professional.</b> The four numbers are a diagnosis in one row. Actual 500, reserved 480, projected 20: the shelf looks full and the branch is nearly sold out — the picker sees boxes, the system sees promises, and the system is right. Actual 40, incoming 300, projected 340: thin shelf, healthy position — panic buying now duplicates the Emzor order already coming. Actual 200, reserved 0, incoming 0, and no movement for months: the dead-stock read (module 7 prices it). The literacy is refusing to read ACTUAL alone — every actual-only decision (the sale promised off the visible shelf, the purchase panicked off the visible gap) is a decision made with a quarter of the information.</p><p><b>Where the promises live.</b> Reserved and incoming are not typed anywhere — they are COMPUTED from open documents, which is why both trading tracks' hygiene rules were really inventory rules: the ghost reservation (the stale sales order hiding sellable stock) corrupts RESERVED; the phantom incoming (the stale purchase order promising goods forever) corrupts INCOMING; and both corrupt PROJECTED, the number everything downstream trusts. The sweeps those tracks installed are, from this track's chair, ledger hygiene — and the warehouse team has standing to demand them, because the warehouse inherits every planning error the corrupted number causes.</p><p><b>Per-warehouse, then rolled.</b> Each number is item-AT-warehouse; the firm-level view sums the leaves — and the difference matters operationally: the firm may hold plenty while Ibadan holds none (a TRANSFER problem, not a purchase problem — module 6's terrain), and projected-at-Central answers a different question from projected-everywhere. The grid again: read the cell for operations, the rollup for strategy, and never confuse the two.</p>"
-   },
-   {
-    "title": "Chapter 5 — The logical rooms",
-    "est": "13",
-    "html": "<p>The tree's most powerful idea is the warehouse with no walls: the <b>logical room</b> — a leaf that names a custody state rather than a building. You have met every one of them in the earlier tracks; this chapter assembles them as a family and gives the design rule they share.</p><ul><li><b>Quarantine</b> (Procurement 6's rejected warehouse): stock in your possession but out of your sellable truth — damaged arrivals, failed inspections, short-dated rejections awaiting their fate. Its balance is a to-do list with a value; its weekly review is already on the procurement calendar.</li><li><b>In-transit</b>: stock between two of your own custodies — on the truck from Central to Ibadan, owned by the firm and held by nobody's shelf. The two-step transfer (module 2 runs its mechanics, module 6 its governance) parks the goods here between dispatch and receipt, so at every moment SOMETHING answers for them: the sender no longer, the receiver not yet, the transit room precisely. Its balance is the network's bloodstream, and its AGING is the network's diagnostic — transit stock older than any truck journey is a truck that never arrived, a receipt never confirmed, or a leak (module 6 owns the discipline).</li><li><b>Supplier-side / subcontract stock</b> (Procurement 8): your materials at their site — ownership retained, location external, exposure visible as a balance instead of a hope.</li><li><b>Returns staging</b>: customer returns landing for triage before their fate (restock, quarantine, write-off — Selling 5's fork needs a floor to stand on). A distinct room where the firm's return volume justifies distinct accountability; folded into quarantine where it does not.</li><li><b>The facilities/consumables store</b>: not glamorous, but internal consumption (Procurement 3's Material Issue) needs a custody to issue FROM, or consumables shrinkage hides in the trading rooms.</li></ul><p><b>The shared design rule.</b> Each logical room exists because a DISTINCT QUESTION needs a standing answer: what is rejected and undecided? what is between branches? what is at the subcontractor? what returned and awaits triage? Where the firm genuinely runs the state, the room earns its leaf; where it does not (a single-location firm with no transfers needs no transit room), creating the room manufactures ceremony. The consultant's judgment is the same proportionality every track has practised — model the states the client LIVES, not the states the software offers.</p><p><b>The rooms are custody, not exile.</b> A recurring client misunderstanding, worth pre-empting: stock in quarantine or transit has not left the company — it counts in the firm's stock value, appears in the rollups, and belongs to someone's answerability. The rooms exist to make states VISIBLE, not to make stock disappear; and the monthly read of every logical room's balance and aging (this track's calendar will consolidate it) is how the visible states stay managed instead of sedimenting — because a logical room nobody reads becomes exactly what it was built to prevent: a place where stock quietly stops being anyone's problem.</p>"
-   },
-   {
-    "title": "Chapter 6 — Stock and money: the custodian's number",
-    "est": "13",
-    "html": "<p>Every warehouse balance is also a naira figure, and this chapter is the bridge this track keeps crossing: stock as VALUE, and the warehouse as a custody of company money that happens to sit on shelves.</p><p><b>How value gets there.</b> Each ledger entry carries valuation: goods arrive at their landed cost (the Procurement 6 truth — PO rate plus allocated charges), leave at the valuation the method computes (module 5 teaches FIFO and moving-average mechanics), and the item-at-warehouse balance is therefore both a quantity AND an amount. Summed per warehouse: the <b>warehouse-wise stock value</b> — Central holding ₦48m, Ibadan ₦11m, Quarantine ₦600k, In-Transit ₦2.1m — and summed altogether, the stock asset the balance sheet reports. The operational reading and the accountant's reading are the same numbers at different rollups, which is exactly why the gate disciplines mattered: a receipt posted wrong is a misstatement, not a typo.</p><p><b>The custodian's number.</b> Attach the value to the accountability and warehouse management changes character: the Ibadan storekeeper is not minding shelves — they are answerable for ₦11m of company assets, and the systems this track teaches (documents for every movement, counts on a cadence, variances investigated) are how that answerability is made fair: the custodian who moves stock only by documents can PROVE their custody; the one who obliges undocumented favours cannot, and inherits every difference as suspicion. Framed this way in training, the disciplines stop being bureaucracy and become the storekeeper's own protection — the framing that makes go-live adoption stick.</p><p><b>Value concentrates attention.</b> The warehouse-wise value read orders the priorities: the counting programme weights toward where the money sits (module 4's cycle design); security and access follow value; and the logical rooms' readings become money readings — ₦600k aging in quarantine is a decision backlog with interest, ₦2.1m in transit is working capital on wheels. The MD who will not read a stock report will read this one, and the consultant should hand it to them monthly.</p><p><b>Shrinkage is the gap's name.</b> Where the ledger says more than the shelf holds, the difference has a value and a family of causes — unrecorded movements, theft, damage never written, gate errors compounding — and module 4 (counting) plus module 7 (the shrinkage trend) turn it from an annual shock into a managed number. For now, hold the accounting shape: the variance a count confirms becomes a written adjustment with a naira cost, landing where the accountant directs — visible, owned, trended. The firm that knows its shrinkage rate manages it; the firm that discovers it annually budgets by superstition.</p><p><b>The bridge's rule.</b> Every operational stock decision is silently a money decision — the transfer is value moving between custodies, the write-off is value leaving with a signature, the count variance is value confessing. This track teaches the operations; the money meaning rides every one of them, and the consultant who narrates BOTH — this movement, this value, this accountability — is teaching inventory the way owners hear it.</p>"
-   },
-   {
-    "title": "Chapter 7 — Defaults & the choosing of warehouses",
-    "est": "13",
-    "html": "<p>Documents move stock, and every document must answer: WHICH warehouse? The answer should almost never be a human deciding at speed — it should be a default, designed once. This chapter wires the tree to the documents.</p><p><b>The default chain.</b> Warehouse selection resolves top-down: the <b>item's default warehouse</b> (per company — and where the setup supports it, per item-and-branch context) seeds document rows; document-level defaults (the receiving warehouse on a purchase document, the source on a delivery) override per transaction; and the row-level field remains editable for the genuine exception. The design goal from Chapter 2, restated as configuration: <b>every routine flow lands in the right leaf with zero human choices</b> — replenishment receipts into Central, branch sales out of the branch store, rejections into that branch's quarantine — because the human at speed picks the top of the dropdown, and the top of the dropdown is how Ibadan's stock ends up in Abeokuta.</p><p><b>Per-flow defaults, walked.</b> The implementation checklist: purchase receiving defaults to the central store (or the branch, where branches receive directly — a policy decided, not assumed); sales and POS at each branch default to THAT branch's leaf (the per-branch default the multi-location setup lives or dies by); stock entries for issues default from the facilities store; return flows default into staging/quarantine, never silently into sellable. Each default is a sentence of policy — <i>we receive centrally; branches sell their own stock; consumables issue from facilities</i> — and the consultant reads the sentences back to the client before wiring them, because a default nobody chose is still a policy, just an accidental one.</p><p><b>The wrong-warehouse disease.</b> The most routine ticket in multi-location support: stock posted to the wrong leaf — the receipt into the wrong branch, the sale out of a store that never held the goods, the transfer's destination mistyped. The damage is quiet and compounding: two warehouses now both lie (one high, one low), counts at both will surprise, and negative-stock pressure builds where the goods were never booked (module 5 meets what negative stock does to valuation). The response pattern: diagnose from the ledger (Chapter 3's read — the mispost has a document, a date, and an author), correct by MOVEMENT (a transfer putting the stock where it physically is — never an edit, the append-only law), and fix the DEFAULT or permission that made the wrong choice easy — because a mispost is almost never a careless person; it is a dropdown that offered the wrong thing first.</p><p><b>Restriction as the stronger wire.</b> Beyond defaults, the permission layer can BIND: branch users restricted to their branch's warehouses so the wrong leaf is not merely un-defaulted but unavailable. The trade is flexibility for safety, and the multi-branch answer is usually safety — the Ikeja cashier has no honest reason to move Abeokuta's stock, and the restriction that prevents it prevents the ticket, the recount, and the argument. Module 8 owns the full permissions posture; plant the principle here: <b>defaults make the right choice easy; restrictions make the wrong choice impossible; a mature setup uses both</b>.</p>"
-   },
-   {
-    "title": "Chapter 8 — Case study: designing HealthTrade's network",
-    "est": "16",
-    "html": "<p>HealthTrade — whose suppliers, purchases, and money the Procurement track built — now gets its warehouse constitution. The design session, run as Chapters 1-7 taught it.</p><p><b>Step 1 — the custody list (Ch. 1-2).</b> The walk-through with the MD and the storekeepers lists the real custodies: the Central store (Surulere), two branch stock rooms (Ibadan, Abeokuta), the quarantine bay inside Central, goods moving between locations weekly, consumables (cleaning, stationery) currently living — badly — on a corner of Central's racking, the repacker holding bulk paracetamol (the Procurement 8 subcontract), and returns arriving at whichever counter the customer chose. Eight distinct answerabilities; the shelf-vs-warehouse line holds twice (the fridge inside Central: same custodian, location detail, NOT a warehouse; the consumables corner: different question entirely — its own room).</p><p><b>Step 2 — the tree (Ch. 2, 5).</b> Drawn shallow: <i>All Warehouses</i> → <b>Central Store</b>, <b>Central Quarantine</b>, <b>Facilities Store</b>, <b>In-Transit</b>, <b>Repacker (Subcontract)</b>, and a <b>Branches</b> group holding <b>Ibadan Store</b> and <b>Abeokuta Store</b> (each with its small quarantine leaf — the branch that rejects a delivery needs its own bay). Returns staging is FOLDED into quarantine for now — the volume does not yet earn a room, and the decision is written down with its revisit trigger (if return triage exceeds a shelf, split it). Names patterned, branch-first; three levels nowhere exceeded.</p><p><b>Step 3 — the defaults wired (Ch. 7).</b> Purchasing receives to Central (the Procurement 3 policy — branches replenish by transfer, never buy retail); each branch's sales default out of its own store; issues default from Facilities; rejections default to the local quarantine. Branch users are RESTRICTED to their branch leaves plus read on Central (they may see what they can request — module 6's flows will use it). The defaults are read back as policy sentences and the MD signs the page.</p><p><b>Step 4 — the first reads (Ch. 3-6).</b> Week one's numbers, walked with the team: the warehouse-wise value (Central ₦48m, branches ₦9m and ₦7m, quarantine ₦140k, transit ₦800k mid-week, repacker ₦1.2m) — the MD's monthly page from day one, each figure introduced as somebody's custody. A bin read run live for PARA-500 at Ibadan: actual 96, reserved 40 (the weekend's counter orders), incoming 60 (Tuesday's transfer, in transit now), projected 116 — and the storekeeper's <i>but the shelf shows 96</i> becomes the four-numbers lesson on the spot. One ledger walk: a surprising Abeokuta balance decomposed entry by entry to a receipt posted there in error during setup week — corrected by transfer (the stock is physically at Central), the default that allowed it tightened, the append-only law demonstrated better than any slide.</p><p><b>What the design bought (Ch. 9 previews).</b> Every place stock can be now has a name, a value, and an owner; every routine flow lands right unattended; the logical rooms make rejection, transit, and subcontract states visible instead of anecdotal; and the modules ahead — movements, counting, valuation, the network — inherit a floor that can carry them. The constitution took one afternoon; the alternative is discovering it piecemeal through a year of tickets.</p>"
-   },
-   {
-    "title": "Chapter 9 — Common mistakes & the first law",
-    "est": "13",
-    "html": "<p>The architecture layer's scar tissue — the design mistakes that surface as everyone else's tickets for years. Symptom → disease → fix.</p><p><b>Pattern 1 — warehouse sprawl.</b> Symptom: forty warehouses for an eleven-person firm; nobody can say what half are for. Disease: places created per whim — a warehouse per shelf, per project, per mood (Ch. 2) — custody diluted until no balance is anyone's answer. Fix: the accountability test applied ruthlessly in a consolidation pass — stock moved by documented transfers into the custodies that are real, empty husks disabled; and creation rights narrowed so the tree grows by decision, not convenience.</p><p><b>Pattern 2 — the flat sixty.</b> Symptom: every leaf a direct child of the root; branch reporting assembled by hand each month. Disease: the tree grown without groups (Ch. 2) — structure never designed, only accumulated. Fix: groups introduced and leaves re-parented (structure is re-shapeable; this is the cheap fix in the family) to mirror how the firm actually asks its questions.</p><p><b>Pattern 3 — the room with no twin.</b> Symptom: a physical storeroom whose stock lives, in the books, inside a neighbouring warehouse; differences there are invisible by construction. Disease: custody without a leaf (Ch. 2, 5) — the map missing a territory. Fix: the leaf created, a counted opening moved in by document, defaults corrected — and its mirror twin hunted in the same pass: system warehouses with no physical meaning, absorbing misc postings as a valued junk drawer.</p><p><b>Pattern 4 — actual-only decisions.</b> Symptom: sales promised off the visible shelf while orders held it; purchases panicked while a delivery rode the road. Disease: the four numbers unread (Ch. 4) — decisions made on a quarter of the position. Fix: the bin literacy taught (projected as the deciding number), and the promise hygiene enforced upstream — the ghost and phantom sweeps this track now has standing to demand.</p><p><b>Pattern 5 — the unread logical rooms.</b> Symptom: quarantine holds eleven months of undecided stock; the transit room's balance never returns to zero. Disease: rooms built for visibility, then never read (Ch. 5) — the states visible to no one become states managed by no one. Fix: each room's balance-and-aging on a named calendar rhythm; a room the firm will not commit to reading is a room to fold back until it will.</p><p><b>Pattern 6 — the wrong-warehouse epidemic.</b> Symptom: recurring misposts between branches; counts at both keep surprising. Disease: defaults undesigned and permissions unbound (Ch. 7) — the dropdown offering the wrong leaf first to a user allowed to take it. Fix: the mispost corrected by movement, then the default rewired and the restriction applied — the ticket answered at the layer that generated it.</p><p><b>The first law.</b> Selling's laws began with masters; Procurement's began with the supply base; this track's begins with the map: <b>the warehouse tree is the map of custody — every place stock can be is named, valued, and owned, and stock lives only in named places.</b> Design the map from accountability, wire the defaults so documents walk it unattended, keep the logical rooms read, and the ledger beneath it all stays a book worth believing. Seven modules stand on this floor; module 2 starts moving stock across it.</p>"
+    "title": "Chapter 9 — Common errors and the module rule",
+    "est": "11",
+    "html": "<p>The errors that recur in warehouse architecture, each with its correction and prevention.</p><p><b>Error 1 — the person-shaped warehouse.</b> Symptom: stock handed to people without documents; \"with Emeka\" as a location; variances at every count. Correction: the informal holdings documented into real warehouses or issued properly. Prevention: the custody rule — a place with a keeper can be a warehouse; an undocumented handover cannot, and nothing moves on a conversation.</p><p><b>Error 2 — the geography tree.</b> Symptom: five-level trees mirroring shelves and aisles; every transaction a navigation exercise; reports that need six nodes to answer one branch. Correction: the tree flattened to the accountability units, stock transferred by document into the merged leaves, emptied leaves disabled. Prevention: the three-level rule and the three design tests before creation.</p><p><b>Error 3 — stock on group nodes and deleted warehouses.</b> Symptom: attempts to post to group nodes; warehouses deleted with history and reports breaking. Correction: reposting to leaves; deleted records restored per the incident lane. Prevention: Is Group honest from creation, and retirement by the Disabled flag at zero balance only — never deletion.</p><p><b>Error 4 — the mis-wired defaults.</b> Symptom: receipts landing in the wrong store; a till selling from another site's records; the global fallback collecting strays for months. Correction: the Item Defaults and profile warehouses fixed; misplaced stock moved by document. Prevention: the wiring convention written once, the item-creation checklist carrying the defaults row, the five-item pre-fill sample at go-live, and the monthly fallback read.</p><p><b>Error 5 — the edited balance.</b> Symptom: someone \"fixing\" a quantity outside the document flow; the balance disagreeing with its own ledger. Correction: the change reversed and re-entered as the document that explains it (the reconciliation or the missing movement). Prevention: the rule that the Bin is derived, never edited — a wrong figure is corrected by a document, and bin-versus-ledger disagreement is a sysadmin incident.</p><p><b>Error 6 — the custody list nobody keeps.</b> Symptom: warehouses without keepers; keepers who left months ago; counts nobody signs. Correction: the list rebuilt from the tree with current names. Prevention: the quarterly review and the lifecycle-event line — every transfer, promotion, or exit that touches a keeper updates the list the same day.</p><p><b>Review list.</b> Before the quiz, confirm you can: state what a warehouse is and what reads it; create a Warehouse record with the full field walk including the account resolution and the disable-at-zero rule; design a three-level tree through the three tests with a written naming convention; use the transit, quarantine, and subcontract warehouses and state what each enables; wire the default chain — row, header, Item Default, Stock Settings — with the monthly fallback read; read a Bin including projected quantity, and state why bins are never edited; and operate the custody list with the role separation and site scoping.</p><p><b>Module rule 1: a warehouse is a named accountability unit — designed into a shallow tree by written convention, stocked only at leaf level, wired into defaults once and verified, held by a named keeper, and changed only by document.</b> Module 2 covers the Stock Entry and the internal movements.</p>"
    }
   ],
   "questions": [
    {
-    "q": "The system's warehouse is fundamentally:",
+    "q": "A warehouse in the system is:",
     "opts": [
-     "An accountability unit — a named place with a distinct answer for what is here and who answers",
-     "A building",
-     "A shelf",
-     "A report"
+     "A named place stock can be — an accountability unit with a keeper and a balance",
+     "Always a building",
+     "A report",
+     "A shelf label"
     ],
     "ans": 0,
-    "why": "Custody, not architecture, is the test.",
+    "why": "One building commonly contains several.",
     "src": "Ch1"
    },
    {
-    "q": "Stock moves only into:",
+    "q": "The Warehouse record is read by:",
     "opts": [
-     "Group nodes",
-     "Leaf warehouses — groups aggregate for reading and hold nothing",
-     "Either freely",
-     "The root"
+     "Reports only",
+     "Every stock transaction, the Stock Ledger Entry, the Bin, the reports, and the accounting link",
+     "Payroll",
+     "The org chart"
     ],
     "ans": 1,
-    "why": "The refusal teaches the model.",
+    "why": "Everything stock touches names a warehouse.",
     "src": "Ch1"
    },
    {
-    "q": "Every stock fact in the system is:",
+    "q": "Stock sits:",
     "opts": [
-     "An item fact",
-     "A company total",
-     "An item-AT-warehouse fact — the two-dimensional grid",
+     "On group nodes",
+     "At the root",
+     "Only at leaf level — Is Group nodes organise and roll up but cannot hold stock",
+     "Anywhere"
+    ],
+    "ans": 2,
+    "why": "Plan the tree before stocking it.",
+    "src": "Ch2"
+   },
+   {
+    "q": "The warehouse Account field is:",
+    "opts": [
+     "Always set",
+     "The keeper's",
+     "Random",
+     "Set only where the chart's design wants warehouse-level value — otherwise the company default carries it, by recorded decision"
+    ],
+    "ans": 3,
+    "why": "A mixed pattern without a decision explains nothing.",
+    "src": "Ch2"
+   },
+   {
+    "q": "Warehouses are retired by:",
+    "opts": [
+     "The Disabled flag at zero stock — transfer out, verify the Bin at zero, disable",
+     "Deletion",
+     "Renaming",
+     "Archiving files"
+    ],
+    "ans": 0,
+    "why": "Ledger history references every warehouse.",
+    "src": "Ch2"
+   },
+   {
+    "q": "The company field matters because:",
+    "opts": [
+     "It prints",
+     "Warehouses are per company — each entity's stock lives in its own set",
+     "It sorts lists",
+     "It sets tax"
+    ],
+    "ans": 1,
+    "why": "The legal separation applies to stock.",
+    "src": "Ch2"
+   },
+   {
+    "q": "The custody question that drives the tree is:",
+    "opts": [
+     "How big is the room",
+     "What is it worth",
+     "Who answers for what is here — shared keeper and answer means one warehouse; two zones means two",
+     "How far apart"
+    ],
+    "ans": 2,
+    "why": "The design input.",
+    "src": "Ch3"
+   },
+   {
+    "q": "The level guidance is:",
+    "opts": [
+     "As deep as shelves",
+     "Seven",
+     "Two always",
+     "Three levels — root, site groups, leaves — not exceeded without a written reason"
+    ],
+    "ans": 3,
+    "why": "Every level adds a click to every lookup.",
+    "src": "Ch3"
+   },
+   {
+    "q": "Leaf names start with:",
+    "opts": [
+     "The site prefix — pickers sort by name and a mis-pick stays visible",
+     "The function",
+     "A number",
+     "The keeper"
+    ],
+    "ans": 0,
+    "why": "The convention's first rule.",
+    "src": "Ch3"
+   },
+   {
+    "q": "A building shared by two companies holds:",
+    "opts": [
+     "One warehouse set",
+     "Two — each company's stock in its own records, crossed only by inter-company documents",
+     "A joint warehouse",
+     "No records"
+    ],
+    "ans": 1,
+    "why": "Never an internal transfer across a legal boundary.",
+    "src": "Ch3"
+   },
+   {
+    "q": "The three design tests are:",
+    "opts": [
+     "Size, cost, distance",
+     "Name, type, account",
+     "Custody (one keeper per leaf), transactions (every movement has from and to), reports (owner questions answer in one node or filter)",
+     "None"
+    ],
+    "ans": 2,
+    "why": "Run on paper before creation.",
+    "src": "Ch3"
+   },
+   {
+    "q": "The transit warehouse makes:",
+    "opts": [
+     "Trucks faster",
+     "Counts harder",
+     "Transfers optional",
+     "Moving stock visible — in transit, on neither site's count, and readable as the in-motion report"
+    ],
+    "ans": 3,
+    "why": "Two-step transfers post through it.",
+    "src": "Ch4"
+   },
+   {
+    "q": "A transit balance older than the longest route is:",
+    "opts": [
+     "A shortfall or unreceived transfer surfacing — the standing read",
+     "Normal",
+     "Extra stock",
+     "A rounding issue"
+    ],
+    "ans": 0,
+    "why": "Module 2's read.",
+    "src": "Ch4"
+   },
+   {
+    "q": "The quarantine warehouse works because:",
+    "opts": [
+     "It has locks",
+     "Selling and fulfilment draw from trading warehouses — quarantined stock is simply not there to pick",
+     "Staff avoid it",
+     "It is hidden"
+    ],
+    "ans": 1,
+    "why": "The hold is visible and enforceable.",
+    "src": "Ch4"
+   },
+   {
+    "q": "Subcontract-warehouse stock is counted by:",
+    "opts": [
+     "Shelf count at the vendor",
+     "Never",
+     "Statement reconciliation with the vendor — it is the business's stock in the vendor's custody",
+     "Estimates"
+    ],
+    "ans": 2,
+    "why": "Vendor-held stock stays a visible balance.",
+    "src": "Ch4"
+   },
+   {
+    "q": "A customer's premises get a warehouse:",
+    "opts": [
+     "Per buyer",
+     "For big customers",
+     "Always",
+     "No — delivered goods left stock at the Delivery Note; approval and consignment follow their defined flows"
+    ],
+    "ans": 3,
+    "why": "The first non-case.",
+    "src": "Ch4"
+   },
+   {
+    "q": "The warehouse resolution order on a row is:",
+    "opts": [
+     "The row's own value, then the document header default, then the Item Default, then Stock Settings",
+     "Random",
+     "Stock Settings first",
+     "Alphabetical"
+    ],
+    "ans": 0,
+    "why": "The typed row always wins.",
+    "src": "Ch5"
+   },
+   {
+    "q": "The Item Defaults table carries:",
+    "opts": [
+     "One global row",
+     "One row per company with the Default Warehouse for the item",
+     "The price",
+     "The keeper"
+    ],
+    "ans": 1,
+    "why": "Wired per the item's home.",
+    "src": "Ch5"
+   },
+   {
+    "q": "The Rejected Warehouse on receipts is set to:",
+    "opts": [
+     "The main store",
+     "Transit",
+     "The quarantine warehouse — rejected lines post there automatically at the dock",
+     "Any leaf"
+    ],
+    "ans": 2,
+    "why": "The wiring that makes quarantine real at receiving.",
+    "src": "Ch5"
+   },
+   {
+    "q": "A posting that fell through to the global default is:",
+    "opts": [
+     "Fine",
+     "The keeper's fault",
+     "Deleted",
+     "A wiring gap — the monthly fallback read names the item; fix the Item Default and move the stock by document"
+    ],
+    "ans": 3,
+    "why": "The last resort of the chain collects strays.",
+    "src": "Ch5"
+   },
+   {
+    "q": "The pre-fill verification is:",
+    "opts": [
+     "Five items per site on draft rows — confirm the intended warehouse pre-fills; ten minutes at go-live",
+     "A year-long audit",
+     "Optional",
+     "Automatic"
+    ],
+    "ans": 0,
+    "why": "Repeated after any bulk import.",
+    "src": "Ch5"
+   },
+   {
+    "q": "Projected Qty is:",
+    "opts": [
+     "The shelf figure",
+     "Actual + ordered − reserved — the forward figure replenishment reads",
+     "Last month's balance",
      "A guess"
     ],
-    "ans": 2,
-    "why": "The grid is the mental model the whole track reads and writes.",
-    "src": "Ch1"
-   },
-   {
-    "q": "The shelf-vs-warehouse line asks:",
-    "opts": [
-     "Is it big enough",
-     "Is it refrigerated",
-     "Does it have a door",
-     "Would a stock difference here be a different PERSON'S problem"
-    ],
-    "ans": 3,
-    "why": "Yes: warehouse. No: location detail within one custody.",
-    "src": "Ch2"
-   },
-   {
-    "q": "Tree depth for most trading firms is:",
-    "opts": [
-     "Two or three levels — a deep tree is bureaucracy nobody navigates",
-     "Five levels minimum",
-     "One flat level",
-     "Unlimited"
-    ],
-    "ans": 0,
-    "why": "Err simple; groups re-shape more easily than leaves merge.",
-    "src": "Ch2"
-   },
-   {
-    "q": "The two symmetrical design diseases are:",
-    "opts": [
-     "Big and small warehouses",
-     "The physical room with no system twin, and the system leaf with no physical meaning",
-     "Groups and leaves",
-     "Old and new names"
-    ],
     "ans": 1,
-    "why": "A missing territory, and a valued junk drawer.",
-    "src": "Ch2, Ch9"
-   },
-   {
-    "q": "The warehouse design is complete only when:",
-    "opts": [
-     "The tree is drawn",
-     "Names are chosen",
-     "Every routine flow lands in the right leaf with zero human choices — defaults wired",
-     "The MD approves"
-    ],
-    "ans": 2,
-    "why": "Tree, then defaults, then watch week one.",
-    "src": "Ch2, Ch7"
-   },
-   {
-    "q": "The stock ledger is written by:",
-    "opts": [
-     "Administrators",
-     "Month-end journals",
-     "The storekeeper",
-     "Documents only — no screen edits it, no balance is pencilled"
-    ],
-    "ans": 3,
-    "why": "Testimony that can be rewritten proves nothing.",
-    "src": "Ch3"
-   },
-   {
-    "q": "Fixing a wrong balance means:",
-    "opts": [
-     "Appending the movement that makes history true — corrections append, never erase",
-     "Editing the number",
-     "Deleting the entry",
-     "Restarting the ledger"
-    ],
-    "ans": 0,
-    "why": "The balance is computed from history.",
-    "src": "Ch3"
-   },
-   {
-    "q": "Reading the ledger (vs the bin) is:",
-    "opts": [
-     "Redundant",
-     "The diagnostic superpower — any surprising balance decomposes into documents until the surprise has a name",
-     "Slower and worse",
-     "For auditors only"
-    ],
-    "ans": 1,
-    "why": "Ledger-readers resolve what screen-starers escalate.",
-    "src": "Ch3"
-   },
-   {
-    "q": "Backdating a movement:",
-    "opts": [
-     "Changes nothing",
-     "Is impossible",
-     "Rewrites every balance after it — sometimes legitimate, always consequential",
-     "Only affects reports"
-    ],
-    "ans": 2,
-    "why": "The gate disciplines were protecting the chronology.",
-    "src": "Ch3"
-   },
-   {
-    "q": "The four numbers of a bin are:",
-    "opts": [
-     "Cost, price, margin, tax",
-     "Min, max, avg, count",
-     "In, out, lost, found",
-     "Actual, reserved, incoming, projected"
-    ],
-    "ans": 3,
-    "why": "Projected = actual − reserved + incoming.",
-    "src": "Ch4"
-   },
-   {
-    "q": "Actual 500, reserved 480, projected 20 means:",
-    "opts": [
-     "The shelf looks full and the branch is nearly sold out — the system sees the promises",
-     "A full healthy shelf",
-     "A counting error",
-     "Time to buy"
-    ],
-    "ans": 0,
-    "why": "The picker sees boxes; the system is right.",
-    "src": "Ch4"
-   },
-   {
-    "q": "Actual 40, incoming 300 means:",
-    "opts": [
-     "Panic buy now",
-     "Thin shelf, healthy position — buying now duplicates the order already coming",
-     "A ledger fault",
-     "Dead stock"
-    ],
-    "ans": 1,
-    "why": "Actual-only decisions use a quarter of the information.",
-    "src": "Ch4"
-   },
-   {
-    "q": "Reserved and incoming are:",
-    "opts": [
-     "Typed by planners",
-     "Estimates",
-     "Computed from open documents — which is why the ghost and phantom sweeps are ledger hygiene",
-     "Month-end figures"
-    ],
-    "ans": 2,
-    "why": "The warehouse inherits every corruption of the promises.",
-    "src": "Ch4"
-   },
-   {
-    "q": "Firm-level stock plentiful while Ibadan holds none is:",
-    "opts": [
-     "A purchase problem",
-     "A pricing issue",
-     "Impossible",
-     "A transfer problem — read the cell for operations, the rollup for strategy"
-    ],
-    "ans": 3,
-    "why": "The grid's two readings answer different questions.",
-    "src": "Ch4"
-   },
-   {
-    "q": "A logical room is:",
-    "opts": [
-     "A leaf naming a custody state rather than a building — quarantine, transit, supplier-side, staging",
-     "A mistake",
-     "A group node",
-     "A report filter"
-    ],
-    "ans": 0,
-    "why": "The warehouse with no walls.",
-    "src": "Ch5"
-   },
-   {
-    "q": "In-transit stock aging beyond any truck journey means:",
-    "opts": [
-     "Normal delay",
-     "A truck that never arrived, a receipt never confirmed, or a leak",
-     "Faster trucks needed",
-     "Nothing"
-    ],
-    "ans": 1,
-    "why": "The transit room's aging is the network's diagnostic.",
-    "src": "Ch5"
-   },
-   {
-    "q": "Stock in quarantine or transit:",
-    "opts": [
-     "Has left the company",
-     "Is written off",
-     "Counts in the firm's value and belongs to someone's answerability — visible, not exiled",
-     "Is the supplier's"
-    ],
-    "ans": 2,
-    "why": "The rooms make states visible, not stock disappear.",
-    "src": "Ch5"
-   },
-   {
-    "q": "A logical room the firm will not read:",
-    "opts": [
-     "Still helps",
-     "Should multiply",
-     "Reads itself",
-     "Becomes the thing it was built to prevent — stock that is nobody's problem"
-    ],
-    "ans": 3,
-    "why": "Model the states the client lives, then read them.",
-    "src": "Ch5, Ch9"
-   },
-   {
-    "q": "The warehouse-wise stock value read shows:",
-    "opts": [
-     "Each custody's naira figure — Central ₦48m is somebody's answerability",
-     "Selling prices",
-     "Only totals",
-     "Budgets"
-    ],
-    "ans": 0,
-    "why": "The operational and accounting readings are the same numbers.",
+    "why": "Actual says now; projected says after commitments.",
     "src": "Ch6"
    },
    {
-    "q": "Framing documents-for-every-movement to storekeepers as:",
+    "q": "The Bin is maintained by:",
     "opts": [
-     "Surveillance",
-     "Their own protection — the documented custodian can PROVE their custody",
-     "Bureaucracy",
-     "Optional"
+     "Manual updates",
+     "The keeper",
+     "The system, from posted Stock Ledger Entries — derived, never edited",
+     "Monthly batches"
     ],
-    "ans": 1,
-    "why": "The framing that makes adoption stick.",
+    "ans": 2,
+    "why": "No lawful direct edit exists.",
     "src": "Ch6"
    },
    {
-    "q": "₦600k aging in quarantine is:",
+    "q": "A wrong Bin quantity is corrected by:",
     "opts": [
-     "Free storage",
-     "Profit",
-     "A decision backlog with interest — the money reading of the logical room",
-     "The supplier's problem"
-    ],
-    "ans": 2,
-    "why": "Value concentrates attention.",
-    "src": "Ch6"
-   },
-   {
-    "q": "The firm that discovers shrinkage annually:",
-    "opts": [
-     "Manages it",
-     "Is normal",
-     "Has none",
-     "Budgets by superstition — counts and trends turn it into a managed number"
-    ],
-    "ans": 3,
-    "why": "The gap has a value and a family of causes.",
-    "src": "Ch6"
-   },
-   {
-    "q": "Warehouse selection on documents should be:",
-    "opts": [
-     "Resolved by the default chain — item defaults, document defaults, row override for exceptions",
-     "A human choosing at speed",
-     "Random",
-     "Always Central"
-    ],
-    "ans": 0,
-    "why": "The human at speed picks the top of the dropdown.",
-    "src": "Ch7"
-   },
-   {
-    "q": "Each default is:",
-    "opts": [
-     "A technical detail",
-     "A sentence of policy — read back to the client, because an unchosen default is an accidental policy",
-     "Invisible",
-     "Permanent"
-    ],
-    "ans": 1,
-    "why": "We receive centrally; branches sell their own stock.",
-    "src": "Ch7"
-   },
-   {
-    "q": "A wrong-warehouse posting is corrected by:",
-    "opts": [
-     "Editing the entry",
-     "Deleting the document",
-     "A MOVEMENT putting stock where it physically is — then fixing the default that made it easy",
-     "A recount alone"
-    ],
-    "ans": 2,
-    "why": "The append-only law, and the fix at the generating layer.",
-    "src": "Ch7"
-   },
-   {
-    "q": "Defaults vs restrictions:",
-    "opts": [
-     "Are the same",
-     "Are optional",
-     "Are alternatives",
-     "Defaults make the right choice easy; restrictions make the wrong choice impossible — mature setups use both"
-    ],
-    "ans": 3,
-    "why": "The Ikeja cashier has no honest reason to move Abeokuta's stock.",
-    "src": "Ch7"
-   },
-   {
-    "q": "In the design session, the fridge inside Central became:",
-    "opts": [
-     "Location detail — same custodian, so not a warehouse; the consumables corner earned a room",
-     "Its own warehouse",
-     "A group",
-     "Quarantine"
-    ],
-    "ans": 0,
-    "why": "The line held twice, both directions.",
-    "src": "Ch8"
-   },
-   {
-    "q": "Returns staging was folded into quarantine because:",
-    "opts": [
-     "Returns are rare forever",
-     "The volume does not yet earn a room — decided, written down, with its revisit trigger",
-     "Staging is wrong",
-     "The MD said so"
-    ],
-    "ans": 1,
-    "why": "Proportionality, documented.",
-    "src": "Ch8"
-   },
-   {
-    "q": "The storekeeper's 'but the shelf shows 96' became:",
-    "opts": [
-     "An argument",
-     "A recount",
-     "The four-numbers lesson live — actual 96, reserved 40, incoming 60, projected 116",
-     "A ticket"
-    ],
-    "ans": 2,
-    "why": "The bin read is the literacy.",
-    "src": "Ch8"
-   },
-   {
-    "q": "The setup-week mispost was resolved by:",
-    "opts": [
-     "Editing the receipt",
-     "A write-off",
+     "Editing the Bin",
      "Ignoring it",
-     "Ledger diagnosis, correction by transfer, and tightening the default that allowed it"
+     "A phone call",
+     "The document that explains it — a Stock Reconciliation after a count, or the missing movement entered"
     ],
     "ans": 3,
-    "why": "The full response pattern, demonstrated.",
+    "why": "The balance must agree with its own ledger.",
+    "src": "Ch6"
+   },
+   {
+    "q": "A negative Actual Qty means:",
+    "opts": [
+     "More left than arrived in the records — a missing movement or an undocumented taking",
+     "A discount",
+     "Extra stock",
+     "A system feature"
+    ],
+    "ans": 0,
+    "why": "The recommended posture refuses the posting.",
+    "src": "Ch6"
+   },
+   {
+    "q": "Stale reservations matter because:",
+    "opts": [
+     "They look untidy",
+     "They distort projected quantities and block replenishment arithmetic — closed by their documents monthly",
+     "They cost storage",
+     "They expire alone"
+    ],
+    "ans": 1,
+    "why": "Order hygiene read from the stock side.",
+    "src": "Ch6"
+   },
+   {
+    "q": "The custody list carries per leaf:",
+    "opts": [
+     "The account",
+     "The address",
+     "The named keeper, the deputy, and the count cadence",
+     "The value"
+    ],
+    "ans": 2,
+    "why": "Reviewed quarterly and at staffing changes.",
+    "src": "Ch7"
+   },
+   {
+    "q": "The count-adjustment power sits with:",
+    "opts": [
+     "Every user",
+     "The till",
+     "The keeper",
+     "Stock Manager — a reconciliation moves value with one document"
+    ],
+    "ans": 3,
+    "why": "The elevated set.",
+    "src": "Ch7"
+   },
+   {
+    "q": "The keeper-adjustment separation means:",
+    "opts": [
+     "The keeper of a warehouse does not approve their own adjustments — no one both holds stock and rewrites its record",
+     "Keepers never count",
+     "Managers count alone",
+     "No adjustments"
+    ],
+    "ans": 0,
+    "why": "Counts follow module 4's entry rules.",
+    "src": "Ch7"
+   },
+   {
+    "q": "Branch storekeepers are confined to their site by:",
+    "opts": [
+     "Trust",
+     "User permissions on the Warehouse doctype — recorded in the matrix and recertified quarterly",
+     "Distance",
+     "Passwords"
+    ],
+    "ans": 1,
+    "why": "The sysadmin procedure applied to stock.",
+    "src": "Ch7"
+   },
+   {
+    "q": "Custody changes by:",
+    "opts": [
+     "Conversation",
+     "Seniority",
+     "Document only — receipt in, transfer between, delivery or reasoned issue out",
+     "Habit"
+    ],
+    "ans": 2,
+    "why": "The ninety-second document versus the day-long investigation.",
+    "src": "Ch7"
+   },
+   {
+    "q": "HealthTrade's dispatch bay is a leaf because:",
+    "opts": [
+     "It is large",
+     "The MD said so",
+     "Trucks park there",
+     "Loaded goods awaiting the truck need their own answer, separate from the main store's count"
+    ],
+    "ans": 3,
+    "why": "Step 2's deliberate design.",
     "src": "Ch8"
    },
    {
-    "q": "Warehouse sprawl is fixed by:",
+    "q": "HealthTrade's replenishment policy is:",
     "opts": [
-     "The accountability test, a documented consolidation pass, and narrowed creation rights",
-     "More warehouses",
-     "Renaming",
-     "A bigger tree"
+     "Branches replenish by transfer only — from Central through transit, never by direct branch purchasing outside the lanes",
+     "Branches buy locally",
+     "Weekly cash buys",
+     "Vendor drop-ship"
     ],
     "ans": 0,
-    "why": "The tree grows by decision, not convenience.",
-    "src": "Ch9"
+    "why": "Written into the procedures.",
+    "src": "Ch8"
    },
    {
-    "q": "The cheap fix in the disease family is:",
+    "q": "The pre-fill sample at HealthTrade found:",
     "opts": [
-     "Merging leaves",
-     "Re-parenting with groups — structure re-shapes far more easily than custodies merge",
-     "Starting over",
-     "None exists"
+     "Nothing",
+     "One cold-chain item defaulting to the main store — corrected before go-live rather than by July's count",
+     "Ten misses",
+     "A broken tree"
     ],
     "ans": 1,
-    "why": "Which is why erring simple at design is safe.",
-    "src": "Ch9"
+    "why": "Step 3.",
+    "src": "Ch8"
    },
    {
-    "q": "This module's law is:",
+    "q": "Module 1's rule is:",
     "opts": [
      "Warehouses are buildings",
-     "Fewer warehouses always",
-     "The warehouse tree is the map of custody — every place stock can be is named, valued, and owned",
-     "Stock lives anywhere"
+     "Trees should be deep",
+     "A warehouse is a named accountability unit — shallow tree by convention, stock at leaf level, defaults wired and verified, a named keeper, changed only by document",
+     "Bins are editable"
     ],
     "ans": 2,
-    "why": "Stock lives only in named places; seven modules stand on this floor.",
+    "why": "The module rule.",
     "src": "Ch9"
    }
   ]
  },
  "stock_entries": {
   "title": "Inventory 2 — Stock Entries & Internal Movements",
-  "desc": "The internal movement family: the Stock Entry's purposes, the boundary law against trading through it, consumption issues and governed write-offs, honest valuation on receipts, one-step and two-step transfers with the in-transit disciplines, and repacking with yield honesty.",
+  "desc": "The Stock Entry and internal movements in ZhiftERP: the purpose walk — Material Transfer, Material Issue, Material Receipt, Repack, Send to Subcontractor; the full field walk including named Stock Entry Types, the rate rules per purpose, and the Difference Account; the issue and receipt lanes with their lawful cases, evidence, and approval ladder; one-step and two-step transfers through the transit warehouse with the shortfall procedure and the transit reads; Repack from the conversion register with the value-conservation rule; the subcontract despatch and vendor stock reconciliation; and the posting discipline — honest dates, backdating controls, the correction lane, and the monthly reads.",
   "lessons": [
    {
-    "title": "Chapter 1 — The Stock Entry & its purposes",
+    "title": "Chapter 1 — The Stock Entry: scope and purposes",
+    "est": "11",
+    "html": "<p>This module covers the Stock Entry — the document for every internal stock movement in ZhiftERP. On completing this module you will be able to: create a Stock Entry with its full field set; use each purpose correctly; run one-step and two-step transfers with the transit warehouse; operate the issue and receipt lanes with their reason and approval discipline; run repack conversions; move materials to subcontractors; and apply the posting rules that keep the movement record honest.</p><p><b>Where the Stock Entry sits.</b> Stock crosses the business boundary on other documents — in by Purchase Receipt, out by Delivery Note (the Procurement and Selling tracks). Everything that moves <b>inside</b> the boundary, plus the documented exceptions at the boundary, is a Stock Entry. One doctype, several purposes; the purpose field decides what the entry does to quantity and value.</p><p><b>The purposes, in one table.</b></p><p>1. <b>Material Transfer</b> — stock moves between warehouses; total quantity unchanged, value travels with the stock (Chapter 4).<br>2. <b>Material Issue</b> — stock leaves the register without a sale: consumption, damage, write-off, samples; quantity down, value posts to the expense account the entry names (Chapter 3).<br>3. <b>Material Receipt</b> — stock enters without a purchase: the documented found-stock and non-purchase cases; quantity up, value posts against the account named (Chapter 3).<br>4. <b>Repack</b> — one form of stock becomes another: cartons consumed, retail units produced; total value conserved plus any added costs (Chapter 5).<br>5. <b>Send to Subcontractor</b> — materials move to the vendor-custody warehouse for outside processing (Chapter 6).<br>6. <b>Material Transfer for Manufacture / Manufacture</b> — the production flow's legs, used where the business runs work orders; the same mechanics with the production documents driving them.</p><p><b>Custody, restated for movements.</b> Every entry has two sides or a reason: a transfer is released by one keeper and accepted by another; an issue or receipt is a boundary exception carrying its reason and its approval. The operator's rule from module 1 governs every chapter here: <b>nothing moves without its document, and the document states what actually happened, on the date it happened.</b></p><p><b>Module contents.</b> Chapter 2: the Stock Entry field walk. Chapter 3: Material Issue and Material Receipt. Chapter 4: Material Transfer and the transit legs. Chapter 5: Repack. Chapter 6: Send to Subcontractor. Chapter 7: the posting discipline. Chapter 8: worked example. Chapter 9: review and the module rule.</p>"
+   },
+   {
+    "title": "Chapter 2 — The Stock Entry field walk",
+    "est": "12",
+    "html": "<p>Open Stock Entry (awesome bar) &gt; New. Complete the fields in order.</p><p><b>1. Stock Entry Type / Purpose.</b> Select the purpose first — it reshapes the form: which warehouses are required, whether accounts are asked for, how value behaves. The Stock Entry Type master maps named types onto the purposes; where the business has created named types (Damage Write-Off, Branch Replenishment) select the specific one, because the type prints on the document and filters the reports.</p><p><b>2. Posting Date and Posting Time.</b> The date and time the movement actually happened. The honest-date rule: today's entry for yesterday's confirmed movement carries yesterday's date (Chapter 7 covers backdating's controls); an entry never carries a date chosen to land in a different period.</p><p><b>3. Source and Target Warehouse (header).</b> The header values pre-fill every row:</p><p>• Transfers: both — from and to.<br>• Issues: source only. Receipts: target only.<br>• Rows can override the header where one entry genuinely moves lines between different pairs; prefer one entry per pair for readability.</p><p><b>4. The Items table.</b> One row per item moved:</p><p>• <b>Item Code</b> and <b>Qty</b> in the stock unit (or the entered unit with its conversion — module 3's UoM rules apply).<br>• <b>Basic Rate</b> — on transfers and issues the system values the outgoing stock at the ledger's valuation rate (do not type over it; module 5 explains the rate); on receipts the rate must be entered, and it is a valuation event: the figure comes from the document that justifies it, not from memory.<br>• <b>Serial / Batch</b> — items under serial or batch control require the numbers on every movement (module 3); the row will not submit without them.<br>• <b>Source/Target per row</b> — visible when overriding the header.</p><p><b>5. The accounting fields.</b> On issues and receipts, the <b>Difference Account</b> (per row or header per the configuration): the expense or income account the non-stock side posts to — damage to its damage/write-off account, consumption to its consumption account, per the chart the accountant governs. The account is part of the reason: an issue whose account says \"Miscellaneous\" has not stated what happened.</p><p><b>6. Cost Center / Project.</b> Where the site addresses stock consumption to branches or projects, the dimension fields carry it — the Accounts track's addressing rules, applied to stock expense.</p><p><b>7. Attachments and remarks.</b> The evidence per the lane's rule: the damage photo and supervisor's note on a write-off, the count slip on a documented receipt, the requisition on a consumption issue. Chapter 3 sets what each lane requires.</p><p><b>8. Save, review, submit.</b> Entries are submittable documents: draft for review, submit to post. Submission writes the Stock Ledger Entries and the accounting postings; corrections after submission follow document rules — cancel/amend with the cause noted, never a compensating entry that hides the first one (Chapter 7).</p>"
+   },
+   {
+    "title": "Chapter 3 — Material Issue and Material Receipt",
+    "est": "12",
+    "html": "<p>The boundary exceptions: stock leaving without a sale, entering without a purchase. Both lanes run on reason, account, evidence, and approval.</p><p><b>1. Material Issue — the lawful cases.</b> Each case with its account and evidence, per the written stock policy:</p><p>1. <b>Damage and expiry</b> — goods unfit for sale: issued to the damage/write-off account, with the evidence the policy names (the photo, the expiry list, the supervisor's confirmation). Pharmaceutical expiries in particular follow the disposal regulations the compliance owner holds; the issue documents the stock side and references the disposal record.<br>2. <b>Internal consumption</b> — goods the business uses (cleaning materials, own-use items): issued to the consumption expense account against the requesting unit's cost center.<br>3. <b>Samples and marketing</b> — per the policy's line, to its account, with the recipient recorded.<br>4. <b>Write-off after count investigation</b> — module 4's lane: a confirmed loss the investigation could not recover, approved per the threshold ladder, to the shrinkage account.</p><p><b>The issue controls:</b> every issue carries its reason (the named Stock Entry Type plus remarks), its correct account, its evidence attached, and its approval per the policy's threshold ladder (the keeper requests, the stock manager or owner approves by value band — the same decision/execution split as everywhere in the programme). The monthly issues read (Chapter 7) lists the month's issues by type, account, and value to the owner — write-offs are decided expenses, and the read is how they stay decided.</p><p><b>2. Material Receipt — the narrow lane.</b> Receipts without purchases are rare by design; the lawful cases:</p><p>1. <b>Found stock at count</b> — goods physically present that the records never held, where investigation confirms no missing document explains them: received at the count's direction with the count sheet attached (module 4's lane — the reconciliation usually carries this; the receipt is the alternative where the policy prefers it for named cases).<br>2. <b>Returns of issued goods</b> — materials issued for consumption and returned unused, received back against the original issue's reference.<br>3. <b>Opening exceptions</b> — implementation-era cases under the go-live procedure, not a standing lane.</p><p><b>What Material Receipt is never used for:</b> supplier deliveries (that is the Purchase Receipt, with the order, the supplier, and the three-way match the Procurement track runs — a Material Receipt for bought goods bypasses every purchasing control and mis-values the stock), and count adjustments where the Stock Reconciliation is the proper instrument.</p><p><b>3. The rate on receipts.</b> A Material Receipt is a valuation event: the entered Basic Rate becomes ledger value. The rate comes from a document — the original issue for returns, the current valuation for found stock per the count procedure, the accountant's ruling for anything unusual. A receipt rated from memory plants a valuation error that module 5's reads will eventually excavate at many times the cost of checking now.</p>"
+   },
+   {
+    "title": "Chapter 4 — Material Transfer and the transit legs",
     "est": "13",
-    "html": "<p>Module 1 built the map; this module moves stock across it. The instrument is the <b>Stock Entry</b> — the document family for movements that have <b>no commercial counterparty</b>: nothing is being bought or sold; stock is simply appearing, disappearing, or changing rooms inside your own custody. One doctype, several <b>purposes</b>, and the purpose — exactly as it was on the Material Request — decides the machinery.</p><ul><li><b>Material Receipt</b> — stock IN with no supplier transaction behind it: the genuine appearance (found stock surfacing at a count's edge, promotional goods arriving free, and — carefully policed — certain opening flows). Because value enters with quantity, the receipt DEMANDS a valuation rate: Chapter 4 owns the discipline.</li><li><b>Material Issue</b> — stock OUT with no customer: internal consumption (the cleaning supplies, the spare parts), and value leaving deliberately (the write-off of expired or damaged goods). The out-going value lands somewhere in the books, which makes every issue an expense event wearing warehouse clothes: Chapter 3.</li><li><b>Material Transfer</b> — stock BETWEEN two of your own leaves: same total, different rooms, custody handed over. One-step for the trivial case (Chapter 5), two-step through the transit room for real distance (Chapter 6).</li><li><b>Repack</b> — stock TRANSFORMED: consume these items, produce those, value flowing from inputs to outputs — the bulk carton becoming retail strips without a subcontractor (Chapter 7).</li></ul><p><b>The shared anatomy.</b> Whatever the purpose: a posting date and time (the chronology law from module 1 — this document writes the ledger, so its date is testimony); rows of item, quantity, UOM with its conversion (the arithmetic never rests); source warehouse, target warehouse, or both, per the purpose's shape; and the <b>reason</b> — the remark or reference that answers, years later, WHY this movement happened. A trading document's why is its counterparty and its chain; a stock entry's why is a sentence a human wrote, which is precisely why Chapter 2's boundary matters and why an unexplained stock entry is this track's version of an unsigned cheque.</p><p><b>Submission's weight.</b> A submitted stock entry writes the ledger — ins, outs, valuation effects — with everything module 1 taught about that act: irreversible in the ordinary course, correctable only by appended counter-movements, and evidence forever. Draft, check the purpose, the rooms, the quantities, the rate where one is demanded, and the reason; then submit. The whole module is the elaboration of that checklist.</p>"
+    "html": "<p>The transfer moves stock between custodies. This chapter covers the one-step form, the two-step form through transit, and the reads that keep transfers whole.</p><p><b>1. The one-step transfer.</b> For moves within one site (main store to dispatch bay, store to cold room): one Stock Entry, purpose Material Transfer, source and target set, rows entered, submitted. The stock changes custody at submission; the sending and receiving keepers are the same site's team, and the document's two sides are the entry and the physical handover it records. Use one-step only where both keepers can verify the same physical event — which is what \"same site\" means operationally.</p><p><b>2. The two-step transfer through transit.</b> For moves between sites, the movement takes time, and the record must be honest about the interval:</p><p><b>Leg 1 — despatch (Add to Transit).</b> The sending site creates the transfer entry with <b>Add to Transit</b> set: source the sending warehouse, target the <b>transit warehouse</b> (module 1, Chapter 4). Submitted when the goods physically load: the sender's custody ends, the stock sits in transit, the despatch documents travel with the goods.</p><p><b>Leg 2 — receipt (End Transit).</b> The receiving site creates the receiving entry against the despatch entry (the outgoing entry referenced, rows pulled from it): source the transit warehouse, target the receiving warehouse. The receiver <b>counts the physical goods against the despatch rows</b> and enters what actually arrived, then submits: the stock lands in the receiver's custody.</p><p><b>3. The shortfall procedure.</b> When the receiver's count disagrees with the despatch (the carton that did not arrive):</p><p>1. The receiving entry records <b>what arrived</b> — never what the paper says should have. The difference remains in the transit warehouse as a visible balance.<br>2. The shortfall is reported the same day: despatch reference, item, quantity, to the stock manager.<br>3. The investigation runs (the loading record, the vehicle, the despatch count); the outcome closes the transit balance by its honest document — the late carton received when found, or the confirmed loss issued from transit to the shrinkage lane per Chapter 3's approval ladder, with the incident noted.<br>4. Nothing is \"received complete and sorted out later\": a receipt that pretends completeness moves the loss into the receiving warehouse's count, where it surfaces months later as the receiver's unexplained variance.</p><p><b>4. The transit reads.</b></p><p>1. <b>Weekly:</b> the Stock Balance report at the transit warehouse — every line is stock in motion; every line older than the longest route is a leg-2 entry someone has not made or a shortfall someone has not reported. Both are chased by despatch reference.<br>2. <b>Monthly (with the close):</b> transit ages to zero exceptions or each exception carries its open investigation — the month does not close over silent transit balances.</p><p><b>5. Transfer hygiene rules.</b> One despatch entry per vehicle-load per destination (the receiving count matches one physical event); serial and batch numbers travel on the rows (module 3 — the receiver confirms identity, not just quantity); the despatch entry submits when the goods load, not when the paperwork is convenient.</p>"
    },
    {
-    "title": "Chapter 2 — The boundary law: what stock entries are NOT for",
-    "est": "14",
-    "html": "<p>Before the legitimate uses, the conviction that protects them — because the Stock Entry is the most abusable document in the system, and the abuse is always the same one.</p><p><b>The law: trading movements never travel by stock entry.</b> Goods bought arrive by Purchase Receipt against a Purchase Order; goods sold leave by Delivery Note against a Sales Order; returns travel by their return documents. The Stock Entry is for movements with <b>no counterparty</b> — and the moment there is a supplier or a customer on the other side of the goods, using a stock entry amputates everything both trading tracks built:</p><ul><li><b>Receive a purchase as Material Receipt</b> and: no PO fulfilment counts down, the three-way match loses its possession leg (the invoice will match nothing — Procurement 7's control disarmed at birth), the supplier's delivery performance vanishes from the record, landed cost has no receipt to attach to, and the valuation rate is whatever a human typed instead of the committed rate travelling. One shortcut, five amputations.</li><li><b>Ship a sale as Material Issue</b> and: no order fulfilment moves, no invoice chain exists, the customer's ledger never learns, serial and batch outbound custody breaks, and the revenue the goods represent has left the building as an EXPENSE. This is not a workaround; it is the shape unrecorded sales take.</li></ul><p><b>Why the abuse happens — and the honest answers.</b> The stock entry is FAST: no master needed, no chain, no match — which is exactly the problem, and exactly why it tempts at the busy moments. The situations that drive it, each with its lawful answer: <i>the supplier isn't set up yet</i> — set them up (Procurement 1's gate exists for this, and the emergency onboarding is an hour, not a week); <i>we just need the stock in the system NOW</i> — the emergency PO-and-receipt is minutes, and it keeps the chain (Procurement 6's unordered-truck doctrine: even urgency gets a document); <i>it's a tiny cash purchase</i> — the policy's exempted tail exists, written, and even the tail buys through a minimal purchase flow, not a warehouse side door.</p><p><b>The consultant's detection kit.</b> The abuse announces itself in the ledger: Material Receipts with valuation rates suspiciously like supplier prices, Material Issues tracking suspiciously with sales patterns, stock entries clustering at month-end or at one user. The standing audit — stock entries reviewed monthly by purpose, value, and author (Chapter 9 makes it a calendar item) — is cheap; the archaeology after a year of side-door trading is not: unmatched invoices, unmeasurable suppliers, valuation built on typed guesses, and a stock asset the auditor rightly distrusts.</p><p><b>The law's positive face.</b> Held properly, the boundary makes BOTH families trustworthy: every trading movement carries its chain (matchable, measurable, valued by its documents), and every stock entry means what it says — a genuinely internal event, explained by its reason. A ledger where the two never blur is a ledger where every line's ancestry is knowable from its document type alone — which is the property every diagnosis in this track leans on.</p>"
+    "title": "Chapter 5 — Repack",
+    "est": "12",
+    "html": "<p>Repack converts stock from one form to another: cartons into retail strips, bulk into bottles, an assembled bundle from components. One entry, consumed rows and produced rows, value conserved.</p><p><b>1. The Repack entry.</b> Open Stock Entry &gt; purpose <b>Repack</b>:</p><p>1. <b>The consumed rows</b> — the items being broken down or combined: item, quantity, source warehouse. Valued by the ledger at their valuation rate, like any outgoing movement.<br>2. <b>The produced rows</b> — the items created: item, quantity, target warehouse, and the produced items marked as the entry's output per the form's flags.<br>3. <b>The value rule</b> — the produced stock's total value equals the consumed stock's total value plus any additional costs entered (below). The system distributes the value across the produced rows; where one repack produces multiple items, the distribution basis is set on the rows per the configuration, decided once with the accountant for each standing conversion.</p><p><b>2. Additional costs.</b> The Additional Costs table carries genuine conversion costs where the business books them into the produced stock — the outside repacker's fee (Chapter 6's flow), materials consumed that are not stock rows. Each cost row names its account; the accountant rules which conversions carry costs and which absorb them as period expense. Do not use additional costs to \"round\" produced values to a preferred figure — the value rule is conservation, not target-setting.</p><p><b>3. The conversion register.</b> Every standing conversion (PARA-500: 1 carton → 48 retail strips) is a written line: the consumed and produced items, the ratio, the batch handling (module 3 — the produced strips carry the source batch's identity per the batch procedure), and the distribution basis where multiple outputs. Repacks are entered from the register's ratios; a repack whose ratio disagrees with the register is a stopped entry and a question, because ratio drift is either a register update (the supplier changed the carton) or a leak (strips leaving between the carton and the shelf), and only the register makes the difference visible.</p><p><b>4. When Repack is not the instrument.</b></p><p>1. <b>Damaged part of a carton</b> — repack the good units per the ratio; issue the damaged units through Chapter 3's damage lane with its evidence. One event, two documents, each stating its truth.<br>2. <b>Manufacture with a bill of materials</b> — where the business runs real production (work orders, BOMs, operations), the manufacturing documents carry it; Repack is the light conversion without a work order, and the boundary between them is the business's process decision, recorded.<br>3. <b>Unit-of-measure display</b> — selling by strip from carton-stocked inventory may be a UoM conversion on the item (module 3), not a physical repack; use Repack when the physical form actually changes and the pieces need their own stock identity.</p><p><b>5. The repack read.</b> Monthly: the month's repacks against the register — ratios matching, additional costs per the rulings, produced batches carrying their sources. Five minutes that keeps the conversion layer honest between counts.</p>"
    },
    {
-    "title": "Chapter 3 — Material Issue: consumption & the write-off",
+    "title": "Chapter 6 — Send to Subcontractor",
+    "est": "12",
+    "html": "<p>Materials processed by an outside vendor remain the business's stock. This chapter covers the movement, the custody, and the reconciliation.</p><p><b>1. The flow's shape.</b> The Procurement track owns the commercial side: the subcontracting purchase order for the service, the vendor terms, the receipt of finished goods. This module owns the stock side: the materials leaving for the vendor, sitting in vendor custody, and being consumed into what comes back.</p><p><b>2. The despatch.</b> Stock Entry, purpose <b>Send to Subcontractor</b> (created from or referencing the subcontracting order per the flow): source the business's store, target the <b>subcontract warehouse</b> (module 1, Chapter 4 — per vendor or shared, per the recorded design). Rows carry the materials with their batches; the entry submits when the goods physically leave, with the delivery documentation attached. The subcontract warehouse balance is, from this moment, the standing answer to \"what of ours does the vendor hold\".</p><p><b>3. The consumption.</b> When finished goods return, the receiving flow (the Procurement track's subcontracted Purchase Receipt) consumes the sent materials from the subcontract warehouse per the order's bill of materials and lands the finished items in the business's store — the vendor's custody balance falls by what the production used. Where the site's flow uses explicit consumption entries, they post the same movement; either way the mechanics are the receipt's, and the stock operator's job is the verification below.</p><p><b>4. The vendor stock reconciliation.</b> Monthly, per vendor with a subcontract balance:</p><p>1. The subcontract warehouse balance per item, from the Stock Balance report.<br>2. The vendor's statement of materials held, requested on the same date.<br>3. The two compared line by line; differences investigated to their documents — a despatch the vendor has not booked, a consumption the business has not received, wastage beyond the agreed allowance.<br>4. Wastage per the agreement is issued from the subcontract warehouse through Chapter 3's lane to its account (the agreed allowance is a term of the order, and consumption beyond it is a charge-back conversation the Procurement track owns — the stock records give that conversation its figures).</p><p><b>5. The subcontract reads.</b> The monthly reconciliation above, plus the aging read: subcontract balances against the order's turnaround terms — materials at a vendor beyond the agreed cycle are the stock function's flag to the procurement owner. Vendor-held stock is the easiest stock in the business to stop watching, which is exactly why its warehouse, its reconciliation, and its aging read exist as standing structure rather than as memory.</p>"
+   },
+   {
+    "title": "Chapter 7 — The posting discipline",
+    "est": "12",
+    "html": "<p>The rules that keep the movement record trustworthy, gathered.</p><p><b>1. The honest date.</b> Posting Date and Time state when the movement physically happened. Consequences:</p><p>1. Same-day entry is the standard: the despatch entered when the truck loads, the issue when the damage is confirmed. The gap between event and entry is where records and reality drift.<br>2. <b>Backdating is the controlled exception:</b> yesterday's confirmed movement entered today carries yesterday's date, by a user whose role permits backdated posting (the site's backdating controls per the sysadmin configuration), with the reason in remarks. Backdating into a <b>closed period</b> is refused by the close controls (the Accounts track's period rules); the movement that surfaces after close posts on the first open date with its remarks stating the physical date — the records honest about both facts.<br>3. Every backdated posting triggers revaluation downstream (module 5's repost mechanics — a movement inserted into history changes the valuation of everything after it), which is the technical reason backdating is a permissioned lane and not a habit.</p><p><b>2. The correction lane.</b> A wrong submitted entry is corrected by cancel/amend with the cause noted, or by the explicit reversing entry that names what it reverses — never by a quiet compensating entry that leaves two wrong documents pretending to be right. The document trail must read as what happened: the error, its correction, the cause.</p><p><b>3. The draft-review rule.</b> Entries above the value threshold the policy sets (and every reconciliation-adjacent entry) are reviewed in draft by a second person before submission — the same preparer/reviewer separation the programme applies to every value-moving document. The keeper prepares; the stock manager reviews the rows against the evidence; submission follows.</p><p><b>4. The standing reads, by cadence.</b></p><p>1. <b>Weekly:</b> the transit age read (Chapter 4).<br>2. <b>Monthly, with the close:</b> the issues read — the month's Material Issues by type, account, and value, to the owner (write-offs and consumption as decided figures); the receipts read — every Material Receipt with its lawful case named (the narrow lane audited by listing); the repack read (Chapter 5); the subcontract reconciliation and aging (Chapter 6); the backdated-postings list — every backdated entry with its reason, because a backdating pattern is a process gap at its source (the site that always enters Monday's movements on Wednesday needs its procedure fixed, not its permissions widened).<br>3. <b>Quarterly:</b> the Stock Entry Type census — entries by named type; a growing \"other\" or misused type means the type set no longer matches the business's real movements.</p><p><b>5. The evidence rule, closed.</b> Each lane's required evidence (Chapter 3's table, the despatch documents, the count slips) attaches to the entry itself. The entry with its attachments is the movement's one-lookup answer — to the count investigation, the auditor's sample, and the question asked a year later — and the module's standing standard is that every movement answers from its document.</p>"
+   },
+   {
+    "title": "Chapter 8 — Worked example: a month of movements at HealthTrade",
     "est": "13",
-    "html": "<p>Stock leaves without a customer for two honest reasons — it was USED, or it must be DESTROYED — and the Material Issue serves both, with different governance for each.</p><p><b>Consumption — the routine issue.</b> The cleaning supplies to the floor, the stationery to admin, the spare part to the generator: stock consumed by the firm's own operation. The mechanics: issue FROM the custody that holds it (the Facilities store module 1 gave a room to), quantities in honest UOMs, and the value landing in the right expense context — because an issue is stock value becoming expense, and WHERE it lands (the expense attribution the accountant configures) is what makes consumption visible by department and category instead of dissolving into one anonymous bucket. The operating rhythm: issues recorded AT consumption (the weekly batch that fictionalises Tuesday's usage into Friday's entry is the posting-date disease again), and the consumables reorder loop closing through the same planning fields as everything else — the Facilities store has bins too.</p><p><b>The write-off — value leaving with a signature.</b> Expired stock after the disposal decision, damage beyond negotiation, the quarantine lot whose fate (Procurement 6's fork) resolved to destruction: the Material Issue writes it out of stock and into the write-off's expense home. The governance is proportional to the fact that this is <b>company value being destroyed on someone's say-so</b>: a reason on the document always (the expiry batch numbers, the damage description, the reference to the quarantine decision); an approval line by value (the storekeeper alone does not write off ₦2m — thresholds, like every gate number in these tracks, written); physical destruction actually performed and, for regulated goods, performed per the compliance requirements (pharma disposal has rules, and the write-off document is part of that evidence file, not a substitute for it); and the identity trail closed — expired BATCHES written off by lot, so the batch's biography ends with a documented death, not a disappearance.</p><p><b>The issue is not a dustbin.</b> The disease this chapter must pre-empt: the Material Issue as the place unexplained differences go to die — the count that came up short quietly issued out as consumption, shrinkage laundered into expense lines a little every week. The tells: issue volumes trending with no operational story, issues without references, one author issuing everything. The law: <b>differences are for the reconciliation</b> (module 4) — counted, investigated, adjusted in the open with their own document and their own trend line; consumption is for things actually consumed. Blur them and the firm loses its shrinkage number, which means losing the ability to manage the very leak being hidden.</p><p><b>Reading issues as management.</b> Done honestly, the issue history is a report the owner wants: consumables cost by month and department, write-off value by reason (expiry vs damage — the first indicts buying quantities, the second indicts handling), and the trend that says whether the generator eats more spares this year than last. The document that records value leaving is also the document that explains it — the whole track's philosophy at one desk.</p>"
+    "html": "<p>This chapter runs one month of internal movements across the module 1 network. Configuration values and outcomes are listed per event.</p><p><b>Event 1 — the routine floor.</b> The standing weekly movements run without incident: main store to dispatch bay one-step transfers as orders pick; cold-room replenishment one-step from the main store on the cold-chain list. Each entry same-day, header warehouses per the pair, no row overrides. The named Stock Entry Types (Branch Replenishment, Internal Move) print on the documents and feed the type census.</p><p><b>Event 2 — the quarantine path used in anger.</b> A damaged shipment section is found at Central: a one-step transfer moves the affected cartons from <i>Central - Main Store</i> to <i>Central - Quarantine</i> the same morning — the goods are off the pickable balance within the hour. The inspection concludes two days later: part restored to the main store by transfer; the write-off portion issued from quarantine to the damage account with photos attached, approved by the stock manager under the threshold ladder.</p><p><b>Event 3 — the branch replenishment through transit.</b> The week's Ibadan replenishment despatches: <b>40 cartons of PARA-500 plus twelve other lines</b>, one despatch entry (Add to Transit) submitted as the truck loads, despatch documents with the vehicle. Ibadan receives next day against the despatch rows.</p><p><b>Event 4 — the shortfall procedure runs.</b> On the same vehicle, one line — cough syrup — <b>counts 18 of 20 loaded</b>. The receiving entry records 18 (what arrived); <b>2 stay in transit</b> as the visible difference; the shortfall report goes to the stock manager the same day with the despatch reference. The investigation: the loading record confirms 20 loaded; the vehicle check finds nothing; the confirmed loss of 2 is issued from the transit warehouse to the shrinkage account within the week, approved per the ladder, incident noted with the route and crew for the pattern file. The transit read the following Monday shows zero aged lines.</p><p><b>Event 5 — the repack cycle.</b> The register's standing conversion runs twice: PARA-500, 1 carton → 48 retail strips, produced strips carrying the source batch. One entry's count proposes 46 strips from a carton; the entry is stopped per the register rule — inspection finds two crushed strips in the carton; the repack posts 46 good and the 2 damaged issue through the damage lane with the note. One event, two documents, each stating its truth.</p><p><b>Event 6 — the subcontract leg.</b> The month's bulk lot despatches to the repack vendor: Send to Subcontractor into <i>Subcontract - Repack Vendor</i>, batches on the rows. Month-end: the vendor statement reconciles to the subcontract balance except one line — the vendor's booked wastage a fraction over the agreed allowance; the allowance portion issues to the wastage account, the excess goes to the procurement owner as a charge-back item with the figures attached.</p><p><b>The month's close.</b> The reads run with the close: transit at zero exceptions; the issues read lists the quarantine write-off, the transit loss, the repack damage, and the subcontract wastage — four decided figures with four documents; the receipts read lists zero (the narrow lane stayed narrow); one backdated entry on the list (a Saturday movement entered Monday with Saturday's date and its reason). Every movement of the month answers from its document in one lookup.</p>"
    },
    {
-    "title": "Chapter 4 — Material Receipt: stock from nowhere, valued honestly",
-    "est": "13",
-    "html": "<p>Stock appearing without a supplier is rare, legitimate, and dangerous in exact proportion to how casually it is valued. This chapter is the short list of honest uses and the one discipline they share.</p><p><b>The honest list.</b> <b>Found stock</b>: the count's edge case — goods physically present that the ledger never knew (the pallet behind the racking, the un-receipted sample that got shelved). Where reconciliation (module 4) is running, found stock usually enters THERE, inside the count's own document; the Material Receipt serves the between-counts discovery that cannot wait. <b>Genuine free goods</b>: promotional stock from a manufacturer with no invoice ever coming — real appearance, no counterparty payable. <b>Opening flows</b>, carefully: go-live stock loading is module 4's set-piece (the reconciliation is the proper instrument, and the Topmost-style disaster — opening stock keyed at selling prices — is convicted there in full); the Material Receipt appears in opening work only for narrow, deliberate cases, and never as the bulk loader.</p><p><b>The discipline: valuation is mandatory and honest.</b> Stock in means value in — the ledger will not take quantity without cost, so the Material Receipt demands a <b>valuation rate</b> per row. The rate is a statement the books will carry forever, so it is derived, not invented: found stock enters at what it would have cost (the item's current valuation or last honest purchase rate — the found pallet of PARA-500 enters at PARA-500's cost, not at zero and not at retail); free goods enter at the value policy the accountant sets (a zero-cost entry is defensible and distorts margin the day the goods sell at full price; a fair-cost entry with the offset the accountant directs is often truer — the point is that this is an ACCOUNTING choice made once, not a warehouse improvisation made per pallet); and every receipt carries its reason and reference, because stock-from-nowhere without a story is exactly what an auditor is trained to circle.</p><p><b>The valuation ripple, previewed.</b> Module 5 teaches the mechanics; plant the intuition now: the entering rate joins the item's valuation stream — under moving average it blends into every subsequent issue's cost; under FIFO it queues at its place. A careless rate on a large receipt therefore poisons COGS for weeks after: the zero-valued found pallet makes the next month's margins look brilliant and mean nothing. The bigger the quantity, the more the rate deserves a second pair of eyes — value thresholds on Material Receipts route to approval exactly as write-offs do, and for the same reason read in reverse: this is company value being CREATED on someone's say-so.</p><p><b>Frequency is the health check.</b> Material Receipts should be RARE. A firm whose ledger shows them weekly has one of three problems: trading through the side door (Chapter 2's abuse — check the rates and patterns), a broken receiving gate upstream (purchases failing into workarounds — fix the gate, not the symptom), or counts so infrequent that found-stock discoveries pile up between them (module 4's cadence answer). The document's proper life is boring: a handful of well-explained appearances a year, each with a rate someone could defend and a story someone recorded.</p>"
-   },
-   {
-    "title": "Chapter 5 — Material Transfer: the one-step move",
-    "est": "13",
-    "html": "<p>The simplest movement: stock changes rooms, custody changes hands, nothing else changes. The one-step Material Transfer serves the case where the move is effectively INSTANT — and knowing where that case ends is the chapter's real lesson.</p><p><b>The mechanics.</b> Rows carry item, quantity, <b>source warehouse and target warehouse</b>; submission writes both sides at once — OUT of the source, IN to the target, the same moment, the same document. Value travels with the goods at the source's valuation (a transfer never revalues — the goods cost what they cost regardless of the room; module 5 formalises it), identities travel by name (the serials and batches move as themselves, their biographies gaining a line), and the two bins update together: no gap, no limbo, conservation of stock in one document.</p><p><b>Where one-step is right.</b> The moves with no meaningful in-between: within one site (Central floor to Central quarantine after a damage discovery; the fork's manual edition), between adjacent custodies with instant handover (the back store to the sales floor where both are modelled), and any move where dispatch and receipt are the SAME physical act by people standing in the same place. The test: <i>is there a moment when the goods are with neither custodian?</i> No — one-step. Yes — Chapter 6, because that moment needs a room.</p><p><b>The custody handshake.</b> Even instant transfers move accountability, and the small disciplines keep the handshake real: the receiving side acknowledges (in a same-site move this is trivially the same team, but between custodians — floor to warehouse, store to store-within-store — the transfer done TO someone who did not know is how differences get born arguing); quantities counted at handover where the custodians differ (thirty seconds now versus a variance dispute at the next count); and the reason field carrying the why for anything non-routine (the damage transfer to quarantine references what happened — the quarantine review will want it).</p><p><b>What one-step must not stretch to cover.</b> The classic misuse: the Lagos-to-Ibadan transfer entered as one-step because it is fewer clicks. The document happily complies — OUT of Central, IN to Ibadan, the same second — and the ledger now says Ibadan holds stock that is, in the world, on a truck in Ogun State for the next six hours. Every read of Ibadan's bin is wrong until the truck arrives; a count at Ibadan during the window would surprise; and if the truck never arrives, the loss is discovered as an Ibadan shortage — the wrong custody blamed, the investigation starting a room away from the truth. Distance means a custody gap; the custody gap means the transit room; the transit room means the two-step — which is the next chapter, and the reason module 1 built the room before this module needed it.</p><p><b>Volume hygiene.</b> Transfers are the highest-frequency stock entries in a branch network, so their smallest frictions compound: templated rows for the routine weekly moves, defaults per flow (module 1's wiring), and the discipline that transfers are entered by the people MAKING them at the time of making — the pile of transfer paperwork keyed by one clerk on Friday is the posting-date disease at network scale.</p>"
-   },
-   {
-    "title": "Chapter 6 — The two-step transfer & the in-transit room",
-    "est": "14",
-    "html": "<p>Real distance separates dispatch from receipt, and the two-step transfer is how the system tells the truth about the in-between. This is the mechanical heart of the branch network (module 6 builds the governance; here is the machinery).</p><p><b>The two documents.</b> <b>Step one — dispatch</b>: Central sends 40 cartons to Ibadan; the transfer moves the goods OUT of Central Store and IN to the <b>In-Transit</b> room (module 1's warehouse with no walls). Central's custody has honestly ended; Ibadan's has honestly not begun; the transit room answers for the truck. <b>Step two — receipt</b>: the goods arrive; Ibadan's receiving transfer moves them OUT of In-Transit and IN to Ibadan Store — <b>at the quantities Ibadan actually counts</b>. The receiving side counts exactly as Procurement 6's gate taught, because an inter-branch arrival is a receiving event in every way that matters: count before accepting custody, against the dispatch document, discrepancies recorded as they are.</p><p><b>Why the room changes everything.</b> At every moment, one custody answers: before dispatch, Central; on the road, In-Transit; after receipt, Ibadan. The one-step's lie (Chapter 5) is structurally impossible — no bin ever claims goods it does not hold. And the failure cases become VISIBLE instead of misattributed: the truck that arrives short leaves the shortfall IN the transit room — a named, valued, investigable difference between what left and what arrived, sitting in the exact custody where the loss occurred — rather than surfacing weeks later as an Ibadan count variance blamed on the wrong storekeeper. Transit shrinkage is real in Nigerian logistics; the two-step is what makes it a managed number with a location instead of an argument between branches.</p><p><b>The transit disciplines.</b> Three, all cheap: <b>reference discipline</b> — dispatch and receipt documents linked (the receipt made against the dispatch, remainder logic pre-filling exactly as every create-from in these tracks), the truck's waybill referenced, so the road has a paper trail; <b>the aging read</b> — the transit room's balance, aged: anything older than the longest honest journey is an incident (truck delayed, receipt never entered, or goods gone), worked from a standing list — module 1 planted this diagnostic, and here is its operation: the transit room returns to zero between runs in a healthy network, and its aging report is the earliest smoke detector the network has; <b>the shortfall protocol</b> — arrival differences investigated from the transit balance while the trail is hot (the driver, the waybill, the seals), resolved by the honest instrument: recovered goods received, confirmed losses written off FROM transit with the write-off's governance (Chapter 3 — value leaving with a signature), never quietly absorbed by receiving inflated quantities to make the room zero out.</p><p><b>Receiving discipline at the branch.</b> The arriving branch signs for custody, so the gate rules apply in miniature: count against the dispatch note, not the driver's word; accept what arrived, record what did not; identities confirmed (the batches that left are the batches that arrived — the swap en route is a real fraud pattern, and batch-level receiving is what catches it). A branch that receives casually inherits every road-side difference as its own unexplained variance — the framing (module 1's custodian's number) that makes branch teams WANT the discipline.</p>"
-   },
-   {
-    "title": "Chapter 7 — Repack: transformation without a factory",
-    "est": "13",
-    "html": "<p>Between moving stock and manufacturing it sits a common trading need: the SAME goods in a DIFFERENT form — the bulk carton become retail strips, the 25kg sack become 1kg packs, the assorted lot broken into singles. The <b>Repack</b> purpose serves it, and its craft is mostly about value and honesty.</p><p><b>The mechanics.</b> One stock entry, two kinds of row: <b>consumed</b> rows (the inputs, OUT of their warehouse — one bulk carton of 100 strips) and <b>produced</b> rows (the outputs, IN — 100 retail strip units, plus, where honest, the packaging materials consumed alongside). Value flows conserved: the outputs enter at the inputs' total value (allocated across produced rows — by the sensible basis where multiple outputs), so no value is created or destroyed by changing the box. Quantity changes; UOM changes; identity persists where tracked — the produced strips carry the source batch and its expiry, because repacking a batch does not launder its provenance (the NAFDAC chain survives the scissors, and the entry's mapping is what proves it).</p><p><b>The yield honesty.</b> Real repacking has losses — the torn strip, the spillage from the sack — and the honest entry records the yield as it happened: 100 in, 98 saleable out, 2 to the damage row (written off with Chapter 3's governance, or quarantined per policy). The dishonest patterns to refuse: producing 100 from 98's worth of reality (the shortfall surfacing at the next count, blamed on custody), and the standing yield loss never trended (repack loss is a rate to WATCH — a packing team whose 2% becomes 5% is a conversation the trend triggers, exactly the subcontractor yield logic of Procurement 8 brought in-house).</p><p><b>Where repack ends and other machinery begins.</b> The boundary judgment, three ways: <b>repack vs subcontract</b> — the transformation done by an OUTSIDE party with your materials is Procurement 8's subcontract flow (service purchased, supplier-side custody), not a repack entry pretending the repacker doesn't exist; <b>repack vs manufacturing</b> — combining DIFFERENT materials into a genuinely new product (formulation, assembly with recipes, work-in-progress stages) is the manufacturing module's terrain, with its own masters and costing — the repack entry stretched over real manufacturing produces costs nobody can defend; <b>repack vs UOM</b> — and the subtlest: if the carton and the strip are the SAME item in different UOMs with a clean conversion, much selling and stocking needs no repack at all (Buying 2's UOM architecture already lets one item live in both units) — the repack exists for where the retail form is a DIFFERENT item (own code, own barcode, own price list line), which is an item-architecture decision made deliberately at setup, not per entry. The consultant who can walk a client through those three boundaries in ten minutes has saved them either a missing module or a pile of needless entries.</p><p><b>Governance, briefly.</b> Repack entries create sellable retail stock from bulk, so the same value-threshold eyes apply: reasons and references routine, the yield trend on the monthly read, and the mapping of batches through the transformation spot-checked — because the entry that says which batch became which strips is, for regulated goods, a compliance document wearing warehouse clothes.</p>"
-   },
-   {
-    "title": "Chapter 8 — Case study: a month of movements at HealthTrade",
-    "est": "16",
-    "html": "<p>The network module 1 designed now runs a month of internal movements. Every chapter clocks in; every movement names its document.</p><p><b>Week 1 — the routine floor (Ch. 3).</b> Facilities issues run at consumption: cleaning supplies Tuesday, stationery Thursday, each landing in its expense attribution — the month-end consumables read will show admin ₦38k, floor ₦52k, and the MD will see consumption by department for the first time. One write-off: a water-damaged carton discovered shelf-side, transferred one-step to Central Quarantine (Ch. 5 — same site, instant custody), then written off after the weekly quarantine review with photos referenced and the ₦86k landing in damage expense under the storekeeper-plus-manager threshold rule.</p><p><b>Week 2 — the network breathes (Ch. 6).</b> The weekly Ibadan run: dispatch transfer moves 40 cartons PARA-500 plus twelve lines OUT of Central, IN to In-Transit, waybill referenced. Ibadan receives next morning AGAINST the dispatch: thirteen lines count clean; one line — cough syrup — counts 18 of 20. The receipt takes 18; the shortfall of 2 stays IN transit, visible, valued (₦21k), investigated same-day while the trail is hot: the waybill shows 20 loaded, the driver's second drop-point had no syrup on its manifest, the seals were intact at Ibadan... and the recount at Central finds 2 bottles mis-picked into the NEXT run's staging. Recovered: received into Ibadan on the following run's documents, transit back to zero. Total cost: one hour. The counterfactual — a one-step transfer — would have discovered nothing until Ibadan's next count surprised, and blamed the wrong branch.</p><p><b>Week 3 — the repack (Ch. 7).</b> The retail chain's blister-strip demand outgrows the subcontractor's monthly run, and small top-ups move in-house: a repack entry consumes 2 bulk cartons (200 strips' worth) plus packaging sleeves, produces 196 retail strip units carrying batch B-1152 and its expiry, and writes 4 damaged strips to the loss row — a 2% yield, logged, joining the trend the subcontractor's own 3% already lives on. The retail item is a DIFFERENT item by deliberate setup (own barcode, own price line) — the boundary conversation was had at design, which is why the entry is routine instead of an argument.</p><p><b>Week 4 — the appearance and the audit (Ch. 2, 4).</b> A shelf reorganisation surfaces a pallet of 6 cartons of vitamin syrup the ledger never knew — un-receipted during a chaotic delivery month before go-live. The Material Receipt enters it with a story: reason recorded, valued at the item's current valuation rate (₦4,200/carton — derived from the last honest purchase, not guessed), and flagged to the accountant for the offset. Month-end, the standing stock-entry audit runs: entries by purpose, value, and author — one page, five minutes, nothing anomalous: Material Receipts rare (one, explained), issues tracking operations, transfers clearing transit, the repack yield on trend. The boring page IS the control working.</p><p><b>The month's ledger read (Ch. 1-9).</b> Every internal movement carries a purpose, a room, a reason; the transit room slept at zero six nights in seven; value left only with signatures; and the one appearance had a story and a defensible rate. Module 4 will now test this ledger against the shelves — and because this month was disciplined, the count will be a confirmation, not a confession.</p>"
-   },
-   {
-    "title": "Chapter 9 — Common mistakes & the second law",
-    "est": "13",
-    "html": "<p>The movement layer's scar tissue. Symptom → disease → fix.</p><p><b>Pattern 1 — trading through the side door.</b> Symptom: Material Receipts at supplier-like rates; issues tracking sales. Disease: the boundary law broken (Ch. 2) — the match disarmed, suppliers unmeasurable, valuation typed, revenue leaving as expense. Fix: the lawful flows restored with their emergency speeds (the fast PO exists precisely so the side door has no excuse), the monthly stock-entry audit standing, and the historical mess reconciled deliberately with the accountant.</p><p><b>Pattern 2 — the issue as dustbin.</b> Symptom: consumption climbing with no operational story; count variances mysteriously scarce. Disease: shrinkage laundered through issues (Ch. 3) — differences buried where the reconciliation should have surfaced them, the shrinkage number destroyed. Fix: differences routed to module 4's instrument exclusively; issue references required; the issues-by-author-and-trend read that makes the laundering visible.</p><p><b>Pattern 3 — the unvalued appearance.</b> Symptom: found stock entered at zero (or at retail); margins swinging weirdly after. Disease: valuation improvised at the Material Receipt (Ch. 4) — the careless rate poisoning the costing stream for weeks. Fix: rates derived from the item's honest cost, the accountant's offset policy applied, value thresholds routing large receipts to approval — created value gets the same eyes as destroyed value.</p><p><b>Pattern 4 — distance one-stepped.</b> Symptom: branch bins right eventually, wrong for hours or days; road losses surfacing as branch count variances; inter-branch blame. Disease: the one-step stretched over a custody gap (Ch. 5) — the ledger asserting arrivals that have not happened. Fix: the two-step with the transit room for anything with a road in it; the one-step reserved for moves where dispatch and receipt are one act.</p><p><b>Pattern 5 — the transit room that never empties.</b> Symptom: a standing in-transit balance nobody can itemise. Disease: receipts never entered, shortfalls never resolved, the room unread (Ch. 6) — the network's smoke detector unplugged. Fix: the aging read on the weekly rhythm, receipt-against-dispatch as unskippable routine, shortfalls investigated hot and resolved by the honest instruments — received, or written off from transit with governance.</p><p><b>Pattern 6 — yields imagined.</b> Symptom: repacks always produce perfectly; counts after repacking surprise. Disease: yield dishonesty (Ch. 7) — losses unrecorded at the entry, surfacing later as custody variances. Fix: the loss row as routine, the yield trend watched, and the boundary check that the operation belongs in repack at all.</p><p><b>The second law.</b> Module 1: the warehouse tree is the map of custody. This module adds: <b>stock moves only by documents, and every movement names its purpose — where a trading counterparty exists, the trading chain carries the goods; where none does, the reason is the counterparty.</b> Receipts demand honest value, issues demand honest destinations, transfers demand honest custody at every moment of the journey, and transformations demand honest yields. A ledger whose movements all obey this law can be read like a diary; module 4 is about checking that diary against the world — the count — and a firm that kept this module's disciplines walks into that count unafraid.</p>"
+    "title": "Chapter 9 — Common errors and the module rule",
+    "est": "11",
+    "html": "<p>The errors that recur in internal movements, each with its correction and prevention.</p><p><b>Error 1 — the undocumented handover.</b> Symptom: stock physically moved on a conversation; counts at both ends wrong in opposite directions; the variance investigation reconstructing what a document would have stated. Correction: the movement entered with its honest date and remarks. Prevention: the module 1 custody rule operated — nothing moves without its document, and the same-day standard.</p><p><b>Error 2 — the receipt that pretends completeness.</b> Symptom: transfers received \"complete\" regardless of the count; shortfalls migrating into receiving warehouses as later unexplained variances. Correction: the affected receipts traced, the losses moved to their honest documents. Prevention: the shortfall procedure — receive what arrived, leave the difference visible in transit, report the same day.</p><p><b>Error 3 — Material Receipt as a purchasing bypass.</b> Symptom: bought goods entering by Material Receipt; no order, no supplier match, no three-way control; valuation typed from memory. Correction: the entries reversed and re-entered through the purchasing documents. Prevention: the narrow-lane rule and the monthly receipts read listing every receipt with its lawful case.</p><p><b>Error 4 — the reasonless issue.</b> Symptom: issues to vague accounts without evidence or approval; write-offs accreting instead of being decided. Correction: the issues re-documented — reason, account, evidence, approval. Prevention: the lane table with its threshold ladder, and the monthly issues read to the owner.</p><p><b>Error 5 — ratio drift at repack.</b> Symptom: conversions producing whatever the operator counts, with no register to disagree; leakage invisible between carton and shelf. Correction: the register written from the true ratios; recent repacks sampled against it. Prevention: the conversion register and the stopped-entry rule on any ratio disagreement.</p><p><b>Error 6 — the quiet compensating entry.</b> Symptom: errors \"fixed\" by opposite entries that reference nothing; the trail reading as two unexplained movements; the auditor's sample finding both. Correction: the pair documented — what was wrong, what corrected it. Prevention: the correction lane — cancel/amend with cause, or the reversing entry that names its target.</p><p><b>Review list.</b> Before the quiz, confirm you can: state the purposes and what each does to quantity and value; complete the Stock Entry field walk including the type, the honest date, the rate rule per purpose, and the difference account; run the issue and receipt lanes with their lawful cases, accounts, evidence, and approval ladder; run one-step and two-step transfers with the transit legs and the shortfall procedure; run repacks from the conversion register with the value rule; operate the subcontract despatch, reconciliation, and aging; and apply the posting discipline — backdating controls, the correction lane, the draft review, and the standing reads.</p><p><b>Module rule 2: every internal movement is a Stock Entry with its purpose — transfers received against what physically arrived, issues and receipts carrying reason, account, evidence, and approval, repacks held to their register, and every entry posted on its honest date.</b> Module 3 covers serial and batch operations.</p>"
    }
   ],
   "questions": [
    {
-    "q": "The Stock Entry serves movements with:",
+    "q": "The Stock Entry covers:",
     "opts": [
-     "No commercial counterparty — appearing, disappearing, or changing rooms within your custody",
-     "Any counterparty",
-     "Suppliers only",
-     "Customers only"
+     "Every movement inside the business boundary, plus the documented exceptions at it",
+     "Purchases",
+     "Sales",
+     "Payroll"
     ],
     "ans": 0,
-    "why": "Nothing is bought or sold; the purpose decides the machinery.",
+    "why": "In by Purchase Receipt, out by Delivery Note; inside by Stock Entry.",
     "src": "Ch1"
    },
    {
-    "q": "A stock entry's 'why', unlike a trading document's, is:",
+    "q": "The purpose field:",
     "opts": [
-     "Its counterparty and chain",
-     "A sentence a human wrote — which is why the reason field carries real weight",
-     "Automatic",
-     "Optional"
+     "Is a label",
+     "Decides what the entry does to quantity and value, and reshapes the form",
+     "Sets the date",
+     "Names the keeper"
     ],
     "ans": 1,
-    "why": "An unexplained stock entry is an unsigned cheque.",
+    "why": "One doctype, several purposes.",
     "src": "Ch1"
    },
    {
-    "q": "Receiving a purchase as Material Receipt amputates:",
+    "q": "A Material Transfer changes:",
     "opts": [
-     "Nothing important",
-     "Only the invoice",
-     "PO fulfilment, the match's possession leg, supplier measurement, landed cost's anchor, and committed-rate valuation",
-     "Only the receipt print"
+     "Total quantity",
+     "The price",
+     "Custody — total quantity unchanged, value travelling with the stock",
+     "The item code"
     ],
     "ans": 2,
-    "why": "One shortcut, five amputations.",
-    "src": "Ch2"
+    "why": "The purposes table.",
+    "src": "Ch1"
    },
    {
-    "q": "Shipping a sale as Material Issue means:",
+    "q": "Named Stock Entry Types exist so that:",
     "opts": [
-     "A faster sale",
-     "Nothing changes",
-     "Better margins",
-     "Revenue leaving the building as an EXPENSE — the shape unrecorded sales take"
+     "Forms load faster",
+     "Value changes",
+     "Fewer clicks",
+     "The specific movement prints on the document and filters the reads — Damage Write-Off, Branch Replenishment"
     ],
     "ans": 3,
-    "why": "No order, no invoice, no customer ledger, no identity custody.",
+    "why": "The type census reads them quarterly.",
     "src": "Ch2"
    },
    {
-    "q": "'The supplier isn't set up yet' is answered by:",
+    "q": "The Basic Rate on transfers and issues:",
     "opts": [
-     "Emergency onboarding — an hour, not a week; even urgency gets the chain",
-     "The side door",
-     "Waiting a week",
-     "A journal"
+     "Is the ledger's valuation rate — do not type over it",
+     "Is typed by the operator",
+     "Is the selling price",
+     "Is zero"
     ],
     "ans": 0,
-    "why": "The fast lawful path removes the excuse.",
+    "why": "Module 5 explains the rate.",
     "src": "Ch2"
    },
    {
-    "q": "The side-door abuse announces itself as:",
+    "q": "The rate on a Material Receipt:",
     "opts": [
-     "Nothing detectable",
-     "Receipts at supplier-like rates, issues tracking sales, clustering by month-end or author",
-     "Louder printers",
-     "Cleaner ledgers"
+     "Is automatic",
+     "Is a valuation event — entered from the document that justifies it, never from memory",
+     "Is last month's",
+     "Is the retail price"
     ],
     "ans": 1,
-    "why": "The monthly stock-entry audit reads exactly these.",
+    "why": "A memory-rated receipt plants a valuation error.",
     "src": "Ch2"
    },
    {
-    "q": "A Material Issue is, in accounting shape:",
+    "q": "The Difference Account on an issue:",
     "opts": [
-     "A sale",
-     "A transfer",
-     "Stock value becoming expense — landing where the attribution directs",
-     "Free"
+     "Is cosmetic",
+     "Is always Miscellaneous",
+     "Is part of the reason — damage to its account, consumption to its account, per the governed chart",
+     "Is the bank"
     ],
     "ans": 2,
-    "why": "Every issue is an expense event wearing warehouse clothes.",
+    "why": "An issue posted to Miscellaneous has not stated what happened.",
+    "src": "Ch2"
+   },
+   {
+    "q": "Damage and expiry issues carry:",
+    "opts": [
+     "Nothing",
+     "The price tag",
+     "A verbal note",
+     "The evidence the policy names — photos, expiry lists, the supervisor's confirmation — and the disposal reference for pharmaceuticals"
+    ],
+    "ans": 3,
+    "why": "The issue lane's first case.",
     "src": "Ch3"
    },
    {
-    "q": "Write-off governance exists because:",
+    "q": "The issue approval runs on:",
     "opts": [
-     "Paperwork is good",
-     "Storekeepers ask for it",
-     "Auditors like it",
-     "Company value is being destroyed on someone's say-so — reasons, thresholds, real destruction, identity closure"
+     "The threshold ladder — the keeper requests, the stock manager or owner approves by value band",
+     "The keeper's judgment",
+     "No approval",
+     "The vendor"
     ],
-    "ans": 3,
-    "why": "Expired batches end with a documented death, not a disappearance.",
+    "ans": 0,
+    "why": "Decision/execution split.",
     "src": "Ch3"
    },
    {
-    "q": "Using issues to absorb count shortfalls:",
+    "q": "Material Receipt is never used for:",
     "opts": [
-     "Launders shrinkage into expense and destroys the shrinkage number — differences belong to the reconciliation",
-     "Is tidy",
-     "Saves time honestly",
-     "Is required"
-    ],
-    "ans": 0,
-    "why": "You cannot manage the leak you are hiding.",
-    "src": "Ch3, Ch9"
-   },
-   {
-    "q": "Write-off value read by reason (expiry vs damage):",
-    "opts": [
-     "Means nothing",
-     "Indicts different things — buying quantities vs handling",
-     "Is the same number",
-     "Is private"
+     "Found stock",
+     "Supplier deliveries — that is the Purchase Receipt with its purchasing controls",
+     "Returns of issued goods",
+     "Opening exceptions"
     ],
     "ans": 1,
-    "why": "The document that records value leaving also explains it.",
+    "why": "A receipt for bought goods bypasses every control.",
     "src": "Ch3"
    },
    {
-    "q": "Found stock enters at:",
+    "q": "The monthly receipts read exists because:",
     "opts": [
-     "Zero",
-     "Retail price",
-     "What it would have cost — the item's honest valuation, derived not invented",
-     "The finder's guess"
+     "Receipts are frequent",
+     "Values are small",
+     "The lane is narrow by design — listing every receipt with its lawful case audits the narrowness",
+     "The system requires it"
     ],
     "ans": 2,
-    "why": "The rate is a statement the books carry forever.",
-    "src": "Ch4"
+    "why": "Rare by design.",
+    "src": "Ch3"
    },
    {
-    "q": "A zero-valued large found pallet:",
+    "q": "One-step transfers are used:",
     "opts": [
-     "Is conservative and safe",
-     "Is standard",
-     "Helps the auditor",
-     "Makes the next month's margins look brilliant and mean nothing — the rate poisons COGS"
+     "Between sites",
+     "Never",
+     "For big values",
+     "Within one site — where both keepers can verify the same physical event"
     ],
     "ans": 3,
-    "why": "The valuation ripple, previewed.",
+    "why": "What same-site means operationally.",
     "src": "Ch4"
    },
    {
-    "q": "Frequent Material Receipts signal:",
+    "q": "Leg 1 of the two-step transfer posts:",
     "opts": [
-     "Side-door trading, a broken receiving gate, or counts too infrequent",
-     "A healthy firm",
-     "Good luck",
-     "Growth"
-    ],
-    "ans": 0,
-    "why": "The document's proper life is boring and rare.",
-    "src": "Ch4"
-   },
-   {
-    "q": "Large Material Receipts route to approval because:",
-    "opts": [
-     "All documents do",
-     "This is company value being CREATED on someone's say-so — the write-off's mirror",
-     "Storekeepers are slow",
-     "The tax office requires it"
-    ],
-    "ans": 1,
-    "why": "Created value gets the same eyes as destroyed value.",
-    "src": "Ch4"
-   },
-   {
-    "q": "A one-step transfer writes:",
-    "opts": [
-     "Source only",
-     "Target only",
-     "Both sides at once — out of source, into target, no limbo",
-     "Neither until confirmed"
-    ],
-    "ans": 2,
-    "why": "Conservation of stock in one document.",
-    "src": "Ch5"
-   },
-   {
-    "q": "A transfer's valuation:",
-    "opts": [
-     "Revalues at the target",
-     "Uses retail",
-     "Resets to zero",
-     "Travels with the goods — the room does not change what they cost"
-    ],
-    "ans": 3,
-    "why": "A transfer never revalues.",
-    "src": "Ch5"
-   },
-   {
-    "q": "The one-step vs two-step test is:",
-    "opts": [
-     "Is there a moment when the goods are with neither custodian?",
-     "Distance in kilometres",
-     "Value of the goods",
-     "The driver's preference"
-    ],
-    "ans": 0,
-    "why": "No: one-step. Yes: the moment needs a room.",
-    "src": "Ch5"
-   },
-   {
-    "q": "A Lagos-to-Ibadan one-step means:",
-    "opts": [
-     "Efficiency",
-     "Ibadan's bin claims stock that is on a truck — every read wrong until arrival, losses misattributed",
-     "Faster trucks",
+     "From the sending warehouse into the transit warehouse, submitted as the goods load",
+     "Direct to the destination",
+     "To quarantine",
      "Nothing"
     ],
+    "ans": 0,
+    "why": "Add to Transit.",
+    "src": "Ch4"
+   },
+   {
+    "q": "The receiving entry records:",
+    "opts": [
+     "What the paper says",
+     "What physically arrived — the difference stays visible in transit",
+     "The average",
+     "Nothing until complete"
+    ],
     "ans": 1,
-    "why": "The wrong custody gets blamed, a room away from the truth.",
+    "why": "Never received-complete-and-sorted-later.",
+    "src": "Ch4"
+   },
+   {
+    "q": "A pretended-complete receipt causes:",
+    "opts": [
+     "Nothing",
+     "Faster closes",
+     "The loss migrating into the receiving warehouse's count — surfacing months later as the receiver's variance",
+     "Double stock"
+    ],
+    "ans": 2,
+    "why": "The shortfall procedure prevents it.",
+    "src": "Ch4"
+   },
+   {
+    "q": "The weekly transit read flags:",
+    "opts": [
+     "All transit lines",
+     "Values only",
+     "New despatches",
+     "Lines older than the longest route — an unmade leg-2 entry or an unreported shortfall"
+    ],
+    "ans": 3,
+    "why": "Chased by despatch reference.",
+    "src": "Ch4"
+   },
+   {
+    "q": "The despatch entry submits:",
+    "opts": [
+     "When the goods physically load",
+     "When paperwork is convenient",
+     "At month-end",
+     "After receipt"
+    ],
+    "ans": 0,
+    "why": "Transfer hygiene rule 3.",
+    "src": "Ch4"
+   },
+   {
+    "q": "Repack's value rule is:",
+    "opts": [
+     "Target-setting",
+     "Conservation — produced value equals consumed value plus genuine additional costs",
+     "Market pricing",
+     "Zero value"
+    ],
+    "ans": 1,
+    "why": "Never used to round to a preferred figure.",
     "src": "Ch5"
    },
    {
-    "q": "The two-step's first document moves goods:",
+    "q": "The conversion register carries:",
     "opts": [
-     "Straight to the branch",
-     "Nowhere",
-     "Out of the sender and INTO In-Transit — the room answers for the truck",
-     "Into quarantine"
+     "Prices",
+     "The keeper list",
+     "The consumed and produced items, the ratio, the batch handling, and the distribution basis per standing conversion",
+     "The vendor terms"
     ],
     "ans": 2,
-    "why": "Custody is honest at every moment.",
-    "src": "Ch6"
+    "why": "Repacks enter from its ratios.",
+    "src": "Ch5"
    },
    {
-    "q": "The branch receives the transfer:",
+    "q": "A repack whose count disagrees with the register is:",
     "opts": [
-     "At the dispatched quantities automatically",
-     "Without paperwork",
-     "By the driver's word",
-     "At what it actually counts, against the dispatch document — a receiving event in every way that matters"
+     "Adjusted quietly",
+     "Deleted",
+     "Posted anyway",
+     "A stopped entry and a question — ratio drift is a register update or a leak, and only the register shows which"
     ],
     "ans": 3,
-    "why": "The gate rules apply in miniature.",
-    "src": "Ch6"
+    "why": "The stopped-entry rule.",
+    "src": "Ch5"
    },
    {
-    "q": "A truck arriving short leaves the shortfall:",
+    "q": "A carton with damaged units repacks as:",
     "opts": [
-     "IN the transit room — named, valued, investigable, in the custody where the loss occurred",
-     "At the branch as a variance",
-     "Nowhere",
-     "At Central"
+     "Two documents — the good units per the ratio, the damaged units through the damage lane with evidence",
+     "One averaged entry",
+     "A full write-off",
+     "A return"
     ],
     "ans": 0,
-    "why": "A managed number with a location instead of an argument between branches.",
-    "src": "Ch6"
+    "why": "One event, two documents, each stating its truth.",
+    "src": "Ch5"
    },
    {
-    "q": "Transit aging beyond the longest honest journey is:",
+    "q": "Materials at a subcontractor are:",
     "opts": [
-     "Normal",
-     "An incident — delayed truck, unentered receipt, or goods gone — worked from a standing list",
-     "The driver's business",
-     "Ignored"
+     "The vendor's stock",
+     "The business's stock in vendor custody — the subcontract warehouse balance is the standing answer",
+     "Written off",
+     "Sold"
     ],
     "ans": 1,
-    "why": "The network's earliest smoke detector.",
+    "why": "The custody does not change at despatch.",
     "src": "Ch6"
    },
    {
-    "q": "Zeroing transit by inflating received quantities is:",
+    "q": "The vendor stock reconciliation compares:",
     "opts": [
-     "Tidy bookkeeping",
-     "Standard",
-     "Absorbing a loss silently — the honest instruments are receipt of what arrived and governed write-off from transit",
-     "Faster and fine"
+     "Prices",
+     "Invoices",
+     "The subcontract warehouse balance against the vendor's same-date statement, line by line",
+     "Orders"
     ],
     "ans": 2,
-    "why": "The room zeros honestly or it lies.",
+    "why": "Monthly per vendor with a balance.",
     "src": "Ch6"
    },
    {
-    "q": "A repack entry's value logic is:",
+    "q": "Wastage beyond the agreed allowance is:",
     "opts": [
-     "Outputs at retail",
-     "New value typed",
-     "Inputs written off",
-     "Outputs enter at the inputs' total value — nothing created or destroyed by changing the box"
+     "Absorbed silently",
+     "Ignored",
+     "The keeper's cost",
+     "A charge-back conversation the procurement owner runs — the stock records give it its figures"
     ],
     "ans": 3,
-    "why": "Conservation, allocated across produced rows.",
-    "src": "Ch7"
+    "why": "The allowance is a term of the order.",
+    "src": "Ch6"
    },
    {
-    "q": "Repacked strips carry:",
+    "q": "The subcontract aging read flags:",
     "opts": [
-     "The source batch and its expiry — provenance survives the scissors",
-     "A new batch",
-     "No identity",
-     "The packer's initials"
+     "Materials at a vendor beyond the agreed turnaround — to the procurement owner",
+     "All balances",
+     "New despatches",
+     "Small values"
     ],
     "ans": 0,
-    "why": "The NAFDAC chain is proved by the entry's mapping.",
-    "src": "Ch7"
+    "why": "Vendor-held stock is the easiest to stop watching.",
+    "src": "Ch6"
    },
    {
-    "q": "Honest repack yield means:",
+    "q": "Backdating is:",
     "opts": [
-     "Always 100%",
-     "100 in, 98 out, 2 to the loss row — and the loss RATE trended",
-     "Rounding up",
-     "Hiding spillage"
+     "A habit",
+     "A permissioned exception — the honest physical date, the reason in remarks, refused into closed periods",
+     "Forbidden always",
+     "Automatic"
     ],
     "ans": 1,
-    "why": "The subcontractor yield logic, brought in-house.",
+    "why": "The controlled lane.",
     "src": "Ch7"
    },
    {
-    "q": "If carton and strip are the same item in two UOMs:",
+    "q": "Backdated postings trigger:",
     "opts": [
-     "Repack every sale",
-     "Delete one UOM",
-     "Much needs no repack at all — the conversion already lets one item live in both units",
-     "Make two warehouses"
+     "Nothing",
+     "An email",
+     "Revaluation downstream — an inserted movement changes the valuation of everything after it",
+     "A count"
     ],
     "ans": 2,
-    "why": "Repack is for the deliberately DIFFERENT retail item.",
+    "why": "The technical reason for the permission.",
     "src": "Ch7"
    },
    {
-    "q": "Transformation by an outside party with your materials is:",
+    "q": "A wrong submitted entry is corrected by:",
     "opts": [
-     "A repack entry",
-     "A transfer",
-     "Manufacturing always",
-     "The subcontract flow — service purchased, supplier-side custody"
+     "A quiet opposite entry",
+     "Ignoring it",
+     "Editing the ledger",
+     "Cancel/amend with cause, or a reversing entry that names its target"
     ],
     "ans": 3,
-    "why": "The repack pretending the repacker doesn't exist breaks both truths.",
+    "why": "The trail reads as what happened.",
     "src": "Ch7"
    },
    {
-    "q": "In the case study, the syrup shortfall was found because:",
+    "q": "The draft-review rule applies:",
     "opts": [
-     "The two-step left it visible in transit — investigated hot, recovered from mis-picking in one hour",
-     "Luck",
-     "The driver confessed",
-     "A customer complained"
+     "Above the policy's value threshold and to every reconciliation-adjacent entry — preparer and reviewer separate",
+     "To nothing",
+     "To transfers only",
+     "To receipts only"
     ],
     "ans": 0,
-    "why": "The one-step counterfactual blames the wrong branch weeks later.",
+    "why": "The programme's separation, applied to movements.",
+    "src": "Ch7"
+   },
+   {
+    "q": "The backdated-postings list matters because:",
+    "opts": [
+     "Backdating is illegal",
+     "A backdating pattern is a process gap at its source — fix the procedure, not widen the permission",
+     "It fills reports",
+     "Dates are cosmetic"
+    ],
+    "ans": 1,
+    "why": "Monthly, with the close.",
+    "src": "Ch7"
+   },
+   {
+    "q": "HealthTrade's quarantine event shows:",
+    "opts": [
+     "Slow inspection",
+     "A deletion",
+     "Goods off the pickable balance within the hour by transfer — then restored or written off by their documents after inspection",
+     "A price change"
+    ],
+    "ans": 2,
+    "why": "Event 2.",
     "src": "Ch8"
    },
    {
-    "q": "The found vitamin pallet entered:",
+    "q": "The cough syrup shortfall closed by:",
     "opts": [
-     "At zero, quietly",
-     "With a story and a derived rate — flagged to the accountant for the offset",
-     "At retail",
-     "As a purchase"
-    ],
-    "ans": 1,
-    "why": "Stock-from-nowhere without a story is what auditors circle.",
-    "src": "Ch8"
-   },
-   {
-    "q": "The month-end stock-entry audit reads:",
-    "opts": [
-     "Every ledger line",
-     "Only write-offs",
-     "Entries by purpose, value, and author — one boring page IS the control working",
-     "Nothing monthly"
-    ],
-    "ans": 2,
-    "why": "Five minutes against a year of archaeology.",
-    "src": "Ch8"
-   },
-   {
-    "q": "The in-house repack's 2% loss:",
-    "opts": [
-     "Was hidden",
-     "Was blamed on transit",
-     "Cancelled the entry",
-     "Was logged and joined the yield trend beside the subcontractor's 3%"
+     "Receiving 20 anyway",
+     "Blaming Ibadan",
+     "A quiet adjustment",
+     "Receiving 18, two staying visible in transit, same-day report, and the confirmed loss issued from transit under the ladder"
     ],
     "ans": 3,
-    "why": "Rates are watched, not imagined.",
+    "why": "Event 4 — the procedure end to end.",
     "src": "Ch8"
    },
    {
-    "q": "Issues recorded in a Friday batch:",
+    "q": "The 46-strip repack was handled by:",
     "opts": [
-     "Fictionalise the week's chronology — the posting-date disease at the consumption desk",
-     "Are efficient",
-     "Are required",
-     "Improve accuracy"
+     "Stopping the entry per the register, inspecting, then 46 good repacked and 2 damaged issued with the note",
+     "Posting 46 silently",
+     "Posting 48",
+     "A recount only"
     ],
     "ans": 0,
-    "why": "Record at consumption.",
-    "src": "Ch3, Ch9"
+    "why": "Event 5.",
+    "src": "Ch8"
    },
    {
-    "q": "A standing transit balance nobody can itemise means:",
+    "q": "The month's issues read listed:",
     "opts": [
-     "Healthy buffers",
-     "Receipts unentered, shortfalls unresolved, the room unread — the smoke detector unplugged",
-     "Good security",
-     "Nothing"
+     "Nothing",
+     "Four decided figures with four documents — quarantine write-off, transit loss, repack damage, subcontract wastage",
+     "One estimate",
+     "The full ledger"
     ],
     "ans": 1,
-    "why": "The room returns to zero between runs in a healthy network.",
-    "src": "Ch9"
+    "why": "The close's reads.",
+    "src": "Ch8"
    },
    {
-    "q": "This module's law is:",
+    "q": "Module 2's rule is:",
     "opts": [
-     "Stock moves freely",
-     "Transfers need no paper",
-     "Stock moves only by documents, and every movement names its purpose — where no counterparty exists, the reason is the counterparty",
-     "Issues cover differences"
+     "Movements are informal",
+     "Transit is optional",
+     "Every internal movement is a Stock Entry with its purpose — transfers received against what arrived, issues and receipts with reason and approval, repacks held to their register, honest dates throughout",
+     "Receipts replace purchases"
     ],
     "ans": 2,
-    "why": "Honest value in, honest destinations out, honest custody en route, honest yields through.",
+    "why": "The module rule.",
     "src": "Ch9"
    }
   ]
