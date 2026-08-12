@@ -1420,473 +1420,473 @@
  },
  "sales_orders": {
   "title": "Selling 4 — Sales Orders",
-  "desc": "The commitment document: delivery dates, what submission reserves, the status language, amendments, holds and closes, and delivery tolerance.",
+  "desc": "Sales Orders in ZhiftERP: the field walk — header pre-fill, the customer's PO reference, per-row delivery dates, the items table checked against the accepted version, and the payment schedule table; the commitment mechanics — stock reservation into the Bin, the credit check at submission, the execution basis with %delivered and %billed, and the order confirmation; wave scheduling against projected stock with the weekly planning read; the amendment discipline — the change taxonomy, the controlled lanes, cancellations and the Closed status, and the monthly amendments read; milestone payment schedules with advances requested, received against the order, and allocated at invoicing; and the order book's six reads.",
   "lessons": [
    {
-    "title": "Chapter 1 — The Sales Order, field by field",
-    "est": "15",
-    "html": "<p>The Sales Order is the hinge of the entire selling cycle: everything before it was persuasion, everything after it is performance. The customer has said yes; this document records exactly what was promised, at what price, for when — and the whole business plans off it: the warehouse sees a pipeline of picks, procurement sees demand, finance sees revenue in flight, and the delivery and billing modules (Selling 5 and 7) will count themselves down against its rows. Walk the fields with that weight in mind.</p><ul><li><b>Customer</b> — always a customer now, never a lead: commitment requires the full master (Selling 1). If the deal began as a lead quotation, conversion happened at the win (Selling 3, Chapter 2), and the order addresses the newborn customer with its group, territory, currency and price list properly set.</li><li><b>Transaction date vs Delivery Date</b> — two different promises. The transaction date is when the commitment was made; the header <b>Delivery Date</b> is when the goods are owed. The gap between them is your fulfilment runway, and every planning view measures against the delivery side.</li><li><b>Per-row delivery dates</b> — real orders split: shelving Monday, imported scanners in three weeks. Each item row can carry its OWN delivery date, and this — not separate orders, not remarks, not holding everything hostage to the slowest line — is the correct model for staggered fulfilment. The header date then reads as the outer promise; the rows carry the schedule.</li><li><b>The items grid</b> — inherited from the quotation when created from one (Chapter 2): items, quantities, UOMs, the negotiated rates with Price List Rate standing witness (Selling 3), amounts. The row additionally carries the <b>warehouse</b> it will ship from — the first appearance of physical reality in the cycle — and, once submitted, live <b>delivered and billed quantities</b> that Chapter 3 explains.</li><li><b>Taxes, terms, T&amp;C</b> — travelled from the quotation (Selling 3, Chapters 4-5): the VAT template, the payment schedule, the conditions legal saw. Verify rather than re-enter; the whole point of document flow is that the accepted offer IS the recorded order.</li><li><b>Source link</b> — the quotation reference, visible on the order. The chain of custody in one field: this order fulfils that offer.</li></ul><p><b>Draft first, always.</b> As with quotations: build in Draft, check against the six-box discipline (right customer, rates as negotiated, dates realistic, warehouse sane, tax template correct, terms intact), then Submit — because submission, as Chapter 3 shows, is not filing. It changes the state of the business.</p>"
+    "title": "Chapter 1 — The Sales Order: scope and position",
+    "est": "11",
+    "html": "<p>This module covers the Sales Order in ZhiftERP. On completing this module you will be able to: complete the Sales Order field walk; state what submission commits and reserves; plan per-row delivery schedules including multi-wave orders; operate the amendment and cancellation discipline; configure payment schedules and handle advances; and run the order book reads.</p><p><b>What a Sales Order is.</b> The Sales Order is the agreement: the business commits to supply these items, in these quantities, at these prices, on this schedule, on these payment terms. Everything before it was offer (module 3); everything after it executes it — the Delivery Notes ship against it (module 5), the invoices bill against it (module 7), the stock reserves for it, and the credit exposure counts it. The order is therefore the document the business is held to, and this module's disciplines exist because commitments are expensive to state wrongly.</p><p><b>Order sources.</b></p><p>1. <b>Conversion from a quotation</b> — the enterprise and negotiated lane (module 3, Chapter 7): the order inherits the final accepted version with its evidence.<br>2. <b>Direct entry</b> — the routine trade lane: standing customers ordering from the lists, entered against the registers with no quotation required per the policy. Direct orders carry the same disciplines — pre-filled rates, the units read, credit checked — with the customer's purchase order reference attached where one exists.</p><p><b>What submission does.</b> Stated here and detailed in Chapter 3: the order's quantities enter the reserved figures the stock system carries; the credit check runs against the customer's limit; the delivery and billing machinery gains its basis; and the order joins the order book the business plans from. An unsubmitted draft commits nothing; a submitted order commits everything it states.</p><p><b>Custody.</b> The sales function enters and maintains orders; commercial changes re-enter the deviation ladder (module 3's bands apply to order amendments exactly as to offers); schedule changes follow the amendment procedure; and the standing rule: <b>the order states the whole agreement — nothing is promised beside it, and nothing on it changes without its documented amendment.</b></p><p><b>Module contents.</b> Chapter 2: the field walk. Chapter 3: the commitment mechanics. Chapter 4: the delivery schedule. Chapter 5: amendments and cancellations. Chapter 6: the payment schedule and advances. Chapter 7: the order book reads. Chapter 8: worked example. Chapter 9: review and the module rule.</p>"
    },
    {
-    "title": "Chapter 2 — From quotation to commitment",
+    "title": "Chapter 2 — The Sales Order doctype",
+    "est": "12",
+    "html": "<p>Open Sales Order (awesome bar) &gt; New — or arrive here by conversion from a quotation. Complete or verify the fields in order.</p><p><b>1. Customer and the header pre-fill.</b> The customer selection pulls module 1's machinery: currency, price list, payment terms template, addresses, contact. On converted orders the quotation's values carry; the verification rule stands either way — the header is read before the rows.</p><p><b>2. Customer's Purchase Order.</b> The customer's own PO number and date, entered where the customer issues one (enterprise and institutional customers almost always do). The reference prints on the delivery and invoice documents, and the customer's payables function matches against it — a missing PO reference is a payment delay at the customer's end.</p><p><b>3. Delivery Date.</b> The header delivery date, and — the field that matters for real schedules — the <b>per-row delivery dates</b> in the items table: each row carries its own date, which is how one order states a multi-wave schedule (Chapter 4). The header date is the latest commitment; the rows state the plan.</p><p><b>4. The items table.</b> Per row: item, quantity, UOM (the unit column read, per module 2's discipline), rate (inherited from the quotation or pre-filled from the lists; deviations per the ladder), amount, the per-row delivery date, and the source warehouse where the site sets it at order time. Converted orders are checked row-by-row against the final quotation version — the module 3 handoff's receiving side.</p><p><b>5. Taxes and Charges.</b> Per the template, as quoted. The order's tax total is the invoice's tax total; discrepancies trace to template or classification errors and are fixed at the source, not edited on the document.</p><p><b>6. Payment Terms Schedule.</b> The terms template generates the schedule table — due dates and portions (Chapter 6). Milestone structures (the advance-delivery-completion split) are entered here as the schedule the invoices will follow.</p><p><b>7. Terms, source, and attachments.</b> The T&C as quoted; the source quotation linked (conversion does this); the acceptance evidence attached (module 3, Chapter 7) — the customer's PO document, the signed offer. The order file is the agreement file.</p><p><b>8. Save, review, submit.</b> Draft review per the value threshold (the preparer/reviewer split on commitments above the band); submission runs the credit check and commits the order (Chapter 3).</p><p><b>Verification per order.</b> Header read; rows against the accepted version or the lists; units read; per-row dates stating the real plan; the schedule per the agreed terms; evidence attached; then submit — and the order confirmation to the customer per Chapter 3.</p>"
+   },
+   {
+    "title": "Chapter 3 — The commitment mechanics",
+    "est": "12",
+    "html": "<p>Submission turns a draft into a commitment. This chapter is exactly what commits, where it shows, and the confirmation that closes the loop.</p><p><b>1. Stock reservation.</b> Each submitted row's undelivered quantity enters the <b>Reserved Qty</b> on the item-warehouse Bin (the Inventory track, module 1, Chapter 6). The consequences:</p><p>1. <b>Projected quantity falls</b> — replenishment arithmetic sees the commitment: the reorder machinery orders against promised stock, not just shelf stock.<br>2. <b>Availability questions answer honestly</b> — the next order's preparer sees projected, not actual, and does not promise the same stock twice.<br>3. <b>Reservation hygiene matters</b> — the stale-order reservations the Inventory track's monthly read hunts (orders that will never fulfil, holding stock on paper) are this module's Chapter 7 hygiene, read from the selling side.</p><p><b>2. The credit check.</b> Submission tests outstanding exposure plus this order against the customer's limit (module 1, Chapter 5): the block posture refuses the over-limit order; the named bypass role may pass it as a listed decision. The order is where credit exposure is created — the invoice merely documents what the order committed — which is why the check runs here and not only at invoicing.</p><p><b>3. The execution basis.</b> The submitted order becomes the reference every downstream document draws from:</p><p>1. <b>Delivery Notes</b> create from the order, drawing rows and quantities (module 5) — the %delivered figure tracks fulfilment per row.<br>2. <b>Sales Invoices</b> bill against the order per the payment schedule (module 7) — the %billed figure tracks it.<br>3. <b>The two percentages together</b> state the order's life at a glance: delivered and billed to completion is a closed commitment; the gaps between them are Chapter 7's reads.</p><p><b>4. The order confirmation.</b> After submission, the confirmation goes to the customer per the policy: the order document (the site's print format) stating what was agreed — items, quantities, prices, schedule, terms. The confirmation is the last cheap moment to catch a disagreement: the customer reading their own commitment back finds the wrong quantity or date now, against a document, rather than at the delivery dock against a truck. Enterprise orders confirm as standing procedure; routine trade confirms per the policy's threshold.</p><p><b>5. What submission does not do.</b> It does not move stock (deliveries do), does not create receivables (invoices do), and does not collect the advance (the payment entry does, Chapter 6). The order is the promise; the downstream documents are the performance — and keeping the two distinct is what lets the reads in Chapter 7 say precisely where any order stands.</p>"
+   },
+   {
+    "title": "Chapter 4 — The delivery schedule",
+    "est": "12",
+    "html": "<p>Real orders ship in waves. This chapter is the scheduling machinery and its planning reads.</p><p><b>1. Per-row delivery dates.</b> The items table carries a delivery date per row — the mechanism for every schedule shape:</p><p>1. <b>The single-wave order</b> — all rows on one date; the header date matches.<br>2. <b>The multi-wave order</b> — the same item split across rows with different dates (100 units on the first date, 100 on the second), or different items on different dates per the plan. The rows state the schedule; the header carries the final date.<br>3. <b>The rule:</b> the rows state the <b>real</b> plan agreed with the customer, not a placeholder — every planning read below computes from these dates, and a schedule entered as one optimistic date produces overdue flags on stock the customer never expected yet.</p><p><b>2. Scheduling against stock.</b> The order's dates are checked against availability at entry: projected quantity per item per warehouse (the Inventory track's figure) against each wave's quantity and date, with incoming purchase schedules visible where the site exposes them. A wave the stock cannot meet is a conversation at order time — the date moved, the quantity split, or the replenishment expedited — not a discovery at picking. For orders that drive procurement (the enterprise order requiring equipment purchase), the procurement lane is triggered from the order per the site's flow, and the wave dates account for the supplier's lead time.</p><p><b>3. Wave execution.</b> Each wave ships as its own Delivery Note against the order (module 5's territory): the note draws the wave's rows and quantities, the %delivered figure advances, and the remaining rows hold their dates. The order remains the single reference across all waves — one agreement, several performances, each documented.</p><p><b>4. The delivery planning read — weekly.</b> Open order rows by delivery date:</p><p>1. <b>The coming window</b> — rows due in the planning horizon, grouped by warehouse and route: the picking and despatch workload, visible a week out.<br>2. <b>The overdue rows</b> — rows past their date and undelivered: each is a commitment the business is currently missing, chased to its cause (stock, transport, a customer hold) and either delivered or re-dated by documented amendment with the customer's agreement (Chapter 5). An overdue row left unexplained is the read failing at its purpose.<br>3. <b>The at-risk rows</b> — due rows whose projected stock is short: flagged before their date, while the expedite-or-re-date conversation is still cheap.</p><p><b>5. Schedule changes.</b> Dates move — customers defer, stock delays. Every date movement is an amendment per Chapter 5's procedure: the row's date updated through the amendment lane with the reason and the customer's agreement noted. The schedule's history then reads honestly: what was promised, what moved, why, and with whose agreement — which is the record the service-level conversation at year-end is conducted from.</p>"
+   },
+   {
+    "title": "Chapter 5 — Amendments and cancellations",
+    "est": "12",
+    "html": "<p>Agreements change; the record must change correctly. This chapter is the discipline.</p><p><b>1. The change taxonomy.</b> Changes route by what they touch:</p><p>1. <b>Commercial changes</b> — rates, discounts, added lines at negotiated prices: these re-enter module 3's deviation ladder at the band the change belongs to. An order amendment is not a side door around the offer's approvals; the concession that was never approved does not become approved by appearing on an amendment.<br>2. <b>Quantity changes</b> — increases run the credit and availability checks again (more commitment); decreases release reservation and are checked against work already done (a wave already picked or shipped does not un-ship by amendment — the return lane in module 5 handles physical reversals).<br>3. <b>Schedule changes</b> — date movements per Chapter 4.5: documented, reasoned, agreed.<br>4. <b>Administrative changes</b> — references, contacts, addresses for undelivered waves: ordinary edits with notes.</p><p><b>2. The amendment mechanics.</b> Submitted orders change through the site's controlled lanes:</p><p>1. <b>The update facility for submitted orders</b> — quantity and schedule updates on undelivered rows, permitted to the roles the matrix names, each update logged by the system. This is the standard lane for the common cases.<br>2. <b>Cancel-and-amend</b> — the full amendment for structural changes: the order cancels with its reason and the amended version issues carrying the reference, per the standing document rules. Downstream documents already submitted against the order gate what cancellation is possible — an order with deliveries posted amends around its performed portion.<br>3. <b>Either lane, the same records rule:</b> the change, the reason, the approver per the taxonomy, and the customer's agreement where the agreement moved — on the document trail, not in a phone call's memory.</p><p><b>3. Cancellations.</b> The order that will not proceed cancels with its reason code (customer cancelled, credit refused, superseded), releasing its reservations and closing its schedule rows. Cancellation reasons are a small defined set, per the standing reason-code pattern, because the quarterly cancellations read aggregates them into a why. Partial situations — some waves shipped, the remainder cancelled — close the undelivered rows per the procedure, leaving the performed portion intact and billed.</p><p><b>4. The status vocabulary.</b> The order's status states its life: To Deliver and Bill, To Bill, To Deliver, Completed, Cancelled, Closed. <b>Closed</b> is the deliberate early end: the customer takes no more against this order, remaining quantities release, the record preserves what happened. Closing is a decision with a reason, used at the stale-order hygiene read (Chapter 7) — the alternative, orders left open forever at partial delivery, is the misstated order book Chapter 9 lists among the errors.</p><p><b>5. The amendments read — monthly.</b> Orders amended in the month: the change, the lane, the approver, reconciled against the taxonomy's requirements — commercial changes carrying ladder approvals, schedule changes carrying agreements. The sibling of every fields-move-by-decision read in the programme, applied to commitments.</p>"
+   },
+   {
+    "title": "Chapter 6 — The payment schedule and advances",
+    "est": "12",
+    "html": "<p>The order states when money is due, and enterprise orders collect part of it before work starts. This chapter is the machinery.</p><p><b>1. The payment schedule table.</b> The order's Payment Terms section: the template (module 1, Chapter 5) generates the schedule rows — each a portion and a due basis. Structures the schedule expresses:</p><p>1. <b>The standing terms case</b> — one row: 100% due at the term's interval from invoice.<br>2. <b>The milestone case</b> — the enterprise pattern: an advance portion due at order, a portion due on delivery, a retention portion due at completion (the 50/40/10 shape). Each row's portion and timing enter as the negotiated agreement states, and the invoices (module 7) follow the schedule as their billing plan.</p><p><b>2. Advances against orders.</b> The advance portion collects before delivery:</p><p>1. <b>The request</b> — the payment request against the order for the advance portion, sent per the policy (the enterprise order does not enter the work queue until the advance clears, where the terms say so — the schedule is enforced, not decorative).<br>2. <b>The receipt</b> — the Payment Entry recording the customer's payment <b>against the Sales Order as an advance</b>: the entry references the order, the money lands in the bank account, and the customer's balance shows the advance held.<br>3. <b>The allocation</b> — when the invoices raise (module 7), the advance allocates against them per the schedule: the advance held becomes payment applied, and the customer's statement reads coherently — order, advance, invoice, allocation. An advance received but never allocated is a reconciliation item the receivables read surfaces; the allocation step is part of the invoicing procedure, not an afterthought.</p><p><b>3. Custody and the accounting boundary.</b> The sales function agrees the schedule (within the terms the ladder approved) and tracks the milestones; the accounts function receives, records, and allocates the money per the Accounts track's procedures. The boundary rule: <b>sales confirms what is due when; accounts confirms what arrived and where it applied</b> — and the order's schedule is the shared reference both read from.</p><p><b>4. The schedule reads.</b></p><p>1. <b>The advance status read — weekly on the enterprise book:</b> orders whose schedule requires an advance, against advances received — the unfunded order that entered the work queue is the finding.<br>2. <b>The milestone read — monthly:</b> due milestones against invoicing and collection: the delivered wave whose delivery-portion invoice never raised, the completed order whose retention was never billed. Both are revenue sitting unbilled through process gaps, and module 7's invoicing discipline consumes this read.</p>"
+   },
+   {
+    "title": "Chapter 7 — The order book reads",
+    "est": "12",
+    "html": "<p>The open orders are the business's committed future. This chapter is the reads that keep the book true and worked.</p><p><b>1. The order book — weekly.</b> All open orders with value, age, %delivered, %billed, and next scheduled date. The book is the selling function's working list and the owner's forward view: committed revenue, its schedule, and its execution state in one report. The weekly pass works it top-down by value: the largest commitments' next actions confirmed on calendar.</p><p><b>2. The overdue-delivery read — weekly (Chapter 4's read, restated as the book's column).</b> Rows past date, each with its cause and its action — delivered, expedited, or re-dated by documented amendment. The read's output is a short list with owners, not a long list with sighs.</p><p><b>3. The delivered-not-billed read — weekly.</b> Orders (and waves) where %delivered leads %billed beyond the invoicing cadence: performance the business has given away without yet asking for its money. Module 7 owns the invoicing procedure; this read is the order-side alarm that feeds it, and its target state is a list that clears at each invoicing run.</p><p><b>4. The billed-not-delivered read — monthly.</b> The inverse gap: invoicing ahead of delivery beyond the advance structure the schedule authorises. Legitimate cases trace to their schedule rows (the advance invoice per the milestone plan); the remainder are errors to correct before they become customer disputes.</p><p><b>5. The stale-order hygiene read — monthly.</b> Open orders with no movement (no delivery, no invoice, no amendment) across the policy's window:</p><p>1. <b>The reservation cost stated</b> — each stale order holds Reserved Qty against stock other orders could use (Chapter 3; the Inventory track reads the same figure from the other side).<br>2. <b>The action per order</b> — revived with a real schedule (the customer confirms new dates by amendment), or Closed with its reason, releasing the reservation.<br>3. <b>The target</b> — a book containing only live commitments, because every planning figure downstream (projected stock, committed revenue, the delivery workload) computes from it.</p><p><b>6. The cancellations and closures read — quarterly.</b> The quarter's cancelled and closed orders by reason code: the distribution goes to the owner as data (credit refusals rising, customer cancellations concentrated in a segment, closures from stock failure), with the orders named, per the standing rule.</p><p><b>7. The filing.</b> The book and its reads file with the sales records; the order file per order — the agreement, evidence, amendments, waves, schedule — remains the one-lookup answer for any commitment's history, and module 7 will add the invoicing and collection layers onto the same file.</p>"
+   },
+   {
+    "title": "Chapter 8 — Worked example: the Montaigne AH order",
     "est": "13",
-    "html": "<p>How an order comes to exist determines whether the deal the customer accepted and the deal you fulfil are the same deal. This chapter is the creation discipline.</p><p><b>The preferred path: Create from the quotation.</b> On the accepted quotation: <b>Create &gt; Sales Order</b>. Items, quantities, UOMs, the negotiated rates including overrides, the tax template, the payment terms, the T&amp;C — all carry across with zero retyping, zero transcription errors. The quotation flips to <b>Ordered</b> (Selling 3, Chapter 6), closing its lifecycle, and the order carries the source link forever. This path is preferred not for convenience but for integrity: the moment a human retypes an accepted offer, the agreed deal and the recorded deal can diverge, and every dispute born of that divergence is self-inflicted.</p><p><b>Partial acceptance.</b> The customer accepted four of the six quoted lines. Create the order from the quotation, then <b>delete the declined rows in Draft</b> before submitting — the order records what was actually accepted; the quotation's full offer remains in history; the source link still tells the story. What NOT to do: a fresh hand-typed order for the four lines (orphans the trail, invites typos), or forcing the customer's decision into an all-or-nothing re-quote when the win is sitting in front of you.</p><p><b>Quantity changes at acceptance.</b> Same principle: adjust quantities in Draft. The quotation offered 100; they committed to 80 — the order says 80. (If they may take the other 20 later, that later purchase is a NEW order when it becomes real; do not book hope as commitment. Selling 8's blanket orders exist for genuinely committed future volume.)</p><p><b>Direct entry — the legitimate minority.</b> Orders without quotations exist honestly: standing repeat orders from established customers, counter trade, phone orders in fast-moving distribution. Direct entry serves them — the full grid filled by hand, rates fetching from the customer's list per Selling 2's machinery. The tell of a process problem is not direct entry existing but direct entry DOMINATING in a business that negotiates: if most orders have no quotation behind them in a deal-driven trade, offers are being made outside the system (Selling 3, Chapter 9, Pattern 5) and the pipeline management above them is fiction.</p><p><b>One order per commitment.</b> Resist both fragmentation (five little orders for one purchase because five people phoned) and agglomeration (appending a new week's purchase onto last week's open order). The order maps one commercial commitment; its identity is what every downstream document, status, and report hangs from.</p>"
+    "html": "<p>This chapter runs Chapters 2-7 through the order that module 3's negotiation produced. Values and outcomes are listed per step.</p><p><b>Step 1 — creation from the accepted version (Chapter 2).</b> The order creates from round two — the final accepted quotation — and is checked row-by-row against it: the 12-branch equipment lines with the <b>4% terminal concession intact</b> (terminals only, per the approval's named scope; scanners and printers at list), installation and training as restructured in round two. Montaigne AH's purchase order number enters the header; the acceptance document attaches. The header is read; the rows are read; the units are read.</p><p><b>Step 2 — the schedule entered (Chapters 2, 4, 6).</b></p><p>1. <b>Delivery:</b> the rollout plan enters as per-row dates in <b>three waves</b> — the first branches in the first wave, the remainder across the following two, each row carrying its wave's date; the header carries the final date.<br>2. <b>Payment:</b> the negotiated milestone structure enters as the schedule table — <b>50% advance at order, 40% on delivery, 10% at completion</b> — the rows stating portion and basis exactly as the agreement reads.</p><p><b>Step 3 — one change at signature (Chapter 5).</b> Montaigne AH requests one change as they sign: <b>the training component moves</b> to sit after the second delivery wave rather than the first. The change is classified per the taxonomy: a schedule change with no commercial movement — the training row's date amends through the standard lane with the reason and the customer's agreement noted. No re-quote, no ladder: the taxonomy routed it in one step.</p><p><b>Step 4 — submission and the commitments (Chapter 3).</b> Submission reserves the equipment quantities (projected stock at the fulfilling warehouse falls by the order — the procurement lane for the hardware was triggered at conversion, its lead time inside wave one's date), passes the credit check at the customer's limit, and issues the order confirmation. The confirmation pass proves its worth at zero cost: Montaigne AH's operations team confirms the branch sequence against their own rollout plan before anything ships.</p><p><b>Step 5 — the advance (Chapter 6).</b> The advance request issues for the 50% portion; the Payment Entry records receipt against the order; the enterprise book's advance read shows the order funded before the work queue takes it. The advance will allocate against the wave invoices per the schedule as module 7 raises them.</p><p><b>Step 6 — the book carries it (Chapter 7).</b> The order book shows the commitment at value with its three-wave schedule; the weekly planning read carries wave one into the picking horizon; %delivered and %billed sit at zero, ready to advance as module 5 ships wave one. The order file — agreement, evidence, the one amendment, the schedule, the advance — answers the commitment in one lookup, and modules 5 and 7 will write the performance onto it.</p>"
    },
    {
-    "title": "Chapter 3 — What submission changes: reservation & the fulfilment ledger",
-    "est": "14",
-    "html": "<p>Submitting a Sales Order is the moment a promise becomes system state. Two machines start, and a professional can explain both to a sceptical storekeeper.</p><p><b>Machine one: stock reservation.</b> The ordered quantities appear as <b>reserved</b> against each row's warehouse. Reserved is not deducted — deduction is the Delivery Note's act (Selling 5), and nothing has physically moved — but reserved quantities subtract from what everyone else sees as available: projected stock reads actual minus reserved plus incoming. The consequence is coordination without meetings: a second salesperson checking availability sees the truth net of promises; the planner sees demand by date; procurement sees what must be bought to cover commitments. Reservation is the mechanism that stops two reps selling the same last fifty cartons — and it is also why <b>stale open orders are poison</b>: an abandoned order nobody closed keeps its reservation forever, hiding sellable stock from the whole company (Chapter 5's Close exists for exactly this, and Chapter 9 meets the disease in the wild).</p><p><b>Machine two: the fulfilment ledger.</b> From submission, the order tracks per row: quantity ordered, <b>delivered so far</b>, <b>billed so far</b> — as quantities and percentages. Every Delivery Note and every Sales Invoice <b>created FROM the order</b> counts these down automatically; the order always knows what remains owed and what remains unbilled. This is the mechanical reason the create-from discipline matters beyond neatness: a delivery note typed from scratch, however accurate its contents, counts against NOTHING — the order will insist those goods are still owed, the status will never advance, and someone will eventually ship them again (Chapter 9, Pattern 1, the most expensive ticket in this module).</p><p><b>What the ledger feeds.</b> The delivered/billed percentages drive the status word (Chapter 4); the remaining quantities pre-fill the next DN and the next invoice (Selling 5 and 7 inherit exact remainders, never guesses); and across all orders, the order-analysis reporting (Selling 6) reads these same numbers as the company's delivery backlog. One ledger, kept automatically, on the document everyone already looks at.</p><p><b>What submission does NOT do.</b> No stock moves. No revenue books. No money is owed. Those are the Delivery Note's and the Sales Invoice's moments respectively — the timeline from Selling 5 bears repeating until reflexive: <i>order reserves, delivery deducts, invoice books, payment settles</i>. A customer who asks why their stock report has not changed after confirming an order gets that sentence, kindly.</p>"
-   },
-   {
-    "title": "Chapter 4 — The status language",
-    "est": "13",
-    "html": "<p>An order's status is a compact sentence about what remains owed, computed from the fulfilment ledger — not set by hand. Learn to read it, and to explain what moves it.</p><ul><li><b>To Deliver and Bill</b> — freshly submitted: both obligations outstanding. Every order begins here, and stays here while delivered and billed both sit below their thresholds.</li><li><b>To Bill</b> — delivered (fully, within tolerance), not yet invoiced. Goods gone, money not asked for — a status that should be measured in days, not weeks, because it is literally revenue waiting for someone to press Create (Selling 7 turns this into the billing worklist).</li><li><b>To Deliver</b> — invoiced ahead of delivery: the advance-billing flows (Selling 7, Chapter 1). Money asked for or received; goods still owed. Common in project and import trade; the status keeps the outstanding physical promise visible even after finance is satisfied.</li><li><b>Completed</b> — both counts done. The order retires from every pending list.</li></ul><p><b>How the percentages drive it.</b> The status flips on the delivered and billed percentages crossing completion (with over-delivery tolerance, Chapter 7, letting 100%+ within allowance count as complete). This is why hand-fixing a status is meaningless: the status is arithmetic; fix the arithmetic — usually a missing or mis-created downstream document — and the word fixes itself (Chapter 9's diagnostic spine).</p><p><b>Reading the order list as an operations dashboard.</b> Filter by status and the list becomes worklists: <i>To Deliver and Bill</i> sorted by delivery date is the warehouse's week; <i>To Bill</i> oldest-first is billing's morning; per-customer filters show any account's open commitments in one screen — the view to have open when that customer calls. Add the delivery-date column and overdue-to-promise orders surface without any report being built.</p><p><b>Status vs the docstatus.</b> Distinguish the fulfilment status (this chapter) from the document's own lifecycle: Draft / Submitted / Cancelled. A cancelled order (Chapter 6) leaves the fulfilment conversation entirely; a submitted one speaks the four-word vocabulary above. Support conversations go smoother when you name which axis a customer is asking about — <i>the document stands; the fulfilment is what moved</i>.</p><p><b>Per-customer reading.</b> One filter worth teaching every account owner: the customer's own open orders, all statuses, delivery-date column visible — the single screen to have open when that customer calls. It answers, without a report: what have we promised them, what has shipped, what is invoiced, what is overdue to promise. An account managed from this screen never says <i>let me check and get back to you</i> about its own commitments — and for your 30-branch enterprise accounts, that screen IS the service-level conversation.</p>"
-   },
-   {
-    "title": "Chapter 5 — Hold & Close: the two manual controls",
-    "est": "13",
-    "html": "<p>The ledger runs itself; two decisions remain human. Both change an order's course without falsifying its history — which is precisely why they exist, and why the destructive alternatives are wrong.</p><p><b>Hold — the pause.</b> Credit trouble surfaced (Selling 1, Chapter 6's block may have been bypassed and now the doubt has grown); stock is uncertain; the customer said wait. <b>Hold</b> freezes fulfilment: the commitment stands, the reservation stands, but the order stops being actionable until released. It is not cancellation (nothing is unwound), not closure (nothing is finalised) — a pause, visible to everyone who reads the order, reversible the moment the blocker clears. The discipline around it: a held order carries a reason and an owner — in this house, a dated next step on whoever must clear it — because an unowned hold is just a slow leak with a label.</p><p><b>Close — the honest early ending.</b> The canonical case, worth knowing verbatim: the customer took 80 of 100 and will take no more. <b>Close</b> ends the order deliberately: the delivered 80 stand in history exactly as they happened; the undelivered 20's <b>reservation is released</b> back to sellable stock; the order leaves every pending-delivery and pending-billing list. Walk the rejected alternatives and their specific harms: <i>cancelling</i> falsifies history (the 80 DID ship — a cancelled order says the commitment never stood); <i>deleting the remaining rows</i> mutilates a submitted document and breaks the ledger arithmetic; <i>delivering 20 to scrap</i> is inventing movement to satisfy a status. Close is the answer, and the storekeeper's gratitude is immediate: the phantom 20 stop haunting the projected stock.</p><p><b>Close as hygiene, not just endings.</b> Chapter 3 named stale open orders poison; Close is the antidote at scale. A monthly sweep — open orders past their delivery dates with no movement in N weeks — gets each one a decision: chase it, hold it with an owner, or close it honestly. The projected-stock figure the whole company trades against is only as true as this sweep is regular. (Your SLOT-scale inventory remediations have met the ghost-reservation disease at its terminal stage; this sweep is the vaccine.)</p><p><b>Reopening.</b> A closed order can be reopened when the customer's appetite genuinely returns for the SAME commitment — the reservation re-engages. If what returns is a new purchase at new terms, it is a new order; reopening old paper to house new deals muddies both.</p>"
-   },
-   {
-    "title": "Chapter 6 — Amendments & cancellation",
-    "est": "13",
-    "html": "<p>Submitted documents are immutable — that immutability is what makes them trustworthy — so change happens through a formal doorway. This chapter is the doorway, its numbering, and its limits.</p><p><b>Cancel, then Amend.</b> Quantities must change, a row must be added, a rate was agreed differently: <b>Cancel</b> the order, then <b>Amend</b>. The amendment is a new revision carrying the same identity with a suffix — SO-00412 becomes SO-00412-1 — editable as a draft, resubmitted when right. The original remains in history, cancelled but readable; the revision chain (…-1, -2) IS the negotiation-after-commitment record, exactly as quotation amendments were in Selling 3. Never a fresh order pretending the first never existed (orphans the quotation link and the customer's paper trail), never database surgery, and never — the recurring temptation — asking a System Manager to edit a submitted document in place: the moment submitted documents can be quietly edited, no document in the system means anything.</p><p><b>What cancellation does mechanically.</b> Cancelling releases the reservation (the promise is withdrawn, stock returns to sellable) and re-opens the source quotation's claim on reality — an order cancelled without amendment leaves the quotation Ordered but unfulfilled, worth tidying when the deal truly dies (mark the quotation appropriately, close the loop).</p><p><b>The linked-documents constraint.</b> An order with <b>submitted</b> Delivery Notes or Sales Invoices against it cannot simply be cancelled — the system refuses, because cancelling a commitment that has partly HAPPENED would orphan real stock movements and real ledger entries. The lawful sequence runs backwards down the chain: deal with the downstream documents first (cancel an unexecuted DN; for executed reality, Selling 5's returns and Selling 7's credit notes unwind what actually occurred), and only then does the order become cancellable. Chapter 9 meets this as a ticket; the answer is always the same sentence: <i>unwind the children before the parent</i>.</p><p><b>Amend vs Close — choosing the right instrument.</b> The confusion to pre-empt: <b>Amend</b> is for correcting what the commitment IS (wrong quantity agreed, missing line, wrong rate recorded). <b>Close</b> is for ending what remains of a correct commitment (they took 80, done). Amending an order down to 80 because the customer stopped buying rewrites history to match the outcome — the 100 was really promised; Close preserves that truth. Corrections amend; endings close.</p>"
-   },
-   {
-    "title": "Chapter 7 — Delivery tolerance & scheduling",
-    "est": "13",
-    "html": "<p>Paper meets pallets in this chapter: the allowance that absorbs honest overage, and the date discipline that turns orders into a deliverable plan.</p><p><b>Over-delivery tolerance.</b> Real warehouses ship 102 against an order of 100 — pack rounding, bulk goods, good-faith extras. The <b>Over Delivery/Receipt Allowance %</b> defines how much a delivery may exceed the ordered quantity before the Delivery Note is blocked: set per <b>item</b> (the specific tolerance) with the <b>global</b> setting as fallback (Selling 1, Chapter 7's screen). Allowance 5% on 100 → up to 105 passes; 106 refuses. The policy logic, by item class: <b>zero tolerance for serialized goods</b> — every unit has identity, 100 means exactly 100 serials, and slack is how phones vanish; <b>a few percent for bulk</b> — cement, produce, consumables — because blocking the 101st bag helps nobody and the warehouse will otherwise route around the system (the worst outcome: tolerance decided ad hoc at the loading bay). Set it deliberately, per class, once.</p><p><b>Tolerance and completion.</b> Within allowance, an over-delivered row still completes cleanly — 102/100 within 5% reads as delivered, and the status machinery (Chapter 4) proceeds. Outside allowance, the DN blocks at submission and the conversation happens BEFORE stock moves, which is the entire point.</p><p><b>Scheduling with per-row dates.</b> Chapter 1 introduced row-level delivery dates; here is the operating rhythm they enable. The warehouse's forward view is the order rows grouped by delivery date — this week's picks, next week's, the overdue. An order with three delivery waves is one order, three row-dates, three appearances in the plan; the alternative models (three orders, or remarks) either fragment the commitment or hide the schedule from every view. When dates slip, the row's date is updated through the amendment discipline (Chapter 6) if the promise itself is being renegotiated — or stands as the record of the promise missed, which the overdue view then reports honestly. A plan that only ever shows achievable dates because someone edits the misses away is not a plan; it is a mirror.</p><p><b>Promise-keeping as a metric.</b> With dates kept honest, on-time-delivery-to-promise becomes computable per customer, per item group, per period — the operations metric your enterprise clients (30-branch chains with their own service levels to keep) will ask about in the second year of the relationship. The data exists the day the discipline does.</p>"
-   },
-   {
-    "title": "Chapter 8 — Case study: the Montaigne order, staged and stress-tested",
-    "est": "16",
-    "html": "<p>Selling 3 closed with Montaigne AH accepting quotation v2. This chapter runs that commitment through everything this module taught — including the two bumps every real enterprise order hits.</p><p><b>Step 1 — Birth (Ch. 2).</b> From quotation v2: <b>Create &gt; Sales Order</b>. Six lines carry over — hardware trio at the negotiated rates (the 4% terminal concession intact, Price List Rate still standing witness), installation, support plan, training — with VAT template and the staged payment terms (50/40/10). Montaigne confirms one change at signature: training moves to a later phase, so the training row's quantity drops in <b>Draft</b> before submission. Submit. Quotation v2 flips to <b>Ordered</b>; the order carries the source link; status: <b>To Deliver and Bill</b>.</p><p><b>Step 2 — The schedule (Ch. 1, 7).</b> Twelve branches in three waves: rows carry per-row delivery dates — wave one (5 branches) in 2 weeks, wave two (4) in 5 weeks, wave three (3) in 8 weeks. Hardware rows ship from the main warehouse; tolerance is zero on terminals and scanners (serialized — Ch. 7's rule) and default on consumables. The warehouse's forward view now shows three dated picks; nobody schedules by email.</p><p><b>Step 3 — Submission's machines (Ch. 3).</b> Reservation: 12 terminals, 12 scanners, 12 printers held against the warehouse — the two other pending POS deals this quarter now see availability NET of Montaigne, and procurement sees the reorder demand by date. The fulfilment ledger opens at 0% delivered, 0% billed.</p><p><b>Step 4 — Advance billing (Ch. 4; Selling 7 ahead).</b> Per the terms, the 50% advance invoice is raised FROM the order before any delivery — the ledger records billed% rising while delivered% sits at zero, and the status reads the invoiced-ahead reality. Money machinery continues in Selling 7; the order meanwhile keeps the physical promise visible.</p><p><b>Step 5 — Bump one: the hold (Ch. 5).</b> Week 3: the advance payment stalls in Montaigne's approval chain. Finance requests a pause before wave two ships. <b>Hold</b> — commitment intact, reservation intact, fulfilment frozen — with an owner and a dated next step (chase the advance, review Friday). Payment lands day 4; hold released; wave two proceeds. Total drama recorded: two clicks and one dated follow-up, instead of a WhatsApp thread nobody can find later.</p><p><b>Step 6 — Bump two: the dropped branch (Ch. 5, 6).</b> Week 7: Montaigne cancels one wave-three branch (lease fell through) — they will take 11 sets, not 12. This is an ENDING of part of a correct commitment, not a correction of a wrong one: when wave three delivers its final 2 sets, the order stands at 11 of 12 delivered — and is <b>Closed</b>. The twelfth set's reservation releases to sellable stock; history shows truthfully that 12 were promised and 11 taken. (Amending down to 11 was the rejected instrument — it would rewrite the promise to match the outcome, Ch. 6's distinction earning its keep.)</p><p><b>Step 7 — Retirement.</b> Waves delivered from the order (Selling 5's discipline, each DN pre-filled with exact remainders), final invoices from the order (Selling 7), ledger at completion for 11 sets, order Closed, quotation chain readable end to end: enquiry → meetings → v1 → v2 → order → three waves → close. Anyone in the firm can reconstruct the entire deal in five minutes, two years from now. That is what the hinge document is FOR.</p>"
-   },
-   {
-    "title": "Chapter 9 — Common mistakes & support patterns",
-    "est": "14",
-    "html": "<p>The Sales Order scar-tissue chapter — and because the order is the cycle's ledger, its diseases are the most expensive in selling. Symptom → disease → fix.</p><p><b>Pattern 1 — The order says goods are owed; the customer says they arrived.</b> Disease: the Delivery Note was created from scratch instead of FROM the order (Ch. 3) — accurate goods movement, zero ledger effect; the order still counts the quantities as undelivered, and the warehouse may ship them AGAIN. Fix: cancel the orphan DN and recreate it from the order (stock timing permitting), or reconcile deliberately; then retrain the create-from reflex. This is the single most expensive ticket in the module — double shipment is real stock and real money.</p><p><b>Pattern 2 — Projected stock says nothing is available, the shelves are full.</b> Disease: ghost reservations — stale open orders never closed (Ch. 3, 5). Every abandoned order holds its stock hostage invisibly. Fix: the monthly sweep — open orders past delivery date, no movement — each one chased, held with an owner, or closed; watch projected stock tell the truth again. (At enterprise scale this disease compounds into the phantom-stock archaeology your team has performed for 50-warehouse clients; the sweep is cheaper.)</p><p><b>Pattern 3 — The system refuses to cancel the order.</b> Not a disease — the linked-documents constraint working (Ch. 6). Submitted DNs or invoices exist against it. Fix: unwind the children before the parent — cancel unexecuted downstream drafts, or route executed reality through returns (Selling 5) and credit notes (Selling 7); then the order cancels lawfully. The ticket to refuse: force-deleting via administrative power, which orphans ledgers.</p><p><b>Pattern 4 — The delivery is blocked for 2 units of overage.</b> The tolerance gate working as configured (Ch. 7). Fix is a policy question, not a workaround: if this item class genuinely warrants slack, set its allowance deliberately; if it is serialized, the block just saved you — 102 serials against 100 ordered is a conversation, not a shipment.</p><p><b>Pattern 5 — Two orders exist for one purchase; both partly fulfilled.</b> Disease: retyping instead of amending, or two staff booking the same phone call (Ch. 2, 6). Fix: consolidate — close or cancel the junior twin after moving any real fulfilment references, then the one-order-per-commitment rule, taught. Prevention: search the customer's open orders before creating (the same search-before-create reflex as Selling 1 and 2's duplicate diseases — third appearance of the same law).</p><p><b>Pattern 6 — Status is To Deliver though the customer already paid everything.</b> Not a bug: advance billing (Ch. 4) — billed complete, delivery outstanding. The status is keeping the PHYSICAL promise visible precisely because finance is satisfied. The support answer is the timeline sentence: order reserves, delivery deducts, invoice books, payment settles — and this order still owes a deduction.</p><p><b>Pattern 7 — Someone edited a submitted order directly.</b> Disease: administrative override culture (Ch. 6). Whatever it fixed today, it broke the system's word: if submitted documents are editable, none of them is evidence. Fix: revert, amend properly, and close the permission hole — this one is escalated as governance, not settled as support.</p><p><b>The meta-pattern, completed.</b> Selling 1-2: documents are downstream of masters. Selling 3: the pipeline is downstream of discipline. This module closes the trilogy: <b>the order is the single source of fulfilment truth</b> — every downstream document is made FROM it, every status is arithmetic ON it, every plan and every promise-metric reads OFF it. Protect that role and the rest of the cycle mostly runs itself; violate it and every module downstream inherits the lie.</p>"
+    "title": "Chapter 9 — Common errors and the module rule",
+    "est": "11",
+    "html": "<p>The errors that recur in Sales Orders, each with its correction and prevention.</p><p><b>Error 1 — the promise beside the order.</b> Symptom: commitments made in calls and messages that the order does not state; deliveries and disputes referencing agreements no document carries. Correction: the real agreement amended onto the order with its approvals. Prevention: the standing rule — the order states the whole agreement, and the confirmation puts it in the customer's hands.</p><p><b>Error 2 — the placeholder schedule.</b> Symptom: one optimistic header date on multi-wave reality; overdue flags on rows the customer never expected; planning reads computing from fiction. Correction: the rows re-dated to the real plan by amendment. Prevention: per-row dates stating the agreed schedule at entry.</p><p><b>Error 3 — the amendment side door.</b> Symptom: commercial concessions appearing via amendment without ladder approval; the offer's controls bypassed after acceptance. Correction: the amendments read catches it; the change re-enters the ladder or reverses. Prevention: the change taxonomy — commercial changes re-ladder, always.</p><p><b>Error 4 — reservations held by dead orders.</b> Symptom: stale orders reserving stock for months; projected figures misleading replenishment and availability answers. Correction: the hygiene read — revive with real dates or Close with reason. Prevention: the monthly read and the Closed status used as the decision it is.</p><p><b>Error 5 — the unenforced schedule.</b> Symptom: advance terms on paper, work starting unfunded; milestones passing unbilled. Correction: the advance and milestone reads run; the unbilled portions invoiced. Prevention: the schedule enforced — the work queue gated on the advance where terms say so, and module 7 billing from the schedule.</p><p><b>Error 6 — the silent date slip.</b> Symptom: delivery dates moved in place without reasons or customer agreement; the schedule's history unreadable; service-level conversations conducted from memory. Correction: the movements documented retroactively where evidence allows. Prevention: every date movement an amendment with reason and agreement noted.</p><p><b>Review list.</b> Before the quiz, confirm you can: complete the field walk including the customer PO reference, per-row dates, and the schedule table; state submission's four effects and what it does not do; plan waves against stock with the weekly planning read; route changes by the taxonomy through the controlled lanes with the amendments read; operate the milestone schedule with advances requested, received against the order, and allocated at invoicing; and run the order book's six reads.</p><p><b>Module rule 4: the Sales Order states the whole agreement — created from the accepted version or the registers, committing stock and credit at submission, scheduled per row as the real plan, changed only through the taxonomy's lanes with approvals and agreement, funded per its payment schedule, and kept live by the book's reads.</b> Module 5 covers Delivery Notes and returns.</p>"
    }
   ],
   "questions": [
    {
-    "q": "A freshly submitted, untouched Sales Order shows status:",
+    "q": "The Sales Order is:",
     "opts": [
-     "To Deliver and Bill",
-     "Open",
-     "Confirmed",
-     "Pending"
+     "The agreement — the document the business is held to, which everything downstream executes",
+     "An offer",
+     "A draft",
+     "A report"
     ],
     "ans": 0,
-    "why": "Both obligations — deliver and bill — are outstanding.",
-    "src": "Status §3"
-   },
-   {
-    "q": "Delivered in full but not yet invoiced, the order reads:",
-    "opts": [
-     "To Deliver",
-     "To Bill",
-     "Completed",
-     "Closed"
-    ],
-    "ans": 1,
-    "why": "Delivery done; billing remains.",
-    "src": "Status §3"
-   },
-   {
-    "q": "Submitting a Sales Order affects stock by:",
-    "opts": [
-     "Deducting it immediately",
-     "Nothing until invoice",
-     "Reserving the ordered quantities against the warehouse",
-     "Transferring it to the customer"
-    ],
-    "ans": 2,
-    "why": "Reservation shows everyone what's promised.",
-    "src": "Submission §2"
-   },
-   {
-    "q": "The customer took 80 of 100 and will take no more. Correct action:",
-    "opts": [
-     "Cancel the order",
-     "Deliver 20 to scrap",
-     "Delete the remaining rows",
-     "Close the order"
-    ],
-    "ans": 3,
-    "why": "Close ends it early, releases reservation, keeps history.",
-    "src": "Status §3"
-   },
-   {
-    "q": "An order that must pause for a credit issue should be:",
-    "opts": [
-     "Held",
-     "Cancelled",
-     "Closed",
-     "Deleted"
-    ],
-    "ans": 0,
-    "why": "Hold pauses without destroying the commitment.",
-    "src": "Status §3"
-   },
-   {
-    "q": "Changing a submitted order's quantities is done by:",
-    "opts": [
-     "Editing it directly",
-     "Cancel then Amend, creating the next revision",
-     "A new order",
-     "Asking a System Manager to edit SQL"
-    ],
-    "ans": 1,
-    "why": "Amend preserves the revision history.",
-    "src": "Status §3"
-   },
-   {
-    "q": "Shipping 102 against an order of 100 is permitted when:",
-    "opts": [
-     "Never",
-     "The driver insists",
-     "Over Delivery Allowance % covers the 2% overage",
-     "The invoice matches"
-    ],
-    "ans": 2,
-    "why": "The allowance defines acceptable overage before blocking.",
-    "src": "Tolerance §4"
-   },
-   {
-    "q": "Different lines shipping at different times are handled by:",
-    "opts": [
-     "Separate orders always",
-     "Holding the order",
-     "Remarks",
-     "Per-row delivery dates on one order"
-    ],
-    "ans": 3,
-    "why": "Row-level delivery dates schedule split fulfilment.",
-    "src": "Commitment §1"
-   },
-   {
-    "q": "The order's remaining-to-deliver quantities count down as:",
-    "opts": [
-     "Delivery Notes are made from the order",
-     "Payments arrive",
-     "Time passes",
-     "Stock is purchased"
-    ],
-    "ans": 0,
-    "why": "Fulfilment documents made FROM the order drive its ledger.",
-    "src": "Submission §2"
-   },
-   {
-    "q": "\"To Deliver\" (without \"and Bill\") means:",
-    "opts": [
-     "Nothing delivered",
-     "Invoiced ahead of delivery; goods still owed",
-     "Completed",
-     "On hold"
-    ],
-    "ans": 1,
-    "why": "Billing done first; delivery outstanding.",
-    "src": "Status §3"
-   },
-   {
-    "q": "Zero over-delivery tolerance is right for:",
-    "opts": [
-     "Bulk cement",
-     "All items",
-     "Serialized electronics where exact units matter",
-     "No items"
-    ],
-    "ans": 2,
-    "why": "Serialized goods need exact quantities; bulk needs slack.",
-    "src": "Tolerance §4"
-   },
-   {
-    "q": "The preferred origin of a Sales Order is:",
-    "opts": [
-     "Direct entry always",
-     "Import",
-     "Copy of an old order",
-     "Create from the accepted Quotation"
-    ],
-    "ans": 3,
-    "why": "Creating from the quotation preserves the agreed offer.",
-    "src": "Commitment §1"
-   },
-   {
-    "q": "A Sales Order is always made against:",
-    "opts": [
-     "A customer — lead conversion happened at the win",
-     "A customer or a lead",
-     "A quotation only",
-     "A contact"
-    ],
-    "ans": 0,
-    "why": "Commitment requires the full customer master.",
+    "why": "The offer was module 3; the performance is modules 5-7.",
     "src": "Ch1"
    },
    {
-    "q": "The customer accepted 4 of 6 quoted lines. The order is created by:",
+    "q": "Direct-entry orders carry:",
     "opts": [
-     "Hand-typing the 4 lines fresh",
-     "Create from the quotation, delete the declined rows in Draft",
-     "Forcing a re-quote of 4 lines",
-     "Submitting all 6 and closing 2"
+     "Fewer disciplines",
+     "The same disciplines — pre-filled rates, units read, credit checked, the customer's PO attached where one exists",
+     "No checks",
+     "Verbal terms"
     ],
     "ans": 1,
-    "why": "The trail stays linked; the order records what was accepted.",
-    "src": "Ch2"
+    "why": "The routine trade lane.",
+    "src": "Ch1"
    },
    {
-    "q": "They committed to 80 of the quoted 100 and MAY take 20 later. Book:",
+    "q": "The customer's PO reference matters because:",
     "opts": [
-     "100 — optimism",
-     "Two orders of 80 and 20",
-     "80 now; the later 20 is a new order when real (or a blanket order if truly committed)",
-     "90 as a compromise"
+     "It is decorative",
+     "It sets the price",
+     "Their payables function matches against it — a missing reference is a payment delay at their end",
+     "It reserves stock"
     ],
     "ans": 2,
-    "why": "Never book hope as commitment.",
+    "why": "It prints on deliveries and invoices.",
     "src": "Ch2"
    },
    {
-    "q": "Direct-entry orders dominating in a deal-driven business signals:",
+    "q": "Multi-wave schedules are stated by:",
     "opts": [
-     "Efficiency",
-     "Nothing",
-     "Good customer loyalty",
-     "Offers are being made outside the system — the pipeline above is fiction"
+     "The header date",
+     "Notes",
+     "Separate orders",
+     "Per-row delivery dates — the rows state the plan; the header carries the latest date"
     ],
     "ans": 3,
-    "why": "Legitimate for repeat trade; a tell when it dominates negotiated trade.",
+    "why": "The field that matters for real schedules.",
     "src": "Ch2"
    },
    {
-    "q": "Projected stock is computed as:",
+    "q": "Converted orders are checked:",
     "opts": [
-     "Actual minus reserved plus incoming",
-     "Actual only",
-     "Actual minus delivered",
-     "Ordered minus billed"
+     "Row-by-row against the final quotation version — the module 3 handoff's receiving side",
+     "By total",
+     "By the customer",
+     "Never"
     ],
     "ans": 0,
-    "why": "Reservation subtracts from what everyone sees as available.",
+    "why": "Creating from a superseded version ships the wrong prices.",
+    "src": "Ch2"
+   },
+   {
+    "q": "Submission reserves:",
+    "opts": [
+     "Nothing",
+     "Each row's undelivered quantity into Reserved Qty on the Bin — projected quantity falls by the commitment",
+     "The warehouse",
+     "The truck"
+    ],
+    "ans": 1,
+    "why": "Replenishment sees promised stock.",
     "src": "Ch3"
    },
    {
-    "q": "A from-scratch Delivery Note (not made from the order):",
+    "q": "The credit check runs at order submission because:",
     "opts": [
-     "Counts down the order anyway",
-     "Moves stock but counts against nothing — the order still shows goods owed",
-     "Is blocked",
-     "Bills the customer"
-    ],
-    "ans": 1,
-    "why": "The ledger only counts documents made FROM the order.",
-    "src": "Ch3, Ch9"
-   },
-   {
-    "q": "Stale open orders nobody closed are poison because:",
-    "opts": [
-     "They look untidy",
-     "They expire loudly",
-     "Their reservations hide sellable stock from the whole company",
-     "They double-bill"
+     "Invoices are late",
+     "The system requires it",
+     "The order is where exposure is created — the invoice documents what the order committed",
+     "Customers ask"
     ],
     "ans": 2,
-    "why": "Ghost reservations distort projected stock silently.",
-    "src": "Ch3, Ch5"
+    "why": "The block posture and bypass listing apply here.",
+    "src": "Ch3"
    },
    {
-    "q": "An order's status word is:",
+    "q": "%delivered and %billed together state:",
     "opts": [
-     "Set by the sales manager",
-     "Random",
-     "Chosen at submission",
-     "Arithmetic computed from delivered/billed percentages"
+     "Nothing",
+     "The route",
+     "The margin",
+     "The order's life at a glance — the gaps between them are the weekly reads"
     ],
     "ans": 3,
-    "why": "Fix the arithmetic (the documents), and the word fixes itself.",
-    "src": "Ch4"
+    "why": "Delivered and billed to completion is a closed commitment.",
+    "src": "Ch3"
    },
    {
-    "q": "'To Bill' orders should be measured in:",
+    "q": "The order confirmation is:",
     "opts": [
-     "Days — it is revenue waiting for someone to press Create",
-     "Quarters",
-     "Years",
-     "Units"
+     "The last cheap moment to catch a disagreement — the customer reads their commitment back against a document",
+     "Marketing",
+     "Optional always",
+     "The invoice"
     ],
     "ans": 0,
-    "why": "Delivered-unbilled is leakage aging in plain sight.",
-    "src": "Ch4"
+    "why": "Standing procedure on enterprise orders.",
+    "src": "Ch3"
    },
    {
-    "q": "The order list filtered To-Deliver-and-Bill, sorted by delivery date, is:",
+    "q": "Submission does not:",
     "opts": [
-     "A finance report",
-     "The warehouse's week",
-     "A marketing list",
-     "An audit file"
+     "Reserve stock",
+     "Move stock, create receivables, or collect the advance — deliveries, invoices, and payment entries do",
+     "Check credit",
+     "Create the basis"
     ],
     "ans": 1,
-    "why": "Status filters turn the list into operational worklists.",
+    "why": "The promise versus the performance.",
+    "src": "Ch3"
+   },
+   {
+    "q": "Row dates state:",
+    "opts": [
+     "Placeholders",
+     "Best cases",
+     "The real plan agreed with the customer — every planning read computes from them",
+     "The header"
+    ],
+    "ans": 2,
+    "why": "One optimistic date produces false overdue flags.",
     "src": "Ch4"
    },
    {
-    "q": "A held order should carry:",
+    "q": "A wave the stock cannot meet is:",
     "opts": [
-     "Nothing — the flag suffices",
+     "A picking discovery",
+     "Cancelled",
+     "Ignored",
+     "A conversation at order time — date moved, quantity split, or replenishment expedited"
+    ],
+    "ans": 3,
+    "why": "Checked against projected quantity at entry.",
+    "src": "Ch4"
+   },
+   {
+    "q": "Each wave ships as:",
+    "opts": [
+     "Its own Delivery Note against the order — one agreement, several performances, each documented",
+     "The whole order",
+     "A new order",
+     "A transfer"
+    ],
+    "ans": 0,
+    "why": "%delivered advances per wave.",
+    "src": "Ch4"
+   },
+   {
+    "q": "An overdue row is:",
+    "opts": [
+     "A statistic",
+     "A commitment currently being missed — chased to cause, delivered or re-dated by documented amendment",
+     "Automatic",
+     "The customer's problem"
+    ],
+    "ans": 1,
+    "why": "Left unexplained, the read fails its purpose.",
+    "src": "Ch4"
+   },
+   {
+    "q": "Commercial changes on amendments:",
+    "opts": [
+     "Skip approvals",
+     "Are free",
+     "Re-enter the deviation ladder — an amendment is not a side door around the offer's approvals",
+     "Are forbidden"
+    ],
+    "ans": 2,
+    "why": "The change taxonomy's first row.",
+    "src": "Ch5"
+   },
+   {
+    "q": "Quantity increases trigger:",
+    "opts": [
+     "Nothing",
+     "A new customer",
      "A discount",
-     "A reason and an owner with a dated next step",
-     "A new delivery date"
-    ],
-    "ans": 2,
-    "why": "An unowned hold is a slow leak with a label.",
-    "src": "Ch5"
-   },
-   {
-    "q": "Closing an order releases:",
-    "opts": [
-     "The customer",
-     "The price list",
-     "The invoices",
-     "The undelivered quantities' reservation back to sellable stock"
+     "The credit and availability checks again — more commitment"
     ],
     "ans": 3,
-    "why": "The phantom remainder stops haunting projected stock.",
+    "why": "Decreases release reservation, checked against work done.",
     "src": "Ch5"
    },
    {
-    "q": "The monthly order sweep reviews:",
+    "q": "The update facility for submitted orders is:",
     "opts": [
-     "Open orders past delivery date with no recent movement — chase, hold with owner, or close",
-     "All orders ever",
-     "Only held orders",
-     "Cancelled orders"
+     "The standard lane for quantity and schedule updates on undelivered rows, role-limited, each update logged",
+     "Uncontrolled",
+     "Forbidden",
+     "For managers' convenience"
     ],
     "ans": 0,
-    "why": "Regular hygiene keeps projected stock true.",
+    "why": "Cancel-and-amend handles structural changes.",
     "src": "Ch5"
    },
    {
-    "q": "A closed order is reopened when:",
+    "q": "Closed status means:",
     "opts": [
-     "Any new purchase arrives",
-     "The SAME commitment genuinely revives; new deals get new orders",
-     "Stock arrives",
-     "Finance asks"
+     "Completed",
+     "The deliberate early end — no more against this order, reservations released, the record preserved, with a reason",
+     "Cancelled",
+     "Draft"
     ],
     "ans": 1,
-    "why": "Old paper must not house new deals.",
+    "why": "Used at the stale-order read.",
     "src": "Ch5"
    },
    {
-    "q": "Amendment numbering works as:",
+    "q": "The amendments read reconciles:",
     "opts": [
-     "A brand-new number",
-     "A letter prefix",
-     "The same identity with a revision suffix (SO-00412-1)",
-     "No visible change"
+     "Deliveries",
+     "Prices",
+     "The month's changes against the taxonomy — commercial changes carrying ladder approvals, schedule changes carrying agreements",
+     "Stock"
     ],
     "ans": 2,
-    "why": "The revision chain is the post-commitment negotiation record.",
-    "src": "Ch6"
+    "why": "Fields move by decision, applied to commitments.",
+    "src": "Ch5"
    },
    {
-    "q": "Cancelling an order also:",
+    "q": "The 50/40/10 shape enters as:",
     "opts": [
-     "Deletes its quotation",
-     "Closes the customer",
-     "Bills a fee",
-     "Releases its reservation and leaves the source quotation worth tidying"
+     "Three orders",
+     "A memo",
+     "Invoice notes",
+     "The payment schedule table's rows — portion and basis exactly as the agreement states"
     ],
     "ans": 3,
-    "why": "The promise withdraws; loose ends get closed deliberately.",
+    "why": "The invoices follow it as their billing plan.",
     "src": "Ch6"
    },
    {
-    "q": "An order with submitted DNs against it, when cancellation is attempted:",
+    "q": "Where terms require an advance:",
     "opts": [
-     "Is refused — unwind the children before the parent",
-     "Cancels and orphans them",
-     "Cancels the DNs too",
-     "Converts to Draft"
+     "The order does not enter the work queue until the advance clears — the schedule is enforced",
+     "Work starts anyway",
+     "The advance is optional",
+     "Delivery waits a year"
     ],
     "ans": 0,
-    "why": "Executed reality unwinds via returns and credit notes first.",
-    "src": "Ch6, Ch9"
-   },
-   {
-    "q": "Customer stopped at 80 of a correctly-recorded 100. Amending down to 80 would:",
-    "opts": [
-     "Be the clean fix",
-     "Rewrite the promise to match the outcome — Close preserves the truth",
-     "Release stock faster",
-     "Be required"
-    ],
-    "ans": 1,
-    "why": "Corrections amend; endings close.",
+    "why": "Enforced, not decorative.",
     "src": "Ch6"
    },
    {
-    "q": "Zero over-delivery tolerance on serialized items exists because:",
+    "q": "The advance records as:",
     "opts": [
-     "Serials are expensive",
-     "The law requires it",
-     "100 means exactly 100 identities — slack is how units vanish",
-     "Warehouses prefer it"
+     "Revenue",
+     "A Payment Entry against the Sales Order as an advance — allocated against the invoices when they raise",
+     "A discount",
+     "A deposit slip only"
+    ],
+    "ans": 1,
+    "why": "Order, advance, invoice, allocation — the statement reads coherently.",
+    "src": "Ch6"
+   },
+   {
+    "q": "The sales/accounts boundary is:",
+    "opts": [
+     "Blurred",
+     "Sales collects cash",
+     "Sales confirms what is due when; accounts confirms what arrived and where it applied — the schedule is the shared reference",
+     "Accounts sets terms"
     ],
     "ans": 2,
-    "why": "Tolerance policy follows the nature of the goods.",
+    "why": "Custody and the accounting boundary.",
+    "src": "Ch6"
+   },
+   {
+    "q": "The milestone read finds:",
+    "opts": [
+     "Overdue stock",
+     "Discounts",
+     "New orders",
+     "Due milestones unbilled — the delivered wave without its invoice, the completed order's unbilled retention"
+    ],
+    "ans": 3,
+    "why": "Revenue sitting unbilled through process gaps.",
+    "src": "Ch6"
+   },
+   {
+    "q": "The order book is worked:",
+    "opts": [
+     "Top-down by value — the largest commitments' next actions confirmed on calendar",
+     "Alphabetically",
+     "By age only",
+     "Randomly"
+    ],
+    "ans": 0,
+    "why": "The committed future in one report.",
     "src": "Ch7"
    },
    {
-    "q": "Tolerance decided ad hoc at the loading bay is:",
+    "q": "Delivered-not-billed is:",
     "opts": [
-     "Flexible and good",
-     "Impossible",
-     "Required for bulk",
-     "The worst outcome — set it deliberately per item class instead"
+     "Normal indefinitely",
+     "Performance given without asking for its money — the order-side alarm module 7's invoicing consumes",
+     "A discount",
+     "A stock issue"
     ],
-    "ans": 3,
-    "why": "Policy belongs in configuration, not improvisation.",
+    "ans": 1,
+    "why": "Target: clears at each invoicing run.",
     "src": "Ch7"
    },
    {
-    "q": "In the Montaigne order, the dropped twelfth branch was handled by:",
+    "q": "Billed-not-delivered is legitimate when:",
     "opts": [
-     "Delivering 11 and Closing — 12 promised, 11 taken, truthfully",
-     "Amending the order to 11",
-     "Cancelling the order",
-     "A negative row"
-    ],
-    "ans": 0,
-    "why": "The case study applies the amend-vs-close distinction.",
-    "src": "Ch8"
-   },
-   {
-    "q": "The advance-billing stage showed the ledger as:",
-    "opts": [
-     "Delivered rising, billed zero",
-     "Billed rising while delivered sat at zero",
-     "Both at 100%",
-     "Frozen"
-    ],
-    "ans": 1,
-    "why": "The order keeps the physical promise visible after finance is satisfied.",
-    "src": "Ch8"
-   },
-   {
-    "q": "The module's closing law is:",
-    "opts": [
-     "Orders are optional in fast trade",
-     "Status beats arithmetic",
-     "The order is the single source of fulfilment truth — everything downstream is made FROM it and read OFF it",
-     "Warehouses own orders"
+     "Never",
+     "Always",
+     "The schedule authorises it — the advance invoice per the milestone plan; the rest are errors to correct",
+     "Month-end nears"
     ],
     "ans": 2,
-    "why": "Protect the ledger role and the cycle runs itself.",
+    "why": "Traced to schedule rows.",
+    "src": "Ch7"
+   },
+   {
+    "q": "A stale order costs:",
+    "opts": [
+     "Nothing",
+     "A fee",
+     "Paper",
+     "Reserved stock other orders could use, and a misstated book every planning figure computes from"
+    ],
+    "ans": 3,
+    "why": "Revived with real dates or Closed with reason.",
+    "src": "Ch7"
+   },
+   {
+    "q": "The Montaigne AH concession carried into the order as:",
+    "opts": [
+     "4% on the terminal lines only, per the approval's named scope — scanners and printers at list",
+     "A general discount",
+     "5% on everything",
+     "A rebate"
+    ],
+    "ans": 0,
+    "why": "Checked row-by-row at conversion.",
+    "src": "Ch8"
+   },
+   {
+    "q": "The training change at signature was:",
+    "opts": [
+     "A re-quote",
+     "A schedule change with no commercial movement — amended through the standard lane with reason and agreement",
+     "A concession",
+     "Refused"
+    ],
+    "ans": 1,
+    "why": "The taxonomy routed it in one step.",
+    "src": "Ch8"
+   },
+   {
+    "q": "The rollout entered as:",
+    "opts": [
+     "One date",
+     "Three orders",
+     "Three waves as per-row dates, the header carrying the final date",
+     "A note"
+    ],
+    "ans": 2,
+    "why": "Step 2.",
+    "src": "Ch8"
+   },
+   {
+    "q": "The confirmation pass caught:",
+    "opts": [
+     "An error",
+     "A credit issue",
+     "A price change",
+     "Nothing — Montaigne AH confirmed the branch sequence against their own plan before anything shipped, at zero cost"
+    ],
+    "ans": 3,
+    "why": "The cheap moment used.",
+    "src": "Ch8"
+   },
+   {
+    "q": "The order entered the work queue:",
+    "opts": [
+     "After the 50% advance was received against the order — the funded-order read confirming it",
+     "Immediately",
+     "Never",
+     "After delivery"
+    ],
+    "ans": 0,
+    "why": "The schedule enforced.",
+    "src": "Ch8"
+   },
+   {
+    "q": "A promise made beside the order:",
+    "opts": [
+     "Stands",
+     "Is the module's first error — the real agreement is amended onto the order with its approvals",
+     "Is efficient",
+     "Binds nobody"
+    ],
+    "ans": 1,
+    "why": "Nothing is promised beside it.",
+    "src": "Ch9"
+   },
+   {
+    "q": "Module 4's rule is:",
+    "opts": [
+     "Orders are flexible",
+     "Schedules are optimistic",
+     "The order states the whole agreement — from the accepted version, committing stock and credit at submission, scheduled per row, changed only through the taxonomy's lanes, funded per its schedule, kept live by the reads",
+     "Amendments are free"
+    ],
+    "ans": 2,
+    "why": "The module rule.",
     "src": "Ch9"
    }
   ]
