@@ -2366,473 +2366,473 @@
  },
  "branch_network": {
   "title": "Inventory 6 — The Branch Network",
-  "desc": "Multi-warehouse trade as a system: the one-stock thesis, the replenishment cycle and run calendar, allocation under scarcity, transit at fleet scale, inter-branch laterals, van and mobile stock disciplines, and branch accountability with the network reads.",
+  "desc": "The branch network in ZhiftERP: the hub-and-spoke replenishment model and the purchasing boundary; Material Requests with purpose Material Transfer and the item reorder table reasoning on projected quantities; the weekly replenishment run — inputs, the reasoned review pass, the despatch pass through transit, and the closing note; allocation under scarcity by written rule — the essential floor first, pro-rata by sell-through, documented and communicated, with the relief despatch and the pattern check; opening a new branch by transfer with the ninety-day tight cycle and day-sixty reorder levels; laterals, returns, and the exception purchase lane; and the six branch reads on their cadences.",
   "lessons": [
    {
-    "title": "Chapter 1 — One stock in many rooms",
+    "title": "Chapter 1 — The branch network: scope and model",
+    "est": "11",
+    "html": "<p>This module covers multi-site stock operations in ZhiftERP. On completing this module you will be able to: operate the hub-and-spoke replenishment model with Material Requests and reorder levels; run the weekly replenishment cycle; allocate stock under scarcity by written rule; open a new branch's stock by transfer with the tight first cycle; run laterals and enforce the purchasing boundary; and read the branch network's standing reports.</p><p><b>The model, stated once.</b> Modules 1-5 built the machinery: warehouses with custody, transfers through transit, identity on movements, counts proving custody, value following documents. This module is that machinery operating as a network. The standing design from module 1's worked example:</p><p>1. <b>Central buys.</b> Procurement concentrates at the hub — supplier terms, receiving discipline, landed costs, and the quality gate all live once, at Central.<br>2. <b>Branches sell and request.</b> A branch's stock arrives by transfer from Central; the branch's job is selling, counting, and requesting — not supplier management.<br>3. <b>Everything moves by the modules already built:</b> requests as documents, despatches through transit (module 2), identity travelling (module 3), receipts counted against despatches, value carried by the ledger (module 5).</p><p><b>Why the boundary matters.</b> The branch that buys locally outside the lanes acquires stock at unmatched prices with no receiving control, no landed costs, no batch capture, and no supplier accountability — five modules of discipline bypassed in one purchase. Chapter 6 covers the exception lane for the genuine emergency; the boundary itself is policy, written in module 1 and enforced here.</p><p><b>Custody at network scale.</b> Each site's keeper answers for their warehouses (module 1); the stock manager at Central owns the network flows — the replenishment run, the allocation decisions, the lateral approvals; the reads (Chapter 7) are how the center answers for stock it cannot see from a desk. The division is the programme's standing shape: the sites execute and attest locally, the center decides and reads network-wide, and every flow between them is a document.</p><p><b>Module contents.</b> Chapter 2: the request machinery — Material Requests and reorder levels. Chapter 3: the weekly replenishment run. Chapter 4: allocation under scarcity. Chapter 5: opening a new branch. Chapter 6: laterals, returns, and the purchasing boundary. Chapter 7: the branch reads. Chapter 8: worked example. Chapter 9: review and the module rule.</p>"
+   },
+   {
+    "title": "Chapter 2 — The request machinery",
+    "est": "12",
+    "html": "<p>Branch demand reaches Central as documents. Two instruments: the Material Request, and the reorder levels that raise requests automatically.</p><p><b>1. The Material Request.</b> Open Material Request (awesome bar) &gt; New:</p><p>1. <b>Purpose: Material Transfer</b> — the branch's ask for stock from another warehouse (the purchase-purpose requests belong to the Procurement track; the transfer purpose is this module's instrument).<br>2. <b>The rows</b> — item, quantity, the requesting warehouse (Set From/Target per the form: the branch's stock room as the destination), and the required-by date.<br>3. <b>Submission</b> — the request becomes a visible, countable demand: the replenishment run works from submitted requests, the Ordered/Requested figures feed projected quantities (module 1, Chapter 6), and the request's fulfilment status tracks what the despatches delivered against it.</p><p><b>2. Reorder levels — the automatic ask.</b> On the Item record, the reorder table carries one row per warehouse:</p><p>1. <b>Warehouse</b> — the branch stock room the rule watches.<br>2. <b>Re-order Level</b> — the projected-quantity threshold: when the warehouse's projected quantity falls below it, the system raises a Material Request automatically.<br>3. <b>Re-order Qty</b> — the quantity the raised request asks for.<br>4. <b>Material Request Type: Transfer</b> — the branch rows request transfer from the hub; purchase-type rows belong at Central where buying happens.</p><p><b>3. Setting the levels.</b> The arithmetic is written, per item per branch, from the sell-through data (Chapter 7): the level covers expected sales across the replenishment interval plus the transit lead time, with the buffer the policy sets per item class (essential lines carry larger buffers; module 7's classifications feed this). The levels are reviewed quarterly against actual sell-through — a level set once and never revisited drifts into stockouts on rising lines and overstock on falling ones, which is exactly the pattern the quarterly review reads for.</p><p><b>4. The request disciplines.</b></p><p>1. <b>Projected, not actual:</b> the trigger and the manual request alike reason on projected quantity — stock on the shelf minus commitments plus what is already coming. A branch that requests on shelf-count alone double-orders what is already in transit to it.<br>2. <b>Requests are honest asks:</b> the branch requests what the data supports, not a padded figure hedging against short allocation — Chapter 4's allocation rules exist precisely so padding is unnecessary, and the run compares requests against sell-through (Chapter 3) so padding is also visible.<br>3. <b>One request per branch per cycle</b> as the standing rhythm (plus the exception request for the genuine urgent case, flagged as such): the run works a predictable queue, and the branch consolidates its week's needs into one reviewable document.</p>"
+   },
+   {
+    "title": "Chapter 3 — The weekly replenishment run",
+    "est": "12",
+    "html": "<p>The network breathes on a cycle. This chapter is the weekly procedure, step by step, as the stock manager runs it.</p><p><b>1. The inputs, assembled (thirty minutes).</b></p><p>1. The submitted Material Requests — the branches' consolidated asks plus any auto-raised reorder requests since last run.<br>2. The sell-through view (Chapter 7) — each branch's recent movement on the requested lines.<br>3. The hub's availability — Central's projected quantities on the requested items.<br>4. The transit state — module 2's read: what is already moving, so the run does not re-send what is on the road.</p><p><b>2. The review pass.</b> Per request line: the ask against the branch's sell-through and current projected quantity. Three outcomes:</p><p>1. <b>Approved as asked</b> — the data supports it.<br>2. <b>Adjusted with a note</b> — the ask disagrees with the data (the padded line, the forgotten in-transit quantity); adjusted quantities carry one-line reasons back to the branch, because a silent cut teaches padding and a reasoned one teaches the arithmetic.<br>3. <b>Held for the scarcity procedure</b> — total asks exceed hub availability on a line: Chapter 4 takes over for that line.</p><p><b>3. The despatch pass.</b> The approved quantities become the pick list per branch; module 2's machinery executes:</p><p>1. One despatch entry per vehicle-load per branch (Add to Transit), submitted as the truck loads, batches on the rows (module 3).<br>2. The despatch references the Material Requests it fulfils — the request's status tracks fulfilment, and the branch sees what is coming against what it asked.<br>3. The branch receives against the despatch rows — identity and quantity confirmed, shortfalls per module 2's procedure.</p><p><b>4. The run's closing note.</b> Ten lines, filed weekly: requests received and their total lines, adjustments made with reasons, scarcity lines and their allocations (Chapter 4), despatches submitted with references, and the exceptions carried to next run. The note is the run's audit trail and the new stock manager's training file — the run must be a procedure a competent person can take over from the file, per the programme's handover standard.</p><p><b>5. The cadence decision.</b> Weekly is the standing default; the policy sets it per the business's rhythm. The rule that governs any cadence: the replenishment interval plus transit lead time is the window the reorder arithmetic covers (Chapter 2) — shortening the cycle without recomputing levels overstocks the branches; lengthening it without recomputing understocks them. Cycle and levels move together or not at all.</p>"
+   },
+   {
+    "title": "Chapter 4 — Allocation under scarcity",
+    "est": "12",
+    "html": "<p>When the hub cannot fill every approved ask, allocation becomes a decision. The rule of this chapter: scarcity is allocated by written rule, documented, and communicated — never by who asked loudest or last.</p><p><b>1. When the procedure triggers.</b> The run's review pass (Chapter 3) finds a line where the branches' approved asks total more than Central's available quantity — the supplier short-shipped, demand spiked, or an import is late. The line moves from the despatch pass into this procedure.</p><p><b>2. The written allocation rules.</b> The policy page, agreed with the owner before the first scarce week, in application order:</p><p>1. <b>The essential floor first.</b> For items the policy marks essential (the classification from module 7's data plus the business's judgment — for a pharmaceutical network, the critical-care lines), every stocking branch receives the floor quantity before anything else allocates. The floor is a written per-item figure, sized to the minimum service level the business will not breach at any branch.<br>2. <b>Pro-rata by sell-through above the floor.</b> The remaining quantity divides across branches in proportion to their recent sell-through on the line (Chapter 7's eight-week read) — the stock goes where it is provably selling, by arithmetic anyone can check.<br>3. <b>Rounding to shippable units</b> — cartons round per the policy's rule, differences carried to next cycle rather than argued.</p><p><b>3. The documentation.</b> The allocation worksheet files with the run's note: the line, the available quantity, each branch's ask and sell-through figure, the floor applied, the pro-rata arithmetic, and the allocated result. The worksheet is the answer to every version of the question one branch will ask — why did the other site get more — and the answer is a calculation, not a conversation.</p><p><b>4. The communication.</b> Each affected branch receives, with its despatch advice: the allocated quantity against its ask, the one-line reason (short supply; floor plus pro-rata applied), and the expected relief date if known (the purchase order's schedule from the Procurement track). Branches that understand the rule stop padding requests (Chapter 2's discipline holding), because padding cannot move a pro-rata allocation built on sell-through data — the arithmetic ignores the ask's size beyond eligibility.</p><p><b>5. The scarcity aftermath.</b> Two follow-ups close the loop:</p><p>1. <b>The relief despatch</b> — when supply lands, the shorted branches are made whole first, from the worksheet's carried differences, before the normal cycle resumes.<br>2. <b>The pattern check</b> — a line hitting the scarcity procedure repeatedly is a purchasing signal, not an allocation problem: the reorder arithmetic at the hub (Central's own levels against total network demand) goes to the procurement owner with the worksheets as data.</p>"
+   },
+   {
+    "title": "Chapter 5 — Opening a new branch",
+    "est": "12",
+    "html": "<p>A new branch's stock is a project with a checklist. This chapter is the procedure, and its two governing rules: <b>the branch opens by transfer, never by reconciliation</b>, and <b>opening estimates are always wrong — so the first cycle reads tight.</b></p><p><b>1. The structural prerequisites (module 1's work).</b> Before any stock moves: the site's warehouses created in the tree per the convention (the stock room, and the specials the site needs); the keeper and deputy named on the custody list; user permissions scoping the branch team; the POS profile's warehouse pointing at the branch stock room (the ZhiftPOS track's commissioning); the Item Defaults reviewed for the site where the wiring convention requires it.</p><p><b>2. The opening range and quantities.</b> The range list builds from the nearest comparable branch's data — its stocking list and sell-through, adjusted for the new site's expected profile. The honesty rule is stated in the plan itself: these figures are estimates, they will be wrong item by item, and the correction mechanism is the tight first cycle (step 4), not debate over the estimates.</p><p><b>3. The opening transfer.</b> The opening stock despatches from Central as ordinary two-step transfers (module 2): despatch entries with batches on the rows, transit legs, the branch receiving against despatch rows with full counting discipline. Why never a reconciliation: an opening reconciliation types quantities and rates into existence with no document trail behind them (module 5's opening-rate hazards, recreated voluntarily at every branch), while a transfer moves documented, valued, identified stock — the bins open true, the batches arrive with their expiries, the values carry from the ledger, and day one's records are as trustworthy as Central's. The reconciliation instrument at a branch opening has exactly one honest use: nothing (the go-live Opening Stock purpose belongs to the company's original implementation, not to branch expansion).</p><p><b>4. The first ninety days — the tight cycle.</b> Because the opening estimates are wrong by construction:</p><p>1. <b>Weekly sell-through review, line by line</b> — the new branch's movement against the opening assumptions, read every week for the first ninety days (against the standing network's routine cadence).<br>2. <b>Replenishment on the data, not the plan</b> — the weekly run treats the new branch's requests with fresh eyes: the fast movers identified and levels set from actual sales; the dead openers flagged early for lateral return (Chapter 6) before they age into module 7's problem lists.<br>3. <b>Reorder levels written at day sixty</b> — enough data to set the Chapter 2 arithmetic honestly; the automatic machinery takes over from manual review as the levels prove out.<br>4. <b>The first cycle count inside month one</b> — module 4's programme starts immediately at the new site; the first month's count closes the branch's bins against physical truth while every discrepancy is young and traceable.</p><p><b>5. The opening file.</b> The checklist, the range list with its source data, the opening despatch references, the weekly review notes, and the day-sixty level decisions — one folder, the branch's stock history from its first carton, per the standing one-lookup standard.</p>"
+   },
+   {
+    "title": "Chapter 6 — Laterals, returns, and the purchasing boundary",
+    "est": "12",
+    "html": "<p>Three flows complete the network's movement set: branch-to-branch laterals, returns to the hub, and the exception lane at the purchasing boundary.</p><p><b>1. Laterals — branch to branch.</b> The case: one branch overstocks what another sells (the rebalancing read, Chapter 7, or a scarcity relief). The rules:</p><p>1. <b>Approved at the center</b> — laterals are proposed by the read or the branches but approved by the stock manager, because the network view (what is in transit, what the run is about to despatch) lives at Central and a well-meant lateral can cross a replenishment already moving.<br>2. <b>Executed as standard transfers</b> — two-step through transit where sites are apart (module 2), identity on the rows (module 3), received against despatch. A lateral is not an informal favour between branch managers; it is a transfer with every discipline attached.<br>3. <b>Recorded with its reason</b> — the lateral's note names the read or decision behind it; the quarterly lateral census (Chapter 7) reads the pattern, because recurring laterals on a line mean the allocation or the levels are wrong at the source.</p><p><b>2. Returns to the hub.</b> Slow stock, near-expiry lines moving to where they sell (module 3's rebalancing lane), range delistings, and recalled goods all flow branch-to-Central as transfers with their reasons. The receiving discipline holds in reverse: Central counts the return against the despatch, and near-expiry returns land per module 3's lanes rather than disappearing into the main store.</p><p><b>3. The purchasing boundary and its exception lane.</b> The policy from module 1: branches do not buy. The exception lane, for the genuine case (the emergency purchase the service level requires and Central cannot despatch in time):</p><p>1. <b>Pre-approved in writing</b> — the branch requests, the stock manager or owner approves per the threshold, before the purchase.<br>2. <b>Executed through the purchasing documents</b> — the Procurement track's flow at branch scale: a real order, a real receipt at the branch's warehouse, the invoice matched. The exception uses the lanes at small scale; it never bypasses them.<br>3. <b>Listed monthly</b> — every exception purchase on one list to the owner with reasons. The list's healthy state is nearly empty; a branch appearing repeatedly is a replenishment failure to fix at the run (the levels, the cadence, the transit time), not a boundary to keep waiving — the exception that becomes a habit is the boundary dissolving in slow motion.</p><p><b>4. What never happens, restated.</b> Stock does not move between branches on a phone call; purchases do not happen on a branch manager's card with the paperwork to follow; returns do not accumulate in a back room awaiting a quiet month. Every flow in this chapter is the standard machinery with a reason attached — the network has no informal lanes.</p>"
+   },
+   {
+    "title": "Chapter 7 — The branch reads",
+    "est": "12",
+    "html": "<p>The center answers for stock it cannot see. These reads are how. Each is stated with its cadence, its source, and its action.</p><p><b>1. The sell-through read — weekly, per branch.</b> The eight-week movement view per item per branch (the sales and issue history from the ledger, compiled by the standing report): what each branch actually sells, trended. This read is the module's workhorse — it feeds the replenishment review (Chapter 3), the allocation arithmetic (Chapter 4), the new-branch cycle (Chapter 5), and the rebalancing proposals below. The sell-through percentage per line (units sold against units stocked across the window) is the comparable figure: a line at 58% at Ibadan and 12% at Akure is a rebalancing candidate readable in one row.</p><p><b>2. The branch stock page — monthly, to the owner.</b> One page per branch with the close: stock value (the Stock Balance at the site's node — module 1's tree paying off), the value trend, the site's count accuracy (module 4's metric per warehouse), open transit lines, and the month's exceptions (shortfalls, exception purchases, laterals). The page is the branch's stock health in five figures, comparable across sites and months.</p><p><b>3. The rebalancing read — monthly.</b> The sell-through comparison across branches on common lines: overstocked-here-selling-there candidates, proposed as laterals with the arithmetic attached (Chapter 6's approval lane). The read proposes; the stock manager disposes — and the standing preference order is levels-fix first, lateral second: a lateral corrects a symptom once, the level correction stops it recurring.</p><p><b>4. The network accuracy comparison — monthly.</b> Module 4's accuracy metric side by side across sites. The trailing site gets the next spot count and the process review as data — the same read the counting module defined, operated at network scale.</p><p><b>5. The transit and boundary reads — weekly.</b> Module 2's transit age read run network-wide (every aged line named to its despatch), and the monthly exception-purchase list (Chapter 6). Both are boundary-integrity reads: the network's rules hold exactly as well as these lists stay short.</p><p><b>6. The reorder health read — quarterly.</b> Chapter 2's levels against the quarter's actual sell-through, per branch: lines whose levels triggered stockouts (level too low or transit slower than assumed), lines that never triggered while stock aged (level too high or line dying — module 7's territory adjoins here). The read closes with level corrections written and dated, which is what keeps the automatic machinery calibrated to the business the branches actually do.</p>"
+   },
+   {
+    "title": "Chapter 8 — Worked example: HealthTrade opens Akure, and the Emzor short-close",
     "est": "13",
-    "html": "<p>Everything so far ran in any warehouse; this module is about running MANY — the branch network, which is where your trade's biggest clients live (the 30-branch pharmacy chain, the 100-branch retailer) and where inventory management either becomes a system or becomes a hundred phone calls a day.</p><p><b>The thesis.</b> A network is <b>one stock in many rooms</b>: the firm owns a single pool of inventory that happens to be distributed, and every network decision is a placement decision — WHERE should the pool sit to sell best, move cheapest, and lose least? The two readings of the grid (module 1) become the network's two management questions: the ROLLUP asks <i>do we own enough?</i> (a buying question — Procurement's terrain); the CELLS ask <i>is it in the right rooms?</i> (a placement question — THIS module's terrain, and the one firms confuse with the first constantly: the network that owns plenty while Akure stocks out has a placement problem no purchase order fixes).</p><p><b>The three flows.</b> Every network movement belongs to one of three families, each with its own governance: <b>inbound</b> — the world into central (the Procurement track's whole subject, landing at module 1's receiving defaults: buy centrally, receive centrally, the buying-power architecture); <b>replenishment</b> — central to branches, the network's heartbeat (Chapters 2-4: the requests, the allocation, the runs); and <b>laterals</b> — branch to branch (Chapter 5: legitimate occasionally, diagnostic when chronic). Naming a movement's family names its rules, and the misfiled movement (the branch buying inbound directly, the lateral routed as a return-to-central-and-out-again) is where network discipline first frays.</p><p><b>What scale changes.</b> The mechanics you hold — two-step transfers, transit aging, batch-level receiving — do not change with branch count; what changes is that at scale, EXCEPTIONS become populations: three branches produce the occasional late run; thirty produce a late-run RATE, a transit-shrinkage RATE, a branch-accuracy DISTRIBUTION — and management shifts from handling incidents to reading rates (Chapter 7's whole subject). The other thing scale changes is the cost of informality: the two-site firm survives on the storekeeper phoning the branch; the thirty-site firm phoning is thirty people's full-time job — which is why every rhythm this module installs is a replacement for a phone call, and why the network that runs on its documents scales while the network that runs on its relationships saturates. This is, at network scale, the founder-bottleneck law of the earlier tracks: the system that remembers is what lets the network grow past the people who used to remember it.</p>"
+    "html": "<p>This chapter runs Chapters 2-7 through two network events. Values and outcomes are listed per step.</p><p><b>Event 1 — opening Akure (Chapter 5).</b></p><p>1. <b>Prerequisites:</b> the Akure warehouses stand in the tree from module 1's design; the keeper and deputy named; permissions scoped; the POS profile pointed at <i>Akure - Stock Room</i>.<br>2. <b>The range:</b> built from Ibadan's stocking list and sell-through as the comparable, trimmed for the smaller catchment — with the plan stating the honesty rule: these are estimates and the first cycle will correct them.<br>3. <b>The opening transfer:</b> despatched from Central as standard two-step transfers, batches on every row, received at Akure against despatch rows. <b>Opening by transfer, never reconciliation</b> — Akure's bins open documented, valued, and identified from the first carton.<br>4. <b>The tight cycle:</b> weekly line-by-line sell-through review for <b>ninety days</b>. Week three already shows the pattern the plan predicted it could not predict: four lines selling at twice the estimate, a tail of slow openers flagged early. Replenishment follows the data; two dead openers return to Central by lateral in week six before aging into a problem list; reorder levels write at day sixty from actual sales. The first cycle count runs inside month one and <b>month one closes with Akure's bins true</b> — the opening file holding the checklist, despatch references, weekly notes, and level decisions.</p><p><b>Event 2 — the Emzor short-close (Chapter 4).</b> A supplier short-ships a fast Emzor line into a demand spike: the weekly run finds branch asks totalling <b>300 cartons against 180 available</b> across the three sites. The line moves to the allocation procedure:</p><p>1. <b>The essential floor first:</b> the line is on the essential list; the written floor of <b>30 cartons per stocking branch</b> allocates 90 across the three sites before anything else.<br>2. <b>Pro-rata by sell-through:</b> the remaining 90 divide in proportion to each branch's eight-week sell-through on the line — the arithmetic on the worksheet, checkable by anyone.<br>3. <b>Documented and communicated:</b> the worksheet files with the run's note; each branch receives its allocation with the one-line reason and the relief date from the purchase order's schedule. The question one branch manager asks — why did Ibadan get more — is answered by the worksheet's sell-through column in one look.<br>4. <b>The aftermath:</b> the relief despatch makes the shorted branches whole first when supply lands the following week; the pattern check finds this the line's first scarcity event in the year — no purchasing signal, the worksheet files, the cycle resumes.</p><p><b>The month's network page.</b> The branch pages to the MD show: Akure's opening month with bins true and its first accuracy figure; Ibadan's <b>58% sell-through</b> on the watched line against Akure's early figures feeding the rebalancing read; transit at zero aged lines through both events; the exception-purchase list empty — the boundary holding through a scarce month, which is when boundaries are actually tested.</p>"
    },
    {
-    "title": "Chapter 2 — The replenishment cycle: the heartbeat",
-    "est": "14",
-    "html": "<p>Replenishment — central to branches, on rhythm — is the network's cardiovascular system, and this chapter is its full cycle from the warehouse's chair (Procurement 3 taught the demand side; here is the fulfilment side, and the join).</p><p><b>The cycle's four beats.</b> <b>Demand lands</b>: branch transfer requests (manual and auto-triggered per branch-level reorder fields), timed to the run calendar — the request layer's machinery, now read as central's inbound worklist, grouped by branch and run. <b>Fulfilment plans</b>: central's picker-planner reads requests against central's OWN position (the four numbers at Central — requests are demand against central's projected, and central's own reorder triggers must see branch demand coming, which is the two-tier planning join: branch triggers fire transfer requests; central's triggers, watching central's projected AS DEPLETED BY those transfers, fire purchase demand — a network that tunes only one tier starves at the other). Where stock covers requests, the plan is the requests; where it does not, Chapter 3's allocation governs. <b>Pick, pack, dispatch</b>: the run's transfers picked per document (batch-picked per FEFO — the network is where FEFO discipline pays or fails at scale, because central picking short-dated stock FIRST to branches is how the whole network's horizon stays healthy), packed per branch with the dispatch documents, and dispatched into transit (Inv 2's two-step, per run). <b>Receive and close</b>: branches receive against dispatches (identity-level — module 3's rule), the transit room clears per run, and the cycle's exceptions (shorts, damages, refusals) resolve by the standing protocols.</p><p><b>The run calendar.</b> Trucks on SCHEDULE — each branch's run days published (Ibadan Tuesdays, Abeokuta Thursdays), requests cut off ahead (the Sunday cutoff for Tuesday's run — honest lead time for picking), and the calendar honoured with the same discipline as every date in these tracks: a network whose runs slip teaches branches to over-request as insurance (the hoarding spiral — padded requests, distorted demand signals, stock parked in the wrong rooms), while a network whose runs are boringly reliable can run LEAN at the branches, because tomorrow's truck is a fact. Run reliability is therefore not logistics housekeeping; it is what makes every branch's stockholding honest — the published calendar, the cutoffs, and the on-time rate READ (Chapter 7 scores it) are the network's equivalent of the supplier OTIF discipline, self-applied.</p><p><b>Pick-pack discipline.</b> The dispatch is a gate (value leaving central's custody), and it gets gate treatment: picked quantities confirmed against the transfer document (not the request — the TRANSFER is what was approved and allocated), batch identities recorded as picked (what left is known by lot — the recall and the swap-catch both depend on it), sealed or secured per run with the seal numbers on the waybill, and the dispatcher's sign-off closing central's custody cleanly. Thirty seconds per line at dispatch is the difference between a transit shortfall investigation that reads documents and one that reads memories.</p>"
-   },
-   {
-    "title": "Chapter 3 — Allocation under scarcity",
-    "est": "13",
-    "html": "<p>The week arrives when central cannot fill every request — the import delayed, the demand spike, the supplier short-close. What happens next separates governed networks from political ones, and this chapter is the governance.</p><p><b>The failure mode first.</b> Ungoverned scarcity allocates by VOLUME OF VOICE: the branch manager who calls loudest, knows the storekeeper, or escalates to the MD gets filled; the quiet branch stocks out. The damage compounds beyond the week: branches learn that shouting works (the political spiral), request padding becomes rational (the hoarding spiral joins it), and the demand signal — the one input every planning decision feeds on — is now noise. Scarcity is rare; the behaviours it trains are permanent, which is why the policy must exist BEFORE the week that needs it.</p><p><b>The allocation policy — written, like every gate number.</b> The honest bases, chosen per the firm's strategy and encoded: <b>pro-rata by request</b> (each branch gets the same fill percentage — simple, transparent, gameable by padding, so it pairs with request-honesty monitoring); <b>by velocity</b> (fill proportional to each branch's actual sell-through — the stock goes where it sells, which is usually the network-profit-maximising answer and the fairest to honest requesters, since it allocates on recorded sales, not requested hopes); <b>by priority tier</b> (strategic branches — the flagship, the contract-committed location — filled first per a written tier list, then the remainder by the base rule); and for regulated or critical lines, <b>the minimum-cover floor</b> (no branch below a safety threshold of essential items while any other holds surplus — the network's version of triage). Most real policies compose these: floors first, then velocity, tiers documented. What matters less than the formula is that it is WRITTEN, applied visibly, and survives the loud phone call.</p><p><b>The mechanics.</b> Scarce lines flagged at fulfilment planning (requested exceeds available); the policy computes each branch's fill; transfers issue at allocated quantities with the REMAINDER handling honest: the unfilled request balance stays visible (partially-fulfilled requests, the machinery you know) and is either rolled to the next run automatically (the backorder-to-branch) or released when the branch's need lapses — never silently vanished, because a branch whose shortfalls evaporate unexplained returns to the padding spiral. And the COMMUNICATION beat: allocation weeks are announced — what is short, what the policy gave each branch, when relief lands (the incoming PO's date — Procurement 5's honest pipeline earning its keep) — because a branch that understands the week holds its discipline, and one that discovers it at the empty truck does not.</p><p><b>Scarcity as signal.</b> Chronic allocation on a line is not a logistics fact; it is an upstream message: central under-buying (the planning fields conversation), a demand shift the forecast missed, or a supplier problem the scorecard should be catching. The allocation log — which lines, how often, how deep — is the network telling procurement where its model is wrong, and the quarterly read of it closes this loop exactly as the expiry-loss read closed the other one: the warehouse writing letters to the buyers, in numbers.</p>"
-   },
-   {
-    "title": "Chapter 4 — Transit at fleet scale: runs, waybills & the close-out",
-    "est": "13",
-    "html": "<p>Inv 2 built the two-step and the transit room; at network scale, transit becomes an OPERATION — trucks, runs, drivers, seals — and this chapter is its management layer.</p><p><b>The run as the unit of management.</b> Not the transfer, not the truck-kilometre: the RUN — one vehicle, one date, one or more drop points, a manifest of dispatch documents. Everything reconciles at run level: what left central (the dispatches), what each branch received (the receipts against them), and what remains in transit (which, at run close-out, should be exactly zero). The <b>multi-drop run</b> — one truck, three branches — is the scale pattern: dispatches SPLIT per destination from the start (three transfer documents, one per branch, never one blob to be divided roadside — the roadside division is where quantities go to become disputes), loaded in reverse-drop order, and each drop's receipt closing its own document while the run's remainder rides on.</p><p><b>The paper of the road.</b> The waybill/manifest carries: the run's dispatch document references, quantities by drop, <b>seal numbers</b> where sealing is used (the seal intact at the branch converts the count conversation — an intact seal with a short count points inside central's packing; a broken seal points at the road — cheap forensics, applied before blame), the driver's acknowledgment of the load (the road's custody has a name — the driver signed for what the documents say, which is both the accountability and the driver's own protection, module 1's custodian framing on wheels), and each branch's signed receipt annotation. The paper is thirty seconds per drop and it is the entire difference between a shortfall investigation and a shortfall argument.</p><p><b>The close-out.</b> Every run CLOSES, same-day or next-morning: all drops' receipts posted, the transit room's run balance at zero, exceptions logged (shorts, damages, refusals — a branch may refuse a damaged carton at its gate exactly as central refuses a supplier's: the refusal rides the paper home and resolves through quarantine or write-off from transit, never through quiet absorption). The unclosed run is the aging read's raw material (Inv 2's smoke detector), and the close-out discipline is what keeps the detector silent: a network of daily runs with same-day close-outs has a transit room that breathes — full by afternoon, empty by morning — and any standing balance is, by construction, an incident with a run number attached.</p><p><b>Driver and fleet accountability, read as rates.</b> At scale (Chapter 1's law), transit performance becomes population statistics: shortfall rate by driver and by route, damage rate by run type, on-time rate against the calendar — read monthly, managed like any custody. The honest framing for the team: the documented run protects the driver whose loads arrive whole (the rate proves it), exactly as it exposes the pattern that needs a conversation — and the seals-counts-signatures ritual, sold as protection rather than suspicion, is adopted; sold as surveillance, it is gamed. Where third-party haulage carries runs, the same paper governs and the rates feed the haulier conversation — a supplier scorecard for the road, because that is what it is.</p>"
-   },
-   {
-    "title": "Chapter 5 — Inter-branch laterals: the exception with a message",
-    "est": "13",
-    "html": "<p>Branch-to-branch transfers — Ibadan sending stock to Akure directly — are the network's pressure valve: legitimate in the moment, diagnostic in the pattern, and worth a chapter precisely because both halves are true.</p><p><b>The legitimate lateral.</b> The genuine cases: the local spike one branch can cover faster than central's next run (the weekend event, the clinic's bulk ask), the imbalance correction cheaper than a round trip (Ibadan long, Akure short, and the direct road shorter than two runs through Lagos), and the slow-mover rebalance (Chapter 7's dead-stock work often ends in laterals — the stock that will not sell HERE moving to where it does). The mechanics are nothing new: the two-step transfer, branch to branch, with transit custody, identity-level receiving, and the run paper — a lateral is a small run and gets run treatment; the one-step lateral across a real road is the same conviction as ever.</p><p><b>The governance.</b> Laterals move stock OUTSIDE the planned flows, so they carry light but real governance: <b>policy states who may initiate</b> (branch managers propose; central approves above a threshold — because central owns the placement picture, and a lateral that solves Ibadan's Saturday may be robbing the allocation plan's Tuesday); <b>visibility is mandatory</b> (every lateral visible to central as it happens — the network's placement map must include the moves it didn't plan); and <b>the receiving branch counts</b> like any gate (branch-to-branch familiarity is exactly where counting discipline dies first — the two managers who trust each other, until the variance neither can explain).</p><p><b>The economics, taught honestly.</b> A lateral moves stock TWICE (central→Ibadan→Akure) and costs twice — freight, handling, transit risk, and days of shelf absence — so the lateral that looks free at the branch level is the network paying double for a placement it got wrong once. This is not an argument against laterals (the second move is often cheaper than the stockout it prevents); it is the argument for reading them as PRICED decisions: the approval threshold exists so someone weighs the double-move against the alternative (wait for the run; expedite from central; let the sale go), and the lateral log carries the cost the network chose to pay.</p><p><b>The pattern as diagnosis.</b> One lateral is weather; a lateral RATE is climate — and chronic laterals on a corridor are the network confessing a systematic error: Akure chronically importing from Ibadan means Akure's allocation or reorder fields are set for a smaller branch than Akure has become (the growth the planning never heard — retune the fields), or central's run frequency to Akure is too sparse for its velocity (the calendar conversation), or the demand forecast is systematically placing stock one branch west of where it sells. The quarterly lateral read — corridors, lines, values, stated reasons — is the placement model's error report, and the mature network treats a falling lateral rate as the success metric it is: the network that plans well moves everything once.</p>"
-   },
-   {
-    "title": "Chapter 6 — Van & mobile stock: the warehouse on wheels",
-    "est": "14",
-    "html": "<p>Route trade — the van selling to kiosks and shops along a route, the market-day mobile stall — is a Nigerian distribution staple, and its inventory truth stands on one idea: <b>the van is a warehouse</b>. A leaf, a custodian, a daily cycle — and this chapter is the cycle's discipline.</p><p><b>The daily cycle, three beats.</b> <b>Load-out</b>: morning transfer from the branch/central leaf INTO the van's leaf — counted at the tailgate by the van custodian (their custody begins here, and their signature accepts exactly what the document says: the count-before-sign law at the smallest gate in the network), stocked per the route's plan (the van's load is a placement decision like any other — the route's demand history sets it, not the driver's optimism). <b>The route</b>: sales made FROM the van's warehouse through the sales machinery (the van is the source leaf on every sale — module 1's defaults wiring the van user to their van), cash or transfer per the trade's terms, returns and refusals riding back in the van's custody. <b>Evening reconciliation</b> — the beat that makes or breaks van trade: <b>load-out = sales + returns + remaining stock</b>, counted at the tailgate, same day, every day. The arithmetic closes or it does not; a gap is named TONIGHT (short stock = the day's shrinkage, on this van, this route, this custodian — investigated while the day is memorable) — and the van that reconciles daily has shrinkage in kobo while the van that reconciles weekly has it in cartons, because the leak on wheels compounds faster than any warehouse leak: small quantities, cash proximity, zero oversight between tailgates.</p><p><b>The van custodian's number.</b> Module 1's framing at its sharpest: the van driver-seller holds company stock AND often company cash, alone, all day — the highest-trust custody per naira in the network — and the daily reconciliation is what makes that trust STRUCTURAL: the custodian who closes clean every evening has a record that promotes them; the discipline protects the honest exactly as it exposes the leak. Van shrinkage is read per van, per route, per custodian (the rates law again), and the route rotation — custodians periodically swapped across routes — separates route-shrinkage (the risky market, the theft-prone stop) from custodian-shrinkage (the pattern that travels with the person): cheap analytics, decisive conversations.</p><p><b>Identity and expiry on wheels.</b> The van carries batch-tracked goods, so the disciplines ride along, sized to the tailgate: load-outs record batches loaded (the van's FEFO is loaded-first-sold-first by shelf discipline in the van), evening remainders confirm by lot where the trade's risk warrants it, and the van's stock ages like any room's — the route stock that rides for weeks is the horizon's business too. Where the trade is fast and the items low-risk, the batch discipline lightens deliberately (policy, not neglect) — proportionality, as everywhere.</p><p><b>Van economics in the network reads.</b> The van is a branch in miniature and reads like one: value carried, sales per route-day, shrinkage rate, reconciliation-clean streak — the per-van page beside the per-branch page in Chapter 7's dashboard. And the design note for implementations: van leaves are cheap; create one PER VEHICLE (never a pooled <i>Vans</i> warehouse — pooled custody is no custody, the module 1 law that a place answers to a person), default-wired to the van's user, restricted hard, and reconciled on the daily rhythm from day one — because van trade retrofitted onto discipline after a bad quarter is the hardest retrofit in this track.</p>"
-   },
-   {
-    "title": "Chapter 7 — Branch accountability & the network reads",
-    "est": "13",
-    "html": "<p>Scale turns incidents into rates (Chapter 1), and this chapter is the reading room: the per-branch scorecard, the network dashboard, and the rhythm that turns thirty rooms into one managed system.</p><p><b>The branch scorecard.</b> Per branch, per period, the custody vitals — every one of them a number earlier modules taught this track to produce: <b>stock value held</b> (the custodian's number — module 1); <b>count accuracy rate</b> (module 4's cycle programme, per branch); <b>shrinkage rate</b> (module 4's read, the custody comparison); <b>expiry/markdown losses</b> (module 3's horizon, per branch — the branch that lets stock age is visible beside the one that works its ladder); <b>transit performance</b> (receiving discipline: receipts posted same-day, identity-level, exceptions resolved — module 2 and Chapter 4); <b>request honesty</b> (requested vs sold — the padding detector, Chapter 3's spiral watched); and <b>stockout incidence</b> (the placement failure the whole network exists to prevent). Weighted per the firm's values and read quarterly WITH the branch manager — the supplier scorecard's exact logic pointed inward: conversations from records, praise specific, problems specific, and the standings mapped to real consequences (the clean branch earns autonomy — lighter approval thresholds, first-tier allocation; the struggling one earns support first and scrutiny second, in that order, because most branch problems are training and staffing problems wearing discipline costumes).</p><p><b>The network dashboard.</b> The rollup page, read weekly by whoever runs the network: total stock by room family (branches, central, transit, quarantine, vans — the logical rooms' balances in one row), the placement heat (stockouts and overstocks by branch — the two failure modes of one placement question), transit health (unclosed runs, aging), the allocation log's active lines, the lateral rate, and the exceptions aging (unresolved shortfalls, open investigations). One page; every number a drill-down into machinery this track built; and the page's job is the same as every reading rhythm in these tracks — surprises prevented, trends caught at two data points instead of eight.</p><p><b>The branch manager's weekly page.</b> The same truths, scoped to one room, pushed TO the branch (not pulled by head office only — a scorecard the branch sees moves behaviour; one it discovers at review time breeds resentment): my stock value, my accuracy, my shrinkage, my expiring lines this month, my unreceived transfers, my scorecard trend. The transparency is the management system: branch managers who see their numbers weekly manage them daily, and the network conversation shifts from inspection to coaching — which at thirty branches is the only conversation there is time for.</p><p><b>The reads close every loop.</b> Notice what this chapter's numbers feed: allocation logs to procurement (Chapter 3), expiry losses to buying (module 3), lateral rates to placement planning (Chapter 5), shrinkage distributions to security and training (module 4), transit rates to fleet and hauliers (Chapter 4). The network read is not a report ABOUT the system; it is the system's nervous system — and the final module will consolidate every rhythm this track has installed into the calendar that keeps it read.</p>"
-   },
-   {
-    "title": "Chapter 8 — Case study: HealthTrade opens Akure",
-    "est": "16",
-    "html": "<p>Branch three. The network's playbook, executed — every chapter clocking in.</p><p><b>The opening playbook (Ch. 1; modules 1, 4).</b> Before a naira of stock moves: the leaves created (Akure Store, Akure Quarantine — named to pattern, parented under Branches), defaults wired (Akure's sales default from Akure Store; rejections to its quarantine), users restricted to their leaves plus read-on-Central, branch reorder fields set from the business plan's velocity estimates (flagged for aggressive retuning at 90 days — opening estimates are always wrong; the discipline is knowing it and scheduling the correction). The opening stock arrives as a TRANSFER, not a purchase — the network buys centrally (the architecture holding at its first temptation: the local wholesaler's <i>opening deal</i> politely declined) — dispatched as a dedicated run, received identity-level by the new team as their first live drill: count, lots, sign. Day one closes with Akure's bins true, its custody signed, and its manager holding the weekly page format they will live on.</p><p><b>The scarcity week (Ch. 3).</b> Month two: Emzor's allocation short-close (the Procurement 5 case study's ripple reaching the network) leaves central 180 cartons against 300 requested across three branches. The policy — floors first, then velocity — computes: every branch to its 30-carton essential floor first, the remainder by trailing 8-week sell-through (Ibadan 58%, Abeokuta 27%, Akure 15% of velocity): Ibadan 87, Abeokuta 51, Akure 42. The allocation is ANNOUNCED with the relief date (the backup distributor's PO, Tuesday week); unfilled balances stay visible on the requests and roll to the relief run. The loudest call of the week — Ibadan's manager, naturally — receives the policy's arithmetic instead of a renegotiation, and the padding spiral never starts. The allocation log opens its first entry; the quarterly read will hand it to procurement.</p><p><b>The van launch (Ch. 6).</b> Month three: Akure's route trade begins — one van, one leaf (Van AK-1), one custodian, wired and restricted. Day one loads out clean, sells, reconciles to the naira at the tailgate. <b>Day two closes ₦9,000 short</b> — named that evening: the arithmetic (load-out 412,000 = sales 366,500 + returns 8,300 + remaining 28,200... short 9,000) is on the table while the day is memorable, and the custodian's own recall finds it: two cough syrup units handed to a kiosk on a <i>pay Friday</i> promise, unrecorded. The resolution: the trade's credit terms are for the SYSTEM to extend, not the tailgate (the sale entered properly against the kiosk's account, the custodian trained, the rule now vivid) — and the day-two catch, handled as training rather than accusation, sets the van's culture: the reconciliation protects everyone, and the clean-close streak starts at day three.</p><p><b>The quarter's network read (Ch. 5, 7).</b> The dashboard at quarter-end: Akure's accuracy 95.1% and climbing (new-team normal), its reorder fields retuned at day 90 as scheduled (velocity ran 22% over plan — the growth heard early because the read existed); one lateral in the quarter (Ibadan→Akure, approved, the spike covered — logged with its double-move cost, no pattern); transit clean (every run closed same-day; one shortfall investigated to a packing miss at central, corrected at the pick discipline); van AK-1's clean streak at 61 days. The scorecards go to the managers before the review, the review runs from the numbers, and the network — three rooms grown to five (two branches became three, plus a van) — still reads on one page. The playbook filed; branch four will take a week.</p>"
-   },
-   {
-    "title": "Chapter 9 — Common mistakes & the sixth law",
-    "est": "13",
-    "html": "<p>The network layer's scar tissue. Symptom → disease → fix.</p><p><b>Pattern 1 — allocation by decibel.</b> Symptom: scarce weeks filled by phone-call order; quiet branches stocking out; requests padding upward every quarter. Disease: no written policy (Ch. 3) — the political and hoarding spirals training permanent behaviour in rare weeks. Fix: the policy composed and encoded (floors, velocity, tiers), applied visibly, announced with relief dates — and the padding detector (requested vs sold) watching the recovery.</p><p><b>Pattern 2 — the chronic corridor.</b> Symptom: the same lateral, month after month; branch managers running a private redistribution economy. Disease: the placement model wrong and nobody reading its error report (Ch. 5) — fields, calendar, or forecast misplacing stock systematically. Fix: the quarterly lateral read; the corridor's root cause retuned; laterals returned to weather from climate.</p><p><b>Pattern 3 — the leak on wheels.</b> Symptom: van stock reconciled weekly or never; shrinkage discovered in cartons; cash and stock gaps entangled. Disease: the daily tailgate arithmetic skipped (Ch. 6) — the highest-risk custody on the lightest discipline. Fix: load-out = sales + returns + remaining, every evening, gaps named same-day; per-van leaves (pooled custody is no custody); route rotation separating route from custodian in the rates.</p><p><b>Pattern 4 — the branch that buys.</b> Symptom: branch petty-cash purchases at retail; local supplier relationships central never met. Disease: the network shape broken at its economics (Ch. 1; the conviction from Procurement 3, seen from the warehouse) — usually CAUSED by unreliable runs or ungoverned allocation, which is the diagnostic point: the branch that buys retail is often escaping a network that failed it. Fix: the run reliability and allocation governance repaired FIRST, then the buying rule re-enforced — discipline demanded only after the system deserves it.</p><p><b>Pattern 5 — runs that never close.</b> Symptom: a transit room with a permanent balance; shortfalls surfacing at branch counts weeks later; drivers blamed by vibe. Disease: no run-level close-out (Ch. 4) — the smoke detector unplugged at scale. Fix: the run as the reconciliation unit, same-day close-outs, the waybill-and-seal paper, and the rates read that replaces vibe with pattern.</p><p><b>Pattern 6 — the unread network.</b> Symptom: head office discovers branch problems at annual stocktake; managers see their numbers at review time, angrily. Disease: the reads never built or never pushed (Ch. 7) — thirty rooms managed as thirty surprises. Fix: the scorecard and the weekly page, pushed to the branch; the dashboard's one page weekly at the centre; consequences mapped so the numbers mean something.</p><p><b>The sixth law.</b> The tree is the map; movements are documents; identity is operational; the count is a dialogue; valuation is written at the moment of movement. This module: <b>the network is one stock in many rooms — move it on schedule, allocate it by policy, reconcile every room to zero, and read the whole on one page.</b> The run calendar is its heartbeat, the allocation policy its fairness, the tailgate arithmetic its smallest gate, and the branch scorecard its memory — and a network that keeps this law grows by playbook while the other kind grows by heroics until the heroes saturate. Two modules remain: the reading, and the structure.</p>"
+    "title": "Chapter 9 — Common errors and the module rule",
+    "est": "11",
+    "html": "<p>The errors that recur in network operations, each with its correction and prevention.</p><p><b>Error 1 — requests from the shelf, not the projection.</b> Symptom: branches double-ordering what is already in transit; overstock arriving in waves. Correction: the affected lines rebalanced; the request discipline re-briefed. Prevention: requests and reorder triggers reasoning on projected quantity — shelf minus commitments plus incoming.</p><p><b>Error 2 — the padded ask.</b> Symptom: requests inflated to hedge against short allocation; the run's data polluted; trust eroding both directions. Correction: adjustments with reasons; the allocation rules communicated. Prevention: Chapter 4's arithmetic — pro-rata on sell-through ignores the ask's size, so padding buys nothing and shows in the review.</p><p><b>Error 3 — the branch opened by reconciliation.</b> Symptom: opening quantities and rates typed into existence; no document trail; module 5's opening hazards recreated at branch scale. Correction: where recent, the reconciliation reversed and the opening re-run by transfer; where aged, the valuation review with the accountant. Prevention: the rule — branches open by transfer, and the Opening Stock purpose belongs to the original implementation only.</p><p><b>Error 4 — estimates defended instead of corrected.</b> Symptom: the new branch replenished to the plan for months; fast lines stocked out while dead openers age. Correction: the tight cycle started late — weekly reads, levels from actuals. Prevention: the honesty rule written into the opening plan: estimates are wrong by construction, and the first ninety days read weekly.</p><p><b>Error 5 — the informal lateral.</b> Symptom: stock moving between branches on phone calls; transfers crossing replenishments already in transit; the center's network view wrong. Correction: the movements documented; the approval lane restored. Prevention: laterals approved at Central and executed as standard transfers with reasons — no informal lanes.</p><p><b>Error 6 — the exception that became a habit.</b> Symptom: one branch's emergency purchases recurring monthly; the boundary dissolving in slow motion. Correction: the replenishment failure fixed at its source — the levels, the cadence, or the transit assumption. Prevention: the monthly exception list to the owner, read as a replenishment health report rather than a permissions log.</p><p><b>Review list.</b> Before the quiz, confirm you can: state the hub-and-spoke model and why the purchasing boundary exists; raise and review Material Requests and set reorder rows with the projected-quantity arithmetic; run the weekly cycle — inputs, review pass with reasoned adjustments, despatch pass, closing note; allocate scarcity by the written rules — floor first, pro-rata by sell-through, documented and communicated, with the relief and pattern follow-ups; open a branch by transfer with the ninety-day tight cycle and day-sixty levels; operate laterals, returns, and the exception lane; and run the six branch reads on their cadences.</p><p><b>Module rule 6: the network replenishes by procedure — requests reasoned on projected quantities, a weekly run with reasoned adjustments, scarcity allocated by written rule and shown as arithmetic, branches opened by transfer and read tight for ninety days, and every flow through the standard machinery with a reason attached.</b> Module 7 covers stock health and analytics.</p>"
    }
   ],
   "questions": [
    {
-    "q": "The network thesis is:",
+    "q": "The network model is:",
     "opts": [
-     "One stock in many rooms — every network decision is a placement decision",
-     "Every branch owns its stock",
-     "Central owns nothing",
-     "Stock is fungible cash"
+     "Hub-and-spoke — Central buys, branches sell and request, everything moves by the built machinery",
+     "Every branch buys",
+     "Vendor drop-ship",
+     "Informal"
     ],
     "ans": 0,
-    "why": "The pool is single; the rooms are many.",
+    "why": "Five modules of discipline concentrated at the hub.",
     "src": "Ch1"
    },
    {
-    "q": "The rollup vs the cells ask:",
-    "opts": [
-     "The same question",
-     "Do we own enough? (buying) vs is it in the right rooms? (placement)",
-     "Value vs quantity",
-     "Nothing distinct"
-    ],
-    "ans": 1,
-    "why": "The network that owns plenty while Akure stocks out has a placement problem no PO fixes.",
-    "src": "Ch1"
-   },
-   {
-    "q": "The three flow families are:",
-    "opts": [
-     "Fast, slow, dead",
-     "In, out, lost",
-     "Inbound, replenishment, laterals — naming the family names the rules",
-     "Daily, weekly, monthly"
-    ],
-    "ans": 2,
-    "why": "The misfiled movement is where discipline first frays.",
-    "src": "Ch1"
-   },
-   {
-    "q": "Scale changes exceptions into:",
+    "q": "A local branch purchase outside the lanes bypasses:",
     "opts": [
      "Nothing",
-     "Approvals",
-     "Emergencies",
-     "Populations — rates and distributions read instead of incidents handled"
+     "Matching, receiving control, landed costs, batch capture, and supplier accountability at once",
+     "Only pricing",
+     "Only tax"
     ],
-    "ans": 3,
-    "why": "And every rhythm installed is a replacement for a phone call.",
+    "ans": 1,
+    "why": "Why the boundary is policy.",
     "src": "Ch1"
    },
    {
-    "q": "The two-tier planning join is:",
+    "q": "The branch's ask instrument is:",
     "opts": [
-     "Branch triggers fire transfer requests; central's triggers, seeing that depletion, fire purchase demand",
-     "One trigger for everything",
-     "Manual only",
-     "Annual"
-    ],
-    "ans": 0,
-    "why": "Tune only one tier and the network starves at the other.",
-    "src": "Ch2"
-   },
-   {
-    "q": "Central picks short-dated stock to branches FIRST because:",
-    "opts": [
-     "Branches complain less",
-     "Central's FEFO at pick is how the whole network's expiry horizon stays healthy",
-     "It is cheaper",
-     "Drivers prefer it"
-    ],
-    "ans": 1,
-    "why": "FEFO pays or fails at scale at this desk.",
-    "src": "Ch2"
-   },
-   {
-    "q": "Unreliable runs teach branches to:",
-    "opts": [
-     "Trust the calendar",
-     "Buy less",
-     "Over-request as insurance — the hoarding spiral distorting every demand signal",
-     "Wait patiently"
+     "An email",
+     "A phone call",
+     "The Material Request with purpose Material Transfer",
+     "A purchase order"
     ],
     "ans": 2,
-    "why": "Boringly reliable runs are what let branches run lean.",
+    "why": "Submitted demand, visible and countable.",
     "src": "Ch2"
    },
    {
-    "q": "Dispatch picks are confirmed against:",
+    "q": "The reorder table row carries:",
     "opts": [
-     "The request",
-     "The truck's size",
-     "Memory",
-     "The TRANSFER document — what was approved and allocated"
+     "Item and price",
+     "The keeper",
+     "Supplier terms",
+     "Warehouse, re-order level, re-order quantity, and request type Transfer for branch rows"
     ],
     "ans": 3,
-    "why": "With batches recorded as picked; the gate treatment.",
+    "why": "The automatic ask.",
     "src": "Ch2"
    },
    {
-    "q": "Ungoverned scarcity allocates by:",
+    "q": "Reorder triggers reason on:",
     "opts": [
-     "Volume of voice — training the political and hoarding spirals permanently",
-     "Fairness",
-     "Velocity",
-     "Alphabet"
+     "Projected quantity — shelf minus commitments plus incoming",
+     "Actual quantity",
+     "Last year",
+     "The plan"
     ],
     "ans": 0,
-    "why": "Scarcity is rare; the behaviours it trains are not.",
-    "src": "Ch3"
+    "why": "Requesting on shelf-count double-orders transit.",
+    "src": "Ch2"
    },
    {
-    "q": "The velocity allocation basis:",
+    "q": "Reorder levels are sized to:",
     "opts": [
-     "Rewards loud requests",
-     "Fills proportional to recorded sell-through — stock goes where it sells",
-     "Ignores strategy",
-     "Is random"
+     "A round number",
+     "Expected sales across the replenishment interval plus transit lead time, plus the class buffer",
+     "Warehouse size",
+     "The supplier's minimum"
     ],
     "ans": 1,
-    "why": "Allocates on recorded sales, not requested hopes.",
-    "src": "Ch3"
+    "why": "Reviewed quarterly against sell-through.",
+    "src": "Ch2"
    },
    {
-    "q": "The minimum-cover floor means:",
+    "q": "The run's review pass outcomes are:",
     "opts": [
-     "Big branches first",
-     "Central keeps a reserve",
-     "No branch below a safety threshold of essentials while another holds surplus — triage",
-     "Nothing"
+     "Approve only",
+     "Reject only",
+     "Approved as asked, adjusted with a reasoned note, or held for the scarcity procedure",
+     "Random"
     ],
     "ans": 2,
-    "why": "Floors first, then the base rule — most real policies compose.",
+    "why": "A silent cut teaches padding; a reasoned one teaches arithmetic.",
     "src": "Ch3"
    },
    {
-    "q": "Unfilled allocation balances:",
+    "q": "The despatch pass references:",
     "opts": [
-     "Vanish silently",
-     "Become laterals",
-     "Cancel the requests",
-     "Stay visible and roll to relief — evaporated shortfalls restart the padding spiral"
+     "Nothing",
+     "Last week",
+     "The budget",
+     "The Material Requests it fulfils — the branch sees what is coming against what it asked"
     ],
     "ans": 3,
-    "why": "Plus the announcement with the relief date.",
+    "why": "Fulfilment tracked on the request.",
     "src": "Ch3"
    },
    {
-    "q": "Chronic allocation on a line signals:",
+    "q": "The run's closing note exists so that:",
     "opts": [
-     "An upstream message — under-buying, a demand shift, or a supplier problem",
-     "Logistics failure only",
-     "Branch greed",
+     "The run is a procedure a competent person can take over from the file",
+     "Files grow",
+     "Blame attaches",
      "Nothing"
     ],
     "ans": 0,
-    "why": "The allocation log is the warehouse writing to procurement.",
+    "why": "The handover standard applied to the run.",
     "src": "Ch3"
    },
    {
-    "q": "The unit of transit management is:",
+    "q": "Cycle and reorder levels:",
     "opts": [
-     "The truck",
-     "The RUN — reconciling dispatches, receipts, and a zero transit balance at close-out",
-     "The kilometre",
-     "The driver"
+     "Are independent",
+     "Move together or not at all — the interval plus lead time is the window the arithmetic covers",
+     "Never change",
+     "Are the same thing"
     ],
     "ans": 1,
-    "why": "Multi-drop runs split documents per destination from the start.",
-    "src": "Ch4"
+    "why": "The cadence decision's rule.",
+    "src": "Ch3"
    },
    {
-    "q": "Roadside division of one blob dispatch is:",
+    "q": "Scarcity is allocated by:",
     "opts": [
-     "Efficient",
-     "Standard",
-     "Where quantities go to become disputes — three branches means three documents",
-     "The driver's job"
+     "Who asked loudest",
+     "Seniority",
+     "The written rules — essential floor first, then pro-rata by sell-through, rounded per policy",
+     "First request"
     ],
     "ans": 2,
-    "why": "Split at dispatch, loaded in reverse-drop order.",
+    "why": "Documented and communicated, never argued.",
     "src": "Ch4"
    },
    {
-    "q": "An intact seal with a short count points at:",
+    "q": "The essential floor is:",
     "opts": [
-     "The road",
-     "The driver",
-     "The branch",
-     "Central's packing — cheap forensics applied before blame"
+     "A guess",
+     "The average",
+     "Half the ask",
+     "A written per-item figure — the minimum service level no branch breaches, allocated before anything else"
     ],
     "ans": 3,
-    "why": "A broken seal points the other way.",
+    "why": "Applied first on essential lines.",
     "src": "Ch4"
    },
    {
-    "q": "The driver's signed load acknowledgment is:",
+    "q": "Pro-rata runs on:",
     "opts": [
-     "Accountability AND protection — the road's custody has a name",
-     "Suspicion",
-     "Optional",
-     "Insurance paperwork"
+     "Sell-through — the stock goes where it provably sells, by checkable arithmetic",
+     "The asks",
+     "Branch size",
+     "Distance"
     ],
     "ans": 0,
-    "why": "The custodian framing, on wheels.",
+    "why": "Padding cannot move it.",
     "src": "Ch4"
    },
    {
-    "q": "A healthy network's transit room:",
+    "q": "The allocation worksheet answers:",
     "opts": [
-     "Holds a standing buffer",
-     "Breathes — full by afternoon, empty by morning; any standing balance is an incident with a run number",
-     "Grows monthly",
-     "Is unread"
+     "Nothing",
+     "Why the other site got more — as a calculation, not a conversation",
+     "The supplier",
+     "The auditor only"
     ],
     "ans": 1,
-    "why": "Same-day close-outs keep the smoke detector silent.",
+    "why": "Filed with the run's note.",
     "src": "Ch4"
    },
    {
-    "q": "A lateral's true cost is:",
+    "q": "The scarcity aftermath includes:",
     "opts": [
-     "Free between branches",
-     "Only fuel",
-     "The double move — freight, handling, risk, shelf absence, twice",
-     "Central's problem"
+     "Nothing",
+     "A meeting",
+     "The relief despatch making shorted branches whole first, and the pattern check on repeat lines",
+     "A price rise"
     ],
     "ans": 2,
-    "why": "Often still cheaper than the stockout — but weighed, priced, approved.",
+    "why": "Repeat scarcity is a purchasing signal.",
+    "src": "Ch4"
+   },
+   {
+    "q": "A new branch's stock opens by:",
+    "opts": [
+     "Reconciliation",
+     "Local purchase",
+     "Manual entry",
+     "Transfer — documented, valued, identified stock; bins true from the first carton"
+    ],
+    "ans": 3,
+    "why": "Never by reconciliation.",
     "src": "Ch5"
    },
    {
-    "q": "Chronic laterals on a corridor mean:",
+    "q": "An opening reconciliation at a branch would:",
+    "opts": [
+     "Type quantities and rates into existence with no documents — module 5's opening hazards recreated voluntarily",
+     "Save time safely",
+     "Be required",
+     "Improve accuracy"
+    ],
+    "ans": 0,
+    "why": "The Opening Stock purpose belongs to the original implementation.",
+    "src": "Ch5"
+   },
+   {
+    "q": "Opening estimates are treated as:",
+    "opts": [
+     "Commitments",
+     "Wrong by construction — corrected by the tight first cycle, not defended",
+     "Precise",
+     "Secrets"
+    ],
+    "ans": 1,
+    "why": "The honesty rule in the plan itself.",
+    "src": "Ch5"
+   },
+   {
+    "q": "The first ninety days run:",
+    "opts": [
+     "On the plan",
+     "Quarterly",
+     "Weekly line-by-line sell-through reads, replenishment on data, levels written at day sixty, first count inside month one",
+     "Unwatched"
+    ],
+    "ans": 2,
+    "why": "The tight cycle.",
+    "src": "Ch5"
+   },
+   {
+    "q": "Laterals are approved:",
+    "opts": [
+     "Between branch managers",
+     "Automatically",
+     "By drivers",
+     "At the center — the network view of transit and pending despatches lives at Central"
+    ],
+    "ans": 3,
+    "why": "A lateral can cross a replenishment already moving.",
+    "src": "Ch6"
+   },
+   {
+    "q": "A lateral executes as:",
+    "opts": [
+     "A standard transfer — transit legs, identity on rows, received against despatch, reason recorded",
+     "A favour",
+     "A phone call",
+     "A sale"
+    ],
+    "ans": 0,
+    "why": "Every discipline attached.",
+    "src": "Ch6"
+   },
+   {
+    "q": "Recurring laterals on a line mean:",
     "opts": [
      "Good teamwork",
-     "Theft",
+     "The allocation or levels are wrong at the source — the census reads the pattern",
      "Nothing",
-     "The placement model confessing a systematic error — fields, calendar, or forecast"
-    ],
-    "ans": 3,
-    "why": "The quarterly lateral read is the error report.",
-    "src": "Ch5"
-   },
-   {
-    "q": "The mature network's lateral success metric is:",
-    "opts": [
-     "A falling rate — the network that plans well moves everything once",
-     "More laterals",
-     "Faster laterals",
-     "Secret laterals"
-    ],
-    "ans": 0,
-    "why": "One lateral is weather; a rate is climate.",
-    "src": "Ch5"
-   },
-   {
-    "q": "Branch-to-branch receiving discipline dies first because:",
-    "opts": [
-     "Distance",
-     "Familiarity — the two managers who trust each other, until the unexplainable variance",
-     "Bad roads",
-     "Paperwork costs"
+     "More trucks needed"
     ],
     "ans": 1,
-    "why": "The receiving branch counts like any gate.",
-    "src": "Ch5"
-   },
-   {
-    "q": "The van is:",
-    "opts": [
-     "A vehicle",
-     "Petty cash",
-     "A warehouse — a leaf, a custodian, a daily cycle",
-     "A branch expense"
-    ],
-    "ans": 2,
-    "why": "Per vehicle, never pooled: pooled custody is no custody.",
+    "why": "Levels-fix first, lateral second.",
     "src": "Ch6"
    },
    {
-    "q": "The evening reconciliation arithmetic is:",
+    "q": "The exception purchase lane requires:",
     "opts": [
-     "Sales minus cash",
-     "The driver's estimate",
-     "Weekly totals",
-     "Load-out = sales + returns + remaining — closed at the tailgate, same day, every day"
-    ],
-    "ans": 3,
-    "why": "The van that reconciles daily has shrinkage in kobo, not cartons.",
-    "src": "Ch6"
-   },
-   {
-    "q": "The van leak compounds fastest because:",
-    "opts": [
-     "Small quantities, cash proximity, zero oversight between tailgates",
-     "Vans are small",
-     "Roads are bad",
-     "Fuel costs"
-    ],
-    "ans": 0,
-    "why": "The highest-trust custody per naira in the network.",
-    "src": "Ch6"
-   },
-   {
-    "q": "Route rotation separates:",
-    "opts": [
-     "Drivers from vans",
-     "Route-shrinkage from custodian-shrinkage — the pattern that travels with the person",
-     "Sales from returns",
-     "Nothing"
-    ],
-    "ans": 1,
-    "why": "Cheap analytics, decisive conversations.",
-    "src": "Ch6"
-   },
-   {
-    "q": "The branch scorecard's vitals include:",
-    "opts": [
-     "Revenue only",
-     "Staff attendance",
-     "Value held, accuracy, shrinkage, expiry losses, transit discipline, request honesty, stockouts",
-     "Customer counts"
-    ],
-    "ans": 2,
-    "why": "Every number a machinery this track built.",
-    "src": "Ch7"
-   },
-   {
-    "q": "Most branch problems are:",
-    "opts": [
-     "Discipline failures",
-     "Unfixable",
-     "Theft",
-     "Training and staffing problems wearing discipline costumes — support first, scrutiny second"
-    ],
-    "ans": 3,
-    "why": "The standings map to consequences in that order.",
-    "src": "Ch7"
-   },
-   {
-    "q": "The weekly page is PUSHED to branches because:",
-    "opts": [
-     "A scorecard the branch sees moves behaviour; one discovered at review breeds resentment",
-     "Email is easy",
-     "Head office is busy",
-     "Auditors require it"
-    ],
-    "ans": 0,
-    "why": "Transparency IS the management system.",
-    "src": "Ch7"
-   },
-   {
-    "q": "Akure's opening stock arrived as:",
-    "opts": [
-     "A local purchase — the opening deal",
-     "A transfer — the network buys centrally; the architecture held at its first temptation",
-     "Consignment",
-     "A loan"
-    ],
-    "ans": 1,
-    "why": "The local wholesaler politely declined.",
-    "src": "Ch8"
-   },
-   {
-    "q": "The scarcity week's Ibadan phone call received:",
-    "opts": [
-     "A renegotiation",
-     "Extra stock",
-     "The policy's arithmetic — and the padding spiral never started",
+     "Nothing",
+     "A card and a receipt",
+     "Written pre-approval, execution through real purchasing documents, and the monthly list to the owner",
      "Silence"
     ],
     "ans": 2,
-    "why": "Floors first, then velocity: 87 / 51 / 42, announced with the relief date.",
-    "src": "Ch8"
+    "why": "The lanes at small scale, never bypassed.",
+    "src": "Ch6"
    },
    {
-    "q": "The van's day-two ₦9,000 gap resolved as:",
+    "q": "A branch appearing repeatedly on the exception list is:",
     "opts": [
-     "Theft, dismissed",
-     "A mystery",
-     "A write-off",
-     "Unrecorded tailgate credit — the sale entered properly, the custodian trained, the culture set"
+     "Resourceful",
+     "Fined",
+     "Lucky",
+     "A replenishment failure to fix at the run — not a boundary to keep waiving"
     ],
     "ans": 3,
-    "why": "Named that evening while the day was memorable.",
-    "src": "Ch8"
+    "why": "The habit is the boundary dissolving.",
+    "src": "Ch6"
    },
    {
-    "q": "Akure's day-90 retune found:",
+    "q": "The sell-through read is:",
     "opts": [
-     "Velocity 22% over plan — the growth heard early because the read existed",
-     "Plan was perfect",
-     "Overstock",
-     "Nothing"
+     "The weekly eight-week movement view per item per branch — the module's workhorse figure",
+     "Annual",
+     "A count",
+     "A price list"
     ],
     "ans": 0,
-    "why": "Opening estimates are always wrong; schedule the correction.",
+    "why": "Feeds the run, the allocation, and the rebalancing.",
+    "src": "Ch7"
+   },
+   {
+    "q": "A line at 58% one branch and 12% at another is:",
+    "opts": [
+     "Normal variance to ignore",
+     "A rebalancing candidate readable in one row",
+     "A pricing error",
+     "A theft signal"
+    ],
+    "ans": 1,
+    "why": "The comparable percentage.",
+    "src": "Ch7"
+   },
+   {
+    "q": "The branch stock page carries:",
+    "opts": [
+     "Everything",
+     "Only value",
+     "Five figures — value, trend, count accuracy, open transit, and the month's exceptions",
+     "Only variances"
+    ],
+    "ans": 2,
+    "why": "Comparable across sites and months.",
+    "src": "Ch7"
+   },
+   {
+    "q": "The rebalancing preference order is:",
+    "opts": [
+     "Lateral first",
+     "Purchase more",
+     "Neither",
+     "Levels-fix first, lateral second — the lateral corrects a symptom once; the level stops recurrence"
+    ],
+    "ans": 3,
+    "why": "The read proposes; the manager disposes.",
+    "src": "Ch7"
+   },
+   {
+    "q": "The reorder health read finds:",
+    "opts": [
+     "Levels that triggered stockouts and levels that never triggered while stock aged — corrections written and dated",
+     "Nothing",
+     "New items",
+     "Prices"
+    ],
+    "ans": 0,
+    "why": "Quarterly calibration of the automatic machinery.",
+    "src": "Ch7"
+   },
+   {
+    "q": "Akure's opening despatches were:",
+    "opts": [
+     "Reconciliations",
+     "Standard two-step transfers with batches on every row, received against despatch rows",
+     "Local purchases",
+     "Estimates"
+    ],
+    "ans": 1,
+    "why": "Bins documented, valued, identified from carton one.",
     "src": "Ch8"
    },
    {
-    "q": "The branch that buys retail is often:",
+    "q": "Akure's month one closed with:",
     "opts": [
-     "Simply undisciplined",
-     "Escaping a network that failed it — repair runs and allocation first, then re-enforce the rule",
-     "Entrepreneurial",
-     "Right"
-    ],
-    "ans": 1,
-    "why": "Discipline demanded only after the system deserves it.",
-    "src": "Ch9"
-   },
-   {
-    "q": "This module's law is:",
-    "opts": [
-     "Branches manage themselves",
-     "Central hoards",
-     "One stock in many rooms — move on schedule, allocate by policy, reconcile every room, read the whole",
-     "Laterals are free"
+     "Open questions",
+     "No count",
+     "Bins true — the first cycle count inside month one, the opening file complete",
+     "A backlog"
     ],
     "ans": 2,
-    "why": "Grow by playbook, not by heroics until the heroes saturate.",
+    "why": "The tight cycle's first proof.",
+    "src": "Ch8"
+   },
+   {
+    "q": "The Emzor allocation ran as:",
+    "opts": [
+     "First come first served",
+     "Central kept it",
+     "Equal thirds",
+     "The 30-carton floor across three sites, then 90 pro-rata by eight-week sell-through, on a filed worksheet"
+    ],
+    "ans": 3,
+    "why": "180 available against 300 asked.",
+    "src": "Ch8"
+   },
+   {
+    "q": "The scarce month's boundary evidence was:",
+    "opts": [
+     "The exception-purchase list staying empty — boundaries are tested exactly when supply is short",
+     "More exceptions",
+     "Ten waivers",
+     "Unknown"
+    ],
+    "ans": 0,
+    "why": "The month's network page.",
+    "src": "Ch8"
+   },
+   {
+    "q": "Two dead openers at Akure were:",
+    "opts": [
+     "Written off",
+     "Returned to Central by lateral in week six — flagged early before aging into a problem list",
+     "Hidden",
+     "Discounted to zero"
+    ],
+    "ans": 1,
+    "why": "The tight cycle catching slow openers young.",
+    "src": "Ch8"
+   },
+   {
+    "q": "Module 6's rule is:",
+    "opts": [
+     "Branches improvise",
+     "Scarcity is negotiated",
+     "The network replenishes by procedure — projected-quantity requests, a weekly reasoned run, scarcity by written rule shown as arithmetic, branches opened by transfer and read tight, every flow through the standard machinery with a reason",
+     "Laterals are informal"
+    ],
+    "ans": 2,
+    "why": "The module rule.",
     "src": "Ch9"
    }
   ]
