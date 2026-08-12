@@ -1,951 +1,951 @@
 {
  "payroll_function": {
   "title": "Payroll 1 — The Payroll Function & Salary Structures",
-  "desc": "The foundation of the payroll certification: payroll as the organ between HR and finance, the three numbers and pay-as-structure philosophy, salary components with their statutory flags, the salary structure per grade, effective-dated assignments, the gross-to-net walk with the modeling discipline, and the governance of the pay masters.",
+  "desc": "The pay machinery in ZhiftERP: the seven-step pipeline and the custody split; the Employee record's payroll fields (Salary Mode, bank details under custody rules, Payroll Cost Center, Holiday List); the Salary Component's flags and Accounts table; the Salary Structure as the package template with the B/H/T split; the Salary Structure Assignment carrying the Base, From Date, and Income Tax Slab link with the supersession rule; formulas, conditions, and payment-days proration; and the preview procedure with its five reads.",
   "lessons": [
    {
-    "title": "Chapter 1 — Payroll: the organ between",
+    "title": "Chapter 1 — The pay pipeline in ZhiftERP",
+    "est": "11",
+    "html": "<p>This track certifies the payroll operator in ZhiftERP. This module covers the machinery that computes pay: the Employee record's payroll fields, Salary Components, the Salary Structure, the Salary Structure Assignment, formulas and payment days, and the preview procedure that verifies a structure before it pays anyone.</p><p><b>The pipeline.</b> Pay in ZhiftERP is computed by a chain of records. Learn the chain in order, because every module of this track works somewhere on it:</p><p>1. <b>Employee</b> — the person, with the payroll fields Chapter 2 walks.<br>2. <b>Salary Component</b> — one pay element: Basic, Housing, PAYE, Pension. Each component carries its type, its calculation, and its ledger account (Chapter 3).<br>3. <b>Salary Structure</b> — a named template listing which components make up a pay package (Chapter 4).<br>4. <b>Salary Structure Assignment</b> — the record that attaches a structure to one employee from a date, with that employee's base amount (Chapter 5).<br>5. <b>Payroll Entry</b> — the monthly run: selects the employees, generates their slips (module 3).<br>6. <b>Salary Slip</b> — one employee's computed pay for one period: earnings, deductions, net (modules 3-4).<br>7. <b>The posting and the payment</b> — the accrual Journal Entry the run books, and the bank payment (modules 2-3).</p><p><b>The design consequence.</b> Because pay is computed by this chain, the operator's work is maintaining <b>records</b>, not calculating amounts: when the structure is right, every slip is right; when a slip is wrong, the fault is in a record — a component's formula, an assignment's base, an employee's field — and the fix is made there, once, for every future month. A payroll kept in a spreadsheet beside the system has none of this: every month is recomputed by hand, every error is repeated until noticed, and the accounts, tax, and audit machinery downstream receives nothing.</p><p><b>The custody split.</b> Three owners share the payroll function, and the split is held throughout the track:</p><p>• <b>HR</b> owns who is employed, on what terms, from when — the Employee records and the approved pay decisions.<br>• <b>The payroll operator</b> (this certification) owns the machinery: components, structures, assignments, the run, the slips, the registers.<br>• <b>The accountant</b> owns the numbers' policy: the tax table, the statutory rates, the account wiring — module 2's territory.</p><p><b>Module contents.</b> Chapter 2: the Employee record's payroll fields. Chapter 3: Salary Components. Chapter 4: the Salary Structure. Chapter 5: the Salary Structure Assignment. Chapter 6: formulas, conditions, and payment days. Chapter 7: the preview procedure. Chapter 8: the HealthTrade case. Chapter 9: review and the law.</p>"
+   },
+   {
+    "title": "Chapter 2 — The Employee record: the payroll fields",
+    "est": "12",
+    "html": "<p>Open an <b>Employee</b> record (awesome bar → Employee). HR owns the record; the payroll operator verifies the fields the pay machinery reads. Walk them in order.</p><p><b>1. Company.</b> The employing entity. On a multi-company site, the employee's slips, postings, and registers all belong to this company — the legal-separation rule reaching payroll.</p><p><b>2. Date of Joining.</b> The first month's proration reads this date (Chapter 6). A wrong joining date pays a wrong first month.</p><p><b>3. Status and Relieving Date.</b> Status Active means the run picks the employee up; Left with a Relieving Date means the final month prorates to that date and later runs exclude them (module 7 covers exits in full). The run selects by these fields — an exit not recorded here is a leaver who keeps getting paid.</p><p><b>4. Salary Mode, and the bank fields.</b> Salary Mode = Bank, Cash, or Cheque. For Bank: the <b>Bank Name</b> and <b>Bank A/C No.</b> fields feed the payment run. Rules:</p><p>• Bank details are entered from the employee's own written instruction, filed as an attachment on the record.<br>• Changes to bank details are governed master-data events — verified with the employee through a known channel, never actioned from a forwarded message. This is the same rule the Accounts track applies to supplier bank details, for the same fraud.</p><p><b>5. Payroll Cost Center.</b> The address the employee's salary cost posts to — the branch or unit. Set per employee (or defaulted from the Department where the site is configured so). This one field is what makes the branch P&amp;L's salary line true; an employee without it posts into the company fallback and distorts every branch read.</p><p><b>6. Holiday List.</b> The employee's working calendar. Payment-days proration (Chapter 6) counts working days from this list; leave machinery (the HR track) shares it. Confirm every employee carries the correct list — the branch that works Saturdays needs its own.</p><p><b>7. The tax and statutory fields.</b> The state of residence (module 2's PAYE split reads it), the pension fund administrator and PFA account number (module 2's remittance schedule reads them), and the tax identifiers. Module 2 walks each at its station.</p><p><b>The verification procedure.</b> Before any employee's first run:</p><p>1. Open the Employee record.<br>2. Confirm fields 1-7 against the offer letter and the employee's forms.<br>3. Attach the source documents to the record.<br>4. Note the verification in the record's comments: date, by whom.</p><p>Practical rule: the run inherits every error this walk would have caught. Five minutes per joiner; module 3's checklist assumes it was done.</p>"
+   },
+   {
+    "title": "Chapter 3 — The Salary Component",
     "est": "13",
-    "html": "<p>Welcome to the sixth certification — and the one two tracks deliberately deferred. The HR track drew its boundary in its first chapter (<i>HR owns the inputs payroll consumes</i>); the Accounts track carried only payroll's journal and its tax custody. This track is the organ BETWEEN: <b>payroll</b> — the function that consumes the people facts, computes the pay, holds the state's money in passing, and writes the largest recurring entry in most trading firms' books.</p><p><b>The two boundaries, now seen from inside.</b> Payroll's position defines its discipline: UPSTREAM, it receives the HR track's packages (the attendance close's days and categories, the leave interface's treatments, the movement notifications with effective dates, the joiner and separation packages — module by module, the HR track built payroll's supplier network, and this track is the customer whose specifications those handoffs met); DOWNSTREAM, it delivers to finance (the payroll journal into the ledger — Accounts 2's lawful catalogue receiving its biggest monthly resident; the statutory custody accounts — Accounts 5's machinery receiving PAYE and pension in passing; the bank payment run — Accounts 3's separations governing the money's actual movement) and to the WORKFORCE (the salaries themselves, and the payslips that account for them — module 4). A function with this many counterparties runs on interfaces or it runs on apologies — the HR track's closing law (<i>interfaces over blur</i>), now taught from the middle of the sandwich.</p><p><b>The precision stakes.</b> Why payroll's error tolerance is the firm's lowest, taught before any machinery: a stock error costs money; a salary error costs money AND trust, at a ratio no other function faces — the underpaid worker's family felt the shortfall at the market before the correction posted (the error is personal, immediate, and remembered), the overpaid worker's clawback is a grievance regardless of the error's honesty, and the workforce recalibrates its trust in EVERY firm system by whether the pay lands right (the firm whose payroll is exact earns patience for every other imperfection; the one whose payroll wobbles is distrusted on things it does perfectly). Add the state's stakes — the statutory deductions held in custody (module 2), where error compounds into penalty — and the function's character emerges: payroll is the discipline where 'approximately right' does not exist, which is why this track's laws will be the academy's strictest.</p><p><b>The trilogy completed.</b> The scope, stated: this track covers the salary structures (this module), the Nigerian statutory layer at full depth (module 2 — the track's ten-chapter deep module, sibling to the tax module it extends), the run itself (module 3), the payslip and its confidentiality (module 4), variable pay (module 5), the review machinery (module 6), exits and special cases (module 7), and the structural layer (module 8). What stays at the boundaries it honours: the PEOPLE decisions (who is hired, promoted, disciplined — the HR track's terrain, consumed here as effective-dated facts), the LEDGER's wider life (the accounts beyond payroll's entries — the Accounts track's terrain, fed here), and the tax POSITIONS where law is unclear (the adviser's terrain, in the settled grammar of both prior tracks). The consultant completing this track holds all three organs — the people, the pay, and the books — and the joins between them, which is the full anatomy of how a Nigerian trading firm keeps its people paid, legal, and accounted.</p>"
+    "html": "<p>Open <b>Salary Component</b> (awesome bar) &gt; New. One component is one pay element, and its fields decide how it computes, how it taxes, and where it posts. Walk the fields.</p><p><b>1. Name and Abbreviation.</b> The name prints on every payslip (write it as the employee should read it: <i>Housing Allowance</i>, not <i>HRA2</i>). The <b>abbreviation</b> is the handle formulas use (Chapter 6): Basic's abbreviation <b>B</b> lets another component compute <i>B * 0.1</i>. Set abbreviations short and stable; changing one later breaks every formula that references it.</p><p><b>2. Type: Earning or Deduction.</b> Earnings add to gross; deductions subtract toward net. The statutory deductions (module 2) are Deduction-type components.</p><p><b>3. The calculation block.</b> Either a fixed <b>Amount</b>, or <b>Amount based on formula</b> with the <b>Formula</b> field (Chapter 6 teaches the writing), plus an optional <b>Condition</b> that must be true for the component to apply at all. A component with neither amount nor formula takes its value from the Salary Structure's row (Chapter 4) — the per-structure override pattern.</p><p><b>4. Is Tax Applicable.</b> Ticked, the component's amount counts toward taxable income; clear, it is exempt. This flag is set per component <b>from the accountant's ruling</b> — which allowances are taxable is tax policy, not operator preference, and the 2025 reform's changes land exactly here at the annual re-read (module 2).</p><p><b>5. Depends on Payment Days.</b> Ticked, the component prorates with the month's payable days — the joiner from the 16th earns roughly half; unpaid leave reduces it (Chapter 6's mechanics). Clear, the component pays flat regardless. Salary-like earnings tick it; fixed reimbursements usually do not.</p><p><b>6. Do Not Include in Total / Statistical Component.</b> Two visibility controls: a <b>Statistical Component</b> computes but pays nothing — used as a base figure other formulas reference; <b>Do Not Include in Total</b> shows a line without moving net pay — module 2 uses it for the employer pension share, which the employee should see but does not pay.</p><p><b>7. The Accounts table.</b> One row per company: the component's ledger account. Earnings point at their expense accounts (Salary expense, split by component family where the chart wants it); statutory deductions point at their <b>custody accounts</b> — PAYE Payable, Pension Payable (module 2 wires each). This table is where payroll meets the Accounts track: the run's accrual Journal Entry posts every component to the account named here, addressed by the employee's Payroll Cost Center. A component with a missing or wrong account row mis-posts every month for every employee that carries it.</p><p><b>The component register.</b> Keep the one-page list: every component with its type, flags, formula, account, and the ruling that set Is Tax Applicable. Reviewed at module 8's annual walk; every new component is a governed addition to this page, not a keyboard improvisation.</p>"
    },
    {
-    "title": "Chapter 2 — Pay in structure: the vocabulary & the philosophy",
+    "title": "Chapter 4 — The Salary Structure",
+    "est": "12",
+    "html": "<p>Open <b>Salary Structure</b> (awesome bar) &gt; New. A structure is a named pay-package template: which components, in which arrangement, for one family of employees. Walk the form.</p><p><b>1. Name and Company.</b> Name structures for the package, not the person: <i>Head Office Staff</i>, <i>Branch Retail Staff</i>, <i>Management</i>. One structure serves every employee on that package; a structure per person is Chapter 9's Pattern 2.</p><p><b>2. Payroll Frequency.</b> Monthly for the standard Nigerian salary cycle. The frequency governs the run's periods.</p><p><b>3. The Earnings table.</b> One row per earning component. Each row carries the component and — where the component itself has no formula — the row-level amount or formula. The standard Nigerian shape enters here as component rows computed from the base (Chapter 5's assignment supplies the base):</p><p>• <b>Basic</b> — commonly a percentage of the base (formula on the assignment's base).<br>• <b>Housing</b> and <b>Transport</b> — percentages likewise. The Basic + Housing + Transport family matters beyond presentation: module 2's pension computes on it, so the split is the accountant's decision, recorded.<br>• The remaining allowances per the package — each an existing component from Chapter 3's register.</p><p><b>4. The Deductions table.</b> The deduction components this package carries: the statutory set (PAYE, employee pension, NHF where applicable — module 2 builds each) plus any package-specific deductions. Because the statutory components carry their own formulas and flags, the structure usually just lists them — the computation lives on the component, the membership lives on the structure.</p><p><b>5. The payment and posting defaults.</b> The structure carries the Mode of Payment and payment-account defaults the run will use, plus leave-encashment settings where the leave policy uses them (the HR track's territory; noted here for the field walk).</p><p><b>6. Submit.</b> Structures are submittable documents: submitted, they can be assigned; amendments follow the document rules — a change to a live structure is a governed event (module 6 covers pay changes properly; module 8 covers structure versioning).</p><p><b>The design procedure.</b></p><p>1. List the pay packages that actually exist — usually three to six families, not one per person.<br>2. Confirm the component set and the B/H/T split per package with the accountant.<br>3. Build each structure from registered components only.<br>4. Preview one slip per structure (Chapter 7) before any assignment goes live.</p><p>Practical rule: the structure count is a health number. Three structures for thirty staff is a design; twenty-eight structures for thirty staff is a spreadsheet wearing a costume of records — merge them by package and carry the differences on the assignment's base.</p>"
+   },
+   {
+    "title": "Chapter 5 — The Salary Structure Assignment",
+    "est": "12",
+    "html": "<p>Open <b>Salary Structure Assignment</b> (awesome bar) &gt; New. The assignment is the record that joins one employee to one structure from one date, and carries the number the formulas compute from. Walk the fields.</p><p><b>1. Employee and Salary Structure.</b> The person and the package template. One employee has one <b>active</b> assignment at a time; a new assignment from a later date supersedes the old from that date — which is exactly how pay rises are recorded (module 6): not by editing history, but by a new assignment from the effective date.</p><p><b>2. From Date.</b> When this assignment starts governing. Rules:</p><p>• The first assignment's From Date aligns with the Date of Joining (or the pay decision's effective date).<br>• From Dates are honest dates. A rise effective the 1st is dated the 1st, even if entered on the 20th — the run computes from the record, and module 3's run for that month will apply it correctly.</p><p><b>3. Base.</b> The assignment's central field: the employee's base amount, from which the structure's percentage formulas compute. The base is <b>the pay decision, as a number</b> — it comes from the offer letter or the approved review (module 6), it is entered once here, and every component that says <i>base * something</i> reads it. Two employees on the same structure with different bases produce different slips from one template: this is how three structures serve thirty staff.</p><p><b>4. Variable.</b> The second reference amount, available to formulas as the variable-pay anchor where the package uses one (module 5's territory).</p><p><b>5. Income Tax Slab.</b> The assignment links the employee to the <b>Income Tax Slab</b> that computes their PAYE — module 2, Chapter 2 builds the slab; this field is where it attaches. An assignment without its slab produces a slip without its tax: the preview (Chapter 7) checks for exactly this.</p><p><b>6. Company and Currency.</b> Per the employee's record; the naira for this track's scope.</p><p><b>The assignment procedures.</b></p><p>• <b>The joiner:</b> Employee verified (Chapter 2) → assignment created with structure, From Date, Base from the offer letter, slab attached → preview (Chapter 7) → filed.<br>• <b>The pay change:</b> new assignment from the effective date with the new base; the old assignment stands as history. Never edit an old assignment's base — that rewrites what past months were computed from, and the register stops matching the slips it produced.<br>• <b>The bulk load at go-live:</b> assignments imported through the Data Import tool under the sysadmin track's six-step governed procedure, then <b>every</b> structure previewed and a sample of individual slips checked against the old payroll's last month.</p><p>Practical rule: the assignment list, filtered by structure, is the answer to \"who is on what package at what base\" — the pay register in one view. Module 6's governance reads it; keep it clean.</p>"
+   },
+   {
+    "title": "Chapter 6 — Formulas, conditions, and payment days",
     "est": "13",
-    "html": "<p>Before components and formulas, the vocabulary that every offer conversation, statutory computation, and payslip dispute turns on — and the design philosophy that makes pay a STRUCTURE rather than a pile of negotiations. The foundations chapter.</p><p><b>The three numbers.</b> Every compensation conversation involves three figures that Nigerian practice constantly conflates, and the consultant untangles them on day one: <b>GROSS</b> — the earnings before deductions (the sum of the salary components — the number the structure defines and module 2's computations mostly reference); <b>NET</b> — what lands in the account (gross minus the employee's deductions: the statutory shares, the governed recoveries — the number the WORKER means when they say 'my salary', which is why Chapter 6's net-preview discipline exists: the offer stated in gross to a candidate thinking in net is the misunderstanding that sours week four's payday); and the <b>EMPLOYER'S TOTAL COST</b> — gross plus the employer's own statutory contributions (the pension employer share, the levies of module 2 — the number the OWNER should budget with, and rarely does until shown: the ₦250k gross hire costs meaningfully more than ₦250k, and the budget that ignores the employer layer discovers it in module 2's remittance season). Three numbers, three audiences, one structure computing all of them — the vocabulary is the first deliverable.</p><p><b>Pay as structure: the design philosophy.</b> The thesis this module builds toward its law: compensation in a governed firm is COMPUTED from structure — the component definitions (Chapter 3), the salary structures per grade (Chapter 4), the person's assignment (Chapter 5) — not NEGOTIATED from memory (the per-person arrangement recalled by the founder, adjusted by mood, discovered at dispute). The structure's dividends, enumerated: CONSISTENCY (same grade, same structure — the pay-disparity time bomb of HR 2's offer chapter, defused at its source), COMPUTABILITY (the statutory layer computes from component definitions — module 2 is only possible because Chapter 3's flags exist), EXPLAINABILITY (every payslip line traceable to a structure line — module 4's query-killing transparency), and CHANGEABILITY (the review that moves a band moves everyone on it — module 6's machinery, impossible against 27 private arrangements). The philosophy's honest cost, stated too: structure constrains improvisation — which is the point, and the owner who wants to 'just add something for Tunde this month' will meet Chapter 7's governance and module 5's channels, because the something-for-Tunde that bypasses structure is the favour disease (the HR track's oldest villain) wearing a bank transfer.</p><p><b>The component conventions.</b> The Nigerian structural reality previewed for Chapter 3: pay here is conventionally STRUCTURED into named components — basic, housing, transport, and the allowances beyond — a convention with teeth, because statutory computations and common practice reference the components (the pension contribution's base is conventionally basic-plus-housing-plus-transport; benefit conventions and some computations key off basic) — so component design is not cosmetic labelling: the SPLIT chosen (what share of gross sits in basic) has downstream consequences the accountant and adviser weigh, and the consultant's job is the machinery that makes whatever split the professionals choose compute correctly, evenly, forever. The chapter closes where the module's law will: the structure is the single source of pay truth — everything else in this track is machinery for defining it, computing from it, governing it, and explaining it.</p>"
+    "html": "<p>The computation layer. Three mechanics, each with its procedure.</p><p><b>Formulas.</b> A component's Formula field computes its amount each run. The writing rules:</p><p>1. <b>Reference by abbreviation and by base.</b> <i>base * 0.4</i> computes forty percent of the assignment's Base. <i>B * 0.1</i> computes ten percent of the component whose abbreviation is B — component-on-component references, which is how pension computes on Basic + Housing + Transport: <i>(B + H + T) * 0.08</i> (module 2 builds it).<br>2. <b>Order matters through dependency:</b> a formula can only reference components that compute before it. Keep the dependency shallow — base-referencing formulas for the earnings, family-sum formulas for the statutory set — and the evaluation stays readable.<br>3. <b>Write the formula on the component when it is universal</b> (pension's rate is law, the same everywhere) <b>and on the structure's row when it is per-package</b> (Basic's percentage differs by package). One home per formula; a formula duplicated in both places is a future contradiction.</p><p><b>Conditions.</b> The Condition field gates whether the component applies at all: a component conditioned on <i>base &gt; 0</i> always applies; one conditioned on a field or threshold applies selectively (module 2 uses a condition where a levy applies only above a threshold; module 5 uses them for variable pay). The rule: conditions encode <b>written policy</b> — every condition traces to a line on the policy page, because a condition nobody can explain is a deduction nobody can defend.</p><p><b>Payment days — the proration engine.</b> For components with <b>Depends on Payment Days</b> ticked, the slip computes: <i>payment days = working days in the period (from the employee's Holiday List) − unmarked absences and leave without pay (from the leave machinery)</i>, and the component pays <i>amount × payment days ÷ working days</i>. The three standing cases:</p><p>• <b>The mid-month joiner:</b> Date of Joining on the 16th → payment days run from the 16th → the salary-like components pay their fraction automatically. No manual arithmetic; the record computed it.<br>• <b>The mid-month leaver:</b> Relieving Date the 12th → the final slip prorates to the 12th (module 7 completes the exit).<br>• <b>Leave without pay:</b> approved LWP days reduce payment days — the HR track's leave records feeding this track's slips. The operator's check: the slip's payment-days figure against the month's known absences, per module 3's run checklist.</p><p><b>The verification habit.</b> Every formula, condition, and proration rule is verified the same way: <b>one previewed slip</b> (Chapter 7) whose arithmetic is checked by hand once. After that single hand-check, the record computes every future month — which is the pipeline's whole promise, and why the hand-check is never skipped on the first pass.</p>"
    },
    {
-    "title": "Chapter 3 — Salary components: the anatomy",
-    "est": "14",
-    "html": "<p>The atoms of pay: the SALARY COMPONENTS — defined once, flagged precisely, reused everywhere. The component chapter, where module 2's computability is won or lost.</p><p><b>Earnings components.</b> The additions, defined as masters: <b>basic</b> (the anchor component — the conventions that reference it make its share a design decision, not a default), <b>housing</b> and <b>transport</b> (the classic Nigerian trio completed — together with basic forming the conventional base for the pension computation module 2 details), the further allowances the firm's structure uses (meal, utility, and the like — named per the firm's policy, resisted per the sprawl warning below), and the VARIABLE earnings that module 5 governs (overtime, bonus, commission — defined here as components with their flags, populated there by their documents). Each earnings component carries its flags: taxability (feeding module 2's PAYE base), statutory-base membership (in or out of the pension base — the flag the computation reads), and the formula-versus-amount nature below.</p><p><b>Deduction components.</b> The subtractions, in their two families: the STATUTORY deductions (employee PAYE, the employee pension share, NHF where applicable — module 2's whole terrain, defined here as components whose formulas the statutory chapter will fill), and the GOVERNED recoveries (the loan repayment, the salary-advance recovery, the documented deduction of HR 7's separation package — each a component that posts only from its authorising document, never from a typed number: module 5 holds their governance, and the improvised-deduction conviction of two prior tracks holds here hardest of all, because THIS is the layer where improvised deductions actually execute).</p><p><b>Formula versus amount.</b> The component's computational nature: AMOUNT components (the fixed figure the structure states — basic as a stated sum), FORMULA components (computed from others — housing as a percentage of basic, the pension share as its statutory rate on its statutory base, PAYE as module 2's full computation), and the design discipline that keeps structures maintainable: formulas reference NAMED bases (the pension formula reads the flagged base, not a hardcoded sum of three components — so the structure that adds a component to the base changes one flag, not five formulas), the precedence is explicit (components computing from components compute in order — the circular formula is the structure that cannot run), and the formulas live in the STRUCTURE layer, not scattered per person (Chapter 4's whole argument).</p><p><b>Component governance: the sprawl warning.</b> The master-data laws, sixth appearance, with this layer's specific disease named: COMPONENT SPRAWL — the allowance invented per negotiation ('special duty allowance' for one hire, 'transition allowance' for another) until the component list is a museum of old deals, every statutory flag a per-component audit, and every payslip a glossary. The fixes are the familiar ones: components created by the narrowest pen (Chapter 7), named from a governed list, justified by policy (a component exists because a CLASS of pay exists, not because a negotiation happened — the one-off lands in module 5's additional-pay machinery with its document, not in the component list), flagged at creation with the accountant's confirmation (the taxability flag set wrong on day one mis-computes every person, every month, until found — the component review is module 2's pre-season ritual for exactly this reason), and audited annually beside the structures (the component nobody's structure uses is retired, not kept 'just in case'). The chapter's one-liner for the implementation file: <b>few components, precisely flagged, formula-driven — the payroll that is easy to explain is the payroll that was designed this way.</b></p>"
+    "title": "Chapter 7 — The preview procedure",
+    "est": "12",
+    "html": "<p>No structure pays anyone before a previewed slip has been read against the source documents. This chapter is that procedure — the track's equivalent of the Accounts track's posting-map verification.</p><p><b>Previewing one slip.</b></p><p>1. Open <b>Salary Slip</b> (awesome bar) &gt; New.<br>2. Select the Employee and the payroll period. The form pulls the employee's active assignment, its structure, and its slab, and computes: every earning row, every deduction row, the payment days, gross, total deductions, net.<br>3. <b>Do not submit.</b> The preview is read and discarded (or saved as draft and deleted after) — module 3's run generates the real slips. The preview exists to be checked, not to pay.</p><p><b>The reading, line by line.</b></p><p>1. <b>Earnings against the offer letter:</b> each component present, each amount matching the letter's package arithmetic. The Basic/Housing/Transport split at the agreed percentages of the base.<br>2. <b>Deductions against the accountant's table:</b> PAYE present and plausible against the slab (module 2's Chapter 2 gives the plausibility check), pension at its rate on the right family, the other statutory lines per applicability.<br>3. <b>Payment days against the calendar:</b> full month = full days; the joiner's fraction correct.<br>4. <b>Net pay stated back:</b> gross − deductions = net, and the net against what the employee was told they would receive. A package quoted net in the offer letter is reconciled to its gross here — <b>before</b> the first payday conversation, not during it.<br>5. <b>One hand-check:</b> one formula-computed line recomputed manually (Chapter 6's rule). One line suffices; it proves the chain.</p><p><b>When to preview.</b></p><p>• Every new structure, before its first assignment — one preview per structure at a representative base.<br>• Every joiner, at assignment — their own preview against their own letter.<br>• Every pay change — the new assignment previewed before its first run.<br>• Every component or formula change — one preview per affected structure (module 8's change discipline; the sysadmin track's test-then-live logic applied to pay).<br>• After the go-live bulk load — every structure, plus a sample of individuals against the old payroll's last month.</p><p><b>The record.</b> Each preview gets one line in the payroll log: employee/structure, date, checked against what, by whom, result. Findings are fixed <b>in the records</b> (the component, the row, the assignment) and re-previewed — never patched on the slip, because a slip patch fixes one month and leaves the record wrong for every month after.</p><p>Practical rule: the preview costs five minutes and runs before money moves; the same error found on payday costs a correction run, a bank recall attempt, and an employee's trust. Every module downstream assumes the preview happened.</p>"
    },
    {
-    "title": "Chapter 4 — The salary structure: the master",
+    "title": "Chapter 8 — Case study: HealthTrade's structures",
     "est": "13",
-    "html": "<p>The components assemble into the layer's central master: the SALARY STRUCTURE — the named template of components and formulas that defines what a class of employees earns. The structure chapter.</p><p><b>The structure as template.</b> One structure per pay CLASS — in a graded firm, per grade (HR 1's band architecture receiving its payroll payload: the grade that carried leave entitlements and offer bands now carries its salary structure), with the structure holding the component set (which earnings, which deductions), the formulas and amounts (or the amount SLOTS the assignment fills — the structure defining housing as 25% of basic while the assignment states the person's basic), and the effective machinery (structures versioned by date — the review that changes a structure creates the new version from its effective date, the old preserved: module 6 consumes this, and the frozen-history conviction of five tracks lands in payroll as the rule that a past month's structure is as sealed as its ledger).</p><p><b>The design conversation.</b> Structures designed WITH the owner and accountant, from three inputs: the GRADE architecture (HR 1's bands — the structure count should roughly equal the grade count: the eleven-person firm with three grades runs three structures, and Chapter 9 will convict the 27-structures-for-27-people anti-pattern as the spreadsheet payroll wearing a system), the COMPONENT conventions (Chapter 3's split decisions, made once here — the basic share, the base flags, with the professionals' input on their consequences), and the MARKET position (HR 2's labour-market conversation, now with its machinery: the band's range lives in the structure's assignment rules — the grade 2 structure serving basics from X to Y, placements within it governed by the offer and review disciplines). The design output is small and load-bearing: a page per structure, signed, dated — the compensation constitution, beside the settings walks of every track.</p><p><b>Amendments as events.</b> The structure's change discipline, in the academy's settled grammar: structure changes are EVENTS (the annual review's new version — module 6; the statutory change that moves a formula — module 2's reform landscape landing here; the component added to a class), effective-DATED (computing forward from their date, never silently rewriting the past — the March that was computed stays computed: the attendance close's one-version law, now at the structure layer), ANNOUNCED (the pay change nobody explained is module 4's query storm pre-ordered), and made by the narrowest pen (Chapter 7). The anti-pattern buried here by name: the quiet mid-year tweak — the formula nudged in place, no version, no date, no announcement — which makes every payslip before and after the tweak inconsistent with one of them, and converts the next dispute from a lookup into an archaeology.</p><p><b>What the structure buys, summarised.</b> The template's dividends, collected for the sales conversation every consultant will have: the new hire priced in minutes (the offer from the band, the assignment from the structure — HR 2's discipline now with its engine), the review executed in hours (the version that moves a class — module 6), the statutory change absorbed in one edit (the formula updated once, every person on the structure correct next run — module 2's reform resilience), and the audit answered by pointing (WHY is this person paid this? — the structure, the assignment, the dates: three documents, no recollections). The structure is to pay what the chart was to accounts — the language, designed once, spoken everywhere — and the next chapter connects it to the people who earn from it.</p>"
-   },
-   {
-    "title": "Chapter 5 — The assignment: person meets structure",
-    "est": "13",
-    "html": "<p>The structure defines the class; the ASSIGNMENT connects the person — the effective-dated record that says which structure, from when, with which amounts. The joining chapter.</p><p><b>The assignment's anatomy.</b> Per employee: the STRUCTURE assigned (from their grade — the alignment that should be automatic and is audited because it drifts), the BASE amounts the structure's slots require (the person's basic, from which the formulas cascade — the one number the offer actually negotiated, landing in the one place it belongs), and the EFFECTIVE DATE (from which this assignment computes — the field the whole run reads, and the field every event of module 6 and HR 7 writes: the increment's date, the promotion's date, the structure version's date). The assignment is a DOCUMENT (created by the events that own it — the joiner package's onboarding, the review's increment, the promotion's re-pricing — never a quiet edit), and its history is the person's pay story: the assignments in sequence, each with its authorising event, is the answer to every 'since when' dispute the function will ever host.</p><p><b>The offer link: HR 2's discipline lands.</b> The joining of the two tracks, made explicit: the offer from the grade's band (HR 2's law) becomes the assignment at onboarding (the joiner package carrying the agreed basic and the start date — the boundary's cleanest crossing when the offer was structural, and its messiest when it wasn't: the improvised offer arrives at payroll as a number with no structure to live in, and the consultant meets the resulting per-person 'structures' in every cleanup engagement). The proration reality at the edges: the mid-month joiner's first pay computed by the firm's stated day-count convention (calendar days or working days — a POLICY, chosen once, applied evenly, printed in the policy page, because the proration argued per case is the fairness leak module 7 will meet again at exits), and the convention's mirror applying to every mid-month event (the increment effective mid-month, the leaver's final days — one convention, every edge).</p><p><b>The no-structure employee.</b> The error state named and fenced: the active employee with no current assignment is a run-time failure waiting for month-end (the run either skips them — the missed salary — or someone types a number — the improvisation this track exists to end), and the fence is structural: the joiner checklist's assignment line (HR 2's day-one readiness including the pay machinery), the pre-run validation that lists the unassigned (module 3's run discipline), and the monthly read that should always be empty. Its sibling error, equally fenced: the DOUBLE assignment (overlapping effective ranges — two answers to one month's question), refused by validation and resolved by dating discipline.</p><p><b>Currency, precision & the small print.</b> The layer's technical hygiene, briefly and completely: amounts in the payroll currency at the ledger's precision (the precision mismatch that manufactures kobo residue at the payroll journal is Accounts 8's conviction arriving home), rounding rules stated per the firm's convention (the net rounded where practice rounds it, the difference carried to its component, never dropped — the kobo that vanishes monthly across 27 people is small money and large sloppiness), and annualisation conventions explicit (the annual package quoted at twelve months of gross unless the firm's terms say otherwise — the thirteenth-month arrangement, where the firm offers one, being module 5's governed variable pay, not a quiet convention). Small print, written down — because payroll's disputes live in exactly these crevices, and the policy page that pre-answers them is the function's quietest time-saver.</p>"
-   },
-   {
-    "title": "Chapter 6 — The gross-to-net walk & the modeling discipline",
-    "est": "14",
-    "html": "<p>The chapter that makes the structure REAL: one worked example, gross to net, every stop narrated — and the modeling discipline that puts this walk at the offer desk, where it prevents the most common compensation dispute in the trade. The arithmetic chapter.</p><p><b>The worked example: ₦250,000 gross.</b> A grade 2 employee on the case-study structure — basic ₦125,000 (50%), housing ₦62,500 (25%), transport ₦37,500 (15%), utility allowance ₦25,000 (10%) — walked to net: <b>Step 1, the statutory base</b> — the pension base per the convention (basic + housing + transport = ₦225,000), flagged in Chapter 3's machinery, summed by the formula, not by hand. <b>Step 2, the employee statutory shares</b> — the employee pension contribution at its statutory rate (8% of the base = ₦18,000 — module 2 holds the law's detail; this chapter holds the flow), and PAYE per the current regime's computation on the taxable income after allowable deductions (the pension contribution reducing the taxable base before the bands apply — the interaction the spreadsheet payroll most often gets wrong, and the reason module 2 is this track's deep module: for this walk, the computed PAYE lands, illustratively, near ₦14,000 monthly under the reformed regime's bands for this income — the EXACT figure is module 2's terrain and the configuration's output, never a memorised number). <b>Step 3, net</b> — gross ₦250,000 minus ₦18,000 pension minus ~₦14,000 PAYE = <b>≈ ₦218,000 to the account</b>. <b>Step 4, the employer's total cost</b> — gross PLUS the employer pension share (10% of the base = ₦22,500) plus the levies module 2 details: the ₦250k hire costs the firm ₦272,500+ monthly — the third number, delivered to the owner with the walk.</p><p><b>The walk's teaching uses.</b> The example is machinery, not decoration: it is the CONFIGURATION TEST (the consultant runs this exact walk against the configured structure at implementation — the computed slip matching the hand walk to the naira is the go-live gate for the payroll layer: Accounts 1's posting-map verification, payroll edition), the TRAINING artifact (the payroll seat that can narrate this walk can answer module 4's queries; the one that cannot is operating a black box), and the DISPUTE settler (the payslip challenged is walked, line by line, against the structure — the drill-down culture of six tracks, at the payslip).</p><p><b>The modeling discipline: net at the offer desk.</b> The chapter's operational payoff: <b>candidates think in net</b> — the offer stated as gross to a candidate budgeting in take-home is the misunderstanding that surfaces at the first payday as a grievance wearing a calculator — and the discipline is the net PREVIEW at the offer stage: the offer conversation equipped with the modeled slip (this gross, on this structure, yields this net — the modeling run the system makes trivial and the spreadsheet made heroic), the acceptance informed (HR 2's offer discipline gaining its missing number), and the same modeling serving the REVIEW conversations (module 6 — the increment's net effect shown, because the ₦20k gross increase that yields ₦14k net is a conversation better had with the number on the table) and the owner's budget (the employer-cost model per planned hire — HR 2's multi-million-naira-decision framing, now with its calculator).</p><p><b>The annualisation note.</b> The walk's yearly shadow, closing the chapter: the statutory computations are ANNUAL creatures computed monthly (module 2's mechanics — the PAYE bands are annual bands, the reliefs annual reliefs, the monthly computation an instalment of a yearly truth), which is why mid-year changes ripple (the increment that moves the annual projection adjusts the remaining months' instalments) and why the year-end true-up disciplines exist (module 2's terrain). For this module, the takeaway is the frame: every monthly slip is one-twelfth of an annual story the statutory layer is keeping — and the consultant who holds that frame configures and explains; the one who doesn't debugs mysteries every January.</p>"
-   },
-   {
-    "title": "Chapter 7 — Governing the pay masters",
-    "est": "13",
-    "html": "<p>The layer's governance: who may touch the structures, components, and assignments — the narrowest pen in the firm — and the disciplines that keep the compensation constitution from eroding one favour at a time. The governance chapter.</p><p><b>The narrowest pen.</b> The edit rights, tiered to the stakes: COMPONENTS and their flags (the atoms whose mis-flag mis-computes everyone — edited by the configure authority alone, with the accountant's sign-off on statutory flags: module 8 will seat this in the four-authorities pattern, but the rule lands now), STRUCTURES and their versions (the class-level truth — the same door, changed only by the events module 6 and module 2 define), and ASSIGNMENTS (the person-level connection — written by their owning events through the standing flows: the joiner package, the increment, the promotion, the separation — with the DIRECT edit right held by almost no one, because the assignment edited outside an event is precisely the negotiated-from-memory pay this track's first law forbids). The tiering's logic is blast radius: the component wounds everyone, the structure wounds a class, the assignment wounds a person — and the pen narrows as the radius widens.</p><p><b>The quiet-edit refusal.</b> The disease this governance exists to refuse, named in its native habitat: the owner's <i>just adjust Tunde's basic this month</i> — the request every payroll seat receives, monthly, forever — met not with a lecture but with the CHANNELS: the one-off payment belongs in module 5's additional-pay machinery (documented, approved, visible on the slip as what it is), the permanent change belongs in module 6's review or HR 7's movement events (effective-dated, authorised, joined), and the direct edit belongs nowhere — because the quiet adjustment is invisible to the review (module 6 prices a band the private deals have already left), inconsistent at dispute (the payslip that matches no structure defends no one), and contagious (the first quiet favour recruits the second — the HR track's evenness law, at the layer where unevenness is denominated in naira). The consultant's gift to the payroll seat is exactly this paragraph, laminated: the channels exist so that saying yes is always possible and saying yes QUIETLY never is.</p><p><b>The audit trail & the reconciliation habit.</b> The layer's self-evidence: every structure version, component change, and assignment carrying its who-when-why (the versioning machinery plus the change log — the pay story readable end to end), the quarterly STRUCTURE-TO-REALITY read (every active employee's assignment against their grade — the drift audit: the grade 3 person on a grade 2 structure is either an error or an undocumented decision, and both need surfacing), and the component review before each statutory season (module 2's pre-season ritual — the flags re-confirmed against the current law with the adviser, because the reform that moved a base definition moves a flag, and the flag moves everyone).</p><p><b>The confidentiality overlay.</b> The governance's custody dimension, previewed for module 4's full treatment: the pay masters sit in the SENSITIVE tier of the HR track's permission design — the structures arguably readable more widely (the published band is HR 2's transparency choice, made deliberately), the ASSIGNMENTS emphatically not (the person's actual pay visible to the payroll function, the approver chain, and the person — and no one else by default: the compensation leak is the trade's fastest culture poison, and module 4 will treat the whole custody discipline). For this chapter, the governance conclusion: the pay masters are the firm's most consequential small dataset — a few structures, a few dozen assignments — governed by the narrowest pens, changed only by events, evidenced by trail, and fenced by the tightest tier. Small data, maximal governance: the inverse of every other layer's scale, and exactly right.</p>"
-   },
-   {
-    "title": "Chapter 8 — Case study: HealthTrade's structures are born",
-    "est": "16",
-    "html": "<p>The pay machinery, installed where five tracks prepared its ground. Every chapter clocks in.</p><p><b>The design sessions (Ch. 2-4).</b> The compensation constitution built in two sittings with the MD and the accountant: the component set defined ONCE — the classic trio plus one utility allowance, statutory flags set with the accountant's sign-off (the pension base flagged as basic+housing+transport; taxability confirmed per component), and the sprawl fence agreed (new components by policy only — the 'special duty allowance' one early negotiation had invented is retired into the utility component with its holder's consent and a documented step-up: the museum's first exhibit, closed). THREE structures for three grades — not twenty-seven for twenty-seven (the spreadsheet era's per-person tabs formally convicted at the whiteboard) — each a page: component shares, formula bases, the band's assignment range, signed and dated. The vocabulary lands in the same sitting: the MD sees the three numbers for a grade 2 hire — ₦250k gross, ≈₦218k net, ₦272.5k+ employer cost — and the budget conversation audibly changes (<i>I have been budgeting gross for eleven years</i>).</p><p><b>The load (Ch. 5).</b> Twenty-seven assignments, effective-dated, each from its document: the existing contracts mapped to their grade structures (twenty-four land cleanly in-band), and the three exceptions surfaced honestly — two legacy arrangements above band (documented as red-circled personal-to-holder terms with the adviser's shape: honoured, dated, and closed to inheritance) and one BELOW band (a quiet historic unfairness the structure exposes in an afternoon — corrected at the next run, effective-dated, with the back-conversation the MD chooses to have: the structure's first justice, delivered by architecture). The no-structure read runs empty; the double-assignment validation catches one overlapping date from the load and the dating is fixed the same hour.</p><p><b>The walk as the gate (Ch. 6).</b> The configuration test: the ₦250k walk run by hand on the whiteboard, then computed by the configured structure — the two slips matching to the naira on the second attempt (the first attempt catches a utility-allowance taxability flag set wrong: the mis-flag that would have mis-computed ten people monthly, found by the walk exactly as the chapter promised — the go-live gate doing its one job). The modeling discipline installs at the offer desk the same week: the next hire's offer conversation includes the modeled net slip, and the candidate's acceptance email says so (<i>first offer I've received that told me my take-home</i> — the employer-brand dividend HR 2 predicted, arriving through payroll).</p><p><b>The governance tested (Ch. 7).</b> Month two delivers the inevitable: <i>just add thirty to Tunde's pay this month — he sorted the generator</i>. The channels answer: the one-off lands in the additional-pay machinery as a documented, approved, visible bonus line (module 5's machinery, previewed live — thirty seconds of process, the favour granted WITHOUT the quiet edit), and the payroll seat's note in the file is the chapter's thesis in the wild: <i>said yes through the channel; the structure never moved.</i> The quarterly drift read runs clean; the component review is calendared before the statutory season. The layer ends its first quarter with three structures, twenty-seven true assignments, a tested walk, one closed museum exhibit, one corrected unfairness, and a governance that has already survived its first favour — the foundation module 2's statutory depth will now compute upon.</p>"
+    "html": "<p>HealthTrade builds its pay machinery. Every chapter appears. (HealthTrade is the pharmaceutical distributor the whole programme follows — three branches, Head Office, about thirty staff.)</p><p><b>Step 1 — the employee walk (Chapter 2).</b> All employee records are verified against files: two records carry no <b>Payroll Cost Center</b> (their salary cost had been landing in the company fallback — the Accounts track's unaddressed check had already flagged the naira; this walk names the cause), one bank account number fails its verification and is corrected from the employee's written instruction, and every record gets its Holiday List confirmed — the retail branches on the Saturdays-working list, Head Office on the standard list.</p><p><b>Step 2 — the component register (Chapter 3).</b> Built with the accountant in one sitting: the earnings set (Basic, Housing, Transport, plus a Meal and a Utility allowance) with <b>Is Tax Applicable</b> ruled per line and the accounts table pointed at the salary expense accounts; the deduction set left as stubs for module 2's statutory build. Abbreviations set short (B, H, T) because the pension formula will reference them. The register page is written: every component, its flags, its account, its ruling.</p><p><b>Step 3 — the structures (Chapter 4).</b> The package census finds <b>three families</b>, not thirty: <i>Branch Retail Staff</i>, <i>Head Office Staff</i>, <i>Management</i>. Three Salary Structures are built, the B/H/T split confirmed with the accountant (recorded: the split feeds pension), the earnings rows carrying per-package percentages of base, the deduction membership listed.</p><p><b>Step 4 — the assignments (Chapter 5).</b> Thirty Salary Structure Assignments load through the governed import: employee, structure, From Date, <b>Base from each offer letter</b>. The assignment list filtered by structure becomes the standing pay register — who is on what package at what base, one view.</p><p><b>Step 5 — the previews (Chapters 6-7).</b> One preview per structure at a representative base, then a five-employee sample against the old spreadsheet payroll's last month. The previews catch two findings before anyone is paid: a Transport formula on the Retail structure written as <i>base * 0.15</i> where the letter said ten percent — a typing error that would have overpaid eleven staff monthly — and one mid-2025 joiner whose old spreadsheet had never prorated the first month (the spreadsheet had paid the full month; the slip's payment-days figure computes the truth, and the difference is documented for the file rather than clawed back — the owner's call, recorded). Both fixes land in the records — the structure row corrected, re-previewed, logged.</p><p><b>The state at module's end.</b> Three structures, thirty verified assignments, a component register with rulings, and a preview log with two findings closed. The statutory deductions are stubs awaiting module 2 — which is exactly where the track goes next. The payroll operator's note in the log: <i>the spreadsheet computed pay thirty times a month; the records now compute it once, per rule.</i></p>"
    },
    {
     "title": "Chapter 9 — Common mistakes & the first law",
-    "est": "13",
-    "html": "<p>The pay-structure layer's scar tissue — the diseases every payroll cleanup begins with. Symptom → disease → fix.</p><p><b>Pattern 1 — the spreadsheet payroll.</b> Symptom: the monthly workbook, one tab per person or one row per arrangement; formulas nobody dares touch; the computation that lives in one head and one file. Disease: pay without masters (Ch. 1-2) — every month a fresh improvisation on last month's copy. Fix: the migration engagement — components defined, structures built per grade, assignments loaded from documents, the walk as the gate — and the workbook retired to read-only history beside HR 1's staff spreadsheet.</p><p><b>Pattern 2 — negotiated-from-memory pay.</b> Symptom: 'his arrangement is different'; amounts recalled, not recorded; the dispute settled by whoever remembers loudest. Disease: the founder's memory as the pay master (Ch. 2, 7). Fix: every arrangement surfaced into an assignment with its document, the exceptions red-circled honestly, and the memory retired — the structure answering 'since when and why' by pointing.</p><p><b>Pattern 3 — the per-person structure.</b> Symptom: twenty-seven structures for twenty-seven people; every review twenty-seven edits; the 'structure' layer as the spreadsheet wearing a doctype. Disease: the template's point missed (Ch. 4) — class machinery used as person storage. Fix: structures per grade, amounts in assignments, the band's range doing the individual work — the structure count collapsing to the grade count.</p><p><b>Pattern 4 — the mis-flagged component.</b> Symptom: PAYE persistently 'a bit off'; the pension base disputed at remittance; the year-end true-up that surprises. Disease: the flag set wrong at birth, computing wrong for everyone since (Ch. 3). Fix: flags set with the accountant at creation, the walk as the configuration gate, the pre-season component review — one flag, checked, versus twelve months of quiet error.</p><p><b>Pattern 5 — the quiet edit.</b> Symptom: payslips matching no structure; the review pricing a band the private deals have left; the favour that recruited its successors. Disease: the pen too wide and the channels unknown (Ch. 7). Fix: the narrowest pen tiered by blast radius, the channels laminated (one-offs to additional pay, permanence to events), and the drift read quarterly — saying yes always possible, saying yes quietly never.</p><p><b>Pattern 6 — gross confusion.</b> Symptom: the payday grievance in week four ('this is not what we agreed'); the owner's budget missing the employer layer; three numbers used interchangeably in every conversation. Disease: the vocabulary never taught (Ch. 2, 6). Fix: the three numbers in every offer and review conversation, the net preview at the offer desk, the employer-cost model in the owner's budget — one walk, three audiences, zero surprises.</p><p><b>The first law.</b> The sixth track opens where five tracks' grammar demands: <b>pay is computed from structure, not negotiated from memory — few components precisely flagged, structures per grade versioned by date, assignments written only by their owning events, the gross-to-net walk as the gate and the teacher, and every favour granted through a channel that leaves the structure standing.</b> The structure is pay's single source of truth: consistent by design, computable by flags, explainable by pointing, and changeable by class. Seven modules stand on it — and module 2 now takes the walk's hardest steps at full depth: the statutory layer, where the state rides every payslip and the reformed law sets the bands.</p>"
+    "est": "11",
+    "html": "<p>The structure layer's recurring failures, then the review list.</p><p><b>Pattern 1 — the spreadsheet beside the system.</b> Symptom: pay computed in a spreadsheet, one lump posted monthly; no slips, no register, no proration, no audit trail; every downstream module starved. Cause: the pipeline never built (Chapter 1). Fix: this module, run in order — the employee walk, the component register, the structures, the assignments, the previews — with the sample-against-last-month check making the cutover safe.</p><p><b>Pattern 2 — the structure per person.</b> Symptom: as many structures as staff; every pay change a structure edit; no package view. Cause: the base misunderstood — differences that belong on the assignment's Base built as separate templates (Chapters 4-5). Fix: the package census, structures merged to the real families, differences moved to bases, and the structure count watched as a health number.</p><p><b>Pattern 3 — the edited history.</b> Symptom: pay rises made by editing the old assignment's base; the register no longer matching the slips it produced; last year's figures silently different. Cause: the supersession rule unknown (Chapter 5). Fix: new assignment from the effective date, always; old assignments as history, never edited; module 6's governance making the rule structural.</p><p><b>Pattern 4 — the unverified formula.</b> Symptom: a percentage typed wrong paying every carrier of the structure wrong, monthly, until an employee complains. Cause: the preview skipped (Chapters 6-7). Fix: the preview procedure at every trigger — new structure, joiner, change, go-live — with its one hand-check and its log line.</p><p><b>Pattern 5 — the unaddressed salary.</b> Symptom: the branch P&amp;L's salary line untrue; payroll cost pooled in the company fallback. Cause: Payroll Cost Center blank on employee records (Chapter 2). Fix: the field on the joiner checklist, the existing records swept, and the Accounts track's monthly unaddressed check standing guard.</p><p><b>Pattern 6 — the slip patch.</b> Symptom: errors \"fixed\" by editing the month's slip; the same error returning next month; records and slips diverging. Cause: fixes made downstream of the fault (Chapter 7). Fix: the rule — findings are fixed in the records and re-previewed; the slip is output, never the place of repair.</p><p><b>The review list.</b> Before the quiz, confirm you can: recite the seven-step pipeline and the custody split; walk the Employee record's seven payroll fields and run the joiner verification; create a Salary Component and explain each flag — Is Tax Applicable, Depends on Payment Days, Statistical, Do Not Include in Total — and the Accounts table; build a Salary Structure with its earnings and deductions tables and defend the structure count; create a Salary Structure Assignment with Base, From Date, and the slab link, and state the supersession rule; write a base formula and a component-family formula, and compute a joiner's payment days; and run the preview procedure with its five reads and its log line.</p><p><b>The first law: pay is computed by the records — components carry their accounts, structures carry the package, assignments carry the base, and every slip previews before it pays.</b> Module 2 builds the statutory deductions: PAYE, pension, and the Nigerian compliance set.</p>"
    }
   ],
   "questions": [
    {
-    "q": "Payroll's position is:",
+    "q": "The pay pipeline runs:",
     "opts": [
-     "The organ between — HR feeds it people facts, finance receives its entries, the workforce receives its output",
-     "Standalone",
-     "Part of HR",
-     "Part of accounts"
+     "Employee → Salary Component → Salary Structure → Salary Structure Assignment → Payroll Entry → Salary Slip → posting and payment",
+     "Slip first",
+     "Structure → Employee → Slip",
+     "Spreadsheet → Journal"
     ],
     "ans": 0,
-    "why": "A function with this many counterparties runs on interfaces or apologies.",
+    "why": "Every module works somewhere on this chain.",
     "src": "Ch1"
    },
    {
-    "q": "A salary error costs:",
+    "q": "When a slip is wrong, the fix is made:",
     "opts": [
-     "Money only",
-     "Money AND trust at a ratio no other function faces — the workforce calibrates every system by whether pay lands right",
-     "Nothing lasting",
-     "Only penalties"
+     "On the slip",
+     "In the record at fault — component, row, or assignment — once, for every future month",
+     "In the bank file",
+     "Next month"
     ],
     "ans": 1,
-    "why": "Payroll is the discipline where 'approximately right' does not exist.",
+    "why": "The design consequence of computed pay.",
     "src": "Ch1"
    },
    {
-    "q": "The three numbers are:",
+    "q": "The custody split gives the payroll operator:",
     "opts": [
-     "Basic, housing, transport",
-     "Monthly, annual, daily",
-     "Gross, net, and the employer's total cost — three audiences, one structure computing all",
-     "Min, mid, max"
+     "The pay decisions",
+     "The tax table",
+     "The machinery — components, structures, assignments, runs, registers",
+     "The employment terms"
     ],
     "ans": 2,
-    "why": "The candidate thinks in net; the owner should budget employer cost.",
+    "why": "HR owns the terms; the accountant owns the numbers' policy.",
+    "src": "Ch1"
+   },
+   {
+    "q": "Status and Relieving Date matter because:",
+    "opts": [
+     "They print on slips",
+     "They are optional",
+     "They set the base",
+     "The run selects by them — an exit not recorded is a leaver who keeps getting paid"
+    ],
+    "ans": 3,
+    "why": "Module 7 completes exits.",
     "src": "Ch2"
    },
    {
-    "q": "The ₦250k gross hire costs the firm:",
+    "q": "Employee bank detail changes are:",
     "opts": [
-     "₦250k",
-     "₦218k",
-     "Less after tax",
-     "Meaningfully more — gross plus the employer pension share and levies: ₦272,500+ in the walk"
-    ],
-    "ans": 3,
-    "why": "The budget that ignores the employer layer discovers it at remittance season.",
-    "src": "Ch2, Ch6"
-   },
-   {
-    "q": "Component conventions have teeth because:",
-    "opts": [
-     "Statutory computations reference them — the pension base is conventionally basic+housing+transport",
-     "Names matter aesthetically",
-     "Payslips need labels",
-     "Tradition"
+     "Governed events — verified with the employee through a known channel, source filed on the record",
+     "Actioned from any message",
+     "Monthly routine",
+     "The bank's job"
     ],
     "ans": 0,
-    "why": "The split chosen has downstream consequences the professionals weigh.",
+    "why": "The supplier-bank rule, same fraud.",
     "src": "Ch2"
    },
    {
-    "q": "Structure constrains improvisation:",
+    "q": "Payroll Cost Center on the Employee record:",
     "opts": [
-     "As a flaw",
-     "As the point — the something-for-Tunde that bypasses structure is the favour disease wearing a bank transfer",
-     "Temporarily",
-     "Rarely"
+     "Is decorative",
+     "Addresses the salary cost to the branch — blank, it pools in the company fallback and distorts branch reads",
+     "Sets the tax",
+     "Names the PFA"
     ],
     "ans": 1,
-    "why": "The channels exist so yes is possible and quiet yes is not.",
-    "src": "Ch2, Ch7"
+    "why": "What makes the branch P&L's salary line true.",
+    "src": "Ch2"
    },
    {
-    "q": "Formulas reference:",
+    "q": "The Holiday List feeds:",
     "opts": [
-     "Hardcoded sums",
-     "Last month",
-     "NAMED bases — adding a component to the base changes one flag, not five formulas",
-     "Nothing"
+     "The tax slab",
+     "The bank file",
+     "Payment-days proration — working days count from it",
+     "The structure name"
     ],
     "ans": 2,
-    "why": "The maintainability discipline.",
+    "why": "The Saturdays-working branch needs its own list.",
+    "src": "Ch2"
+   },
+   {
+    "q": "A component's abbreviation is:",
+    "opts": [
+     "Cosmetic",
+     "The slip label",
+     "The account code",
+     "The handle formulas use — B lets another component compute B * 0.1; changing it breaks referencing formulas"
+    ],
+    "ans": 3,
+    "why": "Short and stable.",
     "src": "Ch3"
    },
    {
-    "q": "Governed recoveries post from:",
+    "q": "Is Tax Applicable is set by:",
     "opts": [
-     "Typed numbers",
-     "Requests",
-     "Memory",
-     "Their authorising documents — never improvised at the layer where improvised deductions actually execute"
+     "The accountant's ruling per component — which allowances are taxable is tax policy",
+     "Operator preference",
+     "The employee",
+     "The default"
     ],
-    "ans": 3,
-    "why": "The conviction of two prior tracks, held hardest here.",
+    "ans": 0,
+    "why": "The 2025 reform's changes land here at the annual re-read.",
     "src": "Ch3"
    },
    {
-    "q": "Component sprawl is:",
+    "q": "Depends on Payment Days, ticked, means:",
     "opts": [
-     "The allowance invented per negotiation until the list is a museum of old deals",
-     "Flexibility",
-     "Necessary",
-     "Harmless"
+     "Flat pay always",
+     "The component prorates with payable days — the mid-month joiner earns the fraction automatically",
+     "No pay",
+     "Weekly pay"
     ],
-    "ans": 0,
-    "why": "A component exists because a CLASS of pay exists.",
+    "ans": 1,
+    "why": "Salary-like earnings tick it.",
     "src": "Ch3"
    },
    {
-    "q": "A mis-set taxability flag:",
+    "q": "A Statistical Component:",
     "opts": [
-     "Affects one slip",
-     "Mis-computes every person on it, every month, until found",
-     "Self-corrects",
-     "Is cosmetic"
+     "Pays double",
+     "Is an error",
+     "Computes but pays nothing — a base figure other formulas reference",
+     "Is a report"
     ],
-    "ans": 1,
-    "why": "The pre-season component review exists for exactly this.",
+    "ans": 2,
+    "why": "One of the two visibility controls.",
     "src": "Ch3"
    },
    {
-    "q": "The structure count should roughly equal:",
+    "q": "The component's Accounts table:",
     "opts": [
-     "The headcount",
-     "The branch count",
-     "The grade count — three grades, three structures; not twenty-seven for twenty-seven",
-     "One"
+     "Is optional",
+     "Lists employees",
+     "Sets the formula",
+     "Names the ledger account per company — the run posts every component there, addressed by the Payroll Cost Center"
     ],
-    "ans": 2,
-    "why": "Per-person structures are the spreadsheet wearing a doctype.",
+    "ans": 3,
+    "why": "Where payroll meets the Accounts track.",
+    "src": "Ch3"
+   },
+   {
+    "q": "Structures are named for:",
+    "opts": [
+     "The package — Head Office Staff, Branch Retail Staff, Management",
+     "Each person",
+     "The month",
+     "The bank"
+    ],
+    "ans": 0,
+    "why": "One structure serves every employee on that package.",
     "src": "Ch4"
    },
    {
-    "q": "A past month's structure is:",
+    "q": "The B/H/T split is:",
     "opts": [
-     "Editable",
-     "Irrelevant",
-     "A draft",
-     "As sealed as its ledger — versions compute forward from their dates"
+     "Presentation only",
+     "The accountant's recorded decision — pension computes on the Basic + Housing + Transport family",
+     "The operator's choice",
+     "Fixed by law at equal thirds"
     ],
-    "ans": 3,
-    "why": "The frozen-history conviction lands in payroll.",
+    "ans": 1,
+    "why": "Beyond presentation.",
     "src": "Ch4"
    },
    {
-    "q": "The quiet mid-year formula tweak:",
+    "q": "The statutory deductions on a structure usually:",
     "opts": [
-     "Makes every payslip before or after inconsistent with one of them — disputes become archaeology",
-     "Saves a version",
-     "Is efficient",
-     "Is standard"
+     "Carry row formulas",
+     "Are typed monthly",
+     "Are just listed — the computation lives on the component, the membership on the structure",
+     "Are skipped"
     ],
-    "ans": 0,
-    "why": "Amendments are events: dated, versioned, announced.",
+    "ans": 2,
+    "why": "One home per formula.",
     "src": "Ch4"
    },
    {
-    "q": "The structure buys:",
+    "q": "Twenty-eight structures for thirty staff is:",
     "opts": [
-     "Complexity",
-     "Hires priced in minutes, reviews in hours, statutory changes in one edit, audits answered by pointing",
-     "Rigidity only",
-     "Nothing"
+     "A design",
+     "A health sign",
+     "Required",
+     "A spreadsheet wearing a costume of records — merge by package, carry differences on the base"
     ],
-    "ans": 1,
-    "why": "The structure is to pay what the chart was to accounts.",
+    "ans": 3,
+    "why": "The structure count is a health number.",
     "src": "Ch4"
    },
    {
-    "q": "The assignment's one negotiated number is:",
+    "q": "A pay rise is recorded by:",
     "opts": [
-     "The net",
-     "The tax",
-     "The person's basic, landing in the one place it belongs — the formulas cascade from it",
-     "The date"
-    ],
-    "ans": 2,
-    "why": "The offer's output, structurally housed.",
-    "src": "Ch5"
-   },
-   {
-    "q": "An assignment history is:",
-    "opts": [
-     "Clutter",
-     "Private only",
-     "Optional",
-     "The person's pay story — each assignment with its authorising event answers every 'since when'"
-    ],
-    "ans": 3,
-    "why": "Written by events: the joiner package, the increment, the promotion.",
-    "src": "Ch5"
-   },
-   {
-    "q": "Proration conventions are:",
-    "opts": [
-     "A policy chosen once and applied to every edge — joiners, increments, leavers alike",
-     "Argued per case",
-     "The manager's call",
-     "Unnecessary"
+     "A new Salary Structure Assignment from the effective date — the old stands as history",
+     "Editing the old assignment's base",
+     "Editing the structure",
+     "A slip adjustment"
     ],
     "ans": 0,
-    "why": "The fairness leak, fenced at the policy page.",
+    "why": "Editing history rewrites what past months computed from.",
     "src": "Ch5"
    },
    {
-    "q": "The no-structure active employee is:",
+    "q": "The assignment's Base is:",
     "opts": [
-     "Fine",
-     "A run-time failure waiting for month-end — fenced by the joiner checklist and pre-run validation",
-     "Normal briefly",
-     "Payroll's choice"
+     "A tax figure",
+     "The pay decision as a number — from the offer letter or approved review, read by every base formula",
+     "The gross",
+     "The net"
     ],
     "ans": 1,
-    "why": "The monthly read that should always be empty.",
+    "why": "How one template serves many staff.",
     "src": "Ch5"
    },
    {
-    "q": "In the worked example, the pension base is:",
+    "q": "An assignment without its Income Tax Slab produces:",
     "opts": [
-     "The full gross",
-     "Basic only",
-     "₦225,000 — basic + housing + transport, summed by the flag, not by hand",
-     "Net"
+     "No slip",
+     "Double tax",
+     "A slip without its tax — the preview checks for exactly this",
+     "A blocked run"
     ],
     "ans": 2,
-    "why": "The convention, mechanised.",
-    "src": "Ch6"
+    "why": "The slab attaches on the assignment.",
+    "src": "Ch5"
    },
    {
-    "q": "The pension contribution's PAYE interaction is:",
+    "q": "The go-live assignment load runs through:",
     "opts": [
-     "None",
-     "Annual only",
-     "It adds to tax",
-     "It reduces the taxable base before the bands apply — the interaction spreadsheets most often get wrong"
+     "Hand entry only",
+     "The old spreadsheet",
+     "The bank",
+     "The governed Data Import procedure, then every structure previewed and a sample checked against the old payroll"
     ],
     "ans": 3,
-    "why": "The reason module 2 is the deep module.",
-    "src": "Ch6"
+    "why": "The sysadmin track's six steps, applied.",
+    "src": "Ch5"
    },
    {
-    "q": "The walk's first use is:",
+    "q": "(B + H + T) * 0.08 is:",
     "opts": [
-     "The configuration test — the computed slip matching the hand walk to the naira is the go-live gate",
-     "Decoration",
-     "Marketing",
-     "Training only"
+     "A component-family formula — pension computing on the Basic + Housing + Transport abbreviations",
+     "A tax formula",
+     "A base formula",
+     "An error"
     ],
     "ans": 0,
-    "why": "The posting-map verification, payroll edition.",
+    "why": "Component-on-component referencing.",
     "src": "Ch6"
    },
    {
-    "q": "Candidates think in:",
+    "q": "A formula lives on the component when:",
     "opts": [
-     "Gross",
-     "Net — the offer without a net preview surfaces at the first payday as a grievance wearing a calculator",
-     "Annual figures",
-     "Employer cost"
+     "Never",
+     "It is universal (pension's rate is law) — and on the structure's row when it is per-package",
+     "It is long",
+     "The operator prefers it"
     ],
     "ans": 1,
-    "why": "The modeling discipline at the offer desk.",
+    "why": "Duplicated in both places, it is a future contradiction.",
     "src": "Ch6"
    },
    {
-    "q": "Statutory computations are:",
+    "q": "Conditions encode:",
     "opts": [
-     "Monthly creatures",
-     "Weekly",
-     "Annual creatures computed monthly — every slip one-twelfth of a yearly story",
-     "One-off"
+     "Preferences",
+     "Guesses",
+     "Written policy — every condition traces to a line on the policy page",
+     "Bank rules"
     ],
     "ans": 2,
-    "why": "Why mid-year changes ripple and January debugs mysteries.",
+    "why": "A condition nobody can explain is a deduction nobody can defend.",
     "src": "Ch6"
    },
    {
-    "q": "The pen narrows as:",
+    "q": "Payment days compute as:",
     "opts": [
-     "Seniority rises",
-     "Firms grow",
-     "Time passes",
-     "The blast radius widens — components wound everyone, structures a class, assignments a person"
+     "Calendar days",
+     "The operator's count",
+     "Thirty always",
+     "Working days from the Holiday List minus LWP and unmarked absences — the component pays its fraction"
     ],
     "ans": 3,
-    "why": "The tiered edit rights' logic.",
-    "src": "Ch7"
+    "why": "The proration engine.",
+    "src": "Ch6"
    },
    {
-    "q": "The assignment edited outside an event is:",
+    "q": "Every formula is verified by:",
     "opts": [
-     "Precisely the negotiated-from-memory pay the first law forbids",
-     "Efficient",
-     "Rare",
-     "Reversible"
+     "One previewed slip with one hand-checked line — after which the record computes every future month",
+     "Trust",
+     "Monthly recomputation",
+     "The bank"
     ],
     "ans": 0,
-    "why": "Direct edit rights held by almost no one.",
-    "src": "Ch7"
+    "why": "The hand-check is never skipped on the first pass.",
+    "src": "Ch6"
    },
    {
-    "q": "'Just adjust Tunde's basic this month' is answered by:",
+    "q": "The preview slip is:",
     "opts": [
-     "Refusal",
-     "The channels — one-offs to additional pay, permanence to events; yes without the quiet edit",
-     "The edit",
-     "Escalation"
+     "Submitted and paid",
+     "Read and discarded — the run generates the real slips; the preview exists to be checked",
+     "Emailed",
+     "The payslip"
     ],
     "ans": 1,
-    "why": "The paragraph the consultant laminates for the payroll seat.",
+    "why": "Do not submit.",
     "src": "Ch7"
    },
    {
-    "q": "The quiet favour is contagious because:",
+    "q": "The preview reads:",
     "opts": [
-     "It isn't",
-     "People forget",
-     "The first recruits the second — unevenness at the layer where it is denominated in naira",
-     "It's visible"
+     "Net only",
+     "The bank file",
+     "Earnings against the offer letter, deductions against the accountant's table, payment days against the calendar, net stated back, one hand-check",
+     "The structure name"
     ],
     "ans": 2,
-    "why": "The evenness law, at its most expensive address.",
+    "why": "Five reads, line by line.",
     "src": "Ch7"
    },
    {
-    "q": "The pay masters are:",
+    "q": "A net-quoted offer letter is reconciled to gross:",
     "opts": [
-     "Big data, light governance",
-     "Ungoverned",
-     "Public",
-     "Small data, maximal governance — a few structures and dozens of assignments, narrowest pens, tightest tier"
+     "On payday",
+     "At year-end",
+     "Never",
+     "At the preview — before the first payday conversation, not during it"
     ],
     "ans": 3,
-    "why": "The inverse of every other layer's scale, and exactly right.",
+    "why": "Read 4.",
     "src": "Ch7"
    },
    {
-    "q": "HealthTrade's structure count landed at:",
+    "q": "Preview findings are fixed:",
     "opts": [
-     "Three, for three grades — the per-person tabs formally convicted at the whiteboard",
-     "Twenty-seven",
+     "In the records — component, row, or assignment — and re-previewed",
+     "On the slip",
+     "By memo",
+     "Next month"
+    ],
+    "ans": 0,
+    "why": "A slip patch fixes one month and leaves the record wrong.",
+    "src": "Ch7"
+   },
+   {
+    "q": "HealthTrade's package census found:",
+    "opts": [
+     "Thirty families",
+     "Three — Branch Retail, Head Office, Management",
      "One",
-     "Ten"
-    ],
-    "ans": 0,
-    "why": "The spreadsheet era closed.",
-    "src": "Ch8"
-   },
-   {
-    "q": "The load's below-band discovery was:",
-    "opts": [
-     "Ignored",
-     "A historic unfairness exposed in an afternoon and corrected at the next run — the structure's first justice",
-     "Red-circled",
-     "Disputed"
+     "Twelve"
     ],
     "ans": 1,
-    "why": "Delivered by architecture.",
+    "why": "Structures built per family, differences on bases.",
     "src": "Ch8"
    },
    {
-    "q": "The walk's first attempt caught:",
+    "q": "The Retail structure's preview caught:",
     "opts": [
      "Nothing",
-     "A formula typo",
-     "A utility-allowance taxability flag set wrong — the mis-flag that would have mis-computed ten people monthly",
-     "A rounding error"
+     "A tax error",
+     "Transport at base * 0.15 where the letter said ten percent — eleven staff would have been overpaid monthly",
+     "A bank error"
     ],
     "ans": 2,
-    "why": "The go-live gate doing its one job.",
+    "why": "Fixed in the structure row, re-previewed, logged.",
     "src": "Ch8"
    },
    {
-    "q": "The generator favour was granted:",
+    "q": "The two cost-center-less employees explained:",
     "opts": [
-     "By quiet edit",
-     "Not at all",
-     "In cash",
-     "Through the additional-pay channel — documented, approved, visible; 'the structure never moved'"
+     "A tax gap",
+     "Nothing",
+     "A bank failure",
+     "Naira the unaddressed check had already flagged — the walk named the cause"
     ],
     "ans": 3,
-    "why": "Thirty seconds of process; the governance surviving its first favour.",
+    "why": "The Accounts track's check, meeting its source.",
     "src": "Ch8"
    },
    {
-    "q": "Red-circled arrangements are:",
+    "q": "The edited-history pattern breaks:",
     "opts": [
-     "Honoured, documented as personal-to-holder, dated, and closed to inheritance",
-     "Deleted",
-     "Extended to peers",
-     "Secret"
+     "The match between the register and the slips it produced — last year's figures silently change",
+     "Nothing",
+     "Only formatting",
+     "The bank file"
     ],
     "ans": 0,
-    "why": "The exceptions surfaced honestly, with the adviser's shape.",
-    "src": "Ch8"
-   },
-   {
-    "q": "The spreadsheet payroll's fix is:",
-    "opts": [
-     "Better formulas",
-     "The migration — components, structures per grade, assignments from documents, the walk as gate, the workbook retired",
-     "A newer workbook",
-     "More tabs"
-    ],
-    "ans": 1,
-    "why": "Beside HR 1's staff spreadsheet in read-only history.",
+    "why": "Supersede, never edit.",
     "src": "Ch9"
    },
    {
-    "q": "This module's law is:",
+    "q": "The slip-patch pattern is fixed by:",
     "opts": [
-     "Pay is negotiated",
-     "Nets are approximate",
-     "Pay is computed from structure, not negotiated from memory — flagged components, graded structures, event-written assignments, the walk as gate, favours through channels",
-     "Structures are optional"
+     "Better patches",
+     "The rule that findings are fixed in the records and re-previewed — the slip is output",
+     "Monthly memos",
+     "Locking slips"
+    ],
+    "ans": 1,
+    "why": "Pattern 6.",
+    "src": "Ch9"
+   },
+   {
+    "q": "Module 1's law is:",
+    "opts": [
+     "Pay by spreadsheet",
+     "Structures per person",
+     "Pay is computed by the records — components carry accounts, structures the package, assignments the base, and every slip previews before it pays",
+     "Preview optional"
     ],
     "ans": 2,
-    "why": "The single source of pay truth.",
+    "why": "The first law.",
     "src": "Ch9"
    }
   ]
  },
  "statutory": {
   "title": "Payroll 2 — Statutory Deductions & Nigerian Compliance",
-  "desc": "The track's deep module: statutory money as custody, PAYE under the reformed regime with the exemption floor and rent relief, the annual computation walk, the pension's fiduciary stream and seven-working-day clock, NHF/NSITF/ITF, the six-step remittance ritual, annual obligations, and the compliance architecture that absorbs reform in one configuration change.",
+  "desc": "The statutory layer in ZhiftERP: the custody frame and the division of authority; the Income Tax Slab built from the accountant's table with the PAYE component's taxable-salary flag and the plausibility check; pension's two shares on the B/H/T family with per-PFA schedules; NHF and the levies from the applicability register; the state-of-residence PAYE split; account wiring proven by the posting read and the monthly payroll tie; the six-step remittance workflow with the zero check; and the Salary Register — one monthly record, derived schedules, confidentiality enforced.",
   "lessons": [
    {
-    "title": "Chapter 1 — The state rides every payslip",
+    "title": "Chapter 1 — The statutory layer: custody components",
+    "est": "11",
+    "html": "<p>This module builds the statutory deductions in ZhiftERP: the Income Tax Slab and PAYE, pension, NHF and the levy family, the state-of-residence split, the account wiring and the posting read, the remittance workflow, and the Salary Register report.</p><p><b>The custody frame, carried in.</b> The Accounts track's fifth law governs this module from the other side: amounts <b>withheld from the employee</b> — PAYE, the employee pension share, NHF — are custody money, held for an authority, and amounts <b>borne by the employer</b> — the employer pension share, NSITF, ITF — are the business's own cost. In the machinery, both are Salary Components; the difference is carried by the component's type and flags, and by which account its Accounts table names:</p><p>• Employee-withheld amounts: <b>Deduction</b>-type components, posting to <b>custody accounts</b> (PAYE Payable, Pension Payable, NHF Payable — Tax-type leaves the Accounts track created).<br>• Employer-borne amounts: components that show without reducing net (Chapter 3's mechanics), posting expense against the matching payable.</p><p><b>The division of authority, stated for this module.</b> The rates, bands, reliefs, thresholds, and applicability rules are <b>the accountant's table</b> — statute, read from current law, re-read annually and at every reform. The 2025 tax reform re-shaped the personal income tax structure; this manual therefore teaches <b>no rates as facts</b>. It teaches the machinery: where the accountant's numbers are entered, how the components compute from them, and how the results are proven. The operator's competence is the machinery; the operator's discipline is refusing to improvise a rate.</p><p><b>The statutory set, previewed.</b> The components this module builds, each at its chapter:</p><p>1. <b>PAYE</b> — the income tax deduction, computed by the Income Tax Slab (Chapter 2).<br>2. <b>Pension</b> — employee and employer shares on the B/H/T family (Chapter 3).<br>3. <b>NHF, NSITF, ITF</b> — the housing fund and the employer levies, per applicability (Chapter 4).<br>4. The <b>state split</b> for PAYE remittance (Chapter 5).</p><p><b>Module contents.</b> Chapter 2: the Income Tax Slab and the PAYE component. Chapter 3: pension. Chapter 4: NHF and the levies. Chapter 5: the state-of-residence split. Chapter 6: account wiring and the posting read. Chapter 7: the remittance workflow. Chapter 8: the Salary Register. Chapter 9: the HealthTrade case. Chapter 10: review and the law.</p>"
+   },
+   {
+    "title": "Chapter 2 — The Income Tax Slab and the PAYE component",
+    "est": "13",
+    "html": "<p>PAYE in ZhiftERP is computed by two records working together: the <b>Income Tax Slab</b> (the accountant's table, entered once) and the <b>PAYE Salary Component</b> (the deduction that applies it). Build them in that order.</p><p><b>Building the Income Tax Slab.</b></p><p>1. Open <b>Income Tax Slab</b> (awesome bar) &gt; New.<br>2. Name it for its source and effective date — <i>PAYE — [year] table</i> — and set the Company, Currency, and <b>Effective From</b> date.<br>3. Enter the <b>Standard Tax Exemption Amount</b> where the current law's relief structure maps to one — the consolidated relief and exemption figures come from the accountant's current computation sheet, entered as the law states them at entry time.<br>4. Enter the <b>slab rows:</b> each row is an income band with its percentage — the graduated bands from the accountant's table, transcribed exactly. Conditions on rows serve where the law's structure needs them; the accountant reads the built slab against their table before it is used.<br>5. Submit. A new law or reform means a <b>new slab</b> with its own Effective From — never an edit to the old one, which computed history.</p><p><b>Building the PAYE component.</b></p><p>1. Open Salary Component &gt; New: name <i>PAYE</i>, Type = Deduction.<br>2. Tick the component's income-tax flag (<b>Variable Based On Taxable Salary</b>) — this is what tells the run to compute the amount from the employee's slab and taxable income rather than from a formula.<br>3. Accounts table: the company row pointing at <b>PAYE Payable</b> (Chapter 6 verifies the posting).<br>4. Add the component to every structure's Deductions table (module 1, Chapter 4).</p><p><b>Attaching the slab.</b> The slab links on each employee's <b>Salary Structure Assignment</b> (module 1, Chapter 5). The run then computes each employee's PAYE from: their taxable earnings (the components with Is Tax Applicable ticked — module 1's flag now doing its work), less the slab's exemptions, through the slab's bands, divided to the monthly figure.</p><p><b>The plausibility check — the operator's proof.</b> For one previewed slip:</p><p>1. Sum the taxable earnings (the flagged components only).<br>2. Run the sum through the accountant's paper computation for one employee — the accountant's sheet is the reference, the slip is the candidate.<br>3. They must agree. Disagreement means a flag is wrong (a component taxable that should be exempt, or the reverse), a slab row mis-transcribed, or the exemption figure wrong — all record fixes, found on one slip before thirty slips inherit them.</p><p>Practical rule: the slab is re-read every year and at every reform announcement — the accountant confirms it still matches law, and a change produces a new dated slab attached by new assignments. The slab that quietly drifted from statute is a compliance failure computed automatically, thirty times a month.</p>"
+   },
+   {
+    "title": "Chapter 3 — Pension: two shares, one family",
     "est": "12",
-    "html": "<p>The Accounts track's fifth module taught the custody thesis for the trading taxes; this module is its payroll sibling, and the thesis transfers whole with one sharpening: <b>the statutory deductions on a payslip are custody money — collected from the worker or levied on the employer, held in passing, owed onward on a calendar — and the pension share carries a weight even VAT never did: it is a person's retirement, held in the firm's hands for seven working days.</b></p><p><b>The statutory inventory.</b> The streams that ride Nigerian payroll, catalogued for the module's map: <b>PAYE</b> — the employee's income tax, withheld by the employer as agent, remitted to the STATE of the employee's residence (Chapters 2-3 — the module's largest resident, reshaped by the reformed tax law); the <b>pension contributions</b> — the Contributory Pension Scheme's two shares (the employee's, deducted; the employer's, added) into the employee's own Retirement Savings Account (Chapter 4 — the fiduciary stream); <b>NHF</b> — the National Housing Fund's employee contribution where in scope (Chapter 5); and the <b>employer levies</b> — NSITF's employee compensation contribution and ITF's training levy where the firm is in scope (Chapter 5 — the streams the worker never sees but the employer owes). Each stream has its base, its rate, its collector, its calendar, and its evidence — and the module walks each at consultant altitude.</p><p><b>The employee/employer split.</b> The structural distinction every conversation needs: EMPLOYEE deductions (PAYE, the pension employee share, NHF) reduce net — they are the worker's money, withheld in trust; EMPLOYER contributions (the pension employer share, NSITF, ITF) sit ABOVE gross — they are the firm's own cost, the third number of module 1's vocabulary made itemised. The conflation of the two is the trade's standing confusion (the owner who thinks the 8% pension is the firm's cost; the worker who thinks NSITF came from their pay), and the consultant's untangling of it — one table, two columns — is frequently the first trust-building deliverable of a payroll engagement.</p><p><b>The adviser boundary, restated for this terrain.</b> The grammar of two prior tracks, verbatim and load-bearing: the figures this module teaches are ORIENTATION — the shape of the regime, the conventional rates, the calendars as commonly administered — not advice; Nigerian tax law has just been rebuilt (the reform Acts effective from the 2026 tax year, whose payroll provisions Chapter 2 orients), states administer PAYE with local variation, scope thresholds move, and the ADVISER and the accountant own the firm's current reading, confirmed at the pre-season review (Chapter 8) and recorded on the policy page, dated. The consultant's identity sentence, payroll edition: <i>I build the machinery that computes what your professionals confirm — I do not set rates, read reforms, or sign returns.</i> With the boundary bright, the depth begins.</p>"
+    "html": "<p>The contributory pension deducts an employee share and adds an employer share, both computed on the Basic + Housing + Transport family. The current statutory rates come from the accountant's table; the build is the same at any rates.</p><p><b>The employee share.</b></p><p>1. Salary Component &gt; New: <i>Pension — Employee</i>, Type = Deduction.<br>2. <b>Formula:</b> <i>(B + H + T) * [the employee rate]</i> — the abbreviations module 1 set on Basic, Housing, and Transport now earning their keep. The rate figure is entered from the accountant's table and noted on the component register with its source.<br>3. <b>Is Tax Applicable consequence:</b> pension contributions carry tax treatment (deductible against taxable income under the law's rules) — the accountant rules how the slab's exemption structure and the component flags interact, and the Chapter 2 plausibility check proves the combination on one slip.<br>4. Accounts table: <b>Pension Payable</b>.</p><p><b>The employer share.</b> The employer's contribution is the business's cost, not the employee's deduction — it must appear (the employee should see the full contribution going to their fund) without reducing net pay:</p><p>1. Salary Component &gt; New: <i>Pension — Employer</i>, configured with the visibility flags from module 1 Chapter 3 — shown on the slip, excluded from the net computation (<b>Do Not Include in Total</b>), and computed by the same family formula at the employer rate.<br>2. Accounts: the employer share posts pension expense against <b>Pension Payable</b> — so the payable account accumulates <b>both shares</b>, which is the figure the remittance pays (Chapter 7).</p><p><b>The PFA dimension.</b> Remittance is per employee, to <b>each employee's own fund administrator</b>. The machinery:</p><p>• The Employee record carries the PFA and the RSA (retirement savings account) number — module 1's Chapter 2 walk verified them; a joiner without a PFA is chased at joining, not at remittance.<br>• The remittance schedule (Chapter 7) is the month's pension figures <b>split by PFA</b> — the Salary Register's export grouped on the PFA field (Chapter 8), each PFA's schedule listing its employees with RSA numbers and both shares.</p><p><b>The timing rule, carried from the Accounts track.</b> Pension remittance is pinned to <b>days from paying salaries</b> — the tightest window in the statutory family. The calendar line reads: salaries paid on the 25th → pension schedules and payments out within the statutory number of days, owned by name. Chapter 7 places it in the workflow.</p><p>Practical rule: the pension preview check is two multiplications — the family sum times each rate — done once by hand on one slip. The B/H/T split (module 1's recorded accountant decision) is what those multiplications stand on: a structure that quietly changed its split has changed every pension amount, which is why the split is a governed number.</p>"
    },
    {
-    "title": "Chapter 2 — PAYE under the reformed regime",
-    "est": "14",
-    "html": "<p>The module's largest stream, in its new landscape: PAYE after the Nigeria Tax Act 2025 — the reform that rebuilt personal income taxation from the 2026 tax year. The regime chapter, at consultant altitude.</p><p><b>The reform's shape.</b> What changed, oriented: the old regime's Consolidated Relief Allowance is GONE — replaced by a new architecture: an <b>exemption floor</b> (annual taxable incomes up to ₦800,000 attract zero tax — the reform's headline mercy for low earners, which for a trading firm's junior roles can mean whole grades paying no PAYE at all), a <b>rent relief</b> (a deduction of 20% of annual rent paid, capped at ₦500,000 — claimed on the employee's declared rent, which makes the rent DECLARATION a new payroll input the system must capture and file: Chapter 8's architecture), and a <b>new band structure</b> above the floor (progressive rates stepping up through the annual income bands the Act sets, reaching the top marginal rate at the highest incomes — the bands' exact edges are the configuration's numbers, confirmed from the Act's schedule by the adviser, never recited from memory: the consultant knows the SHAPE — a zero band, then rising steps — and configures the current edges). The allowable deductions survive the reform: the pension contribution, NHF where paid — each reducing taxable income BEFORE the bands apply (module 1's walk already used this; Chapter 3 formalises it).</p><p><b>State collection.</b> PAYE's administrative geography, unchanged in principle: the tax belongs to the STATE of the employee's residence — remitted to that state's revenue service (LIRS for Lagos residents, the respective SIRS elsewhere), which gives the multi-state firm a SPLIT remittance reality (the Ibadan branch's residents to Oyo's service, the Lagos staff to LIRS — the HR track's address data earning a tax consequence, and the employee's declared residence a governed field: Chapter 8's register carries it). The registration layer: the employer registered with each relevant state service, the employer's reference numbers on file, and the filing channels per state (the e-filing platforms where states run them) — the multi-state onboarding checklist the consultant builds once per client.</p><p><b>The transition posture.</b> The consultant's stance in a reform's early years, taught as craft: configurations carry the CURRENT law with the OLD regime's logic retired but documented (the parallel-run discipline at changeover — the reformed computation run beside the old for one cycle's comparison, differences explained per person before the first live month: the walk of module 1, at regime scale), the workforce COMMUNICATED (the reform that changes nets without explanation is module 4's query storm at its worst — the net that ROSE for junior staff under the exemption floor is good news worth announcing; the senior whose relief architecture changed deserves the walk), and the adviser's confirmation dated on the policy page — because 'the new law says' is the adviser's sentence, and the consultant's contribution is a system that changes regimes by changing formulas, not by changing spreadsheets (the reform-resilience argument module 1 sold, now cashed at the largest possible scale: the trade's spreadsheet payrolls are still mis-computing the old regime; the structured firm changed one configuration).</p>"
+    "title": "Chapter 4 — NHF and the employer levies",
+    "est": "12",
+    "html": "<p>The remaining statutory family: one employee deduction and the employer levies. Each is a component built the same way; each begins with an <b>applicability ruling</b> from the accountant, because these obligations attach by headcount, sector, and election under the current law.</p><p><b>NHF — the housing fund.</b></p><p>1. <b>The ruling first:</b> whether NHF applies to this business's employees, and at what rate on what base (historically a percentage of Basic; the current position is the accountant's line). Where the law makes participation elective for some categories, the election is documented per employee, and the component's <b>Condition</b> field (module 1, Chapter 6) gates it accordingly.<br>2. Salary Component &gt; New: <i>NHF</i>, Type = Deduction, Formula on the ruled base — <i>B * [rate]</i> — Accounts table pointing at <b>NHF Payable</b>.<br>3. Added to the structures whose staff it covers.</p><p><b>NSITF — the employees' compensation levy.</b> Employer-borne: a percentage of payroll per the ruling.</p><p>1. Configured as an employer-cost component (the Chapter 3 employer pattern: visible or statistical per the business's slip-presentation choice, excluded from net) or — where the business prefers — computed off-slip by the accountant's monthly journal from the Salary Register's totals. Either home is lawful; <b>one</b> home is chosen and recorded, because a levy computed in both places pays twice.<br>2. Accounts: NSITF expense against <b>NSITF Payable</b>.</p><p><b>ITF — the training fund.</b> Employer-borne, applicability by headcount/turnover thresholds per the ruling — the <b>Condition</b> field or the off-slip route, same one-home rule, posting to <b>ITF Payable</b>.</p><p><b>The applicability register.</b> One page, kept with the component register: each statutory line, the ruling (applies / does not apply / applies to these categories), the rate and base, the ruling's source and date, and the component or journal that implements it. Two reads use this page:</p><p>1. <b>The annual re-read</b> — every ruling re-confirmed against current law with the accountant; the 2025 reform's consolidation makes this read the year's most important ten minutes.<br>2. <b>The threshold watch</b> — obligations that attach by headcount are re-checked when the business grows: the levy that did not apply at eleven staff may apply at twenty-six, and the applicability register is where that question lives instead of in nobody's memory.</p><p>Practical rule: a statutory component with no ruling behind it is an improvisation, whichever direction it errs — deducting what the law does not require injures the employee; skipping what it does require accrues penalties. The page-before-the-component order is absolute in this chapter.</p>"
    },
    {
-    "title": "Chapter 3 — The PAYE computation walk",
-    "est": "14",
-    "html": "<p>The mechanics, end to end — the annual creature computed monthly, walked once slowly so the consultant can narrate it forever. The computation chapter.</p><p><b>The annual frame.</b> PAYE is computed on ANNUAL taxable income against ANNUAL bands; the monthly deduction is an instalment of that yearly truth — so the computation ANNUALISES first: the monthly figures projected to the year (or the year-to-date actuals plus projection, per the configured method), the annual tax computed, and the month's share derived. The frame explains every mystery the spreadsheet era manufactured: why a mid-year increment changes the monthly tax by more than intuition suggests (the higher months re-project the year), why a bonus month spikes the deduction (module 5's variable pay entering the annual projection), and why December sometimes adjusts (the true-up — Chapter 7).</p><p><b>The walk, continuing module 1's case.</b> The ₦250,000-gross grade 2 employee, now at full statutory depth — annualised: <b>gross ₦3,000,000</b>. <b>Step 1, allowable deductions</b>: the pension employee share (8% of the ₦2.7m annual base = ₦216,000) — deducted from gross income before tax; NHF where the employee is in scope (2.5% of annual basic = ₦37,500 in this case, if applicable — assume applicable for the walk). <b>Step 2, rent relief</b>: the employee's declared annual rent, say ₦600,000 — relief at 20% = ₦120,000 (inside the ₦500,000 cap). <b>Step 3, taxable income</b>: ₦3,000,000 − ₦216,000 − ₦37,500 − ₦120,000 = <b>₦2,626,500</b>. <b>Step 4, the bands</b>: the first ₦800,000 at zero; the remainder walked up the Act's progressive steps — the configured schedule computing the annual tax (illustratively landing in the mid-₦200,000s annually for this income under the reformed bands — the precise figure is the configuration's output against the Act's schedule, which is the point: the consultant TRUSTS the configured bands they verified at Chapter 8's review, and never a remembered number). <b>Step 5, the instalment</b>: the annual tax ÷ 12 ≈ the monthly PAYE — the ~₦14,000-per-month figure module 1's walk previewed, now with its provenance shown.</p><p><b>The edges the walk must handle.</b> The cases every configuration meets in year one: the MID-YEAR JOINER (taxed on this employment's annualised income per the configured convention, with the prior-employment declaration where the practice requires it — the adviser's shape), the MID-YEAR INCREMENT (the projection updated from its effective date — the remaining instalments absorbing the change), the LOW EARNER (the junior whose annual taxable income sits under the ₦800,000 floor computes to ZERO PAYE — the configuration must produce a clean zero, not a small wrong number, and the payslip must show the zero honestly), the VARIABLE MONTH (module 5's bonus entering the projection in its month — the spike explained by the annual frame, and explainable to the worker BY the payroll seat because this chapter taught them the frame), and the MULTI-STATE person (taxed where resident, moved when residence moves — an effective-dated fact from the HR record, never a guess).</p><p><b>The narration discipline.</b> The chapter's closing craft note: the walk above is the payroll seat's core literacy — narratable on a whiteboard in four minutes — and the consultant certifies the seat exactly as module 1 prescribed: the person who can walk gross to PAYE by hand can answer every net-pay query, test every configuration, and survive every inspection conversation; the one who cannot is operating the academy's least forgivable black box, because this box computes people's take-home and the state's money in one pass.</p>"
+    "title": "Chapter 5 — The state-of-residence split",
+    "est": "12",
+    "html": "<p>PAYE remits to <b>the state of each employee's residence</b> — one business, several state authorities, one calendar. The machinery is one field, one grouping, and one discipline.</p><p><b>The field.</b> The Employee record carries the residential address, and with it the <b>state of residence</b> — verified at joining from the employee's declared address (module 1's Chapter 2 walk), and updated as a governed event when the employee moves (the employee's written notice, filed on the record; the change effective from the notice for future remittances).</p><p><b>The grouping.</b> The month's PAYE total is not one figure — it is a set of figures, one per state with resident employees. The mechanics:</p><p>1. The run computes each employee's PAYE (Chapter 2's machinery).<br>2. The <b>Salary Register</b> (Chapter 8) exports the month's slips with the employee dimension — grouped or pivoted on the state field, it produces the per-state schedule: each state's employees, their PAYE amounts, the state subtotal.<br>3. Each state's remittance (Chapter 7) pays its subtotal to that state's authority, with the schedule as the evidence behind the payment.</p><p><b>The standing example.</b> A Lagos head office with Ogun-resident staff files in <b>both</b> states: Lagos receives the Lagos residents' PAYE, Ogun the Ogun residents' — the office's own location is not the test; the employees' residence is. A three-branch business spanning states multiplies the schedule accordingly, and the register's grouping produces all of it from the same run.</p><p><b>The discipline — why the field is governed.</b> The state field is a remittance-routing field: wrong, it sends an employee's tax to the wrong authority, which surfaces later as the right authority's demand for tax \"never received\" plus the wrong authority's money to recover — two conversations, both slow. Hence:</p><p>1. The field is <b>mandatory at joining</b> — the verification walk refuses a blank.<br>2. Changes are <b>evidenced</b> — the employee's notice, filed.<br>3. The annual sweep — once a year, the state field列 is exported and each employee confirms their state in the same pass as the payslip-details confirmation (module 4's communication routines carry it) — catches the silent movers.</p><p><b>The registration prerequisite, flagged to the accountant.</b> Remitting to a state requires the business to be registered with that state's authority. The operator's job is the <b>flag</b>: the first month a new state appears in the schedule (a new joiner resident somewhere new), the accountant is told before remittance day, because the registration is their process and it takes longer than a payment.</p><p>Practical rule: the per-state schedule is produced monthly even in the months it looks identical — the schedule is the remittance's evidence, and the month it changes silently (a mover, a joiner) is exactly the month a from-memory remittance goes wrong.</p>"
    },
    {
-    "title": "Chapter 4 — Pension: the fiduciary stream",
-    "est": "14",
-    "html": "<p>The stream with the heaviest moral weight and the tightest calendar: the Contributory Pension Scheme — a person's retirement, computed on the firm's payroll, held in the firm's hands, owed to the person's own account within days. The pension chapter.</p><p><b>The scheme's shape.</b> The Contributory Pension Scheme (the Pension Reform Act's architecture, PenCom-regulated): every eligible employee holds a <b>Retirement Savings Account</b> (RSA) with a Pension Fund Administrator of THEIR OWN CHOICE — the PFA is the employee's decision, not the employer's (the HR record's PFA field, captured at onboarding per the joiner package, is a choice recorded, never assigned — and the employee's right to transfer their RSA between PFAs is theirs to exercise, with the record updated when they do). The contributions: the conventional minimum rates — <b>8% employee, 10% employer</b> — computed on the conventional base (monthly emoluments: basic + housing + transport — module 1's flagged base, doing here the exact work its flags were designed for), with voluntary additional contributions possible where the employee elects them (a governed deduction with its document, per module 5's machinery).</p><p><b>The remittance clock.</b> The scheme's defining discipline: contributions remitted to each employee's RSA (via the PFA's custodian) within <b>seven working days of paying the salary</b> — the tightest standing deadline in Nigerian payroll, and the one this module treats as sacred, because the unremitted pension is not late paperwork: it is a PERSON'S RETIREMENT sitting in the firm's account earning the firm's interest — the fiduciary breach that compounds (the missed month becomes the missed quarter becomes the multi-year hole discovered when an employee tries to access their RSA), attracts penalties with interest for the employee's lost returns, and — the reputational dimension the consultant states plainly — is the single statutory failure workers monitor personally (the RSA statement is the worker's own document; the firm whose remittances don't appear is caught not by an inspector but by its own staff, at scale, with receipts).</p><p><b>The mechanics.</b> The remittance's working parts: the contribution SCHEDULE per run (each employee: RSA PIN, PFA, the two shares, the base — generated from the payroll run's register, uploaded through the remittance channels the PFAs and custodians operate), the payment against the schedule (the separations of Accounts 3 governing the money movement as always), the RECEIPTS and upload confirmations filed to the evidence layer (Chapter 6), and the reconciliation habit: the per-employee remittance register (Chapter 8) against the schedules — because the pension stream's errors are PER-PERSON errors (the wrong RSA PIN sends a person's money into limbo; the stale PFA after a transfer bounces the upload), and the register that reconciles per person is the difference between a clean scheme and a drawer of unmatched receipts.</p><p><b>The employer's onboarding duties.</b> The checklist per new hire: the RSA confirmed or opened (the new worker without an RSA guided to choose a PFA and open one — the employer's facilitation duty), the PIN captured and VERIFIED (the digit-perfect field — module 1's masters-not-messages discipline applying to the number that routes a retirement), and the group insurance layer the Act couples to the scheme (the employer's life insurance obligation for employees — the policy the adviser confirms and the firm maintains, noted here because inspections ask for it beside the pension evidence). The chapter's one-line law, for the wall above the payroll desk: <b>the pension is not a deduction; it is a delivery — seven working days, every person, every month, evidenced.</b></p>"
+    "title": "Chapter 6 — Account wiring and the posting read",
+    "est": "12",
+    "html": "<p>Every statutory component posts to the ledger through its Accounts table. This chapter wires the accounts and proves the posting — the Accounts track's posting-map verification, performed for payroll.</p><p><b>The wiring map.</b> Confirm each component's Accounts table row (per company):</p><p>• <b>Earnings components</b> → the salary expense accounts (split by component family where the chart design wants Basic and allowances read separately).<br>• <b>PAYE</b> → PAYE Payable. <b>Pension (both shares)</b> → Pension Payable (the employer share's expense side to pension expense). <b>NHF</b> → NHF Payable. <b>NSITF / ITF</b> → their payables against their expenses.<br>• Every payable named here is a <b>Tax-type custody leaf</b> the Accounts track created — if one is missing from the chart, it is created there first (typed, named plainly), then wired here.</p><p><b>What the run posts.</b> The Payroll Entry (module 3) books the month's payroll as an accrual <b>Journal Entry</b>: debit the expense accounts (salary expense by component, addressed by each employee's Payroll Cost Center), credit the custody payables (PAYE, pension, NHF at their withheld amounts), credit the <b>net-pay liability</b> (the amount owed to employees, cleared by the payment run). The employer-borne lines debit their expenses and credit their payables in the same posting.</p><p><b>The posting read — the one-time proof, then the monthly confirmation.</b></p><p>1. After the first run (module 3), open the run's accrual Journal Entry and use <b>View &gt; Accounting Ledger</b>.<br>2. Read the rows against the wiring map above: each expense line present at the register's totals, each custody credit at the register's deduction totals, the net-pay credit at the register's net total, every P&amp;L row carrying its cost center.<br>3. Any mismatch is a wiring fault — the component's Accounts row corrected, the posting corrected by the Accounts track's rules, the read repeated.<br>4. Thereafter the read is the <b>payroll tie</b>, monthly, in minutes: register column totals = posting lines = custody account movements (the General Ledger report per account) = zero after remittance. The Accounts track runs this tie from its side; this chapter is where the payroll operator makes it true from theirs.</p><p><b>The cost-center consequence, restated.</b> The posting carries each employee's Payroll Cost Center onto the expense rows — which is the entire mechanism behind a true branch salary line. The module 1 walk that filled the field, and the Accounts track's unaddressed check that watches the fallback, meet here.</p><p>Practical rule: the wiring is verified <b>before</b> the first live run and re-verified whenever a component is added or its account row touched — one preview posting read against the map. A wrong account row mis-posts silently, every month, for every employee; the read costs ten minutes once.</p>"
    },
    {
-    "title": "Chapter 5 — The smaller statutory layer: NHF, NSITF & ITF",
+    "title": "Chapter 7 — The remittance workflow",
+    "est": "12",
+    "html": "<p>The custody accounts fill at the run and must empty at remittance. This chapter is the monthly workflow — the Accounts track's six-step filing routine, executed from the payroll chair.</p><p><b>The workflow, per custody, in order.</b></p><p>1. <b>Close the register.</b> The month's <b>Salary Register</b> (Chapter 8) produced and filed — the document-level evidence every schedule derives from.<br>2. <b>Produce the schedules.</b> From the register's export: the <b>per-state PAYE schedule</b> (Chapter 5), the <b>per-PFA pension schedule</b> with RSA numbers and both shares (Chapter 3), the NHF schedule, the levy computations. Each schedule's total is written beside its custody account's balance — they must agree, which is the payroll tie's remittance face.<br>3. <b>Prepare the payments.</b> One <b>Payment Entry</b> per authority per obligation: paid from the <b>tax-reserve bank account</b> (the Accounts track's reserve — payroll custodies are swept there at the run, per that track's schedule), debiting the custody payable, with the schedule reference in the entry and the schedule attached.<br>4. <b>Release under the separation.</b> The preparer never releases (the Accounts track's rule 1 of bank governance); the payroll operator prepares, the release authority releases.<br>5. <b>File by the dates.</b> The calendar's lines, each owned by name: PAYE to each state by its day; <b>pension inside its days-from-salary window</b> — the tightest line, pinned to the actual salary payment date, not the month's end; NHF and the levies per their cycles. Where a portal filing accompanies the payment, the filing is made from the schedule (one source), and the acknowledgment joins the file.<br>6. <b>Verify the zero.</b> After the cycle, each custody account's balance returns to zero (the General Ledger report per account, or the Trial Balance line). A custody that will not zero is telling one of the Accounts track's four stories — a skipped tie, a short or misposted payment, prior residue, or custody spent — and the payroll operator reads the same diagnostic from this side.</p><p><b>The evidence bundle.</b> Per custody per month, one folder: the register extract, the schedule, the Payment Entry, the receipt or acknowledgment, the zero check. The certificate-and-receipt file is what answers the employee's \"was my pension actually paid?\" — with their PFA's schedule line and the payment's receipt, in one look — and what answers the authority's query the same way.</p><p><b>The penalty line.</b> The Accounts track's rule closes this chapter unchanged: penalties on late statutory remittance are the most expensive credit line available, taken by default. The calendar with named owners, the reserve funded at the run, and the zero check every cycle are the three lines that keep the penalty figure at its target: zero, watched monthly.</p>"
+   },
+   {
+    "title": "Chapter 8 — The Salary Register",
+    "est": "12",
+    "html": "<p>Open the <b>Salary Register</b> report (awesome bar). One row per salary slip for the selected period and filters, with the components as columns — the month's payroll on one screen, and the source of every schedule this module produces.</p><p><b>The filters.</b> Company; the period (from/to); Employee or Department where a subset is wanted; and the docstatus filter — the standing read is <b>submitted slips only</b>, because draft slips are computations, not payroll. Run it after every run closes (module 3), and file the month's copy in the payroll folder.</p><p><b>The columns and the reads.</b> The register shows, per employee: the earnings components, the deductions components, gross, total deduction, net — plus the loan and advance columns where those features run (module 5's territory). The standing reads:</p><p>1. <b>The column totals</b> — the figures the whole compliance chain hangs on: total PAYE (the remittance sum before its state split), total pension by share, total NHF, gross and net. These totals are what Chapter 6's posting read ties to the Journal Entry, and what Chapter 7's schedules must sum back to.<br>2. <b>The month-on-month comparison</b> — this month's register beside last month's: the headcount delta explained by joiners and leavers (module 3's run checklist), each material per-employee movement explained by a documented event (a rise's new assignment, a proration, a variable-pay line). An unexplained movement is a finding <b>before payday</b>, which is the comparison's whole point.<br>3. <b>The export-and-group reads</b> — the register exported and grouped: by <b>state of residence</b> (Chapter 5's PAYE schedules), by <b>PFA</b> (Chapter 3's pension schedules), by <b>Payroll Cost Center</b> (the branch salary read the P&amp;L will confirm).</p><p><b>The confidentiality rule.</b> The register is the most sensitive report on the site: every salary, named. Its governance is the sysadmin track's machinery applied without exception:</p><p>• <b>Access:</b> the payroll operator, the release/review authority, the accountant — role-permissioned, nobody else. The HR-adjacent curiosity read is not a use case.<br>• <b>Exports:</b> each export exists for a schedule or a filing; it is stored in the payroll folder (business-controlled, per the backup-custody logic), never in personal drives or chat threads; and export permission on the payroll doctypes is part of module 2-of-sysadmin's matrix.<br>• <b>The register in meetings:</b> aggregates travel (totals, by cost center); named rows do not, outside the roles above.</p><p>Practical rule: the register is produced <b>once per month as the closed record</b> and every schedule derives from that one export — schedules produced from fresh ad-hoc runs at different moments are how the PAYE schedule and the pension schedule quietly disagree about the same month. One register, many derivations.</p>"
+   },
+   {
+    "title": "Chapter 9 — Case study: HealthTrade's statutory build",
     "est": "13",
-    "html": "<p>The streams beyond the big two — smaller in naira, identical in discipline, and the ones most often discovered unpaid at diligence. The levies chapter.</p><p><b>NHF — the National Housing Fund.</b> The employee contribution to the federal housing scheme: <b>2.5% of monthly basic</b> (basic alone — a different base from the pension's trio, which is exactly why module 1's per-component flags exist), deducted from employees in scope (the scope rules — income thresholds and the voluntary dimensions the reform era has adjusted — are the adviser's confirmation; the consultant's posture is the configured flag per employee, set from the confirmed reading, reviewed at the pre-season), remitted to the Federal Mortgage Bank of Nigeria on the monthly calendar, evidenced, and reflected on the employee's NHF record (the contribution is the employee's own — their path to the fund's mortgage products — which gives NHF the pension's personal character in miniature: the worker's money, trackable by the worker).</p><p><b>NSITF — the employee compensation stream.</b> The EMPLOYER'S levy (the worker never sees it): <b>1% of monthly payroll</b> to the Nigeria Social Insurance Trust Fund under the Employee Compensation Scheme — the insurance pool that compensates workplace injury, disability, and death (the scheme the Employee Compensation Act built), remitted monthly, evidenced by the ECS receipts, and CLAIMABLE against: the workplace injury the HR track's incident processes document is the event this levy insured, and the firm that pays NSITF but never files its certificate of compliance or knows the claims process has bought insurance it cannot use — the consultant's checklist adds the compliance certificate to the annual evidence file, because contracts and bids increasingly ask for it.</p><p><b>ITF — the training levy.</b> The employer's contribution to the Industrial Training Fund: <b>1% of annual payroll</b> for employers in scope (the scope thresholds — employee count and turnover tests — are the adviser's terrain and have moved with reform; the eligible small firm should confirm rather than assume either way), paid on the annual calendar, evidenced — and carrying the reimbursement dimension worth teaching: employers who TRAIN can claim partial refunds of the levy against approved training (the HR track's module 6 machinery — the curricula, the event records, the certificates — being exactly the evidence an ITF reimbursement claim runs on: the academy's training layer paying an unexpected statutory dividend, and the consultant who connects the two files has given the client money back).</p><p><b>The scope map & the levy calendar.</b> The chapter's consolidating artifacts: the SCOPE MAP (per stream, per the adviser's confirmed reading: who is in — which employees for NHF, whether the firm for ITF — dated, reviewed annually, because scope answered by assumption is the diligence finding waiting to happen), and the LEVY CALENDAR (every stream's remittance date on one page — PAYE's monthly state deadline, pension's seven working days, NHF's monthly, NSITF's monthly, ITF's annual — the compliance calendar of Accounts 5 gaining its payroll column, and Chapter 6 wiring it into the ritual). The smaller streams' collective lesson: none is large; all are findable; and the firm that runs them on the same ritual as the big two spends minutes monthly, while the firm that ignores them until diligence spends the difference in penalties, back-payments, and the deal-room's raised eyebrow.</p>"
-   },
-   {
-    "title": "Chapter 6 — Remittance mechanics: the custody ritual",
-    "est": "13",
-    "html": "<p>Accounts 5 built the six-step ritual for the trading taxes; this chapter adapts it to the payroll streams — same shape, tighter clocks, more collectors. The ritual chapter.</p><p><b>The six steps, payroll edition.</b> Per stream, per cycle: <b>1 — COMPUTE</b> from the run (the statutory register per stream generated by the payroll run itself — Chapter 8's architecture: the schedules are outputs, never separate spreadsheets, because the separately-maintained schedule is the version-drift disease at the custody layer); <b>2 — RESERVE</b> (the custody discipline of Accounts 5 verbatim: the statutory money moved to or marked in the custody position at the run, not discovered at the deadline — the reserve that makes the remittance a transfer instead of a scramble, and the conviction restated in payroll's sharper terms: the firm 'borrowing' the PAYE and pension for three weeks of cashflow is borrowing from its workers and the state at the most expensive interest in Nigeria — penalty rates plus fiduciary breach plus the trust of everyone whose payslip said the money was deducted); <b>3 — FILE</b> the returns and schedules per collector's channel (the state e-filings, the pension uploads); <b>4 — REMIT</b> against the filings (the payment separations governing); <b>5 — EVIDENCE</b> (the receipts, acknowledgments, and upload confirmations into the stream's dated folder — the evidence file that answers inspections in minutes); <b>6 — ZERO</b> (the custody account per stream returning to zero after remittance — Accounts 5's zeroing invariant, now multiplied across the payroll streams: the PAYE custody, the pension custody, each read post-remittance, each explainable or zero).</p><p><b>The custody accounts.</b> The ledger's payroll-statutory architecture (Accounts 2's payroll journal, now itemised): the run's journal crediting each statutory stream's liability account (the PAYE withheld, the pension shares, NHF, the levies accrued), the remittances debiting them to zero, and the month-end read (the accounts at their explainable levels — the post-remittance zero, or the current month's accrual awaiting its date, and NOTHING older: the aged statutory balance is the unremitted month wearing an account balance, and the Accounts track's trial-balance scan will catch it, which is the two tracks' machinery cross-checking exactly as designed).</p><p><b>The penalty economics, quantified in kind.</b> The owner conversation, equipped as Accounts 5 equipped it: each stream carries penalties for late or absent remittance (the percentages and interest per stream are the adviser's current numbers), and the structural point survives every rate change: penalties are computed on money the firm ALREADY COLLECTED — the fine is for failing to forward, which makes every naira of payroll-statutory penalty a pure loss purchased by disorganisation — plus the pension stream's interest-for-lost-returns dimension, plus the compliance certificates (the tax clearance, the pension clearance, the NSITF certificate) that bids and contracts demand and arrears block: the unremitted month costs money, and it also costs the next contract. The reserve discipline is the entire cure, and it costs a ledger entry.</p><p><b>The calendar, owned.</b> The chapter's closing wiring: every stream's dates on the levy calendar (Chapter 5), the calendar's lines OWNED (the named remitter, the named verifier — the two-names pattern at the custody desk), the seven-working-day pension clock tracked from each payment date (not month-end — the clock starts when salaries move), and the ritual's completion logged per stream per cycle. The firm running this chapter spends a predictable hour monthly; the firm that doesn't runs Chapter 10's patterns — and the consultant's install of this one page is, measured in penalties averted, frequently the highest-ROI hour of the whole engagement.</p>"
-   },
-   {
-    "title": "Chapter 7 — Annual obligations: the year-end layer",
-    "est": "13",
-    "html": "<p>The monthly ritual has an annual shadow: the returns, reconciliations, and true-ups that close each tax year. The January chapter — made boring by twelve clean months, exactly as Accounts 7 promised for the books.</p><p><b>The employer's annual return.</b> The headline obligation: the annual PAYE return to each relevant state — the employer's declaration of every employee, their annual emoluments, and the tax deducted and remitted (the return conventionally due in January for the preceding year — the deadline per state, confirmed current by the adviser), assembled not composed: the per-employee statutory register (Chapter 8) IS the return's content, and the firm that kept the register files by export while the firm that didn't reconstructs a year from payslips in the trade's least loved week. The return's counterpart obligations ride the same season: the projection declarations where states require them (the coming year's estimated payroll), and the reconciliations the state's system runs (the return against the year's monthly remittances — the mismatch that surfaces here is the unremitted or mis-referenced month, found by the collector if the firm's own reads didn't find it first).</p><p><b>The employee-facing layer.</b> The year-end's personal documents: the employee's evidence of tax deducted (the deduction certificates and payslip year-summaries the firm provides — the inputs to the employee's own Tax Clearance Certificate when they need one: the TCC that banks, embassies, and agencies request is issued by the state on the strength of the taxes the employer remitted in their name, which makes the firm's remittance discipline a PERSONAL service to every employee — the worker denied a TCC because their employer's remittances don't reconcile has been failed twice, and knows exactly by whom), and the rent-relief declarations refreshed for the new year (the reformed regime's annual input — Chapter 2's new field, re-declared and filed on the year's calendar).</p><p><b>The pension year-end.</b> The fiduciary stream's annual reads: the per-employee remittance reconciliation (the year's schedules against the register — every person, every month, matched; the unmatched upload chased with the PFA while the trail is warm), the RSA statement conversation (employees encouraged to READ their annual RSA statements against their payslips — the transparency that costs nothing and catches everything, because twenty-seven personal auditors beat one annual review), and the group life policy's renewal on the calendar (Chapter 4's coupled obligation, renewed before it lapses rather than discovered lapsed at a claim).</p><p><b>The true-up.</b> The annual frame's settlement (Chapter 3's projection meeting the year's actuals): the December computation reconciling each person's year — the actual annual income against the instalments deducted — with the final month absorbing the difference within the configured method's tolerances (the small December adjustment is the annual creature closing its books; the LARGE December swing is a configuration or data problem that the monthly walk should have caught earlier — the true-up's size is itself a health read on the whole year's computation). The chapter's closing economics, in the academy's oldest cadence: the annual season for a firm that ran Chapters 3-6 monthly is an export, a reconciliation, and a filing — days, not weeks; the season for the firm that didn't is the January scramble Chapter 10 convicts — and the difference was never January; it was the other eleven months.</p>"
-   },
-   {
-    "title": "Chapter 8 — The compliance architecture: configured, registered, resilient",
-    "est": "13",
-    "html": "<p>The chapter where the module's law becomes configuration: the statutory layer wired into the system so that computation, registers, calendars, and reform-resilience are architecture, not effort. The machinery chapter.</p><p><b>The formulas, from the flags.</b> Module 1's design cashing at full depth: each statutory component a FORMULA on its flagged base (the pension shares on the flagged trio; NHF on basic; PAYE as the configured annual computation — the bands, the exemption floor, the reliefs, the allowable-deduction interactions all in the tax configuration the system computes per person per run), with the configuration's numbers sourced from the adviser-confirmed policy page and TESTED by the walk (Chapter 3's hand computation against the system's slip — per structure, at install and at every change: the go-live gate of module 1, now guarding the state's money too). The configuration's virtue restated as the sales argument it is: the reform that moves a band, a rate, or a relief is ONE configuration change, effective-dated, applied evenly — the structured firm absorbs tax reform in an afternoon; the spreadsheet firm mis-computes for months.</p><p><b>The registers.</b> The layer's memory, per stream, per person: the <b>statutory register</b> — each employee's monthly record per stream (the base, the computation, the deduction, the remittance reference) accumulating into the year — which IS the annual return (Chapter 7), IS the pension reconciliation, IS the inspection answer, and IS the employee's query answer (module 4's transparency reaching the statutory lines: the worker who asks 'where did my tax go' is shown their register row and the remittance receipt — the question answered by pointing, in the academy's oldest gesture). The register's inputs are the run's outputs by construction (no separately-maintained schedules — the version-drift fence), and its governed fields include the identity layer the streams route on: the Tax Identification Number, the RSA PIN, the declared residence state, the NHF number, the rent declaration — each captured at onboarding (the joiner package's statutory section), verified digit-perfect, and maintained as the effective-dated facts they are.</p><p><b>The calendar, wired.</b> The levy calendar (Chapters 5-6) living in the system: the remittance tasks generated per cycle with their owners and clocks (the pension's seven-working-day timer started by the salary payment date — the automation that watches the module's tightest deadline so no human has to remember it), the evidence uploads attached to the completed tasks (the ritual's step 5 leaving its trail where the inspection will look), and the completion log the compliance certificate season reads.</p><p><b>The pre-season review.</b> The annual architecture ritual, scheduled before each tax year: the adviser session (the year's rates, bands, thresholds, and scope readings confirmed — the reform landscape read by its owner), the configuration updated effective the year's start (versioned, dated — module 1's amendment discipline at the statutory layer), the component flags re-verified (the mis-flag hunt of module 1's review, now with the adviser in the room), the scope map refreshed (Chapter 5), the rent declarations collected for the new year (Chapter 2's input), and the walk re-run against the updated configuration (the gate, annually). One meeting, one afternoon of configuration, one tested walk — and the firm enters the year computing the current law evenly for everyone, which is the entire promise of this chapter's title: compliance as ARCHITECTURE — configured once, registered continuously, resilient by design.</p>"
-   },
-   {
-    "title": "Chapter 9 — Case study: HealthTrade's statutory year",
-    "est": "16",
-    "html": "<p>The statutory layer, installed on module 1's structures and run through a full year. Every chapter clocks in.</p><p><b>The install & the regularisation (Ch. 1, 6).</b> The registration audit opens the engagement: PAYE registrations verified with the two relevant states (Lagos and Oyo — the multi-state map drawn from the HR records' residences), the pension employer codes confirmed, NSITF current — and ITF discovered UNREGISTERED despite the firm being in scope since crossing the threshold two years prior: the finding handled by the book — quantified, taken to the ADVISER, and regularised through the proper channel (the back-levy computed, the position negotiated by the professional who owns it, the registration completed) — the consultant's boundary held exactly as three tracks taught (<i>found and quantified by the machinery; resolved by the adviser</i>), and the diligence landmine defused before it could meet a deal room.</p><p><b>The configuration & the parallel run (Ch. 2-3, 8).</b> The reformed regime configured from the adviser session: the exemption floor, the bands from the Act's schedule, rent relief with its declaration flow (twenty-seven declarations collected in a week through self-service — the new input operationalised), pension and NHF formulas on their flagged bases. The parallel run compares the reformed computation against the old for one cycle: the junior grades' PAYE drops to ZERO under the ₦800,000 floor (nine people — the announcement at the branch meetings lands the reform as the good news it is, pre-empting the confusion), the senior computations walked and explained individually. The walk gates go-live: the ₦250k case computed by hand and by system — matching to the naira, first attempt this time (module 1's flag lesson having been learned).</p><p><b>The ritual, monthly (Ch. 4-6).</b> The six steps run per stream from month one: the schedules generated from the run, the reserve moved at computation (the MD's cashflow instinct meets the custody thesis in one sentence — <i>that money was never ours</i> — and the reserve discipline holds), the pension's seven-working-day clock beaten every month (the automation's timer plus the named remitter — the tightest deadline made routine), evidence filed per stream per month, custody accounts zeroing on the trial balance (the Accounts track's scan confirming the payroll track's discipline — the two certifications cross-checking in production). One catch proves the register: month five's pension upload bounces ONE person — a stale PFA after an employee's RSA transfer (the record updated within the week, the contribution re-routed, the person shown their register row and the corrected receipt: the per-person reconciliation catching the per-person error, exactly as Chapter 4 designed).</p><p><b>The annual season (Ch. 7).</b> January arrives boring: the annual returns to both states exported from the register and filed inside the deadline (the Oyo filing's first year taking an afternoon; the reconstruction it replaced had taken the accountant most of a prior February), the deduction summaries issued to all staff (two employees request TCC support that quarter — both clean, because the remittances reconcile), the pension year-reconciliation matching every person every month, the RSA-statement conversation held at the branch meetings (one employee's statement query traces to a PRE-system employer's gap, documented for their own pursuit — the register proving the firm's own year whole), rent declarations refreshed, the true-up landing small across the workforce (the annual frame's health read: the year computed clean). The MD's year-note closes the case: <i>the state rides every payslip — and for the first time, it rides in its own seat, on time, with receipts.</i></p>"
+    "html": "<p>The statutory layer built onto module 1's structures, and the first full cycle run. Every chapter appears.</p><p><b>The slab (Chapter 2).</b> The accountant brings the current PAYE computation sheet; the <b>Income Tax Slab</b> is built from it — exemption figure, band rows — named and dated, submitted, and read back against the sheet line by line before use. The <b>PAYE</b> component is created with the taxable-salary flag and wired to PAYE Payable; the slab attaches to all thirty assignments in one governed pass. The plausibility check runs on one Head Office slip: taxable earnings summed, walked through the accountant's paper computation — first pass disagrees by a small monthly amount, traced in twenty minutes to the <b>Meal allowance flagged Is Tax Applicable when the ruling said exempt</b>. The component flag is corrected, the register's ruling column updated, the check re-run: agreement to the naira. One slip's check; thirty slips inherit the fix.</p><p><b>Pension (Chapter 3).</b> <i>Pension — Employee</i> and <i>Pension — Employer</i> built on <i>(B + H + T)</i> at the accountant's rates; the employer share configured visible-but-excluded-from-net; both wired to Pension Payable. The Employee-record walk from module 1 pays off: all thirty carry PFA and RSA numbers except one joiner — chased and captured <b>at joining</b>, not at remittance day. The hand-check: two multiplications on one slip, agreed.</p><p><b>The applicability page (Chapter 4).</b> Written with the accountant in one sitting: NHF ruled per the current position with the covered categories conditioned on the component; NSITF ruled applicable, implemented as the accountant's monthly journal from the register totals (the one-home rule recorded); ITF ruled by the threshold and diarised on the threshold watch. Every line carries its source and date.</p><p><b>The wiring read (Chapter 6).</b> Before the first live run, the preview posting is read against the map — and catches one wiring fault: <b>NHF's account row pointed at PAYE Payable</b> (a copy-paste at component creation). Corrected in the Accounts table, re-read, clean. The fault would have merged two custodies' balances and broken both zero checks, silently, from month one.</p><p><b>The first cycle (Chapters 5, 7, 8).</b> The run closes (module 3's procedure); the <b>Salary Register</b> is produced once and filed. The derivations follow: the state grouping yields <b>two PAYE schedules</b> — Lagos and Ogun (three Ogun-resident staff the residence walk had captured); the PFA grouping yields <b>four pension schedules</b>; NHF's schedule lists its covered staff. Payments prepare from the reserve, release under the separation, file by the calendar — pension inside its days-from-salary window, tracked from the actual payment date. The zero check closes the cycle: PAYE Payable, Pension Payable, NHF Payable all at zero; the month's evidence bundles filed. The accountant's note in the payroll log: <i>the register, the posting, the schedules, and the payments are one set of numbers for the first time — the tie holds at every link.</i></p>"
    },
    {
     "title": "Chapter 10 — Common mistakes & the second law",
-    "est": "13",
-    "html": "<p>The statutory layer's scar tissue — the patterns behind most payroll penalties in the trade. Symptom → disease → fix.</p><p><b>Pattern 1 — statutory money as cashflow.</b> Symptom: the PAYE and pension 'borrowed' for stock; remittances timed to the bank balance; the deadline met in good months and missed in tight ones. Disease: custody treated as float (Ch. 1, 6) — borrowing from workers and the state at Nigeria's most expensive interest. Fix: the reserve at the run, the custody accounts zeroing, the calendar owned — the money that was never the firm's, never touched.</p><p><b>Pattern 2 — the unremitted pension.</b> Symptom: deductions on every payslip; nothing landing in RSAs; the multi-year hole discovered by an employee's statement. Disease: the fiduciary stream treated as the softest deadline when it is the hardest (Ch. 4). Fix: the seven-working-day clock automated from the payment date, the per-person register reconciled, the RSA-statement transparency recruited — twenty-seven personal auditors, invited.</p><p><b>Pattern 3 — the flat-rate guess.</b> Symptom: PAYE at a uniform percentage 'to keep it simple'; the exemption floor ignored; juniors over-taxed and seniors under-taxed, both wrongly. Disease: the computation replaced by folklore (Ch. 2-3) — and the reform era makes yesterday's folklore doubly wrong. Fix: the configured annual computation on the current bands, the walk as the gate, the parallel run at every regime change — and the workforce told, because the corrected nets are conversations either way.</p><p><b>Pattern 4 — the January scramble.</b> Symptom: the annual return reconstructed from payslips; the reconciliation mismatches surfacing at the state's system; February lost to archaeology. Disease: no register — the year never accumulated (Ch. 7-8). Fix: the statutory register as the run's output, the annual return as an export — January boring because the other eleven months were structured.</p><p><b>Pattern 5 — the scope-by-assumption levy.</b> Symptom: NHF deducted from everyone or no one by habit; ITF unregistered 'because we're small' past the threshold; NSITF paid but the certificate never collected. Disease: scope answered by assumption instead of the adviser's reading (Ch. 5). Fix: the scope map, adviser-confirmed and dated, reviewed annually — and the compliance certificates filed where the bids will ask for them.</p><p><b>Pattern 6 — the digit-drift identity.</b> Symptom: pension uploads bouncing; a person's contributions in limbo; tax remitted against a wrong or absent TIN; the residence state guessed. Disease: the identity fields ungoverned (Ch. 8) — the numbers that route money treated as free text. Fix: the statutory identity section of the joiner package, digit-perfect verification, effective-dated maintenance — masters-not-messages, applied to the fields that carry a retirement.</p><p><b>The second law.</b> Module 1 made pay a structure; this module seats the state in it: <b>statutory money is custody — the payslip's second passenger: computed from configured law on flagged bases, reserved at the run, remitted on each stream's clock with the pension's seven days held sacred, evidenced per stream, zeroed per cycle, registered per person, and reconciled until every worker's money reached every worker's account.</b> The firm that runs this law spends an hour a month and files January by export; the firm that doesn't funds the state's penalty book and its workers' distrust from the same account. Module 3 now assembles everything — the structures, the statutory layer, the HR packages — into the function's heartbeat: the payroll run itself.</p>"
+    "est": "11",
+    "html": "<p>The statutory layer's recurring failures, then the review list.</p><p><b>Pattern 1 — the improvised rate.</b> Symptom: a percentage typed from memory or a forum; deductions the law does not support, or shortfalls it penalises. Cause: the division of authority ignored (Chapter 1). Fix: the rule made absolute — every rate, band, and ruling enters from the accountant's current table, recorded on the register with source and date, re-read annually and at every reform.</p><p><b>Pattern 2 — the drifted slab.</b> Symptom: PAYE computed on last regime's bands months after a reform; the compliance failure automated. Cause: the slab treated as set-and-forget (Chapter 2). Fix: the annual re-read on the calendar, reforms producing a <b>new dated slab</b> attached by new assignments, and the plausibility check re-run on one slip at every slab change.</p><p><b>Pattern 3 — the wrong-flag component.</b> Symptom: the exempt allowance taxed, or the taxable one exempted — every slip wrong by the same small amount. Cause: Is Tax Applicable set by guess (Chapters 1-2). Fix: the flag ruled per component on the register, and the plausibility check — one slip against the accountant's paper computation — at build and at every flag change.</p><p><b>Pattern 4 — the merged custodies.</b> Symptom: custody accounts that never zero cleanly; two obligations' money indistinguishable. Cause: Accounts-table wiring faults (Chapter 6). Fix: the wiring map verified by the posting read before the first run and at every component change — ten minutes against a silent monthly mis-post.</p><p><b>Pattern 5 — the from-memory remittance.</b> Symptom: payments made without schedules; the state split guessed; the PFA schedule reconstructed when a fund queries; the register and the payments disagreeing about the same month. Cause: derivations skipped or run from ad-hoc extracts (Chapters 5, 7, 8). Fix: one monthly register as the closed record, every schedule derived from it, every payment carrying its schedule, and the zero check closing each cycle.</p><p><b>Pattern 6 — the leaked register.</b> Symptom: the salary register in personal drives and chat threads; every salary effectively public. Cause: the confidentiality rule unenforced (Chapter 8). Fix: role-permissioned access, exports only for schedules and filings into the business-controlled folder, aggregates-not-names in meetings, and the export permission in the sysadmin matrix.</p><p><b>The review list.</b> Before the quiz, confirm you can: state the custody frame and the division of authority; build an Income Tax Slab from the accountant's sheet, create the PAYE component with its taxable-salary flag, attach the slab on assignments, and run the plausibility check; build both pension shares on the B/H/T family with the employer share visible-but-excluded, and produce the per-PFA schedule; keep the applicability register with its annual re-read and threshold watch; maintain the state field and produce the per-state schedule; verify the wiring by the posting read and run the monthly payroll tie; execute the six-step remittance workflow with its evidence bundle and zero check; and govern the Salary Register — one monthly record, derived schedules, confidentiality enforced.</p><p><b>The second law: statutory amounts are computed by components from the accountant's current table, posted to typed custody accounts, remitted by the calendar from the reserve, and zeroed every cycle.</b> Module 3 runs the payroll itself: the Payroll Entry.</p>"
    }
   ],
   "questions": [
    {
-    "q": "The pension share's custody weight exceeds even VAT's because:",
+    "q": "Withheld versus employer-borne amounts:",
     "opts": [
-     "It is a person's retirement, held in the firm's hands for seven working days",
-     "It is larger",
-     "PenCom is stricter",
-     "It is monthly"
-    ],
-    "ans": 0,
-    "why": "The fiduciary stream.",
-    "src": "Ch1"
-   },
-   {
-    "q": "Employee deductions versus employer contributions:",
-    "opts": [
-     "The same thing",
-     "Deductions reduce net (the worker's money withheld); contributions sit above gross (the firm's own cost)",
+     "Withheld (PAYE, employee pension, NHF) is custody money reducing net; employer-borne (employer pension, NSITF, ITF) is the business's cost",
      "Both reduce net",
-     "Both are optional"
+     "Both are custody",
+     "Neither posts"
+    ],
+    "ans": 0,
+    "why": "The Accounts track's fifth law, from this side.",
+    "src": "Ch1"
+   },
+   {
+    "q": "This manual teaches statutory rates as:",
+    "opts": [
+     "Fixed facts",
+     "The accountant's table — machinery is taught; rates enter from current law and are re-read annually",
+     "Defaults",
+     "Operator choices"
     ],
     "ans": 1,
-    "why": "One table, two columns — frequently the first trust-building deliverable.",
+    "why": "The 2025 reform re-shaped the structure.",
     "src": "Ch1"
    },
    {
-    "q": "The module's figures are:",
+    "q": "The Income Tax Slab is built from:",
     "opts": [
-     "Advice to apply",
-     "Guaranteed current",
-     "Orientation — the adviser owns the firm's current reading, confirmed at the pre-season review, dated",
-     "Negotiable"
+     "Memory",
+     "Last year's slip",
+     "The accountant's current computation sheet — exemption figure and band rows transcribed exactly, read back before use",
+     "A forum post"
     ],
     "ans": 2,
-    "why": "'I compute what your professionals confirm.'",
-    "src": "Ch1"
+    "why": "Named and dated, with Effective From.",
+    "src": "Ch2"
    },
    {
-    "q": "The reformed regime replaced the CRA with:",
+    "q": "A tax reform produces:",
     "opts": [
+     "An edit to the old slab",
      "Nothing",
-     "State-set reliefs",
-     "A flat rate",
-     "An exemption floor (₦800,000 annual), rent relief (20% of rent, capped ₦500,000), and a new band structure"
+     "A formula change",
+     "A new slab with its own Effective From — the old one computed history and is never edited"
     ],
     "ans": 3,
-    "why": "The NTA 2025 architecture, from the 2026 tax year.",
+    "why": "Attached by new assignments.",
     "src": "Ch2"
    },
    {
-    "q": "The rent relief makes rent declarations:",
+    "q": "The PAYE component computes because:",
     "opts": [
-     "A new payroll input — captured, filed, and refreshed annually",
-     "Irrelevant",
-     "HR's problem",
-     "Optional forever"
+     "Its taxable-salary flag tells the run to compute from the employee's slab and taxable income",
+     "It has a formula",
+     "The operator types it",
+     "The bank computes it"
     ],
     "ans": 0,
-    "why": "The reformed regime's operational novelty.",
+    "why": "Variable based on taxable salary.",
     "src": "Ch2"
    },
    {
-    "q": "PAYE is remitted to:",
+    "q": "Taxable income sums:",
     "opts": [
-     "FIRS always",
-     "The state of the employee's RESIDENCE — the multi-state firm splits remittances accordingly",
-     "The branch's state",
-     "Any state"
+     "All earnings",
+     "The components with Is Tax Applicable ticked — module 1's flag doing its work",
+     "Only Basic",
+     "Gross minus net"
     ],
     "ans": 1,
-    "why": "The declared residence is a governed, effective-dated field.",
+    "why": "Why the flag is ruled, not guessed.",
     "src": "Ch2"
    },
    {
-    "q": "At a regime change, the consultant runs:",
+    "q": "The plausibility check compares:",
     "opts": [
-     "The new law cold",
-     "Both forever",
-     "A parallel run — the reformed computation beside the old for one cycle, differences explained per person",
-     "Neither"
+     "Two slips",
+     "The bank to the slip",
+     "One slip's PAYE against the accountant's paper computation for the same employee — agreement to the naira",
+     "This year to last"
     ],
     "ans": 2,
-    "why": "The walk, at regime scale; the workforce communicated.",
+    "why": "One slip's check; thirty inherit the fix.",
     "src": "Ch2"
    },
    {
-    "q": "PAYE's monthly deduction is:",
+    "q": "Pension computes on:",
     "opts": [
-     "A standalone figure",
-     "The state's guess",
-     "A flat rate",
-     "An instalment of an annual computation — annualise, compute on annual bands, derive the month"
-    ],
-    "ans": 3,
-    "why": "The annual creature computed monthly.",
-    "src": "Ch3"
-   },
-   {
-    "q": "In the walk, taxable income is reached by:",
-    "opts": [
-     "Gross minus allowable deductions (pension, NHF) minus rent relief — ₦2,626,500 in the case",
-     "Gross minus tax",
-     "Gross alone",
-     "Net plus tax"
-    ],
-    "ans": 0,
-    "why": "The deductions reduce the base BEFORE the bands.",
-    "src": "Ch3"
-   },
-   {
-    "q": "The junior under the ₦800,000 floor computes to:",
-    "opts": [
-     "A small tax",
-     "A clean ZERO — and the payslip shows it honestly",
-     "Minimum tax",
-     "An estimate"
-    ],
-    "ans": 1,
-    "why": "The configuration must produce the zero, not a small wrong number.",
-    "src": "Ch3"
-   },
-   {
-    "q": "A bonus month spikes PAYE because:",
-    "opts": [
-     "Rates change",
-     "Errors",
-     "The variable pay enters the annual projection — the frame explains the spike",
-     "The state demands it"
-    ],
-    "ans": 2,
-    "why": "Explainable BY the payroll seat because the chapter taught the frame.",
-    "src": "Ch3"
-   },
-   {
-    "q": "The PFA is chosen by:",
-    "opts": [
-     "The employer",
-     "The bank",
-     "PenCom",
-     "The EMPLOYEE — recorded at onboarding, never assigned; transfers are theirs to exercise"
-    ],
-    "ans": 3,
-    "why": "The RSA is the person's own account.",
-    "src": "Ch4"
-   },
-   {
-    "q": "The conventional pension rates and base are:",
-    "opts": [
-     "8% employee / 10% employer on basic + housing + transport — module 1's flagged base",
-     "10%/8% on gross",
-     "5%/5% on basic",
-     "Negotiable"
-    ],
-    "ans": 0,
-    "why": "The flags doing the work they were designed for.",
-    "src": "Ch4"
-   },
-   {
-    "q": "The pension remittance clock is:",
-    "opts": [
-     "Month-end",
-     "Seven working days from paying the salary — the tightest standing deadline in Nigerian payroll",
-     "Quarterly",
-     "Annual"
-    ],
-    "ans": 1,
-    "why": "The clock starts when salaries move.",
-    "src": "Ch4"
-   },
-   {
-    "q": "The unremitted pension is caught by:",
-    "opts": [
-     "Inspectors mostly",
-     "Nobody",
-     "The workers themselves — the RSA statement is their own document; caught at scale, with receipts",
-     "Auditors"
-    ],
-    "ans": 2,
-    "why": "The single statutory failure workers monitor personally.",
-    "src": "Ch4"
-   },
-   {
-    "q": "A wrong RSA PIN:",
-    "opts": [
-     "Delays nothing",
-     "Is rare",
-     "Self-corrects",
-     "Sends a person's money into limbo — the per-person register reconciliation exists for exactly this"
-    ],
-    "ans": 3,
-    "why": "The pension stream's errors are per-person errors.",
-    "src": "Ch4"
-   },
-   {
-    "q": "NHF's base is:",
-    "opts": [
-     "Basic alone at 2.5% — a different base, which is why per-component flags exist",
-     "The pension trio",
      "Gross",
-     "Net"
-    ],
-    "ans": 0,
-    "why": "Remitted to FMBN; the worker's own trackable contribution.",
-    "src": "Ch5"
-   },
-   {
-    "q": "NSITF is:",
-    "opts": [
-     "An employee deduction",
-     "The employer's 1% levy into the Employee Compensation Scheme — insurance the firm should also know how to claim",
-     "Voluntary",
-     "Annual"
-    ],
-    "ans": 1,
-    "why": "The compliance certificate filed where bids will ask.",
-    "src": "Ch5"
-   },
-   {
-    "q": "ITF reimbursement runs on:",
-    "opts": [
-     "Goodwill",
-     "Size",
-     "Approved training evidence — the HR track's curricula, event records, and certificates",
-     "Seniority"
-    ],
-    "ans": 2,
-    "why": "The training layer's unexpected statutory dividend.",
-    "src": "Ch5"
-   },
-   {
-    "q": "Scope questions are answered by:",
-    "opts": [
-     "Assumption",
-     "The collector",
-     "Habit",
-     "The adviser's confirmed reading on the scope map — dated, reviewed annually"
+     "Base only",
+     "Net",
+     "The Basic + Housing + Transport family — (B + H + T) times each share's rate"
     ],
     "ans": 3,
-    "why": "Scope by assumption is the diligence finding waiting to happen.",
-    "src": "Ch5"
+    "why": "The abbreviations earning their keep.",
+    "src": "Ch3"
    },
    {
-    "q": "Statutory schedules are:",
+    "q": "The employer pension share is configured to:",
     "opts": [
-     "Outputs of the run — the separately-maintained schedule is version drift at the custody layer",
-     "Separate spreadsheets",
-     "The adviser's job",
-     "Optional"
+     "Show on the slip without reducing net — Do Not Include in Total — posting expense against Pension Payable",
+     "Reduce net",
+     "Hide entirely",
+     "Pay the employee"
     ],
     "ans": 0,
-    "why": "The ritual's first step.",
-    "src": "Ch6"
+    "why": "The employee sees the full contribution.",
+    "src": "Ch3"
    },
    {
-    "q": "'Borrowing' the statutory money for cashflow is:",
+    "q": "Pension Payable accumulates:",
     "opts": [
-     "Normal treasury",
-     "Borrowing from workers and the state at Nigeria's most expensive interest — penalties plus breach plus trust",
-     "Free",
-     "Advisable briefly"
-    ],
-    "ans": 1,
-    "why": "The reserve at the run is the entire cure.",
-    "src": "Ch6"
-   },
-   {
-    "q": "The aged statutory balance on the trial balance is:",
-    "opts": [
-     "Normal",
-     "A rounding issue",
-     "The unremitted month wearing an account balance — the two tracks' machinery cross-checking",
-     "The bank's fault"
-    ],
-    "ans": 2,
-    "why": "Explainable levels: post-remittance zero or the current accrual, nothing older.",
-    "src": "Ch6"
-   },
-   {
-    "q": "Payroll-statutory penalties are computed on:",
-    "opts": [
-     "The firm's profit",
-     "Estimates",
-     "New taxes",
-     "Money the firm already collected — the fine is for failing to forward: pure loss by disorganisation"
-    ],
-    "ans": 3,
-    "why": "Plus the certificates that arrears block.",
-    "src": "Ch6"
-   },
-   {
-    "q": "The annual return is:",
-    "opts": [
-     "Assembled — the per-employee register IS the return's content; the firm that kept it files by export",
-     "Composed in January",
-     "Optional",
-     "The adviser's task alone"
-    ],
-    "ans": 0,
-    "why": "The reconstruction it replaces is the trade's least loved week.",
-    "src": "Ch7"
-   },
-   {
-    "q": "The employee's TCC depends on:",
-    "opts": [
-     "Their own filing only",
-     "The taxes the employer remitted in their name — remittance discipline as a personal service",
-     "The bank",
+     "The employee share only",
+     "Both shares — the figure the remittance pays",
+     "The employer share only",
      "Nothing"
     ],
     "ans": 1,
-    "why": "The worker denied a TCC knows exactly by whom they were failed.",
-    "src": "Ch7"
+    "why": "Expense and deduction meet in one payable.",
+    "src": "Ch3"
    },
    {
-    "q": "Employees reading their RSA statements is:",
+    "q": "The pension remittance window is pinned to:",
     "opts": [
-     "A risk",
-     "Discouraged",
-     "Transparency that costs nothing and catches everything — twenty-seven personal auditors",
-     "Impossible"
+     "Month-end",
+     "The quarter",
+     "Days from paying salaries — the tightest line, tracked from the actual payment date",
+     "The fiscal year"
     ],
     "ans": 2,
-    "why": "Recruited deliberately at the annual conversation.",
-    "src": "Ch7"
+    "why": "The calendar's tightest line.",
+    "src": "Ch3"
    },
    {
-    "q": "A LARGE December true-up signals:",
+    "q": "Every statutory component begins with:",
     "opts": [
-     "A good year",
-     "Reform",
-     "Generosity",
-     "A configuration or data problem the monthly walk should have caught — the true-up's size is a health read"
+     "A formula",
+     "A structure",
+     "A payment",
+     "An applicability ruling from the accountant — applies, does not, or applies to these categories"
     ],
     "ans": 3,
-    "why": "The annual creature closing its books should adjust small.",
+    "why": "The page-before-the-component order is absolute.",
+    "src": "Ch4"
+   },
+   {
+    "q": "A levy implemented both on-slip and by journal:",
+    "opts": [
+     "Pays twice — one home is chosen and recorded",
+     "Is thorough",
+     "Is required",
+     "Nets off"
+    ],
+    "ans": 0,
+    "why": "The one-home rule.",
+    "src": "Ch4"
+   },
+   {
+    "q": "The threshold watch exists because:",
+    "opts": [
+     "Rates change daily",
+     "Obligations that attach by headcount may apply as the business grows — the question lives on the page, not in memory",
+     "Auditors ask",
+     "Thresholds never move"
+    ],
+    "ans": 1,
+    "why": "Eleven staff versus twenty-six.",
+    "src": "Ch4"
+   },
+   {
+    "q": "PAYE remits to:",
+    "opts": [
+     "The federal service",
+     "The employer's state",
+     "The state of each employee's residence — the office's location is not the test",
+     "Any state"
+    ],
+    "ans": 2,
+    "why": "Lagos office, Ogun residents: both states file.",
+    "src": "Ch5"
+   },
+   {
+    "q": "The per-state schedule is produced by:",
+    "opts": [
+     "Hand lists",
+     "The authority",
+     "The bank",
+     "The Salary Register's export grouped on the state field — each state's employees, amounts, subtotal"
+    ],
+    "ans": 3,
+    "why": "One run, all schedules.",
+    "src": "Ch5"
+   },
+   {
+    "q": "A new state appearing in the schedule triggers:",
+    "opts": [
+     "The accountant flagged before remittance day — registration with that state precedes payment and takes longer",
+     "Nothing",
+     "A refund",
+     "A penalty automatically"
+    ],
+    "ans": 0,
+    "why": "The operator's job is the flag.",
+    "src": "Ch5"
+   },
+   {
+    "q": "A wrong state field costs:",
+    "opts": [
+     "Nothing",
+     "Tax sent to the wrong authority — the right one's demand plus the wrong one's recovery, two slow conversations",
+     "A small fee",
+     "One month"
+    ],
+    "ans": 1,
+    "why": "Why the field is mandatory, evidenced, and swept annually.",
+    "src": "Ch5"
+   },
+   {
+    "q": "Custody payables in the wiring map are:",
+    "opts": [
+     "Any accounts",
+     "Expense accounts",
+     "Tax-type custody leaves the Accounts track created — missing ones are created there first, then wired",
+     "Bank accounts"
+    ],
+    "ans": 2,
+    "why": "Typed, named plainly.",
+    "src": "Ch6"
+   },
+   {
+    "q": "The run's accrual Journal Entry:",
+    "opts": [
+     "Pays the bank",
+     "Files taxes",
+     "Creates slips",
+     "Debits expenses by component with cost centers, credits the custody payables and the net-pay liability"
+    ],
+    "ans": 3,
+    "why": "Read via View > Accounting Ledger.",
+    "src": "Ch6"
+   },
+   {
+    "q": "The posting read compares:",
+    "opts": [
+     "The Journal Entry's rows against the wiring map and the register's totals — mismatches are wiring faults",
+     "Two months",
+     "Slips to letters",
+     "Banks to budgets"
+    ],
+    "ans": 0,
+    "why": "One-time proof, then the monthly tie.",
+    "src": "Ch6"
+   },
+   {
+    "q": "The payroll tie chain runs:",
+    "opts": [
+     "Slip to bank",
+     "Register totals = posting lines = custody account movements = zero after remittance",
+     "Gross to net",
+     "Base to slab"
+    ],
+    "ans": 1,
+    "why": "Both tracks run it, one from each side.",
+    "src": "Ch6"
+   },
+   {
+    "q": "Remittance payments are made from:",
+    "opts": [
+     "The operating account",
+     "Cash",
+     "The tax-reserve bank account, one Payment Entry per authority per obligation, schedule attached",
+     "The employee"
+    ],
+    "ans": 2,
+    "why": "The reserve funded at the run.",
     "src": "Ch7"
    },
    {
-    "q": "Tax reform in a structured firm costs:",
+    "q": "The preparer of the remittance run:",
     "opts": [
-     "One configuration change, effective-dated, applied evenly — an afternoon",
-     "Months of errors",
-     "A new system",
-     "A consultant per month"
-    ],
-    "ans": 0,
-    "why": "The reform-resilience argument, cashed at the largest scale.",
-    "src": "Ch8"
-   },
-   {
-    "q": "'Where did my tax go?' is answered by:",
-    "opts": [
-     "Reassurance",
-     "The register row and the remittance receipt — pointing, in the academy's oldest gesture",
-     "The adviser",
-     "Silence"
-    ],
-    "ans": 1,
-    "why": "The register is the inspection answer and the query answer at once.",
-    "src": "Ch8"
-   },
-   {
-    "q": "The pre-season review includes:",
-    "opts": [
-     "Only rates",
-     "A memo",
-     "The adviser session, the configuration update effective the year's start, flags re-verified, scope refreshed, the walk re-run",
-     "Nothing annual"
-    ],
-    "ans": 2,
-    "why": "One meeting, one afternoon, one tested walk.",
-    "src": "Ch8"
-   },
-   {
-    "q": "HealthTrade's ITF finding was resolved by:",
-    "opts": [
-     "Ignoring it",
-     "Deregistration",
-     "A quiet payment",
-     "The book — quantified by the machinery, taken to the adviser, regularised through the proper channel"
+     "Releases it",
+     "Is the bank",
+     "Signs alone",
+     "Never releases — the payroll operator prepares, the release authority releases"
     ],
     "ans": 3,
-    "why": "Found by the consultant; resolved by the professional who owns it.",
-    "src": "Ch9"
+    "why": "The separation, unchanged.",
+    "src": "Ch7"
    },
    {
-    "q": "The reform's announcement at the branches:",
+    "q": "A custody that will not zero is telling:",
     "opts": [
-     "Landed the ₦800k floor as good news — nine juniors' PAYE dropping to zero, explained before the slips arrived",
-     "Caused confusion",
-     "Was skipped",
-     "Raised grievances"
+     "One of four stories — a skipped tie, a short or misposted payment, prior residue, or custody spent",
+     "A rounding story",
+     "Nothing",
+     "A bank story"
     ],
     "ans": 0,
-    "why": "The net that rose deserved announcing; the changed reliefs deserved the walk.",
-    "src": "Ch9"
+    "why": "The same diagnostic, read from the payroll side.",
+    "src": "Ch7"
    },
    {
-    "q": "The month-five pension bounce was:",
+    "q": "The evidence bundle per custody per month holds:",
     "opts": [
-     "A system failure",
-     "One stale PFA after an RSA transfer — caught by the per-person reconciliation, corrected within the week",
-     "Ignored",
-     "The PFA's fault"
+     "The payslip",
+     "The register extract, the schedule, the Payment Entry, the receipt, the zero check",
+     "The offer letters",
+     "The structures"
     ],
     "ans": 1,
-    "why": "The per-person register catching the per-person error, as designed.",
+    "why": "What answers the employee and the authority in one look.",
+    "src": "Ch7"
+   },
+   {
+    "q": "The Salary Register's standing read uses:",
+    "opts": [
+     "All slips",
+     "Cancelled slips",
+     "Submitted slips only — drafts are computations, not payroll",
+     "Previews"
+    ],
+    "ans": 2,
+    "why": "Run after every run closes; filed monthly.",
+    "src": "Ch8"
+   },
+   {
+    "q": "The month-on-month register comparison exists to:",
+    "opts": [
+     "Fill time",
+     "Rank staff",
+     "Set budgets",
+     "Explain every material movement before payday — joiners, leavers, rises, prorations, variable lines"
+    ],
+    "ans": 3,
+    "why": "An unexplained movement is a finding before money moves.",
+    "src": "Ch8"
+   },
+   {
+    "q": "The register's confidentiality rule:",
+    "opts": [
+     "Role-permissioned access; exports only for schedules into the business folder; aggregates travel, named rows do not",
+     "Aggregates and names travel equally",
+     "Everyone reads it",
+     "Only the MD reads it"
+    ],
+    "ans": 0,
+    "why": "The most sensitive report on the site.",
+    "src": "Ch8"
+   },
+   {
+    "q": "Schedules are derived from:",
+    "opts": [
+     "Fresh ad-hoc runs",
+     "The one monthly register — many derivations from one closed record",
+     "Memory",
+     "The bank statement"
+    ],
+    "ans": 1,
+    "why": "How PAYE and pension schedules stay in agreement.",
+    "src": "Ch8"
+   },
+   {
+    "q": "HealthTrade's plausibility check caught:",
+    "opts": [
+     "A slab typo",
+     "A bank error",
+     "The Meal allowance flagged taxable against an exempt ruling — corrected on the component, thirty slips inherited the fix",
+     "Nothing"
+    ],
+    "ans": 2,
+    "why": "Small monthly disagreement, traced in twenty minutes.",
     "src": "Ch9"
    },
    {
-    "q": "This module's law is:",
+    "q": "HealthTrade's wiring read caught:",
     "opts": [
-     "Remit when convenient",
-     "Flat rates suffice",
-     "Statutory money is custody — computed from configured law, reserved at the run, remitted on each clock with the pension's seven days sacred, evidenced, zeroed, registered per person",
-     "January absorbs everything"
+     "A missing employee",
+     "A late payment",
+     "A slab error",
+     "NHF's account row pointing at PAYE Payable — two custodies would have merged silently from month one"
+    ],
+    "ans": 3,
+    "why": "The preview posting against the map, before the first run.",
+    "src": "Ch9"
+   },
+   {
+    "q": "HealthTrade's first cycle produced:",
+    "opts": [
+     "Two state PAYE schedules, four PFA pension schedules, the NHF schedule — all from one register",
+     "One schedule",
+     "No schedules",
+     "Twelve schedules"
+    ],
+    "ans": 0,
+    "why": "The residence and PFA walks paying off.",
+    "src": "Ch9"
+   },
+   {
+    "q": "The drifted slab pattern is fixed by:",
+    "opts": [
+     "Editing the slab",
+     "The annual re-read, reforms producing new dated slabs, and the plausibility check at every change",
+     "Ignoring reforms",
+     "A bigger exemption"
+    ],
+    "ans": 1,
+    "why": "Pattern 2.",
+    "src": "Ch10"
+   },
+   {
+    "q": "Module 2's law is:",
+    "opts": [
+     "Rates from memory",
+     "Custody is optional",
+     "Statutory amounts are computed by components from the accountant's current table, posted to typed custody accounts, remitted by the calendar from the reserve, and zeroed every cycle",
+     "Schedules are ad hoc"
     ],
     "ans": 2,
-    "why": "The payslip's second passenger, in its own seat, on time, with receipts.",
+    "why": "The second law.",
     "src": "Ch10"
    }
   ]
