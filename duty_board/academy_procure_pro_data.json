@@ -2839,478 +2839,478 @@
  },
  "purchase_invoice": {
   "title": "Procurement 7 — Purchase Invoices, Payments & the Nigerian Frame",
-  "desc": "The cash-out module: the liability event, the three-way match armed, payable terms engineering, the controlled payment run, supplier advances, WHT as the withholding agent with remittance discipline, input VAT and the 21st, and debit notes with the correction doctrine.",
+  "desc": "The Purchase Invoice, the three-way match, and the payables machinery in ZhiftERP: the field walk — exact supplier numbering, computed due dates, entry as claimed, and the hold facility; the three comparisons — billed not exceeding accepted, invoice rates equal to order rates with the pairing read, and the tax and arithmetic checks; the exception taxonomy with its lanes and the closes-with-a-document rule; posting effects — the payable, received-not-billed clearing, input VAT, and the due-date machinery; the weekly payment run on terms with line-by-line allocation, withholding at payment with the remittance calendar, and the verified-account rule; debit notes, credit notes, and replacement resolutions with the claim-to-clearing reconciliation; and the six payables reads including the monthly statement reconciliation.",
   "lessons": [
    {
-    "title": "Chapter 1 — The Purchase Invoice as the liability event",
-    "est": "15",
-    "html": "<p>Selling 7 taught the invoice as the accounting event, money-in. The <b>Purchase Invoice</b> is its mirror: the document whose submission <b>books the supplier's claim as your liability</b> — the payable to the supplier, the expense or stock-received value, and the <b>input VAT</b> asset (Chapter 7) — dated by its posting date, due by its terms. When any question begins <i>when do the books recognise what we owe…</i>, the answer is: at purchase-invoice submission. Nothing before it owes money; nothing after it changes what is owed except payment and the debit note.</p><p><b>Creation paths, chosen by flow:</b></p><ul><li><b>From the Purchase Receipt</b> — the standard route in goods trade: billing exactly what was possessed. Quantities arrive as received quantities; the receipt advances toward its billed completion; and — decisively — the invoice is born PRE-MATCHED to possession, which is half the three-way match (Chapter 2) done by construction.</li><li><b>From the Purchase Order</b> — the advance-billing flows: the import deposit invoiced before shipment, milestone billing on services. The PO's billed ledger counts up while received sits behind it, and the To-Receive status keeps the physical claim visible after finance has moved (Procurement 5, Chapter 4).</li><li><b>Standalone</b> — legitimate for genuinely document-less spend (utilities, statutory payments, services the policy exempted from the PO layer) and SUSPICIOUS everywhere else: a standalone invoice in goods trade matches nothing, closes nothing, and is precisely the shape supplier fraud and duplicate billing arrive in. The policy line from Procurement 3 applies: which spend categories may bill standalone is WRITTEN, and the rest go through the chain.</li></ul><p><b>The Update Stock trap, inbound.</b> An invoice with Update Stock ticked moves inventory IN itself — legitimate only where the flow deliberately has no Purchase Receipt (small direct-to-shelf supplies per policy). Ticked on an invoice made after a receipt already moved the goods, stock enters TWICE — the inbound twin of Selling 7's double-deduction, producing phantom surplus instead of phantom shortage, and just as capable of poisoning a stocktake. The rule transfers verbatim: where Update Stock is on, there is no receipt in that flow at all.</p><p><b>Two dates, permanently distinct.</b> The <b>posting date</b> is when the books record the liability — honest to when the claim was accepted, feeding the correct VAT month (Chapter 7) and the correct expense period. The <b>due date</b> is when payment falls due — computed from terms (Chapter 3), never typed. Conflating them is the root of AP-ageing confusion exactly as it was for AR, and the cure is the same engineering, mirrored.</p>"
+    "title": "Chapter 1 — The Purchase Invoice: scope and position",
+    "est": "11",
+    "html": "<p>This module covers the Purchase Invoice, the three-way match, and the payables machinery in ZhiftERP. On completing this module you will be able to: complete the Purchase Invoice field walk; run the three-way match and state what each comparison checks; work the matching exceptions through their lanes; state what posting creates and clears; operate the payment run with withholding at payment; clear claims through debit notes and credits; and run the payables reads.</p><p><b>What a Purchase Invoice is.</b> The Purchase Invoice records the supplier's claim: the demand for payment for goods or services, at stated rates, with stated taxes, due on a computable date. Posting it recognises the claim in the books — the payable exists from posting, not from payment — and the discipline of this module is that <b>a claim is recognised only after it has been compared to what was ordered and what was received.</b> The comparison is the three-way match, and it is the buying side's principal money control: the business pays for what it agreed to buy and actually holds, at the rates it agreed, and nothing else.</p><p><b>Position in the flow.</b> The invoice is the third document:</p><p>1. <b>The order</b> (module 5) stated the agreement — quantities, rates, terms.<br>2. <b>The receipt</b> (module 6) stated the arrival — counted, split by condition.<br>3. <b>The invoice</b> states the claim — and posts only when the claim reconciles to the other two, or when its exceptions have been worked to documented resolutions.</p><p><b>Why the sequence protects the money.</b> Each upstream document was built precisely so this comparison would work: the order's rates carry sources (a claim above them is visible), the receipt's counts are physical (a claim beyond them is visible), and the exceptions that surface here are therefore findings with evidence rather than arguments about memory. A business that pays invoices without the match is trusting every supplier's paperwork with its bank balance.</p><p><b>Custody.</b> The payables function enters and matches invoices; exceptions resolve through their lanes with the roles each lane names; posting approval per the matrix; payment runs on the calendar with the verified-account rule (module 1); and the standing rule: <b>the supplier is paid what the match supports, on the terms agreed, to the account verified — every difference worked as a documented exception, never absorbed by editing a document to make it pass.</b></p><p><b>Module contents.</b> Chapter 2: the field walk. Chapter 3: the three-way match. Chapter 4: matching exceptions. Chapter 5: what posting does. Chapter 6: payments and withholding. Chapter 7: debit notes and claims clearing. Chapter 8: the payables reads. Chapter 9: worked example. Chapter 10: review and the module rule.</p>"
    },
    {
-    "title": "Chapter 2 — The three-way match, armed",
-    "est": "16",
-    "html": "<p>Every module in this track has been quietly building one control, and this chapter fires it. The <b>three-way match</b> holds the supplier's claim against two documents your own firm wrote, and pays only what all three agree on. It is the single cheapest auditor a trading company can employ, and it works precisely because each leg was kept honest upstream.</p><p><b>The three legs.</b> <b>The Purchase Order</b> — what was COMMITTED: quantities, and rates that are agreed prices or competed quotations (Procurement 4-5), protected from bending by the rate-amendment conviction (Procurement 5, Chapter 6). <b>The Purchase Receipt</b> — what was POSSESSED: counted at the gate, shortages recorded, rejections forked (Procurement 6). <b>The Purchase Invoice</b> — what is CLAIMED. The match asks two questions of every invoice line: does the claimed QUANTITY exceed what was received and not yet billed? does the claimed RATE exceed what was committed? Agreement books the liability; disagreement stops the line and names its variance.</p><p><b>The variance taxonomy — each with its resolution:</b></p><ul><li><b>Quantity variance</b> — invoiced 180, received 177 (the damaged 3): the honest resolutions are the supplier invoicing the received quantity, or invoicing 180 WITH the 3-carton debit note standing against it (Chapter 8) — the pair netting true. What never resolves it: booking 180 because the paper says so; the receipt counted, and the count governs.</li><li><b>Price variance</b> — invoiced ₦9,850 against a committed ₦9,600: the DISPUTE path (the invoice held, the supplier queried against the standing rate — usually a their-side error or an unencoded price move, and either way the committed rate is the negotiating floor), or the documented-renegotiation path where the change is genuinely agreed (papered, encoded to the buying list, THEN booked). Never the amendment path — Procurement 5's conviction, now at its point of enforcement.</li><li><b>The unmatched invoice</b> — a claim with no receipt behind it: goods trade's loudest alarm. Either the receipt is missing (the gate skipped — fix the record before the payment) or the goods never came (the claim is air). Booking it anyway is paying for possession you cannot show — Chapter 10's Pattern 1, and the fraud shape the match exists to catch.</li></ul><p><b>Tolerances, deliberately.</b> Kobo-level rounding and configured small variances pass without ceremony — the match is a control, not a harassment engine, and the firm's variance tolerance (a policy number, like every gate number in this track) keeps it proportionate. Above tolerance, the line stops, and the STOP is the feature: the conversation happens before the money moves, which is the entire economics of the control — a disputed invoice costs an email; a recovered overpayment costs a campaign.</p><p><b>The match queue as routine.</b> Procurement 5 named the To-Bill list the match queue; here is its operation: receipts awaiting invoices worked oldest-first as claims arrive, each invoice entered FROM its receipt (born pre-matched), variances resolved by the taxonomy, and the queue's age watched both ways — your unbooked liabilities and their lagging invoices (the statement-reconciliation thread from Procurement 1 closing the loop monthly). A firm that runs this queue pays exactly what it owes, knows exactly what it owes, and can prove both — which is the whole module in one sentence.</p>"
+    "title": "Chapter 2 — The Purchase Invoice doctype",
+    "est": "12",
+    "html": "<p>Create the Purchase Invoice from the Purchase Receipt or Purchase Order (Create &gt; Purchase Invoice) so the rows and references carry. Complete or verify the fields in order.</p><p><b>1. Supplier and the references.</b> The supplier per the register; the order and receipt references carried by creation — the match's connective tissue, and the reason invoices enter from their documents rather than from blank forms.</p><p><b>2. The supplier's invoice number and date.</b> Entered exactly as printed: the supplier's numbering is the statutory identity of the claim — the number the supplier's statement will cite, the tax records reference, and the duplicate check runs on. The system's duplicate detection works on this field: the same supplier number entered twice is the double-payment attempt (or error) caught at entry, and the field's accuracy is what makes the check work.</p><p><b>3. Posting date and due date.</b> The posting date per the accountant's period rules; the <b>due date computes from the payment terms</b> — the negotiated 30 days running from the terms' reference date. The due date is machinery, not a note: the payment run (Chapter 6) selects by it, the cash forecast (Chapter 8) profiles by it, and editing it by hand outside a documented terms change misstates the payable's timing.</p><p><b>4. The items table.</b> Per row, carried from the receipt or order: item, quantity, rate, the warehouse or expense context per the accountant's design. The rows are what the match compares (Chapter 3); they are verified against the supplier's printed invoice — the entry states the supplier's claim as made, and the match then judges it. The entry does not pre-correct the claim to what it should have been: an invoice claiming 180 is entered claiming 180, and the exception lane handles the difference, because a pre-corrected entry destroys the record of what the supplier actually claimed.</p><p><b>5. Taxes and Charges.</b> The purchase tax template computing the claim's tax rows; the supplier's printed tax figures compared to the computed figures — a difference is a tax exception (Chapter 4), commonly a rate or classification error on one side, resolved before posting because the input-VAT records must state the claim correctly.</p><p><b>6. The hold facility.</b> An entered invoice that cannot yet post — an unworked exception, a missing receipt, an awaited credit — holds explicitly: on the queue with its reason, visible to the reads, rather than in a drawer. The hold is the honest state between arrival and resolution, and the disputed-invoices read (Chapter 8) works the held list by age.</p><p><b>Verification per invoice.</b> References carried; the supplier's number and date exact; the due date computed from terms; rows as claimed; taxes compared; then to the match.</p>"
    },
    {
-    "title": "Chapter 3 — Payable terms & due-date engineering",
+    "title": "Chapter 3 — The three-way match",
     "est": "13",
-    "html": "<p>Selling 7 engineered the dates money comes IN; this chapter mirrors it for money going OUT — because the payables posture Procurement 1 preached (pay well, deliberately) is executable only if due dates are computed truth.</p><p><b>The inheritance chain, payable-side.</b> Terms flow supplier master → purchase order → purchase invoice: the Net-30 negotiated at onboarding (Procurement 1, Chapter 4 — the credit line procurement built) computes each invoice's due date from its posting date. Multi-portion templates serve staged supplier deals exactly as they served staged customer deals: the import's 30%-advance/70%-against-documents is a terms template whose portions age independently — the deposit due now, the balance due at its trigger — and retentions YOU hold on contractor invoices (the 10% until commissioning) are the last portion aging as not-yet-due, the mirror of the retention you charged Montaigne.</p><p><b>The AP ageing, operated.</b> With computed due dates, the Accounts Payable report's buckets mean something, and Procurement 1's reading posture becomes a weekly routine: <b>due-this-week</b> is the funding list (cash scheduled against it — treasury's input); <b>coming-due</b> is the planning view; <b>overdue</b> is the explain-personally list — each entry a promise breaking, called BEFORE the supplier calls, with a date attached (the deliberate-loan discipline: taken with a call, never defaulted into). The right-hand columns of AP are your firm's reputation aging in public.</p><p><b>Early-payment discounts, evaluated not assumed.</b> Suppliers offer them — 2% for payment in 10 days against Net-30. The evaluation is arithmetic, not enthusiasm: the discount's annualised return against the firm's cost of cash (2% for 20 days early is a very high annualised rate — usually worth taking when cash allows; a thin discount for long acceleration is not), decided as policy per supplier or per offer, and executed through the run (Chapter 4) so the discount is actually captured — the offer accepted in spirit and missed in practice, paying full after the window, is the worst of both.</p><p><b>Terms renegotiation as treasury work, continued.</b> The payment behaviour this chapter operationalises IS the evidence for Procurement 1's terms-extension path: the account that never slips earns Net-15 → Net-30 → Net-45 over trust's timetable, and the record of on-time runs is the negotiation exhibit. Meanwhile the credit-limit mirror applies in reverse: as YOUR terms lengthen, the supplier is carrying more of your float — expect their own risk eye on your account, and keep the statement reconciliation (Procurement 1, Chapter 5) current so the relationship's numbers never surprise either side.</p>"
+    "html": "<p>The match compares the claim to the agreement and the arrival. This chapter is each comparison and its standard.</p><p><b>1. The quantity match.</b> Billed quantity per row against the received <b>accepted</b> quantity:</p><p>1. <b>The standard: billed does not exceed accepted.</b> The business pays for goods it holds as sound stock. Rejected quantities are not payable as delivered goods — they are claims in progress (module 6), and their money resolves through the claim's lane (Chapter 7), not through paying the full invoice and hoping.<br>2. <b>Billed below accepted</b> is the partial invoice — legitimate where the supplier bills in parts; the remainder stays received-not-billed until claimed.<br>3. <b>The multi-receipt case</b> — one invoice covering several receipts matches against their sum; the references list every receipt.</p><p><b>2. The rate match.</b> The invoice's rate per row against the order's rate:</p><p>1. <b>The standard: the invoice rate equals the order rate.</b> The order's rate carries the award's authority (module 4); a claim above it is an exception, whatever the supplier's cover letter says — the price conversation happens in the arrangement's governance, not on an invoice.<br>2. <b>The pairing rule at the match</b> — rate variances that are really unit variances (the carton rate against a unit line) are the first check, per the standing discipline: the classic false variance, resolved by reading quantity-unit-rate together on both documents.</p><p><b>3. The tax match.</b> The supplier's tax arithmetic against the template's computation: the VAT base, the rate applied, exempt lines treated as exempt. Differences are corrected on whichever side is wrong — the supplier's corrected invoice, or the entry's template selection — before posting, because the return compiles from these rows.</p><p><b>4. The arithmetic match.</b> Extensions and totals recomputed: quantity times rate per row, the tax on the correct base, the total as the sum. Suppliers' systems err rarely; typed invoices err more; the check costs a minute per invoice and the recomputation is part of the entry verification.</p><p><b>5. The match as comparison.</b> Because the upstream documents were kept honest, the match is mechanical: three figures per row — ordered, accepted, billed — and two rates — agreed and claimed. An invoice that matches posts the same day (Chapter 5); an invoice that does not becomes an exception with the evidence already on file: the order's sourced rate, the receipt's signed count, the claim's photographs. The match never edits a document to force agreement — the difference is the finding, and the finding routes (Chapter 4).</p>"
    },
    {
-    "title": "Chapter 4 — The payment run: money out, controlled",
-    "est": "15",
-    "html": "<p>Money leaves through the <b>Payment Entry</b> — and on the buy side, HOW it leaves is a control surface, because outbound payment is where the firm's cash meets the world's fraud. This chapter is the entry's craft plus the run's governance.</p><p><b>The entry, mirrored.</b> One real-world payment = one Payment Entry: the ₦12m transfer settling four Emzor invoices is ONE entry with four allocation rows; three separate transfers are three entries. Entries mirror bank lines — the reconciliation law, verbatim from Selling 7, because it is the same bank statement read from the other side. The fields carry the same weight: <b>mode</b>, <b>paid-from account</b> (the actual bank debited — month-end matching lives here), <b>reference</b> (your transfer reference, recorded at execution), and the <b>allocation rows</b> naming which invoices this payment settles — oldest first by default, adjusted where specific invoices are being settled, and always TOLD to the supplier: the remittance advice you send is the mirror of the one you demanded from customers, and it is what keeps two firms' ledgers allocating identically (their unapplied-payment confusion is your reconciliation debt).</p><p><b>The run as a controlled batch.</b> Payments go out in scheduled RUNS — weekly is the common rhythm — not as a dribble of individual urgencies, and the run's structure IS the control set:</p><ul><li><b>Selection</b>: due-this-week from the AP ageing, plus captured early-payment discounts (Chapter 3), plus resolved disputes — a LIST, reviewable, before anything moves.</li><li><b>Verification</b>: every payee's bank details from the MASTER's verified fields (Procurement 1, Chapter 3's out-of-band rule) — never from details riding the invoice, never from an email received this week. This is the point in the entire track where the payment-fraud control actually executes: the lookalike-domain email asking to redirect payment dies here or nowhere, because the run pays masters, not messages.</li><li><b>Approval</b>: the run reviewed and released by someone other than its preparer — the two-pairs-of-eyes that costs minutes and is the difference between an attempted fraud and a successful one. Sized to the firm: in an 11-person company this is the accountant preparing and the MD releasing; the principle, not the org chart, is the requirement.</li><li><b>Execution and recording</b>: payments executed, references captured onto the entries same-day, advices sent. An executed-but-unrecorded run is cash in flight that the ledger cannot see — the reconciliation break built by hand.</li></ul><p><b>Urgency, governed.</b> True urgent payments exist; the governance is that they run through the SAME verification and approval at higher speed — an urgent path, not an exception to control. The email whose whole design is <i>too urgent for the usual checks</i> has told you what it is. (Chapter 10 meets the firm that learned this by wire transfer.)</p><p><b>What never pays suppliers:</b> bare journal entries (references, modes, and allocations orphaned — the Selling 7 conviction, mirrored), personal transfers reimbursed later (the audit hole with a kind face), and cash outside the recorded modes. The payment ledger is believed exactly as far as every naira out has an entry, a reference, and an allocation.</p>"
+    "title": "Chapter 4 — Matching exceptions",
+    "est": "12",
+    "html": "<p>Differences route through defined lanes. This chapter is the exception taxonomy and the queue.</p><p><b>1. Quantity exceptions.</b> Billed exceeds accepted:</p><p>1. <b>The rejected-goods case</b> — the invoice claims the full despatch while the receipt rejected part of it (the standing case: 180 claimed, 177 accepted, 3 rejected with a claim on file). The resolution follows the claim's agreed lane: the supplier issues a corrected invoice or a credit note for the rejected portion, or — where the agreed lane is replacement — the commercial arithmetic settles across the drops per the agreement, documented on both files. The invoice holds, or posts at the supported figure per the site's procedure, with the difference tracked to the claim's resolution — never paid in full on the promise that it will sort itself out.<br>2. <b>The never-received case</b> — the invoice claims goods no receipt shows: the billed-not-received read's territory (module 5), held until the goods arrive, the receipt posts, or the claim withdraws.<br>3. <b>The duplicate</b> — the same claim twice under two numbers: the duplicate check and the statement reconciliation both catch it; the second claim is rejected with the first's reference.</p><p><b>2. Rate exceptions.</b> The claimed rate differs from the order's:</p><p>1. <b>Checked against the arrangement first</b> — a price change with a dated amendment (module 4) means the order should have been amended: the governance gap is noted, the documents align to the amendment, the invoice posts at the amended rate.<br>2. <b>No amendment</b> — the claim is declined at the difference: the supplier corrects the invoice, or the difference escalates to the relationship level with the award file as the record. The rate the business pays is the rate it agreed.</p><p><b>3. Tax and arithmetic exceptions.</b> Per Chapter 3: corrected on the erring side before posting; recurring tax errors from one supplier are a scorecard note and a conversation.</p><p><b>4. The exception queue.</b> Every exception enters the queue with its type, age, value, and owner: the held invoices, the awaited credits, the escalated rates. The queue works on the weekly cadence — exceptions age into the disputed read (Chapter 8) — and the rule that keeps the queue honest: <b>an exception closes with a document</b> — the corrected invoice, the credit note, the amendment, the withdrawal — never with a shrug and a posting. The quarterly exception pattern (types by supplier) files with the scorecard inputs: a supplier whose invoices routinely claim above receipts or rates is a measured fact for the module 8 review.</p>"
    },
    {
-    "title": "Chapter 5 — Supplier advances & allocation",
+    "title": "Chapter 5 — What posting does",
+    "est": "12",
+    "html": "<p>The matched invoice posts. This chapter states each effect.</p><p><b>1. The payable.</b> Posting credits the supplier's payable at the claim's total: the liability exists in the books from this moment, due on the computed date. The supplier's ledger — every invoice, payment, and debit note in one view — is the account the statement reconciliation (Chapter 8) agrees, and the payables aging (Chapter 8) buckets.</p><p><b>2. Received-not-billed clears.</b> For stock invoices, posting clears the receipt's received-not-billed liability against the payable (module 6's two-step completing): the goods-held-awaiting-claim state converts to a stated debt. The received-not-billed balance falls by the matched receipt's value, and the residual balance — receipts still awaiting invoices — remains the accountant's accrual figure at close.</p><p><b>3. The input-VAT record.</b> The tax rows post to the input-VAT accounts per the template's heads: the claim's VAT, stated correctly, enters the records the accountant's return compiles from. The procurement obligation ends where it always ends — documents whose tax rows are computed and matched; the return's arithmetic and the recoverability rulings are the accounts side's work.</p><p><b>4. The cost tie.</b> Stock invoices at matched rates confirm the receipt's valuation (rate variances that survived to posting adjust per the accountant's configuration — the valuation machinery the Inventory track owns); expense invoices land on their expense heads and cost contexts per the accountant's design. The module's contribution to costing is the match itself: invoices posting at agreed rates is what keeps the module 2 cost figures meaning what they claim.</p><p><b>5. The due-date machinery engages.</b> The posted payable enters the due profile: the payment run (Chapter 6) will select it by date; the cash forecast (Chapter 8) carries it; the terms the business negotiated (module 4) now operate as working capital exactly as intended — the 30-day term is thirty days of the supplier financing the stock, used fully and honoured precisely.</p><p><b>6. Corrections after posting.</b> The lanes: the supplier's own correction instruments (their corrected invoice or credit note) enter as their documents against the ledger; the business-side error (wrong template, wrong context) corrects per the accountant's amendment rules with the reason recorded. The claim record's integrity holds throughout — what the supplier claimed, what was recognised, what corrected it, each on its own document.</p>"
+   },
+   {
+    "title": "Chapter 6 — Payments and withholding",
+    "est": "12",
+    "html": "<p>Posted payables pay on the calendar. This chapter is the payment machinery.</p><p><b>1. The payment run — weekly.</b> The run selects posted invoices due within the window, per the standing posture (module 1): <b>on terms, neither early nor late</b> — early payment surrenders negotiated working capital; late payment spends the relationship and the terms' credibility at the next negotiation. The run's list reviews per the matrix (the approver sees supplier, invoices, amounts, and accounts), and exceptions to the posture — the early-payment discount worth taking, the withheld payment on a disputed account — are decisions recorded on the run, not habits.</p><p><b>2. The Payment Entry.</b> Per supplier per run: the payment against its invoices, <b>allocated line by line</b> — the supplier's ledger shows which claims this payment settles. The allocation discipline mirrors the receivables side: payments without allocations age on the unallocated read (Chapter 8) and are resolved with the supplier's advice, because an unallocated payment makes the ledger unable to state which invoices remain open.</p><p><b>3. Withholding at payment.</b> Where the supplier's ruling requires it (module 1's field, per the accountant's determination):</p><p>1. <b>The deduction computes at the Payment Entry</b> — the statutory percentage on the ruled base: the supplier receives the net; the withheld amount posts to the remittance liability.<br>2. <b>The invoice stated the full claim</b> — the location rule from module 5: orders and invoices at full value; the payment withholds. The supplier's ledger then shows claim, payment, and withholding distinctly, which is what the supplier's own reconciliation and the statutory credit note require.<br>3. <b>The remittance calendar</b> — withheld amounts remit to the authority per the accountant's schedule, with the supplier's evidence (the credit documentation) issued per the procedure. Withholding held and not remitted is a statutory liability aging in the books; the remittance read keeps it current.</p><p><b>4. The verified-account rule.</b> Payments go only to bank details verified per module 1's call-back procedure — the run's final check, every run, because the emailed account-change fraud targets exactly this moment. A change surfacing inside the run window is a stopped payment and a verification, never a convenience edit.</p><p><b>5. Partial payments and advances.</b> Partial payments allocate to their invoices with the balance visibly open; advances from module 5 allocate at posting per the schedule, closing the advance-exposure entries. The supplier's ledger states the whole position — claims, payments, advances, withholdings — and the weekly run works from it.</p>"
+   },
+   {
+    "title": "Chapter 7 — Debit notes and claims clearing",
+    "est": "12",
+    "html": "<p>The receiving claims (module 6) resolve in money or replacement. This chapter is the clearing machinery.</p><p><b>1. The instruments.</b></p><p>1. <b>The supplier's credit note</b> — the supplier's document reducing their claim: entered against the ledger, referencing the original invoice and the claim, offsetting the payable. The standing resolution for damage and shortage claims settling in money.<br>2. <b>The debit note</b> — the business-side instrument (the return-flagged purchase document per the site's flow) recording goods returned to the supplier or charges back per agreement: posted with its references, reducing the payable, matching the physical return document where goods moved.<br>3. <b>The replacement</b> — no money instrument: the supplier's replacement goods receive as their own arrival (module 6), cross-referenced to the claim, and the commercial arithmetic across the affected drops documents on both files — the standing case's lane.</p><p><b>2. The claim-to-clearing reconciliation.</b> Every module 6 claim carries to its money or goods resolution:</p><p>1. The claims file states the agreed lane and deadline;<br>2. The clearing read (weekly, with the open-claims read) lists claims whose instruments have not arrived — the credit note promised but not issued is chased like the missing invoice, because until it posts the payable overstates;<br>3. Closure requires the pair: the claim's file and the ledger's instrument, cross-referenced. A claim closed without its instrument is money conceded silently.</p><p><b>3. Rejected-goods disposal ties.</b> The rejected warehouse (module 6) empties as claims resolve: returned goods leave on the return document; goods the agreement lets the business dispose of leave per the write-off rules with the claim's reference. The rejected location's contents reconcile to open claims — stock there with no claim is an unraised claim; a claim with no stock and no resolution is a disposal that skipped its document. The weekly claims pass runs this reconciliation alongside the clearing read.</p><p><b>4. The supplier's ledger, complete.</b> After this chapter the ledger states every instrument the relationship produces: invoices, payments, withholdings, advances, credit notes, debit notes — each referenced to its documents. The statement reconciliation (Chapter 8) agrees this ledger to the supplier's records monthly, and the one-lookup standard applies: any line's story — which order, which receipt, which claim, which resolution — answerable from its references.</p>"
+   },
+   {
+    "title": "Chapter 8 — The payables reads",
+    "est": "12",
+    "html": "<p>The standing reads on the payables position, each with its cadence and action.</p><p><b>1. The payables aging — weekly.</b> Open payables by bucket: current, and overdue by age. The buying side ages differently from the receivables mirror — overdue payables are the business's own performance: each overdue line has a cause read from the ledger (a held exception, a missed run, a cash decision), and the causes route — exceptions to the queue, cash decisions to the owner's visibility, process misses to the run's discipline. The relationship cost of drifting payment is a scorecard the suppliers keep.</p><p><b>2. The due profile — weekly.</b> Posted payables by due week, extended by the order book's committed values (module 5): the buying side's cash forecast, read with the receivables profile by the accountant and the owner. The profile is why due dates compute rather than type: a forecast built on hand-edited dates forecasts nothing.</p><p><b>3. The unallocated and advances read — weekly.</b> Payments without full allocation, advances without invoice application: worked to zero per Chapters 5-6, because the ledger's open-invoice list is only true when allocations are complete.</p><p><b>4. The disputed and held read — weekly.</b> The exception queue (Chapter 4) and held invoices by age and value: the money in dispute stated as a figure, each item with its next action and owner. Aging disputes escalate per the ladder — the relationship level, then the review — and the read's total is a working-capital figure the accountant watches, because disputed money is unplannable money.</p><p><b>5. The statement reconciliation — monthly.</b> The supplier's statement against the ledger, per module 1's cadence: every line agreed or listed as a difference — the invoice the business never received (requested and matched), the payment the supplier has not applied (the remittance advice re-sent), the credit note promised and absent (the claims chase), the duplicate the statement exposes. The reconciliation is the payables function's completeness check: entry errors, lost documents, and silent differences surface here monthly rather than at year-end, and the reconciled statement files with the month's records.</p><p><b>6. The quarterly compilation.</b> The quarter's payables figures file with the procurement records: exception patterns by supplier (Chapter 4), payment performance both ways (the business's own timeliness; the suppliers' credit-note responsiveness), and the withholding remittance record — the money side's contribution to the module 8 reviews and the owner's quarterly view.</p>"
+   },
+   {
+    "title": "Chapter 9 — Worked example: matching drop one",
     "est": "13",
-    "html": "<p>Money before goods is normal in Nigerian procurement — the import deposit, the mobilisation payment, the advance the new supplier demands before trust exists. Selling 7 taught the machinery from the receiving side; this chapter runs it paying, and the black hole threatens in mirror image.</p><p><b>The advance out.</b> A Payment Entry against the supplier <b>with no invoice reference</b>: the amount sits as YOUR unallocated credit on THEIR account — visible in the supplier's balance, reducing net payable exposure, waiting. It is not an expense (nothing has been consumed), not a receipt of goods (nothing has arrived), and not unrecorded cash-in-flight (the entry exists the day the money moves, referenced, from the run's controls like any payment).</p><p><b>Allocation — the advance meets its invoice.</b> The supplier's invoice lands (through the match, Chapter 2 — advances change nothing about matching discipline); the advance is <b>allocated</b> against it, netting the payable down; the balance, if any, pays by its terms. The import flow in miniature: 30% deposit paid against the PO (entry, unallocated); shipment documents arrive; the invoice books through the match; the deposit allocates; the 70% balance schedules by its terms portion. Every naira's position is readable at every stage — which is the entire point.</p><p><b>The mirror black hole.</b> Selling 7's disease was advances RECEIVED and never allocated — customers dunned for money already sent. The payable mirror: advances PAID and never allocated — the supplier's invoice settled in full by a fresh payment while your deposit sits forgotten as credit, and the firm has <b>paid twice</b>, discoverable only by the supplier's honesty or your reconciliation. The prevention is the same monthly read, both directions now: <b>unallocated credits per supplier</b> — each one matched to its invoice, refund-claimed, or explained. The statement reconciliation (Procurement 1, Chapter 5) is the backstop that catches what the read misses, at one month old instead of at year-end.</p><p><b>Refunds from suppliers.</b> The deal dies after the deposit — the import cancelled, the contract terminated: the supplier refunds, and the refund is a payment IN against the supplier, consuming the credit, referenced and mirrored in the bank like every other movement. The alternatives age badly: the credit left to <i>apply against future business</i> without written agreement is a loan you did not mean to make, and the verbal <i>we will sort it out</i> is Procurement 6's handshake disease wearing a finance costume. Deposits into failed deals are chased with the same politeness and persistence as receivables — because that is exactly what they have become.</p><p><b>Advances and the match.</b> One discipline worth stating explicitly: an advance never SUBSTITUTES for the match. The deposit paid does not oblige booking whatever invoice eventually arrives — the claim still matches against commitment and possession, and a variance on an advance-backed invoice resolves by the same taxonomy, with the advance simply waiting on the correct final figure. Money forward does not mean scrutiny waived.</p>"
+    "html": "<p>This chapter matches and pays the standing case. Values and outcomes are listed per step.</p><p><b>Step 1 — the claim arrives (Chapter 2).</b> Emzor's invoice for drop one arrives: <b>180 cartons of PARA-500 at ₦9,600</b> — the full despatch as loaded, the supplier's numbering entered exactly, the due date computing thirty days from the terms' reference. The entry states the claim as made: 180 cartons, <b>₦1,728,000</b>, the exempt class's tax treatment computing per template.</p><p><b>Step 2 — the match runs (Chapter 3).</b> Per row: rate — ₦9,600 claimed against ₦9,600 ordered, the pairing read confirming cartons against the carton rate: <b>rate match holds</b>. Quantity — 180 billed against <b>177 accepted</b>: the quantity match finds the 3-carton difference, and the receipt's file already holds the evidence — the signed delivery note, the photographs, the rejected line, the claim.</p><p><b>Step 3 — the exception works its lane (Chapter 4).</b> The difference is the known claim, agreed as <b>replacement</b> (module 6): the resolution documents across the two files per the agreement — Emzor issues a <b>corrected invoice for 177 cartons, ₦1,699,200</b>, and the replacement three cartons carry to drop two's delivery and billing. The original entry cancels against the corrected claim with both numbers cross-referenced; the exception closes with its documents — the corrected invoice and the claim's confirmation — per the queue's rule.</p><p><b>Step 4 — posting (Chapter 5).</b> The corrected invoice matches clean — 177 billed, 177 accepted, ₦9,600 both sides — and posts: the payable credits ₦1,699,200 due in thirty days; the receipt's received-not-billed clears by the matched value; the ledger opens the relationship's first invoice line with its order, receipt, and claim references. Withholding does not apply to the goods class per the ruling.</p><p><b>Step 5 — drop two completes the arithmetic (Chapters 3, 7).</b> Drop two arrives per its amended schedule: <b>123 cartons — 120 ordered plus the 3 replacements</b> — received clean, the claim closing on the replacement's arrival with both files cross-referenced. Emzor invoices <b>123 cartons, ₦1,180,800</b>; the match holds (123 billed, 123 accepted, the band rate across the order per module 5); the invoice posts on its own thirty-day clock. The order completes: <b>300 cartons received sound, ₦2,880,000 billed across two invoices</b> — the band's total arithmetic exact, the claim resolved in goods, nothing conceded silently.</p><p><b>Step 6 — payment and reconciliation (Chapters 6, 8).</b> Each invoice pays in the run of its due week — on terms, neither early nor late — allocated to its line, to Emzor's verified account per the call-back file. The due profile carried both payables from posting; the month's statement reconciliation agrees Emzor's statement to the ledger line for line: two invoices, one cancelled-and-corrected pair cross-referenced, two payments, no differences.</p><p><b>The file evidence.</b> Order, two receipts, the claim with its signed note, the corrected invoice pair, two clean matches, two on-terms payments, the reconciled statement — the whole purchase answerable from any line in one lookup, and the performance figures (on-time per drop, the 1.7% damage, the claim's resolution speed) filed for module 8's scorecard.</p>"
    },
    {
-    "title": "Chapter 6 — WHT: your firm as the withholding agent",
-    "est": "15",
-    "html": "<p>Selling 7, Chapter 6 taught withholding tax from the receiving end — your customers deducting from you. Procurement completes the symmetry, and the stakes rise: as the PAYER, your firm is the <b>withholding agent</b>, and the obligations are now yours to execute, remit, and evidence. This is the chapter Nigerian practice demands and generic training never writes.</p><p><b>The mechanics, precisely.</b> Paying a qualifying supplier for services or contracts, the firm deducts WHT at the rate the supplier's classification sets — <b>Supplier Type is the rate class</b> (companies and individuals withhold at different rates; the schedule of rates and covered transaction types is the accountant's domain, encoded once), which is why Procurement 1 made the type field a tax fact and the TIN mandatory at onboarding. The payment mathematics on a ₦1,000,000 qualifying service invoice at 5%: the supplier receives <b>₦950,000</b>; the invoice is settled in <b>full</b> — the Payment Entry allocates ₦1,000,000, with a <b>₦50,000 deduction row posting to the WHT PAYABLE liability account</b>. Note the mirror exactly: receiving WHT built a receivable ASSET (tax paid on your behalf, creditable); withholding WHT builds a payable LIABILITY (tax you now hold for FIRS, remittable). Same instrument, opposite ledger sides, and confusing them misstates both.</p><p><b>The remittance discipline.</b> The WHT payable account accumulates the month's withholdings; remittance to FIRS follows on the statutory schedule — with the return identifying each supplier by <b>TIN</b> and amount. The operating rhythm: the account reconciled monthly against the deduction entries (every naira withheld traceable to its payment and its supplier), remitted on time — because withheld-but-unremitted tax is the worst liability a firm can carry: it is not your money, the penalties and interest for late remittance compound, and it is the finding that turns a routine FIRS visit hostile (Chapter 10's pattern names it the black hole with teeth).</p><p><b>The evidence — now yours to issue.</b> The supplier will chase their credit evidence exactly as you chased Montaigne's certificate — because to them it is creditable tax, real money once papered. The discipline mirrors what you demanded: deductions logged per supplier, evidence issued promptly with the remittance's references, the supplier's accounts contact (Procurement 1's people layer) knowing where to ask. A firm that withholds cleanly and evidences promptly is the counterparty every serious supplier prefers — the payables version of paying well.</p><p><b>Scope judgment.</b> What attracts WHT (services, contracts, rents, and the scheduled categories) versus what does not (typically pure goods-for-resale transactions) is a classification question the accountant owns and the consultant encodes — per supplier and per transaction type, so the deduction fires where it should and never where it should not. Both errors cost: failing to withhold where required leaves YOUR firm liable for the tax it should have deducted; withholding where not required short-pays a supplier lawfully owed in full and manufactures a dispute. The configuration conversation at implementation is exactly these two lists, written, with the accountant's sign-off — and the HealthTrade case (Chapter 9) shows the Individual-type clearing agent's invoice running the full cycle.</p>"
-   },
-   {
-    "title": "Chapter 7 — Input VAT & the 21st, completed",
-    "est": "13",
-    "html": "<p>Selling 6 taught the output side: VAT collected, held, filed by the 21st. This chapter completes the return: the <b>input VAT</b> on your purchases is a claimable asset, and its capture discipline is a cash discipline.</p><p><b>The mechanics.</b> The purchase tax template on POs and invoices computes input VAT to its <b>asset account</b> — the mirror of the output liability. The monthly filing NETS them: output collected minus input claimable equals the remittance (or the credit position). Every properly captured purchase invoice therefore reduces the month's cash remittance naira-for-naira up to the output collected — which reframes input-VAT hygiene from compliance chore to <b>money recovery</b>: unclaimable input VAT is a donation, made monthly, in silence.</p><p><b>What makes input VAT claimable.</b> The claim stands on its paper: a proper tax invoice from a <b>VAT-registered supplier</b> — their registration verified at onboarding (Procurement 1's master fields earning again), the invoice itself compliant (and, as the FIRS e-invoicing regime extends, validated through the pipeline your NGE Portal serves — the architecture argument from Selling 6 running in reverse: template-driven purchase documents produce claimable input as a by-product). The capture disciplines: the correct purchase tax template on every document (defaulted from the supplier — set once); VAT posted to the input account, never lost inside item rates or expense lines (the inbound twin of the typed-VAT disease); and the invoice booked in its correct month (Chapter 1's posting-date honesty deciding WHICH return the claim lands in).</p><p><b>The monthly reconciliation, both sides now.</b> Selling 6 reconciled the output account to the sales register; the complete pre-filing routine reconciles BOTH: output account to sales invoices, input account to purchase invoices — every naira in each account traceable to a document, discrepancies resolved before the 21st, the filing figure read from accounts that have already proven themselves. The firm with this routine files in an hour and answers FIRS queries from printouts; the firm without it reconstructs each month under deadline, badly.</p><p><b>The classification edges.</b> Not all input VAT is claimable against all output — exempt-supply businesses and mixed traders face apportionment rules that are the accountant's terrain; and purchases from unregistered suppliers carry no claimable VAT at all, which quietly PRICES those suppliers higher than their invoices suggest (a ₦100 invoice with claimable ₦7.5 input beats a ₦99 invoice with none — arithmetic worth teaching every buyer, and a legitimate line in Procurement 4's comparison discipline). The consultant's role at the edges is the standing one: know the questions, encode the accountant's answers, and never improvise tax classification per document.</p>"
-   },
-   {
-    "title": "Chapter 8 — Debit notes & the correction doctrine",
-    "est": "13",
-    "html": "<p>Submitted purchase invoices are never edited — the immutability that makes the ledger evidence, now protecting the payables side. Reversal and correction run through the <b>debit note</b>, and the doctrine transfers from Selling 7 with the roles reversed.</p><p><b>The instrument.</b> A debit note is a <b>Purchase Invoice with Is Return ticked, made against the original invoice</b>, carrying negative amounts: the payable reduced, the expense or stock value reversed, the input VAT reversed — each by the credited quantities and values, each linked to what it unwinds. The original flips to Debit-Note-Issued status; the note carries Return; two documents, permanently married.</p><p><b>The two occasions, mirrored:</b></p><ul><li><b>Returned goods</b> — the money half of Procurement 6's pairing, now executed: stock went back on the return receipt; the debit note gives the money its mirror — raised against the original invoice for the returned quantities, partial returns getting partial notes, the linkage keeping every remainder honest. The pairing sentence, final form: <i>stock reverses on the return receipt; money reverses on the debit note; one physical event, two ledgers, two linked documents</i> — and the supplier's corresponding credit note should MEET your debit note in the monthly statement reconciliation, the two firms' paper agreeing because both were written.</li><li><b>Billing corrections</b> — the overcharge that slipped the match, the duplicate invoice discovered, the post-booking price resolution: <b>debit note against the wrong invoice, then the correct invoice booked</b> (or the balance simply reduced, where the correction is the whole story). Both documents stand forever — the claim that was booked AND the visible instrument that unwound it — which is what your own auditor and any FIRS review of the input-VAT trail expect to find. The convicted alternatives are the same convicts: journals quietly patching payables, administrative edits to submitted invoices — a payables ledger that can be silently corrected proves nothing, including your innocence.</li></ul><p><b>What your firm does with the credit.</b> Two lawful endings, chosen commercially: the credit <b>applies against other invoices</b> (the next run nets it — the usual fate in a continuing relationship) or is <b>refunded by the supplier</b> (a payment in, referenced, banked — Chapter 5's machinery). The credit is a first-class balance until one ending consumes it: never an off-ledger IOU, never <i>they will remember at the next order</i> — Procurement 6's verbal-credit disease, cured here at the money layer.</p><p><b>Governance, mirrored.</b> Debit notes erase payables, so they carry the visibility posture: the monthly read by value, reason, and supplier. A boring report means receiving and matching are accurate; a spike is quality upstream (returns — route to the supplier conversation and the scorecard) or claims discipline inside (corrections — route to the match's tolerance and training). Either way the report knew first — the sentence is Selling 7's verbatim, because the mirror is exact.</p>"
-   },
-   {
-    "title": "Chapter 9 — Case study: the HealthTrade money month",
-    "est": "17",
-    "html": "<p>Every thread from Procurement 3-6 now settles to zero. One month of payables, every chapter clocking in.</p><p><b>Thread one — Emzor, matched and settled (Ch. 1-2, 8).</b> Emzor's invoice arrives for drop one: 180 cartons at ₦9,600. The invoice is entered FROM the receipt — which received 177 accepted, 3 rejected-and-returned. The match flags the quantity variance; the resolution is the documented pair: the 180-carton invoice booked WITH the <b>3-carton debit note</b> standing against it (raised against the invoice, linked to the return receipt — the pairing complete), netting the payable to 177 × ₦9,600. Drop two's invoice (80 cartons) matches clean against its receipt. Emzor's monthly statement, reconciled per Procurement 1's routine, shows their credit note meeting your debit note — two firms' paper agreeing.</p><p><b>Thread two — the price variance caught (Ch. 2).</b> The backup distributor's invoice for the 40-carton gap arrives at <b>₦9,850… per carton, plus a ₦120-per-carton 'fuel surcharge'</b> nobody agreed. The match stops the line: the committed rate is the scoped ₦9,850, full stop. The dispute email cites the PO; the supplier corrects the invoice in two days; the corrected claim books clean. Cost of the control: one email. Value: ₦4,800 this once — and the supplier's education that this customer's match runs, which is worth more than the ₦4,800 every month after.</p><p><b>Thread three — the import deposit allocated (Ch. 5).</b> The Mumbai balance falls due against documents: the invoice books through the match (quantities per the receipts, rate per the PO, the landed voucher having done valuation separately — Procurement 6); the <b>30% advance allocates</b>; the 70% balance schedules per its terms portion and enters next week's run. The unallocated-credits read at month-end shows zero forgotten deposits — the mirror black hole, empty.</p><p><b>Thread four — WHT withheld and remitted (Ch. 6).</b> The clearing agent's service invoice — ₦400,000, <b>Individual type</b> (Procurement 1's onboarding fact now computing money) — runs the agent cycle: payment entry allocates the full ₦400,000, receives ₦380,000 to the agent, and posts ₦20,000 to the <b>WHT payable</b>. Month-end: the WHT payable reconciles to its deduction entries, the remittance files against the agent's TIN on schedule, and the evidence issues to the agent's accounts contact — who thanks you, because most of their customers make them chase it.</p><p><b>Thread five — the run (Ch. 3-4).</b> Friday's run: due-this-week from the ageing (the chiller's Net-15 invoice among them — matched at award-exact ₦1.395m, Vendor A's details from the verified master), one early-payment discount captured where the arithmetic cleared the bar, the corrected backup-distributor invoice, the Mumbai balance. Prepared by the accountant, released by the MD, references recorded same-day, advices sent naming the allocations. Mid-week, an <i>urgent</i> email arrives from a lookalike domain asking to redirect a payment: it dies against the run's rule — masters, not messages — exactly as its predecessor died at onboarding (Procurement 1's case), and for the same reason: the control is boring, and it held.</p><p><b>Month-end (Ch. 7).</b> Output and input VAT accounts both reconcile to their registers; the netting computes the remittance; the filing takes the hour it should. The month's ledger of spend: every naira out matched to commitment and possession, every deduction remitted and evidenced, every advance allocated, every credit papered — and not one number living in anyone's memory. The mirror of Montaigne's zero, achieved from the paying chair.</p>"
-   },
-   {
-    "title": "Chapter 10 — Support patterns & the seventh law",
-    "est": "15",
-    "html": "<p>The cash-out module's scar tissue — the most expensive tickets on the buying side, because every disease here is money leaving wrongly or obligations compounding quietly. Symptom → disease → fix.</p><p><b>Pattern 1 — invoices booked and paid with no receipt behind them.</b> Disease: the match bypassed or never armed (Ch. 2) — paying for possession the firm cannot show; the shape duplicate billing and supplier fraud arrive in. Fix: the match as structural routine — invoices entered from receipts, unmatched claims quarantined until their receipt exists or the claim dies; and the standalone-invoice policy list enforced.</p><p><b>Pattern 2 — \"the match kept blocking things, so we relaxed it during the rush.\"</b> Disease: control eroded under pressure (Ch. 2) — and the overcharges that arrived during the relaxation are now archaeology. Fix: tolerances tuned (a proportionate match does not block honest trade), the urgent path SPEEDING the control instead of skipping it, and the erosion treated as governance — the same escalation as every evidence-destruction pattern in both tracks.</p><p><b>Pattern 3 — withheld-but-unremitted WHT accumulating.</b> Disease: the black hole with teeth (Ch. 6) — deductions taken, remittance drifting, penalties compounding on money that was never yours. Fix: the monthly reconcile-and-remit rhythm with a named owner; the arrears regularised with the accountant leading; and the standing truth taught — WHT payable is FIRS's money in your custody, the one liability that never benefits from aging.</p><p><b>Pattern 4 — input VAT lost.</b> Disease: the silent donation (Ch. 7) — wrong templates, VAT buried in expense lines, invoices from unverified suppliers, claims booked in wrong months. Fix: templates defaulted from masters, the monthly input-account-to-register reconcile, supplier VAT registration in the onboarding gate — and the recovered remittance reduction as the fix's own business case.</p><p><b>Pattern 5 — the double payment.</b> Disease: the mirror black hole (Ch. 5) — the advance never allocated, the invoice paid fresh, the deposit forgotten. Fix: the monthly unallocated read both directions, allocation at invoice-booking as routine, and the statement reconciliation as backstop; the recovery call to the supplier is honest and usually successful — theirs would be too.</p><p><b>Pattern 6 — payments outside the run to urgent instructions.</b> Disease: the control skipped at exactly the moment it existed for (Ch. 4) — the lookalike email, the changed account details, the too-urgent-to-verify wire. Fix — usually after a painful recovery attempt — is absolute: masters not messages, verification out-of-band, the urgent path through the same gates faster, no exceptions BECAUSE of urgency. The fraud's entire design is the exception.</p><p><b>Pattern 7 — supplier credits living in memory.</b> Disease: the verbal-credit ledger (Ch. 8; Procurement 6's Pattern 5 at the money layer) — returns netted by handshake, promises aging, statements disagreeing by amounts nobody can reconstruct. Fix: the pairing enforced (return receipt + debit note, always), credits as first-class balances consumed by application or refund, and the monthly statement reconciliation where your debit notes and their credit notes meet in writing.</p><p><b>The seventh law — and the track nearly complete.</b> Procurement 1: purchase documents are downstream of supplier masters. Procurement 2: cost truth begins at the item. Procurement 3: the request layer separates need from commitment. Procurement 4: sourcing is a decision record. Procurement 5: the PO is the single source of inbound truth. Procurement 6: the receiving gate is where the world enters the system. This module: <b>the purchase ledger is the spend truth — pay only what was ordered, received, and claimed in agreement; the three-way match is the firm's cheapest auditor, and it only works because every upstream module kept its leg honest.</b> One module remains: the advanced layer that makes all of it structure.</p>"
+    "title": "Chapter 10 — Common errors and the module rule",
+    "est": "11",
+    "html": "<p>The errors that recur in purchase invoicing and payables, each with its correction and prevention.</p><p><b>Error 1 — paying without the match.</b> Symptom: invoices posted and paid on arrival; claims above orders and receipts absorbed; the bank balance trusting supplier paperwork. Correction: the match imposed on open items; historic exposure sampled. Prevention: the match as the posting gate, and the exception queue for everything that fails it.</p><p><b>Error 2 — editing documents to force the match.</b> Symptom: order rates adjusted to invoice claims, receipt quantities nudged to billed figures; the match comparing documents to themselves; the control formally present and actually gone. Correction: the documents restored to their sources; the differences reopened as exceptions. Prevention: the standing rule — the difference is the finding; it routes, it is never absorbed.</p><p><b>Error 3 — the pre-corrected entry.</b> Symptom: invoices entered at what they should have claimed; the record of the supplier's actual claim destroyed; disputes unarguable. Correction: entries restated as claimed with exceptions attached. Prevention: enter as claimed, match, then route.</p><p><b>Error 4 — withholding on the invoice.</b> Symptom: claims entered net of withholding; the statutory record and the supplier's ledger both misstated; remittance arithmetic wrong. Correction: full-claim restatement; withholding relocated to payment. Prevention: the location rule, per modules 5-6.</p><p><b>Error 5 — the silent claim concession.</b> Symptom: claims closed without instruments; credit notes promised and never chased; rejected stock disposed without documents; the payable overstating and the money conceded. Correction: the claims file reconciled to the ledger; open items rechased. Prevention: closure requires the pair — the claim's file and the ledger's instrument.</p><p><b>Error 6 — the drifting run.</b> Symptom: payments early by habit or late by neglect; working capital surrendered or the relationship spent; allocations skipped under time pressure. Correction: the posture restated; unallocated items worked. Prevention: the weekly run on terms with allocation as part of the entry, and the aging read's causes routed.</p><p><b>Review list.</b> Before the quiz, confirm you can: complete the invoice walk with exact supplier numbering and computed due dates; run the three comparisons and state each standard; route the exception taxonomy through its lanes with the closes-with-a-document rule; state posting's effects on the payable, received-not-billed, and input VAT; operate the run on terms with withholding at payment and the verified-account check; clear claims through the three instruments with the reconciliation; and run the six payables reads.</p><p><b>Module rule 7: the supplier is paid what the match supports — the claim entered as made, compared to the order's agreed rates and the receipt's accepted counts, its differences worked as documented exceptions that close with instruments, posted to a ledger that states the whole relationship, and paid on terms to verified accounts through the weekly run.</b> Module 8 covers supplier scorecards, buying-side agreements, and the procurement calendar.</p>"
    }
   ],
   "questions": [
    {
-    "q": "The Purchase Invoice's submission books:",
+    "q": "The payable exists from:",
     "opts": [
-     "The supplier payable, the expense/stock value, and the input VAT asset",
-     "The receipt",
-     "The payment",
-     "The PO"
-    ],
-    "ans": 0,
-    "why": "The liability event — nothing before it owes money.",
-    "src": "Ch1"
-   },
-   {
-    "q": "An invoice entered FROM the receipt is:",
-    "opts": [
-     "Slower",
-     "Born pre-matched to possession — half the three-way match by construction",
-     "Optional",
-     "Unmatched"
-    ],
-    "ans": 1,
-    "why": "The standard route in goods trade.",
-    "src": "Ch1"
-   },
-   {
-    "q": "A standalone purchase invoice in goods trade is:",
-    "opts": [
-     "Normal",
-     "Faster",
-     "Suspicious — it matches nothing, closes nothing, and is the shape fraud arrives in",
-     "Required"
-    ],
-    "ans": 2,
-    "why": "Standalone categories are a written policy list.",
-    "src": "Ch1"
-   },
-   {
-    "q": "Update Stock on an invoice after a receipt already moved the goods produces:",
-    "opts": [
-     "Nothing",
-     "A blocked invoice",
-     "A discount",
-     "Stock entering twice — phantom surplus poisoning the stocktake"
-    ],
-    "ans": 3,
-    "why": "Where Update Stock is on, there is no receipt in that flow.",
-    "src": "Ch1"
-   },
-   {
-    "q": "The three-way match holds the claim against:",
-    "opts": [
-     "The PO (committed) and the receipt (possessed) — documents your own firm wrote",
-     "Two supplier documents",
-     "The budget",
-     "Last month's invoice"
-    ],
-    "ans": 0,
-    "why": "Agreement books; disagreement stops and names its variance.",
-    "src": "Ch2"
-   },
-   {
-    "q": "Invoiced 180, received 177 (3 damaged, returned). The honest booking:",
-    "opts": [
-     "180, the paper says so",
-     "The received quantity — or 180 WITH the 3-carton debit note standing against it",
-     "170 as compromise",
-     "Nothing until Emzor explains"
-    ],
-    "ans": 1,
-    "why": "The count governs; the pair nets true.",
-    "src": "Ch2, Ch9"
-   },
-   {
-    "q": "An invoice at ₦9,850 against a committed ₦9,600 resolves by:",
-    "opts": [
-     "Amending the PO to 9,850",
-     "Paying and noting it",
-     "Dispute against the standing rate, or documented renegotiation encoded first",
-     "Splitting the difference"
-    ],
-    "ans": 2,
-    "why": "The standard never bends to the deviation — the match at its point of enforcement.",
-    "src": "Ch2"
-   },
-   {
-    "q": "An invoice with no receipt behind it means:",
-    "opts": [
-     "Book it anyway",
-     "A system error",
-     "The supplier is fast",
-     "Either the gate was skipped (fix the record) or the goods never came (the claim is air)"
-    ],
-    "ans": 3,
-    "why": "Paying for possession you cannot show.",
-    "src": "Ch2, Ch10"
-   },
-   {
-    "q": "Match tolerances exist because:",
-    "opts": [
-     "The match is a control, not a harassment engine — kobo variances pass, policy sets the line",
-     "Controls should be lax",
-     "Suppliers demand them",
-     "Rounding is illegal"
-    ],
-    "ans": 0,
-    "why": "Above tolerance, the stop is the feature.",
-    "src": "Ch2"
-   },
-   {
-    "q": "The stopped disputed invoice's economics:",
-    "opts": [
-     "Cost more than paying",
-     "A disputed invoice costs an email; a recovered overpayment costs a campaign",
-     "Are neutral",
-     "Depend on the supplier"
-    ],
-    "ans": 1,
-    "why": "The conversation before the money moves.",
-    "src": "Ch2"
-   },
-   {
-    "q": "Payable due dates are:",
-    "opts": [
-     "Typed at entry",
-     "The supplier's choice",
-     "Computed from terms inherited master → PO → invoice",
-     "Month-end always"
-    ],
-    "ans": 2,
-    "why": "The payables posture is executable only on computed truth.",
-    "src": "Ch3"
-   },
-   {
-    "q": "A retention YOU hold on a contractor's invoice is modelled as:",
-    "opts": [
-     "A write-off",
-     "A discount",
-     "A separate supplier",
-     "The terms template's last portion, aging as not-yet-due"
-    ],
-    "ans": 3,
-    "why": "The mirror of the retention you charged Montaigne.",
-    "src": "Ch3"
-   },
-   {
-    "q": "A 2%-for-10-days early-payment discount is:",
-    "opts": [
-     "Evaluated — the annualised return against the firm's cost of cash, then executed through the run",
-     "Always taken",
-     "Always refused",
-     "A trick"
-    ],
-    "ans": 0,
-    "why": "Accepted in spirit and missed in practice is the worst of both.",
-    "src": "Ch3"
-   },
-   {
-    "q": "Overdue entries in AP are handled by:",
-    "opts": [
-     "Waiting for the call",
-     "Calling BEFORE the supplier calls, with a date — the deliberate-loan discipline",
-     "Silence",
-     "Disputing them"
-    ],
-    "ans": 1,
-    "why": "AP's right columns are your reputation aging in public.",
-    "src": "Ch3"
-   },
-   {
-    "q": "One ₦12m transfer settling four invoices is recorded as:",
-    "opts": [
-     "Four entries",
-     "A journal",
-     "One Payment Entry with four allocation rows — entries mirror bank lines",
-     "Two entries"
-    ],
-    "ans": 2,
-    "why": "The reconciliation law, read from the paying side.",
-    "src": "Ch4"
-   },
-   {
-    "q": "The remittance advice you send suppliers:",
-    "opts": [
-     "Is optional courtesy",
-     "Replaces the payment",
-     "Reveals your bank balance",
-     "Keeps two firms' ledgers allocating identically — their confusion is your reconciliation debt"
-    ],
-    "ans": 3,
-    "why": "The mirror of the advice you demanded from customers.",
-    "src": "Ch4"
-   },
-   {
-    "q": "The payment run pays bank details from:",
-    "opts": [
-     "The MASTER's verified fields — masters, not messages",
-     "The invoice's footer",
-     "The latest email",
-     "Memory"
-    ],
-    "ans": 0,
-    "why": "The point where the payment-fraud control actually executes.",
-    "src": "Ch4"
-   },
-   {
-    "q": "Run approval requires:",
-    "opts": [
-     "The preparer's confidence",
-     "Review and release by someone other than the preparer — two pairs of eyes",
-     "Board minutes",
-     "Nothing under ₦1m"
-    ],
-    "ans": 1,
-    "why": "The difference between attempted and successful fraud.",
-    "src": "Ch4"
-   },
-   {
-    "q": "A genuinely urgent payment:",
-    "opts": [
-     "Skips the checks",
-     "Waits for Friday",
-     "Runs the SAME verification and approval at higher speed — an urgent path, not an exception",
-     "Goes by cash"
-    ],
-    "ans": 2,
-    "why": "The email designed as too-urgent-to-verify has told you what it is.",
-    "src": "Ch4, Ch10"
-   },
-   {
-    "q": "A supplier advance is recorded as:",
-    "opts": [
-     "An expense",
-     "Nothing until the invoice",
-     "A receipt",
-     "A Payment Entry against the supplier with no invoice — your unallocated credit, waiting"
-    ],
-    "ans": 3,
-    "why": "Visible, exposure-reducing, from the run's controls.",
-    "src": "Ch5"
-   },
-   {
-    "q": "The payable-side black hole is:",
-    "opts": [
-     "Advances PAID and forgotten — the invoice settled fresh, the firm paying twice",
-     "Advances received unallocated",
-     "Late invoices",
-     "FX losses"
-    ],
-    "ans": 0,
-    "why": "The monthly unallocated read now runs both directions.",
-    "src": "Ch5, Ch10"
-   },
-   {
-    "q": "An advance never substitutes for:",
-    "opts": [
-     "The receipt",
-     "The match — the claim still proves itself against commitment and possession",
-     "Terms",
-     "The run"
-    ],
-    "ans": 1,
-    "why": "Money forward does not mean scrutiny waived.",
-    "src": "Ch5"
-   },
-   {
-    "q": "A dead deal's deposit is:",
-    "opts": [
-     "Left as future credit informally",
-     "Written off quietly",
-     "Refund-claimed — a payment in consuming the credit, chased like the receivable it has become",
-     "Forgotten"
-    ],
-    "ans": 2,
-    "why": "The verbal sort-it-out is the handshake disease in finance costume.",
-    "src": "Ch5"
-   },
-   {
-    "q": "As withholding agent on a ₦1m service invoice at 5%, your entry:",
-    "opts": [
-     "Pays ₦1m and hopes",
-     "Withholds ₦100k",
-     "Pays ₦950k and leaves ₦50k outstanding",
-     "Allocates the full ₦1m, pays ₦950k, posts ₦50k to the WHT PAYABLE liability"
-    ],
-    "ans": 3,
-    "why": "The mirror of the receivable: same instrument, opposite ledger side.",
-    "src": "Ch6"
-   },
-   {
-    "q": "Supplier Type drives WHT because:",
-    "opts": [
-     "Companies and individuals withhold at different rates — the type IS the rate class",
-     "It is cosmetic",
-     "Only companies are withheld",
-     "The TIN sets the rate"
-    ],
-    "ans": 0,
-    "why": "Procurement 1's tax fact, now computing money.",
-    "src": "Ch6"
-   },
-   {
-    "q": "Withheld-but-unremitted WHT is:",
-    "opts": [
-     "A cash buffer",
-     "The worst liability — not your money, penalties compounding, the finding that turns FIRS hostile",
-     "Interest-free float",
-     "Normal practice"
-    ],
-    "ans": 1,
-    "why": "The one liability that never benefits from aging.",
-    "src": "Ch6, Ch10"
-   },
-   {
-    "q": "Failing to withhold where required vs withholding where not:",
-    "opts": [
-     "Only the first costs",
-     "Only the second costs",
-     "Both cost — your firm liable for the undeducted tax; the supplier short-paid and disputing",
-     "Neither matters"
-    ],
-    "ans": 2,
-    "why": "Two written lists, the accountant's sign-off, encoded once.",
-    "src": "Ch6"
-   },
-   {
-    "q": "Input VAT is:",
-    "opts": [
-     "A cost",
-     "Optional",
-     "Withheld tax",
-     "A claimable asset netting against output in the monthly filing — hygiene is money recovery"
-    ],
-    "ans": 3,
-    "why": "Unclaimable input VAT is a donation, made monthly, in silence.",
-    "src": "Ch7"
-   },
-   {
-    "q": "The claim stands on:",
-    "opts": [
-     "A proper tax invoice from a VAT-registered supplier — registration verified at onboarding",
-     "Any invoice",
-     "The PO",
+     "Posting — the claim is recognised in the books before it is paid",
+     "Payment",
+     "The order",
      "The receipt"
     ],
     "ans": 0,
-    "why": "The paper is the claim.",
-    "src": "Ch7"
+    "why": "The invoice recognises the claim.",
+    "src": "Ch1"
    },
    {
-    "q": "A ₦100 invoice with claimable ₦7.5 input vs a ₦99 invoice with none:",
+    "q": "A claim is recognised only after:",
     "opts": [
-     "The ₦99 wins",
-     "The ₦100 wins — unregistered suppliers are quietly pricier than their invoices suggest",
-     "They tie",
-     "VAT is irrelevant"
+     "The supplier calls",
+     "Comparison to what was ordered and what was received — the three-way match",
+     "Month-end",
+     "Payment"
     ],
     "ans": 1,
-    "why": "Arithmetic worth teaching every buyer, and a comparison-discipline line.",
-    "src": "Ch7"
+    "why": "The buying side's principal money control.",
+    "src": "Ch1"
    },
    {
-    "q": "The pre-filing routine reconciles:",
+    "q": "Paying without the match means:",
     "opts": [
-     "Output only",
-     "The bank only",
-     "BOTH accounts to their registers — every naira traceable before the 21st",
+     "Efficiency",
+     "Better terms",
+     "Trusting every supplier's paperwork with the bank balance",
+     "Speed"
+    ],
+    "ans": 2,
+    "why": "Why the sequence protects the money.",
+    "src": "Ch1"
+   },
+   {
+    "q": "The supplier's invoice number is entered:",
+    "opts": [
+     "Approximately",
+     "As a new number",
+     "Optionally",
+     "Exactly as printed — the statutory identity the duplicate check and statement reconciliation run on"
+    ],
+    "ans": 3,
+    "why": "The field's accuracy makes the checks work.",
+    "src": "Ch2"
+   },
+   {
+    "q": "The due date:",
+    "opts": [
+     "Computes from the payment terms — the run selects by it and the forecast profiles by it",
+     "Is typed by feel",
+     "Is month-end",
+     "Is the posting date"
+    ],
+    "ans": 0,
+    "why": "Machinery, not a note.",
+    "src": "Ch2"
+   },
+   {
+    "q": "An invoice claiming 180 is entered:",
+    "opts": [
+     "At 177",
+     "Claiming 180 — the exception lane handles the difference; pre-correcting destroys the claim record",
+     "At zero",
+     "At the average"
+    ],
+    "ans": 1,
+    "why": "Enter as claimed, match, then route.",
+    "src": "Ch2"
+   },
+   {
+    "q": "An invoice that cannot yet post:",
+    "opts": [
+     "Waits in a drawer",
+     "Is deleted",
+     "Holds explicitly on the queue with its reason, visible to the reads",
+     "Posts anyway"
+    ],
+    "ans": 2,
+    "why": "The honest state between arrival and resolution.",
+    "src": "Ch2"
+   },
+   {
+    "q": "The quantity standard is:",
+    "opts": [
+     "Billed equals ordered",
+     "Any figure",
+     "Billed is flexible",
+     "Billed does not exceed accepted — rejected quantities resolve through the claim's lane, not through paying and hoping"
+    ],
+    "ans": 3,
+    "why": "The business pays for goods it holds as sound stock.",
+    "src": "Ch3"
+   },
+   {
+    "q": "A claim above the order's rate is:",
+    "opts": [
+     "An exception whatever the cover letter says — price conversations happen in the arrangement's governance",
+     "Paid with a note",
+     "A new agreement",
+     "Rounding"
+    ],
+    "ans": 0,
+    "why": "The rate match.",
+    "src": "Ch3"
+   },
+   {
+    "q": "The first check on a rate variance is:",
+    "opts": [
+     "The supplier's honesty",
+     "The pairing read — the carton rate against a unit line is the classic false variance",
+     "The bank",
+     "The calendar"
+    ],
+    "ans": 1,
+    "why": "Quantity-unit-rate together on both documents.",
+    "src": "Ch3"
+   },
+   {
+    "q": "The match is mechanical because:",
+    "opts": [
+     "Software is smart",
+     "Invoices are simple",
+     "The upstream documents were kept honest — sourced rates, physical counts, filed evidence",
+     "Suppliers are careful"
+    ],
+    "ans": 2,
+    "why": "Exceptions are findings with evidence.",
+    "src": "Ch3"
+   },
+   {
+    "q": "An invoice claiming goods no receipt shows:",
+    "opts": [
+     "Posts",
+     "Is ignored",
+     "Pays half",
+     "Holds until the goods arrive, the receipt posts, or the claim withdraws"
+    ],
+    "ans": 3,
+    "why": "The never-received case.",
+    "src": "Ch4"
+   },
+   {
+    "q": "A rate exception with a dated arrangement amendment:",
+    "opts": [
+     "Posts at the amended rate with the order-governance gap noted",
+     "Is declined",
+     "Escalates always",
+     "Splits"
+    ],
+    "ans": 0,
+    "why": "Checked against the arrangement first.",
+    "src": "Ch4"
+   },
+   {
+    "q": "An exception closes with:",
+    "opts": [
+     "A shrug",
+     "A document — the corrected invoice, credit note, amendment, or withdrawal",
+     "Time",
+     "A call"
+    ],
+    "ans": 1,
+    "why": "The queue's rule.",
+    "src": "Ch4"
+   },
+   {
+    "q": "Recurring over-claims by one supplier are:",
+    "opts": [
+     "Forgotten",
+     "Normal",
+     "A measured fact filed with the scorecard inputs for the review",
+     "Paid"
+    ],
+    "ans": 2,
+    "why": "The quarterly exception pattern.",
+    "src": "Ch4"
+   },
+   {
+    "q": "Posting a stock invoice clears:",
+    "opts": [
+     "The order",
+     "The stock",
+     "The claim",
+     "The receipt's received-not-billed against the payable — the two-step completing"
+    ],
+    "ans": 3,
+    "why": "Goods-held-awaiting-claim converts to stated debt.",
+    "src": "Ch5"
+   },
+   {
+    "q": "The 30-day term operating correctly is:",
+    "opts": [
+     "Thirty days of supplier financing, used fully and honoured precisely",
+     "Paid at 60",
+     "Paid at 5",
+     "Ignored"
+    ],
+    "ans": 0,
+    "why": "The due-date machinery.",
+    "src": "Ch5"
+   },
+   {
+    "q": "The payment posture is:",
+    "opts": [
+     "Early always",
+     "On terms, neither early nor late — early surrenders working capital; late spends the relationship",
+     "Late always",
+     "Random"
+    ],
+    "ans": 1,
+    "why": "Exceptions are recorded decisions, not habits.",
+    "src": "Ch6"
+   },
+   {
+    "q": "Payment Entries allocate:",
+    "opts": [
+     "To the oldest",
+     "To nothing",
+     "Line by line to their invoices — the ledger must state which claims are settled",
+     "To the total"
+    ],
+    "ans": 2,
+    "why": "Unallocated payments age on the read.",
+    "src": "Ch6"
+   },
+   {
+    "q": "Withholding computes:",
+    "opts": [
+     "On the invoice",
+     "Never",
+     "On the order",
+     "At the Payment Entry on the ruled base — the invoice stated the full claim"
+    ],
+    "ans": 3,
+    "why": "The location rule.",
+    "src": "Ch6"
+   },
+   {
+    "q": "Withheld amounts:",
+    "opts": [
+     "Remit to the authority per the calendar with the supplier's evidence issued",
+     "Are income",
+     "Stay forever",
+     "Are discounts"
+    ],
+    "ans": 0,
+    "why": "Unremitted withholding is a statutory liability aging.",
+    "src": "Ch6"
+   },
+   {
+    "q": "A bank-detail change surfacing inside the run window is:",
+    "opts": [
+     "A quick edit",
+     "A stopped payment and a verification — the fraud targets exactly this moment",
+     "Ignored",
+     "Approved by email"
+    ],
+    "ans": 1,
+    "why": "The verified-account rule, every run.",
+    "src": "Ch6"
+   },
+   {
+    "q": "A supplier's credit note enters as:",
+    "opts": [
+     "A discount",
+     "A journal",
+     "The supplier's document against the ledger, referencing the invoice and the claim",
      "Nothing"
     ],
     "ans": 2,
-    "why": "File in an hour; answer queries from printouts.",
+    "why": "The claims-settling instrument.",
     "src": "Ch7"
    },
    {
-    "q": "A debit note is:",
+    "q": "A replacement resolution uses:",
     "opts": [
-     "An edited invoice",
-     "A supplier's document only",
-     "A journal",
-     "A Purchase Invoice with Is Return against the original — payable, value, and input VAT reversed, linked"
+     "A credit note",
+     "A write-off",
+     "A refund",
+     "No money instrument — the replacement receives as its own arrival, cross-referenced, with the drops' arithmetic documented"
     ],
     "ans": 3,
-    "why": "Two documents, permanently married.",
+    "why": "The standing case's lane.",
+    "src": "Ch7"
+   },
+   {
+    "q": "A claim closed without its instrument is:",
+    "opts": [
+     "Money conceded silently — closure requires the claim's file and the ledger's instrument, paired",
+     "Efficient",
+     "Normal",
+     "Fast"
+    ],
+    "ans": 0,
+    "why": "The clearing reconciliation.",
+    "src": "Ch7"
+   },
+   {
+    "q": "Stock at the rejected location with no claim is:",
+    "opts": [
+     "Fine",
+     "An unraised claim — the location's contents reconcile to open claims",
+     "Spare stock",
+     "Written off"
+    ],
+    "ans": 1,
+    "why": "The disposal ties.",
+    "src": "Ch7"
+   },
+   {
+    "q": "Overdue payables are read as:",
+    "opts": [
+     "The supplier's problem",
+     "Normal",
+     "The business's own performance — each line's cause read and routed",
+     "Leverage"
+    ],
+    "ans": 2,
+    "why": "The suppliers keep the scorecard.",
     "src": "Ch8"
    },
    {
-    "q": "Your debit note and the supplier's credit note should:",
+    "q": "The due profile forecasts because:",
     "opts": [
-     "Meet in the monthly statement reconciliation — two firms' paper agreeing",
-     "Never meet",
-     "Cancel the PO",
-     "Be identical documents"
+     "Dates are typed",
+     "It guesses",
+     "Suppliers share plans",
+     "Due dates compute from terms — hand-edited dates forecast nothing"
     ],
-    "ans": 0,
-    "why": "Both were written; both should match.",
-    "src": "Ch8, Ch9"
+    "ans": 3,
+    "why": "Read with the receivables profile.",
+    "src": "Ch8"
    },
    {
-    "q": "In the money month, the fuel-surcharge invoice was:",
+    "q": "The statement reconciliation surfaces:",
     "opts": [
-     "Paid with a sigh",
-     "Stopped by the match, disputed by one email, corrected in two days — ₦4,800 saved and a supplier educated",
-     "Escalated to court",
-     "Amended into the PO"
+     "Missing invoices, unapplied payments, absent credits, and duplicates — monthly rather than at year-end",
+     "Nothing",
+     "Only totals",
+     "Gossip"
+    ],
+    "ans": 0,
+    "why": "The completeness check.",
+    "src": "Ch8"
+   },
+   {
+    "q": "Drop one's invoice claimed:",
+    "opts": [
+     "177 cartons",
+     "180 cartons at ₦9,600 — ₦1,728,000, the full despatch as loaded",
+     "123 cartons",
+     "300 cartons"
     ],
     "ans": 1,
-    "why": "The control's economics, demonstrated.",
+    "why": "Step 1.",
     "src": "Ch9"
    },
    {
-    "q": "This module's law is:",
+    "q": "The match found:",
     "opts": [
-     "Pay fast, sort later",
-     "The supplier is always right",
-     "The purchase ledger is the spend truth — pay only what was ordered, received, and claimed in agreement",
-     "Matching is optional"
+     "A rate error",
+     "A tax error",
+     "The 3-carton quantity difference — the known claim, with the receipt's evidence already on file",
+     "Nothing"
     ],
     "ans": 2,
-    "why": "The match is the firm's cheapest auditor — armed by every upstream module's honesty.",
+    "why": "Step 2.",
+    "src": "Ch9"
+   },
+   {
+    "q": "The exception resolved by:",
+    "opts": [
+     "Paying 180",
+     "Silence",
+     "A write-off",
+     "Emzor's corrected invoice for 177 at ₦1,699,200, cross-referenced, the replacements carrying to drop two"
+    ],
+    "ans": 3,
+    "why": "Step 3.",
+    "src": "Ch9"
+   },
+   {
+    "q": "Drop two completed the order as:",
+    "opts": [
+     "123 cartons — 120 plus the 3 replacements — invoiced at ₦1,180,800; 300 sound cartons and ₦2,880,000 total",
+     "120 cartons",
+     "180 cartons",
+     "3 cartons"
+    ],
+    "ans": 0,
+    "why": "Step 5: the band's arithmetic exact.",
+    "src": "Ch9"
+   },
+   {
+    "q": "Editing documents to force the match leaves:",
+    "opts": [
+     "A stronger control",
+     "The control formally present and actually gone — the match comparing documents to themselves",
+     "Cleaner books",
+     "Nothing"
+    ],
+    "ans": 1,
+    "why": "Error 2.",
+    "src": "Ch10"
+   },
+   {
+    "q": "Module 7's rule is:",
+    "opts": [
+     "Pay on arrival",
+     "Match sometimes",
+     "The supplier is paid what the match supports — entered as claimed, compared to agreed rates and accepted counts, exceptions closing with instruments, posted to a complete ledger, paid on terms to verified accounts",
+     "Edit to agree"
+    ],
+    "ans": 2,
+    "why": "The module rule.",
     "src": "Ch10"
    }
   ]
