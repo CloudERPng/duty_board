@@ -1019,7 +1019,10 @@ function initRooms() {
 		.catch(() => {});
 }
 const api = (method, args) =>
-	fetch("/api/method/duty_board.client_room." + method, {
+	/* A bare name is a client_room endpoint (the overwhelming majority, and
+	   every call site written before v3.212.1). A dotted name is taken as a
+	   full path, so modules beyond client_room are reachable. */
+	fetch("/api/method/" + (method.indexOf(".") >= 0 ? method : "duty_board.client_room." + method), {
 		method: "POST",
 		headers: { "Content-Type": "application/json", "X-Frappe-CSRF-Token": frappe_csrf() },
 		credentials: "same-origin",
@@ -2030,7 +2033,7 @@ function loadAdminTraining() {
 function openCatalogue() {
 	const host = document.getElementById("adminhost");
 	const money = (v) => "₦" + Number(v || 0).toLocaleString();
-	api("academy_catalogue")
+	api("duty_board.academy.academy_catalogue")
 		.then((rows) => {
 			host.innerHTML = `
 				<div class="admwrap">
@@ -2086,7 +2089,7 @@ function requestSeats(track, title, price) {
 		const n = parseInt(document.getElementById("seatn").value, 10) || 0;
 		if (n < 1) return alert("How many seats do you need?");
 		document.getElementById("seatgo").disabled = true;
-		api("academy_request", { track: track, seats: n, note: document.getElementById("seatnote").value || null })
+		api("duty_board.academy.academy_request", { track: track, seats: n, note: document.getElementById("seatnote").value || null })
 			.then((r) => {
 				host.innerHTML = `<div class="admwrap"><div class="catnote ok">
 					Request ${esc(r.order)} received. The proforma is on its way to your inbox and is filed under Documents.
