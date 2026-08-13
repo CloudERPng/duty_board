@@ -474,473 +474,473 @@
  },
  "items_costs": {
   "title": "Procurement 2 — Purchase Items, Costs & UOMs",
-  "desc": "The item master through a buyer's eyes: purchase gates and UOM arithmetic, supplier-scoped buying rates, the three meanings of cost, planning fields and reorder arithmetic, price-trend discipline, and landed-cost thinking for the import lane.",
+  "desc": "Purchase items, units, costs, and planning in ZhiftERP: the buying section on the one register record with Is Purchase Item and the one-record principle; purchase units with physically verified factors, the rate-and-unit pairing rule, and governed pack-size changes; buying price lists with sourced rates and the changes and completeness reads; the three figures called cost — quoted, invoiced, and landed — with their sources, uses, and the margin vocabulary rule; the planning fields — measured lead times, costed safety stock, reorder parameters, and supplier constraints; reading the last purchase rate within its boundaries and the monthly price trend read with the selling-review hand-off; and landed-cost thinking — the consignment worksheet, the landed comparison rule, container arithmetic, and the worksheet-versus-actual reconciliation.",
   "lessons": [
    {
-    "title": "Chapter 1 — The Item master through a buyer's eyes",
-    "est": "15",
-    "html": "<p>Selling 2 walked the item master for sellers; this chapter walks the SAME record for buyers, because one item record serves both sides of trade and the buy-side fields decide whether procurement runs on data or on memory. The frame to carry: the item is one identity with two faces — what we charge lives on the selling face; what it costs us, who supplies it, how long it takes to arrive, and when to reorder live on the face this module owns.</p><ul><li><b>Is Purchase Item</b> — the buy-side gate, the exact mirror of Is Sales Item: ticked, the item can appear on material requests, purchase orders, receipts and purchase invoices; unticked, it is invisible to procurement no matter what stock exists. Items can be both (normal trading stock), purchase-only (consumables, spares, services you buy but never sell), or sales-only (items you make, not buy). The first diagnostic for the-item-is-missing-from-my-PO is this checkbox — and note the symptom distinction that transfers from selling: a gated-out item does not APPEAR; an unpriced item appears at rate 0.</li><li><b>Default Purchase UOM</b> — the unit you BUY in, which is routinely not the unit you count in (Chapter 2's whole subject).</li><li><b>Lead Time Days</b> — how long this item takes from order to arrival. Not decoration: planning arithmetic (Chapter 5) reads it, and an honest lead time on imports (weeks, not days) is the difference between reorder points that work and stockouts with paperwork.</li><li><b>Safety Stock, Reorder Level, Reorder Qty</b> — the replenishment triggers, per warehouse where it matters (Chapter 5).</li><li><b>Last Purchase Rate</b> — maintained by the system from actual purchase documents: what you LAST paid. A rear-view mirror, invaluable for trend reading (Chapter 6) and dangerous when mistaken for an agreed price (Chapter 6 convicts that habit).</li><li><b>Valuation fields</b> — the method by which stock carries cost (Chapter 4's literacy), and the account defaults your accountant confirmed.</li><li><b>Serial/batch flags</b> — decided at creation (Selling 2 taught why); the buy-side consequence is that RECEIVING demands the identities (Buying 6), so a pharma item's batch flag is a procurement obligation before it is a selling one.</li></ul><p><b>The one-record principle.</b> Resist the urge to create purchase-side twins of selling items (PARA-500-BUY next to PARA-500): one physical product is ONE item record wearing both flags, or the stock ledger splits into two half-truths that no report can join. The duplicate disease's item-master edition — third master, same law.</p>"
+    "title": "Chapter 1 — The item's buying side: scope and structure",
+    "est": "11",
+    "html": "<p>This module covers purchase items, units, costs, and planning fields in ZhiftERP. On completing this module you will be able to: complete the item's buying field set on the one register record; operate purchase units of measure with their conversions; maintain buying price lists and supplier rates; distinguish the three figures called cost and use each correctly; complete the planning fields that drive replenishment; read the last purchase rate and the price trend; and compute in landed-cost terms for imported goods.</p><p><b>One record, both sides of trade.</b> The Item is one record serving selling and buying. The Selling track completed the commercial section; this module completes the buying section — how the item is purchased, in what units, from which suppliers, at what agreed rates, with what planning parameters. The one-record principle is restated because the most common structural error on the buying side is its violation: <b>a separate buying item is never created for a product the register already holds.</b> A PARA-500-BUY record beside PARA-500 splits the item's stock, cost history, and planning arithmetic into two half-records, each wrong; the buying section of the existing record is completed instead, through the item gate the Inventory track defined.</p><p><b>What buying reads from the Item.</b></p><p>1. <b>Is Purchase Item</b> — the flag that admits the item to purchasing documents: the buying mirror of the selling flag, and the first check when an item will not appear on a Purchase Order.<br>2. <b>The purchase units</b> — the default purchase unit and the conversion table (Chapter 2): what quantity means on a buying document.<br>3. <b>The rates</b> — through the buying price lists and supplier-specific prices (Chapter 3), plus the system-maintained last purchase rate (Chapter 6).<br>4. <b>The planning fields</b> — lead time, safety stock, reorder levels (Chapter 5): the parameters module 3's demand machinery computes from.<br>5. <b>The valuation tie</b> — what the item truly costs is the valuation question the Inventory track's module 5 owns; this module supplies its inputs (Chapters 4, 7).</p><p><b>Custody.</b> The procurement function maintains the buying section; supplier rates change by the governed update, mirroring the selling side; planning fields change by decision with the replenishment review; and the standing rule: <b>a cost is a defined figure with a source — the quoted rate, the invoiced rate, and the landed valuation are three different numbers, named correctly on every document and decision.</b></p><p><b>Module contents.</b> Chapter 2: purchase units. Chapter 3: buying price lists. Chapter 4: the three cost figures. Chapter 5: the planning fields. Chapter 6: reading purchase prices. Chapter 7: landed-cost thinking. Chapter 8: worked example. Chapter 9: review and the module rule.</p>"
    },
    {
-    "title": "Chapter 2 — Purchase UOMs & the conversion arithmetic",
-    "est": "14",
-    "html": "<p>Nigerian procurement buys in cartons, bales, drums, and pallets — and counts stock in pieces. Selling 2 built the UOM machinery outbound; this chapter runs it INBOUND, where getting it wrong doesn't misprice a quotation — it miscounts the warehouse on arrival day.</p><p><b>The three-unit picture, buy-side.</b> The item's <b>Default UOM</b> remains the stock-keeping unit — what bins and valuations speak (Units, if the warehouse counts pieces; that decision was made once and governs both faces). The <b>Default Purchase UOM</b> is the trade unit purchases default to — Carton-12 for the paracetamol you buy by the dozen-pack. Each purchase document row then carries its UOM and the <b>conversion factor</b> to the stock unit: a PO row of 50 Carton-12 is, and displays as, 600 Units to the stock ledger; the receipt that follows moves 600 Units into the bin while the paperwork talks cartons to the supplier. Same arithmetic as selling, opposite direction of travel — and the same law: <b>every rate and every quantity knows its unit</b>.</p><p><b>Rates ride the UOM.</b> The supplier's price is per THEIR unit: ₦9,600 per Carton-12, not ₦800 typed against a unit row. The classic inbound bug is the mirror of selling's: a per-carton rate on a per-unit row (a PO for 600 priced as if 600 cartons — the approval that should have been ₦480k reading ₦5.76m, or the reverse, an underpriced order the supplier corrects with an invoice surprise). The prevention is the discipline already built: rate, UOM, and conversion factor read together, always.</p><p><b>Receiving is where UOM errors become physical.</b> The order said 50 cartons; the truck holds 50 cartons; the receiving clerk enters… what? If the receipt row is in Cartons with factor 12, entering 50 is correct and 600 Units land in the bin. If someone re-keys it as 600 in a Carton row — or 50 in a Unit row — the bin is wrong by a factor of twelve, and it is wrong at the exact moment the goods physically arrived, which is the hardest moment to argue with later. Buying 6 owns receiving craft; the UOM foundation is laid here: <i>the receipt speaks the PO's units, and the conversion does the counting</i>.</p><p><b>Split-carton reality.</b> Suppliers short-ship: 47 cartons and a loose half-dozen. The honest row drops to the unit that matches physical reality (Selling 5's carton-corner rule, inbound edition): 47 Carton-12 plus 6 Units, two rows, both converting truthfully — never 47.5 cartons the warehouse cannot count.</p><p><b>Purchase UOM vs supplier pack changes.</b> When a manufacturer moves from 12-packs to 10-packs, that is a NEW UOM (Carton-10) with its own factor — used from the change date forward — not an edit to Carton-12's factor, which would silently rewrite the meaning of every historical document that used it. Conversion factors are history's vocabulary; you add words, you do not redefine them.</p>"
+    "title": "Chapter 2 — Purchase units and the conversion arithmetic",
+    "est": "12",
+    "html": "<p>Suppliers sell in cartons, drums, and pallets; stock counts in units. This chapter runs the unit machinery inbound.</p><p><b>1. The Default Purchase UOM.</b> On the Item's purchasing section: the unit buying documents pre-fill with — set to how the item is normally bought (the carton for the standing pharmaceutical case), while stock continues to count in the stock unit. Any converted unit can be selected per document row; the default is the normal case, not a restriction.</p><p><b>2. The conversion table, inbound.</b> The same table the Selling track verified (Carton-12 = 12 units) serves buying, and the same rules apply with the inbound consequences stated:</p><p>1. <b>Factors come from the physical product, verified at the register.</b> On the inbound side, the supplier's carton contents are counted at first receipt and at any pack-size change — the supplier's catalogue is the claim; the count is the verification.<br>2. <b>A wrong factor mis-posts every receipt.</b> The receipt entered in cartons converts to stock units by the factor: a factor of 12 where the physical carton holds 10 overstates stock by a fifth on every receipt and understates unit cost by the same proportion — both errors silent until a count or a margin review surfaces them.<br>3. <b>The rate-and-unit pairing rule.</b> A rate belongs to a unit: ₦9,600 per carton and ₦800 per unit are the same price stated twice, and every document row is read as quantity-unit-rate together. The receiving discipline (module 6) names this pairing as its first check, because the carton-rate-entered-on-a-unit-line receipt is the classic inbound costing error — the Inventory track's remediation cases include exactly this pattern.</p><p><b>3. Pack-size changes.</b> A supplier changing carton contents is a governed, dated change: the factor updates, the carton-denominated rates update in the same decision (the pairing rule applied to maintenance), and open Purchase Orders in the old pack size are reviewed — an order for 100 old cartons received against new cartons mis-counts by the pack difference unless the order is amended first.</p><p><b>4. The purchase-unit read — quarterly.</b> Riding the item lifecycle reads: factors sampled against physical cartons for the top-purchased items; rate-unit pairings sampled on the quarter's receipts; items bought in units their table does not carry corrected by adding the decided unit. The read shares its calendar with the selling-side conversion read; one register, both directions confirmed.</p>"
    },
    {
-    "title": "Chapter 3 — Buying price lists & supplier rates",
-    "est": "14",
-    "html": "<p>Selling 2 taught price lists as the architecture of who pays what; the buying side holds the mirror: <b>who charges you what</b>, encoded so documents fetch agreed rates instead of remembered ones.</p><p><b>The mechanics, mirrored.</b> A price list flagged <b>Buying</b> holds purchase rates; the Selling/Buying checkboxes on the list say which side it feeds, and a consultant never confuses them — the checkbox says. Rates live as <b>Item Price</b> atoms exactly as before: one item + one buying list + one rate, in the list's single currency, optionally validity-dated — and, the buy-side power, <b>scopable to a supplier</b>: the same item carrying ₦9,600/carton from Emzor and ₦9,850/carton from the backup distributor as two supplier-scoped records, each fetched when its supplier's document asks. Agreed rates per supplier are thereby STRUCTURAL — the negotiation's output stored where every PO reads it.</p><p><b>The defaulting chain, inbound.</b> The purchase document's price list lands from the supplier's default buying list (Buying 1, Chapter 4's chain), else the global buying default in Buying Settings; each row's rate looks up item + list (+ supplier scope, + UOM coherence, + validity date). Recite it cold, because the rate-0 clinic transfers verbatim: <i>a purchase row at 0.00 means the list asked had no row for the item</i> — not an error, an honest empty answer — and the diagnostic walk is the same four checks (right list? record exists? right UOM's rate? validity window covers today?).</p><p><b>Agreed rate vs invoice rate.</b> The buying list holds what was AGREED; the purchase invoice will eventually say what was CHARGED. Buying 7's three-way match is where disagreement surfaces formally, but the master-data posture starts here: when a supplier's new price is accepted, the Item Price is updated through the owned workflow — so drift between the list and reality is a signal (the supplier moved and nobody encoded it; or the invoice is wrong and the list is your evidence), never just noise. A firm whose buying lists are current negotiates from records; a firm whose lists fossilised negotiates from the supplier's memory.</p><p><b>Bulk maintenance, mirrored.</b> Quarter-start cost moves hit hundreds of purchase rates; the workflow is the same export → edit → re-import in update mode, with the same ownership discipline — one door, one owner, one trail. FX-driven repricing of import-side lists (the USD list's naira consequences) is Chapter 7's thread.</p><p><b>What buying lists are NOT.</b> Not a cost-accounting system (valuation carries cost — Chapter 4), not a substitute for RFQ comparison on new sourcing (Buying 4 compares live quotes; the list stores the WINNER), and not per-PO scratch space — the rate on a document may be negotiated down in the moment exactly as selling's Rate vs Price-List-Rate pair allowed, visible and reportable, while the list stands as reference.</p>"
+    "title": "Chapter 3 — Buying price lists and supplier rates",
+    "est": "12",
+    "html": "<p>The buying side encodes who charges what, so documents fetch agreed rates instead of remembered ones. This chapter is the architecture.</p><p><b>1. The buying Price List.</b> Open Price List &gt; New with the Buying flag: the named context for purchase rates, in its currency. The standing architecture mirrors the selling side's restraint:</p><p>1. <b>The standard buying list</b> — the default naira context most domestic purchasing resolves to.<br>2. <b>Currency lists where suppliers bill in other currencies</b> — the US-dollar list the Indian manufacturer's rates live on, per module 1's currency structure.<br>3. <b>Additional lists only by decision</b> — the same anti-proliferation rule as selling: every list is a rate set to maintain.</p><p><b>2. Item Prices, buying.</b> One row per item per list (with UOM and validity where used): the agreed rate with the supplier — <b>the negotiated figure from module 4's quotation cycle or module 8's arrangements, entered by the governed update with its source recorded.</b> The rate on the list is a decision with a paper trail: the quotation, the arrangement, or the negotiation file it came from.</p><p><b>3. Supplier-specific rates.</b> Where the site maintains rates per supplier (the supplier's own quoted prices as distinct from a general buying list), the price machinery resolves the supplier's rate onto the supplier's documents. The maintenance rule is unchanged: rates enter from documents (the supplier's quotation or price circular, filed), by the governed update, and the price changes read reconciles the month's changes to their sources.</p><p><b>4. What the buying lists are for.</b> Their operational function, stated:</p><p>1. <b>Pre-fill</b> — the Purchase Order draws the agreed rate; the preparer verifies rather than recalls.<br>2. <b>Variance detection</b> — the invoice-versus-order rate check (module 7's matching) has a reference because the order had one.<br>3. <b>Negotiation memory</b> — the list states the current agreement; the update files state its history; the module 4 comparison worksheets state the alternatives considered. A price conversation with a supplier is conducted from these records.</p><p><b>5. The buying price reads — monthly.</b> The changes read: every buying Item Price change against its source document, per the fields-move-by-decision pattern. The completeness read: actively purchased items without a current rate on their supplier's context — the gap that forces typed rates on orders, which is the door this architecture closes. Both worked to zero with the update cycle.</p>"
    },
    {
-    "title": "Chapter 4 — Cost, valuation & what a thing truly costs",
-    "est": "14",
-    "html": "<p>Three different numbers all get called <i>cost</i>, and a procurement professional keeps them distinct, because each answers a different question and confusing them misprices decisions.</p><p><b>Number one: the purchase rate.</b> What the supplier charges per unit — the buying list's agreed figure, the PO's negotiated figure. It is the PRICE of buying, not yet the cost of owning.</p><p><b>Number two: the landed cost.</b> What it took to get the unit onto your shelf: purchase rate PLUS freight, clearing, duty, insurance, handling. For local purchases the gap is small; for imports it is the whole story — a $10 unit at the factory can be a ₦25,000 unit on the Lagos shelf once the container's costs spread across its contents. Chapter 7 frames the thinking; Buying 6 carries the mechanics of adding these charges to received stock. The reflex to build now: <b>for imports, the invoice price is an ingredient, not the answer</b>.</p><p><b>Number three: the valuation rate.</b> What the stock ledger carries the unit at — the number that flows to cost-of-goods when Selling's documents ship it, and the number margin reports subtract. It derives from actual receipts (at their landed costs) under the company's <b>valuation method</b>: the working literacy is one paragraph — <i>FIFO</i> consumes cost in arrival order (old stock's cost leaves first), <i>Moving Average</i> blends each receipt into a running average — the method is an accounting-policy choice made with the accountant, applied consistently, and a consultant's job is knowing which is in force and what it implies for how margins move when purchase prices move, not re-litigating it per item.</p><p><b>Why this hygiene is a SELLING feature too.</b> Selling 8's below-cost guard (Validate Selling Price Against Purchase Rate) is only as good as the purchase-side truth beneath it: garbage purchase rates make the floor a random number generator — the exact caveat that module stated, whose fix lives HERE. And your team's remediation history is the cautionary tale at scale: opening stock keyed at selling prices, receipts at guessed rates, and valuations drifting from reality produce the multi-warehouse corrections that consume months. Cost truth is cheap at entry and ruinous to reconstruct.</p><p><b>The professional's habit.</b> When anyone says <i>cost</i>, ask which one: the supplier's price (negotiate it), the landed figure (manage it), or the valuation (trust it, because the first two were recorded honestly). Reports that mix them — margin computed against purchase rate while valuation says otherwise, or import viability judged on factory price — are the analytical bugs this chapter exists to prevent.</p>"
-   },
-   {
-    "title": "Chapter 5 — Lead times, reorder points & the planning fields",
-    "est": "14",
-    "html": "<p>Procurement's deepest purpose is that the shelf never surprises anyone. The item master carries four planning fields that, filled honestly, let replenishment run as arithmetic — and, left blank, guarantee that buying stays a panic-driven art.</p><p><b>Lead Time Days — the honest number.</b> Order-to-arrival, for THIS item from its usual source: 3 days from the Lagos distributor, 45-60 from the Mumbai factory through clearing. The field wants the honest planning figure including the boring parts (approval time, the clearing queue), because everything downstream multiplies by it. The classic dishonesty is optimism — the 30-day lead time that is really 50 — which converts every reorder into a three-week stockout with perfect paperwork.</p><p><b>Reorder Level — the trigger.</b> The stock quantity at which replenishment must START for arrival before exhaustion. The arithmetic that sets it: expected consumption over the lead time, plus the safety margin. An item selling 20 units/day with a 10-day lead needs the trigger around 200 plus safety — pulled lower, you stock out during the wait; parked absurdly high, you warehouse cash. It can be set <b>per warehouse</b>, because the Ikeja store and the Ibadan store consume differently.</p><p><b>Reorder Qty — the amount.</b> How much to order when triggered: the batch that balances carton economics, supplier minimums, storage, and cash. Often the supplier's economic pack (whole pallets), sometimes the month's cover — a commercial choice the field records so the system can propose it.</p><p><b>Safety Stock — the buffer.</b> The floor held against variability: demand spikes, supplier slips, clearing delays. Bigger for erratic-demand and long-lead items; near zero for stable local lines. Safety stock is insurance, and like insurance it is priced — the premium is carrying cost, and the claim it pays is the sale not lost.</p><p><b>What the fields DO.</b> With levels set, the system can raise <b>Material Requests automatically</b> when projected stock crosses the trigger — the auto-replenishment machinery Buying 3 owns. The projected-quantity arithmetic you already know from Selling 4 (actual minus reserved plus incoming) is exactly what the trigger watches: incoming purchase orders count toward coverage, reserved sales count against it, so the whole trading position feeds one honest number per item per warehouse.</p><p><b>The maintenance rhythm.</b> Planning fields rot: consumption shifts seasonally, lead times move with suppliers and ports, last year's safety stock funds this year's overstock. The review is quarterly and exception-driven — the items that stocked out (trigger too low? lead time dishonest?) and the items that never turn (level too high? demand gone?) — fifteen minutes per category, read straight from stock reports. Fields set once in 2024 and never revisited are how firms simultaneously stock out of winners and warehouse losers.</p>"
-   },
-   {
-    "title": "Chapter 6 — Reading prices: last purchase rate & the trend discipline",
+    "title": "Chapter 4 — The three figures called cost",
     "est": "13",
-    "html": "<p>The system remembers what you actually paid; this chapter is the craft of reading that memory — and the conviction of its misuse.</p><p><b>Last Purchase Rate — the rear-view mirror.</b> Maintained automatically from purchase documents: the most recent actual rate for the item. Its honest uses: a sanity reference when raising ad-hoc purchases (does this quote resemble what we last paid?), a drift detector against the buying list (last-paid pulling away from agreed means the supplier moved and nobody encoded it — Chapter 3's signal), and the seed for trend reading below.</p><p><b>The conviction: last-paid is not agreed.</b> The habit to break in every client office: treating last purchase rate AS the price — raising POs at last-paid, accepting whatever the last invoice said as the new normal. That habit hands repricing power to whoever issued the last invoice: one padded bill and the padding becomes your reference, compounding invisibly. The agreed rate lives on the buying list, negotiated and encoded (Chapter 3); last-paid is EVIDENCE about the world, not POLICY for it — the same instrument-vs-record distinction as selling's Price List Rate vs Rate, wearing procurement clothes.</p><p><b>Trend reading, monthly.</b> Purchase-rate movement per item group per quarter is procurement's inflation instrument: which categories are drifting, which suppliers move first, where naira weakness lands hardest (the import-side groups from Buying 1's tree). Three reads matter: <i>category drift</i> (feeds selling's repricing rhythm — Selling 2's quarter-start import workflow is DOWNSTREAM of this read, which is how cost moves reach selling prices deliberately instead of through margin erosion); <i>supplier divergence</i> (two suppliers of the same item drifting apart is a renegotiation or a resourcing flag — Buying 4's RFQ machinery is the action); and <i>single-item spikes</i> (a step-change in one item's cost is either a pack-size change wearing a price costume — Chapter 2's UOM check first — or a real move worth a phone call).</p><p><b>The price file discipline.</b> Where negotiations conclude, the result is encoded the same day: the buying list updated through the owned workflow, validity dates carrying agreed windows (the six-month locked rate expiring on schedule), supplier scope keeping multi-source items honest. The firm whose buying lists are living documents reads every invoice against a reference; the firm whose lists fossilised reads every invoice against a feeling.</p><p><b>What this buys selling.</b> Close the loop consciously: honest purchase rates power the below-cost floor (Selling 8), honest valuation powers margin truth (Chapter 4), and the trend read times the selling-side repricing. Procurement's data discipline is half of selling's margin story — the half the sales team never sees and always depends on.</p>"
+    "html": "<p>Three different numbers are all called cost. This chapter defines each, names its source, and states what each is for — because confusing them misprices decisions.</p><p><b>1. The quoted rate — what the supplier asks.</b> Source: the supplier's quotation, price circular, or arrangement (modules 4, 8), held on the buying lists. Definition: the agreed or offered price per unit in the supplier's currency, before anything happens. Used for: ordering decisions, comparisons between suppliers, and the Purchase Order's rate. Not used for: valuing stock or computing margin — the quoted rate omits everything between the supplier's gate and the business's shelf.</p><p><b>2. The invoiced rate — what the supplier charges.</b> Source: the Purchase Invoice (module 7). Definition: the price actually billed per unit, which the matching discipline compares to the order's quoted rate — a variance is a finding, not a correction to wave through. Used for: the payables liability, the matching control, and the price trend (Chapter 6). The invoiced rate is the commercial truth of one transaction; it is still not the shelf cost.</p><p><b>3. The landed valuation — what the shelf cost is.</b> Source: the stock ledger, per the Inventory track's module 5: the receipt's rate plus the capitalised acquisition costs — freight, clearing, duties, insurance — attached through the Landed Cost Voucher where they apply (Chapter 7). Definition: the per-unit value at which stock is carried and consumed — the figure Moving Average or FIFO maintains. Used for: margin arithmetic, pricing reviews (the selling side's price decisions read this figure), dead-stock and markdown decisions, and every valuation report. This is the only one of the three figures that may be called <b>cost</b> in a margin sentence.</p><p><b>4. The discipline, applied.</b></p><p>1. <b>On documents</b> — the Purchase Order carries the quoted rate; the invoice carries the invoiced rate; the stock ledger carries the valuation. No document's figure is typed over to match another; differences route through their controls (matching, Landed Cost Vouchers, the variance reads).<br>2. <b>In decisions</b> — a selling-price review that reads the quoted rate instead of the landed valuation understates cost by the acquisition layer and overstates margin by the same amount; on imported lines the gap is material (Chapter 7 quantifies it). The decision rule: <b>margin sentences use the landed valuation; negotiation sentences use the quoted and invoiced rates.</b><br>3. <b>In conversation</b> — the register's vocabulary names which figure is meant. The question <i>what does this item cost</i> receives a counter-question — for buying, for billing, or on the shelf — until the register's users ask it precisely themselves.</p>"
    },
    {
-    "title": "Chapter 7 — Import costing: thinking in landed terms",
+    "title": "Chapter 5 — The planning fields",
+    "est": "12",
+    "html": "<p>The item master carries the parameters replenishment computes from. This chapter is each field, its honest value, and its review.</p><p><b>1. Lead Time Days.</b> Definition: the days from placing the order to stock being available for sale — order processing, the supplier's fulfilment, transit, receiving, and quality release, end to end. The honest value is measured, not hoped: the actual order-to-availability history per supplier (module 8's on-time data feeds it). Domestic manufacturers and the Indian import line carry very different figures, and each item's field carries its own supplier reality. Every reorder computation multiplies demand by this figure; an optimistic lead time is a stock-out generator by arithmetic.</p><p><b>2. Safety Stock.</b> Definition: the buffer held against demand and supply variability — the quantity intended to remain when the replenishment arrives on time. Set per the policy's method (days-of-sales for the standing case), higher where lead times are long or variable (the import line) and lower where replenishment is fast. Safety stock is a costed decision: it is money held on shelves deliberately, sized by the variability it protects against, and reviewed rather than ratcheted.</p><p><b>3. Reorder Level and Reorder Quantity.</b> The item-warehouse reorder table the Inventory track's module 6 operates: the level (demand over lead time plus safety stock) and the quantity per the ordering policy (the economic batch, the supplier's minimums, the carton multiples). This module's contribution is the inputs' honesty — the level computes from Chapter 5.1 and 5.2's figures, and the quantity respects the purchase unit's realities (orders in carton multiples per Chapter 2).</p><p><b>4. Minimum Order Quantity and the supplier constraints.</b> The item's MOQ field where suppliers impose one, and the practical constraints the ordering policy records: the supplier's carton or pallet multiples, the price-break thresholds (the module 4 quotations state them), and the import line's container arithmetic (Chapter 7). Replenishment quantities are shaped by these constraints deliberately — the reorder review documents where a constraint forces ordering above the computed need, because that excess is a costed consequence of the supply structure, visible rather than accidental.</p><p><b>5. The planning review — with the reorder review's cadence.</b> The fields against reality: lead times re-measured from the period's receipts (the module 8 on-time read supplies the actuals); safety stock against the period's stock-outs and excesses; reorder parameters against what the period actually demanded. Fields move by decision at the review, dated — a planning field changed mid-period by an unrecorded edit is the configuration drift the change read catches.</p>"
+   },
+   {
+    "title": "Chapter 6 — Reading purchase prices: the last purchase rate and the trend",
+    "est": "12",
+    "html": "<p>The system records what the business actually paid. This chapter is the reading of that record — and the boundaries of its use.</p><p><b>1. Last Purchase Rate.</b> Maintained automatically: the rate on the item's most recent purchase, per unit. Its uses:</p><p>1. <b>The reasonableness check</b> — the order preparer sees the new rate against the last: a movement is verified against its cause (a known price change, a currency movement, a pack-size change) before the order proceeds.<br>2. <b>The quick answer</b> — what the business last paid, without opening the ledger.</p><p><b>2. What the last purchase rate is not.</b> The boundaries, stated:</p><p>1. <b>Not the valuation</b> — stock on the shelf carries the method's figure (Moving Average across receipts, or FIFO's layers), not the latest rate; the two diverge whenever prices move, and margin arithmetic uses the valuation (Chapter 4's rule).<br>2. <b>Not the agreed rate</b> — the buying list states the current agreement; the last rate states the last transaction. Where they differ, the difference is a question: an unapplied price change, a one-off premium, or an error the matching read should have caught.<br>3. <b>Not a pricing authority</b> — a Purchase Order rate is justified by its list or its quotation, not by repetition of the last rate; repetition compounds any error in it.</p><p><b>3. The price trend read — monthly.</b> Purchase rates per item across periods, for the top items by spend:</p><p>1. <b>The movement list</b> — items whose rate moved beyond the threshold, each with its explanation written (the supplier's increase and its notice, the currency movement on import lines, a pack-size change misread as a price change — the pairing rule's audit).<br>2. <b>The margin hand-off</b> — confirmed cost increases route to the selling side's pricing review (the module 2 governed update on the selling lists), because a cost increase absorbed silently is a margin decrease decided by nobody.<br>3. <b>The negotiation file</b> — the trend per supplier accumulates as the material of the module 8 review conversations: what moved, when, with what notice, against what market reference where one exists.</p><p><b>4. The variance connection.</b> The trend read works alongside module 7's matching: matching catches the single invoice that disagrees with its order; the trend catches the drift that arrives in small agreed steps. Both file monthly, and together they are the buying side's price evidence — the record every negotiation and every review draws on.</p>"
+   },
+   {
+    "title": "Chapter 7 — Landed-cost thinking",
     "est": "13",
-    "html": "<p>For an import-dependent trading economy, the difference between a profitable line and a quietly loss-making one is usually not the factory price — it is everything that happens between the factory and the shelf. This chapter installs landed-cost THINKING; Buying 6 wires the mechanics.</p><p><b>The stack, itemised.</b> A container's true cost assembles from: the supplier's invoice (FOB or CIF — know which, because insurance and freight are inside CIF and outside FOB); ocean or air freight; marine insurance; import duty and levies at the tariff line; clearing and terminal charges; the agent's fees; haulage to your warehouse; and the FX rate at which each naira figure crystallised. A $10.00 FOB unit can land at ₦24,000–₦28,000 depending on duty band and the naira's mood — and a buyer negotiating cents off the factory price while the clearing chain leaks thousands per carton is optimising the visible tenth of the iceberg.</p><p><b>Spreading the stack.</b> Landed charges attach to RECEIVED STOCK, spread across the shipment's items (by value or quantity as appropriate), so each unit's valuation carries its true cost — the mechanics are Buying 6's landed-cost treatment at receiving. The thinking to install now: charges belong ON the stock they landed, not in a general expense bucket, because expensing them flatters gross margin (stock undervalued, COGS understated) while the P&amp;L's expense lines quietly eat the difference — a distortion that makes importing look better than it is until the year-end tells the truth.</p><p><b>FX at cost.</b> The USD invoice converts at the transaction's rate; the naira cost of a shipment is decided partly by WHEN obligations crystallise. The record-keeping discipline (rates on documents, dates honest) is what makes the question <i>what did this container really cost us in naira</i> answerable from records — and the exposure question <i>what happens to our costs at ₦50 weaker</i> answerable by arithmetic over the import-side groups instead of by dread.</p><p><b>Viability arithmetic, the habit.</b> Before committing to an import line: selling price ceiling (what the market bears — selling's data), landed cost floor (the full stack at honest FX), and the margin between them tested at pessimistic clearing times and rates. The routine kills two familiar failures: the line that was profitable at the old duty band, and the container ordered on factory-price maths that arrives underwater. One page per candidate line, revisited when any stack layer moves.</p><p><b>Documentation as cost control.</b> Buying 1 Chapter 7 set the filing habit — Form M, BL, PAAR, duty assessments against the purchase cycle. Here is its payoff: the stack is auditable per shipment, clearing-cost drift is visible across shipments (the agent whose fees creep; the terminal whose charges doubled), and the negotiation with every layer of the chain proceeds from records. Landed cost is not a number you accept; it is a stack you manage, layer by layer.</p>"
+    "html": "<p>For imported goods, the factory price is the beginning of the cost, not the cost. This chapter is the landed computation and its operational rules.</p><p><b>1. The landed cost, defined.</b> The per-unit value of imported stock on the shelf: the supplier's invoice value plus every cost incurred to bring the goods to usable condition and location — international freight, marine insurance, customs duties and levies, clearing agent charges, port and terminal charges, local haulage — capitalised into the stock's valuation rather than expensed. The Inventory track's module 5 covered the mechanism (the Landed Cost Voucher attaching costs to a receipt and re-rating its stock); this chapter is the buying-side computation and habits.</p><p><b>2. The landed worksheet.</b> Per import consignment, the standing worksheet computes the expected landed cost before commitment:</p><p>1. <b>The goods value</b> — the supplier's price in its currency, converted at the planning rate.<br>2. <b>The acquisition layer</b> — freight per the forwarder's quote; insurance per the policy's rate; duties per the tariff classification the clearing agent confirms (the classification is confirmed in advance, because a tariff surprise at the port is a landed-cost surprise after commitment); clearing, port, and haulage per the standing rates.<br>3. <b>The per-unit result</b> — the consignment's total landed cost divided over its units: the figure the ordering decision, and later the selling-price review, actually needs.</p><p><b>3. The comparison rule.</b> Suppliers are compared landed, never ex-works: the domestic manufacturer's naira rate and the Indian manufacturer's dollar rate are incomparable until both are stated as naira-per-unit-on-the-shelf. The module 4 quotation comparisons apply this rule as procedure — the comparison worksheet carries a landed column, and the decision minutes record landed figures.</p><p><b>4. Consignment arithmetic.</b> The import line's quantities are shaped by the consignment: freight and clearing are substantially fixed per shipment, so the per-unit acquisition layer falls as the consignment fills — the container arithmetic that makes import ordering a batch decision rather than a reorder-point decision alone. The planning consequence (Chapter 5): import items order in consignment-sized batches on the import calendar, with safety stock covering the longer, lumpier cycle.</p><p><b>5. After arrival: the reconciliation.</b> The worksheet's expected figures reconcile to actuals when the consignment lands: the Landed Cost Voucher applies the actual charges to the receipt (the Inventory mechanism), and the worksheet-versus-actual comparison files with the consignment — the recurring differences (a forwarder consistently above quote, a duty line misclassified) are the findings the next consignment's worksheet corrects. The read keeps the planning figures honest, and it is the difference between an import operation that knows its costs and one that discovers them.</p>"
    },
    {
-    "title": "Chapter 8 — Case study: HealthTrade's purchase-side item architecture",
-    "est": "16",
-    "html": "<p>The same firm, the same items — now built from the buying chair. Selling 2 gave HealthTrade its selling architecture for PARA-500; this chapter completes the record's other face, and every step names its chapter.</p><p><b>Step 1 — the one record, both flags (Ch. 1).</b> PARA-500 already exists (Selling 2 built it); the buy-side face is completed on the SAME record: Is Purchase Item ✓ (no PARA-500-BUY twin — the one-record principle), Default Purchase UOM Carton-12 with its factor (the UOM set Selling 2 defined, now defaulting inbound documents), batch flag already on (the pharma receiving obligation noted for Buying 6).</p><p><b>Step 2 — supplier-scoped rates (Ch. 3).</b> The buying list holds three atoms for one item: Emzor at ₦9,600/Carton-12, the backup distributor at ₦9,850/Carton-12 (supplier-scoped — each PO fetches its supplier's agreed rate), and the Mumbai exporter's USD list carrying $6.20/Carton-12 for the import lane. Validity dates carry Emzor's six-month locked window; the expiry will force the renewal conversation on schedule.</p><p><b>Step 3 — planning fields, per reality (Ch. 5).</b> Consumption runs ~40 cartons/day across channels. Local lanes: lead time 3 days, reorder level set for the wait plus safety, reorder qty at Emzor's pallet economics. The import lane's fields tell the truth: 50 days lead through clearing, safety stock sized for port variability. The Ikeja and Ibadan warehouses carry their own levels — they consume differently, and the fields say so.</p><p><b>Step 4 — the landed file (Ch. 4, 7).</b> The import lane's viability page: $6.20 FOB, freight/insurance/duty/clearing stack at honest rates → landed ≈ ₦8,900/carton at current FX — undercutting Emzor by ₦700 IF the 50-day pipeline is funded and the naira holds; the page notes the break-even rate. The MD's import decision is now arithmetic with assumptions visible, not a feeling about factory prices.</p><p><b>Step 5 — the trend hooks (Ch. 6).</b> Last-purchase-rate drift alerts the buyer when Emzor's invoices pull away from ₦9,600 (encode or dispute — never silently absorb); the monthly category read feeds Selling 2's quarter-start repricing so cost moves reach selling prices by decision.</p><p><b>Step 6 — the receiving rehearsal (Ch. 2).</b> Before the first import arrives, the receiving team walks the UOM drill: the PO speaks Carton-12, the receipt enters cartons, the conversion counts units into the bin; the short-shipment case (47 cartons + 6 loose) is rehearsed as two honest rows. Buying 6 will own the craft; the vocabulary is already fluent.</p><p><b>What the afternoon bought:</b> one item, two faces, zero twins; agreed rates per supplier fetchable by every document; planning fields that replace panic with triggers; an import decision made in landed terms with its break-even visible; and price-trend hooks that keep both the buying list and the selling list honest. The item master is now the whole trade's single source of product truth — which is exactly what the law at the end of this module says.</p>"
-   },
-   {
-    "title": "Chapter 9 — Common mistakes & support patterns",
+    "title": "Chapter 8 — Worked example: PARA-500's buying architecture",
     "est": "13",
-    "html": "<p>The purchase-item scar tissue: the tickets, the diseases, the fixes — and the module's law.</p><p><b>Pattern 1 — \"The item will not appear on the purchase order.\"</b> Disease: Is Purchase Item unticked (Ch. 1) — the buy-side gate, first check always. The symptom distinction transfers: absent means gated out; present at 0.00 means unpriced (Pattern 2). Runner-up: the item is disabled entirely.</p><p><b>Pattern 2 — \"Purchase rate shows 0.\"</b> The rate-0 clinic, inbound (Ch. 3): no Item Price on the document's buying list — or the record exists but under the wrong supplier scope, the wrong UOM, or an expired validity window. The four-check walk resolves it in one minute; the anti-fix (typing a remembered rate) is how lists fossilise.</p><p><b>Pattern 3 — \"The bin is wrong by a factor of twelve since Tuesday's delivery.\"</b> The UOM receiving bug (Ch. 2): cartons keyed as units or units as cartons at the gate. Fix the stock through proper documents, then the drill — the receipt speaks the PO's units and the conversion counts. (At client scale this is the disease behind half the phantom-stock archaeology.)</p><p><b>Pattern 4 — \"Reorder never fires; we stock out with perfect paperwork.\"</b> Disease: planning fields blank or dishonest (Ch. 5) — no trigger exists, or the 30-day lead time is really 50. Fix: set levels from the consumption-times-lead arithmetic, tell the truth about lead times, and put the quarterly exception review in the calendar.</p><p><b>Pattern 5 — \"Our margins look great until year-end.\"</b> Disease: landed charges expensed instead of attached to stock (Ch. 4, 7) — valuation understated, gross margin flattered, the P&amp;L eating the difference in expense lines. Fix: landed-cost treatment at receiving (Buying 6) and the viability pages that judge imports in landed terms.</p><p><b>Pattern 6 — \"POs go out at whatever we last paid.\"</b> Disease: last-purchase-rate treated as the agreed price (Ch. 6) — repricing power handed to the last invoice. Fix: agreed rates encoded on the buying list through the owned workflow; last-paid demoted to evidence.</p><p><b>Pattern 7 — \"We have the same product twice — one for buying, one for selling.\"</b> Disease: the twin-record anti-pattern (Ch. 1) — stock split into half-truths, valuation and history unjoinable. Fix: merge to one record with both flags while the twin is young; prevention is the one-record principle taught at onboarding.</p><p><b>The law.</b> Buying 1 closed with: purchase documents are downstream of supplier masters. This module adds the second: <b>cost truth begins at the item</b> — the gate flags, the UOM arithmetic, the supplier-scoped agreed rates, the honest planning fields, and the landed-cost habit together decide whether every downstream number (the PO's value, the receipt's count, the valuation's margin, the reorder's timing) is computed or improvised. Selling's whole margin story stands on this module being done well — which is the quiet dignity of procurement data work: nobody celebrates it, and everything depends on it.</p>"
+    "html": "<p>This chapter completes the record whose selling side the Selling track built. Configuration values and outcomes are listed per step.</p><p><b>Step 1 — the one record confirmed (Chapter 1).</b> PARA-500 — Paracetamol 500mg Tablets — already exists in the register with its selling section complete. The buying section completes on the same record: Is Purchase Item on; the buying defaults per the accountant's design. The rejected alternative is recorded in the register note: no PARA-500-BUY record — a second record would split stock, cost history, and planning into two half-records.</p><p><b>Step 2 — the purchase units (Chapter 2).</b> Default Purchase UOM: Carton-12 — Emzor supplies in cartons of twelve. The factor was verified physically at first receipt (the Inventory track's register discipline); the pairing rule files with the register: the carton rate <b>₦9,600</b> and the unit rate ₦800 are one price, and every order and receipt row is read quantity-unit-rate together.</p><p><b>Step 3 — the buying rates (Chapter 3).</b> The standard buying list carries PARA-500 at ₦9,600 per Carton-12, entered by the governed update with its source: the Emzor arrangement from the module 4 cycle. The completeness read confirms every actively purchased item on the range carries its current rate; the changes read's first month reconciles to sources exactly.</p><p><b>Step 4 — the three costs stated (Chapter 4).</b> For PARA-500 the three figures are written into the register note as the vocabulary example: the quoted rate ₦9,600 per carton (the Emzor agreement); the invoiced rate as billed and matched per delivery; the landed valuation — for this domestic line, effectively the receipt rate, since the acquisition layer is the supplier's included delivery. The contrast case is the Indian manufacturer's generic line, where the worksheet shows the dollar goods value carrying a material acquisition layer — freight, duty, clearing — before it becomes a shelf figure, and where a selling-price review reading the quoted dollar rate instead of the landed naira figure would overstate margin on every unit.</p><p><b>Step 5 — the planning fields (Chapter 5).</b> PARA-500's fields enter from measured reality: the domestic lead time from Emzor's actual order-to-availability history; safety stock per the days-of-sales policy at the item's velocity; the reorder row per warehouse with the quantity in carton multiples. The import generics carry their own figures: the long lead time measured across the consignment cycle, the larger safety stock the variability requires, and consignment-batch ordering per Chapter 7's arithmetic.</p><p><b>Step 6 — the first trend read (Chapter 6).</b> Month one's read lists two movements: a notified Emzor increase on one line (explanation written; routed to the selling pricing review — the governed update runs on the selling list the same week), and an apparent jump on an import line that the pairing audit resolves as a pack-size change, not a price change — the factor and rates corrected together per Chapter 2's rule. Both findings file; neither is absorbed silently.</p><p><b>The architecture evidence.</b> One record with both sides complete; verified units with the pairing rule; rates with sources; the three costs named; planning fields from measured figures; the trend read operating. Module 3 builds the demand machinery on these foundations.</p>"
+   },
+   {
+    "title": "Chapter 9 — Common errors and the module rule",
+    "est": "11",
+    "html": "<p>The errors that recur in purchase items and costs, each with its correction and prevention.</p><p><b>Error 1 — the second buying record.</b> Symptom: a PARA-500-BUY beside PARA-500; stock and cost history split; planning computing from half the picture. Correction: the merge remediation per the lifecycle rules. Prevention: the one-record principle — the buying section completes on the existing record.</p><p><b>Error 2 — the carton rate on a unit line.</b> Symptom: a receipt or order row whose rate belongs to a different unit than its quantity; unit costs wrong by the conversion factor; margins misstated until a review surfaces it. Correction: the document corrected through its lane; the valuation repaired per the Inventory procedures where it posted. Prevention: the pairing rule — quantity, unit, rate read together on every row — and the receiving discipline's first check.</p><p><b>Error 3 — the typed order rate.</b> Symptom: Purchase Order rates recalled rather than fetched; agreed rates unapplied; matching without a reference. Correction: the buying lists completed; open orders verified. Prevention: rates on lists from sources, and the completeness read.</p><p><b>Error 4 — margin from the wrong cost.</b> Symptom: selling-price reviews reading quoted rates; import margins overstated by the acquisition layer; loss-making lines reading as profitable. Correction: the reviews re-run on landed valuations. Prevention: the vocabulary rule — margin sentences use the landed valuation.</p><p><b>Error 5 — optimistic planning fields.</b> Symptom: lead times entered as hopes; stock-outs by arithmetic; safety stock ratcheted after each incident instead of sized by review. Correction: fields re-entered from measured history. Prevention: the planning review on the reorder cadence, with module 8's actuals feeding it.</p><p><b>Error 6 — the silent cost drift.</b> Symptom: small agreed increases accumulating unread; selling prices static while costs climb; the margin decrease nobody decided. Correction: the trend read run and the pricing hand-off executed. Prevention: the monthly trend read with written explanations and the routing rule to the selling review.</p><p><b>Review list.</b> Before the quiz, confirm you can: complete the buying section on the one record; operate purchase units with verified factors and the pairing rule; maintain buying lists with sourced rates and the two monthly reads; define the three cost figures with their sources and uses; complete the planning fields from measured reality; read the last purchase rate within its boundaries and run the trend read; and compute a landed worksheet with the comparison rule and consignment arithmetic.</p><p><b>Module rule 2: a cost is a defined figure with a source — one item record serving both sides, units paired with their rates, agreed rates held on lists from documents, the quoted, invoiced, and landed figures named correctly in every decision, planning fields measured not hoped, and every price movement read and routed.</b> Module 3 covers Material Requests and the demand machinery.</p>"
    }
   ],
   "questions": [
    {
-    "q": "Is Purchase Item, unticked, means the item:",
+    "q": "A product the register already holds:",
     "opts": [
-     "Does not appear on purchase documents at all",
-     "Appears at rate 0 on POs",
-     "Cannot hold stock",
-     "Cannot be sold"
+     "Has its buying section completed on the existing record — a second record splits stock, cost, and planning",
+     "Gets a buying record",
+     "Is duplicated per supplier",
+     "Is recoded"
     ],
     "ans": 0,
-    "why": "Absent means gated out; rate-0 means unpriced — the symptom distinguishes.",
-    "src": "Ch1, Ch9"
-   },
-   {
-    "q": "One physical product bought AND sold is modelled as:",
-    "opts": [
-     "Two records, one per side",
-     "One item record wearing both flags",
-     "A bundle",
-     "Two warehouses"
-    ],
-    "ans": 1,
-    "why": "Twin records split the stock ledger into half-truths.",
-    "src": "Ch1, Ch9"
-   },
-   {
-    "q": "Last Purchase Rate is maintained by:",
-    "opts": [
-     "The buyer, manually",
-     "The supplier",
-     "The system, from actual purchase documents",
-     "The price list"
-    ],
-    "ans": 2,
-    "why": "A rear-view mirror, automatically kept.",
-    "src": "Ch1, Ch6"
-   },
-   {
-    "q": "A pharma item's batch flag creates a procurement obligation because:",
-    "opts": [
-     "Batches are optional inbound",
-     "It blocks imports",
-     "It changes the price",
-     "Receiving will demand batch identities before selling ever does"
-    ],
-    "ans": 3,
-    "why": "The flag decided at creation lands first at the receiving gate.",
+    "why": "The one-record principle.",
     "src": "Ch1"
    },
    {
-    "q": "The Default Purchase UOM is:",
+    "q": "Is Purchase Item is:",
     "opts": [
-     "The trade unit purchases default to — cartons, not pieces",
-     "The stock-keeping unit",
-     "Always Units",
-     "The supplier's choice per order"
-    ],
-    "ans": 0,
-    "why": "Buy in cartons, count in units; the conversion joins them.",
-    "src": "Ch2"
-   },
-   {
-    "q": "A PO row of 50 Carton-12 moves how many units to the stock ledger at receipt:",
-    "opts": [
-     "50",
-     "600",
-     "12",
-     "Whatever is typed"
+     "Decorative",
+     "The flag admitting the item to purchasing documents — the first check when an item is missing from a Purchase Order",
+     "The price",
+     "The supplier"
     ],
     "ans": 1,
-    "why": "The conversion factor does the counting.",
-    "src": "Ch2"
+    "why": "The buying mirror of the selling flag.",
+    "src": "Ch1"
    },
    {
-    "q": "A per-carton rate on a per-unit row produces:",
+    "q": "The module's standing rule is:",
     "opts": [
-     "Correct totals",
-     "A blocked PO",
-     "An order mispriced by the conversion factor — in either direction",
-     "A discount"
+     "Cost is one number",
+     "Costs are secret",
+     "A cost is a defined figure with a source — quoted, invoiced, and landed are three different numbers",
+     "Rates float"
     ],
     "ans": 2,
-    "why": "Rate, UOM, and factor read together, always.",
-    "src": "Ch2"
+    "why": "Named correctly on every document and decision.",
+    "src": "Ch1"
    },
    {
-    "q": "A short shipment of 47 cartons plus 6 loose units is entered as:",
+    "q": "Conversion factors are verified by:",
     "opts": [
-     "47.5 cartons",
-     "600 units flat",
-     "48 cartons",
-     "Two rows — 47 Carton-12 and 6 Units — both converting truthfully"
+     "The catalogue",
+     "The price",
+     "The supplier's word",
+     "Counting the physical carton at first receipt and at pack-size changes — the catalogue is the claim, the count is the verification"
     ],
     "ans": 3,
-    "why": "Never fractional cartons the warehouse cannot count.",
+    "why": "Inbound verification.",
     "src": "Ch2"
    },
    {
-    "q": "When a manufacturer moves from 12-packs to 10-packs:",
+    "q": "A factor of 12 where the carton holds 10:",
     "opts": [
-     "Create Carton-10 with its own factor, used from the change date",
-     "Edit Carton-12's factor to 10",
-     "Ignore it",
-     "Change the stock unit"
+     "Overstates stock by a fifth and understates unit cost by the same proportion on every receipt, silently",
+     "Is harmless",
+     "Rounds away",
+     "Blocks receipts"
     ],
     "ans": 0,
-    "why": "Editing the factor rewrites every historical document's meaning.",
+    "why": "Both errors surface only at a count or margin review.",
     "src": "Ch2"
    },
    {
-    "q": "Buying-side agreed rates per supplier are stored as:",
+    "q": "The pairing rule states:",
     "opts": [
-     "Remarks on the supplier",
-     "Supplier-scoped Item Price records on a buying list",
-     "The last invoice",
-     "PO templates"
+     "Rates are per item",
+     "A rate belongs to a unit — ₦9,600 per carton and ₦800 per unit are one price; every row reads quantity-unit-rate together",
+     "Units are optional",
+     "Cartons are standard"
     ],
     "ans": 1,
-    "why": "The negotiation's output, structural and fetchable.",
+    "why": "The classic inbound costing error's prevention.",
+    "src": "Ch2"
+   },
+   {
+    "q": "A pack-size change requires:",
+    "opts": [
+     "A note",
+     "Nothing",
+     "The factor and the carton-denominated rates updated in one decision, with open orders in the old pack reviewed",
+     "A new item"
+    ],
+    "ans": 2,
+    "why": "The pairing rule applied to maintenance.",
+    "src": "Ch2"
+   },
+   {
+    "q": "Buying list rates enter:",
+    "opts": [
+     "From memory",
+     "Freely",
+     "From the last invoice",
+     "By the governed update with the source recorded — the quotation, arrangement, or negotiation file"
+    ],
+    "ans": 3,
+    "why": "A decision with a paper trail.",
     "src": "Ch3"
    },
    {
-    "q": "A purchase row at 0.00 means:",
+    "q": "The buying lists enable:",
     "opts": [
-     "A system error",
-     "The item is free",
-     "The buying list asked had no row — check list, record, UOM, validity",
-     "The supplier is on hold"
-    ],
-    "ans": 2,
-    "why": "The rate-0 clinic transfers inbound verbatim.",
-    "src": "Ch3, Ch9"
-   },
-   {
-    "q": "Last-paid pulling away from the buying list signals:",
-    "opts": [
-     "Nothing",
-     "A UOM bug only",
-     "Time to delete the list",
-     "The supplier moved and nobody encoded it — or the invoices are wrong and the list is evidence"
-    ],
-    "ans": 3,
-    "why": "Drift is a signal, never just noise.",
-    "src": "Ch3, Ch6"
-   },
-   {
-    "q": "The three numbers all called 'cost' are:",
-    "opts": [
-     "Purchase rate, landed cost, valuation rate",
-     "List, retail, wholesale",
-     "FIFO, LIFO, average",
-     "Net, gross, margin"
+     "Pre-fill, variance detection at matching, and negotiation memory",
+     "Guesswork",
+     "Faster typing",
+     "Bigger orders"
     ],
     "ans": 0,
-    "why": "Each answers a different question; confusing them misprices decisions.",
+    "why": "Their operational function.",
+    "src": "Ch3"
+   },
+   {
+    "q": "The completeness read finds:",
+    "opts": [
+     "Old suppliers",
+     "Actively purchased items without a current rate — the gap that forces typed rates on orders",
+     "New items",
+     "Slow movers"
+    ],
+    "ans": 1,
+    "why": "The door the architecture closes.",
+    "src": "Ch3"
+   },
+   {
+    "q": "The quoted rate is used for:",
+    "opts": [
+     "Margin",
+     "The shelf cost",
+     "Ordering decisions, supplier comparisons, and the Purchase Order's rate — never for valuing stock",
+     "The return"
+    ],
+    "ans": 2,
+    "why": "It omits everything between gate and shelf.",
     "src": "Ch4"
    },
    {
-    "q": "For imports, the supplier's invoice price is:",
+    "q": "An invoice-versus-order rate variance is:",
     "opts": [
-     "The cost",
-     "An ingredient of landed cost — freight, duty, clearing complete it",
-     "Irrelevant",
-     "The valuation"
-    ],
-    "ans": 1,
-    "why": "A $10 unit can be a ₦25,000 unit on the shelf.",
-    "src": "Ch4, Ch7"
-   },
-   {
-    "q": "FIFO vs Moving Average is:",
-    "opts": [
-     "Chosen per item per day",
-     "A supplier preference",
-     "An accounting-policy choice made with the accountant, applied consistently",
-     "Automatic"
-    ],
-    "ans": 2,
-    "why": "The consultant knows which is in force and what it implies.",
-    "src": "Ch4"
-   },
-   {
-    "q": "Selling's below-cost validation depends on this module because:",
-    "opts": [
-     "It doesn't",
-     "VAT interferes",
-     "Selling sets costs",
-     "Garbage purchase rates make the floor a random number generator"
-    ],
-    "ans": 3,
-    "why": "The guard's fuel is purchase-side truth.",
-    "src": "Ch4"
-   },
-   {
-    "q": "Lead Time Days should record:",
-    "opts": [
-     "The honest order-to-arrival figure including approvals and clearing",
-     "The optimistic case",
-     "The supplier's promise",
-     "Zero for local items"
-    ],
-    "ans": 0,
-    "why": "Everything downstream multiplies by it.",
-    "src": "Ch5"
-   },
-   {
-    "q": "The reorder level is set from:",
-    "opts": [
-     "A round number",
-     "Expected consumption over the lead time plus the safety margin",
-     "Last year's level",
-     "The supplier's minimum"
-    ],
-    "ans": 1,
-    "why": "The trigger must cover the wait.",
-    "src": "Ch5"
-   },
-   {
-    "q": "Reorder levels can differ per warehouse because:",
-    "opts": [
-     "They can't",
-     "Only one warehouse reorders",
-     "Ikeja and Ibadan consume differently — the fields say so",
-     "Lead times are global"
-    ],
-    "ans": 2,
-    "why": "Planning follows each location's reality.",
-    "src": "Ch5"
-   },
-   {
-    "q": "With planning fields set, crossing the trigger can raise:",
-    "opts": [
-     "A purchase invoice",
-     "An alert only",
-     "A sales order",
-     "A Material Request automatically — the machinery Buying 3 owns"
-    ],
-    "ans": 3,
-    "why": "Replenishment as arithmetic, not panic.",
-    "src": "Ch5"
-   },
-   {
-    "q": "The projected quantity the trigger watches is:",
-    "opts": [
-     "Actual minus reserved plus incoming",
-     "Actual stock only",
-     "Ordered minus billed",
-     "Bin minus safety"
-    ],
-    "ans": 0,
-    "why": "The whole trading position feeds one number.",
-    "src": "Ch5"
-   },
-   {
-    "q": "Planning-field review is:",
-    "opts": [
-     "Once at setup",
-     "Quarterly and exception-driven — the stockouts and the never-turns",
-     "Daily",
-     "Never needed"
-    ],
-    "ans": 1,
-    "why": "Fields set in 2024 and never revisited stock out winners and warehouse losers.",
-    "src": "Ch5"
-   },
-   {
-    "q": "Treating last purchase rate as the agreed price:",
-    "opts": [
-     "Is efficient",
-     "Is required",
-     "Hands repricing power to whoever issued the last invoice",
-     "Updates the list"
-    ],
-    "ans": 2,
-    "why": "One padded bill becomes your reference, compounding invisibly.",
-    "src": "Ch6"
-   },
-   {
-    "q": "Last-paid vs the buying list is the distinction between:",
-    "opts": [
-     "Two currencies",
-     "FIFO and average",
-     "Cost and price",
-     "Evidence about the world vs policy for it"
-    ],
-    "ans": 3,
-    "why": "The instrument-vs-record law, wearing procurement clothes.",
-    "src": "Ch6"
-   },
-   {
-    "q": "A single item's cost step-change is checked FIRST against:",
-    "opts": [
-     "A pack-size change wearing a price costume — the UOM check",
-     "The naira",
-     "The MD",
-     "The customer"
-    ],
-    "ans": 0,
-    "why": "Chapter 2 before the phone call.",
-    "src": "Ch6"
-   },
-   {
-    "q": "The monthly category trend read feeds:",
-    "opts": [
-     "Nothing downstream",
-     "Selling's repricing rhythm — cost moves reach selling prices by decision",
-     "Only the auditors",
-     "The warehouse"
-    ],
-    "ans": 1,
-    "why": "Procurement's data discipline is half of selling's margin story.",
-    "src": "Ch6"
-   },
-   {
-    "q": "FOB vs CIF matters because:",
-    "opts": [
-     "It is jargon",
-     "CIF is always cheaper",
-     "Insurance and freight are inside CIF and outside FOB — the stack starts differently",
-     "FOB includes duty"
-    ],
-    "ans": 2,
-    "why": "Know which the invoice speaks before building the stack.",
-    "src": "Ch7"
-   },
-   {
-    "q": "Landed charges belong:",
-    "opts": [
-     "In a general expense bucket",
-     "Nowhere",
-     "On the supplier record",
-     "On the stock they landed — spread across the shipment at receiving"
-    ],
-    "ans": 3,
-    "why": "Expensing them flatters margin until year-end tells the truth.",
-    "src": "Ch7"
-   },
-   {
-    "q": "Import viability is judged by:",
-    "opts": [
-     "Selling ceiling vs landed floor, tested at pessimistic rates and clearing times",
-     "Factory price",
-     "The agent's advice",
-     "Last year's margin"
-    ],
-    "ans": 0,
-    "why": "One page per candidate line, assumptions visible.",
-    "src": "Ch7"
-   },
-   {
-    "q": "Filing Form M, BL, and duty assessments per shipment buys:",
-    "opts": [
-     "Compliance only",
-     "An auditable stack and visible clearing-cost drift across shipments",
-     "Faster clearing",
-     "Lower duty"
-    ],
-    "ans": 1,
-    "why": "Landed cost is a stack you manage, layer by layer.",
-    "src": "Ch7"
-   },
-   {
-    "q": "In the HealthTrade build, the import lane's viability page showed:",
-    "opts": [
-     "A feeling about factory prices",
-     "A loss",
-     "Landed ≈ ₦8,900 vs Emzor's ₦9,600 — with the break-even FX rate noted",
-     "No comparison"
-    ],
-    "ans": 2,
-    "why": "Arithmetic with assumptions visible.",
-    "src": "Ch8"
-   },
-   {
-    "q": "Emzor's six-month locked rate was encoded as:",
-    "opts": [
-     "A remark",
+     "Waved through",
+     "Normal",
      "A discount",
-     "A blanket order",
-     "A validity-dated Item Price — expiry forces the renewal conversation on schedule"
+     "A finding for the matching control, not a correction"
     ],
     "ans": 3,
-    "why": "Agreed windows live as dated atoms.",
-    "src": "Ch8"
+    "why": "The invoiced rate's role.",
+    "src": "Ch4"
    },
    {
-    "q": "The bin wrong by a factor of twelve since a delivery traces to:",
+    "q": "The only figure allowed in a margin sentence is:",
     "opts": [
-     "Cartons keyed as units (or the reverse) at the receiving gate",
-     "Theft",
-     "Valuation method",
+     "The landed valuation — the stock ledger's per-unit value including the acquisition layer",
+     "The quoted rate",
+     "The last rate",
+     "The list rate"
+    ],
+    "ans": 0,
+    "why": "Chapter 4's decision rule.",
+    "src": "Ch4"
+   },
+   {
+    "q": "The question 'what does this item cost' receives:",
+    "opts": [
+     "A number",
+     "A counter-question — for buying, for billing, or on the shelf",
+     "Silence",
+     "An average"
+    ],
+    "ans": 1,
+    "why": "The vocabulary discipline.",
+    "src": "Ch4"
+   },
+   {
+    "q": "Lead Time Days measures:",
+    "opts": [
+     "Supplier promises",
+     "Transit only",
+     "Order to availability end to end — processing, fulfilment, transit, receiving, quality release — from measured history",
+     "Hope"
+    ],
+    "ans": 2,
+    "why": "An optimistic lead time is a stock-out generator by arithmetic.",
+    "src": "Ch5"
+   },
+   {
+    "q": "Safety stock is:",
+    "opts": [
+     "Waste",
+     "Fixed forever",
+     "Free",
+     "A costed decision — a buffer sized by the variability it protects against, reviewed rather than ratcheted"
+    ],
+    "ans": 3,
+    "why": "Money held deliberately.",
+    "src": "Ch5"
+   },
+   {
+    "q": "Ordering above the computed need due to a constraint is:",
+    "opts": [
+     "Documented at the reorder review — a costed consequence of the supply structure, visible rather than accidental",
+     "Hidden",
+     "Forbidden",
+     "An error"
+    ],
+    "ans": 0,
+    "why": "MOQ, multiples, and container arithmetic.",
+    "src": "Ch5"
+   },
+   {
+    "q": "Planning fields change:",
+    "opts": [
+     "By any edit",
+     "By decision at the review, dated — an unrecorded mid-period edit is configuration drift",
+     "Automatically",
+     "Never"
+    ],
+    "ans": 1,
+    "why": "The planning review.",
+    "src": "Ch5"
+   },
+   {
+    "q": "The last purchase rate is used for:",
+    "opts": [
+     "Valuation",
+     "Margin",
+     "The reasonableness check and the quick answer — a movement is verified against its cause before ordering",
+     "Pricing authority"
+    ],
+    "ans": 2,
+    "why": "The rear-facing record of what was paid.",
+    "src": "Ch6"
+   },
+   {
+    "q": "The last rate differing from the list rate is:",
+    "opts": [
+     "Ignored",
+     "A discount",
+     "The new list rate",
+     "A question — an unapplied change, a one-off premium, or an error matching should have caught"
+    ],
+    "ans": 3,
+    "why": "What the last rate is not.",
+    "src": "Ch6"
+   },
+   {
+    "q": "A cost increase absorbed silently is:",
+    "opts": [
+     "A margin decrease decided by nobody — confirmed increases route to the selling pricing review",
+     "Efficiency",
+     "A saving",
+     "Normal"
+    ],
+    "ans": 0,
+    "why": "The margin hand-off.",
+    "src": "Ch6"
+   },
+   {
+    "q": "Matching and the trend read divide the work as:",
+    "opts": [
+     "Duplicates",
+     "Matching catches the single disagreeing invoice; the trend catches drift arriving in small agreed steps",
+     "Rivals",
+     "Optional pair"
+    ],
+    "ans": 1,
+    "why": "The buying side's price evidence.",
+    "src": "Ch6"
+   },
+   {
+    "q": "A Purchase Order rate is justified by:",
+    "opts": [
+     "The last rate repeated",
+     "The biggest order",
+     "Its list or its quotation — repetition of the last rate compounds any error in it",
+     "Habit"
+    ],
+    "ans": 2,
+    "why": "Not a pricing authority.",
+    "src": "Ch6"
+   },
+   {
+    "q": "The landed cost is:",
+    "opts": [
+     "The factory price",
+     "A tax",
+     "The invoice total",
+     "The supplier's value plus freight, insurance, duties, clearing, and haulage, capitalised into the valuation"
+    ],
+    "ans": 3,
+    "why": "The per-unit shelf value of imported stock.",
+    "src": "Ch7"
+   },
+   {
+    "q": "Tariff classification is confirmed:",
+    "opts": [
+     "In advance with the clearing agent — a tariff surprise after commitment is a landed-cost surprise",
+     "At the port",
+     "Never",
+     "By the supplier"
+    ],
+    "ans": 0,
+    "why": "The worksheet's duty line.",
+    "src": "Ch7"
+   },
+   {
+    "q": "Suppliers are compared:",
+    "opts": [
+     "Ex-works",
+     "Landed — incomparable until both are stated as naira-per-unit-on-the-shelf",
+     "By currency",
+     "By distance"
+    ],
+    "ans": 1,
+    "why": "The comparison rule, applied in module 4's worksheets.",
+    "src": "Ch7"
+   },
+   {
+    "q": "Import quantities are shaped by:",
+    "opts": [
+     "Reorder points alone",
+     "Habit",
+     "Consignment arithmetic — fixed freight and clearing per shipment make the per-unit layer fall as the container fills",
      "The supplier"
     ],
-    "ans": 0,
-    "why": "UOM errors become physical at arrival.",
-    "src": "Ch9"
+    "ans": 2,
+    "why": "A batch decision on the import calendar.",
+    "src": "Ch7"
    },
    {
-    "q": "Margins that look great until year-end usually hide:",
+    "q": "The worksheet-versus-actual reconciliation:",
     "opts": [
-     "Nothing",
-     "Landed charges expensed while stock sits undervalued",
-     "Tax fraud",
-     "FX gains"
+     "Is optional",
+     "Happens annually",
+     "Blames the agent",
+     "Files per consignment — recurring differences correct the next worksheet's figures"
+    ],
+    "ans": 3,
+    "why": "The read that keeps planning figures honest.",
+    "src": "Ch7"
+   },
+   {
+    "q": "PARA-500's buying architecture uses:",
+    "opts": [
+     "The same record as selling, with Is Purchase Item on and the second-record alternative recorded as rejected",
+     "A new record",
+     "Two codes",
+     "A supplier record"
+    ],
+    "ans": 0,
+    "why": "Step 1.",
+    "src": "Ch8"
+   },
+   {
+    "q": "The register's pairing example is:",
+    "opts": [
+     "Two prices",
+     "₦9,600 per Carton-12 and ₦800 per unit as one price, read quantity-unit-rate on every row",
+     "A discount pair",
+     "An error"
     ],
     "ans": 1,
-    "why": "The P&L eats the difference in expense lines.",
+    "why": "Step 2.",
+    "src": "Ch8"
+   },
+   {
+    "q": "The import contrast shows:",
+    "opts": [
+     "No difference",
+     "Cheaper imports always",
+     "The dollar goods value carrying a material acquisition layer before it becomes a shelf figure — margin overstated if the quoted rate is read instead",
+     "No duties"
+    ],
+    "ans": 2,
+    "why": "Step 4's vocabulary case.",
+    "src": "Ch8"
+   },
+   {
+    "q": "The apparent price jump on the import line was:",
+    "opts": [
+     "A supplier increase",
+     "A typo left alone",
+     "Inflation",
+     "A pack-size change resolved by the pairing audit — factor and rates corrected together"
+    ],
+    "ans": 3,
+    "why": "Step 6.",
+    "src": "Ch8"
+   },
+   {
+    "q": "The Emzor increase was handled by:",
+    "opts": [
+     "A written explanation and the routed hand-off — the selling list's governed update ran the same week",
+     "Absorbing it",
+     "Cancelling orders",
+     "A dispute"
+    ],
+    "ans": 0,
+    "why": "Neither finding absorbed silently.",
+    "src": "Ch8"
+   },
+   {
+    "q": "Reviews reading quoted rates on imports produce:",
+    "opts": [
+     "Accuracy",
+     "Margins overstated by the acquisition layer — loss-making lines reading as profitable",
+     "Caution",
+     "Better prices"
+    ],
+    "ans": 1,
+    "why": "Error 4.",
     "src": "Ch9"
    },
    {
-    "q": "This module's law is:",
+    "q": "Module 2's rule is:",
     "opts": [
-     "Costs manage themselves",
-     "Items are selling's job",
-     "Cost truth begins at the item",
-     "Valuation is optional"
+     "Costs are flexible",
+     "Lists are optional",
+     "A cost is a defined figure with a source — one record both sides, units paired with rates, sourced list rates, the three figures named correctly, measured planning fields, every movement read and routed",
+     "Landed is a detail"
     ],
     "ans": 2,
-    "why": "Every downstream number is computed or improvised from here.",
+    "why": "The module rule.",
     "src": "Ch9"
    }
   ]
