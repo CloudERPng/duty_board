@@ -3317,473 +3317,473 @@
  },
  "advanced": {
   "title": "Selling 8 — Advanced Selling: Settings, Bundles, Blanket Orders & Sales Teams",
-  "desc": "The advanced layer: Selling Settings in depth, Product Bundles, Blanket Orders for long-term rate agreements, and the two sales-team structures — Sales Person (internal, contribution and targets) and Sales Partner (external channel and commission).",
+  "desc": "Advanced selling instruments in ZhiftERP: Product Bundles — the non-stock parent, the child table, the three document behaviours, the bundle-versus-production boundary test, availability arithmetic across components, returns under the package terms, and the bundle register; blanket orders — the recorded arrangement, call-offs at approved rates through the standard chain, governance and the monthly consumption read; sales person attribution with the integrity rule and the commission boundary; Selling Settings as control-register rows with the quarterly pass; and the consolidated selling calendar assembling every read from modules 1-7 into one operating rhythm.",
   "lessons": [
    {
-    "title": "Chapter 1 — Selling Settings I: identity & defaults",
-    "est": "14",
-    "html": "<p>Selling Settings is where selling policy becomes system behaviour, and this module opens with its full treatment because everything advanced stands on it. Two chapters: identity and defaults here; the discipline switches next. A consultant should be able to defend every switch on this screen to a client's managing director — this pair of chapters is that defence, rehearsed.</p><p><b>Customer Naming By — the day-one identity decision.</b> <i>Customer Name</i> makes the typed name the record's permanent ID (Alpha Pharmacy Ltd is both label and key); <i>Naming Series</i> issues CUST-00042-style IDs with the name as display. The decision rule, in full: <b>portfolios with duplicate or near-duplicate names need the series.</b> Nigerian trade is dense with them — an Adepoju Stores in three cities, a De Divine Pharmacy twice in one LGA, chains whose branches trade under near-identical registrations. Name-keyed records collide, and the workarounds (Alpha Pharmacy 2; Alpha Pharmacy - Ikeja one) are corruption of the identity layer itself. Series-keyed records are unambiguous forever while the display name stays human.</p><p><b>Why it is a DAY-ONE decision.</b> The record's ID threads through every document, link and report that ever references it. Switching schemes after transactions exist is not a settings change — it is a data-migration project (re-keying, re-linking, testing), the kind of surgery your team performs for clients who decided casually and lived with collisions for two years first. The consultant's job at implementation is to ask the portfolio question — how many customers, how similar their names, how fast the growth — and decide ONCE, in writing, in the configuration workbook.</p><p><b>The defaults trio.</b> Default <b>Customer Group</b>, default <b>Territory</b>, default <b>Selling Price List</b>: what new records and documents pre-fill with when nobody chooses. The doctrine from Selling 1-2, restated as configuration: point each at the genuinely commonest LEAF — never the tree root, never a Misc landfill — so hurried entry lands correctly; then pair the safety net with the weekly new-record review that catches what fell into it. Defaults are the difference between lazy data entry producing usable records and producing archaeology.</p><p><b>The reflex this pair of chapters builds.</b> When a client asks <i>can the system make our people do X</i> or <i>stop them doing Y</i>, open this screen before answering anything. Most selling-policy questions are already switches; the expensive consultant is the one who scopes a customisation for a checkbox — and the credible one is the one who can also say which questions this screen does NOT answer, which is what the rest of this module maps.</p>"
+    "title": "Chapter 1 — The advanced instruments: scope",
+    "est": "11",
+    "html": "<p>This final Selling module covers the instruments that extend the standard document flow: Product Bundles, blanket orders, sales person attribution and commission, and the Selling Settings that enforce the track's disciplines in configuration. It closes with the consolidated selling calendar — the operating rhythm modules 1-7 built, assembled in one place.</p><p><b>On completing this module you will be able to:</b> define and operate Product Bundles including their document behaviour, availability arithmetic, and returns; set up blanket orders and manage call-offs against them; configure sales person attribution and operate the commission read within the accounting boundary; walk the Selling Settings with each setting's control-register row; and run the selling function's full calendar.</p><p><b>Why these instruments are a separate module.</b> Each solves a recurring commercial situation the standard flow handles poorly:</p><p>1. <b>The package sale</b> — several items sold as one commercial unit at one price: without bundles, packages are assembled by hand on every document, priced inconsistently, and invoiced as component lists the customer did not buy.<br>2. <b>The standing supply arrangement</b> — agreed quantities and rates over a period, drawn down in parts: without blanket orders, each call-off renegotiates what was already agreed.<br>3. <b>Attribution and reward</b> — who sold what, and what is owed for it: without configured attribution, commission is computed outside the system from disputed spreadsheets.<br>4. <b>Enforcement</b> — the track's rules (orders before invoices, deliveries before billing, tolerances, credit postures): the settings make the rules configuration rather than memory.</p><p><b>Custody.</b> Bundles and blanket arrangements are register entries with owners and reviews, per the standing register pattern; commission policy is the owner's written policy with the accountant computing payouts; settings changes are governed changes recorded in the control register (the Inventory track, module 8 pattern, extended to selling); and the calendar in Chapter 7 assigns every read this track created to its cadence and its owner.</p><p><b>Module contents.</b> Chapter 2: Product Bundles — definition and document behaviour. Chapter 3: bundle operations. Chapter 4: blanket orders. Chapter 5: sales persons and commission. Chapter 6: Selling Settings. Chapter 7: the consolidated selling calendar. Chapter 8: worked example. Chapter 9: review and the module rule.</p>"
    },
    {
-    "title": "Chapter 2 — Selling Settings II: the discipline switches",
-    "est": "15",
-    "html": "<p>Four switches carry most of the policy weight, and each maps to a question clients actually ask. Learn them as question-and-switch pairs.</p><p><b>Can we stop staff typing special prices? → untick Allow User to Edit Price List Rate.</b> With it off, rates come ONLY from Item Price records — the rate field is read-only on documents for restricted roles. This is the strongest anti-discount control in existence: stronger than memos (forgotten), smaller price lists (worked around), or threats (negotiated). Pair it with the Selling 2 consequence: prices then move through exactly one door — the owned import workflow — and the firm can answer who changed what, when, from what to what, in one minute. The nuance a consultant adds: negotiation does not die; it moves to where Selling 6's governance ladder wants it — pricing rules for policy, escalation for exceptions — and the switch is often applied per role, leaving leads a band while the floor holds firm.</p><p><b>Can we prevent selling below cost? → Validate Selling Price Against Purchase Rate.</b> The below-cost block at the keyboard: a rate under the item's purchase cost refuses at entry. Margin protection where it is cheapest — before the document exists — rather than where it is customary — in a month-end report after the goods have shipped. Its honest limitation, stated to clients: it guards against the accidental and the casual, not the determined (who escalates properly through the ladder), and cost accuracy upstream is its fuel — garbage purchase rates make it a random number generator, which is a data-hygiene conversation, not a reason to leave the floor open.</p><p><b>Can the agreed rate change between order and invoice? → Maintain Same Rate Throughout Sales Cycle, plus its ACTION.</b> The switch enforces that the Sales Order's rate cannot silently differ on the Delivery Note or Sales Invoice made from it — the drift the customer experiences as betrayal (₦850 signed, ₦880 billed). Its companion <b>action setting</b> chooses the response to a detected drift: <b>Stop</b> (hard block — strict shops, fixed-price trade) or <b>Warning</b> (allow but flag — shops with legitimate mid-cycle repricing, who then own their flags). Neither silence nor auto-correction is on the menu; the consultant's question to the client is simply which failure they prefer to be expensive: a blocked document at a busy moment, or a flagged drift someone must review.</p><p><b>Same item twice on one order? → Allow Item to be Added Multiple Times.</b> The free-goods enabler (Selling 3's two-row treatment) and the two-rates-one-document case. It lives HERE — the address is itself an exam-grade fact.</p><p><b>And the global over-delivery allowance</b> — the fallback under Selling 4's per-item tolerance: the house default for item classes that never got a specific number. Set it low; let bulk classes override upward deliberately.</p><p><b>The change-control coda.</b> These switches move BEHAVIOUR, so they change like policy, not like preferences: decided with the client's management, dated, announced to the floor, never toggled casually mid-quarter to ease one loud complaint — Chapter 9 meets the shop where the edit-rate hole was quietly reopened for a friend, and what it cost.</p>"
+    "title": "Chapter 2 — Product Bundles: definition and document behaviour",
+    "est": "12",
+    "html": "<p>A Product Bundle sells several items as one line. This chapter is the doctype and how documents process it.</p><p><b>1. The Product Bundle record.</b> Open Product Bundle (awesome bar) &gt; New:</p><p>1. <b>The parent item</b> — an Item record created for the bundle itself, flagged as a sales item but <b>not</b> a stock item (Maintain Stock off): the bundle is a commercial unit, not a warehoused product. Its code and name follow the register conventions; its price is set on the price lists like any item (Chapter 2.4).<br>2. <b>The child table</b> — the component items with their quantities per bundle: the stocked products that physically ship when one bundle sells.<br>3. <b>The description</b> — what prints for the bundle line, stating the package's contents per the print convention, so the customer's document says what the package contains.</p><p><b>2. Document behaviour.</b> The bundle line explodes into its components where stock is involved and stays one line where money is involved:</p><p>1. <b>On the Sales Order</b> — the bundle enters as one row at the bundle price; the packed-items detail lists the components the row implies.<br>2. <b>On the Delivery Note</b> — the packed items drive the physical work: the components pick, their identities capture (serialised or batch components carry their numbers per the module 5 discipline), and stock deducts per component at delivery. The customer's document shows the bundle line with its packed contents.<br>3. <b>On the Sales Invoice</b> — one line at the bundle price: the customer buys one package at one price, and the invoice states exactly that. Revenue posts against the bundle line; component costs posted at delivery per component valuation — the bundle's margin is the bundle price against the summed component costs.</p><p><b>3. Bundles versus manufacturing.</b> The boundary rule: a bundle is <b>picked at despatch</b> from components that remain ordinary stock until they ship; a manufactured or assembled product is <b>built in advance</b> into a new stock item through the production flow (the Manufacturing lane, where the site runs one). The test is physical: if the components are combined into a unit that sits in the warehouse as that unit, it is production; if they are gathered at picking time, it is a bundle. Choosing wrongly either creates phantom stock items nobody counts or forces production paperwork onto simple picking.</p><p><b>4. Pricing the bundle.</b> The bundle's price is an Item Price on the lists like any product (module 2), moved only by the governed update. The package's commercial logic — a package price below the components' summed list prices — is stated in the bundle's register entry with the arithmetic, and the margin view reads the bundle line against its component costs at the pre-issue check like any other line.</p>"
    },
    {
-    "title": "Chapter 3 — Product Bundles I: construction & mechanics",
-    "est": "14",
-    "html": "<p>You price as ONE thing but pick as MANY things: the Pharmacy Starter Pack at ₦450,000 that is really shelving, a scanner, and a printer. The <b>Product Bundle</b> is the correct model, and this chapter builds one and traces it through every document.</p><p><b>The construction, in order:</b></p><ul><li><b>The parent item.</b> A normal item record BUT <b>non-stock: Maintain Stock UNTICKED</b>. The parent never has warehouse quantity — it is a commercial identity, not a physical one. Is Sales Item ticked (it must appear on selling documents); item group per the tree (a Bundles or Kits leaf keeps mix reporting honest); description written for the buyer, since it IS the one line they will read.</li><li><b>The bundle definition.</b> The Product Bundle record: the parent on top, the <b>child items with quantities</b> beneath — 4 × shelf unit, 1 × scanner, 1 × printer. The children are ordinary stock items with ordinary bins.</li><li><b>The price.</b> An Item Price for the PARENT on the selling list: ₦450,000 (Selling 2's machinery, one atom). Children need no selling price for the bundle to function — their prices, if any, serve their standalone sales.</li></ul><p><b>The mechanics at each document — the part to recite:</b> on the quotation, the order, and the <b>invoice, the customer sees ONE line at the parent's price</b> — clean commercial presentation, no per-child price exposure, no arithmetic for procurement to pick at. On the <b>Delivery Note, the bundle EXPLODES</b>: the packed-items section lists the children with their quantities, and <b>it is the CHILDREN that move stock</b> — 4 shelves, 1 scanner, 1 printer deducted from their bins; the parent deducts nothing, having nothing. Price lives on the parent; picking lives on the children. Serial-tracked children (the scanner) demand their serials on the packed rows exactly as Selling 5 taught — bundling changes presentation, never identity discipline.</p><p><b>Availability.</b> A bundle is sellable as far as its SCARCEST child allows: 40 shelves, 3 scanners, 20 printers in stock means 3 packs, not 10 — the scanner is the binding constraint. Reading bundle availability is reading child bins with the definition in hand, and stocking for a bundle promotion means stocking its constraint (Chapter 4 operationalises this).</p><p><b>The rejected workaround, convicted once more.</b> A stock-tracked starter-pack item with quantity of its own is a shelf lie: nobody counts packs, the children's bins and the pack's bin double-represent the same physical goods, and every stocktake becomes a reconciliation between fictions. The whole point of the bundle object is one physical truth (children in bins) wearing one commercial face (the parent's line and price).</p>"
+    "title": "Chapter 3 — Bundle operations",
+    "est": "12",
+    "html": "<p>Bundles run on the same disciplines as ordinary items, with three operational differences. This chapter states them.</p><p><b>1. Availability arithmetic.</b> A bundle has no stock of its own; its availability is computed from components:</p><p>1. <b>Sellable bundles = the minimum across components</b> of (component available ÷ component quantity per bundle). Forty shelves and six scanners support six bundles of four-shelves-and-one-scanner, not ten.<br>2. <b>The availability read</b> — the order-time check (module 4's scheduling against stock) runs per component through the packed items: a bundle wave is at risk if any component is short, and the planning read flags the constraining component by name.<br>3. <b>Replenishment</b> — components replenish as ordinary items (the Inventory track's machinery); the bundle's forecast translates into component demand through the child quantities, and the reorder review accounts for bundle demand where bundles sell steadily.</p><p><b>2. Returns of bundles.</b> Returns operate at the level that physically returns:</p><p>1. <b>The whole package back</b> — the return Delivery Note carries the bundle row; the packed components re-enter stock through the condition decision (module 5), each component routed on its own condition.<br>2. <b>One component back</b> (the damaged scanner from a display pack) — the return is a component-level return per the site's return configuration, with the credit or replacement sized to the component per the policy's package terms, and the package terms themselves (what a partial return does to a package price) are stated in the bundle's register entry at definition, not negotiated per case.</p><p><b>3. The bundle register.</b> Each active bundle is a register row: the parent item, the components and quantities, the price arithmetic against component list totals, the package return terms, the owner, and the review date. The quarterly review (riding the pricing review) confirms: the components still current (a discontinued component makes the bundle undeliverable — the register review catches it before the order does), the price still per the decided arithmetic after component cost changes, and slow bundles retired by the item lifecycle procedure.</p><p><b>4. The reads.</b> Monthly, with the sales analytics pass: bundle sales by bundle (volume and value), bundle margin (bundle revenue against component costs), and the attach effect where the register states one (the bundle's purpose — moving a slow component, anchoring a package — checked against what actually moved). The read's findings route to the register review: reprice, redefine, or retire.</p>"
    },
    {
-    "title": "Chapter 4 — Product Bundles II: design & operations",
-    "est": "14",
-    "html": "<p>Chapter 3 built the object; this chapter is the judgment around it — when a bundle is the right model, what its margin really is, and how it behaves under operational stress.</p><p><b>Bundle vs variant vs separate lines — the placement test.</b> Three lookalikes, three different objects. A <b>variant</b> (Selling 2, Chapter 3) is ONE product in versions — the polo in five sizes: one template, size children, each a stock item. A <b>bundle</b> is SEVERAL products sold as one line — priced together, picked separately. And sometimes the honest answer is <b>separate lines on the quotation</b> — when the customer negotiates the components individually, itemised billing serves the relationship better than a sealed price. The test in one sentence: variants VARY one thing; bundles COMBINE many things; and when the combination is negotiable per component, do not seal it.</p><p><b>Bundle margin — the arithmetic nobody does until it hurts.</b> The parent has a price; the COST is the sum of the children's costs. Margin on the ₦450,000 pack = 450,000 minus (4 × shelf cost + scanner cost + printer cost) — and it MOVES whenever any child's cost moves, silently, because no single item record shows it. The discipline: bundles get a margin review on the same cadence as price lists (Selling 2's repricing rhythm), and Validate-Against-Purchase-Rate (Chapter 2) does not fully guard them — the parent, being non-stock, has no purchase rate of its own — so the bundle margin file is a deliberate, owned artefact. Bundles are where firms most often discover they have been selling below cost for a quarter, precisely because the loss hides in the sum.</p><p><b>Stock planning for the constraint.</b> Availability equals the scarcest child (Chapter 3), so a bundle promotion is a procurement event for its binding constraint: launching 50 packs means the scanner order lands FIRST, and the reorder levels on children carry the bundle's demand, not just their standalone runs. The operational tell of unplanned bundles: shelves of three children and a stockout on the fourth, with sales blocked by the cheapest component.</p><p><b>Returns of bundles.</b> The customer returns a pack — or one child of it. The stock half follows Selling 5 exactly: the return DN reverses the CHILDREN (all of them for a full pack; the specific child for a partial — the scanner back to quarantine by serial), because children are what moved. The money half follows Selling 7: the credit note against the invoice's parent line — full for a full return; for a partial, the commercial decision (proportional credit, or replacement of the child) is made explicitly and papered, because the parent's sealed price has no official per-child split. Mature firms keep an internal component-value split for the parent precisely to make partial-return credits non-arbitrary — another owned artefact of running bundles seriously.</p><p><b>Where bundles shine.</b> Hampers and seasonal packs, starter and installation kits, promo combinations — anywhere the offer is genuinely one decision for the buyer. Model it once, correctly, and the bundle is a pricing weapon; model it as a fake stock item and it is a stocktake dispute with a marketing name.</p>"
+    "title": "Chapter 4 — Blanket orders",
+    "est": "12",
+    "html": "<p>A standing supply arrangement — agreed quantities and rates over a period, drawn in parts — is configured as a Blanket Order. This chapter is the doctype and its operation.</p><p><b>1. The Blanket Order record.</b> Open Blanket Order (awesome bar) &gt; New:</p><p>1. <b>The party and period</b> — the customer, the from and to dates of the arrangement.<br>2. <b>The items table</b> — each item with its agreed total quantity and its agreed rate for the period.<br>3. <b>The order type</b> — Selling (the same doctype serves purchasing arrangements on the other side).</p><p>The blanket order is the recorded agreement; it posts nothing, reserves nothing, and ships nothing. Its function is to hold the negotiated terms so the call-offs execute them without renegotiation.</p><p><b>2. Call-offs.</b> Deliveries against the arrangement run as ordinary Sales Orders created against the blanket order:</p><p>1. The Sales Order references the blanket order; items and rates draw from it — the agreed rate applies without the deviation ladder, because the rate was approved once at the arrangement's creation (the ladder ran there, at the arrangement's size).<br>2. Each call-off then follows the standard flow — commitment, delivery, invoice — with all of modules 4-7's disciplines.<br>3. The blanket order tracks consumption: ordered quantity against the agreed total per item.</p><p><b>3. The arrangement's governance.</b></p><p>1. <b>Creation</b> — a blanket order is a negotiated commitment at its full value: the approval band is the ladder band of the whole arrangement, and the negotiation file (module 3's pattern) holds the versions and the approval.<br>2. <b>Rate protection</b> — the agreed rate holds for the period as the arrangement states; cost movements inside the period are the business's exposure, priced at creation (a volatile-cost item takes a shorter period or an indexation clause per the policy, decided at negotiation).<br>3. <b>Amendments</b> — quantity or rate changes mid-period are amendments to the arrangement with the same approvals as creation, per the module 4 taxonomy logic.</p><p><b>4. The consumption read — monthly.</b> Active blanket orders: consumed against agreed quantity, run rate against the period's remaining time, and expiry proximity. The actions: arrangements consuming ahead of schedule route to the renewal conversation before they exhaust; arrangements far behind schedule route to the account conversation (the customer is not drawing what was agreed — the cause belongs in the file); expiring arrangements close or renew by decision, and expired rates never apply to new call-offs — a call-off after expiry is a new negotiation.</p>"
    },
    {
-    "title": "Chapter 5 — Blanket Orders: the consumed agreement",
-    "est": "14",
-    "html": "<p>A customer commits to 10,000 cartons over six months at ₦820. More than an enquiry, less than a truck-now order: it is an AGREEMENT TO BE CONSUMED, and the <b>Blanket Order</b> is its instrument. This chapter is its complete lifecycle.</p><p><b>Creation.</b> The blanket order carries the customer, the items with <b>agreed quantities and agreed rates</b>, and the <b>from/to dates</b> of the agreement. Submitting it creates NO reservation and moves NO stock — deliberately: the commitment is commercial, not logistical, and the warehouse plans from the drawn orders, not the frame. (Contrast Selling 4: a Sales Order reserves because it is a delivery promise; the blanket promises a RELATIONSHIP of deliveries.)</p><p><b>Drawing against it.</b> Each real purchase is an ordinary <b>Sales Order referencing the blanket</b>, and two things happen by construction: the row <b>inherits the agreed ₦820</b> — nobody renegotiates, nobody forgets the deal rate, no override fingerprints needed because the rate is the agreement's — and the blanket records the <b>drawdown</b>: ordered-so-far against committed. From the draw onward, everything is Selling 4-5-7 as normal: the order reserves, its DNs deduct, its invoices bill at the inherited rate.</p><p><b>Monitoring the consumption.</b> The remaining commitment is read <b>from the blanket order itself</b> — ordered-vs-committed — and reviewing it monthly is account management with teeth: a customer at 20% drawdown four months into six is not going to make 10,000, and that conversation (extend? revise? let it lapse?) happens NOW, commercially, rather than as a surprise at expiry. Conversely a customer at 90% in month three earns the next-tier conversation early. The blanket turns volume promises from toasts into numbers.</p><p><b>Expiry and renewal.</b> The to-date ends the agreement: draws after it do not inherit, and the lapsed blanket stands in history as the record of what was promised and what was actually taken — the single most honest input to the NEXT negotiation (last agreement: committed 10,000, drew 7,400). Renewal is a NEW blanket at newly agreed numbers; extending old paper to house a new deal muddies both, the same law as reopened orders (Selling 4) and resurrected quotations (Selling 3).</p><p><b>The instrument comparison, final form.</b> One giant Sales Order for 10,000: reserves half a warehouse for months and lies about delivery intent. A six-month-validity quotation: an offer awaiting an answer impersonating an agreement being consumed — wrong semantics, no drawdown, no rate enforcement on draws. A pricing rule at ₦820: gives the rate but tracks no commitment and expires without a record of performance. The blanket is the only instrument that is simultaneously a rate lock, a volume ledger, and a renewal brief — which is why your BizRetail-class volume relationships belong on it.</p>"
+    "title": "Chapter 5 — Sales persons and commission",
+    "est": "12",
+    "html": "<p>Attribution states who sold what; commission states what is owed for it. This chapter is the configuration and the boundary.</p><p><b>1. The Sales Person tree.</b> Open Sales Person (awesome bar): the tree of selling responsibility — the sales function's people (and groups where teams share attribution), per the standing tree rules: mirror the real structure, three levels or fewer, changes by decision.</p><p><b>2. Attribution on documents.</b> The sales team section on the selling documents assigns the transaction to sales persons with contribution percentages summing to one hundred:</p><p>1. <b>Set at the order</b> — attribution belongs to the commitment and carries to the invoice; per the policy, defaults per customer (the account's standing owner) pre-fill and are corrected only where the deal's reality differs.<br>2. <b>Split attribution</b> — shared deals carry the split the policy defines (the account owner and the closing negotiator, per the written split rules), entered at the order, not disputed at payout.<br>3. <b>The integrity rule</b> — attribution states who actually sold; it is not adjusted after the fact to move commission. Attribution changes after submission follow the amendment discipline with reasons, and the monthly read lists them.</p><p><b>3. Commission computation.</b> The policy is the owner's written document: the basis (invoiced value, collected value, or margin — collected-value bases tie payout to module 7's collections and are the standing recommendation in credit-heavy books), the rates by role or band, the treatment of credits and returns (commission reverses with the value it was paid on), and the payout calendar. The system's figures feed the computation: sales by sales person from the attribution, collections from the allocation records, credits from the return documents.</p><p><b>4. The boundary.</b> The selling function maintains attribution; the accountant computes and pays per the policy — through payroll or the payables lane as the policy states — and the computation file (the period's figures, the policy applied, the payout) is the accountant's record. Commission disputes resolve from the documents: the attribution on the order, the policy's written rules, the collection records — per the standing rule that disagreements resolve from records, not recollection.</p><p><b>5. The attribution read — monthly.</b> Sales by sales person against the period's documents: unattributed documents (listed to zero — an unattributed sale pays nobody and misstates everyone's figures), post-submission attribution changes with their reasons, and the split-rule exceptions. The read files with the commission computation, and the two together are the payout's evidence.</p>"
    },
    {
-    "title": "Chapter 6 — Sales Person: the internal team",
-    "est": "14",
-    "html": "<p><b>Sales Person</b> models your own force — and models it as a <b>tree</b>, because organisations report upward: Sales Director → Regional Managers → Field Reps. Results roll up the hierarchy automatically; the Lagos number is its reps' sum, the company number is the regions' — no spreadsheet ever built, no argument about whose figure is whose, because the figure is computed from the same documents that raised the invoices.</p><p><b>Designing the tree.</b> The same three rules as every tree in this manual (Selling 1-2): one question (WHO on our side owns this revenue), mirror how management actually reviews (if the MD reviews by region, regions are the branches), and leaves assignable in two seconds (every rep is exactly one node). And the law Selling 1 Chapter 3 established from the other side: people live in THIS tree so that geography can live in Territory — when Tunde resigns, his node is deactivated and his accounts reassigned, while Ikeja remains exactly where it was. Trees that outlive their staff are the point.</p><p><b>Assignment and contribution.</b> Selling documents carry a <b>Sales Team</b> section: one or MORE sales persons, each with a <b>contribution %</b>, <b>summing to 100</b>. The solo case is one row at 100. The worked deal splits honestly — 60/40 for the rep who ran it and the colleague who closed the technical objections — and reports credit each with their contributed share of the revenue, <b>never double-counting</b> the deal. The alternatives are all worse: two invoices for one sale (fragments the customer's paper), remarks (no report reads them), or the quiet convention that whoever types the order gets the credit (which is how CRM data becomes politics).</p><p><b>Targets.</b> Each sales person carries targets by <b>item group and period</b> — ₦30m of Pharma for Q4 — and actuals accrue from their assigned transactions. Targets aimed through the item-group tree make product-mix strategy personal: the rep whose target is weighted toward Services sells Services. The governance fact that makes targets real rather than theatre: <b>assignment precedes measurement</b> — a target against transactions nobody assigned is a number floating over a void, and Chapter 9 meets target theatre in the wild.</p><p><b>The report.</b> The <b>Sales Person-wise Transaction Summary</b>: each person's transactions, contributed amounts, performance against target — the league table, the commission basis, and the substance of the performance conversation. The honest consultant's sentence, verbatim, for every client who asks for sales-by-rep: <i>only if sales persons are assigned on the transactions — the report is arithmetic over assignments; the discipline precedes the dashboard.</i> Make the Sales Team section expected in the client's process (mandatory where their policy warrants), and the question answers itself weekly forever.</p>"
+    "title": "Chapter 6 — Selling Settings",
+    "est": "12",
+    "html": "<p>The track's rules are enforced in configuration. This chapter walks the settings, each with its recommended posture and its control-register row.</p><p><b>1. The document chain settings.</b></p><p>1. <b>Sales Order required</b> — on for the invoice paths the policy gates: an invoice without an order is refused by configuration except for the named direct cases (module 7, Chapter 3). The setting turns the three-path rule from procedure into enforcement.<br>2. <b>Delivery Note required</b> — on where billing must follow despatch for stock items: performance before claim, enforced.<br>3. Both settings admit per-case exceptions only through the roles and lanes the site configures; the control register row states the posture and the exception owner.</p><p><b>2. The tolerance settings.</b> The over-delivery and over-billing allowances (module 5, Chapter 4): the percentages, set low, with the exception role named. Register rows per the Inventory module 8 pattern — the setting, the value, the reason, the owner, the review date.</p><p><b>3. The customer and pricing defaults.</b></p><p>1. <b>Customer naming</b> — by name per the module 1 convention (naming series where the site prefers codes; the convention is the decision, the setting records it).<br>2. <b>The default price list and territory</b> — the fallback ends of the module 1-2 resolution chains: set once to the decided defaults, so the chain always resolves.<br>3. <b>Maintain same rate throughout the sales cycle</b> — the posture that holds rates consistent from order to invoice per the site's configuration: on per the standing recommendation, so rate changes route through amendments rather than drifting between documents.</p><p><b>4. The credit and stock interaction settings.</b> The credit limit machinery's postures (module 1) and the reservation behaviour (module 4) read from their own configuration areas; this chapter's rule is the register's completeness: <b>every setting that changes selling behaviour has a register row</b>, whichever settings page it lives on — the quarterly confirmation pass (the Inventory track's control register review, extended) reads them all in one sitting.</p><p><b>5. Changing a setting.</b> The governed-change procedure, restated for selling: the proposal with its reason, the owner's approval for postures that move money or controls, the change dated in the register, the affected procedures updated, and the change announced to the roles it touches. A settings change without its register row is the configuration drift the quarterly pass exists to catch.</p><p><b>6. The settings read — quarterly.</b> The register against the live configuration: each row's stated value confirmed on screen, discrepancies investigated as either undocumented changes (the governance failure — closed by decision and record) or stale rows (updated). The pass rides the standing quarterly calendar with the access and stock reviews.</p>"
    },
    {
-    "title": "Chapter 7 — Sales Partner: the external channel",
+    "title": "Chapter 7 — The consolidated selling calendar",
+    "est": "12",
+    "html": "<p>Modules 1-7 each installed reads on cadences. This chapter assembles them into the selling function's operating calendar — the rhythm the track is run by.</p><p><b>1. Daily / per run.</b></p><p>1. The invoicing run's two worklists — delivered-not-billed and due milestones — worked to zero (module 7).<br>2. Payments recorded same-day and allocated per remittances (module 7).<br>3. Despatch verifications and acknowledgments per despatch (module 5).</p><p><b>2. Weekly.</b></p><p>1. The fifteen-minute five-check read — open quotations, overdue rows, delivered-not-billed, discounts, the trend read — with the written note (module 6).<br>2. The delivery planning read — the coming window, overdue rows, at-risk rows (module 4).<br>3. The pending-acknowledgment read (module 5).<br>4. The collections gear worklist with promise dates (module 7).<br>5. The unallocated receipts read (module 7).<br>6. The order book pass, top-down by value (module 4).<br>7. The validity read on open quotations (module 3).</p><p><b>3. Monthly.</b></p><p>1. The conversion read and the deviations read (module 3).<br>2. The amendments read (module 4).<br>3. The returns read and the despatch sample (module 5).<br>4. The discounts read (module 6).<br>5. The credit changes, duplicate-candidate, and gate sample reads (module 1).<br>6. The price changes and completeness reads, and the rules read (module 2).<br>7. The bundle, blanket consumption, and attribution reads (this module).<br>8. The receivables summary and gear outcomes (module 7).<br>9. <b>The monthly commercial review</b> — the owner's session from the weekly notes and the monthly reads, closing with decisions entered into the governed lanes (module 6).</p><p><b>4. Quarterly.</b></p><p>1. The classification and hygiene reads on the customer register (module 1).<br>2. The item tax read with the accountant (module 2).<br>3. The deviation-versus-outcome read (module 3).<br>4. The cancellations and closures read (module 4).<br>5. The transit-damage read (module 5).<br>6. The bundle register review, and the settings register pass (this module).<br>7. The credit review on top exposures (module 1).</p><p><b>5. Annually.</b> The terms templates review with counsel (module 3); the price architecture read (module 2); the full credit pass riding the receivables year-end (module 1); the policy set — ladders, postures, tolerances — reviewed and re-issued.</p><p><b>6. The calendar's filing.</b> Every read files where its module stated; the weekly notes and monthly review minutes are the connective record. The calendar is deliberately the same shape as the Inventory track's — daily accuracy, weekly execution, monthly money, quarterly structure — so one operating rhythm serves the whole business.</p>"
+   },
+   {
+    "title": "Chapter 8 — Worked example: the Pharmacy Display Pack",
     "est": "13",
-    "html": "<p>A <b>Sales Partner</b> is a business OUTSIDE your company that brings you deals — a reseller, a referral agent, a channel distributor, an implementation firm that sources clients. The record carries the partner's identity, type, and the operative field: a <b>commission rate</b>. This chapter is the channel run properly.</p><p><b>On transactions.</b> Select the partner on a Sales Order or Sales Invoice and two things happen: the deal is <b>stamped as that channel's business</b> — channel revenue becomes a reportable dimension like any other — and the document computes the <b>total commission</b> at the partner's rate: the liability you owe for the introduction, calculated per deal, automatically, at the rate the record holds rather than the rate anyone remembers.</p><p><b>The distinction to keep razor-sharp: Person vs Partner.</b> <b>Sales Person is internal</b> — your staff, a tree, contribution percentages summing to 100, targets, performance management. <b>Sales Partner is external</b> — another business, a flat entity, a commission percentage, a payable relationship. They are not two names for one idea; commission is not the divider (both structures can drive earnings); and a partner is not a customer (they bring buyers; they are not the buyer). One transaction can lawfully carry BOTH: your rep (Sales Person, 100%) worked the deal a referral firm (Sales Partner, 5%) introduced — the rep is measured, the partner is owed, and neither fact crowds the other.</p><p><b>Paying the channel.</b> Commissions settle from the <b>Sales Partner-wise Transaction Summary</b> — the system's own totals of each partner's stamped business and accrued commission. The rule with money attached: <b>pay partners from the report, never from their claims.</b> When the partner's invoice says ₦2.4m and your summary says ₦2.1m, the summary — built from the actual stamped transactions — is the negotiating position, and the gap is almost always deals the partner counts that were never stamped (a stamping-discipline conversation) or rates remembered differently (the record settles it). Channel programs die two deaths — over-payment and under-tracking — and the report prevents both.</p><p><b>Channel governance.</b> Three habits make a partner program an asset: <b>stamp at entry</b> (the partner goes on the order when the deal arrives, not reconstructed at commission time); <b>review quarterly</b> (each partner's volume, commission, and — using Selling 3's lost-reason lens — the quality of what they bring); and <b>paper the terms</b> (rate, scope, exclusivities in the partner agreement, with the record's rate matching the paper). A channel run on these three is scalable revenue; run on WhatsApp and goodwill, it is a dispute subscription.</p>"
+    "html": "<p>This chapter applies Chapters 2-6 to the standing case. Configuration values and outcomes are listed per step.</p><p><b>Step 1 — the bundle defined (Chapter 2).</b> HealthTrade sells a retail setup package to pharmacy customers: <b>four display shelves and one barcode scanner</b>. The components' individual list prices total <b>₦450,000</b>; the package's decided price is <b>₦361,000</b> — a <b>19.8%</b> package reduction against component list, recorded with its arithmetic in the bundle register entry. The Product Bundle record creates: the parent item PHARM-DISPLAY-PACK (sales item, Maintain Stock off), the child table — 4 × display shelf, 1 × scanner — and the print description stating the contents. The bundle price loads onto the lists by the governed update.</p><p><b>Step 2 — the boundary confirmed (Chapter 2).</b> The register entry records why this is a bundle and not production: the components remain ordinary stock until despatch and are gathered at picking; nothing called a display pack ever sits in the warehouse. The scanner remains individually sellable; the shelf remains a component and an item.</p><p><b>Step 3 — a bundle sale walked (Chapters 2-3).</b> A pharmacy customer orders two packs:</p><p>1. <b>The order</b> — one row, PHARM-DISPLAY-PACK, quantity 2, at ₦361,000 each; the packed-items detail lists 8 shelves and 2 scanners; the availability check runs per component and passes.<br>2. <b>The delivery</b> — the pick list carries the components; the two scanners' serials capture at pick; the second-person check verifies ten physical units against the packed detail; stock deducts per component at submission.<br>3. <b>The invoice</b> — one line, quantity 2, at the bundle price: the customer's document states what the customer bought. Margin reads bundle revenue against the components' summed costs.</p><p><b>Step 4 — the blanket arrangement (Chapter 4).</b> BizRetail Ltd negotiates a standing consumables arrangement for its branches: agreed quantities and rates for the year, approved at the arrangement's full value through the ladder. The Blanket Order records the items, quantities, rates, and period. Monthly call-offs run as Sales Orders against it — rates drawing from the arrangement without renegotiation, each call-off flowing through the standard commitment-delivery-invoice chain. The consumption read tracks drawdown; at month nine the read shows consumption ahead of run rate, and the renewal conversation opens before the arrangement exhausts.</p><p><b>Step 5 — attribution and the register rows (Chapters 5-6).</b> The account's standing owner pre-fills the sales team section on both flows; the bundle launch is a split deal per the written split rules, entered at the order. The settings register gains its selling rows this quarter: Sales Order required on (direct cases named), Delivery Note required on, over-delivery tolerance at the low posture, same-rate-through-cycle on — each with owner, reason, and review date, confirmed at the quarterly pass.</p><p><b>The track closes.</b> The selling function now runs end to end on registers, documents, and reads: customers gated, prices governed, offers versioned, commitments scheduled, despatches verified, invoices claiming what documents support, money allocated, and the calendar keeping all of it read. The Procurement track applies the same construction to the buying side.</p>"
    },
    {
-    "title": "Chapter 8 — Case study: the advanced layer, end to end",
-    "est": "16",
-    "html": "<p>One firm — recognisably shaped like a Nigerian retail-systems vendor — hardens its advanced layer in a single quarter. Every chapter clocks in; this is the module executed as a project.</p><p><b>The starting state.</b> Growing customer file with name collisions beginning; rates editable by everyone; a starter pack modelled as a fake stock item nobody counts; a big distributor buying on remembered handshake rates; sales-by-rep answered by anecdote; one referral firm paid whatever it invoices.</p><p><b>Step 1 — identity & switches (Ch. 1-2).</b> Customer Naming By moves to <b>series</b> — decided in writing before the file doubles again; defaults pointed at real leaves. The discipline set: edit-rate OFF for the floor (leads keep a band), validate-against-purchase ON, same-rate action set to <b>Stop</b> (fixed-price trade), the global over-delivery fallback at 2% with serialized classes at zero. Announced, dated, owned — and the first week's blocked below-cost quote is celebrated in standup, not resented: the floor held.</p><p><b>Step 2 — the pack done right (Ch. 3-4).</b> The fake stock item is retired; a proper bundle replaces it: non-stock parent Retail Starter Pack at ₦450,000, definition of 4 shelves + scanner + printer, parent priced on the standard list. The margin file is built (current children's costs sum to ₦361,000 — 19.8% margin, reviewed monthly); the scanner is identified as the availability constraint and its reorder level raised before the promo. First sale: one clean line on the invoice, three children exploding on the DN, the scanner's serial captured. A month later a damaged printer comes back: child returned by the Selling 5 mechanics, proportional credit issued from the internal component split — non-arbitrary because the split existed.</p><p><b>Step 3 — the handshake becomes a blanket (Ch. 5).</b> The distributor's ₦820-whenever-we-order is papered as a blanket order: 10,000 cartons, six months, the rate on the agreement. Draws inherit ₦820 untouched; month-two review shows 31% drawdown — on pace, noted. The account conversation now has a number instead of a vibe, and next renewal will negotiate from recorded performance.</p><p><b>Step 4 — the team tree (Ch. 6).</b> Sales Person tree: Director → Lagos / South-West → five reps. Sales Team made expected on orders; the first split deal books 60/40 and both reps see their contributed revenue in the summary. Q4 targets set by item group — the Services-weighted target for the rep carrying the support-plan push. The dashboard the MD wanted for a year exists in week one, because assignment finally does.</p><p><b>Step 5 — the channel papered (Ch. 7).</b> The referral firm gets a Sales Partner record at the agreed 5%, terms papered, stamping-at-entry instituted. Quarter-end: the partner invoices ₦2.4m; the summary says ₦2.1m; the gap is two deals never stamped (fixed forward) — paid ₦2.1m plus the corrected stamps, relationship intact BECAUSE the number had a source.</p><p><b>Quarter-end reads.</b> Settings holding (zero below-cost incidents, three Stop events all legitimate); bundle margin drifted to 18.1% on a shelf-cost rise — repriced; blanket at 64% with six weeks left — extension conversation opened early; team summary driving the first data-based commission run; channel report reconciled in one meeting. The advanced layer, installed once, now runs itself — which is the entire point of Chapter 9's law.</p>"
-   },
-   {
-    "title": "Chapter 9 — Support patterns & the seventh law",
-    "est": "14",
-    "html": "<p>The advanced layer's scar tissue — and the close of the manual. Symptom → disease → fix, then the law that seals the track.</p><p><b>Pattern 1 — special prices are back.</b> The edit-rate hole quietly reopened (Ch. 2) — usually for one loud friend-of-the-house, then for everyone. Fix: close it, route the friend through the ladder (a rule or an escalated band), and log settings changes as policy events with dates and owners; a discipline switch toggled casually is policy repealed silently.</p><p><b>Pattern 2 — the bundle parent has stock.</b> Someone ticked Maintain Stock on the parent, or receipts were booked against it (Ch. 3): now packs and children double-represent the same shelves and the stocktake disputes itself. Fix: zero and untick the parent through proper stock documents, recount the children, and re-teach the one-physical-truth principle.</p><p><b>Pattern 3 — bundle sold below cost for a quarter.</b> The silent-margin disease (Ch. 4): a child's cost rose; the parent's sealed price did not. Fix: the margin file with its monthly review — the loss was invisible precisely because no single record showed it.</p><p><b>Pattern 4 — blanket exists; orders ignore it.</b> Draws entered as plain orders at ad-hoc rates (Ch. 5): the agreement neither enforces its rate nor records its drawdown — the worst of both worlds, paper without teeth. Fix: re-reference the draws, correct rate history where the customer was overcharged against the agreement, and make blanket-reference part of the order discipline for agreement customers.</p><p><b>Pattern 5 — the tree is a graveyard.</b> Departed reps still active, their accounts orphaned, the rollup lying (Ch. 6). Fix: deactivate leavers, reassign their books the same week they exit — the tree review joins the offboarding checklist, because trees outlive staff only if someone prunes.</p><p><b>Pattern 6 — target theatre.</b> Ambitious targets, empty summaries (Ch. 6): assignment never became process, so the numbers float over a void and the review meeting reviews nothing. Fix: assignment-precedes-measurement, made structural — the Sales Team section expected on every order, checked in the weekly hygiene pass.</p><p><b>Pattern 7 — the partner's invoice is the ledger.</b> Commissions paid from claims because stamping lapsed (Ch. 7): over-payment or under-tracking, discovered whenever the relationship sours. Fix: reconstruct the quarter from transactions once, painfully; then stamp-at-entry and pay-from-the-report forever.</p><p><b>The seventh law — and the manual's close.</b> Selling 1-2: documents are downstream of masters. Selling 3: the pipeline is downstream of discipline. Selling 4: the order is the single source of fulfilment truth. Selling 5: the DN is where the word meets the world. Selling 6: tax and price are policy. Selling 7: the invoice ledger is the cash truth. And this module: <b>the advanced layer is structure that outlives staff — settings, bundles, blankets, trees and channels encode the firm's selling judgment so that it survives resignations, promotions, and busy Fridays.</b> A ZhiftERP Sales Professional is, finally, someone who installs judgment as structure: who makes the right thing the default thing, the visible thing, and the measured thing — and then lets the system be as relentless as no human can be. That is the certification. Go and sit the exam.</p>"
+    "title": "Chapter 9 — Common errors and the module rule",
+    "est": "11",
+    "html": "<p>The errors that recur with the advanced instruments, each with its correction and prevention.</p><p><b>Error 1 — the stocked bundle.</b> Symptom: the bundle parent created as a stock item; phantom balances nobody can count; reconciliations chasing an item that never physically exists. Correction: the parent corrected to non-stock through the lifecycle procedure; balances resolved. Prevention: Maintain Stock off on bundle parents, and the boundary test at definition.</p><p><b>Error 2 — the hand-assembled package.</b> Symptom: packages sold as component lists at improvised prices; inconsistent package pricing across documents; the customer's invoice not stating what they bought. Correction: the bundle defined and priced by the governed update. Prevention: recurring packages are bundles by definition, per the register.</p><p><b>Error 3 — the bundle sold against a short component.</b> Symptom: bundle orders accepted while a component is out of stock; waves failing at picking on the constraining component. Correction: the availability arithmetic applied; the wave re-dated or the component expedited. Prevention: the per-component availability check at order time.</p><p><b>Error 4 — the expired arrangement still pricing.</b> Symptom: call-offs at blanket rates after the period ended; rate protection extended by inattention. Correction: the call-offs re-priced per current lists or a renewed arrangement. Prevention: the consumption read's expiry proximity, and the rule that a call-off after expiry is a new negotiation.</p><p><b>Error 5 — attribution adjusted at payout.</b> Symptom: sales team sections edited after the fact to move commission; payout disputes; figures nobody trusts. Correction: attribution restored to the order's record; changes reviewed through the amendments discipline. Prevention: attribution set at the order, the integrity rule, and the monthly read listing post-submission changes.</p><p><b>Error 6 — the unregistered setting.</b> Symptom: selling behaviour changed by a settings edit no register row records; the quarterly pass finding live values the register does not state. Correction: the change closed by decision and record, or reverted. Prevention: every behaviour-changing setting a register row, changed only by the governed procedure.</p><p><b>Review list.</b> Before the quiz, confirm you can: define a bundle with the non-stock parent, the child table, and the boundary test; state the three document behaviours and the availability arithmetic; operate bundle returns and the register review; create and govern blanket orders with call-offs and the consumption read; configure attribution with the integrity rule and operate the commission boundary; walk the Selling Settings with their register rows; and run the consolidated calendar.</p><p><b>Module rule 8: the advanced instruments are registers with owners — bundles defined once with non-stock parents and decided arithmetic, arrangements holding negotiated terms for their period only, attribution stating who actually sold, and every behaviour-changing setting carrying its register row — operated inside the same document disciplines as the rest of the track.</b> This completes the Selling track; the Procurement track covers the buying side.</p>"
    }
   ],
   "questions": [
    {
-    "q": "A retail chain has many branches with similar names. Customer Naming By should be:",
+    "q": "The advanced instruments exist because:",
     "opts": [
-     "Naming series",
-     "Customer name",
-     "Territory",
-     "Manual entry"
+     "Each solves a recurring situation the standard flow handles poorly — packages, standing arrangements, attribution, enforcement",
+     "The flow is broken",
+     "They are optional extras",
+     "Reports need them"
     ],
     "ans": 0,
-    "why": "Series naming avoids collisions and keeps records unambiguous.",
-    "src": "Settings §1"
+    "why": "Chapter 1's four cases.",
+    "src": "Ch1"
    },
    {
-    "q": "The strongest control to stop staff typing \"special prices\" on documents is:",
+    "q": "A bundle parent item is:",
     "opts": [
-     "A memo",
-     "Unticking Allow User to Edit Price List Rate",
-     "A smaller price list",
-     "Removing their login"
+     "A stock item",
+     "A sales item with Maintain Stock off — a commercial unit, not a warehoused product",
+     "A warehouse",
+     "A price list"
     ],
     "ans": 1,
-    "why": "Rates then come only from Item Price records.",
-    "src": "Settings §1"
+    "why": "The bundle never sits in the warehouse.",
+    "src": "Ch2"
    },
    {
-    "q": "Blocking sales below cost at the point of entry uses:",
+    "q": "On the invoice, a bundle appears as:",
     "opts": [
-     "A pricing rule",
-     "Credit limits",
-     "Validate Selling Price Against Purchase Rate",
-     "A report review"
+     "Component lines",
+     "A discount",
+     "One line at the bundle price — the customer bought one package at one price",
+     "A note"
     ],
     "ans": 2,
-    "why": "The validation setting is margin protection built into entry.",
-    "src": "Settings §1"
+    "why": "One line where money is involved.",
+    "src": "Ch2"
    },
    {
-    "q": "Maintain Same Rate Throughout Sales Cycle can be configured to respond to a drift with:",
+    "q": "On the Delivery Note, the packed items:",
     "opts": [
-     "Silence only",
-     "An email",
-     "Automatic correction",
-     "A Stop or a Warning, per the action setting"
+     "Are hidden",
+     "Post revenue",
+     "Are optional",
+     "Drive the physical work — components pick, identities capture, stock deducts per component"
     ],
     "ans": 3,
-    "why": "The companion action setting chooses hard block vs warning.",
-    "src": "Settings §1"
+    "why": "Explosion where stock is involved.",
+    "src": "Ch2"
    },
    {
-    "q": "A Product Bundle's parent item must be:",
+    "q": "The bundle-versus-production test is:",
     "opts": [
-     "A non-stock item (Maintain Stock unticked)",
-     "A stock item with quantity",
-     "A serialized item",
-     "A service"
+     "Physical — gathered at picking is a bundle; combined in advance into a warehoused unit is production",
+     "Price",
+     "Volume",
+     "The customer"
     ],
     "ans": 0,
-    "why": "The parent is never counted in the warehouse; only children are.",
-    "src": "Bundles §2"
+    "why": "The boundary rule.",
+    "src": "Ch2"
    },
    {
-    "q": "On a bundle sale, warehouse stock is deducted for:",
+    "q": "The bundle's price is:",
     "opts": [
-     "The parent item",
-     "The packed child items on the Delivery Note",
-     "Neither",
-     "Both parent and children"
+     "Typed per document",
+     "An Item Price on the lists, moved only by the governed update, with the arithmetic in the register entry",
+     "The component sum",
+     "Negotiable freely"
     ],
     "ans": 1,
-    "why": "The DN explodes the bundle; children move stock.",
-    "src": "Bundles §2"
+    "why": "Priced like any item.",
+    "src": "Ch2"
    },
    {
-    "q": "The customer's invoice for a bundle shows:",
+    "q": "Forty shelves and six scanners support:",
     "opts": [
-     "Every child item priced separately",
-     "Only the children",
-     "One line at the parent's price",
-     "The warehouse breakdown"
+     "Ten packs",
+     "Forty packs",
+     "Six packs of four-shelves-and-one-scanner — the minimum across components governs",
+     "Four packs"
     ],
     "ans": 2,
-    "why": "Price lives on the parent; picking lives on the children.",
-    "src": "Bundles §2"
+    "why": "The availability arithmetic.",
+    "src": "Ch3"
    },
    {
-    "q": "A customer commits to 10,000 cartons over six months at an agreed rate. Model it as:",
+    "q": "A bundle wave is at risk when:",
     "opts": [
-     "One giant Sales Order",
-     "A pricing rule",
-     "A quotation valid six months",
-     "A Blanket Order drawn down by individual Sales Orders"
+     "The bundle is unpriced",
+     "The route is long",
+     "The customer is new",
+     "Any component is short — the planning read flags the constraining component by name"
     ],
     "ans": 3,
-    "why": "Blanket orders are consumed agreements; quotations are offers.",
-    "src": "Blanket §3"
+    "why": "Per-component availability.",
+    "src": "Ch3"
    },
    {
-    "q": "A Sales Order drawn against a blanket order inherits:",
+    "q": "Partial bundle returns are handled by:",
     "opts": [
-     "The agreed rate, while the blanket tracks drawdown",
+     "The package terms stated in the register entry at definition — sized per the policy, not negotiated per case",
+     "Improvisation",
+     "Full refunds always",
+     "Refusal"
+    ],
+    "ans": 0,
+    "why": "Component-level returns.",
+    "src": "Ch3"
+   },
+   {
+    "q": "The quarterly bundle review confirms:",
+    "opts": [
+     "Sales targets",
+     "Components current, price per the decided arithmetic after cost changes, and slow bundles routed to retirement",
+     "Staff performance",
+     "Warehouse space"
+    ],
+    "ans": 1,
+    "why": "A discontinued component makes the bundle undeliverable.",
+    "src": "Ch3"
+   },
+   {
+    "q": "A blanket order posts:",
+    "opts": [
+     "Stock and revenue",
+     "A reservation",
+     "Nothing — it holds the negotiated terms so call-offs execute without renegotiation",
+     "An invoice"
+    ],
+    "ans": 2,
+    "why": "The recorded agreement.",
+    "src": "Ch4"
+   },
+   {
+    "q": "Call-off rates apply without the ladder because:",
+    "opts": [
+     "Rates are informal",
+     "They are small",
+     "Nobody checks",
+     "The ladder ran once at the arrangement's creation, at the arrangement's full value"
+    ],
+    "ans": 3,
+    "why": "Approved once, executed many times.",
+    "src": "Ch4"
+   },
+   {
+    "q": "Each call-off follows:",
+    "opts": [
+     "The standard commitment-delivery-invoice chain with all its disciplines",
+     "A shortcut flow",
+     "The blanket order only",
+     "A verbal process"
+    ],
+    "ans": 0,
+    "why": "Ordinary Sales Orders against the arrangement.",
+    "src": "Ch4"
+   },
+   {
+    "q": "A call-off after expiry is:",
+    "opts": [
+     "At the old rate",
+     "A new negotiation — expired rates never apply to new call-offs",
+     "Free",
+     "Automatic"
+    ],
+    "ans": 1,
+    "why": "The consumption read watches expiry proximity.",
+    "src": "Ch4"
+   },
+   {
+    "q": "Consumption far behind schedule routes to:",
+    "opts": [
      "Nothing",
-     "Only the quantity",
-     "The delivery date"
-    ],
-    "ans": 0,
-    "why": "Rate flows from the agreement; drawdown is tracked against commitment.",
-    "src": "Blanket §3"
-   },
-   {
-    "q": "How much of a blanket commitment remains is read from:",
-    "opts": [
-     "The customer's memory",
-     "The blanket order's ordered-vs-committed quantities",
-     "The last invoice",
-     "Stock levels"
-    ],
-    "ans": 1,
-    "why": "The blanket order itself tracks its consumption.",
-    "src": "Blanket §3"
-   },
-   {
-    "q": "Two reps split a deal 60/40. This is recorded via:",
-    "opts": [
-     "Two invoices",
-     "A note",
-     "Sales Team rows with contribution percentages summing to 100",
-     "Two sales partners"
+     "A penalty",
+     "The account conversation — the customer is not drawing what was agreed, and the cause belongs in the file",
+     "Auto-renewal"
     ],
     "ans": 2,
-    "why": "Contribution % splits credit without double-counting revenue.",
-    "src": "Sales Person §4"
-   },
-   {
-    "q": "Sales Person is structured as:",
-    "opts": [
-     "A flat list",
-     "A customer group",
-     "One per territory",
-     "A tree so results roll up the hierarchy"
-    ],
-    "ans": 3,
-    "why": "The tree gives regional and directorial roll-ups.",
-    "src": "Sales Person §4"
-   },
-   {
-    "q": "\"Show me sales by rep\" only works if:",
-    "opts": [
-     "Sales persons are assigned on the transactions",
-     "The report is installed",
-     "Targets are set",
-     "Partners are defined"
-    ],
-    "ans": 0,
-    "why": "The discipline of assignment precedes the report.",
-    "src": "Sales Person §4"
-   },
-   {
-    "q": "Sales Person vs Sales Partner — the distinction is:",
-    "opts": [
-     "None",
-     "Person is internal staff with contribution %; Partner is an external business with commission %",
-     "Person earns commission, partner doesn't",
-     "Partner is a customer"
-    ],
-    "ans": 1,
-    "why": "Internal tree vs external channel — a document can carry both.",
-    "src": "Sales Partner §5"
-   },
-   {
-    "q": "Commission owed to a reseller is paid from:",
-    "opts": [
-     "The partner's own claim",
-     "The rep's report",
-     "The Sales Partner-wise Transaction Summary",
-     "The delivery notes"
-    ],
-    "ans": 2,
-    "why": "Pay channels from the system's totals, not their invoices' claims.",
-    "src": "Sales Partner §5"
-   },
-   {
-    "q": "Switching Customer Naming schemes after transactions exist is:",
-    "opts": [
-     "A settings toggle",
-     "Impossible",
-     "Automatic",
-     "A data-migration project — re-keying and re-linking, which is why it is a day-one decision"
-    ],
-    "ans": 3,
-    "why": "Decide once, in writing, in the configuration workbook.",
-    "src": "Ch1"
-   },
-   {
-    "q": "Defaults (group, territory, price list) should point at:",
-    "opts": [
-     "The genuinely commonest LEAF, paired with a weekly new-record review",
-     "The tree roots",
-     "Misc buckets",
-     "Nothing"
-    ],
-    "ans": 0,
-    "why": "A safety net, not a filing system.",
-    "src": "Ch1"
-   },
-   {
-    "q": "With edit-rate off for the floor, negotiation:",
-    "opts": [
-     "Dies",
-     "Moves to pricing rules and the escalation band — where governance wants it",
-     "Goes to WhatsApp",
-     "Becomes illegal"
-    ],
-    "ans": 1,
-    "why": "The switch relocates discretion; it does not abolish deals.",
-    "src": "Ch2"
-   },
-   {
-    "q": "Validate-Against-Purchase-Rate honestly guards against:",
-    "opts": [
-     "Determined fraud",
-     "All losses",
-     "The accidental and casual below-cost sale — fuelled by accurate purchase costs",
-     "FX moves"
-    ],
-    "ans": 2,
-    "why": "State the limitation; fix cost hygiene when it misfires.",
-    "src": "Ch2"
-   },
-   {
-    "q": "The same-rate ACTION setting chooses between:",
-    "opts": [
-     "On and off",
-     "Rates and discounts",
-     "Daily and weekly",
-     "Stop (hard block) and Warning (allow but flag) on a detected drift"
-    ],
-    "ans": 3,
-    "why": "Ask the client which failure they prefer expensive.",
-    "src": "Ch2"
-   },
-   {
-    "q": "Discipline switches should be changed:",
-    "opts": [
-     "As dated, owned policy events — never casually mid-quarter",
-     "Whenever convenient",
-     "By any user",
-     "Only by vendors"
-    ],
-    "ans": 0,
-    "why": "A switch toggled quietly is policy repealed silently.",
-    "src": "Ch2, Ch9"
-   },
-   {
-    "q": "Bundle availability equals:",
-    "opts": [
-     "The parent's stock",
-     "The scarcest child's coverage — the binding constraint",
-     "The sum of children",
-     "Unlimited"
-    ],
-    "ans": 1,
-    "why": "40 shelves, 3 scanners, 20 printers = 3 packs.",
-    "src": "Ch3"
-   },
-   {
-    "q": "A serialized child inside a bundle, on the DN:",
-    "opts": [
-     "Needs no serial — it is bundled",
-     "Uses the parent's serial",
-     "Demands its exact serials on the packed rows as always",
-     "Is skipped"
-    ],
-    "ans": 2,
-    "why": "Bundling changes presentation, never identity discipline.",
-    "src": "Ch3"
-   },
-   {
-    "q": "Variant vs bundle vs separate lines:",
-    "opts": [
-     "All the same",
-     "Variants combine products",
-     "Bundles vary sizes",
-     "Variants VARY one thing; bundles COMBINE many; negotiable-per-component stays unsealed as lines"
-    ],
-    "ans": 3,
-    "why": "The placement test in one sentence.",
+    "why": "The monthly read's actions.",
     "src": "Ch4"
    },
    {
-    "q": "Bundle margin hides because:",
+    "q": "Attribution is set:",
     "opts": [
-     "The cost is the SUM of children's costs — no single record shows the drift",
-     "It is zero",
-     "Parents have purchase rates",
-     "VAT covers it"
-    ],
-    "ans": 0,
-    "why": "Hence the owned margin file on the repricing cadence.",
-    "src": "Ch4"
-   },
-   {
-    "q": "Launching a 50-pack bundle promo is operationally:",
-    "opts": [
-     "A marketing email",
-     "A procurement event for the binding-constraint child first",
-     "A price change",
-     "Nothing special"
-    ],
-    "ans": 1,
-    "why": "Stock the constraint before the promise.",
-    "src": "Ch4"
-   },
-   {
-    "q": "A partial bundle return's credit is made non-arbitrary by:",
-    "opts": [
-     "Guessing",
-     "Refusing partial returns",
-     "An internal component-value split kept for the sealed parent price",
-     "The customer's estimate"
-    ],
-    "ans": 2,
-    "why": "Another owned artefact of running bundles seriously.",
-    "src": "Ch4"
-   },
-   {
-    "q": "Submitting a blanket order creates:",
-    "opts": [
-     "A full reservation",
-     "An invoice",
-     "Twelve DNs",
-     "No reservation and no movement — the commitment is commercial, not logistical"
+     "At payout",
+     "Never",
+     "At delivery",
+     "At the order — it belongs to the commitment and carries to the invoice"
     ],
     "ans": 3,
-    "why": "Warehouses plan from the drawn orders, not the frame.",
+    "why": "Defaults per customer pre-fill.",
     "src": "Ch5"
    },
    {
-    "q": "A customer at 20% drawdown four months into a six-month blanket triggers:",
+    "q": "The attribution integrity rule states:",
     "opts": [
-     "The commercial conversation NOW — extend, revise, or let lapse",
-     "Nothing until expiry",
-     "Automatic penalty",
-     "A refund"
+     "Attribution states who actually sold and is not adjusted after the fact to move commission",
+     "Splits are flexible",
+     "Managers decide later",
+     "Percentages vary"
     ],
     "ans": 0,
-    "why": "The blanket turns volume promises into monitorable numbers.",
+    "why": "Post-submission changes follow the amendment discipline.",
     "src": "Ch5"
    },
    {
-    "q": "A lapsed blanket's ordered-vs-committed record is:",
+    "q": "A collected-value commission basis:",
     "opts": [
-     "Deleted",
-     "The most honest input to the NEXT negotiation",
-     "Embarrassing",
-     "Renewed automatically"
+     "Ignores collections",
+     "Ties payout to collections — the standing recommendation in credit-heavy books",
+     "Pays earlier",
+     "Is illegal"
     ],
     "ans": 1,
-    "why": "Committed 10,000, drew 7,400 — negotiate from that.",
+    "why": "The policy's basis options.",
     "src": "Ch5"
    },
    {
-    "q": "When a rep resigns, the Sales Person tree:",
+    "q": "Commission on credited value:",
     "opts": [
-     "Is rebuilt",
-     "Renames territories",
-     "Deactivates their node and reassigns accounts — geography in Territory stays put",
-     "Freezes"
+     "Stands",
+     "Doubles",
+     "Reverses with the value it was paid on, per the policy",
+     "Is negotiable"
     ],
     "ans": 2,
-    "why": "Trees that outlive staff are the point.",
-    "src": "Ch6"
+    "why": "Credits and returns in the policy.",
+    "src": "Ch5"
    },
    {
-    "q": "A 60/40 worked deal is recorded as:",
+    "q": "Commission disputes resolve from:",
     "opts": [
-     "Two invoices",
-     "Whoever typed it",
-     "A remark",
-     "Two Sales Team rows, contributions summing to 100 — credited without double-counting"
+     "Recollection",
+     "Averages",
+     "Seniority",
+     "The documents — the order's attribution, the written policy, the collection records"
     ],
     "ans": 3,
-    "why": "The alternative conventions turn CRM data into politics.",
-    "src": "Ch6"
+    "why": "The boundary.",
+    "src": "Ch5"
    },
    {
-    "q": "Targets by item group make strategy personal because:",
+    "q": "Sales Order required enforces:",
     "opts": [
-     "The rep weighted toward Services sells Services — mix strategy lands on individuals",
-     "They are secret",
-     "They are optional",
-     "They ignore products"
+     "The three-path rule in configuration — invoices without orders refuse except the named direct cases",
+     "Nothing",
+     "Faster billing",
+     "Bigger orders"
     ],
     "ans": 0,
-    "why": "Aim targets through the product tree.",
+    "why": "Procedure becomes enforcement.",
     "src": "Ch6"
    },
    {
-    "q": "The partner invoices ₦2.4m; your summary says ₦2.1m. You:",
+    "q": "Every behaviour-changing setting carries:",
     "opts": [
-     "Pay ₦2.4m — relationships matter",
-     "Negotiate from the summary; the gap is unstamped deals or misremembered rates",
-     "Pay nothing",
-     "Split the difference"
+     "A memory",
+     "A control register row — setting, value, reason, owner, review date",
+     "A password",
+     "A screenshot"
     ],
     "ans": 1,
-    "why": "The number had a source; the relationship survives BECAUSE of it.",
-    "src": "Ch7, Ch8"
+    "why": "Whichever settings page it lives on.",
+    "src": "Ch6"
    },
    {
-    "q": "The seventh law closes the manual as:",
+    "q": "Maintain same rate through the cycle:",
     "opts": [
-     "Advanced features are optional",
-     "Settings beat strategy",
-     "The advanced layer is structure that outlives staff — judgment installed as defaults, visibility, and measurement",
-     "Channels beat teams"
+     "Blocks amendments",
+     "Freezes lists",
+     "Holds rates consistent from order to invoice so changes route through amendments",
+     "Sets discounts"
     ],
     "ans": 2,
-    "why": "Make the right thing the default, visible, measured thing.",
+    "why": "On per the standing recommendation.",
+    "src": "Ch6"
+   },
+   {
+    "q": "An undocumented settings change is:",
+    "opts": [
+     "Fine if it works",
+     "Ignored",
+     "A feature",
+     "A governance failure closed by decision and record, or reverted"
+    ],
+    "ans": 3,
+    "why": "What the quarterly pass catches.",
+    "src": "Ch6"
+   },
+   {
+    "q": "The weekly layer includes:",
+    "opts": [
+     "The five-check note, planning and acknowledgment reads, the gear worklist, unallocated receipts, the order book, and validity",
+     "Only invoicing",
+     "Only collections",
+     "Only stock"
+    ],
+    "ans": 0,
+    "why": "Chapter 7's weekly list.",
+    "src": "Ch7"
+   },
+   {
+    "q": "The monthly commercial review works from:",
+    "opts": [
+     "Opinions",
+     "The weekly notes and the monthly reads, closing with decisions entered into the governed lanes",
+     "One report",
+     "The bank statement"
+    ],
+    "ans": 1,
+    "why": "The owner's session.",
+    "src": "Ch7"
+   },
+   {
+    "q": "The selling calendar's shape matches the Inventory track's because:",
+    "opts": [
+     "Coincidence",
+     "Both are annual",
+     "One operating rhythm serves the whole business — daily accuracy, weekly execution, monthly money, quarterly structure",
+     "Templates require it"
+    ],
+    "ans": 2,
+    "why": "The calendar's design.",
+    "src": "Ch7"
+   },
+   {
+    "q": "The Display Pack's arithmetic is:",
+    "opts": [
+     "Secret",
+     "Unrecorded",
+     "Cost plus ten",
+     "Components ₦450,000 at list; the package at ₦361,000 — a 19.8% reduction recorded in the register entry"
+    ],
+    "ans": 3,
+    "why": "Step 1.",
+    "src": "Ch8"
+   },
+   {
+    "q": "Two packs ordered means the packed detail lists:",
+    "opts": [
+     "8 shelves and 2 scanners — and the availability check runs per component",
+     "Two lines",
+     "One scanner",
+     "Ten packs"
+    ],
+    "ans": 0,
+    "why": "The child quantities multiply.",
+    "src": "Ch8"
+   },
+   {
+    "q": "The delivery verification counted:",
+    "opts": [
+     "Two units",
+     "Ten physical units against the packed detail, with the two scanners' serials captured at pick",
+     "Four units",
+     "The cartons"
+    ],
+    "ans": 1,
+    "why": "Step 3's despatch.",
+    "src": "Ch8"
+   },
+   {
+    "q": "The BizRetail Ltd arrangement's rates:",
+    "opts": [
+     "Renegotiate monthly",
+     "Float with cost",
+     "Draw from the blanket order on each call-off — approved once at the arrangement's full value",
+     "Are secret"
+    ],
+    "ans": 2,
+    "why": "Step 4.",
+    "src": "Ch8"
+   },
+   {
+    "q": "Month nine's consumption read triggered:",
+    "opts": [
+     "A penalty",
+     "Nothing",
+     "A hold",
+     "The renewal conversation before the arrangement exhausts — consumption was ahead of run rate"
+    ],
+    "ans": 3,
+    "why": "The read's action operating.",
+    "src": "Ch8"
+   },
+   {
+    "q": "The stocked-bundle error creates:",
+    "opts": [
+     "Phantom balances nobody can count — corrected through the lifecycle procedure",
+     "Better tracking",
+     "More sales",
+     "Cleaner reports"
+    ],
+    "ans": 0,
+    "why": "Error 1.",
+    "src": "Ch9"
+   },
+   {
+    "q": "Recurring packages sold as component lists are:",
+    "opts": [
+     "Fine",
+     "Error 2 — defined as bundles with governed pricing instead",
+     "Cheaper",
+     "Required"
+    ],
+    "ans": 1,
+    "why": "The hand-assembled package.",
+    "src": "Ch9"
+   },
+   {
+    "q": "Module 8's rule is:",
+    "opts": [
+     "Instruments are informal",
+     "Bundles are stock",
+     "The advanced instruments are registers with owners — non-stock bundle parents with decided arithmetic, arrangements holding terms for their period only, attribution stating who actually sold, and every setting carrying its register row — inside the track's document disciplines",
+     "Settings are free"
+    ],
+    "ans": 2,
+    "why": "The module rule.",
     "src": "Ch9"
    }
   ]
