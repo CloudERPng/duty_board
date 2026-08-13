@@ -24,22 +24,35 @@ def _validate_recipient(to):
 
 
 @frappe.whitelist()
-def send_dm(to, message):
+def send_dm(to, message=None, attachment_url=None, attachment_name=None):
 	require_staff()
 	me = frappe.session.user
 	message = (message or "").strip()
-	if not message:
+	if not message and not attachment_url:
 		frappe.throw(_("Message is empty."))
 	if len(message) > MAX_LENGTH:
 		frappe.throw(_("Message is too long (max {0} characters).").format(MAX_LENGTH))
 	_validate_recipient(to)
+
+	if attachment_url:
+		owned = frappe.db.get_value(
+			"File", {"file_url": attachment_url, "owner": me}, "file_name"
+		)
+		if not owned:
+			frappe.throw(_("Upload not found — try attaching again."))
+		attachment_name = (attachment_name or owned)[:120]
+	else:
+		attachment_url = None
+		attachment_name = None
 
 	doc = frappe.get_doc(
 		{
 			"doctype": "Duty DM",
 			"sender": me,
 			"recipient": to,
-			"message": message,
+			"message": message or "📎",
+			"attachment_url": attachment_url,
+			"attachment_name": attachment_name,
 			"seen": 0,
 		}
 	).insert(ignore_permissions=True)
@@ -49,7 +62,9 @@ def send_dm(to, message):
 		"name": doc.name,
 		"sender": me,
 		"recipient": to,
-		"message": message,
+		"message": doc.message,
+		"attachment_url": attachment_url,
+		"attachment_name": attachment_name,
 		"creation": str(doc.creation),
 		"sender_name": frappe.utils.get_fullname(me),
 	}
@@ -60,7 +75,8 @@ def send_dm(to, message):
 	try:
 		from duty_board.push import push_to_user
 
-		push_to_user(to, _("✉ DM from {0}").format(first), message[:120])
+		preview = message or ("📎 " + (attachment_name or _("Attachment")))
+		push_to_user(to, _("✉ DM from {0}").format(first), preview[:120])
 	except Exception:
 		pass
 	return payload
@@ -86,7 +102,10 @@ def get_dm_thread(with_user, before=None, limit=30):
 	rows = frappe.get_all(
 		"Duty DM",
 		filters=filters,
-		fields=["name", "sender", "recipient", "message", "creation", "edited_on", "seen"],
+		fields=[
+			"name", "sender", "recipient", "message", "creation", "edited_on",
+			"seen", "attachment_url", "attachment_name",
+		],
 		order_by="creation desc",
 		limit=cap,
 	)
@@ -108,7 +127,7 @@ def get_dm_thread(with_user, before=None, limit=30):
 
 @frappe.whitelist()
 def edit_dm(name, message=None, drop_attachment=0):
-	"""Edit own DM within 30 minutes. DMs have no attachments; drop is ignored."""
+	"""Edit own DM within 30 minutes; drop_attachment removes the file."""
 	from duty_board.api import _within_edit_window
 
 	require_staff()
@@ -119,17 +138,21 @@ def edit_dm(name, message=None, drop_attachment=0):
 	if not _within_edit_window(doc.creation):
 		frappe.throw(_("The 30-minute edit window has passed."))
 	text = (message or "").strip()
-	if not text:
+	if cint(drop_attachment):
+		doc.attachment_url = None
+		doc.attachment_name = None
+	if not text and not doc.attachment_url:
 		frappe.throw(_("A message cannot be empty."))
 	if len(text) > MAX_LENGTH:
 		frappe.throw(_("Message is too long (max {0} characters).").format(MAX_LENGTH))
-	doc.message = text
+	doc.message = text or "📎"
 	doc.edited_on = frappe.utils.now_datetime()
 	doc.save(ignore_permissions=True)
 	frappe.db.commit()
 	payload = {
 		"name": doc.name, "sender": doc.sender, "recipient": doc.recipient,
-		"message": text, "creation": str(doc.creation), "edited_on": str(doc.edited_on),
+		"message": doc.message, "creation": str(doc.creation), "edited_on": str(doc.edited_on),
+		"attachment_url": doc.attachment_url, "attachment_name": doc.attachment_name,
 		"edit": 1,
 	}
 	frappe.publish_realtime("duty_board_dm", payload, user=doc.recipient)
@@ -147,6 +170,26 @@ def mark_dm_seen(with_user):
 	)
 	frappe.db.commit()
 	return {"ok": True}
+
+
+@frappe.whitelist()
+def dm_file(msg):
+	"""Serve a DM attachment to the two parties only — same privacy model
+	as the thread endpoints: nobody else, staff or not, can fetch it."""
+	require_staff()
+	m = frappe.get_doc("Duty DM", msg)
+	user = frappe.session.user
+	if user not in (m.sender, m.recipient):
+		frappe.throw(_("Not permitted."), frappe.PermissionError)
+	if not m.attachment_url:
+		frappe.throw(_("No attachment."))
+	fname = frappe.db.get_value("File", {"file_url": m.attachment_url})
+	if not fname:
+		frappe.throw(_("File missing."))
+	from duty_board.client_room import _serve_file
+
+	fdoc = frappe.get_doc("File", fname)
+	return _serve_file(fdoc, m.attachment_name or fdoc.file_name)
 
 
 def get_unread_map(user):

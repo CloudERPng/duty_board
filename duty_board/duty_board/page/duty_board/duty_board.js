@@ -2016,8 +2016,8 @@ class DutyBoard {
 		return `
 			<div class="duty-msg ${mine ? "duty-msg-mine" : ""}" data-name="${m.name}">
 				<span class="duty-msg-who" style="color:${this.user_color(m.sender)}">${mine ? __("You") : frappe.utils.escape_html((m.sender_name || m.sender).split(" ")[0])}</span>
-				<span class="duty-msg-text">${this.linkify(frappe.utils.escape_html(m.message || ""))}</span>
-				<span class="duty-msg-time">${when}${this.edited_tag(m)}</span>${mine ? (m.seen ? ` <span class="duty-msg-seen tick-read" title="${__("Read")}">✓✓</span>` : this._dm_peer_delivered && m.creation <= this._dm_peer_delivered ? ` <span class="duty-msg-seen tick-dlv" title="${__("Delivered")}">✓✓</span>` : ` <span class="duty-msg-seen tick-dlv" title="${__("Sent")}">✓</span>`) : ""}${mine && this.can_edit(m.creation) ? ` <a class="duty-dm-edit" data-name="${m.name}" data-text="${frappe.utils.escape_html(m.message || "")}" title="${__("Edit")}">✏</a>` : ""}
+				<span class="duty-msg-text">${this.linkify(frappe.utils.escape_html(m.message || ""))}</span>${this.dm_att_html(m)}
+				<span class="duty-msg-time">${when}${this.edited_tag(m)}</span>${mine ? (m.seen ? ` <span class="duty-msg-seen tick-read" title="${__("Read")}">✓✓</span>` : this._dm_peer_delivered && m.creation <= this._dm_peer_delivered ? ` <span class="duty-msg-seen tick-dlv" title="${__("Delivered")}">✓✓</span>` : ` <span class="duty-msg-seen tick-dlv" title="${__("Sent")}">✓</span>`) : ""}${mine && this.can_edit(m.creation) ? ` <a class="duty-dm-edit" data-name="${m.name}" data-text="${frappe.utils.escape_html(m.message || "")}" data-att="${m.attachment_url ? 1 : 0}" title="${__("Edit")}">✏</a>` : ""}
 			</div>`;
 	}
 
@@ -2058,6 +2058,7 @@ class DutyBoard {
 		`);
 		const $list = $(d.body).find(".duty-dm-list");
 		const $input = $(d.body).find(".duty-dm-input");
+		const att = this.wire_dm_attach($(d.body).find(".duty-dm-send"), $input);
 		let oldest = null;
 		const load = (before) => {
 			frappe.call({
@@ -2094,13 +2095,25 @@ class DutyBoard {
 				},
 			});
 		};
-		const send = () => {
+		const send = async () => {
 			const text = ($input.val() || "").trim();
-			if (!text) return;
+			if (!text && !att.has()) return;
 			$input.val("");
+			let up = null;
+			try {
+				up = await att.consume();
+			} catch (err) {
+				frappe.msgprint(__("Upload failed: {0}", [frappe.utils.escape_html(err.message || "")]));
+				return;
+			}
 			frappe.call({
 				method: "duty_board.dm.send_dm",
-				args: { to: user, message: text },
+				args: {
+					to: user,
+					message: text,
+					attachment_url: up ? up.file_url : null,
+					attachment_name: up ? up.file_name : null,
+				},
 				callback: (r) => {
 					const m = r.message;
 					if (m && !$list.find(`[data-name="${m.name}"]`).length) {
@@ -8956,6 +8969,74 @@ this.$me.find(".duty-req-ok").on("click", (e) => {
 		return { file_url: fu, file_name: file.name };
 	}
 
+	dm_att_html(m) {
+		if (!m.attachment_url) return "";
+		const url = `/api/method/duty_board.dm.dm_file?msg=${encodeURIComponent(m.name)}`;
+		const ext = (m.attachment_name || "").toLowerCase().split(".").pop();
+		if (["png", "jpg", "jpeg", "gif", "webp"].includes(ext))
+			return `<span class="duty-dm-att" style="display:block;margin-top:6px"><a href="${url}" target="_blank"><img src="${url}" style="max-width:220px;max-height:220px;border-radius:8px" loading="lazy"></a></span>`;
+		if (["webm", "ogg", "mp3", "m4a", "wav"].includes(ext))
+			return `<span class="duty-dm-att" style="display:block;margin-top:6px"><audio controls preload="none" src="${url}" style="max-width:240px"></audio></span>`;
+		if (["mp4", "mov", "m4v", "3gp"].includes(ext))
+			return `<span class="duty-dm-att" style="display:block;margin-top:6px"><video controls preload="metadata" src="${url}" style="max-width:260px;max-height:220px;border-radius:8px"></video></span>`;
+		return `<span class="duty-dm-att" style="display:block;margin-top:6px"><a href="${url}" target="_blank">📎 ${frappe.utils.escape_html(m.attachment_name || "file")}</a></span>`;
+	}
+
+	wire_dm_attach($send, $input) {
+		let pending = null;
+		const $btn = $(
+			`<label class="btn btn-default btn-sm duty-dm-attach" title="${__("Attach a photo, video or file")}" style="margin:0;align-self:flex-end">📎<input type="file" hidden accept="image/*,video/*,audio/*,.pdf,.doc,.docx,.xls,.xlsx,.csv,.txt,.zip"></label>`
+		);
+		const $chip = $(
+			`<div class="duty-dm-pend text-muted" style="display:none;font-size:12px;padding:2px 2px 4px;cursor:pointer" title="${__("Remove")}"></div>`
+		);
+		$send.prepend($btn);
+		$send.before($chip);
+		const show = () => {
+			if (pending) $chip.text(`📎 ${pending.name} ✕`).show();
+			else $chip.hide();
+		};
+		const take = (f) => {
+			if (!f) return;
+			if (f.size > 25 * 1024 * 1024) {
+				frappe.msgprint(__("That file is larger than 25 MB — send something smaller."));
+				return;
+			}
+			pending = f;
+			show();
+		};
+		$btn.find("input").on("change", (e) => {
+			take(e.target.files[0]);
+			e.target.value = "";
+		});
+		$chip.on("click", () => {
+			pending = null;
+			show();
+		});
+		$input.on("paste", (e) => {
+			for (const it of (e.originalEvent.clipboardData || {}).items || []) {
+				if (it.kind === "file") {
+					const f = it.getAsFile();
+					if (f) {
+						e.preventDefault();
+						take(f);
+						break;
+					}
+				}
+			}
+		});
+		return {
+			has: () => !!pending,
+			consume: async () => {
+				if (!pending) return null;
+				const up = await this.upload_private_file(pending);
+				pending = null;
+				show();
+				return up;
+			},
+		};
+	}
+
 	issue_is_mine(x) {
 		const me = frappe.session.user;
 		return x.raised_by === me || (x.assignees || []).includes(me);
@@ -11218,6 +11299,7 @@ this.$me.find(".duty-req-ok").on("click", (e) => {
 		`);
 		const $list = $host.find(".duty-dm-list");
 		const $input = $host.find(".duty-dm-input");
+		const att = this.wire_dm_attach($host.find(".duty-dm-send"), $input);
 		let oldest = null;
 		const load = (before) => {
 			frappe.call({
@@ -11250,13 +11332,25 @@ this.$me.find(".duty-req-ok").on("click", (e) => {
 				},
 			});
 		};
-		const send = () => {
+		const send = async () => {
 			const text = ($input.val() || "").trim();
-			if (!text) return;
+			if (!text && !att.has()) return;
 			$input.val("");
+			let up = null;
+			try {
+				up = await att.consume();
+			} catch (err) {
+				frappe.msgprint(__("Upload failed: {0}", [frappe.utils.escape_html(err.message || "")]));
+				return;
+			}
 			frappe.call({
 				method: "duty_board.dm.send_dm",
-				args: { to: user, message: text },
+				args: {
+					to: user,
+					message: text,
+					attachment_url: up ? up.file_url : null,
+					attachment_name: up ? up.file_name : null,
+				},
 				callback: (r) => {
 					const m = r.message;
 					if (m && !$list.find(`[data-name="${m.name}"]`).length) {
@@ -11269,7 +11363,7 @@ this.$me.find(".duty-req-ok").on("click", (e) => {
 		};
 		$list.on("click", ".duty-dm-edit", (e) => {
 			const $t = $(e.currentTarget);
-			this.edit_prompt("dm", $t.data("name"), $t.data("text"), false, () => load(null));
+			this.edit_prompt("dm", $t.data("name"), $t.data("text"), $t.data("att") == 1, () => load(null));
 		});
 		$host.find(".duty-dm-btn-send").on("click", send);
 		$input.on("keydown", (e) => {
