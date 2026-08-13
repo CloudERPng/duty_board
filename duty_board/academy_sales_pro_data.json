@@ -2366,474 +2366,474 @@
  },
  "taxes_invoicing": {
   "title": "Selling 6 — Taxes, Pricing Rules & Invoicing",
-  "desc": "VAT done right, inclusive vs exclusive, item tax overrides, pricing rules and discounts, the Sales Invoice, payments, credit notes — and the reports that watch it all.",
+  "desc": "Taxes, pricing governance, and invoicing preparation in ZhiftERP: the Nigerian VAT context — the 7.5% rate, the output liability flow, exempt classes, and the e-invoicing rules; Sales Taxes and Charges Templates — row types, account heads, the standard set, and accountant-only maintenance; item tax templates on mixed documents with per-line computation and the refusal rule; inclusive and exclusive pricing arithmetic with the one-posture-per-channel policy; discounts governance — the three instruments, their holders, the additional discount field, and the monthly read; and the watching reports — the trend read, the sales register, and the fifteen-minute five-check weekly habit feeding the monthly commercial review.",
   "lessons": [
    {
-    "title": "Chapter 1 — VAT in Nigeria & the tax architecture",
-    "est": "14",
-    "html": "<p>Every naira of VAT you charge is money you are holding for the government. That single sentence reframes tax from paperwork into fiduciary machinery, and this chapter builds the machinery view a consultant needs before touching a single template.</p><p><b>Output VAT, in one paragraph.</b> Nigerian VAT stands at <b>7.5%</b>. When you sell taxable goods, you charge it ON TOP of your price (or embedded within it — Chapter 4); the amount is <b>output VAT</b>, and it is not revenue. It accrues into a VAT liability account, and each month the firm files and remits to FIRS — returns due by the <b>21st of the following month</b> — netting output VAT collected against input VAT paid on purchases. Your firm is a collection agent with a deadline; the system's job is to make the collected number exact, automatic, and auditable.</p><p><b>The architecture principle: write once, apply everywhere.</b> ZhiftERP encodes tax as a <b>Sales Taxes and Charges Template</b> — the policy object — selected on documents, never re-invented on them. One template row says: VAT, 7.5%, posting to the VAT output account. Every quotation, order and invoice that selects the template computes identically, and the liability account accumulates the truth as a by-product of trading. The rejected alternatives define the principle by contrast: VAT typed into item rates hides tax inside price (misstating both, unremittable as a number); VAT computed per document by hand varies with the human; VAT inferred from customer group confuses who is buying with what is taxable.</p><p><b>The account head.</b> The template row names the ledger account the tax posts to — the VAT output liability in your chart. This is the joint where selling meets accounting: at month-end, the filing figure is READ from that account, and Chapter 9 shows the reconciliation that proves it against the invoice register. A template pointed at the wrong account (an income account, a random liability) files fiction with a straight face; verify the head once at setup and the joint holds forever.</p><p><b>Who decides what.</b> Configuration is a consultant-plus-accountant conversation: the accountant owns which accounts and what the firm's filing posture is; the consultant owns encoding it so the sales floor never has to know. The seller's entire tax job, done right, is selecting the correct template — and Chapters 2-4 make even that mostly automatic.</p><p><b>The NGE thread.</b> Where regulatory e-invoicing applies — the FIRS pipeline your NGE Portal serves — the invoice data transmitted downstream is only as clean as this architecture: the VAT the platform reports IS the template-computed figure on template-driven documents. A firm whose tax lives in templates passes e-invoicing validation as a by-product; a firm whose tax lives in typed rates and habits meets the mandate as a re-implementation project. Architecture first is also compliance first.</p>"
+    "title": "Chapter 1 — Taxes and invoicing preparation: scope and position",
+    "est": "11",
+    "html": "<p>This module covers the sales tax machinery, pricing and discount governance, and the preparation the Sales Invoice depends on. On completing this module you will be able to: state the Nigerian VAT context a selling configuration operates in; build and read Sales Taxes and Charges Templates; operate item tax templates on mixed documents; apply the inclusive and exclusive pricing postures correctly; govern the three discount instruments; and run the weekly watching reports.</p><p><b>Position on the document timeline.</b> The selling documents post their effects in a fixed sequence: the Sales Order reserves stock (module 4), the Delivery Note deducts stock and posts cost (module 5), and the Sales Invoice posts revenue, tax, and the receivable (module 7). This module prepares the third step: the tax computation, the pricing integrity, and the reads that confirm both, so that invoicing in module 7 is an execution task rather than a correction task. Each preparation area below has its own chapter, its own custody assignment, and its own confirming read on a stated cadence.</p><p><b>What must be true before invoicing.</b> The pre-invoicing state this module establishes:</p><p>1. <b>The tax templates exist and are selected correctly</b> — the document-level template (Chapter 3) and the item-level treatments (Chapter 4) together compute the tax the return will declare.<br>2. <b>The pricing posture is consistent</b> — inclusive or exclusive per channel by policy (Chapter 5), matching what was quoted (module 3's rule that the offer's tax total is the invoice's tax total).<br>3. <b>Discounts carry their approvals</b> — every departure from list price is one of the three governed instruments (Chapter 6).<br>4. <b>The delivered quantities are known</b> — module 5's %delivered figures state what is billable per the payment schedule.</p><p><b>Custody.</b> The accountant owns the tax configuration and rulings — templates, account heads, item classifications, and the return itself; the sales function selects the decided templates and operates within them; and the standing rule for the module: <b>tax on a document is computed by configuration, never edited by hand.</b></p><p><b>Module contents.</b> Chapter 2: VAT in Nigeria. Chapter 3: Sales Taxes and Charges Templates. Chapter 4: item tax templates on documents. Chapter 5: inclusive and exclusive pricing. Chapter 6: discounts governance. Chapter 7: the watching reports. Chapter 8: worked example. Chapter 9: review and the module rule.</p>"
    },
    {
-    "title": "Chapter 2 — Building Sales Taxes and Charges Templates",
-    "est": "14",
-    "html": "<p>The template is a small machine: ordered rows, each computing a charge and posting it somewhere. Build one deliberately once and you will read every tax section in the system fluently forever.</p><p><b>Row anatomy.</b> Each row carries: a <b>Type</b> — the computation base; the <b>Account Head</b> — where it posts; the <b>Rate</b> (or amount); and a description that prints. The types to command:</p><ul><li><b>On Net Total</b> — the workhorse: percentage of the document's net (pre-tax) total. Nigerian VAT is one row, On Net Total, 7.5%, VAT output account.</li><li><b>Actual</b> — a fixed amount regardless of totals: a ₦15,000 delivery charge as a line the customer sees, posting to a freight-recovery account.</li><li><b>On Previous Row Amount / Total</b> — compounding bases for cascading levies; rare in plain Nigerian trade but the reading knowledge matters — when you meet a template using them, the ORDER of rows is part of the arithmetic.</li></ul><p><b>Charges are rows too.</b> The same machinery carries non-tax charges — delivery fees, installation surcharges — each with its own account head. A document then presents goods, charges, and VAT as distinct lines summing to one grand total (Selling 3, Chapter 4 made the customer-facing case). Discipline: charges post to their own recovery accounts, never mingled into the VAT head — the filing figure must stay pure.</p><p><b>How many templates.</b> Few. A standard-rated template (VAT 7.5%); perhaps a with-delivery variant; a zero-VAT template for the export/exempt document cases Chapter 3 does not cover row-wise. Template sprawl — one per customer, one per month — is policy chaos: when the rate changes or an account is remapped, every template is a separate edit and a separate chance to miss one. Encode DIFFERENCES that are item-level as Item Tax Templates (Chapter 3), not as document-template proliferation.</p><p><b>Defaulting.</b> Mark the standard template as default and it lands on new documents automatically; the customer master and item defaults refine from there. The goal state: a rep raising an ordinary quotation never touches the tax section and it is still exactly right — because the right answer was configured, not remembered.</p><p><b>Change control.</b> When FIRS moves the rate, the change is: edit the template row (with effective-date handling per accounting guidance), test on a draft, announce. One object, one edit, whole system consistent — the payoff of write-once, collected precisely when it matters most.</p>"
+    "title": "Chapter 2 — VAT in Nigeria",
+    "est": "12",
+    "html": "<p>The tax the selling configuration computes most often is Value Added Tax. This chapter states the context.</p><p><b>1. Output VAT.</b> Nigerian VAT stands at <b>7.5%</b>. When the business sells taxable goods or services, it charges VAT on the sale — added on top of the net price (exclusive) or contained within the shelf price (inclusive; Chapter 5 covers both arithmetics). The amount charged is not the business's revenue: it is collected on behalf of the government, held as a liability, and remitted with the periodic VAT return.</p><p><b>2. The liability flow.</b> The accounting path every charged naira of VAT follows:</p><p>1. <b>At invoicing</b> — the tax row posts to the VAT output liability account (the account head the template names; Chapter 3).<br>2. <b>Through the period</b> — the liability account accumulates the VAT charged on all sales.<br>3. <b>At the return</b> — the accountant computes the period's position (output VAT less recoverable input VAT from the purchasing side, per the Procurement and Accounts tracks) and remits per the filing calendar.</p><p>The selling function's obligation in this flow is accuracy at step 1: the correct rate, on the correct base, posted to the correct account, on every document — because the return declares what the documents computed.</p><p><b>3. Exempt and zero-rated classes.</b> Not all goods carry the standard rate. Nigerian VAT legislation exempts defined classes — including many pharmaceutical products, the class most relevant to the standing case — and zero-rates others. The operational consequences:</p><p>1. <b>The item's treatment is stated on the item side</b> (module 2, Chapter 7): the classification per the accountant's ruling table, applied at the item gate.<br>2. <b>Mixed documents compute per line</b> (Chapter 4): exempt rows at their treatment, standard rows at 7.5%, on one invoice.<br>3. <b>Treatment changes are the accountant's dated rulings</b>, never operator edits — the audit trail of a tax classification is examined in every tax audit.</p><p><b>4. The e-invoicing context.</b> Where the business operates under the FIRS e-invoicing regime, submitted Sales Invoices transmit to the tax authority through the site's e-invoicing integration per the compliance configuration. The operational rules this adds: invoices carry the customer's TIN (module 1's gate requirement), the item and tax data must be complete and correct at submission because the transmitted document is the declared document, and corrections follow the credit-note lane (module 7) rather than deletion — the transmitted record is permanent.</p><p><b>5. The boundary.</b> The accountant rules on taxability, rates, and the return; this module's chapters equip the selling function to configure and operate what the accountant has ruled. A tax question arising on a document — an unfamiliar class, a customer claiming exemption — routes to the accountant and waits for the ruling, per the standing rule from module 2.</p>"
    },
    {
-    "title": "Chapter 3 — Item Tax Templates: exempt and zero-rated rows done right",
-    "est": "14",
-    "html": "<p>Not everything on a Nigerian invoice is standard-rated, and the professional handles mixed taxability on ONE document without breaking the arithmetic for anything else. The instrument is the <b>Item Tax Template</b>.</p><p><b>The mechanics.</b> An Item Tax Template attaches to an ITEM (or item group) and overrides the document template's rate <b>for that row only</b>. The document says VAT 7.5%; the exempt item's template says VAT 0% for me; the invoice computes 7.5% on the taxable rows and 0% on that row — one document, mixed taxability, correct totals, correct liability. The rejected alternatives each break something: deleting the document's tax row zeroes EVERY row (the taxable lines now under-charge); splitting into two invoices doubles the paperwork to dodge a solved problem; faking it with a discount misstates price AND still books VAT the filing must then unwind.</p><p><b>Exempt vs zero-rated — the distinction that marks a professional.</b> Both charge the customer 0% VAT; they differ on the seller's side of the ledger. <b>Zero-rated</b> supplies (classically <b>exports</b>, and specified categories) are within the VAT system at a rate of zero — the sale is a taxable supply, reported as such, with input-credit consequences the accountant cares about. <b>Exempt</b> supplies (Nigerian law lists basic food items, medical products and services, educational materials, among others) sit OUTSIDE the charge — no VAT charged, different reporting line, different input-credit posture. The seller's number is 0 either way; the FILING is not. Configuration follows the accountant's classification of each item class; the consultant's job is encoding that classification as item tax templates so documents get it right unattended — and knowing enough to ask the classification question rather than guessing.</p><p><b>Application discipline.</b> Attach at the most stable level: an item GROUP template covers a whole exempt class (medical consumables) in one object; item-level templates handle the exceptions. Audit the mapping when the catalog grows: the new exempt item created without its template quietly charges 7.5% until a customer or an auditor notices — Chapter 9 meets that ticket, and the monthly cross-check (exempt-classified items vs items carrying the template) prevents it.</p><p><b>Reading a mixed invoice.</b> The tax section shows the computed rows; per-line taxability is visible in the item tax detail. Teach clients to READ it once — the pharmacist who sees their exempt medicals at 0% and their taxable cosmetics at 7.5% on one clean invoice stops phoning about tax forever.</p>"
+    "title": "Chapter 3 — Sales Taxes and Charges Templates",
+    "est": "12",
+    "html": "<p>The document-level tax computation is configured as a template. This chapter is the doctype and its maintenance.</p><p><b>1. The template record.</b> Open Sales Taxes and Charges Template (awesome bar) &gt; New: a named, ordered set of rows, each computing one charge. Documents select a template; the template's rows compute the document's tax section.</p><p><b>2. Row anatomy.</b> Each row carries:</p><p>1. <b>Type</b> — the computation base:<br>&nbsp;&nbsp;— <b>On Net Total</b>: a percentage of the document's net total — the standard base for VAT.<br>&nbsp;&nbsp;— <b>Actual</b>: a fixed amount — used for flat charges such as a delivery fee.<br>&nbsp;&nbsp;— <b>On Previous Row Amount / On Previous Row Total</b>: a percentage computed on an earlier row's result — used where a charge compounds on another charge; rare in the standing configuration and used only by the accountant's design.<br>2. <b>Account Head</b> — the ledger account the row posts to: the VAT output liability for the VAT row; the freight recovery account for a delivery charge. The account head is the connection between the document and the return, and it is the accountant's field.<br>3. <b>Rate or Amount</b> — 7.5 for the standard VAT row; the fixed figure for an Actual row.<br>4. <b>Description</b> — the text that prints on the document's tax section.</p><p><b>3. The standing template set.</b> Per the site's design:</p><p>1. <b>The standard VAT template</b> — one row: VAT, On Net Total, 7.5%, posting to the VAT output liability. Set as the default so documents carry it unless a decided exception applies.<br>2. <b>Variants only by decision</b> — a delivery-charge variant (the VAT row plus an Actual freight row) for routes that bill freight; an export or zero-rated template where the business has such trade, per the accountant's ruling. Each variant is a register entry with its purpose; template proliferation is avoided for the same reason as price-list proliferation — every template is configuration to maintain and an opportunity to select wrongly.</p><p><b>4. Maintenance.</b> Templates are created and changed by the accountant (or by the configuration role at the accountant's written instruction): a statutory rate change, a new account head, a new variant — each a governed, dated change. Template-write permission is held per the matrix; the selling function selects templates and reads their results, and does not edit their rows.</p><p><b>5. Reading a document's tax section.</b> The verification habit: the tax section of any document shows the template's rows with their computed amounts. The reader confirms: the expected template name, the rate against the base (7.5% of the net total the rows show), and the total consistent with the pricing posture (Chapter 5). A tax section that cannot be read back to its template and rate is a configuration question to resolve before the document proceeds.</p>"
    },
    {
-    "title": "Chapter 4 — Inclusive vs exclusive: the arithmetic in full",
-    "est": "13",
-    "html": "<p>One checkbox separates two pricing worlds, and confusing them misstates either your price or your VAT return. This chapter makes the arithmetic reflexive in both directions.</p><p><b>Exclusive (the default).</b> The entered rate is the NET price; tax adds on top. Rate ₦1,000, VAT 7.5% → tax ₦75, total ₦1,075. B2B trade lives here: procurement offices think in net prices and input credits, and your quotations (Selling 3) show net, VAT, gross as separate honest lines.</p><p><b>Inclusive.</b> The tax row's <i>inclusive</i> setting means the entered rate already CONTAINS the tax. Rate ₦1,075 inclusive → net ₦1,000, VAT ₦75. The arithmetic, both directions, cold: <b>net = inclusive ÷ 1.075</b>; <b>VAT = inclusive − net</b> (equivalently inclusive × 7.5/107.5). Drill it: ₦2,150 inclusive → ₦2,000 net + ₦150 VAT. ₦10,750,000 inclusive → ₦10,000,000 net + ₦750,000 VAT. Retail-facing trade lives here: shelf prices are what-you-pay, and the system extracts the embedded VAT for the filing.</p><p><b>The two misconfiguration disasters, named.</b> (1) Prices set as tax-inclusive but the row left EXCLUSIVE: the system adds 7.5% on top of a price that already contained it — the customer is overcharged (tax on tax), and the firm looks either greedy or incompetent at the till. (2) Prices set net but the row marked INCLUSIVE: the system carves VAT out of what was meant to be pure revenue — every sale silently yields 93.02% of its intended net, and the margin erosion hides until someone reconciles a month. Both diseases are one checkbox misaligned with one price-entry convention; the cure is a declared convention per price list (this list is inclusive; that one is net) and the checkbox matching it — checked once at setup, audited when lists are added.</p><p><b>One regime per document.</b> Never mix conventions on a single document; per-list declaration keeps regimes segregated by construction, since documents inherit one list (Selling 2). Where a business genuinely runs both worlds — counter retail inclusive, B2B exclusive — that is two price lists and two document flows, each internally consistent, meeting only in the ledgers where both post exact VAT.</p><p><b>Presentation.</b> Inclusive documents can still BREAK OUT the VAT in totals for the customer's paperwork (Selling 3, Chapter 4) — showing inclusive line prices and an extracted VAT figure is the honest retail-adjacent format, and it is what a VAT-registered buyer needs to claim their credit.</p><p><b>A worked till moment.</b> The counter sells three items off the inclusive retail list — ₦2,150, ₦4,300, ₦1,075 shelf prices. The receipt totals ₦7,525; the totals section extracts ₦525 VAT (7,525 × 7.5/107.5) over a ₦7,000 net, and the day's VAT liability accrues to the naira without the cashier knowing the word regime. Meanwhile the B2B desk quotes the same goods off the exclusive list at their net rates plus a visible ₦525 VAT line. Same goods, same tax truth, two presentations — each native to its buyer.</p>"
+    "title": "Chapter 4 — Item tax templates on documents",
+    "est": "12",
+    "html": "<p>Module 2, Chapter 7 set each item's tax classification. This chapter is the document-side arithmetic: how mixed taxability computes on one invoice.</p><p><b>1. The override mechanics.</b> An Item Tax Template attaches to an item (or derives from its item group) and overrides the document template's rate <b>for that row only</b>:</p><p>1. The document template states VAT 7.5% On Net Total.<br>2. The exempt item's template states VAT 0% for the same account head.<br>3. On the document, the standard rows compute at 7.5%; the exempt rows compute at 0%; the tax section totals the per-line results.</p><p>The design means one document serves any basket: the pharmacy invoice carrying exempt medicines and standard-rated consumables computes each class correctly without splitting the sale across documents or editing any rate by hand.</p><p><b>2. What the operator sees and verifies.</b> On a mixed document:</p><p>1. <b>Per-line tax detail</b> — the item-wise tax breakup (the document's tax detail view) shows each row's rate and amount: the exempt rows at zero, the standard rows at 7.5%.<br>2. <b>The verification read</b> — for any unfamiliar mix, the reader confirms a sample line of each class against the ruling table: the exempt item computing at zero because its template says so, not because someone edited the row.<br>3. <b>The refusal rule</b> — a line computing at an unexpected rate is a classification question (the item's template wrong or missing), resolved at the item record through the accountant's lane; the document is not corrected by hand because the next document would repeat the error.</p><p><b>3. The interaction with the document template.</b> The two levels divide the work: the document template states the context's charges (VAT, and any freight or context charges); the item template states each product's treatment within that context. Selecting a different document template does not change an item's classification, and an item's classification applies on every document template that carries the account head. The division means each fact is stated once — the context on the document, the treatment on the item — per the standing one-source pattern.</p><p><b>4. The classification read, restated.</b> The quarterly item tax read (module 2, Chapter 7) is the register-side control; this chapter adds the document-side sample: a monthly draw of mixed invoices checked line-by-line against the ruling table, riding the accountant's period close. Together the two reads confirm that what the register states and what the documents compute agree — which is the condition the VAT return depends on.</p><p><b>5. Zero-rated versus exempt, operationally.</b> The accountant's distinction (zero-rated sales are taxable at 0% with input recovery; exempt sales are outside the charge with input restrictions) determines the return's treatment, not the document operator's procedure: both classes reach the document as item templates computing zero on the line. The operator's obligation is the same in both cases — the correct template on the item, verified, never hand-edited — and the return-side difference is the accountant's territory.</p>"
    },
    {
-    "title": "Chapter 5 — Pricing Rules: anatomy & design",
-    "est": "14",
-    "html": "<p>A Pricing Rule is policy that fires itself: when conditions match, a discount or special rate applies — no memo, no memory, no rep discretion required. This chapter is the anatomy and the design doctrine.</p><p><b>The anatomy — three parts.</b></p><ul><li><b>WHO and WHAT it applies to</b> — conditions on the parties and goods: item, item group, or brand on one axis; customer, customer group, or territory on the other. The clean trees you built in Selling 1 and 2 are the targeting system: a rule aimed at group <i>Distribution</i> or territory <i>South-West</i> hits exactly what those trees define — mushy trees, mushy policy.</li><li><b>WHEN and HOW MUCH</b> — quantity brackets (min/max qty: the 50-carton threshold), and validity dates (valid from/to: the Q4 window). Date-bounded rules start and STOP themselves — the promo that ends on schedule with no cleanup, the same self-executing elegance as validity-dated Item Prices (Selling 2, Chapter 6).</li><li><b>THE EFFECT</b> — a discount percentage, a discount amount, or an outright special rate for the match.</li></ul><p>So the running example assembles itself: <i>10% off, item group Beverages, customer group Distribution, min qty 50 cartons, valid 01-Oct to 31-Dec</i>. Built once; fires on every qualifying order; dies on New Year's Day.</p><p><b>Priority and stacking.</b> When several rules match one row, <b>priority</b> decides which applies — and rules can be set not to stack, so the winner applies alone. Design doctrine: engineer for ONE obvious winner per realistic scenario. A row where three overlapping rules fight, resolved by priority numbers nobody remembers, produces the Chapter 9 ticket — a surprising discount nobody can explain without a whiteboard. If you cannot state in one sentence which rule governs a given sale, the rule set is too clever.</p><p><b>Rules vs the other pricing instruments — the placement doctrine, complete.</b> Base reality lives in <b>price lists</b> (Selling 2): who structurally pays what. Conditional policy lives in <b>pricing rules</b>: IF this buyer, this volume, this window. Genuine one-off negotiation lives in the document's <b>Rate</b> (Selling 3): visible, measured exceptions. Each instrument misused as another causes a known disease: rules patching stale base rates (Selling 2, Chapter 6's conviction), lists cloned per quarter to fake date-bounds, overrides doing structurally what a rule should. Place each policy at its level and every price on every document has one findable explanation.</p><p><b>Lifecycle.</b> Rules are <b>disabled</b> when retired, never deleted while history references their period — the explanation of last Q4's pricing should remain readable next year. Few, legible, dated, owned: the four adjectives of a healthy rule set.</p>"
+    "title": "Chapter 5 — Inclusive and exclusive pricing",
+    "est": "12",
+    "html": "<p>One setting separates two pricing arithmetics. This chapter states both and the policy that governs them.</p><p><b>1. Exclusive pricing (the default).</b> The entered rate is the net price; tax adds on top:</p><p>1. Rate ₦1,000, VAT 7.5% → tax ₦75, total <b>₦1,075</b>.<br>2. The document shows net ₦1,000, VAT ₦75, gross ₦1,075.<br>3. This is the business-to-business posture: trade customers, procurement offices, and input-credit accounting work in net prices, and the Trade price list carries net rates.</p><p><b>2. Inclusive pricing.</b> The entered rate already contains the tax; the system extracts it:</p><p>1. Rate ₦1,075 inclusive, VAT 7.5% → net ₦1,000, tax ₦75, total ₦1,075.<br>2. The extraction divides by (1 + rate): ₦1,075 ÷ 1.075 = ₦1,000 net.<br>3. This is the retail posture: shelf and counter prices are the prices customers pay, and the retail price list carries inclusive rates with the inclusive setting on the tax row.</p><p><b>3. The policy rule.</b> The posture is set per channel by written policy — the retail list inclusive, the trade list exclusive — configured once in the price lists and templates, and never mixed ad hoc:</p><p>1. <b>Confusing the postures misstates either the price or the VAT.</b> An inclusive rate entered where the system expects exclusive charges the customer 7.5% over the intended price; an exclusive rate entered as inclusive under-declares the VAT by the same proportion.<br>2. <b>The quotation-to-invoice consistency rule</b> (module 3) depends on the posture holding constant through the document chain: what was quoted at a posture invoices at that posture.<br>3. <b>Posture changes are configuration decisions</b> — a channel moving from one posture to the other is a governed change with the price lists re-based arithmetically and the change dated, because every price on the list means something different after the switch.</p><p><b>4. Rounding.</b> The document computes line and total rounding per the site's rounding configuration; the rounded figures are the document's figures. The operational rule: rounding differences are configuration matters for the accountant, not amounts to be adjusted by editing a tax row — a tax section is never hand-balanced.</p><p><b>5. Reading a priced document.</b> The check that closes the chapter: given any document, the reader states its posture (from the list and template), confirms the arithmetic in the correct direction (net plus tax, or gross containing tax), and confirms the totals match the customer's expectation for the channel. The three-line check takes under a minute and precedes any conversation about a total a customer disputes.</p>"
    },
    {
     "title": "Chapter 6 — Discounts governance",
-    "est": "13",
-    "html": "<p>Discounts are where pricing policy meets human nature; governance is what keeps the meeting civilised. This chapter assembles the controls you have met into one posture.</p><p><b>The three instruments, at policy altitude.</b> Selling 3 distinguished them mechanically; here is who should hold each. The row <b>discount percentage / Rate edit</b> — the negotiator's tool, for genuine per-deal concession, always visible against Price List Rate. The <b>Additional Discount</b> — a document-level cut on net or grand total: the whole-deal gesture (the MD shaving ₦200k off a ₦9.7m package to close), rare by nature, glaring by design — which is its virtue: nobody additional-discounts quietly. And <b>pricing rules</b> — policy discounts that fire themselves (Chapter 5), which is where anything RECURRING belongs.</p><p><b>The escalation ladder.</b> A healthy shop runs concessions up a ladder: list price → rule-given discount (automatic, no approval needed — it IS the approval, pre-granted) → the rep's negotiated margin within a known band → beyond the band, escalation to the sales lead — and the floor under the whole ladder is <b>Validate Selling Price Against Purchase Rate</b> (Selling 8), the below-cost block that makes the worst outcome impossible at the keyboard. Where approval workflows are configured, the band is enforced by the system; where they are not, the band is enforced by the review — either way there IS a band, stated, known.</p><p><b>Measurement — the governance that actually governs.</b> Because every concession is visible (Rate vs Price List Rate; additional discounts as fields; rules as named objects), discount behaviour is REPORTABLE: realised discount by rep, by customer, by item group, by period. The monthly read answers the questions that matter: who concedes most, to whom, and did the volume justify it? The pathological reading it catches early: the <b>discount-everything culture</b> — when average realised discount creeps up quarter on quarter, list prices have quietly stopped being prices, and the fix is Selling 2's repricing plus a re-anchored band, not another memo.</p><p><b>Free goods, restated as governance.</b> The two-row treatment (100 at rate + 20 at zero, Selling 3) is a governance feature: free quantity is VISIBLE quantity — countable in stock (the 20 really left), attributable in reports (who gives away how much), and honest at the gate. Bundled free goods hidden in doctored rates fail all three at once.</p><p><b>The posture in one sentence.</b> Structure in lists, policy in rules, exceptions on documents, a floor in configuration, and a monthly mirror in reporting — a firm holding that posture can negotiate hard all day without ever losing track of what its prices are.</p>"
-   },
-   {
-    "title": "Chapter 7 — The invoice bridge",
     "est": "12",
-    "html": "<p>The Sales Invoice deserves — and has — its own full module: Selling 7 treats creation paths, statuses, Payment Entries, advances, write-offs and credit notes at manual depth. This chapter is the bridge: what THIS module's tax-and-pricing machinery hands to it, and the working vocabulary you need before crossing.</p><p><b>The accounting event, located.</b> On the timeline law (Selling 5): <i>order reserves, delivery deducts, <b>invoice books</b>, payment settles</i>. Submitting the Sales Invoice books revenue and the customer's receivable — and, this module's addition: it also crystallises the <b>VAT</b>. The template you configured (Chapters 1-2), the item overrides (Chapter 3), the inclusive/exclusive regime (Chapter 4), the rule-given and negotiated discounts (Chapters 5-6) — all of them converge on the invoice, whose tax rows post to the liability account that the monthly filing reads. Everything upstream was policy; the invoice is where policy becomes a ledger fact FIRS can ask about.</p><p><b>Creation, one sentence each.</b> From the order (billing ahead or alongside — the Montaigne advance) or from the DN (billing exactly what shipped) — the create-from spine unbroken; Selling 7 Chapter 1 gives the full treatment including the standalone and Update-Stock cases and their traps.</p><p><b>Status vocabulary, for reading lists today.</b> <b>Unpaid → Partly Paid → Paid</b>; <b>Overdue</b> the moment the due date passes unpaid; <b>Credit Note Issued</b> when a return invoice stands against it. Enough to read any invoice list correctly; the collections craft built on it is Selling 7 Chapters 2-4.</p><p><b>Two handoffs to carry across the bridge.</b> First, the <b>To-Bill worklist</b>: Selling 5 left delivered-unbilled DNs as a quiet alarm; the invoice is the answer, and Selling 7 formalises the oldest-first routine with an owner and a measured DN-to-invoice-days metric. Second, the <b>credit note</b>: Selling 5, Chapter 7 reversed stock on the return DN and named its money half — the Sales Invoice with Is Return, against the original — whose full mechanics (statuses, correction doctrine, the FIRS-grade audit pairing) are Selling 7 Chapter 4. Hold the pairing sentence until then: <i>stock reverses on the return DN; money reverses on the credit note.</i></p><p><b>Why the split matters.</b> Tax-and-pricing is POLICY work — configured by consultants, owned by accountants, invisible to good reps. Invoicing-and-collections is OPERATING work — daily, human, cash-critical. One module per altitude; the bridge is the invoice they share.</p>"
+    "html": "<p>Three instruments reduce a price below list. This chapter assigns each its holder and its record, consolidating the controls the track has built.</p><p><b>1. The three instruments and their holders.</b></p><p>1. <b>The price list</b> (module 2) — the standing class price, maintained by the pricing function through the governed update. A class that always pays less has a list (or a list-derived arrangement), not a permanent discount entered per document.<br>2. <b>The Pricing Rule</b> (module 2, Chapter 6) — the standing condition: quantity breaks, promotions, class discounts — registered, owned, dated, firing by configuration. Policy that repeats belongs here, so that it applies uniformly and expires on its date.<br>3. <b>The document-level concession</b> — the row rate edit, the row discount percentage, and the additional discount field on the document total: the negotiator's instruments for genuine one-case concessions, governed by the deviation ladder (module 3) at quotation time and by the amendment taxonomy (module 4) after commitment.</p><p><b>2. The assignment rule.</b> Each price departure uses the instrument that matches its nature: standing class pricing in lists; repeating conditions in rules; one-case concessions on documents with their approvals. Misassignment is the governance failure the reads detect — the repeating document discount that should be a rule (the same customer conceded the same percentage monthly by hand), or the rule created for one negotiation that should have been a document concession with an approval.</p><p><b>3. The additional discount field.</b> The document-total discount (percentage or amount, applied on net or gross per configuration) is the broadest instrument and carries the tightest governance: permitted roles per the matrix, the ladder band by size, the reason on the document, and visibility in the discounts read. Its legitimate uses are whole-document commercial decisions (the negotiated package discount); its illegitimate use is as a convenience field that hides per-line pricing from the record.</p><p><b>4. Visibility.</b> Every instrument leaves its price visible against list:</p><p>1. The document shows the price list rate and the transacted rate per row; the difference is the concession, readable per line.<br>2. Rule effects are attributable — the applied rule is identifiable on the row's pricing detail.<br>3. The discounts read (below) aggregates the differences.</p><p><b>5. The discounts read — monthly.</b> The month's documents with transacted rates below list, grouped by instrument, customer, and approver: list-versus-transacted value by customer group (the standing concession pattern that should become a rule or a list), document concessions against their ladder approvals (the module 3 read continued through orders and invoices), and additional-discount usage by role. The read files with the pricing review, and its output is the owner's data for recalibrating lists, rules, and bands.</p>"
    },
    {
-    "title": "Chapter 8 — The three watching reports",
-    "est": "14",
-    "html": "<p>Configuration without reading is faith; this chapter is the reading. Three reports, one weekly habit, and the commercial review they feed. A sales professional who reads these weekly manages a book; one who does not, gets managed by it.</p><p><b>Sales Analytics — what is selling, to whom, where.</b> Revenue cut by <b>customer, item, item group, customer group, or territory</b>, across time periods — every dimension you disciplined in Selling 1-2 now pays rent. The three reads to practice: <i>trend</i> (this quarter vs last, per cut — growth and its location); <i>mix</i> (which groups carry the number — the Services share your recurring-revenue story lives in); and the read that saves relationships: <b>the quietly shrinking customer</b> — an account down 30% across three periods announces churn a year before it resigns, and the response is a next step on the pipeline (your own cadence machinery), not a shrug at year-end. Group by customer, sort by decline, act on the top five: fifteen minutes that outperform most CRM dashboards.</p><p><b>Sales Order Analysis — the promise backlog.</b> Ordered vs delivered vs billed across all open orders: the company's <b>delivery backlog</b> on one screen, readable by amount and by age. This report — not the DN list (Selling 5 taught why: DNs record what DID ship) — answers what stands promised and unperformed. The reads: overdue-to-promise rows (the delivery-date discipline of Selling 4 making lateness visible); the delivered-not-billed column (the To-Bill leak, quantified in naira); and per-customer slices for the account conversations. Warehouse planning, billing chase, and customer honesty all drink from this one well.</p><p><b>Accounts Receivable — who owes what, aged.</b> Outstanding per customer, bucketed <b>0-30, 31-60, 61-90, 90+</b> days. The professional read is <b>right to left</b>: the 90+ column first (each entry a story with a name — dispute? distress? neglect?), then 61-90 (this month's interventions, before they graduate rightward), then the near buckets (the healthy hum). Left-to-right reading — admiring the big healthy 0-30 — is the complacency read; the money that kills firms is always in the right-hand columns, aging politely. Every right-column entry gets an owner and a dated next step (Selling 7 builds the full collections craft on exactly this).</p><p><b>The cadence and the page.</b> Weekly, thirty minutes, all three — and quarterly, ONE page for the commercial review: revenue trend and mix (Analytics), backlog and slippage (Order Analysis), ageing shape (AR), beside the pipeline and lost-reason reads from Selling 3. One page, five graphs, every number traceable to documents. Boards steer on it; the alternative is anecdote with a projector.</p>"
+    "title": "Chapter 7 — The watching reports",
+    "est": "12",
+    "html": "<p>Configuration is confirmed by reading. This chapter is the weekly reporting habit and the reads it comprises.</p><p><b>1. Sales Analytics — the movement view.</b> Revenue cut by customer, item, item group, customer group, or territory, across time periods — the dimensions the track's registers disciplined (modules 1-2) are the dimensions this report can cut by. The standing read is the <b>trend read</b>: the current period against the prior periods on each major dimension. A movement of the order of <b>30% across three periods</b> on any dimension — a customer's volume, a group's revenue, a territory's mix — is a change to investigate and explain, not a figure to note: the explanation (a gained or lost account, a price change, a stock gap, a seasonal pattern) is written into the week's note so the following reader inherits it.</p><p><b>2. The sales register — the tax view.</b> The period's invoices with their taxable values and tax amounts by rate class: the figures the VAT return will declare. The weekly pass confirms the period is accumulating correctly — standard-rated value at 7.5%, exempt value at zero, the split consistent with the business's mix — so the return at period end is a compilation, not an investigation. Anomalies (an exempt-class item accumulating standard-rated tax) route to the classification lane at the item record.</p><p><b>3. The execution reads, consolidated.</b> The track's weekly reads meet here as one screen sequence: open quotations by validity (module 3), overdue and at-risk order rows (module 4), delivered-not-billed (module 5), pending acknowledgments (module 5), and the discounts summary (Chapter 6). Each has its own procedure in its own module; the habit this chapter adds is the consolidated pass.</p><p><b>4. The fifteen-minute five-check read — weekly.</b> The consolidated pass, as a fixed procedure:</p><p>1. <b>Open quotations</b> — expiring offers followed up; expired ones closed.<br>2. <b>Overdue order rows</b> — each with owner and action.<br>3. <b>Delivered-not-billed</b> — the list that must clear at the invoicing run.<br>4. <b>The discounts summary</b> — concessions against approvals.<br>5. <b>The trend read</b> — the analytics pass with its written explanations.</p><p>The five checks take approximately <b>fifteen minutes</b> on a maintained book, and the output is a short written note: the exceptions, their owners, their actions. The note files with the sales records; the month's four notes are the material of the monthly commercial review.</p><p><b>5. The monthly commercial review.</b> The owner's session, fed by the weekly notes and the monthly reads (conversion, deviations, discounts, returns): the book's state, the pipeline's state, the pricing controls' evidence, and the decisions — list updates, rule changes, band recalibrations — each entering the governed lanes the track has defined. The review closes the loop this module opened: configuration, operation, reading, adjustment.</p>"
    },
    {
-    "title": "Chapter 9 — Case study & support patterns",
-    "est": "16",
-    "html": "<p>First the build, then the scar tissue — HealthTrade (Selling 2's dual-channel vendor) gets its full tax-and-pricing layer, and then the seven tickets this layer generates in the wild.</p><p><b>THE BUILD.</b> <i>Step 1 — the VAT spine (Ch. 1-2):</i> one standard template — VAT, On Net Total, 7.5%, posting to the VAT output liability the accountant confirmed — set as default; a delivery-charge variant for the routes that bill freight, its Actual row posting to freight recovery, never the VAT head. <i>Step 2 — the exempt class (Ch. 3):</i> medical consumables are exempt per the accountant's classification — one Item Tax Template at the item-group level covers the whole class at 0%; cosmetics and equipment stay standard. A test invoice mixing both shows 7.5% and 0% rows computing side by side, and the pharmacist-facing print is clean. <i>Step 3 — the regimes (Ch. 4):</i> the counter retail list is declared INCLUSIVE (shelf prices are what-you-pay; the checkbox matches), B2B lists stay exclusive; the ₦2,150 shelf item books ₦2,000 net + ₦150 VAT without a human thinking. <i>Step 4 — the Q4 rule (Ch. 5):</i> 10% off, Beverages group, Distribution group, min 50 cartons, 01-Oct to 31-Dec — one object; it will die on schedule. <i>Step 5 — the governance frame (Ch. 6):</i> below-cost validation on; the negotiation band stated (reps to 5%, lead to 12%); the monthly discount read scheduled. <i>Step 6 — first reads (Ch. 8):</i> month one's Analytics shows the mix baseline; Order Analysis quantifies a ₦4.1m delivered-not-billed leak (fixed by Thursday); AR's right columns are, for now, empty — the goal is keeping them so.</p><p><b>THE PATTERNS.</b> <i>1 — VAT found typed inside item rates:</i> the pre-system habit imported (Ch. 1); prices misstated, liability unfiled as a number; fix by re-basing prices net (or declaring inclusive properly) and letting the template compute. <i>2 — a tax row deleted to exempt one item:</i> every row on the document went to zero (Ch. 3); the taxable lines under-charged; fix with the Item Tax Template and re-issue. <i>3 — margins mysteriously 7% thin on one list:</i> the inclusive checkbox on a net-priced list (Ch. 4, disaster two); realign convention and checkbox, reprice the damage window. <i>4 — a surprising discount nobody can explain:</i> rule stacking with forgotten priorities (Ch. 5); fix by simplifying to one-obvious-winner and disabling the fossils. <i>5 — average realised discount creeping quarterly:</i> the discount-everything culture (Ch. 6); the fix is repricing plus a re-anchored band — a commercial decision the report forced into daylight. <i>6 — the filing figure disagrees with the invoice register:</i> something posted to the VAT head that was not document VAT, or a template mis-aimed (Ch. 1-2); reconcile the account to the register monthly so the 21st is never a surprise. <i>7 — the AR read as good news while 90+ grows:</i> left-to-right complacency (Ch. 8); institute the right-to-left read with owners on every right-column name.</p><p><b>The fifth law.</b> Selling 1-2: documents are downstream of masters. Selling 3: the pipeline is downstream of discipline. Selling 4: the order is the single source of fulfilment truth. Selling 5: the DN is where the word meets the world. This module: <b>tax and price are POLICY — encode once, apply everywhere, and audit by report.</b> A firm that holds this law negotiates freely, files calmly, and explains any number on any document in one sentence; a firm that does not, improvises both its prices and its taxes — and eventually explains itself to FIRS instead.</p>"
+    "title": "Chapter 8 — Worked example: HealthTrade's tax and pricing layer",
+    "est": "13",
+    "html": "<p>This chapter applies Chapters 2-7 to the standing case. Configuration values and outcomes are listed per step.</p><p><b>Step 1 — the VAT spine (Chapters 2-3).</b> One standard template: <b>VAT, On Net Total, 7.5%</b>, posting to the VAT output liability account the accountant confirmed; set as the default template. One variant by decision: the delivery-charge template — the VAT row plus an Actual freight row posting to freight recovery — for the routes that bill freight. Both entered in the configuration register with their purposes; template-write permission confirmed as the accountant's role only.</p><p><b>Step 2 — the item treatments (Chapter 4).</b> The ruling table applies by class: the exempt pharmaceutical classes carry the 0% item tax template; consumables and equipment carry standard treatment. The mixed-basket verification draft — exempt medicines and standard consumables on one document — computes per line: exempt rows at zero, standard rows at 7.5%, the item-wise breakup readable. The draft is deleted after reading; the sample files with the quarter's classification read.</p><p><b>Step 3 — the postures (Chapter 5).</b> By written policy: the retail channel prices <b>inclusive</b> — counter prices are what customers pay, the Standard Selling list carries inclusive rates, and the inclusive setting is on; the trade channel prices <b>exclusive</b> — the Trade list carries net rates, and Montaigne AH's documents show net, VAT, and gross separately (the arithmetic their procurement office reconciles: net ₦1,000-per-unit lines carrying ₦75 VAT to ₦1,075 gross). The posture check joins the pre-issue verification on both channels.</p><p><b>Step 4 — discounts assigned to instruments (Chapter 6).</b> The audit of existing practice moves each case to its instrument: the chain pricing that was being conceded per document moves to the Trade list where it belongs; the volume break stands as the registered Pricing Rule (module 2's ₦950-from-50-units); one-case concessions remain document concessions with ladder approvals — the Montaigne terminal concession the standing example. The additional discount field's permission narrows to the roles the matrix names.</p><p><b>Step 5 — the weekly habit installed (Chapter 7).</b> The five-check read runs its first weeks: the trend read explains a <b>30% movement across three periods</b> in one territory (a chain's new branches concentrating volume — the explanation written into the note); the sales register accumulates the period's split (standard-rated consumables, exempt pharmaceuticals) ready for the return; delivered-not-billed clears at each invoicing run. The weekly notes file; the first monthly commercial review works from four notes and the monthly reads, and its decisions — one list correction, one rule end-dated — enter the governed lanes.</p><p><b>The layer's evidence.</b> The configuration register holds the templates and their purposes; the ruling table and classification reads hold the treatments; the policy holds the postures; the discounts read holds the concession evidence; the weekly notes hold the reading habit. The tax and pricing layer is answerable end to end — from any document's tax row back to its template, rate, and account, and from any transacted price back to its instrument and approval.</p>"
+   },
+   {
+    "title": "Chapter 9 — Common errors and the module rule",
+    "est": "11",
+    "html": "<p>The errors that recur in tax and pricing operation, each with its correction and prevention.</p><p><b>Error 1 — the hand-edited tax row.</b> Symptom: tax amounts adjusted on documents to match expectations; the return disagreeing with the configuration; rounding differences balanced by edits. Correction: the affected documents corrected through the proper lanes; the configuration question resolved at the template. Prevention: tax computed by configuration only, and template-write permission held per the matrix.</p><p><b>Error 2 — the misclassified line.</b> Symptom: an exempt item computing at 7.5% or a standard item at zero; the document corrected by hand so the next document repeats the error. Correction: the item's template fixed through the accountant's lane; affected documents corrected. Prevention: the refusal rule — classification questions resolve at the item record — and the two classification reads.</p><p><b>Error 3 — the mixed posture.</b> Symptom: inclusive rates entered on the exclusive channel or the reverse; prices 7.5% adrift or VAT under-declared. Correction: the affected list re-based arithmetically as a governed change. Prevention: one posture per channel by written policy, configured once, checked in the pre-issue read.</p><p><b>Error 4 — the instrument misassigned.</b> Symptom: the same discount conceded per document monthly by hand; rules created for single negotiations; the additional discount field used to hide line pricing. Correction: each standing case moved to its instrument — list, rule, or approved concession. Prevention: the assignment rule and the monthly discounts read.</p><p><b>Error 5 — the unread configuration.</b> Symptom: templates, treatments, and postures assumed correct because they were set correctly once; drift discovered at the return. Correction: the reads run and the findings fixed at their sources. Prevention: the weekly register pass, the monthly document sample, and the quarterly classification read.</p><p><b>Error 6 — the unexplained trend.</b> Symptom: analytics read but movements unexplained; the 30% shift noticed at quarter end with its cause cold. Correction: the investigation run late and the explanation recorded. Prevention: the trend read weekly with explanations written into the note.</p><p><b>Review list.</b> Before the quiz, confirm you can: state the VAT context — the 7.5% rate, the liability flow, exempt classes, and the e-invoicing rules; build and read a template — row types, account heads, the standard set; operate item tax templates on mixed documents with the refusal rule; apply both pricing arithmetics and the one-posture-per-channel policy; assign every discount to its instrument with its holder and record; and run the fifteen-minute five-check read with the trend explanations.</p><p><b>Module rule 6: tax on a document is computed by configuration — the accountant's templates and treatments, selected not edited, at the channel's declared posture — and every price below list is one of three governed instruments with its record; the weekly reads confirm both before the invoice declares them.</b> Module 7 covers the Sales Invoice, payments, and collections.</p>"
    }
   ],
   "questions": [
    {
-    "q": "Nigerian VAT at 7.5% is applied to selling documents through:",
+    "q": "This module prepares:",
     "opts": [
-     "A Sales Taxes and Charges Template",
-     "Typing it per row",
-     "The customer master",
-     "A pricing rule"
-    ],
-    "ans": 0,
-    "why": "The template defines VAT once for consistent application.",
-    "src": "VAT §1"
-   },
-   {
-    "q": "A VAT-exempt item on an otherwise VAT-able invoice is handled by:",
-    "opts": [
-     "Deleting the tax row",
-     "An Item Tax Template on that item overriding the document rate",
-     "A separate invoice",
-     "A discount equal to the VAT"
-    ],
-    "ans": 1,
-    "why": "Item tax templates override per row.",
-    "src": "VAT §1"
-   },
-   {
-    "q": "₦1,075 entered as tax-INCLUSIVE at 7.5% VAT means net revenue of:",
-    "opts": [
-     "₦1,075",
-     "₦994",
-     "₦1,000",
-     "₦1,150"
-    ],
-    "ans": 2,
-    "why": "Inclusive rates contain the tax: 1,075 / 1.075 = 1,000.",
-    "src": "VAT §1"
-   },
-   {
-    "q": "\"10% off for Distributors buying 50+ cartons in Q4\" is best implemented as:",
-    "opts": [
-     "A memo to staff",
-     "A second price list per quarter",
-     "Manual edits per order",
-     "A Pricing Rule with group, quantity and validity conditions"
-    ],
-    "ans": 3,
-    "why": "Conditional automatic discounts are what pricing rules are for.",
-    "src": "Pricing §2"
-   },
-   {
-    "q": "Revenue and the customer's receivable are booked when:",
-    "opts": [
-     "The Sales Invoice is submitted",
-     "The order is submitted",
-     "The DN is submitted",
-     "Payment arrives"
-    ],
-    "ans": 0,
-    "why": "The invoice is the accounting event.",
-    "src": "Invoice §3"
-   },
-   {
-    "q": "An invoice past its due date and unpaid shows:",
-    "opts": [
-     "Unpaid",
-     "Overdue",
-     "Late",
-     "Blocked"
-    ],
-    "ans": 1,
-    "why": "Overdue is the past-due status — and the collections filter.",
-    "src": "Invoice §3"
-   },
-   {
-    "q": "One customer payment covering three invoices is recorded as:",
-    "opts": [
-     "Three payment entries",
-     "A journal only",
-     "One Payment Entry allocated across the three invoices",
-     "A credit note"
-    ],
-    "ans": 2,
-    "why": "Payment Entry allocates one payment over multiple invoices.",
-    "src": "Invoice §3"
-   },
-   {
-    "q": "A credit note in ZhiftERP is:",
-    "opts": [
-     "A special letter",
-     "A negative payment",
-     "A cancelled invoice",
-     "A Sales Invoice with Is Return against the original invoice"
-    ],
-    "ans": 3,
-    "why": "The return invoice reverses revenue and receivable with a trail.",
-    "src": "Credit notes §4"
-   },
-   {
-    "q": "The stock reversal and the money reversal of a return live on:",
-    "opts": [
-     "The return DN and the credit note respectively",
-     "One document",
+     "The invoice step — tax computation, pricing integrity, and the reads that confirm both",
      "The order",
-     "A journal entry"
+     "The delivery",
+     "The quote"
     ],
     "ans": 0,
-    "why": "Stock reverses on the return DN; money on the credit note.",
-    "src": "Credit notes §4"
-   },
-   {
-    "q": "Who-owes-what, aged by how long, is the report:",
-    "opts": [
-     "Sales Analytics",
-     "Accounts Receivable",
-     "Stock Ledger",
-     "Sales Order Analysis"
-    ],
-    "ans": 1,
-    "why": "AR ageing is the receivables instrument.",
-    "src": "Reports §4"
-   },
-   {
-    "q": "Delivery backlog across all open orders is read from:",
-    "opts": [
-     "Accounts Receivable",
-     "The DN list",
-     "Sales Order Analysis",
-     "Sales Register alone"
-    ],
-    "ans": 2,
-    "why": "Order analysis shows ordered vs delivered vs billed.",
-    "src": "Reports §4"
-   },
-   {
-    "q": "Manual per-document discounts should be:",
-    "opts": [
-     "The normal pricing method",
-     "Banned entirely",
-     "Hidden in rates",
-     "Rare, visible exceptions — policy lives in pricing rules and price lists"
-    ],
-    "ans": 3,
-    "why": "Rules are policy; manual discounts are exceptions kept visible.",
-    "src": "Pricing §2"
-   },
-   {
-    "q": "Output VAT collected on sales is best understood as:",
-    "opts": [
-     "Money held for government — a liability accruing toward the monthly FIRS remittance",
-     "Extra revenue",
-     "A discount fund",
-     "Profit share"
-    ],
-    "ans": 0,
-    "why": "The firm is a collection agent; the system keeps the number exact.",
+    "why": "So module 7 is execution, not correction.",
     "src": "Ch1"
    },
    {
-    "q": "Nigerian VAT returns are due:",
+    "q": "The document timeline posts:",
     "opts": [
-     "Quarterly",
-     "By the 21st of the following month",
-     "Annually",
-     "Weekly"
+     "Everything at invoice",
+     "Order reserves, delivery deducts stock and posts cost, invoice posts revenue, tax, and the receivable",
+     "Randomly",
+     "At month-end"
     ],
     "ans": 1,
-    "why": "The monthly rhythm the liability account feeds.",
+    "why": "The fixed sequence.",
     "src": "Ch1"
    },
    {
-    "q": "The template row's Account Head matters because:",
+    "q": "The module's standing rule is:",
     "opts": [
-     "It prints on documents",
-     "It sets the rate",
-     "The monthly filing figure is READ from that ledger account",
-     "It picks the customer"
+     "Tax is negotiable",
+     "Templates are optional",
+     "Tax on a document is computed by configuration, never edited by hand",
+     "Rates vary daily"
     ],
     "ans": 2,
-    "why": "A mis-aimed head files fiction with a straight face.",
-    "src": "Ch1, Ch2"
+    "why": "The accountant owns the configuration.",
+    "src": "Ch1"
    },
    {
-    "q": "A standard Nigerian VAT row is configured as:",
+    "q": "VAT charged on a sale is:",
     "opts": [
-     "Actual, 7.5%",
-     "On Grand Total, 7.5%",
-     "On Previous Row Total",
-     "On Net Total, 7.5%, posting to the VAT output account"
+     "Revenue",
+     "A fee kept",
+     "Profit",
+     "Collected on behalf of the government — held as a liability and remitted with the return"
     ],
     "ans": 3,
-    "why": "The workhorse type computes on the pre-tax total.",
+    "why": "The fiduciary character of output VAT.",
     "src": "Ch2"
    },
    {
-    "q": "A fixed ₦15,000 delivery charge on documents uses row type:",
+    "q": "The Nigerian standard VAT rate is:",
     "opts": [
-     "Actual, posting to a freight-recovery account",
-     "On Net Total",
-     "Inclusive",
-     "Discount"
+     "7.5%",
+     "5%",
+     "10%",
+     "15%"
     ],
     "ans": 0,
-    "why": "Charges ride the same machinery with their own heads.",
+    "why": "Charged on taxable sales.",
     "src": "Ch2"
    },
    {
-    "q": "Charges must post to their own accounts, never the VAT head, because:",
+    "q": "The selling function's obligation in the liability flow is:",
     "opts": [
-     "Aesthetics",
-     "The filing figure must stay pure document-VAT",
-     "Charges are illegal",
+     "The return",
+     "Accuracy at invoicing — correct rate, base, and account on every document",
+     "Remittance",
+     "Nothing"
+    ],
+    "ans": 1,
+    "why": "The return declares what the documents computed.",
+    "src": "Ch2"
+   },
+   {
+    "q": "Under e-invoicing, corrections follow:",
+    "opts": [
+     "Deletion",
+     "Hand edits",
+     "The credit-note lane — the transmitted record is permanent",
+     "A phone call"
+    ],
+    "ans": 2,
+    "why": "Invoices transmit to the authority at submission.",
+    "src": "Ch2"
+   },
+   {
+    "q": "A customer claiming exemption:",
+    "opts": [
+     "Gets it on request",
+     "Edits the row",
+     "Is refused",
+     "Routes to the accountant for the ruling — the document waits"
+    ],
+    "ans": 3,
+    "why": "The boundary rule.",
+    "src": "Ch2"
+   },
+   {
+    "q": "On Net Total means:",
+    "opts": [
+     "A percentage of the document's net total — the standard base for VAT",
+     "A fixed amount",
+     "A compound charge",
+     "A discount"
+    ],
+    "ans": 0,
+    "why": "Row anatomy.",
+    "src": "Ch3"
+   },
+   {
+    "q": "The Account Head is:",
+    "opts": [
+     "Cosmetic",
+     "The ledger account the row posts to — the connection between the document and the return",
+     "The rate",
+     "The printer"
+    ],
+    "ans": 1,
+    "why": "The accountant's field.",
+    "src": "Ch3"
+   },
+   {
+    "q": "The standard template set is:",
+    "opts": [
+     "Many templates",
+     "Per customer",
+     "One default VAT template plus variants only by decision, each registered with its purpose",
+     "Per operator"
+    ],
+    "ans": 2,
+    "why": "Proliferation is avoided.",
+    "src": "Ch3"
+   },
+   {
+    "q": "The selling function's relationship to templates is:",
+    "opts": [
+     "Editing rows",
+     "Deleting them",
+     "Creating them",
+     "Selecting decided templates and reading their results"
+    ],
+    "ans": 3,
+    "why": "Template-write is the accountant's permission.",
+    "src": "Ch3"
+   },
+   {
+    "q": "An Item Tax Template overrides:",
+    "opts": [
+     "The document template's rate for that row only",
+     "The whole document",
+     "The price",
+     "The customer"
+    ],
+    "ans": 0,
+    "why": "Per-line computation.",
+    "src": "Ch4"
+   },
+   {
+    "q": "A mixed basket computes:",
+    "opts": [
+     "At one rate",
+     "Per line — exempt rows at zero, standard rows at 7.5%, totalled in the tax section",
+     "By average",
+     "By memory"
+    ],
+    "ans": 1,
+    "why": "One document serves any basket.",
+    "src": "Ch4"
+   },
+   {
+    "q": "A line computing at an unexpected rate is:",
+    "opts": [
+     "Hand-corrected",
+     "Ignored",
+     "A classification question resolved at the item record — the next document would repeat a hand fix",
+     "Discounted"
+    ],
+    "ans": 2,
+    "why": "The refusal rule.",
+    "src": "Ch4"
+   },
+   {
+    "q": "The two levels divide the work as:",
+    "opts": [
+     "Duplicates",
+     "Options",
+     "Rivals",
+     "The document template states the context's charges; the item template states each product's treatment"
+    ],
+    "ans": 3,
+    "why": "Each fact stated once.",
+    "src": "Ch4"
+   },
+   {
+    "q": "Zero-rated and exempt reach the operator as:",
+    "opts": [
+     "The same procedure — the correct item template computing zero; the return-side difference is the accountant's",
+     "Different procedures",
+     "Hand edits",
+     "Separate invoices"
+    ],
+    "ans": 0,
+    "why": "Operationally identical at the document.",
+    "src": "Ch4"
+   },
+   {
+    "q": "Exclusive pricing means:",
+    "opts": [
+     "Tax inside the rate",
+     "The entered rate is net; tax adds on top — ₦1,000 plus 7.5% is ₦1,075",
+     "No tax",
+     "Retail pricing"
+    ],
+    "ans": 1,
+    "why": "The business-to-business posture.",
+    "src": "Ch5"
+   },
+   {
+    "q": "Inclusive extraction works by:",
+    "opts": [
+     "Adding 7.5%",
+     "Subtracting 7.5%",
+     "Dividing by 1.075 — ₦1,075 inclusive contains ₦1,000 net and ₦75 tax",
      "Rounding"
     ],
-    "ans": 1,
-    "why": "Purity of the liability account is the reconciliation.",
-    "src": "Ch2"
-   },
-   {
-    "q": "Template sprawl (one per customer) is wrong because:",
-    "opts": [
-     "Storage costs",
-     "Templates expire",
-     "A rate change becomes many edits and many chances to miss one",
-     "Customers object"
-    ],
     "ans": 2,
-    "why": "Item-level differences belong in Item Tax Templates instead.",
-    "src": "Ch2"
+    "why": "The retail posture's arithmetic.",
+    "src": "Ch5"
    },
    {
-    "q": "Zero-rated vs exempt differ in that:",
+    "q": "The posture is set:",
     "opts": [
-     "Nothing — both are 0%",
-     "Zero-rated is illegal",
-     "Exempt charges 7.5%",
-     "Zero-rated is inside the VAT system at 0% (exports); exempt sits outside the charge — filings differ"
+     "Per document",
+     "Per day",
+     "Per operator",
+     "Per channel by written policy, configured once, never mixed ad hoc"
     ],
     "ans": 3,
-    "why": "The customer sees 0 either way; the seller's filing does not.",
-    "src": "Ch3"
+    "why": "Confusing them misstates price or VAT.",
+    "src": "Ch5"
    },
    {
-    "q": "Classifying which items are exempt is decided by:",
+    "q": "A posture switch on a channel is:",
     "opts": [
-     "The accountant's classification, which the consultant encodes",
-     "The consultant's intuition",
-     "The customer",
-     "The warehouse"
+     "A governed change with the list re-based arithmetically and the change dated",
+     "A checkbox flip",
+     "Impossible",
+     "Automatic"
     ],
     "ans": 0,
-    "why": "Ask the classification question; never guess it.",
-    "src": "Ch3"
+    "why": "Every price means something different after.",
+    "src": "Ch5"
    },
    {
-    "q": "A new exempt item created WITHOUT its item tax template will:",
+    "q": "Rounding differences are:",
     "opts": [
-     "Refuse to sell",
-     "Quietly charge 7.5% until someone notices",
-     "Charge 0% anyway",
-     "Block invoices"
+     "Balanced by editing a tax row",
+     "Configuration matters for the accountant — a tax section is never hand-balanced",
+     "Ignored",
+     "The customer's"
     ],
     "ans": 1,
-    "why": "The monthly template-vs-classification cross-check prevents it.",
-    "src": "Ch3, Ch9"
+    "why": "Chapter 5's rounding rule.",
+    "src": "Ch5"
    },
    {
-    "q": "₦2,150 inclusive at 7.5% books:",
+    "q": "The three discount instruments are:",
     "opts": [
-     "₦2,150 net",
-     "₦2,000 net + ₦161 VAT",
-     "₦2,000 net + ₦150 VAT",
-     "₦1,988 net"
+     "Interchangeable",
+     "All manual",
+     "The list for standing class prices, the rule for repeating conditions, the document concession for one-case decisions",
+     "All automatic"
     ],
     "ans": 2,
-    "why": "Net = inclusive ÷ 1.075 — drill both directions.",
-    "src": "Ch4"
-   },
-   {
-    "q": "A net-priced list with the row wrongly marked INCLUSIVE produces:",
-    "opts": [
-     "Overcharged customers",
-     "Blocked invoices",
-     "No effect",
-     "VAT carved out of intended revenue — silent ~7% margin erosion"
-    ],
-    "ans": 3,
-    "why": "Disaster two: every sale yields 93.02% of its intended net.",
-    "src": "Ch4"
-   },
-   {
-    "q": "An inclusive-priced list with the row left EXCLUSIVE produces:",
-    "opts": [
-     "Tax on tax — customers overcharged at the till",
-     "Margin erosion",
-     "Correct totals",
-     "Zero VAT"
-    ],
-    "ans": 0,
-    "why": "Disaster one: 7.5% added on a price that already contained it.",
-    "src": "Ch4"
-   },
-   {
-    "q": "A business running counter-retail inclusive AND B2B exclusive runs:",
-    "opts": [
-     "One mixed list",
-     "Two price lists, two internally consistent flows",
-     "Manual VAT",
-     "No VAT"
-    ],
-    "ans": 1,
-    "why": "One regime per document, segregated by list.",
-    "src": "Ch4"
-   },
-   {
-    "q": "A pricing rule's self-terminating behaviour comes from:",
-    "opts": [
-     "Priority",
-     "The account head",
-     "Validity dates — the Q4 promo dies on New Year's Day",
-     "Stacking"
-    ],
-    "ans": 2,
-    "why": "Date-bounded policy needs no cleanup memo.",
-    "src": "Ch5"
-   },
-   {
-    "q": "When several rules match one row:",
-    "opts": [
-     "All apply cumulatively always",
-     "The cheapest wins",
-     "The document blocks",
-     "Priority decides; design for one obvious winner"
-    ],
-    "ans": 3,
-    "why": "Un-explainable discounts are the stacking disease.",
-    "src": "Ch5"
-   },
-   {
-    "q": "Retiring a pricing rule is done by:",
-    "opts": [
-     "Disabling it — history's explanation stays readable",
-     "Deleting it",
-     "Renaming it",
-     "Zeroing its rate"
-    ],
-    "ans": 0,
-    "why": "Last Q4's pricing must remain explicable next year.",
-    "src": "Ch5"
-   },
-   {
-    "q": "The placement doctrine assigns structure, policy, and exception to:",
-    "opts": [
-     "Rules, lists, templates",
-     "Price lists, pricing rules, and the document's Rate respectively",
-     "Documents only",
-     "The accountant"
-    ],
-    "ans": 1,
-    "why": "Each price then has one findable explanation.",
-    "src": "Ch5"
-   },
-   {
-    "q": "The Additional Discount's virtue is that it is:",
-    "opts": [
-     "Hidden in rates",
-     "Automatic",
-     "Glaring by design — nobody additional-discounts quietly",
-     "Tax-free"
-    ],
-    "ans": 2,
-    "why": "The whole-deal gesture stays visible and rare.",
+    "why": "Each with its holder and record.",
     "src": "Ch6"
    },
    {
-    "q": "Average realised discount creeping up quarter on quarter signals:",
+    "q": "A repeating hand concession should be:",
     "opts": [
-     "Great negotiating",
-     "Seasonality only",
-     "A reporting bug",
-     "List prices have stopped being prices — reprice and re-anchor the band"
+     "Continued",
+     "Doubled",
+     "Hidden",
+     "Moved to a rule or a list — misassignment is what the reads detect"
     ],
     "ans": 3,
-    "why": "The mirror catches the discount-everything culture early.",
+    "why": "The assignment rule.",
     "src": "Ch6"
    },
    {
-    "q": "The invoice, in this module's terms, is where:",
+    "q": "The additional discount field carries:",
     "opts": [
-     "Policy becomes a ledger fact — VAT crystallises to the liability account",
-     "Policy is configured",
-     "Stock reserves",
-     "Rules are designed"
+     "The tightest — permitted roles, the ladder band by size, the reason, and read visibility",
+     "No governance",
+     "Free use",
+     "Only small amounts"
     ],
     "ans": 0,
-    "why": "Everything upstream converges on the accounting event.",
+    "why": "The broadest instrument.",
+    "src": "Ch6"
+   },
+   {
+    "q": "Every instrument leaves:",
+    "opts": [
+     "No trace",
+     "Its price visible against list — the difference readable per row, rules attributable, the read aggregating",
+     "A verbal note",
+     "A guess"
+    ],
+    "ans": 1,
+    "why": "Visibility.",
+    "src": "Ch6"
+   },
+   {
+    "q": "The trend read treats a 30% movement across three periods as:",
+    "opts": [
+     "A figure to note",
+     "Noise",
+     "A change to investigate and explain, with the explanation written into the week's note",
+     "A target"
+    ],
+    "ans": 2,
+    "why": "The following reader inherits the explanation.",
     "src": "Ch7"
    },
    {
-    "q": "The quietly shrinking customer is found by:",
+    "q": "The sales register confirms weekly that:",
     "opts": [
-     "Waiting for the resignation letter",
-     "Sales Analytics by customer across periods, sorted by decline — then a pipeline next step",
-     "AR ageing",
-     "The DN list"
+     "Stock agrees",
+     "Quotes convert",
+     "Prices rose",
+     "The period's taxable values and tax accumulate correctly by rate class — the return becomes a compilation"
+    ],
+    "ans": 3,
+    "why": "The tax view.",
+    "src": "Ch7"
+   },
+   {
+    "q": "The five-check read covers:",
+    "opts": [
+     "Open quotations, overdue rows, delivered-not-billed, the discounts summary, and the trend read",
+     "Only invoices",
+     "Only stock",
+     "Only tax"
+    ],
+    "ans": 0,
+    "why": "Approximately fifteen minutes on a maintained book.",
+    "src": "Ch7"
+   },
+   {
+    "q": "The weekly note's use is:",
+    "opts": [
+     "Filing only",
+     "Exceptions with owners and actions — and the month's notes feed the commercial review",
+     "Blame",
+     "Decoration"
     ],
     "ans": 1,
-    "why": "Churn announces itself a year early to whoever reads.",
+    "why": "The review works from the notes and monthly reads.",
+    "src": "Ch7"
+   },
+   {
+    "q": "HealthTrade's VAT spine is:",
+    "opts": [
+     "Many templates",
+     "Per-item templates",
+     "One default template — VAT, On Net Total, 7.5%, to the confirmed liability account — plus the registered freight variant",
+     "Hand rates"
+    ],
+    "ans": 2,
+    "why": "Step 1.",
     "src": "Ch8"
    },
    {
-    "q": "Accounts Receivable is professionally read:",
+    "q": "Montaigne AH's documents show:",
     "opts": [
-     "Left to right, admiring 0-30",
-     "Alphabetically",
-     "Right to left — 90+ first, each entry an owned story",
-     "By invoice number"
+     "Inclusive totals",
+     "Estimates",
+     "No tax",
+     "Net, VAT, and gross separately — the exclusive trade posture their procurement office reconciles"
+    ],
+    "ans": 3,
+    "why": "₦1,000 net carrying ₦75 to ₦1,075 gross.",
+    "src": "Ch8"
+   },
+   {
+    "q": "The chain pricing conceded per document was moved to:",
+    "opts": [
+     "The Trade list — the instrument that matches standing class pricing",
+     "A bigger discount",
+     "A rule",
+     "Memory"
+    ],
+    "ans": 0,
+    "why": "Step 4's assignment audit.",
+    "src": "Ch8"
+   },
+   {
+    "q": "The 30% territory movement was resolved by:",
+    "opts": [
+     "Ignoring it",
+     "Investigation and a written explanation — new chain branches concentrating volume",
+     "A price cut",
+     "A target change"
+    ],
+    "ans": 1,
+    "why": "The trend read operating.",
+    "src": "Ch8"
+   },
+   {
+    "q": "Module 6's rule is:",
+    "opts": [
+     "Tax is flexible",
+     "Discounts are free",
+     "Tax is computed by configuration at the channel's declared posture, every below-list price is one of three governed instruments, and the weekly reads confirm both before the invoice declares them",
+     "Reads are optional"
     ],
     "ans": 2,
-    "why": "The killing money ages politely in the right-hand columns.",
-    "src": "Ch8"
+    "why": "The module rule.",
+    "src": "Ch9"
    }
   ]
  },
