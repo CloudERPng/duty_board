@@ -7244,11 +7244,13 @@ this.$me.find(".duty-req-ok").on("click", (e) => {
 					<div style="display:flex;gap:8px;margin-top:14px;flex-wrap:wrap">
 						<button type="button" class="btn btn-sm btn-default duty-coh-add">\uFF0B ${__("Add member")}</button>
 						<button type="button" class="btn btn-sm btn-primary duty-coh-enrol">\u{1F393} ${__("Enrol everyone")}</button>
+						<button type="button" class="btn btn-sm btn-default duty-coh-score">\u{1F4CA} ${__("Scorecard")}</button>
 						${c.status === "Closed" ? "" : `<button type="button" class="btn btn-sm btn-default duty-coh-close">${__("Close cohort")}</button>`}
 					</div>
 					<p class="text-muted" style="font-size:11.5px;margin-top:10px">${__("Enrolling is safe to repeat — existing course records are adopted, never duplicated.")}</p>
 				`);
 				$(d.body).find(".duty-coh-back").on("click", list);
+				$(d.body).find(".duty-coh-score").on("click", () => scorecard(name));
 				$(d.body).find(".duty-coh-dt").on("change", (e) => {
 					const $i = $(e.currentTarget);
 					call("cohort_set", { name: name, field: $i.data("key"), value: ($i.val() || "").replace("T", " ") }, () => detail(name));
@@ -7284,6 +7286,46 @@ this.$me.find(".duty-req-ok").on("click", (e) => {
 						});
 						ad.show();
 					}));
+			});
+		const pct = (v) => (v === null || v === undefined ? "\u2014" : `${v}%`);
+		const scorecard = (name) =>
+			call("cohort_scorecard", { name: name }, (s) => {
+				const band = (p) => (p >= 70 ? "#0E8A63" : p >= 50 ? "#C99A2E" : "#C2410C");
+				$(d.body).html(`
+					<a class="duty-coh-back2" style="cursor:pointer;font-size:12.5px">\u2190 ${__("Back to cohort")}</a>
+					<h4 style="margin:8px 0 2px">\u{1F4CA} ${esc(s.title)}</h4>
+					<div class="text-muted" style="font-size:12px;margin-bottom:12px">${esc(s.customer)} \u00b7 ${s.attended}/${s.members} ${__("attended")} \u00b7 ${s.sat} ${__("sat")} \u00b7 ${__("pass rate")} ${pct(s.pass_rate)} \u00b7 ${__("average")} ${pct(s.average)}</div>
+					<div class="duty-lead-section">${__("By course")}</div>
+					<table class="table table-sm" style="font-size:12px">
+						<tr><th>${__("Course")}</th><th>${__("Sat")}</th><th>${__("Passed")}</th><th>${__("Pass rate")}</th><th>${__("Average")}</th></tr>
+						${s.courses.map((c) => `<tr><td>${esc(c.title)}</td><td>${c.sat}</td><td>${c.passed}</td><td>${pct(c.pass_rate)}</td><td>${pct(c.average)}</td></tr>`).join("")}
+					</table>
+					${s.areas.length
+						? `<div class="duty-lead-section">${__("Weakest areas")} <span class="text-muted" style="font-weight:400;font-size:11.5px">\u00b7 ${__("first attempts only")}</span></div>
+						${s.areas.slice(0, 8).map((a) => `
+						<div style="display:flex;gap:10px;align-items:center;margin:5px 0;font-size:12px">
+							<span style="flex:0 0 38%">${esc(a.topic)}</span>
+							<span style="flex:1;height:8px;background:#E9EFEC;border-radius:99px;overflow:hidden"><i style="display:block;height:8px;width:${a.pct}%;background:${band(a.pct)}"></i></span>
+							<span class="text-muted" style="flex:0 0 80px;text-align:right">${a.pct}% (${a.right}/${a.total})</span>
+						</div>`).join("")}`
+						: `<p class="text-muted" style="font-size:12px;margin-top:10px">${__("No area breakdown yet — the question bank for these courses carries no topics. Add a Topic to each Duty Quiz Question and this fills in.")}</p>`}
+					<div class="duty-lead-section">${__("Roster")}</div>
+					<table class="table table-sm" style="font-size:12px">
+						<tr><th>${__("Name")}</th><th>${__("Session")}</th><th>${__("Complete")}</th><th>${__("Average")}</th></tr>
+						${s.people.map((p) => `<tr><td>${esc(p.trainee_name)}</td><td>${p.attended ? "\u2713" : "\u2014"}</td><td>${p.complete}/${p.total}</td><td>${p.average === null ? __("did not sit") : p.average + "%"}</td></tr>`).join("")}
+					</table>
+					<div class="text-muted" style="font-size:11.5px;margin-top:10px">\u23F1 ${__("Integrity")}: ${s.integrity.timed} ${__("timed attempts")} \u00b7 ${s.integrity.timeouts} ${__("timed out")} \u00b7 ${s.integrity.blurs} ${__("focus losses")}. ${__("Staff view only — never printed for the client.")}</div>
+					<div style="display:flex;gap:8px;margin-top:14px">
+						<button type="button" class="btn btn-sm btn-primary duty-coh-pub">\u{1F4E4} ${__("Publish to client's Documents")}</button>
+					</div>
+				`);
+				$(d.body).find(".duty-coh-back2").on("click", () => detail(name));
+				$(d.body).find(".duty-coh-pub").on("click", () =>
+					frappe.confirm(__("Publish this scorecard to the client's Documents shelf and announce it in the room?"), () =>
+						call("cohort_scorecard_publish", { name: name }, (res) => {
+							frappe.show_alert({ message: __("Scorecard published"), indicator: "green" });
+							if (res && res.file_url) window.open(res.file_url, "_blank");
+						})));
 			});
 		list();
 		d.show();
