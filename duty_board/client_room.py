@@ -4160,22 +4160,13 @@ def client_training_admin_home():
 
 @frappe.whitelist()
 def client_training_admin_options():
-	"""Who can be assigned, and what to. Tracks are filtered to the room's
-	products by the same rule the staff assign dialog uses."""
+	"""Who can be assigned, and what to. Assignable means covered by the room's
+	products OR carrying live purchased seats - one shared reading with the
+	catalogue, so a bought track can never be missing from this list."""
 	room = _require_room_admin()
-	prods = _room_products(room)
-	tracks = []
-	for t in frappe.get_all(
-		"Duty Certification Track",
-		filters={"active": 1, "audience": "Client"},
-		fields=["name", "title", "product"],
-		order_by="product asc, title asc",
-	):
-		if (t.product or "").strip().lower() not in prods:
-			continue
-		n = frappe.db.count("Duty Certification Track Module", {"parent": t.name})
-		if n:
-			tracks.append({"name": t.name, "title": t.title, "product": t.product, "modules": n})
+	from duty_board.academy import track_catalogue
+
+	tracks = track_catalogue(room, assignable_only=True)
 	people = [
 		{"user": m.user, "full_name": frappe.utils.get_fullname(m.user)}
 		for m in frappe.get_all(

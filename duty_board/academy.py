@@ -114,52 +114,70 @@ def seat_gate(room, track, new_learners):
 # ---------------- client face ----------------
 
 
-@frappe.whitelist()
-def academy_catalogue():
-	"""Every active client track, marked Included or Paid, with this room's
-	seat position and any order already in flight."""
+def track_catalogue(room, assignable_only=False):
+	"""Every PUBLISHED client track and this room's standing against it.
+
+	Three states, and the catalogue shows all three, because a client should see
+	what exists rather than only what they already hold:
+	  included  - covered by the products on their room; assign freely
+	  entitled  - a Paid track with live seats; assign until the seats run out
+	  offered   - not bought, or outside their products; visible with a price or
+	              a note, never assignable
+	"""
 	from duty_board.client_room import _room_products
 
-	room = _room_admin()
 	prods = _room_products(room)
 	out = []
 	for t in frappe.get_all(
 		"Duty Certification Track",
 		filters={"active": 1, "audience": "Client"},
 		fields=["name", "title", "product", "description", "access", "seat_price"],
-		order_by="access asc, product asc, title asc",
+		order_by="product asc, title asc",
 	):
 		n = frappe.db.count("Duty Certification Track Module", {"parent": t.name})
 		if not n:
 			continue
 		access = t.access or "Included"
-		included = access != "Paid" and (t.product or "").strip().lower() in prods
-		ent = entitlement_for(room.name, t.name) if access == "Paid" else None
-		used = seats_used(room.name, t.name) if access == "Paid" else 0
+		paid = access == "Paid"
+		included = not paid and (t.product or "").strip().lower() in prods
+		ent = entitlement_for(room.name, t.name) if paid else None
+		used = seats_used(room.name, t.name) if paid else 0
+		left = max(ent["seats"] - used, 0) if ent else None
+		assignable = included or bool(left)
+		if assignable_only and not assignable:
+			continue
 		pending = frappe.db.get_value(
 			"Duty Academy Order",
 			{"room": room.name, "track": t.name, "status": "Requested"},
 			["name", "seats"], as_dict=True,
 		)
-		if access != "Paid" and not included:
-			continue  # an included track outside their products is simply not theirs
 		out.append({
 			"track": t.name,
+			"name": t.name,
 			"title": t.title,
 			"product": t.product,
 			"description": t.description,
 			"courses": n,
+			"modules": n,
 			"access": access,
 			"included": included,
+			"assignable": assignable,
 			"seat_price": flt(t.seat_price),
 			"seats": ent["seats"] if ent else None,
 			"seats_used": used,
-			"seats_left": max(ent["seats"] - used, 0) if ent else None,
+			"seats_left": left,
 			"expires_on": ent["expires_on"] if ent else None,
 			"pending": pending.name if pending else None,
 			"pending_seats": pending.seats if pending else None,
 		})
+	out.sort(key=lambda r: (not r["assignable"], r["access"] != "Included", r["title"]))
 	return out
+
+
+@frappe.whitelist()
+def academy_catalogue():
+	room = _room_admin()
+	return track_catalogue(room)
 
 
 def _proforma_html(order, room):

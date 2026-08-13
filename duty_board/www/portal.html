@@ -618,6 +618,9 @@
 	.cattag { margin-left: auto; font-size: 11.5px; font-weight: 700; border-radius: 99px; padding: 3px 10px; }
 	.cattag.inc { background: var(--brand-50); color: var(--brand-700); }
 	.cattag.paid { background: #FFF7E6; color: #8A5A0B; }
+	.cattag.own { background: #E8F3EF; color: #0C4A43; }
+	.catacts { display: flex; gap: 16px; margin-top: 8px; }
+	.catasg { font-size: 12.5px; font-weight: 700; color: var(--brand-700); cursor: pointer; }
 	.catdesc { font-size: 12.5px; color: #4A5A55; line-height: 1.6; margin-top: 5px; }
 	.catnote { font-size: 12.5px; margin-top: 8px; background: #FFF7E6; border: 1px solid #F3E0B5;
 		color: #7A5312; border-radius: 9px; padding: 8px 12px; }
@@ -2043,23 +2046,29 @@ function openCatalogue() {
 					<div class="catrow">
 						<div class="cattop">
 							<b>${esc(r.title)}</b>
-							<span class="cattag ${r.access === "Paid" ? "paid" : "inc"}">${r.access === "Paid" ? money(r.seat_price) + " per seat" : "Included"}</span>
+							<span class="cattag ${r.included ? "inc" : r.seats_left ? "own" : "paid"}">${
+								r.included ? "Included" : r.seats_left ? r.seats_left + " seat" + (r.seats_left === 1 ? "" : "s") + " left" : r.access === "Paid" ? money(r.seat_price) + " per seat" : "Not in your subscription"}</span>
 						</div>
 						<div class="muted" style="font-size:12px">${esc(r.product || "")} · ${r.courses} course${r.courses === 1 ? "" : "s"}</div>
 						${r.description ? `<div class="catdesc">${esc(r.description)}</div>` : ""}
-						${r.access === "Paid"
-							? (r.pending
-								? `<div class="catnote">Request for ${r.pending_seats} seat(s) received — we will confirm once payment is processed.</div>`
-								: (r.seats
-									? `<div class="catnote ok">${r.seats_left} of ${r.seats} seats available${r.expires_on ? " · until " + esc(String(r.expires_on).slice(0, 10)) : ""}</div>
-									   <a class="catreq" data-t="${esc(r.track)}" data-n="${esc(r.title)}" data-p="${r.seat_price}">Request more seats</a>`
-									: `<a class="catreq" data-t="${esc(r.track)}" data-n="${esc(r.title)}" data-p="${r.seat_price}">Request seats</a>`))
-							: ""}
+						${r.pending
+							? `<div class="catnote">Request for ${r.pending_seats} seat(s) received — we will confirm once payment is processed.</div>`
+							: r.seats
+								? `<div class="catnote ok">${r.seats_left} of ${r.seats} seats available${r.expires_on ? " · until " + esc(String(r.expires_on).slice(0, 10)) : ""}</div>`
+								: (!r.included && r.access !== "Paid")
+									? `<div class="catnote">This track comes with a product you are not subscribed to. Ask us about adding it.</div>`
+									: ""}
+						<div class="catacts">
+							${r.assignable ? `<a class="catasg" data-t="${esc(r.track)}">Assign to staff</a>` : ""}
+							${r.access === "Paid" && !r.pending ? `<a class="catreq" data-t="${esc(r.track)}" data-n="${esc(r.title)}" data-p="${r.seat_price}">${r.seats ? "Request more seats" : "Request seats"}</a>` : ""}
+						</div>
 					</div>`).join("")
-						: `<span class="muted">No certification tracks are available yet.</span>`}
+						: `<span class="muted">No certification tracks have been published yet.</span>`}
 				</div>`;
 			host.querySelectorAll(".catreq").forEach((a) =>
 				a.addEventListener("click", () => requestSeats(a.getAttribute("data-t"), a.getAttribute("data-n"), a.getAttribute("data-p"))));
+			host.querySelectorAll(".catasg").forEach((a) =>
+				a.addEventListener("click", () => openAssign(a.getAttribute("data-t"))));
 		})
 		.catch(fail);
 }
@@ -2099,7 +2108,7 @@ function requestSeats(track, title, price) {
 			.catch((e) => { document.getElementById("seatgo").disabled = false; fail(e); });
 	};
 }
-function openAssign() {
+function openAssign(preselect) {
 	const host = document.getElementById("adminhost");
 	api("client_training_admin_options")
 		.then((o) => {
@@ -2112,7 +2121,7 @@ function openAssign() {
 					<div class="admhead"><div><b>Assign training</b></div>
 						<button style="background:#E2E8E5;color:#2A3833" onclick="loadAdminTraining()">Cancel</button></div>
 					<div class="admfield"><label>Track</label>
-						<select id="admtrack">${o.tracks.map((t) => `<option value="${esc(t.name)}">${esc(t.title)} · ${t.modules} course${t.modules === 1 ? "" : "s"}</option>`).join("")}</select></div>
+						<select id="admtrack">${o.tracks.map((t) => `<option value="${esc(t.name)}"${t.name === preselect ? " selected" : ""}>${esc(t.title)} · ${t.modules} course${t.modules === 1 ? "" : "s"}${t.seats_left ? ` · ${t.seats_left} seat${t.seats_left === 1 ? "" : "s"} left` : ""}</option>`).join("")}</select></div>
 					<div class="admfield"><label>Due date <span class="muted">(optional)</span></label>
 						<input type="date" id="admdue"></div>
 					<div class="admfield"><label>People</label>
