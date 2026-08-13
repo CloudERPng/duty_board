@@ -2366,473 +2366,473 @@
  },
  "receiving": {
   "title": "Procurement 6 — Purchase Receipts & Quality: Goods In",
-  "desc": "The receiving gate: receipt anatomy, count-before-sign discipline, serial and batch identities born at the gate, rejections and quality inspection with quarantine, landed-cost mechanics, returns to supplier, and the three gate rules.",
+  "desc": "Purchase Receipts and the receiving function in ZhiftERP: the field walk — honest arrival dates, received quantities as counted, the accepted/rejected split, untouched order rates, and identity capture per manufacturing lot; the dock discipline — the expected-arrivals plan, the physical count against the order and the note, condition inspection with signed at-truck findings, the expiry gate, and the fixed sequence while the driver is present; the rejected lane with the three resolution lanes and the claims file; what submission posts — stock to two destinations at the receipt's rate, the projected transition, batch balances, and received-not-billed; quality holds and release by decision for the classes that require them; and the six receiving reads including the monthly performance figures feeding the supplier scorecards.",
   "lessons": [
    {
-    "title": "Chapter 1 — The Purchase Receipt, field by field",
-    "est": "14",
-    "html": "<p>Selling 5 taught that the Delivery Note is where the system's word meets the world, outbound. The <b>Purchase Receipt</b> is the same gate facing the other way — the document standing at the dock when goods ARRIVE, whose <b>submission moves stock IN and writes valuation</b>. Everything the firm will later sell, count, and cost enters through this document, and its craft decides whether the warehouse's truth starts true.</p><ul><li><b>Supplier and the PO link</b> — created FROM the Purchase Order (Chapter 2's discipline), inheriting supplier, items, rates, and target warehouses; the PO's fulfilment ledger counts down as this document submits.</li><li><b>Posting date and time</b> — when possession was actually taken. The stock ledger is a chronology inbound exactly as outbound: valuation, stock-as-at, and every dispute read this date as fact, and Chapter 9 convicts the batching habit that fictionalises it.</li><li><b>The items grid</b> — per row: item, the quantity in the PO's UOM with its conversion (Buying 2's arithmetic at the moment it becomes bins — 180 Carton-12 entering as 2,160 units), the rate travelling from the PO, and TWO quantity fields that selling's gate never needed: <b>Accepted Qty</b> into the <b>target warehouse</b>, and <b>Rejected Qty</b> into a <b>rejected warehouse</b> — the quality fork built into the document itself (Chapter 4 owns it).</li><li><b>Serial and batch sections</b> — for tracked items, identities are ENTERED here: this is where serials and batches are BORN into your system (Chapter 3 — arguably the most consequential data-entry moment in the entire trading cycle).</li><li><b>Supplier document references</b> — their delivery note number, waybill, container and seal numbers for imports: the fields that tie your receipt to their paper, worth thirty seconds at the gate and hours in any later dispute.</li></ul><p><b>What submission does — and its weight.</b> Accepted quantities enter their warehouses; rejected quantities enter quarantine; <b>valuation is written</b> — the received stock carries cost from the PO's rates (completed by landed charges where they apply, Chapter 5), and that valuation is what flows to cost-of-goods when selling ships it and what margin reports subtract forever. The receipt is thus not warehouse paperwork; it is the birth certificate of every unit's cost and identity. Draft, check against the physical count and the PO, then submit — because inbound, exactly as outbound, submission is the first irreversible moment, and unwinding it is a real operation (cancellation while untouched; a formal return, Chapter 6, once reality has moved on).</p>"
+    "title": "Chapter 1 — The Purchase Receipt: scope and position",
+    "est": "11",
+    "html": "<p>This module covers the Purchase Receipt and the receiving function in ZhiftERP. On completing this module you will be able to: complete the Purchase Receipt field walk; run the dock discipline — counting, damage identification, and identity capture at the truck; operate the accepted and rejected lanes with the supplier claim procedure; state what submission posts to stock and accounting; run quality holds and release for the classes that require them; and run the receiving reads.</p><p><b>What a Purchase Receipt is.</b> The Purchase Receipt records a physical arrival of goods: which items, in what quantities, from which supplier's despatch, into which warehouse, on which date — with what came damaged, what identity numbers arrived, and who counted. It is the inbound custody-transfer document: before submission the goods are the supplier's despatch; after submission they are the business's stock at the receipt's figures. It is also the middle document of the three-way match — ordered, received, billed — and the matching control (module 7) is only as good as the receipt's honesty.</p><p><b>Position in the flow.</b> The receipt sits between the Purchase Order and the Purchase Invoice:</p><p>1. <b>Created against the order</b> — the receipt draws the order's rows and receives against them: %received advances per row, incoming falls, and the trace runs order → receipt.<br>2. <b>Feeding the match</b> — the invoice (module 7) compares to the order's rates and the receipt's quantities; the receipt states what the business actually holds and therefore what claims it should accept.<br>3. <b>Feeding stock</b> — submission posts the goods into the warehouse at the receipt's figures, with the identity the recall trace and expiry management run on (the Inventory track consumes what this module captures).</p><p><b>The one-sentence standard.</b> The standing rule the whole module serves: <b>the receipt states what physically arrived — counted at the dock, split by condition, identified by lot, dated when it happened — never what the paperwork says should have arrived.</b> The supplier's delivery note and the business's order are the references the count is compared against; the receipt records the count.</p><p><b>Custody.</b> The receiving function counts and posts; the dock procedure requires the driver's presence through the count for disputed-at-truck findings; quality holds run per the class rules with the compliance owner's release; claims against suppliers file with their evidence; and receipts post on the day goods arrive, per the honest-date rule.</p><p><b>Module contents.</b> Chapter 2: the field walk. Chapter 3: the dock discipline. Chapter 4: accepted and rejected. Chapter 5: what submission posts. Chapter 6: quality and release. Chapter 7: the receiving reads. Chapter 8: worked example. Chapter 9: review and the module rule.</p>"
    },
    {
-    "title": "Chapter 2 — The receiving discipline",
+    "title": "Chapter 2 — The Purchase Receipt doctype",
+    "est": "12",
+    "html": "<p>Create the Purchase Receipt from the Purchase Order (Create &gt; Purchase Receipt) so the rows and references carry. Complete or verify the fields in order.</p><p><b>1. Supplier and the order reference.</b> Carried by creation; the supplier's delivery note number enters the reference field — the document the count was compared against, and the number every claim and query cites.</p><p><b>2. Posting Date and Time.</b> When the goods physically arrived. The honest-date rule in its inbound form: the receipt posts on arrival day — a receipt posted days later carries stock the shelf held unrecorded (counts fail against it) and delays the received-not-billed accrual the accountant reads.</p><p><b>3. The items table.</b> Per row, drawn from the order:</p><p>1. <b>Received Quantity</b> — what the dock counted, in the row's unit, per the pairing rule (cartons counted against carton rows). The received figure may be less than ordered (the short receipt), and the row records what arrived.<br>2. <b>Accepted and Rejected Quantities</b> — the condition split from the dock decision (Chapter 3): the received quantity divides into accepted (into the stock warehouse) and rejected (into the rejected warehouse), and the two fields post to their two destinations.<br>3. <b>Warehouse and Rejected Warehouse</b> — the accepted destination per the row (Central in the standing pattern), and the rejected lane's warehouse (the quarantine or rejected location the site names).<br>4. <b>Rate</b> — carried from the order. The receipt does not negotiate: a supplier's price change is a matching matter (module 7) or an arrangement amendment (module 4), never a receiving-time edit — the receipt's rate is the order's rate so the match has its reference.<br>5. <b>Serial and batch capture</b> — controlled items enter with their identity: the batch numbers and expiry dates on the physical cartons, the serial numbers on serialised units, per the Inventory track's dock rules. The identity captured here is what the recall trace, the expiry horizons, and the warranty records run on for the stock's whole life.</p><p><b>4. Save, verify, submit.</b> The receipt is completed at the dock while the delivery is present, verified against the count sheets, and submitted on the day. Submission posts the stock and accounting events (Chapter 5); corrections after submission follow the document rules — the same physically-moved test as every custody document: cancellation only where the posting was wholly wrong on the day, the return-to-supplier lane where goods must physically go back.</p><p><b>Verification per receipt.</b> The order and delivery-note references; the honest date; received quantities as counted; the accepted/rejected split per the dock decision; identity complete on controlled rows; rates untouched from the order.</p>"
+   },
+   {
+    "title": "Chapter 3 — The dock discipline",
     "est": "13",
-    "html": "<p>The gate is the last CHEAP moment of truth in the inbound chain: after it, every error costs a document trail to unwind; before it, errors cost a recount. This chapter is the discipline that spends the cheap moment well.</p><p><b>Create from the PO — the spine's inbound landing.</b> The receipt is made FROM the Purchase Order: rows pre-fill with the <b>exact remaining quantities</b> (the remainder machinery you know — a second drop pre-fills at what drop one left, never at the original total, never from memory), rates travel untouched, target warehouses arrive as planned, and the PO's received-percentage advances itself. The from-scratch receipt is Procurement 5's Pattern 2 committed at the dock: real stock moved, ledger orphaned, the three-way match disarmed before it ever runs.</p><p><b>Count before sign — the physical half of the match.</b> The three-way match (Procurement 7 completes it) has three legs: what was ORDERED (the PO), what was RECEIVED (this document), what was INVOICED (theirs). This chapter's leg is the physical one, and its integrity is simple and absolute: <b>the receipt records what was actually counted, not what the paperwork says arrived</b>. The sequence: the truck's contents counted against the PO (not against the supplier's delivery note — theirs says what they claim they sent; the PO says what you ordered; the count says what came); discrepancies recorded AS the receipt's quantities (short is short, damaged is rejected — Chapter 4); and only then the supplier's paper signed, annotated with any variance. Signing clean and sorting it out later converts your evidence into their receipt.</p><p><b>Partial receipts.</b> Deliveries split — Emzor's two drops, the import that clears in stages. Each arrival is its own receipt from the PO at its actual quantities; the PO tracks the accumulating received-percentage; the remainder stays visibly open (Partially Received) until delivered or short-closed (Procurement 5's Close discipline). Nothing about partiality requires side-lists: the PO's arithmetic is the authority, drop after drop.</p><p><b>Receiving speaks the PO's units.</b> The UOM drill from Buying 2, at its moment: the receipt enters quantities in the PO row's unit, and the conversion counts the ledger — 47 cartons and 6 loose units is two honest rows, never 47.5, never re-keyed piece-counts into carton rows. The factor-of-twelve disease is born at this desk or nowhere.</p><p><b>Submission follows the count.</b> The document is completed AFTER the physical verification, recording what was gathered in — never submitted from the truck's manifest and corrected later, which is the ledger dictating fiction first and confessing after (Selling 5's conviction, verbatim, inbound). At a busy dock the discipline costs minutes; its absence costs stocktakes.</p>"
+    "html": "<p>The receiving procedure at the truck. Each step has an owner and a record, and the sequence is fixed because each step protects the next.</p><p><b>1. Before the truck: the expected-arrivals plan.</b> The weekly incoming read (module 5) gives the dock its plan: what is due, in what quantities, with what identity requirements. A delivery nobody expected is itself a flag — checked against the order book before unloading, because unordered goods are either a supplier error or the beginning of an invoice for goods nobody bought.</p><p><b>2. The count.</b> Goods count at the dock, physically, before the driver leaves:</p><p>1. <b>Against the order and the delivery note</b> — the two references; the count is the fact. Cartons count as cartons with sample-opening per the policy (the class's sampling rate: sealed manufacturer cartons sample-open; mixed or repacked consignments open fully).<br>2. <b>In the row's units</b> — the pairing rule at its origin point: the count sheet records quantity and unit together, and the carton-versus-unit confusion that mis-posts receipts is prevented here or nowhere.<br>3. <b>Recorded on the count sheet</b> — the physical record the receipt is entered from, filed with the receipt.</p><p><b>3. The condition inspection.</b> While the driver is present: visible damage identified carton by carton — crushed, wet, broken seals, temperature indicators where the class carries them. Damaged units are set aside and counted separately: they become the rejected quantity (Chapter 4), and the finding is recorded <b>on the driver's copy of the delivery note, signed by both parties</b> — the at-truck record that makes the supplier claim a documented fact rather than a later assertion. Photographs per the claims procedure.</p><p><b>4. Identity capture.</b> For controlled items, at the dock, from the physical cartons:</p><p>1. <b>Batch numbers and expiry dates</b> — read from the manufacturer's printing, entered per lot: a consignment carrying two manufacturing lots enters as two batch lines, each with its own expiry, because mixing lots into one line destroys the recall trace at its source.<br>2. <b>The expiry gate</b> — arriving expiry dates check against the policy's minimum-remaining-life rule: stock arriving with less than the class's required horizon is a rejection or a documented commercial decision, made now at the dock, not discovered at the shelf.<br>3. <b>Serial capture</b> — serialised units scanned or recorded individually, per the Inventory rules.</p><p><b>5. The driver's departure.</b> The driver leaves with the signed delivery note stating what was received and what was disputed — quantities confirmed, damage noted, shortages recorded. After the truck leaves, the business's evidence is whatever was signed; the discipline's fixed sequence exists because every later conversation with the supplier is conducted from this document.</p>"
    },
    {
-    "title": "Chapter 3 — Serial & batch identities: born at this gate",
-    "est": "14",
-    "html": "<p>Selling 5 taught the recall drill and the serial disciplines — reading identities OUT. This chapter is where those identities come FROM: every serial and every batch in your system is born on a Purchase Receipt, and the quality of that birth decides whether the outbound disciplines can exist at all.</p><p><b>Serials at receipt.</b> An item flagged Has Serial No demands, on the receipt row, the exact serial numbers arriving — keyed or scanned from the physical units. From this moment each unit has a biography the system can write: received on this document, from this supplier, at this cost, on this date; then its life through stock, delivery, warranty, and return. The craft point that decides everything downstream: <b>capture from the units, not from the supplier's packing list</b> — lists lie (repacks, substitutions, transcription), and a serial recorded that never physically arrived is a ghost that surfaces as Selling 5's impossible-return years later. Scan-driven capture where barcodes exist; careful physical keying where they do not; never bulk-pasted paperwork.</p><p><b>Batches at receipt — with the expiry.</b> A batched item's receipt records WHICH lot arrived and — the field that carries regulatory weight — its <b>expiry date</b>, read from the physical cartons. This entry is the foundation of everything Selling 5 promised: FEFO picking exists only if expiries were captured truthfully; the NAFDAC recall drill (which customers received batch B-204?) is answerable in minutes only because this desk recorded B-204 when it arrived; and shelf-life management (refusing goods arriving with unacceptably short dating — a standing receiving rule for pharma: minimum remaining shelf life per the firm's policy, goods under it rejected at the gate, Chapter 4's fork) begins with reading the carton. The full provenance chain now closes: supplier batch documentation (Procurement 1's onboarding gate) → batch captured at receipt → batch on every outbound DN → recall answerable in both directions: which customers got it, AND which supplier sent it.</p><p><b>The two-sided recall.</b> Walk it once, whole: the regulator names batch B-204. Outbound: DNs filtered by batch — customers, branches, quantities, dates (Selling 5's drill). Inbound: the receipt that brought B-204 names the supplier, the PO, the date, and the supplier's own batch paperwork filed against it — the conversation with the manufacturer and NAFDAC proceeds from documents on both sides. A firm whose gate captures identities runs this in minutes; a firm whose gate waves trucks through runs it in weeks, in the newspapers.</p><p><b>Cost of capture, priced honestly.</b> Identity capture is the slowest part of receiving, and clients push back. The consultant's answer is arithmetic: minutes per receipt against the recall that takes weeks, the warranty dispute that has no answer, the audit that cannot count. The premium is real; the coverage is the entire downstream edifice — and the flags were set at item creation (Buying 2) precisely so this desk has no discretion to skip it.</p>"
+    "title": "Chapter 4 — Accepted and rejected",
+    "est": "12",
+    "html": "<p>The received quantity divides by condition at the dock. This chapter is the two lanes and the claim procedure.</p><p><b>1. The accepted lane.</b> Sound goods, in date per the expiry gate, matching the order: the accepted quantity posts into the stock warehouse at submission and becomes sellable inventory (or enters the quality hold first, where the class requires it — Chapter 6).</p><p><b>2. The rejected lane.</b> Damaged, out-of-specification, or expiry-gate failures: the rejected quantity posts into the <b>rejected warehouse</b> — a named location whose stock is visibly not sellable, mirroring the quarantine pattern the Inventory track defined. The rejected lane's rules:</p><p>1. <b>Rejected stock is held, not hidden</b> — it remains on the books at the rejected location until its resolution, because goods physically present must be recorded present, whatever their condition.<br>2. <b>Resolution by one of three lanes</b> — return to the supplier (the return document per the site's flow, the physical send-back recorded), replacement (the supplier's replacement receiving as its own arrival, cross-referenced), or the credit claim (the rejected goods disposed per agreement, the credit note expected against the invoice — module 7's matching accounts for it).<br>3. <b>Every rejection is a claim</b> — raised with the supplier on the day, citing the signed delivery note and the photographs, with the resolution lane agreed and its deadline tracked by the open-claims read (Chapter 7).</p><p><b>3. Short receipts.</b> The truck carries less than the delivery note states, or the note states less than the order: the receipt records what arrived (the standing rule), the shortage is noted on the signed copy, and the order row remains open for the balance — the supplier delivers the remainder, or the order amends per module 5's taxonomy with the shortfall's cause recorded. What never happens: receiving paper quantities to match documents — the receipt that records 180 because the note says 180 while the truck carried 177 corrupts stock, the match, and the claim in one act.</p><p><b>4. Over-receipts.</b> The truck carries more than ordered: the over-receipt tolerance (the control-register setting, low, with the exception role named) admits genuine packing arithmetic; beyond it, the excess is refused at the dock or accepted only by the named role's decision with the order amended — unordered goods accepted casually become unmatched invoice lines and, repeated, a supplier habit.</p><p><b>5. The claims file.</b> Per claim: the signed note, the photographs, the receipt's rejected line, the correspondence, the agreed lane, the resolution and its date. Claims are money — the rejected cartons are paid-for goods until the claim resolves — and the open-claims read works the file to zero with ages visible.</p>"
    },
    {
-    "title": "Chapter 4 — Rejections, quarantine & quality inspection",
-    "est": "14",
-    "html": "<p>Not everything on the truck deserves your shelves. The receipt's quality fork — accepted vs rejected, each with its warehouse — is how the gate says NO with a paper trail, and this chapter is its full operation.</p><p><b>The fork's mechanics.</b> Each receipt row splits its counted quantity: <b>Accepted Qty</b> flows to the target warehouse as sellable (or usable) stock; <b>Rejected Qty</b> flows to the <b>rejected warehouse</b> — quarantine — where it is IN your possession but OUT of your sellable truth. Both movements happen at submission, both are valued, both are visible: the three damaged cartons exist, in quarantine, awaiting their fate, rather than existing nowhere (refused undocumented at the gate, then disputed from memory) or existing wrongly (waved into good stock to keep the queue moving — Chapter 9's conviction).</p><p><b>What gets rejected — the gate's standing rules, written.</b> Transit damage (crushed, wet, broken seals); wrong goods (the substitution Procurement 4 warned about, caught with the truck still present); short-dated stock (under the firm's minimum-remaining-shelf-life rule for expiring goods — a POLICY number, not a mood); failed inspection (below). The rules live on paper at the desk, because a gate that rejects by individual judgment rejects inconsistently, and inconsistency is what suppliers negotiate against.</p><p><b>Quality inspection — the formal layer.</b> Items flagged <b>Inspection Required (on Purchase Receipt)</b> demand a <b>Quality Inspection</b> before the receipt submits: a checklist document — parameters, readings, accept/reject verdict — per the item's template. The layer is proportionate by design: pharma actives, food lines, and safety-critical goods carry the flag; stationery does not. Where it applies, the inspection is the rejection's evidence: the verdict document, attached to the receipt, is what the supplier conversation and the NAFDAC file both cite. Inspections are honest only if performed — the pencil-whipped checklist (all boxes ticked at the desk without the goods opened) is worse than no layer, because it manufactures evidence of diligence that was not done.</p><p><b>The fate of quarantine.</b> Rejected stock resolves on a clock, not by sedimentation: <b>return to supplier</b> (Chapter 6 — the usual fate, with the debit note as its money half); <b>negotiated keep</b> (the supplier discounts the damaged lot and it moves — deliberately, documented — to sellable or salvage); or <b>write-off</b> (disposal, documented, with the cost landing where the accountant directs). The weekly quarantine review — what is here, why, whose next step — is the small ritual that keeps the rejected warehouse a processing bay instead of a museum: quarantine that only fills is a warehouse of undecided money.</p><p><b>The supplier conversation.</b> Every rejection is data with a name: rejection rates per supplier, by reason, per period — feeding the scorecard (Procurement 8) and the quarterly review. The supplier whose damage rate doubles has a packaging problem or a haulier problem; the one whose substitutions recur has a discipline problem; both conversations proceed from receipts, not recollections.</p>"
+    "title": "Chapter 5 — What submission posts",
+    "est": "12",
+    "html": "<p>Submission converts the counted, split, identified receipt into stock and accounting events. This chapter states each posting.</p><p><b>1. The stock posting.</b> Per row, Stock Ledger Entries: the accepted quantity into the stock warehouse, the rejected quantity into the rejected warehouse — both at the receipt's rate, because rejected goods are still the business's cost until their claim resolves. The Bins update; for controlled items, the batch and serial balances create with the captured identity — the lot lines, expiries, and serials entering the registers the Inventory track operates from this moment on.</p><p><b>2. The projected-quantity update.</b> The received quantities leave the incoming figures: %received advances on the order rows; projected quantity converts its pipeline component into actual stock. The reorder machinery's arithmetic stays true through the transition — the arrival neither double-counts (incoming falling as actual rises) nor disappears.</p><p><b>3. The accounting posting.</b> Under perpetual inventory: the stock account debits at the receipt's value, and the offsetting credit posts to the received-not-billed account — the liability that says goods are held whose invoice has not yet posted. When module 7's invoice posts, it clears this account against the supplier's payable: the two-step structure is what lets the books state, at any moment, both what stock the business holds and what claims it has accepted — separately and truthfully. The received-not-billed balance is therefore a working figure the accountant reads at each close, and the module 5 read that chases missing invoices keeps it short.</p><p><b>4. The valuation tie.</b> The receipt's rate is the valuation's starting figure (module 2's third cost): domestic included-delivery lines are substantially complete at receipt; import lines gain their acquisition layer afterward through the Landed Cost Voucher (the Inventory mechanism), which re-rates the receipt's stock with the actual freight, duty, and clearing — the worksheet-versus-actual reconciliation from module 2 closing per consignment.</p><p><b>5. Corrections after submission.</b> The lanes, per the physically-moved test:</p><p>1. <b>The posting was wrong on the day</b> (wrong warehouse selected, a count-sheet transcription error caught same-day): cancel and re-post with the honest figures, the reason recorded.<br>2. <b>Goods must physically go back</b> — the return-to-supplier lane: its own document recording the physical send-back, never a cancellation of an arrival that happened.<br>3. <b>The identity was captured wrong</b> (a batch number transposed): the correction per the Inventory track's identity procedures, because downstream documents may already reference the lot.</p><p><b>6. The tie-out participation.</b> Receipt postings are part of the monthly stock-to-accounts agreement: a tie-out difference tracing to receiving is read through this chapter's postings — the stock entry, the received-not-billed entry, and the document, together.</p>"
    },
    {
-    "title": "Chapter 5 — Landed cost: completing the truth of what things cost",
-    "est": "14",
-    "html": "<p>Procurement 2, Chapter 7 installed the THINKING — the invoice price is an ingredient, not the answer. This chapter installs the MECHANICS: how freight, duty, and clearing become part of received stock's valuation, so the numbers the firm trades on are the numbers reality charged.</p><p><b>The instrument: the Landed Cost Voucher.</b> After (or alongside) the receipt, the voucher names: the <b>purchase receipt(s)</b> it applies to; the <b>charges</b> being added — each with its amount and its own supporting document (the freight invoice, the duty assessment, the clearing agent's bill, the haulage receipt); and the <b>allocation basis</b> spreading those charges across the received items — by value (the default logic: costlier items bear proportionally more) or by quantity (where handling cost tracks units, not worth). Submission does the arithmetic: each received item's <b>valuation rises by its allocated share</b>, and the stock ledger now carries units at their true landed figure.</p><p><b>What changes downstream — the whole point.</b> Margin reports subtract the TRUE cost when selling ships these units; the import line's profitability is measured against reality instead of flattered by a factory price; Buying 2's viability pages reconcile against actuals (the estimated stack vs the voucher's actual stack — the variance is the import lane learning); and the accountant's P&amp;L stops eating clearing costs as anonymous expenses while gross margin lies. The alternative — charges expensed into general buckets — was convicted in Procurement 2, Chapter 9 and stands convicted here with the fix in hand.</p><p><b>Timing and estimates.</b> Charges arrive on their own schedules: freight billed at shipment, duty at clearing, the agent weeks later. The disciplines: voucher promptly per shipment as charges land (one shipment's stack in one or few vouchers, filed against its receipts — not a quarterly omnibus that no shipment can be reconciled from); and where goods must sell before the last bill arrives, the firm's policy on estimated charges (booked, then trued) is agreed WITH the accountant — the consultant's job is knowing the policy exists and encoding it, not inventing it per container.</p><p><b>The shipment file, completed.</b> Procurement 1 opened the import documentation habit; here it closes: the receipt, the voucher, and every charge's paper filed together per shipment. The payoffs, restated as operations: the true cost of container X is a lookup; clearing-cost drift across shipments is visible (the agent whose fees crept 30% in a year is a negotiation, found by comparing vouchers); and the FX question — what did this container really cost in naira, and what does the next one cost at today's rate — is answered from records.</p><p><b>Scope discipline.</b> Landed cost carries charges that attach to ACQUIRING the stock — freight, insurance, duty, clearing, inbound haulage. It does not become a dumping ground for general overheads, storage, or costs of running the warehouse; the accountant's line on what capitalises into stock is the line, and blurring it distorts valuation in the opposite direction from expensing. The instrument's power is precision; used loosely it just relocates the lie.</p>"
+    "title": "Chapter 6 — Quality and release",
+    "est": "12",
+    "html": "<p>Some classes do not go straight to shelf. This chapter is the hold-and-release structure.</p><p><b>1. The quality hold pattern.</b> Per the class rules the compliance owner maintains: classes requiring inspection before sale (temperature-sensitive lines, classes with regulatory release requirements, first receipts from new suppliers, trial orders per module 4's award conditions) receive into the <b>quarantine warehouse</b> rather than free stock:</p><p>1. The accepted-quantity posting targets quarantine for these classes — the goods are the business's stock, visible and counted, but not sellable.<br>2. The inspection runs per the class's procedure — the checks, the sampling, the documentation — by the roles the procedure names.<br>3. <b>Release is a movement with a decision</b>: the transfer from quarantine to free stock, posted by the release role, with the inspection record filed. Stock does not drift out of quarantine; it is released.</p><p><b>2. The pharmaceutical specifics.</b> The standing case's class rules:</p><p>1. <b>The expiry horizons</b> — the dock gate (Chapter 3) enforced arrival life; the quarantine inspection confirms lot documentation where the class requires it (the manufacturer's certificates per the compliance file).<br>2. <b>Cold-chain classes</b> — the temperature record travels with the consignment; a broken indicator is a rejection at the dock or a quarantine-and-inspect decision per the procedure, never a shrug.<br>3. <b>The compliance file per lot</b> — the certificates, the inspection record, the release decision: the file the regulator, the recall procedure, and the customer complaint all read.</p><p><b>3. Failed inspections.</b> The quarantined goods that fail: the rejection converts (the stock moves to the rejected lane), the claim raises per Chapter 4 with the inspection record as evidence, and the resolution lanes apply. A failure pattern by supplier or class is a scorecard fact (module 8's quality dimension) and, recurring, an award-criteria fact for the next cycle.</p><p><b>4. The hold reads.</b> Weekly, with the receiving reads: quarantine contents by age against the class's release windows — stock aging in quarantine is either an inspection backlog (a resourcing question) or a forgotten release (a procedure question), and both are visible because quarantine is a warehouse the reads see, not a corner of the dock. The release records sample monthly with the receipt audit.</p><p><b>5. The boundary.</b> The compliance owner rules which classes hold and what release requires; the receiving function routes per the rules; the Inventory track's quarantine machinery (module 1's warehouse, module 3's identity) is the infrastructure. This module's contribution is the inbound routing and the discipline that the rules are applied at the dock, every arrival, without judgment calls at the truck.</p>"
    },
    {
-    "title": "Chapter 6 — Returns to supplier",
+    "title": "Chapter 7 — The receiving reads",
+    "est": "12",
+    "html": "<p>The standing reads on the receiving function, each with its cadence and action.</p><p><b>1. The expected-arrivals plan — weekly.</b> Module 5's incoming read consumed as the dock's plan: due rows by day, quantities, identity requirements, and the unexpected-delivery rule standing (unordered arrivals checked before unloading).</p><p><b>2. The receipts-pending-invoice read — weekly.</b> Module 5's received-not-billed read operated from the receiving side: submitted receipts whose invoices have not arrived within the cadence, the supplier chased for the claim, the accrual position handed to the accountant at close. The read feeds module 7's matching queue.</p><p><b>3. The open-claims read — weekly.</b> Every unresolved rejection and shortage claim by age: the agreed lane, the deadline, the next action. Claims are worked to zero because each is paid-for goods (or short-delivered goods) awaiting money or replacement — the read's aging column is naira aging, and claims resolving by replacement track into the affected drops' schedules.</p><p><b>4. The receipt audit — monthly.</b> A sample of the month's receipts checked for the discipline's evidence: posting dates against arrival dates (the honest-date check), count sheets attached, accepted/rejected splits with their signed notes where rejections occurred, identity complete on controlled rows (lots separated, expiries entered), rates untouched from orders. Findings correct the procedure or the training per the standing pattern, and the audit files with the month's records.</p><p><b>5. The receiving-performance figures — monthly, feeding module 8.</b> Per supplier, from the receipts: on-time performance (arrival dates against confirmed dates, per drop), quantity fidelity (short and over receipts), and condition (rejection rates by cause). These figures are the scorecard's receiving-side inputs — measured at the dock, from documents, per the module 8 weightings — and the monthly compilation is where the dock's records become the relationship review's evidence.</p><p><b>6. The exception patterns — quarterly.</b> The quarter's receiving exceptions aggregated: damage concentrated by supplier, route, or packaging (routed to the claims history and the carrier conversation), short-receipt patterns (routed to the supplier review), unexpected deliveries (routed to the order discipline), and quarantine aging (routed to the resourcing or procedure question). Data with names, filed with the quarterly cycle alongside the module 8 scorecard compilation.</p>"
+   },
+   {
+    "title": "Chapter 8 — Worked example: drop one arrives",
     "est": "13",
-    "html": "<p>Goods go back — the rejected lot, the recall pulled inward, the over-supply agreed away. The purchase return is Selling 5's return machinery with the direction reversed, and its properties are the same three no shortcut has.</p><p><b>The instrument.</b> A purchase return is a <b>Purchase Receipt with Is Return ticked, made against the original receipt</b>, carrying <b>negative quantities</b>: submission moves stock OUT — from quarantine (the usual source: the rejected lot going home) or from good stock (the recall, the negotiated give-back) — written in the same ledger as everything else.</p><p><b>The three properties, inbound edition.</b> <b>Traceability</b>: the return references the precise original receipt — which delivery, which PO, which serials or batch going back; the supplier's credit conversation proceeds from a document chain, not a dispute. <b>Valuation</b>: the return exits stock at the value it entered at — including its landed share where a voucher applied — so the ledger's cost truth survives the round trip; a bare stock adjustment guesses, and guesses compound. <b>Identity</b>: serials return by name, batches by lot — the biography records the exit, and the two-sided recall trail (Chapter 3) stays whole: B-204 arrived on this receipt, went back on this return.</p><p><b>The money half — named now, owned next module.</b> The return receipt reverses STOCK; the supplier's ledger is corrected by the <b>debit note</b> — a return Purchase Invoice against the original — Procurement 7's Chapter. Hold the pairing as its sentence: <i>stock reverses on the return receipt; money reverses on the debit note; one physical event, two ledgers, two linked documents</i> — the exact mirror of the credit-note pairing you already hold from the selling side. What never substitutes: netting the return against the next delivery by handshake (two ledgers now disagree with one memory), or a supplier's verbal promise of credit (Chapter 9 meets what those promises age into).</p><p><b>Replacements.</b> The supplier replaces the damaged lot: the replacement arrives as a NEW receipt against the PO (or its own agreed flow) — two movements, two documents, the identity trail showing the swap explicitly. Never an edit to the return, never no-paper because it netted out — fourth appearance of the two-movements law, and its last needed.</p><p><b>Logistics of the give-back.</b> The physical return rides paper too: the supplier's collection reference or your outbound waybill recorded on the return document; quarantine's outflow reconciling to the return's quantities; and the weekly quarantine review (Chapter 4) confirming that what was resolved as return-to-supplier actually LEFT — the failure mode being goods written back to the supplier on paper while the pallets age in quarantine, which is a stock lie with a courtesy title.</p>"
+    "html": "<p>This chapter receives the first drop of the module 5 order: <b>180 cartons of PARA-500 from Emzor</b>, due this week at Central Warehouse. Values and outcomes are listed per step.</p><p><b>Step 1 — the plan and the truck (Chapter 3).</b> The expected-arrivals plan carries the drop: 180 cartons, batch-controlled, expiry-gated. The truck arrives with Emzor's delivery note stating 180; the dock counts against the note and the order.</p><p><b>Step 2 — the count and the condition split (Chapters 3-4).</b> The physical count: <b>180 cartons on the truck — 177 sound, 3 crushed</b> at the bottom of one stack. The damage is identified while the driver is present: the three cartons set aside, photographed, and recorded on the driver's copy of the delivery note, signed by both parties — 180 received, 3 damaged noted. The count sheet records quantities in cartons throughout, per the pairing rule.</p><p><b>Step 3 — identity capture (Chapter 3).</b> The consignment carries <b>two manufacturing lots</b>, and the dock enters them as two batch lines with their printed expiry dates — one of them <b>batch B-1147</b>, the lot whose register entry the Inventory track's recall procedures will later exercise. Both lots pass the expiry gate with the class's required horizon remaining. The two-lot separation is the recall trace's foundation: one blended line here would have made the later lot-level freeze impossible to execute cleanly.</p><p><b>Step 4 — the receipt posts (Chapters 2, 5).</b> The Purchase Receipt creates from the order's first row: received 180, <b>accepted 177 into Central, rejected 3 into the rejected warehouse</b>, both at the order's ₦9,600 carton rate; the delivery-note reference and count sheet attach; the posting date is arrival day. Submission posts the stock entries (177 sellable at Central; 3 held visible at rejected), creates the two batch balances with expiries, advances %received on the order (177 of 300 net of the claim's outcome), converts the drop's incoming into actual — the auto-trigger's arithmetic staying true — and posts the received-not-billed liability the invoice will clear.</p><p><b>Step 5 — the claim (Chapter 4).</b> The claim raises with Emzor the same day: the signed note, the photographs, the receipt's rejected line. The agreed lane: <b>replacement — three cartons added to drop two</b>, which amends per module 5's schedule taxonomy from 120 to 123 with the reason recorded and Emzor's confirmation updated. The claims file tracks the resolution; the rejected three remain visible at the rejected warehouse until the return-or-dispose step the agreement states, and the open-claims read carries the item until closed.</p><p><b>Step 6 — the figures file (Chapter 7).</b> The month's receiving-performance compilation records the drop: on time against its confirmed date; 180 of 180 quantity fidelity; a 1.7%-of-drop damage entry by cause (transit crush) — the figures module 8's scorecard will weigh. The receipt audit's sample later confirms the discipline's evidence complete: honest date, count sheet, signed note, two lots separated, rates untouched.</p><p><b>The handoff.</b> Drop two — now 123 cartons — holds its confirmed date; Emzor's invoice for drop one is en route to module 7's three-way match, where 177 accepted cartons at ₦9,600, a 3-carton claim, and a 180-carton invoice will meet the matching discipline.</p>"
    },
    {
-    "title": "Chapter 7 — The gate rules: tolerance, shortage & the unordered truck",
-    "est": "13",
-    "html": "<p>Three standing rules govern what the gate accepts, and each is policy-in-configuration rather than dock-side improvisation. This chapter is the three, plus the posture behind them.</p><p><b>Rule one — over-receipt tolerance.</b> The mirror of Selling 4's over-delivery allowance: the receipt may exceed the PO's remaining quantity only within the item's <b>over-receipt allowance</b> (per item, global fallback — the Buying Settings number Procurement 8 owns). Within tolerance, the overage enters honestly and the row completes; beyond it, the receipt refuses to submit and the conversation happens with the truck present — accept formally (the PO amended or the policy's exception logged), or send the excess back on the spot. The policy logic transfers verbatim: <b>zero tolerance for serialized goods</b> (identity classes have no honest overage), a deliberate few percent for bulk (the 101st bag of cement blocks nobody), and never — the standing conviction — tolerance decided ad hoc at the dock.</p><p><b>Rule two — shortage is the PO's business, not the receipt's.</b> The truck brings 160 against a remaining 180: the receipt records 160 — full stop. The 20 stays where it belongs: OPEN on the PO as remaining quantity, visible in the To-Receive views, chased by the expediting craft (Procurement 5) or short-closed and resourced when the supplier concedes. What the receipt never does: record 180 because the paperwork promised it (fiction at the gate), or quietly absorb the shortage by editing history. Short is short, on the document, with the supplier's delivery note annotated to match — the variance evidence the credit conversation will need.</p><p><b>Rule three — the unordered truck.</b> Goods arrive that no PO ordered: the supplier's <i>while we are delivering, we added...</i>, the substitution beyond spec, the outright wrong consignment. The gate's answer is procedural, not personal: <b>no PO, no receipt</b> — unordered goods are not received into stock on dock-side goodwill, because a receipt without a commitment behind it has no rate, no match, no ancestry, and becomes an invoice dispute with your signature already on it. The paths that exist: refuse and send back (the default); or, where the addition is genuinely wanted, the commitment is created FIRST (a PO raised through whatever policy speed the situation merits — even an emergency PO is a document) and the receipt follows it. The rule's phrasing for the receiving team is one line: <i>we receive against orders, not against trucks.</i></p><p><b>The posture beneath all three.</b> The gate is where your firm's process meets other firms' improvisation, and the rules exist so the meeting is predictable: suppliers learn within weeks that overages need conversations, shortages get annotated, and unordered goods ride home — and their OWN dispatch discipline improves to match, because process at the gate is contagious in both directions. A gate that improvises trains the market to improvise at it.</p>"
-   },
-   {
-    "title": "Chapter 8 — Case study: three arrivals at HealthTrade",
-    "est": "16",
-    "html": "<p>Three trucks, every chapter working. The threads continue from Procurement 5. Each step names its chapter.</p><p><b>Arrival one — Emzor drop one: 180 cartons (Ch. 1-4, 6).</b> The receipt is created FROM the PO (pre-filled at the 300 remaining; edited to the drop's 180 — 2,160 units via the conversion). The count runs against the PO: 177 cartons sound, 3 crushed in transit. <b>Batch capture</b>: two lots on the truck — B-1147 (expiry 03/2028) and B-1152 (expiry 07/2028) — keyed from the physical cartons, quantities per lot; the remaining-shelf-life rule checks both against policy: pass. The receipt submits: <b>177 accepted</b> to Central, <b>3 rejected</b> to Quarantine, valuation written at the PO's ₦9,600. Emzor's delivery note is signed ANNOTATED: 180 counted, 3 damage-rejected. Within the week: the <b>return receipt</b> against this receipt — negative 3, batch-identified, quarantine outflow — with the debit note flagged to Procurement 7; Emzor's replacement 3 arrive days later as a NEW receipt. The PO ledger reads honestly throughout; the rejection enters Emzor's quality record (3/180 transit damage — a haulier conversation, not a crisis).</p><p><b>Arrival two — the chiller (Ch. 3, 4).</b> Vendor A delivers on the revised committed date. Inspection Required is flagged on the item: the <b>Quality Inspection</b> runs its checklist — model against spec (the 350L confirmed; Procurement 4's substitution warning honoured at the last line of defence), power-on test, condition — verdict Accept, document attached. The <b>serial</b> CHL-2418839 is keyed from the unit's plate: its biography opens — received from Vendor A, this PO, this date, ₦1.395m — the record every future service call will read. Accepted to the Facilities store; the launch proceeds with paper behind it.</p><p><b>Arrival three — the import container (Ch. 2, 5).</b> The Mumbai consignment clears in two stages; each stage is its own receipt from the PO at actual counted quantities, container and seal numbers recorded, batches and expiries keyed per lot. Then the <b>Landed Cost Voucher</b>: ocean freight (invoice attached), duty (assessment attached), clearing and terminal charges (agent's bill), haulage — allocated by value across the container's items. Valuations rise to true landed figures; the viability page's estimated stack reconciles against the voucher's actual (variance: clearing ran ₦180k over estimate — noted, and the agent's next bill will be compared). The shipment file closes complete: PO, receipts, voucher, every charge's paper — the container's true naira cost a permanent one-minute lookup.</p><p><b>The week's quarantine review (Ch. 4).</b> One line only — Emzor's 3, already resolved as returned-and-replaced, outflow confirmed. The bay is a processing area, not a museum; the gate ends the week the way it started it: honest.</p>"
-   },
-   {
-    "title": "Chapter 9 — Common mistakes & support patterns",
-    "est": "13",
-    "html": "<p>The receiving gate's scar tissue — and inbound, the diseases are the ones that poison VALUATION and PROVENANCE, the two truths hardest to rebuild. Symptom → disease → fix.</p><p><b>Pattern 1 — \"The receipt was submitted from the manifest; the count came later.\"</b> Disease: fiction first, confession later (Ch. 2) — the ledger dictated by paperwork, corrected by embarrassment. Fix: submission follows the count, structurally — the document completed at the dock after verification; the manifest is the supplier's claim, not your record.</p><p><b>Pattern 2 — \"The recall query returns nothing — but we definitely stocked that batch.\"</b> Disease: batch capture skipped or keyed wrong at receipt (Ch. 3) — the identity was never born, so no downstream discipline can find it. Fix: reconstruct the affected window painfully once (supplier documentation against sales records); then capture-from-the-cartons as an audited gate rule — the recall that cannot run is the one that reaches the newspapers.</p><p><b>Pattern 3 — \"Damaged goods are in sellable stock.\"</b> Disease: the fork unused — rejects waved into good stock to keep the queue moving (Ch. 4). The damage surfaces at the customer, which is the most expensive place to discover it, with a return and a credit note now owed OUTBOUND. Fix: the rejected-warehouse fork as routine, the standing rejection rules at the desk, and the weekly quarantine review that proves the fork is being used.</p><p><b>Pattern 4 — \"The import line looks profitable; the P&amp;L disagrees.\"</b> Disease: landed charges expensed while stock sits undervalued (Ch. 5) — Procurement 2's warning, now with the fix installed and skipped. Fix: the Landed Cost Voucher per shipment, charges papered and allocated; the viability pages reconciled against actuals.</p><p><b>Pattern 5 — \"The supplier promised credit for the returns... in March.\"</b> Disease: verbal-credit aging (Ch. 6) — stock went back on a handshake; no return receipt, no debit note, and the supplier's statement now disagrees with your memory. Fix: the pairing enforced — return receipt for the stock, debit note for the money (Procurement 7) — and the statement reconciliation (Procurement 1) that would have caught it at one month old.</p><p><b>Pattern 6 — \"We accepted the extra pallets — they were already off the truck.\"</b> Disease: the unordered truck received on goodwill (Ch. 7) — no rate, no match, no ancestry, and the invoice dispute arrives with your signature on the delivery note. Fix: we receive against orders, not against trucks — refuse, or paper the commitment first; the gate rules posted at the desk.</p><p><b>Pattern 7 — \"Friday's arrivals were all posted Monday.\"</b> Disease: posting-date batching (Ch. 1) — the chronology fictionalised for convenience; stock-as-at, valuation timing, and dispute evidence all read a weekend that never happened. Fix: post at possession; the governance version of date adjustments belongs to accounting policy, not dock convenience — the same law as the outbound gate, because it is the same ledger.</p><p><b>The law.</b> Procurement 1: purchase documents are downstream of supplier masters. Procurement 2: cost truth begins at the item. Procurement 3: the request layer separates need from commitment. Procurement 4: sourcing is a decision record. Procurement 5: the PO is the single source of inbound truth. This module adds the sixth: <b>the receiving gate is where the world enters the system — keep it honest, and every valuation, every recall, every match downstream can be believed.</b> Count before signing, capture identities from the goods, fork the damaged, land the true cost, return with paper, and receive against orders. A firm whose gate holds these disciplines trusts its own shelves; a firm whose gate improvises audits them forever.</p>"
+    "title": "Chapter 9 — Common errors and the module rule",
+    "est": "11",
+    "html": "<p>The errors that recur in receiving, each with its correction and prevention.</p><p><b>Error 1 — receiving the paperwork.</b> Symptom: receipts entered from delivery notes without counting; the note's 180 posted while the truck carried 177; stock, the match, and the claim corrupted in one act. Correction: the physical position re-established by count; the documents corrected through their lanes. Prevention: the count as the fact, the note as the reference — the module's one-sentence standard.</p><p><b>Error 2 — the driver gone before the record.</b> Symptom: damage and shortages discovered after departure; claims reduced to assertions; suppliers declining undocumented findings. Correction: the claim attempted on the evidence that exists. Prevention: the fixed dock sequence — count, inspect, record, sign — completed while the driver is present.</p><p><b>Error 3 — blended lots.</b> Symptom: multi-lot consignments entered as one batch line; expiries averaged or guessed; the recall trace broken at its source. Correction: the identity corrected per the Inventory procedures while the physical separation is still known. Prevention: one batch line per manufacturing lot, entered from the printed cartons at the dock.</p><p><b>Error 4 — the rate edited at receiving.</b> Symptom: receipt rates changed to match a supplier's new price or an expected invoice; the match comparing a document to itself; the award governance bypassed at the dock. Correction: the rate restored; the price question routed to matching or the arrangement. Prevention: the receipt carries the order's rate, without exception.</p><p><b>Error 5 — the invisible rejection.</b> Symptom: damaged goods set aside physically but not posted; stock the books do not show; claims never raised; the pile by the dock door that every warehouse accumulates. Correction: the rejected stock posted, claims raised on surviving evidence. Prevention: the accepted/rejected split on the receipt itself, and rejected as a warehouse the reads see.</p><p><b>Error 6 — the drifting quarantine.</b> Symptom: held stock leaking to shelf without release decisions; inspection backlogs invisible; the compliance file incomplete. Correction: the quarantine reconciled, releases documented retroactively where defensible. Prevention: release as a posted movement with a decision, and the weekly hold read.</p><p><b>Review list.</b> Before the quiz, confirm you can: complete the receipt walk with honest dates, the condition split, untouched rates, and identity per lot; run the dock sequence — plan, count, inspect, capture, sign — while the driver is present; operate the rejected lane with the three resolution lanes and the claims file; state the postings — stock to two destinations, the projected transition, received-not-billed — and the correction lanes; route quality-hold classes and release by decision; and run the six receiving reads.</p><p><b>Module rule 6: the receipt states what physically arrived — counted at the dock against the order and the note, split by condition with the driver's signature on the findings, identified lot by lot from the cartons, posted at the order's rate on the arrival day, held visibly where rejected or quarantined, and claimed with evidence until every rejection resolves.</b> Module 7 covers the Purchase Invoice and the three-way match.</p>"
    }
   ],
   "questions": [
    {
-    "q": "The Purchase Receipt's submission:",
+    "q": "The Purchase Receipt records:",
     "opts": [
-     "Moves stock IN and writes valuation — the birth certificate of cost and identity",
-     "Books the supplier's invoice",
-     "Commits money",
-     "Pays the supplier"
-    ],
-    "ans": 0,
-    "why": "Everything the firm later sells and counts enters here.",
-    "src": "Ch1"
-   },
-   {
-    "q": "The receipt row carries two quantity fields because:",
-    "opts": [
-     "Redundancy",
-     "Accepted flows to the target warehouse; Rejected flows to quarantine — the quality fork is built in",
-     "UOM conversion",
-     "Partial billing"
-    ],
-    "ans": 1,
-    "why": "The gate can say NO with a paper trail.",
-    "src": "Ch1, Ch4"
-   },
-   {
-    "q": "Container and seal numbers on the receipt are worth:",
-    "opts": [
-     "Nothing",
-     "Only for insurance",
-     "Thirty seconds at the gate and hours in any later dispute",
-     "Customs' business only"
-    ],
-    "ans": 2,
-    "why": "Your receipt tied to their paper.",
-    "src": "Ch1"
-   },
-   {
-    "q": "The count at the gate runs against:",
-    "opts": [
-     "The supplier's delivery note",
-     "Last week's delivery",
+     "The physical arrival — counted, split by condition, identified by lot, dated when it happened",
+     "The paperwork's figures",
      "The invoice",
-     "The PO — theirs says what they claim; the PO says what you ordered; the count says what came"
-    ],
-    "ans": 3,
-    "why": "Three different statements; the receipt records the third.",
-    "src": "Ch2"
-   },
-   {
-    "q": "Signing the supplier's paper clean and 'sorting it out later':",
-    "opts": [
-     "Converts your evidence into their receipt",
-     "Is efficient",
-     "Is required",
-     "Speeds credit"
+     "The order again"
     ],
     "ans": 0,
-    "why": "Sign annotated with the variance.",
+    "why": "The module's one-sentence standard.",
+    "src": "Ch1"
+   },
+   {
+    "q": "The receipt's role in the match is:",
+    "opts": [
+     "None",
+     "The middle document — it states what the business holds and therefore what claims it should accept",
+     "The claim",
+     "The payment"
+    ],
+    "ans": 1,
+    "why": "Ordered, received, billed.",
+    "src": "Ch1"
+   },
+   {
+    "q": "A receipt posted days after arrival:",
+    "opts": [
+     "Is fine",
+     "Is safer",
+     "Carries stock the shelf held unrecorded and delays the accrual — the honest-date rule inbound",
+     "Is standard"
+    ],
+    "ans": 2,
+    "why": "Posts on arrival day.",
     "src": "Ch2"
    },
    {
-    "q": "A second delivery drop's receipt pre-fills at:",
+    "q": "The receipt's rate is:",
     "opts": [
-     "The original PO total",
-     "The exact remaining quantity — the PO's arithmetic is the authority",
+     "Negotiable at the dock",
+     "Typed fresh",
+     "The invoice's rate",
+     "The order's rate, untouched — a price change is a matching matter or an arrangement amendment"
+    ],
+    "ans": 3,
+    "why": "The match needs its reference.",
+    "src": "Ch2"
+   },
+   {
+    "q": "Received quantity divides into:",
+    "opts": [
+     "Accepted and rejected — posting to the stock warehouse and the rejected warehouse respectively",
+     "Paid and unpaid",
+     "Old and new",
+     "Big and small"
+    ],
+    "ans": 0,
+    "why": "The condition split's two destinations.",
+    "src": "Ch2"
+   },
+   {
+    "q": "An unexpected delivery is:",
+    "opts": [
+     "Unloaded quickly",
+     "Checked against the order book before unloading — supplier error or an invoice in preparation for goods nobody bought",
+     "Refused always",
+     "A bonus"
+    ],
+    "ans": 1,
+    "why": "The expected-arrivals plan.",
+    "src": "Ch3"
+   },
+   {
+    "q": "The count is recorded:",
+    "opts": [
+     "From the note",
+     "By the driver",
+     "On the count sheet, physically, in the row's units — the sheet files with the receipt",
+     "From memory"
+    ],
+    "ans": 2,
+    "why": "The count is the fact; the note is the reference.",
+    "src": "Ch3"
+   },
+   {
+    "q": "At-truck damage findings are:",
+    "opts": [
+     "Mentioned later",
+     "Emailed",
+     "Ignored if small",
+     "Recorded on the driver's copy and signed by both parties, with photographs per the claims procedure"
+    ],
+    "ans": 3,
+    "why": "The record every later conversation is conducted from.",
+    "src": "Ch3"
+   },
+   {
+    "q": "A two-lot consignment enters as:",
+    "opts": [
+     "Two batch lines, each with its printed expiry — blending lots destroys the recall trace at its source",
+     "One batch line",
+     "No batches",
+     "An average expiry"
+    ],
+    "ans": 0,
+    "why": "Identity capture per lot.",
+    "src": "Ch3"
+   },
+   {
+    "q": "The expiry gate at the dock:",
+    "opts": [
+     "Checks nothing",
+     "Rejects or escalates stock arriving under the class's minimum remaining life — decided now, not at the shelf",
+     "Applies at sale",
+     "Is annual"
+    ],
+    "ans": 1,
+    "why": "The arriving-life rule.",
+    "src": "Ch3"
+   },
+   {
+    "q": "Rejected stock is:",
+    "opts": [
+     "Hidden by the door",
+     "Deleted",
+     "Held on the books at the rejected location until resolution — present goods are recorded present",
+     "Sold cheap"
+    ],
+    "ans": 2,
+    "why": "Held, not hidden.",
+    "src": "Ch4"
+   },
+   {
+    "q": "The three resolution lanes are:",
+    "opts": [
+     "Ignore, delay, forget",
+     "One lane",
+     "Discount, refund, apology",
+     "Return to supplier, replacement, or credit claim — each agreed and tracked"
+    ],
+    "ans": 3,
+    "why": "Every rejection is a claim.",
+    "src": "Ch4"
+   },
+   {
+    "q": "A short receipt records:",
+    "opts": [
+     "What arrived — the shortage signed on the copy, the order row open for the balance",
+     "The note's quantity",
+     "The order's quantity",
+     "An average"
+    ],
+    "ans": 0,
+    "why": "Never paper quantities to match documents.",
+    "src": "Ch4"
+   },
+   {
+    "q": "Casually accepted over-receipts become:",
+    "opts": [
+     "Free stock",
+     "Unmatched invoice lines and, repeated, a supplier habit",
+     "Discounts",
+     "Samples"
+    ],
+    "ans": 1,
+    "why": "The tolerance is low with the exception role named.",
+    "src": "Ch4"
+   },
+   {
+    "q": "Claims age in:",
+    "opts": [
+     "Days only",
+     "Paper",
+     "Naira — rejected cartons are paid-for goods until the claim resolves",
+     "Goodwill"
+    ],
+    "ans": 2,
+    "why": "The open-claims read's aging column.",
+    "src": "Ch4"
+   },
+   {
+    "q": "Rejected quantities post at:",
+    "opts": [
      "Zero",
-     "The supplier's number"
-    ],
-    "ans": 1,
-    "why": "Never from memory, drop after drop.",
-    "src": "Ch2"
-   },
-   {
-    "q": "A receipt submitted from the truck's manifest and corrected later is:",
-    "opts": [
-     "Practical",
-     "Standard",
-     "The ledger dictating fiction first and confessing after",
-     "Reversible freely"
-    ],
-    "ans": 2,
-    "why": "Submission follows the count.",
-    "src": "Ch2, Ch9"
-   },
-   {
-    "q": "Every serial and batch in your system is born:",
-    "opts": [
-     "At item creation",
-     "In a spreadsheet",
-     "At the first sale",
-     "On a Purchase Receipt"
+     "The claim value",
+     "Half rate",
+     "The receipt's rate — rejected goods are still the business's cost until the claim resolves"
     ],
     "ans": 3,
-    "why": "The most consequential data-entry moment in the trading cycle.",
-    "src": "Ch3"
+    "why": "The stock posting.",
+    "src": "Ch5"
    },
    {
-    "q": "Serial capture takes its numbers from:",
+    "q": "Received-not-billed states:",
     "opts": [
-     "The physical units — lists lie through repacks and substitutions",
-     "The supplier's packing list",
-     "The PO",
-     "Memory"
-    ],
-    "ans": 0,
-    "why": "A ghost serial surfaces as the impossible return years later.",
-    "src": "Ch3"
-   },
-   {
-    "q": "Batch capture at receipt must include:",
-    "opts": [
-     "The lot number only",
-     "The lot AND its expiry, read from the physical cartons",
-     "The price",
-     "The driver's name"
-    ],
-    "ans": 1,
-    "why": "FEFO and the recall drill exist only if this entry was truthful.",
-    "src": "Ch3"
-   },
-   {
-    "q": "The two-sided recall answers:",
-    "opts": [
-     "Only which customers got the batch",
-     "Only quantities",
-     "Which customers received it AND which supplier sent it — documents both directions",
-     "Nothing without lawyers"
-    ],
-    "ans": 2,
-    "why": "Receipt inbound, DNs outbound, one chain.",
-    "src": "Ch3"
-   },
-   {
-    "q": "Short-dated goods at the gate are handled by:",
-    "opts": [
-     "Dock-side judgment per truck",
-     "Discounting on the spot",
-     "Accepting with a note",
-     "The minimum-remaining-shelf-life POLICY — goods under it rejected at the gate"
-    ],
-    "ans": 3,
-    "why": "A policy number, not a mood.",
-    "src": "Ch3, Ch4"
-   },
-   {
-    "q": "Rejected quantities go to the rejected warehouse so that:",
-    "opts": [
-     "They are in your possession but out of your sellable truth — visible, valued, awaiting their fate",
-     "They disappear",
-     "They are free",
-     "Suppliers cannot see them"
-    ],
-    "ans": 0,
-    "why": "Neither undocumented nor waved into good stock.",
-    "src": "Ch4"
-   },
-   {
-    "q": "Quality Inspection is flagged:",
-    "opts": [
-     "On every item",
-     "Proportionately — pharma actives and safety-critical goods, not stationery",
-     "Only for imports",
-     "Never"
-    ],
-    "ans": 1,
-    "why": "The formal layer where stakes warrant it.",
-    "src": "Ch4"
-   },
-   {
-    "q": "A pencil-whipped inspection checklist is:",
-    "opts": [
-     "Better than nothing",
-     "Standard practice",
-     "Worse than no layer — it manufactures evidence of diligence not done",
-     "Faster and fine"
-    ],
-    "ans": 2,
-    "why": "Honest only if performed.",
-    "src": "Ch4"
-   },
-   {
-    "q": "Quarantine resolves by:",
-    "opts": [
-     "Sedimentation",
-     "Resale quietly",
-     "Annual clearance",
-     "Return to supplier, negotiated keep, or write-off — on a clock, reviewed weekly"
-    ],
-    "ans": 3,
-    "why": "A processing bay, not a museum of undecided money.",
-    "src": "Ch4, Ch6"
-   },
-   {
-    "q": "Rejection rates per supplier feed:",
-    "opts": [
-     "The scorecard and the quarterly review — conversations from receipts, not recollections",
+     "Goods held whose invoice has not posted — cleared when the invoice posts against the payable",
      "Nothing",
-     "The tax return",
-     "Marketing"
+     "Profit",
+     "A discount"
     ],
     "ans": 0,
-    "why": "Every rejection is data with a name.",
-    "src": "Ch4"
+    "why": "The two-step structure's liability.",
+    "src": "Ch5"
    },
    {
-    "q": "The Landed Cost Voucher names:",
+    "q": "At receipt, projected quantity:",
     "opts": [
-     "Only a total",
-     "The receipts it applies to, each charge with its paper, and the allocation basis",
-     "The supplier's profit",
-     "The selling price"
+     "Double-counts",
+     "Converts its pipeline component into actual — incoming falls as actual rises",
+     "Falls",
+     "Freezes"
     ],
     "ans": 1,
-    "why": "Submission raises each item's valuation by its allocated share.",
+    "why": "The trigger's arithmetic stays true.",
     "src": "Ch5"
    },
    {
-    "q": "Allocation by value vs by quantity is chosen by:",
+    "q": "Import receipts complete their valuation:",
     "opts": [
-     "Coin flip",
-     "The agent",
-     "Whether the charge tracks worth or units — costlier items bear more, or handling tracks count",
-     "The system randomly"
+     "At the dock",
+     "Never",
+     "Through the Landed Cost Voucher afterward — actual freight, duty, and clearing re-rating the stock",
+     "At sale"
     ],
     "ans": 2,
-    "why": "The basis follows the charge's nature.",
+    "why": "The worksheet-versus-actual reconciliation closes per consignment.",
     "src": "Ch5"
    },
    {
-    "q": "Charges expensed into general buckets instead of landed:",
+    "q": "An arrival that happened is corrected by:",
     "opts": [
-     "Change nothing",
-     "Are required",
-     "Save tax",
-     "Understate stock value and flatter gross margin while the P&L eats the difference"
+     "Cancellation",
+     "A journal",
+     "Deletion",
+     "The return-to-supplier lane where goods go back — never a cancellation of a real arrival"
     ],
     "ans": 3,
-    "why": "The distortion year-end always finds.",
+    "why": "The physically-moved test.",
     "src": "Ch5"
    },
    {
-    "q": "The quarterly omnibus landed voucher is refused because:",
+    "q": "Quality-hold classes receive into:",
     "opts": [
-     "No shipment can be reconciled from it — one shipment's stack, one voucher, filed together",
-     "It is too large",
-     "Agents object",
-     "Duty rules"
+     "Quarantine — the business's stock, visible and counted, but not sellable until released",
+     "Free stock",
+     "The shelf",
+     "The rejected lane"
     ],
     "ans": 0,
-    "why": "Per-shipment filing is what makes drift visible.",
-    "src": "Ch5"
-   },
-   {
-    "q": "Landed cost's scope covers:",
-    "opts": [
-     "Any cost anyone suggests",
-     "Charges of ACQUIRING the stock — freight, insurance, duty, clearing, inbound haulage",
-     "Warehouse rent",
-     "Marketing"
-    ],
-    "ans": 1,
-    "why": "Used loosely, the instrument just relocates the lie.",
-    "src": "Ch5"
-   },
-   {
-    "q": "A purchase return is:",
-    "opts": [
-     "A stock adjustment",
-     "A deleted receipt",
-     "A receipt with Is Return, against the original, negative quantities — traceable, valued, identified",
-     "An email"
-    ],
-    "ans": 2,
-    "why": "The three properties no shortcut has, inbound.",
+    "why": "The hold pattern.",
     "src": "Ch6"
    },
    {
-    "q": "The return exits stock at:",
+    "q": "Release from quarantine is:",
     "opts": [
-     "Current market price",
-     "The supplier's guess",
-     "Zero",
-     "The value it entered at — including its landed share"
-    ],
-    "ans": 3,
-    "why": "Cost truth survives the round trip.",
-    "src": "Ch6"
-   },
-   {
-    "q": "The inbound pairing sentence is:",
-    "opts": [
-     "Stock reverses on the return receipt; money reverses on the debit note",
-     "Return covers both ledgers",
-     "The invoice reverses stock",
-     "Handshakes suffice"
-    ],
-    "ans": 0,
-    "why": "One event, two ledgers, two linked documents.",
-    "src": "Ch6"
-   },
-   {
-    "q": "Netting a return against the next delivery by handshake:",
-    "opts": [
-     "Is efficient",
-     "Leaves two ledgers disagreeing with one memory",
-     "Is standard",
-     "Creates the debit note"
+     "A drift",
+     "A posted movement with a decision and the inspection record filed",
+     "Automatic at a week",
+     "The picker's call"
     ],
     "ans": 1,
-    "why": "Procurement 9's verbal-credit disease in the making.",
-    "src": "Ch6, Ch9"
-   },
-   {
-    "q": "A replacement lot arrives as:",
-    "opts": [
-     "An edit to the return",
-     "No paper",
-     "A NEW receipt — two movements, two documents, the swap explicit in the identity trail",
-     "A credit"
-    ],
-    "ans": 2,
-    "why": "The two-movements law, final appearance.",
+    "why": "Stock is released, not leaked.",
     "src": "Ch6"
    },
    {
-    "q": "Over-receipt beyond the item's allowance:",
+    "q": "A broken cold-chain indicator is:",
     "opts": [
-     "Enters with a note",
-     "Is ignored",
-     "Auto-amends the PO",
-     "Refuses to submit — the conversation happens with the truck present"
-    ],
-    "ans": 3,
-    "why": "Accept formally or send the excess back on the spot.",
-    "src": "Ch7"
-   },
-   {
-    "q": "The truck brings 160 against a remaining 180. The receipt records:",
-    "opts": [
-     "160 — the 20 stays open on the PO, chased or short-closed",
-     "180 — the paperwork promised it",
-     "170 as a compromise",
-     "Nothing until complete"
-    ],
-    "ans": 0,
-    "why": "Shortage is the PO's business, not the receipt's.",
-    "src": "Ch7"
-   },
-   {
-    "q": "The unordered-truck rule is:",
-    "opts": [
-     "Accept if useful",
-     "No PO, no receipt — refuse, or paper the commitment first; we receive against orders, not trucks",
-     "Receive and decide later",
-     "Driver's discretion"
-    ],
-    "ans": 1,
-    "why": "A receipt without a commitment becomes an invoice dispute pre-signed.",
-    "src": "Ch7"
-   },
-   {
-    "q": "A predictable gate changes supplier behaviour because:",
-    "opts": [
-     "It doesn't",
-     "Suppliers avoid you",
-     "Process at the gate is contagious — their dispatch discipline improves to match",
-     "It slows deliveries"
+     "A shrug",
+     "Normal",
+     "A rejection or a quarantine-and-inspect decision per the procedure",
+     "The driver's fault"
     ],
     "ans": 2,
-    "why": "A gate that improvises trains the market to improvise at it.",
+    "why": "The pharmaceutical specifics.",
+    "src": "Ch6"
+   },
+   {
+    "q": "Recurring inspection failures by a supplier are:",
+    "opts": [
+     "Bad luck",
+     "Priced in",
+     "Ignored",
+     "Scorecard facts and award-criteria facts for the next cycle"
+    ],
+    "ans": 3,
+    "why": "Failed inspections route forward.",
+    "src": "Ch6"
+   },
+   {
+    "q": "Stock aging in quarantine indicates:",
+    "opts": [
+     "An inspection backlog or a forgotten release — visible because quarantine is a warehouse the reads see",
+     "Quality",
+     "Nothing",
+     "Theft"
+    ],
+    "ans": 0,
+    "why": "The weekly hold read.",
+    "src": "Ch6"
+   },
+   {
+    "q": "The receipt audit checks:",
+    "opts": [
+     "Prices only",
+     "Honest dates, count sheets, signed splits, identity per lot, and untouched rates",
+     "The suppliers",
+     "The drivers"
+    ],
+    "ans": 1,
+    "why": "The discipline's evidence, sampled monthly.",
     "src": "Ch7"
    },
    {
-    "q": "In the Emzor arrival, the receipt submitted as:",
+    "q": "The receiving-performance figures feed:",
     "opts": [
-     "180 accepted",
-     "177 with 3 ignored",
-     "180 rejected",
-     "177 accepted to Central, 3 rejected to Quarantine — delivery note signed annotated"
+     "Nothing",
+     "The bank",
+     "Module 8's scorecard — on-time per drop, quantity fidelity, and condition, measured from documents",
+     "The customer"
+    ],
+    "ans": 2,
+    "why": "The dock's records become the review's evidence.",
+    "src": "Ch7"
+   },
+   {
+    "q": "Drop one's count found:",
+    "opts": [
+     "180 sound",
+     "3 missing",
+     "177 on the truck",
+     "177 sound and 3 crushed — identified while the driver was present, signed by both parties"
     ],
     "ans": 3,
-    "why": "The fork, the annotation, and the batch capture in one motion.",
+    "why": "Step 2.",
     "src": "Ch8"
    },
    {
-    "q": "The chiller's Quality Inspection mattered because:",
+    "q": "The consignment's identity entered as:",
     "opts": [
-     "It confirmed the 350L spec at the last line of defence — the substitution warning honoured",
-     "It was decorative",
-     "The serial required it",
-     "Vendor A asked"
+     "Two batch lines with printed expiries — including B-1147, the lot the recall procedures later exercise",
+     "One line",
+     "No batches",
+     "Serials"
     ],
     "ans": 0,
-    "why": "Procurement 4's flag caught where it must be caught.",
+    "why": "Step 3.",
     "src": "Ch8"
    },
    {
-    "q": "The import voucher's variance (clearing ₦180k over estimate) feeds:",
+    "q": "The receipt posted:",
     "opts": [
-     "Nothing",
-     "The viability page's learning and the agent's next-bill comparison",
+     "180 to Central",
+     "177 accepted into Central and 3 rejected, both at ₦9,600, on the arrival day",
+     "177 only",
+     "3 only"
+    ],
+    "ans": 1,
+    "why": "Step 4.",
+    "src": "Ch8"
+   },
+   {
+    "q": "The claim resolved as:",
+    "opts": [
+     "A refund",
+     "A discount",
+     "Replacement — three cartons added to drop two, amending it from 120 to 123 with confirmation updated",
+     "Silence"
+    ],
+    "ans": 2,
+    "why": "Step 5.",
+    "src": "Ch8"
+   },
+   {
+    "q": "The 1.7% damage entry records:",
+    "opts": [
+     "A guess",
+     "An estimate",
      "A penalty",
-     "A write-off"
+     "The drop's condition figure by cause, feeding the scorecard's receiving inputs"
     ],
-    "ans": 1,
-    "why": "Estimated stack vs actual stack is how the import lane learns.",
+    "ans": 3,
+    "why": "Step 6.",
     "src": "Ch8"
    },
    {
-    "q": "This module's law is:",
+    "q": "Module 7 will match:",
     "opts": [
-     "The gate can improvise when busy",
-     "Receipts follow invoices",
-     "The receiving gate is where the world enters the system — keep it honest and everything downstream can be believed",
-     "Quarantine is optional"
+     "177 accepted cartons at ₦9,600, a 3-carton claim, and a 180-carton invoice",
+     "Two documents",
+     "The order only",
+     "Nothing"
+    ],
+    "ans": 0,
+    "why": "The handoff.",
+    "src": "Ch8"
+   },
+   {
+    "q": "The pile by the dock door is:",
+    "opts": [
+     "Storage",
+     "The invisible rejection — goods the books do not show and claims never raised",
+     "Efficient",
+     "Temporary always"
+    ],
+    "ans": 1,
+    "why": "Error 5.",
+    "src": "Ch9"
+   },
+   {
+    "q": "Module 6's rule is:",
+    "opts": [
+     "Receipts follow paperwork",
+     "Damage is normal",
+     "The receipt states what physically arrived — counted against the references, split with signed findings, identified lot by lot, posted at the order's rate on arrival day, held visibly, and claimed with evidence until resolution",
+     "Lots can blend"
     ],
     "ans": 2,
-    "why": "Count, capture, fork, land, return with paper, receive against orders.",
+    "why": "The module rule.",
     "src": "Ch9"
    }
   ]
