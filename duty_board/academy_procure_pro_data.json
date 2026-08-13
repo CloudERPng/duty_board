@@ -1,473 +1,473 @@
 {
  "suppliers": {
   "title": "Procurement 1 — Suppliers & the Supply Base",
-  "desc": "The supplier master field by field, the supply-base tree, contacts and addresses, currencies and terms, the payable posture, supplier lifecycle, and the Nigerian buy-side compliance frame — the foundations every purchase document stands on.",
+  "desc": "Suppliers and buying foundations in ZhiftERP: the Supplier doctype walk — groups, country and currency as structural fields, payment terms templates, TIN and withholding per the accountant's ruling, and hold versus disabled; the Supplier Group tree with the management-difference test; contacts, addresses, and the bank-detail control with the call-back verification procedure and the monthly bank-change read; currencies, terms, and the document default chain including foreign-currency exposure; the payables posture — pay on terms, the weekly payment run to verified accounts, and supplier statement reconciliation; the supplier lifecycle — the onboarding gate with document verification, hold with review dates, and retirement; and the seven supplier data reads.",
   "lessons": [
    {
-    "title": "Chapter 1 — The Supplier master, field by field",
-    "est": "15",
-    "html": "<p>Selling taught that documents are downstream of masters; procurement obeys the same law from the other side of the counter. Every purchase order, receipt and purchase invoice begins with WHO you are buying from — a <b>Supplier</b> record — and the quality of that record decides whether your payables reconcile, your costs report truthfully, and your import exposure is visible or a surprise. This chapter walks the record field by field, through a buyer's eyes.</p><ul><li><b>Supplier Name</b> — the registered trading name, exactly as their invoices will carry it, because your accounts team will match paper to record for years. The identity-scheme decision (name-keyed vs series-keyed IDs) mirrors the selling side and is made once in Buying Settings — Buying 8's treatment; the preview: supply bases dense with similar names (three different Emzor distributors, five generic-pharma importers) want the series.</li><li><b>Supplier Type</b> — Company or Individual. More than a label in Nigeria: it drives the WHT rate your firm must withhold when paying them (Buying 7's chapter — companies and individuals are withheld at different rates), so misclassifying a supplier misclassifies a tax obligation.</li><li><b>Supplier Group</b> — the segmentation backbone (Chapter 2), assigned at creation.</li><li><b>Country and Currency</b> — the supplier's billing currency is a structural fact: a Mumbai API manufacturer bills USD, a Lagos logistics firm bills NGN, and the record's currency drives every document's default and your FX-exposure reporting (Chapter 4). Set it to what their invoices actually say, not what you wish.</li><li><b>Default Payment Terms</b> — the credit THEY extend YOU: Net 30 from a manufacturer, advance-only from a new importer. Inherited by every purchase document (Chapter 4), and collectively these fields ARE your firm's short-term funding structure (Chapter 6).</li><li><b>Default Price List / tax category</b> — the buying price list holding their agreed rates (Buying 2), and the tax posture governing what you withhold and what input VAT you claim (Buying 7).</li><li><b>TIN and bank details</b> — their tax identity (your WHT remittances reference it) and where payment runs will send money: captured at onboarding, verified from their letterhead, because payment-detail fraud lives in casually edited bank fields — Chapter 7 makes changing these a controlled event.</li></ul><p><b>The onboarding standard.</b> As with customers: a supplier created with only a name is a payables mess on layaway. Group, currency, terms, TIN, bank details, contact — set before the first purchase order, in one sitting, from documents the supplier provided. The master record is a contract with your future month-ends; sign it properly.</p>"
+    "title": "Chapter 1 — The Supplier record: scope and structure",
+    "est": "11",
+    "html": "<p>This module covers the Supplier master and the buying foundations in ZhiftERP. On completing this module you will be able to: create Supplier records with the full field set including the compliance fields; design the Supplier Group tree; maintain supplier contacts, addresses, and bank details under the change controls; configure currencies and payment terms with the document default chain; operate the payables posture; run the supplier lifecycle from onboarding through hold to retirement; and run the supplier data reads on their cadences.</p><p><b>What a Supplier record is.</b> A Supplier is the register record of a party the business buys from. Every purchasing document — Material Request routing, Request for Quotation, Purchase Order, Purchase Receipt, Purchase Invoice — names a supplier, and pulls its behaviour from that supplier's record: the currency the supplier bills in, the payment terms the business has agreed, the addresses goods ship from and invoices come from, the tax treatment, and the bank account the business pays into. The Supplier record is the buying side's mirror of the Customer record, and the same construction rule applies: documents behave correctly because the master was built correctly.</p><p><b>What reads the Supplier record.</b></p><p>1. <b>The purchasing documents</b> — every transaction in modules 3-7 begins by naming the supplier.<br>2. <b>The payables ledger</b> — supplier balances, due dates, and the payment schedule all key on the record.<br>3. <b>The costing machinery</b> — module 2's buying price lists and the landed-cost flow resolve through the supplier.<br>4. <b>The compliance machinery</b> — withholding tax applicability, TIN records, and the documentation the statutory returns require.<br>5. <b>The payment run</b> — the bank details on the record are where the business's money goes; for this reason those fields carry the tightest change control in the register (Chapter 4).</p><p><b>Custody.</b> The procurement function operates the records; the owner decides terms postures per the ladder; the accountant owns the payables side, the tax fields, and the withholding rulings; bank-detail changes run the verification procedure without exception; and record creation runs through the onboarding gate (Chapter 7).</p><p><b>Build order.</b> The tree before the records, the records before the documents: the Supplier Group tree designed (Chapter 3); the onboarding gate written (Chapter 7); suppliers created through the gate with contacts, addresses, and verified bank details (Chapters 2, 4); currencies and terms set per the decisions (Chapter 5).</p><p><b>Module contents.</b> Chapter 2: the Supplier doctype walk. Chapter 3: the Supplier Group tree. Chapter 4: contacts, addresses, and bank details. Chapter 5: currencies, terms, and the default chain. Chapter 6: the payables posture. Chapter 7: the supplier lifecycle and the data reads. Chapter 8: worked example. Chapter 9: review and the module rule.</p>"
    },
    {
-    "title": "Chapter 2 — Supplier Groups: designing the supply-base tree",
+    "title": "Chapter 2 — The Supplier doctype",
+    "est": "12",
+    "html": "<p>Open Supplier (awesome bar) &gt; New. Complete the fields in order.</p><p><b>1. Supplier Name.</b> The registered legal name per the naming convention — the name on the supplier's own invoices and registration documents, consistently formatted. The name prints on Purchase Orders and appears on every payables report; it is entered once, from documents, at the gate.</p><p><b>2. Supplier Group.</b> The classification from Chapter 3's tree — pharmaceutical manufacturers, importers and trading houses, equipment vendors, service providers. The group is a working field: buying defaults can derive from it, the spend reports aggregate by it, and the approval postures the policy sets can reference it.</p><p><b>3. Supplier Type and Country.</b> Company or Individual, and the supplier's country. The country field matters operationally: it signals the currency and import questions Chapter 5 covers, and it drives which compliance documentation the gate requires — a domestic manufacturer and a foreign manufacturer carry different verification sets.</p><p><b>4. Billing Currency.</b> The currency the supplier invoices in. This field sets the currency of every document raised on the supplier, and it is a structural decision: a supplier billing in a foreign currency exposes the business to exchange movements between order and payment, which the terms decision (Chapter 5) must account for.</p><p><b>5. Default Price List (buying).</b> The buying price list the supplier's documents pre-fill from — module 2 covers the buying lists. The resolution chain mirrors the selling side: the supplier's own default, else the group's, else the buying default.</p><p><b>6. Payment Terms Template.</b> The terms the business has agreed with this supplier — the template that computes due dates on every Purchase Invoice (Chapter 6). Set from the negotiated agreement, not assumed.</p><p><b>7. Tax and compliance fields.</b> Per the accountant's ruling table:</p><p>1. <b>The supplier's TIN</b> — required for the statutory documentation of purchases and the withholding-tax records.<br>2. <b>Withholding tax applicability</b> — whether payments to this supplier attract withholding under the rules the accountant maintains (service suppliers commonly do; goods suppliers per the ruling), and at which category. The field carries the accountant's ruling; the payment machinery applies it; the operator neither decides nor overrides it.<br>3. <b>Tax category</b> where the site uses category-based purchase tax rules.</p><p><b>8. Hold and Disabled.</b> Two distinct instruments: <b>Hold</b> suspends new business with a live supplier (quality failures, disputes) while history and open items remain workable — the hold type controls what is blocked (invoices, payments, or all); <b>Disabled</b> retires the record at zero balance when the relationship ends. Suppliers are never deleted; document history references every supplier that ever traded.</p><p><b>Verification per record.</b> The name from documents; the group and country correct; the currency as the supplier actually bills; terms per the agreement; TIN and withholding per the ruling; the primary contact, address, and verified bank details attached (Chapter 4).</p>"
+   },
+   {
+    "title": "Chapter 3 — The Supplier Group tree",
+    "est": "12",
+    "html": "<p>One tree classifies the supply base. This chapter is its design procedure.</p><p><b>1. What the tree answers.</b> The Supplier Group answers the commercial question: what kind of supply is this? The classes are the kinds of supply the business manages differently — different terms postures, different approval sensitivity, different reads. For a pharmaceutical distributor: manufacturers (the direct factory relationships), importers and trading houses (the intermediary channel), equipment vendors, logistics and transport, and service providers (professional and facility services). A class with no management difference is a report filter, not a group.</p><p><b>2. The design procedure.</b> On paper first, per the standing tree rules:</p><p>1. <b>List the supply classes the business actually treats differently.</b> The test questions: do these suppliers carry different payment postures? Different compliance requirements (withholding on services)? Different quality regimes (manufacturers carry product-quality obligations that service providers do not)? Different spend review?<br>2. <b>Three levels or fewer</b> — the root, the major classes, and subdivisions only where management genuinely differs (manufacturers split domestic and foreign where the terms and compliance sets differ, which for an importing distributor they do).<br>3. <b>Wire the defaults</b> — where a class shares a terms posture or price list, set it at the group so new members inherit, and record the wiring in the convention.</p><p><b>3. The classification's uses, stated.</b></p><p>1. <b>Spend analysis</b> — purchases by group is the first cut of every spend review: what the business spends on manufacturers versus intermediaries versus services is a structural figure the owner reads quarterly.<br>2. <b>Policy application</b> — the procurement policy's rules reference groups: which classes require competitive quotes (module 4), which carry the scorecard regime (module 8), which attract withholding review.<br>3. <b>Risk reading</b> — concentration by group (one manufacturer carrying most of a class's volume) is a supply-risk figure the quarterly review compiles.</p><p><b>4. The change discipline.</b> The tree changes by decision with the reason recorded; reclassifying a supplier is an ordinary edit with a note; restructuring is a governed event. The rule is identical to the selling side because the cost is identical: every new node fragments the history of the reports that aggregate on it.</p><p><b>5. The classification read — quarterly.</b> Suppliers per group sampled against the definitions; the importer that became a manufacturer's direct channel regrouped; near-empty groups with no management difference flagged for merge at the structural review. The read rides the same quarterly calendar as the rest of the programme's structure reviews.</p>"
+   },
+   {
+    "title": "Chapter 4 — Contacts, addresses, and bank details",
     "est": "13",
-    "html": "<p>Supplier Group is the mirror of Selling 1's customer tree, and the design logic transfers consciously: one tree, one question, leaves assignable in two seconds. The question here: <b>what KIND of supply is this?</b> — because every spend report, every risk review, and every negotiation strategy will be cut by this tree.</p><p><b>The mechanics.</b> Groups form a tree (group nodes and leaves); suppliers attach to leaves; reports roll up through parents. Purchase analytics grouped by supplier group is your spend-mix instrument — where the money goes, by category, per period — and the tree you design is the shape of every answer it gives.</p><p><b>Designing for a Nigerian trading reality.</b> A pharmacy-and-retail distributor's supply base might read: <i>All Supplier Groups → Manufacturers (→ Pharma — Local · Pharma — Import · FMCG) · Distributors &amp; Wholesalers · Importers &amp; Clearing · Services (→ Logistics · Professional · Facilities) · Utilities &amp; Statutory</i>. A dozen leaves. The tests, verbatim from the selling side because they ARE the same tests: every supplier lands somewhere obvious in two seconds; every branch answers a question management actually asks (what did we spend on logistics this quarter? how import-dependent is our pharma line?); and no leaf is a landfill — a Misc that accumulates everything classifies nothing.</p><p><b>What the tree is NOT.</b> Not a payment-priority ranking (that lives in terms and the payment run, Buying 7), not a quality grade (the scorecard carries that, Buying 8), not geography (country fields and addresses answer where). One tree, one question — mixed-question trees rot from the first ambiguous supplier onward.</p><p><b>Why category cuts matter commercially.</b> Three standing conversations run off this tree. <b>Import dependence:</b> the share of spend under import-side leaves is your FX-vulnerability number — the board question after every naira move, answerable in one grouping. <b>Category concentration:</b> one leaf dominated by one supplier is a single point of failure wearing a group name; the quarterly read flags where a second source is owed (Buying 4's RFQ discipline is the remedy). <b>Negotiation posture:</b> consolidated category spend is leverage — the distributor who knows their full FMCG number negotiates it; the one who buys the same category through five unconnected records at five prices funds everyone else's discounts.</p><p><b>The default group.</b> Buying Settings names one for hurried creation: point it at the genuinely commonest leaf, never the root, never Misc — and keep the weekly new-supplier review that catches misfiles while they are young. The safety net is a net, not a filing system.</p>"
+    "html": "<p>The people, places, and payment destinations of supply. The third of these carries the register's tightest control.</p><p><b>1. Contacts.</b> One Contact record per person, linked to the supplier:</p><p>1. <b>The sales contact</b> — the supplier's person who receives Purchase Orders and answers availability questions: the primary contact, because a Purchase Order sent to a generic address is an order nobody at the supplier owns.<br>2. <b>The accounts contact</b> — the supplier's receivables person: where remittance advices go and where statement reconciliations are conducted.<br>3. <b>The quality and escalation contacts</b> where the class requires them (manufacturers carry a quality contact for the module 6 receiving disputes and module 8 scorecard conversations).</p><p><b>2. Addresses.</b> One Address record per physical location, linked and flagged: the billing address (where the supplier invoices from — it prints on the compliance records) and the shipping origin addresses where the business arranges collection or tracks origin. Multi-site suppliers (a manufacturer despatching from two plants) carry an address per site, titled per the convention.</p><p><b>3. Bank details — the controlled fields.</b> The supplier's bank account is where the business's money goes, and supplier-bank-detail fraud — an emailed instruction to change the account, followed by payments to the fraudster — is among the most common and expensive frauds in payables. The register therefore treats these fields under a written control:</p><p>1. <b>Entry at the gate</b> — bank details enter from the supplier's official documentation and are verified by the call-back procedure: a call to the supplier's known number (the number from the register, never the number on the instruction) confirming the account name, number, and bank, with the verification recorded — who called, whom they spoke to, when.<br>2. <b>Changes run the same verification, without exception</b> — an emailed change instruction is precisely the fraud pattern; the change is not entered until the call-back to the known contact confirms it. Urgency in the instruction raises suspicion rather than lowering the control.<br>3. <b>Write permission</b> — bank fields are writable by the named roles only, per the matrix; every change is system-logged.<br>4. <b>The bank-change read — monthly</b> — every bank-detail change in the month, with who changed it and the verification record attached. A change without its verification is treated as a live incident: payments to the account stop until the verification completes.</p><p><b>4. Hygiene.</b> Quarterly, riding the standing calendar: primary contacts confirmed for the top suppliers by spend; addresses sampled against recent documents; leavers replaced. The payables function surfaces dead contacts naturally — a remittance advice that bounces is a hygiene finding routed to the read.</p>"
    },
    {
-    "title": "Chapter 3 — Contacts & addresses: the people and places of supply",
+    "title": "Chapter 5 — Currencies, terms, and the default chain",
+    "est": "12",
+    "html": "<p>Three master fields — currency, payment terms, price list — flow from the Supplier record onto every purchasing document. This chapter is the chain and the two decisions riding it.</p><p><b>1. The default chain.</b> At document creation, the supplier's fields pre-fill the document: the billing currency sets the document currency; the payment terms template sets the schedule the invoice will compute due dates from; the price list supplies the expected rates (module 2). The chain is wired once, verified at the gate's first-document check, and the operator's job at document time is verification, not composition — the same rule as the selling side.</p><p><b>2. Foreign-currency suppliers.</b> A supplier billing in a foreign currency introduces exchange exposure: the naira cost of the commitment moves between order, receipt, and payment as the rate moves. The operational rules:</p><p>1. <b>The document carries the supplier's currency and the exchange rate</b> at posting, per the rate source the Accounts track configures; the ledger carries both the foreign amount and the naira value.<br>2. <b>The exposure is priced at commitment</b> — the module 4 order decision accounts for the exposure window (order to payment), and the terms decision below interacts with it: longer terms on a foreign-currency supplier lengthen the exposure window.<br>3. <b>Revaluation and settlement differences are the accountant's territory</b> — the Accounts track's period procedures; the procurement obligation is documents with honest dates and correct currencies so those procedures compute from true records.</p><p><b>3. The terms decision.</b> Payment terms with a supplier are a negotiated asset: <b>30-day terms</b> mean the business holds its cash thirty days longer per purchase cycle, and the working-capital value of that holding is real and computable. The postures:</p><p>1. <b>Terms are negotiated at onboarding and renegotiated at review</b> — per the ladder: the standard ask per class, the owner's decision on strategic relationships.<br>2. <b>Terms are recorded as templates</b> (Chapter 2) — the template computes every invoice's due date; terms that exist only in conversation compute nothing.<br>3. <b>Early-payment discounts are evaluated, not reflexively taken or ignored</b> — a discount for early settlement is priced against the working-capital cost per the accountant's arithmetic, and the decision per supplier is recorded.</p><p><b>4. The chain read — quarterly.</b> A sample per supplier class: a draft document per supplier confirming the currency, terms, and list pre-fill as the register states; discrepancies corrected at the register. The read is cheap and it is the difference between a register that describes the supply base and one that merely lists it.</p>"
+   },
+   {
+    "title": "Chapter 6 — The payables posture",
+    "est": "12",
+    "html": "<p>Payables are managed deliberately, as receivables are on the selling side. This chapter is the posture — the decisions and reads that govern what the business owes.</p><p><b>1. The payables position.</b> The Accounts Payable report: open Purchase Invoices per supplier, bucketed by age against due date. The figures depend on the disciplines this track builds: invoices posted from documents (module 7), due dates from templates (Chapter 5), payments allocated per remittances. The position is read weekly by the payables function and monthly by the owner with the payables summary.</p><p><b>2. Paying on terms.</b> The standing posture is stated plainly: <b>the business pays on the due date — neither habitually early nor habitually late.</b></p><p>1. <b>Not habitually early</b>, because terms were negotiated for their working-capital value and paying early returns that value unasked; early payment is a decision (a priced discount, a strategic relationship gesture), not a default.<br>2. <b>Not habitually late</b>, because lateness is priced by suppliers into the next negotiation, surfaces as supply risk (the manufacturer that ships the reliable payer first), and on strategic relationships costs more than the cash timing gains. The scorecard conversation (module 8) runs in both directions; suppliers score their customers too, informally and consequentially.</p><p><b>3. The payment run.</b> Payments run on a cadence (weekly per the policy), from the due list:</p><p>1. <b>The run's list</b> — invoices due in the window, verified (three-way matched per module 7), with withholding computed per the rulings.<br>2. <b>The approvals</b> — the run is approved per the matrix's bands; individual off-run payments are exceptions with named approval.<br>3. <b>The execution</b> — payments to the register's verified bank details only (Chapter 4's control closing its loop here); remittance advices to the supplier's accounts contact.</p><p><b>4. Supplier statement reconciliation.</b> The mirror of the selling side's statement cycle, run from the receiving end: the supplier's statement against the business's ledger, monthly for the top suppliers by spend, differences traced through the document references — the missing invoice, the unallocated payment, the disputed receipt — and resolved at the document that differs. A supplier account that reconciles monthly never produces the year-end investigation backlog of one that does not; the read's cost is minutes per account.</p><p><b>5. The payables summary — monthly.</b> The owner's page: total payables, due profile for the coming weeks (the cash requirement), overdue value with reasons, withholding remitted and pending, and the terms map — average terms held per class against the policy's targets. One page, filed with the monthly review.</p>"
+   },
+   {
+    "title": "Chapter 7 — The supplier lifecycle and the data reads",
     "est": "13",
-    "html": "<p>A supplier is a company; you cannot phone a company, and goods do not ship from a concept. The people layer (Contacts) and the places layer (Addresses) mirror Selling 1's Chapters 4-5 exactly — linked records, primary flags, the customer machinery pointed the other way — with buy-side stakes of their own.</p><p><b>Contacts — who you actually deal with.</b> The sales manager who takes your orders, the accounts receivable clerk who chases YOUR payments, the logistics coordinator who books deliveries: each a Contact linked to the supplier, with designation, emails, phones, and a primary flag. The buy-side reason the layer matters: <b>continuity through their staff turnover</b>. When the sales rep who knew your account resigns, your record survives — the new rep's details replace the old contact, and five years of purchase history stay attached to the company, not to a person's phone number in someone's handset. Firms that keep supplier relationships in individual staff WhatsApps rebuild them from zero at every resignation — theirs or yours.</p><p><b>Addresses — where paper goes and goods come from.</b> One supplier, many places: the head office that receives your purchase orders and issues invoices (billing), the factory or warehouse goods actually ship from (shipping), sometimes a clearing agent's address for import flows. Address type and primary flags govern which lands on which document — the PO prints the right office; the receipt expects goods from the right origin. The consequential case: <b>a supplier with multiple fulfilment points</b> (a manufacturer shipping from Lagos or Ogun depending on line) keeps each as an address, and the purchase order's chosen address tells your receiving team what origin to expect — paperwork that matches the truck at the gate.</p><p><b>Primary-flag discipline, buy-side edition.</b> The wrong primary contact means your POs email into a void (the resigned rep's dead inbox — orders placed and never acknowledged); the wrong primary address means documents address the factory while their accounts office waits. Both present later as mysterious delays; both fix at the master in one move, never document-by-document — the anti-fix conviction transfers verbatim from the selling side.</p><p><b>Bank details are not an address, and are guarded harder.</b> Where payment goes lives on the supplier record and in the payment run — and a change to it is a controlled event: verified against supplier letterhead or a known contact by phone, never actioned from an email alone, because supplier-impersonation fraud is precisely an email asking you to update bank details before the next run. Buying 7 builds the payment-run control; the master-level habit starts here: bank fields change rarely, verifiably, and with a second pair of eyes.</p>"
+    "html": "<p>Suppliers are vetted in, held when trouble surfaces, and retired when relationships end. This chapter is the lifecycle and the standing reads.</p><p><b>1. The onboarding gate.</b> Suppliers enter the register by gate, in order:</p><p>1. <b>The duplicate check first</b> — the register searched by name fragments, TIN, phone, and bank account before creation. A duplicate supplier splits spend history and payables across records and defeats the concentration reads.<br>2. <b>Verification against documents</b> — the registration documents (CAC registration for Nigerian companies), the TIN, and the trading address verified against official documentation; for foreign suppliers, the equivalent registration set per the compliance owner's checklist. The verification protects against both error and the fictitious-supplier fraud pattern.<br>3. <b>Bank details by the call-back procedure</b> (Chapter 4) — entered from official documentation, verified to the known number, recorded.<br>4. <b>Classification</b> — group per the tree's definitions.<br>5. <b>Terms and currency per the decisions</b> — the negotiated terms as a template; the billing currency confirmed.<br>6. <b>Compliance fields per the ruling</b> — TIN recorded; withholding applicability ruled by the accountant.<br>7. <b>The first-document check</b> — a draft Purchase Order confirming the pre-fill chain; deleted after reading.</p><p><b>2. Hold.</b> The instrument for live trouble: quality failures under investigation, unresolved disputes, a failed verification. The hold enters with its reason and its type (blocking new orders, invoices, payments, or all per the case), the supplier is informed where the policy says so, and the hold is reviewed on a stated date — a hold without a review date becomes a forgotten relationship rather than a managed one. Release is a decision recorded with what resolved.</p><p><b>3. Retirement.</b> At relationship end: open items settled to zero, the record Disabled with the reason, the history preserved. The annual pass sweeps dormant suppliers (no documents across the policy window) into the retirement decision — a dormant record with live bank details and open permissions is exposure with no relationship attached.</p><p><b>4. The supplier data reads, consolidated.</b></p><p>1. <b>The bank-change read — monthly</b> (Chapter 4): every change against its verification; unverified changes treated as incidents.<br>2. <b>The duplicate-candidate read — monthly:</b> near-identical names, shared TINs or bank accounts across records — a shared bank account across two supplier records is a fraud indicator investigated, not merely merged.<br>3. <b>The classification read — quarterly</b> (Chapter 3).<br>4. <b>The chain read — quarterly</b> (Chapter 5).<br>5. <b>The hygiene read — quarterly</b> (Chapter 4).<br>6. <b>The dormancy read — quarterly:</b> candidates for retirement; holds past their review dates.<br>7. <b>The concentration read — quarterly:</b> spend share by supplier within each group — the single-source classes and the one-supplier dependencies listed for the owner's risk review, with the figures and the suppliers named.</p>"
    },
    {
-    "title": "Chapter 4 — Currencies, terms & the document default chain",
+    "title": "Chapter 8 — Worked example: HealthTrade's supply base",
     "est": "13",
-    "html": "<p>Three master fields — currency, payment terms, price list — flow from the supplier record onto every purchase document, and this chapter is that defaulting chain plus the two buy-side realities riding it: FX exposure and inherited credit.</p><p><b>The chain, recited cold.</b> A purchase document naming a supplier inherits: their <b>currency</b> (the document transacts in it — a USD manufacturer's PO is a USD PO, converted for your books at the exchange rate, displayed on the document exactly as the selling side's multi-currency machinery worked); their <b>payment terms</b> (the due-date engineering of Buying 7 starts from the master's template); their <b>buying price list</b> (agreed purchase rates, Buying 2); their tax defaults (what you withhold, what input VAT you record — Buying 7). Nobody re-decides these per document; the master decided, and the document executes — which is the entire architecture of not making Tuesday's data-entry clerk the author of your commercial arrangements.</p><p><b>FX exposure, made visible.</b> Every foreign-currency supplier is a naira risk position: the USD PO priced at today's rate lands as a payable whose naira cost moves with the market until settled. The record-level discipline that makes exposure REPORTABLE: supplier currency set to what they actually bill (never NGN-because-we-pay-from-a-naira-account — the conversion happens at payment either way; recording it wrong just hides the exposure), and import-side supplier groups (Chapter 2) so the aggregate foreign position is one grouping away. What your Montaigne-class selling clients ask about receivables, your own finance asks about payables: how much of what we owe is not in naira, and when does it fall due?</p><p><b>Their terms are your credit facility.</b> Net-30 from a supplier is thirty days of interest-free funding on every purchase — collectively, supplier terms are usually a trading firm's largest single credit line. Which is why the master's terms field deserves negotiation attention, not default acceptance: the onboarding conversation that moves a key supplier from advance-only to Net-15 to Net-30 as trust builds is treasury work conducted by procurement, and the record is where each stage is encoded. The mirror discipline from selling applies with roles reversed — you are now the customer whose payment behaviour is being scored, and Chapter 6 makes the case that paying WELL is a procurement strategy, not a finance nicety.</p><p><b>One supplier, one record, however many currencies tempt you.</b> The supplier who bills you USD for imports and NGN for local warehousing is still one supplier — one record in their PRIMARY billing currency, with the minority-currency flow handled at document level. Two records for one company (Emzor USD and Emzor NGN) is the duplicate disease in procurement clothing: split payables, split history, split negotiating knowledge — and their statement reconciles against neither half.</p>"
+    "html": "<p>This chapter applies Chapters 2-7 to the standing case: the supply base behind the selling and inventory operations the other tracks built. Configuration values and outcomes are listed per step.</p><p><b>The base.</b> HealthTrade's purchasing concentrates on: <b>two local pharmaceutical manufacturers</b> — Emzor and a second domestic manufacturer — supplying the core pharmaceutical range in naira; <b>one Indian manufacturer</b> supplying selected generics, billing in US dollars; and a European equipment vendor for the retail-equipment line, billing in euros. The register therefore carries <b>three currencies</b>, and the base's design places the two channels the tree distinguishes — domestic manufacturers and foreign manufacturers — under different compliance sets.</p><p><b>Step 1 — the tree (Chapter 3).</b> The Supplier Group tree: Manufacturers (Domestic, Foreign), Importers &amp; Trading Houses, Equipment Vendors, Logistics, Services. Group defaults wire the domestic manufacturers' standard terms posture; the Services group carries the withholding flag per the accountant's ruling table.</p><p><b>Step 2 — the gate runs four times (Chapter 7).</b> Each supplier onboards through the full gate: duplicate checks clean; CAC and TIN verification for the domestic pair; the foreign registration sets for the Indian manufacturer and the equipment vendor per the compliance checklist; bank details entered from official documentation and verified by call-back to known numbers, each verification recorded. The first-document checks confirm the pre-fill chains.</p><p><b>Step 3 — currencies and terms (Chapter 5).</b> Emzor and the second domestic manufacturer bill in naira on <b>30-day terms</b> — negotiated at onboarding, recorded as the template, the working-capital value noted in the decision file. The Indian manufacturer bills in US dollars; the terms decision records the exposure window explicitly (order to payment across the import lead time), and the order sizing in module 5 will account for it. The equipment vendor bills in euros on the project-payment terms its class carries.</p><p><b>Step 4 — the payables posture installs (Chapter 6).</b> The weekly payment run stands up from the due list; the pay-on-terms posture is written into the policy; supplier statement reconciliation begins monthly with the two domestic manufacturers (the top of the spend concentration). The first monthly payables summary compiles: the due profile, the terms map, and a clean bank-change read.</p><p><b>Step 5 — the reads return their first findings (Chapter 7).</b> The duplicate-candidate read flags a legacy trading-house record with the same TIN as a retired importer — merged per the remediation with the documents re-pointed. The concentration read states the structural figure the owner already suspected: the domestic pharmaceutical class concentrates heavily on Emzor — recorded with the figures for the risk review, where the second manufacturer's range overlap becomes the mitigation conversation. The first quarter closes with the register verified, the chains confirmed, and every read filed.</p><p><b>The register evidence.</b> The gate files hold the verifications; the decision files hold the terms with their reasoning; the bank-change read holds its clean month; the concentration read holds the risk figure with names. The supply base is answerable from its files, per the standing standard, before a single Purchase Order ships — which is the state module 3's demand machinery builds on.</p>"
    },
    {
-    "title": "Chapter 5 — The payable posture: managing what you owe",
-    "est": "13",
-    "html": "<p>Selling 7 built the receivables craft; this chapter is its mirror — the deliberate management of what your firm owes — because payables run on decisions exactly as collections do, and a firm that only ever reacts to supplier calls is running its funding structure by whoever shouts loudest.</p><p><b>The payables ledger as one screen.</b> Every submitted purchase invoice (Buying 7) stands as a payable aging by its due date; the <b>Accounts Payable report</b> buckets it — 0-30, 31-60, 61-90, 90+ — per supplier, exactly as AR bucketed customers. The professional read is different from AR's, though: right-column entries in AR were money owed TO you going stale; right-column entries in AP are your firm's payment PROMISES going broken — supplier trust burning, credit terms about to shorten, and eventually supply itself at risk. The read: due-this-week (fund it), coming-due (schedule it), overdue (explain it, personally, before the supplier calls).</p><p><b>Paying well is procurement strategy.</b> The firm that pays on the day earns three things no negotiation can buy: priority allocation when supply is short (the distributor with scarce stock ships to who pays), terms extension over time (Net-15 becomes Net-30 for the account that never slips), and pricing candour (suppliers pad quotes to slow payers — the risk premium is invisible but real, and your firm pays it in every rate). Late payment is a loan taken from your supplier at the price of all three. Sometimes that loan is worth taking — cash crunches are real — but it should be TAKEN, deliberately, with a call and a date, not defaulted into by an unread AP report.</p><p><b>The supplier statement reconciliation.</b> Monthly, key suppliers send statements; the discipline is reconciling them against your ledger while discrepancies are one month deep: invoices they show that you never recorded (goods received, paper lost — Buying 6-7's three-way match catches most), payments you show that they have not applied (your reference discipline at fault, or their allocation — the remittance-advice habit from Selling 7, now written by you), and disputed items flagged on both sides. A supplier account reconciled monthly never produces the year-end archaeology where two firms discover they disagree by millions and neither can say why.</p><p><b>Advance payments to suppliers.</b> The buy-side advance — deposit against an import order, mobilisation on a contract — mirrors Selling 7 Chapter 5 with the roles reversed: a Payment Entry against the supplier with no invoice yet, sitting as YOUR credit on THEIR account, allocated when their invoice lands. The same black hole threatens in reverse: advances never allocated mean invoices paid twice or supplier balances nobody trusts — the monthly unallocated read covers both directions of trade.</p>"
-   },
-   {
-    "title": "Chapter 6 — Supplier lifecycle: onboarding, hold & retirement",
-    "est": "13",
-    "html": "<p>Suppliers have lifecycles — vetted in, paused when trouble surfaces, retired when the relationship ends — and each stage has a correct instrument. Improvised lifecycle management is how firms keep buying from suppliers they resolved to drop, and how they delete history they later need in a dispute.</p><p><b>Onboarding as a gate, not a formality.</b> Before the first purchase order: the record built to Chapter 1's standard (group, currency, terms, TIN, bank details verified from supplier documents), and for regulated goods, the compliance layer — a pharma supplier's NAFDAC standing and documentation checked and filed, because your downstream batch discipline (Selling 5's recall drill) is only as good as the provenance of what enters your warehouse. The onboarding checklist is short, written, and owned; a supplier who cannot complete it is telling you something worth hearing before money moves.</p><p><b>Hold — the pause with teeth.</b> When a quality dispute erupts, documentation lapses, or fraud is suspected, the supplier is placed <b>on hold</b> — and the hold has a TYPE: block everything, block new invoices, or block payments — plus an optional release date. The type is the craft: a quality investigation blocks new purchase documents while existing invoices still settle honestly (you owe what you owe); a payment dispute blocks the payment run while receiving continues; a full block freezes the relationship pending resolution. The hold does what memos cannot: the buyer who did not get the memo physically cannot raise the PO. Every hold carries an owner and a next step — an unowned hold is either forgotten (supply quietly resumes) or eternal (a dead record blocking a live relationship).</p><p><b>Disable, never delete.</b> A retired supplier — closed down, replaced, relationship ended — is <b>disabled</b>: invisible to new documents, fully present in history. Deletion is the wrong end for exactly the selling-side reasons: the purchase history, the price trail, the dispute evidence, the batch provenance all reference the record. The supplier you dropped over quality in 2024 is the record you need intact in 2026 when a batch from their era surfaces in a complaint.</p><p><b>Duplicates, merged early.</b> The same company entered twice — once by each buyer, once per currency (Chapter 4's conviction), once with a spelling variant — splits payables and history until merged. The search-before-create reflex is the prevention (third module in this manual family to say so, because it is the same disease in every master); the cure is a deliberate merge while the duplicate is young, not a two-year archaeology.</p><p><b>The review cadence.</b> Quarterly, the supply base gets thirty minutes: new suppliers correctly filed (the weekly habit rolled up), holds reviewed against their next steps, concentration flags from Chapter 2's tree, and terms renegotiation candidates (Chapter 4). A supply base is a portfolio; portfolios get reviewed.</p>"
-   },
-   {
-    "title": "Chapter 7 — Compliance & the Nigerian buy-side frame",
-    "est": "13",
-    "html": "<p>Buying in Nigeria carries obligations selling never taught, and the supplier master is where each one anchors. This chapter frames them now so the document modules land on prepared ground — each gets its full mechanics later; a professional carries the MAP from day one.</p><p><b>WHT — this time you withhold.</b> Selling 7 taught the deduction from the receiving side: your customers withheld from you. Procurement reverses the role: when YOUR firm pays qualifying suppliers for services and contracts, YOU are the withholding agent — deducting at the supplier-type-appropriate rate (companies and individuals differ; the accountant owns the schedule), remitting to FIRS against the supplier's TIN, and issuing the credit evidence they will chase you for exactly as you chase your customers. The master-level anchors: <b>Supplier Type</b> set correctly (it selects the rate class) and <b>TIN captured</b> (remittance requires it). Buying 7 carries the payment-entry mechanics; the posture to internalise now is symmetry — every discipline you wished your customers had about WHT certificates, your suppliers wish about yours.</p><p><b>Input VAT — the other half of the 21st.</b> The VAT on your purchase invoices is <b>input VAT</b>: claimable against the output VAT your sales collect, netted in the monthly FIRS filing (Selling 6 taught the output side and the deadline). The claim is only as good as its paper — a proper tax invoice from a VAT-registered supplier, recorded against the right tax head — which makes supplier tax hygiene a cash matter: unclaimable input VAT is real money donated monthly. The master anchors: the supplier's tax registration captured, the buy-side tax templates defaulting correctly.</p><p><b>Import documentation.</b> For the import-side supply base (Chapter 2's tree made it visible): Form M, letters of credit, bills of lading, PAAR, clearing-agent chains — the document trail that landed cost is built from (Buying 6 treats landed cost mechanics). The record-keeping habit: import paperwork files against the purchase cycle's documents, so the true cost of a container is assembled from records, not reconstructed from a clearing agent's memory.</p><p><b>Regulated goods provenance.</b> Pharma and food supply chains carry NAFDAC obligations UPSTREAM: the supplier's registration status, product listings, and batch documentation are onboarding requirements (Chapter 6's gate) and standing records — because when Selling 5's recall drill runs, the question after WHICH CUSTOMERS is WHICH SUPPLIER, and the answer must be as fast.</p><p><b>Payment-detail fraud, the standing threat.</b> Chapter 3 set the rule; it bears its own paragraph: bank-detail changes verified out-of-band, payment runs built from the master's verified details, and any email requesting an urgent account change treated as hostile until proven otherwise. The control is boring; the losses it prevents are not.</p>"
-   },
-   {
-    "title": "Chapter 8 — Case study: building the supply base for a pharmacy distributor",
-    "est": "16",
-    "html": "<p>Everything in this module, executed once. HealthTrade Ltd — the dual-channel vendor whose SELLING architecture Selling 2 built — now gets its supply base done properly. Read actively; every step names its chapter.</p><p><b>The business.</b> HealthTrade buys: pharma from two local manufacturers and one Indian exporter; FMCG from a Lagos mega-distributor; logistics from a haulage firm; clearing from an agent handling the import lane. Six suppliers, three currencies of exposure, one afternoon of master-data work.</p><p><b>Step 1 — the tree (Ch. 2).</b> Supplier groups: Manufacturers (→ Pharma — Local · Pharma — Import), Distributors &amp; Wholesalers, Services (→ Logistics · Clearing &amp; Professional). Six leaves, each answering a spend question the MD actually asks — import dependence is now one grouping away, forever.</p><p><b>Step 2 — the two local manufacturers (Ch. 1, 4).</b> Records built to standard: Company type (corporate WHT class), Pharma — Local, NGN, Net-30 terms as negotiated, TINs from their letterheads, bank details from their account-opening letters — filed. Contacts: each firm's sales manager and accounts officer, primaries flagged (Ch. 3). Their NAFDAC documentation checked and filed at onboarding (Ch. 6-7's gate).</p><p><b>Step 3 — the Indian exporter (Ch. 4, 7).</b> Currency USD — what their invoices actually say. Terms: 30% advance, balance against shipping documents — encoded as their template, the advance flow ready for Buying 7's mechanics (Ch. 5's advance discipline). Addresses: Mumbai head office (billing) and the factory (origin) — the receiving team will know what the paperwork should match (Ch. 3). The import-documentation file opens with their record (Ch. 7).</p><p><b>Step 4 — the mega-distributor and the services pair (Ch. 1-3).</b> The FMCG distributor: Company, NGN, Net-15 (to be renegotiated upward as volume proves — the treasury note is on the record, Ch. 4). The haulage firm and the clearing agent: Services leaves — and the clearing agent is Individual type, which the accountant confirms changes the WHT class (Ch. 1, 7). Every record: contacts, TINs, verified bank details.</p><p><b>Step 5 — the payable posture, scheduled (Ch. 5).</b> The AP report's weekly read lands in Friday's routine (due-this-week funded, overdue explained proactively); monthly statement reconciliation is agreed with both manufacturers from month one; the unallocated-advances read covers the exporter's deposit flow.</p><p><b>Step 6 — the near-miss that proves the controls (Ch. 3, 7).</b> Week three: an email arrives from the haulage firm's domain-lookalike asking to update bank details before the next run. The rule holds — out-of-band verification by phone to the known contact — and the fraud dies in one call. The control cost nothing; its absence would have cost a payment run.</p><p><b>What the afternoon bought:</b> spend reportable by category and currency from day one; WHT classes and TINs ready before the first payment; terms encoded as negotiated, with the renegotiation path noted; import exposure visible in one grouping; provenance documentation filed for the recall that will someday ask; and a payables posture that will make HealthTrade the customer its suppliers ship to first when stock is short. Master data is strategy stored where documents can execute it.</p>"
-   },
-   {
-    "title": "Chapter 9 — Common mistakes & support patterns",
-    "est": "13",
-    "html": "<p>The supply-base scar tissue: the tickets you will meet, the disease behind each, the fix — and the law this module hands to the rest of the track.</p><p><b>Pattern 1 — \"The PO went out and nobody at the supplier saw it.\"</b> Disease: primary contact is the resigned rep's dead inbox (Ch. 3). Fix at the master — replace the contact, re-flag primary; the anti-fix (typing addresses per document) subscribes to the ticket. The selling side's first pattern, mirrored exactly, because it is the same machinery.</p><p><b>Pattern 2 — \"We have this supplier twice and their statement matches neither.\"</b> Disease: the duplicate — per buyer, per spelling, or per currency (Ch. 4, 6). Split payables, split history, no negotiating memory. Fix: merge while young; prevention is search-before-create, the law of every master in this manual family.</p><p><b>Pattern 3 — \"Everything we buy from them shows due immediately.\"</b> Disease: terms never set on the master, so no due-date engineering exists (Ch. 4) — the AP report reads as a wall of now, and the payment run cannot prioritise. Fix: encode the actual agreed terms; the documents that follow inherit sanity. (The already-issued invoices keep their dates — correcting forward is the honest scope.)</p><p><b>Pattern 4 — \"Our naira costs jumped and nobody saw it coming.\"</b> Disease: foreign suppliers recorded as NGN because payment leaves a naira account (Ch. 4) — the FX exposure was real but invisible. Fix: currencies set to what invoices say; import-side grouping (Ch. 2) so the aggregate position is one report.</p><p><b>Pattern 5 — \"We resolved to stop buying from them, and a PO went out Tuesday.\"</b> Disease: the resolution lived in a meeting, not a hold (Ch. 6). Fix: the hold with the right type and an owner — the buyer who missed the memo cannot miss the block.</p><p><b>Pattern 6 — \"A supplier says we owe invoices we have never seen.\"</b> Disease: no statement-reconciliation habit (Ch. 5) — goods received against paper that never reached the ledger, discovered at relationship-threatening age. Fix: monthly reconciliation with key suppliers; the three-way match (Buying 6-7) closes the gap going forward.</p><p><b>Pattern 7 — \"Finance updated bank details from an email and the run paid a fraudster.\"</b> Disease: the control that existed in policy but not in practice (Ch. 3, 7). Fix — after the painful recovery attempt — is procedural and absolute: out-of-band verification for every detail change, no exceptions for urgency, BECAUSE of urgency. The fraud's entire design is that the email arrives the day before the run.</p><p><b>The law, mirrored.</b> Selling opened with: documents are downstream of masters. Procurement's first module closes the same way, from the other chair: <b>purchase documents are downstream of supplier masters</b> — the PO's currency, the receipt's expectations, the invoice's terms, the payment's destination and withholding all execute what the record encodes. Build the record right and the buying cycle — Material Requests onward, starting next module — mostly runs itself. The consultant who fixes supplier masters closes procurement tickets permanently; the one who fixes documents subscribes to them.</p>"
+    "title": "Chapter 9 — Common errors and the module rule",
+    "est": "11",
+    "html": "<p>The errors that recur in supplier foundations, each with its correction and prevention.</p><p><b>Error 1 — the unverified bank change.</b> Symptom: bank details changed on an emailed instruction; payments to an account nobody verified; the fraud discovered at the supplier's overdue call. Correction: payments stopped, the incident procedure run, recovery attempted through the bank. Prevention: the call-back procedure without exception, write permission per the matrix, and the monthly bank-change read.</p><p><b>Error 2 — the duplicate supplier.</b> Symptom: one supplier's spend and balance split across records; concentration reads understated; two records sharing one bank account. Correction: investigated first (the shared account may be the fraud indicator), then merged per the remediation. Prevention: the gate's duplicate check across name, TIN, phone, and bank account.</p><p><b>Error 3 — terms that exist only in conversation.</b> Symptom: due dates improvised per invoice; the negotiated 30 days neither enforced nor measured; the working-capital value leaking. Correction: templates applied from the decision files. Prevention: every negotiated term recorded as a template at the gate.</p><p><b>Error 4 — the habitual posture.</b> Symptom: paying everything early (the negotiated value returned unasked) or everything late (supply risk and priced-in lateness). Correction: the payment run rebuilt on the due list; exceptions become decisions. Prevention: the pay-on-terms posture and the weekly run.</p><p><b>Error 5 — the unmanaged hold.</b> Symptom: suppliers held without review dates; relationships frozen by inattention; or trouble suppliers never held at all, with new orders flowing through open disputes. Correction: holds reviewed and resolved by decision. Prevention: every hold with a reason, a type, and a review date.</p><p><b>Error 6 — the fictitious supplier.</b> Symptom: a record created without document verification; invoices approved against no real supply; the classic payables fraud. Correction: the incident procedure, the record frozen, the approval chain examined. Prevention: the gate's document verification, the segregation the matrix enforces between record creation and payment approval, and the duplicate read's bank-account matching.</p><p><b>Review list.</b> Before the quiz, confirm you can: complete the Supplier walk including the compliance fields and the hold-versus-disabled distinction; design the tree with the management-difference test; operate contacts, addresses, and the bank-detail control with the call-back procedure; state the default chain and the foreign-currency rules; run the payables posture — pay on terms, the run, statement reconciliation; run the gate, hold, and retirement; and run the seven data reads.</p><p><b>Module rule 1: every purchasing document stands on its Supplier record — created through the gate with documents verified and bank details confirmed by call-back, classified by the tree, carrying negotiated terms as templates and the supplier's true currency, paid on terms to verified accounts only, and kept true by the scheduled reads.</b> Module 2 covers items and buying costs.</p>"
    }
   ],
   "questions": [
    {
-    "q": "Supplier Type (Company vs Individual) matters in Nigeria because:",
+    "q": "A purchasing document's behaviour comes from:",
     "opts": [
-     "It drives the WHT rate class your firm must withhold when paying them",
-     "It is cosmetic",
-     "It sets the currency",
-     "It controls stock"
+     "The Supplier record — currency, terms, addresses, tax treatment, and bank details pre-fill from it",
+     "Typing at document time",
+     "The warehouse",
+     "The last order"
     ],
     "ans": 0,
-    "why": "Misclassifying a supplier misclassifies a tax obligation.",
+    "why": "The buying mirror of the Customer record.",
     "src": "Ch1"
    },
    {
-    "q": "A supplier's currency field should be set to:",
+    "q": "The tightest change control in the supplier register covers:",
     "opts": [
-     "NGN always, since payment leaves a naira account",
-     "What their invoices actually say",
-     "The cheapest currency",
-     "USD for imports regardless"
+     "The name",
+     "The bank details — where the business's money goes",
+     "The group",
+     "The address"
     ],
     "ans": 1,
-    "why": "Recording it wrong just hides the FX exposure.",
-    "src": "Ch1, Ch4"
-   },
-   {
-    "q": "A supplier created with only a name is:",
-    "opts": [
-     "Fast and harmless",
-     "Automatically completed",
-     "A payables mess on layaway — group, currency, terms, TIN, bank details come first",
-     "Blocked by the system"
-    ],
-    "ans": 2,
-    "why": "The master record is a contract with your future month-ends.",
+    "why": "Chapter 4's control.",
     "src": "Ch1"
    },
    {
-    "q": "The supplier-group tree answers the single question:",
+    "q": "The country field drives:",
     "opts": [
-     "Who pays fastest",
-     "Which buyer owns them",
-     "Where the supplier is located",
-     "What KIND of supply is this"
+     "Nothing",
+     "The price",
+     "The currency and import questions, and which compliance documentation the gate requires",
+     "The printer"
+    ],
+    "ans": 2,
+    "why": "Domestic and foreign carry different verification sets.",
+    "src": "Ch2"
+   },
+   {
+    "q": "Billing Currency is:",
+    "opts": [
+     "Cosmetic",
+     "Per document",
+     "Always naira",
+     "A structural decision — it sets every document's currency and creates exchange exposure on foreign suppliers"
     ],
     "ans": 3,
-    "why": "One tree, one question — spend reports are cut by it.",
+    "why": "The exposure window interacts with terms.",
     "src": "Ch2"
    },
    {
-    "q": "Import dependence is answered by:",
+    "q": "Withholding applicability is:",
     "opts": [
-     "The share of spend under import-side supplier-group leaves",
-     "Guesswork",
-     "The bank statement",
-     "The customer tree"
+     "The accountant's ruling carried on the record — the payment machinery applies it",
+     "The operator's judgment",
+     "Optional",
+     "The supplier's choice"
     ],
     "ans": 0,
-    "why": "The board question after every naira move, one grouping away.",
+    "why": "Neither decided nor overridden by the operator.",
     "src": "Ch2"
    },
    {
-    "q": "One category leaf dominated by one supplier signals:",
+    "q": "Hold differs from Disabled as:",
     "opts": [
+     "Synonyms",
+     "Hold suspends new business on a live supplier by type; Disabled retires the record at zero balance",
+     "Both delete",
+     "Hold is permanent"
+    ],
+    "ans": 1,
+    "why": "Two distinct instruments.",
+    "src": "Ch2"
+   },
+   {
+    "q": "A supplier group exists when:",
+    "opts": [
+     "Names differ",
+     "There are five suppliers",
+     "The business manages the class differently — terms, compliance, quality regime, or spend review",
+     "Reports ask"
+    ],
+    "ans": 2,
+    "why": "The management-difference test.",
+    "src": "Ch3"
+   },
+   {
+    "q": "Spend by group is:",
+    "opts": [
+     "Trivia",
+     "Private",
+     "A tax figure",
+     "The first cut of every spend review — a structural figure the owner reads quarterly"
+    ],
+    "ans": 3,
+    "why": "The classification's uses.",
+    "src": "Ch3"
+   },
+   {
+    "q": "Concentration by group measures:",
+    "opts": [
+     "Supply risk — one supplier carrying most of a class's volume",
      "Efficiency",
-     "A single point of failure — a second source is owed",
-     "Loyalty to reward",
+     "Loyalty",
+     "Discounts"
+    ],
+    "ans": 0,
+    "why": "Compiled at the quarterly review.",
+    "src": "Ch3"
+   },
+   {
+    "q": "A Purchase Order sent to a generic address is:",
+    "opts": [
+     "Efficient",
+     "An order nobody at the supplier owns — the sales contact is the primary for this reason",
+     "Standard",
+     "Faster"
+    ],
+    "ans": 1,
+    "why": "The people layer.",
+    "src": "Ch4"
+   },
+   {
+    "q": "Bank details enter the register:",
+    "opts": [
+     "From any email",
+     "From memory",
+     "From official documentation, verified by call-back to the known number, with the verification recorded",
+     "From the invoice"
+    ],
+    "ans": 2,
+    "why": "The entry control.",
+    "src": "Ch4"
+   },
+   {
+    "q": "An emailed bank-change instruction is:",
+    "opts": [
+     "Actioned promptly",
+     "Forwarded",
+     "Filed",
+     "The fraud pattern itself — not entered until the call-back to the known contact confirms it"
+    ],
+    "ans": 3,
+    "why": "Urgency raises suspicion rather than lowering the control.",
+    "src": "Ch4"
+   },
+   {
+    "q": "A bank change without its verification is:",
+    "opts": [
+     "A live incident — payments to the account stop until verification completes",
+     "A backlog item",
+     "Normal",
+     "Approved retroactively"
+    ],
+    "ans": 0,
+    "why": "The monthly read's rule.",
+    "src": "Ch4"
+   },
+   {
+    "q": "The default chain supplies:",
+    "opts": [
+     "Suggestions",
+     "The document's currency, terms schedule, and expected rates — verified at document time, not composed",
+     "The quantity",
+     "The approval"
+    ],
+    "ans": 1,
+    "why": "Wired once, verified at the gate.",
+    "src": "Ch5"
+   },
+   {
+    "q": "Foreign-currency documents carry:",
+    "opts": [
+     "Naira only",
+     "Estimates",
+     "The supplier's currency and the exchange rate at posting — the ledger holds both values",
+     "No rate"
+    ],
+    "ans": 2,
+    "why": "Per the configured rate source.",
+    "src": "Ch5"
+   },
+   {
+    "q": "Longer terms on a foreign-currency supplier:",
+    "opts": [
+     "Reduce exposure",
+     "Are impossible",
+     "Are free",
+     "Lengthen the exchange exposure window — the two decisions interact"
+    ],
+    "ans": 3,
+    "why": "Priced at commitment.",
+    "src": "Ch5"
+   },
+   {
+    "q": "30-day terms are:",
+    "opts": [
+     "A negotiated asset — the business holds its cash thirty days longer per cycle, a computable value",
+     "A courtesy",
+     "A delay tactic",
+     "Automatic"
+    ],
+    "ans": 0,
+    "why": "The terms decision.",
+    "src": "Ch5"
+   },
+   {
+    "q": "Early-payment discounts are:",
+    "opts": [
+     "Always taken",
+     "Evaluated against the working-capital cost per the accountant's arithmetic, with the decision recorded",
+     "Always refused",
+     "Rounding"
+    ],
+    "ans": 1,
+    "why": "Neither reflexively taken nor ignored.",
+    "src": "Ch5"
+   },
+   {
+    "q": "The standing payment posture is:",
+    "opts": [
+     "Early always",
+     "Late always",
+     "On the due date — neither habitually early nor habitually late",
+     "Random"
+    ],
+    "ans": 2,
+    "why": "Both habits carry stated costs.",
+    "src": "Ch6"
+   },
+   {
+    "q": "Habitual lateness costs:",
+    "opts": [
+     "Nothing",
+     "Goodwill only",
+     "Interest only",
+     "Priced-in lateness at the next negotiation and supply risk — the reliable payer ships first"
+    ],
+    "ans": 3,
+    "why": "Suppliers score their customers too.",
+    "src": "Ch6"
+   },
+   {
+    "q": "The payment run pays:",
+    "opts": [
+     "The register's verified bank details only — Chapter 4's control closing its loop",
+     "Any account on the invoice",
+     "The sales contact",
+     "Cash"
+    ],
+    "ans": 0,
+    "why": "The execution rule.",
+    "src": "Ch6"
+   },
+   {
+    "q": "Monthly supplier statement reconciliation:",
+    "opts": [
+     "Is optional",
+     "Traces differences through document references and resolves them at the document that differs",
+     "Is the supplier's job",
+     "Happens at year-end"
+    ],
+    "ans": 1,
+    "why": "Minutes per account, monthly.",
+    "src": "Ch6"
+   },
+   {
+    "q": "The gate's duplicate check searches:",
+    "opts": [
+     "Names only",
+     "The group",
+     "Name fragments, TIN, phone, and bank account",
+     "The city"
+    ],
+    "ans": 2,
+    "why": "A shared bank account across records is a fraud indicator.",
+    "src": "Ch7"
+   },
+   {
+    "q": "Document verification at the gate protects against:",
+    "opts": [
+     "Slow onboarding",
+     "Overpayment only",
+     "Nothing",
+     "Both error and the fictitious-supplier fraud pattern"
+    ],
+    "ans": 3,
+    "why": "CAC, TIN, and address against official documentation.",
+    "src": "Ch7"
+   },
+   {
+    "q": "A hold carries:",
+    "opts": [
+     "A reason, a type, and a review date — a hold without a review date becomes a forgotten relationship",
+     "Just a flag",
+     "A penalty",
+     "A refund"
+    ],
+    "ans": 0,
+    "why": "Release is a recorded decision.",
+    "src": "Ch7"
+   },
+   {
+    "q": "A dormant record with live bank details is:",
+    "opts": [
+     "Harmless",
+     "Exposure with no relationship attached — swept into the retirement decision at the annual pass",
+     "An asset",
+     "A backup"
+    ],
+    "ans": 1,
+    "why": "The dormancy read.",
+    "src": "Ch7"
+   },
+   {
+    "q": "The concentration read outputs:",
+    "opts": [
+     "Anonymous ratios",
+     "A ranking prize",
+     "Spend share by supplier within each group, with the figures and the suppliers named, for the risk review",
      "Nothing"
     ],
-    "ans": 1,
-    "why": "The quarterly concentration read flags it; RFQ discipline remedies it.",
-    "src": "Ch2"
-   },
-   {
-    "q": "Buying the same category through five unconnected records at five prices means:",
-    "opts": [
-     "Healthy competition",
-     "Better risk spread",
-     "You fund everyone else's discounts — consolidated spend is leverage",
-     "Lower prices"
-    ],
     "ans": 2,
-    "why": "The distributor who knows their full category number negotiates it.",
-    "src": "Ch2"
-   },
-   {
-    "q": "Supplier contacts exist so that:",
-    "opts": [
-     "Emails look formal",
-     "Payments accelerate",
-     "The tree stays clean",
-     "Relationships survive staff turnover — theirs and yours"
-    ],
-    "ans": 3,
-    "why": "History attaches to the company, not to a phone in someone's handset.",
-    "src": "Ch3"
-   },
-   {
-    "q": "A manufacturer shipping from two possible origins is modelled with:",
-    "opts": [
-     "Multiple addresses — the PO's chosen address tells receiving what to expect",
-     "Two supplier records",
-     "A remark",
-     "Two currencies"
-    ],
-    "ans": 0,
-    "why": "Paperwork that matches the truck at the gate.",
-    "src": "Ch3"
-   },
-   {
-    "q": "POs emailing into a void usually trace to:",
-    "opts": [
-     "Server issues",
-     "The primary contact being a resigned rep's dead inbox",
-     "Wrong currency",
-     "Missing TIN"
-    ],
-    "ans": 1,
-    "why": "Fix at the master; documents follow.",
-    "src": "Ch3, Ch9"
-   },
-   {
-    "q": "A supplier bank-detail change request arriving by email is:",
-    "opts": [
-     "Actioned before the next run",
-     "Forwarded to the bank",
-     "Treated as hostile until verified out-of-band with a known contact",
-     "Ignored forever"
-    ],
-    "ans": 2,
-    "why": "The fraud's design is urgency the day before the run.",
-    "src": "Ch3, Ch7, Ch9"
-   },
-   {
-    "q": "The document default chain inherits from the supplier master:",
-    "opts": [
-     "Only the name",
-     "The customer group",
-     "The warehouse",
-     "Currency, payment terms, buying price list, and tax defaults"
-    ],
-    "ans": 3,
-    "why": "The master decided; documents execute.",
-    "src": "Ch4"
-   },
-   {
-    "q": "Supplier payment terms are collectively:",
-    "opts": [
-     "Usually the firm's largest single credit line — thirty days of interest-free funding per purchase",
-     "A courtesy",
-     "A tax matter",
-     "Irrelevant to treasury"
-    ],
-    "ans": 0,
-    "why": "Terms negotiation is treasury work conducted by procurement.",
-    "src": "Ch4"
-   },
-   {
-    "q": "A supplier billing USD for imports and NGN for local services gets:",
-    "opts": [
-     "Two records, one per currency",
-     "One record in the primary billing currency; minority flows handled at document level",
-     "Three records",
-     "A merged customer record"
-    ],
-    "ans": 1,
-    "why": "Two records for one company is the duplicate disease in procurement clothing.",
-    "src": "Ch4"
-   },
-   {
-    "q": "Right-column (90+) entries in Accounts Payable are:",
-    "opts": [
-     "Money owed to you going stale",
-     "Tax credits",
-     "Your payment promises going broken — trust burning, terms at risk",
-     "Healthy float"
-    ],
-    "ans": 2,
-    "why": "AP's right columns read differently from AR's.",
-    "src": "Ch5"
-   },
-   {
-    "q": "Paying suppliers on the day earns:",
-    "opts": [
-     "Nothing measurable",
-     "Penalties",
-     "Only goodwill",
-     "Priority allocation in shortage, terms extension, and pricing candour"
-    ],
-    "ans": 3,
-    "why": "Suppliers pad quotes to slow payers; the premium is invisible but paid in every rate.",
-    "src": "Ch5"
-   },
-   {
-    "q": "Taking extra time to pay in a cash crunch should be:",
-    "opts": [
-     "Taken deliberately — with a call and a date",
-     "Defaulted into silently",
-     "Denied",
-     "Hidden from the supplier"
-    ],
-    "ans": 0,
-    "why": "The loan is sometimes worth taking; it is never worth stumbling into.",
-    "src": "Ch5"
-   },
-   {
-    "q": "Monthly supplier-statement reconciliation catches:",
-    "opts": [
-     "Nothing new",
-     "Their invoices you never recorded, your payments they never applied — at one month deep",
-     "Only fraud",
-     "Tax errors only"
-    ],
-    "ans": 1,
-    "why": "Never the year-end archaeology where two firms disagree by millions.",
-    "src": "Ch5"
-   },
-   {
-    "q": "An advance paid to a supplier is recorded as:",
-    "opts": [
-     "Unrecorded until their invoice",
-     "An expense",
-     "A Payment Entry against the supplier, sitting as your credit, allocated when the invoice lands",
-     "A negative PO"
-    ],
-    "ans": 2,
-    "why": "The unallocated black hole threatens in both directions of trade.",
-    "src": "Ch5"
-   },
-   {
-    "q": "Supplier onboarding for regulated pharma goods includes:",
-    "opts": [
-     "Only bank details",
-     "A trial order first",
-     "A handshake",
-     "NAFDAC standing and documentation checked and filed before money moves"
-    ],
-    "ans": 3,
-    "why": "Downstream recall discipline is only as good as upstream provenance.",
-    "src": "Ch6, Ch7"
-   },
-   {
-    "q": "The supplier hold's TYPE matters because:",
-    "opts": [
-     "Quality issues block new purchases while honest debts still settle; payment disputes block the run while receiving continues",
-     "It doesn't",
-     "All holds are total",
-     "It sets the release date only"
-    ],
-    "ans": 0,
-    "why": "The type is the craft; the block does what memos cannot.",
-    "src": "Ch6"
-   },
-   {
-    "q": "Every supplier hold carries:",
-    "opts": [
-     "A release date only",
-     "An owner and a next step",
-     "A penalty",
-     "Board approval"
-    ],
-    "ans": 1,
-    "why": "Unowned holds are forgotten or eternal.",
-    "src": "Ch6"
-   },
-   {
-    "q": "A retired supplier is:",
-    "opts": [
-     "Deleted for cleanliness",
-     "Renamed",
-     "Disabled — invisible to new documents, fully present in history",
-     "Merged into Misc"
-    ],
-    "ans": 2,
-    "why": "The 2024 quality-dispute record is the evidence you need intact in 2026.",
-    "src": "Ch6"
-   },
-   {
-    "q": "The prevention for supplier duplicates is:",
-    "opts": [
-     "Quarterly purges",
-     "One buyer only",
-     "Locking creation",
-     "Search before create — the same law as every master in this manual family"
-    ],
-    "ans": 3,
-    "why": "The cure is a deliberate merge while the duplicate is young.",
-    "src": "Ch6, Ch9"
-   },
-   {
-    "q": "In procurement, WHT works as:",
-    "opts": [
-     "YOUR firm withholds when paying qualifying suppliers, remits to FIRS against their TIN, and issues the evidence",
-     "Your customers withhold from you",
-     "A VAT substitute",
-     "Optional"
-    ],
-    "ans": 0,
-    "why": "The role reverses: you are now the withholding agent.",
+    "why": "Single-source classes listed.",
     "src": "Ch7"
    },
    {
-    "q": "The master-level anchors for WHT compliance are:",
+    "q": "HealthTrade's register carries:",
     "opts": [
-     "Currency and address",
-     "Supplier Type (rate class) and TIN (remittance reference)",
-     "Price list and group",
-     "Hold type"
-    ],
-    "ans": 1,
-    "why": "Set at onboarding, used at every qualifying payment.",
-    "src": "Ch1, Ch7"
-   },
-   {
-    "q": "Input VAT on purchases is:",
-    "opts": [
-     "A cost, always",
-     "Ignored",
-     "Claimable against output VAT in the monthly filing — if the paper is proper",
-     "Withheld from suppliers"
-    ],
-    "ans": 2,
-    "why": "Unclaimable input VAT is real money donated monthly.",
-    "src": "Ch7"
-   },
-   {
-    "q": "Import paperwork (Form M, bills of lading, PAAR) should be:",
-    "opts": [
-     "Kept by the clearing agent",
-     "Emailed monthly",
-     "Discarded after clearing",
-     "Filed against the purchase cycle's documents as landed cost is assembled"
+     "One currency",
+     "Five",
+     "Two",
+     "Three — naira for the domestic manufacturers, US dollars for the Indian manufacturer, euros for the equipment vendor"
     ],
     "ans": 3,
-    "why": "True container cost comes from records, not an agent's memory.",
-    "src": "Ch7"
-   },
-   {
-    "q": "In the HealthTrade build, the clearing agent's Individual type mattered because:",
-    "opts": [
-     "It changes the WHT class — confirmed with the accountant",
-     "It changed the currency",
-     "It blocked the record",
-     "It set the group"
-    ],
-    "ans": 0,
-    "why": "Supplier Type is a tax fact wearing a form field.",
+    "why": "The base's currency set.",
     "src": "Ch8"
    },
    {
-    "q": "The domain-lookalike bank-change email in the case study died because:",
+    "q": "The domestic manufacturers' terms are:",
     "opts": [
-     "The firewall caught it",
-     "Out-of-band phone verification to the known contact was the rule, urgency or not",
-     "The bank refused",
-     "It was ignored by luck"
+     "30 days — negotiated at onboarding, recorded as the template, the working-capital value noted",
+     "Cash",
+     "90 days",
+     "Unrecorded"
+    ],
+    "ans": 0,
+    "why": "Step 3.",
+    "src": "Ch8"
+   },
+   {
+    "q": "The Indian manufacturer's terms decision records:",
+    "opts": [
+     "Nothing extra",
+     "The exchange exposure window explicitly — order to payment across the import lead time",
+     "A discount",
+     "A penalty"
     ],
     "ans": 1,
-    "why": "The control cost nothing; its absence would have cost a payment run.",
+    "why": "Module 5's order sizing will account for it.",
     "src": "Ch8"
    },
    {
-    "q": "The Indian exporter's addresses (Mumbai office + factory) let:",
+    "q": "The duplicate read's first finding was:",
     "opts": [
-     "Two records exist",
-     "Currency conversion",
-     "Receiving know what origin the paperwork should match",
-     "Faster clearing"
+     "Nothing",
+     "A fraud",
+     "A legacy trading-house record sharing a TIN with a retired importer — merged with documents re-pointed",
+     "A typo"
     ],
     "ans": 2,
-    "why": "Billing and origin are different places on one record.",
+    "why": "Step 5.",
     "src": "Ch8"
    },
    {
-    "q": "Terms 'to be renegotiated upward as volume proves' belong:",
+    "q": "The concentration finding was handled by:",
     "opts": [
-     "In a buyer's memory",
-     "In the group name",
-     "Nowhere",
-     "As a note on the record — treasury work encoded where procurement executes"
+     "Hiding it",
+     "Ignoring it",
+     "Dropping Emzor",
+     "Recording the Emzor concentration with figures for the risk review, with the second manufacturer's overlap as the mitigation conversation"
     ],
     "ans": 3,
-    "why": "The renegotiation path is part of the master's story.",
-    "src": "Ch4, Ch8"
+    "why": "Data with names, routed to the owner.",
+    "src": "Ch8"
    },
    {
-    "q": "'Everything shows due immediately' traces to:",
+    "q": "The fictitious-supplier fraud is prevented by:",
     "opts": [
-     "Terms never set on the master — no due-date engineering exists",
-     "A system bug",
-     "FX rates",
-     "The hold"
+     "Gate verification, segregation between record creation and payment approval, and bank-account matching in the duplicate read",
+     "Trust",
+     "Big suppliers only",
+     "Luck"
     ],
     "ans": 0,
-    "why": "Encode the agreed terms; documents inherit sanity forward.",
+    "why": "Error 6's prevention set.",
     "src": "Ch9"
    },
    {
-    "q": "The fix scope for missing terms is:",
+    "q": "Terms that exist only in conversation:",
     "opts": [
-     "Rewriting old invoices' dates",
-     "Correcting forward — issued invoices keep their dates",
-     "Deleting history",
-     "A new supplier record"
+     "Work fine",
+     "Compute nothing — due dates improvise and the negotiated value leaks",
+     "Are flexible",
+     "Are standard"
     ],
     "ans": 1,
-    "why": "Honest scope: the master governs what comes next.",
+    "why": "Error 3.",
     "src": "Ch9"
    },
    {
-    "q": "This module's law is:",
+    "q": "Module 1's rule is:",
     "opts": [
-     "Suppliers manage themselves",
-     "Payables beat receivables",
-     "Purchase documents are downstream of supplier masters",
-     "Holds are optional"
+     "Suppliers are informal",
+     "Banks verify themselves",
+     "Every purchasing document stands on its Supplier record — gated with verified documents and call-back-confirmed bank details, classified by the tree, carrying negotiated terms and true currencies, paid on terms to verified accounts, kept true by the reads",
+     "Terms are optional"
     ],
     "ans": 2,
-    "why": "The PO's currency, the receipt's expectations, the payment's destination all execute the record.",
+    "why": "The module rule.",
     "src": "Ch9"
    }
   ]
