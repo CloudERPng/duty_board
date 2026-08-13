@@ -1,0 +1,94 @@
+{
+ "actions": [],
+ "autoname": "format:AEN-{YYYY}-{#####}",
+ "creation": "2026-08-13 14:00:00.000000",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "room",
+  "track",
+  "seats",
+  "granted_on",
+  "expires_on",
+  "status",
+  "source_order",
+  "note"
+ ],
+ "fields": [
+  {
+   "fieldname": "room",
+   "fieldtype": "Link",
+   "label": "Client Room",
+   "options": "Client Room",
+   "reqd": 1,
+   "in_list_view": 1
+  },
+  {
+   "fieldname": "track",
+   "fieldtype": "Link",
+   "label": "Track",
+   "options": "Duty Certification Track",
+   "reqd": 1,
+   "in_list_view": 1
+  },
+  {
+   "fieldname": "seats",
+   "fieldtype": "Int",
+   "label": "Seats",
+   "reqd": 1,
+   "in_list_view": 1
+  },
+  {
+   "fieldname": "granted_on",
+   "fieldtype": "Date",
+   "label": "Granted On"
+  },
+  {
+   "fieldname": "expires_on",
+   "fieldtype": "Date",
+   "label": "Expires On"
+  },
+  {
+   "fieldname": "status",
+   "fieldtype": "Select",
+   "label": "Status",
+   "options": "Active\nExpired\nRevoked",
+   "default": "Active",
+   "in_list_view": 1
+  },
+  {
+   "fieldname": "source_order",
+   "fieldtype": "Data",
+   "label": "Source Order"
+  },
+  {
+   "fieldname": "note",
+   "fieldtype": "Small Text",
+   "label": "Note"
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "links": [],
+ "modified": "2026-08-13 14:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "Duty Board",
+ "name": "Duty Academy Entitlement",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}

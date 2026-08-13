@@ -4210,6 +4210,15 @@ def client_training_admin_assign(users, track, due_on=None):
 	)
 	if not mods:
 		frappe.throw(_("That track has no courses yet."))
+	from duty_board.academy import seat_gate
+
+	fresh = [
+		u for u in users
+		if not frappe.db.exists(
+			"Duty Training Record", {"room": room.name, "module": mods[0], "trainee": u}
+		)
+	]
+	seat_gate(room.name, track, len(fresh))
 	created, existing = 0, 0
 	for u in users:
 		made = 0
@@ -5438,6 +5447,22 @@ def room_set_products(name, products):
 	return get_room(name)
 
 
+def _visible_tracks(room, tracks, prods):
+	"""Included tracks come with the room's products, as they always have.
+	Paid tracks appear only where seats have actually been bought."""
+	from duty_board.academy import entitlement_for
+
+	out = []
+	for t in tracks:
+		if (t.get("access") or "Included") == "Paid":
+			if entitlement_for(room.name, t.name)["seats"]:
+				out.append(t)
+			continue
+		if (t.product or "").strip().lower() in prods:
+			out.append(t)
+	return out
+
+
 def _tracks_for_room(room, user):
 	prods = _room_products(room)
 	if not prods:
@@ -5445,10 +5470,10 @@ def _tracks_for_room(room, user):
 	tracks = frappe.get_all(
 		"Duty Certification Track",
 		filters={"active": 1, "audience": "Client"},
-		fields=["name", "title", "product", "description"],
+		fields=["name", "title", "product", "description", "access"],
 		order_by="product asc, title asc",
 	)
-	tracks = [t for t in tracks if (t.product or "").strip().lower() in prods]
+	tracks = _visible_tracks(room, tracks, prods)
 	out = []
 	for t in tracks:
 		mods = frappe.get_all(
@@ -5499,8 +5524,27 @@ def client_get_tracks():
 	return _tracks_for_room(room, frappe.session.user)
 
 
+def _pursue_seat_gate(track):
+	"""A learner starting a paid track burns a seat too — otherwise the
+	administrator's careful count is undone from the other side."""
+	from duty_board.academy import seat_gate, seats_used
+
+	room = _client_room()
+	mods = frappe.get_all(
+		"Duty Certification Track Module", filters={"parent": track}, pluck="module"
+	)
+	if not mods:
+		return
+	already = frappe.db.exists(
+		"Duty Training Record",
+		{"room": room.name, "module": ["in", mods], "trainee": frappe.session.user},
+	)
+	seat_gate(room.name, track, 0 if already else 1)
+
+
 @frappe.whitelist()
 def client_pursue_track(track):
+	_pursue_seat_gate(track)
 	room = _client_room()
 	user = frappe.session.user
 	t = frappe.db.get_value(

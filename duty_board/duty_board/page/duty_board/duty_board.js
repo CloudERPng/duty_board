@@ -7154,6 +7154,68 @@ this.$me.find(".duty-req-ok").on("click", (e) => {
 		d.fields_dict.date.$input && d.fields_dict.date.$input.attr("min", frappe.datetime.get_today());
 	}
 
+	academy_orders_dialog() {
+		const esc = frappe.utils.escape_html;
+		const d = new frappe.ui.Dialog({ title: `\u{1F9FE} ${__("Academy seat orders")}`, size: "extra-large" });
+		const money = (v) => format_currency(v, "NGN");
+		const load = () =>
+			frappe.call({
+				method: "duty_board.academy.orders",
+				callback: (r) => {
+					const rows = r.message || [];
+					$(d.body).html(rows.length ? `
+						<table class="table table-sm" style="font-size:12px">
+							<tr><th>${__("Order")}</th><th>${__("Customer")}</th><th>${__("Track")}</th>
+							<th>${__("Seats")}</th><th>${__("Total")}</th><th>${__("Status")}</th><th></th></tr>
+							${rows.map((o) => `<tr>
+								<td>${esc(o.name)}</td><td>${esc(o.customer)}</td><td>${esc(o.track_title)}</td>
+								<td>${o.seats}</td><td>${money(o.total)}</td>
+								<td>${o.status === "Requested" ? `<b style="color:#B45309">${esc(o.status)}</b>` : esc(o.status)}</td>
+								<td>${o.status === "Requested"
+									? `<a class="duty-ao-ok" data-n="${esc(o.name)}">${__("Approve")}</a> \u00b7 <a class="duty-ao-no" data-n="${esc(o.name)}">${__("Decline")}</a>`
+									: esc(o.payment_ref || "")}</td></tr>`).join("")}
+						</table>
+						<p class="text-muted" style="font-size:11.5px">${__("Approving is the act that confirms money arrived. Seats activate immediately and the client is emailed.")}</p>`
+						: `<div class="text-muted">${__("No seat orders yet.")}</div>`);
+					$(d.body).find(".duty-ao-ok").on("click", (e) => {
+						const n = $(e.currentTarget).data("n");
+						const ad = new frappe.ui.Dialog({
+							title: __("Approve {0}", [n]),
+							fields: [
+								{ fieldname: "payment_ref", fieldtype: "Data", label: __("Payment reference"), reqd: 1,
+								  description: __("Bank reference or receipt number — this is your record that payment landed.") },
+								{ fieldname: "expires_on", fieldtype: "Date", label: __("Seats expire on (optional)") },
+							],
+							primary_action_label: __("Activate seats"),
+							primary_action: (v) => {
+								ad.hide();
+								frappe.call({
+									method: "duty_board.academy.order_approve",
+									args: { name: n, payment_ref: v.payment_ref, expires_on: v.expires_on },
+									callback: () => { frappe.show_alert({ message: __("Seats activated"), indicator: "green" }); load(); },
+								});
+							},
+						});
+						ad.show();
+					});
+					$(d.body).find(".duty-ao-no").on("click", (e) => {
+						const n = $(e.currentTarget).data("n");
+						frappe.prompt(
+							{ fieldname: "reason", fieldtype: "Small Text", label: __("Reason") },
+							(v) => frappe.call({
+								method: "duty_board.academy.order_decline",
+								args: { name: n, reason: v.reason },
+								callback: load,
+							}),
+							__("Decline {0}", [n]), __("Decline")
+						);
+					});
+				},
+			});
+		load();
+		d.show();
+	}
+
 	cohorts_dialog(x) {
 		const esc = frappe.utils.escape_html;
 		const d = new frappe.ui.Dialog({ title: `\u{1F465} ${x.customer} \u2014 ${__("Training cohorts")}`, size: "extra-large" });
@@ -7629,6 +7691,8 @@ this.$me.find(".duty-req-ok").on("click", (e) => {
 	academy_dialog(x) {
 		const d = new frappe.ui.Dialog({ title: `🎓 ${x.customer} — ${__("Training Academy")}`, size: "large" });
 		d.set_primary_action(`\u{1F465} ${__("Cohorts")}`, () => { d.hide(); this.cohorts_dialog(x); });
+		d.set_secondary_action_label(`\u{1F9FE} ${__("Seat orders")}`);
+		d.set_secondary_action(() => { d.hide(); this.academy_orders_dialog(); });
 		const load = () =>
 			frappe.call({
 				method: "duty_board.client_room.room_training",
