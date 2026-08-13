@@ -947,473 +947,473 @@
  },
  "material_requests": {
   "title": "Procurement 3 — Material Requests: Demand Made Visible",
-  "desc": "The demand layer: request anatomy and purposes, why need is separated from commitment, auto-replenishment, branch transfer flows, approval governance and queue craft, and the downstream paths from request to order.",
+  "desc": "Material Requests and the demand machinery in ZhiftERP: the field walk — type routing, need dates, justifications, and the status life; the three demand sources — manual requests, reorder auto-generation on projected quantity with the computation as justification, and order-driven demand; the screening step — stock elsewhere first, the need as stated, size and date, budget and policy — with the approval-band separation and the purchases-avoided figure; consolidation — the worksheet, the ordering arithmetic with written adjustments, the date and destination structures, the request-to-order trace, and the window discipline; transfer and issue requests with the cascade rule from branch demand to hub purchasing; and the five demand reads including the quarterly trace audit.",
   "lessons": [
    {
-    "title": "Chapter 1 — The Material Request, field by field",
-    "est": "14",
-    "html": "<p>Every purchase your firm makes began as a NEED somewhere — a shelf running low, a branch running out, a project needing kit. The <b>Material Request</b> is where need becomes a document, and this module is about why that step exists and how to run it well. First, the anatomy.</p><ul><li><b>Purpose</b> — the request's TYPE, the single most consequential field: <b>Purchase</b> (buy this from outside), <b>Material Transfer</b> (move it between our own warehouses), <b>Material Issue</b> (consume it internally — stationery to admin, spares to maintenance). The purpose decides what the request BECOMES downstream (Chapter 3), so choosing it correctly is choosing the right machinery.</li><li><b>Requested By and the requesting context</b> — who needs this. The requester is the document's voice; procurement will route questions to them, and the audit trail starts with them.</li><li><b>Required By (schedule date)</b> — when the need bites: header-level, and refinable <b>per row</b> for staggered needs. This date is the request's honesty test — Chapter 6 convicts the everything-urgent culture — and it is what procurement plans backward from: required-by minus lead time equals order-by, which is why Buying 2's honest lead times matter here.</li><li><b>The items grid</b> — item, quantity, <b>UOM</b> (the trade unit with its conversion — Buying 2's arithmetic applies: a branch requesting 10 Carton-12 is requesting 120 units, and both readings must agree), and per row the <b>target warehouse</b> — where the goods should END UP. For a purchase, the receiving warehouse; for a transfer, the destination branch store. The warehouse on the row is what makes multi-location demand legible.</li><li><b>Status machinery</b> — Draft, then Submitted (Pending); as downstream documents are made FROM it, the request tracks <b>ordered percentage</b> per row — Partially Ordered, then Ordered (or Transferred / Issued per purpose); Stopped ends it deliberately; Cancelled withdraws it. The create-from spine you know from the selling cycle runs here too: only documents made FROM the request count against it.</li></ul><p><b>Draft, check, submit.</b> The MR is the cheapest document in the whole procurement cycle to get right — nothing has been promised, bought, or moved. Thirty seconds in Draft (right purpose? right warehouse? quantities in a sane UOM? honest date?) saves every downstream document from inheriting a malformed need. Submission makes it visible: the request enters procurement's queue, and Chapter 2 explains why that visibility is the entire point.</p>"
+    "title": "Chapter 1 — The Material Request: scope and position",
+    "est": "11",
+    "html": "<p>This module covers the Material Request and the demand machinery in ZhiftERP. On completing this module you will be able to: complete the Material Request field walk; state the four request types and what each routes to; operate the three demand sources including reorder auto-generation; run the screening step that stands between demand and commitment; consolidate requests into purchase demand with the ordering arithmetic; handle transfer and issue requests at the module boundary; and run the demand reads.</p><p><b>What a Material Request is.</b> The Material Request is the demand document: a recorded statement that some part of the business needs some quantity of some item by some date. It commits nothing — no stock moves, no money is promised, no supplier is engaged. Its function is to make demand explicit, attributable, and reviewable before anything is committed, which is the structural difference between a purchasing function that responds to recorded demand and one that responds to corridor conversations.</p><p><b>Position in the flow.</b> Demand precedes commitment: the Material Request sits before the Request for Quotation and the Purchase Order (modules 4-5), and before the transfer machinery on the internal side. The sequence — need recorded, need screened, need consolidated, then committed — gives the buying decision its shape: <b>the Purchase Order commits against screened, consolidated demand, and every order line traces back to the requests that justified it.</b></p><p><b>The four types.</b> The Material Request Type field routes the demand:</p><p>1. <b>Purchase</b> — the demand becomes buying: the type this track's modules 4-5 consume.<br>2. <b>Material Transfer</b> — the demand is met from another warehouse: the branch replenishment lane the Inventory track's module 6 operates.<br>3. <b>Material Issue</b> — the demand is internal consumption: stock issued to a department or purpose through the issue lane.<br>4. <b>Manufacture</b> — the demand routes to production, where the site runs the manufacturing lane.</p><p>The type is a routing decision made at the request, and Chapter 6 covers the boundary cases — including the transfer request that becomes purchase demand when the network cannot cover it.</p><p><b>Custody.</b> Requests are raised by the roles the matrix permits (branch supervisors, department heads, and the reorder machinery itself); screening is the procurement function's step; approval bands per the matrix; and the standing rule: <b>demand is recorded before it is met — no order without its requests, no request without its stated need.</b></p><p><b>Module contents.</b> Chapter 2: the field walk. Chapter 3: demand sources. Chapter 4: screening. Chapter 5: consolidation. Chapter 6: transfers and issues. Chapter 7: the demand reads. Chapter 8: worked example. Chapter 9: review and the module rule.</p>"
    },
    {
-    "title": "Chapter 2 — Why a demand layer exists",
+    "title": "Chapter 2 — The Material Request doctype",
+    "est": "12",
+    "html": "<p>Open Material Request (awesome bar) &gt; New. Complete the fields in order.</p><p><b>1. Material Request Type.</b> The routing decision (Chapter 1): Purchase, Material Transfer, Material Issue, or Manufacture. The type determines which machinery consumes the request and what the warehouse fields mean, so it is set first and set correctly — a transfer need typed as a purchase generates buying for stock the network already holds.</p><p><b>2. Requested By and the requesting context.</b> Who raises the request, and for which part of the business — the branch, department, or cost centre per the site's fields. Attribution matters operationally: the demand reads (Chapter 7) aggregate by requester, and the screening step (Chapter 4) evaluates need in the requester's context.</p><p><b>3. Required By Date.</b> The date the need becomes real — when the branch runs out, when the job starts, when the stock is needed on the shelf. The honest-date rule applies in a specific form here: the required-by date is the <b>need date, not the wish date</b>. Dates padded early teach the system's readers to discount them; dates entered late guarantee expediting. Every downstream schedule — the quotation cycle, the order's delivery date, the import consignment calendar — computes backward from this field.</p><p><b>4. The items table.</b> Per row:</p><p>1. <b>Item and quantity in the stated unit</b> — the unit column read per the standing discipline; branch requests in cartons and counts in units are the module 2 pairing rule's territory.<br>2. <b>The warehouse fields per type</b> — for Purchase: the warehouse the goods should arrive into; for Material Transfer: the source and target of the movement; for Material Issue: the warehouse issuing. The fields state where the need physically is.<br>3. <b>The per-row required-by date</b> where needs differ by line.</p><p><b>5. The justification.</b> The stated need — the reorder computation for auto-generated requests (Chapter 3), the branch's sales cover statement, the department's purpose for an issue. One line suffices; its presence is what the screening step reads, and a request whose need cannot be stated in a line is a request the screen returns to its raiser.</p><p><b>6. Save, submit, and the status life.</b> Submission enters the request into the demand pipeline. The status tracks its life: Pending, Partially Ordered, Ordered (for purchase types — the %ordered figure per row), Transferred or Issued for the internal types, and Stopped for demand deliberately ended (Chapter 7's hygiene). A request is never deleted to make it go away; it is stopped with its reason, so the demand record stays complete.</p><p><b>Verification per request.</b> The type correct for the need; the requester and context attributed; the date the need date; quantities in read units against stated warehouses; the justification present.</p>"
+   },
+   {
+    "title": "Chapter 3 — Demand sources",
+    "est": "12",
+    "html": "<p>Demand enters the pipeline from three sources. This chapter is each source and its rules.</p><p><b>1. Manual requests.</b> Branches and departments raise requests for what they need: the branch's stock request ahead of a promotion, the department's consumables, the clinic's equipment need. The rules:</p><p>1. <b>Raised by the permitted roles</b> in the requester's own context — the branch requests for the branch.<br>2. <b>Justified in a line</b> (Chapter 2.5) — the sales cover, the purpose, the event.<br>3. <b>Dated honestly</b> — the need date, computed from the requester's own arithmetic (the branch that sells forty units a week and holds eighty knows its date).</p><p><b>2. Reorder auto-generation.</b> The Inventory track's module 6 machinery: reorder levels on the item-warehouse rows, evaluated against <b>projected quantity</b> — actual stock minus reservations plus incoming orders — so the computation sees commitments in both directions. When projected quantity falls below the reorder level, the system generates a Material Request for the reorder quantity:</p><p>1. <b>The generated request carries its computation as its justification</b> — the level, the projected figure, the shortfall: screened like any other demand, not treated as pre-approved because a machine raised it.<br>2. <b>The parameters are module 2's planning fields</b> — measured lead times, costed safety stock, quantities in carton multiples: the auto-trigger is only as good as the fields it computes from, and the planning review is where its quality is maintained.<br>3. <b>The generation runs on the configured schedule</b>, and the reorder review (the weekly pass the Inventory track defined) reads what it generated before the screen consumes it.</p><p><b>3. Order-driven demand.</b> Sales commitments generate purchase demand where stock will not cover them: the enterprise order whose equipment must be bought (the Selling track's BizRetail Ltd case triggered exactly this), the made-to-order line, the special. The rules: the demand references its driving order, its date computes backward from the order's delivery schedule with the lead time (module 2's field), and its quantities are the order's quantities — demand that borrows an order's justification to buy extra is padding the screen exists to catch.</p><p><b>4. The source mix as information.</b> The demand pattern read (Chapter 7) splits the pipeline by source. The mix is operationally meaningful: a network whose demand is mostly auto-generated runs on its parameters (and its exceptions are parameter questions); one whose demand is mostly manual runs on judgment (and its exceptions are screening questions); order-driven spikes are the commercial calendar showing through. The read states the mix; the review acts on what it states.</p>"
+   },
+   {
+    "title": "Chapter 4 — The screening step",
+    "est": "12",
+    "html": "<p>Between recorded demand and committed money stands one procedure. This chapter is the screen.</p><p><b>1. What screening is.</b> The procurement function's review of submitted requests before they consolidate into buying: each request confirmed as a genuine, correctly-sized, correctly-dated need that the network cannot meet more cheaply from what it already holds. Screening runs on the demand pipeline's cadence (daily or per the volume), and its output is requests passed, returned, or resized — each with its note.</p><p><b>2. The screening checks, in order.</b></p><p>1. <b>Stock elsewhere first.</b> Before any purchase: does the network hold this item idle somewhere? The Inventory track's rebalancing lane (module 7) is the first answer to demand — the lateral transfer from a branch holding dead stock costs transport; the purchase costs the full landed figure. The screen queries network stock as its first act, and a purchase request for an item another warehouse holds in excess converts to a transfer request with the note.<br>2. <b>The need as stated.</b> The justification against the requester's context: the branch's sales cover arithmetic sampled against its actual sell-through (the reads the Inventory track's module 6 built serve here); the department's purpose against its pattern. Returned requests state what was missing.<br>3. <b>The size and the date.</b> Quantity against the stated need (the pairing rule catching unit errors — a branch requesting 15 when it means 15 cartons, or the reverse); the date against the real calendar.<br>4. <b>Budget and policy where configured</b> — the request against its cost centre's frame, per the site's budget configuration; policy items (restricted classes, approval-required categories) routed to their named approvers.</p><p><b>3. Approval bands.</b> Screened demand approves per the matrix: routine replenishment within the standing bands; above-band or exceptional demand to the named approvers with the screen's notes attached. The approval attaches to the demand before the money is committed — module 5's Purchase Order approval then reviews the commitment (supplier, price, terms), not the need, because the need was settled here. The two approvals ask different questions, and keeping them separate is what keeps both short.</p><p><b>4. The screen's record.</b> Each screening pass files its list: requests passed with sizes confirmed, returned with reasons, converted to transfers with the stock they found. The monthly screening read (Chapter 7) samples the passes — and the specific figure it tracks is stated plainly: <b>purchases avoided by the stock-elsewhere check</b>, in naira, because that figure is the screen's measurable contribution and the reason the step exists.</p>"
+   },
+   {
+    "title": "Chapter 5 — Consolidation",
+    "est": "12",
+    "html": "<p>Screened demand consolidates into buying. This chapter is the worksheet and the arithmetic.</p><p><b>1. Why consolidation.</b> The same item is demanded from several sources in the same window — the hub's reorder trigger, two branches' requests. Ordering each separately produces three small orders, three deliveries, three receipts, and none of the volume terms the supplier's price breaks offer. Consolidation combines the demand into one purchase decision per item per supplier per window, and the trace (below) keeps every source visible inside it.</p><p><b>2. The consolidation worksheet.</b> Per buying window, per item:</p><p>1. <b>The demand lines</b> — each open, screened request row for the item: source, quantity, required-by date, destination warehouse.<br>2. <b>The consolidated quantity</b> — the sum, adjusted by the ordering arithmetic below.<br>3. <b>The date structure</b> — the earliest genuine need date governs the order's first delivery; where sources need at different dates, the consolidated order carries the schedule (module 5's per-row dates and split deliveries serve exactly this).<br>4. <b>The destination structure</b> — where the goods should land: the hub for onward distribution in the standing network pattern, or split destinations where the supplier delivers direct per the arrangement.</p><p><b>3. The ordering arithmetic.</b> The consolidated quantity is shaped by module 2's constraints, applied in order: the purchase unit's multiples (orders in whole cartons), the supplier's minimums, the price-break thresholds where crossing one is priced against carrying the extra (the module 4 quotations state the breaks; the worksheet shows the comparison), and the import consignment arithmetic on foreign lines. Each adjustment above the raw demand is written on the worksheet with its reason — the excess is a decided figure, not a rounding accident.</p><p><b>4. The request-to-order trace.</b> The Purchase Order (module 5) creates against the consolidated demand, and the system links each order row to its requests: %ordered advances on every source request as the order commits. The trace answers, in both directions, the two standing questions: which requests does this order serve (the order's justification), and where is my request (the requester's status view). A consolidation that loses its trace turns the demand pipeline into a suggestion box; the linkage is maintained as part of creating the order, not reconstructed afterward.</p><p><b>5. The window discipline.</b> Consolidation runs on the buying calendar — the weekly window for domestic replenishment, the consignment calendar for imports — and demand arriving after a window closes waits for the next unless its date cannot wait, in which case it is the expedite lane with its named approval and its premium visible. The calendar is what makes consolidation possible; a pipeline ordered continuously in dribbles consolidates nothing.</p>"
+   },
+   {
+    "title": "Chapter 6 — Transfer and issue requests",
+    "est": "12",
+    "html": "<p>Two request types stay internal. This chapter is their handling and the boundary where internal demand becomes buying.</p><p><b>1. Material Transfer requests.</b> The branch replenishment lane: the branch (or the reorder machinery evaluating the branch's rows) requests stock from the hub. The mechanics belong to the Inventory track's module 6 — the weekly replenishment run, the two-step transfer with the transit warehouse, the receiving confirmation — and this module's contribution is the demand side: the request raised, dated, and justified per Chapter 2, consumed by the transfer run.</p><p><b>2. The cascade: when transfer demand becomes purchase demand.</b> The standing network pattern is hub-and-spoke: branches request from the hub; the hub buys from suppliers. The cascade rule:</p><p>1. <b>The branch's request is always a transfer request</b> — the branch's relationship is with the hub, and branch-level purchasing is the exception lane the network policy defines (the Inventory track's exception purchase lane), not a routing choice.<br>2. <b>The hub's coverage check</b> — the transfer run evaluates the hub's projected stock against the requested transfers: covered demand transfers on the run's schedule.<br>3. <b>Uncovered demand cascades</b> — the shortfall becomes purchase demand at the hub: the hub's reorder row may already have triggered (the projected figure fell as the transfer reservations landed), or the screen raises the purchase demand explicitly with the branch requests as its justification. Either way the consolidation worksheet (Chapter 5) shows the branch demand inside the purchase quantity, and the trace runs branch request → hub purchase → order.</p><p><b>3. Material Issue requests.</b> Internal consumption — consumables to a department, materials to a project — requested, screened for purpose, and issued through the Inventory issue lane with the cost landing on the consuming context per the accountant's design. The issue request's discipline is the purpose statement: issues aggregate into the consumption reads, and unattributed consumption is the leak those reads exist to find.</p><p><b>4. The boundary, stated.</b> This module owns demand and its screening; the Inventory track owns the movement machinery (transfers, issues, the transit discipline); modules 4-5 own the buying that uncovered demand becomes. The documents keep the boundary visible: the request states the need, the transfer or issue documents the internal movement, the order documents the commitment — one need, each stage on its own record, the trace connecting them.</p>"
+   },
+   {
+    "title": "Chapter 7 — The demand reads",
+    "est": "12",
+    "html": "<p>The standing reads on the demand pipeline, each with its cadence and action.</p><p><b>1. The open-demand read — weekly.</b> All open requests by age, status, and required-by date:</p><p>1. <b>Approaching dates</b> — open requests whose need dates fall inside the buying lead time: each is either in a consolidation window, on an order (%ordered advancing), or a problem named now while expediting is still an option.<br>2. <b>The aging tail</b> — requests open past the policy's window with no ordering activity: each chased to its state — superseded (stopped with reason), waiting on a window (noted), or lost in the pipeline (the process finding).</p><p><b>2. The %ordered read — weekly, with the open-demand pass.</b> Partially ordered requests: the unordered remainder confirmed as still needed (demand shrinks as reality changes — the remainder is re-screened, not automatically carried) or stopped. The figure per request is the requester's answer to <i>where is my request</i>, and keeping it true is what makes the pipeline trustworthy to its users.</p><p><b>3. The stale and stopped hygiene — monthly.</b> Requests stopped in the month with their reasons aggregated; open requests with passed dates and no action swept into decisions. The pipeline's target state matches every other register in the programme: only live demand, because the consolidation worksheets and the buying calendar compute from it.</p><p><b>4. The demand pattern read — monthly.</b> The pipeline by source (Chapter 3.4), requester, and item class:</p><p>1. <b>The source mix</b> and its movement — auto-generation's share rising as parameters mature is the intended direction; manual spikes trace to their events.<br>2. <b>The requester patterns</b> — branches whose requests consistently resize at screening (over-asking as negotiation) are a conversation with data; branches that never request until stock-out are the opposite conversation.<br>3. <b>The screening figures</b> — returned and converted requests by reason, and the purchases-avoided figure (Chapter 4.4) stated in naira.</p><p><b>5. The trace audit — quarterly.</b> A sample of the quarter's Purchase Orders walked backward: each order row to its requests, each request to its justification. The audit confirms the standing rule holds — no order without its demand — and its findings are process corrections: the order raised without requests (the corridor purchase the pipeline exists to end), the trace lost at consolidation, the justification that was a formality. The audit files with the procurement function's quarterly records, alongside the module 8 scorecard cycle.</p>"
+   },
+   {
+    "title": "Chapter 8 — Worked example: the 300-carton consolidation",
     "est": "13",
-    "html": "<p>A fair question from every impatient client: why not just raise purchase orders directly? The answer is the module's thesis, and a consultant must be able to argue it in one minute.</p><p><b>Separation of need from commitment.</b> The Material Request says WE NEED THIS; the Purchase Order says WE ARE BUYING THIS FROM YOU AT THIS PRICE. Different statements, different authority. ANYONE appropriate can raise a request — the storekeeper who sees the shelf, the branch manager who knows their weekend, the project lead with a kit list — because stating a need requires knowing the need. COMMITTING money requires knowing the suppliers, the rates, the budget, and the consolidation picture — which is procurement's job. The MR layer lets the whole organisation contribute demand without distributing the chequebook.</p><p><b>What the separation buys, concretely:</b></p><ul><li><b>Maverick buying dies.</b> Where policy says purchases begin as requests, the PO raised from nowhere — the friend-of-a-staff-member supplier, the branch buying locally at retail, the duplicate order two people phoned in — becomes visible as a policy exception rather than invisible as normal noise. The audit question WHO NEEDED THIS has a documented answer for every naira spent.</li><li><b>Consolidation becomes possible.</b> Five branches each need paracetamol; five direct POs would buy five times at five moments. Five REQUESTS sitting in one queue become ONE consolidated order at pallet economics (Chapter 7's mechanics) — and consolidated spend is negotiating leverage (Buying 1, Chapter 2's argument, now operational).</li><li><b>Demand data exists.</b> Requests are a record of what the organisation NEEDED, distinct from what it bought — the unmet-demand read (requested but never fulfilled, and why) that pure PO history cannot give.</li><li><b>The queue is manageable.</b> One inbox, oldest-and-most-urgent first, with statuses — versus needs living in WhatsApp messages, corridor conversations, and sticky notes, fulfilled in order of who shouts loudest.</li></ul><p><b>Proportionality — the consultant's judgment.</b> Not every firm needs every purchase through MRs: an 11-person firm's MD buying a laptop can go straight to PO without ceremony; a 30-branch chain's replenishment absolutely cannot. The implementation conversation sets the policy: which purchase categories REQUIRE the request layer (stock replenishment: always; branch demand: always; ad-hoc small services: often not), and the system's role is making the required path the easy path. The layer is governance, and governance is sized to what it governs.</p>"
+    "html": "<p>This chapter runs the demand machinery through the standing case: the PARA-500 purchase that module 5 will place with Emzor. Values and outcomes are listed per step.</p><p><b>Step 1 — the auto-trigger (Chapter 3).</b> The weekly reorder evaluation at Central Warehouse computes PARA-500's projected quantity — actual stock minus the sales reservations, plus nothing incoming — below the reorder level. The machinery generates a Material Request, type Purchase, for <b>260 cartons</b>, carrying its computation as the justification: the level, the projected figure, the shortfall, the reorder quantity in carton multiples per the planning fields.</p><p><b>Step 2 — the branch requests (Chapters 3, 6).</b> The same week, two branches raise transfer requests for PARA-500 ahead of their local demand: <b>Ibadan for 15 cartons</b>, <b>Akure for 25 cartons</b> — each justified with its sales cover arithmetic, each dated to its need. The transfer run's coverage check finds the hub's projected stock — already below reorder — cannot cover the transfers: the branch demand cascades into the hub's purchase demand per the cascade rule, the branch requests standing as part of its justification.</p><p><b>Step 3 — the screen (Chapter 4).</b> The screening pass works the three demands: the stock-elsewhere check runs first and finds no idle PARA-500 anywhere in the network (the rebalancing lane has nothing to offer — this is genuine new demand); the branch arithmetic samples clean against sell-through; the units read correctly (cartons throughout, per the pairing rule); the dates hold. All three pass, with the screen's notes filed.</p><p><b>Step 4 — the consolidation worksheet (Chapter 5).</b> The buying window consolidates PARA-500: 260 (Central reorder) + 15 (Ibadan) + 25 (Akure) = <b>300 cartons</b>. The ordering arithmetic confirms the figure: whole cartons already; above Emzor's minimum; the quantity sits at the volume band the standing arrangement prices (module 4's cycle established the rates — the order will place at <b>₦9,600 per carton</b>). The date structure records the earliest genuine need — Central's cover date — and notes that the branches' dates allow the second drop: the worksheet anticipates the <b>two-drop schedule</b> module 5 will commit (180 next week, 120 the week after), driven by the dates the requests stated.</p><p><b>Step 5 — the trace stands (Chapters 5, 7).</b> Module 5's Purchase Order will create against this consolidated demand, and at that moment %ordered advances on all three requests: the Central trigger, Ibadan's 15, Akure's 25 — each requester's status view answering where their request went. The quarter's trace audit will walk this order backward and find the complete chain: order → worksheet → three requests → three justifications — the standing rule holding: no order without its demand.</p><p><b>The pipeline evidence.</b> The requests with their justifications; the screen's pass with the stock-elsewhere check recorded; the worksheet with the arithmetic and the date structure; the trace ready for the order. Module 4 covers how the Emzor rates on this worksheet were established; module 5 places the commitment.</p>"
    },
    {
-    "title": "Chapter 3 — The three purposes in practice",
-    "est": "13",
-    "html": "<p>The purpose field routes the request into one of three different machines. Choosing correctly is this chapter; the wrong choice is Chapter 9's most common ticket.</p><p><b>Purchase — buy it from outside.</b> The need cannot be met from our own stock anywhere: the request's destiny is a supplier. Downstream it becomes an RFQ (sourcing new — Buying 4) or a Purchase Order directly (known supplier, agreed rates — Buying 5), and the request tracks its ordered percentage as POs are made from it. The target warehouse on each row is where the goods will be RECEIVED — which the PO inherits, which the receipt executes (Buying 6).</p><p><b>Material Transfer — move it between our warehouses.</b> The need exists at one location while the stock exists at another: the Ibadan branch is out of what the Lagos central store holds in pallets. The request's destiny is a <b>stock transfer</b>, not a purchase — no supplier, no money, just internal movement with a paper trail: source warehouse, target warehouse, the transfer document executing it, the request tracking transferred percentage. This is the machinery of <b>branch replenishment</b>, the multi-location lifeblood (Chapter 5 gives it a full chapter), and buying externally what your own central store already holds is the expensive version of choosing the wrong purpose.</p><p><b>Material Issue — consume it internally.</b> The need is consumption, not movement-for-sale: stationery to the admin office, cleaning supplies to facilities, spare parts to maintenance. The request's destiny is an issue document that writes stock OUT to an expense context — the goods leave the ledger deliberately, attributed, instead of evaporating. Internal consumption without issues is how consumables shrinkage hides: the stock count that never reconciles because usage was real but unrecorded.</p><p><b>The choosing test, one line each.</b> Must it come from outside? — Purchase. Do we hold it elsewhere? — Transfer. Are we using it up ourselves? — Issue. The test is asked in that ORDER, because the cheapest fulfilment is the one you already own: check internal availability before buying is a one-look habit (the projected-quantity view across warehouses) that pays for the whole request layer by itself in avoided duplicate stock.</p><p><b>Mixed needs split cleanly.</b> A branch's monthly list may contain all three kinds — resale stock (transfer from central), a local-only item central never carries (purchase), cleaning materials (issue). Three purposes, three requests — not one request with a blended identity that no downstream machine can execute. The requester learns the split once; the templates (a branch's standard monthly request per purpose) make it effortless thereafter.</p>"
-   },
-   {
-    "title": "Chapter 4 — Auto-replenishment: the trigger fires here",
-    "est": "13",
-    "html": "<p>Buying 2, Chapter 5 set the planning fields — reorder level, reorder quantity, lead time, safety stock. This chapter is where they come alive: the system watching projected stock and raising Material Requests <b>automatically</b> when triggers are crossed.</p><p><b>The mechanics.</b> With reorder levels set (per item, per warehouse where set), a scheduled evaluation compares <b>projected quantity</b> — actual minus reserved plus incoming, the same arithmetic the whole trading position runs on — against each trigger. Crossing it raises a Material Request for the reorder quantity, purpose per the item's replenishment design (Purchase for centrally-bought stock; Transfer where a branch replenishes from central). The request lands in the same queue as human ones, marked by its origin, and flows through the same downstream machinery. Replenishment stops depending on somebody noticing.</p><p><b>Auto is not autopilot.</b> The auto-MR is a PROPOSAL computed from the fields' honesty, and the review posture matters: procurement scans the auto queue with human context the fields lack — the promotion that will spike demand next month, the supplier holiday, the discontinuation decision the master doesn't know yet. The right rhythm is review-and-release, not blind conversion and not (the opposite failure) letting auto requests rot unactioned because <i>the system raised them, not a person</i>. An auto request IS a person speaking — the person who set the level — at one remove.</p><p><b>Tuning, not disabling.</b> The predictable complaint after go-live: <i>the system raises too many requests</i> — or too few, discovered as stockouts. Both are the FIELDS talking, not the machinery failing: levels set high in caution flood the queue; dishonest lead times fire triggers too late; dead items with live levels request themselves forever. The fix is Buying 2's quarterly exception review (the stockouts and the never-turns), item by item — and the discipline to resist the lazy fix of switching auto-replenishment off, which returns the firm to shelf-watching by memory and calls it peace. A noisy trigger is mistuned; a disabled trigger is blind.</p><p><b>What auto-replenishment changes commercially.</b> Stock-outs on running lines become a FIELDS problem with a named fix instead of a recurring emergency; buying smooths into planned consolidations instead of panic singles (the freight and price difference is real money); and the procurement team's attention moves up a level — from remembering what to buy, to judging what the system proposes and negotiating how it is bought. That attention shift is the entire return on the master-data work, and it is why the fields chapter and this chapter are one system taught in two places.</p>"
-   },
-   {
-    "title": "Chapter 5 — Branch demand & the transfer flow",
-    "est": "13",
-    "html": "<p>For multi-location trade — your pharmacy chains, your supermarket clients, your own multi-branch reality — the Material Request is the <b>branch's voice</b>, and the transfer flow is how the network breathes. This chapter runs it end to end.</p><p><b>The shape of the network.</b> The common Nigerian pattern: central procurement buys in bulk into a main store (pallet economics, consolidated negotiation — the whole Buying 1-2 architecture), and branches replenish FROM central by transfer. Branches rarely buy externally; when they do, it is exceptional and visible. The request layer enforces the shape: branch need enters as <b>Material Transfer requests</b> targeting the branch warehouse, sourced from central — never as branch-level purchases that fragment the buying power the shape exists to create.</p><p><b>The branch request, well made.</b> The branch manager (or the branch's own auto-triggers — reorder levels per branch warehouse, Chapter 4) raises the transfer request: items in trade UOMs, quantities honest to the branch's velocity, required-by aligned to the delivery run. The craft points: request to the RUN (if trucks go Tuesdays, Thursday's request is next Tuesday's — the required-by says so honestly); request to CAPACITY (the branch that orders three months of bulk to feel safe is warehousing central's stock badly); and request ONCE (the duplicate-demand pattern — the manager requests, the auto-trigger also fires — is handled by procurement's consolidation eye, Chapter 7, but branches learn to check their own open requests first).</p><p><b>Central's side of the flow.</b> The transfer queue, grouped by branch and run: procurement (or the warehouse) reviews, adjusts against central's own stock position (a branch's 40 requested cartons against central's 25 available is a partial transfer plus a purchase request for the gap — the request layer handles the split honestly), and executes via the stock-transfer documents that move the goods with full paper: what left central, what should arrive at the branch, and the receiving confirmation closing the loop. The request tracks its transferred percentage throughout — the branch can SEE their request moving without a phone call, which at 30 branches is a hundred phone calls a week that stop happening.</p><p><b>When transfer becomes purchase.</b> Central lacks it entirely: the branch's transfer request surfaces the gap, and procurement raises the PURCHASE request (or converts the demand) for central to buy — the branch's voice heard, the buying still consolidated. The anti-pattern this replaces: the branch, tired of waiting, buys locally at retail — solving Tuesday by bleeding margin, and invisible until someone audits branch petty cash. Where the flow is fast and visible, the anti-pattern starves.</p><p><b>The demand picture nobody had.</b> Six months of branch requests IS the network's demand map: which branches grow, which items travel, which requests go chronically unmet (central under-buying — a planning-fields conversation). The map exists as a by-product of the discipline; firms without the layer pay consultants to reconstruct it from receipts.</p>"
-   },
-   {
-    "title": "Chapter 6 — Approval & governance: running the queue",
-    "est": "13",
-    "html": "<p>The request layer is only as good as the queue's governance: who approves what, how honestly dates are set, and how requests die when they should. This chapter is the operating discipline.</p><p><b>Approval, sized to stakes.</b> The workflow question is WHO MUST AGREE before a request becomes procurement's work: routine replenishment inside set levels can auto-proceed (the level WAS the approval, pre-granted — the same logic as rule-given discounts in Selling 6); unusual quantities, new items, or value thresholds route to a manager; capital-ish purchases route higher. Where formal workflow states are configured, the system enforces the route; where they are not, the queue review IS the approval gate — either way the policy exists, is written, and is sized to the firm (an 11-person company needs a threshold, not a committee).</p><p><b>Required-by honesty — the date culture.</b> The everything-urgent disease: when every request says NOW, the date carries no information, procurement triages by volume of shouting, and genuinely urgent needs drown. The cure is cultural and enforced gently: dates are planning inputs (required-by minus lead time equals order-by — a date inside the lead time is already late at birth, and the requester should hear that arithmetic kindly, once); chronic date-fiction requesters get the conversation; and TRUE urgency, clearly flagged and occasionally real, gets honoured fast — which is only possible because it is rare. A queue with honest dates sorts itself.</p><p><b>Rejecting well.</b> Not every need should be met: budget says no, stock says use-what-we-have, the item is being discontinued. The discipline is selling's lost-reason lesson wearing procurement clothes: the rejection carries a REASON, returned to the requester — because a request that vanishes into silence teaches the organisation to bypass the layer, while a request answered with <i>no, because, and here is the alternative</i> teaches it to trust the queue. Rejection reasons aggregate into their own read: what the organisation keeps asking for and not getting is either discipline working or a signal being ignored.</p><p><b>Stopping and amending.</b> A need that evaporates (the project cancelled, the demand misjudged) gets its request <b>Stopped</b> — deliberately ended, remaining quantities released from the pipeline, history intact — the Close discipline from Selling 4, demand-side. A need that CHANGED amends through the proper doorway rather than a second overlapping request. The monthly sweep mirrors the order sweep: open requests past their required-by with no action — each one actioned, stopped, or re-dated honestly.</p><p><b>The queue rhythm.</b> Procurement's inbox, worked daily: new requests reviewed (purpose right? internal availability checked? consolidation candidates flagged?), the aging tail swept, auto-requests judged (Chapter 4's posture). Fifteen minutes a day keeps the layer trusted; a week's neglect teaches the whole firm to phone instead.</p>"
-   },
-   {
-    "title": "Chapter 7 — From request to action: the downstream paths",
-    "est": "13",
-    "html": "<p>A submitted request is potential energy; this chapter is the release — the paths from need to commitment, and the tracking that keeps every request honest about its own fate.</p><p><b>Path one: request → Purchase Order (the known route).</b> The item has an established supplier and an agreed rate (the supplier-scoped Item Price of Buying 2): procurement creates the PO <b>from the request</b> — items, quantities, target warehouse carrying over; the supplier and rate arriving from the masters; the request's ordered-percentage advancing. The create-from law, third appearance in this track: only a PO made FROM the request counts against it — a PO typed from scratch fulfils the shelf while orphaning the demand record, and the request ages as unmet forever (Chapter 9's ticket).</p><p><b>Path two: request → RFQ → comparison → PO (the sourcing route).</b> New item, new volume tier, or a periodic market test: the request feeds a Request for Quotation to candidate suppliers, quotes come back as Supplier Quotations, the comparison decides, the PO follows to the winner — Buying 4 owns the whole machinery; here, know that the request is its trigger and its traceability spine: the eventual PO chains back through the sourcing decision to the original need.</p><p><b>Consolidation — the queue's superpower.</b> Multiple requests, one purchase: five branch requests for paracetamol plus the central auto-trigger become ONE Emzor PO at pallet economics, each request's rows drawn into the consolidated order, each tracking ITS ordered percentage against its own quantities. The mechanics support it; the craft is procurement's daily scan for consolidation candidates (same item, same supplier, compatible dates) — the scan is where the buying-power thesis of Chapter 2 becomes cash, order by order.</p><p><b>Partial fulfilment.</b> A 100-carton request met by a 60-carton order (budget, availability) leaves the request <b>Partially Ordered</b>, the 40 visible and pending — honest, trackable, and either completed later or Stopped deliberately with the requester told. What partiality never becomes: silent — the drift where remainders are neither ordered nor stopped nor explained is how the layer loses the organisation's trust.</p><p><b>Transfer and issue paths.</b> The same create-from discipline: transfer requests fulfilled by stock-transfer documents made from them; issue requests by issue documents likewise — percentages tracking, loops closing, the branch or department seeing their request's state without a call.</p><p><b>Reading a request's fate.</b> Any request answers, on its own face: what was asked, when it was needed, what has been ordered/transferred/issued against it, what remains, and by which documents — the chain of custody from shelf-gap to goods, reconstructible by anyone, forever. That legibility is what the whole module has been building.</p>"
-   },
-   {
-    "title": "Chapter 8 — Case study: a month of demand at HealthTrade",
-    "est": "16",
-    "html": "<p>One month, every chapter working. HealthTrade — supply base built (Procurement 1), item architecture set (Procurement 2) — now runs its demand layer. Read actively; each step names its chapter.</p><p><b>Week 1 — the auto-trigger fires (Ch. 4).</b> PARA-500's central-store projected quantity crosses its reorder level (consumption ran hot). The system raises a Purchase-type Material Request for the reorder quantity — 200 Carton-12 — target warehouse Central, origin marked auto. Procurement's morning review confirms it with context the trigger lacked: a radio promo starts next month, so the release is nudged to 260 cartons. Judged, not rubber-stamped.</p><p><b>Week 1, same morning — the branch voice (Ch. 3, 5).</b> Ibadan's manager submits the weekly Transfer request to the Tuesday run: 40 Carton-12 PARA-500 plus twelve other lines, target warehouse Ibadan Store, required-by Tuesday. Central holds only 25 PARA cartons: the transfer executes 25 (partial, tracked), and the 15-carton gap folds into the purchase demand — the branch's voice heard, the buying still central (Ch. 5's split, exactly).</p><p><b>Week 2 — the consolidated order (Ch. 7).</b> The purchase queue now holds: the auto request (260), the Ibadan gap (15), and Abeokuta's smaller flag (25). One Emzor PO for 300 Carton-12 at the pallet rate, created from the requests — each tracking its own ordered percentage, the negotiation carrying the consolidated number (Ch. 2's leverage, cashed).</p><p><b>Week 2 — the wrong-purpose catch (Ch. 3, 6).</b> A new branch assistant raises a PURCHASE request for shelving units that central's facilities store already holds. The queue review catches it — internal availability first — and the request is rejected with the reason and the redirect: <i>re-raise as Transfer from Facilities; stock exists</i>. The assistant learns the choosing test; the layer teaches through its answers.</p><p><b>Week 3 — the project request and the threshold (Ch. 6).</b> The ops lead requests a branded chiller for a new counter — above the value threshold, so the request routes to the MD's approval; approved with a note, it feeds an RFQ to two suppliers (Buying 4's machinery warming up). Required-by is honest: six weeks, matching the sourcing time.</p><p><b>Week 4 — the sweep (Ch. 6).</b> The monthly queue sweep finds one stale request: cleaning supplies asked three weeks ago, purpose Issue, never actioned because facilities went on leave. Actioned same day, and the miss noted — the queue's trust is repaired by the sweep existing.</p><p><b>Month-end reads (Ch. 2, 5).</b> The demand record now answers: requested-vs-fulfilled by branch (Ibadan's chronic PARA gap flags a reorder-level review at central — the planning-fields conversation), rejection reasons (one wrong-purpose, one budget-no), and consolidation captured (300 cartons bought as one order instead of three). Zero purchases happened without a documented need; zero branch retail-buying occurred because the flow was faster than the workaround. The layer paid its rent in month one.</p>"
-   },
-   {
-    "title": "Chapter 9 — Common mistakes & support patterns",
-    "est": "13",
-    "html": "<p>The demand layer's scar tissue: the tickets, the diseases, the fixes — and the module's law.</p><p><b>Pattern 1 — \"POs keep appearing that never had requests.\"</b> Disease: maverick buying where policy requires the layer (Ch. 2) — visible now precisely BECAUSE the layer exists. Fix: the policy restated with its category boundaries, the exceptions reviewed as exceptions; where a category genuinely doesn't need requests, say so in the policy rather than eroding it silently.</p><p><b>Pattern 2 — \"We bought externally what central had in pallets.\"</b> Disease: wrong purpose — Purchase chosen where Transfer was true (Ch. 3), usually because internal availability was never checked. Fix: the choosing test taught in order (outside? elsewhere? ourselves?), and the one-look projected-quantity habit before any purchase request proceeds.</p><p><b>Pattern 3 — \"The system floods us with requests / never warns us.\"</b> Disease: the fields talking (Ch. 4) — levels too cautious or lead times dishonest. Fix: tune via the quarterly exception review; never the lazy fix of disabling auto-replenishment, which trades a noisy trigger for a blind one.</p><p><b>Pattern 4 — \"Every request says urgent.\"</b> Disease: date fiction (Ch. 6) — the field carries no information, so triage runs on volume. Fix: the arithmetic conversation (required-by minus lead time), chronic offenders coached, true urgency honoured fast because it is rare.</p><p><b>Pattern 5 — \"Requests disappear into a black hole.\"</b> Disease: the unowned queue (Ch. 6) — needs submitted and never answered teach the firm to phone and bypass. Fix: the daily fifteen-minute rhythm with a named owner, the monthly sweep, and rejections that carry reasons — the queue's trust is rebuilt by its response time.</p><p><b>Pattern 6 — \"The same demand was bought twice.\"</b> Disease: duplicate requests un-consolidated (Ch. 5, 7) — the branch manager AND the auto-trigger both spoke, and two POs answered. Fix: the consolidation scan (same item, same supplier, compatible dates) as a daily habit; requesters taught to check their open requests; and the create-from discipline so every PO's demand ancestry is visible at a glance.</p><p><b>Pattern 7 — \"The request has aged as unmet, but the goods arrived weeks ago.\"</b> Disease: the from-scratch PO (Ch. 7) — the shelf was fulfilled while the demand record was orphaned; the request still says pending, and the tracking layer now lies. Fix: reconcile the orphan deliberately, then the create-from reflex — the third module in this track to teach it, because it is the same law at every joint of the chain.</p><p><b>The law.</b> Procurement 1: purchase documents are downstream of supplier masters. Procurement 2: cost truth begins at the item. This module adds the third: <b>the request layer separates need from commitment — and the separation only governs if the join is governed.</b> Anyone may speak a need; procurement alone converts it to money; and the queue between them — honest dates, judged auto-triggers, reasons on rejections, consolidation at the join, create-from at every step — is where a firm's buying becomes deliberate. A trading company that masters this module never again answers the auditor's WHO NEEDED THIS with silence, and never again buys at retail what it owned in pallets.</p>"
+    "title": "Chapter 9 — Common errors and the module rule",
+    "est": "11",
+    "html": "<p>The errors that recur in demand management, each with its correction and prevention.</p><p><b>Error 1 — the corridor purchase.</b> Symptom: Purchase Orders raised from conversations with no requests behind them; demand invisible, unattributable, unscreened. Correction: the demand recorded retroactively where the purchase was genuine; the trace audit's finding filed. Prevention: the standing rule enforced in configuration where the site gates orders on requests, and the quarterly trace audit.</p><p><b>Error 2 — the wish date.</b> Symptom: required-by dates padded early as negotiation or entered late as afterthought; downstream schedules computing from fiction; readers discounting all dates. Correction: dates corrected to need dates at screening. Prevention: the need-date rule and the screening date check.</p><p><b>Error 3 — the purchase for stock the network holds.</b> Symptom: buying while another warehouse holds the item in excess; dead stock accumulating at one site while money is spent at another. Correction: the request converted to a transfer; the purchase avoided. Prevention: the stock-elsewhere check as the screen's first act, with its avoided-purchases figure read monthly.</p><p><b>Error 4 — auto-generation treated as pre-approved.</b> Symptom: machine-generated requests ordered without screening; parameter errors (a stale reorder level, an optimistic lead time) buying at scale. Correction: the parameters reviewed; the excess handled through the stock-health lanes. Prevention: generated requests screened like any other, and the planning review maintaining the fields.</p><p><b>Error 5 — the lost trace.</b> Symptom: orders that cannot name their requests; requesters who cannot find their demand; %ordered figures meaning nothing. Correction: the linkage rebuilt for open documents. Prevention: the trace maintained as part of order creation, and the quarterly audit.</p><p><b>Error 6 — the immortal request.</b> Symptom: open requests aging past their dates and their needs; the pipeline cluttered with dead demand; consolidation worksheets summing fiction. Correction: the aging tail swept — stopped with reasons or re-dated as re-screened demand. Prevention: the weekly open-demand read and the monthly hygiene.</p><p><b>Review list.</b> Before the quiz, confirm you can: complete the request walk with the type routing, need dates, and justifications; operate the three demand sources including the auto-trigger's computation; run the four screening checks in order with the approval-band separation; consolidate with the worksheet, the ordering arithmetic, and the window discipline; handle the transfer cascade and the issue lane at the boundary; and run the five demand reads.</p><p><b>Module rule 3: demand is recorded before it is met — typed correctly, dated to the need, justified in a line, screened with stock-elsewhere first, consolidated by the worksheet's written arithmetic, and traced so that every order names its requests and every requester can find their demand.</b> Module 4 covers Requests for Quotation and the comparison cycle.</p>"
    }
   ],
   "questions": [
    {
-    "q": "The Material Request's purpose field decides:",
+    "q": "A Material Request commits:",
     "opts": [
-     "What the request becomes downstream — purchase, transfer, or issue machinery",
-     "The supplier",
-     "The price",
-     "The approver only"
+     "Nothing — it records demand: explicit, attributable, reviewable, before anything is committed",
+     "Money",
+     "Stock",
+     "A supplier"
     ],
     "ans": 0,
-    "why": "Choosing the purpose is choosing the machinery.",
-    "src": "Ch1, Ch3"
-   },
-   {
-    "q": "The target warehouse on a request row records:",
-    "opts": [
-     "Where stock currently sits",
-     "Where the goods should END UP",
-     "The supplier's store",
-     "Head office always"
-    ],
-    "ans": 1,
-    "why": "It makes multi-location demand legible; the PO and receipt inherit it.",
+    "why": "The demand document.",
     "src": "Ch1"
    },
    {
-    "q": "A request row of 10 Carton-12 is a request for:",
+    "q": "The sequence of the flow is:",
     "opts": [
-     "10 units",
-     "12 units",
-     "120 units — both readings must agree via the conversion",
-     "10 pallets"
+     "Order first",
+     "Need recorded, screened, consolidated, then committed — every order line traces to its requests",
+     "Invoice first",
+     "Random"
     ],
-    "ans": 2,
-    "why": "Buying 2's UOM arithmetic applies at the demand layer too.",
+    "ans": 1,
+    "why": "Demand precedes commitment.",
     "src": "Ch1"
    },
    {
-    "q": "The MR is the cheapest document to get right because:",
+    "q": "The four types route to:",
     "opts": [
-     "It has no fields",
-     "It auto-corrects",
-     "It cannot be wrong",
-     "Nothing has yet been promised, bought, or moved"
+     "One lane",
+     "Suppliers only",
+     "Buying, the transfer lane, the issue lane, and production",
+     "Warehouses only"
     ],
-    "ans": 3,
-    "why": "Thirty seconds in Draft saves every downstream document.",
+    "ans": 2,
+    "why": "The routing decision at the request.",
     "src": "Ch1"
    },
    {
-    "q": "The MR and the PO differ as statements:",
+    "q": "A transfer need typed as a purchase:",
     "opts": [
-     "WE NEED THIS vs WE ARE BUYING THIS FROM YOU AT THIS PRICE — different authority",
-     "They are identical",
-     "MR is newer",
-     "PO is optional"
+     "Is harmless",
+     "Is standard",
+     "Is faster",
+     "Generates buying for stock the network already holds"
     ],
-    "ans": 0,
-    "why": "Stating a need and committing money are different jobs.",
+    "ans": 3,
+    "why": "The type is set first and correctly.",
     "src": "Ch2"
    },
    {
-    "q": "The request layer lets the organisation contribute demand without:",
+    "q": "The required-by date is:",
     "opts": [
-     "Any records",
-     "Distributing the chequebook",
-     "Approvals",
-     "Warehouses"
-    ],
-    "ans": 1,
-    "why": "Anyone appropriate requests; procurement alone commits.",
-    "src": "Ch2"
-   },
-   {
-    "q": "Five branch needs for one item, through the request layer, become:",
-    "opts": [
-     "Five POs at five moments",
-     "One transfer",
-     "One consolidated order at pallet economics",
-     "Five suppliers"
-    ],
-    "ans": 2,
-    "why": "Consolidated spend is leverage, made operational.",
-    "src": "Ch2, Ch7"
-   },
-   {
-    "q": "The request layer's proportionality principle says:",
-    "opts": [
-     "Every purchase needs an MR",
-     "Only imports need MRs",
-     "MRs are optional everywhere",
-     "Policy names which categories require the layer; governance is sized to what it governs"
-    ],
-    "ans": 3,
-    "why": "Replenishment always; the MD's laptop, not necessarily.",
-    "src": "Ch2"
-   },
-   {
-    "q": "The choosing test for purpose, asked in order:",
-    "opts": [
-     "Must it come from outside? Do we hold it elsewhere? Are we using it up ourselves?",
-     "Cheapest? fastest? nearest?",
-     "Who? what? when?",
-     "Any order works"
-    ],
-    "ans": 0,
-    "why": "The cheapest fulfilment is the one you already own.",
-    "src": "Ch3"
-   },
-   {
-    "q": "Buying externally what your central store holds in pallets is:",
-    "opts": [
-     "Prudent redundancy",
-     "The expensive version of choosing the wrong purpose",
-     "Required for branches",
-     "Impossible"
-    ],
-    "ans": 1,
-    "why": "Check internal availability before any purchase proceeds.",
-    "src": "Ch3, Ch9"
-   },
-   {
-    "q": "Internal consumption without Material Issues produces:",
-    "opts": [
-     "Clean counts",
-     "Faster stock turns",
-     "Consumables shrinkage that hides — usage real but unrecorded",
-     "Extra VAT"
-    ],
-    "ans": 2,
-    "why": "Issues write stock out deliberately, attributed.",
-    "src": "Ch3"
-   },
-   {
-    "q": "A branch's mixed monthly list (resale, local-only, cleaning) is raised as:",
-    "opts": [
-     "One blended request",
-     "A PO",
-     "A phone call",
-     "Three requests — one per purpose"
-    ],
-    "ans": 3,
-    "why": "No downstream machine can execute a blended identity.",
-    "src": "Ch3"
-   },
-   {
-    "q": "Auto-replenishment compares the trigger against:",
-    "opts": [
-     "Projected quantity — actual minus reserved plus incoming",
-     "Actual stock only",
-     "Last month's sales",
-     "The bin count"
-    ],
-    "ans": 0,
-    "why": "The whole trading position feeds the watch.",
-    "src": "Ch4"
-   },
-   {
-    "q": "The right posture toward auto-raised requests is:",
-    "opts": [
-     "Blind conversion",
-     "Review-and-release — human context judges what the fields proposed",
-     "Ignore them",
-     "Delete them weekly"
-    ],
-    "ans": 1,
-    "why": "An auto request is the level-setter speaking at one remove.",
-    "src": "Ch4"
-   },
-   {
-    "q": "'The system floods us with requests' means:",
-    "opts": [
-     "The machinery failed",
-     "Auto must be disabled",
-     "The fields are talking — levels or lead times need tuning",
-     "Staff are lazy"
-    ],
-    "ans": 2,
-    "why": "A noisy trigger is mistuned; a disabled trigger is blind.",
-    "src": "Ch4, Ch9"
-   },
-   {
-    "q": "Switching auto-replenishment off in response to noise:",
-    "opts": [
-     "Is the standard fix",
-     "Is reversible weekly",
-     "Improves accuracy",
-     "Returns the firm to shelf-watching by memory and calls it peace"
-    ],
-    "ans": 3,
-    "why": "Tune, never blind.",
-    "src": "Ch4"
-   },
-   {
-    "q": "The multi-branch network shape is:",
-    "opts": [
-     "Central buys in bulk; branches replenish by transfer requests",
-     "Branches buy locally",
-     "Each branch negotiates",
-     "No central store"
-    ],
-    "ans": 0,
-    "why": "The request layer enforces the shape that creates buying power.",
-    "src": "Ch5"
-   },
-   {
-    "q": "Branch requests are timed to:",
-    "opts": [
-     "Any day",
-     "The delivery RUN — Thursday's request is next Tuesday's, and the date says so",
+     "The need date — padded dates teach readers to discount them; late dates guarantee expediting",
+     "The wish date",
      "Month-end",
-     "Central's convenience"
-    ],
-    "ans": 1,
-    "why": "Request to the run, to capacity, and once.",
-    "src": "Ch5"
-   },
-   {
-    "q": "Central holds 25 of a branch's 40 requested cartons. The honest handling:",
-    "opts": [
-     "Reject the request",
-     "Ship 40 anyway",
-     "Partial transfer of 25 plus a purchase request for the gap",
-     "Wait until 40 exists"
-    ],
-    "ans": 2,
-    "why": "The layer splits the need honestly; the branch's voice stays heard.",
-    "src": "Ch5, Ch8"
-   },
-   {
-    "q": "The branch buying locally at retail while waiting is:",
-    "opts": [
-     "Initiative",
-     "Cheaper",
-     "Policy",
-     "Margin bleeding invisibly — starved only by a fast, visible flow"
-    ],
-    "ans": 3,
-    "why": "The anti-pattern dies when the proper path is quicker.",
-    "src": "Ch5"
-   },
-   {
-    "q": "Six months of branch requests constitute:",
-    "opts": [
-     "The network's demand map — growth, travel, chronic unmet gaps",
-     "Clutter",
-     "A tax record",
-     "Duplicate data"
+     "Optional"
     ],
     "ans": 0,
-    "why": "Firms without the layer pay to reconstruct this from receipts.",
-    "src": "Ch5"
+    "why": "Every downstream schedule computes backward from it.",
+    "src": "Ch2"
    },
    {
-    "q": "Routine replenishment inside set levels can auto-proceed because:",
+    "q": "A request that cannot state its need in a line:",
     "opts": [
-     "Nobody checks",
-     "The level WAS the approval, pre-granted — like rule-given discounts",
-     "It is small money",
-     "The MD said so once"
+     "Passes anyway",
+     "Is returned to its raiser by the screen",
+     "Is deleted",
+     "Waits a year"
     ],
     "ans": 1,
-    "why": "Approval is sized to stakes.",
-    "src": "Ch6"
+    "why": "The justification's function.",
+    "src": "Ch2"
    },
    {
-    "q": "A required-by date inside the item's lead time is:",
+    "q": "Requests are removed from the pipeline by:",
     "opts": [
-     "Ambitious",
-     "Fine if urgent",
-     "Already late at birth — the arithmetic is required-by minus lead time",
-     "Procurement's problem"
+     "Deletion",
+     "Editing to zero",
+     "Stopping with a reason — the demand record stays complete",
+     "Ignoring"
     ],
     "ans": 2,
-    "why": "Dates are planning inputs, not wishes.",
-    "src": "Ch6"
+    "why": "The status life.",
+    "src": "Ch2"
    },
    {
-    "q": "When every request says urgent:",
+    "q": "Auto-generation evaluates:",
     "opts": [
-     "Triage improves",
-     "Nothing changes",
-     "The queue speeds up",
-     "The date carries no information and triage runs on shouting"
+     "Actual stock only",
+     "The budget",
+     "Sales only",
+     "Projected quantity — stock minus reservations plus incoming — against the reorder level"
     ],
     "ans": 3,
-    "why": "True urgency is honourable because it is rare.",
-    "src": "Ch6, Ch9"
+    "why": "The computation sees commitments both ways.",
+    "src": "Ch3"
    },
    {
-    "q": "A rejected request must carry:",
+    "q": "A machine-generated request is:",
     "opts": [
-     "A reason returned to the requester — silence teaches bypass",
+     "Screened like any other demand, carrying its computation as its justification",
+     "Pre-approved",
+     "Ordered instantly",
+     "Ignored"
+    ],
+    "ans": 0,
+    "why": "The auto-trigger is only as good as its fields.",
+    "src": "Ch3"
+   },
+   {
+    "q": "Order-driven demand that buys extra:",
+    "opts": [
+     "Is efficient",
+     "Is padding borrowing an order's justification — what the screen exists to catch",
+     "Is standard",
+     "Is free"
+    ],
+    "ans": 1,
+    "why": "Quantities are the order's quantities.",
+    "src": "Ch3"
+   },
+   {
+    "q": "The source mix tells the review:",
+    "opts": [
      "Nothing",
-     "A penalty",
-     "The MD's signature"
+     "Who works hardest",
+     "Whether the pipeline runs on parameters, judgment, or the commercial calendar — and where its exceptions live",
+     "The budget"
+    ],
+    "ans": 2,
+    "why": "The mix as information.",
+    "src": "Ch3"
+   },
+   {
+    "q": "The screen's first check is:",
+    "opts": [
+     "The budget",
+     "The supplier",
+     "The date",
+     "Stock elsewhere — a purchase request for an item another warehouse holds in excess converts to a transfer"
+    ],
+    "ans": 3,
+    "why": "The lateral costs transport; the purchase costs the landed figure.",
+    "src": "Ch4"
+   },
+   {
+    "q": "The screen and the order approval differ as:",
+    "opts": [
+     "The screen settles the need; the order approval reviews the commitment — supplier, price, terms",
+     "Duplicates",
+     "Rivals",
+     "One step"
     ],
     "ans": 0,
-    "why": "No-because-and-here-is-the-alternative builds trust in the queue.",
+    "why": "Two questions kept separate, both short.",
+    "src": "Ch4"
+   },
+   {
+    "q": "The screen's measurable contribution is:",
+    "opts": [
+     "Requests processed",
+     "Purchases avoided by the stock-elsewhere check, stated in naira",
+     "Speed",
+     "Returned requests"
+    ],
+    "ans": 1,
+    "why": "The figure the monthly read tracks.",
+    "src": "Ch4"
+   },
+   {
+    "q": "Unit errors at screening are caught by:",
+    "opts": [
+     "Luck",
+     "The supplier",
+     "The pairing rule — a branch requesting 15 when it means 15 cartons, or the reverse",
+     "The budget"
+    ],
+    "ans": 2,
+    "why": "The size and date check.",
+    "src": "Ch4"
+   },
+   {
+    "q": "Consolidation exists because:",
+    "opts": [
+     "Paperwork",
+     "Systems require it",
+     "Suppliers demand it",
+     "Separate small orders lose volume terms and multiply deliveries and receipts"
+    ],
+    "ans": 3,
+    "why": "One purchase decision per item per supplier per window.",
+    "src": "Ch5"
+   },
+   {
+    "q": "Adjustments above raw demand are:",
+    "opts": [
+     "Written on the worksheet with reasons — the excess is a decided figure, not a rounding accident",
+     "Silent",
+     "Forbidden",
+     "The supplier's choice"
+    ],
+    "ans": 0,
+    "why": "The ordering arithmetic.",
+    "src": "Ch5"
+   },
+   {
+    "q": "The earliest genuine need date governs:",
+    "opts": [
+     "Nothing",
+     "The order's first delivery — differing dates carry as the order's schedule",
+     "The invoice",
+     "The screen"
+    ],
+    "ans": 1,
+    "why": "The date structure.",
+    "src": "Ch5"
+   },
+   {
+    "q": "A consolidation that loses its trace:",
+    "opts": [
+     "Saves time",
+     "Is normal",
+     "Turns the pipeline into a suggestion box — the linkage is maintained at order creation",
+     "Is faster"
+    ],
+    "ans": 2,
+    "why": "%ordered advances on every source request.",
+    "src": "Ch5"
+   },
+   {
+    "q": "Demand arriving after a window closes:",
+    "opts": [
+     "Always expedites",
+     "Is deleted",
+     "Is refused",
+     "Waits for the next window unless its date cannot wait — then the expedite lane with named approval and visible premium"
+    ],
+    "ans": 3,
+    "why": "The window discipline.",
+    "src": "Ch5"
+   },
+   {
+    "q": "A branch's request is:",
+    "opts": [
+     "Always a transfer request — the branch's relationship is with the hub",
+     "A purchase request",
+     "The supplier's problem",
+     "Optional"
+    ],
+    "ans": 0,
+    "why": "Branch purchasing is the exception lane.",
     "src": "Ch6"
    },
    {
-    "q": "A need that evaporates gets its request:",
+    "q": "Uncovered transfer demand:",
     "opts": [
-     "Deleted",
-     "Stopped — deliberately ended, pipeline released, history intact",
-     "Left open",
-     "Converted anyway"
+     "Is refused",
+     "Cascades into purchase demand at the hub, with the branch requests as part of its justification",
+     "Waits forever",
+     "Splits"
     ],
     "ans": 1,
-    "why": "The Close discipline, demand-side.",
+    "why": "The cascade rule.",
     "src": "Ch6"
    },
    {
-    "q": "Only a PO made FROM the request:",
+    "q": "Issue requests are disciplined by:",
     "opts": [
-     "Ships faster",
-     "Needs approval",
-     "Counts against it — from-scratch POs orphan the demand record",
-     "Gets the agreed rate"
+     "Size",
+     "Speed",
+     "The purpose statement — unattributed consumption is the leak the consumption reads find",
+     "The supplier"
     ],
     "ans": 2,
-    "why": "The create-from law, third appearance in this track.",
-    "src": "Ch7, Ch9"
+    "why": "Cost lands on the consuming context.",
+    "src": "Ch6"
    },
    {
-    "q": "Consolidation candidates are found by scanning for:",
+    "q": "The boundary keeps visible:",
     "opts": [
-     "Any open request",
-     "Same warehouse only",
-     "Same requester",
-     "Same item, same supplier, compatible dates"
+     "One document",
+     "Only the transfer",
+     "Only the order",
+     "The need on the request, the movement on its document, the commitment on the order — one need, each stage on its own record"
     ],
     "ans": 3,
-    "why": "The daily scan is where buying power becomes cash.",
-    "src": "Ch7"
+    "why": "The trace connects them.",
+    "src": "Ch6"
    },
    {
-    "q": "A 100-carton request met by 60 stands as:",
+    "q": "Requests inside the buying lead time are:",
     "opts": [
-     "Partially Ordered — the 40 visible, completed later or Stopped with the requester told",
-     "Ordered",
-     "Cancelled",
-     "Failed"
+     "In a window, on an order, or a problem named now while expediting is still an option",
+     "Fine",
+     "Expedited always",
+     "Stopped"
     ],
     "ans": 0,
-    "why": "Partiality is honest; silence about remainders kills trust.",
+    "why": "The approaching-dates pass.",
     "src": "Ch7"
    },
    {
-    "q": "A request's own face answers:",
+    "q": "A partially ordered remainder is:",
     "opts": [
-     "Only the quantity",
-     "What was asked, when needed, what was actioned against it, what remains, by which documents",
-     "The supplier's margin",
-     "The budget code"
+     "Carried automatically",
+     "Re-screened as still needed, or stopped — demand shrinks as reality changes",
+     "Doubled",
+     "Forgotten"
     ],
     "ans": 1,
-    "why": "Chain of custody from shelf-gap to goods, forever.",
+    "why": "The %ordered read.",
     "src": "Ch7"
    },
    {
-    "q": "In the case study, the auto request was released at 260 not 200 because:",
+    "q": "Branches that consistently over-ask are:",
     "opts": [
-     "The trigger said so",
-     "Emzor required it",
-     "Procurement added context the fields lacked — the coming promo",
-     "A typo"
+     "Punished",
+     "Blocked",
+     "A conversation with data from the pattern read — over-asking as negotiation, visible",
+     "Ignored"
     ],
     "ans": 2,
-    "why": "Judged, not rubber-stamped.",
-    "src": "Ch8"
+    "why": "The requester patterns.",
+    "src": "Ch7"
    },
    {
-    "q": "The wrong-purpose shelving request was:",
+    "q": "The trace audit walks:",
     "opts": [
-     "Fulfilled anyway",
-     "Deleted silently",
-     "Escalated to the MD",
-     "Rejected with reason and redirect — re-raise as Transfer; stock exists"
+     "Forward from requests",
+     "The suppliers",
+     "The warehouse",
+     "Backward from a sample of orders — each row to its requests, each request to its justification"
     ],
     "ans": 3,
-    "why": "The layer teaches through its answers.",
-    "src": "Ch8"
+    "why": "Confirming no order without its demand.",
+    "src": "Ch7"
    },
    {
-    "q": "The month-end unmet-gap read at Ibadan flagged:",
+    "q": "The auto-trigger generated:",
     "opts": [
-     "A reorder-level review at central — the planning-fields conversation",
-     "A lazy manager",
-     "Fraud",
-     "Nothing"
+     "260 cartons at Central — the level, the projected figure, and the shortfall carried as justification",
+     "300 cartons",
+     "15 cartons",
+     "120 cartons"
     ],
     "ans": 0,
-    "why": "Chronic unmet requests are a signal about central's buying.",
+    "why": "Step 1.",
     "src": "Ch8"
    },
    {
-    "q": "A request aging as unmet while the goods arrived weeks ago traces to:",
+    "q": "The branch demand was:",
     "opts": [
-     "Slow suppliers",
-     "A from-scratch PO fulfilling the shelf while orphaning the record",
-     "The branch",
-     "Auto-replenishment"
+     "Two purchases",
+     "Ibadan 15 and Akure 25 as transfer requests, cascading into hub purchase demand when coverage failed",
+     "Refused",
+     "Padding"
     ],
     "ans": 1,
-    "why": "The tracking layer now lies; reconcile and retrain the reflex.",
-    "src": "Ch9"
+    "why": "Step 2.",
+    "src": "Ch8"
    },
    {
-    "q": "This module's law is:",
+    "q": "The stock-elsewhere check found:",
     "opts": [
-     "Demand manages itself",
-     "POs beat MRs",
-     "The request layer separates need from commitment — and the separation only governs if the join is governed",
-     "Urgency wins"
+     "Idle stock",
+     "A transfer",
+     "No idle PARA-500 anywhere — genuine new demand; the rebalancing lane had nothing to offer",
+     "An error"
     ],
     "ans": 2,
-    "why": "Anyone speaks a need; procurement alone converts it to money; the queue between is the craft.",
+    "why": "Step 3.",
+    "src": "Ch8"
+   },
+   {
+    "q": "The worksheet consolidated:",
+    "opts": [
+     "275 cartons",
+     "180 cartons",
+     "310 cartons",
+     "260 + 15 + 25 = 300 cartons, whole cartons, above the minimum, at the arrangement's volume band"
+    ],
+    "ans": 3,
+    "why": "Step 4.",
+    "src": "Ch8"
+   },
+   {
+    "q": "The two-drop schedule was anticipated because:",
+    "opts": [
+     "The requests' dates allowed it — Central's cover date first, the branches' dates allowing the second drop",
+     "The supplier chose it",
+     "Trucks were small",
+     "It was random"
+    ],
+    "ans": 0,
+    "why": "180 next week, 120 the week after, driven by stated dates.",
+    "src": "Ch8"
+   },
+   {
+    "q": "When module 5's order creates:",
+    "opts": [
+     "Nothing updates",
+     "%ordered advances on all three requests — each requester's status view answers where their request went",
+     "Requests delete",
+     "The screen re-runs"
+    ],
+    "ans": 1,
+    "why": "The trace standing.",
+    "src": "Ch8"
+   },
+   {
+    "q": "Module 3's rule is:",
+    "opts": [
+     "Orders come first",
+     "Screening is optional",
+     "Demand is recorded before it is met — typed, dated to the need, justified, screened with stock-elsewhere first, consolidated by written arithmetic, and traced both ways",
+     "Dates are wishes"
+    ],
+    "ans": 2,
+    "why": "The module rule.",
     "src": "Ch9"
    }
   ]
