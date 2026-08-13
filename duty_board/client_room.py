@@ -3743,7 +3743,7 @@ def room_metrics(name):
 
 @frappe.whitelist()
 def client_get_training():
-	room = _client_room()
+	room = _learning_room()
 	rows = _training_rows(room)
 	user = frappe.session.user
 	my_modules = [r.module for r in rows if r.trainee == user]
@@ -3848,7 +3848,7 @@ def _track_for_module(room, user, module):
 
 @frappe.whitelist()
 def client_course(record):
-	room = _client_room()
+	room = _learning_room()
 	rec = frappe.db.get_value(
 		"Duty Training Record", record, ["room", "module", "trainee"], as_dict=True
 	)
@@ -3887,7 +3887,7 @@ def client_course(record):
 
 
 def _lesson_access(lesson):
-	room = _client_room()
+	room = _learning_room()
 	l = frappe.db.get_value(
 		"Duty Lesson", lesson, ["module", "title", "content", "est_minutes"], as_dict=True
 	)
@@ -5175,7 +5175,7 @@ def my_quiz_submit(attempt, answers):
 
 @frappe.whitelist()
 def client_quiz_start(record):
-	room = _client_room()
+	room = _learning_room()
 	rec = frappe.db.get_value(
 		"Duty Training Record", record, ["name", "module", "trainee", "room"], as_dict=True
 	)
@@ -5187,7 +5187,7 @@ def client_quiz_start(record):
 
 @frappe.whitelist()
 def client_quiz_submit(attempt, answers):
-	room = _client_room()
+	room = _learning_room()
 	att_rec = frappe.db.get_value("Duty Quiz Attempt", attempt, "record")
 	rec = frappe.get_doc("Duty Training Record", att_rec)
 	if rec.trainee != frappe.session.user or rec.room != room.name:
@@ -5199,7 +5199,7 @@ def _client_attempt(attempt):
 	"""Room-membership guard on a client exam attempt — the client mirror of
 	_staff_only() on the proctored endpoints. Room resolves first, as always;
 	_timed_attempt then re-checks the attempt belongs to this session."""
-	room = _client_room()
+	room = _learning_room()
 	att_rec = frappe.db.get_value("Duty Quiz Attempt", attempt, "record")
 	rec = frappe.db.get_value(
 		"Duty Training Record", att_rec, ["trainee", "room"], as_dict=True
@@ -5385,7 +5385,7 @@ def my_certificates():
 
 @frappe.whitelist()
 def client_get_certificates():
-	_client_room()
+	_learning_room()
 	return _certs_for(frappe.session.user)
 
 
@@ -5409,7 +5409,7 @@ def my_certificate_file(serial):
 
 @frappe.whitelist()
 def client_certificate_file(serial):
-	_client_room()
+	_learning_room()
 	_serve_certificate(serial)
 
 
@@ -5438,7 +5438,19 @@ def room_set_products(name, products):
 	return get_room(name)
 
 
-def _visible_tracks(room, tracks, prods):
+def _learning_room():
+	"""The room, reachable even while the portal is frozen for renewal.
+
+	The principle: anything that CONSUMES what a client has already paid for
+	stays open; anything that changes commercial state does not. Seats are a
+	purchase, not a subscription, so a late ERP invoice must not lock someone
+	out of a course they bought or a certificate they earned. Chat, projects,
+	tickets and new orders stay frozen, which is where renewal pressure belongs.
+	"""
+	return _client_room(allow_frozen=True)
+
+
+def _visible_tracks(room, tracks, prods, user=None):
 	"""Included tracks come with the room's products, as they always have.
 	Paid tracks appear only where seats have actually been bought."""
 	from duty_board.academy import entitlement_for
@@ -5464,7 +5476,7 @@ def _tracks_for_room(room, user):
 		fields=["name", "title", "product", "description", "access"],
 		order_by="product asc, title asc",
 	)
-	tracks = _visible_tracks(room, tracks, prods)
+	tracks = _visible_tracks(room, tracks, prods, user)
 	out = []
 	for t in tracks:
 		mods = frappe.get_all(
@@ -5494,6 +5506,7 @@ def _tracks_for_room(room, user):
 		out.append(
 			{
 				"name": t.name,
+				"seats_expired": cint(t.get("seats_expired")),
 				"title": t.title,
 				"product": t.product,
 				"description": t.description,
@@ -5511,7 +5524,7 @@ def _tracks_for_room(room, user):
 
 @frappe.whitelist()
 def client_get_tracks():
-	room = _client_room()
+	room = _learning_room()
 	return _tracks_for_room(room, frappe.session.user)
 
 

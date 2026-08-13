@@ -168,6 +168,7 @@ def track_catalogue(room, assignable_only=False):
 			"seats_left": left,
 			"expires_on": ent["expires_on"] if ent else None,
 			"pending": pending.name if pending else None,
+			"seats_expired": ent["expired_seats"] if ent else 0,
 			"pending_seats": pending.seats if pending else None,
 		})
 	out.sort(key=lambda r: (not r["assignable"], r["access"] != "Included", r["title"]))

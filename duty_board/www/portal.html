@@ -333,6 +333,8 @@
 	@media (min-width: 900px) { .lmsgrid { grid-template-columns: repeat(auto-fill, minmax(310px, 1fr)); gap: 12px; } body[data-tab="training"] .wrap { max-width: 1180px; } }
 	.lmscard { display: flex; gap: 12px; background: #fff; border: 1px solid #E2E8E5; border-radius: 14px; padding: 14px; box-shadow: 0 1px 2px rgba(12,34,30,.05); transition: transform .16s, box-shadow .16s; }
 	.lmscard.cc { cursor: pointer; }
+	.lmsexp { font-size: 12px; line-height: 1.55; background: #FFF7E6; border: 1px solid #F3E0B5;
+		color: #7A5312; border-radius: 9px; padding: 8px 11px; margin-top: 8px; }
 	.lmscard.cc:hover { transform: translateY(-1px); box-shadow: 0 4px 12px rgba(12,34,30,.10); }
 	.lmstile { width: 42px; height: 42px; border-radius: 11px; flex: none; display: flex; align-items: center; justify-content: center; background: linear-gradient(160deg, #0D544A, #087A67); color: #fff; }
 	.lmstile.trk { background: linear-gradient(160deg, #123C35, #0D544A); }
@@ -2203,6 +2205,7 @@ function loadTraining() {
 						<b>${esc(t.title)}</b>
 						<div class="lmsmeta">${esc(t.product)} · ${t.modules.length} course${t.modules.length === 1 ? "" : "s"}</div>
 						${t.description ? `<div class="lmsdesc">${esc(t.description)}</div>` : ""}
+						${t.seats_expired ? `<div class="lmsexp">Your seats for this track have expired. You keep everything you have started, and any certificate you have earned. New colleagues cannot be added until seats are renewed.</div>` : ""}
 						${t.certified
 							? `<div class="lmsdone">Certified</div>`
 							: t.pursuing
