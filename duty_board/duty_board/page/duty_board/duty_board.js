@@ -2103,7 +2103,15 @@ class DutyBoard {
 			try {
 				up = await att.consume();
 			} catch (err) {
-				frappe.msgprint(__("Upload failed: {0}", [frappe.utils.escape_html(err.message || "")]));
+				$input.val(text);
+				frappe.show_alert(
+					{
+						message: __("Upload failed: {0}", [frappe.utils.escape_html(err.message || String(err))]),
+						indicator: "red",
+					},
+					8
+				);
+				console.error("DM upload failed", err);
 				return;
 			}
 			frappe.call({
@@ -8961,10 +8969,26 @@ this.$me.find(".duty-req-ok").on("click", (e) => {
 			headers: { "X-Frappe-CSRF-Token": frappe.csrf_token },
 			body: fd,
 		});
-		const out = await res.json();
+		let out = {};
+		try {
+			out = await res.json();
+		} catch (e) {
+			throw new Error(
+				res.status === 413
+					? __("The file is larger than the server allows — ask the admin to raise max_file_size.")
+					: `HTTP ${res.status}`
+			);
+		}
 		const fu = out.message && out.message.file_url;
 		if (!res.ok || !fu) {
-			throw new Error(out.exception || `HTTP ${res.status}`);
+			let emsg = out.exception || `HTTP ${res.status}`;
+			try {
+				const sm = JSON.parse(JSON.parse(out._server_messages)[0]);
+				if (sm && sm.message) emsg = sm.message.replace(/<[^>]+>/g, "");
+			} catch (e) {
+				/* keep emsg */
+			}
+			throw new Error(emsg);
 		}
 		return { file_url: fu, file_name: file.name };
 	}
@@ -11340,7 +11364,15 @@ this.$me.find(".duty-req-ok").on("click", (e) => {
 			try {
 				up = await att.consume();
 			} catch (err) {
-				frappe.msgprint(__("Upload failed: {0}", [frappe.utils.escape_html(err.message || "")]));
+				$input.val(text);
+				frappe.show_alert(
+					{
+						message: __("Upload failed: {0}", [frappe.utils.escape_html(err.message || String(err))]),
+						indicator: "red",
+					},
+					8
+				);
+				console.error("DM upload failed", err);
 				return;
 			}
 			frappe.call({
