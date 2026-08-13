@@ -7154,6 +7154,141 @@ this.$me.find(".duty-req-ok").on("click", (e) => {
 		d.fields_dict.date.$input && d.fields_dict.date.$input.attr("min", frappe.datetime.get_today());
 	}
 
+	cohorts_dialog(x) {
+		const esc = frappe.utils.escape_html;
+		const d = new frappe.ui.Dialog({ title: `\u{1F465} ${x.customer} \u2014 ${__("Training cohorts")}`, size: "extra-large" });
+		const call = (m, args, cb) =>
+			frappe.call({ method: `duty_board.cohort.${m}`, args: args || {}, callback: (r) => cb && cb(r.message) });
+		const wtext = (w) => {
+			if (!w || w.state === "none") return __("no exam window");
+			if (w.state === "early") return `\u{1F512} ${__("opens")} ${frappe.datetime.str_to_user(w.opens_on)}`;
+			if (w.state === "closed") return `\u{1F512} ${__("closed")} ${frappe.datetime.str_to_user(w.closes_on)}`;
+			return `\u{1F7E2} ${__("window open")}${w.closes_on ? ` \u00b7 ${__("until")} ${frappe.datetime.str_to_user(w.closes_on)}` : ""}`;
+		};
+		const list = () =>
+			call("cohort_list", { room: x.name }, (rows) => {
+				rows = rows || [];
+				$(d.body).html(`
+					<div style="display:flex;gap:10px;align-items:center;margin-bottom:12px">
+						<button type="button" class="btn btn-sm btn-primary duty-coh-new">\uFF0B ${__("New cohort")}</button>
+						<span class="text-muted" style="font-size:12px">${__("A cohort is one group of this client's staff running a track together, with a session date and an exam window.")}</span>
+					</div>
+					${rows.length
+						? rows.map((c) => `
+						<div class="duty-cr-msrow" style="cursor:pointer" data-coh="${esc(c.name)}">
+							<b>${esc(c.title)}</b>
+							<span class="text-muted" style="font-size:12px;margin-left:8px">${esc(c.status)} \u00b7 ${c.enrolled_count}/${c.member_count} ${__("enrolled")}</span>
+							<span class="text-muted" style="font-size:12px;margin-left:auto">${wtext(c.window)}</span>
+						</div>`).join("")
+						: `<div class="text-muted">${__("No cohorts yet for this client.")}</div>`}
+				`);
+				$(d.body).find("[data-coh]").on("click", (e) => detail($(e.currentTarget).data("coh")));
+				$(d.body).find(".duty-coh-new").on("click", () => newCohort());
+			});
+		const newCohort = () => {
+			frappe.call({
+				method: "duty_board.client_room.room_tracks_for_assign",
+				args: { name: x.name },
+				callback: (r) => {
+					const tracks = r.message || [];
+					if (!tracks.length) {
+						frappe.msgprint(__("This room's products carry no client certification tracks yet."));
+						return;
+					}
+					const nd = new frappe.ui.Dialog({
+						title: __("New cohort"),
+						fields: [
+							{ fieldname: "title", fieldtype: "Data", label: __("Title"), reqd: 1,
+							  description: __("How this group will be referred to, e.g. “Finance team \u2014 October intake”") },
+							{ fieldname: "track", fieldtype: "Select", label: __("Certification track"), reqd: 1,
+							  options: tracks.map((t) => `${t.name}|${t.title} (${t.module_count})`).join("\n") },
+						],
+						primary_action_label: __("Create"),
+						primary_action: (v) => {
+							nd.hide();
+							call("cohort_create", { room: x.name, title: v.title, track: String(v.track).split("|")[0] },
+								(c) => detail(c.name));
+						},
+					});
+					// show titles, submit ids
+					nd.fields_dict.track.df.options = tracks.map((t) => ({ value: t.name, label: `${t.title} \u00b7 ${t.module_count} ${__("courses")}` }));
+					nd.fields_dict.track.refresh();
+					nd.show();
+				},
+			});
+		};
+		const dateField = (c, key, label) =>
+			`<div style="display:flex;gap:8px;align-items:center;margin:5px 0">
+				<span style="min-width:150px;font-size:12.5px">${label}</span>
+				<input type="datetime-local" class="form-control input-sm duty-coh-dt" data-key="${key}" value="${c[key] ? String(c[key]).replace(" ", "T").slice(0, 16) : ""}" style="max-width:230px">
+			</div>`;
+		const detail = (name) =>
+			call("cohort_get", { name: name }, (c) => {
+				$(d.body).html(`
+					<a class="duty-coh-back" style="cursor:pointer;font-size:12.5px">\u2190 ${__("All cohorts")}</a>
+					<h4 style="margin:8px 0 2px">${esc(c.title)}</h4>
+					<div class="text-muted" style="font-size:12px;margin-bottom:10px">${esc(c.name)} \u00b7 ${esc(c.status)} \u00b7 ${c.courses.length} ${__("courses")} \u00b7 ${wtext(c.window)}</div>
+					${dateField(c, "session_on", __("Live session"))}
+					${dateField(c, "opens_on", __("Exam window opens"))}
+					${dateField(c, "closes_on", __("Exam window closes"))}
+					<div class="duty-lead-section" style="margin-top:14px">\u{1F465} ${__("Members")}</div>
+					${c.people.length
+						? c.people.map((p) => `
+						<div class="duty-cr-msrow">
+							<label style="margin:0;font-weight:400;font-size:12.5px"><input type="checkbox" class="duty-coh-att" data-u="${esc(p.trainee)}" ${p.attended ? "checked" : ""}> ${__("attended")}</label>
+							<b style="margin-left:10px">${esc(p.trainee_name)}</b>
+							<span class="text-muted" style="font-size:12px;margin-left:auto">${p.enrolled ? `${p.done}/${p.total} ${__("complete")}` : __("not enrolled")}</span>
+							${p.enrolled ? "" : `<a class="duty-coh-rm" data-u="${esc(p.trainee)}" style="cursor:pointer;margin-left:10px" title="${__("Remove")}">\u2715</a>`}
+						</div>`).join("")
+						: `<div class="text-muted">${__("No members yet.")}</div>`}
+					<div style="display:flex;gap:8px;margin-top:14px;flex-wrap:wrap">
+						<button type="button" class="btn btn-sm btn-default duty-coh-add">\uFF0B ${__("Add member")}</button>
+						<button type="button" class="btn btn-sm btn-primary duty-coh-enrol">\u{1F393} ${__("Enrol everyone")}</button>
+						${c.status === "Closed" ? "" : `<button type="button" class="btn btn-sm btn-default duty-coh-close">${__("Close cohort")}</button>`}
+					</div>
+					<p class="text-muted" style="font-size:11.5px;margin-top:10px">${__("Enrolling is safe to repeat — existing course records are adopted, never duplicated.")}</p>
+				`);
+				$(d.body).find(".duty-coh-back").on("click", list);
+				$(d.body).find(".duty-coh-dt").on("change", (e) => {
+					const $i = $(e.currentTarget);
+					call("cohort_set", { name: name, field: $i.data("key"), value: ($i.val() || "").replace("T", " ") }, () => detail(name));
+				});
+				$(d.body).find(".duty-coh-att").on("change", (e) => {
+					const $i = $(e.currentTarget);
+					call("cohort_attendance", { name: name, user: $i.data("u"), attended: $i.is(":checked") ? 1 : 0 });
+				});
+				$(d.body).find(".duty-coh-rm").on("click", (e) =>
+					call("cohort_remove_member", { name: name, user: $(e.currentTarget).data("u") }, () => detail(name)));
+				$(d.body).find(".duty-coh-close").on("click", () =>
+					frappe.confirm(__("Close this cohort? Its exam window still governs."), () =>
+						call("cohort_close", { name: name }, () => detail(name))));
+				$(d.body).find(".duty-coh-enrol").on("click", () =>
+					call("cohort_enrol", { name: name }, (res) => {
+						frappe.show_alert({
+							message: __("{0} created, {1} adopted", [res.created, res.adopted]),
+							indicator: "green",
+						});
+						detail(name);
+					}));
+				$(d.body).find(".duty-coh-add").on("click", () =>
+					call("cohort_candidates", { room: x.name }, (pool) => {
+						const taken = new Set(c.people.map((p) => p.trainee));
+						const free = (pool || []).filter((p) => !taken.has(p.user));
+						if (!free.length) return frappe.msgprint(__("Every active room member is already in this cohort."));
+						const ad = new frappe.ui.Dialog({
+							title: __("Add member"),
+							fields: [{ fieldname: "user", fieldtype: "Select", label: __("Person"), reqd: 1,
+								options: free.map((p) => ({ value: p.user, label: p.full_name })) }],
+							primary_action_label: __("Add"),
+							primary_action: (v) => { ad.hide(); call("cohort_add_member", { name: name, user: v.user }, () => detail(name)); },
+						});
+						ad.show();
+					}));
+			});
+		list();
+		d.show();
+	}
+
 	team_training_dialog() {
 		frappe.call({
 			method: "duty_board.client_room.training_team_overview",
@@ -7451,6 +7586,7 @@ this.$me.find(".duty-req-ok").on("click", (e) => {
 
 	academy_dialog(x) {
 		const d = new frappe.ui.Dialog({ title: `🎓 ${x.customer} — ${__("Training Academy")}`, size: "large" });
+		d.set_primary_action(`\u{1F465} ${__("Cohorts")}`, () => { d.hide(); this.cohorts_dialog(x); });
 		const load = () =>
 			frappe.call({
 				method: "duty_board.client_room.room_training",

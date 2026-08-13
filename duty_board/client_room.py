@@ -4431,12 +4431,15 @@ def _quiz_state(module, user):
 	}
 
 
-def _exam_gate(module, user):
-	"""Enforce the attempt cap and cooling-off window. Called on the CLIENT
-	path only — internal staff testing keeps its old ungated behaviour."""
+def _exam_gate(module, user, record=None):
+	"""Enforce the cohort exam window, the attempt cap and the cooling-off
+	window. Called on the CLIENT path only — internal staff testing keeps its
+	old ungated behaviour."""
 	st = _quiz_state(module, user)
 	if st["passed"]:
 		return st
+	if record:
+		_cohort_window_gate(record)
 	if st["max_attempts"] and st["attempts"] >= st["max_attempts"]:
 		frappe.throw(
 			_("You have used all {0} permitted attempts for this assessment. Speak to your training coordinator.").format(
@@ -4450,6 +4453,30 @@ def _exam_gate(module, user):
 			)
 		)
 	return st
+
+
+def _cohort_window_gate(record):
+	"""A record enrolled through a cohort may only sit its exam inside that
+	cohort's window. Records with no cohort, or a cohort with no dates, are
+	untouched — this is opt-in per cohort, like every other policy here."""
+	cohort = frappe.db.get_value("Duty Training Record", record, "cohort")
+	if not cohort:
+		return
+	from duty_board.cohort import window_state
+
+	w = window_state(cohort)
+	if w["state"] == "early":
+		frappe.throw(
+			_("This assessment opens on {0}.").format(
+				frappe.utils.format_datetime(w["opens_on"], "d MMM yyyy, HH:mm")
+			)
+		)
+	if w["state"] == "closed":
+		frappe.throw(
+			_("The assessment window for this cohort closed on {0}. Speak to your training coordinator.").format(
+				frappe.utils.format_datetime(w["closes_on"], "d MMM yyyy, HH:mm")
+			)
+		)
 
 
 def _topic_breakdown(pairs):
@@ -4838,7 +4865,7 @@ def client_quiz_start(record):
 	)
 	if not rec or rec.trainee != frappe.session.user or rec.room != room.name:
 		frappe.throw(_("Not found."), frappe.PermissionError)
-	_exam_gate(rec.module, frappe.session.user)
+	_exam_gate(rec.module, frappe.session.user, rec.name)
 	return _exam_start(rec.name, rec.module)
 
 

@@ -1,0 +1,114 @@
+{
+ "actions": [],
+ "autoname": "format:COH-{YYYY}-{#####}",
+ "creation": "2026-08-13 10:00:00.000000",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "room",
+  "title",
+  "status",
+  "track",
+  "module",
+  "facilitator",
+  "session_on",
+  "opens_on",
+  "closes_on",
+  "note",
+  "members"
+ ],
+ "fields": [
+  {
+   "fieldname": "room",
+   "fieldtype": "Link",
+   "label": "Client Room",
+   "options": "Client Room",
+   "reqd": 1,
+   "in_list_view": 1
+  },
+  {
+   "fieldname": "title",
+   "fieldtype": "Data",
+   "label": "Title",
+   "reqd": 1,
+   "in_list_view": 1
+  },
+  {
+   "fieldname": "status",
+   "fieldtype": "Select",
+   "label": "Status",
+   "options": "Draft\nEnrolled\nIn Progress\nClosed",
+   "default": "Draft",
+   "in_list_view": 1
+  },
+  {
+   "fieldname": "track",
+   "fieldtype": "Link",
+   "label": "Certification Track",
+   "options": "Duty Certification Track"
+  },
+  {
+   "fieldname": "module",
+   "fieldtype": "Link",
+   "label": "Single Course",
+   "options": "Duty Training Module"
+  },
+  {
+   "fieldname": "facilitator",
+   "fieldtype": "Link",
+   "label": "Facilitator",
+   "options": "User"
+  },
+  {
+   "fieldname": "session_on",
+   "fieldtype": "Datetime",
+   "label": "Live Session"
+  },
+  {
+   "fieldname": "opens_on",
+   "fieldtype": "Datetime",
+   "label": "Exam Window Opens"
+  },
+  {
+   "fieldname": "closes_on",
+   "fieldtype": "Datetime",
+   "label": "Exam Window Closes"
+  },
+  {
+   "fieldname": "note",
+   "fieldtype": "Small Text",
+   "label": "Note"
+  },
+  {
+   "fieldname": "members",
+   "fieldtype": "Table",
+   "label": "Members",
+   "options": "Duty Training Cohort Member"
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "links": [],
+ "modified": "2026-08-13 10:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "Duty Board",
+ "name": "Duty Training Cohort",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [],
+ "title_field": "title"
+}
