@@ -381,6 +381,219 @@ def order_approve(name, payment_ref=None, expires_on=None):
 	return {"order": o.name, "entitlement": ent.name}
 
 
+# ---------------- nudges: the cadence that replaces a facilitator ----------------
+
+NUDGE_REPEAT_DAYS = 7
+DORMANT_AFTER_DAYS = 14
+
+
+def _nudges_enabled():
+	return not cint(_settings().get("academy_nudges_off"))
+
+
+def _active_rooms():
+	return {
+		r.name for r in frappe.get_all(
+			"Client Room", filters={"status": "Active"}, fields=["name"]
+		)
+	}
+
+
+def _ever_opened(user, module):
+	return bool(
+		frappe.db.exists("Duty Lesson Progress", {"user": user, "module": module})
+	)
+
+
+def _due_lane(rec, today_d):
+	"""Which of the four moments this record is standing on, if any.
+	Returns a short reason string or None."""
+	if not rec.due_on:
+		return None
+	due = getdate(rec.due_on)
+	gap = (due - today_d).days
+	last = getdate(rec.last_nudge_on) if rec.last_nudge_on else None
+	if gap == 3:
+		return "due in three days"
+	if gap == 0:
+		return "due today"
+	if gap == -1:
+		return "overdue since yesterday"
+	if gap < -1:
+		# weekly thereafter, counted from the last nudge rather than the due date
+		if not last or (today_d - last).days >= NUDGE_REPEAT_DAYS:
+			return "overdue by {0} days".format(abs(gap))
+	return None
+
+
+def training_nudges():
+	"""Daily. bench execute duty_board.academy.training_nudges
+
+	One message per learner per day at most, however many courses qualify."""
+	if not _nudges_enabled():
+		return {"skipped": "nudges are switched off in Duty Settings"}
+	rooms = _active_rooms()
+	if not rooms:
+		return {"sent": 0}
+	today_d = getdate(today())
+	recs = frappe.get_all(
+		"Duty Training Record",
+		filters={"status": ["!=", "Completed"], "room": ["in", list(rooms)]},
+		fields=["name", "room", "module", "trainee", "trainee_name", "due_on",
+				"last_nudge_on", "nudge_count", "creation"],
+	)
+	by_user = {}
+	for r in recs:
+		if r.last_nudge_on and getdate(r.last_nudge_on) == today_d:
+			continue  # never twice in a day, whatever the lanes say
+		reason = _due_lane(r, today_d)
+		if not reason and not r.due_on and not cint(r.nudge_count):
+			age = (today_d - getdate(r.creation)).days
+			if age >= DORMANT_AFTER_DAYS and not _ever_opened(r.trainee, r.module):
+				reason = "not started"
+		if reason:
+			by_user.setdefault(r.trainee, []).append((r, reason))
+	sent = 0
+	for user, rows in by_user.items():
+		titles = {
+			m.name: m.title for m in frappe.get_all(
+				"Duty Training Module",
+				filters={"name": ["in", [r.module for r, _x in rows]]},
+				fields=["name", "title"],
+			)
+		}
+		lines = "".join(
+			"<li><b>{0}</b> &mdash; {1}</li>".format(
+				frappe.utils.escape_html(titles.get(r.module, r.module)), reason
+			)
+			for r, reason in rows
+		)
+		try:
+			frappe.sendmail(
+				recipients=[user],
+				subject=_("Your training — {0} course(s) need attention").format(len(rows)),
+				message="""<p>A quiet reminder about your training:</p>
+<ul>{lines}</ul>
+<p>Open the portal, go to Training, and pick up where you left off.</p>
+<p>&mdash; CloudERP.One Academy</p>""".format(lines=lines),
+			)
+		except Exception:
+			frappe.log_error(frappe.get_traceback(), "duty_board training nudge email")
+		try:
+			from duty_board.api import _notify_user
+
+			_notify_user(
+				user, _("🎓 Training reminder"),
+				_("{0} course(s) need your attention").format(len(rows)),
+			)
+		except Exception:
+			pass
+		for r, _reason in rows:
+			frappe.db.set_value(
+				"Duty Training Record", r.name,
+				{"last_nudge_on": today_d, "nudge_count": cint(r.nudge_count) + 1},
+				update_modified=False,
+			)
+		sent += 1
+	frappe.db.commit()
+	return {"sent": sent, "records": sum(len(v) for v in by_user.values())}
+
+
+def training_admin_digest():
+	"""Weekly. bench execute duty_board.academy.training_admin_digest
+
+	One aggregated message per room to its administrators. Never per record —
+	a digest that arrives every day is a digest nobody reads."""
+	if not _nudges_enabled():
+		return {"skipped": "nudges are switched off in Duty Settings"}
+	today_d = getdate(today())
+	sent = 0
+	for room in _active_rooms():
+		recs = frappe.get_all(
+			"Duty Training Record",
+			filters={"room": room, "status": ["!=", "Completed"]},
+			fields=["module", "trainee", "trainee_name", "due_on", "creation"],
+		)
+		if not recs:
+			continue
+		late, idle = {}, {}
+		for r in recs:
+			who = r.trainee_name or frappe.utils.get_fullname(r.trainee)
+			if r.due_on and getdate(r.due_on) < today_d:
+				late[who] = late.get(who, 0) + 1
+			elif (today_d - getdate(r.creation)).days >= DORMANT_AFTER_DAYS and not _ever_opened(
+				r.trainee, r.module
+			):
+				idle[who] = idle.get(who, 0) + 1
+		if not late and not idle:
+			continue
+		admins = [
+			m.user for m in frappe.get_all(
+				"Client Room Member",
+				filters={"room": room, "active": 1, "is_admin": 1},
+				fields=["user"],
+			) if m.user
+		]
+		if not admins:
+			continue
+		block = ""
+		if late:
+			block += "<p><b>Past their due date</b></p><ul>" + "".join(
+				"<li>{0} &mdash; {1} course(s)</li>".format(frappe.utils.escape_html(k), v)
+				for k, v in sorted(late.items(), key=lambda kv: -kv[1])
+			) + "</ul>"
+		if idle:
+			block += "<p><b>Assigned but never started</b></p><ul>" + "".join(
+				"<li>{0} &mdash; {1} course(s)</li>".format(frappe.utils.escape_html(k), v)
+				for k, v in sorted(idle.items(), key=lambda kv: -kv[1])
+			) + "</ul>"
+		try:
+			frappe.sendmail(
+				recipients=admins,
+				subject=_("Training status — {0} person(s) need a word").format(
+					len(set(list(late) + list(idle)))
+				),
+				message="""<p>Your team's training this week:</p>
+{block}
+<p>The full picture, and the Remind button, are on the Training tab of your portal.</p>
+<p>&mdash; CloudERP.One Academy</p>""".format(block=block),
+			)
+			sent += 1
+		except Exception:
+			frappe.log_error(frappe.get_traceback(), "duty_board training digest")
+	return {"rooms": sent}
+
+
+def setup_academy_jobs():
+	"""bench execute duty_board.academy.setup_academy_jobs
+	Creates or repairs the Scheduled Job Type records. Times are SERVER time;
+	adjust the cron in the Scheduled Job Type list at will."""
+	jobs = [
+		("duty_board.academy.training_nudges", "0 7 * * *"),
+		("duty_board.academy.training_admin_digest", "0 8 * * 1"),
+	]
+	made = []
+	for method, cron in jobs:
+		name = frappe.db.get_value("Scheduled Job Type", {"method": method})
+		if name:
+			frappe.db.set_value(
+				"Scheduled Job Type", name,
+				{"frequency": "Cron", "cron_format": cron, "stopped": 0},
+			)
+			made.append("repaired " + method)
+		else:
+			frappe.get_doc({
+				"doctype": "Scheduled Job Type",
+				"method": method,
+				"frequency": "Cron",
+				"cron_format": cron,
+				"stopped": 0,
+			}).insert(ignore_permissions=True)
+			made.append("created " + method)
+	frappe.db.commit()
+	return made
+
+
 @frappe.whitelist()
 def order_decline(name, reason=None):
 	_staff_only()
