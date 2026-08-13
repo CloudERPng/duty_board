@@ -587,6 +587,29 @@
 	#lessonbody blockquote.bq-tip:before { content: "💡"; }
 	#lessonbody blockquote.bq-warn { background: #FDECEA; border: 1px solid #F4C7C0; }
 	#lessonbody blockquote.bq-warn:before { content: "⚠️"; }
+
+	/* ---- proctored assessment ---- */
+	.exhead { display: flex; align-items: baseline; justify-content: space-between; font-size: 14px; margin: 2px 0 6px; }
+	.exclock { font-variant-numeric: tabular-nums; font-weight: 800; font-size: 15px; color: var(--brand-700); }
+	.exbar { height: 5px; border-radius: 99px; background: #E4EAE8; overflow: hidden; margin-bottom: 14px; }
+	.exbar i { display: block; height: 100%; background: var(--brand); transition: width .25s linear; }
+	.exbar i.low { background: #C2410C; }
+	.exq { font-size: 15.5px; font-weight: 700; line-height: 1.5; margin-bottom: 12px; }
+	.exopt { display: flex; gap: 10px; align-items: flex-start; padding: 10px 12px; margin-bottom: 8px;
+		border: 1px solid #DCE4E1; border-radius: 10px; cursor: pointer; font-size: 14.5px; line-height: 1.45; background: #fff; }
+	.exopt.on { border-color: var(--brand); background: var(--brand-50); }
+	.exopt input { margin-top: 3px; }
+	.exrules { font-size: 14px; line-height: 1.65; background: var(--brand-50); border: 1px solid #CBE7DE;
+		border-radius: 12px; padding: 12px 15px; }
+	.exrules div { margin: 6px 0; padding-left: 16px; position: relative; }
+	.exrules div:before { content: "•"; position: absolute; left: 2px; color: var(--brand); }
+	.exlock { font-size: 13.5px; background: #FFF7E6; border: 1px solid #F3E0B5; color: #7A5312;
+		border-radius: 10px; padding: 10px 13px; margin-bottom: 10px; }
+	.exbd { margin-top: 14px; }
+	.exbdrow { display: flex; align-items: center; gap: 10px; margin: 7px 0; }
+	.exbdt { flex: 0 0 40%; font-size: 13px; }
+	.exbdbar { flex: 1; height: 7px; border-radius: 99px; background: #E4EAE8; overflow: hidden; }
+	.exbdbar i { display: block; height: 100%; }
 	@media (min-width: 900px) {
 		.tabbar a { border-radius: 99px; }
 		.tabbar a:hover:not(.active) { background: #E8EEEC; color: var(--brand-700); }
@@ -1984,8 +2007,10 @@ function openCourse(record) {
 				? `<div style="background:#EDF7F5;border:1px solid #B7DFD6;border-radius:10px;padding:9px 13px;margin-bottom:10px;font-weight:700;color:#0C4A43">🏅 Certified · best score ${qz.best}%</div>`
 				: qz.bank >= 10
 					? allRead
-						? `<div style="display:flex;gap:10px;align-items:center;margin-bottom:10px;flex-wrap:wrap"><button onclick="startQuiz('${esc(c.record)}')">📝 Take the test</button><span class="muted" style="font-size:12px">${qz.attempts ? `best so far ${qz.best}% · ` : ""}10 questions · pass at 70% · unlimited retakes</span></div>`
-						: `<div class="muted" style="font-size:13px;margin-bottom:10px">📝 The test unlocks when every lesson is read.</div>`
+						? (examLocked(qz)
+							? `<div class="exlock">🔒 ${examLockReason(qz)}</div>`
+							: `<div style="display:flex;gap:10px;align-items:center;margin-bottom:10px;flex-wrap:wrap"><button onclick="startQuiz('${esc(c.record)}')">${qz.timed ? "⏱ Begin timed assessment" : "📝 Take the assessment"}</button><span class="muted" style="font-size:12px">${qz.attempts ? `best so far ${qz.best}% · ` : ""}${examPolicyLine(qz)}</span></div>`)
+						: `<div class="muted" style="font-size:13px;margin-bottom:10px">📝 The assessment unlocks when every lesson is read.</div>`
 					: ""}
 			${c.lessons.length
 				? c.lessons
@@ -2042,12 +2067,117 @@ function openLesson(lesson, record) {
 		}
 	}).catch(fail);
 }
+function examPolicyLine(qz) {
+	const bits = [(qz.size || 10) + " questions", "pass at " + (qz.pass_mark || 70) + "%"];
+	if (qz.timed) bits.push("timed · one question at a time");
+	if (qz.max_attempts) bits.push(qz.max_attempts + " attempt" + (qz.max_attempts === 1 ? "" : "s") + " permitted" + (typeof qz.attempts_left === "number" ? " · " + qz.attempts_left + " left" : ""));
+	else bits.push("unlimited retakes");
+	return bits.join(" · ");
+}
+function examLocked(qz) {
+	return !qz.passed && (qz.attempts_left === 0 || !!qz.next_attempt_at);
+}
+function examLockReason(qz) {
+	if (qz.attempts_left === 0) return "You have used all " + qz.max_attempts + " permitted attempts. Speak to your training coordinator.";
+	return "Your next attempt unlocks on " + esc(String(qz.next_attempt_at || "").slice(0, 16).replace("T", " ")) + ".";
+}
+function examResult(res, record) {
+	const canRetake = !res.passed && res.attempts_left !== 0 && !res.next_attempt_at;
+	document.getElementById("acad").innerHTML = `
+		<div style="text-align:center;padding:12px 0 6px">
+			<div style="font-size:46px;font-weight:800;color:${res.passed ? "#15803d" : "#B27409"}">${res.score}%</div>
+			<div class="muted">pass mark ${res.pass_mark}% · attempt ${res.attempts}${res.attempts > 1 ? ` · best ${res.best}%` : ""}${typeof res.attempts_left === "number" ? ` · ${res.attempts_left} remaining` : ""}</div>
+			${res.timeouts ? `<div style="color:#B45309;font-weight:700;font-size:13px;margin-top:6px">⏱ ${res.timeouts} question${res.timeouts === 1 ? "" : "s"} ran out of time</div>` : ""}
+			${res.newly_certified ? `<div style="margin-top:8px;font-weight:700;color:#0C4A43">🎓 Course completed — your certificate is on its way to your Documents.</div>` : ""}
+		</div>
+		${(res.breakdown || []).length
+			? `<div class="exbd"><b style="font-size:14px">How you scored by area</b>${res.breakdown.map((r) => {
+				const p = Math.round((r.right / r.total) * 100);
+				return `<div class="exbdrow"><span class="exbdt">${esc(r.topic)}</span><span class="exbdbar"><i style="width:${p}%;background:${p >= 70 ? "#0E8A63" : p >= 50 ? "#C99A2E" : "#C2410C"}"></i></span><span class="muted" style="font-size:12px">${r.right}/${r.total}</span></div>`;
+			}).join("")}</div>`
+			: ""}
+		${!res.passed && (res.wrong || []).length
+			? `<div style="margin-top:12px"><b style="font-size:14px">Review these areas, then retake:</b>${res.wrong.map((w) => `<div class="muted" style="font-size:13px;margin:4px 0">• ${esc(w)}</div>`).join("")}</div>`
+			: ""}
+		${!res.passed && res.next_attempt_at ? `<div class="exlock" style="margin-top:12px">🔒 Your next attempt unlocks on ${esc(String(res.next_attempt_at).slice(0, 16).replace("T", " "))}.</div>` : ""}
+		${!res.passed && res.attempts_left === 0 ? `<div class="exlock" style="margin-top:12px">🔒 You have used all permitted attempts. Speak to your training coordinator.</div>` : ""}
+		<div style="display:flex;gap:10px;margin-top:14px">
+			${canRetake ? `<button onclick="startQuiz('${esc(record)}')">↻ Retake now</button>` : ""}
+			<button style="background:#E2E8E5;color:#2A3833" onclick="openCourse('${esc(record)}');loadTraining()">Back to course</button>
+		</div>`;
+	if (res.newly_certified) celebrate();
+}
+function examRunner(t, record) {
+	const acad = () => document.getElementById("acad");
+	let blurs = 0, timer = null, deadline = 0;
+	const onBlur = () => { blurs += 1; };
+	window.addEventListener("blur", onBlur);
+	const cleanup = () => { clearInterval(timer); timer = null; window.removeEventListener("blur", onBlur); };
+	const send = (choice) => {
+		clearInterval(timer);
+		const b = blurs; blurs = 0;
+		const go = document.getElementById("exgo");
+		if (go) go.disabled = true;
+		api("client_proctored_answer", { attempt: t.attempt, choice: choice, blurs: b })
+			.then(show)
+			.catch((e) => { cleanup(); fail(e); });
+	};
+	const show = (Q) => {
+		if (Q.done) { cleanup(); return examResult(Q, record); }
+		deadline = Date.now() + Q.seconds * 1000;
+		acad().innerHTML = `
+			<div class="exhead"><b>Question ${Q.idx + 1} of ${Q.size}</b><span class="exclock">${Q.seconds}s</span></div>
+			<div class="exbar"><i style="width:100%"></i></div>
+			<div class="exq">${esc(Q.question)}</div>
+			${Q.options.map((o, j) => `<label class="exopt"><input type="radio" name="exq" value="${j}"><span>${esc(o)}</span></label>`).join("")}
+			<div style="display:flex;gap:10px;margin-top:12px"><button id="exgo">Submit answer</button></div>
+			<div class="muted" style="font-size:12px;margin-top:8px">One question at a time. There is no going back. A question still open when the clock reaches zero counts as wrong.</div>`;
+		acad().querySelectorAll(".exopt").forEach((l) => l.addEventListener("click", () => {
+			acad().querySelectorAll(".exopt").forEach((x) => x.classList.remove("on"));
+			l.classList.add("on");
+		}));
+		document.getElementById("exgo").onclick = () => {
+			const v = acad().querySelector("input[name=exq]:checked");
+			send(v ? v.value : null);
+		};
+		timer = setInterval(() => {
+			const left = Math.max(0, deadline - Date.now());
+			const pct = (left / (Q.seconds * 1000)) * 100;
+			const c = acad().querySelector(".exclock"), b = acad().querySelector(".exbar i");
+			if (!c || !b) { clearInterval(timer); return; }
+			c.textContent = Math.ceil(left / 1000) + "s";
+			b.style.width = pct + "%";
+			if (pct < 25) b.classList.add("low"); else b.classList.remove("low");
+			if (left <= 0) send(null);
+		}, 250);
+	};
+	acad().innerHTML = `
+		<h3 style="margin:2px 0 10px">⏱ Timed assessment</h3>
+		<div class="exrules">
+			<div>${t.size} questions, ${t.seconds} seconds each.</div>
+			<div>Questions appear one at a time. Once you answer — or the clock reaches zero — you move on. There is no going back.</div>
+			<div>Your time on each question, and any switch away from this tab, are recorded on your result.</div>
+			<div>Do not reload or close this page: a question left open is forfeited.</div>
+		</div>
+		<div style="display:flex;gap:10px;margin-top:14px">
+			<button id="exstart">▶ Begin</button>
+			<button style="background:#E2E8E5;color:#2A3833" onclick="openCourse('${esc(record)}')">Cancel</button>
+		</div>`;
+	document.getElementById("exstart").onclick = () => {
+		document.getElementById("exstart").disabled = true;
+		api("client_proctored_next", { attempt: t.attempt })
+			.then(show)
+			.catch((e) => { cleanup(); fail(e); });
+	};
+	document.querySelector(".card.acad").scrollIntoView({ behavior: "smooth", block: "start" });
+}
 function startQuiz(record) {
 	stopBeat();
 	api("client_quiz_start", { record: record }).then((t) => {
 		window._quiz = { attempt: t.attempt, record: record };
+		if (t.timed) return examRunner(t, record);
 		document.getElementById("acad").innerHTML = `
-			<h3 style="margin:2px 0 10px">📝 Assessment — 10 questions</h3>
+			<h3 style="margin:2px 0 10px">📝 Assessment — ${t.questions.length} questions</h3>
 			${t.questions
 				.map(
 					(q, i) => `
@@ -2065,7 +2195,7 @@ function startQuiz(record) {
 			</div>`
 				)
 				.join("")}
-			<div class="muted" style="font-size:12px;margin-bottom:10px">Unanswered questions count as wrong. Unlimited retakes — your best score stands.</div>
+			<div class="muted" style="font-size:12px;margin-bottom:10px">Unanswered questions count as wrong. Your best score stands.</div>
 			<div style="display:flex;gap:10px"><button id="qzgo" onclick="submitQuiz()">Submit answers</button>
 			<button style="background:#E2E8E5;color:#2A3833" onclick="openCourse('${esc(record)}')">Cancel</button></div>`;
 		document.querySelector(".card.acad").scrollIntoView({ behavior: "smooth", block: "start" });
@@ -2080,21 +2210,7 @@ function submitQuiz() {
 	document.getElementById("qzgo").disabled = true;
 	api("client_quiz_submit", { attempt: window._quiz.attempt, answers: JSON.stringify(answers) })
 		.then((res) => {
-			const record = window._quiz.record;
-			document.getElementById("acad").innerHTML = `
-				<div style="text-align:center;padding:12px 0 6px">
-					<div style="font-size:46px;font-weight:800;color:${res.passed ? "#15803d" : "#B27409"}">${res.score}%</div>
-					<div class="muted">pass mark ${res.pass_mark}% · attempt ${res.attempts}${res.attempts > 1 ? ` · best ${res.best}%` : ""}</div>
-					${res.newly_certified ? `<div style="margin-top:8px;font-weight:700;color:#0C4A43">🎓 Course completed — your certificate is on its way to your Documents.</div>` : ""}
-				</div>
-				${!res.passed && (res.wrong || []).length
-					? `<div style="margin-top:8px"><b style="font-size:14px">Review these areas, then retake:</b>${res.wrong.map((w) => `<div class="muted" style="font-size:13px;margin:4px 0">• ${esc(w)}</div>`).join("")}</div>`
-					: ""}
-				<div style="display:flex;gap:10px;margin-top:14px">
-					${!res.passed ? `<button onclick="startQuiz('${esc(record)}')">↻ Retake now</button>` : ""}
-					<button style="background:#E2E8E5;color:#2A3833" onclick="openCourse('${esc(record)}');loadTraining()">Back to course</button>
-				</div>`;
-			if (res.newly_certified) celebrate();
+			examResult(res, window._quiz.record);
 		})
 		.catch((e) => { document.getElementById("qzgo").disabled = false; fail(e); });
 }

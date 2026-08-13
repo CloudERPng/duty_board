@@ -10,7 +10,7 @@ import json
 
 import frappe
 from frappe import _
-from frappe.utils import cint, get_datetime, getdate, now_datetime, today
+from frappe.utils import add_to_date, cint, get_datetime, getdate, now_datetime, today
 from frappe.utils.pdf import get_pdf
 from frappe.rate_limiter import rate_limit
 
@@ -4320,18 +4320,103 @@ def my_lesson_done(lesson):
 QUIZ_SIZE = 10
 
 
+def _exam_policy(module):
+	"""Per-module exam policy. Every field defaults to the pre-v3.206.0
+	behaviour — unlimited attempts, no cooling-off, wrong answers shown —
+	so no existing module changes until someone sets it deliberately."""
+	p = frappe.db.get_value(
+		"Duty Training Module", module,
+		[
+			"max_attempts", "retake_wait_hours", "hide_wrong_answers",
+			"timed_mode", "questions_served", "pass_mark",
+		],
+		as_dict=True,
+	) or frappe._dict()
+	return frappe._dict({
+		"max_attempts": cint(p.get("max_attempts")),
+		"wait_hours": cint(p.get("retake_wait_hours")),
+		"hide_wrong": cint(p.get("hide_wrong_answers")),
+		"timed": cint(p.get("timed_mode")),
+		"size": cint(p.get("questions_served")) or QUIZ_SIZE,
+		"pass_mark": cint(p.get("pass_mark")) or 70,
+	})
+
+
 def _quiz_state(module, user):
 	attempts = frappe.get_all(
 		"Duty Quiz Attempt",
 		filters={"user": user, "module": module, "finished_at": ["is", "set"]},
-		fields=["score", "passed"],
+		fields=["score", "passed", "finished_at"],
+		order_by="finished_at desc",
 	)
+	pol = _exam_policy(module)
+	used = len(attempts)
+	passed = any(a.passed for a in attempts)
+	next_at = None
+	if pol.wait_hours and attempts and not passed:
+		nx = add_to_date(get_datetime(attempts[0].finished_at), hours=pol.wait_hours)
+		if nx > now_datetime():
+			next_at = str(nx)
 	return {
-		"attempts": len(attempts),
+		"attempts": used,
 		"best": max((a.score for a in attempts), default=0),
-		"passed": any(a.passed for a in attempts),
+		"passed": passed,
 		"bank": frappe.db.count("Duty Quiz Question", {"module": module, "active": 1}),
+		"max_attempts": pol.max_attempts,
+		"attempts_left": max(0, pol.max_attempts - used) if pol.max_attempts else None,
+		"next_attempt_at": next_at,
+		"timed": pol.timed,
+		"hide_wrong": pol.hide_wrong,
+		"size": pol.size,
+		"pass_mark": pol.pass_mark,
 	}
+
+
+def _exam_gate(module, user):
+	"""Enforce the attempt cap and cooling-off window. Called on the CLIENT
+	path only — internal staff testing keeps its old ungated behaviour."""
+	st = _quiz_state(module, user)
+	if st["passed"]:
+		return st
+	if st["max_attempts"] and st["attempts"] >= st["max_attempts"]:
+		frappe.throw(
+			_("You have used all {0} permitted attempts for this assessment. Speak to your training coordinator.").format(
+				st["max_attempts"]
+			)
+		)
+	if st["next_attempt_at"]:
+		frappe.throw(
+			_("Your next attempt unlocks on {0}.").format(
+				frappe.utils.format_datetime(st["next_attempt_at"], "d MMM yyyy, HH:mm")
+			)
+		)
+	return st
+
+
+def _topic_breakdown(pairs):
+	"""[(question_name, ok)] -> per-area right/total, worst area first. The
+	sponsor-facing number. Returns [] when the bank carries no topics, so it
+	stays silent rather than inventing an area called None."""
+	if not pairs:
+		return []
+	topics = {
+		q.name: (q.topic or "").strip()
+		for q in frappe.get_all(
+			"Duty Quiz Question",
+			filters={"name": ["in", [p[0] for p in pairs]]},
+			fields=["name", "topic"],
+		)
+	}
+	if not any(topics.values()):
+		return []
+	agg = {}
+	for qn, ok in pairs:
+		t = topics.get(qn) or _("General")
+		row = agg.setdefault(t, {"topic": t, "right": 0, "total": 0})
+		row["total"] += 1
+		if ok:
+			row["right"] += 1
+	return sorted(agg.values(), key=lambda r: (r["right"] / r["total"], r["topic"]))
 
 
 def _all_lessons_read(module, user):
@@ -4398,14 +4483,16 @@ def _quiz_submit(attempt, answers, rec):
 			fields=["name", "correct"],
 		)
 	}
-	score_n, wrong = 0, []
+	score_n, wrong, pairs = 0, [], []
 	for s in served:
 		chosen = answers.get(s["q"])
 		if chosen is None:
 			chosen = -1
 		chosen = cint(chosen)
 		real = s["order"][chosen] if 0 <= chosen < 4 else -1
-		if real == correct_map.get(s["q"]):
+		hit = real == correct_map.get(s["q"])
+		pairs.append((s["q"], hit))
+		if hit:
 			score_n += 1
 		else:
 			wrong.append(frappe.db.get_value("Duty Quiz Question", s["q"], "question"))
@@ -4431,8 +4518,11 @@ def _quiz_submit(attempt, answers, rec):
 		"score": score,
 		"passed": passed,
 		"pass_mark": pass_mark,
-		"wrong": wrong,
+		"wrong": [] if state["hide_wrong"] else wrong,
+		"breakdown": _topic_breakdown(pairs),
 		"attempts": state["attempts"],
+		"attempts_left": state["attempts_left"],
+		"next_attempt_at": state["next_attempt_at"],
 		"best": state["best"],
 		"newly_certified": newly_certified,
 	}
@@ -4446,15 +4536,22 @@ def my_quiz_start(record):
 	)
 	if not rec or rec.trainee != frappe.session.user or rec.room:
 		frappe.throw(_("Not found."), frappe.PermissionError)
+	return _exam_start(rec.name, rec.module)
+
+
+def _exam_start(rec_name, module):
+	"""Classic paper, or a timed handle when the module is proctored.
+	Verbatim the v3.78.0 logic, lifted out of my_quiz_start so the client
+	portal can reach it without a second copy of the exam mechanics."""
 	mod = frappe.db.get_value(
-		"Duty Training Module", rec.module,
+		"Duty Training Module", module,
 		["timed_mode", "seconds_per_question", "questions_served"], as_dict=True,
 	) or frappe._dict()
 	if not cint(mod.timed_mode):
-		return _quiz_start(rec.name, rec.module)
+		return _quiz_start(rec_name, module)
 	# Timed mode: build the attempt with the SAME subset+shuffle machinery,
 	# but hand back only a handle — questions are served one at a time.
-	base = _quiz_start(rec.name, rec.module)
+	base = _quiz_start(rec_name, module)
 	size = base["size"]
 	if cint(mod.questions_served) and cint(mod.questions_served) != size:
 		# module overrides the subset size: rebuild served on the attempt
@@ -4462,7 +4559,7 @@ def my_quiz_start(record):
 		att = frappe.get_doc("Duty Quiz Attempt", base["attempt"])
 		bank = frappe.get_all(
 			"Duty Quiz Question",
-			filters={"module": rec.module, "active": 1},
+			filters={"module": module, "active": 1},
 			fields=["name"],
 		)
 		n = min(cint(mod.questions_served), len(bank))
@@ -4530,9 +4627,12 @@ def _timed_finish(att):
 		"score": score,
 		"passed": passed,
 		"pass_mark": pass_mark,
-		"wrong": wrong,
+		"wrong": [] if state["hide_wrong"] else wrong,
+		"breakdown": _topic_breakdown([(r["q"], bool(r.get("ok"))) for r in results]),
 		"timeouts": sum(1 for r in results if r.get("timed_out")),
 		"attempts": state["attempts"],
+		"attempts_left": state["attempts_left"],
+		"next_attempt_at": state["next_attempt_at"],
 		"best": state["best"],
 		"newly_certified": newly_certified,
 	}
@@ -4543,6 +4643,10 @@ def proctored_next(attempt):
 	"""Serve the current question, stamped server-side. Calling this after
 	a disconnect forfeits the stale question (rule: no going back)."""
 	_staff_only()
+	return _proctored_next(attempt)
+
+
+def _proctored_next(attempt):
 	att = _timed_attempt(attempt)
 	served = json.loads(att.served or "[]")
 	idx = cint(att.current_idx)
@@ -4579,17 +4683,21 @@ def proctored_answer(attempt, choice=None, blurs=0):
 	"""Record the answer for the CURRENT question. Server-enforced timing:
 	answers after limit+5s grace count as timed out. Advances; no return."""
 	_staff_only()
+	return _proctored_answer(attempt, choice, blurs)
+
+
+def _proctored_answer(attempt, choice=None, blurs=0):
 	att = _timed_attempt(attempt)
 	served = json.loads(att.served or "[]")
 	idx = cint(att.current_idx)
 	if idx >= len(served) or not att.current_served_at:
-		return proctored_next(attempt)
+		return _proctored_next(attempt)
 	s = served[idx]
 	elapsed = (now_datetime() - get_datetime(att.current_served_at)).total_seconds()
 	limit = _timed_seconds(att) + 5  # network grace
 	results = json.loads(att.results or "[]")
 	if len(results) > idx:
-		return proctored_next(attempt)  # double-submit: ignore, serve next
+		return _proctored_next(attempt)  # double-submit: ignore, serve next
 	timed_out = elapsed > limit or choice is None or choice == ""
 	ok = False
 	if not timed_out:
@@ -4614,7 +4722,7 @@ def proctored_answer(attempt, choice=None, blurs=0):
 		update_modified=False,
 	)
 	frappe.db.commit()
-	return proctored_next(attempt)
+	return _proctored_next(attempt)
 
 
 @frappe.whitelist()
@@ -4671,7 +4779,8 @@ def client_quiz_start(record):
 	)
 	if not rec or rec.trainee != frappe.session.user or rec.room != room.name:
 		frappe.throw(_("Not found."), frappe.PermissionError)
-	return _quiz_start(rec.name, rec.module)
+	_exam_gate(rec.module, frappe.session.user)
+	return _exam_start(rec.name, rec.module)
 
 
 @frappe.whitelist()
@@ -4682,6 +4791,31 @@ def client_quiz_submit(attempt, answers):
 	if rec.trainee != frappe.session.user or rec.room != room.name:
 		frappe.throw(_("Not found."), frappe.PermissionError)
 	return _quiz_submit(attempt, answers, rec)
+
+
+def _client_attempt(attempt):
+	"""Room-membership guard on a client exam attempt — the client mirror of
+	_staff_only() on the proctored endpoints. Room resolves first, as always;
+	_timed_attempt then re-checks the attempt belongs to this session."""
+	room = _client_room()
+	att_rec = frappe.db.get_value("Duty Quiz Attempt", attempt, "record")
+	rec = frappe.db.get_value(
+		"Duty Training Record", att_rec, ["trainee", "room"], as_dict=True
+	)
+	if not rec or rec.trainee != frappe.session.user or rec.room != room.name:
+		frappe.throw(_("Not found."), frappe.PermissionError)
+
+
+@frappe.whitelist()
+def client_proctored_next(attempt):
+	_client_attempt(attempt)
+	return _proctored_next(attempt)
+
+
+@frappe.whitelist()
+def client_proctored_answer(attempt, choice=None, blurs=0):
+	_client_attempt(attempt)
+	return _proctored_answer(attempt, choice, blurs)
 
 
 # ---------------- certification: tracks, registry, product-branded certs ----------------
