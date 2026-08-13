@@ -3920,13 +3920,98 @@ def client_lesson(lesson):
 	if rec.status == "Assigned":
 		frappe.db.set_value("Duty Training Record", rec.name, "status", "Reading", update_modified=False)
 	frappe.db.commit()
+	checks_passed = bool(
+		frappe.db.get_value(
+			"Duty Lesson Progress", {"user": user, "lesson": lesson}, "checks_passed"
+		)
+	)
 	return {
 		"title": l.title,
 		"html": frappe.utils.sanitize_html(l.content or ""),
 		"est_minutes": l.est_minutes or 5,
 		"seconds": prog.seconds or 0,
 		"done": bool(prog.completed_at),
+		"checks": _lesson_checks_for_serve(lesson),
+		"checks_passed": checks_passed,
 	}
+
+
+def _lesson_checks(lesson):
+	return frappe.get_all(
+		"Duty Lesson Check",
+		filters={"lesson": lesson, "active": 1},
+		fields=["name", "question", "opt_a", "opt_b", "opt_c", "opt_d", "correct", "rationale"],
+		order_by="sort_order asc, creation asc",
+	)
+
+
+def _check_options(c):
+	"""(letter index, text) for each non-blank option. A check may carry two
+	options rather than four, and dropping a blank must NOT shift the answer
+	key: if C is empty and D is correct, D is still index 3."""
+	return [
+		(i, o)
+		for i, o in enumerate((c.opt_a, c.opt_b, c.opt_c, c.opt_d))
+		if (o or "").strip()
+	]
+
+
+def _lesson_checks_for_serve(lesson):
+	"""Shuffled per serve, answer key withheld. The shuffle map is rebuilt on
+	grading from the same seed the client is handed, so nothing about which
+	option is right ever crosses the wire before they answer."""
+	import random
+
+	out = []
+	for c in _lesson_checks(lesson):
+		opts = _check_options(c)
+		order = list(range(len(opts)))
+		random.Random(f"{frappe.session.user}:{c.name}").shuffle(order)
+		out.append({
+			"name": c.name,
+			"question": c.question,
+			"options": [opts[i][1] for i in order],
+		})
+	return out
+
+
+def _check_order(name, count):
+	import random
+
+	order = list(range(count))
+	random.Random(f"{frappe.session.user}:{name}").shuffle(order)
+	return order
+
+
+@frappe.whitelist()
+def client_lesson_check(lesson, answers):
+	"""Grade the end-of-lesson checks. Formative: the outcome is never scored,
+	never stored per question, and never reaches a transcript. Passing every
+	check is what marks the lesson read."""
+	room, l, rec = _lesson_access(lesson)
+	if isinstance(answers, str):
+		answers = json.loads(answers)
+	checks = _lesson_checks(lesson)
+	if not checks:
+		frappe.throw(_("This lesson has no checks."))
+	results, all_ok = [], True
+	for c in checks:
+		opts = _check_options(c)
+		order = _check_order(c.name, len(opts))
+		chosen = answers.get(c.name)
+		chosen = cint(chosen) if chosen is not None else -1
+		real = opts[order[chosen]][0] if 0 <= chosen < len(order) else -1
+		ok = real == "ABCD".index(c.correct)
+		if not ok:
+			all_ok = False
+		results.append({"name": c.name, "ok": ok, "rationale": c.rationale or ""})
+	prog = frappe.db.get_value(
+		"Duty Lesson Progress", {"user": frappe.session.user, "lesson": lesson}, "name"
+	)
+	if all_ok and prog:
+		frappe.db.set_value("Duty Lesson Progress", prog, "checks_passed", 1, update_modified=False)
+		frappe.db.commit()
+	return {"results": results, "passed": all_ok}
 
 
 @frappe.whitelist()
@@ -3954,6 +4039,10 @@ def client_lesson_done(lesson):
 	)
 	if not prog:
 		frappe.throw(_("Open the lesson first."))
+	if _lesson_checks(lesson) and not cint(
+		frappe.db.get_value("Duty Lesson Progress", prog.name, "checks_passed")
+	):
+		frappe.throw(_("Answer the check questions at the end of the lesson first."))
 	if not prog.completed_at:
 		frappe.db.set_value(
 			"Duty Lesson Progress", prog.name, "completed_at", now_datetime(), update_modified=False

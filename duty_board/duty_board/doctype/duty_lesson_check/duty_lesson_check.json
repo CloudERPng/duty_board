@@ -1,0 +1,106 @@
+{
+ "actions": [],
+ "autoname": "hash",
+ "creation": "2026-08-13 12:00:00.000000",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "lesson",
+  "sort_order",
+  "question",
+  "opt_a",
+  "opt_b",
+  "opt_c",
+  "opt_d",
+  "correct",
+  "rationale",
+  "active"
+ ],
+ "fields": [
+  {
+   "fieldname": "lesson",
+   "fieldtype": "Link",
+   "label": "Lesson",
+   "options": "Duty Lesson",
+   "reqd": 1,
+   "in_list_view": 1
+  },
+  {
+   "fieldname": "sort_order",
+   "fieldtype": "Int",
+   "label": "Sort Order"
+  },
+  {
+   "fieldname": "question",
+   "fieldtype": "Small Text",
+   "label": "Question",
+   "reqd": 1,
+   "in_list_view": 1
+  },
+  {
+   "fieldname": "opt_a",
+   "fieldtype": "Small Text",
+   "label": "Option A",
+   "reqd": 1
+  },
+  {
+   "fieldname": "opt_b",
+   "fieldtype": "Small Text",
+   "label": "Option B",
+   "reqd": 1
+  },
+  {
+   "fieldname": "opt_c",
+   "fieldtype": "Small Text",
+   "label": "Option C"
+  },
+  {
+   "fieldname": "opt_d",
+   "fieldtype": "Small Text",
+   "label": "Option D"
+  },
+  {
+   "fieldname": "correct",
+   "fieldtype": "Select",
+   "label": "Correct",
+   "options": "A\nB\nC\nD",
+   "reqd": 1
+  },
+  {
+   "fieldname": "rationale",
+   "fieldtype": "Small Text",
+   "label": "Why",
+   "description": "Shown the moment they answer. This is the teaching, not a scold."
+  },
+  {
+   "fieldname": "active",
+   "fieldtype": "Check",
+   "label": "Active",
+   "default": "1"
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "links": [],
+ "modified": "2026-08-13 12:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "Duty Board",
+ "name": "Duty Lesson Check",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}

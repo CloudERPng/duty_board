@@ -621,6 +621,24 @@
 		.rdmin { display: none; }
 	}
 
+	/* ---- end-of-lesson checks ---- */
+	.ckwrap { margin-top: 30px; border-top: 2px solid var(--brand-50); padding-top: 20px; }
+	.ckhead { font-family: Fraunces, Georgia, serif; font-size: 19px; font-weight: 600; margin-bottom: 4px; }
+	.ckintro { font-size: 12.5px; color: #6B7C77; line-height: 1.6; margin-bottom: 16px; }
+	.ckq { padding: 13px 15px; border: 1px solid #E4EAE8; border-radius: 12px; margin-bottom: 11px; background: #fff; }
+	.ckq.good { border-color: #B7DFD6; background: #F6FBF9; }
+	.ckq.bad { border-color: #F0C7BC; background: #FEF8F6; }
+	.ckqt { font-size: 14.5px; font-weight: 700; line-height: 1.45; margin-bottom: 9px; }
+	.ckopt { display: flex; gap: 9px; align-items: flex-start; padding: 5px 2px; cursor: pointer;
+		font-size: 14px; line-height: 1.45; margin: 0; font-weight: 400; }
+	.ckopt input { margin-top: 3px; }
+	.ckfb { font-size: 12.5px; line-height: 1.6; margin-top: 8px; }
+	.ckq.good .ckfb { color: #0C4A43; }
+	.ckq.bad .ckfb { color: #9A3412; }
+	.ckq .ckfb:empty { display: none; }
+	.ckdone { margin-top: 26px; font-size: 13px; color: var(--brand-700); background: var(--brand-50);
+		border: 1px solid #CBE7DE; border-radius: 10px; padding: 10px 14px; }
+
 	/* ---- proctored assessment ---- */
 	.exhead { display: flex; align-items: baseline; justify-content: space-between; font-size: 14px; margin: 2px 0 6px; }
 	.exclock { font-variant-numeric: tabular-nums; font-weight: 800; font-size: 15px; color: var(--brand-700); }
@@ -2098,6 +2116,7 @@ function openLesson(lesson, record) {
 			<div class="rdwrap">
 				<h1 class="rdtitle">${esc(l.title)}</h1>
 				<div id="lessonbody"></div>
+				<div id="ckhost"></div>
 				<div class="rdfoot">
 					<span class="rddots">${c.lessons.map((x, k) => `<i class="${x.done ? "on" : ""}${k === idx ? " cur" : ""}"></i>`).join("")}</span>
 					${l.done
@@ -2108,6 +2127,7 @@ function openLesson(lesson, record) {
 			</div>`;
 		const bb = document.getElementById("lessonbody");
 		bb.innerHTML = l.html;
+		renderChecks(l, lesson, record);
 		bb.querySelectorAll("blockquote").forEach((q) => {
 			const t = q.textContent;
 			q.className = t.indexOf("WATCH-OUT") === 0 ? "bq-warn" : t.indexOf("IMPLEMENTATION TIP") === 0 ? "bq-tip" : "bq-note";
@@ -2121,6 +2141,69 @@ function openLesson(lesson, record) {
 			}, 20000);
 		}
 	}).catch(fail);
+}
+function renderChecks(l, lesson, record) {
+	/* Formative checks. Never scored, never on a transcript — they exist so a
+	   misreading surfaces here rather than in the exam nine chapters later. */
+	const host = document.getElementById("ckhost");
+	if (!host) return;
+	const checks = l.checks || [];
+	if (!checks.length) return;
+	if (l.checks_passed) {
+		host.innerHTML = `<div class="ckdone">\u2713 You answered the check questions for this lesson.</div>`;
+		return;
+	}
+	const paint = () => {
+		host.innerHTML = `
+			<div class="ckwrap">
+				<div class="ckhead">Before you move on</div>
+				<div class="ckintro">Two or three questions to check the lesson landed. They are not scored and never appear on your record \u2014 if one is wrong you will be told why and can try again.</div>
+				${checks.map((c, i) => `
+				<div class="ckq" data-c="${esc(c.name)}">
+					<div class="ckqt">${i + 1}. ${esc(c.question)}</div>
+					${c.options.map((o, j) => `<label class="ckopt"><input type="radio" name="ck_${i}" value="${j}"><span>${esc(o)}</span></label>`).join("")}
+					<div class="ckfb"></div>
+				</div>`).join("")}
+				<button id="ckgo">Check my answers</button>
+			</div>`;
+		document.getElementById("ckgo").onclick = () => {
+			const answers = {};
+			let missing = 0;
+			host.querySelectorAll(".ckq").forEach((el) => {
+				const picked = el.querySelector("input:checked");
+				if (picked) answers[el.getAttribute("data-c")] = parseInt(picked.value, 10);
+				else missing += 1;
+			});
+			if (missing) return alert("Answer every question first.");
+			document.getElementById("ckgo").disabled = true;
+			api("client_lesson_check", { lesson: lesson, answers: JSON.stringify(answers) })
+				.then((res) => {
+					(res.results || []).forEach((r) => {
+						const el = host.querySelector(`[data-c="${r.name}"]`);
+						if (!el) return;
+						el.classList.toggle("bad", !r.ok);
+						el.classList.toggle("good", r.ok);
+						el.querySelector(".ckfb").innerHTML = r.ok
+							? `\u2713 Correct.${r.rationale ? " " + esc(r.rationale) : ""}`
+							: `\u2717 Not quite.${r.rationale ? " " + esc(r.rationale) : " Re-read the section above and try again."}`;
+					});
+					if (res.passed) {
+						const btn = document.getElementById("ckgo");
+						btn.remove();
+						const lr = document.getElementById("lread");
+						if (lr) { lr.disabled = false; lr.title = ""; }
+					} else {
+						const btn = document.getElementById("ckgo");
+						btn.disabled = false;
+						btn.textContent = "Try again";
+					}
+				})
+				.catch((e) => { document.getElementById("ckgo").disabled = false; fail(e); });
+		};
+		const lr = document.getElementById("lread");
+		if (lr) { lr.disabled = true; lr.title = "Answer the check questions first"; }
+	};
+	paint();
 }
 function examPolicyLine(qz) {
 	const bits = [(qz.size || 10) + " questions", "pass at " + (qz.pass_mark || 70) + "%"];
