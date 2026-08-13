@@ -588,6 +588,39 @@
 	#lessonbody blockquote.bq-warn { background: #FDECEA; border: 1px solid #F4C7C0; }
 	#lessonbody blockquote.bq-warn:before { content: "⚠️"; }
 
+	/* ---- the reading room ---- */
+	body[data-acad] #mycerts, body[data-acad] #mytracks { display: none !important; }
+	body[data-acad] .card.acad > h3.foldh { display: none !important; }
+	body[data-acad="exam"] .tabbar { display: none !important; }
+
+	.rdbar { display: flex; align-items: center; gap: 12px; position: sticky; top: 0; z-index: 6;
+		background: #fff; padding: 4px 0 10px; }
+	.rdback { flex: 0 0 auto; width: 32px; height: 32px; padding: 0; border-radius: 50%;
+		background: #EEF3F1 !important; color: #17403A !important; font-size: 16px; line-height: 1; }
+	.rdcrumb { flex: 1; min-width: 0; }
+	.rdcrumb b { display: block; font-size: 11px; letter-spacing: 1.6px; text-transform: uppercase;
+		color: var(--brand-700); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+	.rdcrumb span { display: block; font-size: 12.5px; color: #6B7C77; margin-top: 2px;
+		white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+	.rdmin { flex: 0 0 auto; font-size: 12px; color: #6B7C77; }
+	.rdprog { height: 3px; border-radius: 99px; background: #E9EFEC; overflow: hidden; margin-bottom: 26px; }
+	.rdprog i { display: block; height: 100%; background: var(--brand); transition: width .3s ease; }
+	.rdwrap { max-width: 660px; margin: 0 auto; }
+	.rdtitle { font-family: Fraunces, Georgia, serif; font-size: 30px; line-height: 1.2; font-weight: 600;
+		margin: 0 0 22px; color: #16211F; letter-spacing: -.2px; }
+	.rdfoot { display: flex; gap: 10px; align-items: center; flex-wrap: wrap;
+		margin-top: 34px; border-top: 1px solid #EEF2F0; padding-top: 16px; }
+	.rddots { display: flex; gap: 5px; margin-right: auto; }
+	.rddots i { width: 9px; height: 9px; border-radius: 50%; background: #D9E4E0; }
+	.rddots i.on { background: #087A67; }
+	.rddots i.cur { outline: 2px solid #087A67; outline-offset: 2px; }
+	.rdghost { background: #E2E8E5 !important; color: #2A3833 !important; }
+	@media (max-width: 700px) {
+		.rdtitle { font-size: 25px; margin-bottom: 18px; }
+		.rdprog { margin-bottom: 20px; }
+		.rdmin { display: none; }
+	}
+
 	/* ---- proctored assessment ---- */
 	.exhead { display: flex; align-items: baseline; justify-content: space-between; font-size: 14px; margin: 2px 0 6px; }
 	.exclock { font-variant-numeric: tabular-nums; font-weight: 800; font-size: 15px; color: var(--brand-700); }
@@ -1887,8 +1920,17 @@ function loadMetrics() {
 }
 
 /* ---- academy ---- */
+function acadFocus(mode) {
+	/* "" = index, "read" = course/lesson/result, "exam" = proctored runner.
+	   The index blocks (#mycerts, #mytracks) are siblings of #acad, so they
+	   survive an innerHTML rewrite — hiding them is the only way to be alone
+	   with the material. */
+	if (mode) document.body.setAttribute("data-acad", mode);
+	else document.body.removeAttribute("data-acad");
+}
 function loadTraining() {
 	stopBeat();
+	acadFocus("");
 	api("client_get_certificates")
 		.then((certs) => {
 			certs = certs || [];
@@ -1995,6 +2037,7 @@ function pursueTrack(track) {
 }
 function openCourse(record) {
 	stopBeat();
+	acadFocus("read");
 	api("client_course", { record: record }).then((c) => {
 		window._course = c;
 		const allRead = c.lessons.length && c.lessons.every((l) => l.done);
@@ -2032,24 +2075,36 @@ function stopBeat() {
 }
 function openLesson(lesson, record) {
 	stopBeat();
+	acadFocus("read");
 	api("client_lesson", { lesson: lesson }).then((l) => {
 		let secs = l.seconds || 0;
 		const c = window._course || { lessons: [] };
 		const idx = c.lessons.findIndex((x) => x.name === lesson);
 		const next = idx >= 0 ? c.lessons[idx + 1] : null;
+		const trk = c.track || null;
+		const spine = trk ? trk.title : (c.product || "");
+		const place = (trk ? `Course ${trk.position} of ${trk.total} · ` : "") + esc(c.title || "");
+		const pct = c.lessons.length ? Math.round(((idx + 1) / c.lessons.length) * 100) : 0;
 		document.getElementById("acad").innerHTML = `
-			<div style="background:linear-gradient(120deg,#0A473F,#087A67 60%,#146B62);color:#fff;border-radius:12px;padding:14px 18px;margin-bottom:16px">
-				<div style="font-size:11px;letter-spacing:2px;text-transform:uppercase;opacity:.75">${esc(c.product || "")} · Lesson ${idx + 1} of ${c.lessons.length}</div>
-				<div style="font-size:20px;font-weight:800;margin-top:3px">${esc(l.title)}</div>
-				<div style="font-size:12px;opacity:.85;margin-top:5px">⏱ ~${l.est_minutes} min read</div>
+			<div class="rdbar">
+				<button class="rdback" onclick="openCourse('${esc(record)}')" title="Back to the course">←</button>
+				<div class="rdcrumb">
+					<b>${esc(spine)}</b>
+					<span>${place} · Lesson ${idx + 1} of ${c.lessons.length}</span>
+				</div>
+				<span class="rdmin">~${l.est_minutes} min</span>
 			</div>
-			<div id="lessonbody"></div>
-			<div style="display:flex;gap:10px;align-items:center;margin-top:18px;border-top:1px solid #EEF2F0;padding-top:12px;flex-wrap:wrap">
-				<span style="display:flex;gap:5px;margin-right:auto">${c.lessons.map((x, k) => `<i style="width:9px;height:9px;border-radius:50%;background:${x.done ? "#087A67" : "#D9E4E0"};${k === idx ? "outline:2px solid #087A67;outline-offset:2px" : ""}"></i>`).join("")}</span>
-				${l.done
-					? `<span class="acaddone">✓ Read</span>${next ? `<button onclick="openLesson('${esc(next.name)}','${esc(record)}')">Next lesson →</button>` : ""}`
-					: `<button id="lread" onclick="markRead('${esc(lesson)}','${esc(record)}')">✓ Mark as read${next ? " · next →" : ""}</button>`}
-				<button style="background:#E2E8E5;color:#2A3833" onclick="openCourse('${esc(record)}')">← Lessons</button>
+			<div class="rdprog"><i style="width:${pct}%"></i></div>
+			<div class="rdwrap">
+				<h1 class="rdtitle">${esc(l.title)}</h1>
+				<div id="lessonbody"></div>
+				<div class="rdfoot">
+					<span class="rddots">${c.lessons.map((x, k) => `<i class="${x.done ? "on" : ""}${k === idx ? " cur" : ""}"></i>`).join("")}</span>
+					${l.done
+						? `<span class="acaddone">✓ Read</span>${next ? `<button onclick="openLesson('${esc(next.name)}','${esc(record)}')">Next lesson →</button>` : ""}`
+						: `<button id="lread" onclick="markRead('${esc(lesson)}','${esc(record)}')">✓ Mark as read${next ? " · next →" : ""}</button>`}
+					<button class="rdghost" onclick="openCourse('${esc(record)}')">← All lessons</button>
+				</div>
 			</div>`;
 		const bb = document.getElementById("lessonbody");
 		bb.innerHTML = l.html;
@@ -2082,6 +2137,7 @@ function examLockReason(qz) {
 	return "Your next attempt unlocks on " + esc(String(qz.next_attempt_at || "").slice(0, 16).replace("T", " ")) + ".";
 }
 function examResult(res, record) {
+	acadFocus("read");
 	const canRetake = !res.passed && res.attempts_left !== 0 && !res.next_attempt_at;
 	document.getElementById("acad").innerHTML = `
 		<div style="text-align:center;padding:12px 0 6px">
@@ -2108,11 +2164,12 @@ function examResult(res, record) {
 	if (res.newly_certified) celebrate();
 }
 function examRunner(t, record) {
+	acadFocus("exam");
 	const acad = () => document.getElementById("acad");
 	let blurs = 0, timer = null, deadline = 0;
 	const onBlur = () => { blurs += 1; };
 	window.addEventListener("blur", onBlur);
-	const cleanup = () => { clearInterval(timer); timer = null; window.removeEventListener("blur", onBlur); };
+	const cleanup = () => { clearInterval(timer); timer = null; window.removeEventListener("blur", onBlur); acadFocus("read"); };
 	const send = (choice) => {
 		clearInterval(timer);
 		const b = blurs; blurs = 0;
@@ -2173,6 +2230,7 @@ function examRunner(t, record) {
 }
 function startQuiz(record) {
 	stopBeat();
+	acadFocus("read");
 	api("client_quiz_start", { record: record }).then((t) => {
 		window._quiz = { attempt: t.attempt, record: record };
 		if (t.timed) return examRunner(t, record);

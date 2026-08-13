@@ -3788,6 +3788,64 @@ def _my_training_record(room, module):
 	return rec
 
 
+def _track_for_module(room, user, module):
+	"""The track to name in the reader's breadcrumb. A module can sit in
+	several tracks; prefer one the reader is actually pursuing, then fall
+	back to the first client track that contains it. None when it stands
+	alone — the breadcrumb then shows the product."""
+	parents = frappe.get_all(
+		"Duty Certification Track Module",
+		filters={"module": module},
+		fields=["parent"],
+	)
+	if not parents:
+		return None
+	names = list({p.parent for p in parents})
+	tracks = frappe.get_all(
+		"Duty Certification Track",
+		filters={"name": ["in", names], "active": 1, "audience": "Client"},
+		fields=["name", "title", "product"],
+		order_by="title asc",
+	)
+	if not tracks:
+		return None
+	best = None
+	for t in tracks:
+		mods = frappe.get_all(
+			"Duty Certification Track Module",
+			filters={"parent": t.name},
+			fields=["module"],
+			order_by="idx asc",
+		)
+		mod_names = [m.module for m in mods]
+		if module not in mod_names:
+			continue
+		done = frappe.db.count(
+			"Duty Training Record",
+			{
+				"room": room.name, "trainee": user,
+				"module": ["in", mod_names], "status": "Completed",
+			},
+		)
+		has = frappe.db.count(
+			"Duty Training Record",
+			{"room": room.name, "trainee": user, "module": ["in", mod_names]},
+		)
+		row = {
+			"title": t.title,
+			"product": t.product,
+			"position": mod_names.index(module) + 1,
+			"total": len(mod_names),
+			"done": done,
+			"pursuing": has >= len(mod_names),
+		}
+		if row["pursuing"]:
+			return row
+		if best is None:
+			best = row
+	return best
+
+
 @frappe.whitelist()
 def client_course(record):
 	room = _client_room()
@@ -3818,6 +3876,7 @@ def client_course(record):
 		"title": mod.title,
 		"product": mod.product,
 		"description": mod.description,
+		"track": _track_for_module(room, frappe.session.user, rec.module),
 		"status": frappe.db.get_value("Duty Training Record", record, "status"),
 		"quiz": _quiz_state(rec.module, frappe.session.user),
 		"lessons": [
