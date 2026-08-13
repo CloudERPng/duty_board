@@ -622,6 +622,15 @@
 	.cattag.paid { background: #FFF7E6; color: #8A5A0B; }
 	.cattag.own { background: #E8F3EF; color: #0C4A43; }
 	.catacts { display: flex; gap: 16px; margin-top: 8px; }
+	.pplrow { display: flex; align-items: center; gap: 12px; padding: 9px 0; border-top: 1px solid #F0F4F2; }
+	.pplrow.off { opacity: .55; }
+	.pplwho { flex: 1; min-width: 0; font-size: 13.5px; }
+	.pplwho span { display: block; font-size: 12px; }
+	.ppladm { font-size: 10.5px; font-weight: 700; text-transform: uppercase; letter-spacing: .8px;
+		color: var(--brand-700); background: var(--brand-50); border-radius: 99px; padding: 2px 8px; }
+	.pplset { font-size: 12px; font-weight: 700; color: var(--brand-700); cursor: pointer; white-space: nowrap; }
+	.admfield textarea { width: 100%; max-width: 460px; padding: 9px 11px; border: 1px solid #DCE4E1;
+		border-radius: 9px; font-size: 14px; font-family: inherit; }
 	.catasg { font-size: 12.5px; font-weight: 700; color: var(--brand-700); cursor: pointer; }
 	.catdesc { font-size: 12.5px; color: #4A5A55; line-height: 1.6; margin-top: 5px; }
 	.catnote { font-size: 12.5px; margin-top: 8px; background: #FFF7E6; border: 1px solid #F3E0B5;
@@ -2001,6 +2010,7 @@ function loadAdminTraining() {
 				<div class="admwrap">
 					<div class="admhead">
 						<div><b>Team training</b><span class="muted"> · you administer this for your organisation</span></div>
+						<button id="admppl" style="background:#E2E8E5;color:#2A3833">People</button>
 						<button id="admcat" style="background:#E2E8E5;color:#2A3833">Catalogue</button>
 						<button id="admassign">＋ Assign training</button>
 					</div>
@@ -2025,6 +2035,7 @@ function loadAdminTraining() {
 				</div>`;
 			document.getElementById("admassign").onclick = openAssign;
 			document.getElementById("admcat").onclick = openCatalogue;
+			document.getElementById("admppl").onclick = openPeople;
 			host.querySelectorAll(".admnudge").forEach((a) =>
 				a.addEventListener("click", () => {
 					a.textContent = "…";
@@ -2034,6 +2045,56 @@ function loadAdminTraining() {
 				}));
 		})
 		.catch(() => { host.innerHTML = ""; });
+}
+function openPeople() {
+	const host = document.getElementById("adminhost");
+	const paint = (people) => {
+		const live = people.filter((p) => p.active);
+		const gone = people.filter((p) => !p.active);
+		const row = (p) => `
+			<div class="pplrow${p.active ? "" : " off"}">
+				<div class="pplwho">
+					<b>${esc(p.full_name)}</b>${p.is_admin ? ` <span class="ppladm">administrator</span>` : ""}
+					<span class="muted">${esc(p.user)}${p.assigned ? ` · ${p.complete} of ${p.assigned} complete` : " · no training yet"}</span>
+				</div>
+				${p.is_self ? `<span class="muted" style="font-size:12px">you</span>`
+					: `<a class="pplset" data-u="${esc(p.user)}" data-on="${p.active ? 0 : 1}">${p.active ? "End access" : "Restore"}</a>`}
+			</div>`;
+		host.innerHTML = `
+			<div class="admwrap">
+				<div class="admhead"><div><b>People</b><span class="muted"> · who from your organisation can use the portal</span></div>
+					<button style="background:#E2E8E5;color:#2A3833" onclick="loadAdminTraining()">Back</button></div>
+				<div class="admfield"><label>Invite colleagues</label>
+					<textarea id="pplmails" rows="3" placeholder="Paste email addresses — commas, spaces or one per line"></textarea></div>
+				<button id="pplgo">Send invitations</button>
+				<div id="pplres"></div>
+				<div class="duty-lead-section" style="margin-top:18px;font-weight:700;font-size:13px">Active · ${live.length}</div>
+				${live.map(row).join("") || `<span class="muted">Nobody yet.</span>`}
+				${gone.length ? `<div class="duty-lead-section" style="margin-top:16px;font-weight:700;font-size:13px">No longer active · ${gone.length}</div>${gone.map(row).join("")}` : ""}
+				<p class="muted" style="font-size:11.5px;margin-top:12px">Ending access does not delete anything. Their progress and certificates are kept, and a returning colleague picks up exactly where they stopped.</p>
+			</div>`;
+		document.getElementById("pplgo").onclick = () => {
+			const v = document.getElementById("pplmails").value.trim();
+			if (!v) return alert("Paste at least one email address.");
+			document.getElementById("pplgo").disabled = true;
+			api("client_admin_invite", { emails: v })
+				.then((r) => {
+					const bits = [];
+					if (r.invited.length) bits.push(`<div class="catnote ok">${r.invited.length} invitation(s) sent.</div>`);
+					if (r.rejoined.length) bits.push(`<div class="catnote ok">${r.rejoined.length} colleague(s) restored.</div>`);
+					if (r.already.length) bits.push(`<div class="catnote">${r.already.length} already had access.</div>`);
+					if (r.refused.length) bits.push(`<div class="catnote">${r.refused.map((x) => `${esc(x.email)} — ${esc(x.why)}`).join("<br>")}</div>`);
+					paint(r.people);
+					document.getElementById("pplres").innerHTML = bits.join("");
+				})
+				.catch((e) => { document.getElementById("pplgo").disabled = false; fail(e); });
+		};
+		host.querySelectorAll(".pplset").forEach((a) =>
+			a.addEventListener("click", () =>
+				api("client_admin_set_active", { user: a.getAttribute("data-u"), on: a.getAttribute("data-on") })
+					.then(paint).catch(fail)));
+	};
+	api("client_admin_people").then(paint).catch(fail);
 }
 function openCatalogue() {
 	const host = document.getElementById("adminhost");

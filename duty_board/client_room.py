@@ -7,6 +7,7 @@ Internal ("whisper") messages never cross the membrane.
 """
 
 import json
+import re
 
 import frappe
 from frappe import _
@@ -4282,6 +4283,172 @@ def client_training_admin_nudge(user):
 	except Exception:
 		pass
 	return {"nudged": len(open_rows)}
+
+
+# ---------------- the roster: the client's own onboarding ----------------
+
+INVITE_MAX = 50
+
+
+def _parse_emails(blob):
+	"""Accept however they have the list: commas, semicolons, newlines, spaces."""
+	if isinstance(blob, (list, tuple)):
+		raw = list(blob)
+	else:
+		raw = re.split(r"[,;\s]+", blob or "")
+	out, seen = [], set()
+	for e in raw:
+		e = (e or "").strip().lower()
+		if not e or e in seen:
+			continue
+		seen.add(e)
+		out.append(e)
+	return out
+
+
+@frappe.whitelist()
+def client_admin_people():
+	"""The room roster as the administrator sees it, leavers included."""
+	room = _require_room_admin()
+	rows = frappe.get_all(
+		"Client Room Member",
+		filters={"room": room.name},
+		fields=["name", "user", "active", "is_admin", "last_seen"],
+		order_by="active desc, is_admin desc, creation asc",
+	)
+	out = []
+	for m in rows:
+		if not m.user:
+			continue
+		assigned = frappe.db.count(
+			"Duty Training Record", {"room": room.name, "trainee": m.user}
+		)
+		done = frappe.db.count(
+			"Duty Training Record",
+			{"room": room.name, "trainee": m.user, "status": "Completed"},
+		)
+		out.append({
+			"user": m.user,
+			"full_name": frappe.utils.get_fullname(m.user),
+			"active": cint(m.active),
+			"is_admin": cint(m.is_admin),
+			"is_self": m.user == frappe.session.user,
+			"assigned": assigned,
+			"complete": done,
+			"last_seen": str(m.last_seen) if m.last_seen else None,
+		})
+	return out
+
+
+@frappe.whitelist()
+def client_admin_invite(emails):
+	"""Bulk-invite colleagues. Reports every address it would not take and
+	why, rather than silently dropping them — a half-applied roster that
+	looks complete is worse than an error."""
+	room = _require_room_admin()
+	addrs = _parse_emails(emails)
+	if not addrs:
+		frappe.throw(_("Paste at least one email address."))
+	if len(addrs) > INVITE_MAX:
+		frappe.throw(
+			_("{0} addresses at once is over the limit of {1}. Send them in batches.").format(
+				len(addrs), INVITE_MAX
+			)
+		)
+	invited, rejoined, already, refused = [], [], [], []
+	for email in addrs:
+		if not frappe.utils.validate_email_address(email):
+			refused.append({"email": email, "why": _("not a valid email address")})
+			continue
+		user = frappe.db.get_value("User", email, ["name", "user_type", "enabled"], as_dict=True)
+		if user and user.user_type != "Website User":
+			# never let a client attach one of our own staff accounts to their room
+			refused.append({"email": email, "why": _("this address cannot be added here")})
+			continue
+		if user:
+			elsewhere = frappe.db.exists(
+				"Client Room Member",
+				{"user": email, "active": 1, "room": ["!=", room.name]},
+			)
+			if elsewhere:
+				refused.append({"email": email, "why": _("this address already belongs to another organisation")})
+				continue
+		member = frappe.db.get_value(
+			"Client Room Member", {"room": room.name, "user": email}, ["name", "active"], as_dict=True
+		)
+		if member and cint(member.active):
+			already.append(email)
+			continue
+		if not user:
+			frappe.get_doc({
+				"doctype": "User",
+				"email": email,
+				"first_name": email.split("@")[0].strip(),
+				"user_type": "Website User",
+				"send_welcome_email": 1,
+			}).insert(ignore_permissions=True)
+		elif not cint(user.enabled):
+			frappe.db.set_value("User", email, "enabled", 1, update_modified=False)
+		if member:
+			frappe.db.set_value("Client Room Member", member.name, "active", 1, update_modified=False)
+			rejoined.append(email)
+		else:
+			frappe.get_doc({
+				"doctype": "Client Room Member",
+				"room": room.name, "user": email, "active": 1,
+			}).insert(ignore_permissions=True)
+			invited.append(email)
+	frappe.db.commit()
+	if invited or rejoined:
+		try:
+			_post(
+				room,
+				_("👥 {0} added {1} colleague(s) to the portal{2}.").format(
+					frappe.utils.get_fullname(frappe.session.user),
+					len(invited) + len(rejoined),
+					_(" ({0} rejoining)").format(len(rejoined)) if rejoined else "",
+				),
+			)
+		except Exception:
+			frappe.log_error(frappe.get_traceback(), "duty_board invite narration")
+	return {
+		"invited": invited, "rejoined": rejoined,
+		"already": already, "refused": refused,
+		"people": client_admin_people(),
+	}
+
+
+@frappe.whitelist()
+def client_admin_set_active(user, on=0):
+	"""End or restore a colleague's access. Never deletes: training records,
+	attempts and certificates all survive, so a returner resumes where they
+	stopped and a leaver's certificate stays true."""
+	room = _require_room_admin()
+	on = cint(on)
+	row = frappe.db.get_value(
+		"Client Room Member", {"room": room.name, "user": user}, ["name", "is_admin", "active"], as_dict=True
+	)
+	if not row:
+		frappe.throw(_("Not found."), frappe.PermissionError)
+	if not on:
+		if user == frappe.session.user:
+			frappe.throw(_("You cannot remove your own access."))
+		if cint(row.is_admin) and len(_room_admins(room)) <= 1:
+			frappe.throw(_("Appoint another administrator before removing this one."))
+	frappe.db.set_value("Client Room Member", row.name, "active", 1 if on else 0, update_modified=False)
+	frappe.db.commit()
+	try:
+		_post(
+			room,
+			_("👥 {0} {1} access for {2}.").format(
+				frappe.utils.get_fullname(frappe.session.user),
+				_("restored") if on else _("ended"),
+				frappe.utils.get_fullname(user),
+			),
+		)
+	except Exception:
+		pass
+	return client_admin_people()
 
 
 # ---------------- academy, staff face: consultant training ----------------
