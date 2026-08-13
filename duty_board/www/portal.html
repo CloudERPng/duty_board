@@ -588,8 +588,33 @@
 	#lessonbody blockquote.bq-warn { background: #FDECEA; border: 1px solid #F4C7C0; }
 	#lessonbody blockquote.bq-warn:before { content: "⚠️"; }
 
+	/* ---- client training administrator ---- */
+	.admwrap { border: 1px solid #E4EAE8; border-radius: 14px; padding: 16px 18px; margin-bottom: 20px; background: #fff; }
+	.admhead { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin-bottom: 14px; }
+	.admhead > div { flex: 1; min-width: 160px; font-size: 14px; }
+	.atiles { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 16px; }
+	.atile { flex: 1; min-width: 92px; background: #F4F7F6; border-radius: 10px; padding: 9px 12px; }
+	.atile b { display: block; font-size: 21px; color: var(--brand-700); line-height: 1.2; }
+	.atile span { font-size: 10px; text-transform: uppercase; letter-spacing: 1px; color: #6B7C77; }
+	.atile.warn { background: #FFF7E6; }
+	.atile.warn b { color: #B27409; }
+	.admrow { display: flex; align-items: center; gap: 12px; padding: 8px 0; border-top: 1px solid #F0F4F2; flex-wrap: wrap; }
+	.admwho { flex: 1; min-width: 150px; font-size: 13.5px; }
+	.admwho span { display: block; font-size: 12px; }
+	.admlate { color: #B27409; font-weight: 700; }
+	.admbar { flex: 0 0 110px; height: 6px; border-radius: 99px; background: #E9EFEC; overflow: hidden; }
+	.admbar i { display: block; height: 100%; background: var(--brand); }
+	.admnudge { font-size: 12px; font-weight: 700; color: var(--brand-700); cursor: pointer; }
+	.admnudge.done { color: #6B7C77; cursor: default; }
+	.admfield { margin-bottom: 12px; font-size: 13px; }
+	.admfield label { display: block; font-weight: 700; margin-bottom: 4px; }
+	.admfield select, .admfield input[type="date"] { width: 100%; max-width: 340px; padding: 8px 10px;
+		border: 1px solid #DCE4E1; border-radius: 9px; font-size: 14px; background: #fff; }
+	.admpeople { display: flex; flex-wrap: wrap; gap: 6px 16px; }
+	.admchk { font-weight: 400; font-size: 13.5px; display: flex; gap: 6px; align-items: center; margin: 0; }
+
 	/* ---- the reading room ---- */
-	body[data-acad] #mycerts, body[data-acad] #mytracks { display: none !important; }
+	body[data-acad] #mycerts, body[data-acad] #mytracks, body[data-acad] #adminhost { display: none !important; }
 	body[data-acad] .card.acad > h3.foldh { display: none !important; }
 	body[data-acad="exam"] .tabbar { display: none !important; }
 
@@ -918,6 +943,7 @@ body[data-tab="home"] .foot{display:block!important;grid-area:foot}
 	</div>
 	<div class="card acad">
 		<h3 class="foldh" onclick="fold(this,'acad')"><span class="fc">▾</span> <svg class="li" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.42 10.92a2 2 0 0 0 0-3.84L12.83 3.5a2 2 0 0 0-1.66 0L2.58 7.08a2 2 0 0 0 0 3.84l8.59 3.58a2 2 0 0 0 1.66 0z"/><path d="M22 10v6"/><path d="M6 12.5V16a6 3 0 0 0 12 0v-3.5"/></svg> <span class="t">Training</span></h3>
+		<div id="adminhost"></div>
 		<div id="acad"><span class="muted">No training records yet.</span></div>
 	</div>
 	</div>
@@ -1938,6 +1964,90 @@ function loadMetrics() {
 }
 
 /* ---- academy ---- */
+function loadAdminTraining() {
+	/* Painted only for the room administrator. The endpoint answers
+	   {admin:0} for everyone else rather than erroring, so this can be called
+	   unconditionally on every training load. */
+	const host = document.getElementById("adminhost");
+	if (!host) return;
+	api("client_training_admin_home")
+		.then((h) => {
+			if (!h || !h.admin) { host.innerHTML = ""; return; }
+			window._adm = h;
+			const s = h.stats;
+			const tile = (n, l, warn) =>
+				`<div class="atile${warn ? " warn" : ""}"><b>${n}</b><span>${l}</span></div>`;
+			host.innerHTML = `
+				<div class="admwrap">
+					<div class="admhead">
+						<div><b>Team training</b><span class="muted"> · you administer this for your organisation</span></div>
+						<button id="admassign">＋ Assign training</button>
+					</div>
+					<div class="atiles">
+						${tile(s.people, "people")}
+						${tile(s.assigned, "assigned")}
+						${tile(s.complete, "complete")}
+						${tile(s.rate === null ? "—" : s.rate + "%", "completion")}
+						${tile(s.overdue, "overdue", s.overdue > 0)}
+					</div>
+					${h.people.length
+						? h.people.map((p) => `
+						<div class="admrow">
+							<div class="admwho">
+								<b>${esc(p.full_name)}</b>
+								<span class="muted">${p.assigned ? `${p.complete} of ${p.assigned} complete` : "nothing assigned"}${p.overdue ? ` · <span class="admlate">${p.overdue} overdue</span>` : ""}</span>
+							</div>
+							<div class="admbar"><i style="width:${p.assigned ? Math.round((p.complete / p.assigned) * 100) : 0}%"></i></div>
+							${p.assigned > p.complete ? `<a class="admnudge" data-u="${esc(p.user)}">Remind</a>` : ""}
+						</div>`).join("")
+						: `<span class="muted">Nobody is enrolled yet.</span>`}
+				</div>`;
+			document.getElementById("admassign").onclick = openAssign;
+			host.querySelectorAll(".admnudge").forEach((a) =>
+				a.addEventListener("click", () => {
+					a.textContent = "…";
+					api("client_training_admin_nudge", { user: a.getAttribute("data-u") })
+						.then(() => { a.textContent = "Reminded"; a.classList.add("done"); })
+						.catch((e) => { a.textContent = "Remind"; fail(e); });
+				}));
+		})
+		.catch(() => { host.innerHTML = ""; });
+}
+function openAssign() {
+	const host = document.getElementById("adminhost");
+	api("client_training_admin_options")
+		.then((o) => {
+			if (!o.tracks.length) {
+				alert("No certification tracks are available on your subscription yet.");
+				return;
+			}
+			host.innerHTML = `
+				<div class="admwrap">
+					<div class="admhead"><div><b>Assign training</b></div>
+						<button style="background:#E2E8E5;color:#2A3833" onclick="loadAdminTraining()">Cancel</button></div>
+					<div class="admfield"><label>Track</label>
+						<select id="admtrack">${o.tracks.map((t) => `<option value="${esc(t.name)}">${esc(t.title)} · ${t.modules} course${t.modules === 1 ? "" : "s"}</option>`).join("")}</select></div>
+					<div class="admfield"><label>Due date <span class="muted">(optional)</span></label>
+						<input type="date" id="admdue"></div>
+					<div class="admfield"><label>People</label>
+						<div class="admpeople">${o.people.map((p) => `<label class="admchk"><input type="checkbox" value="${esc(p.user)}"> ${esc(p.full_name)}</label>`).join("")}</div></div>
+					<button id="admgo">Assign</button>
+				</div>`;
+			document.getElementById("admgo").onclick = () => {
+				const users = Array.from(host.querySelectorAll(".admpeople input:checked")).map((i) => i.value);
+				if (!users.length) return alert("Choose at least one person.");
+				document.getElementById("admgo").disabled = true;
+				api("client_training_admin_assign", {
+					users: JSON.stringify(users),
+					track: document.getElementById("admtrack").value,
+					due_on: document.getElementById("admdue").value || null,
+				})
+					.then((r) => { loadAdminTraining(); loadTraining(); })
+					.catch((e) => { document.getElementById("admgo").disabled = false; fail(e); });
+			};
+		})
+		.catch(fail);
+}
 function acadFocus(mode) {
 	/* "" = index, "read" = course/lesson/result, "exam" = proctored runner.
 	   The index blocks (#mycerts, #mytracks) are siblings of #acad, so they
@@ -1949,6 +2059,7 @@ function acadFocus(mode) {
 function loadTraining() {
 	stopBeat();
 	acadFocus("");
+	loadAdminTraining();
 	api("client_get_certificates")
 		.then((certs) => {
 			certs = certs || [];

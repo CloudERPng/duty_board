@@ -4057,6 +4057,233 @@ def client_lesson_done(lesson):
 	)
 
 
+# ---------------- academy, client face: the training administrator ----------------
+
+
+def _require_room_admin():
+	"""The client's own administrator. Same person who approves joins and
+	promotes colleagues — see room_member_admin. Mutations only."""
+	room = _client_room()
+	if not cint(
+		frappe.db.get_value(
+			"Client Room Member",
+			{"room": room.name, "user": frappe.session.user, "active": 1},
+			"is_admin",
+		)
+	):
+		frappe.throw(_("Only your organisation's administrator can do that."), frappe.PermissionError)
+	return room
+
+
+def _admin_rows(room):
+	members = frappe.get_all(
+		"Client Room Member",
+		filters={"room": room.name, "active": 1},
+		fields=["user"],
+	)
+	users = [m.user for m in members if m.user]
+	recs = frappe.get_all(
+		"Duty Training Record",
+		filters={"room": room.name},
+		fields=["name", "module", "trainee", "trainee_name", "status", "due_on", "completed_on"],
+	) if users else []
+	mods = list({r.module for r in recs})
+	titles = {
+		m.name: m.title
+		for m in frappe.get_all(
+			"Duty Training Module", filters={"name": ["in", mods or [""]]},
+			fields=["name", "title"],
+		)
+	}
+	today_d = getdate(today())
+	for r in recs:
+		r["title"] = titles.get(r.module, r.module)
+		r["overdue"] = bool(
+			r.due_on and r.status != "Completed" and getdate(r.due_on) < today_d
+		)
+	return users, recs
+
+
+@frappe.whitelist()
+def client_training_admin_home():
+	"""Dashboard for the client's administrator. Returns {"admin": 0} for an
+	ordinary member rather than throwing, so the portal can ask without
+	knowing in advance."""
+	room = _client_room()
+	is_admin = cint(
+		frappe.db.get_value(
+			"Client Room Member",
+			{"room": room.name, "user": frappe.session.user, "active": 1},
+			"is_admin",
+		)
+	)
+	if not is_admin:
+		return {"admin": 0}
+	users, recs = _admin_rows(room)
+	by_user = {}
+	for r in recs:
+		by_user.setdefault(r.trainee, []).append(r)
+	people = []
+	for u in users:
+		rows = by_user.get(u, [])
+		people.append({
+			"user": u,
+			"full_name": frappe.utils.get_fullname(u),
+			"assigned": len(rows),
+			"complete": sum(1 for r in rows if r.status == "Completed"),
+			"overdue": sum(1 for r in rows if r["overdue"]),
+			"courses": [
+				{
+					"record": r.name, "title": r["title"], "status": r.status,
+					"due_on": str(r.due_on) if r.due_on else None,
+					"overdue": r["overdue"],
+				}
+				for r in sorted(rows, key=lambda x: x["title"])
+			],
+		})
+	people.sort(key=lambda p: (-p["overdue"], -(p["assigned"] - p["complete"]), p["full_name"]))
+	assigned = len(recs)
+	complete = sum(1 for r in recs if r.status == "Completed")
+	return {
+		"admin": 1,
+		"stats": {
+			"people": len(users),
+			"assigned": assigned,
+			"in_progress": sum(1 for r in recs if r.status in ("Reading", "Assigned")),
+			"complete": complete,
+			"rate": round(complete * 100 / assigned) if assigned else None,
+			"overdue": sum(1 for r in recs if r["overdue"]),
+		},
+		"people": people,
+	}
+
+
+@frappe.whitelist()
+def client_training_admin_options():
+	"""Who can be assigned, and what to. Tracks are filtered to the room's
+	products by the same rule the staff assign dialog uses."""
+	room = _require_room_admin()
+	prods = _room_products(room)
+	tracks = []
+	for t in frappe.get_all(
+		"Duty Certification Track",
+		filters={"active": 1, "audience": "Client"},
+		fields=["name", "title", "product"],
+		order_by="product asc, title asc",
+	):
+		if (t.product or "").strip().lower() not in prods:
+			continue
+		n = frappe.db.count("Duty Certification Track Module", {"parent": t.name})
+		if n:
+			tracks.append({"name": t.name, "title": t.title, "product": t.product, "modules": n})
+	people = [
+		{"user": m.user, "full_name": frappe.utils.get_fullname(m.user)}
+		for m in frappe.get_all(
+			"Client Room Member",
+			filters={"room": room.name, "active": 1},
+			fields=["user"],
+		)
+		if m.user
+	]
+	people.sort(key=lambda p: p["full_name"])
+	return {"tracks": tracks, "people": people}
+
+
+@frappe.whitelist()
+def client_training_admin_assign(users, track, due_on=None):
+	"""Bulk-assign a track to colleagues. Existing records are left alone and
+	not duplicated; only the due date is applied to them."""
+	room = _require_room_admin()
+	if isinstance(users, str):
+		users = json.loads(users)
+	if not users:
+		frappe.throw(_("Choose at least one person."))
+	t = frappe.db.get_value(
+		"Duty Certification Track", track, ["title", "product", "audience", "active"], as_dict=True
+	)
+	if not t or not cint(t.active) or t.audience != "Client":
+		frappe.throw(_("Not found."))
+	if (t.product or "").strip().lower() not in _room_products(room):
+		frappe.throw(_("That track is not part of your subscription."))
+	mods = frappe.get_all(
+		"Duty Certification Track Module", filters={"parent": track}, pluck="module", order_by="idx asc"
+	)
+	if not mods:
+		frappe.throw(_("That track has no courses yet."))
+	created, existing = 0, 0
+	for u in users:
+		made = 0
+		if not frappe.db.exists("Client Room Member", {"room": room.name, "user": u, "active": 1}):
+			frappe.throw(_("{0} is not an active member of your room.").format(u))
+		for m in mods:
+			name = frappe.db.get_value(
+				"Duty Training Record", {"room": room.name, "module": m, "trainee": u}, "name"
+			)
+			if name:
+				if due_on:
+					frappe.db.set_value("Duty Training Record", name, "due_on", due_on, update_modified=False)
+				existing += 1
+				continue
+			frappe.get_doc({
+				"doctype": "Duty Training Record",
+				"room": room.name,
+				"module": m,
+				"trainee": u,
+				"trainee_name": frappe.utils.get_fullname(u),
+				"status": "Assigned",
+				"due_on": due_on or None,
+			}).insert(ignore_permissions=True)
+			created += 1
+			made += 1
+		if made:
+			try:
+				from duty_board.api import _notify_user
+
+				_notify_user(u, _("🎓 New training assigned"), t.title)
+			except Exception:
+				pass
+	frappe.db.commit()
+	return {"created": created, "existing": existing, "home": client_training_admin_home()}
+
+
+@frappe.whitelist()
+def client_training_admin_due(record, due_on=None):
+	room = _require_room_admin()
+	if frappe.db.get_value("Duty Training Record", record, "room") != room.name:
+		frappe.throw(_("Not found."), frappe.PermissionError)
+	frappe.db.set_value("Duty Training Record", record, "due_on", due_on or None, update_modified=False)
+	frappe.db.commit()
+	return client_training_admin_home()
+
+
+@frappe.whitelist()
+def client_training_admin_nudge(user):
+	"""A reminder from their own administrator, not from us."""
+	room = _require_room_admin()
+	if not frappe.db.exists("Client Room Member", {"room": room.name, "user": user, "active": 1}):
+		frappe.throw(_("Not found."), frappe.PermissionError)
+	open_rows = frappe.get_all(
+		"Duty Training Record",
+		filters={"room": room.name, "trainee": user, "status": ["!=", "Completed"]},
+		fields=["module"],
+	)
+	if not open_rows:
+		frappe.throw(_("They have nothing outstanding."))
+	try:
+		from duty_board.api import _notify_user
+
+		_notify_user(
+			user,
+			_("🎓 Training reminder"),
+			_("{0} course(s) still outstanding — {1} asked us to remind you.").format(
+				len(open_rows), frappe.utils.get_fullname(frappe.session.user)
+			),
+		)
+	except Exception:
+		pass
+	return {"nudged": len(open_rows)}
+
+
 # ---------------- academy, staff face: consultant training ----------------
 
 
