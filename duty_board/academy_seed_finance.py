@@ -20,8 +20,12 @@ the older seeders predate checks and topics and do not carry them.
 Run:
   bench --site xlevel.clouderp.one execute duty_board.academy_seed_finance.seed_finance_track
 
-Idempotent per module and per track: an existing module is left alone entirely,
-so correcting content afterwards goes through academy_repair, not re-seeding.
+Idempotent, with one deliberate exception. An existing MODULE is left alone
+entirely — correcting content afterwards goes through academy_repair, not
+re-seeding. But an existing TRACK has its module list reconciled against ORDER,
+because the first version skipped the track wholesale and a module written on a
+later run therefore never joined it. That had to be fixed by hand once, and
+would have had to be fixed by hand for every future module.
 """
 
 import json
@@ -147,8 +151,24 @@ def seed_finance_track():
         print("seeded module: %s (%d lessons, %d checks, %d questions)"
               % (m["title"], len(m["lessons"]), checks, len(m["questions"])))
 
-    if frappe.db.exists("Duty Certification Track", {"title": TRACK["title"]}):
-        print("track exists, left untouched: %s" % TRACK["title"])
+    existing_track = frappe.db.get_value(
+        "Duty Certification Track", {"title": TRACK["title"]}, "name"
+    )
+    if existing_track:
+        # Skipping the whole track was wrong: modules written after the first
+        # run would never join it, and somebody would have to add every future
+        # module by hand. Content is left alone; the module list is reconciled.
+        t = frappe.get_doc("Duty Certification Track", existing_track)
+        have = {r.module for r in t.modules}
+        added = [module_names[k] for k in ORDER
+                 if k in module_names and module_names[k] not in have]
+        if added:
+            for name in added:
+                t.append("modules", {"module": name})
+            t.save(ignore_permissions=True)
+            print("track exists: added %d module(s) to %s" % (len(added), TRACK["title"]))
+        else:
+            print("track exists and already lists every module: %s" % TRACK["title"])
     else:
         t = frappe.get_doc({
             "doctype": "Duty Certification Track",
