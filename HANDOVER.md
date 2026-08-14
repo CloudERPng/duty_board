@@ -1,8 +1,11 @@
-# Duty Board — Handover Brief · v3.7.0
+# Duty Board — Handover Brief · v3.226.3
 
 **App:** `duty_board` on Frappe/ERPNext v15 · **Live site:** `xlevel.clouderp.one`
 **Repo:** https://github.com/CloudERPng/duty_board · **Bench:** `bench@newv15`, `~/frappe-bench`
-**Last brief:** v2.90.0. This one covers everything through v3.7.0 (span: v2.91.0 → v3.7.0, ~45 releases).
+**Last full brief:** v2.90.0, covering v2.91.0 → v3.7.0.
+**Section 12 below** covers v3.206.0 → v3.226.3. Between v3.7.0 and v3.206.0 the
+git log is the record — this brief was not maintained through that span, which is
+itself worth knowing before trusting anything here as complete.
 
 ---
 
@@ -158,3 +161,107 @@ per-patch writes** — batch scripts that assert mid-way lose everything.
 Duplicate-def scan after every Python edit; `node --check` after every JS
 edit. Two `if (a === "ask")` handlers exist in the JS (milestones + CR) —
 anchor on unique surrounding text. Tabs, not spaces, in anchors.
+
+---
+
+## 12. The academy becomes a product · v3.206.0 → v3.226.3
+
+Written at the end of the span it describes. Everything before section 12 predates
+it and may have drifted; the git log is authoritative where they disagree.
+
+### What changed, in one line
+The training academy went from an internal learning aid to something sellable:
+proctored assessments, seats bought and enforced, clients administering their own
+people, and a public catalogue.
+
+### The commercial spine
+- **Duty Academy Order** (`AOR-YYYY-#####`) → **Duty Academy Entitlement** (`AEN-`).
+  A client's administrator requests seats from the catalogue; a proforma is emailed
+  and filed on their shelf; **a human approves against a payment reference** and
+  that approval, and only that, grants the seats. There is no automatic path from
+  money to access, deliberately.
+- **A seat is one named learner on one track**, however many courses it holds.
+  Enforced in `academy.seat_gate`, called from both the administrator's bulk assign
+  and a learner's self-pursue — either door alone would leak seats.
+- **Duty Training Cohort** groups a client's staff for an intake, with an exam
+  window. `cohort_scorecard` produces the sponsor's report; `cohort_scorecard_publish`
+  renders it to their Documents shelf.
+
+### Assessment integrity
+- Proctoring (v3.78.0, staff-only until now) is open to the portal: one question at
+  a time, server-stamped, countdown, focus-loss counted, no going back.
+- Per-module policy on `Duty Training Module`: `max_attempts`, `retake_wait_hours`,
+  `hide_wrong_answers`. **Every field defaults to the old behaviour**, so nothing
+  changed until deliberately set.
+- Attempt caps are enforced on the **client path only**. Staff testing stays ungated.
+- `Duty Training Record.extra_attempts` lets an administrator unblock one person
+  without loosening policy for everybody.
+
+### Teaching, not just testing
+- **Duty Lesson Check** — three formative questions per chapter, never scored, never
+  on a transcript, with a written rationale read at the moment a learner is wrong.
+  Presence is the switch: a lesson with no checks behaves exactly as before.
+- **Duty Lesson Question** — a learner's question lives with the chapter, not in the
+  room. Staff answer from a queue; the learner is emailed. A published answer shows
+  to everyone reading that chapter **without the asker's name or timestamp**, because
+  somebody who thinks their confusion will be displayed under their own name does not
+  ask.
+
+### Client self-service
+The room administrator (`Client Room Member.is_admin`, reusing the existing role
+rather than a second flag) can invite colleagues in bulk, end and restore access,
+browse the catalogue, request seats, assign tracks with due dates, see per-person
+detail, grant an extra attempt, and export the roster. Staff involvement is now
+confirming payment and answering questions.
+
+**Deactivation never deletes.** Records, attempts and certificates survive, so a
+returning employee resumes and a leaver's certificate stays true.
+
+### Access, and what a client keeps
+`_learning_room()` passes `allow_frozen`: reading, checks, assessments and
+certificates survive a renewal freeze while chat, projects, tickets, the catalogue
+and new assignment do not. **Seats are a purchase, not a subscription** — and a pure
+academy client with no ERP subscription would otherwise have been locked out by a
+gate that never applied to them. Seat expiry blocks new assignment only.
+
+### Public surface
+`/academy` lists every published client track with price or Free; `/academy?track=`
+gives the full page including a **sample chapter** where `Duty Lesson.is_sample` is
+ticked. Nothing else about a client is reachable there — exposure was audited.
+
+### Scheduled work
+`academy.setup_academy_jobs` installs two Scheduled Job Type records: nudges daily
+07:00, administrator digest Mondays 08:00. **hooks.py is excluded from the deploy
+zip**, so scheduling ships as records, following `notify.py`.
+
+### Settings that must be set before selling
+`Duty Settings`: `academy_bank_details`, `academy_approver`, `academy_vat_rate`,
+`academy_tutors`. Empty values degrade quietly rather than erroring, which is
+convenient and easy to forget.
+
+### The audit, v3.224.1 → v3.226.3
+Six chunks — access control, reachability, schema, correctness, front end,
+background — plus the test suite. **Eight defects, every one silent.** Certificate
+downloads returning `null`; a team overview filtering on a certificate status that
+never existed; Radar→Lead promotion failing on an invalid Select value; a 40,000-query
+health load waiting for volume; an unguarded exam-score division; consultant-written
+notes rendered raw into staff sessions; reminders recorded but never delivered.
+
+Two scanners produced confidently wrong results before being corrected. **Self-test
+every pattern against a known positive before believing a clean scan**, and chase
+every finding rather than trusting a count.
+
+Tools left in the app for reuse:
+`audit_academy.py` (content standards), `academy_repair.py` (push corrections into
+an already-seeded site, since seeds are insert-only and skip existing modules),
+`tag_topics.py`, `fix_answer_spread.py`.
+
+### Open, and deliberately not closed
+- **Concurrency was never examined.** The seat gate under simultaneous assignment is
+  the one with money attached; pool-claim collisions and exam double-submit are next.
+- ~40 staff-to-staff template interpolations remain unescaped in the SPA.
+- `ignore_permissions=True` is used widely and has never been counted.
+- `_meeting_caps_check` counts the daily rule by `meeting_date` and the weekly rule
+  by `creation`. The error messages match one reading, the docstring the other.
+- Content: `who_for` and `outcomes` are empty on every track, no chapter is marked
+  `is_sample`, and only the Closer track meets the content standard.

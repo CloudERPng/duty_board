@@ -2,6 +2,27 @@
 
 Notable releases. Versions follow `duty_board/__init__.py`.
 
+## v3.206.0 → v3.226.3 — The academy becomes a product
+
+Span written as one entry; see the git log for per-release detail.
+
+- **Selling:** Duty Academy Order and Entitlement, seats enforced per named
+  learner per track, proforma by email and on the client's shelf, manual
+  approval against a payment reference.
+- **Integrity:** proctored client exams, attempt caps, cooling-off, withheld
+  answer keys, per-record granted attempts. All policy fields default to the
+  previous behaviour.
+- **Teaching:** Duty Lesson Check (formative, with rationales) and Duty Lesson
+  Question (threaded on the chapter, answered by staff, published anonymously).
+- **Self-service:** the client's own administrator invites, assigns, sets due
+  dates, exports and grants attempts. Duty Training Cohort and the sponsor
+  scorecard.
+- **Access:** training survives a renewal freeze; seat expiry blocks new
+  assignment only; certificates never lapse.
+- **Public:** /academy catalogue with sample chapters, linked from /verify.
+- **Audit:** six chunks and the test suite. Eight silent defects fixed; five
+  stale tests corrected; suite green at 62 tests.
+
 ## v3.7.0 — Subtasks
 - Duty Project Subtask child table: assignee, due (≤ card), note, status,
   linked Daily Todo; clamp-and-notify on earlier card dates; hard block on
