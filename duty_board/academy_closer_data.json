@@ -791,7 +791,7 @@
    {
     "title": "The dashboard and the reports — two different instruments",
     "est": 8,
-    "html": "<p>New managers routinely mistake the dashboard for a report, quote a tile in a meeting, and discover later that it did not mean what they assumed. The two surfaces answer different questions, and knowing which you are looking at is the first analytical skill in this module.</p>\n\n<p><b>The dashboard answers \"what is happening now\".</b> It opens on a set of tiles — Total Orders, Assigned, Agent Notified, Dispatch Assigned, Order Accepted, Delivery In Progress, Delivery Rescheduled, Not Picking, Call Back, Not Ready, Rejected, Delivered, Cancelled, Not Reachable, Duplicate, Failed/Returned, On Hold — with a timeframe control offering Day, Week, Month, Quarter and Year. It is an instrument for the present: where is the book right now, what is piling up, what is moving.</p>\n\n<p><b>The reports answer \"what happened\".</b> They offer finished periods, custom ranges and comparison. They are the instrument for review, coaching and decisions about money.</p>\n\n<p>Use the dashboard to notice; use the reports to conclude. A tile that looks wrong is a reason to open a report, not a finding in itself.</p>\n\n<p><b>Now the discipline that this chapter exists to teach: know what a number counts before you quote it.</b></p>\n\n<p>Take a real example. On a dashboard showing one month, Total Orders read 46,472 while Not Ready read 91,166 — almost double. Those cannot both be counts of orders in the same period, because a month cannot contain more Not Ready orders than orders. The likely explanation is that the status tiles count status <i>events</i> rather than orders: one order marked Not Ready on Monday, chased, marked Not Ready again on Thursday, contributes twice. That is a perfectly reasonable thing for a tile to count — but it means the tiles do not sum to Total Orders, and treating them as slices of a pie will mislead you every time.</p>\n\n<p>The same discipline applies to any rate. A Delivery Rate tile reading 56.3% alongside 25,466 Delivered and 46,472 Total Orders is not Delivered divided by Total, which would be 54.8%. Something else is in the denominator — plausibly cancelled orders being excluded, on the reasoning that an order the customer withdrew was never available to deliver and should not count against delivery performance.</p>\n\n<blockquote>[CONFIRM] Both figures above are worked from a live dashboard, but the exact definitions should be verified with your administrator and stated here explicitly. Until they are, treat this chapter as teaching the question rather than the answer.</blockquote>\n\n<p><b>Why this is not pedantry.</b> Delivery rate is the kind of number that appears in performance reviews and supplier conversations. Whether cancelled orders sit in the denominator changes it by more than a point, and a team judged on the wrong version will optimise the wrong behaviour — in this case, by cancelling marginal orders to protect a rate.</p>\n\n<blockquote>IMPLEMENTATION TIP: Before you act on any figure, ask two questions: what is in the numerator, and what is in the denominator. If you cannot answer both, you do not yet know what the number says. Ask once, write the answer down, and you will never have to ask again.</blockquote>"
+    "html": "<p>New managers routinely mistake the dashboard for a report, quote a tile in a meeting, and discover later that it did not mean what they assumed. The two surfaces answer different questions, and knowing which you are looking at is the first analytical skill in this module.</p>\n\n<p><b>The dashboard answers \"what is happening now\".</b> It opens on a set of tiles — Total Orders, Assigned, Agent Notified, Dispatch Assigned, Order Accepted, Delivery In Progress, Delivery Rescheduled, Not Picking, Call Back, Not Ready, Rejected, Delivered, Cancelled, Not Reachable, Duplicate, Failed/Returned, On Hold — with a timeframe control offering Day, Week, Month, Quarter and Year. It is an instrument for the present: where is the book right now, what is piling up, what is moving.</p>\n\n<p><b>The reports answer \"what happened\".</b> They offer finished periods, custom ranges and comparison. They are the instrument for review, coaching and decisions about money.</p>\n\n<p>Use the dashboard to notice; use the reports to conclude. A tile that looks wrong is a reason to open a report, not a finding in itself.</p>\n\n<p><b>Now the rule that catches almost everyone, and it is the most important thing in this module.</b></p>\n\n<p><b>Only some of the tiles respond to the timeframe control.</b></p>\n\n<p>Tiles for <b>terminal</b> statuses — Total Orders, Delivered, Cancelled and the rest of the outcomes an order finishes in — are scoped to the period you selected. Choose Month and you see this month's delivered orders.</p>\n\n<p>Tiles for <b>in-flight</b> statuses — Agent Notified, Delivery Rescheduled, Delivery In Progress, and the other stages an order passes through on its way somewhere — <b>ignore the timeframe entirely</b>. They show the total sitting in that status right now, whatever period you picked. Switch from Day to Year and they do not move.</p>\n\n<p><b>Once you know that, the dashboard stops looking broken.</b> On a real dashboard showing one month, Total Orders read 46,472 while Not Ready read 91,166 — nearly double. That is not an error and the tiles are not counting the same thing: 46,472 orders arrived this month, and 91,166 orders are sitting in Not Ready across the entire book, most of them from earlier periods.</p>\n\n<p><b>The consequence you must carry.</b> Never treat the tiles as slices of one pie. They do not sum to Total Orders and were never meant to. Never compute a percentage by dividing an in-flight tile by Total Orders — you would be dividing an all-time figure by one month, and the answer would be meaningless in a way that looks perfectly plausible.</p>\n\n<p>The distinction is also useful rather than merely a caution. A terminal tile answers <i>how did we do</i>. An in-flight tile answers <i>what is stuck right now</i>, and a large in-flight number is a backlog whether or not it arrived this month. Delivery Rescheduled sitting high says something about the book today that no period-scoped figure would reveal.</p>\n\n<p><b>Delivery Rate has its own rule: duplicates are removed from the calculation.</b> An order identified as a duplicate was never a real opportunity to deliver, so counting it against delivery performance would penalise the team for the system correctly spotting the same order twice.</p>\n\n<blockquote>[CONFIRM] Worked against a live dashboard, Delivered of 25,466 over Total Orders less Duplicates of 45,342 gives 56.2%, where the tile read 56.3%. The small gap is most likely live data moving between tile loads, but the exact definition is worth confirming with your administrator before quoting the figure in a review.</blockquote>\n\n<blockquote>IMPLEMENTATION TIP: Two questions before you quote any tile. Does this one move when I change the timeframe? And for a rate: what has been taken out of the denominator? Change the timeframe control and watch which tiles move — thirty seconds, once, and you will never misread the dashboard again.</blockquote>"
    },
    {
     "title": "Closer Summary — reading individual performance",
@@ -1154,6 +1154,136 @@
     "why": "Reports read as a set; the cause may be upstream of the closers.",
     "src": "Investigation §1",
     "topic": "Reading reports as a set"
+   },
+   {
+    "q": "You change the dashboard timeframe from Day to Year. Which tile will NOT move?",
+    "opts": [
+     "Delivery In Progress",
+     "Delivered",
+     "Cancelled",
+     "Total Orders"
+    ],
+    "ans": 0,
+    "why": "In-flight statuses ignore the timeframe and show the whole book as it stands; only terminal statuses are period-scoped.",
+    "src": "Dashboard §2",
+    "topic": "Dashboard versus reports"
+   },
+   {
+    "q": "A manager divides the Not Ready tile by Total Orders to get a 'not ready rate'. What is wrong?",
+    "opts": [
+     "An all-time figure is being divided by one period, so the result means nothing",
+     "Not Ready is not a real status",
+     "Total Orders excludes duplicates, so the base is too small",
+     "Nothing — that is the correct calculation"
+    ],
+    "ans": 0,
+    "why": "Not Ready ignores the timeframe while Total Orders respects it. The two are not comparable.",
+    "src": "Dashboard §3",
+    "topic": "Dashboard versus reports"
+   },
+   {
+    "q": "Duplicates are excluded from the Delivery Rate calculation because:",
+    "opts": [
+     "Duplicate orders are usually cancelled anyway",
+     "A duplicate was never a real opportunity to deliver, so counting it would penalise the team",
+     "The system cannot tell which of the two orders is genuine",
+     "Duplicates are recorded in a separate report"
+    ],
+    "ans": 1,
+    "why": "Excluding duplicates stops the team being marked down for the system correctly spotting the same order twice.",
+    "src": "Dashboard §5",
+    "topic": "Dashboard versus reports"
+   },
+   {
+    "q": "A campaign launched nine days ago shows a poor ROAS. Before cutting it you should:",
+    "opts": [
+     "Compare it against the best campaign of last quarter",
+     "Allow at least one delivery cycle, since attribution depends on delivered orders",
+     "Increase its budget to gather more data faster",
+     "Switch its attribution to lead volume instead of revenue"
+    ],
+    "ans": 1,
+    "why": "Spend lands immediately; delivered orders lag. A young campaign is judged on incomplete revenue.",
+    "src": "Traps §3",
+    "topic": "Reading traps"
+   },
+   {
+    "q": "A closer tops the conversion table with 4 orders and 3 delivered. The right reading is:",
+    "opts": [
+     "They are the strongest closer and should be held up as the example",
+     "The base is far too small for the rate to mean anything",
+     "Their orders must be unusually easy",
+     "Conversion should be recalculated excluding cancellations"
+    ],
+    "ans": 1,
+    "why": "Percentages on small bases swing violently. One more failed delivery takes 75% to 60%.",
+    "src": "Traps §4",
+    "topic": "Reading traps"
+   },
+   {
+    "q": "Month-to-date revenue is compared against last month's completed total and looks poor. The error is:",
+    "opts": [
+     "Revenue should never be compared across months",
+     "The comparison should use delivered orders instead",
+     "A partial period is being compared against a finished one",
+     "Last month included a campaign that has now ended"
+    ],
+    "ans": 2,
+    "why": "Compare like periods — day eleven against day eleven — never a period in progress against a completed one.",
+    "src": "Traps §1",
+    "topic": "Reading traps"
+   },
+   {
+    "q": "A product's Trend is declining and its Return Rate is elevated. This most likely indicates:",
+    "opts": [
+     "Fading marketing spend",
+     "Seasonality",
+     "A quality or expectation problem, which more advertising would worsen",
+     "A competitor undercutting on price"
+    ],
+    "ans": 2,
+    "why": "Declining sales with high returns is a product story. Spending more would simply accelerate the returns.",
+    "src": "Investigation §2",
+    "topic": "Reading reports as a set"
+   },
+   {
+    "q": "Order volume is rising but revenue is flat. Which column do you check first?",
+    "opts": [
+     "Cancellation Rate",
+     "Response Time",
+     "AOV",
+     "Headcount"
+    ],
+    "ans": 2,
+    "why": "A falling average order value explains volume growth that does not reach revenue — then check ASP against list price.",
+    "src": "Investigation §3",
+    "topic": "Reading reports as a set"
+   },
+   {
+    "q": "A cohort row for a month with only 30 first-time buyers should be treated as:",
+    "opts": [
+     "The most reliable row, being the most recent",
+     "Evidence that retention is improving",
+     "Proof that acquisition was too low that month",
+     "Anecdote rather than evidence, because the base is too small"
+    ],
+    "ans": 3,
+    "why": "Small cohorts swing on a handful of customers. Check cohort size before reading its shape.",
+    "src": "Cohorts §4",
+    "topic": "Revenue cohorts"
+   },
+   {
+    "q": "Before quoting any figure from a report in a meeting, you must carry with it:",
+    "opts": [
+     "The name of the report",
+     "Your role's access level",
+     "The branch filter applied",
+     "The date range it was read over"
+    ],
+    "ans": 3,
+    "why": "Every metric on the page refreshes with the date filter, so a figure without its period is not a claim anyone can check.",
+    "src": "Directory §3",
+    "topic": "Reports, roles and dates"
    }
   ]
  },

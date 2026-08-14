@@ -16,13 +16,13 @@ The other six are deepened from what was already there. The old chapter 6 mixed
 cohorts with cross-report reading; those are now separate chapters, because they
 are different skills and the second one is the whole point of the module.
 
-TWO ITEMS MARKED [CONFIRM] IN CHAPTER 2. On a dashboard showing one month,
-NOT READY read 91,166 against TOTAL ORDERS of 46,472, and DELIVERY RATE read
-56.3% where Delivered divided by Total Orders is 54.8%. The first implies the
-status tiles count status events rather than orders; the second implies a
-denominator of roughly Total minus Cancelled. Both are stated in the chapter as
-questions to verify with your administrator rather than as fact, and should be
-replaced with the real definitions once confirmed.
+Chapter 2 now teaches the rule that explains both dashboard anomalies: terminal
+status tiles are scoped to the selected timeframe, while in-flight status tiles
+ignore it and show the whole book as it stands. That is why NOT READY can read
+91,166 against a monthly TOTAL ORDERS of 46,472 — and it is the reason nobody
+should ever divide an in-flight tile by Total Orders. Delivery Rate excludes
+duplicates, since an order flagged as a duplicate was never a real chance to
+deliver. One small [CONFIRM] remains on the exact rate arithmetic.
 
 Run from the app package directory:  python3 rebuild_closer_reports.py
 Then:  bench --site xlevel.clouderp.one execute duty_board.academy_repair.push_closer_lessons
@@ -62,17 +62,25 @@ L = [
 
 <p>Use the dashboard to notice; use the reports to conclude. A tile that looks wrong is a reason to open a report, not a finding in itself.</p>
 
-<p><b>Now the discipline that this chapter exists to teach: know what a number counts before you quote it.</b></p>
+<p><b>Now the rule that catches almost everyone, and it is the most important thing in this module.</b></p>
 
-<p>Take a real example. On a dashboard showing one month, Total Orders read 46,472 while Not Ready read 91,166 — almost double. Those cannot both be counts of orders in the same period, because a month cannot contain more Not Ready orders than orders. The likely explanation is that the status tiles count status <i>events</i> rather than orders: one order marked Not Ready on Monday, chased, marked Not Ready again on Thursday, contributes twice. That is a perfectly reasonable thing for a tile to count — but it means the tiles do not sum to Total Orders, and treating them as slices of a pie will mislead you every time.</p>
+<p><b>Only some of the tiles respond to the timeframe control.</b></p>
 
-<p>The same discipline applies to any rate. A Delivery Rate tile reading 56.3% alongside 25,466 Delivered and 46,472 Total Orders is not Delivered divided by Total, which would be 54.8%. Something else is in the denominator — plausibly cancelled orders being excluded, on the reasoning that an order the customer withdrew was never available to deliver and should not count against delivery performance.</p>
+<p>Tiles for <b>terminal</b> statuses — Total Orders, Delivered, Cancelled and the rest of the outcomes an order finishes in — are scoped to the period you selected. Choose Month and you see this month's delivered orders.</p>
 
-<blockquote>[CONFIRM] Both figures above are worked from a live dashboard, but the exact definitions should be verified with your administrator and stated here explicitly. Until they are, treat this chapter as teaching the question rather than the answer.</blockquote>
+<p>Tiles for <b>in-flight</b> statuses — Agent Notified, Delivery Rescheduled, Delivery In Progress, and the other stages an order passes through on its way somewhere — <b>ignore the timeframe entirely</b>. They show the total sitting in that status right now, whatever period you picked. Switch from Day to Year and they do not move.</p>
 
-<p><b>Why this is not pedantry.</b> Delivery rate is the kind of number that appears in performance reviews and supplier conversations. Whether cancelled orders sit in the denominator changes it by more than a point, and a team judged on the wrong version will optimise the wrong behaviour — in this case, by cancelling marginal orders to protect a rate.</p>
+<p><b>Once you know that, the dashboard stops looking broken.</b> On a real dashboard showing one month, Total Orders read 46,472 while Not Ready read 91,166 — nearly double. That is not an error and the tiles are not counting the same thing: 46,472 orders arrived this month, and 91,166 orders are sitting in Not Ready across the entire book, most of them from earlier periods.</p>
 
-<blockquote>IMPLEMENTATION TIP: Before you act on any figure, ask two questions: what is in the numerator, and what is in the denominator. If you cannot answer both, you do not yet know what the number says. Ask once, write the answer down, and you will never have to ask again.</blockquote>"""),
+<p><b>The consequence you must carry.</b> Never treat the tiles as slices of one pie. They do not sum to Total Orders and were never meant to. Never compute a percentage by dividing an in-flight tile by Total Orders — you would be dividing an all-time figure by one month, and the answer would be meaningless in a way that looks perfectly plausible.</p>
+
+<p>The distinction is also useful rather than merely a caution. A terminal tile answers <i>how did we do</i>. An in-flight tile answers <i>what is stuck right now</i>, and a large in-flight number is a backlog whether or not it arrived this month. Delivery Rescheduled sitting high says something about the book today that no period-scoped figure would reveal.</p>
+
+<p><b>Delivery Rate has its own rule: duplicates are removed from the calculation.</b> An order identified as a duplicate was never a real opportunity to deliver, so counting it against delivery performance would penalise the team for the system correctly spotting the same order twice.</p>
+
+<blockquote>[CONFIRM] Worked against a live dashboard, Delivered of 25,466 over Total Orders less Duplicates of 45,342 gives 56.2%, where the tile read 56.3%. The small gap is most likely live data moving between tile loads, but the exact definition is worth confirming with your administrator before quoting the figure in a review.</blockquote>
+
+<blockquote>IMPLEMENTATION TIP: Two questions before you quote any tile. Does this one move when I change the timeframe? And for a rate: what has been taken out of the denominator? Change the timeframe control and watch which tiles move — thirty seconds, once, and you will never misread the dashboard again.</blockquote>"""),
 
 ("Closer Summary — reading individual performance", 8, """<p>The Closer Summary is the go-to report for individual performance — read daily by team leads, weekly and monthly by managers running reviews, coaching and incentives. One row per agent, and every column earns its place.</p>
 
