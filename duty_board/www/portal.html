@@ -729,6 +729,29 @@
 		.rdmin { display: none; }
 	}
 
+	.trkh { display: flex; align-items: center; gap: 12px; flex-wrap: wrap;
+		margin: 22px 0 10px; font-size: 14.5px; }
+	.trkh > div { flex: 1; min-width: 170px; }
+	.trkbar { flex: 0 0 90px; height: 6px; border-radius: 99px; background: #E9EFEC; overflow: hidden; }
+	.trkbar i { display: block; height: 100%; background: var(--brand); }
+	.trkview { font-size: 12.5px; font-weight: 700; color: var(--brand-700); cursor: pointer; white-space: nowrap; }
+	.achv { max-width: 620px; margin: 0 auto; text-align: center; padding: 10px 0 20px; }
+	.achvtop { font-size: 46px; line-height: 1; }
+	.achv h1 { font-family: Fraunces, Georgia, serif; font-size: 30px; line-height: 1.2;
+		font-weight: 600; margin: 12px 0 4px; }
+	.achvser { display: inline-block; margin-top: 10px; font-size: 12px; letter-spacing: 1px;
+		background: #FBF6E9; color: #7A5312; border-radius: 99px; padding: 5px 14px; }
+	.achvstats { display: flex; justify-content: center; gap: 26px; margin: 22px 0 4px; font-size: 13px; color: #6B7C77; }
+	.achvstats b { display: block; font-size: 22px; color: var(--brand-700); }
+	.achvsec { text-align: left; margin-top: 26px; }
+	.achvsec b, .achvnext b { display: block; font-size: 11.5px; letter-spacing: 1.5px;
+		text-transform: uppercase; color: var(--brand-700); margin-bottom: 8px; }
+	.achvsec ol { margin: 0; padding-left: 22px; font-size: 14.5px; line-height: 1.9; }
+	.achvnext { text-align: left; margin-top: 26px; background: var(--brand-50);
+		border: 1px solid #CBE7DE; border-radius: 12px; padding: 16px 18px; }
+	.achvnexttitle { font-size: 17px; font-weight: 700; }
+	.achvnext p { font-size: 14px; line-height: 1.6; color: #33423E; margin: 6px 0; }
+
 	.rdask { margin-top: 26px; padding-top: 16px; border-top: 1px solid #EEF2F0;
 		display: flex; align-items: baseline; gap: 14px; }
 	.rdask b { font-size: 15px; }
@@ -2525,7 +2548,7 @@ function loadTraining() {
 				</div>`;
 			};
 			document.getElementById("acad").innerHTML =
-				(mine.length ? `<div class="lmsh">Your courses</div><div class="lmsgrid">${mine.map(courseCard).join("")}</div>` : "") +
+				(mine.length ? groupedCourses(mine, courseCard) : "") +
 				(team.length
 					? `<div class="lmsh">Your team's progress</div>${team
 							.map(
@@ -2536,6 +2559,61 @@ function loadTraining() {
 				'<span class="muted">No training records yet.</span>';
 		})
 		.catch((e) => console.warn("training:", e.message));
+}
+function groupedCourses(mine, courseCard) {
+	/* Eight loose cards read as a pile; the same eight under their track read
+	   as a qualification in progress, which is what they are. */
+	const groups = new Map();
+	mine.forEach((r) => {
+		const key = r.track ? r.track.title : "";
+		if (!groups.has(key)) groups.set(key, []);
+		groups.get(key).push(r);
+	});
+	const keyed = [...groups.entries()].sort((a, b) => (a[0] ? -1 : 1));
+	return keyed.map(([title, rows]) => {
+		rows.sort((a, b) => ((a.track ? a.track.position : 0) - (b.track ? b.track.position : 0)));
+		if (!title) {
+			return `<div class="lmsh">Your courses</div><div class="lmsgrid">${rows.map(courseCard).join("")}</div>`;
+		}
+		const total = rows[0].track.total || rows.length;
+		const done = rows.filter((r) => r.status === "Completed").length;
+		const pct = total ? Math.round((done / total) * 100) : 0;
+		return `
+			<div class="trkh">
+				<div><b>${esc(title)}</b><span class="muted"> \u00b7 ${done} of ${total} complete</span></div>
+				<span class="trkbar"><i style="width:${pct}%"></i></span>
+				${done >= total ? `<a class="trkview" onclick="openAchievement('${esc(rows[0].track.name || "")}')">View achievement \u2192</a>` : ""}
+			</div>
+			<div class="lmsgrid">${rows.map(courseCard).join("")}</div>`;
+	}).join("");
+}
+function openAchievement(track) {
+	if (!track) return;
+	acadFocus("read");
+	api("client_track_summary", { track: track })
+		.then((s) => {
+			const hrs = (m) => (!m ? "" : m < 60 ? m + " min" : Math.round((m / 60) * 10) / 10 + " hours");
+			document.getElementById("acad").innerHTML = `
+				<div class="achv">
+					<div class="achvtop">\u{1F393}</div>
+					<h1>${esc(s.title)}</h1>
+					<div class="muted">${esc(s.product || "")}${s.issued_on ? ` \u00b7 completed ${esc(s.issued_on)}` : ""}</div>
+					${s.serial ? `<div class="achvser">${esc(s.serial)}</div>` : ""}
+					<div class="achvstats">
+						<span><b>${s.complete}</b> of ${s.total} courses</span>
+						<span><b>${hrs(s.minutes)}</b> of study</span>
+					</div>
+					<div class="achvsec"><b>What you covered</b>
+						<ol>${(s.courses || []).map((c) => `<li>${esc(c.title)}${c.completed_on ? ` <span class="muted">\u00b7 ${esc(c.completed_on)}</span>` : ""}${c.cert ? ` <a href="/api/method/duty_board.client_room.client_shelf_file?id=${esc(c.cert)}" target="_blank">certificate</a>` : ""}</li>`).join("")}</ol>
+					</div>
+					${s.next ? `<div class="achvnext"><b>What next</b>
+						<div class="achvnexttitle">${esc(s.next.title)}</div>
+						${s.next.description ? `<p>${esc(s.next.description)}</p>` : ""}
+						<span class="muted">${s.next.courses} course${s.next.courses === 1 ? "" : "s"}${s.next.assignable ? "" : " \u00b7 ask your administrator about adding it"}</span></div>` : ""}
+					<div style="margin-top:22px"><button class="rdghost" onclick="loadTraining()">\u2190 Back to training</button></div>
+				</div>`;
+		})
+		.catch(fail);
 }
 function pursueTrack(track) {
 	api("client_pursue_track", { track: track })
@@ -2787,6 +2865,9 @@ function examResult(res, record) {
 			<button style="background:#E2E8E5;color:#2A3833" onclick="openCourse('${esc(record)}');loadTraining()">Back to course</button>
 		</div>`;
 	if (res.newly_certified) celebrate();
+	if (res.track_done && res.track_done.track) {
+		setTimeout(() => openAchievement(res.track_done.track), 1400);
+	}
 }
 function examRunner(t, record) {
 	acadFocus("exam");

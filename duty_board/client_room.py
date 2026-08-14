@@ -3750,6 +3750,7 @@ def client_get_training():
 	my_modules = [r.module for r in rows if r.trainee == user]
 	lesson_counts, done_counts = {}, {}
 	left_mins, next_lesson = {}, {}
+	track_of = _tracks_by_module(room, user, my_modules)
 	due = {
 		d.name: d.due_on
 		for d in frappe.get_all(
@@ -3807,6 +3808,7 @@ def client_get_training():
 			),
 			"minutes_left": left_mins.get(r.module) if r.trainee == user else None,
 			"next_lesson": next_lesson.get(r.module) if r.trainee == user else None,
+			"track": track_of.get(r.module) if r.trainee == user else None,
 		}
 		for r in rows
 	]
@@ -5460,6 +5462,9 @@ def _quiz_submit(attempt, answers, rec):
 		"next_attempt_at": state["next_attempt_at"],
 		"best": state["best"],
 		"newly_certified": newly_certified,
+		"track_done": _track_just_completed(
+			frappe.get_doc("Client Room", rec.room), frappe.session.user, rec.module
+		) if newly_certified else None,
 	}
 
 
@@ -5571,6 +5576,9 @@ def _timed_finish(att):
 		"next_attempt_at": state["next_attempt_at"],
 		"best": state["best"],
 		"newly_certified": newly_certified,
+		"track_done": _track_just_completed(
+			frappe.get_doc("Client Room", rec.room), frappe.session.user, rec.module
+		) if newly_certified else None,
 	}
 
 
@@ -6078,6 +6086,123 @@ def _pursue_seat_gate(track):
 		{"room": room.name, "module": ["in", mods], "trainee": frappe.session.user},
 	)
 	seat_gate(room.name, track, 0 if already else 1)
+
+
+def _tracks_by_module(room, user, modules):
+	"""module -> the track it belongs to for this learner, resolved once.
+
+	The course cards group under it, so eight loose courses read as a
+	qualification in progress rather than a pile."""
+	if not modules:
+		return {}
+	out = {}
+	for m in modules:
+		t = _track_for_module(room, user, m)
+		if t:
+			out[m] = {"title": t["title"], "position": t["position"], "total": t["total"]}
+	return out
+
+
+def _track_just_completed(room, user, module):
+	"""Did finishing this course finish a whole track?
+
+	Module completion is its own event and already issues a certificate. A
+	track finishing is the larger moment and had none — no summary of what was
+	achieved and, more to the point commercially, no suggestion of what to do
+	next. This is the only place a second sale suggests itself to the person who
+	has just proved the first one worked."""
+	for p in frappe.get_all(
+		"Duty Certification Track Module", filters={"module": module}, fields=["parent"]
+	):
+		track = frappe.db.get_value(
+			"Duty Certification Track", p.parent,
+			["name", "title", "active", "audience"], as_dict=True,
+		)
+		if not track or not cint(track.active) or track.audience != "Client":
+			continue
+		mods = frappe.get_all(
+			"Duty Certification Track Module", filters={"parent": p.parent}, pluck="module"
+		)
+		if not mods:
+			continue
+		done = frappe.db.count(
+			"Duty Training Record",
+			{"room": room.name, "trainee": user, "module": ["in", mods], "status": "Completed"},
+		)
+		if done >= len(mods):
+			return {"track": track.name, "title": track.title}
+	return None
+
+
+@frappe.whitelist()
+def client_track_summary(track):
+	"""What they achieved, and what is next."""
+	room = _learning_room()
+	user = frappe.session.user
+	t = frappe.db.get_value(
+		"Duty Certification Track", track, ["title", "product", "description"], as_dict=True
+	)
+	if not t:
+		frappe.throw(_("Not found."))
+	mods = frappe.get_all(
+		"Duty Certification Track Module", filters={"parent": track},
+		pluck="module", order_by="idx asc",
+	)
+	courses, minutes = [], 0
+	for m in mods:
+		rec = frappe.db.get_value(
+			"Duty Training Record",
+			{"room": room.name, "trainee": user, "module": m},
+			["status", "completed_on", "certificate_shelf"], as_dict=True,
+		) or frappe._dict()
+		mins = sum(
+			cint(l.est_minutes) or 5
+			for l in frappe.get_all("Duty Lesson", filters={"module": m}, fields=["est_minutes"])
+		)
+		minutes += mins
+		courses.append({
+			"title": frappe.db.get_value("Duty Training Module", m, "title") or m,
+			"done": rec.get("status") == "Completed",
+			"completed_on": str(rec.get("completed_on"))[:10] if rec.get("completed_on") else None,
+			"cert": rec.get("certificate_shelf"),
+			"minutes": mins,
+		})
+	cert = frappe.db.get_value(
+		"Duty Certificate",
+		{"user": user, "track": track, "status": ["!=", "Revoked"]},
+		["serial", "issued_on"], as_dict=True,
+	)
+	# what to do next: another track they can reach and have not begun
+	nxt = None
+	try:
+		from duty_board.academy import track_catalogue
+
+		for row in track_catalogue(room):
+			if row["track"] == track:
+				continue
+			if not _on_track(room, user, row["track"]):
+				nxt = {
+					"track": row["track"], "title": row["title"],
+					"courses": row["courses"], "assignable": row["assignable"],
+					"description": row["description"],
+				}
+				if row["assignable"]:
+					break
+	except Exception:
+		nxt = None
+	return {
+		"track": track,
+		"title": t.title,
+		"product": t.product,
+		"description": t.description,
+		"courses": courses,
+		"complete": sum(1 for c in courses if c["done"]),
+		"total": len(courses),
+		"minutes": minutes,
+		"serial": cert.serial if cert else None,
+		"issued_on": str(cert.issued_on)[:10] if cert and cert.issued_on else None,
+		"next": nxt,
+	}
 
 
 @frappe.whitelist()
