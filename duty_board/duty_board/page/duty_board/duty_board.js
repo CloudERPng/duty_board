@@ -106,6 +106,9 @@ frappe.pages["duty-board"].on_page_load = function (wrapper) {
 			if (q.pricer) board.rail.push({ id: "pricing", ic: board._rsvg.tag, label: __("CR pricing"), go: () => board.pricing_dialog() });
 			board.build_rail();
 			page.add_menu_item(__("🎓 Team training"), () => board.team_training_dialog());
+			page.add_menu_item(__("\u{1F4C8} Academy health"), () => board.academy_health_dialog());
+			board._more_extra = board._more_extra || [];
+			board._more_extra.push({ icon: "\u{1F4C8}", label: __("Academy health"), go: () => board.academy_health_dialog() });
 			board._more_extra = board._more_extra || [];
 			board._more_extra.push({ icon: "🎓", label: __("Team training"), go: () => board.team_training_dialog() });
 			if (q.pricer) {
@@ -7152,6 +7155,70 @@ this.$me.find(".duty-req-ok").on("click", (e) => {
 		};
 		d.show();
 		d.fields_dict.date.$input && d.fields_dict.date.$input.attr("min", frappe.datetime.get_today());
+	}
+
+	academy_health_css() {
+		if (document.getElementById("duty-ah-css")) return;
+		const s = document.createElement("style");
+		s.id = "duty-ah-css";
+		s.textContent = `
+			.duty-ah-top { display: flex; flex-wrap: wrap; gap: 8px; }
+			.duty-ah-chip { background: #F4F7F6; border-radius: 8px; padding: 6px 11px; font-size: 12px; color: #6B7C77; }
+			.duty-ah-chip b { font-size: 15px; color: #0A473F; margin-right: 4px; }
+			.duty-ah-chip.warn { background: #FFF7E6; color: #7A5312; }
+			.duty-ah-chip.warn b { color: #B27409; }
+			.duty-ah-hot td { background: #FFFCF5; }
+			.duty-ah-go { cursor: pointer; font-weight: 600; }`;
+		document.head.appendChild(s);
+	}
+
+	academy_health_dialog() {
+		this.academy_health_css();
+		const esc = frappe.utils.escape_html;
+		const d = new frappe.ui.Dialog({ title: `\u{1F4C8} ${__("Academy health")}`, size: "extra-large" });
+		d.set_primary_action(`\u{1F9FE} ${__("Seat orders")}`, () => { d.hide(); this.academy_orders_dialog(); });
+		frappe.call({
+			method: "duty_board.academy.health",
+			callback: (r) => {
+				const res = r.message || { rooms: [], totals: {} };
+				const t = res.totals;
+				const chip = (n, label, warn) =>
+					`<span class="duty-ah-chip${warn && n ? " warn" : ""}"><b>${n}</b> ${label}</span>`;
+				$(d.body).html(`
+					<div class="duty-ah-top">
+						${chip(t.rooms || 0, __("rooms"))}
+						${chip(t.attention || 0, __("need attention"), 1)}
+						${chip(t.never || 0, __("never signed in"), 1)}
+						${chip(t.stalled || 0, __("not started"), 1)}
+						${chip(t.blocked || 0, __("blocked"), 1)}
+						${chip(t.idle_seats || 0, __("idle seats"), 1)}
+						${chip(t.waiting_orders || 0, __("orders waiting"), 1)}
+					</div>
+					${res.rooms.length ? `<table class="table table-sm" style="font-size:12px;margin-top:12px">
+						<tr><th>${__("Customer")}</th><th>${__("People")}</th><th>${__("Assigned")}</th>
+						<th>${__("Complete")}</th><th>${__("Never in")}</th><th>${__("Not started")}</th>
+						<th>${__("Overdue")}</th><th>${__("Blocked")}</th><th>${__("Idle seats")}</th><th>${__("Waiting")}</th></tr>
+						${res.rooms.map((x) => `<tr class="${x.score ? "duty-ah-hot" : ""}">
+							<td><a class="duty-ah-go" data-r="${esc(x.room)}">${esc(x.customer)}</a></td>
+							<td>${x.members}</td><td>${x.assigned}</td>
+							<td>${x.complete}${x.rate === null ? "" : ` (${x.rate}%)`}</td>
+							<td>${x.never ? `<b title="${esc((x.never_names || []).join(", "))}">${x.never}</b>` : "\u2014"}</td>
+							<td>${x.stalled || "\u2014"}</td><td>${x.overdue || "\u2014"}</td>
+							<td>${x.blocked ? `<b>${x.blocked}</b>` : "\u2014"}</td>
+							<td>${x.idle_seats ? `<b>${x.idle_seats}</b>` : "\u2014"}</td>
+							<td>${x.waiting_orders || "\u2014"}</td></tr>`).join("")}
+					</table>
+					<p class="text-muted" style="font-size:11.5px;margin-top:10px">${__("Sorted worst first. Never-signed-in and idle seats weigh heaviest — those are the states where a client has paid and received nothing. Hover a never-signed-in count to see who.")}</p>`
+						: `<div class="text-muted">${__("No active rooms with members.")}</div>`}
+				`);
+				$(d.body).find(".duty-ah-go").on("click", (e) => {
+					const room = $(e.currentTarget).data("r");
+					d.hide();
+					frappe.set_route("Form", "Client Room", room);
+				});
+			},
+		});
+		d.show();
 	}
 
 	academy_orders_dialog() {

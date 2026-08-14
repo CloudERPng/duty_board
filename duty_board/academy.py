@@ -401,6 +401,114 @@ def order_approve(name, payment_ref=None, expires_on=None):
 	return {"order": o.name, "entitlement": ent.name}
 
 
+# ---------------- academy health: the cross-room view ----------------
+
+
+def _room_health(room, customer, today_d):
+	from duty_board.client_room import _last_signed_in
+
+	members = [
+		m.user for m in frappe.get_all(
+			"Client Room Member", filters={"room": room, "active": 1}, fields=["user"]
+		) if m.user
+	]
+	if not members:
+		return None
+	seen = _last_signed_in(members)
+	never = [u for u in members if not seen.get(u)]
+
+	recs = frappe.get_all(
+		"Duty Training Record",
+		filters={"room": room},
+		fields=["name", "module", "trainee", "trainee_name", "status", "due_on", "creation"],
+	)
+	assigned = len(recs)
+	complete = sum(1 for r in recs if r.status == "Completed")
+	overdue = stalled = blocked = 0
+	open_recs = [r for r in recs if r.status != "Completed"]
+	for r in open_recs:
+		if r.due_on and getdate(r.due_on) < today_d:
+			overdue += 1
+		if (today_d - getdate(r.creation)).days >= DORMANT_AFTER_DAYS and not frappe.db.exists(
+			"Duty Lesson Progress", {"user": r.trainee, "module": r.module}
+		):
+			stalled += 1
+	for r in open_recs:
+		try:
+			from duty_board.client_room import _quiz_state
+
+			st = _quiz_state(r.module, r.trainee, r.name)
+			if not st["passed"] and st["attempts_left"] == 0:
+				blocked += 1
+		except Exception:
+			continue
+
+	# seats bought and not yet put to use
+	idle = 0
+	for e in frappe.get_all(
+		"Duty Academy Entitlement",
+		filters={"room": room, "status": "Active"}, fields=["track", "seats", "expires_on"],
+	):
+		if e.expires_on and getdate(e.expires_on) < today_d:
+			continue
+		idle += max(cint(e.seats) - seats_used(room, e.track), 0)
+
+	waiting = frappe.get_all(
+		"Duty Academy Order", filters={"room": room, "status": "Requested"},
+		fields=["name", "total"],
+	)
+
+	# worst first: the two states where a client has paid and received nothing
+	# weigh heaviest, because that is where goodwill goes fastest
+	score = len(never) * 4 + idle * 4 + blocked * 3 + stalled * 2 + overdue
+	return {
+		"room": room,
+		"customer": customer or room,
+		"members": len(members),
+		"never": len(never),
+		"never_names": [frappe.utils.get_fullname(u) for u in never[:6]],
+		"assigned": assigned,
+		"complete": complete,
+		"rate": round(complete * 100.0 / assigned) if assigned else None,
+		"overdue": overdue,
+		"stalled": stalled,
+		"blocked": blocked,
+		"idle_seats": idle,
+		"waiting_orders": len(waiting),
+		"waiting_value": sum(flt(w.total) for w in waiting),
+		"score": score,
+	}
+
+
+@frappe.whitelist()
+def health():
+	"""Every active room's academy standing, worst first."""
+	_staff_only()
+	today_d = getdate(today())
+	out = []
+	for r in frappe.get_all(
+		"Client Room", filters={"status": "Active"}, fields=["name", "customer"]
+	):
+		try:
+			row = _room_health(r.name, r.customer, today_d)
+		except Exception:
+			frappe.log_error(frappe.get_traceback(), "duty_board academy health")
+			continue
+		if row:
+			out.append(row)
+	out.sort(key=lambda x: (-x["score"], x["customer"]))
+	totals = {
+		"rooms": len(out),
+		"attention": sum(1 for x in out if x["score"]),
+		"never": sum(x["never"] for x in out),
+		"stalled": sum(x["stalled"] for x in out),
+		"blocked": sum(x["blocked"] for x in out),
+		"idle_seats": sum(x["idle_seats"] for x in out),
+		"waiting_orders": sum(x["waiting_orders"] for x in out),
+	}
+	return {"rooms": out, "totals": totals}
+
+
 # ---------------- nudges: the cadence that replaces a facilitator ----------------
 
 NUDGE_REPEAT_DAYS = 7
