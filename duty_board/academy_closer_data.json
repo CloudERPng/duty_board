@@ -157,12 +157,12 @@
    {
     "q": "The correct order of the delivery spine is:",
     "opts": [
-     "Assigned, Agent Notified, Order Accepted, Dispatch Assigned, Delivery In Progress, Delivered",
      "Assigned, Order Accepted, Agent Notified, Delivery In Progress, Dispatch Assigned, Delivered",
      "Agent Notified, Assigned, Dispatch Assigned, Order Accepted, Delivered, Delivery In Progress",
-     "Assigned, Dispatch Assigned, Agent Notified, Order Accepted, Delivered, Delivery In Progress"
+     "Assigned, Dispatch Assigned, Agent Notified, Order Accepted, Delivered, Delivery In Progress",
+     "Assigned, Agent Notified, Order Accepted, Dispatch Assigned, Delivery In Progress, Delivered"
     ],
-    "ans": 0,
+    "ans": 3,
     "why": "The closer assigns and notifies; the agent then accepts, assigns dispatch, travels and delivers.",
     "src": "Spine §1",
     "topic": "The delivery spine"
@@ -196,12 +196,12 @@
    {
     "q": "An order counts toward revenue when it reaches:",
     "opts": [
-     "Order Accepted",
-     "Dispatch Assigned",
      "Delivery In Progress",
-     "Delivered"
+     "Delivered",
+     "Order Accepted",
+     "Dispatch Assigned"
     ],
-    "ans": 3,
+    "ans": 1,
     "why": "Delivered is the positive terminal status — goods with the customer and, on COD, the money collected.",
     "src": "Spine §6",
     "topic": "The delivery spine"
@@ -235,12 +235,12 @@
    {
     "q": "Which status can a closer NOT set?",
     "opts": [
-     "On Hold",
-     "Not Reachable",
      "Duplicate",
-     "Failed / Returned"
+     "Failed / Returned",
+     "On Hold",
+     "Not Reachable"
     ],
-    "ans": 2,
+    "ans": 0,
     "why": "Duplicate is set automatically by the system or by a Closer Manager — never by the closer whose numbers it affects.",
     "src": "Actors §4",
     "topic": "Who may move an order"
@@ -408,46 +408,61 @@
   "desc": "How leads reach a closer, the follow-up pool and its fair-attribution rules, and reading your own performance.",
   "lessons": [
    {
-    "title": "How leads reach you — shifts & assignment",
-    "est": 4,
-    "html": "<p>New online leads are assigned to closers automatically — and when <b>Closer Shift Management</b> is enabled, only closers whose shift is <b>active right now</b> receive them. There is no clock-in: availability follows the schedule. If the current time falls inside one of your assigned shifts, you are on shift.</p>\n<ul>\n<li><b>Nobody on shift?</b> The lead simply waits as a New Lead. The system re-checks about every ten minutes and assigns it the moment someone comes on shift. No lead is ever lost or discarded.</li>\n<li><b>Always-available closers</b> receive leads at all times regardless of the schedule — used for supervisors and overflow cover.</li>\n<li><b>Overnight shifts</b> work naturally: an end time earlier than the start (10:00 pm – 6:00 am) runs past midnight into the next morning.</li>\n<li><b>Daily limits still apply</b>, layered on top: you must be both on shift <i>and</i> under your daily assignment limit to receive an automatic lead. The limit resets at midnight server time, independent of shifts — an overnight closer gets a fresh allowance mid-shift.</li>\n<li><b>Online store orders are exempt</b> — paid store orders route as before and are never held back by shifts.</li>\n<li><b>Manual assignment always works</b> — a manager can hand any closer any lead at any time; shifts never block it. The picker marks who is on shift as a hint, nothing more.</li>\n</ul>\n<blockquote><b>CONSULTANT NOTE:</b> The whole feature is off by default. Until a manager enables Shift Management, assignment behaves exactly as it always did — and turning it off again fully restores that behaviour.</blockquote>"
+    "title": "How leads reach you — shifts and assignment",
+    "est": 8,
+    "html": "<p>New online leads are assigned to closers automatically, and understanding the rules that govern that assignment is the difference between a closer who wonders why their list is empty and one who knows.</p>\n\n<p><b>When Closer Shift Management is enabled, only closers whose shift is active right now receive automatic leads.</b> There is no clock-in and nothing to press. Availability follows the schedule: if the current time falls inside one of your assigned shifts, you are on shift.</p>\n\n<p><b>What happens when nobody is on shift.</b> The lead waits as a New Lead. It is not discarded, not lost, and not given to somebody unsuitable. The system re-checks roughly every ten minutes and assigns it the moment a qualifying closer comes on shift. This is worth internalising, because it is the reassurance behind the whole design: the queue is a waiting room, not a bin.</p>\n\n<p><b>Always-available closers</b> receive leads at any hour regardless of the schedule. The flag exists for supervisors and overflow cover — the people who are meant to absorb what the roster cannot.</p>\n\n<p><b>Overnight shifts work exactly as you would hope.</b> An end time earlier than the start — 10:00 pm to 6:00 am — is understood as running past midnight into the next morning. You do not need to split it into two shifts, and doing so would create a gap at the boundary.</p>\n\n<p><b>Daily limits sit on top of shifts, not inside them.</b> To receive an automatic lead you must be both on shift <i>and</i> under your daily assignment limit. Two independent gates, and failing either one is enough to stop the flow. The limit resets at midnight server time regardless of where you are in your shift — which means an overnight closer receives a fresh allowance partway through the night rather than at the end of it.</p>\n\n<p><b>Two important exemptions.</b> Online store orders route as they always have and are never held back by shifts — a customer who has already paid is not asked to wait for a roster. And manual assignment always works: a manager can hand any closer any lead at any time, and shifts never block it. The picker shows who is on shift as a hint, nothing more.</p>\n\n<blockquote>IMPLEMENTATION TIP: If leads stop arriving mid-shift, check your daily count before assuming a fault. Reaching your limit looks exactly like the system having gone quiet, and it is by far the more common explanation.</blockquote>\n\n<blockquote>CONSULTANT NOTE: The whole feature is off by default. Until a manager enables Shift Management, assignment behaves exactly as it always did — and turning it off again fully restores that behaviour.</blockquote>"
+   },
+   {
+    "title": "Your daily limit — the cap, and what it protects",
+    "est": 7,
+    "html": "<p>Every closer has a maximum number of orders they may be assigned in a day. New closers often read the cap as a restriction on how much they are allowed to earn. It is the opposite: it is the thing that makes what you already hold workable.</p>\n\n<p><b>What the cap actually protects.</b> A closer holding two hundred orders does not work two hundred orders. They work perhaps forty properly and let the rest age, and the customers at the bottom of that list are unserved while appearing, in every report, to be served. The cap prevents a queue forming inside one person's screen where nobody can see it.</p>\n\n<p><b>It is also what makes the New Lead queue meaningful.</b> When every closer for a country and category has reached their limit, incoming orders stop at New Lead rather than being pushed onto somebody already full. That queue is then a visible, measurable signal that demand has outrun capacity — a number a manager can act on. Without caps there would be no signal at all, only quietly deteriorating service that shows up months later as cancellations.</p>\n\n<p><b>The reset is daily, at midnight server time</b>, and it is independent of your shift pattern. If you work overnight, your allowance refreshes partway through the night rather than when your shift ends.</p>\n\n<p><b>The two gates, once more, because closers confuse them constantly.</b> Shift governs <i>when</i> you may receive leads. The cap governs <i>how many</i>. You need both open. On shift but at your limit: nothing arrives. Under your limit but off shift: nothing arrives. Neither situation is a fault, and neither is worth a support ticket.</p>\n\n<p><b>What the cap does not do.</b> It does not stop a manager assigning you work manually — manual assignment bypasses it. It does not remove orders you already hold. And it does not limit how many orders you can <i>deliver</i>, only how many new ones can be pushed to you automatically in a day. A closer who works their existing list down does not thereby earn more automatic leads that day; the counter is about what arrived, not what remains.</p>\n\n<blockquote>IMPLEMENTATION TIP: If you are consistently hitting your cap early and clearing your list well before the day ends, that is a conversation to have with your team lead rather than a frustration to sit on. A cap set below what you can genuinely handle is capacity the business is leaving unused — and New Leads are probably queuing while you wait.</blockquote>\n\n<blockquote>WATCH-OUT: The reverse is the more common problem and the harder one to admit. If you reach your cap daily and end each day with untouched orders from the morning, asking for a higher cap will make things worse, not better. The constraint is not the allowance; it is the hours.</blockquote>"
    },
    {
     "title": "The follow-up pool — the idea and the fairness rule",
-    "est": 3,
-    "html": "<p>Leads that are not picking up, asking for callbacks, or otherwise stalling tend to die quietly in a non-delivered status with nobody chasing them. The <b>Follow-Up Workflow</b> gives those leads a recovery path: stalled orders gather in a shared <b>Follow-Up Pool</b>, and a dedicated <b>Follow-Up Team</b> picks them out, works them, and either routes them back to delivery or closes them out.</p>\n<p>The design rests on one guiding principle — <b>fair attribution</b>: <i>the original closer keeps credit for the lead until it is actually delivered. Only on successful delivery does the follow-up closer who recovered it earn the credit. Cancellations stay with the original closer, so failure is never laundered onto the recovery team.</i></p>\n<p>The vocabulary: the <b>pool</b> is the shared list under Follow-Up in the left navigation; a <b>Follow-Up Team Member</b> is a Closer whose record carries that flag — only they see the pool; <b>claim</b> takes an unclaimed order so only you work it; <b>convert</b> routes a claimed order back into delivery; <b>release</b> returns it for someone else. \"In Follow-Up\" is an internal flag, <b>not a status</b> — the order keeps whatever status it last had.</p>\n<blockquote><b>CONSULTANT NOTE:</b> The same person can be a normal closer and a follow-up member at once — the two are independent flags on the Closer record.</blockquote>"
+    "est": 8,
+    "html": "<p>Leads that are not picking up, asking for callbacks, or otherwise stalling tend to die quietly. They sit in a non-delivered status with nobody actively chasing them, and because they are not failures yet, nothing flags them. Over months this is one of the largest silent losses in a call-centre operation.</p>\n\n<p><b>The Follow-Up Workflow gives those leads a recovery path.</b> Stalled orders gather in a shared Follow-Up Pool. A dedicated Follow-Up Team picks them out, works them, and either routes them back into delivery or closes them out honestly.</p>\n\n<p><b>The whole design rests on one principle: fair attribution.</b> The original closer keeps credit for the lead until it is actually delivered. Only on successful delivery does the follow-up closer who recovered it earn the credit. Cancellations stay with the original closer, so failure is never laundered onto the recovery team.</p>\n\n<p>That rule is doing more work than it appears. Consider the alternative designs and what each would produce. If credit transferred on entry to the pool, every closer would dump difficult leads there the moment they got hard, and the pool would become a bin for the unwanted. If cancellations transferred with the lead, the recovery team's numbers would be destroyed by other people's poorly confirmed orders, and nobody would want the job. The rule as built makes the pool safe to use and safe to work in, which is why it is stated as a principle rather than buried as a detail.</p>\n\n<p><b>The vocabulary, because these words have precise meanings here.</b> The <b>pool</b> is the shared list under Follow-Up in the left navigation. A <b>Follow-Up Team Member</b> is a Closer whose record carries that flag — only they see the pool. To <b>claim</b> is to take an unclaimed order so that only you work it. To <b>convert</b> is to route a claimed order back into delivery. To <b>release</b> is to return it for someone else.</p>\n\n<p><b>One distinction to hold firmly: \"In Follow-Up\" is an internal flag, not a status.</b> A pooled order keeps whatever status it last had. This is why a lead can be in the pool and Not Picking at the same time, and why the pool never appears in the lifecycle you learned in the previous module. It sits alongside the lifecycle rather than inside it.</p>\n\n<blockquote>CONSULTANT NOTE: The same person can be a normal closer and a follow-up member at once — the two are independent flags on the Closer record. In smaller teams this is the usual arrangement rather than the exception.</blockquote>\n\n<p><b>A note on who should be on the follow-up team.</b> The work is different from ordinary closing. A follow-up member phones people who have already been phoned, often more than once, about an order they hesitated over. Patience matters more than pace, and the ability to read someone else's notes and pick up their conversation matters more than either. It is not a junior job and it is not a punishment posting — the leads in the pool are the hardest in the book, which is exactly why they are worth recovering.</p>"
    },
    {
     "title": "Sending a stalled lead to follow-up",
-    "est": 3,
-    "html": "<p>Orders enter the pool two ways. The <b>nightly sweep</b>, shortly after midnight, adds every order older than the configured threshold (default <b>10 days</b> from creation) that is not in a finished status and not already pooled. And a closer who already knows a lead is stuck can <b>flag it early</b> instead of waiting.</p>\n<p>To send your own stalled lead: open the order, open its <b>Actions</b> menu, choose <b>Reassign to Follow-Up</b>, and confirm. The option only appears when the workflow is enabled, you are the order's closer, it is not already pooled, and it sits in an eligible stalled status — the not-picking / call-back / on-hold family, not a finished one.</p>\n<p><b>What does not change:</b> sending an order to the pool does not remove it from you and does not change its status. You remain the closer, the lead stays in your reports, and your daily counter is not reduced. Treat the pool as a safety net for the lead — not a hand-off of credit.</p>\n<blockquote><b>WATCH-OUT:</b> Terminal statuses — Delivered, Cancelled, Duplicate, Rescheduled and their kin — can never be sent to the pool, manually or by the sweep. Finished is finished.</blockquote>"
+    "est": 8,
+    "html": "<p>Orders enter the pool two ways, and the difference between them is the difference between a safety net and good practice.</p>\n\n<p><b>The nightly sweep</b> runs shortly after midnight and adds every order older than the configured threshold — ten days from creation by default — that is not in a finished status and not already pooled. This is the net. It catches what nobody caught.</p>\n\n<p><b>The manual route</b> is for a closer who already knows a lead is stuck. Open the order, open its Actions menu, choose <b>Reassign to Follow-Up</b>, and confirm. There is no reason to let a lead you know is stalled sit for ten days waiting to be swept, and every day it waits makes recovery less likely.</p>\n\n<p><b>The option only appears under four conditions.</b> The workflow must be enabled; you must be the order's closer; the order must not already be pooled; and it must sit in an eligible stalled status — the not-picking, call-back, on-hold family. If the action is missing, one of those four is the reason.</p>\n\n<p><b>Now the part closers most need to hear, because it governs whether they use the feature at all.</b> Sending an order to the pool does <b>not</b> remove it from you and does <b>not</b> change its status. You remain the closer. The lead stays in your reports. Your daily counter is not reduced.</p>\n\n<p>Treat the pool as a safety net for the lead rather than a hand-off of credit. It is help, not surrender. A closer who avoids the pool because they think they are giving something away simply keeps a dying lead to themselves — and nobody wins that.</p>\n\n<p><b>What cannot be pooled, and why.</b> Finished orders — Delivered, Cancelled, Duplicate — are never eligible, by sweep or by hand. There is nothing to recover from an order that has reached its end.</p>\n\n<p>Delivery Rescheduled is also excluded, but for a different reason worth understanding rather than memorising. A rescheduled order is not finished; it is simply <i>not stalled</i>. It has a future delivery date and a plan attached. The pool exists for orders that have stopped moving with nobody attending to them, and a rescheduled order is the opposite of that. Putting it in the pool would have the recovery team chasing a customer who is already expecting delivery on Thursday.</p>\n\n<blockquote>WATCH-OUT: If you find yourself wanting to pool an order that does not qualify, the honest question is whether the status on it is accurate. An order you believe is stalled but which shows as Rescheduled is usually an order whose status was never updated after the reschedule fell through.</blockquote>\n\n<p><b>How soon should you pool something?</b> The sweep waits ten days by default, which is a sensible net but a poor plan. Ten days on a lead that stopped answering on day two is eight days of nothing happening. If you have made three genuine attempts across two or three days with no contact and no pattern to work with, that lead is stalled — pool it and let a fresh voice try. Waiting for the sweep is not diligence; it is delay with a system doing the waiting for you.</p>"
    },
    {
     "title": "Working the pool — claim, convert, release",
-    "est": 4,
-    "html": "<p>Follow-up team members open the pool from <b>Follow-Up</b> in the left navigation. Each row is a pooled order: ID (click to open the drawer in place), customer, its unchanged status, phone, value, when it entered, and <b>Claimed By</b> — a name, or \"unclaimed\".</p>\n<p><img src=\"/assets/duty_board/academy/followup_pool.jpg\" alt=\"The Follow-Up Pool — claim, release and convert actions per order, with claim state visible to the whole team.\"></p><p><i>The Follow-Up Pool — claim, release and convert actions per order, with claim state visible to the whole team.</i></p>\n<p>Filter between <b>All Pool / Claimed by Me / Unclaimed</b>, search by order, name or phone, and page through 50 at a time.</p>\n<ul>\n<li><b>Claim</b> an unclaimed order to make it yours — the actions flip to Release and Convert, and an audit comment is logged. If someone beats you to it by a moment you'll see \"Already claimed by…\" — refresh and pick another.</li>\n<li><b>Review before acting:</b> open the drawer in place, read the history and comments, add your own attempt notes, close — the list refreshes itself.</li>\n<li><b>Convert</b> when the customer is ready: the dialog optionally takes a delivery agent (or \"Set later\"), and the order's status returns to <b>Assigned</b> so the delivery side picks it up. <b>The converted order stays in the pool until it is actually Delivered</b> — deliberate, so the team sees it through. Convert on an unclaimed order claims and converts in one click.</li>\n<li><b>Release</b> an order you cannot continue — it returns unclaimed for anyone else. You can only release your own claims; managers can release anyone's.</li>\n<li><b>Dead leads</b> — wrong number, refusal, duplicate — are cancelled through the normal order flow, and the cancellation records against the <i>original</i> closer, never the recovery team.</li>\n</ul>"
+    "est": 8,
+    "html": "<p>Follow-up team members open the pool from <b>Follow-Up</b> in the left navigation. Each row is a pooled order: the ID, which opens the drawer in place; the customer; its unchanged status; phone; value; when it entered the pool; and <b>Claimed By</b> — a name, or \"unclaimed\".</p>\n\n<p>Filter between All Pool, Claimed by Me and Unclaimed, search by order, name or phone, and page through fifty at a time.</p>\n\n<p><b>Claim before you work.</b> Claiming an unclaimed order makes it yours: the actions flip to Release and Convert, and an audit comment is logged. If someone beats you to it by a moment you will see \"Already claimed by…\" — refresh and pick another rather than trying again.</p>\n\n<p>The claim is what stops two people phoning the same customer within an hour of each other. That call is not merely wasteful; it tells the customer the business does not know what it is doing, on a lead that was already fragile.</p>\n\n<p><b>Review before acting.</b> Open the drawer in place, read the history and the comments, add your own attempt notes, and close — the list refreshes itself. This is not a formality. A pooled lead usually carries a reason it stalled, and the previous closer's notes are the difference between opening with \"I understand you asked us to call after five\" and opening with a question the customer has already answered twice.</p>\n\n<p><b>Convert when the customer is ready.</b> The dialog optionally takes a delivery agent, or you may choose to set one later, and the order's status returns to Assigned so the delivery side picks it up.</p>\n\n<p><b>The converted order stays in the pool until it is actually Delivered.</b> This is deliberate, and it is the design decision most worth understanding: the recovery team's job is not finished when a customer says yes. It is finished when the goods arrive. Leaving the order visible means somebody is still watching a lead that has already stalled once and is more likely than average to stall again.</p>\n\n<p>Convert on an unclaimed order claims and converts in one click, for the case where you have just spoken to the customer and there is nothing to deliberate.</p>\n\n<p><b>Release an order you cannot continue</b> — it returns unclaimed for anyone else. You can only release your own claims; managers can release anyone's, which is how an order claimed by someone now on leave gets back into circulation.</p>\n\n<p><b>Dead leads are cancelled through the normal order flow</b>, not released and abandoned. Wrong number, refusal, genuine duplicate: cancel it properly with a reason. The cancellation records against the original closer, never the recovery team.</p>\n\n<blockquote>IMPLEMENTATION TIP: Release honestly and early. An order claimed and then ignored is worse than an unclaimed one, because it looks attended to. If you claim three and only get to one, release the other two before you finish for the day.</blockquote>"
    },
    {
     "title": "Attribution — who gets the credit, and when",
-    "est": 3,
-    "html": "<p>The rules behind the scenes keep the numbers fair between the original closer and the recovery team. Walk the life of a pooled order:</p>\n<ol>\n<li><b>Enters the pool</b> (sweep or manual) — closer unchanged, counter untouched, order in pool.</li>\n<li><b>Claimed</b> — still no change to ownership or counters; claiming is a work lock, not a transfer.</li>\n<li><b>Converted</b> — routed back to delivery, still the original closer's on paper, and still in the pool.</li>\n<li><b>Delivered</b> — <i>now</i> the follow-up closer becomes the order's closer, earns the credit, and their counter increments under the standard online-lead rule. The order leaves the pool.</li>\n<li><b>Cancelled from the pool</b> — stays the original closer's, leaves the pool. The failure never moves.</li>\n</ol>\n<p>In one sentence: <b>the original closer carries the lead — and the risk — right up until a successful delivery; only a delivered recovery moves the credit.</b></p>\n<blockquote><b>IMPLEMENTATION TIP:</b> This is the answer to the question every closer asks first: \"if I send my lead to follow-up, do I lose it?\" No. You keep it, and you keep it in your reports, unless and until someone else actually lands it.</blockquote>"
+    "est": 8,
+    "html": "<p>The attribution rules exist to keep the numbers fair between the original closer and the recovery team. Walk the life of a pooled order and each step becomes obvious.</p>\n\n<p><b>Enters the pool</b>, by sweep or by hand. The closer is unchanged, the counter untouched, the order is in the pool.</p>\n\n<p><b>Claimed.</b> Still no change to ownership or counters. Claiming is a work lock, not a transfer — it says who is calling, not who owns the outcome.</p>\n\n<p><b>Converted.</b> Routed back to delivery, still the original closer's on paper, and still in the pool.</p>\n\n<p><b>Delivered.</b> Now the follow-up closer becomes the order's closer, earns the credit, and their counter increments under the standard online-lead rule. The order leaves the pool.</p>\n\n<p><b>Cancelled from the pool.</b> It stays the original closer's and leaves the pool. The failure never moves.</p>\n\n<p><b>In one sentence:</b> the original closer carries the lead — and the risk — right up until a successful delivery; only a delivered recovery moves the credit.</p>\n\n<p><b>Why the credit moves only at delivery, and not at conversion.</b> Conversion means a customer said yes on a phone call. Delivery means goods arrived and, on cash on delivery, money was collected. Between those two points a meaningful proportion of recovered orders fail again — these are, by definition, leads that already stalled once. Moving credit at conversion would reward the recovery team for the easy half of the work and leave the original closer carrying failures they had no ability to influence.</p>\n\n<p><b>And why cancellations never move.</b> A cancelled lead is usually a lead that should not have been created in the state it was, or was confirmed too loosely at the front. That is information about the original closer's work, and it belongs in their numbers. If cancellations transferred, the fastest route to a clean cancellation rate would be to pool every doubtful order and let somebody else absorb the consequence.</p>\n\n<blockquote>IMPLEMENTATION TIP: This is the answer to the question every closer asks first — \"if I send my lead to follow-up, do I lose it?\" No. You keep it, and you keep it in your reports, unless and until somebody else actually lands it. The only thing you can lose by pooling a lead is a delivery you were not going to make.</blockquote>\n\n<p><b>One consequence worth spelling out for follow-up team members.</b> Because credit only arrives on delivery, your own numbers depend on orders reaching customers rather than on customers agreeing on the phone. That makes the decision to convert with a delivery agent attached, rather than leaving it to be set later, a decision about your own outcome as well as the customer's. A converted order with nobody lined up to carry it is a conversion that can quietly stall a second time.</p>"
    },
    {
-    "title": "Your numbers — the dashboard and your summary",
-    "est": 4,
-    "html": "<p>Two screens tell a closer how they are doing. The <b>dashboard</b> is the pulse: status cards for the selected period-to-date timeframe, each clickable straight into the Orders list pre-filtered to exactly those orders — and for a closer, automatically narrowed to your own. A build-up in an early card means leads are waiting on you; a build-up mid-flow means fulfilment needs a push.</p>\n<p><img src=\"/assets/duty_board/academy/dashboard.jpg\" alt=\"The dashboard — lifecycle and performance cards above the Delivered Value Trend. Every card is a click-through.\"></p><p><i>The dashboard — lifecycle and performance cards above the Delivered Value Trend. Every card is a click-through.</i></p>\n<p>The <b>My Summary</b> report is the scoreboard: your totals, delivered count, the value-band mix of your orders, a status breakdown, and your delivered list for the period.</p>\n<p><img src=\"/assets/duty_board/academy/my_summary.jpg\" alt=\"My Summary — a closer's own period at a glance: totals, delivery rate, value bands, status breakdown.\"></p><p><i>My Summary — a closer's own period at a glance: totals, delivery rate, value bands, status breakdown.</i></p>\n<p>The metrics that matter, and how they are read: <b>Conversion Rate</b> = Delivered ÷ Total Orders — the efficiency headline (70% means 7 of 10 orders you create actually land). <b>AOV</b> = Revenue ÷ Delivered — high AOV signals upselling skill. <b>Cancellation Rate</b> = Cancelled ÷ Total — <b>above 20–25% is a red flag</b> read as confirming poorly before creating. Response time to new assignments rounds out the picture.</p>\n<blockquote><b>WATCH-OUT:</b> Revenue figures on dashboards and reports are role-gated — closers see volume and activity, not money. If your dashboard shows no Delivered Value Trend, that is the access model working, not a fault.</blockquote>"
+    "title": "Your numbers — the dashboard and My Summary",
+    "est": 8,
+    "html": "<p>Two screens tell a closer how they are doing, and they answer different questions.</p>\n\n<p><b>The dashboard is the pulse.</b> Status cards, each clickable straight into the Orders list pre-filtered to exactly those orders — and, for a closer, automatically narrowed to your own. A build-up in an early card means leads are waiting on you. A build-up mid-flow means fulfilment needs a push rather than you.</p>\n\n<p><b>One thing about the dashboard that catches almost everyone.</b> Not every card responds to the timeframe control. Cards for terminal outcomes — total orders, delivered, cancelled — are scoped to the period you selected. Cards for in-flight statuses such as Agent Notified or Delivery In Progress ignore the timeframe entirely and show the whole book as it stands right now. Change the timeframe and watch which cards move; it takes half a minute and it stops you reading a lifetime figure as though it were this week's.</p>\n\n<p>The practical rule that follows: never divide an in-flight card by a period-scoped one. The result will look like a percentage and mean nothing.</p>\n\n<p><b>My Summary is the scoreboard.</b> Your totals, delivered count, the value-band mix of your orders, a status breakdown, and your delivered list for the period. Where the dashboard tells you what to do next, My Summary tells you how the period has gone.</p>\n\n<p><b>The metrics, and how to read them honestly.</b></p>\n\n<p><b>Conversion Rate</b> is Delivered divided by Total Orders — the efficiency headline. Seventy per cent means seven of every ten orders you created actually landed.</p>\n\n<p><b>AOV</b> is Revenue divided by Delivered, and a high AOV usually signals upselling skill rather than luck with the order book.</p>\n\n<p><b>Cancellation Rate</b> is Cancelled divided by Total, and above roughly twenty to twenty-five per cent it is read as confirming too loosely before creating the order. It is the metric most worth watching yourself, because it moves before anybody else notices and it is entirely within your control.</p>\n\n<p><b>Response time</b> to new assignments rounds out the picture, and it is the leading indicator of the three — it deteriorates before conversion does.</p>\n\n<p><b>Read them together rather than one at a time.</b> Rising volume with falling conversion is not growth. Good conversion with a slow response time is a habit problem sitting on top of real skill. Low volume with high AOV is a specialist, and being ranked on volume alone would misread them entirely.</p>\n\n<blockquote>WATCH-OUT: Revenue figures on dashboards and reports are role-gated — closers see volume and activity, not money. If your dashboard shows no Delivered Value Trend, that is the access model working, not a fault.</blockquote>"
+   },
+   {
+    "title": "Working a shift well — the closer's day",
+    "est": 8,
+    "html": "<p>Everything in this module is a mechanism. This chapter is about the day those mechanisms are meant to support, because two closers with identical tools and identical caps routinely produce very different numbers.</p>\n\n<p><b>Open with the queue, not the inbox.</b> Before anything else, set your filters: your orders, your call-backs due today, anything of yours that has not moved in three days. That is your worklist. A closer who begins by scrolling the full list begins by choosing, without deciding to, which customers get attention.</p>\n\n<p><b>Work the promises first.</b> A customer who asked you to call at ten expects a call at ten. A kept callback converts at a far better rate than a cold re-attempt, and a missed one usually becomes a cancellation with extra steps. Everything else on your list can move; a promise cannot.</p>\n\n<p><b>Then work the oldest.</b> Among orders with no scheduled commitment, age is the best available priority. The customer who has waited longest is the one most likely to have bought elsewhere, and their order is the one closest to becoming a silent loss.</p>\n\n<p><b>Set the status honestly at the end of every attempt, and write the note while the call is still in your head.</b> \"Called 2pm, no answer, second attempt today, asked yesterday for after 5pm because he works\" tells the next person exactly what to do. \"Called, no answer\" tells them nothing and they will repeat your work.</p>\n\n<p><b>Pool what has genuinely stalled, without waiting for the sweep.</b> If you know a lead is stuck — three attempts, no contact, no pattern to work with — send it to follow-up the same day. You keep it in your reports either way, so the only question is whether somebody is still trying.</p>\n\n<p><b>Watch your own cancellation rate rather than waiting to be told about it.</b> It is the metric that most reliably reflects a habit, and the habit it reflects is confirming too loosely at the point of order creation. If it is climbing, the fix is upstream of everything else you do.</p>\n\n<p><b>Close the day where you would want to start it.</b> Release any follow-up claims you did not get to. Update the statuses of anything you attempted. Leave your list in a state where a colleague picking it up tomorrow would understand it without asking you.</p>\n\n<blockquote>IMPLEMENTATION TIP: The single highest-return habit in this chapter is the note after every conversation. It costs fifteen seconds, it is what makes a callback land well, and it is the only thing that survives your absence, your leave, and your eventual promotion.</blockquote>\n\n<p><b>A word about pace.</b> The instinct under pressure is to make more calls. The closers with the best conversion rates are rarely the ones making the most attempts; they are the ones whose attempts land at the time the customer asked for, opening with what the customer already told somebody. That is a filing habit rather than a phone habit, and it is why the first act of a good shift is setting filters rather than dialling.</p>"
+   },
+   {
+    "title": "When it goes wrong — recovering from the common mistakes",
+    "est": 7,
+    "html": "<p>Everybody makes these. What separates a good closer is speed and honesty in putting them right, because almost all of them get harder to fix with time.</p>\n\n<p><b>You created a duplicate order.</b> You typed the customer's name rather than searching, and now the same person has two records or two live orders. Do not simply abandon one — an abandoned order still sits in somebody's list and counts in the numbers. Raise it: only a Closer Manager or the system can mark an order Duplicate, so tell your manager which order should stand and which should go, and say why. The correction takes a minute; the fragmented customer history, if left, is permanent.</p>\n\n<p><b>You entered the wrong phone number.</b> If you catch it before the order goes to an agent, correct it and re-confirm with the customer. If it has already gone out and delivery failed, the status is Failed/Returned and the recovery is a corrected number plus a reschedule — not a cancellation. A wrong digit is an administrative error, and cancelling for it converts your mistake into a lost sale.</p>\n\n<p><b>You set the wrong Lead Channel.</b> It is set once at creation and it feeds marketing attribution, so an error here quietly moves budget toward a source that did not earn it. Tell your team lead rather than shrugging: one wrong channel is noise, but a closer who habitually guesses is a distortion in the reports that nobody will trace back to a form field.</p>\n\n<p><b>You marked a customer Not Reachable after one attempt.</b> Not Picking is one failed attempt; Not Reachable means contact has failed persistently. Using the second where you meant the first tells everyone downstream to stop trying. If you have done it, set the status back and make the attempt — nothing is lost provided you catch it.</p>\n\n<p><b>You claimed follow-up orders and could not get to them.</b> Release them. A claimed order that nobody is working is worse than an unclaimed one, because the pool shows it as attended to and no one else will pick it up.</p>\n\n<p><b>You cannot move an order and you are sure something is broken.</b> Almost always the next move belongs to somebody else — Order Accepted, Dispatch Assigned, Delivery In Progress, Delivered and Rejected are all set by the agent, from the agent app, and by nobody else. Check whose move it is before raising a ticket. If the order has genuinely sat with an agent too long, the remedy is a call to that agent.</p>\n\n<blockquote>WATCH-OUT: The tempting response to every one of these is to make the record tidy rather than accurate — cancel the duplicate quietly, mark the unreachable customer as reached, leave the wrong channel alone. Each of those is a small false entry in a database other people make decisions from, and each is visible in a timeline that carries your name and a timestamp. Correcting a mistake costs a minute of mild embarrassment. Concealing one costs your credibility the first time somebody checks.</blockquote>"
    }
   ],
   "questions": [
    {
     "q": "With Shift Management enabled, automatic online leads go to:",
     "opts": [
-     "All closers equally",
      "Only closers whose shift is active at that moment",
      "The longest-serving closer",
-     "Whoever logged in last"
+     "Whoever logged in last",
+     "All closers equally"
     ],
-    "ans": 1,
+    "ans": 0,
     "why": "Availability follows the schedule — on-shift closers receive automatic assignments.",
     "src": "Shifts §2",
     "topic": "Shifts and assignment"
@@ -455,12 +470,12 @@
    {
     "q": "A closer is 'on shift' when:",
     "opts": [
-     "A manager marks them present",
      "They open the dashboard",
      "They clock in",
-     "The current time falls inside one of their assigned shifts"
+     "The current time falls inside one of their assigned shifts",
+     "A manager marks them present"
     ],
-    "ans": 3,
+    "ans": 2,
     "why": "There is no clock-in; the schedule alone determines availability.",
     "src": "Shifts §2",
     "topic": "Shifts and assignment"
@@ -468,12 +483,12 @@
    {
     "q": "If no closer is on shift when an online lead arrives:",
     "opts": [
+     "The lead is discarded",
      "It waits as a New Lead and is auto-assigned within ~10 minutes of someone coming on shift",
      "It emails the manager",
-     "It converts to a store order",
-     "The lead is discarded"
+     "It converts to a store order"
     ],
-    "ans": 0,
+    "ans": 1,
     "why": "Waiting leads are re-checked about every ten minutes; nothing is lost.",
     "src": "Shifts §2",
     "topic": "Shifts and assignment"
@@ -481,12 +496,12 @@
    {
     "q": "The 'Always available' flag means the closer:",
     "opts": [
+     "Receives leads at all times regardless of the schedule",
      "Cannot take leave",
      "Only handles store orders",
-     "Works without pay",
-     "Receives leads at all times regardless of the schedule"
+     "Works without pay"
     ],
-    "ans": 3,
+    "ans": 0,
     "why": "Used for supervisors and overflow; also the recommended rollout path.",
     "src": "Shifts §2",
     "topic": "Shifts and assignment"
@@ -494,12 +509,12 @@
    {
     "q": "A shift from 10:00 pm to 6:00 am is:",
     "opts": [
-     "Treated as running past midnight into the next morning",
-     "Split into two shifts",
      "Ignored by assignment",
-     "Invalid"
+     "Invalid",
+     "Treated as running past midnight into the next morning",
+     "Split into two shifts"
     ],
-    "ans": 0,
+    "ans": 2,
     "why": "End-before-start is the overnight convention.",
     "src": "Shifts §2",
     "topic": "Shifts and assignment"
@@ -520,12 +535,12 @@
    {
     "q": "The daily assignment limit resets:",
     "opts": [
-     "Weekly",
      "Never",
      "At the end of each shift",
-     "At midnight server time, independent of shifts"
+     "At midnight server time, independent of shifts",
+     "Weekly"
     ],
-    "ans": 3,
+    "ans": 2,
     "why": "An overnight closer therefore gets a fresh allowance mid-shift.",
     "src": "Shifts note",
     "topic": "Shifts and assignment"
@@ -546,12 +561,12 @@
    {
     "q": "Shift Management's effect on manual assignment is:",
     "opts": [
-     "Only admins may assign",
-     "Managers can only pick on-shift closers",
      "None — manual assignment always works; on-shift closers are merely highlighted as a hint",
-     "Manual assignment is disabled"
+     "Manual assignment is disabled",
+     "Only admins may assign",
+     "Managers can only pick on-shift closers"
     ],
-    "ans": 2,
+    "ans": 0,
     "why": "Shifts never block a manager's hand-assignment.",
     "src": "Shifts §2",
     "topic": "Shifts and assignment"
@@ -559,12 +574,12 @@
    {
     "q": "Shift Management out of the box is:",
     "opts": [
+     "On for weekends",
      "Mandatory",
      "On for everyone",
-     "Off by default — nothing changes until a manager enables it",
-     "On for weekends"
+     "Off by default — nothing changes until a manager enables it"
     ],
-    "ans": 2,
+    "ans": 3,
     "why": "Enabling is a deliberate manager act, and disabling fully restores prior behaviour.",
     "src": "Shifts §1",
     "topic": "Shifts and assignment"
@@ -572,12 +587,12 @@
    {
     "q": "The follow-up pool exists to:",
     "opts": [
-     "Give stalled, non-delivered leads a recovery path via a dedicated team",
      "Store delivered orders",
      "Queue store orders",
-     "Punish slow closers"
+     "Punish slow closers",
+     "Give stalled, non-delivered leads a recovery path via a dedicated team"
     ],
-    "ans": 0,
+    "ans": 3,
     "why": "Stalled orders gather in a shared pool that the follow-up team works.",
     "src": "Follow-up §1",
     "topic": "The follow-up pool"
@@ -598,12 +613,12 @@
    {
     "q": "The nightly sweep adds an order to the pool when:",
     "opts": [
+     "It is exactly 5 days old",
      "It is older than the threshold (default 10 days), not in a terminal status, and not already pooled",
      "Its value exceeds ₦50,000",
-     "The closer is off shift",
-     "It is exactly 5 days old"
+     "The closer is off shift"
     ],
-    "ans": 0,
+    "ans": 1,
     "why": "All three conditions must hold; the sweep runs shortly after midnight.",
     "src": "Follow-up §4.1",
     "topic": "The follow-up pool"
@@ -624,12 +639,12 @@
    {
     "q": "'Reassign to Follow-Up' appears on an order only when:",
     "opts": [
-     "The workflow is on, you are the order's closer, it is not already pooled, and its status is eligible",
      "The order is Delivered",
      "A manager unlocks it",
-     "Any staff member opens it"
+     "Any staff member opens it",
+     "The workflow is on, you are the order's closer, it is not already pooled, and its status is eligible"
     ],
-    "ans": 0,
+    "ans": 3,
     "why": "All four conditions gate the manual action.",
     "src": "Follow-up §6",
     "topic": "The follow-up pool"
@@ -637,12 +652,12 @@
    {
     "q": "Sending your lead to the pool changes:",
     "opts": [
+     "Its value",
      "Its customer",
      "Its closer and status",
-     "Nothing about ownership or status — you remain the closer and keep it in your reports",
-     "Its value"
+     "Nothing about ownership or status — you remain the closer and keep it in your reports"
     ],
-    "ans": 2,
+    "ans": 3,
     "why": "Pooling is a flag, not a transfer; the counter is not reduced either.",
     "src": "Follow-up §6",
     "topic": "The follow-up pool"
@@ -663,12 +678,12 @@
    {
     "q": "Claiming a pooled order means:",
     "opts": [
+     "Delivering it",
      "Taking permanent credit",
      "Locking it so only you work it — ownership and counters unchanged",
-     "Cancelling it",
-     "Delivering it"
+     "Cancelling it"
     ],
-    "ans": 1,
+    "ans": 2,
     "why": "A claim is a work lock with an audit trail, not a transfer.",
     "src": "Follow-up §7.4, §9",
     "topic": "The follow-up pool"
@@ -676,12 +691,12 @@
    {
     "q": "Converting a claimed order:",
     "opts": [
+     "Returns its status to Assigned so delivery picks it up — and it stays in the pool until Delivered",
      "Removes it from the pool immediately",
      "Doubles its value",
-     "Marks it Delivered",
-     "Returns its status to Assigned so delivery picks it up — and it stays in the pool until Delivered"
+     "Marks it Delivered"
     ],
-    "ans": 3,
+    "ans": 0,
     "why": "Converted orders remain visible to the team through to delivery — by design.",
     "src": "Follow-up §7.6",
     "topic": "The follow-up pool"
@@ -689,12 +704,12 @@
    {
     "q": "Clicking Convert on an order nobody has claimed:",
     "opts": [
+     "Alerts the original closer",
      "Fails with an error",
      "Claims and converts it in one action",
-     "Releases it",
-     "Alerts the original closer"
+     "Releases it"
     ],
-    "ans": 1,
+    "ans": 2,
     "why": "Claim-plus-convert happens in a single click.",
     "src": "Follow-up §7.6",
     "topic": "The follow-up pool"
@@ -702,12 +717,12 @@
    {
     "q": "Release can be used on:",
     "opts": [
-     "Store orders",
-     "Any order in the pool",
      "Only orders you claimed (managers can release any)",
-     "Delivered orders"
+     "Delivered orders",
+     "Store orders",
+     "Any order in the pool"
     ],
-    "ans": 2,
+    "ans": 0,
     "why": "You return your own claims; privileged users can release anyone's.",
     "src": "Follow-up §7.7",
     "topic": "The follow-up pool"
@@ -728,12 +743,12 @@
    {
     "q": "A pooled lead that gets cancelled records against:",
     "opts": [
-     "The manager",
-     "No one",
      "The follow-up closer who claimed it",
-     "The original closer — failure is never laundered onto the recovery team"
+     "The original closer — failure is never laundered onto the recovery team",
+     "The manager",
+     "No one"
     ],
-    "ans": 3,
+    "ans": 1,
     "why": "Cancellations deliberately stay with the original closer.",
     "src": "Follow-up §7.8, §9",
     "topic": "The follow-up pool"
@@ -741,12 +756,12 @@
    {
     "q": "A closer asks: 'If I send my lead to follow-up, do I lose it?' The correct answer is:",
     "opts": [
-     "Yes, immediately",
      "No — you remain the closer and keep it in your reports unless someone else actually delivers it",
      "Only if a manager approves",
-     "Yes, after 24 hours"
+     "Yes, after 24 hours",
+     "Yes, immediately"
     ],
-    "ans": 1,
+    "ans": 0,
     "why": "Ownership and reporting credit persist until a delivered recovery.",
     "src": "Follow-up FAQ",
     "topic": "The follow-up pool"
@@ -754,12 +769,12 @@
    {
     "q": "A closer's cancellation rate above 20–25% is read as:",
     "opts": [
-     "Normal in COD",
      "Excellent caution",
      "A red flag — orders likely created without proper customer confirmation",
-     "A courier failure"
+     "A courier failure",
+     "Normal in COD"
     ],
-    "ans": 2,
+    "ans": 1,
     "why": "The benchmark flags weak confirmation discipline.",
     "src": "Closer Summary",
     "topic": "Attribution and your numbers"
@@ -767,15 +782,145 @@
    {
     "q": "Dashboard status cards, clicked by a closer, open:",
     "opts": [
-     "A help page",
-     "The Orders list pre-filtered to those orders and narrowed to the closer's own",
      "The reports directory",
-     "A blank page"
+     "A blank page",
+     "A help page",
+     "The Orders list pre-filtered to those orders and narrowed to the closer's own"
     ],
-    "ans": 1,
+    "ans": 3,
     "why": "Cards are pre-filtered click-throughs; closers land on their own slice.",
     "src": "Dashboard",
     "topic": "Attribution and your numbers"
+   },
+   {
+    "q": "You are on shift but leads have stopped arriving. The most likely reason is:",
+    "opts": [
+     "Your closer record was deactivated",
+     "You have reached your daily assignment limit",
+     "Shift Management has been disabled",
+     "The lead source has gone quiet"
+    ],
+    "ans": 1,
+    "why": "Shift and daily cap are two independent gates. Hitting the cap looks exactly like the system going quiet.",
+    "src": "Shifts §5",
+    "topic": "Shifts and assignment"
+   },
+   {
+    "q": "Your daily limit resets:",
+    "opts": [
+     "When you clear your existing orders",
+     "Every Monday morning",
+     "At midnight server time, independent of your shift",
+     "When your shift ends"
+    ],
+    "ans": 2,
+    "why": "The reset is daily at midnight server time, so an overnight closer gets a fresh allowance partway through the shift.",
+    "src": "Cap §3",
+    "topic": "Daily limits"
+   },
+   {
+    "q": "Why does a daily cap exist?",
+    "opts": [
+     "To stop a hidden queue forming inside one closer's list",
+     "To reduce load on the server",
+     "To spread orders evenly across branches",
+     "To limit how much a closer can earn"
+    ],
+    "ans": 0,
+    "why": "A closer holding two hundred orders works forty; the rest age unseen while appearing served. The cap also makes New Lead a meaningful signal.",
+    "src": "Cap §1",
+    "topic": "Daily limits"
+   },
+   {
+    "q": "An order is Delivery Rescheduled. Can it be sent to the follow-up pool?",
+    "opts": [
+     "Yes, but only by a manager",
+     "No — it is not stalled; it has a future date and a plan",
+     "No — Rescheduled is a terminal status",
+     "Yes, any non-delivered order can be pooled"
+    ],
+    "ans": 1,
+    "why": "The pool is for orders that have stopped moving with nobody attending to them. A rescheduled order is the opposite of that.",
+    "src": "Pooling §4",
+    "topic": "Sending to follow-up"
+   },
+   {
+    "q": "You claim three pool orders and only work one before the end of your shift. You should:",
+    "opts": [
+     "Cancel them and let the sweep re-pool them",
+     "Leave them claimed so you can continue tomorrow",
+     "Convert them so they return to delivery",
+     "Release the two you did not work"
+    ],
+    "ans": 3,
+    "why": "A claimed order nobody is working looks attended to, so no one else picks it up. Release early and honestly.",
+    "src": "Pool §7",
+    "topic": "Working the pool"
+   },
+   {
+    "q": "A follow-up closer converts a pooled order. Whose numbers does it count in at that moment?",
+    "opts": [
+     "The follow-up closer's, from conversion onward",
+     "Nobody's until it is cancelled or delivered",
+     "The original closer's — credit moves only on delivery",
+     "Split evenly between both"
+    ],
+    "ans": 2,
+    "why": "Conversion is a phone call; delivery is goods and money. Credit moves only when the order is actually delivered.",
+    "src": "Attribution §3",
+    "topic": "Attribution"
+   },
+   {
+    "q": "A pooled order is cancelled. Whose cancellation rate does it affect?",
+    "opts": [
+     "Neither; pooled cancellations are excluded",
+     "The manager who approved the cancellation",
+     "The follow-up closer who worked it last",
+     "The original closer's — failure never moves"
+    ],
+    "ans": 3,
+    "why": "If cancellations transferred, pooling doubtful orders would become the route to a clean rate.",
+    "src": "Attribution §5",
+    "topic": "Attribution"
+   },
+   {
+    "q": "Which dashboard card will NOT change when a closer switches from Week to Month?",
+    "opts": [
+     "Total Orders",
+     "Delivered",
+     "Agent Notified",
+     "Cancelled"
+    ],
+    "ans": 2,
+    "why": "In-flight cards ignore the timeframe and show the whole book; only terminal cards are period-scoped.",
+    "src": "Numbers §2",
+    "topic": "Your numbers"
+   },
+   {
+    "q": "You realise you created a duplicate order for the same customer. What should you do?",
+    "opts": [
+     "Mark one Duplicate yourself",
+     "Cancel one quietly so the list is tidy",
+     "Abandon the second one and work the first",
+     "Tell your manager which should stand — only a Closer Manager or the system can mark Duplicate"
+    ],
+    "ans": 3,
+    "why": "Closers cannot set Duplicate, and an abandoned order still sits in the list and counts in the numbers.",
+    "src": "Recovery §1",
+    "topic": "Recovering from mistakes"
+   },
+   {
+    "q": "A delivery failed because you entered one digit of the phone number wrongly. The right recovery is:",
+    "opts": [
+     "Send it to the follow-up pool",
+     "Correct the number and reschedule",
+     "Cancel the order and create a new one",
+     "Mark it Not Reachable"
+    ],
+    "ans": 1,
+    "why": "A wrong digit is an administrative error. Cancelling converts your mistake into a lost sale.",
+    "src": "Recovery §2",
+    "topic": "Recovering from mistakes"
    }
   ]
  },
@@ -833,12 +978,12 @@
    {
     "q": "The reports landing page groups reports by:",
     "opts": [
-     "Date created",
-     "Author",
      "Alphabet",
-     "Category — Sales, Marketing, Product, Customer, Operations, After-Sales"
+     "Category — Sales, Marketing, Product, Customer, Operations, After-Sales",
+     "Date created",
+     "Author"
     ],
-    "ans": 3,
+    "ans": 1,
     "why": "The directory presents all reports grouped into those six categories.",
     "src": "Directory",
     "topic": "Reports, roles and dates"
@@ -846,12 +991,12 @@
    {
     "q": "A sales agent typically sees:",
     "opts": [
-     "Every report",
-     "Their own Closer Summary and possibly Team Performance read-only",
      "Marketing ROAS",
-     "Fulfilment Health"
+     "Fulfilment Health",
+     "Every report",
+     "Their own Closer Summary and possibly Team Performance read-only"
     ],
-    "ans": 1,
+    "ans": 3,
     "why": "Role-based visibility limits agents to their own performance views.",
     "src": "Role visibility",
     "topic": "Reports, roles and dates"
@@ -859,12 +1004,12 @@
    {
     "q": "A report you need is missing from your directory. Most likely:",
     "opts": [
+     "It renamed itself",
      "It was deleted",
      "Your role does not include it — check with the administrator",
-     "The system is down",
-     "It renamed itself"
+     "The system is down"
     ],
-    "ans": 1,
+    "ans": 2,
     "why": "Absence is usually role restriction, not a missing feature.",
     "src": "Role visibility",
     "topic": "Reports, roles and dates"
@@ -872,12 +1017,12 @@
    {
     "q": "The universal date filter offers:",
     "opts": [
+     "One fixed month",
      "Fiscal years only",
      "Only period-to-date pills",
-     "Presets from Today to Last Year plus a custom calendar range",
-     "One fixed month"
+     "Presets from Today to Last Year plus a custom calendar range"
     ],
-    "ans": 2,
+    "ans": 3,
     "why": "Reports — unlike the dashboard — cover completed prior periods and custom windows.",
     "src": "Date filter",
     "topic": "Reports, roles and dates"
@@ -885,12 +1030,12 @@
    {
     "q": "Comparison Mode, where available, shows:",
     "opts": [
+     "Two branches only",
      "Two agents side by side",
      "The selected period against the previous one with percentage-change indicators",
-     "Budget vs actual",
-     "Two branches only"
+     "Budget vs actual"
     ],
-    "ans": 1,
+    "ans": 2,
     "why": "The Compare toggle lays periods side by side.",
     "src": "Date filter",
     "topic": "Reports, roles and dates"
@@ -898,12 +1043,12 @@
    {
     "q": "Conversion Rate in the Closer Summary is calculated as:",
     "opts": [
-     "Revenue ÷ Orders",
      "(Delivered Orders ÷ Total Orders) × 100",
      "(Total − Cancelled) ÷ 2",
-     "Delivered ÷ Revenue"
+     "Delivered ÷ Revenue",
+     "Revenue ÷ Orders"
     ],
-    "ans": 1,
+    "ans": 0,
     "why": "It is the delivered share of created orders — the headline efficiency metric.",
     "src": "Closer Summary",
     "topic": "Individual performance"
@@ -911,12 +1056,12 @@
    {
     "q": "A conversion rate of 70% means:",
     "opts": [
-     "7 of every 10 orders the agent creates are successfully delivered",
-     "70 orders per week",
      "70% of leads answered",
-     "70% profit margin"
+     "70% profit margin",
+     "7 of every 10 orders the agent creates are successfully delivered",
+     "70 orders per week"
     ],
-    "ans": 0,
+    "ans": 2,
     "why": "Direct reading of the ratio.",
     "src": "Closer Summary",
     "topic": "Individual performance"
@@ -924,12 +1069,12 @@
    {
     "q": "AOV is:",
     "opts": [
-     "Revenue ÷ Delivered Orders",
      "Revenue ÷ Total Orders",
      "Delivered ÷ Cancelled",
-     "Spend ÷ Orders"
+     "Spend ÷ Orders",
+     "Revenue ÷ Delivered Orders"
     ],
-    "ans": 0,
+    "ans": 3,
     "why": "Average order value divides revenue by delivered orders; high AOV suggests upselling skill.",
     "src": "Closer Summary",
     "topic": "Individual performance"
@@ -937,12 +1082,12 @@
    {
     "q": "The documented red-flag threshold for an agent's cancellation rate is:",
     "opts": [
-     "Above 5%",
      "Above 10%",
      "Above 20–25%",
-     "Any cancellation"
+     "Any cancellation",
+     "Above 5%"
     ],
-    "ans": 2,
+    "ans": 1,
     "why": "Beyond 20–25% suggests orders created without proper confirmation.",
     "src": "Closer Summary",
     "topic": "Individual performance"
@@ -950,12 +1095,12 @@
    {
     "q": "An agent with notably low Total Orders should first be:",
     "opts": [
-     "Dismissed",
      "Read in context — they may be handling complex or high-value accounts",
      "Moved to marketing",
-     "Given more leads automatically"
+     "Given more leads automatically",
+     "Dismissed"
     ],
-    "ans": 1,
+    "ans": 0,
     "why": "Volume is activity, not verdict; context matters.",
     "src": "Closer Summary",
     "topic": "Individual performance"
@@ -963,12 +1108,12 @@
    {
     "q": "Who uses the Closer Summary for bonus calculations and training needs?",
     "opts": [
-     "Sales managers (and HR/L&D for interventions)",
-     "Customers",
      "Ad buyers",
-     "Couriers"
+     "Couriers",
+     "Sales managers (and HR/L&D for interventions)",
+     "Customers"
     ],
-    "ans": 0,
+    "ans": 2,
     "why": "Managers run reviews and incentives from it; HR spots training needs.",
     "src": "Closer Summary",
     "topic": "Individual performance"
@@ -976,12 +1121,12 @@
    {
     "q": "Revenue per Agent exists to:",
     "opts": [
-     "Normalise team comparisons for headcount",
-     "Punish small teams",
      "Replace conversion rate",
-     "Inflate totals"
+     "Inflate totals",
+     "Normalise team comparisons for headcount",
+     "Punish small teams"
     ],
-    "ans": 0,
+    "ans": 2,
     "why": "Dividing revenue by headcount makes a 5-person and 15-person team comparable.",
     "src": "Team Performance",
     "topic": "Comparing teams fairly"
@@ -989,12 +1134,12 @@
    {
     "q": "Ranking teams on raw combined revenue alone is wrong because:",
     "opts": [
+     "It ignores headcount — a larger team can out-total while underperforming per agent",
      "Teams change names",
      "Revenue excludes VAT",
-     "Revenue is secret",
-     "It ignores headcount — a larger team can out-total while underperforming per agent"
+     "Revenue is secret"
     ],
-    "ans": 3,
+    "ans": 0,
     "why": "Normalisation is the report's whole point.",
     "src": "Team Performance",
     "topic": "Comparing teams fairly"
@@ -1002,12 +1147,12 @@
    {
     "q": "The Top Performer column shows:",
     "opts": [
-     "The most cancelled agent",
      "The manager",
      "The highest-performing agent within each team",
-     "The newest hire"
+     "The newest hire",
+     "The most cancelled agent"
     ],
-    "ans": 2,
+    "ans": 1,
     "why": "Each unit's standout is surfaced automatically.",
     "src": "Team Performance",
     "topic": "Comparing teams fairly"
@@ -1015,12 +1160,12 @@
    {
     "q": "Percentage of Total Revenue on a product flags:",
     "opts": [
-     "Return quality",
-     "Courier mix",
      "Discounting",
-     "Revenue concentration — dependence on one product"
+     "Revenue concentration — dependence on one product",
+     "Return quality",
+     "Courier mix"
     ],
-    "ans": 3,
+    "ans": 1,
     "why": "One product at 40% of revenue means heavy dependence.",
     "src": "Product Sales",
     "topic": "Product sales analysis"
@@ -1041,12 +1186,12 @@
    {
     "q": "ASP running meaningfully below list price suggests:",
     "opts": [
-     "A reporting bug",
-     "Inflation",
      "Agents are offering discounts",
-     "Returns rising"
+     "Returns rising",
+     "A reporting bug",
+     "Inflation"
     ],
-    "ans": 2,
+    "ans": 0,
     "why": "The gap between average selling price and list price is the discounting tell.",
     "src": "Product Sales",
     "topic": "Product sales analysis"
@@ -1054,12 +1199,12 @@
    {
     "q": "The documented attention threshold for a product's return rate is:",
     "opts": [
+     "Above 10%",
      "Above 50%",
      "Any return",
-     "Above 2%",
-     "Above 10%"
+     "Above 2%"
     ],
-    "ans": 3,
+    "ans": 0,
     "why": "Products above 10% returns need quality/description review.",
     "src": "Product Sales",
     "topic": "Product sales analysis"
@@ -1067,12 +1212,12 @@
    {
     "q": "ROAS is calculated as:",
     "opts": [
-     "Leads ÷ Spend",
      "Revenue − Spend",
      "Spend ÷ Revenue",
-     "Revenue Generated ÷ Ad Spend"
+     "Revenue Generated ÷ Ad Spend",
+     "Leads ÷ Spend"
     ],
-    "ans": 3,
+    "ans": 2,
     "why": "Revenue attributed to the campaign divided by its spend.",
     "src": "ROAS",
     "topic": "Marketing ROAS"
@@ -1080,12 +1225,12 @@
    {
     "q": "A ROAS of 2.0 with 50% product margins is:",
     "opts": [
+     "Highly profitable",
      "Roughly break-even before overheads — ROAS measures revenue, not profit",
      "A loss by definition",
-     "Impossible",
-     "Highly profitable"
+     "Impossible"
     ],
-    "ans": 0,
+    "ans": 1,
     "why": "The report's own caution: revenue multiples are not profit multiples.",
     "src": "ROAS",
     "topic": "Marketing ROAS"
@@ -1093,12 +1238,12 @@
    {
     "q": "Cost per Lead is:",
     "opts": [
-     "Leads ÷ Orders",
      "Spend ÷ Delivered",
      "Ad Spend ÷ Leads Generated",
-     "Revenue ÷ Leads"
+     "Revenue ÷ Leads",
+     "Leads ÷ Orders"
     ],
-    "ans": 2,
+    "ans": 1,
     "why": "What each captured lead cost in ad money.",
     "src": "ROAS",
     "topic": "Marketing ROAS"
@@ -1106,12 +1251,12 @@
    {
     "q": "Cheap leads but weak lead-to-order conversion points at:",
     "opts": [
-     "The courier",
      "The product price only",
      "The ad creative",
-     "The funnel after capture — confirmation and closing, not the ads"
+     "The funnel after capture — confirmation and closing, not the ads",
+     "The courier"
     ],
-    "ans": 3,
+    "ans": 2,
     "why": "Capture is working; conversion downstream is not.",
     "src": "ROAS",
     "topic": "Marketing ROAS"
@@ -1119,12 +1264,12 @@
    {
     "q": "The Revenue Cohort Trends report groups customers by:",
     "opts": [
-     "City",
      "Their first-purchase month, tracking spend over subsequent months",
      "Age",
-     "Channel"
+     "Channel",
+     "City"
     ],
-    "ans": 1,
+    "ans": 0,
     "why": "Cohorts reveal retention and repeat-purchase behaviour over time.",
     "src": "Cohorts §1",
     "topic": "Revenue cohorts"
@@ -1132,12 +1277,12 @@
    {
     "q": "Cohort rows that die after month one indicate:",
     "opts": [
-     "Revenue is being bought anew each month — weak repeat purchase",
      "Seasonal goods only",
      "A filter error",
-     "Great retention"
+     "Great retention",
+     "Revenue is being bought anew each month — weak repeat purchase"
     ],
-    "ans": 0,
+    "ans": 3,
     "why": "Healthy cohorts keep spending in later months.",
     "src": "Cohorts §1",
     "topic": "Revenue cohorts"
@@ -1145,12 +1290,12 @@
    {
     "q": "Falling closer conversion + rising team cancellations should send a manager first to:",
     "opts": [
-     "Lead quality — check ROAS and cost-per-lead before blaming closers",
      "The courier report",
      "Product returns",
-     "Immediate coaching"
+     "Immediate coaching",
+     "Lead quality — check ROAS and cost-per-lead before blaming closers"
     ],
-    "ans": 0,
+    "ans": 3,
     "why": "Reports read as a set; the cause may be upstream of the closers.",
     "src": "Investigation §1",
     "topic": "Reading reports as a set"
@@ -1158,12 +1303,12 @@
    {
     "q": "You change the dashboard timeframe from Day to Year. Which tile will NOT move?",
     "opts": [
-     "Delivery In Progress",
      "Delivered",
      "Cancelled",
-     "Total Orders"
+     "Total Orders",
+     "Delivery In Progress"
     ],
-    "ans": 0,
+    "ans": 3,
     "why": "In-flight statuses ignore the timeframe and show the whole book as it stands; only terminal statuses are period-scoped.",
     "src": "Dashboard §2",
     "topic": "Dashboard versus reports"
@@ -1171,12 +1316,12 @@
    {
     "q": "A manager divides the Not Ready tile by Total Orders to get a 'not ready rate'. What is wrong?",
     "opts": [
+     "Nothing — that is the correct calculation",
      "An all-time figure is being divided by one period, so the result means nothing",
      "Not Ready is not a real status",
-     "Total Orders excludes duplicates, so the base is too small",
-     "Nothing — that is the correct calculation"
+     "Total Orders excludes duplicates, so the base is too small"
     ],
-    "ans": 0,
+    "ans": 1,
     "why": "Not Ready ignores the timeframe while Total Orders respects it. The two are not comparable.",
     "src": "Dashboard §3",
     "topic": "Dashboard versus reports"
@@ -1184,12 +1329,12 @@
    {
     "q": "Duplicates are excluded from the Delivery Rate calculation because:",
     "opts": [
-     "Duplicate orders are usually cancelled anyway",
-     "A duplicate was never a real opportunity to deliver, so counting it would penalise the team",
      "The system cannot tell which of the two orders is genuine",
-     "Duplicates are recorded in a separate report"
+     "Duplicates are recorded in a separate report",
+     "Duplicate orders are usually cancelled anyway",
+     "A duplicate was never a real opportunity to deliver, so counting it would penalise the team"
     ],
-    "ans": 1,
+    "ans": 3,
     "why": "Excluding duplicates stops the team being marked down for the system correctly spotting the same order twice.",
     "src": "Dashboard §5",
     "topic": "Dashboard versus reports"
@@ -1197,12 +1342,12 @@
    {
     "q": "A campaign launched nine days ago shows a poor ROAS. Before cutting it you should:",
     "opts": [
-     "Compare it against the best campaign of last quarter",
-     "Allow at least one delivery cycle, since attribution depends on delivered orders",
      "Increase its budget to gather more data faster",
-     "Switch its attribution to lead volume instead of revenue"
+     "Switch its attribution to lead volume instead of revenue",
+     "Compare it against the best campaign of last quarter",
+     "Allow at least one delivery cycle, since attribution depends on delivered orders"
     ],
-    "ans": 1,
+    "ans": 3,
     "why": "Spend lands immediately; delivered orders lag. A young campaign is judged on incomplete revenue.",
     "src": "Traps §3",
     "topic": "Reading traps"
@@ -1210,12 +1355,12 @@
    {
     "q": "A closer tops the conversion table with 4 orders and 3 delivered. The right reading is:",
     "opts": [
-     "They are the strongest closer and should be held up as the example",
      "The base is far too small for the rate to mean anything",
      "Their orders must be unusually easy",
-     "Conversion should be recalculated excluding cancellations"
+     "Conversion should be recalculated excluding cancellations",
+     "They are the strongest closer and should be held up as the example"
     ],
-    "ans": 1,
+    "ans": 0,
     "why": "Percentages on small bases swing violently. One more failed delivery takes 75% to 60%.",
     "src": "Traps §4",
     "topic": "Reading traps"
@@ -1223,12 +1368,12 @@
    {
     "q": "Month-to-date revenue is compared against last month's completed total and looks poor. The error is:",
     "opts": [
-     "Revenue should never be compared across months",
      "The comparison should use delivered orders instead",
      "A partial period is being compared against a finished one",
-     "Last month included a campaign that has now ended"
+     "Last month included a campaign that has now ended",
+     "Revenue should never be compared across months"
     ],
-    "ans": 2,
+    "ans": 1,
     "why": "Compare like periods — day eleven against day eleven — never a period in progress against a completed one.",
     "src": "Traps §1",
     "topic": "Reading traps"
@@ -1249,12 +1394,12 @@
    {
     "q": "Order volume is rising but revenue is flat. Which column do you check first?",
     "opts": [
-     "Cancellation Rate",
      "Response Time",
      "AOV",
-     "Headcount"
+     "Headcount",
+     "Cancellation Rate"
     ],
-    "ans": 2,
+    "ans": 1,
     "why": "A falling average order value explains volume growth that does not reach revenue — then check ASP against list price.",
     "src": "Investigation §3",
     "topic": "Reading reports as a set"
@@ -1262,12 +1407,12 @@
    {
     "q": "A cohort row for a month with only 30 first-time buyers should be treated as:",
     "opts": [
+     "Anecdote rather than evidence, because the base is too small",
      "The most reliable row, being the most recent",
      "Evidence that retention is improving",
-     "Proof that acquisition was too low that month",
-     "Anecdote rather than evidence, because the base is too small"
+     "Proof that acquisition was too low that month"
     ],
-    "ans": 3,
+    "ans": 0,
     "why": "Small cohorts swing on a handful of customers. Check cohort size before reading its shape.",
     "src": "Cohorts §4",
     "topic": "Revenue cohorts"
@@ -1275,12 +1420,12 @@
    {
     "q": "Before quoting any figure from a report in a meeting, you must carry with it:",
     "opts": [
+     "The date range it was read over",
      "The name of the report",
      "Your role's access level",
-     "The branch filter applied",
-     "The date range it was read over"
+     "The branch filter applied"
     ],
-    "ans": 3,
+    "ans": 0,
     "why": "Every metric on the page refreshes with the date filter, so a figure without its period is not a claim anyone can check.",
     "src": "Directory §3",
     "topic": "Reports, roles and dates"
