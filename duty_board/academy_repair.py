@@ -25,12 +25,15 @@ import os
 import frappe
 
 FAMILIES = ("closer", "bkpr", "consultant", "client_reports")
+ALL_FAMILIES = ("accounts_pro", "bkpr", "client_reports", "closer", "consultant",
+                "hr_pro", "inventory_pro", "payroll_pro", "pos_pro",
+                "procure_pro", "sales_pro", "sysadmin_pro")
 LETTERS = "ABCD"
 
 
-def _data_files():
+def _data_files(families=FAMILIES):
     here = os.path.dirname(os.path.abspath(__file__))
-    for fam in FAMILIES:
+    for fam in families:
         path = os.path.join(here, "academy_%s_data.json" % fam)
         if os.path.exists(path):
             yield fam, path
@@ -162,3 +165,91 @@ def certificates_at_risk():
               % ((r.track_title or "")[:46], (r.product or "")[:14], r.n, r.first, r.last))
     print("\n%d track(s) with live certificates." % len(rows))
     return rows
+
+
+def push_topics(dry_run=0):
+    """Write derived question topics into the live banks.
+
+    Topics are what the sponsor scorecard reports on, so without them its
+    weakest-areas section stays blank however many exams are sat. Matches on
+    question text and writes ONLY the topic field, so nothing authored in the
+    desk is disturbed. Idempotent.
+    """
+    dry_run = int(dry_run or 0)
+    updated = already = matched = missing_q = missing_mod = 0
+    report = []
+
+    for fam, path in _data_files(ALL_FAMILIES):
+        with open(path, encoding="utf-8") as f:
+            data = json.load(f)
+        for key, mod in data.items():
+            if not isinstance(mod, dict) or "questions" not in mod:
+                continue
+            mod_name = frappe.db.get_value("Duty Training Module", {"title": mod["title"]}, "name")
+            if not mod_name:
+                missing_mod += 1
+                continue
+            live = frappe.get_all(
+                "Duty Quiz Question", filters={"module": mod_name},
+                fields=["name", "question", "topic"],
+            )
+            index = {}
+            for row in live:
+                index.setdefault(_norm(row.question), []).append(row)
+
+            hit = fixed = 0
+            for q in mod["questions"]:
+                topic = (q.get("topic") or "").strip()
+                if not topic:
+                    continue
+                rows = index.get(_norm(q["q"]))
+                if not rows:
+                    missing_q += 1
+                    continue
+                row = rows.pop(0)
+                hit += 1
+                if (row.get("topic") or "") == topic:
+                    already += 1
+                    continue
+                fixed += 1
+                if not dry_run:
+                    frappe.db.set_value("Duty Quiz Question", row.name,
+                                        "topic", topic, update_modified=False)
+            matched += hit
+            updated += fixed
+            report.append("  %-22s %-16s matched %3d, tagged %3d" % (key, fam, hit, fixed))
+
+    if not dry_run:
+        frappe.db.commit()
+    print("\n".join(report))
+    print("\n%s: %d question(s) tagged, %d already correct, %d matched."
+          % ("DRY RUN" if dry_run else "APPLIED", updated, already, matched))
+    if missing_q:
+        print("%d question(s) had no match on this site." % missing_q)
+    if missing_mod:
+        print("%d module(s) in the data files are not seeded here." % missing_mod)
+    return {"tagged": updated, "already": already, "matched": matched}
+
+
+def topic_coverage():
+    """How much of the live estate can the scorecard actually report on?"""
+    mods = frappe.get_all("Duty Training Module", filters={"active": 1},
+                          fields=["name", "title"])
+    bare = []
+    tot = tagged = 0
+    for m in mods:
+        qs = frappe.get_all("Duty Quiz Question", filters={"module": m.name, "active": 1},
+                            fields=["topic"])
+        if not qs:
+            continue
+        n = len(qs)
+        t = sum(1 for q in qs if (q.topic or "").strip())
+        tot += n
+        tagged += t
+        if t < n:
+            bare.append((m.title, n - t, n))
+    print("%d of %d live questions carry a topic (%d%%)."
+          % (tagged, tot, round(tagged * 100.0 / tot) if tot else 0))
+    for title, miss, n in sorted(bare, key=lambda x: -x[1])[:20]:
+        print("   %-52s %d of %d untagged" % (title[:52], miss, n))
+    return {"tagged": tagged, "total": tot, "modules_incomplete": len(bare)}
