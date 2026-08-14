@@ -33,24 +33,24 @@
    {
     "q": "A user reports 'Invalid email or password' five times in a row. What has likely now happened?",
     "opts": [
-     "Nothing — unlimited retries",
      "The account is temporarily locked (15–30 min) — or an admin can unlock immediately",
      "The account is deleted",
-     "The password auto-resets"
+     "The password auto-resets",
+     "Nothing — unlimited retries"
     ],
-    "ans": 1,
+    "ans": 0,
     "why": "Repeated failures trigger the security lock.",
     "src": "L1"
    },
    {
     "q": "The reset-password page says 'if an account exists, a link has been sent' because:",
     "opts": [
-     "It's broken",
-     "Deliberate anti-enumeration — the system never confirms which emails have accounts",
      "The mail server is slow",
-     "The user typed wrongly"
+     "The user typed wrongly",
+     "It's broken",
+     "Deliberate anti-enumeration — the system never confirms which emails have accounts"
     ],
-    "ans": 1,
+    "ans": 3,
     "why": "Support implication: verify the exact address first.",
     "src": "L1"
    },
@@ -69,60 +69,60 @@
    {
     "q": "Logging out on a phone:",
     "opts": [
-     "Logs out all devices",
      "Ends only that device's session — each device is independent",
      "Locks the account",
-     "Requires admin"
+     "Requires admin",
+     "Logs out all devices"
     ],
-    "ans": 1,
+    "ans": 0,
     "why": "Lost device: change the password to invalidate sessions.",
     "src": "L1"
    },
    {
     "q": "Internet Explorer users:",
     "opts": [
-     "Need a plugin",
-     "Are unsupported — move them to Chrome/Firefox/Edge/Safari modern versions",
      "Get a lite mode",
-     "Work fine"
+     "Work fine",
+     "Need a plugin",
+     "Are unsupported — move them to Chrome/Firefox/Edge/Safari modern versions"
     ],
-    "ans": 1,
+    "ans": 3,
     "why": "Browser support is explicit.",
     "src": "L1"
    },
    {
     "q": "A closer's dashboard shows no leaderboard or team numbers. This is:",
     "opts": [
-     "A bug",
      "By design — closers see only their own scoped metrics",
      "A caching issue",
-     "License-dependent"
+     "License-dependent",
+     "A bug"
     ],
-    "ans": 1,
+    "ans": 0,
     "why": "The dashboard is role-shaped; focus by design.",
     "src": "L2"
    },
    {
     "q": "'The dashboard is all sales numbers' from a marketing user means:",
     "opts": [
+     "Rebuild required",
      "Customize the dashboard",
      "Their account has the wrong role — marketing users get submissions/CPL/ROAS/campaign views",
-     "Marketing has no dashboard",
-     "Rebuild required"
+     "Marketing has no dashboard"
     ],
-    "ans": 1,
+    "ans": 2,
     "why": "Fix the role, not the page.",
     "src": "L2"
    },
    {
     "q": "Clicking the Total Orders KPI card:",
     "opts": [
+     "Refreshes the page",
      "Nothing — cards are static",
      "Opens the Orders list pre-filtered to the same date range — the dashboard is a navigation hub",
-     "Exports a report",
-     "Refreshes the page"
+     "Exports a report"
     ],
-    "ans": 1,
+    "ans": 2,
     "why": "Teach red-indicator → click → investigate.",
     "src": "L2"
    },
@@ -141,24 +141,24 @@
    {
     "q": "Total Orders counts:",
     "opts": [
+     "Paid orders",
      "Delivered only",
      "Every order created in the period regardless of status — volume, not success",
-     "Non-cancelled orders",
-     "Paid orders"
+     "Non-cancelled orders"
     ],
-    "ans": 1,
+    "ans": 2,
     "why": "Which is why it's never read alone.",
     "src": "L3"
    },
    {
     "q": "Conversion Rate is:",
     "opts": [
+     "Delivered ÷ Confirmed",
      "Delivered ÷ Revenue",
      "(Delivered ÷ Total Orders) × 100",
-     "Orders ÷ Leads",
-     "Delivered ÷ Confirmed"
+     "Orders ÷ Leads"
     ],
-    "ans": 1,
+    "ans": 2,
     "why": "60% = 6 of 10 created orders delivered.",
     "src": "L3"
    },
@@ -177,60 +177,60 @@
    {
     "q": "Improving conversion 55%→60% on 1,000 monthly orders at AED 300 AOV yields:",
     "opts": [
+     "AED 150,000",
      "Negligible change",
      "≈50 extra deliveries ≈ AED 15,000/month",
-     "AED 3,000",
-     "AED 150,000"
+     "AED 3,000"
     ],
-    "ans": 1,
+    "ans": 2,
     "why": "Small points are real money — the pitch for process discipline.",
     "src": "L3"
    },
    {
     "q": "'Revenue says 125k, my bank got 90k' — the honest explanations:",
     "opts": [
-     "The system is wrong",
      "Delivered-basis vs cash timing (COD/settlement lag) and post-delivery returns subtracted",
      "Fraud",
-     "Currency error"
+     "Currency error",
+     "The system is wrong"
     ],
-    "ans": 1,
+    "ans": 0,
     "why": "The card measures delivered order value, not receipts.",
     "src": "L3"
    },
    {
     "q": "'This Week' on a Wednesday compares against:",
     "opts": [
-     "All of last week",
      "Last Monday–Wednesday — equivalent elapsed spans",
      "Last month",
-     "Nothing"
+     "Nothing",
+     "All of last week"
     ],
-    "ans": 1,
+    "ans": 0,
     "why": "Apples-to-apples mid-period comparison.",
     "src": "L4"
    },
    {
     "q": "Wild ±300% indicators at 8am on 'Today':",
     "opts": [
+     "Cache issue",
      "A data corruption",
      "Normal — small denominators early in the window",
-     "Timezone failure",
-     "Cache issue"
+     "Timezone failure"
     ],
-    "ans": 1,
+    "ans": 2,
     "why": "Teach calm about early-window extremes.",
     "src": "L4"
    },
    {
     "q": "Year-long analysis is best done in:",
     "opts": [
-     "Dashboard custom range",
-     "The Reports section — huge dashboard ranges aggregate slowly",
      "Exports",
-     "The activity feed"
+     "The activity feed",
+     "Dashboard custom range",
+     "The Reports section — huge dashboard ranges aggregate slowly"
     ],
-    "ans": 1,
+    "ans": 3,
     "why": "Steer long-range work off the dashboard.",
     "src": "L4"
    },
@@ -273,24 +273,24 @@
    {
     "q": "Phone 60%→30% while WhatsApp 15%→45% over six months means:",
     "opts": [
-     "A rendering issue",
-     "The customer base migrated channels — processes and staffing should follow",
      "Phone is broken",
-     "Nothing actionable"
+     "Nothing actionable",
+     "A rendering issue",
+     "The customer base migrated channels — processes and staffing should follow"
     ],
-    "ans": 1,
+    "ans": 3,
     "why": "The strategic read of Channel Mix is the shift.",
     "src": "L5"
    },
    {
     "q": "A product frequently in the top-5 suddenly drops off. Investigate:",
     "opts": [
-     "Nothing — noise",
-     "Stock availability, seasonality, or competitive pressure",
      "Delete the product",
-     "Agent fraud"
+     "Agent fraud",
+     "Nothing — noise",
+     "Stock availability, seasonality, or competitive pressure"
     ],
-    "ans": 1,
+    "ans": 3,
     "why": "Top Products is an inventory and strategy signal.",
     "src": "L5"
    },
@@ -309,48 +309,48 @@
    {
     "q": "High submissions, low conversion on a campaign row means:",
     "opts": [
-     "Scale it",
-     "A targeting or offer problem — volume without fit",
      "Sales laziness only",
-     "Perfect campaign"
+     "Perfect campaign",
+     "Scale it",
+     "A targeting or offer problem — volume without fit"
     ],
-    "ans": 1,
+    "ans": 3,
     "why": "Efficient campaigns show conversion, not just volume.",
     "src": "L5"
    },
    {
     "q": "An empty chart with 'No data for this period':",
     "opts": [
-     "File a bug",
      "No records match the timeframe — widen the range first",
      "Reinstall",
-     "Clear cache"
+     "Clear cache",
+     "File a bug"
     ],
-    "ans": 1,
+    "ans": 0,
     "why": "The most common false bug report.",
     "src": "L5"
    },
    {
     "q": "The consultant's real deliverable on this module is:",
     "opts": [
+     "Exports",
      "Feature tours",
      "Installed rituals — role-appropriate daily/weekly reading habits per client role",
-     "Custom dashboards",
-     "Exports"
+     "Custom dashboards"
     ],
-    "ans": 1,
+    "ans": 2,
     "why": "Rituals, not features, make adoption stick.",
     "src": "L2, L5"
    },
    {
     "q": "Some dashboard elements update live via:",
     "opts": [
-     "Polling every second",
      "WebSocket connections (e.g., the Recent Activity feed); the rest refresh on page load",
      "Email triggers",
-     "Manual sync"
+     "Manual sync",
+     "Polling every second"
     ],
-    "ans": 1,
+    "ans": 0,
     "why": "Set correct expectations about data freshness.",
     "src": "L2"
    }
@@ -400,24 +400,24 @@
    {
     "q": "A closer insists 'half the orders are missing.' Most likely:",
     "opts": [
-     "Data loss",
-     "Role-scoping — closers see only their assigned orders",
      "A filter bug",
-     "Deleted orders"
+     "Deleted orders",
+     "Data loss",
+     "Role-scoping — closers see only their assigned orders"
     ],
-    "ans": 1,
+    "ans": 3,
     "why": "Managers see all; closers see theirs.",
     "src": "L1"
    },
    {
     "q": "Searching '0551' in the orders list:",
     "opts": [
-     "Fails — full numbers only",
-     "Matches any phone containing those digits, live, no Enter needed",
      "Searches IDs only",
-     "Needs quotes"
+     "Needs quotes",
+     "Fails — full numbers only",
+     "Matches any phone containing those digits, live, no Enter needed"
     ],
-    "ans": 1,
+    "ans": 3,
     "why": "Partial, multi-field, case-insensitive.",
     "src": "L1"
    },
@@ -436,24 +436,24 @@
    {
     "q": "08012345678 and +2348012345678 are treated as:",
     "opts": [
-     "Different customers",
-     "The same customer — numbers normalize to the last 10 digits for duplicate detection",
      "Invalid",
-     "Two countries"
+     "Two countries",
+     "Different customers",
+     "The same customer — numbers normalize to the last 10 digits for duplicate detection"
     ],
-    "ans": 1,
+    "ans": 3,
     "why": "Normalization powers the duplicate check.",
     "src": "L2"
    },
    {
     "q": "The duplicate banner:",
     "opts": [
-     "Blocks submission",
-     "Informs — tick 'Proceed anyway' for a legitimate repeat order, or close and work the existing one",
      "Deletes the old order",
-     "Emails a manager"
+     "Emails a manager",
+     "Blocks submission",
+     "Informs — tick 'Proceed anyway' for a legitimate repeat order, or close and work the existing one"
     ],
-    "ans": 1,
+    "ans": 3,
     "why": "Repeat purchases are legitimate; the banner converts silence into decision.",
     "src": "L2"
    },
@@ -472,12 +472,12 @@
    {
     "q": "Lead Channel after creation:",
     "opts": [
-     "Updates as conversations move channels",
-     "Stays as the ORIGINAL source — it anchors all attribution reporting",
      "Is manager-editable weekly",
-     "Auto-detects"
+     "Auto-detects",
+     "Updates as conversations move channels",
+     "Stays as the ORIGINAL source — it anchors all attribution reporting"
     ],
-    "ans": 1,
+    "ans": 3,
     "why": "Change it and every channel report lies.",
     "src": "L2"
    },
@@ -496,48 +496,48 @@
    {
     "q": "An order in New Lead can move directly to Delivered:",
     "opts": [
-     "Yes, managers can",
-     "No — the system enforces valid transitions; verification and fulfilment steps can't be skipped",
      "Yes via API",
-     "Only on weekends"
+     "Only on weekends",
+     "Yes, managers can",
+     "No — the system enforces valid transitions; verification and fulfilment steps can't be skipped"
     ],
-    "ans": 1,
+    "ans": 3,
     "why": "Transition enforcement is structural.",
     "src": "L3"
    },
    {
     "q": "Cancelled vs Failed vs Not Reachable:",
     "opts": [
-     "Synonyms",
      "Terminated by decision pre-delivery / delivery attempted unsuccessfully / contact attempted, awaiting retry",
      "All post-delivery",
-     "All count as revenue"
+     "All count as revenue",
+     "Synonyms"
     ],
-    "ans": 1,
+    "ans": 0,
     "why": "Each blur corrupts a different report.",
     "src": "L3"
    },
    {
     "q": "Returned orders:",
     "opts": [
-     "Keep their revenue",
      "Reverse it — subtracted from revenue calculations",
      "Count as Delivered",
-     "Are deleted"
+     "Are deleted",
+     "Keep their revenue"
     ],
-    "ans": 1,
+    "ans": 0,
     "why": "Delivered adds; Returned subtracts.",
     "src": "L3"
    },
    {
     "q": "A high cancellation rate signals:",
     "opts": [
-     "Success",
      "Lead-quality or confirmation-discipline problems — cancellations sit in the volume denominator and drag conversion",
      "Fast agents",
-     "Nothing"
+     "Nothing",
+     "Success"
     ],
-    "ans": 1,
+    "ans": 0,
     "why": "Status discipline IS reporting accuracy.",
     "src": "L3"
    },
@@ -556,60 +556,60 @@
    {
     "q": "A grayed-out action button in the drawer means:",
     "opts": [
+     "Missing license",
      "A bug",
      "That transition is invalid from the current status — context-sensitive by design",
-     "Slow network",
-     "Missing license"
+     "Slow network"
     ],
-    "ans": 1,
+    "ans": 2,
     "why": "The sentence that eliminates a ticket category.",
     "src": "L4"
    },
    {
     "q": "The objective record of who changed what, when, lives in:",
     "opts": [
+     "Email",
      "Notes",
      "The Status Timeline — every transition, timestamp, and person",
-     "The dashboard",
-     "Email"
+     "The dashboard"
     ],
-    "ans": 1,
+    "ans": 2,
     "why": "Open it before opening disputes.",
     "src": "L4"
    },
    {
     "q": "'Two-week delivery' complaints are diagnosed by:",
     "opts": [
+     "Blaming the courier",
      "Asking the agent",
      "Reading the timeline for the stage gap — e.g., Processing on the 4th, Delivery In Progress on the 11th = fulfilment bottleneck",
-     "Refunding",
-     "Blaming the courier"
+     "Refunding"
     ],
-    "ans": 1,
+    "ans": 2,
     "why": "The timeline names the bottleneck.",
     "src": "L4"
    },
    {
     "q": "Items edit freely in:",
     "opts": [
+     "On Hold only",
      "Any status",
      "New Lead, Qualified, Confirmed — Processing+ may require approval or lock entirely",
-     "Delivered",
-     "On Hold only"
+     "Delivered"
     ],
-    "ans": 1,
+    "ans": 2,
     "why": "A shipment may already physically exist.",
     "src": "L5"
    },
    {
     "q": "The route for a genuine change on a Processing order:",
     "opts": [
-     "Force the edit",
      "On Hold first → adjust → resume",
      "Cancel and recreate",
-     "Edit the database"
+     "Edit the database",
+     "Force the edit"
     ],
-    "ans": 1,
+    "ans": 0,
     "why": "The designed escape hatch.",
     "src": "L5"
    },
@@ -628,48 +628,48 @@
    {
     "q": "Price overrides are:",
     "opts": [
+     "Manager-only",
      "Untracked",
      "Logged for audit — and significant discounts follow approval policy",
-     "Forbidden",
-     "Manager-only"
+     "Forbidden"
     ],
-    "ans": 1,
+    "ans": 2,
     "why": "Flexibility with accountability.",
     "src": "L5"
    },
    {
     "q": "The assignment dropdown shows each closer's:",
     "opts": [
-     "Salary",
      "Current active order load — for balanced decisions",
      "Location",
-     "Rating"
+     "Rating",
+     "Salary"
     ],
-    "ans": 1,
+    "ans": 0,
     "why": "Check load before every manual assignment.",
     "src": "L6"
    },
    {
     "q": "Auto-assignment rule types are:",
     "opts": [
+     "By seniority",
      "Random only",
      "Round Robin, Capacity-Based, Channel-Based, Geographic — configured in Settings → Assignment Rules",
-     "Alphabetical",
-     "By seniority"
+     "Alphabetical"
     ],
-    "ans": 1,
+    "ans": 2,
     "why": "Rules propose, humans dispose — manual override wins.",
     "src": "L6"
    },
    {
     "q": "Closers can reassign orders:",
     "opts": [
+     "After 24h",
      "Freely",
      "Never — assignment is manager/lead territory; closers work what they're given",
-     "With a reason",
-     "After 24h"
+     "With a reason"
     ],
-    "ans": 1,
+    "ans": 2,
     "why": "Role-based permission by design.",
     "src": "L6"
    },
@@ -688,24 +688,24 @@
    {
     "q": "Dormant customers for re-engagement surface by sorting:",
     "opts": [
-     "Total Spent desc",
      "Last Order Date ascending",
      "Name A-Z",
-     "Created Date desc"
+     "Created Date desc",
+     "Total Spent desc"
     ],
-    "ans": 1,
+    "ans": 0,
     "why": "The directory is a campaign tool.",
     "src": "L7"
    },
    {
     "q": "New orders for existing customers are created from:",
     "opts": [
-     "The Orders page fresh",
      "The profile's New Order quick action — pre-filled, structurally preventing duplicate customer records",
      "Import",
-     "WhatsApp"
+     "WhatsApp",
+     "The Orders page fresh"
     ],
-    "ans": 1,
+    "ans": 0,
     "why": "The route IS the data-quality control.",
     "src": "L7"
    },
@@ -767,108 +767,108 @@
    {
     "q": "A lead form's core promise over WhatsApp-only ordering is:",
     "opts": [
+     "Fewer products",
      "Prettier pages",
      "Structured capture, no missed leads at scale, and automatic ad-to-order attribution",
-     "Cheaper hosting",
-     "Fewer products"
+     "Cheaper hosting"
     ],
-    "ans": 1,
+    "ans": 2,
     "why": "Agents confirm and close instead of transcribing.",
     "src": "L1"
    },
    {
     "q": "Submissions attribute automatically to:",
     "opts": [
-     "The last agent online",
      "The digital marketer who built the form (admins can reassign by email search)",
      "The team lead",
-     "Nobody"
+     "Nobody",
+     "The last agent online"
     ],
-    "ans": 1,
+    "ans": 0,
     "why": "The clean line from ad spend to orders.",
     "src": "L1, L2"
    },
    {
     "q": "Setting a fixed Preset country:",
     "opts": [
-     "Adds a field",
-     "Hides the country field entirely — one less field for single-market campaigns",
      "Blocks foreign IPs",
-     "Changes currency only"
+     "Changes currency only",
+     "Adds a field",
+     "Hides the country field entirely — one less field for single-market campaigns"
     ],
-    "ans": 1,
+    "ans": 3,
     "why": "Fewer fields, fewer abandonments.",
     "src": "L2"
    },
    {
     "q": "'Submit' as button text is:",
     "opts": [
-     "Optimal",
      "Outconverted by specific text like 'Place my order' or 'Get this deal'",
      "Required",
-     "Invisible"
+     "Invisible",
+     "Optimal"
     ],
-    "ans": 1,
+    "ans": 0,
     "why": "Specific beats generic.",
     "src": "L2"
    },
    {
     "q": "The Resolved Brand and Cost Center on Step 2 are:",
     "opts": [
+     "Per-product",
      "Typed manually",
      "Auto-filled read-only from the chosen Product Category — category-first routing files the orders",
-     "Optional",
-     "Per-product"
+     "Optional"
     ],
-    "ans": 1,
+    "ans": 2,
     "why": "Wrong category = every downstream order files wrong.",
     "src": "L3"
    },
    {
     "q": "Prices on a lead form come from:",
     "opts": [
+     "The agent",
      "The form builder's price fields",
      "The catalogue, per the buyer's country — never typed into the form",
-     "The ad",
-     "The agent"
+     "The ad"
     ],
-    "ans": 1,
+    "ans": 2,
     "why": "Catalogue-driven pricing.",
     "src": "L3"
    },
    {
     "q": "An offer package is:",
     "opts": [
-     "A bundle of different products",
-     "A quantity offer: buy quantity + optional free quantity + fixed or discount amount",
      "A shipping option",
-     "A form theme"
+     "A form theme",
+     "A bundle of different products",
+     "A quantity offer: buy quantity + optional free quantity + fixed or discount amount"
     ],
-    "ans": 1,
+    "ans": 3,
     "why": "Built for buy-2-get-1 and buy-3-save-₦2,000.",
     "src": "L3"
    },
    {
     "q": "The conversion law for form fields:",
     "opts": [
-     "More data is better",
      "Shorter forms convert better — require only what's needed at submission; collect the rest on the confirmation call",
      "Always require email",
-     "Hide the phone"
+     "Hide the phone",
+     "More data is better"
     ],
-    "ans": 1,
+    "ans": 0,
     "why": "Every removed field reduces friction.",
     "src": "L3"
    },
    {
     "q": "The mobile preview habit exists because:",
     "opts": [
+     "Colors differ",
      "Desktop is rare",
      "Most lead-form traffic is mobile — confirm phone-width comfort before publishing",
-     "It's faster",
-     "Colors differ"
+     "It's faster"
     ],
-    "ans": 1,
+    "ans": 2,
     "why": "Narrow the preview to phone width.",
     "src": "L4"
    },
@@ -899,108 +899,108 @@
    {
     "q": "The embed snippet:",
     "opts": [
-     "Requires a special server",
      "Pastes into any page's HTML (or a builder's Custom-HTML block); submissions flow identically to the hosted link",
      "Only works on WordPress",
-     "Duplicates leads"
+     "Duplicates leads",
+     "Requires a special server"
     ],
-    "ans": 1,
+    "ans": 0,
     "why": "Two doors, one pipeline.",
     "src": "L4"
    },
    {
     "q": "The one-click Convert appears on submissions with status:",
     "opts": [
-     "Any",
      "New only",
      "Contacted",
-     "Lost"
+     "Lost",
+     "Any"
     ],
-    "ans": 1,
+    "ans": 0,
     "why": "Which is also why New leads are worked first.",
     "src": "L5"
    },
    {
     "q": "A customer wants a second purchase after their submission converted:",
     "opts": [
+     "New form required",
      "Re-convert the submission",
      "Create a new order from Orders — conversion is one-time per submission",
-     "Edit the submission",
-     "New form required"
+     "Edit the submission"
     ],
-    "ans": 1,
+    "ans": 2,
     "why": "Submission = historical record; order = live one.",
     "src": "L5"
    },
    {
     "q": "A submission marked Lost automatically may mean:",
     "opts": [
-     "The customer refused",
      "An order could not be created from it — review for manual handling",
      "Spam",
-     "A duplicate"
+     "A duplicate",
+     "The customer refused"
     ],
-    "ans": 1,
+    "ans": 0,
     "why": "Auto-Lost entries deserve a look.",
     "src": "L5"
    },
    {
     "q": "Duplicates are typically flagged by:",
     "opts": [
-     "Name match",
-     "Phone match (optionally items) against recent orders in a short window",
      "IP address",
-     "Email domain"
+     "Email domain",
+     "Name match",
+     "Phone match (optionally items) against recent orders in a short window"
     ],
-    "ans": 1,
+    "ans": 3,
     "why": "Review against the original; work the accurate record.",
     "src": "L5"
    },
    {
     "q": "Many New submissions accumulating means:",
     "opts": [
-     "Great marketing, relax",
-     "The team isn't working leads fast enough — new leads age quickly",
      "Forms are broken",
-     "Convert them in bulk"
+     "Convert them in bulk",
+     "Great marketing, relax",
+     "The team isn't working leads fast enough — new leads age quickly"
     ],
-    "ans": 1,
+    "ans": 3,
     "why": "Speed of first contact drives conversion.",
     "src": "L5"
    },
    {
     "q": "A cart record is created when a visitor:",
     "opts": [
-     "Views the form page",
      "Interacts — selects a product or starts typing; data then captures progressively",
      "Submits",
-     "Clicks the ad"
+     "Clicks the ad",
+     "Views the form page"
     ],
-    "ans": 1,
+    "ans": 0,
     "why": "Views alone create nothing.",
     "src": "L6"
    },
    {
     "q": "A cart shows as Abandoned:",
     "opts": [
+     "Only if manually marked",
      "The instant the tab closes",
      "After ~30 minutes idle, via a periodic background check — a short delay is normal",
-     "After 24 hours",
-     "Only if manually marked"
+     "After 24 hours"
     ],
-    "ans": 1,
+    "ans": 2,
     "why": "Pre-empt the 'carts are delayed' ticket.",
     "src": "L6"
    },
    {
     "q": "The abandoned list shows only carts with:",
     "opts": [
+     "High value",
      "Any data",
      "Both a name AND a phone number — actionable ones; the rest are cleared automatically",
-     "Email",
-     "High value"
+     "Email"
     ],
-    "ans": 1,
+    "ans": 2,
     "why": "And marketers see their own forms' carts only.",
     "src": "L6"
    },
@@ -1019,12 +1019,12 @@
    {
     "q": "Recovery is the platform's highest-ROI activity because:",
     "opts": [
-     "It's easy",
-     "Acquisition cost is already spent, interest already shown on specific products, and recovery needs only a message or call",
      "Carts are numerous",
-     "It's automated"
+     "It's automated",
+     "It's easy",
+     "Acquisition cost is already spent, interest already shown on specific products, and recovery needs only a message or call"
     ],
-    "ans": 1,
+    "ans": 3,
     "why": "Already-paid-for demand.",
     "src": "L6, L7"
    },
@@ -1067,12 +1067,12 @@
    {
     "q": "A customer declines the recovery offer. The rule:",
     "opts": [
-     "Try twice more",
-     "Thank them and never contact them about that cart again",
      "Escalate to a manager",
-     "Discount harder"
+     "Discount harder",
+     "Try twice more",
+     "Thank them and never contact them about that cart again"
     ],
-    "ans": 1,
+    "ans": 3,
     "why": "Respect protects the brand and complies with regulations.",
     "src": "L7"
    },
@@ -1129,144 +1129,144 @@
    {
     "q": "A team lead can't see the ROAS report. First check:",
     "opts": [
+     "Reinstall",
      "Server logs",
      "Role — ROAS belongs to the marketing set; report visibility is role-based",
-     "The date filter",
-     "Reinstall"
+     "The date filter"
     ],
-    "ans": 1,
+    "ans": 2,
     "why": "Missing report = check the role.",
     "src": "L1"
    },
    {
     "q": "The Compare toggle:",
     "opts": [
-     "Compares two agents",
-     "Shows the period side-by-side vs the previous one with %-change indicators",
      "Merges reports",
-     "Exports"
+     "Exports",
+     "Compares two agents",
+     "Shows the period side-by-side vs the previous one with %-change indicators"
     ],
-    "ans": 1,
+    "ans": 3,
     "why": "'4M' vs '4M, down 12%' is the difference it makes.",
     "src": "L1"
    },
    {
     "q": "A reading schedule per role is:",
     "opts": [
-     "Optional polish",
      "An implementation deliverable — a report library without a cadence is furniture",
      "Automatic",
-     "The vendor's job"
+     "The vendor's job",
+     "Optional polish"
     ],
-    "ans": 1,
+    "ans": 0,
     "why": "Map roles to must-reads and rhythms.",
     "src": "L1"
    },
    {
     "q": "The Closer Summary cancellation red flag sits at:",
     "opts": [
-     "Any cancellation",
-     "Above 20–25% — likely orders created without proper confirmation",
      "50%",
-     "10%"
+     "10%",
+     "Any cancellation",
+     "Above 20–25% — likely orders created without proper confirmation"
     ],
-    "ans": 1,
+    "ans": 3,
     "why": "The confirmation-discipline signal.",
     "src": "L2"
    },
    {
     "q": "90% conversion on 10 orders vs 70% on 100:",
     "opts": [
-     "The 90% agent is better",
-     "The 70%-on-100 agent is more impactful — cross-reference conversion with volume",
      "Equal",
-     "Neither matters"
+     "Neither matters",
+     "The 90% agent is better",
+     "The 70%-on-100 agent is more impactful — cross-reference conversion with volume"
     ],
-    "ans": 1,
+    "ans": 3,
     "why": "The prescribed reading order.",
     "src": "L2"
    },
    {
     "q": "High orders + low conversion coaches toward:",
     "opts": [
-     "More calls",
      "Order quality — unconfirmed entries or overselling; checklist before entry",
      "New products",
-     "A raise"
+     "A raise",
+     "More calls"
     ],
-    "ans": 1,
+    "ans": 0,
     "why": "One of the four canonical diagnoses.",
     "src": "L2"
    },
    {
     "q": "Notably high AOV on one agent usually marks:",
     "opts": [
+     "Data error",
      "Fraud",
      "Upselling skill — recognize it and spread the method",
-     "Lucky leads",
-     "Data error"
+     "Lucky leads"
     ],
-    "ans": 1,
+    "ans": 2,
     "why": "Outliers in both directions get attention.",
     "src": "L2"
    },
    {
     "q": "The fairness metric across teams is:",
     "opts": [
-     "Total Revenue",
      "Revenue per Agent = Total Revenue ÷ Headcount",
      "Order count",
-     "Top performer"
+     "Top performer",
+     "Total Revenue"
     ],
-    "ans": 1,
+    "ans": 0,
     "why": "5 agents at 20k each beat 20 at 15k each.",
     "src": "L3"
    },
    {
     "q": "Small team, very high per-agent revenue suggests:",
     "opts": [
+     "Luck",
      "Overstaffing",
      "A capacity-constrained team — the strongest case for the next hire",
-     "Poor data",
-     "Luck"
+     "Poor data"
     ],
-    "ans": 1,
+    "ans": 2,
     "why": "Growth math from the report.",
     "src": "L3"
    },
    {
     "q": "ROAS is:",
     "opts": [
-     "Profit ÷ Spend",
-     "Revenue Generated ÷ Ad Spend",
      "Leads ÷ Spend",
-     "Spend ÷ Revenue"
+     "Spend ÷ Revenue",
+     "Profit ÷ Spend",
+     "Revenue Generated ÷ Ad Spend"
     ],
-    "ans": 1,
+    "ans": 3,
     "why": "Revenue, not profit — that distinction drives the threshold.",
     "src": "L4"
    },
    {
     "q": "The profitability threshold is:",
     "opts": [
+     "Set by the platform",
      "Always 1.0",
      "ROAS > 1 ÷ gross margin — at 50% margin, 2.0; at 30%, 3.33",
-     "Always 3.0",
-     "Set by the platform"
+     "Always 3.0"
     ],
-    "ans": 1,
+    "ans": 2,
     "why": "Compute the client's own threshold and write it on the report.",
     "src": "L4"
    },
    {
     "q": "A 2.2-ROAS campaign at 40% gross margin is:",
     "opts": [
-     "Profitable",
-     "Under water — the threshold is 2.5",
      "Break-even",
-     "Excellent"
+     "Excellent",
+     "Profitable",
+     "Under water — the threshold is 2.5"
     ],
-    "ans": 1,
+    "ans": 3,
     "why": "1 ÷ 0.40 = 2.5.",
     "src": "L4"
    },
@@ -1285,12 +1285,12 @@
    {
     "q": "Underperforming campaigns get:",
     "opts": [
-     "Instant kills",
      "Optimisation first; if ROAS doesn't improve within 2 weeks, reduce or pause and reallocate to top performers",
      "More budget",
-     "A rebrand"
+     "A rebrand",
+     "Instant kills"
     ],
-    "ans": 1,
+    "ans": 0,
     "why": "The standing budget loop.",
     "src": "L4"
    },
@@ -1333,12 +1333,12 @@
    {
     "q": "Closers opening Product Sales Analysis see:",
     "opts": [
-     "All company rows",
      "Only orders they themselves closed — their own product mix; managers see all",
      "Nothing",
-     "Last month only"
+     "Last month only",
+     "All company rows"
     ],
-    "ans": 1,
+    "ans": 0,
     "why": "Role-scoped rows in this report.",
     "src": "L5"
    },
@@ -1369,60 +1369,60 @@
    {
     "q": "Reading DOWN a cohort column shows:",
     "opts": [
+     "Nothing",
      "One cohort over time",
      "Whether recent cohorts perform better or worse than older ones at the same age — the trend of trends",
-     "Revenue by product",
-     "Nothing"
+     "Revenue by product"
     ],
-    "ans": 1,
+    "ans": 2,
     "why": "Left-right = one cohort; top-down = the comparison.",
     "src": "L6"
    },
    {
     "q": "Healthy Month-1 retention for a subscription-like business:",
     "opts": [
+     "75%",
      "100%",
      "20–30% of Month-0 revenue (10–20% for occasional-purchase businesses)",
-     "1–2%",
-     "75%"
+     "1–2%"
     ],
-    "ans": 1,
+    "ans": 2,
     "why": "The manual's explicit benchmark bands.",
     "src": "L6"
    },
    {
     "q": "Each new cohort retaining worse than the last:",
     "opts": [
-     "Seasonal noise",
-     "Deteriorating quality/experience/competitive position — compounding quietly",
      "Better acquisition",
-     "Ignore"
+     "Ignore",
+     "Seasonal noise",
+     "Deteriorating quality/experience/competitive position — compounding quietly"
     ],
-    "ans": 1,
+    "ans": 3,
     "why": "One of the two named warning signs.",
     "src": "L6"
    },
    {
     "q": "Near-zero revenue after Month 0 prescribes:",
     "opts": [
-     "More ads",
      "Post-purchase fixes — automated follow-ups, thank-you offers, recommendation emails",
      "Price rises",
-     "New products"
+     "New products",
+     "More ads"
     ],
-    "ans": 1,
+    "ans": 0,
     "why": "Buy-once-never-return is an experience failure.",
     "src": "L6"
    },
    {
     "q": "A 3-month-supply product showing 2% Month-1 retention:",
     "opts": [
-     "Is in crisis",
      "May be perfectly healthy — benchmark retention against the purchase cycle; expect the pulse at Month 3",
      "Needs discounts",
-     "Has bad data"
+     "Has bad data",
+     "Is in crisis"
     ],
-    "ans": 1,
+    "ans": 0,
     "why": "Cohort reading is business-model-relative.",
     "src": "L6"
    },
@@ -1479,48 +1479,48 @@
    {
     "q": "The golden rule of closer creation:",
     "opts": [
+     "Categories first",
      "Phone number first",
      "A User account must exist BEFORE the Closer — the required Closer field links to an existing user by email",
-     "Manager approval first",
-     "Categories first"
+     "Manager approval first"
     ],
-    "ans": 1,
+    "ans": 2,
     "why": "No user, no dropdown entry, no proceeding.",
     "src": "L1"
    },
    {
     "q": "A new hire missing from the Closer field dropdown means:",
     "opts": [
-     "A caching bug",
-     "Their User account doesn't exist yet — create it, then reopen the form",
      "Wrong browser",
-     "License limit"
+     "License limit",
+     "A caching bug",
+     "Their User account doesn't exist yet — create it, then reopen the form"
     ],
-    "ans": 1,
+    "ans": 3,
     "why": "The most common closer-setup confusion.",
     "src": "L1"
    },
    {
     "q": "One person may have:",
     "opts": [
-     "Several closers across brands",
      "Exactly one user and one closer — Brand is multi-select on the single record; duplicates get disabled/merged",
      "Two if a supervisor",
-     "Unlimited"
+     "Unlimited",
+     "Several closers across brands"
     ],
-    "ans": 1,
+    "ans": 0,
     "why": "One person = one user = one closer.",
     "src": "L1, L2"
    },
    {
     "q": "Closer records are named:",
     "opts": [
-     "By full name",
      "Automatically as CRM-CS-######",
      "By email",
-     "Manually"
+     "Manually",
+     "By full name"
     ],
-    "ans": 1,
+    "ans": 0,
     "why": "Auto-naming on save.",
     "src": "L1, L3"
    },
@@ -1539,48 +1539,48 @@
    {
     "q": "Always Available (ignore shifts) is meant for:",
     "opts": [
+     "Part-timers",
      "Everyone",
      "Supervisors / overflow closers — and as the migration default during rollout",
-     "New hires",
-     "Part-timers"
+     "New hires"
     ],
-    "ans": 1,
+    "ans": 2,
     "why": "Leads at all times regardless of schedule.",
     "src": "L2, L5"
    },
    {
     "q": "The Reporting Chain (Brand/Team/Cluster Manager) is:",
     "opts": [
+     "Set by HR",
      "Typed manually",
      "Read-only, auto-derived by walking up Reports To — fixed by correcting manager links, never by editing chain fields",
-     "Optional",
-     "Set by HR"
+     "Optional"
     ],
-    "ans": 1,
+    "ans": 2,
     "why": "Computed, by design.",
     "src": "L2, L4"
    },
    {
     "q": "Brand on a closer is:",
     "opts": [
-     "Single-select",
-     "Multi-select — a closer can serve several brands; placement gates which leads can reach them",
      "Read-only",
-     "Derived"
+     "Derived",
+     "Single-select",
+     "Multi-select — a closer can serve several brands; placement gates which leads can reach them"
     ],
-    "ans": 1,
+    "ans": 3,
     "why": "Placement determines flow.",
     "src": "L2"
    },
    {
     "q": "Current Assignment:",
     "opts": [
+     "Is editable by admins",
      "Is set at creation",
      "Is a read-only live counter maintained by the system — load is managed via Max Assignment",
-     "Resets weekly",
-     "Is editable by admins"
+     "Resets weekly"
     ],
-    "ans": 1,
+    "ans": 2,
     "why": "The can't-edit 'bug' that isn't.",
     "src": "L2, L4"
    },
@@ -1599,96 +1599,96 @@
    {
     "q": "An overflow supervisor's spec:",
     "opts": [
-     "All flags off",
-     "Always Available ON, Follow-Up Team Member ON, higher Max Assignment",
      "Disabled",
-     "No categories"
+     "No categories",
+     "All flags off",
+     "Always Available ON, Follow-Up Team Member ON, higher Max Assignment"
     ],
-    "ans": 1,
+    "ans": 3,
     "why": "The worked recipe, field by field.",
     "src": "L3"
    },
    {
     "q": "Offboarding a departed closer:",
     "opts": [
-     "Delete the record",
-     "Untick Enabled and save — deletion can orphan their leads, orders, and reports; also re-point their reportees",
      "Rename it",
-     "Zero the capacity"
+     "Zero the capacity",
+     "Delete the record",
+     "Untick Enabled and save — deletion can orphan their leads, orders, and reports; also re-point their reportees"
     ],
-    "ans": 1,
+    "ans": 3,
     "why": "Disable-don't-delete is doctrine.",
     "src": "L3, L4"
    },
    {
     "q": "'Chidi gets no auto-assigned leads' — the four-point check:",
     "opts": [
-     "Restart the server",
      "Enabled ON → Brand/Branch/Category match → on shift or Always Available → Max Assignment not reached",
      "Check his phone",
-     "Recreate the record"
+     "Recreate the record",
+     "Restart the server"
     ],
-    "ans": 1,
+    "ans": 0,
     "why": "The module's most valuable diagnostic, run in order.",
     "src": "L4"
    },
    {
     "q": "Raising a closer's Max Assignment takes effect:",
     "opts": [
-     "Next day",
      "Immediately after saving — the engine respects the new cap at once",
      "After re-login",
-     "Monthly"
+     "Monthly",
+     "Next day"
     ],
-    "ans": 1,
+    "ans": 0,
     "why": "Live rebalancing lever.",
     "src": "L4"
    },
    {
     "q": "Shift Management is:",
     "opts": [
-     "On by default",
      "Off by default — a master switch; enabling changes behaviour, disabling fully restores it",
      "Mandatory",
-     "Per-brand"
+     "Per-brand",
+     "On by default"
     ],
-    "ans": 1,
+    "ans": 0,
     "why": "Nothing changes until a manager turns it on.",
     "src": "L5"
    },
    {
     "q": "Closer availability under shifts is determined by:",
     "opts": [
+     "Manager marking",
      "Clock-in",
      "The schedule — on shift when current time falls inside an assigned shift; there is no clock-in",
-     "GPS",
-     "Manager marking"
+     "GPS"
     ],
-    "ans": 1,
+    "ans": 2,
     "why": "Schedule-based by design.",
     "src": "L5"
    },
    {
     "q": "A 3am lead with nobody on shift:",
     "opts": [
-     "Is discarded",
      "Waits as New Lead; the catch-up job re-checks ~every ten minutes and assigns when a shift starts",
      "Goes to the MD",
-     "Auto-cancels"
+     "Auto-cancels",
+     "Is discarded"
     ],
-    "ans": 1,
+    "ans": 0,
     "why": "No lead is ever lost.",
     "src": "L5"
    },
    {
     "q": "A 22:00–06:00 shift:",
     "opts": [
-     "Is invalid",
-     "Spans midnight into the next morning — end-before-start is the overnight pattern",
      "Runs 22:00–23:59 only",
-     "Needs two templates"
+     "Needs two templates",
+     "Is invalid",
+     "Spans midnight into the next morning — end-before-start is the overnight pattern"
     ],
-    "ans": 1,
+    "ans": 3,
     "why": "Overnight handling is explicit.",
     "src": "L5"
    },
@@ -1707,12 +1707,12 @@
    {
     "q": "Online store orders under shifts:",
     "opts": [
-     "Wait like leads",
-     "Are never held — routed as before; a paid order never waits on a schedule",
      "Go to supervisors",
-     "Are disabled"
+     "Are disabled",
+     "Wait like leads",
+     "Are never held — routed as before; a paid order never waits on a schedule"
     ],
-    "ans": 1,
+    "ans": 3,
     "why": "The paid-order exemption.",
     "src": "L5"
    },
@@ -1755,36 +1755,36 @@
    {
     "q": "In the acceptance test, after re-assigning a closer to an active shift, the waiting lead:",
     "opts": [
-     "Needs manual pickup",
      "Is picked up automatically within about ten minutes",
      "Is lost",
-     "Emails a manager"
+     "Emails a manager",
+     "Needs manual pickup"
     ],
-    "ans": 1,
+    "ans": 0,
     "why": "The catch-up job proving itself.",
     "src": "L6"
    },
    {
     "q": "The recommended rollout strategy:",
     "opts": [
+     "Weekends only",
      "Big-bang schedules day one",
      "Everyone Always Available first, then remove the flag person by person as real shifts are added",
-     "Pilot one closer",
-     "Weekends only"
+     "Pilot one closer"
     ],
-    "ans": 1,
+    "ans": 2,
     "why": "Nothing breaks on day one; the schedule tightens gradually.",
     "src": "L6"
    },
    {
     "q": "Retiring a shift template correctly:",
     "opts": [
+     "Zero its hours",
      "Delete it",
      "Disable it — removed from scheduling, history kept; likewise cancel (not delete) assignments for audit",
-     "Rename it 'OLD'",
-     "Zero its hours"
+     "Rename it 'OLD'"
     ],
-    "ans": 1,
+    "ans": 2,
     "why": "History-preserving housekeeping.",
     "src": "L6"
    },
