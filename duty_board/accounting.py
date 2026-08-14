@@ -20,6 +20,8 @@ from datetime import date, timedelta
 
 import frappe
 from frappe import _
+import json
+
 from frappe.utils import cint, flt, getdate, today
 
 from duty_board.client_room import _post, _staff_only
@@ -2255,7 +2257,7 @@ def _register_review_nudge():
 	tdy = getdate(today())
 	if tdy.month not in (1, 4, 7, 10):
 		return
-	if str(_nth_working_day(tdy.year, tdy.month, 1)) != str(tdy):
+	if str(nth_working_day(tdy.year, tdy.month, 1)) != str(tdy):
 		return
 	stale = frappe.get_all(
 		"Duty Access Register",

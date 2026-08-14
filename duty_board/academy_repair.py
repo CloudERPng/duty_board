@@ -23,6 +23,7 @@ import json
 import os
 
 import frappe
+from frappe.utils import cint
 
 FAMILIES = ("closer", "bkpr", "consultant", "client_reports")
 ALL_FAMILIES = ("accounts_pro", "bkpr", "client_reports", "closer", "consultant",

@@ -6176,6 +6176,29 @@ def _track_just_completed(room, user, module):
 	return None
 
 
+def _on_track(room, user, track):
+	"""Has this learner already begun the given track?
+
+	Referenced by client_track_summary since v3.224.0 and never written, which
+	meant the 'what next' recommendation on the achievement screen raised a
+	NameError inside a try/except and silently produced nothing. The screen has
+	been shipping without its only upsell since it was built.
+
+	Begun means holding a training record for any module of the track, whatever
+	its status — a track half-read is not a track to recommend."""
+	mods = frappe.get_all(
+		"Duty Certification Track Module", filters={"parent": track}, pluck="module"
+	)
+	if not mods:
+		return False
+	return bool(
+		frappe.db.exists(
+			"Duty Training Record",
+			{"room": room.name, "trainee": user, "module": ["in", mods]},
+		)
+	)
+
+
 @frappe.whitelist()
 def client_track_summary(track):
 	"""What they achieved, and what is next."""
