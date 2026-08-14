@@ -1,4 +1,4 @@
-# Duty Board — Handover Brief · v3.226.3
+# Duty Board — Handover Brief · v3.228.2
 
 **App:** `duty_board` on Frappe/ERPNext v15 · **Live site:** `xlevel.clouderp.one`
 **Repo:** https://github.com/CloudERPng/duty_board · **Bench:** `bench@newv15`, `~/frappe-bench`
@@ -265,3 +265,69 @@ an already-seeded site, since seeds are insert-only and skip existing modules),
   by `creation`. The error messages match one reading, the docstring the other.
 - Content: `who_for` and `outcomes` are empty on every track, no chapter is marked
   `is_sample`, and only the Closer track meets the content standard.
+
+---
+
+## 13. The finance track, and a fourth audit chunk · v3.226.4 → v3.228.2
+
+### Accounting & Finance for Non-Finance Managers — complete
+Eight modules, 72 chapters, 216 check questions, 338 exam questions, ~49,000
+words. Every module audits `ok` on depth, bank size, answer spread, topic
+tagging, check coverage, rationale quality, banned phrases and HTML validity.
+
+Order written: the reading spine first (P&L, balance sheet, cash), then the
+deciding modules (cost, pricing, budgets, money), and the framing module last —
+because framing is easier once you know what you are framing.
+
+**Design principle: read before prepare.** This audience will never draft a set
+of accounts; they will be handed one. Every chapter starts from a document or a
+decision and works back to the idea.
+
+**Written for this market rather than the textbook one.** Standard advice
+assumes stable prices and cheap credit. Followed literally here it recommends
+pricing off historical cost during a devaluation, paying suppliers early, and
+funding vehicles on demand facilities. The track says otherwise and explains
+why.
+
+### Things learned the hard way, worth not relearning
+- **The first draft of a question bank came out 72% guessable**, 29 of 40
+  answers in position B — the same defect that made four legacy tracks
+  worthless. It is apparently what an author produces by default, so the
+  rebalance is now part of every builder rather than a later repair.
+- **Check questions duplicated exam questions in three consecutive modules.**
+  Fixed by design rather than detection: checks are written scenario-first,
+  exam questions computational.
+- **Chapters were short in every module** and needed an extension pass every
+  time. Budget for it.
+- `seed_finance_track` skipped an existing track wholesale, so module 2 was
+  created and never joined the track. Idempotent-by-skip is right for content
+  and wrong for a module list.
+- `push_closer_lessons` reads one data file despite its general-sounding use.
+  `push_lessons(family=…)` is the generic one; `finance` was missing from
+  `ALL_FAMILIES`, which would also have silently skipped 216 checks.
+
+### Audit chunk G: name resolution — `audit_names.py`
+Four NameErrors shipped in one day, all passing `py_compile`, three failing
+silently:
+
+| Name | Consequence |
+|---|---|
+| `cint` in academy_repair | bench command died on first run |
+| `_nth_working_day` in accounting | quarterly review nudge has never fired |
+| `json` in accounting | error-logging path would raise |
+| `_on_track` in client_room | achievement screen's only upsell silently absent since built |
+
+Chunks B and C checked that endpoints and fields resolve. Neither checked that
+**names** resolve, which is cheaper than both. `audit_names.py` now does, and
+self-tests against a known-bad module before believing a clean run.
+
+**Run it before shipping any Python change:** `python3 audit_names.py`
+
+### Still open
+Everything listed in section 12 remains open — concurrency was never examined,
+~40 staff-to-staff interpolations remain unescaped, `ignore_permissions` has
+never been counted, and the meeting cap counts days and weeks by different
+fields. Add to that: the finance track is written but has never been walked
+end to end as a client, and Duty Settings still needs `academy_bank_details`,
+`academy_approver`, `academy_vat_rate` and `academy_tutors` before anything can
+be sold.

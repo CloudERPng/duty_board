@@ -2,6 +2,18 @@
 
 Notable releases. Versions follow `duty_board/__init__.py`.
 
+## v3.226.4 → v3.228.2 — The finance track, and name resolution
+
+- **Accounting & Finance for Non-Finance Managers**: eight modules, 72
+  chapters, 216 checks, 338 questions, ~49,000 words, every module `ok`.
+  Read-before-prepare throughout, worked in naira on trading numbers.
+- **Glossary panels**: 210 definitions from one central dictionary, injected at
+  the foot of 67 chapters, leaving the prose untouched.
+- **audit_names.py**: an AST pass proving every loaded name is defined. Found
+  four NameErrors that `py_compile` passed, three of which failed silently.
+- Seeder now reconciles a track's module list instead of skipping an existing
+  track; `push_lessons` replaces the Closer-only content push.
+
 ## v3.206.0 → v3.226.3 — The academy becomes a product
 
 Span written as one entry; see the git log for per-release detail.
