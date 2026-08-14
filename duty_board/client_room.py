@@ -4160,13 +4160,7 @@ def client_training_admin_home():
 	if not is_admin:
 		return {"admin": 0}
 	users, recs = _admin_rows(room)
-	last_seen = {
-		m.user: str(m.last_seen) if m.last_seen else None
-		for m in frappe.get_all(
-			"Client Room Member", filters={"room": room.name, "active": 1},
-			fields=["user", "last_seen"],
-		)
-	}
+	last_seen = _last_signed_in(users)
 	by_user = {}
 	for r in recs:
 		by_user.setdefault(r.trainee, []).append(r)
@@ -4454,6 +4448,25 @@ into your browser:<br>{link}</p>
 		frappe.log_error(frappe.get_traceback(), "duty_board academy invite")
 
 
+def _last_signed_in(users):
+	"""When each person was last actually in the portal.
+
+	Read from the User record rather than Client Room Member.last_seen: that
+	field is stamped only by the chat endpoint, so it reports "never" for anyone
+	who works in Training and does not open the message thread. Frappe maintains
+	last_active on every authenticated request, with last_login behind it."""
+	if not users:
+		return {}
+	out = {}
+	for u in frappe.get_all(
+		"User", filters={"name": ["in", list(users)]},
+		fields=["name", "last_active", "last_login"],
+	):
+		seen = u.last_active or u.last_login
+		out[u.name] = str(seen)[:16] if seen else None
+	return out
+
+
 @frappe.whitelist()
 def client_admin_people():
 	"""The room roster as the administrator sees it, leavers included."""
@@ -4464,6 +4477,7 @@ def client_admin_people():
 		fields=["name", "user", "active", "is_admin", "last_seen"],
 		order_by="active desc, is_admin desc, creation asc",
 	)
+	seen = _last_signed_in([m.user for m in rows if m.user])
 	out = []
 	for m in rows:
 		if not m.user:
@@ -4483,7 +4497,7 @@ def client_admin_people():
 			"is_self": m.user == frappe.session.user,
 			"assigned": assigned,
 			"complete": done,
-			"last_seen": str(m.last_seen) if m.last_seen else None,
+			"last_seen": seen.get(m.user),
 		})
 	return out
 
