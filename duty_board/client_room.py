@@ -4020,6 +4020,39 @@ def _check_order(name, count):
 
 
 @frappe.whitelist()
+def client_lesson_ask(lesson, question):
+	"""A learner's question about a chapter, posted into their room.
+
+	Self-serve removed the facilitator, and with it the person a confused
+	learner would have asked. Without somewhere to put the question they stall
+	and quietly stop — which shows up much later as a cohort that never
+	finished, with no record of why.
+
+	Routed through client_post_message so it reaches staff by the same path as
+	any other client message. The counter on the lesson is the editorial
+	by-product: a chapter that keeps generating questions is usually a chapter
+	that is badly written rather than a subject that is hard."""
+	room, l, rec = _lesson_access(lesson)
+	question = (question or "").strip()
+	if len(question) < 5:
+		frappe.throw(_("Tell us a little more so we can answer properly."))
+	mod_title = frappe.db.get_value("Duty Training Module", l.module, "title") or ""
+	text = _("\u2753 **Question about {0} \u2014 {1}**\n\n{2}").format(
+		mod_title, l.title, question[:2000]
+	)
+	try:
+		frappe.db.set_value(
+			"Duty Lesson", lesson, "question_count",
+			cint(frappe.db.get_value("Duty Lesson", lesson, "question_count")) + 1,
+			update_modified=False,
+		)
+	except Exception:
+		pass
+	client_post_message(text)
+	return {"ok": 1}
+
+
+@frappe.whitelist()
 def client_lesson_check(lesson, answers):
 	"""Grade the end-of-lesson checks. Formative: the outcome is never scored,
 	never stored per question, and never reaches a transcript. Passing every

@@ -716,6 +716,16 @@
 		.rdmin { display: none; }
 	}
 
+	.rdask { margin-top: 14px; }
+	.rdasklink { font-size: 13px; color: var(--brand-700); font-weight: 600; cursor: pointer; }
+	.askwrap { margin-top: 12px; border: 1px solid #E4EAE8; border-radius: 12px; padding: 14px 16px; background: #fff; }
+	.askwrap.ok { background: var(--brand-50); border-color: #CBE7DE; color: #0C4A43; font-size: 13.5px; }
+	.askwrap label { display: block; font-weight: 700; font-size: 13px; margin-bottom: 6px; }
+	.askwrap textarea { width: 100%; padding: 10px 12px; border: 1px solid #DCE4E1; border-radius: 9px;
+		font-size: 14.5px; font-family: inherit; line-height: 1.5; }
+	.askacts { display: flex; gap: 10px; margin-top: 10px; }
+	.askfoot { font-size: 11.5px; color: #6B7C77; margin: 9px 0 0; line-height: 1.5; }
+
 	/* ---- end-of-lesson checks ---- */
 	.ckwrap { margin-top: 30px; border-top: 2px solid var(--brand-50); padding-top: 20px; }
 	.ckhead { font-family: Fraunces, Georgia, serif; font-size: 19px; font-weight: 600; margin-bottom: 4px; }
@@ -2533,6 +2543,8 @@ function openLesson(lesson, record) {
 						: `<button id="lread" onclick="markRead('${esc(lesson)}','${esc(record)}')">✓ Mark as read${next ? " · next →" : ""}</button>`}
 					<button class="rdghost" onclick="openCourse('${esc(record)}')">← All lessons</button>
 				</div>
+				<div class="rdask"><a class="rdasklink" onclick="askLesson('${esc(lesson)}')">Something unclear? Ask our team about this lesson</a></div>
+				<div id="rdaskbox"></div>
 			</div>`;
 		const bb = document.getElementById("lessonbody");
 		bb.innerHTML = l.html;
@@ -2550,6 +2562,35 @@ function openLesson(lesson, record) {
 			}, 20000);
 		}
 	}).catch(fail);
+}
+function askLesson(lesson) {
+	/* With no facilitator, a learner who does not understand something has
+	   nowhere to put the question, so they stall and quietly stop. This gives
+	   it somewhere to go — and tells us which chapters keep generating it. */
+	const box = document.getElementById("rdaskbox");
+	if (!box) return;
+	if (box.innerHTML) { box.innerHTML = ""; return; }
+	box.innerHTML = `
+		<div class="askwrap">
+			<label>What would you like to ask?</label>
+			<textarea id="askq" rows="3" placeholder="Describe what is unclear \u2014 quoting the part that confused you helps us answer properly."></textarea>
+			<div class="askacts">
+				<button id="asksend">Send question</button>
+				<button class="rdghost" onclick="askLesson()">Cancel</button>
+			</div>
+			<p class="askfoot">Your question is posted in your organisation's room, so your colleagues and our team can both see it and the answer.</p>
+		</div>`;
+	document.getElementById("askq").focus();
+	document.getElementById("asksend").onclick = () => {
+		const q = document.getElementById("askq").value.trim();
+		if (q.length < 5) return alert("Tell us a little more so we can answer properly.");
+		document.getElementById("asksend").disabled = true;
+		api("client_lesson_ask", { lesson: lesson, question: q })
+			.then(() => {
+				box.innerHTML = `<div class="askwrap ok">\u2713 Sent. Our team will reply in your room \u2014 carry on reading in the meantime.</div>`;
+			})
+			.catch((e) => { document.getElementById("asksend").disabled = false; fail(e); });
+	};
 }
 function renderChecks(l, lesson, record) {
 	/* Formative checks. Never scored, never on a transcript — they exist so a
