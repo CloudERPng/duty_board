@@ -34,7 +34,7 @@ import os
 import frappe
 
 PRODUCT = "Xlevel Academy"
-ORDER = ["read_pl", "read_bs", "profit_cash", "cost", "pricing", "budgets", "money"]
+ORDER = ["read_pl", "read_bs", "profit_cash", "cost", "pricing", "budgets", "money", "purpose"]
 
 TRACK = {
     "title": "Accounting & Finance for Non-Finance Managers",
@@ -190,5 +190,5 @@ def seed_finance_track():
     frappe.db.commit()
     print("\nThe track is PAID: it will show a price in the catalogue and nobody "
           "can be assigned to it until a seat order is approved.")
-    print("Module 8 of the blueprint is not written yet — the track is "
-          "sellable only once the set is complete.")
+    print("All eight modules are written. Before selling, confirm in Duty Settings: "
+          "academy_bank_details, academy_approver, academy_vat_rate, academy_tutors.")
