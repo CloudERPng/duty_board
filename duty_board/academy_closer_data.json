@@ -1719,47 +1719,389 @@
    {
     "title": "The reports section — directory, roles and dates",
     "est": 8,
-    "html": "<p>Open <b>Reports</b> from the left sidebar and the landing page presents every report as a directory, grouped by category: Sales, Marketing, Product, Customer, Operations and After-Sales.</p>\n\n<p>Under Sales sit Closer Summary, Team Performance and Orders Status. Marketing carries ROAS, Channel Attribution, Campaign Form Funnel and Digital Marketer Leads. Product holds Product Sales Analysis; Customer holds Revenue Cohort Trends; Operations holds Branch Performance and Fulfilment Health; After-Sales holds the After-Sales Summary and Upsell/Cross-Sell.</p>\n\n<p><b>What you can see depends on your role</b>, and the pattern is worth understanding rather than memorising. Sales agents reach their own Closer Summary and often Team Performance read-only. Team leads see team-level reports with drill-down into their own people. Sales managers see all sales and operations reports across teams and branches. Marketing managers see the marketing set. Administrators and executives see everything.</p>\n\n<p>The practical consequence: <b>a report you cannot find is almost always a role restriction rather than a missing feature.</b> Before raising a ticket asking where a report went, check whether it was ever yours to see. The restriction is deliberate — individual performance data is personal, and a business that lets everybody read everybody's conversion rate has created a problem for itself that no report will solve.</p>\n\n<p><b>The date filter tops every report and is the single most important control on the page.</b> It offers presets from Today through Last Year, a custom calendar range for precise windows, and on some reports a Compare toggle that lays the previous period alongside with percentage-change indicators. Change the range and every chart, table and metric on the page refreshes together.</p>\n\n<p>That \"together\" matters more than it sounds. It means a screenshot of a report without its date range is meaningless, and a number quoted in a meeting without its period is an argument waiting to happen. When you take a figure out of a report — into a message, a slide, an email — carry the date range with it. Two people looking at the same report over different windows will reach opposite conclusions and both be right.</p>\n\n<p><b>The Compare toggle is where most of the insight lives.</b> A conversion rate of 62% is a number. A conversion rate of 62% against 71% last month is a conversation. Absolute figures tell you where you are; comparisons tell you where you are heading, and the direction is usually the more actionable of the two.</p>\n\n<blockquote>CONSULTANT NOTE: Unlike the dashboard's period-to-date pills, reports offer completed prior periods and custom ranges. This is where last month's finished numbers actually live — the dashboard cannot show you a closed month.</blockquote>"
+    "html": "<p>Open <b>Reports</b> from the left sidebar and the landing page presents every report as a directory, grouped by category: Sales, Marketing, Product, Customer, Operations and After-Sales.</p>\n\n<p>Under Sales sit Closer Summary, Team Performance and Orders Status. Marketing carries ROAS, Channel Attribution, Campaign Form Funnel and Digital Marketer Leads. Product holds Product Sales Analysis; Customer holds Revenue Cohort Trends; Operations holds Branch Performance and Fulfilment Health; After-Sales holds the After-Sales Summary and Upsell/Cross-Sell.</p>\n\n<p><b>What you can see depends on your role</b>, and the pattern is worth understanding rather than memorising. Sales agents reach their own Closer Summary and often Team Performance read-only. Team leads see team-level reports with drill-down into their own people. Sales managers see all sales and operations reports across teams and branches. Marketing managers see the marketing set. Administrators and executives see everything.</p>\n\n<p>The practical consequence: <b>a report you cannot find is almost always a role restriction rather than a missing feature.</b> Before raising a ticket asking where a report went, check whether it was ever yours to see. The restriction is deliberate — individual performance data is personal, and a business that lets everybody read everybody's conversion rate has created a problem for itself that no report will solve.</p>\n\n<p><b>The date filter tops every report and is the single most important control on the page.</b> It offers presets from Today through Last Year, a custom calendar range for precise windows, and on some reports a Compare toggle that lays the previous period alongside with percentage-change indicators. Change the range and every chart, table and metric on the page refreshes together.</p>\n\n<p>That \"together\" matters more than it sounds. It means a screenshot of a report without its date range is meaningless, and a number quoted in a meeting without its period is an argument waiting to happen. When you take a figure out of a report — into a message, a slide, an email — carry the date range with it. Two people looking at the same report over different windows will reach opposite conclusions and both be right.</p>\n\n<p><b>The Compare toggle is where most of the insight lives.</b> A conversion rate of 62% is a number. A conversion rate of 62% against 71% last month is a conversation. Absolute figures tell you where you are; comparisons tell you where you are heading, and the direction is usually the more actionable of the two.</p>\n\n<blockquote>CONSULTANT NOTE: Unlike the dashboard's period-to-date pills, reports offer completed prior periods and custom ranges. This is where last month's finished numbers actually live — the dashboard cannot show you a closed month.</blockquote>",
+    "checks": [
+     {
+      "q": "You cannot find a report a colleague mentioned. Most likely:",
+      "opts": [
+       "It has been removed in an update",
+       "Your role does not include it",
+       "It only appears once data exists",
+       "It is filed under a different category"
+      ],
+      "ans": 1,
+      "why": "Individual performance data is personal. A report you cannot find is almost always a role restriction rather than a missing feature.",
+      "sort": 0
+     },
+     {
+      "q": "You paste a conversion figure into a message. You must also carry:",
+      "opts": [
+       "The report's category",
+       "Your role level",
+       "The date range it was read over",
+       "The branch filter"
+      ],
+      "ans": 2,
+      "why": "Every metric on the page refreshes with the date filter, so a number without its period is not a claim anyone can check.",
+      "sort": 1
+     },
+     {
+      "q": "The Compare toggle matters because:",
+      "opts": [
+       "It doubles the sample size",
+       "Direction is usually more actionable than the absolute figure",
+       "It removes cancelled orders",
+       "It is required for exports"
+      ],
+      "ans": 1,
+      "why": "62% is a number. 62% against 71% last month is a conversation — absolutes tell you where you are, comparisons where you are heading.",
+      "sort": 2
+     }
+    ]
    },
    {
     "title": "The dashboard and the reports — two different instruments",
     "est": 8,
-    "html": "<p>New managers routinely mistake the dashboard for a report, quote a tile in a meeting, and discover later that it did not mean what they assumed. The two surfaces answer different questions, and knowing which you are looking at is the first analytical skill in this module.</p>\n\n<p><b>The dashboard answers \"what is happening now\".</b> It opens on a set of tiles — Total Orders, Assigned, Agent Notified, Dispatch Assigned, Order Accepted, Delivery In Progress, Delivery Rescheduled, Not Picking, Call Back, Not Ready, Rejected, Delivered, Cancelled, Not Reachable, Duplicate, Failed/Returned, On Hold — with a timeframe control offering Day, Week, Month, Quarter and Year. It is an instrument for the present: where is the book right now, what is piling up, what is moving.</p>\n\n<p><b>The reports answer \"what happened\".</b> They offer finished periods, custom ranges and comparison. They are the instrument for review, coaching and decisions about money.</p>\n\n<p>Use the dashboard to notice; use the reports to conclude. A tile that looks wrong is a reason to open a report, not a finding in itself.</p>\n\n<p><b>Now the rule that catches almost everyone, and it is the most important thing in this module.</b></p>\n\n<p><b>Only some of the tiles respond to the timeframe control.</b></p>\n\n<p>Tiles for <b>terminal</b> statuses — Total Orders, Delivered, Cancelled and the rest of the outcomes an order finishes in — are scoped to the period you selected. Choose Month and you see this month's delivered orders.</p>\n\n<p>Tiles for <b>in-flight</b> statuses — Agent Notified, Delivery Rescheduled, Delivery In Progress, and the other stages an order passes through on its way somewhere — <b>ignore the timeframe entirely</b>. They show the total sitting in that status right now, whatever period you picked. Switch from Day to Year and they do not move.</p>\n\n<p><b>Once you know that, the dashboard stops looking broken.</b> On a real dashboard showing one month, Total Orders read 46,472 while Not Ready read 91,166 — nearly double. That is not an error and the tiles are not counting the same thing: 46,472 orders arrived this month, and 91,166 orders are sitting in Not Ready across the entire book, most of them from earlier periods.</p>\n\n<p><b>The consequence you must carry.</b> Never treat the tiles as slices of one pie. They do not sum to Total Orders and were never meant to. Never compute a percentage by dividing an in-flight tile by Total Orders — you would be dividing an all-time figure by one month, and the answer would be meaningless in a way that looks perfectly plausible.</p>\n\n<p>The distinction is also useful rather than merely a caution. A terminal tile answers <i>how did we do</i>. An in-flight tile answers <i>what is stuck right now</i>, and a large in-flight number is a backlog whether or not it arrived this month. Delivery Rescheduled sitting high says something about the book today that no period-scoped figure would reveal.</p>\n\n<p><b>Delivery Rate has its own rule: duplicates are removed from the calculation.</b> An order identified as a duplicate was never a real opportunity to deliver, so counting it against delivery performance would penalise the team for the system correctly spotting the same order twice.</p>\n\n<blockquote>[CONFIRM] Worked against a live dashboard, Delivered of 25,466 over Total Orders less Duplicates of 45,342 gives 56.2%, where the tile read 56.3%. The small gap is most likely live data moving between tile loads, but the exact definition is worth confirming with your administrator before quoting the figure in a review.</blockquote>\n\n<blockquote>IMPLEMENTATION TIP: Two questions before you quote any tile. Does this one move when I change the timeframe? And for a rate: what has been taken out of the denominator? Change the timeframe control and watch which tiles move — thirty seconds, once, and you will never misread the dashboard again.</blockquote>"
+    "html": "<p>New managers routinely mistake the dashboard for a report, quote a tile in a meeting, and discover later that it did not mean what they assumed. The two surfaces answer different questions, and knowing which you are looking at is the first analytical skill in this module.</p>\n\n<p><b>The dashboard answers \"what is happening now\".</b> It opens on a set of tiles — Total Orders, Assigned, Agent Notified, Dispatch Assigned, Order Accepted, Delivery In Progress, Delivery Rescheduled, Not Picking, Call Back, Not Ready, Rejected, Delivered, Cancelled, Not Reachable, Duplicate, Failed/Returned, On Hold — with a timeframe control offering Day, Week, Month, Quarter and Year. It is an instrument for the present: where is the book right now, what is piling up, what is moving.</p>\n\n<p><b>The reports answer \"what happened\".</b> They offer finished periods, custom ranges and comparison. They are the instrument for review, coaching and decisions about money.</p>\n\n<p>Use the dashboard to notice; use the reports to conclude. A tile that looks wrong is a reason to open a report, not a finding in itself.</p>\n\n<p><b>Now the rule that catches almost everyone, and it is the most important thing in this module.</b></p>\n\n<p><b>Only some of the tiles respond to the timeframe control.</b></p>\n\n<p>Tiles for <b>terminal</b> statuses — Total Orders, Delivered, Cancelled and the rest of the outcomes an order finishes in — are scoped to the period you selected. Choose Month and you see this month's delivered orders.</p>\n\n<p>Tiles for <b>in-flight</b> statuses — Agent Notified, Delivery Rescheduled, Delivery In Progress, and the other stages an order passes through on its way somewhere — <b>ignore the timeframe entirely</b>. They show the total sitting in that status right now, whatever period you picked. Switch from Day to Year and they do not move.</p>\n\n<p><b>Once you know that, the dashboard stops looking broken.</b> On a real dashboard showing one month, Total Orders read 46,472 while Not Ready read 91,166 — nearly double. That is not an error and the tiles are not counting the same thing: 46,472 orders arrived this month, and 91,166 orders are sitting in Not Ready across the entire book, most of them from earlier periods.</p>\n\n<p><b>The consequence you must carry.</b> Never treat the tiles as slices of one pie. They do not sum to Total Orders and were never meant to. Never compute a percentage by dividing an in-flight tile by Total Orders — you would be dividing an all-time figure by one month, and the answer would be meaningless in a way that looks perfectly plausible.</p>\n\n<p>The distinction is also useful rather than merely a caution. A terminal tile answers <i>how did we do</i>. An in-flight tile answers <i>what is stuck right now</i>, and a large in-flight number is a backlog whether or not it arrived this month. Delivery Rescheduled sitting high says something about the book today that no period-scoped figure would reveal.</p>\n\n<p><b>Delivery Rate has its own rule: duplicates are removed from the calculation.</b> An order identified as a duplicate was never a real opportunity to deliver, so counting it against delivery performance would penalise the team for the system correctly spotting the same order twice.</p>\n\n<blockquote>[CONFIRM] Worked against a live dashboard, Delivered of 25,466 over Total Orders less Duplicates of 45,342 gives 56.2%, where the tile read 56.3%. The small gap is most likely live data moving between tile loads, but the exact definition is worth confirming with your administrator before quoting the figure in a review.</blockquote>\n\n<blockquote>IMPLEMENTATION TIP: Two questions before you quote any tile. Does this one move when I change the timeframe? And for a rate: what has been taken out of the denominator? Change the timeframe control and watch which tiles move — thirty seconds, once, and you will never misread the dashboard again.</blockquote>",
+    "checks": [
+     {
+      "q": "The dashboard is best used to:",
+      "opts": [
+       "Draw conclusions for a review",
+       "Notice something worth investigating in a report",
+       "Compare completed months",
+       "Export figures for a board pack"
+      ],
+      "ans": 1,
+      "why": "Notice with the dashboard, conclude with the reports. A tile that looks wrong is a reason to open a report, not a finding.",
+      "sort": 0
+     },
+     {
+      "q": "Not Ready reads higher than Total Orders for the same month because:",
+      "opts": [
+       "The tile is counting a different product set",
+       "Not Ready ignores the timeframe and shows the whole book",
+       "Duplicates are counted twice",
+       "Total Orders excludes cancelled orders"
+      ],
+      "ans": 1,
+      "why": "Terminal tiles are period-scoped; in-flight tiles are not. Once you know which is which, the dashboard stops looking broken.",
+      "sort": 1
+     },
+     {
+      "q": "Duplicates are removed from the Delivery Rate calculation because:",
+      "opts": [
+       "They are usually cancelled anyway",
+       "A duplicate was never a real chance to deliver",
+       "They belong to a different branch",
+       "The customer ordered twice deliberately"
+      ],
+      "ans": 1,
+      "why": "Counting them would penalise the team for the system correctly spotting the same order twice.",
+      "sort": 2
+     }
+    ]
    },
    {
     "title": "Closer Summary — reading individual performance",
     "est": 8,
-    "html": "<p>The Closer Summary is the go-to report for individual performance — read daily by team leads, weekly and monthly by managers running reviews, coaching and incentives. One row per agent, and every column earns its place.</p>\n\n<p><b>Total Orders</b> is raw activity volume. Read it last, not first. Low volume can mean underperformance, or it can mean complex high-value work, or a closer covering a category with thinner demand. Context first, judgement second.</p>\n\n<p><b>Delivered Orders</b> is the true count of completed sales — cancellations, returns and anything still in flight stripped out. This is the number that corresponds to money.</p>\n\n<p><b>Conversion Rate</b>, Delivered divided by Total, is the most important efficiency metric on the row. Seventy per cent means seven of every ten orders a closer created reached the customer. The team average sits alongside so you are comparing against the room rather than against an idea in your head.</p>\n\n<p><b>Revenue</b> is the bottom-line contribution of those delivered orders, and <b>AOV</b> — Revenue divided by Delivered — is the order-value profile. A notably high AOV usually marks a skilled upseller, someone who reliably turns one item into two.</p>\n\n<p><b>Cancellation Rate</b>, Cancelled divided by Total, is the diagnostic column. Above roughly twenty to twenty-five per cent is a red flag, and it almost always means the same thing: orders created without proper confirmation at the front. A closer under pressure to show volume can create orders from soft interest, and every one of those becomes a cancellation later. The rate catches it.</p>\n\n<p><b>Response Time</b> is average speed to respond to new assignments and enquiries — the leading indicator that moves before conversion does.</p>\n\n<p><b>Read pairs, not columns.</b> This is the whole craft of the report, because no single column tells you what to do:</p>\n\n<p>High volume with low conversion is a confirmation problem — the closer is creating orders faster than they are qualifying them. Low volume with high AOV is a specialist, not a slacker, and ranking them on volume will drive away your best upseller. Good conversion with slow response is a coaching win waiting to happen — the skill is there, the habit is not. Low volume with low conversion and a rising cancellation rate is the pattern that actually needs a conversation, and it is the only one of the four that does.</p>\n\n<blockquote>IMPLEMENTATION TIP: Filter by date range, branch or team before comparing anybody. A closer in a branch with thin stock cover will show cancellations that belong to the warehouse, not to them. Comparing like with like is not a courtesy; it is what makes the report usable.</blockquote>\n\n<blockquote>WATCH-OUT: Every metric here can be gamed, and closers work out how quickly. Conversion improves if you avoid difficult orders. Cancellation rate improves if you leave dead orders open instead of closing them honestly. Read the columns together and the gaming shows up as a shape that does not make sense — which is exactly why you read pairs.</blockquote>"
+    "html": "<p>The Closer Summary is the go-to report for individual performance — read daily by team leads, weekly and monthly by managers running reviews, coaching and incentives. One row per agent, and every column earns its place.</p>\n\n<p><b>Total Orders</b> is raw activity volume. Read it last, not first. Low volume can mean underperformance, or it can mean complex high-value work, or a closer covering a category with thinner demand. Context first, judgement second.</p>\n\n<p><b>Delivered Orders</b> is the true count of completed sales — cancellations, returns and anything still in flight stripped out. This is the number that corresponds to money.</p>\n\n<p><b>Conversion Rate</b>, Delivered divided by Total, is the most important efficiency metric on the row. Seventy per cent means seven of every ten orders a closer created reached the customer. The team average sits alongside so you are comparing against the room rather than against an idea in your head.</p>\n\n<p><b>Revenue</b> is the bottom-line contribution of those delivered orders, and <b>AOV</b> — Revenue divided by Delivered — is the order-value profile. A notably high AOV usually marks a skilled upseller, someone who reliably turns one item into two.</p>\n\n<p><b>Cancellation Rate</b>, Cancelled divided by Total, is the diagnostic column. Above roughly twenty to twenty-five per cent is a red flag, and it almost always means the same thing: orders created without proper confirmation at the front. A closer under pressure to show volume can create orders from soft interest, and every one of those becomes a cancellation later. The rate catches it.</p>\n\n<p><b>Response Time</b> is average speed to respond to new assignments and enquiries — the leading indicator that moves before conversion does.</p>\n\n<p><b>Read pairs, not columns.</b> This is the whole craft of the report, because no single column tells you what to do:</p>\n\n<p>High volume with low conversion is a confirmation problem — the closer is creating orders faster than they are qualifying them. Low volume with high AOV is a specialist, not a slacker, and ranking them on volume will drive away your best upseller. Good conversion with slow response is a coaching win waiting to happen — the skill is there, the habit is not. Low volume with low conversion and a rising cancellation rate is the pattern that actually needs a conversation, and it is the only one of the four that does.</p>\n\n<blockquote>IMPLEMENTATION TIP: Filter by date range, branch or team before comparing anybody. A closer in a branch with thin stock cover will show cancellations that belong to the warehouse, not to them. Comparing like with like is not a courtesy; it is what makes the report usable.</blockquote>\n\n<blockquote>WATCH-OUT: Every metric here can be gamed, and closers work out how quickly. Conversion improves if you avoid difficult orders. Cancellation rate improves if you leave dead orders open instead of closing them honestly. Read the columns together and the gaming shows up as a shape that does not make sense — which is exactly why you read pairs.</blockquote>",
+    "checks": [
+     {
+      "q": "A closer shows low volume and high AOV. The right reading is:",
+      "opts": [
+       "An underperformer to coach on activity",
+       "A specialist, not a slacker",
+       "Someone avoiding difficult orders",
+       "A data error worth checking"
+      ],
+      "ans": 1,
+      "why": "Ranking them on volume alone will drive away your best upseller. Read pairs of columns, never one at a time.",
+      "sort": 0
+     },
+     {
+      "q": "Which pattern most warrants a difficult conversation?",
+      "opts": [
+       "High volume, low conversion",
+       "Low volume, high AOV",
+       "Good conversion, slow response",
+       "Low volume, low conversion, rising cancellations"
+      ],
+      "ans": 3,
+      "why": "The other three are a confirmation problem, a specialist, and a coachable habit. Only the fourth is a performance concern on its own.",
+      "sort": 1
+     },
+     {
+      "q": "Which metric moves first when something is going wrong?",
+      "opts": [
+       "Revenue",
+       "Conversion rate",
+       "Response time",
+       "AOV"
+      ],
+      "ans": 2,
+      "why": "Response time is the leading indicator. A manager working from delivered revenue is always reacting to something weeks old.",
+      "sort": 2
+     }
+    ]
    },
    {
     "title": "Team Performance — comparing units fairly",
     "est": 8,
-    "html": "<p>The Team Performance report rolls individual agents up into their organisational units — one row per team or branch — and its entire craft is <b>normalisation</b>: making units of different sizes comparable without pretending they are the same.</p>\n\n<p><b>Headcount</b> is active agents in the unit, and it is the most important column on the row despite measuring nothing about performance. It is the denominator that makes every other comparison honest.</p>\n\n<p><b>Total Orders, Delivered Orders and Total Revenue</b> are the combined outputs — the raw scale of what the unit did.</p>\n\n<p><b>Revenue per Agent</b>, Revenue divided by Headcount, is the fair-comparison metric and the one to lead with. A team of fifteen producing more total revenue than a team of five has told you almost nothing; a team of five producing more revenue per agent has told you something worth acting on.</p>\n\n<p><b>Average Conversion Rate</b> is the unit-wide delivered-to-total ratio, <b>Top Performer</b> surfaces each unit's standout automatically, and <b>Average AOV</b> gives the unit's order-value profile.</p>\n\n<p><b>Why ranking on raw revenue is the classic error.</b> Consider two teams. One has fifteen agents and produces the larger revenue total; the other has five and produces less. Rank on totals and the large team wins, gets the praise and probably gets the next hire. Rank on revenue per agent and the picture may invert completely — and the second view is the one that predicts what happens if you add a person to either team.</p>\n\n<p>A large team beating a small one on totals while losing on revenue per agent is not winning. It is absorbing more people to produce less each, which is the shape of a team that is growing headcount faster than capability.</p>\n\n<p><b>Reading Top Performer carefully.</b> It is useful for spotting talent and dangerous as a summary. A unit whose top performer produces a large share of its revenue is a unit with a concentration risk — that person's resignation is a revenue event. A unit with a flat distribution is more robust even if its best individual is less remarkable. The report shows you the peak; you have to ask about the spread.</p>\n\n<blockquote>WATCH-OUT: Never rank teams on raw revenue alone. A big team beating a small one on totals while losing on revenue per agent is shrinking, not winning — and rewarding it teaches every team lead that the route to recognition is headcount rather than performance.</blockquote>\n\n<blockquote>IMPLEMENTATION TIP: Before comparing two units, check whether they cover the same categories and countries. Closers are scoped to both, so two teams may be working structurally different demand. Comparing them without saying so produces a league table that measures territory rather than skill.</blockquote>"
+    "html": "<p>The Team Performance report rolls individual agents up into their organisational units — one row per team or branch — and its entire craft is <b>normalisation</b>: making units of different sizes comparable without pretending they are the same.</p>\n\n<p><b>Headcount</b> is active agents in the unit, and it is the most important column on the row despite measuring nothing about performance. It is the denominator that makes every other comparison honest.</p>\n\n<p><b>Total Orders, Delivered Orders and Total Revenue</b> are the combined outputs — the raw scale of what the unit did.</p>\n\n<p><b>Revenue per Agent</b>, Revenue divided by Headcount, is the fair-comparison metric and the one to lead with. A team of fifteen producing more total revenue than a team of five has told you almost nothing; a team of five producing more revenue per agent has told you something worth acting on.</p>\n\n<p><b>Average Conversion Rate</b> is the unit-wide delivered-to-total ratio, <b>Top Performer</b> surfaces each unit's standout automatically, and <b>Average AOV</b> gives the unit's order-value profile.</p>\n\n<p><b>Why ranking on raw revenue is the classic error.</b> Consider two teams. One has fifteen agents and produces the larger revenue total; the other has five and produces less. Rank on totals and the large team wins, gets the praise and probably gets the next hire. Rank on revenue per agent and the picture may invert completely — and the second view is the one that predicts what happens if you add a person to either team.</p>\n\n<p>A large team beating a small one on totals while losing on revenue per agent is not winning. It is absorbing more people to produce less each, which is the shape of a team that is growing headcount faster than capability.</p>\n\n<p><b>Reading Top Performer carefully.</b> It is useful for spotting talent and dangerous as a summary. A unit whose top performer produces a large share of its revenue is a unit with a concentration risk — that person's resignation is a revenue event. A unit with a flat distribution is more robust even if its best individual is less remarkable. The report shows you the peak; you have to ask about the spread.</p>\n\n<blockquote>WATCH-OUT: Never rank teams on raw revenue alone. A big team beating a small one on totals while losing on revenue per agent is shrinking, not winning — and rewarding it teaches every team lead that the route to recognition is headcount rather than performance.</blockquote>\n\n<blockquote>IMPLEMENTATION TIP: Before comparing two units, check whether they cover the same categories and countries. Closers are scoped to both, so two teams may be working structurally different demand. Comparing them without saying so produces a league table that measures territory rather than skill.</blockquote>",
+    "checks": [
+     {
+      "q": "Headcount is the most important column because:",
+      "opts": [
+       "It shows which team is growing",
+       "It is the denominator that makes comparison honest",
+       "It determines the team's target",
+       "It drives the auto-assignment rules"
+      ],
+      "ans": 1,
+      "why": "It measures nothing about performance and makes every other comparison meaningful.",
+      "sort": 0
+     },
+     {
+      "q": "A unit whose top performer produces most of its revenue has:",
+      "opts": [
+       "The strongest team culture",
+       "A concentration risk — that person's resignation is a revenue event",
+       "Been assigned the best leads",
+       "Reached its capacity ceiling"
+      ],
+      "ans": 1,
+      "why": "The report shows you the peak. You have to ask about the spread, because a flat distribution is more robust even with a less remarkable best individual.",
+      "sort": 1
+     },
+     {
+      "q": "Before comparing two units you should check:",
+      "opts": [
+       "Their headcount only",
+       "That they cover the same categories and countries",
+       "That both use Shift Management",
+       "Their average AOV"
+      ],
+      "ans": 1,
+      "why": "Closers are scoped to both, so two teams may be working structurally different demand. Otherwise the league table measures territory rather than skill.",
+      "sort": 2
+     }
+    ]
    },
    {
     "title": "Product Sales Analysis — what is actually selling",
     "est": 8,
-    "html": "<p>One row per product, and the columns answer the commercial questions managers actually ask — not what is popular, but what the business should do next.</p>\n\n<p><b>Units Sold and Revenue</b> give delivered volume and value per product. Delivered is the operative word: this report counts what reached customers, not what was ordered.</p>\n\n<p><b>Percentage of Total Revenue</b> measures concentration, and it is the column with the most strategic weight. A single product at forty per cent of revenue means the business leans on it — and inherits every risk attached to it: a supply interruption, a price move by a competitor, a quality problem, a platform banning its advertising. Top three products above half of revenue is a diversification warning worth raising even while the numbers look good, because the numbers look good right up until they do not.</p>\n\n<p><b>Average Selling Price</b> is the discipline column. When ASP runs meaningfully below list price, agents are discounting. The question is not whether that is bad — sometimes it is exactly right — but whether it is policy or habit. Discounting that nobody decided on is margin leaving the business without anybody choosing to spend it.</p>\n\n<p><b>Trend</b> shows rising, flat or declining against the prior period. Both directions demand action. A growing product needs stock cover ahead of demand, because the fastest way to kill momentum is to run out. A declining product needs a cause found before a conclusion is drawn: seasonality, a competitor's move, a price change, fading marketing spend, or a quality problem surfacing. Each of those has a different remedy, and the report will not tell you which one it is — it tells you where to look.</p>\n\n<p><b>Return Rate</b> above roughly ten per cent needs attention, and the three usual causes are quality, misleading description, and mismatched expectation. They are distinguishable: quality problems cluster by batch or period, description problems affect every unit sold through a particular channel, and expectation problems show up alongside high ASP discounting where a customer was talked into something.</p>\n\n<p><b>Filter by date, category and branch.</b> Regional preference differences are frequently the most actionable finding in the whole report — a product that under-performs nationally while selling strongly in two branches is not a weak product, it is a mis-targeted one, and that is a marketing decision rather than a discontinuation.</p>\n\n<blockquote>IMPLEMENTATION TIP: Read Trend and Return Rate together before acting on either. Rising units with a rising return rate is not growth; it is a product being sold to people it does not suit, and the returns will arrive after the celebration.</blockquote>"
+    "html": "<p>One row per product, and the columns answer the commercial questions managers actually ask — not what is popular, but what the business should do next.</p>\n\n<p><b>Units Sold and Revenue</b> give delivered volume and value per product. Delivered is the operative word: this report counts what reached customers, not what was ordered.</p>\n\n<p><b>Percentage of Total Revenue</b> measures concentration, and it is the column with the most strategic weight. A single product at forty per cent of revenue means the business leans on it — and inherits every risk attached to it: a supply interruption, a price move by a competitor, a quality problem, a platform banning its advertising. Top three products above half of revenue is a diversification warning worth raising even while the numbers look good, because the numbers look good right up until they do not.</p>\n\n<p><b>Average Selling Price</b> is the discipline column. When ASP runs meaningfully below list price, agents are discounting. The question is not whether that is bad — sometimes it is exactly right — but whether it is policy or habit. Discounting that nobody decided on is margin leaving the business without anybody choosing to spend it.</p>\n\n<p><b>Trend</b> shows rising, flat or declining against the prior period. Both directions demand action. A growing product needs stock cover ahead of demand, because the fastest way to kill momentum is to run out. A declining product needs a cause found before a conclusion is drawn: seasonality, a competitor's move, a price change, fading marketing spend, or a quality problem surfacing. Each of those has a different remedy, and the report will not tell you which one it is — it tells you where to look.</p>\n\n<p><b>Return Rate</b> above roughly ten per cent needs attention, and the three usual causes are quality, misleading description, and mismatched expectation. They are distinguishable: quality problems cluster by batch or period, description problems affect every unit sold through a particular channel, and expectation problems show up alongside high ASP discounting where a customer was talked into something.</p>\n\n<p><b>Filter by date, category and branch.</b> Regional preference differences are frequently the most actionable finding in the whole report — a product that under-performs nationally while selling strongly in two branches is not a weak product, it is a mis-targeted one, and that is a marketing decision rather than a discontinuation.</p>\n\n<blockquote>IMPLEMENTATION TIP: Read Trend and Return Rate together before acting on either. Rising units with a rising return rate is not growth; it is a product being sold to people it does not suit, and the returns will arrive after the celebration.</blockquote>",
+    "checks": [
+     {
+      "q": "One product at 40% of revenue is:",
+      "opts": [
+       "A success to protect and extend",
+       "A concentration risk to raise even while numbers look good",
+       "Evidence the range is too narrow",
+       "Normal for a growing business"
+      ],
+      "ans": 1,
+      "why": "The business inherits every risk attached to that product, and the numbers look fine right up until they do not.",
+      "sort": 0
+     },
+     {
+      "q": "Average Selling Price runs well below list. The question to ask is:",
+      "opts": [
+       "Whether list price is too high",
+       "Whether the discounting is policy or habit",
+       "Whether the product should be discontinued",
+       "Whether returns are being counted"
+      ],
+      "ans": 1,
+      "why": "Discounting nobody decided on is margin leaving the business without anyone choosing to spend it.",
+      "sort": 1
+     },
+     {
+      "q": "Rising units together with a rising return rate means:",
+      "opts": [
+       "Growth worth investing behind",
+       "A product being sold to people it does not suit",
+       "A stock cover problem",
+       "A seasonal peak"
+      ],
+      "ans": 1,
+      "why": "The returns arrive after the celebration. Read Trend and Return Rate together before acting on either.",
+      "sort": 2
+     }
+    ]
    },
    {
     "title": "Marketing ROAS — the money view",
     "est": 8,
-    "html": "<p>ROAS is where money meets marketing, and it is the report most likely to be quoted confidently by someone who has misunderstood it. One row per campaign.</p>\n\n<p><b>Ad Spend</b> is what the campaign cost. <b>Revenue Generated</b> is the delivered-order value attributed to it. <b>ROAS</b> is Revenue divided by Spend — the headline number.</p>\n\n<p><b>Here is the misunderstanding to avoid.</b> Below 1.0, a campaign is returning less revenue than it consumed in spend, which is unambiguously bad. But 1.0 is not the break-even line, because <b>ROAS measures revenue, not profit</b>. A campaign at 2.0 on products carrying fifty per cent margin has generated exactly enough gross margin to pay for itself — before warehousing, before delivery, before the closer's time, before any overhead at all. That campaign is losing money while showing a number that sounds like a success.</p>\n\n<p>The threshold that matters is therefore specific to your margins, and every business should know its own. Ask what ROAS actually covers cost here, write it down, and judge campaigns against that rather than against 1.0.</p>\n\n<p><b>The efficiency ladder</b> — Leads Generated, Cost per Lead, Cost per Order — tells you where money is being lost when ROAS disappoints. Read it downward: what you paid for attention, what you paid for a lead, what you paid for an actual order. A campaign with cheap leads and expensive orders is not an advertising problem; it is a conversion problem, and no amount of budget reallocation will fix it.</p>\n\n<p><b>Lead-to-Order Conversion</b> is that same insight as a single number. Weak conversion with cheap leads points squarely at the funnel — the follow-up, the closer capacity, the speed of first contact — rather than at the ads. This is the point where the marketing report and the New Lead backlog meet: leads arriving faster than the team can work them will show as poor campaign performance, and the campaign will get cut for a failure that belonged to staffing.</p>\n\n<blockquote>IMPLEMENTATION TIP: Shift spend from low-ROAS to high-ROAS campaigns in small steps, and re-read after each move rather than making one large reallocation. Attribution depends on delivered orders, which lag the spend by the length of your delivery cycle — so a campaign switched off this week was being judged on incomplete data.</blockquote>\n\n<blockquote>WATCH-OUT: A campaign's ROAS is only as honest as the Lead Channel recorded at order creation. Channels guessed rather than asked will attribute revenue to the wrong campaign, and budget will follow the attribution. This is the direct line between one closer's carelessness in a form field and a marketing decision worth millions of naira.</blockquote>"
+    "html": "<p>ROAS is where money meets marketing, and it is the report most likely to be quoted confidently by someone who has misunderstood it. One row per campaign.</p>\n\n<p><b>Ad Spend</b> is what the campaign cost. <b>Revenue Generated</b> is the delivered-order value attributed to it. <b>ROAS</b> is Revenue divided by Spend — the headline number.</p>\n\n<p><b>Here is the misunderstanding to avoid.</b> Below 1.0, a campaign is returning less revenue than it consumed in spend, which is unambiguously bad. But 1.0 is not the break-even line, because <b>ROAS measures revenue, not profit</b>. A campaign at 2.0 on products carrying fifty per cent margin has generated exactly enough gross margin to pay for itself — before warehousing, before delivery, before the closer's time, before any overhead at all. That campaign is losing money while showing a number that sounds like a success.</p>\n\n<p>The threshold that matters is therefore specific to your margins, and every business should know its own. Ask what ROAS actually covers cost here, write it down, and judge campaigns against that rather than against 1.0.</p>\n\n<p><b>The efficiency ladder</b> — Leads Generated, Cost per Lead, Cost per Order — tells you where money is being lost when ROAS disappoints. Read it downward: what you paid for attention, what you paid for a lead, what you paid for an actual order. A campaign with cheap leads and expensive orders is not an advertising problem; it is a conversion problem, and no amount of budget reallocation will fix it.</p>\n\n<p><b>Lead-to-Order Conversion</b> is that same insight as a single number. Weak conversion with cheap leads points squarely at the funnel — the follow-up, the closer capacity, the speed of first contact — rather than at the ads. This is the point where the marketing report and the New Lead backlog meet: leads arriving faster than the team can work them will show as poor campaign performance, and the campaign will get cut for a failure that belonged to staffing.</p>\n\n<blockquote>IMPLEMENTATION TIP: Shift spend from low-ROAS to high-ROAS campaigns in small steps, and re-read after each move rather than making one large reallocation. Attribution depends on delivered orders, which lag the spend by the length of your delivery cycle — so a campaign switched off this week was being judged on incomplete data.</blockquote>\n\n<blockquote>WATCH-OUT: A campaign's ROAS is only as honest as the Lead Channel recorded at order creation. Channels guessed rather than asked will attribute revenue to the wrong campaign, and budget will follow the attribution. This is the direct line between one closer's carelessness in a form field and a marketing decision worth millions of naira.</blockquote>",
+    "checks": [
+     {
+      "q": "A campaign shows ROAS of 2.0 on products carrying 50% margin. It is:",
+      "opts": [
+       "Comfortably profitable",
+       "Roughly break-even before any overhead",
+       "Losing money on revenue terms",
+       "Impossible to judge without lead volume"
+      ],
+      "ans": 1,
+      "why": "ROAS measures revenue, not profit. The threshold that matters is specific to your margins, and every business should know its own.",
+      "sort": 0
+     },
+     {
+      "q": "Cheap leads with expensive orders points at:",
+      "opts": [
+       "The advertising",
+       "The funnel — follow-up, capacity, speed of first contact",
+       "The product price",
+       "Attribution error"
+      ],
+      "ans": 1,
+      "why": "No amount of budget reallocation fixes a conversion problem. Read the efficiency ladder downward to find where money is lost.",
+      "sort": 1
+     },
+     {
+      "q": "A campaign's ROAS is only as honest as:",
+      "opts": [
+       "The ad platform's reporting",
+       "The Lead Channel recorded at order creation",
+       "The delivery rate that month",
+       "The size of the budget"
+      ],
+      "ans": 1,
+      "why": "This is the direct line between one closer's carelessness in a form field and a marketing decision worth millions.",
+      "sort": 2
+     }
+    ]
    },
    {
     "title": "Revenue Cohort Trends — does anybody come back",
     "est": 8,
-    "html": "<p>The Revenue Cohort Trends report is the long lens, and it answers a question no other report in the directory can: are we building a customer base, or renting one?</p>\n\n<p><b>How a cohort works.</b> Customers are grouped by the month of their first purchase — everyone who first bought in March is the March cohort, permanently. Each cohort's spending is then tracked across the months that follow, laid out as a matrix: cohorts down the side, months across the top.</p>\n\n<p><b>Reading the matrix is a matter of reading rows, not cells.</b> A row that stays strong across subsequent months means those customers came back. A row that collapses after month one means the business bought that revenue once and will have to buy it again — every naira of next month's revenue will have to come from new customers acquired at full cost.</p>\n\n<p>That distinction is the difference between a business that compounds and one that runs to stand still. Two companies with identical monthly revenue can be in completely different health, and this is the only report that shows it.</p>\n\n<p><b>Comparing rows tells you whether things are improving.</b> If recent cohorts hold up better than older ones, something changed for the better — a product improvement, better after-sales, a retention campaign. If they decay faster, something has worsened, and it usually worsened before revenue showed it. Cohort decay is a leading indicator; total revenue is a lagging one.</p>\n\n<p><b>Who reads it, and for what.</b> Marketing managers use it to judge whether retention campaigns actually retain. Executives use it to judge the health of the base rather than the size of the month. Product managers use it to see whether an improvement drove repeat purchase or merely satisfied the people who complained.</p>\n\n<p><b>The trap is impatience.</b> A cohort needs months to say anything. The most recent row is always the thinnest evidence in the table, and it is the one people look at first because it is the newest. Judge cohorts that have had time to behave, and treat the latest row as provisional.</p>\n\n<blockquote>IMPLEMENTATION TIP: If you read only one thing here, read whether month-two retention is rising or falling across recent cohorts. Almost everything a business does to improve retention shows up there first, and it shows up months before it appears in revenue.</blockquote>\n\n<p><b>One practical caution about cohort size.</b> A cohort is only as trustworthy as the number of customers in it. A month in which the business acquired thirty first-time buyers will produce a row that swings wildly — three of them returning is ten per cent, four is thirteen, and neither difference means anything. Check how many customers a cohort contains before reading its shape, and treat small cohorts as anecdote rather than evidence.</p>\n\n<p><b>And one about what a cohort cannot tell you.</b> The report groups customers by when they first bought, not by what they bought or where they came from. Two customers in the same March row may have arrived through entirely different campaigns, bought entirely different products, and been served by different branches. A cohort that decays badly is a signal to go looking — into Channel Attribution, into Product Sales Analysis — rather than a finding on its own. It tells you retention is weak; it does not tell you for whom.</p>"
+    "html": "<p>The Revenue Cohort Trends report is the long lens, and it answers a question no other report in the directory can: are we building a customer base, or renting one?</p>\n\n<p><b>How a cohort works.</b> Customers are grouped by the month of their first purchase — everyone who first bought in March is the March cohort, permanently. Each cohort's spending is then tracked across the months that follow, laid out as a matrix: cohorts down the side, months across the top.</p>\n\n<p><b>Reading the matrix is a matter of reading rows, not cells.</b> A row that stays strong across subsequent months means those customers came back. A row that collapses after month one means the business bought that revenue once and will have to buy it again — every naira of next month's revenue will have to come from new customers acquired at full cost.</p>\n\n<p>That distinction is the difference between a business that compounds and one that runs to stand still. Two companies with identical monthly revenue can be in completely different health, and this is the only report that shows it.</p>\n\n<p><b>Comparing rows tells you whether things are improving.</b> If recent cohorts hold up better than older ones, something changed for the better — a product improvement, better after-sales, a retention campaign. If they decay faster, something has worsened, and it usually worsened before revenue showed it. Cohort decay is a leading indicator; total revenue is a lagging one.</p>\n\n<p><b>Who reads it, and for what.</b> Marketing managers use it to judge whether retention campaigns actually retain. Executives use it to judge the health of the base rather than the size of the month. Product managers use it to see whether an improvement drove repeat purchase or merely satisfied the people who complained.</p>\n\n<p><b>The trap is impatience.</b> A cohort needs months to say anything. The most recent row is always the thinnest evidence in the table, and it is the one people look at first because it is the newest. Judge cohorts that have had time to behave, and treat the latest row as provisional.</p>\n\n<blockquote>IMPLEMENTATION TIP: If you read only one thing here, read whether month-two retention is rising or falling across recent cohorts. Almost everything a business does to improve retention shows up there first, and it shows up months before it appears in revenue.</blockquote>\n\n<p><b>One practical caution about cohort size.</b> A cohort is only as trustworthy as the number of customers in it. A month in which the business acquired thirty first-time buyers will produce a row that swings wildly — three of them returning is ten per cent, four is thirteen, and neither difference means anything. Check how many customers a cohort contains before reading its shape, and treat small cohorts as anecdote rather than evidence.</p>\n\n<p><b>And one about what a cohort cannot tell you.</b> The report groups customers by when they first bought, not by what they bought or where they came from. Two customers in the same March row may have arrived through entirely different campaigns, bought entirely different products, and been served by different branches. A cohort that decays badly is a signal to go looking — into Channel Attribution, into Product Sales Analysis — rather than a finding on its own. It tells you retention is weak; it does not tell you for whom.</p>",
+    "checks": [
+     {
+      "q": "A cohort row that collapses after month one means:",
+      "opts": [
+       "The cohort was too small to read",
+       "Revenue was bought once and must be bought again",
+       "Those customers were acquired through the wrong channel",
+       "The product was discontinued"
+      ],
+      "ans": 1,
+      "why": "Two businesses with identical monthly revenue can be in completely different health. This is the only report that shows it.",
+      "sort": 0
+     },
+     {
+      "q": "Recent cohorts decay faster than older ones. This is:",
+      "opts": [
+       "A seasonal effect to ignore",
+       "A leading indicator that something has worsened",
+       "Expected, since they have had less time",
+       "A sign acquisition has improved"
+      ],
+      "ans": 1,
+      "why": "Cohort decay moves before revenue does. Total revenue is the lagging measure.",
+      "sort": 1
+     },
+     {
+      "q": "The newest row in the matrix should be treated as:",
+      "opts": [
+       "The most reliable, being most current",
+       "Provisional — it has had least time to behave",
+       "The benchmark for older rows",
+       "Excluded from analysis entirely"
+      ],
+      "ans": 1,
+      "why": "It is the thinnest evidence in the table and the one people look at first, because it is new.",
+      "sort": 2
+     }
+    ]
    },
    {
     "title": "Reading reports as a set — the investigation path",
     "est": 8,
-    "html": "<p>Single-report conclusions are how managers get confidently misled. The directory is designed as an investigation path rather than a filing cabinet, and the skill that separates a manager who uses reports from one who merely opens them is knowing which report answers the question the last one raised.</p>\n\n<p><b>Start with the pattern, not the report.</b> Something looks wrong: a closer's numbers fell, a product slowed, a campaign disappointed. The instinct is to act on the report where you noticed it. The discipline is to ask what else would be true if each possible explanation were correct — and then go and look.</p>\n\n<p><b>Worked example one: a closer's conversion is falling.</b> The Closer Summary shows it, and the obvious reading is a performance problem. Before coaching anybody, check Team Performance: if the whole unit's cancellation rate is rising at the same time, this is not one closer. Then check ROAS and cost per lead: cheap leads arriving in volume from a new campaign will convert worse regardless of who works them. The closer may be handling worse raw material at the same rate as before. Coaching them would be both unfair and useless.</p>\n\n<p><b>Worked example two: a product's trend is declining.</b> Product Sales Analysis shows the fall. If Return Rate is also elevated, this is a quality or expectation story and marketing spend will not fix it — it will accelerate the returns. If Return Rate is flat and ROAS on that product's campaigns has fallen, it is a demand-generation story instead. Same symptom, opposite remedies, and the only thing distinguishing them sits in a different report.</p>\n\n<p><b>Worked example three: revenue is flat while order volume rises.</b> Check AOV on the Closer Summary. If AOV is falling, discounting or a shift to cheaper products is eating the gain — and Product Sales Analysis will show which, through Average Selling Price against list.</p>\n\n<p><b>The habit underneath all three.</b> Write down the explanation you believe before you open the second report, then look for the thing that would disprove it. A manager who checks only for confirmation will find it in a directory this size every single time.</p>\n\n<blockquote>CONSULTANT NOTE: Every report cross-references its neighbours by design. When a report leaves you with a conclusion and no next question, you have probably stopped early.</blockquote>\n\n<blockquote>WATCH-OUT: The most expensive mistakes in this module are not misread numbers. They are correctly read numbers acted on without asking what else was true — cutting a campaign that was fine, coaching a closer who was handling bad leads, discontinuing a product that was merely mis-targeted.</blockquote>"
+    "html": "<p>Single-report conclusions are how managers get confidently misled. The directory is designed as an investigation path rather than a filing cabinet, and the skill that separates a manager who uses reports from one who merely opens them is knowing which report answers the question the last one raised.</p>\n\n<p><b>Start with the pattern, not the report.</b> Something looks wrong: a closer's numbers fell, a product slowed, a campaign disappointed. The instinct is to act on the report where you noticed it. The discipline is to ask what else would be true if each possible explanation were correct — and then go and look.</p>\n\n<p><b>Worked example one: a closer's conversion is falling.</b> The Closer Summary shows it, and the obvious reading is a performance problem. Before coaching anybody, check Team Performance: if the whole unit's cancellation rate is rising at the same time, this is not one closer. Then check ROAS and cost per lead: cheap leads arriving in volume from a new campaign will convert worse regardless of who works them. The closer may be handling worse raw material at the same rate as before. Coaching them would be both unfair and useless.</p>\n\n<p><b>Worked example two: a product's trend is declining.</b> Product Sales Analysis shows the fall. If Return Rate is also elevated, this is a quality or expectation story and marketing spend will not fix it — it will accelerate the returns. If Return Rate is flat and ROAS on that product's campaigns has fallen, it is a demand-generation story instead. Same symptom, opposite remedies, and the only thing distinguishing them sits in a different report.</p>\n\n<p><b>Worked example three: revenue is flat while order volume rises.</b> Check AOV on the Closer Summary. If AOV is falling, discounting or a shift to cheaper products is eating the gain — and Product Sales Analysis will show which, through Average Selling Price against list.</p>\n\n<p><b>The habit underneath all three.</b> Write down the explanation you believe before you open the second report, then look for the thing that would disprove it. A manager who checks only for confirmation will find it in a directory this size every single time.</p>\n\n<blockquote>CONSULTANT NOTE: Every report cross-references its neighbours by design. When a report leaves you with a conclusion and no next question, you have probably stopped early.</blockquote>\n\n<blockquote>WATCH-OUT: The most expensive mistakes in this module are not misread numbers. They are correctly read numbers acted on without asking what else was true — cutting a campaign that was fine, coaching a closer who was handling bad leads, discontinuing a product that was merely mis-targeted.</blockquote>",
+    "checks": [
+     {
+      "q": "Before opening a second report you should:",
+      "opts": [
+       "Export the first for the record",
+       "Write down the explanation you believe, then look for what would disprove it",
+       "Check your role permissions",
+       "Align both to the same branch filter"
+      ],
+      "ans": 1,
+      "why": "A manager who checks only for confirmation will find it in a directory this size every single time.",
+      "sort": 0
+     },
+     {
+      "q": "A product declines and its return rate is flat, while campaign ROAS has fallen. This is:",
+      "opts": [
+       "A quality story",
+       "A demand-generation story",
+       "A stock cover story",
+       "A pricing story"
+      ],
+      "ans": 1,
+      "why": "Elevated returns would make it quality. Flat returns with falling ROAS points at demand generation instead — same symptom, opposite remedy.",
+      "sort": 1
+     },
+     {
+      "q": "The most expensive mistakes in this module are:",
+      "opts": [
+       "Misread numbers",
+       "Correctly read numbers acted on without asking what else was true",
+       "Reports run over the wrong branch",
+       "Figures quoted without their period"
+      ],
+      "ans": 1,
+      "why": "Cutting a campaign that was fine, coaching a closer handling bad leads, discontinuing a product that was merely mis-targeted.",
+      "sort": 2
+     }
+    ]
    },
    {
     "title": "The traps — periods, denominators, lag and small numbers",
     "est": 8,
-    "html": "<p>Four failure modes account for most wrong conclusions drawn from these reports. None of them involves a broken report; all of them involve a correct number read without its conditions.</p>\n\n<p><b>1. The period trap.</b> A figure without its date range means nothing, and two people comparing figures over different ranges will argue indefinitely without discovering why. Worse is the partial period: a month-to-date figure compared against a completed month will always look worse, because it is measuring less time. If you must compare a period in progress, compare it against the same point in the previous period — day eleven against day eleven — never against a finished one.</p>\n\n<p><b>2. The denominator trap.</b> Every rate is a fraction, and the bottom half is where the meaning hides. Conversion is Delivered divided by Total, so anything that changes what counts as Total moves it without anybody's performance changing. A delivery rate that excludes cancelled orders is a different number from one that includes them, and a team judged on the first has an incentive to cancel marginal orders. Know the denominator before you set a target on the rate, because people optimise for what is measured, including in ways nobody intended.</p>\n\n<p><b>3. The attribution lag trap.</b> Marketing reports depend on delivered orders, and delivery takes time. A campaign switched on this week has spent all its money and delivered only some of its orders, so its ROAS is understated — sometimes severely. Judge campaigns over a window at least as long as your delivery cycle, and be especially careful about killing a young campaign for underperformance it has not had time to demonstrate either way.</p>\n\n<p><b>4. The small-numbers trap.</b> A closer with four orders and three deliveries shows seventy-five per cent conversion. So does a closer with four hundred and three hundred. They are not comparable claims, and the first is barely a claim at all — one more failed delivery would take it to sixty. Percentages on small bases move violently and mean little, which is why the loudest movements in any ranking are usually the smallest samples. Look at the base before you believe the rate, and be sceptical of anyone who tops a table on volumes far below their peers.</p>\n\n<blockquote>IMPLEMENTATION TIP: Four questions before acting on any figure. What period is this? What is in the denominator? Has enough time passed for it to be complete? How big is the base? A manager who asks those four is wrong far less often than one who reads faster.</blockquote>\n\n<blockquote>WATCH-OUT: These traps are most dangerous when a number agrees with what you already believed. Scepticism arrives naturally for figures that surprise us and has to be applied deliberately to figures that do not.</blockquote>"
+    "html": "<p>Four failure modes account for most wrong conclusions drawn from these reports. None of them involves a broken report; all of them involve a correct number read without its conditions.</p>\n\n<p><b>1. The period trap.</b> A figure without its date range means nothing, and two people comparing figures over different ranges will argue indefinitely without discovering why. Worse is the partial period: a month-to-date figure compared against a completed month will always look worse, because it is measuring less time. If you must compare a period in progress, compare it against the same point in the previous period — day eleven against day eleven — never against a finished one.</p>\n\n<p><b>2. The denominator trap.</b> Every rate is a fraction, and the bottom half is where the meaning hides. Conversion is Delivered divided by Total, so anything that changes what counts as Total moves it without anybody's performance changing. A delivery rate that excludes cancelled orders is a different number from one that includes them, and a team judged on the first has an incentive to cancel marginal orders. Know the denominator before you set a target on the rate, because people optimise for what is measured, including in ways nobody intended.</p>\n\n<p><b>3. The attribution lag trap.</b> Marketing reports depend on delivered orders, and delivery takes time. A campaign switched on this week has spent all its money and delivered only some of its orders, so its ROAS is understated — sometimes severely. Judge campaigns over a window at least as long as your delivery cycle, and be especially careful about killing a young campaign for underperformance it has not had time to demonstrate either way.</p>\n\n<p><b>4. The small-numbers trap.</b> A closer with four orders and three deliveries shows seventy-five per cent conversion. So does a closer with four hundred and three hundred. They are not comparable claims, and the first is barely a claim at all — one more failed delivery would take it to sixty. Percentages on small bases move violently and mean little, which is why the loudest movements in any ranking are usually the smallest samples. Look at the base before you believe the rate, and be sceptical of anyone who tops a table on volumes far below their peers.</p>\n\n<blockquote>IMPLEMENTATION TIP: Four questions before acting on any figure. What period is this? What is in the denominator? Has enough time passed for it to be complete? How big is the base? A manager who asks those four is wrong far less often than one who reads faster.</blockquote>\n\n<blockquote>WATCH-OUT: These traps are most dangerous when a number agrees with what you already believed. Scepticism arrives naturally for figures that surprise us and has to be applied deliberately to figures that do not.</blockquote>",
+    "checks": [
+     {
+      "q": "Month-to-date revenue looks poor against last month's total. The fix is:",
+      "opts": [
+       "Wait until the month closes",
+       "Compare day eleven against day eleven",
+       "Exclude cancellations from both",
+       "Use the Compare toggle instead"
+      ],
+      "ans": 1,
+      "why": "A partial period compared against a finished one will always look worse, because it is measuring less time.",
+      "sort": 0
+     },
+     {
+      "q": "Why does the denominator matter when setting a target on a rate?",
+      "opts": [
+       "It changes how the chart is scaled",
+       "People optimise for what is measured, including in unintended ways",
+       "It determines who can see the report",
+       "Rates are unreliable below 100 orders"
+      ],
+      "ans": 1,
+      "why": "A delivery rate excluding cancelled orders gives a team the incentive to cancel marginal ones. Know the denominator before you set the target.",
+      "sort": 1
+     },
+     {
+      "q": "A closer tops the table on four orders. You should:",
+      "opts": [
+       "Hold them up as the example",
+       "Check the base before believing the rate",
+       "Assume their orders were unusually easy",
+       "Recalculate excluding cancellations"
+      ],
+      "ans": 1,
+      "why": "Percentages on small bases move violently. The loudest movements in any ranking are usually the smallest samples.",
+      "sort": 2
+     }
+    ]
    }
   ],
   "questions": [
@@ -2227,47 +2569,389 @@
    {
     "title": "Distributing the work",
     "est": 8,
-    "html": "<p>Every order needs an owner, and getting leads to the right closers quickly is a manager's first operational duty. An unowned order is not merely unworked — it is invisible in every list organised by closer, which is most of them.</p>\n\n<p><b>New Lead review is a management responsibility.</b> New leads are visible to managers and team leads for review and distribution, and auto-assignment rules — round-robin, capacity-based — do the routine spreading. But the rules only place what they can place, and what they cannot place waits for you.</p>\n\n<p><b>Assignment happens two ways, and they coexist.</b> Automatic assignment follows your rules, respecting shifts and daily limits when Shift Management is on. Manual assignment lets you pick a closer on any order at any time, from the drawer's assignment section or the assignment dialog.</p>\n\n<p><b>Manual assignment is never blocked by shifts or limits.</b> The picker highlights who is on shift as a courtesy, nothing more. This matters because it is your release valve: when the automatic rules have correctly declined to overload somebody, you can still make a deliberate exception for an urgent or high-value order. The system stops itself; it does not stop you.</p>\n\n<p>The corollary is that it will not warn you either. Manually assigning forty orders to a closer already at their limit is entirely possible and entirely your responsibility.</p>\n\n<p><b>Reassignment is equally yours.</b> The drawer's Agent section moves any order to a different closer — the tool for absences, escalations and load balancing. Use it early rather than late: an order reassigned on day one is a lead, and the same order reassigned on day eight is usually a rescue.</p>\n\n<p><b>Distribution is a daily habit, not a configuration.</b> Auto-assignment distributes; it does not supervise. Nothing in the system notices that a lead has been waiting since Tuesday, or that one closer received twelve orders while another received two because of the shape of the roster.</p>\n\n<blockquote>WATCH-OUT: A daily scan of the New Lead card on the dashboard — one click into the pre-filtered list — is how leads stop waiting unnoticed. Skip it for a week and the oldest waiting customers are the ones who have already bought elsewhere, which means the cost of the omission never appears as a failure. It appears as orders that were simply never converted.</blockquote>\n\n<p><b>Distribution is also a fairness question.</b> Round-robin spreads evenly by count, which is not the same as evenly by effort. A closer who happens to receive a run of complicated orders carries more work than the count suggests, and the automatic rules cannot see it. Watching who is struggling and reassigning deliberately is the part of distribution that no rule performs for you.</p>"
+    "html": "<p>Every order needs an owner, and getting leads to the right closers quickly is a manager's first operational duty. An unowned order is not merely unworked — it is invisible in every list organised by closer, which is most of them.</p>\n\n<p><b>New Lead review is a management responsibility.</b> New leads are visible to managers and team leads for review and distribution, and auto-assignment rules — round-robin, capacity-based — do the routine spreading. But the rules only place what they can place, and what they cannot place waits for you.</p>\n\n<p><b>Assignment happens two ways, and they coexist.</b> Automatic assignment follows your rules, respecting shifts and daily limits when Shift Management is on. Manual assignment lets you pick a closer on any order at any time, from the drawer's assignment section or the assignment dialog.</p>\n\n<p><b>Manual assignment is never blocked by shifts or limits.</b> The picker highlights who is on shift as a courtesy, nothing more. This matters because it is your release valve: when the automatic rules have correctly declined to overload somebody, you can still make a deliberate exception for an urgent or high-value order. The system stops itself; it does not stop you.</p>\n\n<p>The corollary is that it will not warn you either. Manually assigning forty orders to a closer already at their limit is entirely possible and entirely your responsibility.</p>\n\n<p><b>Reassignment is equally yours.</b> The drawer's Agent section moves any order to a different closer — the tool for absences, escalations and load balancing. Use it early rather than late: an order reassigned on day one is a lead, and the same order reassigned on day eight is usually a rescue.</p>\n\n<p><b>Distribution is a daily habit, not a configuration.</b> Auto-assignment distributes; it does not supervise. Nothing in the system notices that a lead has been waiting since Tuesday, or that one closer received twelve orders while another received two because of the shape of the roster.</p>\n\n<blockquote>WATCH-OUT: A daily scan of the New Lead card on the dashboard — one click into the pre-filtered list — is how leads stop waiting unnoticed. Skip it for a week and the oldest waiting customers are the ones who have already bought elsewhere, which means the cost of the omission never appears as a failure. It appears as orders that were simply never converted.</blockquote>\n\n<p><b>Distribution is also a fairness question.</b> Round-robin spreads evenly by count, which is not the same as evenly by effort. A closer who happens to receive a run of complicated orders carries more work than the count suggests, and the automatic rules cannot see it. Watching who is struggling and reassigning deliberately is the part of distribution that no rule performs for you.</p>",
+    "checks": [
+     {
+      "q": "Auto-assignment is running well. Does the New Lead card still need a daily look?",
+      "opts": [
+       "No — the rules handle distribution",
+       "Yes — auto-assignment distributes, it does not supervise",
+       "Only when volume is unusually high",
+       "Only if Shift Management is enabled"
+      ],
+      "ans": 1,
+      "why": "Nothing notices that a lead has waited since Tuesday. Skip the scan for a week and the cost appears as orders never converted, not as a failure.",
+      "sort": 0
+     },
+     {
+      "q": "Round-robin spreads orders evenly by count. The limitation is:",
+      "opts": [
+       "It ignores branch boundaries",
+       "Even by count is not even by effort",
+       "It cannot respect daily caps",
+       "It excludes always-available closers"
+      ],
+      "ans": 1,
+      "why": "A closer receiving a run of complicated orders carries more work than the count suggests, and no rule can see it.",
+      "sort": 1
+     },
+     {
+      "q": "You reassign a struggling closer's order on day eight rather than day one. It is now:",
+      "opts": [
+       "Equivalent — the order is unchanged",
+       "A rescue rather than a lead",
+       "Ineligible for the follow-up pool",
+       "Counted against the new closer"
+      ],
+      "ans": 1,
+      "why": "Reassign early. The same order eight days later has a customer who has been waiting and may have bought elsewhere.",
+      "sort": 2
+     }
+    ]
    },
    {
     "title": "Capacity — caps, coverage and the New Lead queue",
     "est": 8,
-    "html": "<p>Three settings decide whether demand reaches a human: each closer's daily cap, the categories they cover, and the countries they cover. Together they form your capacity, and the New Lead queue is the instrument that tells you whether it is enough.</p>\n\n<p><b>How an order becomes a New Lead.</b> The router tries to assign each incoming order automatically. It can only place it with a closer who covers that order's category and country and who is under their daily cap. When no such closer exists, the order stops at New Lead and waits. It is re-checked continuously and assigned the moment capacity frees.</p>\n\n<p><b>So the queue is a measurement, not a fault.</b> Orders sitting in New Lead are demand the business captured and cannot currently serve. That is a staffing statement, and it is the most direct one the system produces.</p>\n\n<p><b>Read the shape, not just the size.</b> A queue that grows through the day and empties overnight means capacity is tight but adequate. A queue that grows and stays means the business is turning away money it has already paid to attract — and the remedy is more closers, higher caps, or wider coverage, never a closer working faster.</p>\n\n<p><b>Concentration is the more useful signal.</b> New Leads clustered in one category or one country do not indicate a general shortage; they name a specific gap. A category with too few trained closers, or a country whose volume has outgrown its team, will show up here long before it shows up in revenue. Filter the queue by category and country before concluding anything about headcount.</p>\n\n<p><b>Raising a cap is not free.</b> A cap set below what a closer can genuinely handle leaves capacity unused while leads queue. A cap set above it produces a hidden backlog inside one person's list, where the customers at the bottom are unserved but appear served in every report. The test is not whether the closer accepts the higher number; it is whether they end the day with untouched orders from the morning.</p>\n\n<blockquote>IMPLEMENTATION TIP: Before adding headcount, check whether your existing coverage is the constraint. A country with three closers all scoped to one category will queue orders from every other category while those three sit under their caps. Widening coverage is faster and cheaper than hiring, and the queue will tell you which it needs.</blockquote>\n\n<blockquote>WATCH-OUT: Because caps reset daily, a New Lead backlog does not clear itself retroactively. Yesterday's unassigned orders compete with today's fresh demand for the same finite capacity, and the oldest are the ones whose customers have waited longest. When capacity frees, oldest first is almost always right.</blockquote>"
+    "html": "<p>Three settings decide whether demand reaches a human: each closer's daily cap, the categories they cover, and the countries they cover. Together they form your capacity, and the New Lead queue is the instrument that tells you whether it is enough.</p>\n\n<p><b>How an order becomes a New Lead.</b> The router tries to assign each incoming order automatically. It can only place it with a closer who covers that order's category and country and who is under their daily cap. When no such closer exists, the order stops at New Lead and waits. It is re-checked continuously and assigned the moment capacity frees.</p>\n\n<p><b>So the queue is a measurement, not a fault.</b> Orders sitting in New Lead are demand the business captured and cannot currently serve. That is a staffing statement, and it is the most direct one the system produces.</p>\n\n<p><b>Read the shape, not just the size.</b> A queue that grows through the day and empties overnight means capacity is tight but adequate. A queue that grows and stays means the business is turning away money it has already paid to attract — and the remedy is more closers, higher caps, or wider coverage, never a closer working faster.</p>\n\n<p><b>Concentration is the more useful signal.</b> New Leads clustered in one category or one country do not indicate a general shortage; they name a specific gap. A category with too few trained closers, or a country whose volume has outgrown its team, will show up here long before it shows up in revenue. Filter the queue by category and country before concluding anything about headcount.</p>\n\n<p><b>Raising a cap is not free.</b> A cap set below what a closer can genuinely handle leaves capacity unused while leads queue. A cap set above it produces a hidden backlog inside one person's list, where the customers at the bottom are unserved but appear served in every report. The test is not whether the closer accepts the higher number; it is whether they end the day with untouched orders from the morning.</p>\n\n<blockquote>IMPLEMENTATION TIP: Before adding headcount, check whether your existing coverage is the constraint. A country with three closers all scoped to one category will queue orders from every other category while those three sit under their caps. Widening coverage is faster and cheaper than hiring, and the queue will tell you which it needs.</blockquote>\n\n<blockquote>WATCH-OUT: Because caps reset daily, a New Lead backlog does not clear itself retroactively. Yesterday's unassigned orders compete with today's fresh demand for the same finite capacity, and the oldest are the ones whose customers have waited longest. When capacity frees, oldest first is almost always right.</blockquote>",
+    "checks": [
+     {
+      "q": "New Leads cluster in one country while closers sit under their caps. This names:",
+      "opts": [
+       "A router fault",
+       "A coverage gap rather than a general shortage",
+       "Caps set too low",
+       "A seasonal spike"
+      ],
+      "ans": 1,
+      "why": "Concentration tells you where. Filter the queue by category and country before concluding anything about headcount.",
+      "sort": 0
+     },
+     {
+      "q": "A closer accepts a higher cap. The real test of whether it was right is:",
+      "opts": [
+       "Whether their volume rises",
+       "Whether they end the day with untouched morning orders",
+       "Whether their conversion holds",
+       "Whether New Leads fall"
+      ],
+      "ans": 1,
+      "why": "A cap above what someone can handle produces a hidden backlog inside one list, where customers are unserved but appear served.",
+      "sort": 1
+     },
+     {
+      "q": "When capacity frees after a backlog, work:",
+      "opts": [
+       "Highest value first",
+       "Newest first, while interest is fresh",
+       "Oldest first",
+       "Evenly across categories"
+      ],
+      "ans": 2,
+      "why": "Caps reset daily, so a backlog never clears retroactively. The oldest customers have waited longest and are closest to gone.",
+      "sort": 2
+     }
+    ]
    },
    {
     "title": "Running closer shifts",
     "est": 8,
-    "html": "<p>Closer Shift Management is a manager-owned feature, off by default. Nothing changes until you enable it, and disabling it fully restores prior behaviour. It was built self-contained because closers are not necessarily staff with formal HR records — the schedule lives with the closer, not with a payroll system.</p>\n\n<p><b>The operating rules you are accountable for.</b> Closers receive automatic online leads only while a shift is active. A lead arriving when nobody is on shift waits, and is picked up within about ten minutes of coverage returning. Always-available closers bypass the schedule entirely. Overnight shifts — an end time earlier than the start — run past midnight. And the daily limits layer on top: on shift and under limit, or no automatic lead.</p>\n\n<p>The limit resets at midnight server time regardless of shift shape, which means an overnight closer receives a fresh allowance partway through their shift rather than at the end of it. Worth knowing before you interpret their numbers.</p>\n\n<p><b>The rollout that cannot go wrong.</b> Mark every closer always-available first — behaviour stays identical to today, so nothing breaks and nobody notices. Then remove the flag person by person as you add their real shifts. Coverage gaps become impossible to create by accident, because a closer without a schedule is still receiving leads until you deliberately switch them over.</p>\n\n<p>The opposite order is the tempting one and the one that hurts: build the roster first, enable the feature, and discover the gap at two in the morning when leads begin queuing behind a schedule nobody had tested.</p>\n\n<p><b>What shifts do not control.</b> Manual assignment is never blocked. Store orders bypass shifts entirely — a paid order is never held waiting behind a roster. And shifts do not create a clock-in obligation: availability follows the schedule whether or not the closer is at their desk, which is a supervision matter rather than a system one.</p>\n\n<blockquote>CONSULTANT NOTE: If a client reports \"orders waiting overnight\", the question is lead coverage, not store routing. Store orders were never subject to shifts, so an overnight backlog is always a roster gap.</blockquote>\n\n<blockquote>IMPLEMENTATION TIP: Review the roster against the queue rather than against the rota you intended. If New Leads consistently accumulate in a particular window, that window is under-covered no matter how the schedule looks on paper.</blockquote>\n\n<p><b>One further consideration when building the roster.</b> Coverage is not only about hours; it is about categories and countries. A shift with three closers on duty who all cover the same category leaves every other category queuing, even though the rota looks fully staffed. When you check coverage, check what those on duty can actually receive — not merely that somebody is there.</p>"
+    "html": "<p>Closer Shift Management is a manager-owned feature, off by default. Nothing changes until you enable it, and disabling it fully restores prior behaviour. It was built self-contained because closers are not necessarily staff with formal HR records — the schedule lives with the closer, not with a payroll system.</p>\n\n<p><b>The operating rules you are accountable for.</b> Closers receive automatic online leads only while a shift is active. A lead arriving when nobody is on shift waits, and is picked up within about ten minutes of coverage returning. Always-available closers bypass the schedule entirely. Overnight shifts — an end time earlier than the start — run past midnight. And the daily limits layer on top: on shift and under limit, or no automatic lead.</p>\n\n<p>The limit resets at midnight server time regardless of shift shape, which means an overnight closer receives a fresh allowance partway through their shift rather than at the end of it. Worth knowing before you interpret their numbers.</p>\n\n<p><b>The rollout that cannot go wrong.</b> Mark every closer always-available first — behaviour stays identical to today, so nothing breaks and nobody notices. Then remove the flag person by person as you add their real shifts. Coverage gaps become impossible to create by accident, because a closer without a schedule is still receiving leads until you deliberately switch them over.</p>\n\n<p>The opposite order is the tempting one and the one that hurts: build the roster first, enable the feature, and discover the gap at two in the morning when leads begin queuing behind a schedule nobody had tested.</p>\n\n<p><b>What shifts do not control.</b> Manual assignment is never blocked. Store orders bypass shifts entirely — a paid order is never held waiting behind a roster. And shifts do not create a clock-in obligation: availability follows the schedule whether or not the closer is at their desk, which is a supervision matter rather than a system one.</p>\n\n<blockquote>CONSULTANT NOTE: If a client reports \"orders waiting overnight\", the question is lead coverage, not store routing. Store orders were never subject to shifts, so an overnight backlog is always a roster gap.</blockquote>\n\n<blockquote>IMPLEMENTATION TIP: Review the roster against the queue rather than against the rota you intended. If New Leads consistently accumulate in a particular window, that window is under-covered no matter how the schedule looks on paper.</blockquote>\n\n<p><b>One further consideration when building the roster.</b> Coverage is not only about hours; it is about categories and countries. A shift with three closers on duty who all cover the same category leaves every other category queuing, even though the rota looks fully staffed. When you check coverage, check what those on duty can actually receive — not merely that somebody is there.</p>",
+    "checks": [
+     {
+      "q": "The safe rollout order for Shift Management is:",
+      "opts": [
+       "Roster first, then enable",
+       "Everyone always-available, then remove the flag person by person",
+       "Pilot one team, then extend",
+       "Enable overnight when volume is low"
+      ],
+      "ans": 1,
+      "why": "Starting always-available keeps behaviour identical, so a coverage gap cannot be created by accident.",
+      "sort": 0
+     },
+     {
+      "q": "A client reports orders waiting overnight. The question is:",
+      "opts": [
+       "Whether store routing is misconfigured",
+       "Whether lead coverage has a gap",
+       "Whether daily caps reset correctly",
+       "Whether the sweep ran"
+      ],
+      "ans": 1,
+      "why": "Store orders were never subject to shifts, so an overnight backlog is always a roster gap.",
+      "sort": 1
+     },
+     {
+      "q": "Three closers are on duty, all covering the same category. The roster is:",
+      "opts": [
+       "Fully staffed",
+       "Covered by hours but not by category",
+       "Over-staffed for that window",
+       "Compliant provided caps are set"
+      ],
+      "ans": 1,
+      "why": "Coverage is about what those on duty can actually receive, not merely that somebody is there.",
+      "sort": 2
+     }
+    ]
    },
    {
     "title": "Governing the follow-up recovery team",
     "est": 8,
-    "html": "<p>The follow-up workflow is managed at three points, and all three are yours.</p>\n\n<p><b>The switch.</b> Managers — System Manager, CRM Manager, CRM Director — can disable or enable the whole workflow from the Follow-Up page header, without going near the desk. Disabled means the nightly sweep stops and every pool action is blocked: claim, convert, release, manual reassign. Existing in-pool flags survive and reactivate on re-enable, so switching off is a pause rather than a demolition. Non-privileged users attempting the toggle are refused.</p>\n\n<p><b>The threshold.</b> The pool threshold sets how old a stalled order must be, in days from creation, before the nightly sweep collects it. The default is ten days; the effective minimum is one.</p>\n\n<p>Match it to how long your closers genuinely work a lead before it should escape them. Set it too short and the pool fills with leads the original closer had not finished trying, which wastes the recovery team on work already in hand. Set it too long and leads die of age before anyone rescues them. If you do not know the right number, watch how long your best closers persist before their attempts stop — that is the answer, and it is usually shorter than ten days.</p>\n\n<p><b>The team.</b> Only Closers flagged Follow-Up Team Member see or work the pool. The flag lives on the Closer record, and the same person can be an ordinary closer and a follow-up member at once.</p>\n\n<p>Choose for temperament rather than seniority. The work is phoning people who have already been phoned, about an order they hesitated over, using somebody else's notes. Patience and the ability to pick up another person's conversation matter more than pace.</p>\n\n<p><b>You also hold the override:</b> managers can release any claimed order back to the pool, not only their own claims. This is how an order claimed by somebody now on leave returns to circulation, and it is worth scanning for — a claimed order nobody is working is worse than an unclaimed one, because the pool shows it as attended to.</p>\n\n<blockquote>IMPLEMENTATION TIP: The attribution rules are your recruitment pitch for the team. Recovery members are never penalised for cancellations — those stay with the original closer — and earn full credit on every delivered save. There is no downside to taking hard leads, and saying so explicitly is what makes the role attractive rather than a punishment posting.</blockquote>\n\n<p><b>Watch the pool's size as a diagnostic.</b> A pool that grows steadily is telling you either that the threshold is too short, or that leads are stalling upstream faster than they used to. The second is the more important reading and the one people miss: a rising pool alongside a rising cancellation rate usually means orders are being created from softer interest than before, which is a confirmation problem at the front rather than a recovery problem at the back.</p>"
+    "html": "<p>The follow-up workflow is managed at three points, and all three are yours.</p>\n\n<p><b>The switch.</b> Managers — System Manager, CRM Manager, CRM Director — can disable or enable the whole workflow from the Follow-Up page header, without going near the desk. Disabled means the nightly sweep stops and every pool action is blocked: claim, convert, release, manual reassign. Existing in-pool flags survive and reactivate on re-enable, so switching off is a pause rather than a demolition. Non-privileged users attempting the toggle are refused.</p>\n\n<p><b>The threshold.</b> The pool threshold sets how old a stalled order must be, in days from creation, before the nightly sweep collects it. The default is ten days; the effective minimum is one.</p>\n\n<p>Match it to how long your closers genuinely work a lead before it should escape them. Set it too short and the pool fills with leads the original closer had not finished trying, which wastes the recovery team on work already in hand. Set it too long and leads die of age before anyone rescues them. If you do not know the right number, watch how long your best closers persist before their attempts stop — that is the answer, and it is usually shorter than ten days.</p>\n\n<p><b>The team.</b> Only Closers flagged Follow-Up Team Member see or work the pool. The flag lives on the Closer record, and the same person can be an ordinary closer and a follow-up member at once.</p>\n\n<p>Choose for temperament rather than seniority. The work is phoning people who have already been phoned, about an order they hesitated over, using somebody else's notes. Patience and the ability to pick up another person's conversation matter more than pace.</p>\n\n<p><b>You also hold the override:</b> managers can release any claimed order back to the pool, not only their own claims. This is how an order claimed by somebody now on leave returns to circulation, and it is worth scanning for — a claimed order nobody is working is worse than an unclaimed one, because the pool shows it as attended to.</p>\n\n<blockquote>IMPLEMENTATION TIP: The attribution rules are your recruitment pitch for the team. Recovery members are never penalised for cancellations — those stay with the original closer — and earn full credit on every delivered save. There is no downside to taking hard leads, and saying so explicitly is what makes the role attractive rather than a punishment posting.</blockquote>\n\n<p><b>Watch the pool's size as a diagnostic.</b> A pool that grows steadily is telling you either that the threshold is too short, or that leads are stalling upstream faster than they used to. The second is the more important reading and the one people miss: a rising pool alongside a rising cancellation rate usually means orders are being created from softer interest than before, which is a confirmation problem at the front rather than a recovery problem at the back.</p>",
+    "checks": [
+     {
+      "q": "A pool threshold set too long produces:",
+      "opts": [
+       "A pool nobody can keep up with",
+       "Leads that die of age before anyone rescues them",
+       "Cancellations attributed to the wrong closer",
+       "Sweep failures"
+      ],
+      "ans": 1,
+      "why": "Watch how long your best closers persist before their attempts stop — that is the right threshold, and it is usually under ten days.",
+      "sort": 0
+     },
+     {
+      "q": "The pool grows steadily alongside a rising cancellation rate. This suggests:",
+      "opts": [
+       "The threshold is too short",
+       "Orders are being created from softer interest than before",
+       "The recovery team is understaffed",
+       "The sweep is running twice"
+      ],
+      "ans": 1,
+      "why": "That is a confirmation problem at the front, not a recovery problem at the back — and it is the reading people miss.",
+      "sort": 1
+     },
+     {
+      "q": "You should choose follow-up members for:",
+      "opts": [
+       "Seniority",
+       "The highest conversion rates",
+       "Patience and the ability to pick up another person's conversation",
+       "Availability outside core hours"
+      ],
+      "ans": 2,
+      "why": "The work is phoning people already phoned, about an order they hesitated over, using someone else's notes.",
+      "sort": 2
+     }
+    ]
    },
    {
     "title": "Managing cart recovery",
     "est": 8,
-    "html": "<p>Abandoned carts are a managed funnel, not a scavenger hunt. Left to individual enthusiasm they get worked when somebody has a quiet afternoon, which is to say rarely and unevenly.</p>\n\n<p><b>The Recovery Status column is your pipeline view</b> — Not Contacted, then Contacted, then Recovered or Lost — and each transition failure has a different cause.</p>\n\n<p>A pile-up in <b>Not Contacted</b> is a staffing or prioritisation gap: nobody is picking these up, and every day they age reduces the chance of recovery. Plenty <b>Contacted</b> but little <b>Recovered</b> is a different problem entirely — the calls are happening and not landing, which points at the script, the offer, or the timing rather than at effort.</p>\n\n<p>That distinction matters because the two look identical in a revenue report and require opposite responses. One needs people; the other needs coaching.</p>\n\n<p><b>Prioritisation policy is yours to set</b>, and the levers are cart value, phone availability, and session duration. Higher-value carts justify more effort. A captured phone number enables the recovery call, which is the highest-yield channel by a distance. Longer sessions signal higher intent — somebody who spent four minutes on the form was seriously considering it.</p>\n\n<p><b>A simple standing rule outperforms ad-hoc enthusiasm.</b> \"Phones first, by value, same day\" is a policy a team can follow without deciding anything, and it beats a better rule that requires judgement on every row. The point of a standing rule is that it survives a busy week.</p>\n\n<p><b>Watch the age of what is being worked.</b> A team consistently recovering carts from last week rather than yesterday is a team whose prioritisation is nominally by value and actually by whatever is at the top of the screen.</p>\n\n<blockquote>WATCH-OUT: The privacy posture is a management responsibility, not an individual one. Only actively entered data is captured, no payment details are ever stored, and follow-up must be transparent about how details were obtained with an easy opt-out. Recovery that feels like surveillance costs more trust than it recovers revenue — and the damage does not stay with the one customer who complained.</blockquote>\n\n<p><b>Set an expiry on effort.</b> A cart that has been Contacted twice without a decision is not going to become an order because somebody calls a third time, and the attempt costs a customer's goodwill as well as an hour. Decide the number of attempts your team makes, write it down, and let them mark the rest Lost without feeling they gave up. A policy nobody has stated becomes each person's private guess, and the anxious ones over-call while the busy ones do not call at all.</p>"
+    "html": "<p>Abandoned carts are a managed funnel, not a scavenger hunt. Left to individual enthusiasm they get worked when somebody has a quiet afternoon, which is to say rarely and unevenly.</p>\n\n<p><b>The Recovery Status column is your pipeline view</b> — Not Contacted, then Contacted, then Recovered or Lost — and each transition failure has a different cause.</p>\n\n<p>A pile-up in <b>Not Contacted</b> is a staffing or prioritisation gap: nobody is picking these up, and every day they age reduces the chance of recovery. Plenty <b>Contacted</b> but little <b>Recovered</b> is a different problem entirely — the calls are happening and not landing, which points at the script, the offer, or the timing rather than at effort.</p>\n\n<p>That distinction matters because the two look identical in a revenue report and require opposite responses. One needs people; the other needs coaching.</p>\n\n<p><b>Prioritisation policy is yours to set</b>, and the levers are cart value, phone availability, and session duration. Higher-value carts justify more effort. A captured phone number enables the recovery call, which is the highest-yield channel by a distance. Longer sessions signal higher intent — somebody who spent four minutes on the form was seriously considering it.</p>\n\n<p><b>A simple standing rule outperforms ad-hoc enthusiasm.</b> \"Phones first, by value, same day\" is a policy a team can follow without deciding anything, and it beats a better rule that requires judgement on every row. The point of a standing rule is that it survives a busy week.</p>\n\n<p><b>Watch the age of what is being worked.</b> A team consistently recovering carts from last week rather than yesterday is a team whose prioritisation is nominally by value and actually by whatever is at the top of the screen.</p>\n\n<blockquote>WATCH-OUT: The privacy posture is a management responsibility, not an individual one. Only actively entered data is captured, no payment details are ever stored, and follow-up must be transparent about how details were obtained with an easy opt-out. Recovery that feels like surveillance costs more trust than it recovers revenue — and the damage does not stay with the one customer who complained.</blockquote>\n\n<p><b>Set an expiry on effort.</b> A cart that has been Contacted twice without a decision is not going to become an order because somebody calls a third time, and the attempt costs a customer's goodwill as well as an hour. Decide the number of attempts your team makes, write it down, and let them mark the rest Lost without feeling they gave up. A policy nobody has stated becomes each person's private guess, and the anxious ones over-call while the busy ones do not call at all.</p>",
+    "checks": [
+     {
+      "q": "Many carts Contacted, few Recovered. This needs:",
+      "opts": [
+       "More staff on recovery",
+       "Coaching on script, offer or timing",
+       "A stricter prioritisation rule",
+       "Faster contact after abandonment"
+      ],
+      "ans": 1,
+      "why": "A Not Contacted pile-up is a staffing gap. Calls happening without landing is a different problem entirely.",
+      "sort": 0
+     },
+     {
+      "q": "Why is a standing rule better than judging each cart on merit?",
+      "opts": [
+       "It is more accurate",
+       "It survives a busy week without requiring a decision",
+       "It satisfies privacy requirements",
+       "It removes the need for prioritisation"
+      ],
+      "ans": 1,
+      "why": "A better rule that requires judgement on every row gets abandoned the first time the team is stretched.",
+      "sort": 1
+     },
+     {
+      "q": "A team consistently recovering last week's carts rather than yesterday's is:",
+      "opts": [
+       "Working the highest-value rows first",
+       "Prioritising by whatever is at the top of the screen",
+       "Following the documented policy",
+       "Limited by phone availability"
+      ],
+      "ans": 1,
+      "why": "Nominally by value, actually by convenience. Watch the age of what is being worked, not only the recovery count.",
+      "sort": 2
+     }
+    ]
    },
    {
     "title": "The manager's guardrails",
     "est": 8,
-    "html": "<p>Threaded through every part of this system is a consistent set of powers belonging to managers alone. Held as one list, they describe the shape of the whole permission model.</p>\n\n<p><b>Sight.</b> Managers and directors see all orders across the team; closers see their own. All reports across teams and branches are open to sales managers; agents see their slice.</p>\n\n<p><b>Money.</b> Revenue, spend and ROAS are visible to Directors, Managers, Product Managers and administrators only — and this is a role decision rather than a Settings checkbox. A closer whose dashboard shows no Delivered Value Trend is seeing the access model work.</p>\n\n<p><b>Assignment.</b> Manual assignment and reassignment of any order, at any time, unblocked by shifts or limits.</p>\n\n<p><b>Workflow switches.</b> Enabling and disabling Shift Management and the Follow-Up Workflow, setting the pool threshold, and flagging follow-up team members.</p>\n\n<p><b>Pool override.</b> Releasing any claimed order, and sending any eligible order to the pool — closers can only send their own.</p>\n\n<p><b>The pattern behind the list</b> is worth stating because it answers questions the list does not. The system gives closers everything needed to work their own book and nothing that governs anyone else's work or reveals money. Every manager-only power falls into one of those two categories.</p>\n\n<p>So when a request arrives to \"let a closer do X\", the useful question is which category X sits in. If it governs other people's work — assignment, thresholds, releasing another person's claim — it is a supervision power and the answer is a role change made deliberately. If it reveals money, it is a disclosure decision and belongs to whoever owns that policy. Neither is a workaround to be arranged quietly.</p>\n\n<blockquote>CONSULTANT NOTE: Requests of this kind almost always arrive as small operational conveniences — \"she covers for me on Fridays, can she just reassign?\" Granting them informally produces a permission model nobody can describe six months later. Granting them as a role change produces one that survives an audit and a staff change.</blockquote>\n\n<p><b>The corollary for your own conduct.</b> These powers are visible. Reassignment, pool releases, duplicate marking and status changes all record who acted and when, in the same timeline a closer's actions appear in. A manager who uses the override casually is as legible as a closer who uses Not Reachable casually, and the standard you hold yourself to on the record is the one your team will assume applies to them.</p>\n\n<p><b>One power that is not on the list, deliberately.</b> Nothing here lets a manager alter history. Status changes, notes and claims accumulate in the timeline and stay there. If an order was mishandled, the record shows it was mishandled and shows the correction alongside — which is what makes the timeline worth consulting at all. A record that could be tidied by whoever looked worst in it would settle no arguments.</p>"
+    "html": "<p>Threaded through every part of this system is a consistent set of powers belonging to managers alone. Held as one list, they describe the shape of the whole permission model.</p>\n\n<p><b>Sight.</b> Managers and directors see all orders across the team; closers see their own. All reports across teams and branches are open to sales managers; agents see their slice.</p>\n\n<p><b>Money.</b> Revenue, spend and ROAS are visible to Directors, Managers, Product Managers and administrators only — and this is a role decision rather than a Settings checkbox. A closer whose dashboard shows no Delivered Value Trend is seeing the access model work.</p>\n\n<p><b>Assignment.</b> Manual assignment and reassignment of any order, at any time, unblocked by shifts or limits.</p>\n\n<p><b>Workflow switches.</b> Enabling and disabling Shift Management and the Follow-Up Workflow, setting the pool threshold, and flagging follow-up team members.</p>\n\n<p><b>Pool override.</b> Releasing any claimed order, and sending any eligible order to the pool — closers can only send their own.</p>\n\n<p><b>The pattern behind the list</b> is worth stating because it answers questions the list does not. The system gives closers everything needed to work their own book and nothing that governs anyone else's work or reveals money. Every manager-only power falls into one of those two categories.</p>\n\n<p>So when a request arrives to \"let a closer do X\", the useful question is which category X sits in. If it governs other people's work — assignment, thresholds, releasing another person's claim — it is a supervision power and the answer is a role change made deliberately. If it reveals money, it is a disclosure decision and belongs to whoever owns that policy. Neither is a workaround to be arranged quietly.</p>\n\n<blockquote>CONSULTANT NOTE: Requests of this kind almost always arrive as small operational conveniences — \"she covers for me on Fridays, can she just reassign?\" Granting them informally produces a permission model nobody can describe six months later. Granting them as a role change produces one that survives an audit and a staff change.</blockquote>\n\n<p><b>The corollary for your own conduct.</b> These powers are visible. Reassignment, pool releases, duplicate marking and status changes all record who acted and when, in the same timeline a closer's actions appear in. A manager who uses the override casually is as legible as a closer who uses Not Reachable casually, and the standard you hold yourself to on the record is the one your team will assume applies to them.</p>\n\n<p><b>One power that is not on the list, deliberately.</b> Nothing here lets a manager alter history. Status changes, notes and claims accumulate in the timeline and stay there. If an order was mishandled, the record shows it was mishandled and shows the correction alongside — which is what makes the timeline worth consulting at all. A record that could be tidied by whoever looked worst in it would settle no arguments.</p>",
+    "checks": [
+     {
+      "q": "A request arrives to let a closer see revenue figures. This is:",
+      "opts": [
+       "A Settings checkbox to toggle",
+       "A disclosure decision belonging to whoever owns that policy",
+       "Automatic once they reach a volume threshold",
+       "Available only to follow-up members"
+      ],
+      "ans": 1,
+      "why": "Money visibility is a role decision, never a workaround arranged quietly.",
+      "sort": 0
+     },
+     {
+      "q": "The pattern behind every manager-only power is that it either:",
+      "opts": [
+       "Requires desk access, or affects billing",
+       "Governs others' work, or reveals money",
+       "Changes historical records, or affects reporting",
+       "Is dangerous, or is rarely needed"
+      ],
+      "ans": 1,
+      "why": "Closers get everything needed to work their own book and nothing that governs anyone else's. Every request fits one category or the other.",
+      "sort": 1
+     },
+     {
+      "q": "Can a manager tidy an order's timeline after mishandling?",
+      "opts": [
+       "Yes, with System Manager rights",
+       "Yes, by adding a correcting note that supersedes it",
+       "No — the record accumulates and stays",
+       "Only within the same day"
+      ],
+      "ans": 2,
+      "why": "A record that could be tidied by whoever looked worst in it would settle no arguments, which is the whole reason the timeline is worth consulting.",
+      "sort": 2
+     }
+    ]
    },
    {
     "title": "Duplicate — the power that belongs to you alone",
     "est": 7,
-    "html": "<p>Of every status in the system, one is deliberately withheld from closers: <b>Duplicate</b>. The system may set it automatically when an order's details match another arriving the same day, and a Closer Manager may set it manually. A closer never can.</p>\n\n<p><b>The reason is a conflict of interest, and it is worth stating plainly to your team.</b> Marking an order duplicate removes it from the working numbers — it stops counting as something to convert, and it is excluded from the delivery rate calculation. If closers held that power, it would become a route to a clean conversion rate: any awkward order could quietly leave the denominator. Placing it with a manager keeps the decision with somebody whose own numbers it does not flatter.</p>\n\n<p><b>What this means for you operationally.</b> Closers will bring you suspected duplicates, and each one is a small judgement rather than a formality. Two orders on the same number, same day, same items is usually genuine — the customer called twice, or two closers picked up one enquiry. Two orders on the same number, same day, different items is usually not: a customer adding a second purchase is a good outcome, and marking it duplicate destroys a real sale and a real customer relationship.</p>\n\n<p><b>The automatic detection has the same shape and the same limits.</b> It compares details on same-day orders, which catches the common case cleanly and cannot know what a phone call would reveal. Treat automatic flags as a queue to review rather than a decision already made.</p>\n\n<p><b>Watch the pattern as well as the case.</b> A closer who frequently reports duplicates may be diligent — or may be creating them by typing customer names rather than searching first. The duplicate banner at order creation exists precisely to prevent this, and it informs rather than blocks, so it can be clicked past. If one closer's suspected duplicates are disproportionate, the conversation is about how they create orders, not about how they spot them.</p>\n\n<blockquote>IMPLEMENTATION TIP: Record the reason when you mark a duplicate, in the same spirit as a cancellation reason. Six months later, a pattern of duplicates concentrated on one lead channel or one campaign is a finding about the lead source rather than about your team — but only if somebody wrote down why each one was marked.</blockquote>\n\n<p><b>What to tell your team.</b> Closers sometimes read the restriction as distrust. It is worth explaining the reasoning once, plainly: the power is withheld because it removes orders from the numbers that judge the person using it, and no system should ask an individual to be impartial about their own score. Framed that way it is a protection rather than a limitation — nobody can be suspected of tidying their own denominator, because nobody can.</p>"
+    "html": "<p>Of every status in the system, one is deliberately withheld from closers: <b>Duplicate</b>. The system may set it automatically when an order's details match another arriving the same day, and a Closer Manager may set it manually. A closer never can.</p>\n\n<p><b>The reason is a conflict of interest, and it is worth stating plainly to your team.</b> Marking an order duplicate removes it from the working numbers — it stops counting as something to convert, and it is excluded from the delivery rate calculation. If closers held that power, it would become a route to a clean conversion rate: any awkward order could quietly leave the denominator. Placing it with a manager keeps the decision with somebody whose own numbers it does not flatter.</p>\n\n<p><b>What this means for you operationally.</b> Closers will bring you suspected duplicates, and each one is a small judgement rather than a formality. Two orders on the same number, same day, same items is usually genuine — the customer called twice, or two closers picked up one enquiry. Two orders on the same number, same day, different items is usually not: a customer adding a second purchase is a good outcome, and marking it duplicate destroys a real sale and a real customer relationship.</p>\n\n<p><b>The automatic detection has the same shape and the same limits.</b> It compares details on same-day orders, which catches the common case cleanly and cannot know what a phone call would reveal. Treat automatic flags as a queue to review rather than a decision already made.</p>\n\n<p><b>Watch the pattern as well as the case.</b> A closer who frequently reports duplicates may be diligent — or may be creating them by typing customer names rather than searching first. The duplicate banner at order creation exists precisely to prevent this, and it informs rather than blocks, so it can be clicked past. If one closer's suspected duplicates are disproportionate, the conversation is about how they create orders, not about how they spot them.</p>\n\n<blockquote>IMPLEMENTATION TIP: Record the reason when you mark a duplicate, in the same spirit as a cancellation reason. Six months later, a pattern of duplicates concentrated on one lead channel or one campaign is a finding about the lead source rather than about your team — but only if somebody wrote down why each one was marked.</blockquote>\n\n<p><b>What to tell your team.</b> Closers sometimes read the restriction as distrust. It is worth explaining the reasoning once, plainly: the power is withheld because it removes orders from the numbers that judge the person using it, and no system should ask an individual to be impartial about their own score. Framed that way it is a protection rather than a limitation — nobody can be suspected of tidying their own denominator, because nobody can.</p>",
+    "checks": [
+     {
+      "q": "Two orders, same number, same day, same items. Most likely:",
+      "opts": [
+       "A genuine repeat purchase",
+       "A genuine duplicate — the customer called twice or two closers took one enquiry",
+       "A system error to report",
+       "A test order"
+      ],
+      "ans": 1,
+      "why": "Same items is the signature. Different items on the same day is usually a customer adding a purchase.",
+      "sort": 0
+     },
+     {
+      "q": "A closer reports disproportionately many suspected duplicates. The conversation is about:",
+      "opts": [
+       "Their diligence, which should be recognised",
+       "How they create orders, not how they spot them",
+       "Whether detection settings need tightening",
+       "Their daily cap"
+      ],
+      "ans": 1,
+      "why": "The duplicate banner at creation exists to prevent this, and it informs rather than blocks — so it can be clicked past.",
+      "sort": 1
+     },
+     {
+      "q": "Recording the reason on each duplicate matters because:",
+      "opts": [
+       "It is required before saving",
+       "A pattern by lead channel is a finding about the source, not the team",
+       "It restores the order to the numbers",
+       "It notifies the original closer"
+      ],
+      "ans": 1,
+      "why": "Six months later the pattern is only visible if somebody wrote down why each one was marked.",
+      "sort": 2
+     }
+    ]
    },
    {
     "title": "Reading your team's numbers, and the conversation after",
     "est": 8,
-    "html": "<p>The reports module teaches what each column means. This chapter is about what to do on Monday morning with what they say, because the gap between reading a number and improving it is entirely a management skill.</p>\n\n<p><b>Start with the unit, not the individual.</b> Team Performance before Closer Summary. If the whole unit's conversion has moved, no individual conversation is the right first step — you would be coaching people for a change in the leads, the stock position, or the delivery side. Ruling that out takes two minutes and prevents the most common management error in this system.</p>\n\n<p><b>Then read individuals in pairs of columns, never one at a time.</b> High volume with low conversion is a confirmation problem at the point of order creation. Low volume with high average order value is a specialist, and ranking them on volume will drive away your best upseller. Good conversion with slow response time is a habit sitting on top of real skill, which is the most coachable pattern there is. Low volume, low conversion and a rising cancellation rate together is the only combination that genuinely warrants a difficult conversation.</p>\n\n<p><b>Compare like with like before comparing anybody.</b> Closers are scoped to categories and countries, so two people may be working structurally different demand. A closer covering a category with thin stock cover will show cancellations that belong to the warehouse. Filtering by branch, team and date range is not a courtesy — it is what makes the comparison mean anything.</p>\n\n<p><b>Watch leading indicators rather than results.</b> Response time deteriorates before conversion does. Cancellation rate moves before revenue does. A manager working from delivered revenue is always reacting to something that happened weeks ago.</p>\n\n<p><b>The conversation itself.</b> Bring the number and the period, and open with the question rather than the conclusion — what does this look like from where you sit? Half the time the explanation is structural and you will learn something. When it is genuinely a performance matter, the metric to work on is almost always upstream of the one that looks bad: cancellations are fixed at order creation, not at cancellation.</p>\n\n<blockquote>WATCH-OUT: Every metric here can be gamed, and closers work out how quickly. Conversion improves if difficult orders are avoided. Cancellation rate improves if dead orders are left open rather than closed honestly. Reading columns together is what makes gaming visible — it produces a shape that does not make sense.</blockquote>\n\n<p><b>Say what happens next, and when you will look again.</b> A performance conversation with no agreed change and no follow-up date is a conversation that will be repeated in a month with the same numbers. Name the one metric being worked on, agree what will be different, and put a date on the review — a fortnight is usually enough for response time or cancellation rate to move.</p>"
+    "html": "<p>The reports module teaches what each column means. This chapter is about what to do on Monday morning with what they say, because the gap between reading a number and improving it is entirely a management skill.</p>\n\n<p><b>Start with the unit, not the individual.</b> Team Performance before Closer Summary. If the whole unit's conversion has moved, no individual conversation is the right first step — you would be coaching people for a change in the leads, the stock position, or the delivery side. Ruling that out takes two minutes and prevents the most common management error in this system.</p>\n\n<p><b>Then read individuals in pairs of columns, never one at a time.</b> High volume with low conversion is a confirmation problem at the point of order creation. Low volume with high average order value is a specialist, and ranking them on volume will drive away your best upseller. Good conversion with slow response time is a habit sitting on top of real skill, which is the most coachable pattern there is. Low volume, low conversion and a rising cancellation rate together is the only combination that genuinely warrants a difficult conversation.</p>\n\n<p><b>Compare like with like before comparing anybody.</b> Closers are scoped to categories and countries, so two people may be working structurally different demand. A closer covering a category with thin stock cover will show cancellations that belong to the warehouse. Filtering by branch, team and date range is not a courtesy — it is what makes the comparison mean anything.</p>\n\n<p><b>Watch leading indicators rather than results.</b> Response time deteriorates before conversion does. Cancellation rate moves before revenue does. A manager working from delivered revenue is always reacting to something that happened weeks ago.</p>\n\n<p><b>The conversation itself.</b> Bring the number and the period, and open with the question rather than the conclusion — what does this look like from where you sit? Half the time the explanation is structural and you will learn something. When it is genuinely a performance matter, the metric to work on is almost always upstream of the one that looks bad: cancellations are fixed at order creation, not at cancellation.</p>\n\n<blockquote>WATCH-OUT: Every metric here can be gamed, and closers work out how quickly. Conversion improves if difficult orders are avoided. Cancellation rate improves if dead orders are left open rather than closed honestly. Reading columns together is what makes gaming visible — it produces a shape that does not make sense.</blockquote>\n\n<p><b>Say what happens next, and when you will look again.</b> A performance conversation with no agreed change and no follow-up date is a conversation that will be repeated in a month with the same numbers. Name the one metric being worked on, agree what will be different, and put a date on the review — a fortnight is usually enough for response time or cancellation rate to move.</p>",
+    "checks": [
+     {
+      "q": "The unit's conversion has fallen. Your first step is:",
+      "opts": [
+       "Rank individuals and start at the bottom",
+       "Rule out a structural cause before any individual conversation",
+       "Raise caps to increase volume",
+       "Reassign the unit's orders"
+      ],
+      "ans": 1,
+      "why": "If the whole unit moved, you would be coaching people for a change in the leads, the stock position or the delivery side.",
+      "sort": 0
+     },
+     {
+      "q": "When cancellations are genuinely a performance matter, the metric to work on is:",
+      "opts": [
+       "The cancellation rate itself",
+       "Conversion rate",
+       "Order creation and confirmation",
+       "Response time"
+      ],
+      "ans": 2,
+      "why": "Cancellations are fixed at order creation, not at cancellation. The remedy is almost always upstream of the number that looks bad.",
+      "sort": 1
+     },
+     {
+      "q": "A performance conversation without an agreed change and a review date:",
+      "opts": [
+       "Is still useful as a warning",
+       "Will be repeated in a month with the same numbers",
+       "Should be recorded in the timeline",
+       "Requires escalation to a director"
+      ],
+      "ans": 1,
+      "why": "Name the one metric, agree what will be different, and put a date on it. A fortnight is usually enough to see movement.",
+      "sort": 2
+     }
+    ]
    },
    {
     "title": "The manager's week",
     "est": 7,
-    "html": "<p>Everything in this module is a capability. This chapter is the rhythm that turns them into a managed operation, and it is deliberately short enough to actually follow.</p>\n\n<p><b>Daily.</b> Scan the New Lead card and clear what can be distributed. Check the follow-up pool for claimed orders nobody is working and release them. Look at the age of the oldest unworked order in the book — one number, and the most honest single indicator of whether the team is keeping up.</p>\n\n<p><b>Daily, if you run shifts.</b> Check that the coming twenty-four hours have coverage. A gap found today is a roster change; a gap found tomorrow is a queue.</p>\n\n<p><b>Weekly.</b> Read Team Performance before Closer Summary. Review the abandoned cart pipeline for a Not Contacted pile-up. Look at where New Leads concentrated during the week — by category and country — because that is your capacity gap named precisely. Review any duplicates marked and why.</p>\n\n<p><b>Monthly.</b> Revenue per agent rather than revenue. Cancellation rates across the team, looking for individuals drifting rather than the average. Whether the pool threshold still matches how long your closers genuinely work a lead. Whether caps still match what people can handle — in both directions, since a cap set too low leaves capacity unused while leads queue.</p>\n\n<p><b>Quarterly.</b> Coverage: are categories and countries still matched to where demand actually is? Follow-up team composition. Role assignments, which drift as people change jobs and nobody revisits the permission that came with the old one.</p>\n\n<p><b>The judgement underneath the list.</b> Most of what goes wrong in this system is not a failure but an omission — a lead nobody distributed, a claim nobody released, a roster gap nobody noticed, a cap nobody revisited. None of those produces an error message. They produce customers who quietly bought elsewhere, and the cost never appears in a report as a failure.</p>\n\n<blockquote>IMPLEMENTATION TIP: If you keep only one habit from this module, keep the daily New Lead scan. It takes a minute, it is the point where captured demand is most likely to be lost, and it is the only one on this list where a single day of neglect has a customer on the other end of it.</blockquote>\n\n<p><b>Protect the rhythm from the crisis.</b> Every week contains something urgent, and the weekly and monthly items are the ones that get dropped for it — which is precisely backwards, because they are the reviews that prevent next month's crisis. Put them in a calendar rather than a good intention, and treat a missed monthly review as an event worth noticing rather than a week that got busy.</p>"
+    "html": "<p>Everything in this module is a capability. This chapter is the rhythm that turns them into a managed operation, and it is deliberately short enough to actually follow.</p>\n\n<p><b>Daily.</b> Scan the New Lead card and clear what can be distributed. Check the follow-up pool for claimed orders nobody is working and release them. Look at the age of the oldest unworked order in the book — one number, and the most honest single indicator of whether the team is keeping up.</p>\n\n<p><b>Daily, if you run shifts.</b> Check that the coming twenty-four hours have coverage. A gap found today is a roster change; a gap found tomorrow is a queue.</p>\n\n<p><b>Weekly.</b> Read Team Performance before Closer Summary. Review the abandoned cart pipeline for a Not Contacted pile-up. Look at where New Leads concentrated during the week — by category and country — because that is your capacity gap named precisely. Review any duplicates marked and why.</p>\n\n<p><b>Monthly.</b> Revenue per agent rather than revenue. Cancellation rates across the team, looking for individuals drifting rather than the average. Whether the pool threshold still matches how long your closers genuinely work a lead. Whether caps still match what people can handle — in both directions, since a cap set too low leaves capacity unused while leads queue.</p>\n\n<p><b>Quarterly.</b> Coverage: are categories and countries still matched to where demand actually is? Follow-up team composition. Role assignments, which drift as people change jobs and nobody revisits the permission that came with the old one.</p>\n\n<p><b>The judgement underneath the list.</b> Most of what goes wrong in this system is not a failure but an omission — a lead nobody distributed, a claim nobody released, a roster gap nobody noticed, a cap nobody revisited. None of those produces an error message. They produce customers who quietly bought elsewhere, and the cost never appears in a report as a failure.</p>\n\n<blockquote>IMPLEMENTATION TIP: If you keep only one habit from this module, keep the daily New Lead scan. It takes a minute, it is the point where captured demand is most likely to be lost, and it is the only one on this list where a single day of neglect has a customer on the other end of it.</blockquote>\n\n<p><b>Protect the rhythm from the crisis.</b> Every week contains something urgent, and the weekly and monthly items are the ones that get dropped for it — which is precisely backwards, because they are the reviews that prevent next month's crisis. Put them in a calendar rather than a good intention, and treat a missed monthly review as an event worth noticing rather than a week that got busy.</p>",
+    "checks": [
+     {
+      "q": "Which belongs in the daily rhythm?",
+      "opts": [
+       "Revenue per agent",
+       "Releasing stale pool claims",
+       "Category and country coverage",
+       "Role assignment audit"
+      ],
+      "ans": 1,
+      "why": "Distribution and stale claims are where captured demand is lost within a single day. The rest are weekly, monthly or quarterly.",
+      "sort": 0
+     },
+     {
+      "q": "Most of what goes wrong in this system is:",
+      "opts": [
+       "A configuration error",
+       "An omission that produces no error message",
+       "A permissions failure",
+       "A reporting lag"
+      ],
+      "ans": 1,
+      "why": "A lead nobody distributed, a claim nobody released, a roster gap nobody noticed. The cost appears as customers who quietly bought elsewhere.",
+      "sort": 1
+     },
+     {
+      "q": "A busy week means the monthly review gets dropped. This is:",
+      "opts": [
+       "Sensible triage",
+       "Backwards — those reviews prevent next month's crisis",
+       "Acceptable if the daily habits held",
+       "Only a problem if repeated twice"
+      ],
+      "ans": 1,
+      "why": "Put them in a calendar rather than a good intention, and treat a missed review as an event worth noticing.",
+      "sort": 2
+     }
+    ]
    }
   ],
   "questions": [
