@@ -4898,7 +4898,7 @@ def training_team_overview():
 	certs = {}
 	for c in frappe.get_all(
 		"Duty Certificate",
-		filters={"user": ["in", users], "status": "Issued"},
+		filters={"user": ["in", users], "status": ["!=", "Revoked"]},
 		fields=["user", "track_title", "product", "issued_on"],
 		order_by="issued_on asc",
 		limit_page_length=0,
