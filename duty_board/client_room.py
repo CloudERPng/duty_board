@@ -4102,8 +4102,10 @@ def client_lesson_questions(lesson):
 		out.append({
 			"name": r.name,
 			"mine": mine,
-			"who": frappe.utils.get_fullname(r.asked_by) if not mine else _("You"),
-			"asked_on": str(r.asked_on)[:16] if r.asked_on else None,
+			# never name a colleague to a colleague: someone who believes their
+			# confusion will be published under their own name does not ask
+			"who": _("You") if mine else _("A colleague asked"),
+			"asked_on": (str(r.asked_on)[:16] if r.asked_on else None) if mine else None,
 			"question": r.question,
 			"status": r.status,
 			"answer": r.answer,

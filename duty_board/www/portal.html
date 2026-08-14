@@ -2591,7 +2591,7 @@ function paintAsk(lesson, rows) {
 	window._askrows = rows;
 	const thread = (q) => `
 		<div class="qacard${q.mine ? " mine" : ""}">
-			<div class="qahead">${esc(q.who)}${q.asked_on ? ` <span class="qadt">${esc(q.asked_on)}</span>` : ""}${!q.mine && q.published ? `<span class="qatag">Answered for everyone</span>` : ""}</div>
+			<div class="qahead">${esc(q.who)}${q.mine && q.asked_on ? ` <span class="qadt">${esc(q.asked_on)}</span>` : ""}${!q.mine ? `<span class="qatag">Answered for everyone</span>` : ""}</div>
 			<div class="qaq">${esc(q.question)}</div>
 			${q.answer
 				? `<div class="qaa"><b>${esc(q.answered_by || "Our team")}</b>${q.answered_on ? ` <span class="qadt">${esc(q.answered_on)}</span>` : ""}<p>${esc(q.answer)}</p></div>`
@@ -2616,7 +2616,7 @@ function askLesson(lesson) {
 				<button id="asksend">Send question</button>
 				<button class="rdghost" onclick="askLesson('${esc(lesson)}')">Cancel</button>
 			</div>
-			<p class="askfoot">Your question stays with this lesson. We will answer here and email you when we do.</p>
+			<p class="askfoot">Your question stays with this lesson. We will answer here and email you when we do. If the answer would help others we may show it on this lesson — without your name.</p>
 		</div>`;
 	document.getElementById("askq").focus();
 	document.getElementById("asksend").onclick = () => {
