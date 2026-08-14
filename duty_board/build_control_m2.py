@@ -139,7 +139,7 @@ LESSONS = [
 
 ("Query Report and the standing programme", 12, """<p>When filters are not enough, a Query Report stores SQL against the database and presents the result as an ordinary report with parameters. It is the instrument behind most serious exception tests, and an auditor does not need to be a developer to use it — but does need to be careful.</p>
 
-<p><b>What a query unlocks.</b> Joins across unrelated doctypes; aggregation with grouping and having-clauses; comparison of a document against another document; date arithmetic between events. Which is to say: nearly every test in the shipped library, because real exceptions are usually about a <i>relationship</i> between records rather than a property of one.</p>
+<p><b>What a query makes possible.</b> Joins across unrelated doctypes; aggregation with grouping and having-clauses; comparison of a document against another document; date arithmetic between events. Which is to say: nearly every test in the shipped library, because real exceptions are usually about a <i>relationship</i> between records rather than a property of one.</p>
 
 <p><b>The pattern almost all of them share.</b> Take the population, join what it must be compared against, filter to the condition that should never occur, and return enough columns to investigate — document number, date, person, branch, value. The last part matters: a report returning a count is a statistic, and a report returning document numbers is a work list.</p>
 
@@ -243,10 +243,10 @@ LESSONS = [
    ["Theft", "A technical defect such as a backdated entry or interrupted posting",
     "A valuation policy change", "Poor counting"], 1,
    "The response is a support conversation rather than an investigation — but an urgent one."),
- C("The integrity set should be run:",
-   ["After completing substantive testing", "Before beginning it",
-    "Only when a problem is suspected", "Annually with the external audit"], 1,
-   "A finding raised from a ledger that does not reconcile will be dismissed, and rightly.")]),
+ C("You are three weeks into a shrinkage review and have not run the integrity set. You should:",
+   ["Finish the review, then run it", "Run it now, before relying on any figure already produced",
+    "Run it only if the numbers look odd", "Leave it to the external auditor"], 1,
+   "If the stock ledger does not reconcile to the general ledger, three weeks of work rests on a broken foundation.")]),
 
 ("Running a test in Audit & Exceptions", 12, """<p>The tests you build by hand are yours until you leave. The Audit & Exceptions app exists to make them the function's — stored, scheduled, versioned, with a result history attached.</p>
 
