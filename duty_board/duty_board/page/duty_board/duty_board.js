@@ -2008,7 +2008,7 @@ class DutyBoard {
 									${this.fmt_time(x.start_time)} – ${x.end_time ? this.fmt_time(x.end_time) : __("open")}
 									· ${this.fmt_duration(x.duration)}
 								</span>
-								<a class="duty-session-notes" title="${__("Notes")}">📝${x.notes ? " " + x.notes : ""}</a>
+								<a class="duty-session-notes" title="${__("Notes")}">📝${x.notes ? " " + frappe.utils.escape_html(x.notes) : ""}</a>
 							</div>`).appendTo($list);
 						$row.find(".duty-session-notes").on("click", (e) => {
 							e.preventDefault();
@@ -4602,7 +4602,7 @@ this.$me.find(".duty-req-ok").on("click", (e) => {
 						${t.awaiting_client && t.column !== "Completed" ? `<span class="duty-cr-mswait">⏳ ${__("client")}</span>` : ""}
 						${(t.working || []).length ? `<span class="duty-kb-working">⏱ ${t.working.map((u) => `<b style="color:${this.user_color(u)}">${frappe.utils.escape_html((this.name_map[u] || u).split(" ")[0])}</b>`).join(", ")}</span>` : ""}
 						${t.stale_days >= 7 && t.column !== "Completed" ? `<span class="duty-stale ${t.stale_days >= 14 ? "duty-stale-red" : ""}">🕸 ${t.stale_days}d</span>` : ""}
-						${t.notes ? `<span>💬 ${t.notes}</span>` : ""}
+						${t.notes ? `<span>💬 ${frappe.utils.escape_html(t.notes)}</span>` : ""}
 						${t.subs_total ? `<span style="font-weight:700;color:${t.subs_done === t.subs_total ? "#15803d" : "#6B7772"}">☑ ${t.subs_done}/${t.subs_total}</span>` : ""}
 					</span>
 				</div>
@@ -8774,7 +8774,7 @@ this.$me.find(".duty-req-ok").on("click", (e) => {
 						${l.stale_days >= 7 ? `<span class="duty-stale ${l.stale_days >= 14 ? "duty-stale-red" : ""}" title="${__("Days since last touch")}">🕸 ${l.stale_days}d</span>` : ""}
 						${l.expected_close ? `<span class="${l.close_overdue ? "duty-lead-over" : ""}" title="${__("Expected close")}">🎯 ${frappe.datetime.str_to_user(l.expected_close)}</span>` : ""}
 						${l.tasks_open ? `<span class="${l.tasks_overdue ? "duty-lead-over" : ""}">📋 ${l.tasks_open}</span>` : ""}
-						${l.notes ? `<span>💬 ${l.notes}</span>` : ""}
+						${l.notes ? `<span>💬 ${frappe.utils.escape_html(l.notes)}</span>` : ""}
 						${l.no_step ? `<span class="duty-step-none" title="${__("No next step — every open lead needs one")}">❗ ${__("no next step")}</span>` : l.next_step ? `<span class="duty-step ${l.step_overdue ? "duty-lead-over" : ""}" title="${frappe.utils.escape_html(l.next_step)}">📞 ${l.next_step_due ? frappe.datetime.str_to_user(l.next_step_due).slice(0, 17) : ""}</span>` : ""}
 						${l.meeting_next ? `<span title="${__("Next meeting")}">📅 ${l.meeting_next.slice(5, 16)}</span>` : ""}
 					</span>
@@ -11268,7 +11268,7 @@ this.$me.find(".duty-req-ok").on("click", (e) => {
 						${this.fmt_time(x.start_time)} – ${x.end_time ? this.fmt_time(x.end_time) : __("now")}
 						· ${this.fmt_duration(x.duration)}
 					</span>
-					<a class="duty-session-notes" data-session="${x.name}" title="${__("Notes")}">📝${x.notes ? " " + x.notes : ""}</a>
+					<a class="duty-session-notes" data-session="${x.name}" title="${__("Notes")}">📝${x.notes ? " " + frappe.utils.escape_html(x.notes) : ""}</a>
 				</div>`
 			)
 			.join("");
@@ -11376,7 +11376,7 @@ this.$me.find(".duty-req-ok").on("click", (e) => {
 						${this.fmt_time(x.start_time)} – ${x.end_time ? this.fmt_time(x.end_time) : __("now")}
 						· ${this.fmt_duration(x.duration)}
 					</span>
-					<a class="duty-session-notes" data-session="${x.name}" title="${__("Notes")}">📝${x.notes ? " " + x.notes : ""}</a>
+					<a class="duty-session-notes" data-session="${x.name}" title="${__("Notes")}">📝${x.notes ? " " + frappe.utils.escape_html(x.notes) : ""}</a>
 				</div>`
 			)
 			.join("");
