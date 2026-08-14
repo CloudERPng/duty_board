@@ -30,7 +30,7 @@ import os
 import frappe
 
 PRODUCT = "Xlevel Academy"
-ORDER = ["read_pl"]
+ORDER = ["read_pl", "read_bs"]
 
 TRACK = {
     "title": "Accounting & Finance for Non-Finance Managers",
@@ -170,5 +170,5 @@ def seed_finance_track():
     frappe.db.commit()
     print("\nThe track is PAID: it will show a price in the catalogue and nobody "
           "can be assigned to it until a seat order is approved.")
-    print("Remaining modules of this track are not written yet — the track is "
-          "sellable only once they are.")
+    print("Modules 1 and 4 to 8 are not written yet — the track is sellable "
+          "only once the set is complete.")

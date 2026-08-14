@@ -521,8 +521,15 @@ def main():
         ],
         "questions": QUESTIONS,
     }
-    data = {"read_pl": mod}
-    with io.open("academy_finance_data.json", "w", encoding="utf-8") as f:
+    # merge, never clobber: rebuilding one module must not delete its siblings
+    import os
+    path = "academy_finance_data.json"
+    data = {}
+    if os.path.exists(path):
+        with io.open(path, encoding="utf-8") as f:
+            data = json.load(f)
+    data["read_pl"] = mod
+    with io.open(path, "w", encoding="utf-8") as f:
         json.dump(data, f, ensure_ascii=False, indent=1)
         f.write("\n")
 
