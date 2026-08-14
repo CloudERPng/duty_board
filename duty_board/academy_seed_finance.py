@@ -71,7 +71,7 @@ def seed_finance_track():
 
     if not frappe.db.exists("Duty Product", PRODUCT):
         frappe.get_doc({
-            "doctype": "Duty Product", "product_name": PRODUCT,
+            "doctype": "Duty Product", "title": PRODUCT,
             "active": 1, "sort_order": 90,
         }).insert(ignore_permissions=True)
         print("created Duty Product: %s" % PRODUCT)
