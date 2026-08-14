@@ -4237,6 +4237,35 @@ def _admin_rows(room):
 		if r.status != "Completed":
 			st = _quiz_state(r.module, r.trainee, r.name)
 			r["blocked"] = bool(not st["passed"] and st["attempts_left"] == 0)
+	# per-course detail, so an administrator can see WHERE somebody stopped
+	# rather than only that they have not finished
+	mods = list({r.module for r in recs})
+	totals = {}
+	for l in frappe.get_all(
+		"Duty Lesson", filters={"module": ["in", mods or [""]]}, fields=["module"]
+	):
+		totals[l.module] = totals.get(l.module, 0) + 1
+	done = {}
+	for p in frappe.get_all(
+		"Duty Lesson Progress",
+		filters={"module": ["in", mods or [""]], "completed_at": ["is", "set"]},
+		fields=["module", "user"],
+	):
+		done[(p.user, p.module)] = done.get((p.user, p.module), 0) + 1
+	att = {}
+	for a in frappe.get_all(
+		"Duty Quiz Attempt",
+		filters={"record": ["in", [r.name for r in recs] or [""]], "finished_at": ["is", "set"]},
+		fields=["record", "score"],
+	):
+		cur = att.setdefault(a.record, {"n": 0, "best": 0})
+		cur["n"] += 1
+		cur["best"] = max(cur["best"], cint(a.score))
+	for r in recs:
+		r["lessons_total"] = totals.get(r.module, 0)
+		r["lessons_done"] = done.get((r.trainee, r.module), 0)
+		r["attempts"] = att.get(r.name, {}).get("n", 0)
+		r["best"] = att.get(r.name, {}).get("best", 0)
 	return users, recs
 
 
@@ -4275,6 +4304,13 @@ def client_training_admin_home():
 					"due_on": str(r.due_on) if r.due_on else None,
 					"overdue": r["overdue"],
 					"blocked": r["blocked"],
+					"lessons_total": r["lessons_total"],
+					"lessons_done": r["lessons_done"],
+					"attempts": r["attempts"],
+					"best": r["best"],
+					"cert": frappe.db.get_value(
+						"Duty Training Record", r.name, "certificate_shelf"
+					) if r.status == "Completed" else None,
 				}
 				for r in sorted(rows, key=lambda x: x["title"])
 			],
@@ -4300,6 +4336,48 @@ def client_training_admin_home():
 			"never": sum(1 for u in users if not last_seen.get(u)),
 		},
 		"people": people,
+	}
+
+
+@frappe.whitelist()
+def client_admin_export():
+	"""The roster as a spreadsheet.
+
+	An HR head asks for this early — for personnel files, or to show a client
+	of their own who is certified — and its absence looks unserious. Returned as
+	CSV text rather than a file so the browser can save it without a round trip
+	through the shelf."""
+	room = _require_room_admin()
+	_users, recs = _admin_rows(room)
+	seen = _last_signed_in([r.trainee for r in recs])
+	out = [
+		"Name,Email,Course,Status,Lessons read,Lessons total,Attempts,Best score,"
+		"Due on,Overdue,Blocked,Completed on,Last signed in"
+	]
+
+	def q(v):
+		s = "" if v is None else str(v)
+		return '"%s"' % s.replace('"', '""') if ("," in s or '"' in s) else s
+
+	for r in sorted(recs, key=lambda x: ((x.trainee_name or ""), x["title"])):
+		out.append(
+			",".join(
+				q(v)
+				for v in (
+					r.trainee_name or frappe.utils.get_fullname(r.trainee),
+					r.trainee, r["title"], r.status,
+					r["lessons_done"], r["lessons_total"], r["attempts"],
+					r["best"] or "", r.due_on or "",
+					"yes" if r["overdue"] else "", "yes" if r["blocked"] else "",
+					r.completed_on or "", seen.get(r.trainee) or "never",
+				)
+			)
+		)
+	return {
+		"filename": "training_%s_%s.csv" % (
+			"".join(c for c in (room.customer or room.name) if c.isalnum())[:32], today()
+		),
+		"csv": "\n".join(out),
 	}
 
 

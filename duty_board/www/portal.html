@@ -608,6 +608,19 @@
 	.admbar i { display: block; height: 100%; background: var(--brand); }
 	.admnudge { font-size: 12px; font-weight: 700; color: var(--brand-700); cursor: pointer; }
 	.admgrant { font-size: 12px; font-weight: 700; color: #B27409; cursor: pointer; white-space: nowrap; }
+	.admexp { font-size: 12px; font-weight: 700; color: var(--brand-700); cursor: pointer; white-space: nowrap; }
+	.admdetail { width: 100%; }
+	.admdetail:empty { display: none; }
+	.detrow { display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+		padding: 6px 0 6px 14px; border-left: 2px solid #E9EFEC; margin: 2px 0 2px 4px; font-size: 12.5px; }
+	.dettitle { flex: 0 0 40%; min-width: 150px; }
+	.detbar { flex: 0 0 70px; height: 5px; border-radius: 99px; background: #E9EFEC; overflow: hidden; }
+	.detbar i { display: block; height: 100%; background: var(--brand); }
+	.detmeta { color: #6B7C77; }
+	.detmeta.late { color: #B27409; font-weight: 700; }
+	.detok { color: #0C6B4F; font-weight: 700; }
+	.detwarn { color: #8A5A0B; font-weight: 700; }
+	.detbad { color: #B27409; font-weight: 700; }
 	.pplnever { color: #B27409; font-weight: 700; }
 	.ordrow { display: flex; align-items: center; gap: 12px; padding: 11px 0; border-top: 1px solid #F0F4F2; }
 	.ordwho { flex: 1; min-width: 0; font-size: 14px; }
@@ -2083,6 +2096,7 @@ function loadAdminTraining() {
 						<button id="admppl" style="background:#E2E8E5;color:#2A3833">People</button>
 						<button id="admcat" style="background:#E2E8E5;color:#2A3833">Catalogue</button>
 						${s.overdue ? `<button id="admrall" style="background:#E2E8E5;color:#2A3833">Remind everyone overdue</button>` : ""}
+						<button id="admcsv" style="background:#E2E8E5;color:#2A3833">Export CSV</button>
 						<button id="admassign">＋ Assign training</button>
 					</div>
 					<div class="atiles">
@@ -2095,7 +2109,7 @@ function loadAdminTraining() {
 					</div>
 					${h.people.length
 						? h.people.map((p) => `
-						<div class="admrow">
+						<div class="admrow" data-u="${esc(p.user)}">
 							<div class="admwho">
 								<b>${esc(p.full_name)}</b>
 								<span class="muted">${p.assigned ? `${p.complete} of ${p.assigned} complete` : "nothing assigned"}${p.overdue ? ` · <span class="admlate">${p.overdue} overdue</span>` : ""}${p.never ? ` · <span class="pplnever">never signed in</span>` : ""}${(p.blocked || []).length ? ` · <span class="admlate">blocked</span>` : ""}</span>
@@ -2103,6 +2117,8 @@ function loadAdminTraining() {
 							<div class="admbar"><i style="width:${p.assigned ? Math.round((p.complete / p.assigned) * 100) : 0}%"></i></div>
 							${(p.blocked || []).length ? `<a class="admgrant" data-r="${esc(p.blocked[0].record)}" title="${esc(p.blocked[0].title)}">Grant attempt</a>` : ""}
 							${p.assigned > p.complete ? `<a class="admnudge" data-u="${esc(p.user)}">Remind</a>` : ""}
+							${p.assigned ? `<a class="admexp" data-u="${esc(p.user)}">Detail</a>` : ""}
+							<div class="admdetail" id="det-${esc(p.user)}"></div>
 						</div>`).join("")
 						: `<span class="muted">Nobody is enrolled yet.</span>`}
 				</div>`;
@@ -2110,6 +2126,20 @@ function loadAdminTraining() {
 			document.getElementById("admcat").onclick = openCatalogue;
 			document.getElementById("admppl").onclick = openPeople;
 			document.getElementById("admord").onclick = openOrders;
+			const csv = document.getElementById("admcsv");
+			if (csv) csv.onclick = () => {
+				csv.disabled = true;
+				api("client_admin_export")
+					.then((r) => {
+						const blob = new Blob(["\uFEFF" + r.csv], { type: "text/csv;charset=utf-8;" });
+						const a = document.createElement("a");
+						a.href = URL.createObjectURL(blob);
+						a.download = r.filename || "training.csv";
+						document.body.appendChild(a); a.click(); a.remove();
+						csv.disabled = false;
+					})
+					.catch((e) => { csv.disabled = false; fail(e); });
+			};
 			const rall = document.getElementById("admrall");
 			if (rall) rall.onclick = () => {
 				rall.disabled = true;
@@ -2117,6 +2147,32 @@ function loadAdminTraining() {
 					.then((r) => { rall.textContent = `Reminded ${r.sent}`; })
 					.catch((e) => { rall.disabled = false; fail(e); });
 			};
+			host.querySelectorAll(".admexp").forEach((a) =>
+				a.addEventListener("click", () => {
+					const u = a.getAttribute("data-u");
+					const box = document.getElementById("det-" + u);
+					if (!box) return;
+					if (box.innerHTML) { box.innerHTML = ""; a.textContent = "Detail"; return; }
+					a.textContent = "Hide";
+					const p = (window._adm.people || []).find((x) => x.user === u) || {};
+					box.innerHTML = (p.courses || []).map((c) => {
+						const pct = c.lessons_total ? Math.round((c.lessons_done / c.lessons_total) * 100) : 0;
+						const state = c.status === "Completed"
+							? `<span class="detok">Certified${c.best ? ` \u00b7 ${c.best}%` : ""}</span>`
+							: c.blocked ? `<span class="detbad">Out of attempts</span>`
+							: c.attempts ? `<span class="detwarn">${c.attempts} attempt${c.attempts === 1 ? "" : "s"}${c.best ? `, best ${c.best}%` : ""}</span>`
+							: c.lessons_done ? `<span class="muted">reading</span>`
+							: `<span class="muted">not started</span>`;
+						return `<div class="detrow">
+							<span class="dettitle">${esc(c.title)}</span>
+							<span class="detbar"><i style="width:${pct}%"></i></span>
+							<span class="detmeta">${c.lessons_total ? `${c.lessons_done}/${c.lessons_total}` : ""}</span>
+							${state}
+							${c.due_on ? `<span class="detmeta${c.overdue ? " late" : ""}">${c.overdue ? "overdue " : "due "}${esc(String(c.due_on).slice(0, 10))}</span>` : ""}
+							${c.cert ? `<a href="/api/method/duty_board.client_room.client_shelf_file?id=${esc(c.cert)}" target="_blank">Certificate</a>` : ""}
+						</div>`;
+					}).join("") || `<span class="muted">Nothing assigned.</span>`;
+				}));
 			host.querySelectorAll(".admgrant").forEach((a) =>
 				a.addEventListener("click", () => {
 					a.textContent = "\u2026";
