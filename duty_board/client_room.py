@@ -3749,6 +3749,16 @@ def client_get_training():
 	user = frappe.session.user
 	my_modules = [r.module for r in rows if r.trainee == user]
 	lesson_counts, done_counts = {}, {}
+	left_mins, next_lesson = {}, {}
+	due = {
+		d.name: d.due_on
+		for d in frappe.get_all(
+			"Duty Training Record",
+			filters={"name": ["in", [r.name for r in rows] or [""]]},
+			fields=["name", "due_on"],
+		)
+		if d.due_on
+	}
 	if my_modules:
 		for l in frappe.get_all(
 			"Duty Lesson", filters={"module": ["in", my_modules]}, fields=["name", "module"]
@@ -3760,6 +3770,25 @@ def client_get_training():
 			fields=["module"],
 		):
 			done_counts[p.module] = done_counts.get(p.module, 0) + 1
+		# what is left to read, and where to resume — the card can then say
+		# "45 min left" and go straight to the next unread chapter
+		read = {
+			p.lesson
+			for p in frappe.get_all(
+				"Duty Lesson Progress",
+				filters={"user": user, "module": ["in", my_modules], "completed_at": ["is", "set"]},
+				fields=["lesson"],
+			)
+		}
+		for l in frappe.get_all(
+			"Duty Lesson", filters={"module": ["in", my_modules]},
+			fields=["name", "module", "est_minutes"],
+			order_by="sort_order asc, creation asc",
+		):
+			if l.name in read:
+				continue
+			left_mins[l.module] = left_mins.get(l.module, 0) + (cint(l.est_minutes) or 5)
+			next_lesson.setdefault(l.module, l.name)
 	return [
 		{
 			"record": r.name,
@@ -3772,6 +3801,12 @@ def client_get_training():
 			"mine": r.trainee == user,
 			"lessons_total": lesson_counts.get(r.module, 0) if r.trainee == user else None,
 			"lessons_done": done_counts.get(r.module, 0) if r.trainee == user else None,
+			"due_on": str(due.get(r.name)) if due.get(r.name) else None,
+			"overdue": bool(
+				due.get(r.name) and r.status != "Completed" and getdate(due[r.name]) < getdate(today())
+			),
+			"minutes_left": left_mins.get(r.module) if r.trainee == user else None,
+			"next_lesson": next_lesson.get(r.module) if r.trainee == user else None,
 		}
 		for r in rows
 	]
@@ -4102,6 +4137,10 @@ def _admin_rows(room):
 		r["overdue"] = bool(
 			r.due_on and r.status != "Completed" and getdate(r.due_on) < today_d
 		)
+		r["blocked"] = False
+		if r.status != "Completed":
+			st = _quiz_state(r.module, r.trainee, r.name)
+			r["blocked"] = bool(not st["passed"] and st["attempts_left"] == 0)
 	return users, recs
 
 
@@ -4121,6 +4160,13 @@ def client_training_admin_home():
 	if not is_admin:
 		return {"admin": 0}
 	users, recs = _admin_rows(room)
+	last_seen = {
+		m.user: str(m.last_seen) if m.last_seen else None
+		for m in frappe.get_all(
+			"Client Room Member", filters={"room": room.name, "active": 1},
+			fields=["user", "last_seen"],
+		)
+	}
 	by_user = {}
 	for r in recs:
 		by_user.setdefault(r.trainee, []).append(r)
@@ -4138,9 +4184,15 @@ def client_training_admin_home():
 					"record": r.name, "title": r["title"], "status": r.status,
 					"due_on": str(r.due_on) if r.due_on else None,
 					"overdue": r["overdue"],
+					"blocked": r["blocked"],
 				}
 				for r in sorted(rows, key=lambda x: x["title"])
 			],
+			"blocked": [
+				{"record": r.name, "title": r["title"]} for r in rows if r["blocked"]
+			],
+			"last_seen": last_seen.get(u),
+			"never": not last_seen.get(u),
 		})
 	people.sort(key=lambda p: (-p["overdue"], -(p["assigned"] - p["complete"]), p["full_name"]))
 	assigned = len(recs)
@@ -4154,9 +4206,54 @@ def client_training_admin_home():
 			"complete": complete,
 			"rate": round(complete * 100 / assigned) if assigned else None,
 			"overdue": sum(1 for r in recs if r["overdue"]),
+			"blocked": sum(1 for r in recs if r["blocked"]),
+			"never": sum(1 for u in users if not last_seen.get(u)),
 		},
 		"people": people,
 	}
+
+
+@frappe.whitelist()
+def client_admin_grant_attempt(record):
+	"""Give one person one more go, without loosening the policy for everybody."""
+	room = _require_room_admin()
+	rec = frappe.db.get_value(
+		"Duty Training Record", record, ["room", "trainee", "module", "extra_attempts"], as_dict=True
+	)
+	if not rec or rec.room != room.name:
+		frappe.throw(_("Not found."), frappe.PermissionError)
+	frappe.db.set_value(
+		"Duty Training Record", record, "extra_attempts", cint(rec.extra_attempts) + 1,
+		update_modified=False,
+	)
+	frappe.db.commit()
+	try:
+		from duty_board.api import _notify_user
+
+		title = frappe.db.get_value("Duty Training Module", rec.module, "title") or ""
+		_notify_user(
+			rec.trainee, _("\u2705 Another attempt granted"),
+			_("You may sit {0} again.").format(title),
+		)
+	except Exception:
+		pass
+	return client_training_admin_home()
+
+
+@frappe.whitelist()
+def client_admin_nudge_all():
+	"""One reminder to everyone carrying something overdue."""
+	room = _require_room_admin()
+	_users, recs = _admin_rows(room)
+	targets = sorted({r.trainee for r in recs if r["overdue"]})
+	sent = 0
+	for u in targets:
+		try:
+			client_training_admin_nudge(u)
+			sent += 1
+		except Exception:
+			continue
+	return {"sent": sent}
 
 
 @frappe.whitelist()
@@ -4306,6 +4403,57 @@ def _parse_emails(blob):
 	return out
 
 
+def _academy_invite(room, email):
+	"""The invitation that decides whether a paid-for cohort ever starts.
+
+	Frappe's own welcome email says nothing about training, gives no reason for
+	the message, and reads like machinery — which in practice means a meaningful
+	share of invited staff never open it, and nothing in the system reports that
+	as the reason a cohort went quiet.
+
+	This one comes from their own administrator by name, says what it is for,
+	how long it takes, and what they earn."""
+	try:
+		user = frappe.get_doc("User", email)
+		key = frappe.generate_hash()
+		user.db_set("reset_password_key", key, update_modified=False)
+		try:
+			user.db_set("last_reset_password_key_generated_on", now_datetime(), update_modified=False)
+		except Exception:
+			pass
+		link = frappe.utils.get_url("/update-password?key=" + key)
+		who = frappe.utils.get_fullname(frappe.session.user)
+		org = room.customer or ""
+		frappe.sendmail(
+			recipients=[email],
+			subject=_("{0} has set up your training account").format(who),
+			message="""<p>Hello,</p>
+<p><b>{who}</b> has given you access to the {org} training portal, where your
+courses, assessments and certificates live.</p>
+<p>Here is what to expect. Each course is a set of short chapters you read at
+your own pace, with a few questions at the end of each one so you can check it
+landed. When you have read them all, you sit a short timed assessment. Pass it
+and you earn a certificate with a serial number anyone can verify — it is yours
+to keep, and it does not expire.</p>
+<p>Most chapters take five to ten minutes. You can stop and pick up where you
+left off at any time, on a phone or a computer.</p>
+<p><a href="{link}" style="display:inline-block;background:#0A473F;color:#fff;
+text-decoration:none;padding:11px 22px;border-radius:8px;font-weight:600">
+Set your password and begin</a></p>
+<p style="font-size:12px;color:#6B7C77">If the button does not work, copy this
+into your browser:<br>{link}</p>
+<p style="font-size:12px;color:#6B7C77">You are receiving this because {who} at
+{org} added you. If that seems wrong, speak to them before using the link.</p>
+<p>&mdash; CloudERP.One Academy &middot; Xlevel Retail Systems Ltd</p>""".format(
+				who=frappe.utils.escape_html(who),
+				org=frappe.utils.escape_html(org),
+				link=link,
+			),
+		)
+	except Exception:
+		frappe.log_error(frappe.get_traceback(), "duty_board academy invite")
+
+
 @frappe.whitelist()
 def client_admin_people():
 	"""The room roster as the administrator sees it, leavers included."""
@@ -4385,7 +4533,7 @@ def client_admin_invite(emails):
 				"email": email,
 				"first_name": email.split("@")[0].strip(),
 				"user_type": "Website User",
-				"send_welcome_email": 1,
+				"send_welcome_email": 0,
 			}).insert(ignore_permissions=True)
 		elif not cint(user.enabled):
 			frappe.db.set_value("User", email, "enabled", 1, update_modified=False)
@@ -4399,6 +4547,8 @@ def client_admin_invite(emails):
 			}).insert(ignore_permissions=True)
 			invited.append(email)
 	frappe.db.commit()
+	for email in invited + rejoined:
+		_academy_invite(room, email)
 	if invited or rejoined:
 		try:
 			_post(
@@ -4884,7 +5034,7 @@ def _exam_policy(module):
 	})
 
 
-def _quiz_state(module, user):
+def _quiz_state(module, user, record=None):
 	attempts = frappe.get_all(
 		"Duty Quiz Attempt",
 		filters={"user": user, "module": module, "finished_at": ["is", "set"]},
@@ -4892,6 +5042,9 @@ def _quiz_state(module, user):
 		order_by="finished_at desc",
 	)
 	pol = _exam_policy(module)
+	# an administrator may grant further attempts on one person's record
+	# without loosening the policy for everybody
+	extra = cint(frappe.db.get_value("Duty Training Record", record, "extra_attempts")) if record else 0
 	used = len(attempts)
 	passed = any(a.passed for a in attempts)
 	next_at = None
@@ -4904,8 +5057,8 @@ def _quiz_state(module, user):
 		"best": max((a.score for a in attempts), default=0),
 		"passed": passed,
 		"bank": frappe.db.count("Duty Quiz Question", {"module": module, "active": 1}),
-		"max_attempts": pol.max_attempts,
-		"attempts_left": max(0, pol.max_attempts - used) if pol.max_attempts else None,
+		"max_attempts": (pol.max_attempts + extra) if pol.max_attempts else 0,
+		"attempts_left": max(0, pol.max_attempts + extra - used) if pol.max_attempts else None,
 		"next_attempt_at": next_at,
 		"timed": pol.timed,
 		"hide_wrong": pol.hide_wrong,
@@ -4918,7 +5071,7 @@ def _exam_gate(module, user, record=None):
 	"""Enforce the cohort exam window, the attempt cap and the cooling-off
 	window. Called on the CLIENT path only — internal staff testing keeps its
 	old ungated behaviour."""
-	st = _quiz_state(module, user)
+	st = _quiz_state(module, user, record)
 	if st["passed"]:
 		return st
 	if record:
@@ -4960,6 +5113,30 @@ def _cohort_window_gate(record):
 				frappe.utils.format_datetime(w["closes_on"], "d MMM yyyy, HH:mm")
 			)
 		)
+
+
+def _escalate_if_blocked(rec, state):
+	"""Tell the client's administrators when somebody runs out of attempts.
+
+	Without this the portal says "speak to your training coordinator" and the
+	coordinator is never told — so a blocked learner stays blocked until they
+	admit it, which is how a paid-for cohort quietly stops."""
+	if state.get("passed") or state.get("attempts_left") != 0:
+		return
+	try:
+		room = frappe.get_doc("Client Room", rec.room)
+		title = frappe.db.get_value("Duty Training Module", rec.module, "title") or rec.module
+		who = frappe.utils.get_fullname(frappe.session.user)
+		from duty_board.api import _notify_user
+
+		for a in _room_admins(room):
+			_notify_user(
+				a.user,
+				_("\u26A0\uFE0F Assessment attempts used up"),
+				_("{0} cannot sit {1} again without your approval.").format(who, title),
+			)
+	except Exception:
+		frappe.log_error(frappe.get_traceback(), "duty_board attempt escalation")
 
 
 def _topic_breakdown(pairs):
@@ -5082,7 +5259,8 @@ def _quiz_submit(attempt, answers, rec):
 	if passed and rec.status != "Completed":
 		_award_module_completion(rec)
 		newly_certified = True
-	state = _quiz_state(rec.module, frappe.session.user)
+	state = _quiz_state(rec.module, frappe.session.user, rec.name)
+	_escalate_if_blocked(rec, state)
 	return {
 		"score": score,
 		"passed": passed,
@@ -5190,7 +5368,8 @@ def _timed_finish(att):
 		for r in results
 		if not r.get("ok")
 	]
-	state = _quiz_state(rec.module, frappe.session.user)
+	state = _quiz_state(rec.module, frappe.session.user, rec.name)
+	_escalate_if_blocked(rec, state)
 	return {
 		"done": 1,
 		"score": score,

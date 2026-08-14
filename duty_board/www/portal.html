@@ -607,6 +607,17 @@
 	.admbar { flex: 0 0 110px; height: 6px; border-radius: 99px; background: #E9EFEC; overflow: hidden; }
 	.admbar i { display: block; height: 100%; background: var(--brand); }
 	.admnudge { font-size: 12px; font-weight: 700; color: var(--brand-700); cursor: pointer; }
+	.admgrant { font-size: 12px; font-weight: 700; color: #B27409; cursor: pointer; white-space: nowrap; }
+	.pplnever { color: #B27409; font-weight: 700; }
+	.ordrow { display: flex; align-items: center; gap: 12px; padding: 11px 0; border-top: 1px solid #F0F4F2; }
+	.ordwho { flex: 1; min-width: 0; font-size: 14px; }
+	.ordwho span { display: block; font-size: 12.5px; }
+	.ordst { font-size: 12px; font-weight: 700; border-radius: 99px; padding: 4px 12px; white-space: nowrap; }
+	.ordst.ok { background: #E4F3EC; color: #0C6B4F; }
+	.ordst.wait { background: #FFF7E6; color: #8A5A0B; }
+	.ordst.off { background: #F1F4F3; color: #6B7C77; }
+	.lmsdue { display: inline-block; font-size: 12px; font-weight: 600; color: #6B7C77; margin-top: 5px; }
+	.lmsdue.late { color: #B27409; font-weight: 700; }
 	.admnudge.done { color: #6B7C77; cursor: default; }
 	.admfield { margin-bottom: 12px; font-size: 13px; }
 	.admfield label { display: block; font-weight: 700; margin-bottom: 4px; }
@@ -2044,8 +2055,10 @@ function loadAdminTraining() {
 				<div class="admwrap">
 					<div class="admhead">
 						<div><b>Team training</b><span class="muted"> · you administer this for your organisation</span></div>
+						<button id="admord" style="background:#E2E8E5;color:#2A3833">Orders</button>
 						<button id="admppl" style="background:#E2E8E5;color:#2A3833">People</button>
 						<button id="admcat" style="background:#E2E8E5;color:#2A3833">Catalogue</button>
+						${s.overdue ? `<button id="admrall" style="background:#E2E8E5;color:#2A3833">Remind everyone overdue</button>` : ""}
 						<button id="admassign">＋ Assign training</button>
 					</div>
 					<div class="atiles">
@@ -2054,15 +2067,17 @@ function loadAdminTraining() {
 						${tile(s.complete, "complete")}
 						${tile(s.rate === null ? "—" : s.rate + "%", "completion")}
 						${tile(s.overdue, "overdue", s.overdue > 0)}
+						${tile(s.blocked, "blocked", s.blocked > 0)}
 					</div>
 					${h.people.length
 						? h.people.map((p) => `
 						<div class="admrow">
 							<div class="admwho">
 								<b>${esc(p.full_name)}</b>
-								<span class="muted">${p.assigned ? `${p.complete} of ${p.assigned} complete` : "nothing assigned"}${p.overdue ? ` · <span class="admlate">${p.overdue} overdue</span>` : ""}</span>
+								<span class="muted">${p.assigned ? `${p.complete} of ${p.assigned} complete` : "nothing assigned"}${p.overdue ? ` · <span class="admlate">${p.overdue} overdue</span>` : ""}${p.never ? ` · <span class="pplnever">never signed in</span>` : ""}${(p.blocked || []).length ? ` · <span class="admlate">blocked</span>` : ""}</span>
 							</div>
 							<div class="admbar"><i style="width:${p.assigned ? Math.round((p.complete / p.assigned) * 100) : 0}%"></i></div>
+							${(p.blocked || []).length ? `<a class="admgrant" data-r="${esc(p.blocked[0].record)}" title="${esc(p.blocked[0].title)}">Grant attempt</a>` : ""}
 							${p.assigned > p.complete ? `<a class="admnudge" data-u="${esc(p.user)}">Remind</a>` : ""}
 						</div>`).join("")
 						: `<span class="muted">Nobody is enrolled yet.</span>`}
@@ -2070,6 +2085,21 @@ function loadAdminTraining() {
 			document.getElementById("admassign").onclick = openAssign;
 			document.getElementById("admcat").onclick = openCatalogue;
 			document.getElementById("admppl").onclick = openPeople;
+			document.getElementById("admord").onclick = openOrders;
+			const rall = document.getElementById("admrall");
+			if (rall) rall.onclick = () => {
+				rall.disabled = true;
+				api("client_admin_nudge_all")
+					.then((r) => { rall.textContent = `Reminded ${r.sent}`; })
+					.catch((e) => { rall.disabled = false; fail(e); });
+			};
+			host.querySelectorAll(".admgrant").forEach((a) =>
+				a.addEventListener("click", () => {
+					a.textContent = "\u2026";
+					api("client_admin_grant_attempt", { record: a.getAttribute("data-r") })
+						.then(loadAdminTraining)
+						.catch((e) => { a.textContent = "Grant attempt"; fail(e); });
+				}));
 			host.querySelectorAll(".admnudge").forEach((a) =>
 				a.addEventListener("click", () => {
 					a.textContent = "…";
@@ -2079,6 +2109,29 @@ function loadAdminTraining() {
 				}));
 		})
 		.catch(() => { host.innerHTML = ""; });
+}
+function openOrders() {
+	admFocus(1);
+	const host = document.getElementById("adminhost");
+	const money = (v) => "\u20A6" + Number(v || 0).toLocaleString();
+	api("duty_board.academy.academy_my_orders")
+		.then((rows) => {
+			host.innerHTML = `
+				<div class="admwrap">
+					<div class="admhead"><div><b>Seat orders</b><span class="muted"> \u00b7 what you have requested and where it stands</span></div>
+						<button style="background:#E2E8E5;color:#2A3833" onclick="admFocus(0);loadAdminTraining()">Back</button></div>
+					${(rows || []).length ? rows.map((o) => `
+					<div class="ordrow">
+						<div class="ordwho"><b>${esc(o.track_title)}</b>
+							<span class="muted">${esc(o.name)} \u00b7 ${o.seats} seat${o.seats === 1 ? "" : "s"} \u00b7 ${money(o.total)}${o.requested_on ? " \u00b7 " + esc(String(o.requested_on).slice(0, 10)) : ""}</span>
+							${o.decline_reason ? `<span class="muted">${esc(o.decline_reason)}</span>` : ""}</div>
+						<span class="ordst ${o.status === "Approved" ? "ok" : o.status === "Requested" ? "wait" : "off"}">${esc(o.status === "Requested" ? "Awaiting payment" : o.status)}</span>
+					</div>`).join("")
+						: `<span class="muted">No seat requests yet. Browse the catalogue to request seats on a paid track.</span>`}
+					<p class="muted" style="font-size:12px;margin-top:12px">Proforma invoices are filed under Documents. Seats activate as soon as we confirm your payment.</p>
+				</div>`;
+		})
+		.catch(fail);
 }
 function openPeople() {
 	admFocus(1);
@@ -2090,7 +2143,7 @@ function openPeople() {
 			<div class="pplrow${p.active ? "" : " off"}">
 				<div class="pplwho">
 					<b>${esc(p.full_name)}</b>${p.is_admin ? ` <span class="ppladm">administrator</span>` : ""}
-					<span class="muted">${esc(p.user)}${p.assigned ? ` · ${p.complete} of ${p.assigned} complete` : " · no training yet"}</span>
+					<span class="muted">${esc(p.user)}${p.assigned ? ` · ${p.complete} of ${p.assigned} complete` : " · no training yet"}${p.active ? (p.last_seen ? ` · last seen ${esc(String(p.last_seen).slice(0, 10))}` : ` · <span class="pplnever">never signed in</span>`) : ""}</span>
 				</div>
 				${p.is_self ? `<span class="muted" style="font-size:12px">you</span>`
 					: `<a class="pplset" data-u="${esc(p.user)}" data-on="${p.active ? 0 : 1}">${p.active ? "End access" : "Restore"}</a>`}
@@ -2368,18 +2421,26 @@ function loadTraining() {
 			const courseCard = (r) => {
 				const st = stateOf(r);
 				const pct = r.lessons_total ? Math.round((r.lessons_done / r.lessons_total) * 100) : 0;
-				return `<div class="lmscard cc ${st}" onclick="openCourse('${esc(r.record)}')">
+				const mins = (m) => (!m ? "" : m < 60 ? m + " min" : Math.round((m / 60) * 10) / 10 + " hr");
+				const go = st === "started" && r.next_lesson
+					? `openLesson('${esc(r.next_lesson)}','${esc(r.record)}')`
+					: `openCourse('${esc(r.record)}')`;
+				const due = r.due_on && st !== "done"
+					? `<span class="lmsdue${r.overdue ? " late" : ""}">${r.overdue ? "Overdue \u00b7 " : "Due "}${esc(String(r.due_on).slice(0, 10))}</span>`
+					: "";
+				return `<div class="lmscard cc ${st}" onclick="${go}">
 					<div class="lmstile ${st === "done" ? "gold" : ""}">${st === "done"
 						? `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="6"/><path d="M15.477 12.89 17 22l-5-3-5 3 1.523-9.11"/></svg>`
 						: `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1 0-5H20"/></svg>`}</div>
 					<div class="lmsbody">
 						<b>${esc(r.module_title)}</b>
-						<div class="lmsmeta">${esc(r.product || "")}${r.lessons_total ? `${r.product ? " · " : ""}${r.lessons_total} lesson${r.lessons_total === 1 ? "" : "s"}` : ""}</div>
+						<div class="lmsmeta">${esc(r.product || "")}${r.lessons_total ? `${r.product ? " \u00b7 " : ""}${r.lessons_total} lesson${r.lessons_total === 1 ? "" : "s"}` : ""}${r.minutes_left && st !== "done" ? ` \u00b7 ${mins(r.minutes_left)} left` : ""}</div>
+						${due}
 						${st === "done"
-							? `<div class="lmsdone">Completed${r.completed_on ? " · " + esc(r.completed_on) : ""}</div>${r.cert ? `<div class="certacts"><a href="/api/method/duty_board.client_room.client_shelf_file?id=${esc(r.cert)}" target="_blank" onclick="event.stopPropagation()">Certificate</a></div>` : ""}`
+							? `<div class="lmsdone">Completed${r.completed_on ? " \u00b7 " + esc(r.completed_on) : ""}</div>${r.cert ? `<div class="certacts"><a href="/api/method/duty_board.client_room.client_shelf_file?id=${esc(r.cert)}" target="_blank" onclick="event.stopPropagation()">Certificate</a></div>` : ""}`
 							: `<div class="lmsbar"><i style="width:${pct}%"></i></div>
 							<div class="lmsfoot"><span class="lmsmeta">${r.lessons_total ? `${r.lessons_done} of ${r.lessons_total} read` : ""}</span>
-							<span class="lmscta">${st === "ready" ? "Take the assessment →" : st === "started" ? "Continue learning →" : "Start course →"}</span></div>`}
+							<span class="lmscta">${st === "ready" ? "Take the assessment \u2192" : st === "started" ? "Resume \u2192" : "Start course \u2192"}</span></div>`}
 					</div>
 				</div>`;
 			};
