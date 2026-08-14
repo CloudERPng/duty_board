@@ -131,7 +131,8 @@ def track_catalogue(room, assignable_only=False):
 	for t in frappe.get_all(
 		"Duty Certification Track",
 		filters={"active": 1, "audience": "Client"},
-		fields=["name", "title", "product", "description", "access", "seat_price"],
+		fields=["name", "title", "product", "description", "access", "seat_price",
+				"who_for", "outcomes"],
 		order_by="product asc, title asc",
 	):
 		n = frappe.db.count("Duty Certification Track Module", {"parent": t.name})
@@ -151,9 +152,27 @@ def track_catalogue(room, assignable_only=False):
 			{"room": room.name, "track": t.name, "status": "Requested"},
 			["name", "seats"], as_dict=True,
 		)
+		course_list = []
+		minutes = 0
+		for m in frappe.get_all(
+			"Duty Certification Track Module", filters={"parent": t.name},
+			fields=["module"], order_by="idx asc",
+		):
+			title = frappe.db.get_value("Duty Training Module", m.module, "title") or m.module
+			mins = sum(
+				cint(x.est_minutes) for x in frappe.get_all(
+					"Duty Lesson", filters={"module": m.module}, fields=["est_minutes"]
+				)
+			)
+			minutes += mins
+			course_list.append({"title": title, "minutes": mins})
 		out.append({
 			"track": t.name,
 			"name": t.name,
+			"who_for": t.who_for,
+			"outcomes": t.outcomes,
+			"course_list": course_list,
+			"minutes": minutes,
 			"title": t.title,
 			"product": t.product,
 			"description": t.description,

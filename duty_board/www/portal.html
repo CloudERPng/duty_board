@@ -641,6 +641,31 @@
 
 	/* ---- the reading room ---- */
 	body[data-acad] #mycerts, body[data-acad] #mytracks, body[data-acad] #adminhost { display: none !important; }
+	body[data-adm] #mycerts, body[data-adm] #mytracks, body[data-adm] #acad { display: none !important; }
+
+	.catgrid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
+	.catcard { border: 1px solid #E4EAE8; border-radius: 14px; padding: 15px 16px; background: #fff;
+		cursor: pointer; display: flex; flex-direction: column; transition: border-color .15s, transform .15s; }
+	.catcard:hover { border-color: var(--brand); transform: translateY(-2px); }
+	.catcard.dim { background: #FBFCFC; }
+	.catcardtop { margin-bottom: 9px; }
+	.catname { font-family: Fraunces, Georgia, serif; font-size: 17px; line-height: 1.25; font-weight: 600; }
+	.catmeta { font-size: 11.5px; color: #6B7C77; margin-top: 4px; }
+	.catblurb { font-size: 12.5px; line-height: 1.55; color: #4A5A55; margin-top: 9px;
+		display: -webkit-box; -webkit-line-clamp: 4; -webkit-box-orient: vertical; overflow: hidden; }
+	.catpend { font-size: 11.5px; background: #FFF7E6; border-radius: 7px; padding: 5px 9px; margin-top: 9px; color: #7A5312; }
+	.catmore { font-size: 12px; font-weight: 700; color: var(--brand-700); margin-top: auto; padding-top: 11px; }
+	.cattag.out { background: #F1F4F3; color: #6B7C77; }
+	.catback { cursor: pointer; font-size: 12.5px; color: var(--brand-700); font-weight: 700; }
+	.catdtitle { font-family: Fraunces, Georgia, serif; font-size: 24px; font-weight: 600; margin: 2px 0 2px; }
+	.catsec { margin-top: 16px; font-size: 13.5px; line-height: 1.6; }
+	.catsec b { display: block; font-size: 11px; letter-spacing: 1.4px; text-transform: uppercase;
+		color: var(--brand-700); margin-bottom: 5px; }
+	.catsec p { margin: 0; color: #33423E; }
+	.catlist { margin: 4px 0 0; padding-left: 20px; }
+	.catlist li { margin: 3px 0; }
+	@media (max-width: 900px) { .catgrid { grid-template-columns: repeat(2, 1fr); } }
+	@media (max-width: 620px) { .catgrid { grid-template-columns: 1fr; } }
 	body[data-acad] .card.acad > h3.foldh { display: none !important; }
 	body[data-acad="exam"] .tabbar { display: none !important; }
 
@@ -1994,6 +2019,7 @@ function loadMetrics() {
 
 /* ---- academy ---- */
 function loadAdminTraining() {
+	admFocus(0);
 	/* Painted only for the room administrator. The endpoint answers
 	   {admin:0} for everyone else rather than erroring, so this can be called
 	   unconditionally on every training load. */
@@ -2047,6 +2073,7 @@ function loadAdminTraining() {
 		.catch(() => { host.innerHTML = ""; });
 }
 function openPeople() {
+	admFocus(1);
 	const host = document.getElementById("adminhost");
 	const paint = (people) => {
 		const live = people.filter((p) => p.active);
@@ -2097,45 +2124,73 @@ function openPeople() {
 	api("client_admin_people").then(paint).catch(fail);
 }
 function openCatalogue() {
+	admFocus(1);
 	const host = document.getElementById("adminhost");
 	const money = (v) => "₦" + Number(v || 0).toLocaleString();
+	const hrs = (mins) => {
+		if (!mins) return "";
+		const h = Math.round((mins / 60) * 10) / 10;
+		return h < 1 ? mins + " min" : h + (h === 1 ? " hour" : " hours");
+	};
+	const badge = (r) =>
+		r.included ? `<span class="cattag inc">Included</span>`
+		: r.seats_left ? `<span class="cattag own">${r.seats_left} seat${r.seats_left === 1 ? "" : "s"} left</span>`
+		: r.access === "Paid" ? `<span class="cattag paid">${money(r.seat_price)} / seat</span>`
+		: `<span class="cattag out">Not subscribed</span>`;
 	api("duty_board.academy.academy_catalogue")
 		.then((rows) => {
+			window._cat = rows;
 			host.innerHTML = `
 				<div class="admwrap">
 					<div class="admhead"><div><b>Certification catalogue</b><span class="muted"> · what your organisation can train on</span></div>
-						<button style="background:#E2E8E5;color:#2A3833" onclick="loadAdminTraining()">Back</button></div>
-					${rows.length ? rows.map((r) => `
-					<div class="catrow">
-						<div class="cattop">
-							<b>${esc(r.title)}</b>
-							<span class="cattag ${r.included ? "inc" : r.seats_left ? "own" : "paid"}">${
-								r.included ? "Included" : r.seats_left ? r.seats_left + " seat" + (r.seats_left === 1 ? "" : "s") + " left" : r.access === "Paid" ? money(r.seat_price) + " per seat" : "Not in your subscription"}</span>
-						</div>
-						<div class="muted" style="font-size:12px">${esc(r.product || "")} · ${r.courses} course${r.courses === 1 ? "" : "s"}</div>
-						${r.description ? `<div class="catdesc">${esc(r.description)}</div>` : ""}
-						${r.pending
-							? `<div class="catnote">Request for ${r.pending_seats} seat(s) received — we will confirm once payment is processed.</div>`
-							: r.seats
-								? `<div class="catnote ok">${r.seats_left} of ${r.seats} seats available${r.expires_on ? " · until " + esc(String(r.expires_on).slice(0, 10)) : ""}</div>`
-								: (!r.included && r.access !== "Paid")
-									? `<div class="catnote">This track comes with a product you are not subscribed to. Ask us about adding it.</div>`
-									: ""}
-						<div class="catacts">
-							${r.assignable ? `<a class="catasg" data-t="${esc(r.track)}">Assign to staff</a>` : ""}
-							${r.access === "Paid" && !r.pending ? `<a class="catreq" data-t="${esc(r.track)}" data-n="${esc(r.title)}" data-p="${r.seat_price}">${r.seats ? "Request more seats" : "Request seats"}</a>` : ""}
-						</div>
-					</div>`).join("")
+						<button style="background:#E2E8E5;color:#2A3833" onclick="admFocus(0);loadAdminTraining()">Back</button></div>
+					${rows.length ? `<div class="catgrid">${rows.map((r, i) => `
+						<div class="catcard${r.assignable ? "" : " dim"}" data-i="${i}">
+							<div class="catcardtop">${badge(r)}</div>
+							<b class="catname">${esc(r.title)}</b>
+							<div class="catmeta">${esc(r.product || "")} · ${r.courses} course${r.courses === 1 ? "" : "s"}${r.minutes ? " · " + hrs(r.minutes) : ""}</div>
+							<div class="catblurb">${esc(r.description || "")}</div>
+							${r.pending ? `<div class="catpend">Request for ${r.pending_seats} seat(s) received</div>` : ""}
+							<span class="catmore">Details →</span>
+						</div>`).join("")}</div>`
 						: `<span class="muted">No certification tracks have been published yet.</span>`}
 				</div>`;
-			host.querySelectorAll(".catreq").forEach((a) =>
-				a.addEventListener("click", () => requestSeats(a.getAttribute("data-t"), a.getAttribute("data-n"), a.getAttribute("data-p"))));
-			host.querySelectorAll(".catasg").forEach((a) =>
-				a.addEventListener("click", () => openAssign(a.getAttribute("data-t"))));
+			host.querySelectorAll(".catcard").forEach((el) =>
+				el.addEventListener("click", () => openTrack(parseInt(el.getAttribute("data-i"), 10))));
 		})
 		.catch(fail);
 }
+function openTrack(i) {
+	const r = (window._cat || [])[i];
+	if (!r) return;
+	const host = document.getElementById("adminhost");
+	const money = (v) => "₦" + Number(v || 0).toLocaleString();
+	const hrs = (m) => (!m ? "—" : (m < 60 ? m + " min" : Math.round((m / 60) * 10) / 10 + " hours"));
+	const state =
+		r.included ? `<div class="catnote ok">Included in your subscription — assign it to as many colleagues as you like.</div>`
+		: r.pending ? `<div class="catnote">Request for ${r.pending_seats} seat(s) received. We will confirm once payment is processed.</div>`
+		: r.seats ? `<div class="catnote ok">${r.seats_left} of ${r.seats} seats available${r.expires_on ? " · until " + esc(String(r.expires_on).slice(0, 10)) : ""}</div>`
+		: r.access === "Paid" ? `<div class="catnote">${money(r.seat_price)} per seat. One seat covers one member of staff for the whole track, and the certificate they earn does not expire.</div>`
+		: `<div class="catnote">This track comes with a product you are not subscribed to. Ask us about adding it.</div>`;
+	host.innerHTML = `
+		<div class="admwrap">
+			<div class="admhead"><div><a class="catback" onclick="openCatalogue()">← Catalogue</a></div></div>
+			<h3 class="catdtitle">${esc(r.title)}</h3>
+			<div class="catmeta" style="margin-bottom:14px">${esc(r.product || "")} · ${r.courses} course${r.courses === 1 ? "" : "s"} · about ${hrs(r.minutes)} of study</div>
+			${state}
+			${r.description ? `<div class="catsec"><b>What this track covers</b><p>${esc(r.description)}</p></div>` : ""}
+			${r.who_for ? `<div class="catsec"><b>Who it is for</b><p>${esc(r.who_for)}</p></div>` : ""}
+			${r.outcomes ? `<div class="catsec"><b>What your staff will be able to do</b><p>${esc(r.outcomes)}</p></div>` : ""}
+			${(r.course_list || []).length ? `<div class="catsec"><b>Courses in this track</b><ol class="catlist">${r.course_list.map((x) => `<li>${esc(x.title)}${x.minutes ? ` <span class="muted">· ${hrs(x.minutes)}</span>` : ""}</li>`).join("")}</ol></div>` : ""}
+			<div class="catsec"><b>How it is assessed</b><p>Each course ends with a timed, proctored assessment drawn at random from a larger question bank. Passing every course earns a certificate with a serial anyone can verify.</p></div>
+			<div class="catacts">
+				${r.assignable ? `<button onclick="admFocus(0);openAssign('${esc(r.track)}')">Assign to staff</button>` : ""}
+				${r.access === "Paid" && !r.pending ? `<button style="background:#E2E8E5;color:#2A3833" onclick="requestSeats('${esc(r.track)}','${esc(r.title)}',${r.seat_price})">${r.seats ? "Request more seats" : "Request seats"}</button>` : ""}
+			</div>
+		</div>`;
+}
 function requestSeats(track, title, price) {
+	admFocus(1);
 	const host = document.getElementById("adminhost");
 	const money = (v) => "₦" + Number(v || 0).toLocaleString();
 	host.innerHTML = `
@@ -2172,6 +2227,7 @@ function requestSeats(track, title, price) {
 	};
 }
 function openAssign(preselect) {
+	admFocus(1);
 	const host = document.getElementById("adminhost");
 	api("client_training_admin_options")
 		.then((o) => {
@@ -2205,6 +2261,14 @@ function openAssign(preselect) {
 			};
 		})
 		.catch(fail);
+}
+function admFocus(on) {
+	/* The administrator's own views render into #adminhost, which sits BESIDE
+	   the learner's certificates, tracks and course list rather than replacing
+	   them. Without this the catalogue appeared with the reader's own index
+	   stacked underneath it — the same structural problem the reading room had. */
+	if (on) document.body.setAttribute("data-adm", "1");
+	else document.body.removeAttribute("data-adm");
 }
 function acadFocus(mode) {
 	/* "" = index, "read" = course/lesson/result, "exam" = proctored runner.
