@@ -680,6 +680,7 @@ def training_nudges():
 			)
 			for r, reason in rows
 		)
+		delivered = False
 		try:
 			frappe.sendmail(
 				recipients=[user],
@@ -689,6 +690,7 @@ def training_nudges():
 <p>Open the portal, go to Training, and pick up where you left off.</p>
 <p>&mdash; CloudERP.One Academy</p>""".format(lines=lines),
 			)
+			delivered = True
 		except Exception:
 			frappe.log_error(frappe.get_traceback(), "duty_board training nudge email")
 		try:
@@ -698,8 +700,18 @@ def training_nudges():
 				user, _("🎓 Training reminder"),
 				_("{0} course(s) need your attention").format(len(rows)),
 			)
+			delivered = True
 		except Exception:
 			pass
+		if not delivered:
+			# Stamping now would drop this learner out of the seven-day repeat
+			# window for a reminder nobody received. Leave the record untouched
+			# so tomorrow's run tries again, and say so somewhere visible.
+			frappe.log_error(
+				"No channel reached %s — reminder not recorded, will retry" % user,
+				"duty_board training nudge undelivered",
+			)
+			continue
 		for r, _reason in rows:
 			frappe.db.set_value(
 				"Duty Training Record", r.name,
