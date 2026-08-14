@@ -107,6 +107,18 @@ frappe.pages["duty-board"].on_page_load = function (wrapper) {
 			board.rail.push({ id: "training", ic: board._rsvg.cap, label: __("Team training"), go: () => board.team_training_dialog() });
 			board.rail.push({ id: "academyhealth", ic: board._rsvg.pulse, label: __("Academy health"), go: () => board.academy_health_dialog() });
 			board.rail.push({ id: "lessonq", ic: board._rsvg.ask, label: __("Lesson questions"), go: () => board.lesson_questions_dialog() });
+			/* An unanswered question is only useful if somebody knows it is there.
+			   The count rides on the rail label so it is visible without opening. */
+			frappe.call({
+				method: "duty_board.academy.question_counts",
+				error: () => {},
+				callback: (qc) => {
+					const n = (qc.message || {}).open || 0;
+					if (!n) return;
+					const item = board.rail.find((x) => x.id === "lessonq");
+					if (item) { item.label = __("Lesson questions ({0})", [n]); board.build_rail(); }
+				},
+			});
 			if (q.pricer) board.rail.push({ id: "pricing", ic: board._rsvg.tag, label: __("CR pricing"), go: () => board.pricing_dialog() });
 			board.build_rail();
 			page.add_menu_item(__("🎓 Team training"), () => board.team_training_dialog());

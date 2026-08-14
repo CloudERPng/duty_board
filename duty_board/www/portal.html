@@ -618,6 +618,9 @@
 	.detbar i { display: block; height: 100%; background: var(--brand); }
 	.detmeta { color: #6B7C77; }
 	.detmeta.late { color: #B27409; font-weight: 700; }
+	.detdue { color: #6B7C77; cursor: pointer; border-bottom: 1px dashed #CBD5D1; }
+	.detdue.late { color: #B27409; font-weight: 700; }
+	.detdue input { border: 1px solid #DCE4E1; border-radius: 6px; padding: 2px 6px; font-size: 12px; }
 	.detok { color: #0C6B4F; font-weight: 700; }
 	.detwarn { color: #8A5A0B; font-weight: 700; }
 	.detbad { color: #B27409; font-weight: 700; }
@@ -2191,10 +2194,23 @@ function loadAdminTraining() {
 							<span class="detbar"><i style="width:${pct}%"></i></span>
 							<span class="detmeta">${c.lessons_total ? `${c.lessons_done}/${c.lessons_total}` : ""}</span>
 							${state}
-							${c.due_on ? `<span class="detmeta${c.overdue ? " late" : ""}">${c.overdue ? "overdue " : "due "}${esc(String(c.due_on).slice(0, 10))}</span>` : ""}
+							<span class="detdue${c.overdue ? " late" : ""}" data-r="${esc(c.record)}" title="Click to change the due date">${c.due_on ? `${c.overdue ? "overdue " : "due "}${esc(String(c.due_on).slice(0, 10))}` : "set a due date"}</span>
 							${c.cert ? `<a href="/api/method/duty_board.client_room.client_shelf_file?id=${esc(c.cert)}" target="_blank">Certificate</a>` : ""}
 						</div>`;
 					}).join("") || `<span class="muted">Nothing assigned.</span>`;
+					box.querySelectorAll(".detdue").forEach((el) =>
+						el.addEventListener("click", () => {
+							if (el.querySelector("input")) return;
+							const rec = el.getAttribute("data-r");
+							const cur = (el.textContent.match(/\d{4}-\d{2}-\d{2}/) || [""])[0];
+							el.innerHTML = `<input type="date" value="${cur}">`;
+							const inp = el.querySelector("input");
+							inp.focus();
+							inp.addEventListener("change", () =>
+								api("client_training_admin_due", { record: rec, due_on: inp.value || null })
+									.then(loadAdminTraining)
+									.catch(fail));
+						}));
 				}));
 			host.querySelectorAll(".admgrant").forEach((a) =>
 				a.addEventListener("click", () => {
