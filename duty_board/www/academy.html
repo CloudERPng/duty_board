@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{% if track %}{{ track.title }} — {% endif %}CloudERP.One Academy</title>
+<meta name="description" content="Certification tracks for retail, distribution and finance teams — written from live operations, assessed under proctored conditions, verifiable by serial.">
+<style>
+	body { font-family: "Inter", system-ui, -apple-system, "Segoe UI", sans-serif; background: #F4F7F6; color: #16211F; margin: 0; }
+	.top { background: linear-gradient(120deg,#0A473F,#0F5C55 55%,#146B62); color: #fff; padding: 18px 22px; font-weight: 800; }
+	.top a { color: #fff; text-decoration: none; }
+	.wrap { max-width: 1040px; margin: 34px auto 60px; padding: 0 18px; }
+	.lede { font-size: 17px; line-height: 1.65; color: #33423E; max-width: 640px; margin-bottom: 30px; }
+	.lede h1 { font-size: 30px; line-height: 1.2; margin: 0 0 12px; color: #0A473F; }
+	.grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+	.card { background: #fff; border: 1px solid #E7ECEA; border-radius: 16px; padding: 20px; display: flex; flex-direction: column; text-decoration: none; color: inherit; }
+	.card:hover { border-color: #0F5C55; }
+	.tag { align-self: flex-start; font-size: 12.5px; font-weight: 700; border-radius: 99px; padding: 4px 12px; margin-bottom: 10px; }
+	.tag.free { background: #E4F3EC; color: #0C6B4F; }
+	.tag.paid { background: #FFF7E6; color: #8A5A0B; }
+	.name { font-size: 19px; font-weight: 700; line-height: 1.28; }
+	.meta { font-size: 13px; color: #6B7C77; margin-top: 6px; }
+	.blurb { font-size: 14px; line-height: 1.6; color: #4A5A55; margin-top: 11px; }
+	.more { font-size: 13px; font-weight: 700; color: #0F5C55; margin-top: auto; padding-top: 14px; }
+	.detail { background: #fff; border: 1px solid #E7ECEA; border-radius: 16px; padding: 30px; }
+	.detail h1 { font-size: 30px; line-height: 1.2; margin: 6px 0 4px; color: #0A473F; }
+	.sec { margin-top: 24px; font-size: 15.5px; line-height: 1.7; }
+	.sec b { display: block; font-size: 11.5px; letter-spacing: 1.5px; text-transform: uppercase; color: #0F5C55; margin-bottom: 6px; }
+	.sec p { margin: 0; }
+	ol.courses { margin: 6px 0 0; padding-left: 22px; font-size: 15px; line-height: 1.8; }
+	.sample { margin-top: 26px; border-top: 2px solid #E7ECEA; padding-top: 22px; }
+	.sample .body { font-family: Georgia, "Times New Roman", serif; font-size: 16.5px; line-height: 1.75; color: #16211F; max-width: 660px; }
+	.sample .body blockquote { border-left: 3px solid #CBE7DE; margin: 16px 0; padding: 2px 0 2px 16px; color: #33423E; }
+	.cta { margin-top: 30px; background: #F4F7F6; border-radius: 12px; padding: 18px 20px; font-size: 15px; line-height: 1.65; }
+	.back { font-size: 13.5px; font-weight: 700; color: #0F5C55; text-decoration: none; }
+	.foot { margin-top: 40px; font-size: 12.5px; color: #93A19C; line-height: 1.7; }
+	@media (max-width: 900px) { .grid { grid-template-columns: repeat(2, 1fr); } }
+	@media (max-width: 620px) { .grid { grid-template-columns: 1fr; } .detail { padding: 22px; } }
+</style></head><body>
+<div class="top"><a href="/academy">CloudERP.One Academy</a></div>
+<div class="wrap">
+{% if track %}
+	<a class="back" href="/academy">&larr; All certifications</a>
+	<div class="detail" style="margin-top:12px">
+		<span class="tag {{ 'paid' if track.paid else 'free' }}">{{ track.price + ' per seat' if track.paid else 'Free' }}</span>
+		<h1>{{ track.title }}</h1>
+		<div class="meta">{{ track.product }} · {{ track.courses|length }} course{{ '' if track.courses|length == 1 else 's' }}{% if track.hours %} · about {{ track.hours }} hours of study{% endif %}</div>
+		{% if track.description %}<div class="sec"><b>What this covers</b><p>{{ track.description }}</p></div>{% endif %}
+		{% if track.who_for %}<div class="sec"><b>Who it is for</b><p>{{ track.who_for }}</p></div>{% endif %}
+		{% if track.outcomes %}<div class="sec"><b>What your staff will be able to do</b><p>{{ track.outcomes }}</p></div>{% endif %}
+		<div class="sec"><b>Courses</b><ol class="courses">
+			{% for c in track.courses %}<li>{{ c.title }}{% if c.minutes %} <span style="color:#6B7C77">· {{ c.minutes }} min</span>{% endif %}</li>{% endfor %}
+		</ol></div>
+		<div class="sec"><b>How it is assessed</b><p>Each course ends with a timed, proctored assessment drawn at random from a larger question bank. Passing every course earns a certificate carrying a serial anyone can <a href="/verify">verify</a>. Certificates do not expire.</p></div>
+		{% if track.sample %}
+		<div class="sample">
+			<div class="sec" style="margin-top:0"><b>A sample chapter</b><p style="color:#6B7C77;font-size:14px">From {{ track.sample.course }} — read it and judge the writing for yourself.</p></div>
+			<h2 style="font-size:22px;margin:18px 0 12px">{{ track.sample.title }}</h2>
+			<div class="body">{{ track.sample.html }}</div>
+		</div>
+		{% endif %}
+		<div class="cta"><b>Interested?</b> Training is delivered through your CloudERP.One portal. Speak to Xlevel Retail Systems and we will set your organisation up — your administrator then invites staff and assigns courses themselves.</div>
+	</div>
+{% else %}
+	<div class="lede">
+		<h1>Certifications for people who run things</h1>
+		Written from live retail, distribution and finance operations rather than from a textbook. Your staff read at their own pace, sit a proctored assessment, and earn a certificate with a serial anyone can <a href="/verify">verify</a>.
+	</div>
+	<div class="grid">
+	{% for t in tracks %}
+		<a class="card" href="/academy?track={{ t.name | urlencode }}">
+			<span class="tag {{ 'paid' if t.paid else 'free' }}">{{ t.price + ' / seat' if t.paid else 'Free' }}</span>
+			<span class="name">{{ t.title }}</span>
+			<span class="meta">{{ t.product }} · {{ t.courses|length }} course{{ '' if t.courses|length == 1 else 's' }}{% if t.hours %} · ~{{ t.hours }} hrs{% endif %}</span>
+			{% if t.description %}<span class="blurb">{{ t.description }}</span>{% endif %}
+			<span class="more">See what it covers &rarr;</span>
+		</a>
+	{% else %}
+		<div style="color:#6B7C77">No certifications published yet.</div>
+	{% endfor %}
+	</div>
+{% endif %}
+	<div class="foot">CloudERP.One Academy · Xlevel Retail Systems Ltd<br>Certificates are verifiable at <a href="/verify">/verify</a>.</div>
+</div></body></html>
