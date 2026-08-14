@@ -1,0 +1,956 @@
+{
+ "getting_data": {
+  "title": "Getting the Data",
+  "desc": "The module everything else depends on. Doctypes as tables, the list view as a query tool, Report Builder and Query Report, reading a version history properly, the self-integrity reports nobody runs, running a test in Audit & Exceptions, working papers that reproduce, and how to look before you know what you are looking for.",
+  "lessons": [
+   {
+    "title": "Why extraction is the first competence",
+    "est": 12,
+    "html": "<p>An auditor who cannot get their own data is dependent on the people they examine. That sentence is the whole argument for this module, and it is worth sitting with before anything technical.</p>\n\n<p><b>Consider how it usually goes.</b> You need eighteen months of stock adjustments by branch. You email IT. Someone runs something and sends a spreadsheet. You do not know precisely what was filtered, whether cancelled documents were included, or which date field was used. If a finding is later challenged, you cannot answer any of those questions — and the person who produced the extract reports to the operations director whose branch you are examining.</p>\n\n<p>Nothing in that is dishonest. It is simply not evidence.</p>\n\n<p><b>The second consequence is subtler and more expensive: you ask smaller questions.</b> An auditor who must requisition every extract asks for what they can justify requesting. An auditor who can query directly asks anything, including the speculative question that turns out to matter. Most real findings begin as an idle look at a distribution, and idle looks do not survive a requisition process.</p>\n\n<p><b>What the system environment actually offers.</b> Every document in ZhiftERP is a row in a table, queryable in full. That changes the fundamental method available to you.</p>\n\n<p>Traditional audit samples: pull fifty purchase orders, examine them, extrapolate. It is what you do when the population is paper in a cabinet, and it carries sampling risk — the fifty may be clean while the population is not.</p>\n\n<p>Here you can test the population. Every purchase order raised in eighteen months, every one of them, against the rule. When it comes back clean you can write <i>\"no purchase order in the period was split below the approval limit\"</i> rather than <i>\"the fifty examined were in order.\"</i> Those are different assurances, and only one of them is worth what an internal audit function costs.</p>\n\n<p><b>The corollary for exceptions.</b> Population testing changes what a hit means. In sampling, one exception in fifty implies a rate and you argue about extrapolation. In population testing, one exception is one exception — you can name it, price it, and put the document number in the report. The conversation moves from statistics to facts, and facts are much harder to negotiate down.</p>\n\n<p><b>What this module builds.</b> Enough command of the platform to answer your own questions: where data lives, how to filter a population, when to move from the list view to a query, how to read a version history, and how to leave a working paper somebody else can reproduce. Nothing here requires a developer. All of it requires you to stop asking.</p>\n\n<blockquote>WATCH-OUT: The most common reason an audit finding is dismissed is not that it was wrong. It is that the auditor could not say exactly how the number was produced, so the discussion became about the extract rather than the exception. Reproducibility is not administrative tidiness; it is what makes a finding survive contact with the person it concerns.</blockquote>\n\n<p><b>One boundary worth setting early, because it will be tested.</b> Reading data is not the same as changing it, and an internal auditor should have the first and never the second. Read-only access to everything, write access to nothing operational — that is the posture that protects your independence and, incidentally, protects you. An auditor who can post a correction can be asked to, and will one day be asked by somebody senior in a situation where refusing is uncomfortable. Not having the ability is a better defence than having it and declining.</p>",
+    "checks": [
+     {
+      "q": "An extract you requested from IT supports a finding. It is challenged. The weakness is:",
+      "opts": [
+       "You cannot state exactly what was filtered, so the discussion becomes about the extract",
+       "IT lacks audit training",
+       "The data was not certified",
+       "The sample was too small"
+      ],
+      "ans": 0,
+      "why": "And the person who produced it usually reports to the director whose area you are examining.",
+      "sort": 0
+     },
+     {
+      "q": "Testing the whole population rather than a sample changes a clean result from:",
+      "opts": [
+       "An opinion to a certification",
+       "A test to a review",
+       "A stronger sample",
+       "'The fifty examined were in order' to 'no instance occurred in the period'"
+      ],
+      "ans": 3,
+      "why": "Only one of those two assurances is worth what an internal audit function costs.",
+      "sort": 1
+     },
+     {
+      "q": "The subtler cost of depending on others for extracts is that you:",
+      "opts": [
+       "Pay more",
+       "Lose independence formally",
+       "Wait longer",
+       "Ask smaller questions — only those you can justify requesting"
+      ],
+      "ans": 3,
+      "why": "Most real findings begin as a speculative look at a distribution, and those do not survive a requisition process.",
+      "sort": 2
+     }
+    ]
+   },
+   {
+    "title": "Doctypes, tables and the list view",
+    "est": 12,
+    "html": "<p>Every business object in ZhiftERP is a <b>doctype</b>: Sales Invoice, Purchase Order, Stock Entry, Item, Supplier, User. Each is a table in the database, and each document is a row. Understanding that mapping is most of what you need.</p>\n\n<p><b>Where the data physically sits.</b> A doctype named Sales Invoice is stored in a table called <code>tabSales Invoice</code>. Its line items are a separate child table, <code>tabSales Invoice Item</code>, each row carrying a <code>parent</code> field holding the invoice name. That parent-child split is the single most important structural fact in the platform, because it determines which questions need which table.</p>\n\n<p>Questions about <i>documents</i> — how many invoices, by whom, when — are answered from the parent. Questions about <i>lines</i> — which items, at what discount, at what rate — must be answered from the child, because the parent does not contain them.</p>\n\n<p><b>The list view is a query tool, not a menu.</b> Open any doctype list and you have filters, sorting, column selection and export. Most auditors use it as navigation and never notice they are holding a general-purpose extraction instrument.</p>\n\n<p><b>Filters do more than equals.</b> The comparators available include <code>like</code> and <code>not like</code> for partial matches, <code>in</code> and <code>not in</code> for sets, <code>between</code> for ranges and dates, <code>is set</code> and <code>is not set</code> for presence, and the ordinary greater-than and less-than. A great deal of real testing is nothing more than the right combination of these.</p>\n\n<p><b>Report view is where it becomes an audit tool.</b> Switching a list into report view gives you columns of your choosing, totals, and grouping. \"Stock Entries of type Material Issue, this quarter, grouped by owner, with total value\" is a report-view configuration, not a programming task, and it is a real adjustment-concentration test.</p>\n\n<p><b>Two fields present on every document</b> and quietly essential. <code>owner</code> is who created it — not who it belongs to, which trips people up constantly. <code>modified_by</code> is who last changed it. Together they answer a large share of \"who did this\" questions before you go anywhere near the version history.</p>\n\n<p><b>And one distinction that will otherwise cost you.</b> <code>docstatus</code> holds 0 for draft, 1 for submitted, 2 for cancelled. A filter that omits it silently includes drafts and cancellations in your population. Almost every wrong number an auditor produces in ZhiftERP comes from forgetting this, and the resulting figure looks entirely plausible.</p>\n\n<blockquote>IMPLEMENTATION TIP: Before running any test, decide what <code>docstatus</code> you mean and set it explicitly. Cancelled documents belong in a void analysis and nowhere else; drafts are not transactions at all. Making this a habit removes the commonest source of a number you cannot defend.</blockquote>\n\n<p><b>The other structural fact worth knowing: naming.</b> Documents carry a system name — the value in <code>name</code> — which is what links records together. For most transaction doctypes it is the human-readable number you see, but not always, and a child row's link to its parent is by that name rather than by anything visible on screen. When a query returns something that looks like a code rather than an invoice number, that is what you are looking at, and it is the value to use when joining anything.</p>",
+    "checks": [
+     {
+      "q": "You need discounts by line across a quarter. The data lives in:",
+      "opts": [
+       "The Version table",
+       "tabSales Invoice",
+       "tabSales Invoice Item, the child table",
+       "The General Ledger"
+      ],
+      "ans": 2,
+      "why": "Document-level questions come from the parent; line-level questions must come from the child.",
+      "sort": 0
+     },
+     {
+      "q": "A test returns a plausible but wrong figure. The most likely single cause is:",
+      "opts": [
+       "A date field mix-up",
+       "docstatus was not set, so drafts and cancellations were included",
+       "The wrong warehouse",
+       "Missing permissions"
+      ],
+      "ans": 1,
+      "why": "0 is draft, 1 submitted, 2 cancelled. Omitting it silently widens every population.",
+      "sort": 1
+     },
+     {
+      "q": "The `owner` field on a document records:",
+      "opts": [
+       "Who created it",
+       "Who last modified it",
+       "The assigned officer",
+       "The customer or supplier"
+      ],
+      "ans": 0,
+      "why": "It is who created the record, not who it belongs to — a distinction that trips people up constantly.",
+      "sort": 2
+     }
+    ]
+   },
+   {
+    "title": "Report Builder: population filters",
+    "est": 12,
+    "html": "<p>ZhiftERP has four kinds of report, and knowing which you are using matters because they differ in who can create them and how far they can reach.</p>\n\n<p><b>Report Builder</b> is a saved list view: a doctype, a set of filters, chosen columns, optional grouping and totals. No code. This is where most of your standing tests should live, because a colleague can open, inspect and re-run one without your help.</p>\n\n<p><b>Query Report</b> is stored SQL, covered in the next chapter. <b>Script Report</b> is Python, and belongs to developers. <b>Custom Report</b> is a saved variant of an existing report with different filters and columns — the fastest way to turn a shipped report into your own standing test.</p>\n\n<p><b>What Report Builder handles well.</b> Anything expressible as filters on one doctype and its immediate links. In practice that is a great deal:</p>\n\n<p>Purchase Orders above a value, this year, by supplier. Stock Entries of type Material Issue, grouped by <code>owner</code>. Sales Invoices where <code>docstatus</code> is 2, by user and branch. Items whose <code>modified</code> date falls in the last month. Users with <code>enabled</code> set and <code>last_active</code> older than ninety days.</p>\n\n<p>Each of those is a genuine control test and none needs a line of code.</p>\n\n<p><b>Where it stops.</b> It cannot join two unrelated doctypes, aggregate across a relationship, or compare a document to another document. \"Purchase orders whose supplier's bank details changed in the preceding week\" spans three tables and a time relationship, and it needs a query. Recognising the boundary quickly is a skill in itself: if you find yourself exporting two reports to compare them in a spreadsheet, you have crossed it.</p>\n\n<p><b>Save it, name it properly, and give it away.</b> A report saved as <code>P2P-002 Purchase orders above approval limit</code> is an asset of the audit function. The same filters applied ad hoc and forgotten are a personal habit that leaves when you do. Naming to the test code from your programme is what makes the library navigable a year later.</p>\n\n<p><b>The `roles` table on a report</b> controls who can run it. Worth setting deliberately: an audit test visible to the department it examines is not a secret, but it does change behaviour — and in some cases you will want it to, while in others you will not.</p>\n\n<blockquote>IMPLEMENTATION TIP: Build every standing test as a saved Report Builder report where the filters allow it, and only drop to a query when they genuinely do not. A test another auditor can read and re-run without you is worth more than a cleverer one that only you can operate.</blockquote>\n\n<p><b>A practical note on columns.</b> Report Builder shows a default column set that is rarely the one you want, and the columns you add determine whether the output is investigable. As a rule include the document name, the date that defines your population, the person, the branch or warehouse, and the value. Five columns, every time, before whatever the test specifically needs. An output missing the person or the branch will send you back to the system for every single row.</p>",
+    "checks": [
+     {
+      "q": "You find yourself exporting two reports to compare them in a spreadsheet. This means:",
+      "opts": [
+       "You have passed what Report Builder can do and need a query",
+       "The data is inconsistent",
+       "You need a Script Report",
+       "The reports are badly built"
+      ],
+      "ans": 0,
+      "why": "Report Builder cannot join unrelated doctypes or compare one document to another.",
+      "sort": 0
+     },
+     {
+      "q": "A standing test built as a saved report rather than ad-hoc filters is:",
+      "opts": [
+       "Slower to run",
+       "An asset of the function rather than a personal habit that leaves with you",
+       "Harder to modify",
+       "Restricted to managers"
+      ],
+      "ans": 1,
+      "why": "Naming it to the programme's test code is what makes the library navigable a year later.",
+      "sort": 1
+     },
+     {
+      "q": "The fastest way to turn a shipped ERPNext report into your own standing test is:",
+      "opts": [
+       "Request a Script Report",
+       "Export and rebuild it",
+       "Copy the SQL into a Query Report",
+       "Save it as a Custom Report with your filters and columns"
+      ],
+      "ans": 3,
+      "why": "Custom Report is a saved variant of an existing report — no code, and it inherits the underlying logic.",
+      "sort": 2
+     }
+    ]
+   },
+   {
+    "title": "Query Report and the standing programme",
+    "est": 12,
+    "html": "<p>When filters are not enough, a Query Report stores SQL against the database and presents the result as an ordinary report with parameters. It is the instrument behind most serious exception tests, and an auditor does not need to be a developer to use it — but does need to be careful.</p>\n\n<p><b>What a query unlocks.</b> Joins across unrelated doctypes; aggregation with grouping and having-clauses; comparison of a document against another document; date arithmetic between events. Which is to say: nearly every test in the shipped library, because real exceptions are usually about a <i>relationship</i> between records rather than a property of one.</p>\n\n<p><b>The pattern almost all of them share.</b> Take the population, join what it must be compared against, filter to the condition that should never occur, and return enough columns to investigate — document number, date, person, branch, value. The last part matters: a report returning a count is a statistic, and a report returning document numbers is a work list.</p>\n\n<p><b>Three rules that keep queries defensible.</b></p>\n\n<p><b>Set docstatus explicitly.</b> Always. Repeated from the last chapter because it is the error people keep making after they have learned it.</p>\n\n<p><b>Expose the threshold as a parameter, not a constant.</b> A query with <code>500000</code> buried in it becomes stale silently when the approval limit changes. A parameter is visible, adjustable and — importantly — recorded on the run, so a result is interpretable months later.</p>\n\n<p><b>Return the identifiers.</b> Every row should be traceable to a document somebody can open. An exception you cannot navigate to is an accusation without an address.</p>\n\n<p><b>Permissions are real here.</b> Creating Query Reports requires elevated rights, precisely because SQL bypasses the ordinary permission layer. That is a control worth understanding from both sides: it is why you may need your query approved, and it is why <i>your</i> access to create them is itself something an external auditor should examine.</p>\n\n<p><b>Long-running queries</b> can be marked as prepared reports, which run in the background and notify you. A test spanning eighteen months across twenty branches will need this. It is not a workaround; it is the intended mechanism, and using it stops people writing artificially narrow tests to avoid timeouts.</p>\n\n<p><b>What a standing programme looks like.</b> Twenty to thirty saved tests, each named to a code, each with a stated frequency, grouped into programmes — monthly branch, quarterly master data, annual access review. Built once, refined continuously, run on schedule. That is the difference between an audit function with a method and one with a rota of visits.</p>\n\n<blockquote>WATCH-OUT: A query is only as sound as its joins. A join that silently multiplies rows — one invoice matching three version records — will inflate every total and look entirely reasonable. Check the row count against a known population before trusting any aggregate you did not build yourself.</blockquote>\n\n<p><b>On writing SQL when you are not a developer.</b> You do not need to be fluent to be useful here. The queries behind almost every test in the library are structurally similar, and adapting an existing one — changing the doctype, the date field, the threshold — will carry you a long way. What you must do is verify: run the query with a filter so narrow that you can check the answer by hand, confirm it returns what you expect, then widen it. A query you have never sanity-checked against a known answer is a guess with a semicolon at the end.</p>",
+    "checks": [
+     {
+      "q": "A query has the approval limit written into it as 500000. The risk is:",
+      "opts": [
+       "It needs developer rights",
+       "It cannot be scheduled",
+       "It runs slowly",
+       "It goes stale silently when the limit changes, and the run is uninterpretable later"
+      ],
+      "ans": 3,
+      "why": "A parameter is visible, adjustable and recorded on the run.",
+      "sort": 0
+     },
+     {
+      "q": "An exception report returning only counts by branch is:",
+      "opts": [
+       "Sufficient for reporting",
+       "A statistic rather than a work list — it needs document identifiers",
+       "The correct summary level",
+       "Better for confidentiality"
+      ],
+      "ans": 1,
+      "why": "An exception you cannot navigate to is an accusation without an address.",
+      "sort": 1
+     },
+     {
+      "q": "Your aggregate total is far larger than the population you expected. Check first:",
+      "opts": [
+       "Branch permissions",
+       "The date range",
+       "Whether a join is multiplying rows",
+       "The docstatus filter"
+      ],
+      "ans": 2,
+      "why": "One invoice matching three version records inflates every total and looks entirely reasonable.",
+      "sort": 2
+     }
+    ]
+   },
+   {
+    "title": "Reading the version history",
+    "est": 12,
+    "html": "<p>The version history is the most under-used evidence in the platform and the reason several tests in your programme are possible at all. Most auditors know it exists and have never read one properly.</p>\n\n<p><b>What is actually recorded.</b> For every tracked change, the platform stores the field that changed, its <b>old value and its new value</b>, along with who made the change and when. Child table rows added, removed and modified are captured too. This is not a log saying \"this document was edited\" — it is a reconstruction of exactly what it said before.</p>\n\n<p>So the test is not \"was the price changed\" but \"changed from what, to what, by whom, and when relative to the transaction that benefited from it.\"</p>\n\n<p><b>Cancel-and-amend, which matters enormously for retail.</b> A submitted document is not edited in place; it is cancelled and a new amended document created. The platform compares the amendment against the document it amended, so the version record shows precisely what differed between the two. A cashier's void therefore leaves a full trail: original, cancellation, replacement, and the difference between them.</p>\n\n<p>This is why an amendment is investigable rather than merely visible, and it is worth knowing before you accept anybody's assurance that \"the system does not keep that.\"</p>\n\n<p><b>Two limits, and both are tests rather than footnotes.</b></p>\n\n<p><b>Tracking is a per-doctype setting</b> and it can be switched off. It ships enabled on Sales Invoice, Purchase Order, Stock Entry and Item, but a configuration change could disable it — and every test resting on version history would then return nothing, cleanly and silently. <b>Confirming tracking is still enabled belongs first in your programme</b>, before any test that depends on it.</p>\n\n<p><b>Long-text fields are not diffed.</b> Text editor, code and markdown fields are excluded, so narrative fields, terms and internal notes change without a recorded prior value. Rarely material, occasionally exactly where a dispute lives.</p>\n\n<p><b>How to use it in practice.</b> Version records are queryable like anything else, which means \"all changes to supplier bank details in the last quarter, by user\" is a report rather than a manual trawl. That single query is the foundation of the highest-value test in the whole programme, and it is unavailable to an auditor who thinks of version history as something you click on one document at a time.</p>\n\n<blockquote>IMPLEMENTATION TIP: When investigating any suspicious document, read its version history before speaking to anybody. It tells you what the document said originally, who changed it and when — and going into a conversation already knowing that changes the conversation completely.</blockquote>\n\n<p><b>What the version history does not tell you.</b> It records what changed, not why, and not what was authorised. A price changed from ₦4,800 to ₦4,200 by a named user at a named time is a fact; whether it was approved is a separate question answered by the workflow record or the authorisation rule, if either applies. Treating a version record as evidence of unauthorised action is a leap, and it is the leap most likely to make an auditor look careless in a meeting where the approval is then produced.</p>",
+    "checks": [
+     {
+      "q": "A price was changed. The version history lets you establish:",
+      "opts": [
+       "That an edit occurred",
+       "The old value, the new value, who changed it and when",
+       "Only the current value",
+       "The approval that permitted it"
+      ],
+      "ans": 1,
+      "why": "It is a reconstruction of what the document said before, not a log that something happened.",
+      "sort": 0
+     },
+     {
+      "q": "A cashier voids a transaction. The trail available is:",
+      "opts": [
+       "Original, cancellation, replacement, and the difference between them",
+       "A deletion record",
+       "Nothing, once cancelled",
+       "Only the cancelled document"
+      ],
+      "ans": 0,
+      "why": "The platform compares an amendment against the document it amended.",
+      "sort": 1
+     },
+     {
+      "q": "Which test belongs FIRST in a programme that relies on version history?",
+      "opts": [
+       "Credit limit changes",
+       "Price changes by user",
+       "Confirming change tracking is still enabled on the monitored doctypes",
+       "Supplier bank changes"
+      ],
+      "ans": 2,
+      "why": "If tracking is disabled, every dependent test returns nothing — cleanly, silently and wrongly.",
+      "sort": 2
+     }
+    ]
+   },
+   {
+    "title": "The self-integrity reports",
+    "est": 12,
+    "html": "<p>ERPNext ships a family of reports almost nobody runs, and they are the most audit-native things in the product. They do not describe the business; they test whether the record is internally consistent with itself.</p>\n\n<p>That is where a system-based audit should begin, because every other test you run assumes the underlying data is sound. If the stock ledger does not reconcile to the general ledger, a shrinkage analysis is arithmetic on a broken foundation.</p>\n\n<p><b>The ones worth knowing by name.</b></p>\n\n<p><b>Stock Ledger Invariant Check</b> — tests that the running quantity and valuation in the stock ledger behave consistently entry by entry. Hits indicate the ledger itself is disordered, usually from backdated entries or interrupted processing.</p>\n\n<p><b>Incorrect Balance Qty After Transaction</b> — finds ledger entries where the balance carried forward does not follow from the movement recorded. Structural, not operational.</p>\n\n<p><b>Stock And Account Value Comparison</b> — compares stock value in the inventory ledger against the corresponding accounts in the general ledger. A difference here means inventory and finance are telling different stories, and every stock-related financial figure is affected.</p>\n\n<p><b>Invalid Ledger Entries</b> and <b>General And Payment Ledger Comparison</b> — the accounting equivalents, testing that ledger entries are well formed and that the payment ledger agrees with the general ledger.</p>\n\n<p><b>Calculated Discount Mismatch</b> — finds invoice lines where the discount recorded does not agree with the arithmetic of price and rate. Directly useful in revenue testing.</p>\n\n<p><b>Stock Qty Vs Batch Qty</b> and <b>Stock Qty Vs Serial No Count</b> — where batches or serial numbers are used, tests that the detail agrees with the total.</p>\n\n<p><b>How to use them.</b> Run the set quarterly and expect nil. These are not analytical tests where a distribution is interesting; a hit is a defect. Nil results are the normal outcome and they are worth recording as such, because a clean run is itself evidence that the data underlying your other work is sound.</p>\n\n<p><b>What a hit actually means.</b> Usually a technical problem rather than a person — an interrupted posting, a backdated entry, a migration artefact. So the response is a support conversation rather than an investigation. But it is urgent, because until it is resolved you cannot rely on any figure derived from that ledger, and any finding you have raised from it is exposed.</p>\n\n<p><b>Why almost nobody runs these.</b> They are absent from every operational dashboard, they return nothing interesting in a healthy system, and their names describe internal mechanics rather than business problems — <i>Stock Ledger Invariant Check</i> sounds like a developer's tool, and in origin it is. That is exactly why they are worth adopting: shipped, free, unused, and testing something no operational report examines. Adding the set to a quarterly programme costs an hour once.</p>\n\n<blockquote>IMPLEMENTATION TIP: Run the integrity set before beginning any substantive review, not after. A shrinkage finding raised against a stock ledger that does not reconcile to the general ledger will be dismissed the moment somebody notices, and they will be right to dismiss it.</blockquote>",
+    "checks": [
+     {
+      "q": "Stock And Account Value Comparison returns differences. The immediate implication is:",
+      "opts": [
+       "Inventory and finance are telling different stories, so stock-derived figures are unreliable",
+       "A pricing error",
+       "A counting error at one branch",
+       "A shrinkage problem"
+      ],
+      "ans": 0,
+      "why": "Every stock-related financial figure is affected until it is resolved.",
+      "sort": 0
+     },
+     {
+      "q": "A hit on Stock Ledger Invariant Check most often indicates:",
+      "opts": [
+       "Theft",
+       "A technical defect such as a backdated entry or interrupted posting",
+       "A valuation policy change",
+       "Poor counting"
+      ],
+      "ans": 1,
+      "why": "The response is a support conversation rather than an investigation — but an urgent one.",
+      "sort": 1
+     },
+     {
+      "q": "The integrity set should be run:",
+      "opts": [
+       "Before beginning it",
+       "Only when a problem is suspected",
+       "Annually with the external audit",
+       "After completing substantive testing"
+      ],
+      "ans": 0,
+      "why": "A finding raised from a ledger that does not reconcile will be dismissed, and rightly.",
+      "sort": 2
+     }
+    ]
+   },
+   {
+    "title": "Running a test in Audit & Exceptions",
+    "est": 12,
+    "html": "<p>The tests you build by hand are yours until you leave. The Audit & Exceptions app exists to make them the function's — stored, scheduled, versioned, with a result history attached.</p>\n\n<p><b>What an Audit Test holds.</b> The definition: a code, the risk it addresses, the control it evidences, the query or filter, the threshold as a visible parameter, a severity, a frequency, and a note describing what an innocent hit looks like.</p>\n\n<p><b>That last field deserves attention.</b> A test whose hits are usually innocent trains everybody to ignore its output, and an ignored test is worse than no test because it produces false assurance. If you cannot describe an innocent hit before deploying a test, the test is not ready — you do not yet understand the population well enough to interpret it.</p>\n\n<p><b>An Audit Test Run is immutable and snapshots the result.</b> This is the property that makes findings survive time. A finding raised in March rests on the data as it stood in March; by September the documents may have been amended, corrected or cancelled. Re-running the query then produces a different answer, and without a snapshot you cannot show what you saw. The run also records the parameters as they stood, so a result remains interpretable after a threshold changes.</p>\n\n<p><b>Reading a run.</b> Three questions, in order. How many rows, against how many you expected? Are the hits concentrated — one branch, one user, one week — or spread? And are they the same hits as last time, which distinguishes a persistent condition from a new event?</p>\n\n<p><b>Nil-expected tests versus analytical tests</b> behave differently and should be read differently. A nil-expected test — refunds against no original, negative stock — returns nothing in a healthy month, and any row is a finding. An analytical test — void rates, adjustment frequency — always returns rows, and the question is the shape of the distribution rather than the existence of output. Treating the second like the first produces a report full of findings that are simply normal business.</p>\n\n<p><b>Suppression, and why it must expire.</b> Where a hit is genuinely known and accepted, an exception note records it with a reason and an end date. Without the mechanism, known-innocent hits accumulate until the report is unreadable. Without the expiry, a suppression is a deleted test with extra steps — and the condition it covered will change without anybody revisiting the decision.</p>\n\n<blockquote>WATCH-OUT: The failure mode of every exception system is the same. Tests are added, hits accumulate, nobody reads the output, and the whole apparatus becomes a report nobody opens. Fewer tests with lower false-positive rates, reviewed properly, beat a comprehensive library nobody trusts.</blockquote>\n\n<p><b>How to introduce a new test without poisoning the report.</b> Run it in silence first — scheduled, results reviewed by you alone, for a month. You will find out what it actually returns in normal conditions, which is nearly always more than you expected. Tune the threshold, write the false-positive note from what you saw rather than from what you imagined, and only then put it into the live programme. A test released untuned generates a wave of hits, exhausts the goodwill of whoever must investigate them, and is quietly ignored thereafter.</p>",
+    "checks": [
+     {
+      "q": "A test's hits are usually innocent. The consequence is:",
+      "opts": [
+       "Everybody learns to ignore its output, producing false assurance",
+       "More investigation work",
+       "A higher severity grade",
+       "A minor inefficiency"
+      ],
+      "ans": 0,
+      "why": "If you cannot describe an innocent hit before deploying, you do not understand the population well enough.",
+      "sort": 0
+     },
+     {
+      "q": "A finding raised in March is challenged in September and the underlying documents have since been amended. You rely on:",
+      "opts": [
+       "The original report definition",
+       "Re-running the query",
+       "The immutable run snapshot taken at the time",
+       "The document version history"
+      ],
+      "ans": 2,
+      "why": "Re-running produces a different answer, and without the snapshot you cannot show what you saw.",
+      "sort": 1
+     },
+     {
+      "q": "An analytical test such as void rate always returns rows. Reading it like a nil-expected test produces:",
+      "opts": [
+       "A stronger distribution",
+       "Better coverage",
+       "A report full of findings that are simply normal business",
+       "Fewer false positives"
+      ],
+      "ans": 2,
+      "why": "The question for an analytical test is the shape of the distribution, not the existence of output.",
+      "sort": 2
+     }
+    ]
+   },
+   {
+    "title": "Working papers that reproduce",
+    "est": 12,
+    "html": "<p>A test nobody else can re-run is an opinion. The standard to hold yourself to is that a competent colleague, given your file and no access to you, could reproduce the number exactly. Very little internal audit work in this market meets it.</p>\n\n<p><b>What a reproducible working paper contains.</b></p>\n\n<p><b>The question</b>, stated before the answer. What were you testing, and what would have made you conclude the control was working?</p>\n\n<p><b>The population and how it was defined.</b> Doctype, date range, <code>docstatus</code>, branch scope, and any exclusions with their reason. This is where most files fail — the extract is present and the definition of what it contains is not.</p>\n\n<p><b>The extraction itself.</b> The saved report name and test code, or the query, with parameters as used. Not \"extracted from the system\", which tells a reviewer nothing.</p>\n\n<p><b>The result</b>, retained as it was, not as it is now.</p>\n\n<p><b>The reasoning</b> from result to conclusion, including hits examined and found innocent. A file recording only the exceptions you pursued hides the judgement you exercised, and the judgement is the professional part.</p>\n\n<p><b>The conclusion</b>, expressed against the question you began with.</p>\n\n<p><b>Why this matters more here than in a manual environment.</b> Paper working papers contained the evidence physically — the invoice was in the file. A system-based paper contains a reference to data that can change after you looked. The extract is your only fixed point, and its definition is what makes it meaningful. An extract without its definition is a spreadsheet of unknown provenance, however tidy.</p>\n\n<p><b>The date-field trap, which is worth naming specifically.</b> Documents carry several dates: creation, modification, posting, transaction, due. A population defined by the wrong one is wrong in a way that looks entirely reasonable — a \"March\" population built on <code>creation</code> excludes a March-posted document created in February. Always record which date field defined the period, because you will not remember, and neither will your reviewer.</p>\n\n<blockquote>IMPLEMENTATION TIP: Write the question at the top of the paper before extracting anything. It takes a minute, and it prevents the commonest failure in exploratory work — pulling data, noticing something interesting, and writing up a conclusion to a question you never actually asked.</blockquote>\n\n<p><b>Retention, briefly, because it is usually decided by accident.</b> Working papers supporting a finding should survive at least as long as the finding's follow-up cycle, and in practice longer — a recurring issue is only demonstrable if the earlier files still exist. Decide the period deliberately, store extracts with their definitions rather than as loose spreadsheets, and keep them somewhere the audit function controls. A file held only on one auditor's laptop is not a record of the function's work.</p>",
+    "checks": [
+     {
+      "q": "Your file contains the extract but not the filters used. The problem is:",
+      "opts": [
+       "It is untidy",
+       "A spreadsheet of unknown provenance — the definition is what makes it meaningful",
+       "It cannot be archived",
+       "It breaches retention policy"
+      ],
+      "ans": 1,
+      "why": "In a system environment the extract is your only fixed point, because the underlying data can change.",
+      "sort": 0
+     },
+     {
+      "q": "A 'March' population built on the `creation` date will:",
+      "opts": [
+       "Include cancelled documents",
+       "Double-count amendments",
+       "Be correct",
+       "Exclude a March-posted document that was created in February"
+      ],
+      "ans": 3,
+      "why": "Always record which date field defined the period; you will not remember, and neither will your reviewer.",
+      "sort": 1
+     },
+     {
+      "q": "A working paper recording only the exceptions you pursued:",
+      "opts": [
+       "Reduces review time usefully",
+       "Is appropriately concise",
+       "Hides the judgement you exercised, which is the professional part",
+       "Meets the standard"
+      ],
+      "ans": 2,
+      "why": "Hits examined and found innocent belong in the file precisely because somebody decided they were innocent.",
+      "sort": 2
+     }
+    ]
+   },
+   {
+    "title": "Looking before you know what you are looking for",
+    "est": 12,
+    "html": "<p>Everything so far assumed you knew the test. Some of the best findings begin the other way round — with an auditor looking at a distribution and noticing that something is shaped oddly.</p>\n\n<p><b>The four exploratory views worth building for any area.</b></p>\n\n<p><b>By person.</b> Whatever the transaction is, group it by <code>owner</code> and count. Adjustments, credit notes, voids, price changes, manual journals. Nearly every concentration finding starts here, and it takes about a minute per doctype.</p>\n\n<p><b>By branch, normalised.</b> The same grouped by location — but per transaction or per naira of revenue, never raw. Raw counts rank branches by size and tell you nothing you did not already know.</p>\n\n<p><b>By time.</b> Volume by day of week and hour of day. Transactions clustering at shift end, at month end, or outside trading hours are worth a look precisely because the timing was chosen.</p>\n\n<p><b>By value distribution.</b> How the amounts are spread. Clusters just below a threshold are the clearest signal in this entire chapter: purchase orders bunching under an approval limit, refunds bunching under a supervisor-override level, write-offs just under a review trigger. People optimise against limits, and the histogram shows it plainly.</p>\n\n<p><b>What to do with an oddity.</b> Not raise a finding. Form a hypothesis, then design the test that would confirm or disprove it, then run that test properly with a defined population. Exploration finds candidates; only a designed test produces evidence. Skipping the second step is how an auditor ends up defending a pattern rather than a fact.</p>\n\n<p><b>And the discipline that keeps this honest.</b> Write down what you expected to see before you look. If you did not have an expectation, you cannot be surprised — you can only find patterns, and patterns are available in any dataset if you look long enough. The expectation is what turns noticing into evidence.</p>\n\n<p><b>Where this fits in the year.</b> Exploration deserves scheduled time rather than being what you do when a review finishes early. A day a quarter, on an area chosen deliberately, produces more new tests than any amount of repeating last year's programme — which by definition finds only what somebody already thought to look for.</p>\n\n<blockquote>IMPLEMENTATION TIP: The value distribution is the single highest-yield exploratory view in a retail environment. Plot any approval-limited transaction against value and look immediately below each limit. If people are working around a control, that is where it shows.</blockquote>\n\n<p><b>A caution about exploring in a live system.</b> Broad queries over long periods can be heavy, and running one at month-end while branches are trading is a way to become unpopular quickly and, occasionally, to be blamed for a slowdown you did not cause. Use prepared reports for anything wide, run heavy exploration outside peak hours, and tell whoever manages the system what you are doing before rather than after. Independence does not require being inconsiderate, and the goodwill matters the first time you need something urgently.</p>",
+    "checks": [
+     {
+      "q": "Purchase order values cluster just below the approval limit. This is:",
+      "opts": [
+       "Normal purchasing behaviour",
+       "A candidate finding — people optimise against limits and the histogram shows it",
+       "A data quality issue",
+       "Evidence of good budgeting"
+      ],
+      "ans": 1,
+      "why": "Clusters just below a threshold are the clearest signal available in exploratory work.",
+      "sort": 0
+     },
+     {
+      "q": "You notice an odd pattern while exploring. The correct next step is:",
+      "opts": [
+       "Interview the staff involved",
+       "Widen the exploration",
+       "Raise a finding",
+       "Form a hypothesis and design a proper test with a defined population"
+      ],
+      "ans": 3,
+      "why": "Exploration finds candidates; only a designed test produces evidence.",
+      "sort": 1
+     },
+     {
+      "q": "Writing down what you expected before looking matters because:",
+      "opts": [
+       "It speeds up analysis",
+       "It documents the plan",
+       "Without an expectation you cannot be surprised — only find patterns, which any dataset offers",
+       "It satisfies review standards"
+      ],
+      "ans": 2,
+      "why": "The expectation is what turns noticing into evidence.",
+      "sort": 2
+     }
+    ]
+   }
+  ],
+  "questions": [
+   {
+    "q": "An auditor who cannot extract their own data is:",
+    "opts": [
+     "Dependent on the people they examine",
+     "Following segregation of duties",
+     "Correctly using IT",
+     "More efficient"
+    ],
+    "ans": 0,
+    "why": "And the extract's producer usually reports to the director whose area is under review.",
+    "src": "Ch1 §1",
+    "topic": "Why extraction matters"
+   },
+   {
+    "q": "Population testing lets a clean result be expressed as:",
+    "opts": [
+     "An estimated error rate",
+     "A reasonable assurance opinion",
+     "A representative sample was clean",
+     "No instance occurred in the period"
+    ],
+    "ans": 3,
+    "why": "Sampling carries the risk that the fifty were clean while the population was not.",
+    "src": "Ch1 §5",
+    "topic": "Why extraction matters"
+   },
+   {
+    "q": "Under population testing, a single exception is:",
+    "opts": [
+     "Statistically insignificant",
+     "Ignored below materiality",
+     "Extrapolated to a rate",
+     "One exception, with a document number"
+    ],
+    "ans": 3,
+    "why": "The conversation moves from statistics to facts, which are harder to negotiate down.",
+    "src": "Ch1 §7",
+    "topic": "Why extraction matters"
+   },
+   {
+    "q": "The commonest reason a finding is dismissed is:",
+    "opts": [
+     "It was wrong",
+     "The auditor could not state how the number was produced",
+     "It was immaterial",
+     "It was late"
+    ],
+    "ans": 1,
+    "why": "Reproducibility is what makes a finding survive contact with the person it concerns.",
+    "src": "Ch1 §9",
+    "topic": "Why extraction matters"
+   },
+   {
+    "q": "Sales Invoice line items are stored in:",
+    "opts": [
+     "tabSales Invoice",
+     "tabSales Invoice Item",
+     "tabItem",
+     "The General Ledger"
+    ],
+    "ans": 1,
+    "why": "Child rows carry a parent field holding the invoice name.",
+    "src": "Ch2 §2",
+    "topic": "Doctypes and tables"
+   },
+   {
+    "q": "docstatus values are:",
+    "opts": [
+     "1 draft, 2 submitted, 3 cancelled",
+     "0 draft, 1 submitted, 2 cancelled",
+     "0 open, 1 closed",
+     "0 active, 1 inactive"
+    ],
+    "ans": 1,
+    "why": "Omitting it silently includes drafts and cancellations in every population.",
+    "src": "Ch2 §7",
+    "topic": "Doctypes and tables"
+   },
+   {
+    "q": "Which filter comparator finds documents where a field has any value at all?",
+    "opts": [
+     "between",
+     "in",
+     "like",
+     "is set"
+    ],
+    "ans": 3,
+    "why": "With `is not set` for absence — both are more useful in testing than they first appear.",
+    "src": "Ch2 §4",
+    "topic": "Doctypes and tables"
+   },
+   {
+    "q": "`modified_by` records:",
+    "opts": [
+     "Who last changed it",
+     "The approver",
+     "The assigned user",
+     "The document owner"
+    ],
+    "ans": 0,
+    "why": "With `owner` recording who created it. Together they answer many 'who did this' questions.",
+    "src": "Ch2 §6",
+    "topic": "Doctypes and tables"
+   },
+   {
+    "q": "Report view differs from list view mainly by offering:",
+    "opts": [
+     "Chosen columns, totals and grouping",
+     "Write access",
+     "Scheduled delivery",
+     "Faster loading"
+    ],
+    "ans": 0,
+    "why": "Grouping Stock Entries by owner with totals is an adjustment-concentration test, not a programming task.",
+    "src": "Ch2 §5",
+    "topic": "Doctypes and tables"
+   },
+   {
+    "q": "The four report types in ERPNext are Report Builder, Query Report, Script Report and:",
+    "opts": [
+     "Dashboard Report",
+     "Custom Report",
+     "Print Report",
+     "Scheduled Report"
+    ],
+    "ans": 1,
+    "why": "Custom Report is a saved variant of an existing report with different filters and columns.",
+    "src": "Ch3 §2",
+    "topic": "Report Builder"
+   },
+   {
+    "q": "Report Builder cannot:",
+    "opts": [
+     "Select columns",
+     "Group and total",
+     "Join two unrelated doctypes",
+     "Filter by date range"
+    ],
+    "ans": 2,
+    "why": "Nor aggregate across a relationship or compare one document to another.",
+    "src": "Ch3 §5",
+    "topic": "Report Builder"
+   },
+   {
+    "q": "A saved report named to its programme test code is valuable because:",
+    "opts": [
+     "It schedules automatically",
+     "It runs faster",
+     "The library stays navigable a year later",
+     "It restricts access"
+    ],
+    "ans": 2,
+    "why": "The same filters applied ad hoc are a personal habit that leaves when you do.",
+    "src": "Ch3 §6",
+    "topic": "Report Builder"
+   },
+   {
+    "q": "The `roles` table on a Report controls:",
+    "opts": [
+     "Who can run it",
+     "The refresh frequency",
+     "Export permissions",
+     "Which columns appear"
+    ],
+    "ans": 0,
+    "why": "Worth setting deliberately — visibility to the audited department changes behaviour.",
+    "src": "Ch3 §7",
+    "topic": "Report Builder"
+   },
+   {
+    "q": "Query Reports are needed mainly because real exceptions are usually about:",
+    "opts": [
+     "Large values",
+     "A relationship between records rather than a property of one",
+     "Recent transactions",
+     "Specific branches"
+    ],
+    "ans": 1,
+    "why": "Joins, aggregation and date arithmetic between events.",
+    "src": "Ch4 §2",
+    "topic": "Query Report"
+   },
+   {
+    "q": "A threshold hard-coded into a query rather than exposed as a parameter:",
+    "opts": [
+     "Goes stale silently and leaves the run uninterpretable later",
+     "Improves security",
+     "Prevents misuse",
+     "Runs faster"
+    ],
+    "ans": 0,
+    "why": "A parameter is recorded on the run, so a result stays interpretable after the limit changes.",
+    "src": "Ch4 §5",
+    "topic": "Query Report"
+   },
+   {
+    "q": "Every exception row should return:",
+    "opts": [
+     "The branch only",
+     "A severity grade",
+     "A count and a percentage",
+     "Identifiers somebody can open"
+    ],
+    "ans": 3,
+    "why": "An exception you cannot navigate to is an accusation without an address.",
+    "src": "Ch4 §6",
+    "topic": "Query Report"
+   },
+   {
+    "q": "Query Report creation requires elevated rights because:",
+    "opts": [
+     "They export data",
+     "Reports are expensive to run",
+     "SQL bypasses the ordinary permission layer",
+     "They are scheduled"
+    ],
+    "ans": 2,
+    "why": "Which is why your own ability to create them is something an external auditor should examine.",
+    "src": "Ch4 §7",
+    "topic": "Query Report"
+   },
+   {
+    "q": "A test spanning eighteen months across twenty branches should be:",
+    "opts": [
+     "Marked as a prepared report and run in the background",
+     "Split into monthly runs",
+     "Run only at night",
+     "Narrowed to avoid timeouts"
+    ],
+    "ans": 0,
+    "why": "It is the intended mechanism, and it stops people writing artificially narrow tests.",
+    "src": "Ch4 §8",
+    "topic": "Query Report"
+   },
+   {
+    "q": "An aggregate far larger than the expected population usually indicates:",
+    "opts": [
+     "A date error",
+     "A join multiplying rows",
+     "Missing docstatus",
+     "Wrong branch scope"
+    ],
+    "ans": 1,
+    "why": "One invoice matching three version records inflates every total plausibly.",
+    "src": "Ch4 §10",
+    "topic": "Query Report"
+   },
+   {
+    "q": "The version history records, for each tracked change:",
+    "opts": [
+     "Only the new value",
+     "A summary of the document",
+     "That an edit occurred",
+     "The field, its old value and its new value"
+    ],
+    "ans": 3,
+    "why": "Plus child rows added, removed and modified, with who and when.",
+    "src": "Ch5 §2",
+    "topic": "Version history"
+   },
+   {
+    "q": "A submitted document that needs correcting is:",
+    "opts": [
+     "Edited in place",
+     "Cancelled and amended, with the amendment compared against the original",
+     "Deleted and re-entered",
+     "Locked permanently"
+    ],
+    "ans": 1,
+    "why": "Which is why a void leaves a full trail rather than a hole.",
+    "src": "Ch5 §4",
+    "topic": "Version history"
+   },
+   {
+    "q": "If change tracking were disabled on a doctype, dependent tests would:",
+    "opts": [
+     "Be blocked by permissions",
+     "Raise an error",
+     "Return nothing, cleanly and silently",
+     "Return all records"
+    ],
+    "ans": 2,
+    "why": "Which is why confirming it is enabled belongs first in the programme.",
+    "src": "Ch5 §6",
+    "topic": "Version history"
+   },
+   {
+    "q": "Which field type is excluded from version diffing?",
+    "opts": [
+     "Currency",
+     "Link",
+     "Text Editor",
+     "Date"
+    ],
+    "ans": 2,
+    "why": "Along with Code and Markdown — narrative fields change without a recorded prior value.",
+    "src": "Ch5 §7",
+    "topic": "Version history"
+   },
+   {
+    "q": "Version records are:",
+    "opts": [
+     "Restricted to System Managers",
+     "Viewable only per document",
+     "Queryable like any other doctype",
+     "Purged quarterly"
+    ],
+    "ans": 2,
+    "why": "Which turns 'all supplier bank changes last quarter' from a manual trawl into a report.",
+    "src": "Ch5 §8",
+    "topic": "Version history"
+   },
+   {
+    "q": "Stock And Account Value Comparison tests:",
+    "opts": [
+     "Valuation policy",
+     "Count accuracy",
+     "Stock movement accuracy",
+     "Whether the stock ledger agrees with the general ledger"
+    ],
+    "ans": 3,
+    "why": "A difference means inventory and finance are telling different stories.",
+    "src": "Ch6 §5",
+    "topic": "Self-integrity reports"
+   },
+   {
+    "q": "Calculated Discount Mismatch finds:",
+    "opts": [
+     "Lines where the recorded discount disagrees with the arithmetic of price and rate",
+     "Unapproved discounts",
+     "Discount concentration",
+     "Discounts above policy"
+    ],
+    "ans": 0,
+    "why": "Directly useful in revenue testing.",
+    "src": "Ch6 §8",
+    "topic": "Self-integrity reports"
+   },
+   {
+    "q": "The integrity report set should return:",
+    "opts": [
+     "One hit per branch",
+     "A normal distribution",
+     "Nil",
+     "A benchmark figure"
+    ],
+    "ans": 2,
+    "why": "These are not analytical tests; a hit is a defect rather than an interesting number.",
+    "src": "Ch6 §10",
+    "topic": "Self-integrity reports"
+   },
+   {
+    "q": "The integrity set should be run:",
+    "opts": [
+     "Before it",
+     "Only on suspicion",
+     "At year end",
+     "After substantive testing"
+    ],
+    "ans": 0,
+    "why": "A finding raised from a ledger that does not reconcile will be dismissed, and rightly.",
+    "src": "Ch6 §12",
+    "topic": "Self-integrity reports"
+   },
+   {
+    "q": "A hit on the integrity reports usually calls for:",
+    "opts": [
+     "A management letter",
+     "A fraud investigation",
+     "A support conversation, urgently",
+     "A branch visit"
+    ],
+    "ans": 2,
+    "why": "The causes are typically technical — interrupted postings, backdated entries, migration artefacts.",
+    "src": "Ch6 §11",
+    "topic": "Self-integrity reports"
+   },
+   {
+    "q": "An Audit Test's false-positive note exists because:",
+    "opts": [
+     "Auditors must disclose limitations",
+     "Documentation is required",
+     "A test whose hits are usually innocent trains everybody to ignore its output",
+     "It sets the severity"
+    ],
+    "ans": 2,
+    "why": "An ignored test is worse than no test, because it produces false assurance.",
+    "src": "Ch7 §3",
+    "topic": "Running audit tests"
+   },
+   {
+    "q": "The run snapshot matters because:",
+    "opts": [
+     "Queries are slow",
+     "Underlying documents may be amended before a finding is challenged",
+     "It reduces storage",
+     "It enables scheduling"
+    ],
+    "ans": 1,
+    "why": "Re-running months later produces a different answer and cannot show what you saw.",
+    "src": "Ch7 §5",
+    "topic": "Running audit tests"
+   },
+   {
+    "q": "A nil-expected test differs from an analytical test in that:",
+    "opts": [
+     "It runs faster",
+     "Any row is a finding, rather than the distribution being the question",
+     "It needs no threshold",
+     "It cannot be scheduled"
+    ],
+    "ans": 1,
+    "why": "Treating an analytical test like a nil-expected one produces findings that are normal business.",
+    "src": "Ch7 §8",
+    "topic": "Running audit tests"
+   },
+   {
+    "q": "A suppression without an expiry date is:",
+    "opts": [
+     "A deleted test with extra steps",
+     "Best practice",
+     "Required for known issues",
+     "Efficient"
+    ],
+    "ans": 0,
+    "why": "The condition it covered will change without anybody revisiting the decision.",
+    "src": "Ch7 §9",
+    "topic": "Running audit tests"
+   },
+   {
+    "q": "The characteristic failure of an exception system is:",
+    "opts": [
+     "Insufficient coverage",
+     "Excessive permissions",
+     "Queries becoming slow",
+     "Hits accumulating until nobody reads the output"
+    ],
+    "ans": 3,
+    "why": "Fewer tests with lower false-positive rates beat a comprehensive library nobody trusts.",
+    "src": "Ch7 §10",
+    "topic": "Running audit tests"
+   },
+   {
+    "q": "A reproducible working paper must define the population by doctype, date range, branch scope and:",
+    "opts": [
+     "Severity",
+     "The reviewer",
+     "Materiality",
+     "docstatus"
+    ],
+    "ans": 3,
+    "why": "This is where most files fail — the extract is present and its definition is not.",
+    "src": "Ch8 §4",
+    "topic": "Working papers"
+   },
+   {
+    "q": "A population defined on `creation` rather than `posting_date` will:",
+    "opts": [
+     "Be equivalent",
+     "Miss a March-posted document created in February",
+     "Include cancellations",
+     "Double-count amendments"
+    ],
+    "ans": 1,
+    "why": "Record which date field defined the period; you will not remember.",
+    "src": "Ch8 §9",
+    "topic": "Working papers"
+   },
+   {
+    "q": "Hits examined and found innocent belong in the file because:",
+    "opts": [
+     "Reviewers request them",
+     "Retention policy requires it",
+     "They record the judgement you exercised, which is the professional part",
+     "They support the sample size"
+    ],
+    "ans": 2,
+    "why": "A file recording only pursued exceptions hides the reasoning.",
+    "src": "Ch8 §7",
+    "topic": "Working papers"
+   },
+   {
+    "q": "In a system environment the working paper's fixed point is:",
+    "opts": [
+     "The conclusion",
+     "The document itself",
+     "The extract, defined by its filters",
+     "The report name"
+    ],
+    "ans": 2,
+    "why": "Unlike paper files, the underlying data can change after you looked.",
+    "src": "Ch8 §8",
+    "topic": "Working papers"
+   },
+   {
+    "q": "Grouping any transaction by `owner` and counting is the fastest route to:",
+    "opts": [
+     "A completeness test",
+     "A cut-off test",
+     "A valuation test",
+     "A concentration finding"
+    ],
+    "ans": 3,
+    "why": "Adjustments, credit notes, voids, price changes — about a minute per doctype.",
+    "src": "Ch9 §3",
+    "topic": "Exploratory extraction"
+   },
+   {
+    "q": "Branch comparisons must be normalised because raw counts:",
+    "opts": [
+     "Are harder to compute",
+     "Rank branches by size",
+     "Exclude cancellations",
+     "Ignore seasonality"
+    ],
+    "ans": 1,
+    "why": "Per transaction, per naira of revenue, or per head — never raw.",
+    "src": "Ch9 §4",
+    "topic": "Exploratory extraction"
+   },
+   {
+    "q": "Values clustering just below an approval limit indicate:",
+    "opts": [
+     "People optimising against the control",
+     "A data entry convention",
+     "Budget discipline",
+     "Prudent purchasing"
+    ],
+    "ans": 0,
+    "why": "The clearest signal available in exploratory work.",
+    "src": "Ch9 §6",
+    "topic": "Exploratory extraction"
+   },
+   {
+    "q": "An oddity found while exploring should lead to:",
+    "opts": [
+     "A hypothesis and a designed test with a defined population",
+     "An interview",
+     "An immediate escalation",
+     "A finding"
+    ],
+    "ans": 0,
+    "why": "Exploration finds candidates; only a designed test produces evidence.",
+    "src": "Ch9 §7",
+    "topic": "Exploratory extraction"
+   },
+   {
+    "q": "Recording your expectation before looking matters because:",
+    "opts": [
+     "It sets materiality",
+     "It satisfies review",
+     "It documents the plan",
+     "Without it you cannot be surprised, only find patterns"
+    ],
+    "ans": 3,
+    "why": "Any dataset offers patterns if you look long enough.",
+    "src": "Ch9 §8",
+    "topic": "Exploratory extraction"
+   }
+  ]
+ }
+}
