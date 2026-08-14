@@ -5946,13 +5946,13 @@ def _serve_certificate(serial):
 @frappe.whitelist()
 def my_certificate_file(serial):
 	_staff_only()
-	_serve_certificate(serial)
+	return _serve_certificate(serial)
 
 
 @frappe.whitelist()
 def client_certificate_file(serial):
 	_learning_room()
-	_serve_certificate(serial)
+	return _serve_certificate(serial)
 
 
 # ---------------- certification: product inheritance & track pursuit ----------------
