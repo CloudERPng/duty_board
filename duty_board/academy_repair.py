@@ -325,3 +325,82 @@ def push_closer_lessons(reset_progress=0, dry_run=0):
     print("Now re-run the bank sync so the corrected questions land:")
     print("  bench --site xlevel.clouderp.one execute duty_board.academy_repair.rebalance_banks")
     return {"changed": changed, "inserted": inserted}
+
+
+def push_lesson_checks(dry_run=0):
+    """Create or update the end-of-lesson check questions from the data files.
+
+    Checks are formative — never scored, never on a transcript — so they are
+    matched and rewritten by position within their lesson rather than by text.
+    A check whose wording is improved should update, not duplicate.
+
+    Removing a check from the data file deactivates the surplus record rather
+    than deleting it, because Duty Lesson Progress carries a checks_passed flag
+    that was earned against the set as it stood.
+    """
+    dry_run = int(dry_run or 0)
+    here = os.path.dirname(os.path.abspath(__file__))
+    created = updated = retired = 0
+    report = []
+
+    for fam in ALL_FAMILIES:
+        path = os.path.join(here, "academy_%s_data.json" % fam)
+        if not os.path.exists(path):
+            continue
+        with open(path, encoding="utf-8") as f:
+            data = json.load(f)
+        for key, mod in data.items():
+            if not isinstance(mod, dict) or "lessons" not in mod:
+                continue
+            mod_name = frappe.db.get_value("Duty Training Module", {"title": mod["title"]}, "name")
+            if not mod_name:
+                continue
+            n_mod = 0
+            for lesson in mod["lessons"]:
+                checks = lesson.get("checks") or []
+                les_name = frappe.db.get_value(
+                    "Duty Lesson", {"module": mod_name, "title": lesson["title"]}, "name"
+                )
+                if not les_name:
+                    if checks:
+                        report.append("  lesson not found: %s / %s" % (key, lesson["title"]))
+                    continue
+                live = frappe.get_all(
+                    "Duty Lesson Check", filters={"lesson": les_name},
+                    fields=["name", "sort_order"], order_by="sort_order asc, creation asc",
+                )
+                for i, ch in enumerate(checks):
+                    opts = list(ch["opts"]) + [None, None, None, None]
+                    payload = {
+                        "question": ch["q"], "opt_a": opts[0], "opt_b": opts[1],
+                        "opt_c": opts[2], "opt_d": opts[3],
+                        "correct": "ABCD"[ch["ans"]], "rationale": ch.get("why"),
+                        "sort_order": i, "active": 1,
+                    }
+                    if i < len(live):
+                        updated += 1
+                        if not dry_run:
+                            frappe.db.set_value("Duty Lesson Check", live[i].name,
+                                                payload, update_modified=False)
+                    else:
+                        created += 1
+                        if not dry_run:
+                            doc = {"doctype": "Duty Lesson Check", "lesson": les_name}
+                            doc.update(payload)
+                            frappe.get_doc(doc).insert(ignore_permissions=True)
+                    n_mod += 1
+                for extra in live[len(checks):]:
+                    retired += 1
+                    if not dry_run:
+                        frappe.db.set_value("Duty Lesson Check", extra.name,
+                                            "active", 0, update_modified=False)
+            if n_mod:
+                report.append("  %-22s %-16s %d check(s)" % (key, fam, n_mod))
+
+    if not dry_run:
+        frappe.db.commit()
+    print("\n".join(report))
+    print("\n%s: %d created, %d updated, %d deactivated."
+          % ("DRY RUN" if dry_run else "APPLIED", created, updated, retired))
+    print("A lesson with checks now requires them to be answered before it can be marked read.")
+    return {"created": created, "updated": updated, "retired": retired}

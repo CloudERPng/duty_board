@@ -6,47 +6,389 @@
    {
     "title": "The Orders workspace",
     "est": 8,
-    "html": "<p>The Orders page is where a closer lives. Everything else in ZhiftCRM is somewhere you visit; this is the room you work in, and how quickly you can bend it into a worklist is most of the difference between a closer who handles forty orders a day and one who handles fifteen.</p>\n\n<p>Open it from <b>Orders</b> in the left sidebar. What loads is a table of every order you have access to, and that phrase is doing real work: a closer sees only their assigned orders, while managers and directors see every order across the team. This is not a permissions detail to skim. It means the number at the top of your screen is <i>your</i> book, not the company's, and a manager comparing their view to yours is looking at a different list. When someone asks how many orders are open, the honest answer begins with \"for whom?\"</p>\n\n<p><b>Reading the columns.</b> Left to right: Order ID, Customer Name, Phone, Status as a colour-coded badge, Channel, Amount, Agent, and Created Date. Column widths are adjustable — drag the borders when something truncates, because a clipped address or half-shown name is how the wrong order gets worked.</p>\n\n<p>Two columns deserve more attention than they usually get. <b>Channel</b> records where the lead came from — Phone, WhatsApp, Instagram, Facebook, Website — and it is the foundation of every marketing report the business runs. <b>Agent</b> is the assigned closer, and it answers the only question that matters when an order stalls: whose problem is this right now?</p>\n\n<p><b>Search accepts almost anything.</b> A customer name, whole or partial. A phone fragment — typing <code>0551</code> matches any number containing those digits, which is how you find the customer who gave you their number over a bad line and you only caught the middle. An order ID, to jump straight there. A city name. The list filters as you type; there is no Enter to press.</p>\n\n<p><b>But filters are where the speed is.</b> The status dropdown narrows to a single stage. Advanced Filters opens the full panel: channel, assigned agent, digital marketer, country, brand, category, branch, and a date range against your chosen date type.</p>\n\n<p>The habit worth building is this: stop scrolling. Scrolling works on an order book of a few dozen. On a book of hundreds of thousands it is not slow, it is useless — you will never reach the bottom, so the orders at the bottom never get worked, and nobody notices because nobody scrolled that far. A closer who begins each session by setting <i>my orders, Call Back, today</i> has turned an unreadable table into a ten-minute worklist. A closer who begins by scrolling has begun by choosing which customers to abandon, without meaning to and without knowing which ones.</p>\n\n<blockquote>IMPLEMENTATION TIP: By the end of your first week you should have three or four filter combinations you reach for without thinking — your call-backs for today, your orders awaiting agent acceptance, anything of yours that has not moved in three days. Those are not reports you run. They are the three doors you walk through every morning.</blockquote>"
+    "html": "<p>The Orders page is where a closer lives. Everything else in ZhiftCRM is somewhere you visit; this is the room you work in, and how quickly you can bend it into a worklist is most of the difference between a closer who handles forty orders a day and one who handles fifteen.</p>\n\n<p>Open it from <b>Orders</b> in the left sidebar. What loads is a table of every order you have access to, and that phrase is doing real work: a closer sees only their assigned orders, while managers and directors see every order across the team. This is not a permissions detail to skim. It means the number at the top of your screen is <i>your</i> book, not the company's, and a manager comparing their view to yours is looking at a different list. When someone asks how many orders are open, the honest answer begins with \"for whom?\"</p>\n\n<p><b>Reading the columns.</b> Left to right: Order ID, Customer Name, Phone, Status as a colour-coded badge, Channel, Amount, Agent, and Created Date. Column widths are adjustable — drag the borders when something truncates, because a clipped address or half-shown name is how the wrong order gets worked.</p>\n\n<p>Two columns deserve more attention than they usually get. <b>Channel</b> records where the lead came from — Phone, WhatsApp, Instagram, Facebook, Website — and it is the foundation of every marketing report the business runs. <b>Agent</b> is the assigned closer, and it answers the only question that matters when an order stalls: whose problem is this right now?</p>\n\n<p><b>Search accepts almost anything.</b> A customer name, whole or partial. A phone fragment — typing <code>0551</code> matches any number containing those digits, which is how you find the customer who gave you their number over a bad line and you only caught the middle. An order ID, to jump straight there. A city name. The list filters as you type; there is no Enter to press.</p>\n\n<p><b>But filters are where the speed is.</b> The status dropdown narrows to a single stage. Advanced Filters opens the full panel: channel, assigned agent, digital marketer, country, brand, category, branch, and a date range against your chosen date type.</p>\n\n<p>The habit worth building is this: stop scrolling. Scrolling works on an order book of a few dozen. On a book of hundreds of thousands it is not slow, it is useless — you will never reach the bottom, so the orders at the bottom never get worked, and nobody notices because nobody scrolled that far. A closer who begins each session by setting <i>my orders, Call Back, today</i> has turned an unreadable table into a ten-minute worklist. A closer who begins by scrolling has begun by choosing which customers to abandon, without meaning to and without knowing which ones.</p>\n\n<blockquote>IMPLEMENTATION TIP: By the end of your first week you should have three or four filter combinations you reach for without thinking — your call-backs for today, your orders awaiting agent acceptance, anything of yours that has not moved in three days. Those are not reports you run. They are the three doors you walk through every morning.</blockquote>",
+    "checks": [
+     {
+      "q": "A manager says there are 4,000 open orders; your list shows 180. Who is wrong?",
+      "opts": [
+       "The manager — the dashboard over-counts",
+       "Nobody — closers see only their own orders, managers see all",
+       "You — your filters are hiding orders",
+       "The system, which needs a refresh"
+      ],
+      "ans": 1,
+      "why": "Access shapes the number. A closer's list is their own book; a manager's is the whole team's. Always ask 'for whom?' before comparing counts.",
+      "sort": 0
+     },
+     {
+      "q": "Typing 0551 into search will match:",
+      "opts": [
+       "Only orders whose phone begins 0551",
+       "Only order IDs containing 0551",
+       "Any number containing those digits anywhere",
+       "Nothing — search needs a full number"
+      ],
+      "ans": 2,
+      "why": "Fragment matching is how you find a customer whose number you only half caught over a bad line.",
+      "sort": 1
+     },
+     {
+      "q": "Why does the chapter argue against scrolling the order list?",
+      "opts": [
+       "It is slower than using filters",
+       "Rows load in pages, so scrolling misses some",
+       "On a large book you never reach the bottom, so those customers are never worked",
+       "Scrolling clears the status filter"
+      ],
+      "ans": 2,
+      "why": "It is not a speed problem. Scrolling silently decides which customers get no attention — and nobody notices, because nobody scrolled that far.",
+      "sort": 2
+     }
+    ]
    },
    {
     "title": "Creating an order",
     "est": 8,
-    "html": "<p>Click <b>New Order</b> at the top-right of the Orders page and the create dialog opens. The form is short. The discipline inside it is what keeps the customer database worth having, and the cost of skipping that discipline is paid months later by somebody who is not you.</p>\n\n<p><b>Customer name first — and search before you type.</b> The field live-searches existing customers, and selecting a match auto-fills phone, email and address from the profile. This is the most consequential habit in the form. A duplicate customer record does not announce itself; it quietly splits one person's history in two, so the repeat buyer who has ordered eleven times looks like two strangers who ordered six and five. Every judgement downstream then goes wrong: their value to the business, their return rate, and whether the closer picking up their next call knows they are talking to a regular.</p>\n\n<p>So when a similar name appears, verify by phone before creating anew. Names collide constantly — in a book of any size you will have several customers sharing one — and the phone number is the thing that does not.</p>\n\n<p><b>Phone is required, and it drives everything.</b> Enter it with the country code; the system validates the format. Consider what depends on this one field: the call that confirms the order, the delivery person's call at the door, and the recovery call if delivery fails. A digit wrong here does not produce an error message. It produces an order that travels all the way to a customer's street and comes back, having consumed picking, packing, dispatch and a rider's afternoon. Read it back to the customer. Four seconds, and the cheapest four seconds in the process.</p>\n\n<p><b>The duplicate banner.</b> When you leave the phone field, the system checks for a prior order on the same number inside the configured detection window. A match raises an amber banner showing that order's ID, date and items.</p>\n\n<p>Note what it does and does not do: <b>it informs, it does not block</b>. That is deliberate. A customer ordering the same product again three weeks later is a good outcome, and software that refused it would be wrong. So the decision is yours, and it is a real one. For a legitimate repeat purchase, tick <b>Proceed anyway</b>. If it is the same order arriving twice — the customer called again because nobody called them back, or two closers picked up one enquiry — close the dialog and work the existing order. Creating the second does not just clutter the list; it puts two closers on one customer, and the customer notices.</p>\n\n<p>Numbers are normalised on their last ten digits, so <code>08012345678</code> and <code>+2348012345678</code> are recognised as the same customer. You need not guess which format a colleague used.</p>\n\n<p><b>Then the rest.</b> Email is optional, but a customer with no email cannot be reached by any automated journey — so an empty email field is a quiet decision to reach that person by phone only, for the life of the relationship.</p>\n\n<p><b>Lead Channel is set once, at creation</b>, and it feeds marketing attribution, which eventually feeds decisions about where money is spent. A channel guessed rather than known does not stay a small inaccuracy; it becomes budget moved toward a source that was not actually performing. If you do not know, ask — \"how did you hear about us?\" costs one line of the conversation.</p>\n\n<p>Complete the items, the delivery address, and any notes. The address deserves the same read-back treatment as the phone number, and for the same reason.</p>\n\n<blockquote>CONSULTANT NOTE: The duplicate check on manually created orders runs only if the administrator has enabled \"Run on Manual Orders\" under Duplicate Order Detection in settings. If closers report never seeing the banner, check that setting before concluding the feature is broken.</blockquote>"
+    "html": "<p>Click <b>New Order</b> at the top-right of the Orders page and the create dialog opens. The form is short. The discipline inside it is what keeps the customer database worth having, and the cost of skipping that discipline is paid months later by somebody who is not you.</p>\n\n<p><b>Customer name first — and search before you type.</b> The field live-searches existing customers, and selecting a match auto-fills phone, email and address from the profile. This is the most consequential habit in the form. A duplicate customer record does not announce itself; it quietly splits one person's history in two, so the repeat buyer who has ordered eleven times looks like two strangers who ordered six and five. Every judgement downstream then goes wrong: their value to the business, their return rate, and whether the closer picking up their next call knows they are talking to a regular.</p>\n\n<p>So when a similar name appears, verify by phone before creating anew. Names collide constantly — in a book of any size you will have several customers sharing one — and the phone number is the thing that does not.</p>\n\n<p><b>Phone is required, and it drives everything.</b> Enter it with the country code; the system validates the format. Consider what depends on this one field: the call that confirms the order, the delivery person's call at the door, and the recovery call if delivery fails. A digit wrong here does not produce an error message. It produces an order that travels all the way to a customer's street and comes back, having consumed picking, packing, dispatch and a rider's afternoon. Read it back to the customer. Four seconds, and the cheapest four seconds in the process.</p>\n\n<p><b>The duplicate banner.</b> When you leave the phone field, the system checks for a prior order on the same number inside the configured detection window. A match raises an amber banner showing that order's ID, date and items.</p>\n\n<p>Note what it does and does not do: <b>it informs, it does not block</b>. That is deliberate. A customer ordering the same product again three weeks later is a good outcome, and software that refused it would be wrong. So the decision is yours, and it is a real one. For a legitimate repeat purchase, tick <b>Proceed anyway</b>. If it is the same order arriving twice — the customer called again because nobody called them back, or two closers picked up one enquiry — close the dialog and work the existing order. Creating the second does not just clutter the list; it puts two closers on one customer, and the customer notices.</p>\n\n<p>Numbers are normalised on their last ten digits, so <code>08012345678</code> and <code>+2348012345678</code> are recognised as the same customer. You need not guess which format a colleague used.</p>\n\n<p><b>Then the rest.</b> Email is optional, but a customer with no email cannot be reached by any automated journey — so an empty email field is a quiet decision to reach that person by phone only, for the life of the relationship.</p>\n\n<p><b>Lead Channel is set once, at creation</b>, and it feeds marketing attribution, which eventually feeds decisions about where money is spent. A channel guessed rather than known does not stay a small inaccuracy; it becomes budget moved toward a source that was not actually performing. If you do not know, ask — \"how did you hear about us?\" costs one line of the conversation.</p>\n\n<p>Complete the items, the delivery address, and any notes. The address deserves the same read-back treatment as the phone number, and for the same reason.</p>\n\n<blockquote>CONSULTANT NOTE: The duplicate check on manually created orders runs only if the administrator has enabled \"Run on Manual Orders\" under Duplicate Order Detection in settings. If closers report never seeing the banner, check that setting before concluding the feature is broken.</blockquote>",
+    "checks": [
+     {
+      "q": "You are creating an order for a customer whose name resembles an existing record. You should:",
+      "opts": [
+       "Create the new one — names collide often",
+       "Verify by phone number before creating anew",
+       "Ask a manager to merge them afterwards",
+       "Add a note explaining the similarity"
+      ],
+      "ans": 1,
+      "why": "Names collide constantly; phone numbers do not. A duplicate customer splits one person's history in two and every judgement downstream goes wrong.",
+      "sort": 0
+     },
+     {
+      "q": "The duplicate banner appears. What does it do?",
+      "opts": [
+       "Blocks creation until a manager approves",
+       "Informs you and leaves the decision with you",
+       "Automatically merges the two orders",
+       "Cancels the earlier order"
+      ],
+      "ans": 1,
+      "why": "A repeat purchase three weeks later is a good outcome. Software that refused it would be wrong — so the judgement is yours, and it is a real one.",
+      "sort": 1
+     },
+     {
+      "q": "Why does Lead Channel deserve care when it is only one dropdown?",
+      "opts": [
+       "It routes the order to the right closer",
+       "It determines the delivery priority",
+       "It feeds marketing attribution, and so where budget is spent",
+       "It is required before the order can be saved"
+      ],
+      "ans": 2,
+      "why": "A channel guessed rather than asked becomes budget moved toward a source that was not performing. One careless field, one wrong spending decision.",
+      "sort": 2
+     }
+    ]
    },
    {
     "title": "New Lead — when the router cannot place an order",
     "est": 7,
-    "html": "<p><b>New Lead is not a queue of unreviewed work. It is a capacity signal.</b>\nOrders arrive continuously, and ZhiftCRM tries to assign each one to a closer automatically.\nWhen it succeeds the order lands on somebody's list as <b>Assigned</b>. When it cannot, the\norder stops at <b>New Lead</b> and waits.</p>\n\n<p>Understanding why it could not is the whole of this chapter, because a growing New Lead\ncount is not a closer problem to work through — it is a staffing problem to escalate.</p>\n\n<p><b>Two constraints decide where an order can go.</b></p>\n\n<ol>\n<li><b>Every closer has a daily cap.</b> A maximum number of orders they may be given in a\nday. The cap exists so that work is distributed rather than dumped: a closer holding two\nhundred orders works none of them properly, and the customer at the bottom of that list is\neffectively unserved while appearing to be served.</li>\n<li><b>Every closer is scoped to a category and a country.</b> A closer is not a generic\npair of hands. They are assigned to particular product categories and a particular country,\nbecause knowing the products and the delivery geography is what lets them answer a customer's\nquestion without putting them on hold.</li>\n</ol>\n\n<p><b>So an order becomes a New Lead in one of two situations.</b> Either every closer in\nthat order's country has reached their daily cap, or the closers covering that order's\ncategory have. In both cases the router has nowhere legitimate to put the order, and it\ndeclines to break its own rules rather than overload somebody quietly.</p>\n\n<blockquote>IMPLEMENTATION TIP: This is why New Lead volume is a management number rather than\na closer number. Orders sitting in New Lead are demand the business captured and cannot\ncurrently serve. If the count grows through the day and empties overnight, capacity is merely\ntight. If it grows and stays, the business is turning away money it has already paid to\nattract — and the fix is more closers, higher caps, or wider category coverage, not a closer\nworking faster.</blockquote>\n\n<p><b>What this means for you as a closer.</b> You will rarely act on a New Lead directly;\nthey are distributed by managers and team leads, or picked up automatically as caps reset and\ncapacity frees. What matters is that you understand what you are looking at when you see the\nnumber, and that you never assume a New Lead was skipped because something was wrong with it.\nNothing is wrong with it. Nobody was free.</p>\n\n<p><b>The pattern worth watching.</b> New Leads concentrated in one country or one category\npoint at a specific gap rather than a general shortage — a category with too few trained\nclosers, or a country whose volume has outgrown its team. That is a far more useful thing to\nreport upward than \"we have a lot of new leads\", and noticing it is the kind of observation\nthat gets a closer promoted.</p>\n\n<blockquote>WATCH-OUT: Because the cap is daily, a New Lead backlog does not clear itself\nretroactively. Yesterday's unassigned orders are competing with today's fresh demand for the\nsame finite capacity, and the oldest orders are the ones whose customers have been waiting\nlongest and are most likely to have bought elsewhere. When capacity frees, oldest first is\nalmost always the right order to work.</blockquote>"
+    "html": "<p><b>New Lead is not a queue of unreviewed work. It is a capacity signal.</b>\nOrders arrive continuously, and ZhiftCRM tries to assign each one to a closer automatically.\nWhen it succeeds the order lands on somebody's list as <b>Assigned</b>. When it cannot, the\norder stops at <b>New Lead</b> and waits.</p>\n\n<p>Understanding why it could not is the whole of this chapter, because a growing New Lead\ncount is not a closer problem to work through — it is a staffing problem to escalate.</p>\n\n<p><b>Two constraints decide where an order can go.</b></p>\n\n<ol>\n<li><b>Every closer has a daily cap.</b> A maximum number of orders they may be given in a\nday. The cap exists so that work is distributed rather than dumped: a closer holding two\nhundred orders works none of them properly, and the customer at the bottom of that list is\neffectively unserved while appearing to be served.</li>\n<li><b>Every closer is scoped to a category and a country.</b> A closer is not a generic\npair of hands. They are assigned to particular product categories and a particular country,\nbecause knowing the products and the delivery geography is what lets them answer a customer's\nquestion without putting them on hold.</li>\n</ol>\n\n<p><b>So an order becomes a New Lead in one of two situations.</b> Either every closer in\nthat order's country has reached their daily cap, or the closers covering that order's\ncategory have. In both cases the router has nowhere legitimate to put the order, and it\ndeclines to break its own rules rather than overload somebody quietly.</p>\n\n<blockquote>IMPLEMENTATION TIP: This is why New Lead volume is a management number rather than\na closer number. Orders sitting in New Lead are demand the business captured and cannot\ncurrently serve. If the count grows through the day and empties overnight, capacity is merely\ntight. If it grows and stays, the business is turning away money it has already paid to\nattract — and the fix is more closers, higher caps, or wider category coverage, not a closer\nworking faster.</blockquote>\n\n<p><b>What this means for you as a closer.</b> You will rarely act on a New Lead directly;\nthey are distributed by managers and team leads, or picked up automatically as caps reset and\ncapacity frees. What matters is that you understand what you are looking at when you see the\nnumber, and that you never assume a New Lead was skipped because something was wrong with it.\nNothing is wrong with it. Nobody was free.</p>\n\n<p><b>The pattern worth watching.</b> New Leads concentrated in one country or one category\npoint at a specific gap rather than a general shortage — a category with too few trained\nclosers, or a country whose volume has outgrown its team. That is a far more useful thing to\nreport upward than \"we have a lot of new leads\", and noticing it is the kind of observation\nthat gets a closer promoted.</p>\n\n<blockquote>WATCH-OUT: Because the cap is daily, a New Lead backlog does not clear itself\nretroactively. Yesterday's unassigned orders are competing with today's fresh demand for the\nsame finite capacity, and the oldest orders are the ones whose customers have been waiting\nlongest and are most likely to have bought elsewhere. When capacity frees, oldest first is\nalmost always the right order to work.</blockquote>",
+    "checks": [
+     {
+      "q": "An order sits at New Lead. What has happened?",
+      "opts": [
+       "It failed validation",
+       "A manager is holding it for review",
+       "No closer could be assigned — caps or coverage are exhausted",
+       "The customer has not confirmed"
+      ],
+      "ans": 2,
+      "why": "New Lead is capacity overflow, not unreviewed demand. Nothing is wrong with the order; nobody was free to take it.",
+      "sort": 0
+     },
+     {
+      "q": "Two constraints decide where the router can place an order. They are:",
+      "opts": [
+       "Order value and customer history",
+       "The closer's daily cap, and their category and country coverage",
+       "Shift schedule and branch",
+       "Product availability and delivery distance"
+      ],
+      "ans": 1,
+      "why": "A closer is not a generic pair of hands. Knowing the products and the delivery geography is what lets them answer without putting the customer on hold.",
+      "sort": 1
+     },
+     {
+      "q": "New Leads grow through the day and are still there next morning. This means:",
+      "opts": [
+       "Capacity is tight but adequate",
+       "The router has failed and needs restarting",
+       "The business is turning away demand it has already paid to attract",
+       "Closers are working too slowly"
+      ],
+      "ans": 2,
+      "why": "A queue that empties overnight is tight capacity. A queue that persists is unserved demand — and the remedy is closers, caps or coverage, never speed.",
+      "sort": 2
+     }
+    ]
    },
    {
     "title": "The delivery spine — Assigned through to Delivered",
     "est": 8,
-    "html": "<p>Every order carries a status, and statuses drive everything: which filters an\norder appears in, who is responsible for it right now, which orders count as revenue, and what\nautomation fires. Learn the spine and you can answer the only question that matters about any\norder on your screen — <i>whose move is it?</i></p>\n\n<p><b>Assigned.</b> The order has an owner. A specific closer has been given it, their name\nappears in the Agent column, and — importantly — <b>they have not yet done anything with it</b>.\nAssigned is the status of an order waiting for its closer to act. If your list is thick with\nAssigned orders at the end of a shift, that is not a backlog of difficult work; it is a\nbacklog of untouched work.</p>\n\n<p><b>Agent Notified.</b> The closer has passed the order to an agent. This is the handover\npoint where the order stops being a conversation and starts being a delivery. Until the agent\nresponds, the order sits here.</p>\n\n<p><b>Order Accepted.</b> The agent has accepted it. Note carefully: <b>only the agent can set\nthis, and only from the agent mobile app.</b> A closer cannot accept an order on an agent's\nbehalf, however obvious the acceptance seems. If an order has been sitting at Agent Notified\nfor hours, the closer's remedy is to contact the agent — not to move the status.</p>\n\n<p><b>Dispatch Assigned.</b> The agent has handed the order to a delivery person. Again, agent\napp only. The order now has a named human physically responsible for it.</p>\n\n<p><b>Delivery In Progress.</b> The delivery person is out and on the way. Agent app only. The\ncourier owns the moment; the closer monitors and stays reachable in case the customer calls.</p>\n\n<p><b>Delivered.</b> The positive terminal status. The goods are with the customer and, on a\ncash-on-delivery order, the money has been collected. Only the agent can set it, from the app.\nThis is the status that turns an order into revenue and updates the closer's conversion\nnumbers.</p>\n\n<blockquote>IMPLEMENTATION TIP: Read the spine as an alternating sequence of custody. Assigned\nand Agent Notified are the closer's moves. Order Accepted, Dispatch Assigned, Delivery In\nProgress and Delivered are the agent's. Four of the six stages are somebody else's to make,\nwhich is why chasing an order means chasing a person, not clicking a button.</blockquote>\n\n<p><b>Why so much of the spine belongs to the agent.</b> Each agent-only status records a\nphysical fact — a person accepted responsibility, a rider took the parcel, the parcel moved,\nthe customer received it and paid. Letting an office-based closer assert any of those would\nturn a record of what happened into a record of what somebody assumed happened, and the first\ntime a parcel went missing there would be no way to tell where custody broke.</p>\n\n<blockquote>WATCH-OUT: A closer who reports \"I marked it delivered\" has either misremembered or\nis describing a different system. If the numbers show orders being resolved without agent\ninvolvement, that is worth investigating rather than accepting.</blockquote>\n\n<p><b>The old lifecycle.</b> If you have worked on an older ZhiftCRM deployment you may\nremember <i>Qualified</i>, <i>Confirmed</i> and <i>Processing</i>. Those statuses are retired.\nAnything written against them — old notes, old training, old reports — describes a pipeline\nthat no longer runs.</p>"
+    "html": "<p>Every order carries a status, and statuses drive everything: which filters an\norder appears in, who is responsible for it right now, which orders count as revenue, and what\nautomation fires. Learn the spine and you can answer the only question that matters about any\norder on your screen — <i>whose move is it?</i></p>\n\n<p><b>Assigned.</b> The order has an owner. A specific closer has been given it, their name\nappears in the Agent column, and — importantly — <b>they have not yet done anything with it</b>.\nAssigned is the status of an order waiting for its closer to act. If your list is thick with\nAssigned orders at the end of a shift, that is not a backlog of difficult work; it is a\nbacklog of untouched work.</p>\n\n<p><b>Agent Notified.</b> The closer has passed the order to an agent. This is the handover\npoint where the order stops being a conversation and starts being a delivery. Until the agent\nresponds, the order sits here.</p>\n\n<p><b>Order Accepted.</b> The agent has accepted it. Note carefully: <b>only the agent can set\nthis, and only from the agent mobile app.</b> A closer cannot accept an order on an agent's\nbehalf, however obvious the acceptance seems. If an order has been sitting at Agent Notified\nfor hours, the closer's remedy is to contact the agent — not to move the status.</p>\n\n<p><b>Dispatch Assigned.</b> The agent has handed the order to a delivery person. Again, agent\napp only. The order now has a named human physically responsible for it.</p>\n\n<p><b>Delivery In Progress.</b> The delivery person is out and on the way. Agent app only. The\ncourier owns the moment; the closer monitors and stays reachable in case the customer calls.</p>\n\n<p><b>Delivered.</b> The positive terminal status. The goods are with the customer and, on a\ncash-on-delivery order, the money has been collected. Only the agent can set it, from the app.\nThis is the status that turns an order into revenue and updates the closer's conversion\nnumbers.</p>\n\n<blockquote>IMPLEMENTATION TIP: Read the spine as an alternating sequence of custody. Assigned\nand Agent Notified are the closer's moves. Order Accepted, Dispatch Assigned, Delivery In\nProgress and Delivered are the agent's. Four of the six stages are somebody else's to make,\nwhich is why chasing an order means chasing a person, not clicking a button.</blockquote>\n\n<p><b>Why so much of the spine belongs to the agent.</b> Each agent-only status records a\nphysical fact — a person accepted responsibility, a rider took the parcel, the parcel moved,\nthe customer received it and paid. Letting an office-based closer assert any of those would\nturn a record of what happened into a record of what somebody assumed happened, and the first\ntime a parcel went missing there would be no way to tell where custody broke.</p>\n\n<blockquote>WATCH-OUT: A closer who reports \"I marked it delivered\" has either misremembered or\nis describing a different system. If the numbers show orders being resolved without agent\ninvolvement, that is worth investigating rather than accepting.</blockquote>\n\n<p><b>The old lifecycle.</b> If you have worked on an older ZhiftCRM deployment you may\nremember <i>Qualified</i>, <i>Confirmed</i> and <i>Processing</i>. Those statuses are retired.\nAnything written against them — old notes, old training, old reports — describes a pipeline\nthat no longer runs.</p>",
+    "checks": [
+     {
+      "q": "An order is Assigned. What does that tell you?",
+      "opts": [
+       "The closer has contacted the customer",
+       "It has an owner who has not yet acted on it",
+       "It is with an agent awaiting acceptance",
+       "It is ready for dispatch"
+      ],
+      "ans": 1,
+      "why": "Assigned means waiting for its closer. A list thick with Assigned at day's end is untouched work, not difficult work.",
+      "sort": 0
+     },
+     {
+      "q": "Which of these can a closer set?",
+      "opts": [
+       "Order Accepted",
+       "Delivery In Progress",
+       "Agent Notified",
+       "Delivered"
+      ],
+      "ans": 2,
+      "why": "Agent Notified is the closer's handover. Accepted, In Progress and Delivered are agent-only, from the agent app.",
+      "sort": 1
+     },
+     {
+      "q": "Why do so many spine statuses belong to the agent alone?",
+      "opts": [
+       "Agents are more senior",
+       "Each records a physical fact only the person present can attest to",
+       "Closers are too busy to update them",
+       "The mobile app is faster than the desktop"
+      ],
+      "ans": 1,
+      "why": "Letting an office-based closer assert a delivery would turn a record of what happened into a record of what somebody assumed — and custody would be untraceable.",
+      "sort": 2
+     }
+    ]
    },
    {
     "title": "When the path breaks — the exception statuses",
     "est": 8,
-    "html": "<p>Real order books stall. The exception statuses record <i>how</i>, and choosing\nthe right one is closer craft: each tells a different person to do a different thing next, and\neach lands differently in the numbers.</p>\n\n<p><b>Call Back.</b> The customer answered but asked you to try another time. Note the time\nthey gave and honour it. A kept callback converts; a missed one becomes a cancellation with\nextra steps.</p>\n\n<p><b>Not Picking.</b> The customer is not answering. Set by closer or agent, depending on who\nwas calling. It is not a verdict — it is one failed attempt, recorded.</p>\n\n<p><b>Not Reachable.</b> Contact has failed persistently: dead number, unreachable line,\nrepeated attempts with nothing. Closer-set. The distinction from Not Picking is the difference\nbetween \"did not answer this time\" and \"cannot be reached at all\", and it matters because the\nfirst deserves another attempt and the second usually does not.</p>\n\n<p><b>Not Ready.</b> The order cannot proceed yet — usually stock or preparation. Closer-set.\nThe order is fine; the business is not ready to send it.</p>\n\n<p><b>On Hold.</b> The customer asked you to wait. Closer-only, and the only exception status\nthat records the <i>customer's</i> decision to pause rather than a failure to reach them or a\nproblem on our side. Holds must not live forever: resolve the reason and move the order on.</p>\n\n<p><b>Delivery Rescheduled.</b> The delivery date is being changed at the customer's request.\nEither a closer can set it before the order goes to an agent, or the agent can after it has.\nRecord the new date and make sure both the customer and the delivery side are working to the\nsame one.</p>\n\n<p><b>Rejected.</b> A delivery agent declined an order after being notified of it. Agent app\nonly. This is not the customer rejecting anything — it is the delivery side declining to carry\nit, and it puts the order back in front of the closer to place elsewhere.</p>\n\n<p><b>Cancelled.</b> Deliberately terminated before delivery. Either a closer or an agent may\nset it. Always record why. Cancelled orders earn nothing but still count in volume, so they\npull directly against your conversion rate — which is exactly the incentive intended, because\na high cancellation rate usually means orders were being created without proper confirmation\nat the front.</p>\n\n<p><b>Failed / Returned.</b> One status covering two closely related outcomes: a delivery was\nattempted and did not complete, or the goods went out and came back. Closer-set. Investigate\nrather than close it out — a meaningful share recover through a reschedule or an address\ncorrection, and the ones that do not still tell you something about the address quality or the\nproduct coming from a particular channel.</p>\n\n<p><b>Duplicate.</b> The system can set this automatically when an order's details match\nanother arriving the same day. A Closer Manager may also set it manually. <b>A closer cannot.</b>\nThat restriction is deliberate: marking an order duplicate makes it disappear from the working\nnumbers, which is a decision with enough consequence to sit above the person whose numbers it\naffects.</p>\n\n<blockquote>WATCH-OUT: The tempting misuse of the exception statuses is to reach for whichever\none makes your own list look tidiest. Not Reachable on a customer you called once, Duplicate on\nan order you would rather not work, Cancelled on a hold you did not follow up. Each of those is\na small lie in a database that other people make decisions from — and each is visible, because\nthe pattern of a closer's status use is one of the first things a manager looks at.</blockquote>\n\n<p><b>The judgement to carry.</b> Ask what you want to happen next. If the answer is \"someone\nshould call again\", that is Not Picking or Call Back. If it is \"nothing until the customer says\nso\", that is On Hold. If it is \"nobody should ever touch this again\", that is Cancelled — and\nit needs a reason written down.</p>"
+    "html": "<p>Real order books stall. The exception statuses record <i>how</i>, and choosing\nthe right one is closer craft: each tells a different person to do a different thing next, and\neach lands differently in the numbers.</p>\n\n<p><b>Call Back.</b> The customer answered but asked you to try another time. Note the time\nthey gave and honour it. A kept callback converts; a missed one becomes a cancellation with\nextra steps.</p>\n\n<p><b>Not Picking.</b> The customer is not answering. Set by closer or agent, depending on who\nwas calling. It is not a verdict — it is one failed attempt, recorded.</p>\n\n<p><b>Not Reachable.</b> Contact has failed persistently: dead number, unreachable line,\nrepeated attempts with nothing. Closer-set. The distinction from Not Picking is the difference\nbetween \"did not answer this time\" and \"cannot be reached at all\", and it matters because the\nfirst deserves another attempt and the second usually does not.</p>\n\n<p><b>Not Ready.</b> The order cannot proceed yet — usually stock or preparation. Closer-set.\nThe order is fine; the business is not ready to send it.</p>\n\n<p><b>On Hold.</b> The customer asked you to wait. Closer-only, and the only exception status\nthat records the <i>customer's</i> decision to pause rather than a failure to reach them or a\nproblem on our side. Holds must not live forever: resolve the reason and move the order on.</p>\n\n<p><b>Delivery Rescheduled.</b> The delivery date is being changed at the customer's request.\nEither a closer can set it before the order goes to an agent, or the agent can after it has.\nRecord the new date and make sure both the customer and the delivery side are working to the\nsame one.</p>\n\n<p><b>Rejected.</b> A delivery agent declined an order after being notified of it. Agent app\nonly. This is not the customer rejecting anything — it is the delivery side declining to carry\nit, and it puts the order back in front of the closer to place elsewhere.</p>\n\n<p><b>Cancelled.</b> Deliberately terminated before delivery. Either a closer or an agent may\nset it. Always record why. Cancelled orders earn nothing but still count in volume, so they\npull directly against your conversion rate — which is exactly the incentive intended, because\na high cancellation rate usually means orders were being created without proper confirmation\nat the front.</p>\n\n<p><b>Failed / Returned.</b> One status covering two closely related outcomes: a delivery was\nattempted and did not complete, or the goods went out and came back. Closer-set. Investigate\nrather than close it out — a meaningful share recover through a reschedule or an address\ncorrection, and the ones that do not still tell you something about the address quality or the\nproduct coming from a particular channel.</p>\n\n<p><b>Duplicate.</b> The system can set this automatically when an order's details match\nanother arriving the same day. A Closer Manager may also set it manually. <b>A closer cannot.</b>\nThat restriction is deliberate: marking an order duplicate makes it disappear from the working\nnumbers, which is a decision with enough consequence to sit above the person whose numbers it\naffects.</p>\n\n<blockquote>WATCH-OUT: The tempting misuse of the exception statuses is to reach for whichever\none makes your own list look tidiest. Not Reachable on a customer you called once, Duplicate on\nan order you would rather not work, Cancelled on a hold you did not follow up. Each of those is\na small lie in a database that other people make decisions from — and each is visible, because\nthe pattern of a closer's status use is one of the first things a manager looks at.</blockquote>\n\n<p><b>The judgement to carry.</b> Ask what you want to happen next. If the answer is \"someone\nshould call again\", that is Not Picking or Call Back. If it is \"nothing until the customer says\nso\", that is On Hold. If it is \"nobody should ever touch this again\", that is Cancelled — and\nit needs a reason written down.</p>",
+    "checks": [
+     {
+      "q": "The customer did not answer. One attempt. The correct status is:",
+      "opts": [
+       "Not Reachable",
+       "Not Picking",
+       "Cancelled",
+       "On Hold"
+      ],
+      "ans": 1,
+      "why": "Not Picking is one failed attempt. Not Reachable means contact has failed persistently — the first deserves another try, the second usually does not.",
+      "sort": 0
+     },
+     {
+      "q": "The customer asked you to wait until next month. The correct status is:",
+      "opts": [
+       "On Hold",
+       "Not Ready",
+       "Delivery Rescheduled",
+       "Call Back"
+      ],
+      "ans": 0,
+      "why": "On Hold records the customer's decision to pause. Not Ready is our side not being ready — a different fact about a different party.",
+      "sort": 1
+     },
+     {
+      "q": "A delivery agent declines an order after being notified. This is recorded as:",
+      "opts": [
+       "Cancelled",
+       "Failed / Returned",
+       "Rejected",
+       "Not Ready"
+      ],
+      "ans": 2,
+      "why": "Rejected is the delivery side declining to carry it — not the customer refusing. The order returns to the closer to place elsewhere.",
+      "sort": 2
+     }
+    ]
    },
    {
     "title": "Who may move an order — and why it is not you",
     "est": 7,
-    "html": "<p>The most common question a new closer asks is why an order will not move. The\nanswer is almost never that something is broken. It is that the next move belongs to somebody\nelse, and the system is holding the line.</p>\n\n<p><b>The agent, from the mobile app, and nobody else:</b> Order Accepted, Dispatch Assigned,\nDelivery In Progress, Delivered, Rejected.</p>\n\n<p><b>The closer, and not the agent:</b> Not Reachable, Not Ready, On Hold, Failed / Returned.</p>\n\n<p><b>Either, depending on who is holding the order:</b> Call Back, Not Picking, Delivery\nRescheduled, Cancelled.</p>\n\n<p><b>The system, or a Closer Manager — never a closer:</b> Duplicate.</p>\n\n<p><b>Read the pattern rather than memorising the list.</b> Every agent-only status records a\nphysical event: a parcel was accepted, handed over, carried, delivered, or refused. Only the\nperson who was there can attest to it. Every closer-only status records the state of a\n<i>conversation</i>: the customer cannot be reached, has asked to wait, or the order came back.\nOnly the person on the phone knows that. The shared statuses are the ones where either party\nmight be the one holding the order at the time.</p>\n\n<p>Once you see that, the list stops being arbitrary. The rule is simply: <b>the person who\nwitnessed it is the person who records it.</b></p>\n\n<blockquote>IMPLEMENTATION TIP: This is what turns \"the order is stuck\" into an action. An order\nsitting at Agent Notified is waiting on an agent to accept — so call the agent. An order at\nDelivery In Progress that has not moved all afternoon is with a delivery person — so ask the\nagent to check. Neither is fixed by anything on your screen, and both are fixed by a\nthirty-second call.</blockquote>\n\n<p><b>Duplicate deserves its own word.</b> A closer cannot mark an order duplicate, and the\nreason is worth understanding rather than resenting. A duplicate order leaves the working\nnumbers — it stops counting as something to convert. If closers could apply it, the status\nwould become a way to quietly remove awkward orders from your own conversion rate. Putting it\nwith the Closer Manager keeps the decision with someone whose numbers it does not flatter. If\nyou believe an order is a genuine duplicate, raise it; do not work around it.</p>\n\n<blockquote>WATCH-OUT: If you find yourself wanting a status you do not have, that is usually a\nsignal to talk to a person, not to find a workaround. Asking an agent to mark something\ndelivered so it clears your list, or marking a reachable customer Not Reachable so it stops\nappearing, both corrupt the record in ways that surface later — in a delivery investigation, or\nin a manager's review of your status pattern.</blockquote>\n\n<p><b>What good looks like.</b> A closer who knows this matrix does not raise support tickets\nabout orders that will not move. They look at the status, work out whose move it is, and either\nmake it or chase the person who can.</p>"
+    "html": "<p>The most common question a new closer asks is why an order will not move. The\nanswer is almost never that something is broken. It is that the next move belongs to somebody\nelse, and the system is holding the line.</p>\n\n<p><b>The agent, from the mobile app, and nobody else:</b> Order Accepted, Dispatch Assigned,\nDelivery In Progress, Delivered, Rejected.</p>\n\n<p><b>The closer, and not the agent:</b> Not Reachable, Not Ready, On Hold, Failed / Returned.</p>\n\n<p><b>Either, depending on who is holding the order:</b> Call Back, Not Picking, Delivery\nRescheduled, Cancelled.</p>\n\n<p><b>The system, or a Closer Manager — never a closer:</b> Duplicate.</p>\n\n<p><b>Read the pattern rather than memorising the list.</b> Every agent-only status records a\nphysical event: a parcel was accepted, handed over, carried, delivered, or refused. Only the\nperson who was there can attest to it. Every closer-only status records the state of a\n<i>conversation</i>: the customer cannot be reached, has asked to wait, or the order came back.\nOnly the person on the phone knows that. The shared statuses are the ones where either party\nmight be the one holding the order at the time.</p>\n\n<p>Once you see that, the list stops being arbitrary. The rule is simply: <b>the person who\nwitnessed it is the person who records it.</b></p>\n\n<blockquote>IMPLEMENTATION TIP: This is what turns \"the order is stuck\" into an action. An order\nsitting at Agent Notified is waiting on an agent to accept — so call the agent. An order at\nDelivery In Progress that has not moved all afternoon is with a delivery person — so ask the\nagent to check. Neither is fixed by anything on your screen, and both are fixed by a\nthirty-second call.</blockquote>\n\n<p><b>Duplicate deserves its own word.</b> A closer cannot mark an order duplicate, and the\nreason is worth understanding rather than resenting. A duplicate order leaves the working\nnumbers — it stops counting as something to convert. If closers could apply it, the status\nwould become a way to quietly remove awkward orders from your own conversion rate. Putting it\nwith the Closer Manager keeps the decision with someone whose numbers it does not flatter. If\nyou believe an order is a genuine duplicate, raise it; do not work around it.</p>\n\n<blockquote>WATCH-OUT: If you find yourself wanting a status you do not have, that is usually a\nsignal to talk to a person, not to find a workaround. Asking an agent to mark something\ndelivered so it clears your list, or marking a reachable customer Not Reachable so it stops\nappearing, both corrupt the record in ways that surface later — in a delivery investigation, or\nin a manager's review of your status pattern.</blockquote>\n\n<p><b>What good looks like.</b> A closer who knows this matrix does not raise support tickets\nabout orders that will not move. They look at the status, work out whose move it is, and either\nmake it or chase the person who can.</p>",
+    "checks": [
+     {
+      "q": "An order has sat at Agent Notified all morning. You should:",
+      "opts": [
+       "Move it to Order Accepted so it progresses",
+       "Contact the agent — only they can accept it",
+       "Cancel and recreate it",
+       "Mark it Not Ready"
+      ],
+      "ans": 1,
+      "why": "A stalled order is chased by calling the person whose move it is. Nothing on your screen will fix it; a thirty-second call will.",
+      "sort": 0
+     },
+     {
+      "q": "The pattern behind who may set what is:",
+      "opts": [
+       "Seniority — managers set more statuses",
+       "Whoever witnessed the event records it",
+       "Whoever created the order owns all its statuses",
+       "Whichever device is being used"
+      ],
+      "ans": 1,
+      "why": "Agent-only statuses record physical events; closer-only statuses record the state of a conversation. Once you see that, the list stops being arbitrary.",
+      "sort": 1
+     },
+     {
+      "q": "Why can a closer not mark an order Duplicate?",
+      "opts": [
+       "It requires desk access",
+       "Duplicates are only ever detected automatically",
+       "It removes the order from the numbers that judge the person using it",
+       "It would break the audit trail"
+      ],
+      "ans": 2,
+      "why": "Marking an order duplicate takes it out of your own conversion rate. The decision belongs to someone it does not flatter.",
+      "sort": 2
+     }
+    ]
    },
    {
     "title": "Inside an order — the details drawer",
     "est": 8,
-    "html": "<p>Click any row and the Order Details Drawer slides in from the right. The list stays live behind it, so you can move between orders without losing your place — which matters more than it sounds, because the alternative is re-applying your filters twenty times a day.</p>\n\n<p><b>Read it top to bottom.</b> The header carries the order ID, a colour-coded status badge and the creation date: green is good news, yellow is in motion, red is trouble. Below that, customer information, where the name and phone are both clickable — the name opens the profile, the phone places the call.</p>\n\n<p>Then the order items: each line with unit price, quantity and line total, with the order total beneath. Then the delivery address. Then agent assignment — who owns it now, with reassignment available to managers. Then notes, in chronological order, each attributed and timestamped.</p>\n\n<p><b>At the bottom sits the section that settles arguments.</b> The Status Timeline records every status change the order has ever had, newest first, each with its timestamp and the name of the person who made it. This is the complete audit trail, and learning to read it is the single most useful drawer skill.</p>\n\n<p>Consider what it lets you say. A customer complains that delivery took a week. Without the timeline you have an apology and a guess. With it you have a fact: the order was Assigned on Monday, Agent Notified on Monday afternoon, and sat there until Thursday because no agent had accepted it. That is not a slow delivery — it is three days lost at a specific handover, owned by a specific person. The complaint becomes a fixable problem instead of a mood.</p>\n\n<p>It also protects you. When a manager asks why an order stalled, the timeline shows whether it stalled in your hands or somebody else's, with times. A closer who checks the timeline before responding to any dispute is never guessing about their own work.</p>\n\n<p><b>Action buttons adapt to status and role.</b> Update Status offers only the moves that are valid from where the order currently is — which is why you will sometimes look for a status and not find it. That is the system enforcing the lifecycle, not a fault. Alongside it: Assign or Reassign, Add Note, Edit Items, and Print or Export.</p>\n\n<blockquote>IMPLEMENTATION TIP: Make the timeline your first stop on any dispute — before calling anyone, know where the bottleneck actually was. It turns \"the delivery was slow\" into \"the order sat at Agent Notified for three days, and here is whose queue that was.\" One is a complaint. The other is a management conversation with evidence attached.</blockquote>\n\n<blockquote>WATCH-OUT: Because the timeline names whoever made each change, it is also a record of your own status discipline. A pattern of orders moved to Not Reachable within minutes of being assigned, or Cancelled without a note, reads exactly as it looks. Assume every status you set will one day be read back to you with a timestamp beside it.</blockquote>"
+    "html": "<p>Click any row and the Order Details Drawer slides in from the right. The list stays live behind it, so you can move between orders without losing your place — which matters more than it sounds, because the alternative is re-applying your filters twenty times a day.</p>\n\n<p><b>Read it top to bottom.</b> The header carries the order ID, a colour-coded status badge and the creation date: green is good news, yellow is in motion, red is trouble. Below that, customer information, where the name and phone are both clickable — the name opens the profile, the phone places the call.</p>\n\n<p>Then the order items: each line with unit price, quantity and line total, with the order total beneath. Then the delivery address. Then agent assignment — who owns it now, with reassignment available to managers. Then notes, in chronological order, each attributed and timestamped.</p>\n\n<p><b>At the bottom sits the section that settles arguments.</b> The Status Timeline records every status change the order has ever had, newest first, each with its timestamp and the name of the person who made it. This is the complete audit trail, and learning to read it is the single most useful drawer skill.</p>\n\n<p>Consider what it lets you say. A customer complains that delivery took a week. Without the timeline you have an apology and a guess. With it you have a fact: the order was Assigned on Monday, Agent Notified on Monday afternoon, and sat there until Thursday because no agent had accepted it. That is not a slow delivery — it is three days lost at a specific handover, owned by a specific person. The complaint becomes a fixable problem instead of a mood.</p>\n\n<p>It also protects you. When a manager asks why an order stalled, the timeline shows whether it stalled in your hands or somebody else's, with times. A closer who checks the timeline before responding to any dispute is never guessing about their own work.</p>\n\n<p><b>Action buttons adapt to status and role.</b> Update Status offers only the moves that are valid from where the order currently is — which is why you will sometimes look for a status and not find it. That is the system enforcing the lifecycle, not a fault. Alongside it: Assign or Reassign, Add Note, Edit Items, and Print or Export.</p>\n\n<blockquote>IMPLEMENTATION TIP: Make the timeline your first stop on any dispute — before calling anyone, know where the bottleneck actually was. It turns \"the delivery was slow\" into \"the order sat at Agent Notified for three days, and here is whose queue that was.\" One is a complaint. The other is a management conversation with evidence attached.</blockquote>\n\n<blockquote>WATCH-OUT: Because the timeline names whoever made each change, it is also a record of your own status discipline. A pattern of orders moved to Not Reachable within minutes of being assigned, or Cancelled without a note, reads exactly as it looks. Assume every status you set will one day be read back to you with a timestamp beside it.</blockquote>",
+    "checks": [
+     {
+      "q": "The drawer opens over the list rather than replacing it. Why does that matter?",
+      "opts": [
+       "It loads faster",
+       "The list stays live, so you keep your filters between orders",
+       "It allows two orders to be edited at once",
+       "It prevents accidental status changes"
+      ],
+      "ans": 1,
+      "why": "The alternative is re-applying your filters twenty times a day, which is how people end up scrolling instead.",
+      "sort": 0
+     },
+     {
+      "q": "You cannot find a status you expected in Update Status. This means:",
+      "opts": [
+       "Your role lacks permission",
+       "It is not a valid move from the current status",
+       "Another closer has locked the order",
+       "The status has been retired"
+      ],
+      "ans": 1,
+      "why": "Update Status offers only valid next moves. That is the lifecycle being enforced, not a fault to report.",
+      "sort": 1
+     },
+     {
+      "q": "The Status Timeline records who made each change. For you, that means:",
+      "opts": [
+       "Nothing — it is for managers",
+       "Your own status discipline is permanently legible",
+       "You can edit entries you made in error",
+       "Only failed deliveries are logged"
+      ],
+      "ans": 1,
+      "why": "Assume every status you set will one day be read back with a timestamp and your name beside it. That is exactly what makes the timeline useful.",
+      "sort": 2
+     }
+    ]
    },
    {
     "title": "Customers & quick actions",
     "est": 8,
-    "html": "<p>The Customers directory is the other half of a closer's toolkit. The Orders page is organised around transactions; this is organised around people, with every profile carrying full order history, notes and contact details. When you are about to speak to somebody, this is the page that tells you who you are speaking to.</p>\n\n<p>Open any profile and the Quick Actions bar across the top does your most common work in one click.</p>\n\n<p><b>New Order</b> opens the create dialog with name, phone, email and address pre-filled from the profile. Always create repeat orders this way rather than starting fresh on the Orders page. It is not merely faster — it eliminates the duplicate-customer risk entirely, because you are working from an existing record rather than typing a name that might or might not match one. Every duplicate customer in the database was created by somebody in a hurry who started from the wrong page.</p>\n\n<p><b>WhatsApp</b> opens a conversation with the number pre-filled — WhatsApp Web on desktop, the app on mobile. It needs a valid number with country code; without one the button disables, which is itself a useful signal that the number on file will not work for anything else either.</p>\n\n<p><b>Phone</b> is click-to-call where telephony is integrated, and otherwise copies the number for your dialler.</p>\n\n<p><b>Add Note</b> writes a timestamped, attributed note straight onto the record and the timeline.</p>\n\n<p><b>Build the note habit, and treat it as part of the call rather than admin afterwards.</b> One note after every customer conversation: what was discussed, what was promised, and when to act next. It takes fifteen seconds and it is the difference between a customer relationship the company owns and one that lives only in your head.</p>\n\n<p>The reason that matters is turnover and absence. When you are on leave, the colleague picking up your customer reads your notes or improvises. When a customer says \"I already explained this to someone\", the note is what makes that true rather than embarrassing. And when a dispute arrives three months later about what was promised on price or delivery date, the note written at the time carries weight that a recollection does not.</p>\n\n<p><b>What good looks like.</b> Open the profile before the call, not after. Read the last two notes and the recent order history — thirty seconds — so you begin the conversation knowing whether this is a first-time buyer or somebody on their ninth order. Customers notice being known, and it converts.</p>\n\n<blockquote>IMPLEMENTATION TIP: Write the note as if the next person to read it has never spoken to this customer, because usually they have not. \"Called, no answer\" helps nobody. \"Called 2pm, no answer; second attempt today; asked yesterday for delivery after 5pm because he works\" tells the next closer exactly what to do and when.</blockquote>"
+    "html": "<p>The Customers directory is the other half of a closer's toolkit. The Orders page is organised around transactions; this is organised around people, with every profile carrying full order history, notes and contact details. When you are about to speak to somebody, this is the page that tells you who you are speaking to.</p>\n\n<p>Open any profile and the Quick Actions bar across the top does your most common work in one click.</p>\n\n<p><b>New Order</b> opens the create dialog with name, phone, email and address pre-filled from the profile. Always create repeat orders this way rather than starting fresh on the Orders page. It is not merely faster — it eliminates the duplicate-customer risk entirely, because you are working from an existing record rather than typing a name that might or might not match one. Every duplicate customer in the database was created by somebody in a hurry who started from the wrong page.</p>\n\n<p><b>WhatsApp</b> opens a conversation with the number pre-filled — WhatsApp Web on desktop, the app on mobile. It needs a valid number with country code; without one the button disables, which is itself a useful signal that the number on file will not work for anything else either.</p>\n\n<p><b>Phone</b> is click-to-call where telephony is integrated, and otherwise copies the number for your dialler.</p>\n\n<p><b>Add Note</b> writes a timestamped, attributed note straight onto the record and the timeline.</p>\n\n<p><b>Build the note habit, and treat it as part of the call rather than admin afterwards.</b> One note after every customer conversation: what was discussed, what was promised, and when to act next. It takes fifteen seconds and it is the difference between a customer relationship the company owns and one that lives only in your head.</p>\n\n<p>The reason that matters is turnover and absence. When you are on leave, the colleague picking up your customer reads your notes or improvises. When a customer says \"I already explained this to someone\", the note is what makes that true rather than embarrassing. And when a dispute arrives three months later about what was promised on price or delivery date, the note written at the time carries weight that a recollection does not.</p>\n\n<p><b>What good looks like.</b> Open the profile before the call, not after. Read the last two notes and the recent order history — thirty seconds — so you begin the conversation knowing whether this is a first-time buyer or somebody on their ninth order. Customers notice being known, and it converts.</p>\n\n<blockquote>IMPLEMENTATION TIP: Write the note as if the next person to read it has never spoken to this customer, because usually they have not. \"Called, no answer\" helps nobody. \"Called 2pm, no answer; second attempt today; asked yesterday for delivery after 5pm because he works\" tells the next closer exactly what to do and when.</blockquote>",
+    "checks": [
+     {
+      "q": "The best way to create a repeat order is:",
+      "opts": [
+       "New Order from the Orders page",
+       "New Order from the customer's profile, pre-filled",
+       "Copy the previous order",
+       "Ask a manager to clone it"
+      ],
+      "ans": 1,
+      "why": "Working from the profile eliminates the duplicate-customer risk entirely. Every duplicate in the database was created by somebody starting from the wrong page.",
+      "sort": 0
+     },
+     {
+      "q": "A useful note after a call reads:",
+      "opts": [
+       "Called, no answer",
+       "Customer contacted",
+       "Called 2pm, no answer; second attempt today; asked for after 5pm as he works",
+       "Will try again"
+      ],
+      "ans": 2,
+      "why": "Write as though the next reader has never spoken to this customer, because usually they have not.",
+      "sort": 1
+     },
+     {
+      "q": "The WhatsApp quick action is disabled for a customer. This tells you:",
+      "opts": [
+       "WhatsApp is not integrated on your account",
+       "The customer has opted out of messaging",
+       "There is no valid number with country code on file",
+       "The profile is archived"
+      ],
+      "ans": 2,
+      "why": "A disabled button is also a warning that the number on file will not work for the confirmation call or the doorstep call either.",
+      "sort": 2
+     }
+    ]
    },
    {
     "title": "Abandoned carts — the almost-customers",
     "est": 8,
-    "html": "<p>An abandoned cart is created when a visitor opens one of your lead forms, starts filling it in, and leaves without submitting. The system keeps whatever they did enter — and that partial data is recoverable revenue sitting in a list.</p>\n\n<p><b>The session lifecycle.</b> A session begins when the form loads. The moment the visitor interacts with it, engagement is detected. As they type, each completed field is captured. If they leave without submitting, the session is classified abandoned and the partial record is saved. If they later come back and complete the form, the abandonment is excluded — so you never chase somebody who has already bought.</p>\n\n<p><b>Why people abandon.</b> The recurring culprits are distraction, sticker shock at the total, second thoughts, form friction, and technical failure. Notice what none of those is: a decision not to buy. They all mean \"not yet\" rather than \"no\", and that is the entire reason recovery works.</p>\n\n<p><b>Why it is worth your time.</b> The cost of acquiring this customer has already been paid. The advert was created, the money was spent, the click happened, and the interest was proven by the act of starting the form. A recovery call is therefore the cheapest sales conversation available to you — you are not finding a customer, you are finishing one. It is consistently among the highest-return activities a sales team performs, and it is usually the one nobody has time for.</p>\n\n<p><b>Find them under Campaigns, then Abandoned Carts.</b> Each row is one abandoned session, carrying whatever contact details were captured — a dash means the visitor never reached that field — the lead form they came through, the products selected, the cart value, when it was abandoned, the session duration, and a Recovery Status of Not Contacted, Contacted, Recovered or Lost.</p>\n\n<p><b>Prioritise by cart value and phone availability.</b> A captured phone number is the difference between a recovery call and a lost ghost, so a high-value cart with no phone is worth less of your time than a modest one you can actually ring. Session duration is the quiet third signal: somebody who spent four minutes on the form was seriously considering it, and a long session with a captured number is the strongest row on the page.</p>\n\n<p><b>How to open the call matters.</b> You are contacting somebody who did not choose to be contacted, about an order they did not place. Lead with the fact rather than a pitch — you noticed they had started an order and wanted to check whether anything went wrong. Half the time something did: the form broke, the total surprised them, the delivery estimate did not work. Each of those is answerable, and answering it is the recovery.</p>\n\n<blockquote>WATCH-OUT: Privacy is part of the craft. The system captures only what the visitor actively typed — no fingerprinting, no cross-site tracking, no payment data. When you follow up, be straightforward about how you came to have their details and make opting out easy. A recovery call that feels like surveillance costs you the customer you were trying to recover, and reputational damage does not stay with one order.</blockquote>"
+    "html": "<p>An abandoned cart is created when a visitor opens one of your lead forms, starts filling it in, and leaves without submitting. The system keeps whatever they did enter — and that partial data is recoverable revenue sitting in a list.</p>\n\n<p><b>The session lifecycle.</b> A session begins when the form loads. The moment the visitor interacts with it, engagement is detected. As they type, each completed field is captured. If they leave without submitting, the session is classified abandoned and the partial record is saved. If they later come back and complete the form, the abandonment is excluded — so you never chase somebody who has already bought.</p>\n\n<p><b>Why people abandon.</b> The recurring culprits are distraction, sticker shock at the total, second thoughts, form friction, and technical failure. Notice what none of those is: a decision not to buy. They all mean \"not yet\" rather than \"no\", and that is the entire reason recovery works.</p>\n\n<p><b>Why it is worth your time.</b> The cost of acquiring this customer has already been paid. The advert was created, the money was spent, the click happened, and the interest was proven by the act of starting the form. A recovery call is therefore the cheapest sales conversation available to you — you are not finding a customer, you are finishing one. It is consistently among the highest-return activities a sales team performs, and it is usually the one nobody has time for.</p>\n\n<p><b>Find them under Campaigns, then Abandoned Carts.</b> Each row is one abandoned session, carrying whatever contact details were captured — a dash means the visitor never reached that field — the lead form they came through, the products selected, the cart value, when it was abandoned, the session duration, and a Recovery Status of Not Contacted, Contacted, Recovered or Lost.</p>\n\n<p><b>Prioritise by cart value and phone availability.</b> A captured phone number is the difference between a recovery call and a lost ghost, so a high-value cart with no phone is worth less of your time than a modest one you can actually ring. Session duration is the quiet third signal: somebody who spent four minutes on the form was seriously considering it, and a long session with a captured number is the strongest row on the page.</p>\n\n<p><b>How to open the call matters.</b> You are contacting somebody who did not choose to be contacted, about an order they did not place. Lead with the fact rather than a pitch — you noticed they had started an order and wanted to check whether anything went wrong. Half the time something did: the form broke, the total surprised them, the delivery estimate did not work. Each of those is answerable, and answering it is the recovery.</p>\n\n<blockquote>WATCH-OUT: Privacy is part of the craft. The system captures only what the visitor actively typed — no fingerprinting, no cross-site tracking, no payment data. When you follow up, be straightforward about how you came to have their details and make opting out easy. A recovery call that feels like surveillance costs you the customer you were trying to recover, and reputational damage does not stay with one order.</blockquote>",
+    "checks": [
+     {
+      "q": "A visitor abandons a form, then returns later and completes it. The abandonment is:",
+      "opts": [
+       "Kept, so the recovery team can still call",
+       "Excluded — you never chase someone who already bought",
+       "Merged with the resulting order",
+       "Marked Recovered automatically"
+      ],
+      "ans": 1,
+      "why": "Chasing a customer who has already bought is the fastest way to make recovery calls feel like surveillance.",
+      "sort": 0
+     },
+     {
+      "q": "Why is cart recovery unusually high-return work?",
+      "opts": [
+       "Abandoned customers accept discounts more readily",
+       "The acquisition cost is already spent and interest is proven",
+       "Recovered orders carry higher margins",
+       "They are exempt from the daily cap"
+      ],
+      "ans": 1,
+      "why": "You are not finding a customer; you are finishing one. The advert was already paid for and the click already happened.",
+      "sort": 1
+     },
+     {
+      "q": "Two carts: high value, no phone; modest value, phone captured. Work first:",
+      "opts": [
+       "The high-value one — value outranks all",
+       "The one with the phone",
+       "Neither until they are classified",
+       "Whichever is most recent"
+      ],
+      "ans": 1,
+      "why": "A captured number is the difference between a recovery call and a lost ghost. Phone availability first, then value.",
+      "sort": 2
+     }
+    ]
    }
   ],
   "questions": [
@@ -514,47 +856,389 @@
    {
     "title": "How leads reach you — shifts and assignment",
     "est": 8,
-    "html": "<p>New online leads are assigned to closers automatically, and understanding the rules that govern that assignment is the difference between a closer who wonders why their list is empty and one who knows.</p>\n\n<p><b>When Closer Shift Management is enabled, only closers whose shift is active right now receive automatic leads.</b> There is no clock-in and nothing to press. Availability follows the schedule: if the current time falls inside one of your assigned shifts, you are on shift.</p>\n\n<p><b>What happens when nobody is on shift.</b> The lead waits as a New Lead. It is not discarded, not lost, and not given to somebody unsuitable. The system re-checks roughly every ten minutes and assigns it the moment a qualifying closer comes on shift. This is worth internalising, because it is the reassurance behind the whole design: the queue is a waiting room, not a bin.</p>\n\n<p><b>Always-available closers</b> receive leads at any hour regardless of the schedule. The flag exists for supervisors and overflow cover — the people who are meant to absorb what the roster cannot.</p>\n\n<p><b>Overnight shifts work exactly as you would hope.</b> An end time earlier than the start — 10:00 pm to 6:00 am — is understood as running past midnight into the next morning. You do not need to split it into two shifts, and doing so would create a gap at the boundary.</p>\n\n<p><b>Daily limits sit on top of shifts, not inside them.</b> To receive an automatic lead you must be both on shift <i>and</i> under your daily assignment limit. Two independent gates, and failing either one is enough to stop the flow. The limit resets at midnight server time regardless of where you are in your shift — which means an overnight closer receives a fresh allowance partway through the night rather than at the end of it.</p>\n\n<p><b>Two important exemptions.</b> Online store orders route as they always have and are never held back by shifts — a customer who has already paid is not asked to wait for a roster. And manual assignment always works: a manager can hand any closer any lead at any time, and shifts never block it. The picker shows who is on shift as a hint, nothing more.</p>\n\n<blockquote>IMPLEMENTATION TIP: If leads stop arriving mid-shift, check your daily count before assuming a fault. Reaching your limit looks exactly like the system having gone quiet, and it is by far the more common explanation.</blockquote>\n\n<blockquote>CONSULTANT NOTE: The whole feature is off by default. Until a manager enables Shift Management, assignment behaves exactly as it always did — and turning it off again fully restores that behaviour.</blockquote>"
+    "html": "<p>New online leads are assigned to closers automatically, and understanding the rules that govern that assignment is the difference between a closer who wonders why their list is empty and one who knows.</p>\n\n<p><b>When Closer Shift Management is enabled, only closers whose shift is active right now receive automatic leads.</b> There is no clock-in and nothing to press. Availability follows the schedule: if the current time falls inside one of your assigned shifts, you are on shift.</p>\n\n<p><b>What happens when nobody is on shift.</b> The lead waits as a New Lead. It is not discarded, not lost, and not given to somebody unsuitable. The system re-checks roughly every ten minutes and assigns it the moment a qualifying closer comes on shift. This is worth internalising, because it is the reassurance behind the whole design: the queue is a waiting room, not a bin.</p>\n\n<p><b>Always-available closers</b> receive leads at any hour regardless of the schedule. The flag exists for supervisors and overflow cover — the people who are meant to absorb what the roster cannot.</p>\n\n<p><b>Overnight shifts work exactly as you would hope.</b> An end time earlier than the start — 10:00 pm to 6:00 am — is understood as running past midnight into the next morning. You do not need to split it into two shifts, and doing so would create a gap at the boundary.</p>\n\n<p><b>Daily limits sit on top of shifts, not inside them.</b> To receive an automatic lead you must be both on shift <i>and</i> under your daily assignment limit. Two independent gates, and failing either one is enough to stop the flow. The limit resets at midnight server time regardless of where you are in your shift — which means an overnight closer receives a fresh allowance partway through the night rather than at the end of it.</p>\n\n<p><b>Two important exemptions.</b> Online store orders route as they always have and are never held back by shifts — a customer who has already paid is not asked to wait for a roster. And manual assignment always works: a manager can hand any closer any lead at any time, and shifts never block it. The picker shows who is on shift as a hint, nothing more.</p>\n\n<blockquote>IMPLEMENTATION TIP: If leads stop arriving mid-shift, check your daily count before assuming a fault. Reaching your limit looks exactly like the system having gone quiet, and it is by far the more common explanation.</blockquote>\n\n<blockquote>CONSULTANT NOTE: The whole feature is off by default. Until a manager enables Shift Management, assignment behaves exactly as it always did — and turning it off again fully restores that behaviour.</blockquote>",
+    "checks": [
+     {
+      "q": "A lead arrives when nobody is on shift. What happens to it?",
+      "opts": [
+       "It is discarded",
+       "It routes to an always-available closer only",
+       "It waits as a New Lead and is assigned within about ten minutes of coverage returning",
+       "It is held until the next working day"
+      ],
+      "ans": 2,
+      "why": "The queue is a waiting room, not a bin. No lead is ever lost — which is the reassurance the whole shift design rests on.",
+      "sort": 0
+     },
+     {
+      "q": "A manager needs to give you an order while you are off shift. Can they?",
+      "opts": [
+       "No — shifts block all assignment",
+       "Yes — manual assignment is never blocked by shifts or limits",
+       "Only if you are flagged always-available",
+       "Only for store orders"
+      ],
+      "ans": 1,
+      "why": "The picker highlights who is on shift as a courtesy, nothing more. Automatic rules stop themselves; they do not stop a manager.",
+      "sort": 1
+     },
+     {
+      "q": "An overnight shift runs 10:00 pm to 6:00 am. You should enter it as:",
+      "opts": [
+       "Two shifts split at midnight",
+       "One shift — an end time before the start runs past midnight",
+       "A shift plus the always-available flag",
+       "One shift per calendar day"
+      ],
+      "ans": 1,
+      "why": "Splitting it creates a gap at the boundary, which is exactly when nobody is watching.",
+      "sort": 2
+     }
+    ]
    },
    {
     "title": "Your daily limit — the cap, and what it protects",
     "est": 7,
-    "html": "<p>Every closer has a maximum number of orders they may be assigned in a day. New closers often read the cap as a restriction on how much they are allowed to earn. It is the opposite: it is the thing that makes what you already hold workable.</p>\n\n<p><b>What the cap actually protects.</b> A closer holding two hundred orders does not work two hundred orders. They work perhaps forty properly and let the rest age, and the customers at the bottom of that list are unserved while appearing, in every report, to be served. The cap prevents a queue forming inside one person's screen where nobody can see it.</p>\n\n<p><b>It is also what makes the New Lead queue meaningful.</b> When every closer for a country and category has reached their limit, incoming orders stop at New Lead rather than being pushed onto somebody already full. That queue is then a visible, measurable signal that demand has outrun capacity — a number a manager can act on. Without caps there would be no signal at all, only quietly deteriorating service that shows up months later as cancellations.</p>\n\n<p><b>The reset is daily, at midnight server time</b>, and it is independent of your shift pattern. If you work overnight, your allowance refreshes partway through the night rather than when your shift ends.</p>\n\n<p><b>The two gates, once more, because closers confuse them constantly.</b> Shift governs <i>when</i> you may receive leads. The cap governs <i>how many</i>. You need both open. On shift but at your limit: nothing arrives. Under your limit but off shift: nothing arrives. Neither situation is a fault, and neither is worth a support ticket.</p>\n\n<p><b>What the cap does not do.</b> It does not stop a manager assigning you work manually — manual assignment bypasses it. It does not remove orders you already hold. And it does not limit how many orders you can <i>deliver</i>, only how many new ones can be pushed to you automatically in a day. A closer who works their existing list down does not thereby earn more automatic leads that day; the counter is about what arrived, not what remains.</p>\n\n<blockquote>IMPLEMENTATION TIP: If you are consistently hitting your cap early and clearing your list well before the day ends, that is a conversation to have with your team lead rather than a frustration to sit on. A cap set below what you can genuinely handle is capacity the business is leaving unused — and New Leads are probably queuing while you wait.</blockquote>\n\n<blockquote>WATCH-OUT: The reverse is the more common problem and the harder one to admit. If you reach your cap daily and end each day with untouched orders from the morning, asking for a higher cap will make things worse, not better. The constraint is not the allowance; it is the hours.</blockquote>"
+    "html": "<p>Every closer has a maximum number of orders they may be assigned in a day. New closers often read the cap as a restriction on how much they are allowed to earn. It is the opposite: it is the thing that makes what you already hold workable.</p>\n\n<p><b>What the cap actually protects.</b> A closer holding two hundred orders does not work two hundred orders. They work perhaps forty properly and let the rest age, and the customers at the bottom of that list are unserved while appearing, in every report, to be served. The cap prevents a queue forming inside one person's screen where nobody can see it.</p>\n\n<p><b>It is also what makes the New Lead queue meaningful.</b> When every closer for a country and category has reached their limit, incoming orders stop at New Lead rather than being pushed onto somebody already full. That queue is then a visible, measurable signal that demand has outrun capacity — a number a manager can act on. Without caps there would be no signal at all, only quietly deteriorating service that shows up months later as cancellations.</p>\n\n<p><b>The reset is daily, at midnight server time</b>, and it is independent of your shift pattern. If you work overnight, your allowance refreshes partway through the night rather than when your shift ends.</p>\n\n<p><b>The two gates, once more, because closers confuse them constantly.</b> Shift governs <i>when</i> you may receive leads. The cap governs <i>how many</i>. You need both open. On shift but at your limit: nothing arrives. Under your limit but off shift: nothing arrives. Neither situation is a fault, and neither is worth a support ticket.</p>\n\n<p><b>What the cap does not do.</b> It does not stop a manager assigning you work manually — manual assignment bypasses it. It does not remove orders you already hold. And it does not limit how many orders you can <i>deliver</i>, only how many new ones can be pushed to you automatically in a day. A closer who works their existing list down does not thereby earn more automatic leads that day; the counter is about what arrived, not what remains.</p>\n\n<blockquote>IMPLEMENTATION TIP: If you are consistently hitting your cap early and clearing your list well before the day ends, that is a conversation to have with your team lead rather than a frustration to sit on. A cap set below what you can genuinely handle is capacity the business is leaving unused — and New Leads are probably queuing while you wait.</blockquote>\n\n<blockquote>WATCH-OUT: The reverse is the more common problem and the harder one to admit. If you reach your cap daily and end each day with untouched orders from the morning, asking for a higher cap will make things worse, not better. The constraint is not the allowance; it is the hours.</blockquote>",
+    "checks": [
+     {
+      "q": "You are on shift and leads have stopped arriving. Most likely:",
+      "opts": [
+       "Shift Management was disabled",
+       "You have reached your daily limit",
+       "Your closer record was deactivated",
+       "The lead source has gone quiet"
+      ],
+      "ans": 1,
+      "why": "Shift and cap are two independent gates. Hitting the cap looks exactly like the system going quiet, which is why it is worth checking first.",
+      "sort": 0
+     },
+     {
+      "q": "You work 10pm to 6am. Your allowance refreshes:",
+      "opts": [
+       "When your shift ends at 6am",
+       "Partway through the night, at midnight server time",
+       "When your first order is delivered",
+       "At the start of the shift"
+      ],
+      "ans": 1,
+      "why": "The reset is independent of shift shape, so an overnight closer gets fresh capacity mid-shift rather than as they finish.",
+      "sort": 1
+     },
+     {
+      "q": "The cap exists mainly to:",
+      "opts": [
+       "Limit how much a closer can earn",
+       "Spread orders evenly between branches",
+       "Prevent a hidden queue forming inside one closer's list",
+       "Reduce system load"
+      ],
+      "ans": 2,
+      "why": "A closer holding two hundred orders works forty. The rest age unseen while appearing, in every report, to be served.",
+      "sort": 2
+     }
+    ]
    },
    {
     "title": "The follow-up pool — the idea and the fairness rule",
     "est": 8,
-    "html": "<p>Leads that are not picking up, asking for callbacks, or otherwise stalling tend to die quietly. They sit in a non-delivered status with nobody actively chasing them, and because they are not failures yet, nothing flags them. Over months this is one of the largest silent losses in a call-centre operation.</p>\n\n<p><b>The Follow-Up Workflow gives those leads a recovery path.</b> Stalled orders gather in a shared Follow-Up Pool. A dedicated Follow-Up Team picks them out, works them, and either routes them back into delivery or closes them out honestly.</p>\n\n<p><b>The whole design rests on one principle: fair attribution.</b> The original closer keeps credit for the lead until it is actually delivered. Only on successful delivery does the follow-up closer who recovered it earn the credit. Cancellations stay with the original closer, so failure is never laundered onto the recovery team.</p>\n\n<p>That rule is doing more work than it appears. Consider the alternative designs and what each would produce. If credit transferred on entry to the pool, every closer would dump difficult leads there the moment they got hard, and the pool would become a bin for the unwanted. If cancellations transferred with the lead, the recovery team's numbers would be destroyed by other people's poorly confirmed orders, and nobody would want the job. The rule as built makes the pool safe to use and safe to work in, which is why it is stated as a principle rather than buried as a detail.</p>\n\n<p><b>The vocabulary, because these words have precise meanings here.</b> The <b>pool</b> is the shared list under Follow-Up in the left navigation. A <b>Follow-Up Team Member</b> is a Closer whose record carries that flag — only they see the pool. To <b>claim</b> is to take an unclaimed order so that only you work it. To <b>convert</b> is to route a claimed order back into delivery. To <b>release</b> is to return it for someone else.</p>\n\n<p><b>One distinction to hold firmly: \"In Follow-Up\" is an internal flag, not a status.</b> A pooled order keeps whatever status it last had. This is why a lead can be in the pool and Not Picking at the same time, and why the pool never appears in the lifecycle you learned in the previous module. It sits alongside the lifecycle rather than inside it.</p>\n\n<blockquote>CONSULTANT NOTE: The same person can be a normal closer and a follow-up member at once — the two are independent flags on the Closer record. In smaller teams this is the usual arrangement rather than the exception.</blockquote>\n\n<p><b>A note on who should be on the follow-up team.</b> The work is different from ordinary closing. A follow-up member phones people who have already been phoned, often more than once, about an order they hesitated over. Patience matters more than pace, and the ability to read someone else's notes and pick up their conversation matters more than either. It is not a junior job and it is not a punishment posting — the leads in the pool are the hardest in the book, which is exactly why they are worth recovering.</p>"
+    "html": "<p>Leads that are not picking up, asking for callbacks, or otherwise stalling tend to die quietly. They sit in a non-delivered status with nobody actively chasing them, and because they are not failures yet, nothing flags them. Over months this is one of the largest silent losses in a call-centre operation.</p>\n\n<p><b>The Follow-Up Workflow gives those leads a recovery path.</b> Stalled orders gather in a shared Follow-Up Pool. A dedicated Follow-Up Team picks them out, works them, and either routes them back into delivery or closes them out honestly.</p>\n\n<p><b>The whole design rests on one principle: fair attribution.</b> The original closer keeps credit for the lead until it is actually delivered. Only on successful delivery does the follow-up closer who recovered it earn the credit. Cancellations stay with the original closer, so failure is never laundered onto the recovery team.</p>\n\n<p>That rule is doing more work than it appears. Consider the alternative designs and what each would produce. If credit transferred on entry to the pool, every closer would dump difficult leads there the moment they got hard, and the pool would become a bin for the unwanted. If cancellations transferred with the lead, the recovery team's numbers would be destroyed by other people's poorly confirmed orders, and nobody would want the job. The rule as built makes the pool safe to use and safe to work in, which is why it is stated as a principle rather than buried as a detail.</p>\n\n<p><b>The vocabulary, because these words have precise meanings here.</b> The <b>pool</b> is the shared list under Follow-Up in the left navigation. A <b>Follow-Up Team Member</b> is a Closer whose record carries that flag — only they see the pool. To <b>claim</b> is to take an unclaimed order so that only you work it. To <b>convert</b> is to route a claimed order back into delivery. To <b>release</b> is to return it for someone else.</p>\n\n<p><b>One distinction to hold firmly: \"In Follow-Up\" is an internal flag, not a status.</b> A pooled order keeps whatever status it last had. This is why a lead can be in the pool and Not Picking at the same time, and why the pool never appears in the lifecycle you learned in the previous module. It sits alongside the lifecycle rather than inside it.</p>\n\n<blockquote>CONSULTANT NOTE: The same person can be a normal closer and a follow-up member at once — the two are independent flags on the Closer record. In smaller teams this is the usual arrangement rather than the exception.</blockquote>\n\n<p><b>A note on who should be on the follow-up team.</b> The work is different from ordinary closing. A follow-up member phones people who have already been phoned, often more than once, about an order they hesitated over. Patience matters more than pace, and the ability to read someone else's notes and pick up their conversation matters more than either. It is not a junior job and it is not a punishment posting — the leads in the pool are the hardest in the book, which is exactly why they are worth recovering.</p>",
+    "checks": [
+     {
+      "q": "The follow-up pool exists because stalled leads:",
+      "opts": [
+       "Are usually fraudulent",
+       "Die quietly with nobody chasing them, since they are not failures yet",
+       "Cannot be worked by their original closer",
+       "Distort the daily cap"
+      ],
+      "ans": 1,
+      "why": "Nothing flags a lead that has merely stopped moving. Over months this is one of the largest silent losses in a call centre.",
+      "sort": 0
+     },
+     {
+      "q": "If credit transferred the moment a lead entered the pool, the likely result would be:",
+      "opts": [
+       "Faster recovery of hard leads",
+       "Closers dumping every difficult lead into the pool",
+       "Better attribution accuracy",
+       "Fewer cancellations"
+      ],
+      "ans": 1,
+      "why": "The pool would become a bin for the unwanted. The attribution rule is what keeps it a safety net instead.",
+      "sort": 1
+     },
+     {
+      "q": "A pooled order shows Not Picking. Is that a contradiction?",
+      "opts": [
+       "Yes — pooling should have changed the status",
+       "No — pooling is a flag, and the order keeps its status",
+       "Yes — Not Picking orders cannot be pooled",
+       "Only if the sweep pooled it rather than the closer"
+      ],
+      "ans": 1,
+      "why": "The pool sits alongside the lifecycle rather than inside it, which is why it never appears among the statuses you learned.",
+      "sort": 2
+     }
+    ]
    },
    {
     "title": "Sending a stalled lead to follow-up",
     "est": 8,
-    "html": "<p>Orders enter the pool two ways, and the difference between them is the difference between a safety net and good practice.</p>\n\n<p><b>The nightly sweep</b> runs shortly after midnight and adds every order older than the configured threshold — ten days from creation by default — that is not in a finished status and not already pooled. This is the net. It catches what nobody caught.</p>\n\n<p><b>The manual route</b> is for a closer who already knows a lead is stuck. Open the order, open its Actions menu, choose <b>Reassign to Follow-Up</b>, and confirm. There is no reason to let a lead you know is stalled sit for ten days waiting to be swept, and every day it waits makes recovery less likely.</p>\n\n<p><b>The option only appears under four conditions.</b> The workflow must be enabled; you must be the order's closer; the order must not already be pooled; and it must sit in an eligible stalled status — the not-picking, call-back, on-hold family. If the action is missing, one of those four is the reason.</p>\n\n<p><b>Now the part closers most need to hear, because it governs whether they use the feature at all.</b> Sending an order to the pool does <b>not</b> remove it from you and does <b>not</b> change its status. You remain the closer. The lead stays in your reports. Your daily counter is not reduced.</p>\n\n<p>Treat the pool as a safety net for the lead rather than a hand-off of credit. It is help, not surrender. A closer who avoids the pool because they think they are giving something away simply keeps a dying lead to themselves — and nobody wins that.</p>\n\n<p><b>What cannot be pooled, and why.</b> Finished orders — Delivered, Cancelled, Duplicate — are never eligible, by sweep or by hand. There is nothing to recover from an order that has reached its end.</p>\n\n<p>Delivery Rescheduled is also excluded, but for a different reason worth understanding rather than memorising. A rescheduled order is not finished; it is simply <i>not stalled</i>. It has a future delivery date and a plan attached. The pool exists for orders that have stopped moving with nobody attending to them, and a rescheduled order is the opposite of that. Putting it in the pool would have the recovery team chasing a customer who is already expecting delivery on Thursday.</p>\n\n<blockquote>WATCH-OUT: If you find yourself wanting to pool an order that does not qualify, the honest question is whether the status on it is accurate. An order you believe is stalled but which shows as Rescheduled is usually an order whose status was never updated after the reschedule fell through.</blockquote>\n\n<p><b>How soon should you pool something?</b> The sweep waits ten days by default, which is a sensible net but a poor plan. Ten days on a lead that stopped answering on day two is eight days of nothing happening. If you have made three genuine attempts across two or three days with no contact and no pattern to work with, that lead is stalled — pool it and let a fresh voice try. Waiting for the sweep is not diligence; it is delay with a system doing the waiting for you.</p>"
+    "html": "<p>Orders enter the pool two ways, and the difference between them is the difference between a safety net and good practice.</p>\n\n<p><b>The nightly sweep</b> runs shortly after midnight and adds every order older than the configured threshold — ten days from creation by default — that is not in a finished status and not already pooled. This is the net. It catches what nobody caught.</p>\n\n<p><b>The manual route</b> is for a closer who already knows a lead is stuck. Open the order, open its Actions menu, choose <b>Reassign to Follow-Up</b>, and confirm. There is no reason to let a lead you know is stalled sit for ten days waiting to be swept, and every day it waits makes recovery less likely.</p>\n\n<p><b>The option only appears under four conditions.</b> The workflow must be enabled; you must be the order's closer; the order must not already be pooled; and it must sit in an eligible stalled status — the not-picking, call-back, on-hold family. If the action is missing, one of those four is the reason.</p>\n\n<p><b>Now the part closers most need to hear, because it governs whether they use the feature at all.</b> Sending an order to the pool does <b>not</b> remove it from you and does <b>not</b> change its status. You remain the closer. The lead stays in your reports. Your daily counter is not reduced.</p>\n\n<p>Treat the pool as a safety net for the lead rather than a hand-off of credit. It is help, not surrender. A closer who avoids the pool because they think they are giving something away simply keeps a dying lead to themselves — and nobody wins that.</p>\n\n<p><b>What cannot be pooled, and why.</b> Finished orders — Delivered, Cancelled, Duplicate — are never eligible, by sweep or by hand. There is nothing to recover from an order that has reached its end.</p>\n\n<p>Delivery Rescheduled is also excluded, but for a different reason worth understanding rather than memorising. A rescheduled order is not finished; it is simply <i>not stalled</i>. It has a future delivery date and a plan attached. The pool exists for orders that have stopped moving with nobody attending to them, and a rescheduled order is the opposite of that. Putting it in the pool would have the recovery team chasing a customer who is already expecting delivery on Thursday.</p>\n\n<blockquote>WATCH-OUT: If you find yourself wanting to pool an order that does not qualify, the honest question is whether the status on it is accurate. An order you believe is stalled but which shows as Rescheduled is usually an order whose status was never updated after the reschedule fell through.</blockquote>\n\n<p><b>How soon should you pool something?</b> The sweep waits ten days by default, which is a sensible net but a poor plan. Ten days on a lead that stopped answering on day two is eight days of nothing happening. If you have made three genuine attempts across two or three days with no contact and no pattern to work with, that lead is stalled — pool it and let a fresh voice try. Waiting for the sweep is not diligence; it is delay with a system doing the waiting for you.</p>",
+    "checks": [
+     {
+      "q": "You send your stalled lead to the pool. What happens to your ownership?",
+      "opts": [
+       "It transfers to the follow-up team",
+       "Nothing — you remain the closer and it stays in your reports",
+       "It transfers only if someone claims it",
+       "Your daily counter is reduced by one"
+      ],
+      "ans": 1,
+      "why": "It is help, not surrender. The only thing you can lose by pooling a lead is a delivery you were not going to make.",
+      "sort": 0
+     },
+     {
+      "q": "An order shows Delivery Rescheduled. Can it be pooled?",
+      "opts": [
+       "Yes, any non-delivered order can",
+       "No — it is not stalled; it has a date and a plan",
+       "Only by a manager",
+       "Only after the sweep threshold passes"
+      ],
+      "ans": 1,
+      "why": "The pool is for orders that stopped moving with nobody attending. Pooling a rescheduled order sends the team chasing a customer already expecting Thursday.",
+      "sort": 1
+     },
+     {
+      "q": "Three attempts across two days, no contact, no pattern. You should:",
+      "opts": [
+       "Wait for the nightly sweep at day ten",
+       "Pool it now",
+       "Mark it Cancelled",
+       "Mark it Not Reachable and stop"
+      ],
+      "ans": 1,
+      "why": "Ten days on a lead that stopped answering on day two is eight days of nothing happening. Waiting for the sweep is delay, not diligence.",
+      "sort": 2
+     }
+    ]
    },
    {
     "title": "Working the pool — claim, convert, release",
     "est": 8,
-    "html": "<p>Follow-up team members open the pool from <b>Follow-Up</b> in the left navigation. Each row is a pooled order: the ID, which opens the drawer in place; the customer; its unchanged status; phone; value; when it entered the pool; and <b>Claimed By</b> — a name, or \"unclaimed\".</p>\n\n<p>Filter between All Pool, Claimed by Me and Unclaimed, search by order, name or phone, and page through fifty at a time.</p>\n\n<p><b>Claim before you work.</b> Claiming an unclaimed order makes it yours: the actions flip to Release and Convert, and an audit comment is logged. If someone beats you to it by a moment you will see \"Already claimed by…\" — refresh and pick another rather than trying again.</p>\n\n<p>The claim is what stops two people phoning the same customer within an hour of each other. That call is not merely wasteful; it tells the customer the business does not know what it is doing, on a lead that was already fragile.</p>\n\n<p><b>Review before acting.</b> Open the drawer in place, read the history and the comments, add your own attempt notes, and close — the list refreshes itself. This is not a formality. A pooled lead usually carries a reason it stalled, and the previous closer's notes are the difference between opening with \"I understand you asked us to call after five\" and opening with a question the customer has already answered twice.</p>\n\n<p><b>Convert when the customer is ready.</b> The dialog optionally takes a delivery agent, or you may choose to set one later, and the order's status returns to Assigned so the delivery side picks it up.</p>\n\n<p><b>The converted order stays in the pool until it is actually Delivered.</b> This is deliberate, and it is the design decision most worth understanding: the recovery team's job is not finished when a customer says yes. It is finished when the goods arrive. Leaving the order visible means somebody is still watching a lead that has already stalled once and is more likely than average to stall again.</p>\n\n<p>Convert on an unclaimed order claims and converts in one click, for the case where you have just spoken to the customer and there is nothing to deliberate.</p>\n\n<p><b>Release an order you cannot continue</b> — it returns unclaimed for anyone else. You can only release your own claims; managers can release anyone's, which is how an order claimed by someone now on leave gets back into circulation.</p>\n\n<p><b>Dead leads are cancelled through the normal order flow</b>, not released and abandoned. Wrong number, refusal, genuine duplicate: cancel it properly with a reason. The cancellation records against the original closer, never the recovery team.</p>\n\n<blockquote>IMPLEMENTATION TIP: Release honestly and early. An order claimed and then ignored is worse than an unclaimed one, because it looks attended to. If you claim three and only get to one, release the other two before you finish for the day.</blockquote>"
+    "html": "<p>Follow-up team members open the pool from <b>Follow-Up</b> in the left navigation. Each row is a pooled order: the ID, which opens the drawer in place; the customer; its unchanged status; phone; value; when it entered the pool; and <b>Claimed By</b> — a name, or \"unclaimed\".</p>\n\n<p>Filter between All Pool, Claimed by Me and Unclaimed, search by order, name or phone, and page through fifty at a time.</p>\n\n<p><b>Claim before you work.</b> Claiming an unclaimed order makes it yours: the actions flip to Release and Convert, and an audit comment is logged. If someone beats you to it by a moment you will see \"Already claimed by…\" — refresh and pick another rather than trying again.</p>\n\n<p>The claim is what stops two people phoning the same customer within an hour of each other. That call is not merely wasteful; it tells the customer the business does not know what it is doing, on a lead that was already fragile.</p>\n\n<p><b>Review before acting.</b> Open the drawer in place, read the history and the comments, add your own attempt notes, and close — the list refreshes itself. This is not a formality. A pooled lead usually carries a reason it stalled, and the previous closer's notes are the difference between opening with \"I understand you asked us to call after five\" and opening with a question the customer has already answered twice.</p>\n\n<p><b>Convert when the customer is ready.</b> The dialog optionally takes a delivery agent, or you may choose to set one later, and the order's status returns to Assigned so the delivery side picks it up.</p>\n\n<p><b>The converted order stays in the pool until it is actually Delivered.</b> This is deliberate, and it is the design decision most worth understanding: the recovery team's job is not finished when a customer says yes. It is finished when the goods arrive. Leaving the order visible means somebody is still watching a lead that has already stalled once and is more likely than average to stall again.</p>\n\n<p>Convert on an unclaimed order claims and converts in one click, for the case where you have just spoken to the customer and there is nothing to deliberate.</p>\n\n<p><b>Release an order you cannot continue</b> — it returns unclaimed for anyone else. You can only release your own claims; managers can release anyone's, which is how an order claimed by someone now on leave gets back into circulation.</p>\n\n<p><b>Dead leads are cancelled through the normal order flow</b>, not released and abandoned. Wrong number, refusal, genuine duplicate: cancel it properly with a reason. The cancellation records against the original closer, never the recovery team.</p>\n\n<blockquote>IMPLEMENTATION TIP: Release honestly and early. An order claimed and then ignored is worse than an unclaimed one, because it looks attended to. If you claim three and only get to one, release the other two before you finish for the day.</blockquote>",
+    "checks": [
+     {
+      "q": "Why claim an order before working it?",
+      "opts": [
+       "It is required before you can view details",
+       "It stops two people phoning the same customer",
+       "It transfers credit to you",
+       "It removes it from the original closer"
+      ],
+      "ans": 1,
+      "why": "That duplicate call is not merely wasteful — it tells a fragile customer the business does not know what it is doing.",
+      "sort": 0
+     },
+     {
+      "q": "A converted order stays in the pool until:",
+      "opts": [
+       "A manager removes it",
+       "The customer confirms by message",
+       "It is actually Delivered",
+       "The end of the day"
+      ],
+      "ans": 2,
+      "why": "The recovery team's job finishes when goods arrive, not when a customer says yes. These leads have already stalled once.",
+      "sort": 1
+     },
+     {
+      "q": "You claimed three and worked one. Before finishing, you should:",
+      "opts": [
+       "Leave them claimed to continue tomorrow",
+       "Convert the other two",
+       "Release the two you did not work",
+       "Cancel them"
+      ],
+      "ans": 2,
+      "why": "A claimed order nobody is working looks attended to, so nobody else picks it up. That is worse than leaving it unclaimed.",
+      "sort": 2
+     }
+    ]
    },
    {
     "title": "Attribution — who gets the credit, and when",
     "est": 8,
-    "html": "<p>The attribution rules exist to keep the numbers fair between the original closer and the recovery team. Walk the life of a pooled order and each step becomes obvious.</p>\n\n<p><b>Enters the pool</b>, by sweep or by hand. The closer is unchanged, the counter untouched, the order is in the pool.</p>\n\n<p><b>Claimed.</b> Still no change to ownership or counters. Claiming is a work lock, not a transfer — it says who is calling, not who owns the outcome.</p>\n\n<p><b>Converted.</b> Routed back to delivery, still the original closer's on paper, and still in the pool.</p>\n\n<p><b>Delivered.</b> Now the follow-up closer becomes the order's closer, earns the credit, and their counter increments under the standard online-lead rule. The order leaves the pool.</p>\n\n<p><b>Cancelled from the pool.</b> It stays the original closer's and leaves the pool. The failure never moves.</p>\n\n<p><b>In one sentence:</b> the original closer carries the lead — and the risk — right up until a successful delivery; only a delivered recovery moves the credit.</p>\n\n<p><b>Why the credit moves only at delivery, and not at conversion.</b> Conversion means a customer said yes on a phone call. Delivery means goods arrived and, on cash on delivery, money was collected. Between those two points a meaningful proportion of recovered orders fail again — these are, by definition, leads that already stalled once. Moving credit at conversion would reward the recovery team for the easy half of the work and leave the original closer carrying failures they had no ability to influence.</p>\n\n<p><b>And why cancellations never move.</b> A cancelled lead is usually a lead that should not have been created in the state it was, or was confirmed too loosely at the front. That is information about the original closer's work, and it belongs in their numbers. If cancellations transferred, the fastest route to a clean cancellation rate would be to pool every doubtful order and let somebody else absorb the consequence.</p>\n\n<blockquote>IMPLEMENTATION TIP: This is the answer to the question every closer asks first — \"if I send my lead to follow-up, do I lose it?\" No. You keep it, and you keep it in your reports, unless and until somebody else actually lands it. The only thing you can lose by pooling a lead is a delivery you were not going to make.</blockquote>\n\n<p><b>One consequence worth spelling out for follow-up team members.</b> Because credit only arrives on delivery, your own numbers depend on orders reaching customers rather than on customers agreeing on the phone. That makes the decision to convert with a delivery agent attached, rather than leaving it to be set later, a decision about your own outcome as well as the customer's. A converted order with nobody lined up to carry it is a conversion that can quietly stall a second time.</p>"
+    "html": "<p>The attribution rules exist to keep the numbers fair between the original closer and the recovery team. Walk the life of a pooled order and each step becomes obvious.</p>\n\n<p><b>Enters the pool</b>, by sweep or by hand. The closer is unchanged, the counter untouched, the order is in the pool.</p>\n\n<p><b>Claimed.</b> Still no change to ownership or counters. Claiming is a work lock, not a transfer — it says who is calling, not who owns the outcome.</p>\n\n<p><b>Converted.</b> Routed back to delivery, still the original closer's on paper, and still in the pool.</p>\n\n<p><b>Delivered.</b> Now the follow-up closer becomes the order's closer, earns the credit, and their counter increments under the standard online-lead rule. The order leaves the pool.</p>\n\n<p><b>Cancelled from the pool.</b> It stays the original closer's and leaves the pool. The failure never moves.</p>\n\n<p><b>In one sentence:</b> the original closer carries the lead — and the risk — right up until a successful delivery; only a delivered recovery moves the credit.</p>\n\n<p><b>Why the credit moves only at delivery, and not at conversion.</b> Conversion means a customer said yes on a phone call. Delivery means goods arrived and, on cash on delivery, money was collected. Between those two points a meaningful proportion of recovered orders fail again — these are, by definition, leads that already stalled once. Moving credit at conversion would reward the recovery team for the easy half of the work and leave the original closer carrying failures they had no ability to influence.</p>\n\n<p><b>And why cancellations never move.</b> A cancelled lead is usually a lead that should not have been created in the state it was, or was confirmed too loosely at the front. That is information about the original closer's work, and it belongs in their numbers. If cancellations transferred, the fastest route to a clean cancellation rate would be to pool every doubtful order and let somebody else absorb the consequence.</p>\n\n<blockquote>IMPLEMENTATION TIP: This is the answer to the question every closer asks first — \"if I send my lead to follow-up, do I lose it?\" No. You keep it, and you keep it in your reports, unless and until somebody else actually lands it. The only thing you can lose by pooling a lead is a delivery you were not going to make.</blockquote>\n\n<p><b>One consequence worth spelling out for follow-up team members.</b> Because credit only arrives on delivery, your own numbers depend on orders reaching customers rather than on customers agreeing on the phone. That makes the decision to convert with a delivery agent attached, rather than leaving it to be set later, a decision about your own outcome as well as the customer's. A converted order with nobody lined up to carry it is a conversion that can quietly stall a second time.</p>",
+    "checks": [
+     {
+      "q": "A follow-up closer converts a pooled order. At that moment, credit sits with:",
+      "opts": [
+       "The follow-up closer",
+       "The original closer — credit moves only on delivery",
+       "Neither, until cancellation or delivery",
+       "Both, split evenly"
+      ],
+      "ans": 1,
+      "why": "Conversion is a phone call. Delivery is goods and money — and a meaningful share of recovered orders stall a second time in between.",
+      "sort": 0
+     },
+     {
+      "q": "Why must cancellations stay with the original closer?",
+      "opts": [
+       "The recovery team has no cancellation metric",
+       "Otherwise pooling doubtful orders becomes the route to a clean rate",
+       "Because only the original closer can cancel",
+       "To keep the pool small"
+      ],
+      "ans": 1,
+      "why": "A cancelled lead usually reflects how it was confirmed at the front. That is information about the original closer's work.",
+      "sort": 1
+     },
+     {
+      "q": "For a follow-up member, the practical consequence of credit arriving only at delivery is:",
+      "opts": [
+       "Convert as many orders as possible, quickly",
+       "Attach a delivery agent at conversion rather than leaving it for later",
+       "Claim only high-value orders",
+       "Avoid orders older than the threshold"
+      ],
+      "ans": 1,
+      "why": "A converted order with nobody lined up to carry it is a conversion that can quietly stall again — and your credit stalls with it.",
+      "sort": 2
+     }
+    ]
    },
    {
     "title": "Your numbers — the dashboard and My Summary",
     "est": 8,
-    "html": "<p>Two screens tell a closer how they are doing, and they answer different questions.</p>\n\n<p><b>The dashboard is the pulse.</b> Status cards, each clickable straight into the Orders list pre-filtered to exactly those orders — and, for a closer, automatically narrowed to your own. A build-up in an early card means leads are waiting on you. A build-up mid-flow means fulfilment needs a push rather than you.</p>\n\n<p><b>One thing about the dashboard that catches almost everyone.</b> Not every card responds to the timeframe control. Cards for terminal outcomes — total orders, delivered, cancelled — are scoped to the period you selected. Cards for in-flight statuses such as Agent Notified or Delivery In Progress ignore the timeframe entirely and show the whole book as it stands right now. Change the timeframe and watch which cards move; it takes half a minute and it stops you reading a lifetime figure as though it were this week's.</p>\n\n<p>The practical rule that follows: never divide an in-flight card by a period-scoped one. The result will look like a percentage and mean nothing.</p>\n\n<p><b>My Summary is the scoreboard.</b> Your totals, delivered count, the value-band mix of your orders, a status breakdown, and your delivered list for the period. Where the dashboard tells you what to do next, My Summary tells you how the period has gone.</p>\n\n<p><b>The metrics, and how to read them honestly.</b></p>\n\n<p><b>Conversion Rate</b> is Delivered divided by Total Orders — the efficiency headline. Seventy per cent means seven of every ten orders you created actually landed.</p>\n\n<p><b>AOV</b> is Revenue divided by Delivered, and a high AOV usually signals upselling skill rather than luck with the order book.</p>\n\n<p><b>Cancellation Rate</b> is Cancelled divided by Total, and above roughly twenty to twenty-five per cent it is read as confirming too loosely before creating the order. It is the metric most worth watching yourself, because it moves before anybody else notices and it is entirely within your control.</p>\n\n<p><b>Response time</b> to new assignments rounds out the picture, and it is the leading indicator of the three — it deteriorates before conversion does.</p>\n\n<p><b>Read them together rather than one at a time.</b> Rising volume with falling conversion is not growth. Good conversion with a slow response time is a habit problem sitting on top of real skill. Low volume with high AOV is a specialist, and being ranked on volume alone would misread them entirely.</p>\n\n<blockquote>WATCH-OUT: Revenue figures on dashboards and reports are role-gated — closers see volume and activity, not money. If your dashboard shows no Delivered Value Trend, that is the access model working, not a fault.</blockquote>"
+    "html": "<p>Two screens tell a closer how they are doing, and they answer different questions.</p>\n\n<p><b>The dashboard is the pulse.</b> Status cards, each clickable straight into the Orders list pre-filtered to exactly those orders — and, for a closer, automatically narrowed to your own. A build-up in an early card means leads are waiting on you. A build-up mid-flow means fulfilment needs a push rather than you.</p>\n\n<p><b>One thing about the dashboard that catches almost everyone.</b> Not every card responds to the timeframe control. Cards for terminal outcomes — total orders, delivered, cancelled — are scoped to the period you selected. Cards for in-flight statuses such as Agent Notified or Delivery In Progress ignore the timeframe entirely and show the whole book as it stands right now. Change the timeframe and watch which cards move; it takes half a minute and it stops you reading a lifetime figure as though it were this week's.</p>\n\n<p>The practical rule that follows: never divide an in-flight card by a period-scoped one. The result will look like a percentage and mean nothing.</p>\n\n<p><b>My Summary is the scoreboard.</b> Your totals, delivered count, the value-band mix of your orders, a status breakdown, and your delivered list for the period. Where the dashboard tells you what to do next, My Summary tells you how the period has gone.</p>\n\n<p><b>The metrics, and how to read them honestly.</b></p>\n\n<p><b>Conversion Rate</b> is Delivered divided by Total Orders — the efficiency headline. Seventy per cent means seven of every ten orders you created actually landed.</p>\n\n<p><b>AOV</b> is Revenue divided by Delivered, and a high AOV usually signals upselling skill rather than luck with the order book.</p>\n\n<p><b>Cancellation Rate</b> is Cancelled divided by Total, and above roughly twenty to twenty-five per cent it is read as confirming too loosely before creating the order. It is the metric most worth watching yourself, because it moves before anybody else notices and it is entirely within your control.</p>\n\n<p><b>Response time</b> to new assignments rounds out the picture, and it is the leading indicator of the three — it deteriorates before conversion does.</p>\n\n<p><b>Read them together rather than one at a time.</b> Rising volume with falling conversion is not growth. Good conversion with a slow response time is a habit problem sitting on top of real skill. Low volume with high AOV is a specialist, and being ranked on volume alone would misread them entirely.</p>\n\n<blockquote>WATCH-OUT: Revenue figures on dashboards and reports are role-gated — closers see volume and activity, not money. If your dashboard shows no Delivered Value Trend, that is the access model working, not a fault.</blockquote>",
+    "checks": [
+     {
+      "q": "You switch the dashboard from Week to Month. Which card does NOT change?",
+      "opts": [
+       "Delivered",
+       "Cancelled",
+       "Agent Notified",
+       "Total Orders"
+      ],
+      "ans": 2,
+      "why": "In-flight cards ignore the timeframe and show the whole book. Only terminal cards are period-scoped.",
+      "sort": 0
+     },
+     {
+      "q": "Dividing an in-flight card by Total Orders gives you:",
+      "opts": [
+       "A useful stalled-order rate",
+       "Nothing meaningful — an all-time figure over one period",
+       "The conversion rate",
+       "A figure only managers may see"
+      ],
+      "ans": 1,
+      "why": "The result looks like a percentage and means nothing, which is precisely what makes it dangerous.",
+      "sort": 1
+     },
+     {
+      "q": "Your dashboard shows no Delivered Value Trend. This is:",
+      "opts": [
+       "A fault to report",
+       "The role-based access model working — closers see activity, not money",
+       "A sign your orders have no value recorded",
+       "A timeframe problem"
+      ],
+      "ans": 1,
+      "why": "Revenue is role-gated to directors, managers and administrators. Its absence is the design, not a bug.",
+      "sort": 2
+     }
+    ]
    },
    {
     "title": "Working a shift well — the closer's day",
     "est": 8,
-    "html": "<p>Everything in this module is a mechanism. This chapter is about the day those mechanisms are meant to support, because two closers with identical tools and identical caps routinely produce very different numbers.</p>\n\n<p><b>Open with the queue, not the inbox.</b> Before anything else, set your filters: your orders, your call-backs due today, anything of yours that has not moved in three days. That is your worklist. A closer who begins by scrolling the full list begins by choosing, without deciding to, which customers get attention.</p>\n\n<p><b>Work the promises first.</b> A customer who asked you to call at ten expects a call at ten. A kept callback converts at a far better rate than a cold re-attempt, and a missed one usually becomes a cancellation with extra steps. Everything else on your list can move; a promise cannot.</p>\n\n<p><b>Then work the oldest.</b> Among orders with no scheduled commitment, age is the best available priority. The customer who has waited longest is the one most likely to have bought elsewhere, and their order is the one closest to becoming a silent loss.</p>\n\n<p><b>Set the status honestly at the end of every attempt, and write the note while the call is still in your head.</b> \"Called 2pm, no answer, second attempt today, asked yesterday for after 5pm because he works\" tells the next person exactly what to do. \"Called, no answer\" tells them nothing and they will repeat your work.</p>\n\n<p><b>Pool what has genuinely stalled, without waiting for the sweep.</b> If you know a lead is stuck — three attempts, no contact, no pattern to work with — send it to follow-up the same day. You keep it in your reports either way, so the only question is whether somebody is still trying.</p>\n\n<p><b>Watch your own cancellation rate rather than waiting to be told about it.</b> It is the metric that most reliably reflects a habit, and the habit it reflects is confirming too loosely at the point of order creation. If it is climbing, the fix is upstream of everything else you do.</p>\n\n<p><b>Close the day where you would want to start it.</b> Release any follow-up claims you did not get to. Update the statuses of anything you attempted. Leave your list in a state where a colleague picking it up tomorrow would understand it without asking you.</p>\n\n<blockquote>IMPLEMENTATION TIP: The single highest-return habit in this chapter is the note after every conversation. It costs fifteen seconds, it is what makes a callback land well, and it is the only thing that survives your absence, your leave, and your eventual promotion.</blockquote>\n\n<p><b>A word about pace.</b> The instinct under pressure is to make more calls. The closers with the best conversion rates are rarely the ones making the most attempts; they are the ones whose attempts land at the time the customer asked for, opening with what the customer already told somebody. That is a filing habit rather than a phone habit, and it is why the first act of a good shift is setting filters rather than dialling.</p>"
+    "html": "<p>Everything in this module is a mechanism. This chapter is about the day those mechanisms are meant to support, because two closers with identical tools and identical caps routinely produce very different numbers.</p>\n\n<p><b>Open with the queue, not the inbox.</b> Before anything else, set your filters: your orders, your call-backs due today, anything of yours that has not moved in three days. That is your worklist. A closer who begins by scrolling the full list begins by choosing, without deciding to, which customers get attention.</p>\n\n<p><b>Work the promises first.</b> A customer who asked you to call at ten expects a call at ten. A kept callback converts at a far better rate than a cold re-attempt, and a missed one usually becomes a cancellation with extra steps. Everything else on your list can move; a promise cannot.</p>\n\n<p><b>Then work the oldest.</b> Among orders with no scheduled commitment, age is the best available priority. The customer who has waited longest is the one most likely to have bought elsewhere, and their order is the one closest to becoming a silent loss.</p>\n\n<p><b>Set the status honestly at the end of every attempt, and write the note while the call is still in your head.</b> \"Called 2pm, no answer, second attempt today, asked yesterday for after 5pm because he works\" tells the next person exactly what to do. \"Called, no answer\" tells them nothing and they will repeat your work.</p>\n\n<p><b>Pool what has genuinely stalled, without waiting for the sweep.</b> If you know a lead is stuck — three attempts, no contact, no pattern to work with — send it to follow-up the same day. You keep it in your reports either way, so the only question is whether somebody is still trying.</p>\n\n<p><b>Watch your own cancellation rate rather than waiting to be told about it.</b> It is the metric that most reliably reflects a habit, and the habit it reflects is confirming too loosely at the point of order creation. If it is climbing, the fix is upstream of everything else you do.</p>\n\n<p><b>Close the day where you would want to start it.</b> Release any follow-up claims you did not get to. Update the statuses of anything you attempted. Leave your list in a state where a colleague picking it up tomorrow would understand it without asking you.</p>\n\n<blockquote>IMPLEMENTATION TIP: The single highest-return habit in this chapter is the note after every conversation. It costs fifteen seconds, it is what makes a callback land well, and it is the only thing that survives your absence, your leave, and your eventual promotion.</blockquote>\n\n<p><b>A word about pace.</b> The instinct under pressure is to make more calls. The closers with the best conversion rates are rarely the ones making the most attempts; they are the ones whose attempts land at the time the customer asked for, opening with what the customer already told somebody. That is a filing habit rather than a phone habit, and it is why the first act of a good shift is setting filters rather than dialling.</p>",
+    "checks": [
+     {
+      "q": "You open your shift. The first thing you do is:",
+      "opts": [
+       "Dial the top of the list",
+       "Set your filters — your orders, call-backs due, anything unmoved for three days",
+       "Check the team dashboard",
+       "Read the follow-up pool"
+      ],
+      "ans": 1,
+      "why": "A closer who begins by scrolling begins by choosing which customers get no attention, without deciding to.",
+      "sort": 0
+     },
+     {
+      "q": "Among orders with no scheduled commitment, work:",
+      "opts": [
+       "Highest value first",
+       "Newest first, while interest is fresh",
+       "Oldest first",
+       "Whichever branch is busiest"
+      ],
+      "ans": 2,
+      "why": "The customer who has waited longest is the one most likely to have bought elsewhere — and closest to becoming a silent loss.",
+      "sort": 1
+     },
+     {
+      "q": "The highest-return habit in a closer's day is:",
+      "opts": [
+       "Making more calls per hour",
+       "Writing one note after every conversation",
+       "Checking the dashboard hourly",
+       "Claiming pool orders early"
+      ],
+      "ans": 1,
+      "why": "It costs fifteen seconds, makes the next callback land, and is the only thing that survives your absence, your leave and your promotion.",
+      "sort": 2
+     }
+    ]
    },
    {
     "title": "When it goes wrong — recovering from the common mistakes",
     "est": 7,
-    "html": "<p>Everybody makes these. What separates a good closer is speed and honesty in putting them right, because almost all of them get harder to fix with time.</p>\n\n<p><b>You created a duplicate order.</b> You typed the customer's name rather than searching, and now the same person has two records or two live orders. Do not simply abandon one — an abandoned order still sits in somebody's list and counts in the numbers. Raise it: only a Closer Manager or the system can mark an order Duplicate, so tell your manager which order should stand and which should go, and say why. The correction takes a minute; the fragmented customer history, if left, is permanent.</p>\n\n<p><b>You entered the wrong phone number.</b> If you catch it before the order goes to an agent, correct it and re-confirm with the customer. If it has already gone out and delivery failed, the status is Failed/Returned and the recovery is a corrected number plus a reschedule — not a cancellation. A wrong digit is an administrative error, and cancelling for it converts your mistake into a lost sale.</p>\n\n<p><b>You set the wrong Lead Channel.</b> It is set once at creation and it feeds marketing attribution, so an error here quietly moves budget toward a source that did not earn it. Tell your team lead rather than shrugging: one wrong channel is noise, but a closer who habitually guesses is a distortion in the reports that nobody will trace back to a form field.</p>\n\n<p><b>You marked a customer Not Reachable after one attempt.</b> Not Picking is one failed attempt; Not Reachable means contact has failed persistently. Using the second where you meant the first tells everyone downstream to stop trying. If you have done it, set the status back and make the attempt — nothing is lost provided you catch it.</p>\n\n<p><b>You claimed follow-up orders and could not get to them.</b> Release them. A claimed order that nobody is working is worse than an unclaimed one, because the pool shows it as attended to and no one else will pick it up.</p>\n\n<p><b>You cannot move an order and you are sure something is broken.</b> Almost always the next move belongs to somebody else — Order Accepted, Dispatch Assigned, Delivery In Progress, Delivered and Rejected are all set by the agent, from the agent app, and by nobody else. Check whose move it is before raising a ticket. If the order has genuinely sat with an agent too long, the remedy is a call to that agent.</p>\n\n<blockquote>WATCH-OUT: The tempting response to every one of these is to make the record tidy rather than accurate — cancel the duplicate quietly, mark the unreachable customer as reached, leave the wrong channel alone. Each of those is a small false entry in a database other people make decisions from, and each is visible in a timeline that carries your name and a timestamp. Correcting a mistake costs a minute of mild embarrassment. Concealing one costs your credibility the first time somebody checks.</blockquote>"
+    "html": "<p>Everybody makes these. What separates a good closer is speed and honesty in putting them right, because almost all of them get harder to fix with time.</p>\n\n<p><b>You created a duplicate order.</b> You typed the customer's name rather than searching, and now the same person has two records or two live orders. Do not simply abandon one — an abandoned order still sits in somebody's list and counts in the numbers. Raise it: only a Closer Manager or the system can mark an order Duplicate, so tell your manager which order should stand and which should go, and say why. The correction takes a minute; the fragmented customer history, if left, is permanent.</p>\n\n<p><b>You entered the wrong phone number.</b> If you catch it before the order goes to an agent, correct it and re-confirm with the customer. If it has already gone out and delivery failed, the status is Failed/Returned and the recovery is a corrected number plus a reschedule — not a cancellation. A wrong digit is an administrative error, and cancelling for it converts your mistake into a lost sale.</p>\n\n<p><b>You set the wrong Lead Channel.</b> It is set once at creation and it feeds marketing attribution, so an error here quietly moves budget toward a source that did not earn it. Tell your team lead rather than shrugging: one wrong channel is noise, but a closer who habitually guesses is a distortion in the reports that nobody will trace back to a form field.</p>\n\n<p><b>You marked a customer Not Reachable after one attempt.</b> Not Picking is one failed attempt; Not Reachable means contact has failed persistently. Using the second where you meant the first tells everyone downstream to stop trying. If you have done it, set the status back and make the attempt — nothing is lost provided you catch it.</p>\n\n<p><b>You claimed follow-up orders and could not get to them.</b> Release them. A claimed order that nobody is working is worse than an unclaimed one, because the pool shows it as attended to and no one else will pick it up.</p>\n\n<p><b>You cannot move an order and you are sure something is broken.</b> Almost always the next move belongs to somebody else — Order Accepted, Dispatch Assigned, Delivery In Progress, Delivered and Rejected are all set by the agent, from the agent app, and by nobody else. Check whose move it is before raising a ticket. If the order has genuinely sat with an agent too long, the remedy is a call to that agent.</p>\n\n<blockquote>WATCH-OUT: The tempting response to every one of these is to make the record tidy rather than accurate — cancel the duplicate quietly, mark the unreachable customer as reached, leave the wrong channel alone. Each of those is a small false entry in a database other people make decisions from, and each is visible in a timeline that carries your name and a timestamp. Correcting a mistake costs a minute of mild embarrassment. Concealing one costs your credibility the first time somebody checks.</blockquote>",
+    "checks": [
+     {
+      "q": "You created a duplicate order. You should:",
+      "opts": [
+       "Mark one Duplicate yourself",
+       "Cancel one quietly",
+       "Tell your manager which should stand — only they or the system can mark Duplicate",
+       "Abandon the second"
+      ],
+      "ans": 2,
+      "why": "An abandoned order still sits in a list and counts in the numbers. And closers cannot set Duplicate, by design.",
+      "sort": 0
+     },
+     {
+      "q": "A delivery failed because you mistyped one digit of the phone number. Recover by:",
+      "opts": [
+       "Cancelling and creating a new order",
+       "Correcting the number and rescheduling",
+       "Marking it Not Reachable",
+       "Pooling it for follow-up"
+      ],
+      "ans": 1,
+      "why": "A wrong digit is an administrative error. Cancelling for it converts your mistake into a lost sale.",
+      "sort": 1
+     },
+     {
+      "q": "You marked a customer Not Reachable after a single attempt. You should:",
+      "opts": [
+       "Leave it — the status is close enough",
+       "Set it back and make the attempt",
+       "Cancel it and let the sweep find it",
+       "Add a note explaining the error"
+      ],
+      "ans": 1,
+      "why": "Not Reachable tells everyone downstream to stop trying. Caught early, nothing is lost — the correction costs a minute.",
+      "sort": 2
+     }
+    ]
    }
   ],
   "questions": [
