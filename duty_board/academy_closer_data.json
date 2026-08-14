@@ -14,14 +14,24 @@
     "html": "<p>Click <b>New Order</b> (top-right of the Orders page) to open the create dialog. The discipline in this form is what keeps the customer database clean.</p>\n<p><b>Customer name first — and search before you type.</b> The field live-searches existing customers; selecting a match auto-fills phone, email and address from the profile. Duplicate customer records fragment order history, so if a similar name appears, verify by phone number before creating anew.</p>\n<p><b>Phone is required and drives everything.</b> Enter it with the country code; the system validates the format. An incorrect number means no confirmation call, which means a failed delivery — double-check it.</p>\n<p><b>The duplicate banner.</b> When you leave the phone field, the system quietly checks for a prior order with the same number inside the configured detection window. A match raises an amber banner showing the prior order's ID, date and items. It informs — it does not block: tick <b>Proceed anyway</b> for a legitimate repeat purchase, or close the dialog and work the existing order instead. Numbers are normalised on their last 10 digits, so 08012345678 and +2348012345678 are the same customer.</p>\n<p>Complete the rest: email (optional, but journeys can't email without it), the <b>Lead Channel</b> (set once at creation — it feeds marketing attribution, so pick honestly), the items, the delivery address, and any notes.</p>\n<blockquote><b>CONSULTANT NOTE:</b> The duplicate check on manual orders only runs if the administrator has enabled \"Run on Manual Orders\" under Duplicate Order Detection in settings — if the banner never appears on a tenant, that is configuration, not a bug.</blockquote>"
    },
    {
-    "title": "The order lifecycle I — the happy path",
-    "est": 5,
-    "html": "<p>Every order carries a status, and statuses drive everything: which filters an order appears in, who is responsible right now, which orders count as revenue, and what automation fires. The primary path is:</p>\n<ol>\n<li><b>New Lead</b> — every order starts here: raw, unreviewed incoming demand, whether typed by an agent, imported from a lead form, or created by API. Someone must review it — managers and team leads typically distribute new leads, or auto-assignment rules do.</li>\n<li><b>Qualified</b> — a team member has verified the lead is real and actionable: contact details check out, products are available, the address is serviceable. Qualification is the gate that filters junk, duplicates, and undeliverables.</li>\n<li><b>Confirmed</b> — the customer has been reached and has explicitly said yes: items, quantities, price and address verified in the conversation. This is the milestone that separates buyers from browsers.</li>\n<li><b>Assigned</b> — the order has an owner: a specific closer, assigned manually or by rule, whose name now appears in the Agent column and who is responsible for the rest of the journey.</li>\n<li><b>Processing</b> — the closer and fulfilment team are actively working it: packaging, labels, logistics coordination. In motion, but not yet out the door.</li>\n<li><b>Delivery In Progress</b> — dispatched and physically travelling. The courier owns the moment; the closer monitors.</li>\n<li><b>Delivered</b> — the positive terminal status. Goods with the customer, COD collected. <b>Only now does the order count as revenue</b>, and the closer's conversion metrics update.</li>\n</ol>\n<p>The system enforces valid transitions — an order cannot jump from New Lead straight to Delivered, because that would skip verification and fulfilment.</p>\n<blockquote><b>CONSULTANT NOTE:</b> Deployed tenants often add intermediate dispatch statuses to this spine — for example Agent Notified and Order Accepted between assignment and delivery. The drawer's status path always shows the pipeline your tenant actually runs; the seven stages here are the conceptual skeleton every variant hangs on.</blockquote>"
+    "title": "New Lead — when the router cannot place an order",
+    "est": 7,
+    "html": "<p><b>New Lead is not a queue of unreviewed work. It is a capacity signal.</b>\nOrders arrive continuously, and ZhiftCRM tries to assign each one to a closer automatically.\nWhen it succeeds the order lands on somebody's list as <b>Assigned</b>. When it cannot, the\norder stops at <b>New Lead</b> and waits.</p>\n\n<p>Understanding why it could not is the whole of this chapter, because a growing New Lead\ncount is not a closer problem to work through — it is a staffing problem to escalate.</p>\n\n<p><b>Two constraints decide where an order can go.</b></p>\n\n<ol>\n<li><b>Every closer has a daily cap.</b> A maximum number of orders they may be given in a\nday. The cap exists so that work is distributed rather than dumped: a closer holding two\nhundred orders works none of them properly, and the customer at the bottom of that list is\neffectively unserved while appearing to be served.</li>\n<li><b>Every closer is scoped to a category and a country.</b> A closer is not a generic\npair of hands. They are assigned to particular product categories and a particular country,\nbecause knowing the products and the delivery geography is what lets them answer a customer's\nquestion without putting them on hold.</li>\n</ol>\n\n<p><b>So an order becomes a New Lead in one of two situations.</b> Either every closer in\nthat order's country has reached their daily cap, or the closers covering that order's\ncategory have. In both cases the router has nowhere legitimate to put the order, and it\ndeclines to break its own rules rather than overload somebody quietly.</p>\n\n<blockquote>IMPLEMENTATION TIP: This is why New Lead volume is a management number rather than\na closer number. Orders sitting in New Lead are demand the business captured and cannot\ncurrently serve. If the count grows through the day and empties overnight, capacity is merely\ntight. If it grows and stays, the business is turning away money it has already paid to\nattract — and the fix is more closers, higher caps, or wider category coverage, not a closer\nworking faster.</blockquote>\n\n<p><b>What this means for you as a closer.</b> You will rarely act on a New Lead directly;\nthey are distributed by managers and team leads, or picked up automatically as caps reset and\ncapacity frees. What matters is that you understand what you are looking at when you see the\nnumber, and that you never assume a New Lead was skipped because something was wrong with it.\nNothing is wrong with it. Nobody was free.</p>\n\n<p><b>The pattern worth watching.</b> New Leads concentrated in one country or one category\npoint at a specific gap rather than a general shortage — a category with too few trained\nclosers, or a country whose volume has outgrown its team. That is a far more useful thing to\nreport upward than \"we have a lot of new leads\", and noticing it is the kind of observation\nthat gets a closer promoted.</p>\n\n<blockquote>WATCH-OUT: Because the cap is daily, a New Lead backlog does not clear itself\nretroactively. Yesterday's unassigned orders are competing with today's fresh demand for the\nsame finite capacity, and the oldest orders are the ones whose customers have been waiting\nlongest and are most likely to have bought elsewhere. When capacity frees, oldest first is\nalmost always the right order to work.</blockquote>"
    },
    {
-    "title": "The order lifecycle II — holds, breaks & recoveries",
-    "est": 5,
-    "html": "<p>Real order books stall. Seven statuses handle the ways the happy path breaks — knowing which to use, and what each does to the numbers, is closer craft:</p>\n<ul>\n<li><b>On Hold</b> — temporarily paused: awaiting restock, payment verification, a customer-requested delay. Holds are flagged for follow-up and must not live forever; resolve the reason and move the order back to an active status.</li>\n<li><b>Not Reachable</b> — contact was attempted and failed. The order is not dead — it waits for a successful attempt. Most teams retry 3–5 times over 2–3 days before conceding to Cancelled.</li>\n<li><b>Call Back</b> — the customer answered but asked for another time. Note the preferred time and honour it; a kept callback converts, a missed one cancels.</li>\n<li><b>Rescheduled</b> — a delivery date is being changed, at the customer's request or after a failed attempt. Record the new date, coordinate courier and customer, and return the order to Delivery In Progress when dispatched.</li>\n<li><b>Cancelled</b> — deliberately terminated before delivery: changed mind, out of stock, junk or duplicate lead, unreachable beyond policy. <b>Always record the reason.</b> Cancelled orders earn nothing but still count in volume — they drag your conversion rate directly.</li>\n<li><b>Failed</b> — a delivery attempt happened and didn't complete: customer absent, wrong address, refusal, no cash for COD. Different from Cancelled because it reached the door. Investigate — many failures recover via reschedule or an address fix.</li>\n<li><b>Returned</b> — delivered, then given back: defects, wrong items, dissatisfaction. <b>Revenue is reversed</b> — subtracted from the numbers — and the return must be processed and inventory updated.</li>\n</ul>\n<p>Transition logic in one line: at most pre-delivery stages an order can branch to Cancelled, On Hold, Not Reachable or Call Back; after Delivery In Progress it resolves to Delivered, Failed or Rescheduled; and only after Delivered can it become Returned.</p>\n<blockquote><b>WATCH-OUT:</b> A high cancellation rate is read as a closer red flag — it usually means orders were created without proper customer confirmation. Confirm properly at the front and the back of the funnel stays clean.</blockquote>"
+    "title": "The delivery spine — Assigned through to Delivered",
+    "est": 8,
+    "html": "<p>Every order carries a status, and statuses drive everything: which filters an\norder appears in, who is responsible for it right now, which orders count as revenue, and what\nautomation fires. Learn the spine and you can answer the only question that matters about any\norder on your screen — <i>whose move is it?</i></p>\n\n<p><b>Assigned.</b> The order has an owner. A specific closer has been given it, their name\nappears in the Agent column, and — importantly — <b>they have not yet done anything with it</b>.\nAssigned is the status of an order waiting for its closer to act. If your list is thick with\nAssigned orders at the end of a shift, that is not a backlog of difficult work; it is a\nbacklog of untouched work.</p>\n\n<p><b>Agent Notified.</b> The closer has passed the order to an agent. This is the handover\npoint where the order stops being a conversation and starts being a delivery. Until the agent\nresponds, the order sits here.</p>\n\n<p><b>Order Accepted.</b> The agent has accepted it. Note carefully: <b>only the agent can set\nthis, and only from the agent mobile app.</b> A closer cannot accept an order on an agent's\nbehalf, however obvious the acceptance seems. If an order has been sitting at Agent Notified\nfor hours, the closer's remedy is to contact the agent — not to move the status.</p>\n\n<p><b>Dispatch Assigned.</b> The agent has handed the order to a delivery person. Again, agent\napp only. The order now has a named human physically responsible for it.</p>\n\n<p><b>Delivery In Progress.</b> The delivery person is out and on the way. Agent app only. The\ncourier owns the moment; the closer monitors and stays reachable in case the customer calls.</p>\n\n<p><b>Delivered.</b> The positive terminal status. The goods are with the customer and, on a\ncash-on-delivery order, the money has been collected. Only the agent can set it, from the app.\nThis is the status that turns an order into revenue and updates the closer's conversion\nnumbers.</p>\n\n<blockquote>IMPLEMENTATION TIP: Read the spine as an alternating sequence of custody. Assigned\nand Agent Notified are the closer's moves. Order Accepted, Dispatch Assigned, Delivery In\nProgress and Delivered are the agent's. Four of the six stages are somebody else's to make,\nwhich is why chasing an order means chasing a person, not clicking a button.</blockquote>\n\n<p><b>Why so much of the spine belongs to the agent.</b> Each agent-only status records a\nphysical fact — a person accepted responsibility, a rider took the parcel, the parcel moved,\nthe customer received it and paid. Letting an office-based closer assert any of those would\nturn a record of what happened into a record of what somebody assumed happened, and the first\ntime a parcel went missing there would be no way to tell where custody broke.</p>\n\n<blockquote>WATCH-OUT: A closer who reports \"I marked it delivered\" has either misremembered or\nis describing a different system. If the numbers show orders being resolved without agent\ninvolvement, that is worth investigating rather than accepting.</blockquote>\n\n<p><b>The old lifecycle.</b> If you have worked on an older ZhiftCRM deployment you may\nremember <i>Qualified</i>, <i>Confirmed</i> and <i>Processing</i>. Those statuses are retired.\nAnything written against them — old notes, old training, old reports — describes a pipeline\nthat no longer runs.</p>"
+   },
+   {
+    "title": "When the path breaks — the exception statuses",
+    "est": 8,
+    "html": "<p>Real order books stall. The exception statuses record <i>how</i>, and choosing\nthe right one is closer craft: each tells a different person to do a different thing next, and\neach lands differently in the numbers.</p>\n\n<p><b>Call Back.</b> The customer answered but asked you to try another time. Note the time\nthey gave and honour it. A kept callback converts; a missed one becomes a cancellation with\nextra steps.</p>\n\n<p><b>Not Picking.</b> The customer is not answering. Set by closer or agent, depending on who\nwas calling. It is not a verdict — it is one failed attempt, recorded.</p>\n\n<p><b>Not Reachable.</b> Contact has failed persistently: dead number, unreachable line,\nrepeated attempts with nothing. Closer-set. The distinction from Not Picking is the difference\nbetween \"did not answer this time\" and \"cannot be reached at all\", and it matters because the\nfirst deserves another attempt and the second usually does not.</p>\n\n<p><b>Not Ready.</b> The order cannot proceed yet — usually stock or preparation. Closer-set.\nThe order is fine; the business is not ready to send it.</p>\n\n<p><b>On Hold.</b> The customer asked you to wait. Closer-only, and the only exception status\nthat records the <i>customer's</i> decision to pause rather than a failure to reach them or a\nproblem on our side. Holds must not live forever: resolve the reason and move the order on.</p>\n\n<p><b>Delivery Rescheduled.</b> The delivery date is being changed at the customer's request.\nEither a closer can set it before the order goes to an agent, or the agent can after it has.\nRecord the new date and make sure both the customer and the delivery side are working to the\nsame one.</p>\n\n<p><b>Rejected.</b> A delivery agent declined an order after being notified of it. Agent app\nonly. This is not the customer rejecting anything — it is the delivery side declining to carry\nit, and it puts the order back in front of the closer to place elsewhere.</p>\n\n<p><b>Cancelled.</b> Deliberately terminated before delivery. Either a closer or an agent may\nset it. Always record why. Cancelled orders earn nothing but still count in volume, so they\npull directly against your conversion rate — which is exactly the incentive intended, because\na high cancellation rate usually means orders were being created without proper confirmation\nat the front.</p>\n\n<p><b>Failed / Returned.</b> One status covering two closely related outcomes: a delivery was\nattempted and did not complete, or the goods went out and came back. Closer-set. Investigate\nrather than close it out — a meaningful share recover through a reschedule or an address\ncorrection, and the ones that do not still tell you something about the address quality or the\nproduct coming from a particular channel.</p>\n\n<p><b>Duplicate.</b> The system can set this automatically when an order's details match\nanother arriving the same day. A Closer Manager may also set it manually. <b>A closer cannot.</b>\nThat restriction is deliberate: marking an order duplicate makes it disappear from the working\nnumbers, which is a decision with enough consequence to sit above the person whose numbers it\naffects.</p>\n\n<blockquote>WATCH-OUT: The tempting misuse of the exception statuses is to reach for whichever\none makes your own list look tidiest. Not Reachable on a customer you called once, Duplicate on\nan order you would rather not work, Cancelled on a hold you did not follow up. Each of those is\na small lie in a database that other people make decisions from — and each is visible, because\nthe pattern of a closer's status use is one of the first things a manager looks at.</blockquote>\n\n<p><b>The judgement to carry.</b> Ask what you want to happen next. If the answer is \"someone\nshould call again\", that is Not Picking or Call Back. If it is \"nothing until the customer says\nso\", that is On Hold. If it is \"nobody should ever touch this again\", that is Cancelled — and\nit needs a reason written down.</p>"
+   },
+   {
+    "title": "Who may move an order — and why it is not you",
+    "est": 7,
+    "html": "<p>The most common question a new closer asks is why an order will not move. The\nanswer is almost never that something is broken. It is that the next move belongs to somebody\nelse, and the system is holding the line.</p>\n\n<p><b>The agent, from the mobile app, and nobody else:</b> Order Accepted, Dispatch Assigned,\nDelivery In Progress, Delivered, Rejected.</p>\n\n<p><b>The closer, and not the agent:</b> Not Reachable, Not Ready, On Hold, Failed / Returned.</p>\n\n<p><b>Either, depending on who is holding the order:</b> Call Back, Not Picking, Delivery\nRescheduled, Cancelled.</p>\n\n<p><b>The system, or a Closer Manager — never a closer:</b> Duplicate.</p>\n\n<p><b>Read the pattern rather than memorising the list.</b> Every agent-only status records a\nphysical event: a parcel was accepted, handed over, carried, delivered, or refused. Only the\nperson who was there can attest to it. Every closer-only status records the state of a\n<i>conversation</i>: the customer cannot be reached, has asked to wait, or the order came back.\nOnly the person on the phone knows that. The shared statuses are the ones where either party\nmight be the one holding the order at the time.</p>\n\n<p>Once you see that, the list stops being arbitrary. The rule is simply: <b>the person who\nwitnessed it is the person who records it.</b></p>\n\n<blockquote>IMPLEMENTATION TIP: This is what turns \"the order is stuck\" into an action. An order\nsitting at Agent Notified is waiting on an agent to accept — so call the agent. An order at\nDelivery In Progress that has not moved all afternoon is with a delivery person — so ask the\nagent to check. Neither is fixed by anything on your screen, and both are fixed by a\nthirty-second call.</blockquote>\n\n<p><b>Duplicate deserves its own word.</b> A closer cannot mark an order duplicate, and the\nreason is worth understanding rather than resenting. A duplicate order leaves the working\nnumbers — it stops counting as something to convert. If closers could apply it, the status\nwould become a way to quietly remove awkward orders from your own conversion rate. Putting it\nwith the Closer Manager keeps the decision with someone whose numbers it does not flatter. If\nyou believe an order is a genuine duplicate, raise it; do not work around it.</p>\n\n<blockquote>WATCH-OUT: If you find yourself wanting a status you do not have, that is usually a\nsignal to talk to a person, not to find a workaround. Asking an agent to mark something\ndelivered so it clears your list, or marking a reachable customer Not Reachable so it stops\nappearing, both corrupt the record in ways that surface later — in a delivery investigation, or\nin a manager's review of your status pattern.</blockquote>\n\n<p><b>What good looks like.</b> A closer who knows this matrix does not raise support tickets\nabout orders that will not move. They look at the status, work out whose move it is, and either\nmake it or chase the person who can.</p>"
    },
    {
     "title": "Inside an order — the details drawer",
@@ -145,56 +155,56 @@
     "topic": "Creating an order"
    },
    {
-    "q": "The correct happy-path order of the lifecycle is:",
+    "q": "The correct order of the delivery spine is:",
     "opts": [
-     "Qualified → New Lead → Assigned → Confirmed → Processing → Delivered",
-     "New Lead → Assigned → Qualified → Confirmed → Delivered",
-     "New Lead → Confirmed → Qualified → Assigned → Processing → Delivery In Progress → Delivered",
-     "New Lead → Qualified → Confirmed → Assigned → Processing → Delivery In Progress → Delivered"
+     "Assigned, Agent Notified, Order Accepted, Dispatch Assigned, Delivery In Progress, Delivered",
+     "Assigned, Order Accepted, Agent Notified, Delivery In Progress, Dispatch Assigned, Delivered",
+     "Agent Notified, Assigned, Dispatch Assigned, Order Accepted, Delivered, Delivery In Progress",
+     "Assigned, Dispatch Assigned, Agent Notified, Order Accepted, Delivered, Delivery In Progress"
     ],
-    "ans": 3,
-    "why": "Capture, qualify, confirm, assign, process, deliver-in-progress, delivered.",
-    "src": "Lifecycle",
-    "topic": "The order lifecycle"
+    "ans": 0,
+    "why": "The closer assigns and notifies; the agent then accepts, assigns dispatch, travels and delivers.",
+    "src": "Spine §1",
+    "topic": "The delivery spine"
    },
    {
-    "q": "What does 'Qualified' certify about an order?",
+    "q": "An order stops at New Lead. What has happened?",
     "opts": [
-     "The closer accepted it",
-     "The customer paid",
-     "The lead is legitimate and actionable — verified contact, available products, serviceable address",
-     "Delivery is booked"
+     "It failed validation and needs correcting",
+     "A manager has held it back for review",
+     "No closer could be assigned — caps or category and country coverage are exhausted",
+     "The customer has not yet approved the order"
     ],
     "ans": 2,
-    "why": "Qualification is the gate that filters junk, duplicates, and undeliverables.",
-    "src": "Qualified",
-    "topic": "The order lifecycle"
+    "why": "New Lead is capacity overflow: every eligible closer for that country and category has hit their daily cap.",
+    "src": "New Lead §1",
+    "topic": "New Lead and capacity"
    },
    {
-    "q": "'Confirmed' means:",
+    "q": "An order has sat at Agent Notified since this morning. What should the closer do?",
     "opts": [
-     "A manager approved the order",
-     "The customer explicitly agreed to proceed, with items, price and address verified",
-     "The courier accepted the job",
-     "Payment cleared"
+     "Move it to Order Accepted so it can progress",
+     "Contact the agent — only they can accept it, from the agent app",
+     "Cancel it and create a replacement order",
+     "Mark it Not Ready until the agent responds"
     ],
     "ans": 1,
-    "why": "Confirmation is the milestone separating serious buyers from casual inquiries.",
-    "src": "Confirmed",
-    "topic": "The order lifecycle"
+    "why": "Order Accepted is agent-only and app-only. A stalled order is chased by calling the person whose move it is.",
+    "src": "Actors §2",
+    "topic": "Who may move an order"
    },
    {
     "q": "An order counts toward revenue when it reaches:",
     "opts": [
-     "Assigned",
-     "Delivered",
-     "Processing",
-     "Confirmed"
+     "Order Accepted",
+     "Dispatch Assigned",
+     "Delivery In Progress",
+     "Delivered"
     ],
-    "ans": 1,
-    "why": "Delivered is the positive terminal status; only then is revenue counted.",
-    "src": "Delivered",
-    "topic": "The order lifecycle"
+    "ans": 3,
+    "why": "Delivered is the positive terminal status — goods with the customer and, on COD, the money collected.",
+    "src": "Spine §6",
+    "topic": "The delivery spine"
    },
    {
     "q": "Moving an order from New Lead directly to Delivered is:",
@@ -223,17 +233,17 @@
     "topic": "Holds, breaks and recoveries"
    },
    {
-    "q": "A Returned order's effect on revenue is:",
+    "q": "Which status can a closer NOT set?",
     "opts": [
-     "Revenue is reversed — subtracted from calculations",
-     "Revenue doubles pending review",
-     "Only the delivery fee is lost",
-     "No effect"
+     "On Hold",
+     "Not Reachable",
+     "Duplicate",
+     "Failed / Returned"
     ],
-    "ans": 0,
-    "why": "Returns reverse the delivered revenue and require processing and inventory updates.",
-    "src": "Returned",
-    "topic": "Holds, breaks and recoveries"
+    "ans": 2,
+    "why": "Duplicate is set automatically by the system or by a Closer Manager — never by the closer whose numbers it affects.",
+    "src": "Actors §4",
+    "topic": "Who may move an order"
    },
    {
     "q": "Standard practice for 'Not Reachable' orders is:",
@@ -249,17 +259,17 @@
     "topic": "Holds, breaks and recoveries"
    },
    {
-    "q": "After Delivery In Progress, an order can move to:",
+    "q": "A delivery agent declines an order after being notified. Which status records that?",
     "opts": [
-     "Returned directly",
-     "Delivered, Failed, or Rescheduled",
-     "Qualified or Confirmed",
-     "New Lead only"
+     "Cancelled",
+     "Rejected",
+     "Failed / Returned",
+     "Not Ready"
     ],
     "ans": 1,
-    "why": "Post-dispatch resolutions are Delivered, Failed, or Rescheduled; Returned only follows Delivered.",
-    "src": "Transitions",
-    "topic": "The order lifecycle"
+    "why": "Rejected is the delivery side declining to carry the order, set by the agent in the app. It returns to the closer to place elsewhere.",
+    "src": "Exceptions §7",
+    "topic": "Exception statuses"
    },
    {
     "q": "A persistently high cancellation rate on one closer usually signals:",

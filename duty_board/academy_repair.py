@@ -253,3 +253,75 @@ def topic_coverage():
     for title, miss, n in sorted(bare, key=lambda x: -x[1])[:20]:
         print("   %-52s %d of %d untagged" % (title[:52], miss, n))
     return {"tagged": tagged, "total": tot, "modules_incomplete": len(bare)}
+
+
+def push_closer_lessons(reset_progress=0, dry_run=0):
+    """Sync the Closer lesson set to the corrected data file.
+
+    Chapters were REPLACED here, not merely edited — two wrong lifecycle
+    chapters became four correct ones — so a title match is not enough. This
+    syncs by position: chapter N in the file becomes chapter N on the site,
+    updating title, content and estimate in place, and inserting any extra
+    chapters at the end of the order.
+
+    Lessons are never deleted, because Duty Lesson Progress rows point at them
+    and deleting would orphan a learner's history. A chapter that moved
+    position is rewritten in place instead.
+
+    reset_progress=1 clears completion for the module, so anyone who read the
+    old, wrong lifecycle has to read the corrected one. Use it: the material
+    changed materially, and a learner carrying a tick for a chapter that no
+    longer exists is exactly the false record this whole exercise is about.
+    """
+    dry_run = int(dry_run or 0)
+    reset_progress = int(reset_progress or 0)
+    here = os.path.dirname(os.path.abspath(__file__))
+    with open(os.path.join(here, "academy_closer_data.json"), encoding="utf-8") as f:
+        data = json.load(f)
+
+    changed = inserted = 0
+    for key, mod in data.items():
+        mod_name = frappe.db.get_value("Duty Training Module", {"title": mod["title"]}, "name")
+        if not mod_name:
+            print("  module not on this site: %s" % mod["title"])
+            continue
+        live = frappe.get_all(
+            "Duty Lesson", filters={"module": mod_name},
+            fields=["name", "title", "sort_order", "content", "est_minutes"],
+            order_by="sort_order asc, creation asc",
+        )
+        for i, want in enumerate(mod["lessons"]):
+            payload = {"title": want["title"], "content": want["html"],
+                       "est_minutes": want.get("est") or 5, "sort_order": i}
+            if i < len(live):
+                row = live[i]
+                same = (row.title == payload["title"]
+                        and (row.content or "") == payload["content"]
+                        and int(row.est_minutes or 0) == int(payload["est_minutes"]))
+                if same:
+                    continue
+                changed += 1
+                if not dry_run:
+                    frappe.db.set_value("Duty Lesson", row.name, payload, update_modified=False)
+            else:
+                inserted += 1
+                if not dry_run:
+                    doc = {"doctype": "Duty Lesson", "module": mod_name}
+                    doc.update(payload)
+                    frappe.get_doc(doc).insert(ignore_permissions=True)
+
+        if reset_progress and not dry_run:
+            for p in frappe.get_all("Duty Lesson Progress",
+                                    filters={"module": mod_name}, pluck="name"):
+                frappe.db.set_value("Duty Lesson Progress", p,
+                                    {"completed_at": None, "checks_passed": 0},
+                                    update_modified=False)
+
+    if not dry_run:
+        frappe.db.commit()
+    print("%s: %d chapter(s) rewritten, %d inserted.%s"
+          % ("DRY RUN" if dry_run else "APPLIED", changed, inserted,
+             " Lesson progress reset." if (reset_progress and not dry_run) else ""))
+    print("Now re-run the bank sync so the corrected questions land:")
+    print("  bench --site xlevel.clouderp.one execute duty_board.academy_repair.rebalance_banks")
+    return {"changed": changed, "inserted": inserted}
