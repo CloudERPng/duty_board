@@ -1,0 +1,125 @@
+{
+ "actions": [],
+ "autoname": "hash",
+ "creation": "2026-08-14 09:00:00.000000",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "lesson",
+  "lesson_title",
+  "module",
+  "module_title",
+  "room",
+  "asked_by",
+  "asked_on",
+  "question",
+  "status",
+  "answer",
+  "answered_by",
+  "answered_on",
+  "published"
+ ],
+ "fields": [
+  {
+   "fieldname": "lesson",
+   "fieldtype": "Link",
+   "label": "Lesson",
+   "options": "Duty Lesson",
+   "reqd": 1
+  },
+  {
+   "fieldname": "lesson_title",
+   "fieldtype": "Data",
+   "label": "Lesson Title",
+   "in_list_view": 1
+  },
+  {
+   "fieldname": "module",
+   "fieldtype": "Link",
+   "label": "Module",
+   "options": "Duty Training Module"
+  },
+  {
+   "fieldname": "module_title",
+   "fieldtype": "Data",
+   "label": "Module Title"
+  },
+  {
+   "fieldname": "room",
+   "fieldtype": "Link",
+   "label": "Client Room",
+   "options": "Client Room",
+   "in_list_view": 1
+  },
+  {
+   "fieldname": "asked_by",
+   "fieldtype": "Data",
+   "label": "Asked By",
+   "in_list_view": 1
+  },
+  {
+   "fieldname": "asked_on",
+   "fieldtype": "Datetime",
+   "label": "Asked On"
+  },
+  {
+   "fieldname": "question",
+   "fieldtype": "Text",
+   "label": "Question",
+   "reqd": 1
+  },
+  {
+   "fieldname": "status",
+   "fieldtype": "Select",
+   "label": "Status",
+   "options": "Open\nAnswered",
+   "default": "Open",
+   "in_list_view": 1
+  },
+  {
+   "fieldname": "answer",
+   "fieldtype": "Text",
+   "label": "Answer"
+  },
+  {
+   "fieldname": "answered_by",
+   "fieldtype": "Data",
+   "label": "Answered By"
+  },
+  {
+   "fieldname": "answered_on",
+   "fieldtype": "Datetime",
+   "label": "Answered On"
+  },
+  {
+   "fieldname": "published",
+   "fieldtype": "Check",
+   "label": "Published On Lesson"
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "links": [],
+ "modified": "2026-08-14 09:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "Duty Board",
+ "name": "Duty Lesson Question",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [],
+ "title_field": "lesson_title"
+}

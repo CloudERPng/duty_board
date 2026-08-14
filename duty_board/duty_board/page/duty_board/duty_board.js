@@ -28,6 +28,7 @@ frappe.pages["duty-board"].on_page_load = function (wrapper) {
 	board.sales_btn = null;
 	const RSVG = {
 		pulse: '<path d="M3 3v18h18"/><path d="m19 9-5 5-4-4-3 3"/>',
+		ask: '<path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/><path d="M9.1 9a3 3 0 0 1 5.8 1c0 2-3 3-3 3"/><path d="M12 17h.01"/>',
 		day: '<path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><path d="M9 22V12h6v10"/>',
 		proj: '<rect width="7" height="9" x="3" y="3" rx="1"/><rect width="7" height="5" x="14" y="3" rx="1"/><rect width="7" height="9" x="14" y="12" rx="1"/><rect width="7" height="5" x="3" y="16" rx="1"/>',
 		sales: '<path d="M12 2v20"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>',
@@ -105,6 +106,7 @@ frappe.pages["duty-board"].on_page_load = function (wrapper) {
 			board.rail.splice(5, 0, { id: "library", ic: board._rsvg.lib, label: __("Library"), go: () => board.show_face("library") });
 			board.rail.push({ id: "training", ic: board._rsvg.cap, label: __("Team training"), go: () => board.team_training_dialog() });
 			board.rail.push({ id: "academyhealth", ic: board._rsvg.pulse, label: __("Academy health"), go: () => board.academy_health_dialog() });
+			board.rail.push({ id: "lessonq", ic: board._rsvg.ask, label: __("Lesson questions"), go: () => board.lesson_questions_dialog() });
 			if (q.pricer) board.rail.push({ id: "pricing", ic: board._rsvg.tag, label: __("CR pricing"), go: () => board.pricing_dialog() });
 			board.build_rail();
 			page.add_menu_item(__("🎓 Team training"), () => board.team_training_dialog());
@@ -7165,6 +7167,51 @@ this.$me.find(".duty-req-ok").on("click", (e) => {
 		return `<a class="duty-ah-open" style="cursor:pointer;font-size:12px;font-weight:600">\u{1F4C8} ${__("Academy health (all clients)")}</a>`;
 	}
 
+	lesson_questions_dialog() {
+		const esc = frappe.utils.escape_html;
+		const d = new frappe.ui.Dialog({ title: `\u2753 ${__("Lesson questions")}`, size: "extra-large" });
+		let status = "Open";
+		const load = () =>
+			frappe.call({
+				method: "duty_board.academy.questions", args: { status: status },
+				callback: (r) => {
+					const rows = r.message || [];
+					$(d.body).html(`
+						<div style="margin-bottom:10px">
+							<button class="btn btn-xs ${status === "Open" ? "btn-primary" : "btn-default"} duty-q-f" data-s="Open">${__("Open")}</button>
+							<button class="btn btn-xs ${status === "Answered" ? "btn-primary" : "btn-default"} duty-q-f" data-s="Answered">${__("Answered")}</button>
+							<button class="btn btn-xs ${status === "All" ? "btn-primary" : "btn-default"} duty-q-f" data-s="All">${__("All")}</button>
+						</div>
+						${rows.length ? rows.map((q) => `
+						<div class="duty-q-card" data-n="${esc(q.name)}">
+							<div class="duty-q-meta"><b>${esc(q.who)}</b> \u00b7 ${esc(q.customer)} \u00b7 ${esc(q.module_title || "")} \u2014 ${esc(q.lesson_title || "")}
+								${q.status === "Open" && q.waiting_days > 1 ? `<span class="duty-q-old">${q.waiting_days} ${__("days waiting")}</span>` : ""}</div>
+							<div class="duty-q-q">${esc(q.question)}</div>
+							${q.answer ? `<div class="duty-q-a"><b>${esc(q.answered_by || "")}</b>${q.published ? ` <span class="duty-q-pub">${__("published")}</span>` : ""}<div>${esc(q.answer)}</div></div>` : ""}
+							${q.status === "Open" ? `
+								<textarea class="form-control duty-q-in" rows="3" placeholder="${__("Write the answer the learner will read")}"></textarea>
+								<label class="duty-q-pubchk"><input type="checkbox" class="duty-q-pubbox" checked> ${__("Publish on the lesson so others do not have to ask")}</label>
+								<button class="btn btn-sm btn-primary duty-q-send">${__("Send answer")}</button>` : ""}
+						</div>`).join("")
+							: `<div class="text-muted">${__("Nothing here.")}</div>`}`);
+					$(d.body).find(".duty-q-f").on("click", (e) => { status = $(e.currentTarget).data("s"); load(); });
+					$(d.body).find(".duty-q-send").on("click", (e) => {
+						const $c = $(e.currentTarget).closest(".duty-q-card");
+						const txt = $c.find(".duty-q-in").val();
+						if (!txt || txt.trim().length < 5) { frappe.msgprint(__("Write an answer first.")); return; }
+						$(e.currentTarget).prop("disabled", true);
+						frappe.call({
+							method: "duty_board.academy.answer_question",
+							args: { name: $c.data("n"), answer: txt, publish: $c.find(".duty-q-pubbox").is(":checked") ? 1 : 0 },
+							callback: () => { frappe.show_alert({ message: __("Answer sent"), indicator: "green" }); load(); },
+						});
+					});
+				},
+			});
+		load();
+		d.show();
+	}
+
 	academy_health_css() {
 		if (document.getElementById("duty-ah-css")) return;
 		const s = document.createElement("style");
@@ -7176,7 +7223,14 @@ this.$me.find(".duty-req-ok").on("click", (e) => {
 			.duty-ah-chip.warn { background: #FFF7E6; color: #7A5312; }
 			.duty-ah-chip.warn b { color: #B27409; }
 			.duty-ah-hot td { background: #FFFCF5; }
-			.duty-ah-go { cursor: pointer; font-weight: 600; }`;
+			.duty-ah-go { cursor: pointer; font-weight: 600; }
+			.duty-q-card { border: 1px solid #E4EAE8; border-radius: 10px; padding: 12px 14px; margin-bottom: 10px; }
+			.duty-q-meta { font-size: 12px; color: #6B7C77; margin-bottom: 6px; }
+			.duty-q-old { background: #FFF7E6; color: #B27409; border-radius: 99px; padding: 2px 9px; font-weight: 700; margin-left: 6px; }
+			.duty-q-q { font-size: 14px; line-height: 1.55; margin-bottom: 8px; }
+			.duty-q-a { background: #F4F7F6; border-radius: 8px; padding: 10px 12px; font-size: 13px; line-height: 1.55; }
+			.duty-q-pub { color: #0C6B4F; font-size: 11px; text-transform: uppercase; letter-spacing: .8px; }
+			.duty-q-pubchk { display: block; font-weight: 400; font-size: 12.5px; margin: 8px 0; }`;
 		document.head.appendChild(s);
 	}
 

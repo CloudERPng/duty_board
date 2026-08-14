@@ -4021,25 +4021,25 @@ def _check_order(name, count):
 
 @frappe.whitelist()
 def client_lesson_ask(lesson, question):
-	"""A learner's question about a chapter, posted into their room.
+	"""A learner's question, kept with the chapter it is about.
 
-	Self-serve removed the facilitator, and with it the person a confused
-	learner would have asked. Without somewhere to put the question they stall
-	and quietly stop — which shows up much later as a cohort that never
-	finished, with no record of why.
-
-	Routed through client_post_message so it reaches staff by the same path as
-	any other client message. The counter on the lesson is the editorial
-	by-product: a chapter that keeps generating questions is usually a chapter
-	that is badly written rather than a subject that is hard."""
+	v3.220.0 posted these into the room. That was wrong: the room carries
+	invoices, tickets and project traffic, so a training question is buried
+	within a day and the answer never reaches the next person with the same
+	confusion. A question belongs to the chapter that caused it."""
 	room, l, rec = _lesson_access(lesson)
 	question = (question or "").strip()
 	if len(question) < 5:
 		frappe.throw(_("Tell us a little more so we can answer properly."))
 	mod_title = frappe.db.get_value("Duty Training Module", l.module, "title") or ""
-	text = _("\u2753 **Question about {0} \u2014 {1}**\n\n{2}").format(
-		mod_title, l.title, question[:2000]
-	)
+	doc = frappe.get_doc({
+		"doctype": "Duty Lesson Question",
+		"lesson": lesson, "lesson_title": l.title,
+		"module": l.module, "module_title": mod_title,
+		"room": room.name, "asked_by": frappe.session.user,
+		"asked_on": now_datetime(), "question": question[:4000],
+		"status": "Open",
+	}).insert(ignore_permissions=True)
 	try:
 		frappe.db.set_value(
 			"Duty Lesson", lesson, "question_count",
@@ -4048,9 +4048,70 @@ def client_lesson_ask(lesson, question):
 		)
 	except Exception:
 		pass
-	client_post_message(text)
-	return {"ok": 1}
+	frappe.db.commit()
+	_notify_tutors(doc, room)
+	return client_lesson_questions(lesson)
 
+
+def _tutors():
+	"""Who answers. Falls back to the academy approver so a fresh install has
+	somebody rather than nobody."""
+	s = frappe.get_cached_doc("Duty Settings")
+	raw = (s.get("academy_tutors") or "").strip()
+	if not raw:
+		raw = (s.get("academy_approver") or s.get("cr_pricer") or "").strip()
+	return [e.strip() for e in re.split(r"[,;\s]+", raw) if e.strip()]
+
+
+def _notify_tutors(doc, room):
+	try:
+		from duty_board.api import _notify_user
+
+		who = frappe.utils.get_fullname(doc.asked_by)
+		for t in _tutors():
+			_notify_user(
+				t,
+				_("\u2753 Lesson question \u00b7 {0}").format(room.customer or room.name),
+				_("{0} asked about {1}").format(who, doc.lesson_title),
+			)
+	except Exception:
+		frappe.log_error(frappe.get_traceback(), "duty_board lesson question notify")
+
+
+@frappe.whitelist()
+def client_lesson_questions(lesson):
+	"""This learner's own threads, plus anything published to the chapter.
+
+	Published answers are the point: the second person with the same confusion
+	finds it already answered, and over a cohort the chapter accumulates the
+	FAQ its readers actually needed."""
+	room, _l, _rec = _lesson_access(lesson)
+	me = frappe.session.user
+	rows = frappe.get_all(
+		"Duty Lesson Question",
+		filters={"lesson": lesson},
+		fields=["name", "asked_by", "asked_on", "question", "status", "answer",
+				"answered_by", "answered_on", "published", "room"],
+		order_by="asked_on asc",
+	)
+	out = []
+	for r in rows:
+		mine = r.asked_by == me
+		if not mine and not (cint(r.published) and r.answer):
+			continue
+		out.append({
+			"name": r.name,
+			"mine": mine,
+			"who": frappe.utils.get_fullname(r.asked_by) if not mine else _("You"),
+			"asked_on": str(r.asked_on)[:16] if r.asked_on else None,
+			"question": r.question,
+			"status": r.status,
+			"answer": r.answer,
+			"answered_by": frappe.utils.get_fullname(r.answered_by) if r.answered_by else None,
+			"answered_on": str(r.answered_on)[:16] if r.answered_on else None,
+			"published": cint(r.published),
+		})
+	return out
 
 @frappe.whitelist()
 def client_lesson_check(lesson, answers):

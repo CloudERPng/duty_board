@@ -716,7 +716,21 @@
 		.rdmin { display: none; }
 	}
 
-	.rdask { margin-top: 14px; }
+	.rdask { margin-top: 26px; padding-top: 16px; border-top: 1px solid #EEF2F0;
+		display: flex; align-items: baseline; gap: 14px; }
+	.rdask b { font-size: 15px; }
+	.qawrap { margin-top: 12px; }
+	.qacard { border: 1px solid #E4EAE8; border-radius: 12px; padding: 13px 15px; margin-bottom: 10px; background: #fff; }
+	.qacard.mine { border-color: #CBE7DE; background: #FAFDFC; }
+	.qahead { font-size: 12.5px; font-weight: 700; color: #33423E; margin-bottom: 5px; }
+	.qadt { font-weight: 400; color: #6B7C77; }
+	.qatag { float: right; font-size: 10.5px; font-weight: 700; text-transform: uppercase;
+		letter-spacing: .8px; color: var(--brand-700); background: var(--brand-50);
+		border-radius: 99px; padding: 2px 9px; }
+	.qaq { font-size: 14.5px; line-height: 1.55; }
+	.qaa { margin-top: 10px; padding-top: 10px; border-top: 1px solid #F0F4F2; font-size: 12.5px; color: #33423E; }
+	.qaa p { margin: 5px 0 0; font-size: 14.5px; line-height: 1.6; }
+	.qawait { margin-top: 8px; font-size: 12.5px; color: #8A5A0B; }
 	.rdasklink { font-size: 13px; color: var(--brand-700); font-weight: 600; cursor: pointer; }
 	.askwrap { margin-top: 12px; border: 1px solid #E4EAE8; border-radius: 12px; padding: 14px 16px; background: #fff; }
 	.askwrap.ok { background: var(--brand-50); border-color: #CBE7DE; color: #0C4A43; font-size: 13.5px; }
@@ -2543,12 +2557,13 @@ function openLesson(lesson, record) {
 						: `<button id="lread" onclick="markRead('${esc(lesson)}','${esc(record)}')">✓ Mark as read${next ? " · next →" : ""}</button>`}
 					<button class="rdghost" onclick="openCourse('${esc(record)}')">← All lessons</button>
 				</div>
-				<div class="rdask"><a class="rdasklink" onclick="askLesson('${esc(lesson)}')">Something unclear? Ask our team about this lesson</a></div>
+				<div class="rdask"><b>Questions on this lesson</b><a class="rdasklink" onclick="askLesson('${esc(lesson)}')">Ask a question</a></div>
 				<div id="rdaskbox"></div>
 			</div>`;
 		const bb = document.getElementById("lessonbody");
 		bb.innerHTML = l.html;
 		renderChecks(l, lesson, record);
+		renderAsk(lesson);
 		bb.querySelectorAll("blockquote").forEach((q) => {
 			const t = q.textContent;
 			q.className = t.indexOf("WATCH-OUT") === 0 ? "bq-warn" : t.indexOf("IMPLEMENTATION TIP") === 0 ? "bq-tip" : "bq-note";
@@ -2563,11 +2578,34 @@ function openLesson(lesson, record) {
 		}
 	}).catch(fail);
 }
+function renderAsk(lesson) {
+	const host = document.getElementById("rdaskbox");
+	if (!host) return;
+	api("client_lesson_questions", { lesson: lesson })
+		.then((rows) => paintAsk(lesson, rows || []))
+		.catch(() => paintAsk(lesson, []));
+}
+function paintAsk(lesson, rows) {
+	const host = document.getElementById("rdaskbox");
+	if (!host) return;
+	window._askrows = rows;
+	const thread = (q) => `
+		<div class="qacard${q.mine ? " mine" : ""}">
+			<div class="qahead">${esc(q.who)}${q.asked_on ? ` <span class="qadt">${esc(q.asked_on)}</span>` : ""}${!q.mine && q.published ? `<span class="qatag">Answered for everyone</span>` : ""}</div>
+			<div class="qaq">${esc(q.question)}</div>
+			${q.answer
+				? `<div class="qaa"><b>${esc(q.answered_by || "Our team")}</b>${q.answered_on ? ` <span class="qadt">${esc(q.answered_on)}</span>` : ""}<p>${esc(q.answer)}</p></div>`
+				: q.mine ? `<div class="qawait">Waiting for an answer \u2014 we will email you when it arrives.</div>` : ""}
+		</div>`;
+	host.innerHTML = `
+		${rows.length ? `<div class="qawrap">${rows.map(thread).join("")}</div>` : ""}
+		<div id="qaform"></div>`;
+}
 function askLesson(lesson) {
 	/* With no facilitator, a learner who does not understand something has
-	   nowhere to put the question, so they stall and quietly stop. This gives
-	   it somewhere to go — and tells us which chapters keep generating it. */
-	const box = document.getElementById("rdaskbox");
+	   nowhere to put the question, so they stall and quietly stop. The thread
+	   lives with the chapter, where the confusion happened. */
+	const box = document.getElementById("qaform");
 	if (!box) return;
 	if (box.innerHTML) { box.innerHTML = ""; return; }
 	box.innerHTML = `
@@ -2576,9 +2614,9 @@ function askLesson(lesson) {
 			<textarea id="askq" rows="3" placeholder="Describe what is unclear \u2014 quoting the part that confused you helps us answer properly."></textarea>
 			<div class="askacts">
 				<button id="asksend">Send question</button>
-				<button class="rdghost" onclick="askLesson()">Cancel</button>
+				<button class="rdghost" onclick="askLesson('${esc(lesson)}')">Cancel</button>
 			</div>
-			<p class="askfoot">Your question is posted in your organisation's room, so your colleagues and our team can both see it and the answer.</p>
+			<p class="askfoot">Your question stays with this lesson. We will answer here and email you when we do.</p>
 		</div>`;
 	document.getElementById("askq").focus();
 	document.getElementById("asksend").onclick = () => {
@@ -2586,9 +2624,7 @@ function askLesson(lesson) {
 		if (q.length < 5) return alert("Tell us a little more so we can answer properly.");
 		document.getElementById("asksend").disabled = true;
 		api("client_lesson_ask", { lesson: lesson, question: q })
-			.then(() => {
-				box.innerHTML = `<div class="askwrap ok">\u2713 Sent. Our team will reply in your room \u2014 carry on reading in the meantime.</div>`;
-			})
+			.then((rows) => paintAsk(lesson, rows || []))
 			.catch((e) => { document.getElementById("asksend").disabled = false; fail(e); });
 	};
 }

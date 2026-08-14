@@ -401,6 +401,84 @@ def order_approve(name, payment_ref=None, expires_on=None):
 	return {"order": o.name, "entitlement": ent.name}
 
 
+# ---------------- lesson questions: the tutor queue ----------------
+
+
+@frappe.whitelist()
+def questions(status="Open"):
+	"""The queue of learner questions, oldest first — because the person who
+	has waited longest is the one most likely to have given up."""
+	_staff_only()
+	filters = {} if status == "All" else {"status": status or "Open"}
+	rows = frappe.get_all(
+		"Duty Lesson Question", filters=filters,
+		fields=["name", "room", "module_title", "lesson_title", "lesson", "asked_by",
+				"asked_on", "question", "status", "answer", "answered_by", "published"],
+		order_by="asked_on asc", limit_page_length=100,
+	)
+	for r in rows:
+		r["customer"] = frappe.db.get_value("Client Room", r.room, "customer") or r.room
+		r["who"] = frappe.utils.get_fullname(r.asked_by)
+		r["waiting_days"] = (
+			(getdate(today()) - getdate(r.asked_on)).days if r.asked_on else 0
+		)
+	return rows
+
+
+@frappe.whitelist()
+def question_counts():
+	_staff_only()
+	return {"open": frappe.db.count("Duty Lesson Question", {"status": "Open"})}
+
+
+@frappe.whitelist()
+def answer_question(name, answer, publish=0):
+	"""Answer, notify in-app, email the learner, and optionally publish the
+	thread to the chapter so nobody else has to ask it."""
+	_staff_only()
+	answer = (answer or "").strip()
+	if len(answer) < 5:
+		frappe.throw(_("Write an answer first."))
+	q = frappe.get_doc("Duty Lesson Question", name)
+	q.db_set({
+		"answer": answer[:4000], "status": "Answered",
+		"answered_by": frappe.session.user, "answered_on": now_datetime(),
+		"published": 1 if cint(publish) else 0,
+	}, update_modified=False)
+	frappe.db.commit()
+	try:
+		from duty_board.api import _notify_user
+
+		_notify_user(
+			q.asked_by, _("\u2705 Your question has been answered"),
+			_("{0} \u00b7 {1}").format(q.module_title or "", q.lesson_title or ""),
+		)
+	except Exception:
+		pass
+	try:
+		frappe.sendmail(
+			recipients=[q.asked_by],
+			subject=_("Answered: your question on {0}").format(q.lesson_title or ""),
+			message="""<p>Hello,</p>
+<p>You asked about <b>{lesson}</b> in {module}:</p>
+<blockquote style="border-left:3px solid #DCE4E1;margin:0 0 14px;padding:2px 0 2px 14px;color:#4A5A55">{question}</blockquote>
+<p><b>{who} replied:</b></p>
+<div style="background:#F4F7F6;border-radius:10px;padding:14px 16px;line-height:1.6">{answer}</div>
+<p style="margin-top:16px">The answer is also on the lesson itself, under
+<i>Questions on this lesson</i>, so you can read it alongside the material.</p>
+<p>&mdash; CloudERP.One Academy</p>""".format(
+				lesson=frappe.utils.escape_html(q.lesson_title or ""),
+				module=frappe.utils.escape_html(q.module_title or ""),
+				question=frappe.utils.escape_html((q.question or "")[:600]),
+				who=frappe.utils.escape_html(frappe.utils.get_fullname(frappe.session.user)),
+				answer=frappe.utils.escape_html(answer).replace("\n", "<br>"),
+			),
+		)
+	except Exception:
+		frappe.log_error(frappe.get_traceback(), "duty_board answer email")
+	return {"ok": 1}
+
+
 # ---------------- academy health: the cross-room view ----------------
 
 
