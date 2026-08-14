@@ -199,7 +199,7 @@
 	.mtile { background: #f0fdfa; border-radius: 12px; padding: 12px 10px; text-align: center; }
 	.mtile b { display: block; font-size: 20px; color: #087A67; }
 	.mtile span { font-size: 11px; color: #65736F; }
-	.acadrow { display: flex; gap: 8px; align-items: baseline; flex-wrap: wrap; padding: 8px 0; border-bottom: 1px dashed #eee; font-size: 14px; }
+	.acadrow { display: flex; gap: 9px; align-items: baseline; flex-wrap: wrap; padding: 12px 0; border-bottom: 1px dashed #eee; font-size: 16px; line-height: 1.45; }
 	.acadrow:last-child { border-bottom: none; }
 	.acaddone { font-size: 12px; color: #166534; }
 	.acaddone a { color: #0E7490; font-weight: 700; }
@@ -2644,17 +2644,17 @@ function openCourse(record) {
 		const allRead = c.lessons.length && c.lessons.every((l) => l.done);
 		const qz = c.quiz || {};
 		document.getElementById("acad").innerHTML = `
-			<a style="cursor:pointer;font-size:13px;font-weight:700;color:#087A67" onclick="loadTraining()">← All training</a>
-			<h3 style="margin:8px 0 2px">📖 ${esc(c.title)}${c.product ? ` <span class="muted" style="font-size:13px;font-weight:400">· ${esc(c.product)}</span>` : ""}</h3>
-			${c.description ? `<div class="muted" style="font-size:13px;margin-bottom:8px">${esc(c.description)}</div>` : ""}
+			<a style="cursor:pointer;font-size:14.5px;font-weight:700;color:#087A67" onclick="loadTraining()">← All training</a>
+			<h3 style="margin:12px 0 4px;font-family:Fraunces,Georgia,serif;font-size:25px;line-height:1.22;font-weight:600">📖 ${esc(c.title)}${c.product ? ` <span class="muted" style="font-size:14px;font-weight:400;font-family:inherit">· ${esc(c.product)}</span>` : ""}</h3>
+			${c.description ? `<div class="muted" style="font-size:15px;line-height:1.6;margin-bottom:14px;max-width:70ch">${esc(c.description)}</div>` : ""}
 			${c.status === "Completed" || qz.passed
-				? `<div style="background:#EDF7F5;border:1px solid #B7DFD6;border-radius:10px;padding:9px 13px;margin-bottom:10px;font-weight:700;color:#0C4A43">🏅 Certified · best score ${qz.best}%</div>`
+				? `<div style="background:#EDF7F5;border:1px solid #B7DFD6;border-radius:10px;padding:12px 16px;margin-bottom:14px;font-weight:700;font-size:15.5px;color:#0C4A43">🏅 Certified · best score ${qz.best}%</div>`
 				: qz.bank >= 10
 					? allRead
 						? (examLocked(qz)
 							? `<div class="exlock">🔒 ${examLockReason(qz)}</div>`
-							: `<div style="display:flex;gap:10px;align-items:center;margin-bottom:10px;flex-wrap:wrap"><button onclick="startQuiz('${esc(c.record)}')">${qz.timed ? "⏱ Begin timed assessment" : "📝 Take the assessment"}</button><span class="muted" style="font-size:12px">${qz.attempts ? `best so far ${qz.best}% · ` : ""}${examPolicyLine(qz)}</span></div>`)
-						: `<div class="muted" style="font-size:13px;margin-bottom:10px">📝 The assessment unlocks when every lesson is read.</div>`
+							: `<div style="display:flex;gap:10px;align-items:center;margin-bottom:10px;flex-wrap:wrap"><button onclick="startQuiz('${esc(c.record)}')">${qz.timed ? "⏱ Begin timed assessment" : "📝 Take the assessment"}</button><span class="muted" style="font-size:13.5px">${qz.attempts ? `best so far ${qz.best}% · ` : ""}${examPolicyLine(qz)}</span></div>`)
+						: `<div class="muted" style="font-size:14.5px;margin-bottom:14px">📝 The assessment unlocks when every lesson is read.</div>`
 					: ""}
 			${c.lessons.length
 				? c.lessons
@@ -2662,7 +2662,7 @@ function openCourse(record) {
 							(l, i) => `
 				<div class="acadrow" style="cursor:pointer" onclick="openLesson('${esc(l.name)}','${esc(c.record)}')">
 					${l.done ? "✅" : "⚪"} <b>${i + 1}. ${esc(l.title)}</b>
-					<span class="muted" style="font-size:12px;margin-left:auto">~${l.est_minutes} min</span>
+					<span class="muted" style="font-size:13.5px;margin-left:auto">~${l.est_minutes} min</span>
 				</div>`
 						)
 						.join("")
