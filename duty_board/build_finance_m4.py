@@ -250,10 +250,10 @@ Payables rose ₦5,000,000 → add ₦5,000,000. Suppliers funded you.</p>
     ["30 days, per their terms", "60 days, per their behaviour",
      "45 days as a compromise", "They will not pay"], 1,
     "A forecast built on terms rather than behaviour is a wish, and it makes next month a surprise."),
-  C("The main purpose of a cash forecast is:",
-    ["Accuracy", "Lead time to act while options are still cheap",
-     "Satisfying the bank", "Setting the budget"], 1,
-    "A trough seen in week nine can be managed; the same trough discovered on the day can only be survived.")]),
+  C("A trough is visible in week nine of your forecast. The value of knowing now is:",
+    ["The forecast will prove accurate", "Options are still cheap — a supplier or the bank can be asked calmly",
+     "It can be excluded from reporting", "It confirms the budget"], 1,
+    "The same trough met on the day can only be survived, and every remaining option is worse and more expensive.")]),
 
 ("Cash-heavy trading: discipline as financial control", 10, """<p>Much of Nigerian retail and distribution still moves substantial physical cash, and cash has a property no other asset has: <b>it is the only thing on the balance sheet that can leave without a transaction</b>. Stock can be stolen, but it leaves a hole somebody eventually counts. Cash simply is not there.</p>
 
