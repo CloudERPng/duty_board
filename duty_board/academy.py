@@ -498,28 +498,34 @@ def _room_health(room, customer, today_d):
 	recs = frappe.get_all(
 		"Duty Training Record",
 		filters={"room": room},
-		fields=["name", "module", "trainee", "trainee_name", "status", "due_on", "creation"],
+		fields=["name", "module", "trainee", "trainee_name", "status", "due_on",
+				"creation", "extra_attempts"],
 	)
 	assigned = len(recs)
 	complete = sum(1 for r in recs if r.status == "Completed")
 	overdue = stalled = blocked = 0
 	open_recs = [r for r in recs if r.status != "Completed"]
+	opened = {
+		(p.user, p.module)
+		for p in frappe.get_all(
+			"Duty Lesson Progress",
+			filters={"module": ["in", list({r.module for r in open_recs}) or [""]]},
+			fields=["user", "module"],
+		)
+	} if open_recs else set()
 	for r in open_recs:
 		if r.due_on and getdate(r.due_on) < today_d:
 			overdue += 1
-		if (today_d - getdate(r.creation)).days >= DORMANT_AFTER_DAYS and not frappe.db.exists(
-			"Duty Lesson Progress", {"user": r.trainee, "module": r.module}
-		):
+		if (today_d - getdate(r.creation)).days >= DORMANT_AFTER_DAYS and (
+			r.trainee, r.module
+		) not in opened:
 			stalled += 1
-	for r in open_recs:
-		try:
-			from duty_board.client_room import _quiz_state
+	try:
+		from duty_board.client_room import _blocked_map
 
-			st = _quiz_state(r.module, r.trainee, r.name)
-			if not st["passed"] and st["attempts_left"] == 0:
-				blocked += 1
-		except Exception:
-			continue
+		blocked = sum(1 for v in _blocked_map(recs).values() if v)
+	except Exception:
+		frappe.log_error(frappe.get_traceback(), "duty_board health blocked")
 
 	# seats bought and not yet put to use
 	idle = 0

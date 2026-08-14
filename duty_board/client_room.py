@@ -4209,6 +4209,46 @@ def _require_room_admin():
 	return room
 
 
+def _blocked_map(recs):
+	"""Which of these training records have run out of exam attempts.
+
+	This used to call _quiz_state once per record, and _quiz_state costs four
+	queries. On a five-hundred-record room that is two thousand queries for one
+	screen, and academy.health() does it for every active room at once — forty
+	thousand queries in a single request, which is a timeout rather than a slow
+	page. Everything needed is fetchable in two queries and computed in memory."""
+	open_recs = [r for r in recs if r.get("status") != "Completed"]
+	if not open_recs:
+		return {}
+	policies = {
+		m.name: m
+		for m in frappe.get_all(
+			"Duty Training Module",
+			filters={"name": ["in", list({r.module for r in open_recs})]},
+			fields=["name", "max_attempts"],
+		)
+	}
+	attempts = {}
+	for a in frappe.get_all(
+		"Duty Quiz Attempt",
+		filters={"record": ["in", [r.name for r in open_recs]], "finished_at": ["is", "set"]},
+		fields=["record", "passed"],
+	):
+		cur = attempts.setdefault(a.record, {"n": 0, "passed": False})
+		cur["n"] += 1
+		if cint(a.passed):
+			cur["passed"] = True
+	out = {}
+	for r in open_recs:
+		cap = cint((policies.get(r.module) or {}).get("max_attempts"))
+		if not cap:
+			continue                      # unlimited attempts: never blocked
+		cap += cint(r.get("extra_attempts"))
+		st = attempts.get(r.name, {"n": 0, "passed": False})
+		out[r.name] = bool(not st["passed"] and st["n"] >= cap)
+	return out
+
+
 def _admin_rows(room):
 	members = frappe.get_all(
 		"Client Room Member",
@@ -4219,7 +4259,8 @@ def _admin_rows(room):
 	recs = frappe.get_all(
 		"Duty Training Record",
 		filters={"room": room.name},
-		fields=["name", "module", "trainee", "trainee_name", "status", "due_on", "completed_on"],
+		fields=["name", "module", "trainee", "trainee_name", "status", "due_on",
+				"completed_on", "extra_attempts"],
 	) if users else []
 	mods = list({r.module for r in recs})
 	titles = {
@@ -4230,15 +4271,13 @@ def _admin_rows(room):
 		)
 	}
 	today_d = getdate(today())
+	blocked = _blocked_map(recs)
 	for r in recs:
 		r["title"] = titles.get(r.module, r.module)
 		r["overdue"] = bool(
 			r.due_on and r.status != "Completed" and getdate(r.due_on) < today_d
 		)
-		r["blocked"] = False
-		if r.status != "Completed":
-			st = _quiz_state(r.module, r.trainee, r.name)
-			r["blocked"] = bool(not st["passed"] and st["attempts_left"] == 0)
+		r["blocked"] = blocked.get(r.name, False)
 	# per-course detail, so an administrator can see WHERE somebody stopped
 	# rather than only that they have not finished
 	mods = list({r.module for r in recs})
@@ -5432,7 +5471,10 @@ def _quiz_submit(attempt, answers, rec):
 			score_n += 1
 		else:
 			wrong.append(frappe.db.get_value("Duty Quiz Question", s["q"], "question"))
-	score = round(score_n * 100 / len(served))
+	# A corrupt or emptied served list would divide by zero here, which the
+	# learner would meet as a 500 straight after sitting the paper, with the
+	# attempt already consumed. Fail to a zero instead.
+	score = round(score_n * 100 / len(served)) if served else 0
 	pass_mark = cint(frappe.db.get_value("Duty Training Module", rec.module, "pass_mark")) or 70
 	passed = score >= pass_mark
 	att.db_set(
