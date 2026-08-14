@@ -27,6 +27,7 @@ frappe.pages["duty-board"].on_page_load = function (wrapper) {
 	board.face_btn = null;
 	board.sales_btn = null;
 	const RSVG = {
+		pulse: '<path d="M3 3v18h18"/><path d="m19 9-5 5-4-4-3 3"/>',
 		day: '<path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><path d="M9 22V12h6v10"/>',
 		proj: '<rect width="7" height="9" x="3" y="3" rx="1"/><rect width="7" height="5" x="14" y="3" rx="1"/><rect width="7" height="9" x="14" y="12" rx="1"/><rect width="7" height="5" x="3" y="16" rx="1"/>',
 		sales: '<path d="M12 2v20"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>',
@@ -103,14 +104,14 @@ frappe.pages["duty-board"].on_page_load = function (wrapper) {
 			board.is_pricer = !!q.pricer;
 			board.rail.splice(5, 0, { id: "library", ic: board._rsvg.lib, label: __("Library"), go: () => board.show_face("library") });
 			board.rail.push({ id: "training", ic: board._rsvg.cap, label: __("Team training"), go: () => board.team_training_dialog() });
+			board.rail.push({ id: "academyhealth", ic: board._rsvg.pulse, label: __("Academy health"), go: () => board.academy_health_dialog() });
 			if (q.pricer) board.rail.push({ id: "pricing", ic: board._rsvg.tag, label: __("CR pricing"), go: () => board.pricing_dialog() });
 			board.build_rail();
 			page.add_menu_item(__("🎓 Team training"), () => board.team_training_dialog());
 			page.add_menu_item(__("\u{1F4C8} Academy health"), () => board.academy_health_dialog());
 			board._more_extra = board._more_extra || [];
-			board._more_extra.push({ icon: "\u{1F4C8}", label: __("Academy health"), go: () => board.academy_health_dialog() });
-			board._more_extra = board._more_extra || [];
 			board._more_extra.push({ icon: "🎓", label: __("Team training"), go: () => board.team_training_dialog() });
+			board._more_extra.push({ icon: "\u{1F4C8}", label: __("Academy health"), go: () => board.academy_health_dialog() });
 			if (q.pricer) {
 				page.add_menu_item(__("💼 CR pricing ({0})", [(q.queue || []).length]), () => board.pricing_dialog());
 				board._more_extra = board._more_extra || [];
@@ -7157,6 +7158,13 @@ this.$me.find(".duty-req-ok").on("click", (e) => {
 		d.fields_dict.date.$input && d.fields_dict.date.$input.attr("min", frappe.datetime.get_today());
 	}
 
+	academy_health_link() {
+		/* Somebody looking for anything academy-related opens the room dialog
+		   first, so the cross-room view must be reachable from inside it and
+		   not only from the page menu two levels out. */
+		return `<a class="duty-ah-open" style="cursor:pointer;font-size:12px;font-weight:600">\u{1F4C8} ${__("Academy health (all clients)")}</a>`;
+	}
+
 	academy_health_css() {
 		if (document.getElementById("duty-ah-css")) return;
 		const s = document.createElement("style");
@@ -7760,6 +7768,8 @@ this.$me.find(".duty-req-ok").on("click", (e) => {
 		d.set_primary_action(`\u{1F465} ${__("Cohorts")}`, () => { d.hide(); this.cohorts_dialog(x); });
 		d.set_secondary_action_label(`\u{1F9FE} ${__("Seat orders")}`);
 		d.set_secondary_action(() => { d.hide(); this.academy_orders_dialog(); });
+		d.$wrapper.on("click", ".duty-ah-open", () => { d.hide(); this.academy_health_dialog(); });
+		setTimeout(() => d.$wrapper.find(".modal-footer").prepend(`<span style="margin-right:auto;padding-left:4px">${this.academy_health_link()}</span>`), 0);
 		const load = () =>
 			frappe.call({
 				method: "duty_board.client_room.room_training",
