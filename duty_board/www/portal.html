@@ -656,6 +656,14 @@
 	.catpend { font-size: 12.5px; line-height: 1.5; background: #FFF7E6; border-radius: 7px; padding: 7px 11px; margin-top: 11px; color: #7A5312; }
 	.catmore { font-size: 13px; font-weight: 700; color: var(--brand-700); margin-top: auto; padding-top: 13px; }
 	.cattag.out { background: #F1F4F3; color: #6B7C77; }
+	.cattag.free { background: #E4F3EC; color: #0C6B4F; }
+	.catstateline { margin-top: 8px; }
+	.catstate { font-size: 12.5px; font-weight: 600; line-height: 1.45; }
+	.catstate.ok { color: #0C6B4F; }
+	.catstate.wait { color: #8A5A0B; }
+	.catstate.buy { color: #6B7C77; font-weight: 500; }
+	.catstate.out { color: #6B7C77; font-weight: 500; }
+	.catdprice { margin: 10px 0 4px; }
 	.catback { cursor: pointer; font-size: 14px; color: var(--brand-700); font-weight: 700; }
 	.catdtitle { font-family: Fraunces, Georgia, serif; font-size: 28px; line-height: 1.2; font-weight: 600; margin: 4px 0 2px; letter-spacing: -.2px; }
 	.catsec { margin-top: 20px; font-size: 15px; line-height: 1.65; }
@@ -2132,11 +2140,16 @@ function openCatalogue() {
 		const h = Math.round((mins / 60) * 10) / 10;
 		return h < 1 ? mins + " min" : h + (h === 1 ? " hour" : " hours");
 	};
-	const badge = (r) =>
-		r.included ? `<span class="cattag inc">Included</span>`
-		: r.seats_left ? `<span class="cattag own">${r.seats_left} seat${r.seats_left === 1 ? "" : "s"} left</span>`
-		: r.access === "Paid" ? `<span class="cattag paid">${money(r.seat_price)} / seat</span>`
-		: `<span class="cattag out">Not subscribed</span>`;
+	const priceTag = (r) =>
+		r.access === "Paid"
+			? `<span class="cattag paid">${money(r.seat_price)} / seat</span>`
+			: `<span class="cattag free">Free</span>`;
+	const stateLine = (r) =>
+		r.included ? `<span class="catstate ok">\u2713 Included with your subscription</span>`
+		: r.pending ? `<span class="catstate wait">Request for ${r.pending_seats} seat${r.pending_seats === 1 ? "" : "s"} received</span>`
+		: r.seats ? `<span class="catstate ok">\u2713 ${r.seats_left} of ${r.seats} seats available</span>`
+		: r.access === "Paid" ? `<span class="catstate buy">No seats purchased yet</span>`
+		: `<span class="catstate out">Comes with ${esc(r.product || "another product")} \u2014 not in your subscription</span>`;
 	api("duty_board.academy.academy_catalogue")
 		.then((rows) => {
 			window._cat = rows;
@@ -2146,11 +2159,11 @@ function openCatalogue() {
 						<button style="background:#E2E8E5;color:#2A3833" onclick="admFocus(0);loadAdminTraining()">Back</button></div>
 					${rows.length ? `<div class="catgrid">${rows.map((r, i) => `
 						<div class="catcard${r.assignable ? "" : " dim"}" data-i="${i}">
-							<div class="catcardtop">${badge(r)}</div>
+							<div class="catcardtop">${priceTag(r)}</div>
 							<b class="catname">${esc(r.title)}</b>
 							<div class="catmeta">${esc(r.product || "")} · ${r.courses} course${r.courses === 1 ? "" : "s"}${r.minutes ? " · " + hrs(r.minutes) : ""}</div>
+							<div class="catstateline">${stateLine(r)}</div>
 							<div class="catblurb">${esc(r.description || "")}</div>
-							${r.pending ? `<div class="catpend">Request for ${r.pending_seats} seat(s) received</div>` : ""}
 							<span class="catmore">Details →</span>
 						</div>`).join("")}</div>`
 						: `<span class="muted">No certification tracks have been published yet.</span>`}
@@ -2176,7 +2189,8 @@ function openTrack(i) {
 		<div class="admwrap">
 			<div class="admhead"><div><a class="catback" onclick="openCatalogue()">← Catalogue</a></div></div>
 			<h3 class="catdtitle">${esc(r.title)}</h3>
-			<div class="catmeta" style="margin-bottom:14px">${esc(r.product || "")} · ${r.courses} course${r.courses === 1 ? "" : "s"} · about ${hrs(r.minutes)} of study</div>
+			<div class="catmeta">${esc(r.product || "")} · ${r.courses} course${r.courses === 1 ? "" : "s"} · about ${hrs(r.minutes)} of study</div>
+			<div class="catdprice">${r.access === "Paid" ? `<span class="cattag paid">${money(r.seat_price)} per seat</span>` : `<span class="cattag free">Free</span>`}</div>
 			${state}
 			${r.description ? `<div class="catsec"><b>What this track covers</b><p>${esc(r.description)}</p></div>` : ""}
 			${r.who_for ? `<div class="catsec"><b>Who it is for</b><p>${esc(r.who_for)}</p></div>` : ""}
