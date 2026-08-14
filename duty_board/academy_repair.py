@@ -26,7 +26,7 @@ import frappe
 
 FAMILIES = ("closer", "bkpr", "consultant", "client_reports")
 ALL_FAMILIES = ("accounts_pro", "bkpr", "client_reports", "closer", "consultant",
-                "hr_pro", "inventory_pro", "payroll_pro", "pos_pro",
+                "finance", "hr_pro", "inventory_pro", "payroll_pro", "pos_pro",
                 "procure_pro", "sales_pro", "sysadmin_pro")
 LETTERS = "ABCD"
 
@@ -253,6 +253,80 @@ def topic_coverage():
     for title, miss, n in sorted(bare, key=lambda x: -x[1])[:20]:
         print("   %-52s %d of %d untagged" % (title[:52], miss, n))
     return {"tagged": tagged, "total": tot, "modules_incomplete": len(bare)}
+
+
+def push_lessons(family=None, reset_progress=0, dry_run=0):
+    """Sync lesson CONTENT for one family, or all of them, to the data files.
+
+    push_closer_lessons reads academy_closer_data.json and nothing else — it was
+    written for one repair and its name says so. Content edited anywhere else
+    therefore had no way to reach an already-seeded site, which is how a set of
+    glossary panels was written, packaged, deployed and never appeared.
+
+    Syncs by position within each module: chapter N in the file becomes chapter
+    N on the site, updating title, content and estimate in place, and appending
+    any extra chapters. Lessons are never deleted, because Duty Lesson Progress
+    rows point at them.
+
+    family=None does every family. reset_progress=1 clears completion for the
+    modules touched — use it only when the material changed enough that a
+    learner's tick would be a false record.
+    """
+    dry_run = int(dry_run or 0)
+    reset_progress = int(reset_progress or 0)
+    fams = (family,) if family else ALL_FAMILIES
+    here = os.path.dirname(os.path.abspath(__file__))
+    changed = inserted = skipped = 0
+
+    for fam in fams:
+        path = os.path.join(here, "academy_%s_data.json" % fam)
+        if not os.path.exists(path):
+            continue
+        with open(path, encoding="utf-8") as f:
+            data = json.load(f)
+        for key, mod in data.items():
+            if not isinstance(mod, dict) or "lessons" not in mod:
+                continue
+            mod_name = frappe.db.get_value(
+                "Duty Training Module", {"title": mod["title"]}, "name"
+            )
+            if not mod_name:
+                skipped += 1
+                continue
+            live = frappe.get_all(
+                "Duty Lesson", filters={"module": mod_name},
+                fields=["name", "title", "content", "est_minutes"],
+                order_by="sort_order asc, creation asc",
+            )
+            for i, l in enumerate(mod["lessons"]):
+                payload = {
+                    "title": l["title"], "content": l["html"],
+                    "est_minutes": cint(l.get("est")), "sort_order": i,
+                }
+                if i < len(live):
+                    cur = live[i]
+                    if (cur.title == l["title"] and cur.content == l["html"]
+                            and cint(cur.est_minutes) == cint(l.get("est"))):
+                        continue
+                    changed += 1
+                    if not dry_run:
+                        frappe.db.set_value("Duty Lesson", cur.name, payload,
+                                            update_modified=False)
+                else:
+                    inserted += 1
+                    if not dry_run:
+                        doc = {"doctype": "Duty Lesson", "module": mod_name}
+                        doc.update(payload)
+                        frappe.get_doc(doc).insert(ignore_permissions=True)
+            if reset_progress and not dry_run:
+                frappe.db.delete("Duty Lesson Progress", {"module": mod_name})
+            print("  %-14s %-44s %d chapter(s)" % (fam, mod["title"][:44], len(mod["lessons"])))
+
+    if not dry_run:
+        frappe.db.commit()
+    print("\n%s: %d chapter(s) updated, %d inserted, %d module(s) not on this site."
+          % ("DRY RUN" if dry_run else "APPLIED", changed, inserted, skipped))
+    return {"changed": changed, "inserted": inserted, "skipped": skipped}
 
 
 def push_closer_lessons(reset_progress=0, dry_run=0):
