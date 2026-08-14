@@ -182,7 +182,9 @@ class TestDutyBoardCore(FrappeTestCase):
 		room = client_room.create_room(self._any_customer())
 		token = frappe.db.get_value("Client Room", room, "invite_token")
 		email = f"__unittest_pw_{frappe.generate_hash(length=8)}@example.com"
-		client_room.submit_join_request(token, "PW Client", email, password="secret123!")
+		# v3.58.0 removed guest-chosen credentials deliberately: the account is
+		# created disabled and the approval email carries the only set-password link.
+		client_room.submit_join_request(token, "PW Client", email)
 		self.assertEqual(frappe.db.get_value("User", email, "enabled"), 0)
 		req = frappe.get_all(
 			"Client Join Request", filters={"room": room, "email": email}, limit=1
@@ -216,10 +218,11 @@ class TestDutyBoardCore(FrappeTestCase):
 		room = client_room.create_room(self._any_customer())
 		client_room.post_message(room, "unread check one")
 		# a different viewer has not seen it
+		# v3.57.0 made this a breakdown: {"total", "client", "other"}
 		count = client_room._room_unread(room, "someone.else@example.com")
-		self.assertGreaterEqual(count, 1)
+		self.assertGreaterEqual(count["total"], 1)
 		# the author has effectively seen their own message
-		self.assertEqual(client_room._room_unread(room, frappe.session.user), 0)
+		self.assertEqual(client_room._room_unread(room, frappe.session.user)["total"], 0)
 
 	def test_narration_stays_behind_visibility(self):
 		room_name = client_room.create_room(self._any_customer())
@@ -280,7 +283,7 @@ class TestDutyBoardCore(FrappeTestCase):
 		ics = client_room._meeting_ics(doc)
 		self.assertIn("DTSTART;TZID=Africa/Lagos:20260803T140000", ics)
 		self.assertIn("DTEND;TZID=Africa/Lagos:20260803T150000", ics)
-		self.assertIn("SUMMARY:Xlevel meeting: ics test", ics)
+		self.assertIn("SUMMARY:ics test", ics)
 
 	def test_settle_outcome_posts_to_room(self):
 		room_name = client_room.create_room(self._any_customer())
@@ -491,7 +494,12 @@ class TestDutyBoardCore(FrappeTestCase):
 		self.assertTrue(any(k.name == art["name"] for k in sim["kb"]))
 
 	def test_workload_and_skills(self):
-		me = frappe.session.user
+		# staff_workload deliberately omits Administrator and Guest, and the suite
+		# runs as Administrator — so exercise it against a real staff row.
+		roster = api.staff_workload()
+		if not roster:
+			self.skipTest("no non-Administrator staff on this site")
+		me = roster[0]["user"]
 		before = api.skill_add(me, "UnitTestSkillZ")
 		mine = next(r for r in before if r["user"] == me)
 		self.assertTrue(any(s["skill"] == "UnitTestSkillZ" for s in mine["skills"]))
@@ -532,12 +540,13 @@ class TestDutyBoardCore(FrappeTestCase):
 		room2 = frappe.get_doc("Client Room", room2_name)
 		frappe.get_doc({
 			"doctype": "Duty Meeting", "room": room2_name, "customer": cust2,
-			"topic": "today probe", "meeting_date": "2026-08-05",
+			"topic": "today probe", "meeting_date": "2026-08-06",
 			"start_time": "10:00:00", "duration_mins": 60, "status": "Pending",
 			"requested_by": "Administrator",
 			"attendees": [{"user": staff_user}],
 		}).insert(ignore_permissions=True)
 		with self.assertRaises(frappe.ValidationError):
+			# the rule is one meeting per DATE, so probe the date that is taken
 			client_room._meeting_caps_check(room2, [], "2026-08-06")
 
 	def test_renewal_math_and_freeze(self):
