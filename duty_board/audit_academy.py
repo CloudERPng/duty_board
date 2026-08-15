@@ -47,7 +47,11 @@ BANNED = [
     "delve", "tapestry", "testament to", "in today's", "it's worth noting",
     "at the end of the day", "game-changer", "game changer", "seamless",
     "cutting-edge", "best-in-class", "synergy", "paradigm", "holistic",
-    "unlock", "empower", "ever-evolving", "furthermore", "moreover",
+    # "unlock" was here as a bare word and produced four false positives on the
+    # ZhiftPOS track, where locking and unlocking a till is the product's own
+    # vocabulary. The marketing sense is what should be caught, not the verb.
+    "unlock the potential", "unlock the power", "unlocks new", "unlocking new",
+    "empower", "ever-evolving", "furthermore", "moreover",
     "in conclusion", "dive into", "deep dive", "navigate the", "the world of",
     "landscape of", "realm of", "when it comes to", "needless to say",
 ]
