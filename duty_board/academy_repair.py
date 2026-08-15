@@ -27,7 +27,7 @@ from frappe.utils import cint
 
 FAMILIES = ("closer", "bkpr", "consultant", "client_reports")
 ALL_FAMILIES = ("accounts_pro", "bkpr", "client_reports", "closer", "consultant",
-                "finance", "hr_pro", "inventory_pro", "payroll_pro", "pos_pro",
+                "control", "finance", "hr_pro", "inventory_pro", "payroll_pro", "pos_pro",
                 "procure_pro", "sales_pro", "sysadmin_pro")
 LETTERS = "ABCD"
 
