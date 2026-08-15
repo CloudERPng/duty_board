@@ -29,6 +29,9 @@ import sys
 
 DATA = "academy_pos_pro_data.json"
 CHECK_ONLY = "--check" in sys.argv
+# --force refreshes chapters that already have checks, so a corrected rationale
+# in this file can reach the data rather than being skipped as already done
+FORCE = "--force" in sys.argv
 
 C = lambda q, opts, ans, why: {"q": q, "opts": opts, "ans": ans, "why": why}
 
@@ -122,11 +125,11 @@ CHECKS = {
   C("An offline sale is being returned. It can be found by:",
     ["The back-office invoice number only", "Its local reference as well as the back-office number",
      "Neither, until it posts", "The customer record"], 1,
-    "Both numbers refer to the same sale."),
+    "The local reference and the back-office number both identify it, so a return can be found using either one."),
   C("The invoice summary shows whether the sale is inside the return window. Reading it first:",
     ["Delays the conversation", "Tells you whether this is routine or needs a beyond-window override, before the conversation goes further",
      "Is only relevant for refunds", "Is the approver's job"], 1,
-    "It changes what you say next.")],
+    "Reading the window flag early tells you whether this is routine or needs a beyond-window override.")],
  7: [
   C("Expiring-stock markdowns run at double budget, and eleven approvals all trace to one supplier's short-dated deliveries. The finding belongs to:",
     ["The cashiers", "Purchasing, with the report attached",
@@ -176,7 +179,7 @@ CHECKS = {
   C("Goods reserved on a lay-by are:",
     ["Untracked until collection", "Still tracked goods — batch and serial entry applies as in a normal sale",
      "Removed from the system", "Held outside stock"], 1,
-    "Reserved does not mean unrecorded."),
+    "Reserved goods are still tracked goods, so batch and serial entry applies exactly as in a normal sale."),
   C("The instalment schedule is created:",
     ["When the first instalment falls due", "On payment of the deposit, from the profile's instalment count and spacing",
      "Manually by the cashier", "At the customer's request"], 1,
@@ -462,7 +465,7 @@ CHECKS = {
   C("Building a basket, taking cash, then clearing it is:",
     ["An efficient correction", "A known fraud pattern, which is why cleared carts are recorded and reviewed",
      "Permitted for supervisors", "Prevented by the system"], 1,
-    "The reason the rule is hold, not clear."),
+    "Cleared carts are recorded and reviewed precisely because of it, which is why the honest habit is simply to hold."),
   C("Your profile does not permit you to clear, but the Clear button is visible. This means:",
     ["The profile is misconfigured", "An approver holds the permission, and clearing will require approval",
      "Clearing is disabled entirely", "You may clear with a note"], 1,
@@ -551,7 +554,7 @@ def main():
             if idx >= len(lessons):
                 sys.exit("ABORT: %s has no chapter %d" % (mod_key, idx + 1))
             l = lessons[idx]
-            if l.get("checks"):
+            if l.get("checks") and not FORCE:
                 skipped += 1
                 continue
             for c in checks:
