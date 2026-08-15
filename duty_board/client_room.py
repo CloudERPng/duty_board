@@ -6637,13 +6637,29 @@ def _meeting_caps_check(room, ids, date):
 				frappe.utils.formatdate(target_d, "d MMM")
 			)
 		)
-	week_start = today_d - timedelta(days=today_d.weekday())
+	# The weekly cap limits meetings held in a week, not requests made in a
+	# week. It previously counted by `creation` and anchored on the current
+	# week, so booking ten meetings today for next month exhausted the cap
+	# while next month stayed empty — and meetings entered gradually could
+	# exceed the cap for their own week without anything noticing. It also
+	# counted cancelled meetings, which the daily cap already excluded.
+	# Now: the week containing the target date, counted by meeting_date,
+	# cancellations excluded, matching the daily rule directly above.
+	week_start = target_d - timedelta(days=target_d.weekday())
+	week_end = week_start + timedelta(days=6)
 	week_n = frappe.db.count(
-		"Duty Meeting", {"room": ["in", rooms], "creation": [">=", str(week_start)]}
+		"Duty Meeting",
+		{
+			"room": ["in", rooms],
+			"meeting_date": ["between", [str(week_start), str(week_end)]],
+			"status": ["!=", "Cancelled"],
+		},
 	)
 	if week_n >= 3:
 		frappe.throw(
-			_("You've reached this week's limit of three meeting requests — for anything urgent, message us right here.")
+			_("There are already three meetings in the week of {0} — that is the weekly limit. Pick a different week, or message us right here for anything urgent.").format(
+				frappe.utils.formatdate(week_start, "d MMM")
+			)
 		)
 	for u in ids:
 		busy = frappe.db.sql(

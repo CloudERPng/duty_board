@@ -1781,7 +1781,7 @@ class DutyBoard {
 			fields.unshift({
 				fieldname: "pause_note",
 				fieldtype: "HTML",
-				options: `<div class="duty-pause-note">${note}</div>`,
+				options: `<div class="duty-pause-note">${frappe.utils.escape_html(note || "")}</div>`,
 			});
 		}
 		if (switching && current && current.todo) {
@@ -2979,7 +2979,7 @@ this.$me.find(".duty-req-ok").on("click", (e) => {
 			callback: (r) => {
 				const c = r.message;
 				if (!c) return;
-				const d = new frappe.ui.Dialog({ title: `📖 ${c.title}`, size: "large" });
+				const d = new frappe.ui.Dialog({ title: `📖 ${frappe.utils.escape_html(c.title || "")}`, size: "large" });
 				const render = (cc) => {
 					const allRead = cc.lessons.length && cc.lessons.every((l) => l.done);
 					const qz = cc.quiz || {};
@@ -5863,7 +5863,7 @@ this.$me.find(".duty-req-ok").on("click", (e) => {
 				args: { name: x.name },
 				callback: (r) => {
 					const m = r.message || {};
-					const d = new frappe.ui.Dialog({ title: `📈 ${x.customer} — ${__("Live metrics")}` });
+					const d = new frappe.ui.Dialog({ title: `📈 ${frappe.utils.escape_html(x.customer || "")} — ${__("Live metrics")}` });
 					const tile = (v, l) => (v === null || v === undefined) ? "" : `<div class="duty-mtile"><b>${frappe.utils.escape_html(String(v))}</b><span>${frappe.utils.escape_html(l)}</span></div>`;
 					$(d.body).html(`<div class="duty-mtiles">
 						${tile(m.open_now, __("open now"))}
@@ -7359,7 +7359,7 @@ this.$me.find(".duty-req-ok").on("click", (e) => {
 
 	cohorts_dialog(x) {
 		const esc = frappe.utils.escape_html;
-		const d = new frappe.ui.Dialog({ title: `\u{1F465} ${x.customer} \u2014 ${__("Training cohorts")}`, size: "extra-large" });
+		const d = new frappe.ui.Dialog({ title: `\u{1F465} ${frappe.utils.escape_html(x.customer || "")} \u2014 ${__("Training cohorts")}`, size: "extra-large" });
 		const call = (m, args, cb) =>
 			frappe.call({ method: `duty_board.cohort.${m}`, args: args || {}, callback: (r) => cb && cb(r.message) });
 		const wtext = (w) => {
@@ -7830,7 +7830,7 @@ this.$me.find(".duty-req-ok").on("click", (e) => {
 	}
 
 	academy_dialog(x) {
-		const d = new frappe.ui.Dialog({ title: `🎓 ${x.customer} — ${__("Training Academy")}`, size: "large" });
+		const d = new frappe.ui.Dialog({ title: `🎓 ${frappe.utils.escape_html(x.customer || "")} — ${__("Training Academy")}`, size: "large" });
 		d.set_primary_action(`\u{1F465} ${__("Cohorts")}`, () => { d.hide(); this.cohorts_dialog(x); });
 		d.set_secondary_action_label(`\u{1F9FE} ${__("Seat orders")}`);
 		d.set_secondary_action(() => { d.hide(); this.academy_orders_dialog(); });
@@ -8061,7 +8061,7 @@ this.$me.find(".duty-req-ok").on("click", (e) => {
 			.xcr-empty{color:var(--fnt);font-size:13px;padding:18px 4px}`;
 			document.head.appendChild(s);
 		}
-		const d = new frappe.ui.Dialog({ title: `${x.customer} — ${__("Change requests")}`, size: "large" });
+		const d = new frappe.ui.Dialog({ title: `${frappe.utils.escape_html(x.customer || "")} — ${__("Change requests")}`, size: "large" });
 		let view = null;
 		const PRICE_CHIP = (c) => {
 			const ps = c.pricing_status || "Awaiting Pricing";
@@ -8241,7 +8241,7 @@ this.$me.find(".duty-req-ok").on("click", (e) => {
 								frappe.msgprint(__("Link a project to this room first — tasks live on the project board."));
 								return;
 							}
-							const td = new frappe.ui.Dialog({ title: `${__("Tasks delivering")} “${c.title}”` });
+							const td = new frappe.ui.Dialog({ title: `${__("Tasks delivering")} “${frappe.utils.escape_html(c.title || "")}”` });
 							$(td.body).html(
 								(opts.tasks || [])
 									.map(
@@ -8305,7 +8305,7 @@ this.$me.find(".duty-req-ok").on("click", (e) => {
 	}
 
 	room_shelf_dialog(x) {
-		const d = new frappe.ui.Dialog({ title: `📚 ${x.customer} — ${__("Shelf")}` });
+		const d = new frappe.ui.Dialog({ title: `📚 ${frappe.utils.escape_html(x.customer || "")} — ${__("Shelf")}` });
 		const load = () =>
 			frappe.call({
 				method: "duty_board.client_room.get_room",
@@ -8374,7 +8374,7 @@ this.$me.find(".duty-req-ok").on("click", (e) => {
 	}
 
 	room_members_dialog(x) {
-		const d = new frappe.ui.Dialog({ title: `👥 ${x.customer}` });
+		const d = new frappe.ui.Dialog({ title: `👥 ${frappe.utils.escape_html(x.customer || "")}` });
 		const render = (data) => {
 			$(d.body).html(`
 				<div class="duty-cr-memlist">
