@@ -3516,7 +3516,8 @@ def room_tracks_for_assign(name):
 	out = []
 	for t in frappe.get_all(
 		"Duty Certification Track",
-		filters={"active": 1, "audience": "Client"},
+		filters={"active": 1, "audience": "Client",
+				 "private_to_room": ["in", [None, "", room.name]]},
 		fields=["name", "title", "product"],
 		order_by="product asc, title asc",
 	):
@@ -3841,7 +3842,8 @@ def _track_for_module(room, user, module):
 	names = list({p.parent for p in parents})
 	tracks = frappe.get_all(
 		"Duty Certification Track",
-		filters={"name": ["in", names], "active": 1, "audience": "Client"},
+		filters={"name": ["in", names], "active": 1, "audience": "Client",
+				 "private_to_room": ["in", [None, "", room.name]]},
 		fields=["name", "title", "product"],
 		order_by="title asc",
 	)
@@ -4992,7 +4994,7 @@ def staff_tracks():
 	out = []
 	for t in frappe.get_all(
 		"Duty Certification Track",
-		filters={"active": 1},
+		filters={"active": 1, "private_to_room": ["in", [None, ""]]},
 		fields=["name", "title", "product", "audience"],
 		order_by="product asc, title asc",
 	):
@@ -5872,7 +5874,9 @@ def _evaluate_certifications(user):
 	if not completed:
 		return
 	for track in frappe.get_all(
-		"Duty Certification Track", filters={"active": 1}, fields=["name"]
+		"Duty Certification Track",
+		filters={"active": 1, "private_to_room": ["in", [None, ""]]},
+		fields=["name"],
 	):
 		t = frappe.get_doc("Duty Certification Track", track.name)
 		mods = [m.module for m in t.modules]
@@ -6056,7 +6060,8 @@ def _tracks_for_room(room, user):
 		return []
 	tracks = frappe.get_all(
 		"Duty Certification Track",
-		filters={"active": 1, "audience": "Client"},
+		filters={"active": 1, "audience": "Client",
+				 "private_to_room": ["in", [None, "", room.name]]},
 		fields=["name", "title", "product", "description", "access"],
 		order_by="product asc, title asc",
 	)

@@ -21,7 +21,8 @@ def get_context(context):
 
 	rows = frappe.get_all(
 		"Duty Certification Track",
-		filters={"active": 1, "audience": "Client"},
+		filters={"active": 1, "audience": "Client",
+				 "private_to_room": ["in", [None, ""]]},
 		fields=["name", "title", "product", "description", "access", "seat_price",
 				"who_for", "outcomes"],
 		order_by="product asc, title asc",

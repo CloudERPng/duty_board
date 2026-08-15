@@ -28,8 +28,8 @@
    "fieldname": "product",
    "fieldtype": "Link",
    "label": "Product Brand",
-   "reqd": 1,
-   "options": "Duty Product"
+   "options": "Duty Product",
+   "reqd": 1
   },
   {
    "default": "Client",
@@ -39,11 +39,11 @@
    "options": "Client\nConsultant"
   },
   {
+   "description": "e.g. XLV-CRM-CLOSER",
    "fieldname": "serial_prefix",
    "fieldtype": "Data",
    "label": "Serial Prefix",
-   "reqd": 1,
-   "description": "e.g. XLV-CRM-CLOSER"
+   "reqd": 1
   },
   {
    "fieldname": "description",
@@ -57,6 +57,13 @@
    "label": "Active"
   },
   {
+   "description": "Leave empty for a general track. Set it and the track exists only for that room \u2014 it will not appear in any other client's catalogue, in the public catalogue, or in staff lists.",
+   "fieldname": "private_to_room",
+   "fieldtype": "Link",
+   "label": "Private to Client Room",
+   "options": "Client Room"
+  },
+  {
    "fieldname": "modules",
    "fieldtype": "Table",
    "label": "Member Modules",
@@ -64,11 +71,11 @@
    "reqd": 1
   },
   {
+   "default": "Included",
    "fieldname": "access",
    "fieldtype": "Select",
    "label": "Access",
-   "options": "Included\nPaid",
-   "default": "Included"
+   "options": "Included\nPaid"
   },
   {
    "fieldname": "seat_price",

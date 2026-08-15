@@ -130,7 +130,8 @@ def track_catalogue(room, assignable_only=False):
 	out = []
 	for t in frappe.get_all(
 		"Duty Certification Track",
-		filters={"active": 1, "audience": "Client"},
+		filters={"active": 1, "audience": "Client",
+				 "private_to_room": ["in", [None, "", room.name]]},
 		fields=["name", "title", "product", "description", "access", "seat_price",
 				"who_for", "outcomes"],
 		order_by="product asc, title asc",
