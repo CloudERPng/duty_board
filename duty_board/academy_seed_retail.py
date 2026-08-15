@@ -1,8 +1,8 @@
 """Retail Leadership Essentials — seed and reconcile.
 
-Nine modules planned; five written. The track is seeded INACTIVE so it can be
+Nine modules planned; six written. The track is seeded INACTIVE so it can be
 read and reviewed in the app without appearing in any client catalogue, and it
-reconciles its module list on every run — so modules 6 to 9 join automatically
+reconciles its module list on every run — so modules 7 to 9 join automatically
 as they are written, with nobody editing a child table.
 
 Set active=1 when the track is complete and the four Duty Settings values are
@@ -21,7 +21,7 @@ PRODUCT = "Retail Leadership"
 TRACK = "Retail Leadership Essentials"
 
 # display order; modules not yet written are simply absent from the data file
-ORDER = ["the_job", "the_numbers", "availability", "people", "loss"]
+ORDER = ["the_job", "the_numbers", "availability", "people", "loss", "customers"]
 
 DESCRIPTION = (
     "For the person running a branch. What the job actually is as against what it was "
@@ -107,12 +107,12 @@ def seed_retail_track():
             "outcomes": OUTCOMES,
             "access": "Paid",
             "seat_price": 45000,
-            "active": 0,          # five of nine modules written
+            "active": 0,          # six of nine modules written
             "modules": [{"module": m} for m in mods],
         }).insert(ignore_permissions=True)
         print("seeded track: %s (%d modules, inactive)" % (TRACK, len(mods)))
 
     frappe.db.commit()
-    print("\nSeeded inactive: five of nine modules are written, so the track is readable")
+    print("\nSeeded inactive: six of nine modules are written, so the track is readable")
     print("in the app for review and appears in no client catalogue. Re-run after each")
     print("new module — the list reconciles. Set active=1 when the track is complete.")
