@@ -5440,5 +5440,880 @@
     "topic": "Review & module rule 8"
    }
   ]
+ },
+ "counter_basics": {
+  "title": "POS 0 — At the Counter: How ZhiftPOS Works",
+  "desc": "The operator's orientation. What the certificate covers and what it does not, why the till behaves as it does, what your own account means and why it is only yours, which counter you are working, what pressing complete actually creates, and the problems every rule in this track was built to prevent.",
+  "lessons": [
+   {
+    "title": "Chapter 1 — What this certificate says about you",
+    "est": 10,
+    "html": "<p>This track certifies that you can run a ZhiftPOS counter properly: open a shift, build and complete a sale, handle the things that go wrong, work the extended counters, and close with a count that means something.</p>\n\n<p><b>What it is not.</b> It does not certify you to configure a counter. Deciding what a cashier may do — whether discounts are allowed, whether refunds can be paid in cash, which payment methods appear — is done in the back office on a record called the Point of Sale Profile. That work belongs to an administrator, and there is a separate track for it. Knowing the profile exists matters to you; building one does not.</p>\n\n<p><b>The one idea that explains almost everything.</b> ZhiftPOS is <b>governed centrally and trades locally.</b></p>\n\n<p><i>Governed centrally</i> means the rules for your counter are set in the back office rather than at the till or by habit. What you can do is decided before your shift starts, and it is the same on Monday afternoon as at nine on a Saturday night.</p>\n\n<p><i>Trades locally</i> means the till holds its own copy of the catalogue, prices and stock. Scanning is instant because nothing has to travel to a server first, and selling carries on when the internet drops.</p>\n\n<p><b>Why a counter needs this much care.</b> The counter is where the business meets its money. Everything that arrives — the goods, the stock records, the prices somebody negotiated — passes through the few seconds in which you scan and take payment. A shop can buy well, price well and still lose the margin at the till, which is why the till is the part with the most rules attached.</p>\n\n<p><b>What that means for the way this track reads.</b> You will meet controls that stop you doing things: greyed-out buttons, required reasons, approvals from somebody else. None of them exists because a cashier is not trusted. They exist because the counter handles money and goods at speed, and a rule enforced by software works at the end of a long Saturday in a way a rule remembered by a tired person does not.</p>\n\n<p><b>And a promise about the rest of it.</b> Every rule in this track has a reason, and the reason is given. Where something seems awkward — a required explanation, a customer that must be attached, an approval you have to wait for — the chapter says what it prevents. You are entitled to know why, and a rule you understand is one you apply properly when nobody is watching.</p>\n\n<blockquote>IMPLEMENTATION TIP: If any part of this track is printed and kept at the counter, make it the shift module — opening, the cart, payment and closing. This first module is the background; that one is the day.</blockquote>\n\n<p><b>How the assessment works, so there are no surprises.</b> Each chapter ends with a few questions to check yourself as you go; they are not the exam and getting one wrong costs nothing. The exam comes at the end of each module, draws from a larger bank than you will see, and has a pass mark. If you fail, you can sit it again after a wait — the wait exists so that a retake is a second attempt at understanding rather than a second guess at the same questions.</p>",
+    "checks": [
+     {
+      "q": "This certificate says you can run a counter. It does not say you can:",
+      "opts": [
+       "Close a shift",
+       "Work the extended counters",
+       "Handle returns",
+       "Configure a counter — that is an administrator's work on the profile"
+      ],
+      "ans": 3,
+      "why": "Knowing the profile exists matters to you; building one belongs to a separate track.",
+      "sort": 0
+     },
+     {
+      "q": "Scanning is instant even on a slow connection because the till:",
+      "opts": [
+       "Holds its own copy of the catalogue, prices and stock",
+       "Caches the last hour",
+       "Queues the scan",
+       "Sends only the barcode"
+      ],
+      "ans": 0,
+      "why": "Trades locally — nothing has to travel to a server before the item appears.",
+      "sort": 1
+     },
+     {
+      "q": "The controls that stop a cashier doing things exist because:",
+      "opts": [
+       "Cashiers are not trusted",
+       "The counter handles money and goods at speed, and software rules hold at the end of a long Saturday",
+       "Auditors require them",
+       "They reduce training"
+      ],
+      "ans": 1,
+      "why": "A rule remembered by a tired person is not the same as one enforced by the system.",
+      "sort": 2
+     }
+    ]
+   },
+   {
+    "title": "Chapter 2 — The parts you actually deal with",
+    "est": 10,
+    "html": "<p>ZhiftPOS has four parts. Two of them you will use every day; the other two decide what you see, and knowing they exist saves you from calling for help you do not need.</p>\n\n<p><b>The till application.</b> The program on your counter terminal — the Sales Console and the other counter screens. It is an installed application rather than a web page, and that is the reason it keeps working when the network cannot reach the server.</p>\n\n<p><b>The background sync service.</b> Installed alongside it, started with the terminal, and running whether or not anybody is signed in. It keeps the local copies fresh and holds completed sales in a queue until they can post. You never operate it — but two of its behaviours matter to you: it catches up on its own, and it does not need anybody logged in to do so.</p>\n\n<p><b>The back office.</b> The central system where items, prices, stock, customers and accounts live, and where profiles, promotions and vouchers are configured. Prices and policy come down from it; your completed sales go up to it.</p>\n\n<p><b>The terminal management service.</b> Fleet monitoring — how the business sees the state of every terminal.</p>\n\n<p><b>The rule that follows from all of this: never restart a terminal to force a sync.</b> The service catches up by itself, and a restart interrupts it mid-way rather than helping. If figures look stale, that is the local copy waiting to refresh, and it will.</p>\n\n<p><b>Why 'installed application' is not a technical detail.</b> A web page needs the server for every action; an installed application with its own data does not. That single difference is what lets a queue of customers keep moving through a network outage, and it is why the offline chapters later in this track describe a normal way of working rather than an emergency.</p>\n\n<p><b>What to do when the till behaves oddly.</b> Check the top bar first — it reports online or offline status, queued sales, and whether anything failed. Most of what looks like a fault is a state the top bar is already telling you about, and reading it takes two seconds.</p>\n\n<p><b>What the top bar reports, in plain terms.</b> Whether you are online or offline. Whether any sales are queued — which is a safe state, not a problem. Whether anything has failed, which is the one that needs somebody. Whether stock or price figures are waiting to refresh. Plus your shift status and the lock. None of it requires interpretation, and glancing at it before you start a shift tells you what kind of day the terminal is having.</p><p><b>The one indicator that needs action rather than patience.</b> Where a cashier's queued sales cannot post until that person signs in online again, the bar says so. Queued alone resolves itself; that one does not, and it is the difference between waiting and doing something.</p>\n\n<blockquote>WATCH-OUT: A restart is almost never the answer on a ZhiftPOS terminal, and it can make a sync worse. If something looks wrong, read the top bar, then ask — do not reach for the power button.</blockquote>",
+    "checks": [
+     {
+      "q": "Figures on the till look stale. The correct response is:",
+      "opts": [
+       "Leave it — the sync service catches up on its own",
+       "Sign out and back in",
+       "Switch to another terminal",
+       "Restart the terminal to force a sync"
+      ],
+      "ans": 0,
+      "why": "A restart interrupts the service mid-way rather than helping it.",
+      "sort": 0
+     },
+     {
+      "q": "The sync service keeps running:",
+      "opts": [
+       "Only while a cashier is signed in",
+       "Whether or not anybody is signed in",
+       "Only when the terminal is online",
+       "Only during shift hours"
+      ],
+      "ans": 1,
+      "why": "It starts with the terminal and holds completed sales in a queue until they can post.",
+      "sort": 1
+     },
+     {
+      "q": "The till is an installed application rather than a web page, which is why:",
+      "opts": [
+       "A queue of customers keeps moving through a network outage",
+       "It needs updating",
+       "Scanning requires a driver",
+       "It looks different"
+      ],
+      "ans": 0,
+      "why": "A web page needs the server for every action; an installed application with local data does not.",
+      "sort": 2
+     }
+    ]
+   },
+   {
+    "title": "Chapter 3 — Why your till behaves the way it does",
+    "est": 10,
+    "html": "<p>Two cashiers at two branches can sit in front of the same software and have different powers. That is not inconsistency — it is the Point of Sale Profile doing its job.</p>\n\n<p><b>What the profile decides.</b> One profile governs one counter's entire behaviour, and almost every question about what a cashier can or cannot do is answered by a field on it:</p>\n\n<p>Whether a discount can be given at all, and under which of three modes. Whether a refund can be paid in cash or only as store credit. Whether a shift must be opened before anything can be sold. Which payment methods appear, and in what order. Whether the counter sells vouchers, takes lay-bys, allows staff purchases, or checks customer credit limits. And who may approve the things a cashier cannot do alone.</p>\n\n<p><b>Policy enforced by the system rather than by supervision.</b> In a shop without this, rules like these live in people's heads — and a rule in somebody's head is applied differently by different people, and differently by the same person at different hours. Here the rule is the same at every hour, for everybody on that profile, whether or not a supervisor is standing nearby.</p>\n\n<p><b>The first troubleshooting rule, and it will save you calls.</b> A menu item you expected is missing, or a button is greyed out. That is almost never a fault. It is the profile, or your row on it, and the software is behaving exactly as configured.</p>\n\n<p><b>Greyed controls give their reason.</b> Hover over a disabled control and it tells you why it is unavailable. Read it before asking — the answer is usually there, and it is usually specific.</p>\n\n<p><b>What to do when a rule genuinely blocks a customer.</b> Not a workaround. Complete what you can, tell the customer plainly what is possible, and raise the rule afterwards with whoever owns the profile. Rules can be changed by the people who set them, and every workaround invented at a counter is a control the business thinks it has and does not.</p>\n\n<p><b>How many profiles a business has.</b> As many as it has genuinely different counters. Two branches operating identically can share one; a pharmacy counter and a general counter cannot, because what they need to permit differs.</p>\n\n<p><b>Why this is worth understanding rather than simply accepting.</b> A cashier who knows that powers come from a profile stops experiencing restrictions as personal. The colleague at the next branch who can process a cash refund is not more trusted than you — their counter is configured differently, probably for a reason somebody could explain. That distinction matters because the alternative reading, that some people are trusted more than others, is corrosive and almost always wrong.</p>\n\n<blockquote>IMPLEMENTATION TIP: When something is missing or greyed out, hover for the reason, then check whether a colleague on the same counter has it too. Those two steps identify almost every case correctly before anybody is called.</blockquote>",
+    "checks": [
+     {
+      "q": "A menu item you expected is not on your till. Most likely this is:",
+      "opts": [
+       "An expired session",
+       "A software fault",
+       "The profile, or your row on it, behaving as configured",
+       "A network problem"
+      ],
+      "ans": 2,
+      "why": "The first troubleshooting rule, and it saves a great many unnecessary calls.",
+      "sort": 0
+     },
+     {
+      "q": "A control is greyed out and you do not know why. You should:",
+      "opts": [
+       "Hover over it — a disabled control gives its reason",
+       "Restart the till",
+       "Use another terminal",
+       "Ask a supervisor immediately"
+      ],
+      "ans": 0,
+      "why": "The answer is usually there and usually specific.",
+      "sort": 1
+     },
+     {
+      "q": "A profile rule genuinely prevents you serving a customer as they want. The right response is:",
+      "opts": [
+       "Ask another cashier to try",
+       "Complete it and correct it later",
+       "Find a workaround at the till",
+       "Do what is possible, say so plainly, and raise the rule afterwards"
+      ],
+      "ans": 3,
+      "why": "Every workaround invented at a counter is a control the business thinks it has and does not.",
+      "sort": 2
+     }
+    ]
+   },
+   {
+    "title": "Chapter 4 — Your account, and why it is only yours",
+    "est": 10,
+    "html": "<p>ZhiftPOS access runs on five roles. Yours is almost certainly <b>Cashier</b>: open a shift, sell, take payment, handle returns where permitted, close the shift, and reach the consoles your profile grants.</p>\n\n<p><b>The other four, briefly.</b> The <b>Point of Sale Administrator</b> sets up and maintains the system. The <b>Sales Manager</b> supervises trading, approves overrides and reconciles shifts. Beyond these sit the roles that handle stock and back-office work. One person can hold more than one role, which is common in smaller businesses.</p>\n\n<p><b>The rule that comes before every other rule in this track: one person, one account.</b></p>\n\n<p><b>Why it matters more than it sounds.</b> When four cashiers share a login, every sale, every override and every variance carries the same name. Nothing can be attributed to anybody — and that single fact disables almost every control in the system. The discount report cannot tell you who discounted. The void pattern belongs to nobody. The shift variance is four people's work in one figure.</p>\n\n<p><b>And the part that concerns you personally.</b> Attribution protects you as much as it exposes you. On your own account, a shortage on somebody else's shift is not yours and can be shown not to be. On a shared account, you cannot be blamed and you cannot be cleared either — and being unable to prove your own innocence is a real cost, paid by the honest cashier rather than the other kind.</p>\n\n<p><b>How the till makes this practical on a shared terminal.</b> The lock button on the top bar lets one cashier lock the till and the next unlock it with their own credentials in seconds. Sharing a terminal is normal; sharing an account is not, and the lock is what makes the difference workable at speed.</p>\n\n<p><b>What to do if you are asked to use somebody else's login.</b> It happens, and usually for an innocent reason — a new starter without an account yet, a forgotten password, a queue building. Say that the sales will be recorded against them and ask for the proper route: an account created, a password reset, or a manager sign-in, which is designed for exactly this and is tagged so everybody knows.</p>\n\n<p><b>Passwords, briefly and practically.</b> Your account is your name on every sale of the day, so the password protects your record rather than the company's. Do not write it where the terminal is, do not tell a colleague in a hurry, and change it if you think somebody has seen it. A password shared once tends to stay shared, and the sales it produces are still recorded as yours.</p><p><b>And if you suspect somebody has used your account.</b> Say so promptly, to a supervisor, in writing if you can. Reporting it while it is a suspicion is straightforward; explaining it after a variance has been found is a much harder conversation, and the record will show your account either way.</p>\n\n<blockquote>WATCH-OUT: Never leave a till unlocked and unattended. An unlocked till trades under your name — its sales, its overrides and its variances all become yours, and the lock takes one keystroke.</blockquote>",
+    "checks": [
+     {
+      "q": "Four cashiers share one login. The effect on the system's controls is that:",
+      "opts": [
+       "Only the variance report suffers",
+       "Overrides stop working",
+       "Reports become slower",
+       "Almost every control is disabled, because nothing can be attributed"
+      ],
+      "ans": 3,
+      "why": "The discount report cannot say who discounted; the shift variance is four people's work in one figure.",
+      "sort": 0
+     },
+     {
+      "q": "A shared account harms an honest cashier specifically because:",
+      "opts": [
+       "Their sales count for less",
+       "They cannot be cleared of somebody else's shortage",
+       "Their permissions are reduced",
+       "Their shift takes longer to close"
+      ],
+      "ans": 1,
+      "why": "Being unable to prove your own innocence is a real cost, paid by the honest one.",
+      "sort": 1
+     },
+     {
+      "q": "Two cashiers work the same terminal across a busy afternoon. The workable arrangement is:",
+      "opts": [
+       "They sign out fully after every customer",
+       "One signs in for the shift and both use it",
+       "Each locks the till and the other unlocks it with their own credentials",
+       "They open a joint shift"
+      ],
+      "ans": 2,
+      "why": "Sharing a terminal is normal; sharing an account is not, and the lock makes the difference practical at speed.",
+      "sort": 2
+     }
+    ]
+   },
+   {
+    "title": "Chapter 5 — Which counter you are working",
+    "est": 10,
+    "html": "<p>Every profile is set to one selling mode, and the mode decides which consoles appear and how a sale travels from basket to payment. Knowing which one you are on explains the shape of your day.</p>\n\n<p><b>Standard.</b> One person builds the basket and takes the payment, on the Sales Console. The ordinary shop counter, and what most of this track assumes.</p>\n\n<p><b>Pharmacy.</b> A two-stage flow for counters where the person who assembles the order and the person who takes the money are different. An <b>Order Console</b> where the order is built and handed off, then a <b>Checkout Console</b> where a second person collects payment.</p>\n\n<p>It is standard practice in pharmacies, where a dispenser prepares medicines and a cashier handles money — and it is useful anywhere the goods and the money should pass through different hands. <b>The person who picked the items never touches the payment, and the person who takes the payment did not pick the items.</b> That separation is a control, not an inconvenience, and it is worth understanding if you work such a counter: the handoff is the point of the design rather than a step to be shortcut when it is busy.</p>\n\n<p><b>What this means practically.</b> If your console list looks different from a colleague's at another branch, the mode is usually why. It is set on the profile, so it does not change during a shift and it is not something a cashier selects.</p>\n\n<p><b>Where you work more than one counter.</b> Some staff cover a general counter on some days and a specialist one on others. The flow differs and the habits differ with it — checking which console has opened before starting is worth the two seconds, particularly at the start of a shift on a counter you do not work often.</p>\n\n<p><b>A note for anyone moving between branches.</b> Cover shifts are where mode differences catch people out, because the habits of your usual counter arrive with you. Two seconds spent reading the console names, and one question to whoever is already there about how the handoff works, prevents the awkward version — completing a stage that was not yours to complete, in front of a customer, on a counter where somebody else was waiting to do it.</p>\n\n<p><b>What does not change with the mode.</b> The rules from the rest of this track apply on every counter: the shift is opened and closed with a count, the record of every sale is an invoice, discounts and returns carry reasons and approvers, and your account is yours. The mode changes the shape of the sale, not the discipline around it — so nothing you learn in the later modules becomes optional because your counter works in two stages.</p>\n\n<blockquote>IMPLEMENTATION TIP: On a two-stage counter, resist the temptation to complete both stages yourself when the other person steps away. The separation is the control, and the queue moving slightly slower is the price of it.</blockquote>",
+    "checks": [
+     {
+      "q": "On a two-stage pharmacy counter, the colleague who takes payment steps away and a queue builds. You should:",
+      "opts": [
+       "Complete both stages yourself to keep the queue moving",
+       "Wait — the separation of picking from payment is the control",
+       "Switch the counter to standard mode",
+       "Take payment and record it later"
+      ],
+      "ans": 1,
+      "why": "The handoff is the point of the design rather than a step to shortcut when busy.",
+      "sort": 0
+     },
+     {
+      "q": "Your console list differs from a colleague's at another branch. The usual reason is:",
+      "opts": [
+       "A permissions error",
+       "A different selling mode on that counter's profile",
+       "A software version difference",
+       "Their role"
+      ],
+      "ans": 1,
+      "why": "The mode is set on the profile and is not something a cashier selects.",
+      "sort": 1
+     },
+     {
+      "q": "In pharmacy mode, the sale is built on the:",
+      "opts": [
+       "Return console",
+       "Sales Console",
+       "Order Console, then handed to a Checkout Console",
+       "Checkout Console only"
+      ],
+      "ans": 2,
+      "why": "Two stages and two people, so the person who picked the goods never touches the payment.",
+      "sort": 2
+     }
+    ]
+   },
+   {
+    "title": "Chapter 6 — What happens when you press complete",
+    "est": 10,
+    "html": "<p>Knowing what a completed sale creates is what lets you answer a customer's question without calling anybody, and what lets you tell whether something has actually gone wrong.</p>\n\n<p><b>An invoice is created.</b> Every completed sale becomes a sales invoice with a reference number, its item lines and its payments. <b>There is no such thing as an off-record sale on ZhiftPOS</b> — if it went through the till, there is an invoice.</p>\n\n<p><b>A receipt is printed</b>, carrying the sale's reference and a barcode. Receipts can be reprinted later from the Recent Receipts panel or from Sales History, so a customer who has lost theirs is not a dead end.</p>\n\n<p><b>The sale posts, or it queues.</b> Online, it reaches the back office within moments. Offline, it joins the queue and posts when the connection returns.</p>\n\n<p><b>The two references, which is the part customers ask about.</b> A sale completed offline prints with a <i>local reference</i>. When it posts, it also receives a <i>back-office invoice number</i>. Both point to the same sale, and a return can be found using either one.</p>\n\n<p>So an offline receipt is a fully valid document. Say so with confidence — a customer who sees an unfamiliar reference and asks whether their receipt is real deserves a plain yes rather than hesitation.</p>\n\n<p><b>What this means when the network is down.</b> Nothing about the sale is provisional. The goods are sold, the receipt is valid, the record exists, and the posting is a background matter that resolves itself. Queued is a safe state, and the top bar tells you when anything is queued.</p>\n\n<p><b>And what it means for stock.</b> Because every sale creates an invoice with its lines, stock reduces on the strength of what you actually scanned. That is the link between the counter and the stock figures the business relies on — and the reason a quantity typed carelessly is not just a pricing error but a stock one.</p>\n\n<p><b>What the customer gets, and what the business gets.</b> The customer gets goods and a receipt they can return against. The business gets a priced record of what left the shelf, a reduction in the stock figure, and a payment recorded against a method. All three arrive from one action, which is why completing a sale properly matters more than any single step within it — an error at completion propagates into the stock position, the day's takings and the customer's ability to come back.</p>\n\n<blockquote>IMPLEMENTATION TIP: When a customer questions an offline receipt, answer the question they are really asking: yes, this is a valid record of your purchase, and yes, we can find it for a return. Both are true, and hesitating about it invites a doubt that is not warranted.</blockquote>",
+    "checks": [
+     {
+      "q": "A customer asks whether their offline receipt with an unfamiliar reference is a real receipt. The correct answer is:",
+      "opts": [
+       "It must be exchanged for a proper one",
+       "Only if it is reprinted later",
+       "It is provisional until the sale posts",
+       "Yes — it is a fully valid document, and the sale can be found for a return"
+      ],
+      "ans": 3,
+      "why": "Both the local reference and the later back-office number point to the same sale.",
+      "sort": 0
+     },
+     {
+      "q": "'There is no such thing as an off-record sale' means:",
+      "opts": [
+       "Receipts cannot be reprinted",
+       "Offline sales are excluded",
+       "Sales cannot be cancelled",
+       "If it went through the till, there is an invoice"
+      ],
+      "ans": 3,
+      "why": "Every completed sale becomes an invoice with its lines and payments.",
+      "sort": 1
+     },
+     {
+      "q": "A carelessly typed quantity is not only a pricing error because:",
+      "opts": [
+       "It delays posting",
+       "It affects the receipt",
+       "Stock reduces on the strength of what was scanned",
+       "It changes the tax"
+      ],
+      "ans": 2,
+      "why": "The invoice lines are the link between the counter and the business's stock figures.",
+      "sort": 2
+     }
+    ]
+   },
+   {
+    "title": "Chapter 7 — What the system is protecting against",
+    "est": 10,
+    "html": "<p>Every major feature exists because of a specific and common problem at retail counters. Knowing the problems makes the rules make sense, and makes them much easier to apply properly when it is busy.</p>\n\n<p><b>The exercise book.</b> Sales in a notebook, prices from memory, the day's total whatever the book says. No line-level record, stock never reduced, and any dispute settled by a pencil line against a customer's word. The invoice answers it: every sale recorded line by line, stock reduced automatically, every receipt reprintable.</p>\n\n<p><b>The shared login.</b> One account for four people, so every sale, override and variance carries the same name. This single problem disables almost every control in the system, which is why one person one account comes before everything else — and why the lock button exists to make individual accounts practical on a shared terminal.</p>\n\n<p><b>The memory price.</b> Prices held in people's heads means the same item sells at different prices in different shops, and nobody can say which was right. The price list answers it, and the rate-override marker is what makes a departure from it visible.</p>\n\n<p><b>The uncounted drawer.</b> Totals that disagree with the cash by amounts nobody can break down, until <i>about right</i> becomes the accepted standard. The counted open and counted close answer it, which is why the shift module treats both as non-negotiable.</p>\n\n<p><b>The phantom return.</b> A refund given against no original sale. The Return console answers it with a wall: no invoice, no return, and there is no path through that console starting from nothing.</p>\n\n<p><b>What all of these have in common.</b> Each was, at some point, somebody being helpful or somebody being quick. None began as a decision to defraud. That is exactly why the answers are built into the software rather than left to intention — the system does not assume dishonesty, it removes the need to rely on memory, attention and goodwill at the end of a long day.</p>\n\n<p><b>And the one worth carrying to the counter.</b> Every control in this track has a name and a story behind it. When one gets in your way, it is worth knowing which problem it was built to stop, because that is usually also the answer to how to work with it rather than around it.</p>\n\n<blockquote>WATCH-OUT: The problems above are the common ones, and they are common because they are easy. Each begins with a reasonable shortcut on a busy day, which is precisely why the answer is a rule the system holds rather than a rule a person remembers.</blockquote>\n\n<p><b>One that is worth naming separately: the cleared basket.</b> Building a basket, taking the customer's cash, then clearing the screen leaves no sale and no record, and the money goes into a pocket rather than a drawer. It is a known pattern rather than a hypothetical one, which is why cleared carts are recorded and reviewed, and why the habit taught in the shift module is to hold rather than clear. Knowing the reason makes the habit easy to keep.</p>",
+    "checks": [
+     {
+      "q": "A refund is requested with no receipt and no reference of any kind. The Return console:",
+      "opts": [
+       "Searches by customer name",
+       "Records it as goodwill",
+       "Allows it with a manager override",
+       "Offers no path — no invoice, no return"
+      ],
+      "ans": 3,
+      "why": "That wall is what answers the phantom-return problem.",
+      "sort": 0
+     },
+     {
+      "q": "What do the exercise book, the shared login and the uncounted drawer have in common?",
+      "opts": [
+       "All are deliberate fraud",
+       "Each began as somebody being helpful or quick, not dishonest",
+       "All are rare",
+       "All require system changes"
+      ],
+      "ans": 1,
+      "why": "Which is why the answers are built into the software rather than left to intention.",
+      "sort": 1
+     },
+     {
+      "q": "The rate-override marker exists to answer:",
+      "opts": [
+       "The memory price — it makes a departure from the price list visible",
+       "The phantom return",
+       "The shared login",
+       "The uncounted drawer"
+      ],
+      "ans": 0,
+      "why": "Prices in people's heads mean the same item sells at different prices and nobody can say which was right.",
+      "sort": 2
+     }
+    ]
+   },
+   {
+    "title": "Chapter 8 — Okelewo Stores, before",
+    "est": 10,
+    "html": "<p>This track follows one retailer, and it is worth knowing where they started, because the rules in the later modules were written against these facts rather than in the abstract.</p>\n\n<p><b>The business.</b> Three branches — the flagship on Okelewo Lalubu Road in Abeokuta, a second smaller Abeokuta shop, and one in Lagos. Eleven counter staff across the three. The founder has run it for nine years, largely by personal presence and long hours.</p>\n\n<p><b>The counters, before ZhiftPOS.</b> The two smaller branches ran on exercise books. The flagship had an old standalone till, and all four of its cashiers shared one login.</p>\n\n<p><b>Prices lived in memory</b>, so they differed between branches. In one recorded week the same item sold at three different prices across the three shops — not through dishonesty, but because three people remembered three things.</p>\n\n<p><b>Drawers were counted irregularly.</b> Day totals disagreed with the cash by amounts nobody could break down, and <i>about right</i> had become the accepted standard four days out of five.</p>\n\n<p><b>Two incidents from the last month before rollout.</b> A refund was given twice against no receipt. And the shared login meant that when a shortage appeared, four people were equally implicated and none could be cleared.</p>\n\n<p><b>What is worth noticing about this list.</b> Nobody in it is a villain. Eleven people were working hard in a business that had outgrown the way it was being run, and every one of the failures came from a system that asked people to hold prices, totals and rules in their heads while serving customers.</p>\n\n<p><b>Why the example is used throughout.</b> Each later module returns to Okelewo at the point where the relevant rule first mattered — the first counted close, the first discount with a reason attached, the first lay-by that went overdue. Rules explained in the abstract are forgettable; the same rule attached to a shop that had the problem tends to stay.</p>\n\n<p><b>And the fair thing to say about the before.</b> Most retailers in this market look something like this before they change, and recognising your own counter in the description is not an embarrassment. It is the reason the system exists, and the reason the rules in this track are worth learning properly rather than working around.</p>\n\n<p><b>What changed afterwards, briefly.</b> The later modules follow Okelewo through the change — the first month of counted closes, the first discounts with reasons attached, the first lay-by that went overdue and was terminated by the book. None of it went perfectly, and the examples say so. A worked example where everything succeeds teaches nothing about what to do when something does not.</p>\n\n<blockquote>IMPLEMENTATION TIP: When a rule in a later module seems heavy-handed, look at which Okelewo problem it answers. Almost every one of them traces back to something on this page, and seeing the connection is what turns a rule you comply with into one you would keep if it were optional.</blockquote>",
+    "checks": [
+     {
+      "q": "The same item sold at three different prices across three branches in one week because:",
+      "opts": [
+       "Prices lived in memory and three people remembered three things",
+       "The branches had different costs",
+       "Promotions overlapped",
+       "Staff were dishonest"
+      ],
+      "ans": 0,
+      "why": "Three people remembered three prices, which is exactly what a central price list exists to end.",
+      "sort": 0
+     },
+     {
+      "q": "When a shortage appeared at the flagship, four cashiers were:",
+      "opts": [
+       "Individually accountable",
+       "Equally implicated, and none could be cleared",
+       "Cleared by the till record",
+       "Identified by the shift log"
+      ],
+      "ans": 1,
+      "why": "Which is the personal cost of a shared login, paid by the honest cashier.",
+      "sort": 1
+     },
+     {
+      "q": "Recognising your own counter in the description of Okelewo before is:",
+      "opts": [
+       "A sign of poor management",
+       "An embarrassment",
+       "The reason the system exists and the rules are worth learning",
+       "Unusual in this market"
+      ],
+      "ans": 2,
+      "why": "Most retailers look something like this before they change.",
+      "sort": 2
+     }
+    ]
+   },
+   {
+    "title": "Chapter 9 — Review, and what comes next",
+    "est": 10,
+    "html": "<p>Check yourself against each section before the assessment. If any feels unclear, re-read its chapter — everything after this module builds on all of them.</p>\n\n<p><b>What this certifies (Chapter 1).</b> Running a counter, not configuring one. Governed centrally and trades locally: rules set in the back office, selling done on a terminal holding its own catalogue, prices and stock. Every control exists because the counter handles money and goods at speed.</p>\n\n<p><b>The parts (Chapter 2).</b> Till application — an installed program, which is why it survives an outage. Sync service — runs whether anybody is signed in or not, holds queued sales, catches up by itself. Back office — where policy and the books live. Terminal management — fleet monitoring. <b>Never restart to force a sync.</b> Read the top bar first.</p>\n\n<p><b>The profile (Chapter 3).</b> One profile governs one counter. A missing menu item or greyed control is the profile, not a fault; hover for the reason. Raise a blocking rule afterwards rather than working around it.</p>\n\n<p><b>Your account (Chapter 4).</b> One person, one account, before every other rule. A shared login disables almost every control and leaves an honest cashier unable to be cleared. Lock the till between users; never leave it unlocked and unattended.</p>\n\n<p><b>The mode (Chapter 5).</b> Standard: one person builds and takes payment. Pharmacy: Order Console then Checkout Console, two people, deliberately separated. The mode is on the profile and explains why your consoles differ from a colleague's.</p>\n\n<p><b>A completed sale (Chapter 6).</b> An invoice with lines and payments — no off-record sales. A receipt, reprintable. Posts online, queues offline. An offline sale has a local reference and later a back-office number; both find the same sale, and the offline receipt is fully valid.</p>\n\n<p><b>The problems (Chapter 7).</b> Exercise book, shared login, memory price, uncounted drawer, phantom return. Each began as somebody being quick rather than dishonest, which is why the answers are built into the software.</p>\n\n<p><b>Okelewo before (Chapter 8).</b> Three branches, eleven staff, one shared login, prices from memory, <i>about right</i> as the standard, and two incidents in the final month.</p>\n\n<p><b>What comes next.</b> The shift module is the day itself — sign-in, opening count, building a sale, payment, closing count. It is the module to keep at the counter. After it come the exceptions: discounts and returns, the extended counters, and the voucher programme.</p>\n\n<blockquote>IMPLEMENTATION TIP: Before moving on, answer one question out loud: what would you say to a colleague who asks to use your login because theirs is not ready? If the answer comes easily, this module has done its work.</blockquote>\n\n<p><b>A last word about the certificate itself.</b> It says that you can run a counter to a standard the business can rely on — that the money you take is recorded, the stock you sell is accounted for, and the exceptions you handle leave a trail somebody can follow. That is worth having on your own account, and it is worth more to you than to anybody else: it is the evidence that a shortage on somebody else's shift is not yours, and that the day you handled properly can be shown to have been handled properly.</p>",
+    "checks": [
+     {
+      "q": "A colleague asks to use your login because their account is not ready. The right answer is:",
+      "opts": [
+       "Refuse without explanation",
+       "Allow it and tell a supervisor afterwards",
+       "Explain the sales will record against you, and ask for an account, a reset or a manager sign-in",
+       "Allow it for one sale only"
+      ],
+      "ans": 2,
+      "why": "Manager sign-in is designed for exactly this and is tagged so everybody knows.",
+      "sort": 0
+     },
+     {
+      "q": "Which module should be kept at the counter?",
+      "opts": [
+       "The shift module — sign-in, opening, the cart, payment, closing",
+       "The voucher module",
+       "The returns module",
+       "This one"
+      ],
+      "ans": 0,
+      "why": "This one is the background; that one is the day.",
+      "sort": 1
+     },
+     {
+      "q": "The single rule that comes before every other rule in this track is:",
+      "opts": [
+       "Never restart to force a sync",
+       "Count the drawer at close",
+       "One person, one account",
+       "No invoice, no return"
+      ],
+      "ans": 2,
+      "why": "A shared login disables almost every control that follows.",
+      "sort": 2
+     }
+    ]
+   }
+  ],
+  "questions": [
+   {
+    "q": "This track certifies you to:",
+    "opts": [
+     "Configure a POS Profile",
+     "Run a counter",
+     "Administer terminals",
+     "Manage the back office"
+    ],
+    "ans": 1,
+    "why": "Configuring a counter is an administrator's work and belongs to a separate track.",
+    "topic": "What this certifies"
+   },
+   {
+    "q": "ZhiftPOS's design principle is:",
+    "opts": [
+     "Governed centrally, trades locally",
+     "Each till sets its own rules",
+     "The server does all the work",
+     "Everything in the cloud"
+    ],
+    "ans": 0,
+    "why": "Rules set in the back office; selling done on a terminal with its own local copy.",
+    "topic": "What this certifies"
+   },
+   {
+    "q": "Scanning is instant because the till holds a local copy of:",
+    "opts": [
+     "The customer list",
+     "Recent receipts",
+     "Only prices",
+     "The catalogue, prices and stock"
+    ],
+    "ans": 3,
+    "why": "Nothing has to travel to a server before the item appears.",
+    "topic": "What this certifies"
+   },
+   {
+    "q": "Controls that restrict a cashier exist because:",
+    "opts": [
+     "Cashiers are not trusted",
+     "A rule enforced by software holds at the end of a long Saturday",
+     "Auditors require them",
+     "They speed up training"
+    ],
+    "ans": 1,
+    "why": "A rule remembered by a tired person is not the same thing.",
+    "topic": "What this certifies"
+   },
+   {
+    "q": "Which two parts does a cashier deal with daily?",
+    "opts": [
+     "Terminal management and back office",
+     "Sync service and back office",
+     "Back office and till",
+     "Till application and, indirectly, the sync service"
+    ],
+    "ans": 3,
+    "why": "The other two decide what you see.",
+    "topic": "The parts"
+   },
+   {
+    "q": "The sync service runs:",
+    "opts": [
+     "Only while signed in",
+     "Whether or not anybody is signed in",
+     "Only when online",
+     "Only during a shift"
+    ],
+    "ans": 1,
+    "why": "It starts with the terminal and holds queued sales.",
+    "topic": "The parts"
+   },
+   {
+    "q": "To force a sync you should:",
+    "opts": [
+     "Do nothing — it catches up on its own",
+     "Sign out and in",
+     "Clear the local cache",
+     "Restart the terminal"
+    ],
+    "ans": 0,
+    "why": "A restart interrupts it mid-way.",
+    "topic": "The parts"
+   },
+   {
+    "q": "The till is an installed application rather than a web page because:",
+    "opts": [
+     "It looks better",
+     "It can keep working with local data when the network fails",
+     "It is faster to update",
+     "It supports scanners"
+    ],
+    "ans": 1,
+    "why": "Which is why the offline chapters describe a normal way of working.",
+    "topic": "The parts"
+   },
+   {
+    "q": "When something looks wrong on the till, read first:",
+    "opts": [
+     "The profile",
+     "The receipt",
+     "The top bar",
+     "The sales history"
+    ],
+    "ans": 2,
+    "why": "It reports online status, queued sales and failures.",
+    "topic": "The parts"
+   },
+   {
+    "q": "One profile governs:",
+    "opts": [
+     "One company",
+     "One cashier",
+     "One counter",
+     "One branch"
+    ],
+    "ans": 2,
+    "why": "Almost every question about what a cashier can do is answered by a field on it.",
+    "topic": "The profile"
+   },
+   {
+    "q": "Which is NOT decided by the profile?",
+    "opts": [
+     "The price of an item",
+     "Which payment methods appear",
+     "Whether refunds can be cash",
+     "Whether a shift must be opened"
+    ],
+    "ans": 0,
+    "why": "Prices come from the back office price list rather than the counter's profile.",
+    "topic": "The profile"
+   },
+   {
+    "q": "A missing menu item usually indicates:",
+    "opts": [
+     "An expired login",
+     "A software fault",
+     "The profile or your row on it",
+     "A network failure"
+    ],
+    "ans": 2,
+    "why": "The first troubleshooting rule.",
+    "topic": "The profile"
+   },
+   {
+    "q": "A greyed-out control:",
+    "opts": [
+     "Means the till is faulty",
+     "Gives its reason on hover",
+     "Requires a restart",
+     "Means you lack a licence"
+    ],
+    "ans": 1,
+    "why": "Read it before asking — the answer is usually specific.",
+    "topic": "The profile"
+   },
+   {
+    "q": "A profile rule blocks a customer request. You should:",
+    "opts": [
+     "Find a workaround",
+     "Do what is possible, explain, and raise the rule afterwards",
+     "Ask another cashier to try",
+     "Complete and correct later"
+    ],
+    "ans": 1,
+    "why": "Every workaround is a control the business thinks it has and does not.",
+    "topic": "The profile"
+   },
+   {
+    "q": "How many profiles does a business need?",
+    "opts": [
+     "As many as it has genuinely different counters",
+     "One per cashier",
+     "One per company",
+     "One per branch"
+    ],
+    "ans": 0,
+    "why": "A pharmacy counter and a general counter cannot share one.",
+    "topic": "The profile"
+   },
+   {
+    "q": "A cashier's role permits:",
+    "opts": [
+     "Setting discount policy",
+     "Editing the profile",
+     "Opening a shift, selling, taking payment, closing",
+     "Commissioning terminals"
+    ],
+    "ans": 2,
+    "why": "Plus returns where the profile permits and the consoles it grants.",
+    "topic": "Your account"
+   },
+   {
+    "q": "Can one person hold more than one role?",
+    "opts": [
+     "Only administrators",
+     "Only with approval",
+     "No",
+     "Yes — common in smaller businesses"
+    ],
+    "ans": 3,
+    "why": "Roles are assigned to accounts in the back office.",
+    "topic": "Your account"
+   },
+   {
+    "q": "A shared login disables almost every control because:",
+    "opts": [
+     "Permissions merge",
+     "Sessions conflict",
+     "It slows the system",
+     "Nothing can be attributed to anybody"
+    ],
+    "ans": 3,
+    "why": "Every sale, override and variance carries the same name.",
+    "topic": "Your account"
+   },
+   {
+    "q": "A shared account harms an honest cashier because they:",
+    "opts": [
+     "Get fewer permissions",
+     "Cannot open a shift",
+     "Lose commission",
+     "Cannot be cleared of somebody else's shortage"
+    ],
+    "ans": 3,
+    "why": "Being unable to prove your own innocence is a real cost.",
+    "topic": "Your account"
+   },
+   {
+    "q": "Sharing a terminal between cashiers is handled by:",
+    "opts": [
+     "A joint shift",
+     "Signing out fully",
+     "Sharing the login",
+     "The lock button"
+    ],
+    "ans": 3,
+    "why": "One locks, the next unlocks with their own credentials in seconds.",
+    "topic": "Your account"
+   },
+   {
+    "q": "An unattended unlocked till:",
+    "opts": [
+     "Locks itself after a sale",
+     "Trades under your name — its sales, overrides and variances",
+     "Is disabled automatically",
+     "Prompts for a password"
+    ],
+    "ans": 1,
+    "why": "The lock takes one keystroke.",
+    "topic": "Your account"
+   },
+   {
+    "q": "Asked to use somebody else's login, the proper routes are an account, a password reset, or:",
+    "opts": [
+     "A supervisor watching",
+     "A manager sign-in, which is tagged",
+     "A shared shift",
+     "A written note"
+    ],
+    "ans": 1,
+    "why": "It is designed for exactly this situation and everybody is told.",
+    "topic": "Your account"
+   },
+   {
+    "q": "In standard mode:",
+    "opts": [
+     "One person builds the basket and takes payment",
+     "Payment is taken first",
+     "The order is prepared elsewhere",
+     "Two people handle the sale"
+    ],
+    "ans": 0,
+    "why": "The ordinary shop counter.",
+    "topic": "Selling modes"
+   },
+   {
+    "q": "Pharmacy mode separates:",
+    "opts": [
+     "The person who picks the goods from the person who takes the money",
+     "Cash from card",
+     "Sales from returns",
+     "Branches"
+    ],
+    "ans": 0,
+    "why": "Order Console, then Checkout Console.",
+    "topic": "Selling modes"
+   },
+   {
+    "q": "The pharmacy handoff should be treated as:",
+    "opts": [
+     "A training exercise",
+     "A step to shortcut when busy",
+     "The control the mode exists for",
+     "An optional workflow"
+    ],
+    "ans": 2,
+    "why": "The queue moving slightly slower is the price of the separation.",
+    "topic": "Selling modes"
+   },
+   {
+    "q": "Your consoles differ from a colleague's at another branch because of:",
+    "opts": [
+     "Your role",
+     "The selling mode on that counter's profile",
+     "The software version",
+     "Their permissions"
+    ],
+    "ans": 1,
+    "why": "The mode is set on the profile and is not selected by a cashier.",
+    "topic": "Selling modes"
+   },
+   {
+    "q": "Every completed sale creates:",
+    "opts": [
+     "An invoice with its lines and payments",
+     "A ledger entry only",
+     "A shift record",
+     "A receipt only"
+    ],
+    "ans": 0,
+    "why": "There is no such thing as an off-record sale.",
+    "topic": "A completed sale"
+   },
+   {
+    "q": "A customer who has lost their receipt:",
+    "opts": [
+     "Needs a manager",
+     "Cannot be helped",
+     "Can have it reprinted from Recent Receipts or Sales History",
+     "Must return with the card used"
+    ],
+    "ans": 2,
+    "why": "A lost receipt is not a dead end.",
+    "topic": "A completed sale"
+   },
+   {
+    "q": "An offline sale prints with a local reference and later receives:",
+    "opts": [
+     "A queue position",
+     "A replacement receipt",
+     "A back-office invoice number",
+     "A void marker"
+    ],
+    "ans": 2,
+    "why": "Both references point to the same sale.",
+    "topic": "A completed sale"
+   },
+   {
+    "q": "An offline receipt is:",
+    "opts": [
+     "Valid only for exchange",
+     "Reissued when online",
+     "Provisional until posting",
+     "A fully valid document"
+    ],
+    "ans": 3,
+    "why": "Say so with confidence when a customer asks.",
+    "topic": "A completed sale"
+   },
+   {
+    "q": "A queued sale is:",
+    "opts": [
+     "Void after 24 hours",
+     "At risk until it posts",
+     "In a safe state, posting when the connection returns",
+     "Lost if the terminal restarts"
+    ],
+    "ans": 2,
+    "why": "The top bar tells you when anything is queued.",
+    "topic": "A completed sale"
+   },
+   {
+    "q": "Stock reduces on the strength of:",
+    "opts": [
+     "The payment amount",
+     "The end-of-day count",
+     "The shift total",
+     "The invoice lines — what was actually scanned"
+    ],
+    "ans": 3,
+    "why": "Which is why a carelessly typed quantity is a stock error too.",
+    "topic": "A completed sale"
+   },
+   {
+    "q": "The exercise book problem is answered by:",
+    "opts": [
+     "The invoice — line by line, stock reduced, receipts reprintable",
+     "The price list",
+     "The counted close",
+     "The lock button"
+    ],
+    "ans": 0,
+    "why": "No line-level record was the core of it.",
+    "topic": "What it prevents"
+   },
+   {
+    "q": "The memory price problem is answered by the price list and made visible by:",
+    "opts": [
+     "The shift report",
+     "The customer discount marker",
+     "The receipt",
+     "The rate-override marker"
+    ],
+    "ans": 3,
+    "why": "A departure from the list is marked and stays visible on review.",
+    "topic": "What it prevents"
+   },
+   {
+    "q": "The phantom return is answered by:",
+    "opts": [
+     "A refund limit",
+     "Manager approval",
+     "No invoice, no return",
+     "A returns register"
+    ],
+    "ans": 2,
+    "why": "There is no path through the console that starts from nothing.",
+    "topic": "What it prevents"
+   },
+   {
+    "q": "What the common counter problems share is that each began as:",
+    "opts": [
+     "A training gap",
+     "Deliberate fraud",
+     "Somebody being helpful or quick",
+     "A system failure"
+    ],
+    "ans": 2,
+    "why": "Which is why the answers are built into the software rather than left to intention.",
+    "topic": "What it prevents"
+   },
+   {
+    "q": "Okelewo's flagship had how many cashiers on one shared login?",
+    "opts": [
+     "Six",
+     "Eleven",
+     "Two",
+     "Four"
+    ],
+    "ans": 3,
+    "why": "When a shortage appeared, all four were implicated and none could be cleared.",
+    "topic": "Okelewo before"
+   },
+   {
+    "q": "At Okelewo, 'about right' had become the accepted standard:",
+    "opts": [
+     "Four days out of five",
+     "At month end",
+     "On busy days only",
+     "Once a week"
+    ],
+    "ans": 0,
+    "why": "Day totals disagreed with the cash by amounts nobody could break down.",
+    "topic": "Okelewo before"
+   },
+   {
+    "q": "The Okelewo example is used throughout the track because:",
+    "opts": [
+     "A rule attached to a shop that had the problem tends to stay",
+     "It simplifies the content",
+     "It avoids naming others",
+     "It is a real client"
+    ],
+    "ans": 0,
+    "why": "Rules explained in the abstract are forgettable.",
+    "topic": "Okelewo before"
+   },
+   {
+    "q": "The rule that comes before every other rule is:",
+    "opts": [
+     "Count at close",
+     "One person, one account",
+     "No invoice, no return",
+     "Never restart to sync"
+    ],
+    "ans": 1,
+    "why": "A shared login disables almost every control that follows.",
+    "topic": "Review"
+   }
+  ]
  }
 }
