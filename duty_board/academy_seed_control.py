@@ -2,7 +2,7 @@
 
 Content lives in academy_control_data.json, built by build_control_m*.py.
 
-Seeded deliberately while INCOMPLETE. Five of nine modules are written, and the
+Seeded deliberately while INCOMPLETE. Six of nine modules are written, and the
 track is published so the material can be reviewed as a learner sees it rather
 than read as prose in a chat window. Reviewing a chapter in the reading room —
 with its checks, its measure, its typography — surfaces problems that reading
@@ -16,7 +16,7 @@ Consequences of publishing early, and how each is handled:
   - The description says plainly that it is in preparation. If the flag is ever
     flipped early by accident, a client sees an honest label rather than a
     thin course.
-  - Reconciles the module list on every run, so modules 7, 8, 1 and 9
+  - Reconciles the module list on every run, so modules 8, 1 and 9
     join the track as they are written without anybody editing a child table by
     hand — the fix made in v3.226.4 after exactly that happened.
 
@@ -36,14 +36,14 @@ PRODUCT = "Xlevel Academy"
 
 # written order, not blueprint order — the track displays in this sequence and
 # is re-sequenced as the remaining modules arrive
-ORDER = ["getting_data", "master_data", "procure_pay", "inventory", "revenue_pos"]
+ORDER = ["getting_data", "master_data", "procure_pay", "inventory", "revenue_pos", "access"]
 
 TRACK = {
     "title": "System-Based Internal Control in a Retail Environment",
     "serial_prefix": "XLV-ICR",
     "seat_price": 85000,
     "description": (
-        "IN PREPARATION — five of nine modules published for review. "
+        "IN PREPARATION — six of nine modules published for review. "
         "For internal control officers and auditors in multi-branch retail. In a manual "
         "environment you rely on people behaving well; in a system environment you rely "
         "on the record of what they did. This track teaches how to interrogate that "
