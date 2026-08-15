@@ -17,7 +17,14 @@ doing it for twenty years. Three things keep this specific:
 
 Running example is Okelewo Stores three years on — the retailer from the POS
 track, now eleven branches — so the estate holds together and a manager reads
-about a business rather than an abstraction.
+about a business rather than an abstraction. That is continuity, not a
+dependency: nothing here requires the reader to have taken the POS track.
+
+STANDS ALONE. Every term the module uses is explained where it is used. That is
+not decoration: the Ikeja story is this module's climax and it turns on "margin
+is down two points" being a loss, which is unreadable to somebody who has not
+been told what margin is and what a point of it means. A reader without an
+accounting background would have reached the punchline and missed it.
 
 Run from the app package directory:  python3 build_retail_m1.py
 """
@@ -44,13 +51,13 @@ LESSONS = [
 
 <p>The trap is that the supervisory work is visible, urgent and satisfying. A queue you cleared, a delivery you sorted, a customer you calmed — you can see the result within the hour. Managerial work is slow, invisible and easy to postpone: the staff conversation you did not have, the stock line you did not analyse, the process you meant to fix. Nobody notices its absence for months, and then everybody notices at once.</p>
 
-<p><b>What you were actually given.</b> Not a bigger version of your old role. A small business to run, with a P&L, a stock position, a team, a customer base and a cash position. You did not choose the location, the range, the prices or most of the people — and you are still accountable for what the branch produces from them.</p>
+<p><b>What you were actually given.</b> Not a bigger version of your old role. A small business to run — with its own profit and loss account (the P&L: what the branch sold, what that cost, and what was left), a stock position, a team, a customer base and a cash position. You did not choose the location, the range, the prices or most of the people — and you are still accountable for what the branch produces from them.</p>
 
 <p><b>That gap between control and accountability is permanent</b>, and it is worth accepting early rather than resenting for two years. Every branch manager in every chain has it. The skill is being precise about which side of the line a problem sits on, and this module is largely about learning to be precise about that.</p>
 
 <p><b>The three questions that define the job.</b></p>
 
-<p><b>What is this branch producing?</b> Sales, margin, cash, stock health, customer return. Numbers you should know without asking.</p>
+<p><b>What is this branch producing?</b> Sales, margin, cash, stock health, customer return. Numbers you should know without asking.</p><p><i>Margin</i> is the one worth pausing on, because it recurs throughout this track. It is what is left of each naira of sales once the goods themselves are paid for: sell ₦100 of goods that cost you ₦70 and your margin is ₦30, or 30%. Sales tell you how much went through the till. Margin tells you how much of it the business kept, and the two move independently — which is the subject of chapter eight and of the module that follows this one.</p>
 
 <p><b>What is it capable of producing?</b> Given its location, size, range and team — because a branch performing well against its own potential is a different situation from one performing well against the estate.</p>
 
@@ -298,7 +305,7 @@ LESSONS = [
 
 <p><b>Sango, the second Abeokuta shop.</b> The manager delegates well and reads his figures. His branch is unremarkable on every measure and has the lowest staff turnover in the group. Head office regards him as steady rather than strong — and he is quietly the most valuable manager in the business, because his branch runs without him and he develops people other branches later take.</p>
 
-<p><b>Ikeja.</b> The manager is ambitious, chases the sales target, and has run three promotions this quarter without asking what they cost. Sales are up nine per cent and margin is down two points, which on that branch's volume is a loss. He does not know this, because he reads the sales report and not the margin one.</p>
+<p><b>Ikeja.</b> The manager is ambitious, chases the sales target, and has run three promotions this quarter without asking what they cost. Sales are up nine per cent and margin is down two points — from 30% to 28%, meaning the branch keeps two kobo less of every naira it takes. On that branch's volume the extra sales earn less than the lost margin costs, so it is a loss. He does not know this, because he reads the sales report and not the margin one.</p>
 
 <p><b>What the founder eventually noticed.</b> Not that any of the three was bad. That all three were doing what they had been rewarded for — serving, steadying and selling — and that nobody had ever told them the job was something else. The eleven managers had eleven private definitions of the role, and the business had never written one down.</p>
 
