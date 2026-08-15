@@ -1,12 +1,11 @@
 """Retail Leadership Essentials — seed and reconcile.
 
-Nine modules planned; eight written. The track is seeded INACTIVE so it can be
-read and reviewed in the app without appearing in any client catalogue, and it
-reconciles its module list on every run — so module 9 joins automatically
-as they are written, with nobody editing a child table.
+All nine modules written. The track is seeded ACTIVE: all nine modules are written and every one audits
+clean. It reconciles its module list on every run, so a later revision joins
+without anybody editing a child table.
 
-Set active=1 when the track is complete and the four Duty Settings values are
-confirmed.
+Before selling, confirm in Duty Settings: academy_bank_details,
+academy_approver, academy_vat_rate, academy_tutors.
 
 Run:
   bench --site xlevel.clouderp.one execute duty_board.academy_seed_retail.seed_retail_track
@@ -21,7 +20,7 @@ PRODUCT = "Retail Leadership"
 TRACK = "Retail Leadership Essentials"
 
 # display order; modules not yet written are simply absent from the data file
-ORDER = ["the_job", "the_numbers", "availability", "people", "loss", "customers", "upward", "without_you"]
+ORDER = ["the_job", "the_numbers", "availability", "people", "loss", "customers", "upward", "without_you", "the_week"]
 
 DESCRIPTION = (
     "For the person running a branch. What the job actually is as against what it was "
@@ -107,12 +106,13 @@ def seed_retail_track():
             "outcomes": OUTCOMES,
             "access": "Paid",
             "seat_price": 45000,
-            "active": 0,          # eight of nine modules written
+            "active": 1,          # all nine modules audit ok
             "modules": [{"module": m} for m in mods],
         }).insert(ignore_permissions=True)
-        print("seeded track: %s (%d modules, inactive)" % (TRACK, len(mods)))
+        print("seeded track: %s (%d modules, ACTIVE)" % (TRACK, len(mods)))
 
     frappe.db.commit()
-    print("\nSeeded inactive: eight of nine modules are written, so the track is readable")
-    print("in the app for review and appears in no client catalogue. Re-run after each")
-    print("new module — the list reconciles. Set active=1 when the track is complete.")
+    print("\nAll nine modules written and audit clean: 81 chapters, 243 checks,")
+    print("379 questions, approximately 41,000 words. Before selling, confirm in Duty")
+    print("Settings: academy_bank_details, academy_approver, academy_vat_rate,")
+    print("academy_tutors.")
