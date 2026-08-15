@@ -1,8 +1,13 @@
 """Retail Leadership Essentials — seed and reconcile.
 
-All nine modules written. The track is seeded ACTIVE: all nine modules are written and every one audits
-clean. It reconciles its module list on every run, so a later revision joins
-without anybody editing a child table.
+All nine modules written. Seeds the content — modules, lessons, checks and questions — and then wires the
+track. The first version of this file only wired the track: it looked each
+module up by title, printed the ones it could not find, and created nothing, so
+running it produced a track with no modules and nothing visible in the app.
+That was the whole reason the track could not be seen.
+
+Existing modules are left untouched. Content changes go through
+academy_repair.push_lessons rather than through re-seeding.
 
 Before selling, confirm in Duty Settings: academy_bank_details,
 academy_approver, academy_vat_rate, academy_tutors.
@@ -61,21 +66,78 @@ def seed_retail_track():
         }).insert(ignore_permissions=True)
         print("created Duty Product: %s" % PRODUCT)
 
-    names, missing = {}, []
-    for key in ORDER:
+    names = {}
+    for i, key in enumerate(ORDER):
         if key not in data:
-            missing.append(key)
+            print("MISSING from the data file, skipped: %s" % key)
             continue
-        title = data[key]["title"]
-        n = frappe.db.get_value("Duty Training Module", {"title": title}, "name")
-        if n:
-            names[key] = n
-        else:
-            missing.append(title)
+        m = data[key]
+        existing = frappe.db.get_value("Duty Training Module", {"title": m["title"]}, "name")
+        if existing:
+            names[key] = existing
+            print("module exists, left untouched: %s" % m["title"])
+            continue
 
-    if missing:
-        print("not seeded on this site (%d): %s" % (len(missing), ", ".join(missing)))
-        print("run the content seeder first; this script wires the track.\n")
+        mod = frappe.get_doc({
+            "doctype": "Duty Training Module",
+            "title": m["title"],
+            "product": PRODUCT,
+            "description": m["desc"],
+            "active": 1,
+            "audience": "Client",
+            "sort_order": 30 + i,
+            "pass_mark": 70,
+            "timed_mode": 1,
+            "seconds_per_question": 75,
+            "questions_served": 10,
+            "max_attempts": 2,
+            "retake_wait_hours": 24,
+            "hide_wrong_answers": 1,
+        }).insert(ignore_permissions=True)
+        names[key] = mod.name
+
+        for j, l in enumerate(m["lessons"]):
+            lesson = frappe.get_doc({
+                "doctype": "Duty Lesson",
+                "module": mod.name,
+                "title": l["title"],
+                "sort_order": j,
+                "est_minutes": l["est"],
+                "content": l["html"],
+                # third chapter is the public sample, as on the other tracks
+                "is_sample": 1 if j == 2 else 0,
+            }).insert(ignore_permissions=True)
+            for k, c in enumerate(l.get("checks") or []):
+                opts = list(c["opts"]) + [None, None, None, None]
+                frappe.get_doc({
+                    "doctype": "Duty Lesson Check",
+                    "lesson": lesson.name,
+                    "sort_order": k,
+                    "question": c["q"],
+                    "opt_a": opts[0], "opt_b": opts[1],
+                    "opt_c": opts[2], "opt_d": opts[3],
+                    "correct": "ABCD"[c["ans"]],
+                    "rationale": c.get("why"),
+                    "active": 1,
+                }).insert(ignore_permissions=True)
+
+        for q in m["questions"]:
+            frappe.get_doc({
+                "doctype": "Duty Quiz Question",
+                "module": mod.name,
+                "question": q["q"],
+                "opt_a": q["opts"][0], "opt_b": q["opts"][1],
+                "opt_c": q["opts"][2], "opt_d": q["opts"][3],
+                "correct": "ABCD"[q["ans"]],
+                "rationale": q["why"],
+                "source": q["src"],
+                "topic": q["topic"],
+                "active": 1,
+            }).insert(ignore_permissions=True)
+
+        checks = sum(len(l.get("checks") or []) for l in m["lessons"])
+        print("seeded module: %s (%d chapters, %d checks, %d questions)"
+              % (m["title"], len(m["lessons"]), checks, len(m["questions"])))
 
     mods = [names[k] for k in ORDER if k in names]
     if not mods:
