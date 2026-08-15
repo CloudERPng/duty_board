@@ -2834,5 +2834,959 @@
     "topic": "Scale and causes"
    }
   ]
+ },
+ "procure_pay": {
+  "title": "Procure to Pay",
+  "desc": "The largest outflow, and unattended. Match coverage before match exceptions, suppliers as standing instructions to pay, the bank-change test that defeats the three-way match, orders split below a limit, prices paid against prices agreed, the receiving bay as the highest-risk point, and why a single call to a supplier ends more investigations than anything else.",
+  "lessons": [
+   {
+    "title": "Where procurement leaks",
+    "est": 12,
+    "html": "<p>Procurement is the largest outflow most retailers have, and unlike the till it is unattended. A cash loss is bounded by what fits in a drawer; a procurement loss is bounded by what somebody will authorise, and the amounts are of a different order.</p>\n\n<p><b>The five ways value leaves, roughly in order of how much they cost and inversely to how much attention they get.</b></p>\n\n<p><b>Paying for what did not arrive.</b> Goods invoiced and never delivered, or delivered short and signed for anyway. The most common and the least dramatic, because it usually starts as carelessness at the receiving bay and only later becomes an arrangement.</p>\n\n<p><b>Paying more than agreed.</b> A price above the negotiated rate, a rebate never claimed, a discount never applied. Nobody steals anything; the business simply pays more, invoice after invoice, and nothing looks unusual on any single one.</p>\n\n<p><b>Buying from the wrong supplier.</b> A supplier connected to the buyer, or one whose price is uncompetitive but whose relationship is comfortable. Legal in most cases, expensive in all.</p>\n\n<p><b>Paying the wrong account.</b> A genuine invoice from a genuine supplier, paid to a bank account that is not theirs. The highest-value single event available and the fastest.</p>\n\n<p><b>Paying twice.</b> Duplicate invoices, duplicate suppliers, a credit note never applied. Almost always error rather than intent, and recoverable if found.</p>\n\n<p><b>Why procure-to-pay is unusually testable.</b> The process is documentary from end to end — an order, a receipt, an invoice, a payment — and each document references the last. A control failure therefore shows as a broken relationship between documents rather than as a missing piece of paper, and broken relationships are exactly what a query finds.</p>\n\n<p><b>What makes it different from the till.</b> Till schemes are small and repeated; procurement schemes are large and rare. That changes your method entirely. Analytical profiling — the ranked distribution that works so well for cashiers — is much weaker here, because a single ₦40m event does not show up in an average. <b>Procurement work is mostly nil-expected testing on the whole population</b>, looking for the one relationship that should never exist.</p>\n\n<p><b>And it changes who you are examining.</b> Procurement is done by people senior enough to have influence over how audit findings are received. That is a real consideration, and it is why the evidence standard in this module is higher and why module 9's reporting discipline matters more here than anywhere else in the track.</p>\n\n<blockquote>WATCH-OUT: Procurement fraud is usually discovered by accident — a supplier calls about an unpaid invoice, a delivery driver mentions something, somebody goes on leave and their replacement notices. That is not a testing programme; it is luck, and it means the losses you have found are a sample of the ones that occurred.</blockquote>\n\n<p><b>One thing to establish before designing anything.</b> How much of your purchasing actually goes through the system. In many retailers a meaningful share is bought informally — cash purchases at branch level, urgent replenishment from a nearby wholesaler, services engaged by a phone call and invoiced later. Those transactions are outside every test in this module, and quantifying them is itself a finding. A procurement control framework that covers 60% of spend is a framework with a 40% hole, and nobody has usually measured which.</p>",
+    "checks": [
+     {
+      "q": "Analytical profiling works less well in procurement than at the till because:",
+      "opts": [
+       "Approvals interfere",
+       "Volumes are lower",
+       "The data is poorer",
+       "Schemes here are large and rare, and a single event does not move an average"
+      ],
+      "ans": 3,
+      "why": "Procurement work is mostly nil-expected testing on the whole population.",
+      "sort": 0
+     },
+     {
+      "q": "A control failure in procure-to-pay typically shows as:",
+      "opts": [
+       "A late posting",
+       "A missing document",
+       "A broken relationship between documents",
+       "An unusual value"
+      ],
+      "ans": 2,
+      "why": "The process is documentary end to end and each document references the last, which is what makes it queryable.",
+      "sort": 1
+     },
+     {
+      "q": "Most procurement fraud is discovered by:",
+      "opts": [
+       "Routine testing",
+       "Accident — a supplier call, a remark, somebody covering leave",
+       "External audit",
+       "Reconciliation"
+      ],
+      "ans": 1,
+      "why": "Which means the losses found so far are a sample of those that occurred.",
+      "sort": 2
+     }
+    ]
+   },
+   {
+    "title": "The three-way match",
+    "est": 12,
+    "html": "<p>The three-way match is the central control in procurement, and in a system environment it is enforced by relationships between documents rather than by somebody comparing three pieces of paper.</p>\n\n<p><b>The three documents.</b> A <b>Purchase Order</b> says what was agreed to be bought, from whom, at what price. A <b>Purchase Receipt</b> says what physically arrived. A <b>Purchase Invoice</b> says what the supplier is charging. Where all three agree on quantity and price, payment is safe. Where they do not, something needs explaining.</p>\n\n<p><b>What the system does automatically and what it does not.</b> ERPNext links these documents and will carry quantities forward, so an invoice created from a receipt inherits its figures. That is convenient and it is not a control — because the documents can also be created independently, and an invoice raised without reference to a receipt has nothing to disagree with.</p>\n\n<p><b>So the first question is coverage, not exceptions.</b> What proportion of purchase invoices reference a receipt at all? A business with 30% of invoices unmatched does not have a match exception problem; it has no three-way match, and reporting individual mismatches would miss the point entirely.</p>\n\n<p><b>The standing tests, and two ship with the platform.</b></p>\n\n<p><i>Received Items To Be Billed</i> lists goods received with no invoice. Aged, it finds receipts that will never be billed — sometimes because the supplier forgot, occasionally because the goods were never really received and the receipt was created to close a purchase order.</p>\n\n<p><i>Billed Items To Be Received</i> is the more interesting direction: <b>invoiced and not received</b>. Every row is money owed or paid for goods with no evidence of arrival. In a retailer this should be a small and explicable population, and it is the single most valuable standing report in this module.</p>\n\n<p><b>Quantity and price variances.</b> Where a receipt records less than the order and the invoice charges for the order quantity, the difference is a payment for goods not received. Where the invoiced rate exceeds the ordered rate, the difference is a payment above agreement. Both are computable across the whole population, and both should be nil or explicable.</p>\n\n<p><b>Tolerances, and the question to ask about them.</b> Most configurations permit a small variance without blocking — a percentage or an amount. Establish what yours is, because it defines exactly how much can be taken without any control firing. A 5% tolerance on ₦2bn of purchasing is ₦100m of unchallenged variance, and that figure usually surprises the people who set it.</p>\n\n<blockquote>IMPLEMENTATION TIP: Before testing match exceptions, measure match coverage. The proportion of invoices with no linked receipt tells you whether the control exists at all, and it is a one-line query that reframes everything that follows.</blockquote>\n\n<p><b>Services complicate the match and deserve their own treatment.</b> There is no receipt for consultancy, cleaning or haulage — nothing physically arrives to be counted. The three-way match collapses to two, and the control that replaces the receipt is somebody confirming the service was performed. Test whether that confirmation exists and who gives it: service spend is where the weakest evidence and the least scrutiny usually coincide, and it is frequently a larger share of spend than anybody assumes.</p>",
+    "checks": [
+     {
+      "q": "30% of purchase invoices reference no receipt. The correct conclusion is:",
+      "opts": [
+       "There are many match exceptions",
+       "There is no three-way match, and reporting individual mismatches misses the point",
+       "The system is misconfigured",
+       "Receipts are posted late"
+      ],
+      "ans": 1,
+      "why": "Coverage is the first question; exceptions are only meaningful once the control exists.",
+      "sort": 0
+     },
+     {
+      "q": "A 5% match tolerance on ₦2bn of annual purchasing means:",
+      "opts": [
+       "Faster processing",
+       "A reasonable allowance",
+       "₦100m of variance that no control will challenge",
+       "Nothing material"
+      ],
+      "ans": 2,
+      "why": "Establish the tolerance, because it defines exactly how much can pass unchallenged.",
+      "sort": 1
+     },
+     {
+      "q": "Which shipped report finds goods invoiced but with no evidence of arrival?",
+      "opts": [
+       "Purchase Order Analysis",
+       "Item-wise Purchase History",
+       "Received Items To Be Billed",
+       "Billed Items To Be Received"
+      ],
+      "ans": 3,
+      "why": "Every row is money owed or paid for goods that may never have come.",
+      "sort": 2
+     }
+    ]
+   },
+   {
+    "title": "Suppliers as master data",
+    "est": 12,
+    "html": "<p>A supplier record is a standing instruction to pay somebody. It deserves the scrutiny of one, and it is usually created by whoever needed the purchase made.</p>\n\n<p><b>Where the banking actually lives, and this matters for your query.</b> Supplier holds <code>default_bank_account</code> as a link. The banking itself sits on a separate <b>Bank Account</b> record carrying <code>party_type</code> and <code>party</code> pointing back to the supplier, with <code>iban</code> and <code>bank_account_no</code>. Both doctypes track changes.</p>\n\n<p>So the bank-change test queries versions of <b>Bank Account</b> and joins to the supplier through <code>party</code> — not versions of Supplier, which will show only that the default link changed. An auditor testing the wrong doctype gets a clean result and concludes wrongly.</p>\n\n<p><b>The highest-value test in this module.</b> Bank account details changed, followed by a payment to that supplier within a short window. The scheme it detects is simple and devastating: change the account on a legitimate supplier, wait for a genuine invoice to be paid, change it back. The invoice is real, the goods arrived, the approval was proper, and the money went elsewhere. <b>Nothing in the three-way match touches it.</b></p>\n\n<p>Without field-level version history this test is impossible, which is why module 2 spent time on it.</p>\n\n<p><b>Duplicate suppliers.</b> The same entity created twice permits the same invoice to be paid twice, and it defeats spend analysis because the total is split. Test by name similarity, by matching bank account numbers, by shared tax identifiers, and by shared addresses or phone numbers. <b>Matching bank details across two supplier records is the strongest signal</b> and takes one query.</p>\n\n<p><b>Suppliers connected to staff.</b> Compare supplier contact details against employee records — phone numbers, addresses, surnames, bank accounts. This is uncomfortable work and it is standard practice in mature audit functions. Findings here are rarely conclusive on their own; a shared surname is a coincidence in a country with common surnames, and a shared bank account is not.</p>\n\n<p><b>Dormant suppliers reactivated.</b> A supplier with no activity for a year, suddenly transacting, is worth a look — particularly if the record was edited shortly before. Dormant records are attractive precisely because nobody is watching them and they carry the legitimacy of history.</p>\n\n<p><b>Who can create a supplier</b> is the control question behind all of this. If the person who raises orders can also create the supplier they order from, the segregation that everything else depends on is absent, and no amount of downstream testing compensates.</p>\n\n<blockquote>WATCH-OUT: Test bank account changes on the Bank Account doctype, not on Supplier. A version query against Supplier shows only that the default link moved, and it will come back reassuringly empty while the actual account details are being changed weekly.</blockquote>\n\n<p><b>Onboarding is the control that prevents most of this.</b> What actually happens before a supplier record is created — documents collected, bank details verified independently, the relationship declared, a second person approving. In many businesses the answer is that a buyer creates the record when they need to raise an order, which means the standing instruction to pay is created by the person who wants the payment made. Test the sequence: how many suppliers were created on the same day as their first purchase order.</p>",
+    "checks": [
+     {
+      "q": "A query on Version for Supplier returns no bank changes. You should:",
+      "opts": [
+       "Conclude no changes occurred",
+       "Query Bank Account instead, joining to the supplier through party",
+       "Check permissions",
+       "Widen the date range"
+      ],
+      "ans": 1,
+      "why": "Supplier holds only default_bank_account as a link; the details sit on Bank Account.",
+      "sort": 0
+     },
+     {
+      "q": "Bank details changed, a genuine invoice paid, details changed back. This defeats:",
+      "opts": [
+       "The three-way match entirely — the invoice, goods and approval are all real",
+       "Payment authorisation",
+       "Duplicate detection",
+       "Supplier approval"
+      ],
+      "ans": 0,
+      "why": "Only version history on the banking record exposes it.",
+      "sort": 1
+     },
+     {
+      "q": "The strongest single indicator of duplicate suppliers is:",
+      "opts": [
+       "A shared contact name",
+       "Similar names",
+       "Matching bank account numbers",
+       "The same address"
+      ],
+      "ans": 2,
+      "why": "Names are frequently similar for innocent reasons; bank details are not.",
+      "sort": 2
+     }
+    ]
+   },
+   {
+    "title": "Approval limits and how they are worked around",
+    "est": 12,
+    "html": "<p>An approval limit says that above a value, a second person must agree. It is the most common financial control in existence and among the easiest to defeat, because defeating it requires no system access at all — only arithmetic.</p>\n\n<p><b>How limits are enforced here.</b> Either a Workflow attached to the doctype, with states and transitions and a recorded Workflow Action naming who was asked and who acted; or an <b>Authorization Rule</b> carrying a <code>value</code>, a <code>based_on</code> basis, and the roles or users permitted to approve. A business may use either, both, or neither.</p>\n\n<p><b>Establish which before testing anything.</b> If the answer is neither — if any buyer can raise and submit any order at any value — then you have your finding, and it outranks every pattern in this chapter. Report the absence of the control before analysing behaviour under a control that does not exist.</p>\n\n<p><b>The classic defeat: splitting.</b> An order of ₦1.4m against a ₦500,000 limit becomes three orders of about ₦470,000, raised the same day to the same supplier. Each is individually within authority and none requires a second signature. The business bought the same goods from the same supplier on the same day and nobody approved the purchase.</p>\n\n<p><b>Testing for it.</b> Group purchase orders by supplier and by date, or by a short window such as a week, and total. Flag where the aggregate crosses the limit while each constituent sits below it. This is a population test, and it is the reason for the emphasis in module 1: sampling fifty orders will almost never find splitting, because the individual orders look entirely ordinary.</p>\n\n<p><b>The histogram, which is faster than any test.</b> Plot purchase order values and look immediately below each approval threshold. If there is a cluster, the limit is being worked around, and you know it in thirty seconds without designing anything. People optimise against limits and the distribution shows it plainly.</p>\n\n<p><b>Amendment after approval.</b> Where a document can be approved at one value and then amended upward, the approval attaches to a version that no longer exists. Version history answers this directly: compare the value at the point of approval with the final value. In a well-configured system amendment re-triggers approval; establish whether yours does, because if it does not, every limit in the business is advisory.</p>\n\n<p><b>Self-approval.</b> Whether the approver can be the requester. Sometimes permitted deliberately for small values, frequently permitted by accident through role assignment. Test it as data — orders where the approving user equals the owner — rather than by reading the policy.</p>\n\n<blockquote>IMPLEMENTATION TIP: The value histogram is the highest-return thirty seconds in this module. One chart, all purchase orders, and a marker at each approval limit. A cluster immediately below a threshold is a finding you can see rather than compute.</blockquote>\n\n<p><b>And check what the limit is actually set against.</b> A threshold on order value behaves differently from one on invoice value or line value, and a limit applied per line rather than per document is barely a limit at all — a single order of ten lines at ₦450,000 each passes every check while committing ₦4.5m. Read the configuration rather than the policy document, because the two frequently describe different controls.</p>",
+    "checks": [
+     {
+      "q": "Three orders of ₦470,000 to one supplier on one day, against a ₦500,000 limit. The finding is:",
+      "opts": [
+       "Each order was properly authorised",
+       "The purchase was split so that nobody approved it",
+       "The limit is set too low",
+       "The supplier should be consolidated"
+      ],
+      "ans": 1,
+      "why": "Sampling fifty orders will almost never find this; each one looks entirely ordinary.",
+      "sort": 0
+     },
+     {
+      "q": "Purchase orders can be approved and then amended upward without re-approval. This means:",
+      "opts": [
+       "Approval should be at invoice stage",
+       "The workflow needs a new state",
+       "Amendments need monitoring",
+       "Every limit in the business is advisory"
+      ],
+      "ans": 3,
+      "why": "The approval attaches to a version that no longer exists.",
+      "sort": 1
+     },
+     {
+      "q": "No approval mechanism exists at all — any buyer can raise and submit any value. You should:",
+      "opts": [
+       "Analyse buyer behaviour for patterns",
+       "Report the absence of the control before analysing behaviour under one that does not exist",
+       "Recommend a value threshold and move on",
+       "Test the largest orders"
+      ],
+      "ans": 1,
+      "why": "It outranks every pattern in the chapter.",
+      "sort": 2
+     }
+    ]
+   },
+   {
+    "title": "Prices paid against prices agreed",
+    "est": 12,
+    "html": "<p>Nothing is stolen and nothing is missing. The business simply pays more than it agreed, invoice after invoice, and no single document looks wrong. It is the quietest procurement loss and among the largest.</p>\n\n<p><b>What the agreed price is, and where it lives.</b> Depending on how the business works: an Item Price against a supplier price list, a rate on a blanket order, a contracted rate held outside the system, or simply the rate on the last order. Establish which is authoritative before testing, because comparing against the wrong reference produces a report full of differences that mean nothing.</p>\n\n<p><b>The core test.</b> Invoiced rate against agreed rate, by item and supplier, across the whole population, beyond a tolerance. Rank by total value of the difference rather than by percentage — a 2% overcharge on your largest line is worth more than a 40% overcharge on something you buy twice a year, and a percentage-ranked report puts the trivial one at the top.</p>\n\n<p><b>The drift test, which finds what a point-in-time comparison misses.</b> Track the rate paid for an item over eighteen months. A supplier raising prices in small steps, none individually notable, can move a rate 30% in a year while every single invoice passes tolerance. Plotting the series exposes it immediately; testing invoice by invoice never will.</p>\n\n<p><b>Rebates and volume discounts.</b> Where a supplier agreement provides a rebate at a volume threshold, test whether the volume was reached and whether the rebate was claimed and received. Unclaimed rebates are pure loss and are common, because claiming them is somebody's job in the sense that it is nobody's.</p>\n\n<p><b>Comparing across suppliers.</b> For items bought from more than one supplier, compare rates. A persistent difference may be quality, terms or delivery — all legitimate — or it may be that nobody has looked in two years. Either way it is a question worth asking, and the answer belongs to procurement rather than to you.</p>\n\n<p><b>Currency, in an importing business.</b> Where purchases are in foreign currency, test the rate applied against the rate that should have been used on that date. Differences here are usually mechanical rather than deliberate, and they are material — a systematic rate error across a year of imports is a large number, and it will be found eventually by somebody less friendly than you.</p>\n\n<p><b>Who to give this to.</b> Price findings are commercially useful rather than accusatory, which makes them the easiest thing in this module to get acted on. A report showing ₦18m of overcharges recoverable from three suppliers will be welcomed by the people a fraud finding would put on the defensive, and it builds the standing you will need later.</p>\n\n<p><b>Where the agreed price does not exist in the system at all.</b> Often the negotiated rate lives in an email or a signed schedule and was never loaded, so there is nothing to compare against and every invoice passes by default. That is a finding in itself and a straightforward recommendation: load the agreed rates and the control becomes automatic rather than dependent on somebody remembering what was agreed eight months ago.</p>\n\n<blockquote>IMPLEMENTATION TIP: Rank price variances by total naira value, never by percentage. The percentage view surfaces small items with volatile prices and buries the systematic overcharge on your highest-volume line, which is where the money actually is.</blockquote>",
+    "checks": [
+     {
+      "q": "Your variance report is topped by a spice line bought twice a year at 40% over agreed. Meanwhile your largest line runs 2% over. The report is ranked:",
+      "opts": [
+       "By supplier importance",
+       "By frequency of occurrence",
+       "Correctly, by severity",
+       "By percentage, which buries where the money actually is"
+      ],
+      "ans": 3,
+      "why": "Two per cent on your highest-volume purchase is worth far more than forty on something incidental.",
+      "sort": 0
+     },
+     {
+      "q": "A supplier raises a rate in small steps totalling 30% over a year, each within tolerance. This is found by:",
+      "opts": [
+       "Plotting the rate series over time",
+       "The three-way match",
+       "Approval limit testing",
+       "Invoice-by-invoice testing"
+      ],
+      "ans": 0,
+      "why": "Every individual invoice passes; only the series exposes the drift.",
+      "sort": 1
+     },
+     {
+      "q": "You can report either ₦18m recoverable from three suppliers, or a suspected related-party purchase. Starting with the first:",
+      "opts": [
+       "Is welcomed by people the second would put on the defensive, and builds standing",
+       "Delays the important work",
+       "Signals weak resolve",
+       "Wastes the stronger finding"
+      ],
+      "ans": 0,
+      "why": "Commercially useful findings buy the credibility that harder ones later depend on.",
+      "sort": 2
+     }
+    ]
+   },
+   {
+    "title": "Receiving: the highest-risk point",
+    "est": 12,
+    "html": "<p>The receiving bay is where the business's money becomes the business's goods, and it is typically staffed by the most junior people in the building, under time pressure, with a driver waiting.</p>\n\n<p><b>What a Purchase Receipt asserts.</b> That these goods, in this quantity, arrived at this warehouse on this date. Everything downstream — the invoice match, the stock position, the payment — rests on it. It is the single most consequential document created by the most junior person in the process, and that asymmetry is the whole risk.</p>\n\n<p><b>The tests that follow.</b></p>\n\n<p><b>Receipts recording exactly the ordered quantity, always.</b> Real deliveries are occasionally short, damaged or over. A receiver whose figures always match the order to the unit is not counting; they are copying, and the receipt is worthless as evidence. Compare receipt quantity to order quantity across the population and look at the proportion of exact matches by receiver — it varies far more between people than anybody expects.</p>\n\n<p><b>Receipts created after the invoice.</b> The sequence should be order, receipt, invoice. Where the receipt is created after the invoice arrives, it is frequently being created <i>to match it</i> rather than to record an arrival. Compare creation timestamps rather than posting dates, because posting dates can be set.</p>\n\n<p><b>Receipts posted outside working hours, or by somebody not at that branch.</b> Both are testable against the user and the timestamp, and both are usually explicable — a late delivery, a central user assisting. Usually.</p>\n\n<p><b>Receiving and ordering by the same person.</b> The most important segregation in procurement. Whoever chooses the supplier and the quantity should not be the person confirming what arrived, because that combination permits payment for goods that never came and nobody else ever sees the transaction.</p>\n\n<p><b>What the auditor can and cannot establish from data.</b> You can show that a receipt exists, who created it, when, and whether it agrees with the order and the invoice. You cannot show from data that goods physically arrived. That gap is why occasional physical verification matters — attending a delivery unannounced, or tracing a receipt to the stock that should have resulted from it and then to its sale or its presence on the shelf.</p>\n\n<p><b>The corroboration with module 5.</b> Goods invoiced and receipted but never actually delivered create system stock that does not exist, and it surfaces at the next count as shrinkage. <b>A category with persistent shrinkage and a supplier with a high proportion of exact-match receipts is a specific thing to go and look at</b>, and neither number alone would have sent you there.</p>\n\n<p><b>Deliveries direct to branches are the harder case.</b> Where suppliers deliver to twenty locations rather than a central warehouse, receiving is done by twenty untrained people with no supervision, and receipt quality varies accordingly. Test receipt behaviour by branch as well as by person: a branch whose receipts are systematically exact, or systematically late, is a control gap at a location rather than a problem with an individual.</p>\n\n<blockquote>WATCH-OUT: A receiver whose receipts always exactly match the order is a stronger signal than one with frequent discrepancies. Discrepancies mean somebody is counting. Perfect agreement, sustained across hundreds of deliveries, means somebody is not.</blockquote>",
+    "checks": [
+     {
+      "q": "A receiver's quantities always exactly match the ordered quantity. This suggests:",
+      "opts": [
+       "Good receiving discipline",
+       "Accurate ordering",
+       "Excellent supplier performance",
+       "They are copying rather than counting, making the receipt worthless as evidence"
+      ],
+      "ans": 3,
+      "why": "Real deliveries are occasionally short, damaged or over.",
+      "sort": 0
+     },
+     {
+      "q": "A purchase receipt created after the invoice arrived is often being created:",
+      "opts": [
+       "To match the invoice rather than to record an arrival",
+       "For cut-off reasons",
+       "By a central user",
+       "To correct a posting error"
+      ],
+      "ans": 0,
+      "why": "Compare creation timestamps rather than posting dates, because posting dates can be set.",
+      "sort": 1
+     },
+     {
+      "q": "From data alone, an auditor cannot establish:",
+      "opts": [
+       "Whether it matches the order",
+       "When it was created",
+       "Who created the receipt",
+       "That goods physically arrived"
+      ],
+      "ans": 3,
+      "why": "Which is why occasional physical verification and tracing to stock matter.",
+      "sort": 2
+     }
+    ]
+   },
+   {
+    "title": "Payment, and the account it went to",
+    "est": 12,
+    "html": "<p>Payment is the last control point and the only irreversible one. Everything before it can be corrected; a payment made to the wrong account is usually gone.</p>\n\n<p><b>What to test at the payment stage.</b></p>\n\n<p><b>Payments without an invoice.</b> A Payment Entry not allocated against a purchase invoice is paying somebody for nothing recorded. Advances exist legitimately, and should be a small, named, monitored population that clears.</p>\n\n<p><b>Duplicate payments.</b> The same supplier, the same amount, close together, or the same supplier invoice number appearing twice. Almost always error, frequently recoverable, and finding recoverable money is the fastest way for a new audit function to establish that it pays for itself.</p>\n\n<p><b>Payment to an account changed recently.</b> The test from chapter three, expressed at the payment end: for every payment, was the receiving bank account modified in the preceding period? This is where the two halves join, and it is worth running weekly rather than periodically, because the value at risk in a single instance can exceed a year of every other finding combined.</p>\n\n<p><b>Payments outside the approval route.</b> Where a workflow governs payment, entries that reached submitted status without the expected Workflow Actions. Where an Authorization Rule governs it, payments above the threshold without the approving user recorded.</p>\n\n<p><b>Manual journals affecting supplier balances.</b> A journal entry adjusting what a supplier is owed bypasses the entire purchase-to-pay process. Legitimate uses exist — corrections, settlements, contra entries — and each should be explicable. A supplier balance moved by journal rather than by invoice or payment is worth understanding every time.</p>\n\n<p><b>The segregation that matters most here.</b> Whoever can create or amend a supplier's bank details should not be able to release payments. If one person can do both, the control is a single decision by a single individual, and everything upstream is decoration. Test it as data — the intersection of the two permission sets — rather than by asking.</p>\n\n<p><b>Timing as a signal.</b> Payments prepared or released outside normal hours, immediately before a holiday period, or in the days after a bank detail change all warrant a look. None proves anything; all are cheap to test and each has a straightforward innocent explanation you should confirm rather than assume.</p>\n\n<p><b>Payment runs, and the exception outside them.</b> Most businesses pay on a cycle — batched and reviewed. The payment made outside that cycle is the one worth examining: urgent, individual, and frequently justified by a supplier threatening to stop supply. Some are genuine. All bypass the review the batch receives, which is generally the point of making them outside the run.</p>\n\n<blockquote>IMPLEMENTATION TIP: Run the bank-change-then-payment test weekly, not monthly. It is the one test in this track where the interval between the event and detection determines whether the money is recoverable, and a week is often the difference.</blockquote>",
+    "checks": [
+     {
+      "q": "Which test should be run weekly rather than periodically?",
+      "opts": [
+       "Bank account changed then paid",
+       "Price variance",
+       "Match coverage",
+       "Duplicate payments"
+      ],
+      "ans": 0,
+      "why": "The interval between event and detection determines whether the money is recoverable.",
+      "sort": 0
+     },
+     {
+      "q": "A supplier balance adjusted by journal entry rather than by invoice or payment:",
+      "opts": [
+       "Indicates a settlement",
+       "Is a posting convenience",
+       "Bypasses the entire purchase-to-pay process and needs explaining every time",
+       "Is a finance matter only"
+      ],
+      "ans": 2,
+      "why": "Legitimate uses exist, and each should be explicable.",
+      "sort": 1
+     },
+     {
+      "q": "The most important payment-stage segregation is between:",
+      "opts": [
+       "Receiving and invoicing",
+       "Ordering and receiving",
+       "Amending supplier bank details and releasing payments",
+       "Invoicing and approving"
+      ],
+      "ans": 2,
+      "why": "If one person can do both, everything upstream is decoration.",
+      "sort": 2
+     }
+    ]
+   },
+   {
+    "title": "Analytics across suppliers and buyers",
+    "est": 12,
+    "html": "<p>The nil-expected tests find specific broken relationships. Analytics finds the things that are not individually wrong but collectively worth explaining, and in procurement they mostly concern concentration.</p>\n\n<p><b>Spend by supplier, ranked.</b> The starting point, and it produces more questions than it looks like. A supplier who has moved from twentieth to third in a year has a reason, and somebody should be able to state it. A long tail of suppliers used once or twice indicates buying outside whatever framework exists.</p>\n\n<p><b>Spend by buyer.</b> Who is committing the business's money, and how much. Then the more interesting cut: <b>concentration within a buyer</b>. A buyer whose spend is spread across many suppliers is behaving differently from one whose spend is 80% with a single supplier — and the second is not wrong, but it is a relationship worth understanding, particularly if it has become more concentrated over time.</p>\n\n<p><b>New suppliers by volume.</b> A supplier created recently and rapidly reaching significant volume is worth a look. Combine with the master-data tests: who created the record, what checks were done, and does anything connect it to staff.</p>\n\n<p><b>Single-quote purchasing.</b> Where policy requires competitive quotes above a value, test whether more than one supplier was ever considered. In ERPNext this is visible where Request for Quotation and Supplier Quotation are used; where they are not used at all, the policy exists only on paper and that is the finding.</p>\n\n<p><b>Order-to-receipt and receipt-to-invoice intervals.</b> Unusual speed is as informative as unusual delay. An order raised, received and invoiced within an hour was not a procurement process, it was paperwork constructed around a decision already taken — which may be an emergency purchase properly documented afterwards, or may be something else.</p>\n\n<p><b>The limits of analytics here, stated plainly.</b> Unlike the till, procurement schemes are rare and large, so a ranked list will usually contain entirely legitimate businesses at the top. Concentration is normal in retail — you buy most of your soft drinks from one bottler. <b>Use analytics to generate questions, and expect most answers to be satisfactory.</b> An auditor who treats a ranking as a suspect list will be wrong repeatedly, in front of senior people, and will not be listened to when it matters.</p>\n\n<blockquote>IMPLEMENTATION TIP: The most productive single analytic is spend concentration by buyer, tracked over time. A buyer whose supplier concentration is increasing year on year is a question worth asking, and the answer is usually about convenience rather than anything worse — but it is occasionally not.</blockquote>\n\n<p><b>Compare buyers against each other on the same categories.</b> Where two people buy similar goods, differences in price achieved, supplier count and order frequency are informative in a way that a single buyer's numbers never are. The buyer paying consistently more for the same items may be less skilled, may be buying at short notice because of poor planning elsewhere, or may have a reason nobody has asked about. All three are worth knowing and only the comparison surfaces any of them.</p>",
+    "checks": [
+     {
+      "q": "An order raised, received and invoiced within one hour indicates:",
+      "opts": [
+       "An efficient process",
+       "Paperwork constructed around a decision already taken",
+       "A system error",
+       "A standing order"
+      ],
+      "ans": 1,
+      "why": "Which may be a properly documented emergency, or may be something else.",
+      "sort": 0
+     },
+     {
+      "q": "Where RFQ and Supplier Quotation are never used despite a competitive-quote policy:",
+      "opts": [
+       "The policy exists only on paper, and that is the finding",
+       "Recommend more suppliers",
+       "Check the value threshold",
+       "Test the quotes that exist"
+      ],
+      "ans": 0,
+      "why": "Testing compliance with a control nobody operates produces nothing.",
+      "sort": 1
+     },
+     {
+      "q": "A ranked supplier concentration list will usually have at the top:",
+      "opts": [
+       "The riskiest relationships",
+       "Entirely legitimate businesses",
+       "Recently created suppliers",
+       "Related parties"
+      ],
+      "ans": 1,
+      "why": "Concentration is normal in retail; use analytics to generate questions and expect satisfactory answers.",
+      "sort": 2
+     }
+    ]
+   },
+   {
+    "title": "The P2P tests, and investigating",
+    "est": 12,
+    "html": "<p>The working programme, and how a procurement investigation differs from the ones in modules 5 and 6.</p>\n\n<p><b>Nil-expected tests.</b> Any row needs explaining.</p>\n\n<p><b>Bank account changed then paid within the window.</b> <i>Innocent:</i> a genuine supplier bank change, which should be verifiable by calling a number you already hold — never one on the letter requesting the change.<br>\n<b>Invoiced and not received, aged.</b> <i>Innocent:</i> services rather than goods, and prepayments.<br>\n<b>Duplicate supplier bank details.</b> <i>Innocent:</i> a group of related companies sharing an account, which should be documented.<br>\n<b>Payments with no invoice allocation.</b> <i>Innocent:</i> advances, which should clear.<br>\n<b>Split orders below a limit.</b> <i>Innocent:</i> genuinely separate requirements arriving the same day, which is less common than people claim.</p>\n\n<p><b>Analytical tests.</b> Price variance ranked by value, rate drift over time, spend concentration by buyer and supplier, exact-match receipt proportion by receiver, order-to-invoice intervals.</p>\n\n<p><b>How a procurement investigation differs, and this is the important part.</b></p>\n\n<p><b>The value is larger, so the standard of evidence is higher.</b> A ₦40m finding will be examined by people with an interest in its being wrong, and every step will be tested. Document as you go rather than assembling afterwards.</p>\n\n<p><b>The people are more senior.</b> They may have influence over the audit function, access to the systems you are examining, and relationships with whoever you would escalate to. This is precisely why module 9's rule about telling the person your charter names — and specifically not the line manager — exists.</p>\n\n<p><b>External parties are involved.</b> A supplier is not your colleague and cannot be approached informally. A call to a supplier to verify an invoice is an audit procedure with consequences: it may alert somebody, it may damage a commercial relationship, and it should be a decision rather than an impulse.</p>\n\n<p><b>The paper trail extends outside the system.</b> Contracts, quotes, correspondence and delivery notes may exist only on paper or in email. The system tells you what was recorded; it does not tell you what was agreed. A finding that rests on the system alone can be answered with a document you never saw, and being answered that way once costs more credibility than the finding was worth.</p>\n\n<p><b>Ask for the file before you conclude.</b> If a contract, quotation or approval exists outside the system, request it early and in writing, from somebody who is not the subject of the work. Two things follow: you either get the document, in which case your finding improves or dissolves before it is public, or you do not, and the absence of a document that should exist is itself part of the finding. Either outcome is better than being shown it in the meeting.</p>\n\n<p><b>Where to start when something looks wrong.</b> Establish the full document chain for the transaction — order, receipt, invoice, payment, and the version history of each. Then the same chain for that supplier over twelve months. Most procurement schemes repeat, and the second instance is what turns an anomaly into a pattern you can quantify.</p>\n\n<blockquote>WATCH-OUT: Do not contact a supplier during an exploratory phase. Suppliers talk to the buyers they deal with daily, and a single verification call has ended more procurement investigations than any other action. If external confirmation is needed, plan it as a deliberate step with somebody senior informed first.</blockquote>",
+    "checks": [
+     {
+      "q": "A supplier writes requesting a bank account change. Verification should use:",
+      "opts": [
+       "A number you already hold from before the request",
+       "Their email domain",
+       "The buyer's contact",
+       "The number on the letter"
+      ],
+      "ans": 0,
+      "why": "The letter is exactly what would be forged, including its contact details.",
+      "sort": 0
+     },
+     {
+      "q": "Calling a supplier to verify an invoice during an exploratory phase:",
+      "opts": [
+       "Protects the relationship",
+       "Confirms the facts quickly",
+       "Has ended more procurement investigations than any other action",
+       "Is standard procedure"
+      ],
+      "ans": 2,
+      "why": "Suppliers talk to the buyers they deal with daily.",
+      "sort": 1
+     },
+     {
+      "q": "A finding resting only on system records can be answered by:",
+      "opts": [
+       "The version record",
+       "A different query",
+       "A contract or email you never saw",
+       "The approval history"
+      ],
+      "ans": 2,
+      "why": "The system tells you what was recorded, not what was agreed.",
+      "sort": 2
+     }
+    ]
+   }
+  ],
+  "questions": [
+   {
+    "q": "Compared with till fraud, procurement schemes are:",
+    "opts": [
+     "Easier to profile",
+     "Small and frequent",
+     "Large and rare",
+     "Equally distributed"
+    ],
+    "ans": 2,
+    "why": "Which is why procurement work is mostly nil-expected population testing.",
+    "src": "Ch1 §7",
+    "topic": "Where procurement leaks"
+   },
+   {
+    "q": "A control failure in procure-to-pay usually appears as:",
+    "opts": [
+     "A missing document",
+     "A broken relationship between documents",
+     "An unusual approval",
+     "A late payment"
+    ],
+    "ans": 1,
+    "why": "Each document references the last, which makes the break queryable.",
+    "src": "Ch1 §6",
+    "topic": "Where procurement leaks"
+   },
+   {
+    "q": "The fastest and highest-value single procurement loss event is:",
+    "opts": [
+     "Paying the wrong bank account",
+     "Paying above agreed price",
+     "Paying for goods not received",
+     "Paying twice"
+    ],
+    "ans": 0,
+    "why": "A genuine invoice from a genuine supplier, paid to an account that is not theirs.",
+    "src": "Ch1 §5",
+    "topic": "Where procurement leaks"
+   },
+   {
+    "q": "Most procurement fraud is discovered:",
+    "opts": [
+     "By external audit",
+     "At year end",
+     "By routine testing",
+     "By accident"
+    ],
+    "ans": 3,
+    "why": "Which means found losses are a sample of those that occurred.",
+    "src": "Ch1 §8",
+    "topic": "Where procurement leaks"
+   },
+   {
+    "q": "The three documents of the three-way match are the purchase order, the invoice and:",
+    "opts": [
+     "The payment entry",
+     "The purchase receipt",
+     "The requisition",
+     "The supplier quotation"
+    ],
+    "ans": 1,
+    "why": "What was agreed, what arrived, what is being charged.",
+    "src": "Ch2 §2",
+    "topic": "Three-way match"
+   },
+   {
+    "q": "Before testing match exceptions you should measure:",
+    "opts": [
+     "Match coverage — the proportion of invoices linked to a receipt",
+     "Supplier count",
+     "Approval rates",
+     "Tolerance settings"
+    ],
+    "ans": 0,
+    "why": "If 30% reference no receipt, there is no three-way match to have exceptions to.",
+    "src": "Ch2 §5",
+    "topic": "Three-way match"
+   },
+   {
+    "q": "A 5% match tolerance on ₦2bn of purchasing represents:",
+    "opts": [
+     "An immaterial allowance",
+     "₦100m of unchallenged variance",
+     "A processing efficiency",
+     "Standard practice"
+    ],
+    "ans": 1,
+    "why": "The figure usually surprises the people who set it.",
+    "src": "Ch2 §8",
+    "topic": "Three-way match"
+   },
+   {
+    "q": "'Billed Items To Be Received' lists:",
+    "opts": [
+     "Goods received with no invoice",
+     "Goods invoiced with no evidence of arrival",
+     "Orders not yet received",
+     "Invoices not yet paid"
+    ],
+    "ans": 1,
+    "why": "The single most valuable standing report in the module.",
+    "src": "Ch2 §7",
+    "topic": "Three-way match"
+   },
+   {
+    "q": "Supplier banking details are held on:",
+    "opts": [
+     "The Payment Entry",
+     "The Purchase Invoice",
+     "The Supplier record directly",
+     "A separate Bank Account record linked by party"
+    ],
+    "ans": 3,
+    "why": "Supplier holds only default_bank_account as a link.",
+    "src": "Ch3 §2",
+    "topic": "Supplier master data"
+   },
+   {
+    "q": "Which fields on Bank Account carry the account itself?",
+    "opts": [
+     "account_name and bank",
+     "iban and bank_account_no",
+     "party and party_type",
+     "is_default and company"
+    ],
+    "ans": 1,
+    "why": "And the doctype tracks changes, which is what makes the test possible.",
+    "src": "Ch3 §2",
+    "topic": "Supplier master data"
+   },
+   {
+    "q": "Change the account, let a genuine invoice pay, change it back. This defeats:",
+    "opts": [
+     "The three-way match entirely",
+     "Duplicate detection",
+     "Supplier vetting",
+     "Payment approval"
+    ],
+    "ans": 0,
+    "why": "The invoice is real, the goods arrived, the approval was proper.",
+    "src": "Ch3 §4",
+    "topic": "Supplier master data"
+   },
+   {
+    "q": "The strongest signal of duplicate suppliers is:",
+    "opts": [
+     "Matching bank account numbers",
+     "The same address",
+     "Shared contacts",
+     "Similar names"
+    ],
+    "ans": 0,
+    "why": "Names are often similar innocently; bank details are not.",
+    "src": "Ch3 §6",
+    "topic": "Supplier master data"
+   },
+   {
+    "q": "A dormant supplier suddenly transacting is notable because dormant records:",
+    "opts": [
+     "Carry the legitimacy of history while nobody watches them",
+     "Are usually duplicates",
+     "Lack bank details",
+     "Have stale prices"
+    ],
+    "ans": 0,
+    "why": "Particularly where the record was edited shortly before.",
+    "src": "Ch3 §8",
+    "topic": "Supplier master data"
+   },
+   {
+    "q": "Approval limits are enforced by Workflow or by:",
+    "opts": [
+     "User Permission",
+     "Authorization Rule",
+     "Role Profile",
+     "Naming Series"
+    ],
+    "ans": 1,
+    "why": "Carrying a value, a basis, and the roles or users permitted to approve.",
+    "src": "Ch4 §2",
+    "topic": "Approval limits"
+   },
+   {
+    "q": "If no approval mechanism exists at all, you should:",
+    "opts": [
+     "Report the absence before analysing behaviour",
+     "Recommend a threshold quietly",
+     "Test the largest orders",
+     "Analyse buyer patterns"
+    ],
+    "ans": 0,
+    "why": "It outranks every pattern in the chapter.",
+    "src": "Ch4 §4",
+    "topic": "Approval limits"
+   },
+   {
+    "q": "Splitting is best detected by:",
+    "opts": [
+     "Checking the histogram only",
+     "Sampling large orders",
+     "Grouping orders by supplier and window and totalling",
+     "Reviewing approvals"
+    ],
+    "ans": 2,
+    "why": "A population test — sampling almost never finds it.",
+    "src": "Ch4 §6",
+    "topic": "Approval limits"
+   },
+   {
+    "q": "A cluster of values immediately below an approval threshold indicates:",
+    "opts": [
+     "Careful budgeting",
+     "The limit is being worked around",
+     "A pricing convention",
+     "Supplier minimums"
+    ],
+    "ans": 1,
+    "why": "The histogram shows it in thirty seconds without designing a test.",
+    "src": "Ch4 §7",
+    "topic": "Approval limits"
+   },
+   {
+    "q": "If a document can be approved then amended upward without re-approval:",
+    "opts": [
+     "The workflow needs a state",
+     "Amendments should be monitored",
+     "Every limit is advisory",
+     "Approval should move to payment"
+    ],
+    "ans": 2,
+    "why": "The approval attaches to a version that no longer exists.",
+    "src": "Ch4 §8",
+    "topic": "Approval limits"
+   },
+   {
+    "q": "Price variances should be ranked by:",
+    "opts": [
+     "Frequency",
+     "Percentage",
+     "Total naira value",
+     "Supplier"
+    ],
+    "ans": 2,
+    "why": "Percentage ranking buries the systematic overcharge on your largest line.",
+    "src": "Ch5 §3",
+    "topic": "Price and rate testing"
+   },
+   {
+    "q": "A rate rising 30% over a year in small steps is exposed by:",
+    "opts": [
+     "The three-way match",
+     "Tolerance settings",
+     "Invoice-by-invoice testing",
+     "Plotting the rate series"
+    ],
+    "ans": 3,
+    "why": "Every individual invoice passes tolerance.",
+    "src": "Ch5 §4",
+    "topic": "Price and rate testing"
+   },
+   {
+    "q": "Unclaimed volume rebates are common because claiming them is:",
+    "opts": [
+     "Below materiality",
+     "Technically difficult",
+     "Nobody's actual job",
+     "Contractually unclear"
+    ],
+    "ans": 2,
+    "why": "Pure loss, and recoverable once identified.",
+    "src": "Ch5 §5",
+    "topic": "Price and rate testing"
+   },
+   {
+    "q": "Price findings are easier to get acted on because they are:",
+    "opts": [
+     "Commercially useful rather than accusatory",
+     "Simpler to prove",
+     "Owned by finance",
+     "Larger"
+    ],
+    "ans": 0,
+    "why": "They build the standing you need for harder findings later.",
+    "src": "Ch5 §8",
+    "topic": "Price and rate testing"
+   },
+   {
+    "q": "A receiver whose quantities always match the order exactly is:",
+    "opts": [
+     "Working with a reliable supplier",
+     "Following procedure",
+     "Highly accurate",
+     "Copying rather than counting"
+    ],
+    "ans": 3,
+    "why": "Real deliveries are occasionally short, damaged or over.",
+    "src": "Ch6 §4",
+    "topic": "Receiving"
+   },
+   {
+    "q": "A receipt created after the invoice is often created:",
+    "opts": [
+     "By a central user",
+     "For reporting",
+     "To correct cut-off",
+     "To match the invoice rather than record an arrival"
+    ],
+    "ans": 3,
+    "why": "Compare creation timestamps, not posting dates.",
+    "src": "Ch6 §5",
+    "topic": "Receiving"
+   },
+   {
+    "q": "From system data alone you cannot establish:",
+    "opts": [
+     "When it was created",
+     "Who created a receipt",
+     "That goods physically arrived",
+     "Whether it matched the order"
+    ],
+    "ans": 2,
+    "why": "Which is why occasional physical verification matters.",
+    "src": "Ch6 §8",
+    "topic": "Receiving"
+   },
+   {
+    "q": "The most important procurement segregation is between:",
+    "opts": [
+     "Approval and payment",
+     "Invoicing and payment",
+     "Ordering and receiving",
+     "Receiving and counting"
+    ],
+    "ans": 2,
+    "why": "That combination permits payment for goods that never came.",
+    "src": "Ch6 §7",
+    "topic": "Receiving"
+   },
+   {
+    "q": "Goods invoiced and receipted but never delivered surface later as:",
+    "opts": [
+     "A payment variance",
+     "Shrinkage at the next count",
+     "A duplicate invoice",
+     "A price variance"
+    ],
+    "ans": 1,
+    "why": "Which is the corroboration between this module and inventory.",
+    "src": "Ch6 §9",
+    "topic": "Receiving"
+   },
+   {
+    "q": "A Payment Entry with no invoice allocation is:",
+    "opts": [
+     "A normal advance",
+     "Paying somebody for nothing recorded, and advances should be a small monitored population",
+     "A journal",
+     "A prepayment only"
+    ],
+    "ans": 1,
+    "why": "Legitimate advances exist and should clear.",
+    "src": "Ch7 §2",
+    "topic": "Payment controls"
+   },
+   {
+    "q": "Which test's detection interval determines whether money is recoverable?",
+    "opts": [
+     "Duplicate payments",
+     "Bank change then payment",
+     "Price variance",
+     "Match coverage"
+    ],
+    "ans": 1,
+    "why": "Run it weekly rather than monthly.",
+    "src": "Ch7 §9",
+    "topic": "Payment controls"
+   },
+   {
+    "q": "A supplier balance moved by journal entry:",
+    "opts": [
+     "Bypasses the whole purchase-to-pay process",
+     "Requires no approval",
+     "Affects only reporting",
+     "Is a routine correction"
+    ],
+    "ans": 0,
+    "why": "Each instance should be explicable.",
+    "src": "Ch7 §6",
+    "topic": "Payment controls"
+   },
+   {
+    "q": "The critical payment-stage segregation separates releasing payments from:",
+    "opts": [
+     "Approving invoices",
+     "Raising orders",
+     "Amending supplier bank details",
+     "Receiving goods"
+    ],
+    "ans": 2,
+    "why": "If one person can do both, everything upstream is decoration.",
+    "src": "Ch7 §7",
+    "topic": "Payment controls"
+   },
+   {
+    "q": "Finding recoverable duplicate payments is valuable to a new audit function because it:",
+    "opts": [
+     "Demonstrates the function pays for itself",
+     "Avoids conflict",
+     "Requires no access",
+     "Is easy"
+    ],
+    "ans": 0,
+    "why": "Almost always error, frequently recoverable.",
+    "src": "Ch7 §4",
+    "topic": "Payment controls"
+   },
+   {
+    "q": "The most productive single procurement analytic is:",
+    "opts": [
+     "Spend concentration by buyer over time",
+     "Order count by month",
+     "Average order value",
+     "Spend by supplier"
+    ],
+    "ans": 0,
+    "why": "The answer is usually convenience, and occasionally not.",
+    "src": "Ch8 §9",
+    "topic": "Supplier and buyer analytics"
+   },
+   {
+    "q": "An order raised, received and invoiced within an hour is:",
+    "opts": [
+     "A standing order",
+     "A system artefact",
+     "Efficient",
+     "Paperwork built around a decision already taken"
+    ],
+    "ans": 3,
+    "why": "Which may be a documented emergency, or may not.",
+    "src": "Ch8 §6",
+    "topic": "Supplier and buyer analytics"
+   },
+   {
+    "q": "Where RFQ and Supplier Quotation are never used despite policy:",
+    "opts": [
+     "Sample the largest",
+     "Recommend training",
+     "Test the exceptions",
+     "The policy exists only on paper, and that is the finding"
+    ],
+    "ans": 3,
+    "why": "Testing compliance with a control nobody operates produces nothing.",
+    "src": "Ch8 §5",
+    "topic": "Supplier and buyer analytics"
+   },
+   {
+    "q": "A ranked concentration list in retail will usually be topped by:",
+    "opts": [
+     "Entirely legitimate businesses",
+     "New suppliers",
+     "Single-quote purchases",
+     "Related parties"
+    ],
+    "ans": 0,
+    "why": "Use analytics to generate questions and expect satisfactory answers.",
+    "src": "Ch8 §7",
+    "topic": "Supplier and buyer analytics"
+   },
+   {
+    "q": "Verification of a bank change request should use:",
+    "opts": [
+     "The supplier's website",
+     "The buyer's contact",
+     "The number on the request letter",
+     "A number held before the request was made"
+    ],
+    "ans": 3,
+    "why": "The letter is exactly what would be forged, including its contact details.",
+    "src": "Ch9 §3",
+    "topic": "P2P investigation"
+   },
+   {
+    "q": "Contacting a supplier during an exploratory phase:",
+    "opts": [
+     "Confirms facts efficiently",
+     "Has ended more procurement investigations than any other action",
+     "Is required for evidence",
+     "Preserves the relationship"
+    ],
+    "ans": 1,
+    "why": "Suppliers talk to the buyers they deal with daily.",
+    "src": "Ch9 §9",
+    "topic": "P2P investigation"
+   },
+   {
+    "q": "A finding resting only on system records may be answered by:",
+    "opts": [
+     "Version history",
+     "A better query",
+     "A contract or email you never saw",
+     "The approval log"
+    ],
+    "ans": 2,
+    "why": "The system records what was entered, not what was agreed.",
+    "src": "Ch9 §8",
+    "topic": "P2P investigation"
+   },
+   {
+    "q": "Procurement findings need a higher evidence standard mainly because:",
+    "opts": [
+     "Data is less reliable",
+     "Suppliers are external",
+     "Approvals are complex",
+     "Values are larger and will be examined by people with an interest in their being wrong"
+    ],
+    "ans": 3,
+    "why": "Document as you go rather than assembling afterwards.",
+    "src": "Ch9 §5",
+    "topic": "P2P investigation"
+   },
+   {
+    "q": "Having found one suspicious transaction, the next step is:",
+    "opts": [
+     "Contact the supplier",
+     "Raise the finding",
+     "Interview the buyer",
+     "Build the same document chain for that supplier over twelve months"
+    ],
+    "ans": 3,
+    "why": "Most procurement schemes repeat, and the second instance makes it a pattern.",
+    "src": "Ch9 §10",
+    "topic": "P2P investigation"
+   },
+   {
+    "q": "An innocent explanation for split orders is:",
+    "opts": [
+     "System limitations",
+     "Budget management",
+     "Genuinely separate requirements arriving the same day",
+     "Supplier minimums"
+    ],
+    "ans": 2,
+    "why": "Less common than people claim, and it must be stated before the test is deployed.",
+    "src": "Ch9 §4",
+    "topic": "P2P investigation"
+   },
+   {
+    "q": "Duplicate supplier bank details may innocently indicate:",
+    "opts": [
+     "A migration artefact",
+     "A data error",
+     "A group of related companies sharing an account",
+     "A dormant record"
+    ],
+    "ans": 2,
+    "why": "Which should be documented rather than assumed.",
+    "src": "Ch9 §4",
+    "topic": "P2P investigation"
+   }
+  ]
  }
 }
