@@ -4935,52 +4935,432 @@
    {
     "title": "Chapter 1 — The daily verification routine",
     "est": "10",
-    "html": "<p>Seven modules configured the counter; this module covers its ongoing verification. It covers offline operation, the sales queue, the daily and weekly checks, and what supervisors watch for. It is the track's second ten-chapter module, and its module rule: <b>the counter is checked daily, by routine — not by suspicion.</b></p><p><b>The module's two halves.</b></p><p>• <b>Chapters 2-5: the system's side.</b> Offline mode and its limits, the status indicators and the queue, conflicts and failed sales, and the fast checkout setting. A counter whose queue and postings are not managed cannot be reconciled, however honest its people.<br>• <b>Chapters 6-7: the people's side.</b> The end-of-day money check, and the specific patterns supervisors look for. Perfect machinery that nobody reads proves nothing.</p><p>Then the structure that keeps both running: the routine calendar and the staff/terminal change procedures (Chapter 8), the handover test and the owner's summary page (Chapter 9), and the review (Chapter 10).</p><p><b>Why this module and module 2 are the two big ones.</b> Module 2 wrote the counter's rules — every power a decided setting. This module proves the rules are working — every balance counted, every queue cleared, every check owned. Rules without checking drift; checking without rules is guesswork. The six modules in between are the daily trading those two hold up.</p><p><b>Three working principles for everything ahead.</b></p><p>1. <b>Read the counter, don't guess at it.</b> The indicators, the reports and the variance figures replace impressions. When something seems wrong, the first move is always a specific screen, named in this module.<br>2. <b>Every check is a comparison.</b> Expected against counted, register against books, issued against received. A check that compares nothing proves nothing.<br>3. <b>Work every list to zero.</b> The queue, the conflicts, the failed sales, the unexplained variances. A healthy counter is not one with no discrepancies — it is one where every discrepancy has an owner, an age, and an ending.</p><p><b>What this buys.</b> Module 1 opened with Okelewo's MD managing three shops by suspicion. This module ends with the same MD reading five numbers a week. The distance between those two states is exactly the routines in the next nine chapters — none of which takes more than minutes a day. And the order matters: the system's side comes first because the people's side depends on it — a variance report built on an undrained queue accuses nobody accurately, and an End of Day figure that excludes yesterday's failed sales proves less than it appears to. Get the machinery clean, then read the people's numbers with confidence.</p>"
+    "html": "<p>Seven modules configured the counter; this module covers its ongoing verification. It covers offline operation, the sales queue, the daily and weekly checks, and what supervisors watch for. It is the track's second ten-chapter module, and its module rule: <b>the counter is checked daily, by routine — not by suspicion.</b></p><p><b>The module's two halves.</b></p><p>• <b>Chapters 2-5: the system's side.</b> Offline mode and its limits, the status indicators and the queue, conflicts and failed sales, and the fast checkout setting. A counter whose queue and postings are not managed cannot be reconciled, however honest its people.<br>• <b>Chapters 6-7: the people's side.</b> The end-of-day money check, and the specific patterns supervisors look for. Perfect machinery that nobody reads proves nothing.</p><p>Then the structure that keeps both running: the routine calendar and the staff/terminal change procedures (Chapter 8), the handover test and the owner's summary page (Chapter 9), and the review (Chapter 10).</p><p><b>Why this module and module 2 are the two big ones.</b> Module 2 wrote the counter's rules — every power a decided setting. This module proves the rules are working — every balance counted, every queue cleared, every check owned. Rules without checking drift; checking without rules is guesswork. The six modules in between are the daily trading those two hold up.</p><p><b>Three working principles for everything ahead.</b></p><p>1. <b>Read the counter, don't guess at it.</b> The indicators, the reports and the variance figures replace impressions. When something seems wrong, the first move is always a specific screen, named in this module.<br>2. <b>Every check is a comparison.</b> Expected against counted, register against books, issued against received. A check that compares nothing proves nothing.<br>3. <b>Work every list to zero.</b> The queue, the conflicts, the failed sales, the unexplained variances. A healthy counter is not one with no discrepancies — it is one where every discrepancy has an owner, an age, and an ending.</p><p><b>What this buys.</b> Module 1 opened with Okelewo's MD managing three shops by suspicion. This module ends with the same MD reading five numbers a week. The distance between those two states is exactly the routines in the next nine chapters — none of which takes more than minutes a day. And the order matters: the system's side comes first because the people's side depends on it — a variance report built on an undrained queue accuses nobody accurately, and an End of Day figure that excludes yesterday's failed sales proves less than it appears to. Get the machinery clean, then read the people's numbers with confidence.</p>",
+    "checks": [
+     {
+      "q": "The module rule is that the counter is checked daily by routine, not by suspicion. The practical effect is that:",
+      "opts": [
+       "Fewer checks are required",
+       "Checks happen only when something looks wrong",
+       "Good staff are never under vague suspicion, because everybody is checked",
+       "Supervisors need less evidence"
+      ],
+      "ans": 2,
+      "why": "The checks catch the rare bad case and clear the honest majority with evidence.",
+      "sort": 0
+     },
+     {
+      "q": "A counter whose queue and postings are unmanaged:",
+      "opts": [
+       "Cannot be reconciled, however honest its people",
+       "Only affects offline days",
+       "Is a back-office matter",
+       "Can still be reconciled by counting"
+      ],
+      "ans": 0,
+      "why": "The system's side and the people's side each fail without the other.",
+      "sort": 1
+     },
+     {
+      "q": "Perfect machinery that nobody reads:",
+      "opts": [
+       "Still provides assurance",
+       "Proves nothing",
+       "Is adequate for audit",
+       "Reduces the need for routine"
+      ],
+      "ans": 1,
+      "why": "Which is why chapters 6 and 7 exist alongside the system chapters.",
+      "sort": 2
+     }
+    ]
    },
    {
     "title": "Chapter 2 — Offline: what works and what waits",
     "est": "12",
-    "html": "<p>When the connection drops, the top bar shows <b>Offline</b> and selling continues from the local copy — scanning at full speed, sales queuing on the terminal, receipts printing with local references. The basic sale feels identical, and for this reason the boundary must be learned: the till will not remind you of it until you cross it.</p><p><b>What works offline.</b></p><p>• Cash sales, manually keyed card sales, and transfer sales — tenders that just record an amount.<br>• Holds and resumes.<br>• Label printing.<br>• Lookups against the cached catalogue and cached customers.<br>• Voucher activity, <b>only</b> where the profile chose Guarded Offline, and only within its caps.</p><p><b>What waits for the connection.</b></p><p>• <b>Store credit</b> — the balance lives on the server; offline it reads as nothing and cannot be spent.<br>• <b>Loyalty redemption</b> — same reason: the points balance is the server's.<br>• <b>Vouchers</b> under the default Online Only policy.<br>• <b>Integrated card payments</b> — the device needs a live call. Use cash, keyed card, or transfer instead.<br>• <b>Credit and part-paid sales</b> — offline, collect the full amount. A balance the till cannot check cannot be extended.<br>• <b>Return &amp; Exchange</b> — the original invoice, loyalty ledger and balances are on the server.<br>• <b>Reports</b> — the figures are the server's.</p><p>The whole table compresses to one rule: <b>anything that depends on a balance or record only the server can verify, waits.</b> Every refusal in the list is that rule applied to one feature. The refusals are the design working — the till never guesses at money it cannot check.</p><p><b>Running the counter offline — four habits.</b></p><p>1. <b>Tell the queue what still works.</b> One sentence when the banner flips: cash, transfer and card by machine are fine; returns and account payments when the connection is back. Announced once, the boundary causes no confusion.<br>2. <b>Trust the queue.</b> Queued sales are safe, survive restarts, and post on their own when the line returns. Do not restart anything to help them.<br>3. <b>Watch the duration.</b> An hour offline is normal operation. Most of a day is a connectivity incident — tell whoever manages the network, at whatever threshold the branch sets.<br>4. <b>Check the lists when the connection returns.</b> As the queue drains, look at the Conflicts and Failed indicators (Chapter 4). The outage is not over until both are clear — a drained queue with an unread conflict list is a day that only looks finished.</p>"
+    "html": "<p>When the connection drops, the top bar shows <b>Offline</b> and selling continues from the local copy — scanning at full speed, sales queuing on the terminal, receipts printing with local references. The basic sale feels identical, and for this reason the boundary must be learned: the till will not remind you of it until you cross it.</p><p><b>What works offline.</b></p><p>• Cash sales, manually keyed card sales, and transfer sales — tenders that just record an amount.<br>• Holds and resumes.<br>• Label printing.<br>• Lookups against the cached catalogue and cached customers.<br>• Voucher activity, <b>only</b> where the profile chose Guarded Offline, and only within its caps.</p><p><b>What waits for the connection.</b></p><p>• <b>Store credit</b> — the balance lives on the server; offline it reads as nothing and cannot be spent.<br>• <b>Loyalty redemption</b> — same reason: the points balance is the server's.<br>• <b>Vouchers</b> under the default Online Only policy.<br>• <b>Integrated card payments</b> — the device needs a live call. Use cash, keyed card, or transfer instead.<br>• <b>Credit and part-paid sales</b> — offline, collect the full amount. A balance the till cannot check cannot be extended.<br>• <b>Return &amp; Exchange</b> — the original invoice, loyalty ledger and balances are on the server.<br>• <b>Reports</b> — the figures are the server's.</p><p>The whole table compresses to one rule: <b>anything that depends on a balance or record only the server can verify, waits.</b> Every refusal in the list is that rule applied to one feature. The refusals are the design working — the till never guesses at money it cannot check.</p><p><b>Running the counter offline — four habits.</b></p><p>1. <b>Tell the queue what still works.</b> One sentence when the banner flips: cash, transfer and card by machine are fine; returns and account payments when the connection is back. Announced once, the boundary causes no confusion.<br>2. <b>Trust the queue.</b> Queued sales are safe, survive restarts, and post on their own when the line returns. Do not restart anything to help them.<br>3. <b>Watch the duration.</b> An hour offline is normal operation. Most of a day is a connectivity incident — tell whoever manages the network, at whatever threshold the branch sets.<br>4. <b>Check the lists when the connection returns.</b> As the queue drains, look at the Conflicts and Failed indicators (Chapter 4). The outage is not over until both are clear — a drained queue with an unread conflict list is a day that only looks finished.</p>\n<!--deepened--><p><b>The habit that prevents most offline arguments.</b> Announce the boundary before the customer reaches it rather than after. A queue told at the door that card machines are down and cash is needed moves; a customer told at the payment screen, having queued for ten minutes with a full basket, does not move quietly. The information is the same and the cost of delivering it late is entirely avoidable.</p><p><b>And a note on what offline does not change.</b> The sale is real, the receipt is valid, the stock has moved and the record exists. Nothing about an outage makes a sale provisional or a count optional — the shift still opens with a counted float and closes with a counted drawer, and the queue posting later is a background matter rather than a reason to treat the day differently.</p>",
+    "checks": [
+     {
+      "q": "A customer wants to redeem loyalty points while the terminal is offline. This:",
+      "opts": [
+       "Waits — the points balance lives on the server",
+       "Works within a cap",
+       "Requires a manager override",
+       "Works from the cached balance"
+      ],
+      "ans": 0,
+      "why": "One rule covers all of it: whatever depends on a balance only the server can verify, waits.",
+      "sort": 0
+     },
+     {
+      "q": "Voucher activity offline is possible:",
+      "opts": [
+       "Never",
+       "Only for complimentary cards",
+       "Always",
+       "Only where the profile chose Guarded Offline, and only within its caps"
+      ],
+      "ans": 3,
+      "why": "Under the default Online Only policy, vouchers wait for the connection.",
+      "sort": 1
+     },
+     {
+      "q": "An offline sale feels identical to an online one, which means:",
+      "opts": [
+       "The boundary must be learned — the till will not remind you until you cross it",
+       "The differences are cosmetic",
+       "Offline mode is always safe",
+       "Nothing needs learning"
+      ],
+      "ans": 0,
+      "why": "Announcing what works is one of the four offline habits for exactly this reason.",
+      "sort": 2
+     }
+    ]
    },
    {
     "title": "Chapter 3 — The indicators and the queue",
     "est": "12",
-    "html": "<p>Module 4 listed the top-bar indicators; this chapter is about reading them as a set, and managing the one number that matters most: the queue.</p><p><b>The healthy pattern.</b> Glance at the top bar and a healthy till shows: <b>Online</b>, no Re-login marker, <b>Queued at or near zero</b>, no Conflicts, no Failed, stock and price copies fresh, and Duty Active with a shift open. Learn that pattern; anything different is one of the specific situations below.</p><p>• <b>Offline</b> — expected during an outage. If the network is fine and only this terminal is offline, suspect the terminal: its sync service may have stopped (the same cause behind a stale last-seen in module 3).<br>• <b>Re-login required</b> — a specific cashier's stored credentials were rejected. <b>That cashier's queued sales cannot post until they sign in online.</b> Deal with it the same day: find the person, have them sign in.<br>• <b>Stock stale / Price stale</b> — the local copies are ageing. Click to sync. If staleness keeps recurring on one terminal, check its sync service and its cache limit (module 3).<br>• <b>Queued climbing</b> — see below.<br>• <b>Conflicts / Failed</b> — Chapter 4's worked lists.</p><p><b>Reading the queue.</b> The queue rises while offline (every completed sale joins it) and drains when online (the sync service posts in order). So judge it by <b>direction and age</b>, not size alone:</p><p>• Thirty queued during an outage — normal; the design working.<br>• Thirty queued an hour <b>after</b> the connection returned — a stall. Check, in order: the sync service running? a Re-login marker blocking someone's sales? a Conflict at the head of the queue?<br>• A queue that never quite reaches zero — a counter permanently behind its own books.</p><p><b>Why the queue is worked to zero.</b> Queued sales are safe — but they are money the books have not seen yet. Until the queue is empty, the back office's figures for the day are incomplete, and every report and reconciliation built on them is provisional. The rule, applied at three points:</p><p>1. <b>At shift close</b> — glance at Queued before counting. A non-zero queue means the close's expected figures and the books will disagree until it drains; note it in the closing notes.<br>2. <b>At end of day</b> — the supervisor's daily check (Chapter 6) starts with the queue at zero on every terminal. The end-of-day report is only final when the day has fully arrived.<br>3. <b>Weekly</b> — the pattern of queue behaviour across days is a connectivity report. A branch whose queue spikes every evening at the same hour has a network pattern to fix, not a cashier problem.</p>"
+    "html": "<p>Module 4 listed the top-bar indicators; this chapter is about reading them as a set, and managing the one number that matters most: the queue.</p><p><b>The healthy pattern.</b> Glance at the top bar and a healthy till shows: <b>Online</b>, no Re-login marker, <b>Queued at or near zero</b>, no Conflicts, no Failed, stock and price copies fresh, and Duty Active with a shift open. Learn that pattern; anything different is one of the specific situations below.</p><p>• <b>Offline</b> — expected during an outage. If the network is fine and only this terminal is offline, suspect the terminal: its sync service may have stopped (the same cause behind a stale last-seen in module 3).<br>• <b>Re-login required</b> — a specific cashier's stored credentials were rejected. <b>That cashier's queued sales cannot post until they sign in online.</b> Deal with it the same day: find the person, have them sign in.<br>• <b>Stock stale / Price stale</b> — the local copies are ageing. Click to sync. If staleness keeps recurring on one terminal, check its sync service and its cache limit (module 3).<br>• <b>Queued climbing</b> — see below.<br>• <b>Conflicts / Failed</b> — Chapter 4's worked lists.</p><p><b>Reading the queue.</b> The queue rises while offline (every completed sale joins it) and drains when online (the sync service posts in order). So judge it by <b>direction and age</b>, not size alone:</p><p>• Thirty queued during an outage — normal; the design working.<br>• Thirty queued an hour <b>after</b> the connection returned — a stall. Check, in order: the sync service running? a Re-login marker blocking someone's sales? a Conflict at the head of the queue?<br>• A queue that never quite reaches zero — a counter permanently behind its own books.</p><p><b>Why the queue is worked to zero.</b> Queued sales are safe — but they are money the books have not seen yet. Until the queue is empty, the back office's figures for the day are incomplete, and every report and reconciliation built on them is provisional. The rule, applied at three points:</p><p>1. <b>At shift close</b> — glance at Queued before counting. A non-zero queue means the close's expected figures and the books will disagree until it drains; note it in the closing notes.<br>2. <b>At end of day</b> — the supervisor's daily check (Chapter 6) starts with the queue at zero on every terminal. The end-of-day report is only final when the day has fully arrived.<br>3. <b>Weekly</b> — the pattern of queue behaviour across days is a connectivity report. A branch whose queue spikes every evening at the same hour has a network pattern to fix, not a cashier problem.</p>",
+    "checks": [
+     {
+      "q": "The network is fine and only this terminal shows Offline. Suspect:",
+      "opts": [
+       "The connection",
+       "The terminal — its sync service may have stopped",
+       "The server",
+       "The profile"
+      ],
+      "ans": 1,
+      "why": "The same cause sits behind a stale last-seen in the terminal register.",
+      "sort": 0
+     },
+     {
+      "q": "Thirty queued sales an hour after an outage ended is:",
+      "opts": [
+       "A stall — judge the queue by direction and age, not size",
+       "Expected during posting",
+       "A conflict indicator",
+       "Normal"
+      ],
+      "ans": 0,
+      "why": "Thirty during the outage is normal; the same thirty afterwards is not.",
+      "sort": 1
+     },
+     {
+      "q": "A Re-login marker against a cashier must be dealt with:",
+      "opts": [
+       "Only if sales are affected",
+       "By an administrator",
+       "At month end",
+       "The same day — their queued sales cannot post until they sign in online"
+      ],
+      "ans": 3,
+      "why": "Their queued sales sit unposted until they do, so it is money not yet in the books.",
+      "sort": 2
+     }
+    ]
    },
    {
     "title": "Chapter 4 — Conflicts and failed sales",
     "est": "12",
-    "html": "<p>Two lists sit between the queue and the books. The rule for both, from the manual: conflicts and failed sales are <b>real money that has not reached the books</b> — clear them before the shift closes.</p><p><b>Conflicts.</b> A sale completed offline (or during the posting gap) may name a batch or serial that another till sold in the meantime. The back office will not deduct the same physical stock twice, so it holds the sale back, and it appears under the <b>Conflicts</b> indicator.</p><p>Resolving one:</p><p>1. Click the Conflicts indicator and open the held sale. The refused line is shown.<br>2. <b>Re-pick</b> the batch or serial from what is actually available. (The goods physically left with the customer; the record just needs to point at an equivalent unit that is genuinely in stock.)<br>3. Release the sale. It posts normally.</p><p>A conflict is not a fault. It is the honest outcome of two tills selling from one stock pool with a connection in between — the alternatives (blocking all offline selling, or silently double-deducting stock) would both be worse. The cost is a minute of re-picking, paid occasionally.</p><p><b>Failed sales.</b> A queued sale the back office <b>rejected outright</b> — a record deleted on the server, a validation the terminal could not know about, a posting error. These appear under the <b>Failed</b> indicator, and they are a <b>supervisor's list</b>: the causes live in the back office, beyond a cashier's reach.</p><p>Handling them:</p><p>1. Read the failure message and identify the cause. Patterns matter more than single cases: three failures on one item point at that item's data; three on one terminal point at that terminal.<br>2. Fix the cause, then <b>re-submit</b> the sale — or, where re-submission is impossible, formally re-enter the sale with a note referencing the original.<br>3. <b>Never delete a failed sale into silence.</b> The customer's money is already in the drawer; the books must eventually record the sale that produced it.</p><p><b>Age both lists.</b> A conflict from this morning is routine work. A conflict from last Tuesday means the routine is not being followed — and that is the finding. Both lists are cleared as part of the shift close (module 4's counted drawer plus cleared lists equals a genuinely finished shift), and the weekly review looks at the totals: conflicts trending up suggests stock contention or connectivity worth examining; failures trending up suggests a data problem worth finding.</p><p><b>Summary.</b> Conflict = re-pick and release, minutes, cashier-level. Failed = diagnose, fix, re-submit, supervisor-level, never silently removed. Both lists at zero before the shift closes; both trends read weekly.</p>"
+    "html": "<p>Two lists sit between the queue and the books. The rule for both, from the manual: conflicts and failed sales are <b>real money that has not reached the books</b> — clear them before the shift closes.</p><p><b>Conflicts.</b> A sale completed offline (or during the posting gap) may name a batch or serial that another till sold in the meantime. The back office will not deduct the same physical stock twice, so it holds the sale back, and it appears under the <b>Conflicts</b> indicator.</p><p>Resolving one:</p><p>1. Click the Conflicts indicator and open the held sale. The refused line is shown.<br>2. <b>Re-pick</b> the batch or serial from what is actually available. (The goods physically left with the customer; the record just needs to point at an equivalent unit that is genuinely in stock.)<br>3. Release the sale. It posts normally.</p><p>A conflict is not a fault. It is the honest outcome of two tills selling from one stock pool with a connection in between — the alternatives (blocking all offline selling, or silently double-deducting stock) would both be worse. The cost is a minute of re-picking, paid occasionally.</p><p><b>Failed sales.</b> A queued sale the back office <b>rejected outright</b> — a record deleted on the server, a validation the terminal could not know about, a posting error. These appear under the <b>Failed</b> indicator, and they are a <b>supervisor's list</b>: the causes live in the back office, beyond a cashier's reach.</p><p>Handling them:</p><p>1. Read the failure message and identify the cause. Patterns matter more than single cases: three failures on one item point at that item's data; three on one terminal point at that terminal.<br>2. Fix the cause, then <b>re-submit</b> the sale — or, where re-submission is impossible, formally re-enter the sale with a note referencing the original.<br>3. <b>Never delete a failed sale into silence.</b> The customer's money is already in the drawer; the books must eventually record the sale that produced it.</p><p><b>Age both lists.</b> A conflict from this morning is routine work. A conflict from last Tuesday means the routine is not being followed — and that is the finding. Both lists are cleared as part of the shift close (module 4's counted drawer plus cleared lists equals a genuinely finished shift), and the weekly review looks at the totals: conflicts trending up suggests stock contention or connectivity worth examining; failures trending up suggests a data problem worth finding.</p><p><b>Summary.</b> Conflict = re-pick and release, minutes, cashier-level. Failed = diagnose, fix, re-submit, supervisor-level, never silently removed. Both lists at zero before the shift closes; both trends read weekly.</p>",
+    "checks": [
+     {
+      "q": "A sale completed offline names a batch another till has since sold. The back office:",
+      "opts": [
+       "Rejects the sale permanently",
+       "Posts it and creates negative stock",
+       "Deducts the stock twice",
+       "Holds the sale back, and it appears under Conflicts"
+      ],
+      "ans": 3,
+      "why": "It will not deduct the same physical stock twice.",
+      "sort": 0
+     },
+     {
+      "q": "Resolving a conflict means re-picking from available stock because:",
+      "opts": [
+       "The goods physically left with the customer; the record needs an equivalent unit that is genuinely in stock",
+       "The batch was wrong at the till",
+       "The customer must be contacted",
+       "The sale was invalid"
+      ],
+      "ans": 0,
+      "why": "A conflict is not a fault — it is the honest outcome of two tills selling from one pool.",
+      "sort": 1
+     },
+     {
+      "q": "Conflicts and failed sales should be cleared:",
+      "opts": [
+       "Before the shift closes",
+       "At month end",
+       "When the list grows",
+       "Weekly"
+      ],
+      "ans": 0,
+      "why": "Both are real money that has not reached the books.",
+      "sort": 2
+     }
+    ]
    },
    {
     "title": "Chapter 5 — Fast checkout: deciding the setting",
     "est": "12",
-    "html": "<p>Module 3 said to leave <b>fast checkout</b> off at commissioning and decide it here, with the queue's behaviour understood. This chapter is that decision.</p><p><b>What it does.</b> With fast checkout on, completing a sale returns the till to the next customer <b>immediately</b> — the sale posts to the back office in the background instead of the cashier waiting for confirmation. Scope:</p><p>• Applies to <b>card, cash and transfer</b> sales — the tenders that record an amount.<br>• <b>Loyalty redemption still posts live</b> — a server-verified balance keeps its verification. The other server-side tenders keep their online rules too.</p><p>The gain is real at a busy counter: a few seconds per sale, multiplied by a queue.</p><p><b>What it costs.</b> A background posting can fail <b>after the customer has left</b>. The sale lands on Chapter 4's Failed list with the money already in the drawer and nobody standing at the counter to fix it. Fast checkout does not create errors — it moves their discovery from the cashier's eyes at the moment of sale to the Failed indicator afterwards. In other words, it widens the money-in-transit window this module exists to manage.</p><p><b>Where it fits.</b> Turn it on for counters that are <b>high-volume and low-exception</b>:</p><p>• Fast-moving goods, Standard mode, simple tenders.<br>• Batches auto-allocated; serials rare.<br>• A history of few conflicts and few failures.</p><p>At such counters the seconds add up to real throughput and the failure rate stays near zero.</p><p><b>Where it does not fit.</b> Leave it off for counters that are <b>exception-rich</b>:</p><p>• Serial-numbered goods, credit customers, heavy voucher traffic.<br>• A history of conflicts or failures.</p><p>Deferred confirmation multiplies exactly the cases that need eyes at the moment of sale.</p><p><b>Two conditions wherever it is on.</b></p><p>1. <b>The Failed list is checked every shift, without exception.</b> A failure found the same shift is a quick re-submission or re-ring; found a week later it is an investigation with a customer attached.<br>2. <b>The decision is recorded</b> — which terminals run fast checkout and why, noted with the terminal settings (module 3's file). The estate's fast-checkout map should be known, not discovered.</p><p><b>Summary.</b> Fast checkout trades certainty-at-the-moment for speed, safely — but only where exceptions are rare and the Failed list is genuinely read every shift. Decide it per counter, write the decision down, and revisit it if the counter's failure pattern changes.</p>"
+    "html": "<p>Module 3 said to leave <b>fast checkout</b> off at commissioning and decide it here, with the queue's behaviour understood. This chapter is that decision.</p><p><b>What it does.</b> With fast checkout on, completing a sale returns the till to the next customer <b>immediately</b> — the sale posts to the back office in the background instead of the cashier waiting for confirmation. Scope:</p><p>• Applies to <b>card, cash and transfer</b> sales — the tenders that record an amount.<br>• <b>Loyalty redemption still posts live</b> — a server-verified balance keeps its verification. The other server-side tenders keep their online rules too.</p><p>The gain is real at a busy counter: a few seconds per sale, multiplied by a queue.</p><p><b>What it costs.</b> A background posting can fail <b>after the customer has left</b>. The sale lands on Chapter 4's Failed list with the money already in the drawer and nobody standing at the counter to fix it. Fast checkout does not create errors — it moves their discovery from the cashier's eyes at the moment of sale to the Failed indicator afterwards. In other words, it widens the money-in-transit window this module exists to manage.</p><p><b>Where it fits.</b> Turn it on for counters that are <b>high-volume and low-exception</b>:</p><p>• Fast-moving goods, Standard mode, simple tenders.<br>• Batches auto-allocated; serials rare.<br>• A history of few conflicts and few failures.</p><p>At such counters the seconds add up to real throughput and the failure rate stays near zero.</p><p><b>Where it does not fit.</b> Leave it off for counters that are <b>exception-rich</b>:</p><p>• Serial-numbered goods, credit customers, heavy voucher traffic.<br>• A history of conflicts or failures.</p><p>Deferred confirmation multiplies exactly the cases that need eyes at the moment of sale.</p><p><b>Two conditions wherever it is on.</b></p><p>1. <b>The Failed list is checked every shift, without exception.</b> A failure found the same shift is a quick re-submission or re-ring; found a week later it is an investigation with a customer attached.<br>2. <b>The decision is recorded</b> — which terminals run fast checkout and why, noted with the terminal settings (module 3's file). The estate's fast-checkout map should be known, not discovered.</p><p><b>Summary.</b> Fast checkout trades certainty-at-the-moment for speed, safely — but only where exceptions are rare and the Failed list is genuinely read every shift. Decide it per counter, write the decision down, and revisit it if the counter's failure pattern changes.</p>\n<!--deepened--><p><b>How to decide, rather than defaulting.</b> Fast checkout is worth having where the queue is genuinely the constraint and somebody reliably reads the Failed list before close. It is not worth having where the counter is quiet enough that a few seconds per sale changes nothing, or where nobody owns the Failed list — in which case the setting simply moves errors to a place nobody looks.</p><p><b>The question that settles it.</b> Not how busy the counter is, but who will find a failed sale and when. If the answer is a named person checking before the shift closes, the trade is a good one. If the answer is nobody in particular, leave it off — the seconds saved at the till are worth considerably less than money sitting in a drawer against a sale the books never received.</p>",
+    "checks": [
+     {
+      "q": "Fast checkout moves the discovery of a posting failure from:",
+      "opts": [
+       "The supervisor to the cashier",
+       "The day to the week",
+       "The back office to the till",
+       "The cashier's screen to the Failed list, after the customer has left"
+      ],
+      "ans": 3,
+      "why": "It does not create errors; it changes who finds them and when.",
+      "sort": 0
+     },
+     {
+      "q": "Under fast checkout, loyalty redemption:",
+      "opts": [
+       "Also posts in the background",
+       "Still posts live, because a server-verified balance keeps its verification",
+       "Is disabled",
+       "Requires approval"
+      ],
+      "ans": 1,
+      "why": "The other server-side tenders keep their online rules too.",
+      "sort": 1
+     },
+     {
+      "q": "The gain from fast checkout is:",
+      "opts": [
+       "Better offline behaviour",
+       "Simpler reconciliation",
+       "Fewer failed sales",
+       "A few seconds per sale, multiplied by a queue"
+      ],
+      "ans": 3,
+      "why": "Which is why the decision belongs here, with the queue's behaviour understood.",
+      "sort": 2
+     }
+    ]
    },
    {
     "title": "Chapter 6 — End of Day Funds and the daily check",
     "est": "13",
-    "html": "<p>The counter's money is proven daily, using two report screens and a fifteen-minute routine.</p><p><b>The two report screens.</b></p><p>• <b>Command Center</b> — the glance. Today's headline figures (gross sales, average basket, transactions, returns, invoices paid) with trend arrows, recent activity, top sellers, and the news ticker. For the floor and the manager's quick pulse through the day.<br>• <b>Revenue Intelligence</b> — the analysis. Four working reports: <b>End of Day Funds</b> (below), <b>Detailed Sales</b> (line-level sales over a range — margin and product-mix questions), <b>Cashier Sales History</b> (per-person trading records — Chapter 7 uses it), and <b>Gift Voucher Analytics</b> (module 7's programme figures). Access rides the money-side permissions — in Pharmacy mode, the Checkout access box carries it.</p><p>Routing rule: a how-are-we-doing question goes to the Command Center; a what-exactly-happened question goes to Revenue Intelligence.</p><p><b>End of Day Funds.</b> The daily money proof. For the chosen day (or range), it lays out <b>expected against counted, per shift and per payment method</b> — the system's arithmetic beside the counts cashiers entered at their closes — with the surviving variances totalled.</p><p>Reading it:</p><p>• A day where every method reconciles is filed. Green and routine is the goal.<br>• A day with a variance is broken down in two clicks: which shift, which method. If the variance was explained in the shift's closing notes (module 4), the answer is already there. If not, it is tonight's question to a named person about a specific drawer — small, fresh, and answerable.</p><p><b>The daily routine.</b> Run at end of day, in order:</p><p>1. <b>Queues at zero</b> on every terminal, and the Conflicts and Failed lists clear (Chapters 3-4). The day must have fully arrived before it can be proven.<br>2. <b>Every shift closed</b> with counted figures. Orphaned sales repaired with the back-office tool and noted — the tool is a correction, and its use should be rare.<br>3. <b>End of Day Funds read</b>, variances resolved against the closing notes or assigned to a named follow-up.<br>4. <b>The voucher till batch reconciled</b> — cards issued at the till today against voucher payments taken (module 7's daily check).<br>5. <b>Cash banked or safed against the counted total</b> — the day's money leaving the counter matches the day's proven figure.</p><p>Fifteen minutes, five steps, one filed result. The figures this routine proves are the same ones the accountant reconciles the bank against and the owner reads in Chapter 9 — a counter that runs this daily makes every downstream check in the business cheaper.</p>"
+    "html": "<p>The counter's money is proven daily, using two report screens and a fifteen-minute routine.</p><p><b>The two report screens.</b></p><p>• <b>Command Center</b> — the glance. Today's headline figures (gross sales, average basket, transactions, returns, invoices paid) with trend arrows, recent activity, top sellers, and the news ticker. For the floor and the manager's quick pulse through the day.<br>• <b>Revenue Intelligence</b> — the analysis. Four working reports: <b>End of Day Funds</b> (below), <b>Detailed Sales</b> (line-level sales over a range — margin and product-mix questions), <b>Cashier Sales History</b> (per-person trading records — Chapter 7 uses it), and <b>Gift Voucher Analytics</b> (module 7's programme figures). Access rides the money-side permissions — in Pharmacy mode, the Checkout access box carries it.</p><p>Routing rule: a how-are-we-doing question goes to the Command Center; a what-exactly-happened question goes to Revenue Intelligence.</p><p><b>End of Day Funds.</b> The daily money proof. For the chosen day (or range), it lays out <b>expected against counted, per shift and per payment method</b> — the system's arithmetic beside the counts cashiers entered at their closes — with the surviving variances totalled.</p><p>Reading it:</p><p>• A day where every method reconciles is filed. Green and routine is the goal.<br>• A day with a variance is broken down in two clicks: which shift, which method. If the variance was explained in the shift's closing notes (module 4), the answer is already there. If not, it is tonight's question to a named person about a specific drawer — small, fresh, and answerable.</p><p><b>The daily routine.</b> Run at end of day, in order:</p><p>1. <b>Queues at zero</b> on every terminal, and the Conflicts and Failed lists clear (Chapters 3-4). The day must have fully arrived before it can be proven.<br>2. <b>Every shift closed</b> with counted figures. Orphaned sales repaired with the back-office tool and noted — the tool is a correction, and its use should be rare.<br>3. <b>End of Day Funds read</b>, variances resolved against the closing notes or assigned to a named follow-up.<br>4. <b>The voucher till batch reconciled</b> — cards issued at the till today against voucher payments taken (module 7's daily check).<br>5. <b>Cash banked or safed against the counted total</b> — the day's money leaving the counter matches the day's proven figure.</p><p>Fifteen minutes, five steps, one filed result. The figures this routine proves are the same ones the accountant reconciles the bank against and the owner reads in Chapter 9 — a counter that runs this daily makes every downstream check in the business cheaper.</p>",
+    "checks": [
+     {
+      "q": "A manager asks how trading is going today. That question routes to:",
+      "opts": [
+       "Detailed Sales",
+       "Revenue Intelligence",
+       "The Command Center",
+       "End of Day Funds"
+      ],
+      "ans": 2,
+      "why": "A how-are-we-doing question goes to the glance; a what-exactly-happened question goes to the analysis.",
+      "sort": 0
+     },
+     {
+      "q": "Which report is the daily money proof?",
+      "opts": [
+       "Cashier Sales History",
+       "Gift Voucher Analytics",
+       "Detailed Sales",
+       "End of Day Funds"
+      ],
+      "ans": 3,
+      "why": "Read and resolved as part of the fifteen-minute daily routine.",
+      "sort": 1
+     },
+     {
+      "q": "In Pharmacy mode, access to the money-side reports rides on:",
+      "opts": [
+       "The profile's report setting",
+       "The Order access box",
+       "The Checkout access box",
+       "The administrator role"
+      ],
+      "ans": 2,
+      "why": "Access follows the money-side permissions.",
+      "sort": 2
+     }
+    ]
    },
    {
     "title": "Chapter 7 — What supervisors watch for",
     "est": "16",
-    "html": "<p>This chapter lists the known counter-fraud patterns, each with the ZhiftPOS control that obstructs it and the specific check that catches what slips through. Supervisors should know all of them plainly. Two things to hold while reading: the checks exist to catch the rare bad case — and, just as much, to <b>clear the honest majority with evidence</b>. A counter that is checked weekly is a counter where good staff are never under vague suspicion.</p><p><b>1. Under-ringing.</b> Goods leave for less than their price: an item not scanned for a friend, a cheaper item scanned in place of a dearer one, a quantity short-rung. Controls: serial and batch prompts resist substitution; every sale is line-recorded. Check: <b>margin by cashier</b> in Detailed Sales — a person whose baskets consistently earn less than the floor's mix suggests warrants a closer look, alongside their void pattern (point 4).</p><p><b>2. Drawer skimming.</b> Cash taken from the drawer, hidden in the day's activity. Controls: the counted float and counted close — a skim must now survive two counts; per-method closing. Check: the <b>variance trend per cashier</b>. Everyone has an odd red day; the signal is drift — shortages that cluster on one person, or a cashier whose variances are suspiciously round or only ever negative.</p><p><b>3. Phantom returns.</b> A refund processed with no customer and no goods — cash out against a fictional return. Controls: returns must start from a found invoice; a reason is required; an override can be required; cash refunds can be disabled entirely. Checks: <b>returns per cashier</b> (rate, and timing — returns clustering at shift end, or on the same day as the original sale), <b>returns per customer</b> (the Customer Desk's return-rate figure), and the cash-refund share where cash refunds are enabled.</p><p><b>4. Voids and cleared carts after payment.</b> A customer pays; the sale is then voided or the cart cleared, and the cash is pocketed. Controls: cart clearing can require approval; voids and cleared carts are recorded. Check: <b>voids and cleared carts per cashier per shift</b>, especially adjacent to cash sales. This is the pattern shared logins used to make invisible; with individual accounts it is a report.</p><p><b>5. Discount misuse — and the rubber-stamp approver.</b> Concessions granted to friends, or reasons gamed; and its quieter partner, the approver who approves everything asked. Controls: the discount modes, required reasons and explanations, budget percentages, the all-approvers code email. Checks: <b>markdowns per cashier against budget</b> (module 5's report), and <b>approvals per approver</b> — an approver clearing forty discounts a week is either the floor's only available approver (a staffing problem) or not reading what they sign (a supervision problem); the count says which question to ask.</p><p><b>6. Rate-edit habits.</b> Prices rewritten line by line from memory as favours. Controls: the Rate override marker; the override requirement. Check: <b>Rate override markers per cashier per week</b> — Okelewo's Friday pattern in module 5 is the worked example.</p><p><b>7. Self-dealing on the arrangements.</b> Store credit or refunds routed to accounts the cashier controls; staff-purchase or lay-by machinery bent toward friends; voucher self-issue. Controls: named-customer requirements, manager gates, the voucher role separation. Checks: refunds and credits by recipient, cross-read against the staff list; the lay-by and staff-purchase panels read for the same few names recurring.</p><p><b>8. Tender misrecording.</b> Tenders recorded on the wrong method — carelessly (module 4's transfers-as-cash) or deliberately, to blur the per-method counts a skim would otherwise disturb. Controls: split payment records each portion on its method. Check: the <b>method mix per cashier</b> against the branch's normal pattern.</p><p><b>9. Working under another name.</b> The shared-login habit returning, or manager-override sessions running long. Controls: individual accounts, the lock habit, tagged override sessions. Check: <b>override sessions counted monthly</b> — near zero, each with a known story — and sign-in patterns against the roster.</p><p><b>The weekly half-hour.</b> Run the checks as a fixed circuit once a week: variance trends, returns and voids by cashier, markdowns against budget, approvals by approver, rate-edit markers, override sessions, and a glance at the arrangement panels. Log the result even when it is clean — a record of regular checking is itself a deterrent, and it is also the evidence that clears people. Most weeks the log says nothing found, and that sentence is worth having.</p>"
+    "html": "<p>This chapter lists the known counter-fraud patterns, each with the ZhiftPOS control that obstructs it and the specific check that catches what slips through. Supervisors should know all of them plainly. Two things to hold while reading: the checks exist to catch the rare bad case — and, just as much, to <b>clear the honest majority with evidence</b>. A counter that is checked weekly is a counter where good staff are never under vague suspicion.</p><p><b>1. Under-ringing.</b> Goods leave for less than their price: an item not scanned for a friend, a cheaper item scanned in place of a dearer one, a quantity short-rung. Controls: serial and batch prompts resist substitution; every sale is line-recorded. Check: <b>margin by cashier</b> in Detailed Sales — a person whose baskets consistently earn less than the floor's mix suggests warrants a closer look, alongside their void pattern (point 4).</p><p><b>2. Drawer skimming.</b> Cash taken from the drawer, hidden in the day's activity. Controls: the counted float and counted close — a skim must now survive two counts; per-method closing. Check: the <b>variance trend per cashier</b>. Everyone has an odd red day; the signal is drift — shortages that cluster on one person, or a cashier whose variances are suspiciously round or only ever negative.</p><p><b>3. Phantom returns.</b> A refund processed with no customer and no goods — cash out against a fictional return. Controls: returns must start from a found invoice; a reason is required; an override can be required; cash refunds can be disabled entirely. Checks: <b>returns per cashier</b> (rate, and timing — returns clustering at shift end, or on the same day as the original sale), <b>returns per customer</b> (the Customer Desk's return-rate figure), and the cash-refund share where cash refunds are enabled.</p><p><b>4. Voids and cleared carts after payment.</b> A customer pays; the sale is then voided or the cart cleared, and the cash is pocketed. Controls: cart clearing can require approval; voids and cleared carts are recorded. Check: <b>voids and cleared carts per cashier per shift</b>, especially adjacent to cash sales. This is the pattern shared logins used to make invisible; with individual accounts it is a report.</p><p><b>5. Discount misuse — and the rubber-stamp approver.</b> Concessions granted to friends, or reasons gamed; and its quieter partner, the approver who approves everything asked. Controls: the discount modes, required reasons and explanations, budget percentages, the all-approvers code email. Checks: <b>markdowns per cashier against budget</b> (module 5's report), and <b>approvals per approver</b> — an approver clearing forty discounts a week is either the floor's only available approver (a staffing problem) or not reading what they sign (a supervision problem); the count says which question to ask.</p><p><b>6. Rate-edit habits.</b> Prices rewritten line by line from memory as favours. Controls: the Rate override marker; the override requirement. Check: <b>Rate override markers per cashier per week</b> — Okelewo's Friday pattern in module 5 is the worked example.</p><p><b>7. Self-dealing on the arrangements.</b> Store credit or refunds routed to accounts the cashier controls; staff-purchase or lay-by machinery bent toward friends; voucher self-issue. Controls: named-customer requirements, manager gates, the voucher role separation. Checks: refunds and credits by recipient, cross-read against the staff list; the lay-by and staff-purchase panels read for the same few names recurring.</p><p><b>8. Tender misrecording.</b> Tenders recorded on the wrong method — carelessly (module 4's transfers-as-cash) or deliberately, to blur the per-method counts a skim would otherwise disturb. Controls: split payment records each portion on its method. Check: the <b>method mix per cashier</b> against the branch's normal pattern.</p><p><b>9. Working under another name.</b> The shared-login habit returning, or manager-override sessions running long. Controls: individual accounts, the lock habit, tagged override sessions. Check: <b>override sessions counted monthly</b> — near zero, each with a known story — and sign-in patterns against the roster.</p><p><b>The weekly half-hour.</b> Run the checks as a fixed circuit once a week: variance trends, returns and voids by cashier, markdowns against budget, approvals by approver, rate-edit markers, override sessions, and a glance at the arrangement panels. Log the result even when it is clean — a record of regular checking is itself a deterrent, and it is also the evidence that clears people. Most weeks the log says nothing found, and that sentence is worth having.</p>",
+    "checks": [
+     {
+      "q": "A cashier's baskets consistently earn less margin than the floor's product mix suggests. The report to use is:",
+      "opts": [
+       "End of Day Funds",
+       "Detailed Sales, alongside their void pattern",
+       "Command Center",
+       "Gift Voucher Analytics"
+      ],
+      "ans": 1,
+      "why": "Under-ringing resists the serial and batch prompts but shows in margin by cashier.",
+      "sort": 0
+     },
+     {
+      "q": "The checks in this chapter exist to catch the rare bad case and also to:",
+      "opts": [
+       "Set targets",
+       "Satisfy the auditor",
+       "Clear the honest majority with evidence",
+       "Justify supervision"
+      ],
+      "ans": 2,
+      "why": "A counter checked weekly is one where good staff are never under vague suspicion.",
+      "sort": 1
+     },
+     {
+      "q": "Serial and batch prompts obstruct under-ringing because they:",
+      "opts": [
+       "Resist substituting a cheaper item for a dearer one",
+       "Require approval",
+       "Record the cashier",
+       "Slow the sale"
+      ],
+      "ans": 0,
+      "why": "Every sale is line-recorded, which is what makes the margin check possible.",
+      "sort": 2
+     }
+    ]
    },
    {
     "title": "Chapter 8 — The routine calendar and the change procedures",
     "est": "13",
-    "html": "<p>Every check in this track happens on a schedule someone owns. This chapter collects them into one calendar — the counter's standing routine — and adds the two change procedures and the update rule.</p><p><b>Each shift (the cashier).</b></p><p>• Count the float at open; declare anything unusual in the opening note.<br>• Glance at Queued, Conflicts and Failed before closing.<br>• Count the drawer at close; overwrite the pre-filled figures; explain variances in the notes.<br>• Handle voucher and airtime slips by their rules; lock the till at every step away.</p><p><b>Daily (the supervisor).</b> The Chapter 6 routine: queues and lists at zero, shifts closed and counted, End of Day Funds read and resolved, the voucher till batch reconciled, cash banked against the count.</p><p><b>Weekly (the supervisor / branch).</b></p><p>• The Chapter 7 check circuit, logged.<br>• The Open Lay-Bys panel — overdue instalments followed up.<br>• The Open Staff Purchases panel — balances glanced.<br>• Every cashier signed in online on each terminal they use (the seven-day cache rule).<br>• Queue behaviour across the week read for connectivity patterns.</p><p><b>Monthly (the administrator / finance).</b></p><p>• The customer duplicate scan and merge (module 6).<br>• The voucher programme's outstanding value against the liability account (module 7), plus the redemption rate and the expired-value pipeline.<br>• The device list's last-seen review and the licence allowance check (module 3).<br>• Override sessions counted, each with its story.<br>• The voucher activation log against the campaign plan.</p><p><b>On staff change (same day).</b> The three-record procedure from module 3 — profile rows removed, cached entries forgotten on every terminal they used (listed from the device register), the back-office account disabled — <b>plus</b>: remove them from the Power Approver table and from category-lead assignments if they held either.</p><p><b>On terminal change.</b> Revoke the old device with who-and-why (the licence slot frees); commission the replacement by module 3's standard procedure; update the terminal file.</p><p><b>Updates.</b> Install updates on the estate's decided posture (module 3), with two rules: <b>never update a terminal with sales still in its queue</b> — let the queue drain first — and stage updates across the estate rather than everywhere at once, noting the version. An update mid-queue is the one easily avoided way to turn Chapter 4's lists into a bad evening.</p><p><b>Write names on the calendar.</b> Every line above has an owner: the cashier's lines by role, the daily and weekly lines usually the Sales Manager, the monthly lines split between the administrator and finance. A calendar with names survives holidays, resignations and busy seasons; a calendar in one person's head does not — which is exactly Chapter 9's test.</p>"
+    "html": "<p>Every check in this track happens on a schedule someone owns. This chapter collects them into one calendar — the counter's standing routine — and adds the two change procedures and the update rule.</p><p><b>Each shift (the cashier).</b></p><p>• Count the float at open; declare anything unusual in the opening note.<br>• Glance at Queued, Conflicts and Failed before closing.<br>• Count the drawer at close; overwrite the pre-filled figures; explain variances in the notes.<br>• Handle voucher and airtime slips by their rules; lock the till at every step away.</p><p><b>Daily (the supervisor).</b> The Chapter 6 routine: queues and lists at zero, shifts closed and counted, End of Day Funds read and resolved, the voucher till batch reconciled, cash banked against the count.</p><p><b>Weekly (the supervisor / branch).</b></p><p>• The Chapter 7 check circuit, logged.<br>• The Open Lay-Bys panel — overdue instalments followed up.<br>• The Open Staff Purchases panel — balances glanced.<br>• Every cashier signed in online on each terminal they use (the seven-day cache rule).<br>• Queue behaviour across the week read for connectivity patterns.</p><p><b>Monthly (the administrator / finance).</b></p><p>• The customer duplicate scan and merge (module 6).<br>• The voucher programme's outstanding value against the liability account (module 7), plus the redemption rate and the expired-value pipeline.<br>• The device list's last-seen review and the licence allowance check (module 3).<br>• Override sessions counted, each with its story.<br>• The voucher activation log against the campaign plan.</p><p><b>On staff change (same day).</b> The three-record procedure from module 3 — profile rows removed, cached entries forgotten on every terminal they used (listed from the device register), the back-office account disabled — <b>plus</b>: remove them from the Power Approver table and from category-lead assignments if they held either.</p><p><b>On terminal change.</b> Revoke the old device with who-and-why (the licence slot frees); commission the replacement by module 3's standard procedure; update the terminal file.</p><p><b>Updates.</b> Install updates on the estate's decided posture (module 3), with two rules: <b>never update a terminal with sales still in its queue</b> — let the queue drain first — and stage updates across the estate rather than everywhere at once, noting the version. An update mid-queue is the one easily avoided way to turn Chapter 4's lists into a bad evening.</p><p><b>Write names on the calendar.</b> Every line above has an owner: the cashier's lines by role, the daily and weekly lines usually the Sales Manager, the monthly lines split between the administrator and finance. A calendar with names survives holidays, resignations and busy seasons; a calendar in one person's head does not — which is exactly Chapter 9's test.</p>",
+    "checks": [
+     {
+      "q": "Which belongs to the cashier's each-shift list rather than the supervisor's daily one?",
+      "opts": [
+       "Banking cash against the count",
+       "Reading End of Day Funds",
+       "Glancing at Queued, Conflicts and Failed before closing",
+       "Reconciling the voucher till batch"
+      ],
+      "ans": 2,
+      "why": "The cashier's list is float, the three indicators, the counted close, and locking the till.",
+      "sort": 0
+     },
+     {
+      "q": "The Open Lay-Bys and Open Staff Purchases panels are checked:",
+      "opts": [
+       "At quarter end",
+       "Daily",
+       "Weekly",
+       "Monthly"
+      ],
+      "ans": 2,
+      "why": "Alongside the check circuit and confirming every cashier has signed in online on each terminal.",
+      "sort": 1
+     },
+     {
+      "q": "Every check in the track happens on a schedule that:",
+      "opts": [
+       "Somebody owns",
+       "Adjusts to workload",
+       "The system enforces",
+       "Rotates between staff"
+      ],
+      "ans": 0,
+      "why": "A calendar with names rather than habits that leave with their owner.",
+      "sort": 2
+     }
+    ]
    },
    {
     "title": "Chapter 9 — The handover test and the owner's page; worked example: Okelewo",
     "est": "14",
-    "html": "<p><b>The handover test.</b> Ask this of any branch: <i>if the best supervisor left this Friday, what would Monday look like?</i> A counter run on this track's pattern passes, because nothing lives only in someone's head:</p><p>• The profiles are recorded decisions with noted reasons (module 2), not one person's memory of an afternoon of settings.<br>• The terminal estate is a register plus a file per terminal (module 3), not the-machines-someone-set-up.<br>• The routines are a calendar with names (Chapter 8), not habits that leave with their owner.<br>• The checks have a fixed circuit and a log with history (Chapters 6-7).<br>• A successor's first week is spent reading, not interviewing survivors.</p><p>Test it honestly once a year: a designated deputy runs the full weekly and monthly routine <b>from the documentation alone</b>, and every gap they hit is logged and fixed. The drill costs a morning. Discovering the gaps during a real departure costs a quarter.</p><p><b>The owner's page.</b> Five numbers, readable in four minutes a week (or one a day), each backed by a screen the owner can open and a person whose name is on the line:</p><p>1. <b>Yesterday's End of Day variance total</b>, per branch — zero or explained is the only healthy state.<br>2. <b>Queues, conflicts and failed sales right now</b> — all zero? (The money-in-transit line.)<br>3. <b>Overrides, voids and cleared carts this week</b>, per branch — a trend line, not an incident report.<br>4. <b>Voucher value outstanding</b> and the month's redemption rate — the programme's health.<br>5. <b>Margin per branch against last month</b> — Detailed Sales' one-line answer on whether the discount controls are holding.</p><p><b>Okelewo at the end of the track.</b> The opening problems, closed one by one: the <b>exercise books</b> are retired (two are framed on the flagship's back-office wall); the <b>shared login</b> is eleven individual accounts, a lock habit, and a monthly override count that reads near zero with stories; the <b>memory prices</b> are a governed price list, three discount modes matched to three floors, and a markdown report that names causes; the <b>unreconciled drawers</b> are counted floats, counted closes, and an End of Day report whose green days are filed unread because there is nothing in them; the <b>unattributable returns pattern</b> that started the whole project is now impossible to repeat — returns need an invoice, a reason and an approver, and the weekly circuit reads them by person. The MD's question from module 1 — <i>what did any counter do on Tuesday?</i> — now has an answer at every level: per branch, per terminal, per shift, per cashier, per method, per line, variances explained by name. The final meeting is short: the owner's page taught in twenty minutes, the calendar's names confirmed, the first handover drill scheduled. The MD's closing note: <i>nine years of managing by suspicion, replaced by four minutes of reading. I just have to keep reading.</i></p><p><b>The certification.</b> With this module, the ZhiftPOS Professional track is complete: eight modules, from the system's parts to the daily proof — the counter's rules in one hand, its checks in the other.</p>"
+    "html": "<p><b>The handover test.</b> Ask this of any branch: <i>if the best supervisor left this Friday, what would Monday look like?</i> A counter run on this track's pattern passes, because nothing lives only in someone's head:</p><p>• The profiles are recorded decisions with noted reasons (module 2), not one person's memory of an afternoon of settings.<br>• The terminal estate is a register plus a file per terminal (module 3), not the-machines-someone-set-up.<br>• The routines are a calendar with names (Chapter 8), not habits that leave with their owner.<br>• The checks have a fixed circuit and a log with history (Chapters 6-7).<br>• A successor's first week is spent reading, not interviewing survivors.</p><p>Test it honestly once a year: a designated deputy runs the full weekly and monthly routine <b>from the documentation alone</b>, and every gap they hit is logged and fixed. The drill costs a morning. Discovering the gaps during a real departure costs a quarter.</p><p><b>The owner's page.</b> Five numbers, readable in four minutes a week (or one a day), each backed by a screen the owner can open and a person whose name is on the line:</p><p>1. <b>Yesterday's End of Day variance total</b>, per branch — zero or explained is the only healthy state.<br>2. <b>Queues, conflicts and failed sales right now</b> — all zero? (The money-in-transit line.)<br>3. <b>Overrides, voids and cleared carts this week</b>, per branch — a trend line, not an incident report.<br>4. <b>Voucher value outstanding</b> and the month's redemption rate — the programme's health.<br>5. <b>Margin per branch against last month</b> — Detailed Sales' one-line answer on whether the discount controls are holding.</p><p><b>Okelewo at the end of the track.</b> The opening problems, closed one by one: the <b>exercise books</b> are retired (two are framed on the flagship's back-office wall); the <b>shared login</b> is eleven individual accounts, a lock habit, and a monthly override count that reads near zero with stories; the <b>memory prices</b> are a governed price list, three discount modes matched to three floors, and a markdown report that names causes; the <b>unreconciled drawers</b> are counted floats, counted closes, and an End of Day report whose green days are filed unread because there is nothing in them; the <b>unattributable returns pattern</b> that started the whole project is now impossible to repeat — returns need an invoice, a reason and an approver, and the weekly circuit reads them by person. The MD's question from module 1 — <i>what did any counter do on Tuesday?</i> — now has an answer at every level: per branch, per terminal, per shift, per cashier, per method, per line, variances explained by name. The final meeting is short: the owner's page taught in twenty minutes, the calendar's names confirmed, the first handover drill scheduled. The MD's closing note: <i>nine years of managing by suspicion, replaced by four minutes of reading. I just have to keep reading.</i></p><p><b>The certification.</b> With this module, the ZhiftPOS Professional track is complete: eight modules, from the system's parts to the daily proof — the counter's rules in one hand, its checks in the other.</p>",
+    "checks": [
+     {
+      "q": "The handover test asks what Monday would look like if the best supervisor left on Friday. A counter run on this pattern passes because:",
+      "opts": [
+       "The system enforces the routine",
+       "The supervisor documents as they go",
+       "Nothing lives only in somebody's head",
+       "A deputy is always trained"
+      ],
+      "ans": 2,
+      "why": "Profiles are recorded decisions, the estate is a register, the routines are a calendar with names.",
+      "sort": 0
+     },
+     {
+      "q": "The annual handover drill has a deputy run the full routine from:",
+      "opts": [
+       "The supervisor's guidance",
+       "The documentation alone",
+       "Last month's logs",
+       "The system prompts"
+      ],
+      "ans": 1,
+      "why": "Every gap they hit is logged and fixed — the drill costs a morning.",
+      "sort": 1
+     },
+     {
+      "q": "Discovering documentation gaps during a real departure rather than a drill costs:",
+      "opts": [
+       "A morning",
+       "A quarter",
+       "A week",
+       "Nothing measurable"
+      ],
+      "ans": 1,
+      "why": "Which is the whole argument for testing it honestly once a year.",
+      "sort": 2
+     }
+    ]
    },
    {
     "title": "Chapter 10 — Review & module rule 8",
     "est": "12",
-    "html": "<p>Check yourself against each section before the final quiz of the track.</p><p><b>Offline (Chapter 2).</b> Selling continues from the local copy; sales queue safely. Works: cash, keyed card, transfer, holds, labels, cached lookups, Guarded Offline vouchers within caps. Waits: store credit, loyalty redemption, Online Only vouchers, integrated card, credit and part-paid sales (collect the full amount), Return &amp; Exchange, reports. One rule covers it all: whatever depends on a balance only the server can verify, waits. Four habits: announce what works, trust the queue, watch the duration, check the lists when the connection returns.</p><p><b>The indicators and the queue (Chapter 3).</b> The healthy pattern: Online, no Re-login, Queued near zero, no Conflicts or Failed, copies fresh, Duty Active. Re-login blocks that cashier's queued sales — same-day fix. Judge the queue by direction and age: thirty during an outage is normal; thirty an hour after it is a stall (sync service, Re-login, or a conflict at the head). The queue is worked to zero: at shift close, at end of day, and read weekly for connectivity patterns.</p><p><b>Conflicts and failed sales (Chapter 4).</b> A conflict = another till took the batch/serial: open, re-pick, release — minutes. A failed sale = the back office rejected it: a supervisor diagnoses, fixes, re-submits — never deleted into silence, because the money is already in the drawer. Both lists cleared before the shift closes; both trends read weekly; patterns (one item, one terminal) matter more than single cases.</p><p><b>Fast checkout (Chapter 5).</b> Instant completion, background posting; card, cash and transfer only; loyalty still posts live. Cost: a failure can surface after the customer leaves. Fits high-volume, low-exception counters; does not fit serial-heavy, credit-heavy or conflict-prone ones. Two conditions where on: the Failed list read every shift, and the decision recorded per terminal.</p><p><b>The daily check (Chapter 6).</b> Command Center = the glance; Revenue Intelligence = the analysis (End of Day Funds, Detailed Sales, Cashier Sales History, Gift Voucher Analytics). End of Day Funds: expected against counted, per shift and method. The five-step evening routine: queues and lists at zero, shifts closed, End of Day read and resolved, the voucher till batch reconciled, cash banked against the count.</p><p><b>The watch list (Chapter 7).</b> Nine patterns — under-ringing, skimming, phantom returns, voids/cleared carts, discount misuse and the rubber-stamp approver, rate-edit habits, self-dealing, tender misrecording, working under another name — each with its control and its named check. The weekly half-hour circuit, logged even when clean; the checks clear the honest as much as they catch the rare bad case.</p><p><b>The calendar (Chapter 8).</b> Per shift, daily, weekly, monthly; staff change (three records plus approver and lead tables, same day); terminal change (revoke, commission, file); updates never mid-queue, staged across the estate. Names on every line.</p><p><b>The finish (Chapter 9).</b> The annual handover drill from documentation alone; the owner's five-number page; Okelewo's opening problems each closed by a specific routine.</p><p><b>Module rule 8: the counter is checked daily, by routine — not by suspicion.</b> The track's eight module rules together: the counter runs on a profile, not memory; every power is a decided setting with an owner; a terminal is commissioned once and managed for life; the shift is a sealed routine; every discount and return carries a reason and an approver; every extended counter is a financial arrangement; a voucher is money owed, tracked from creation to expiry; and the counter is checked daily. That is the ZhiftPOS Professional certification.</p>"
+    "html": "<p>Check yourself against each section before the final quiz of the track.</p><p><b>Offline (Chapter 2).</b> Selling continues from the local copy; sales queue safely. Works: cash, keyed card, transfer, holds, labels, cached lookups, Guarded Offline vouchers within caps. Waits: store credit, loyalty redemption, Online Only vouchers, integrated card, credit and part-paid sales (collect the full amount), Return &amp; Exchange, reports. One rule covers it all: whatever depends on a balance only the server can verify, waits. Four habits: announce what works, trust the queue, watch the duration, check the lists when the connection returns.</p><p><b>The indicators and the queue (Chapter 3).</b> The healthy pattern: Online, no Re-login, Queued near zero, no Conflicts or Failed, copies fresh, Duty Active. Re-login blocks that cashier's queued sales — same-day fix. Judge the queue by direction and age: thirty during an outage is normal; thirty an hour after it is a stall (sync service, Re-login, or a conflict at the head). The queue is worked to zero: at shift close, at end of day, and read weekly for connectivity patterns.</p><p><b>Conflicts and failed sales (Chapter 4).</b> A conflict = another till took the batch/serial: open, re-pick, release — minutes. A failed sale = the back office rejected it: a supervisor diagnoses, fixes, re-submits — never deleted into silence, because the money is already in the drawer. Both lists cleared before the shift closes; both trends read weekly; patterns (one item, one terminal) matter more than single cases.</p><p><b>Fast checkout (Chapter 5).</b> Instant completion, background posting; card, cash and transfer only; loyalty still posts live. Cost: a failure can surface after the customer leaves. Fits high-volume, low-exception counters; does not fit serial-heavy, credit-heavy or conflict-prone ones. Two conditions where on: the Failed list read every shift, and the decision recorded per terminal.</p><p><b>The daily check (Chapter 6).</b> Command Center = the glance; Revenue Intelligence = the analysis (End of Day Funds, Detailed Sales, Cashier Sales History, Gift Voucher Analytics). End of Day Funds: expected against counted, per shift and method. The five-step evening routine: queues and lists at zero, shifts closed, End of Day read and resolved, the voucher till batch reconciled, cash banked against the count.</p><p><b>The watch list (Chapter 7).</b> Nine patterns — under-ringing, skimming, phantom returns, voids/cleared carts, discount misuse and the rubber-stamp approver, rate-edit habits, self-dealing, tender misrecording, working under another name — each with its control and its named check. The weekly half-hour circuit, logged even when clean; the checks clear the honest as much as they catch the rare bad case.</p><p><b>The calendar (Chapter 8).</b> Per shift, daily, weekly, monthly; staff change (three records plus approver and lead tables, same day); terminal change (revoke, commission, file); updates never mid-queue, staged across the estate. Names on every line.</p><p><b>The finish (Chapter 9).</b> The annual handover drill from documentation alone; the owner's five-number page; Okelewo's opening problems each closed by a specific routine.</p><p><b>Module rule 8: the counter is checked daily, by routine — not by suspicion.</b> The track's eight module rules together: the counter runs on a profile, not memory; every power is a decided setting with an owner; a terminal is commissioned once and managed for life; the shift is a sealed routine; every discount and return carries a reason and an approver; every extended counter is a financial arrangement; a voucher is money owed, tracked from creation to expiry; and the counter is checked daily. That is the ZhiftPOS Professional certification.</p>",
+    "checks": [
+     {
+      "q": "The single rule covering everything that waits offline is:",
+      "opts": [
+       "Anything involving money waits",
+       "Whatever depends on a balance only the server can verify, waits",
+       "Anything needing a printer waits",
+       "All card activity waits"
+      ],
+      "ans": 1,
+      "why": "Store credit, loyalty redemption, Online Only vouchers and integrated card all follow from it.",
+      "sort": 0
+     },
+     {
+      "q": "The healthy top-bar pattern is Online, no Re-login, no Conflicts or Failed, copies fresh, Duty Active and:",
+      "opts": [
+       "Sync running",
+       "Lock engaged",
+       "Queued near zero",
+       "Queued at any level"
+      ],
+      "ans": 3,
+      "why": "Learn the pattern; anything different is one of the specific situations.",
+      "sort": 1
+     },
+     {
+      "q": "The four offline habits are announce what works, trust the queue, watch the duration, and:",
+      "opts": [
+       "Restart if it persists",
+       "Check the lists when the connection returns",
+       "Switch terminals",
+       "Record sales manually"
+      ],
+      "ans": 1,
+      "why": "Conflicts and failed sales are what the connection's return may bring.",
+      "sort": 2
+     }
+    ]
    }
   ],
   "questions": [

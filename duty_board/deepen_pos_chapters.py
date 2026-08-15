@@ -34,6 +34,32 @@ CHECK_ONLY = "--check" in sys.argv
 
 # module -> chapter index -> paragraph appended at the end of the chapter
 ADDITIONS = {
+"honest_counter": {
+ 1: "<p><b>The habit that prevents most offline arguments.</b> Announce the "
+    "boundary before the customer reaches it rather than after. A queue told "
+    "at the door that card machines are down and cash is needed moves; a "
+    "customer told at the payment screen, having queued for ten minutes with a "
+    "full basket, does not move quietly. The information is the same and the "
+    "cost of delivering it late is entirely avoidable.</p>"
+    "<p><b>And a note on what offline does not change.</b> The sale is real, "
+    "the receipt is valid, the stock has moved and the record exists. Nothing "
+    "about an outage makes a sale provisional or a count optional \u2014 the "
+    "shift still opens with a counted float and closes with a counted drawer, "
+    "and the queue posting later is a background matter rather than a reason "
+    "to treat the day differently.</p>",
+ 4: "<p><b>How to decide, rather than defaulting.</b> Fast checkout is worth "
+    "having where the queue is genuinely the constraint and somebody reliably "
+    "reads the Failed list before close. It is not worth having where the "
+    "counter is quiet enough that a few seconds per sale changes nothing, or "
+    "where nobody owns the Failed list \u2014 in which case the setting simply "
+    "moves errors to a place nobody looks.</p>"
+    "<p><b>The question that settles it.</b> Not how busy the counter is, but "
+    "who will find a failed sale and when. If the answer is a named person "
+    "checking before the shift closes, the trade is a good one. If the answer "
+    "is nobody in particular, leave it off \u2014 the seconds saved at the till "
+    "are worth considerably less than money sitting in a drawer against a sale "
+    "the books never received.</p>",
+},
 "shift_sale": {
  1: "<p><b>Two habits that make the open worth the two minutes.</b> Count the "
     "float into the drawer rather than out of it — money counted as it goes in "

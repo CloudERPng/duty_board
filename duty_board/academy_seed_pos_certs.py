@@ -69,17 +69,24 @@ TRACKS = [
         "title": "Certified ZhiftPOS Supervisor",
         "serial_prefix": "ZPOS-SV",
         "modules": SUPERVISOR,
-        "active": 0,          # honest_counter not yet at standard
+        "active": 1,          # all six modules now audit ok
         "access": "Paid",
         "seat_price": 28000,
         "description": (
-            "IN PREPARATION. The operator syllabus plus daily verification and offline "
+            "The operator syllabus plus daily verification and offline "
             "operation: the checks a supervisor runs at close, what works and what waits "
             "when the network is down, and reading the counter's figures at the end of "
             "every day."
         ),
         "who_for": "Shift supervisors and store managers responsible for a counter's figures.",
-        "outcomes": "Run and verify a trading day, and know what the numbers are telling you.",
+        "outcomes": (
+            "Run and verify a trading day end to end. Read the top bar as a set and judge "
+            "a queue by direction and age rather than size. Clear conflicts and failed "
+            "sales before they reach the books as a difference. Prove the counter's money "
+            "daily from End of Day Funds, run the weekly check circuit that clears honest "
+            "staff as much as it catches the rare bad case, and pass the handover test — "
+            "if the best supervisor left on Friday, Monday still works."
+        ),
     },
     {
         "key": "consultant",
@@ -170,8 +177,9 @@ def seed_pos_tracks():
                  "ACTIVE" if spec["active"] else "inactive"))
 
     frappe.db.commit()
-    print("\nOnly Certified ZhiftPOS Operator is active. The other two contain modules")
-    print("that still carry audit findings, and a paid track whose modules are below")
-    print("standard is the certificate the estate audit exists to prevent.")
+    print("\nOperator and Supervisor are active. The Implementation track stays")
+    print("inactive: counter_system, pos_profile and terminal_estate still carry no")
+    print("check questions, and a paid track whose modules are below standard is the")
+    print("certificate the estate audit exists to prevent.")
     print("\nBefore selling, confirm in Duty Settings: academy_bank_details,")
     print("academy_approver, academy_vat_rate, academy_tutors.")
