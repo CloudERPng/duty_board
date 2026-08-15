@@ -89,6 +89,31 @@ def entitlement_for(room, track):
 	}
 
 
+def _lock_seats(room, track):
+	"""Serialise seat checking for one room and track.
+
+	seat_gate reads the entitlement and the seats used, decides, and returns —
+	the caller then writes the training records. Without a lock, two
+	administrators assigning the last seat at the same moment both read one
+	left, both pass, and both write: two seats consumed against one paid, with
+	no error anywhere. The count is derived from the records, so afterwards it
+	simply reads 2 of 1.
+
+	Locking the entitlement rows makes the second transaction wait for the
+	first to commit, after which it re-reads the true count and fails honestly.
+
+	Scope is deliberately narrow. Only this room and this track are locked, so
+	unrelated assignments never block, and it is reached only for Paid tracks
+	with new learners. Where no entitlement row exists there is nothing to lock
+	and nothing to race: the gate throws "not purchased" whatever the ordering.
+	"""
+	frappe.db.sql(
+		"""select name from `tabDuty Academy Entitlement`
+		   where room = %s and track = %s for update""",
+		(room, track),
+	)
+
+
 def seat_gate(room, track, new_learners):
 	"""Raise unless there is room for this many additional named learners.
 	Called from every path that can put somebody on a paid track."""
@@ -97,6 +122,7 @@ def seat_gate(room, track, new_learners):
 	access = frappe.db.get_value("Duty Certification Track", track, "access") or "Included"
 	if access != "Paid":
 		return
+	_lock_seats(room, track)
 	ent = entitlement_for(room, track)
 	if not ent["seats"]:
 		if ent["expired_seats"]:
@@ -362,7 +388,10 @@ def order_approve(name, payment_ref=None, expires_on=None):
 	_staff_only()
 	from duty_board.client_room import _post
 
-	o = frappe.get_doc("Duty Academy Order", name)
+	# for_update takes a row lock, so two staff clearing the queue together,
+	# or one approving while another declines, cannot both read Requested.
+	# The second waits, re-reads the committed status, and is refused.
+	o = frappe.get_doc("Duty Academy Order", name, for_update=True)
 	if o.status != "Requested":
 		frappe.throw(_("This order is already {0}.").format(o.status))
 	if not (payment_ref or "").strip():
@@ -822,7 +851,10 @@ def setup_academy_jobs():
 @frappe.whitelist()
 def order_decline(name, reason=None):
 	_staff_only()
-	o = frappe.get_doc("Duty Academy Order", name)
+	# for_update takes a row lock, so two staff clearing the queue together,
+	# or one approving while another declines, cannot both read Requested.
+	# The second waits, re-reads the committed status, and is refused.
+	o = frappe.get_doc("Duty Academy Order", name, for_update=True)
 	if o.status != "Requested":
 		frappe.throw(_("This order is already {0}.").format(o.status))
 	o.db_set({"status": "Declined", "decline_reason": reason,
