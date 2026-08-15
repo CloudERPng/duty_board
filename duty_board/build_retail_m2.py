@@ -3,11 +3,16 @@
 
 Module 2 of Retail Leadership Essentials.
 
-Does not repeat the finance track. That track taught what margin, mix, stock
-days and contribution are, for a general management audience. This one assumes
-those and answers a narrower question: which of the numbers on a branch report
-are true, which are artefacts of how the group allocates and reports, and what a
-branch manager should actually look at each week.
+STANDS ALONE. An earlier draft assumed the finance track as a prerequisite and
+referred to it four times, which was wrong: a branch manager buying a leadership
+course has almost certainly not bought Accounting & Finance for Non-Finance
+Managers, and a course that depends on another course the reader does not own is
+a course with a hole in it.
+
+Every finance concept this module uses is now explained where it is used —
+briefly, at branch level, in the terms a manager meets on their own reports.
+Margin and markup, contribution, allocated cost. The finance track goes further
+on all of them and is a good next step; it is not a precondition.
 
 The organising claim is that most branch managers are given a report they have
 never been taught to distrust — and the most damaging figure on it is usually
@@ -105,7 +110,7 @@ LESSONS = [
     "Conversion", "Staff productivity"], 1,
    "Compare like periods — this week against the same week last year, Saturdays against Saturdays.")]),
 
-("Margin, and why yours moved", 11, """<p>The finance track established what gross margin is and the four things that move it. This chapter is about the branch-level version: which of the four you can see, which you caused, and what to do in the week you notice.</p>
+("Margin, and why yours moved", 11, """<p><b>Gross margin is what is left of each naira of sales after the goods themselves are paid for.</b> Sell ₦100 of goods that cost you ₦70 and your gross margin is ₦30, or 30%. It is not the same as markup, which is the uplift on cost — the same transaction is a 30% margin and a 43% markup, and confusing the two is how a branch prices for 40% and achieves 29%.</p><p>Four things move it, and this chapter is about which of the four you can see at branch level, which you caused, and what to do in the week you notice.</p>
 
 <p><b>The four movers, in the order a branch manager can act on them.</b></p>
 
@@ -125,7 +130,7 @@ LESSONS = [
 
 <p><b>What to do in the week you notice.</b> Do not announce a margin problem. Decompose it first — pull the category split and compare with the prior period, look at markdown by reason, check whether any large line's cost moved. You will usually find one or two categories carrying the whole movement, and a specific finding gets acted on where a general concern gets nodded at.</p>
 
-<p><b>Where a branch manager most often causes a margin fall without noticing.</b> Not through discounting, which is visible, but through what gets promoted, displayed and pushed. Front-of-store space given to a low-margin category, staff prompting the cheaper alternative because it is easier to sell, a display built where a supplier funded it — each shifts mix without any decision that looks like a pricing decision. The finance track's point applies exactly: mix is the only margin lever that improves without asking a single customer to pay more.</p>
+<p><b>Where a branch manager most often causes a margin fall without noticing.</b> Not through discounting, which is visible, but through what gets promoted, displayed and pushed. Front-of-store space given to a low-margin category, staff prompting the cheaper alternative because it is easier to sell, a display built where a supplier funded it — each shifts mix without any decision that looks like a pricing decision. Which makes mix worth more attention than it usually gets: it is the only margin lever that improves without asking a single customer to pay more.</p>
 
 <blockquote>WATCH-OUT: A margin fall with sales up is the pattern to fear most, because everything on the surface looks like success and the branch will be congratulated while it earns less. Check margin whenever sales rise sharply, not only when they fall.</blockquote>"""
 , [
@@ -145,7 +150,7 @@ LESSONS = [
 
 <p><b>Why it matters more than it appears.</b> A customer who cannot find one item frequently leaves without the other four they came for, and some of them do not come back for a month. The loss is not the one line — it is the basket and a portion of the relationship.</p>
 
-<p><b>How to measure it without a system that does it for you.</b> Take your top forty lines by contribution — not by sales, by contribution, following the finance track's argument. Walk them at the same time twice a week and count how many are unavailable. That is your availability rate on the lines that matter, it takes fifteen minutes, and almost no branch has the figure.</p>
+<p><b>Rank by contribution rather than by sales, and the distinction matters.</b> Contribution is what a line leaves you after the cost of the goods themselves — its selling price less what you paid for it. A line selling ₦900,000 a month at 8% leaves you ₦72,000; one selling ₦300,000 at 35% leaves ₦105,000. The second is smaller on every sales report and worth more to your branch, and an availability check built on sales value will watch the wrong forty lines.</p><p><b>How to measure it without a system that does it for you.</b> Take your top forty lines by contribution, walk them at the same time twice a week, and count how many are unavailable. That is your availability rate on the lines that matter, it takes fifteen minutes, and almost no branch has the figure.</p>
 
 <p><b>Where the system helps.</b> Where stock is tracked, a report of lines at zero on hand tells you what is out now. What it will not tell you is how long it was out or how often, which is why the manual count twice a week is worth keeping — a line out for six hours on a Tuesday is not the same problem as one out every weekend.</p>
 
@@ -208,7 +213,7 @@ LESSONS = [
 
 <p><b>Costs allocated to you.</b> A share of head office, group insurance, systems, marketing, sometimes distribution. These arrive by a rule somebody chose, often years ago, and they change when the rule changes rather than when anything happens at your branch.</p>
 
-<p><b>The finance track's point applies directly here</b>, and it is worth restating because branch managers are the people it is used against. An allocated cost does not disappear if the activity does. A branch showing a loss after allocation may be contributing substantially toward group overhead, and closing it would make the group worse off — the overhead simply redistributes onto the branches that remain.</p>
+<p><b>The point branch managers most need to be able to make.</b> An allocated cost does not disappear if the activity does. A branch showing a loss after allocation may be contributing substantially toward group overhead, and closing it would make the group worse off — the overhead simply redistributes onto the branches that remain.</p>
 
 <p><b>So the number to know about your own branch is its contribution</b>: sales, less cost of sales, less the costs that would genuinely stop if the branch stopped. That is the figure that says whether your branch earns its keep, and it is frequently a great deal healthier than the bottom line you are shown.</p>
 
