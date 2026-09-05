@@ -112,3 +112,52 @@ def main():
 
 if __name__ == "__main__":
     main()
+
+
+def function_local_imports(tree):
+    """Names imported INSIDE a function but used outside it too.
+
+    defined_names walks the whole tree, so a `from frappe.utils import flt`
+    sitting inside one function makes `flt` look available everywhere. That is
+    exactly how projects.py shipped calling flt() at module level from a
+    function that had never imported it — this checker said clean and the page
+    threw NameError on the first click.
+
+    Anything imported locally in one function and used in another wants a
+    module-level import instead.
+    """
+    # Only TOP-LEVEL functions. A nested function sits inside its parent's
+    # scope, so an import in the parent is legitimately visible to it — flagging
+    # those buries the one real finding under four false ones, which is how a
+    # checker stops being read.
+    local, where = {}, {}
+    for fn in [n for n in tree.body
+               if isinstance(n, (ast.FunctionDef, ast.AsyncFunctionDef))]:
+        for n in ast.walk(fn):
+            if isinstance(n, (ast.Import, ast.ImportFrom)):
+                for a in n.names:
+                    nm = (a.asname or a.name).split(".")[0]
+                    local.setdefault(nm, set()).add(fn.name)
+        # arguments and locally-bound names are not the imported one
+        bound = {a.arg for x in ast.walk(fn) if isinstance(x, ast.arg) for a in [x]}
+        bound |= {x.id for x in ast.walk(fn)
+                  if isinstance(x, ast.Name) and isinstance(x.ctx, ast.Store)}
+        for n in ast.walk(fn):
+            if (isinstance(n, ast.Name) and isinstance(n.ctx, ast.Load)
+                    and n.id not in bound):
+                where.setdefault(n.id, set()).add(fn.name)
+
+    top = set()
+    for n in tree.body:
+        if isinstance(n, (ast.Import, ast.ImportFrom)):
+            for a in n.names:
+                top.add((a.asname or a.name).split(".")[0])
+
+    out = []
+    for nm, fns in local.items():
+        if nm in top:
+            continue
+        used_in = where.get(nm, set())
+        if used_in - fns:
+            out.append((nm, sorted(fns)[:2], sorted(used_in - fns)[:3]))
+    return out

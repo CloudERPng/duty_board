@@ -108,9 +108,10 @@ def seed_pos_pro_track():
 		frappe.get_doc(
 			{
 				"doctype": "Duty Certification Track",
+			"category": "Retail & Point of Sale",
 				"title": TRACK["title"],
 				"product": "ZhiftPOS",
-				"audience": "Consultant",
+				"audience": "Both",
 				"serial_prefix": TRACK["serial_prefix"],
 				"description": TRACK["description"],
 				"active": 1,

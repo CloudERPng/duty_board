@@ -1,0 +1,130 @@
+{
+ "actions": [],
+ "creation": "2026-08-23 00:00:00.000000",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "autoname": "format:{target_kind}-{title}",
+ "allow_rename": 1,
+ "field_order": [
+  "title",
+  "target_kind",
+  "account",
+  "currency",
+  "column_break_1",
+  "monthly_amount",
+  "cadence",
+  "start_month",
+  "start_date",
+  "baseline",
+  "active",
+  "note"
+ ],
+ "fields": [
+  {
+   "fieldname": "title",
+   "fieldtype": "Data",
+   "label": "Name",
+   "reqd": 1,
+   "in_list_view": 1
+  },
+  {
+   "fieldname": "target_kind",
+   "fieldtype": "Select",
+   "label": "What",
+   "options": "Account\nShare Portfolio\nBond Portfolio",
+   "default": "Account",
+   "reqd": 1,
+   "in_list_view": 1,
+   "description": "What is being grown. An account is measured by its balance; the share portfolio by what the holdings are worth; the bond portfolio by carrying value, which for amortised cost is what you paid drifting to par."
+  },
+  {
+   "fieldname": "account",
+   "fieldtype": "Link",
+   "options": "Duty Bank Account",
+   "label": "Account",
+   "depends_on": "eval:doc.target_kind=='Account'",
+   "description": "Any account \u2014 savings, investment, anything whose balance should climb."
+  },
+  {
+   "fieldname": "currency",
+   "fieldtype": "Link",
+   "options": "Currency",
+   "label": "Currency",
+   "reqd": 1
+  },
+  {
+   "fieldname": "column_break_1",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "monthly_amount",
+   "fieldtype": "Float",
+   "label": "Amount Each Time",
+   "precision": "2",
+   "reqd": 1,
+   "description": "Per period, not per month. The fieldname still says monthly for compatibility; everything that needs a month's worth asks _month_equivalent rather than reading this directly."
+  },
+  {
+   "fieldname": "cadence",
+   "fieldtype": "Select",
+   "label": "How Often",
+   "options": "Monthly\nWeekly\nWorking day",
+   "default": "Monthly",
+   "reqd": 1,
+   "description": "How often the amount must go in. A working-day target of 50,000 is roughly 1.1m a month; the dashboard shows the month's worth and the row shows the rhythm."
+  },
+  {
+   "fieldname": "start_month",
+   "fieldtype": "Data",
+   "label": "Starting Month",
+   "reqd": 1,
+   "description": "YYYY-MM. The first month the target applies."
+  },
+  {
+   "fieldname": "start_date",
+   "fieldtype": "Date",
+   "label": "Starting On",
+   "description": "Set for weekly and working-day targets. Monthly targets use the first of the starting month."
+  },
+  {
+   "fieldname": "baseline",
+   "fieldtype": "Float",
+   "label": "Opening Balance",
+   "precision": "2",
+   "description": "What it was worth at the start of that month. Stored rather than recomputed, so a later correction to old transactions cannot silently move the goalposts."
+  },
+  {
+   "fieldname": "active",
+   "fieldtype": "Check",
+   "label": "Active",
+   "default": "1"
+  },
+  {
+   "fieldname": "note",
+   "fieldtype": "Small Text",
+   "label": "Note"
+  }
+ ],
+ "links": [],
+ "modified": "2026-08-23 00:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "Duty Board",
+ "name": "Duty Growth Target",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "print": 1,
+   "read": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [],
+ "track_changes": 0
+}

@@ -113,6 +113,7 @@ def seed_bookkeeper_track():
 		frappe.get_doc(
 			{
 				"doctype": "Duty Certification Track",
+			"category": "Finance, Control & Compliance",
 				"title": TRACK["title"],
 				"product": "Accounting Services",
 				"audience": "Consultant",

@@ -1474,8 +1474,71 @@ def my_dashboard(month=None):
 	}
 
 
+def _meeting_conflicts(users, meeting_date, start_time, duration_mins, exclude=None):
+	"""Meetings any of these people already have overlapping this slot.
+
+	Returns [{user, full_name, topic, start, end, customer}]. Empty when no
+	start time is given, since an untimed meeting cannot overlap anything.
+	"""
+	if not start_time or not meeting_date or not users:
+		return []
+	from datetime import datetime, timedelta
+
+	def _mins(t):
+		t = str(t)
+		parts = t.split(":")
+		try:
+			return int(parts[0]) * 60 + int(parts[1])
+		except Exception:
+			return None
+
+	new_start = _mins(start_time)
+	if new_start is None:
+		return []
+	new_end = new_start + (cint(duration_mins) or 30)
+
+	rows = frappe.get_all(
+		"Duty Meeting",
+		filters={"meeting_date": meeting_date, "status": ["not in", ["Cancelled", "Declined"]]},
+		fields=["name", "topic", "start_time", "duration_mins", "customer"],
+	)
+	if exclude:
+		rows = [r for r in rows if r.name != exclude]
+	if not rows:
+		return []
+	att = {}
+	for a in frappe.get_all(
+		"Duty Meeting Attendee",
+		filters={"parent": ["in", [r.name for r in rows]]},
+		fields=["parent", "user"],
+	):
+		att.setdefault(a.parent, set()).add(a.user)
+
+	out = []
+	for r in rows:
+		if not r.start_time:
+			continue
+		s = _mins(r.start_time)
+		if s is None:
+			continue
+		e = s + (cint(r.duration_mins) or 30)
+		if new_start >= e or new_end <= s:
+			continue
+		for u in users:
+			if u in att.get(r.name, set()):
+				out.append({
+					"user": u,
+					"full_name": frappe.utils.get_fullname(u),
+					"topic": r.topic,
+					"start": str(r.start_time)[:5],
+					"end": "%02d:%02d" % (e // 60 % 24, e % 60),
+					"customer": r.customer,
+				})
+	return out
+
+
 @frappe.whitelist()
-def create_meeting(topic, meeting_date, start_time=None, duration_mins=30, customer=None, attendees=None):
+def create_meeting(topic, meeting_date, start_time=None, duration_mins=30, customer=None, attendees=None, confirm_conflicts=0):
 	from duty_board.client_room import _staff_only
 
 	_staff_only()
@@ -1493,6 +1556,30 @@ def create_meeting(topic, meeting_date, start_time=None, duration_mins=30, custo
 			users = []
 	if me not in users:
 		users.insert(0, me)
+
+	# Double-booking guard. The real cause of duplicates was the invite email
+	# sending synchronously, so the request took seconds and the button looked
+	# dead — but a network retry can double-post regardless of what the UI does,
+	# so the protection belongs here rather than only on the button.
+	dupe = frappe.db.exists(
+		"Duty Meeting",
+		{
+			"topic": topic[:140],
+			"meeting_date": meeting_date,
+			"start_time": start_time or None,
+			"requested_by": me,
+			"status": ["not in", ["Cancelled", "Declined"]],
+			"creation": [">", frappe.utils.add_to_date(frappe.utils.now(), minutes=-2)],
+		},
+	)
+	if dupe:
+		return {"duplicate": 1, "name": dupe}
+
+	if not cint(confirm_conflicts):
+		clashes = _meeting_conflicts(users, meeting_date, start_time, duration_mins)
+		if clashes:
+			return {"conflicts": clashes}
+
 	room_name = None
 	if customer:
 		room_name = frappe.db.get_value(
@@ -1648,6 +1735,13 @@ def issue_update_add(name, note):
 			)
 	except Exception:
 		frappe.log_error(frappe.get_traceback(), "duty_board.issue_update_narrate")
+	# Progress updates now reach the watcher set rather than only the room.
+	try:
+		from duty_board.notify_events import announce
+
+		announce(doc, "issue", _("Progress update"), body=doc.title, note=note)
+	except Exception:
+		frappe.log_error(frappe.get_traceback()[-1200:], "issue note announce")
 	return _issue_updates(name)
 
 
@@ -1767,7 +1861,7 @@ def create_issue(
 			"raised_by": frappe.session.user,
 			"source_type": source_type or "Manual",
 			"source": source or None,
-			"assignees": [{"user": t} for t in targets],
+			"assignees": [{"user": t, "assigned_by": frappe.session.user} for t in targets],
 		}
 	)
 	doc.insert(ignore_permissions=True)
@@ -1794,6 +1888,20 @@ def create_issue(
 				_("{0} issue from {1}").format(severity, first),
 				f"{doc.name}: {doc.title}",
 			)
+	# Assigning at creation was realtime-only; it now carries the same weight as
+	# assigning later — full-detail email, a DM, and a bell that survives being
+	# offline.
+	if targets:
+		try:
+			from duty_board.notify_events import announce
+
+			announce(
+				doc, "issue",
+				_("Ticket assigned to you by {0}").format(first),
+				body=doc.title,
+			)
+		except Exception:
+			frappe.log_error(frappe.get_traceback()[-1200:], "issue create announce")
 	return _issue_payload(doc)
 
 
@@ -1929,6 +2037,12 @@ def start_issue_work(name):
 		}
 	).insert()
 	frappe.db.commit()
+	try:
+		from duty_board.notify_events import announce
+
+		announce(doc, "issue", _("Work started"), body=doc.title)
+	except Exception:
+		frappe.log_error(frappe.get_traceback()[-1200:], "issue start announce")
 	return _issue_payload(frappe.get_doc("Duty Issue", name))
 
 
@@ -2025,18 +2139,21 @@ def update_issue_status(name, status, resolution=None, hours=None):
 		except Exception:
 			pass
 
-	if status in ("Resolved", "Closed"):
-		actor = frappe.session.user
-		first = frappe.utils.get_fullname(actor).split(" ")[0]
-		recipients = {a.user for a in (doc.assignees or [])}
-		recipients.add(doc.raised_by)
-		recipients.discard(actor)
-		for r in recipients:
-			_notify_user(
-				r,
-				_("Issue {0} by {1}").format(status.lower(), first),
-				f"{doc.name}: {doc.title}",
-			)
+	# Every status change now reaches the watcher set — assignees, whoever
+	# assigned them and the raiser — on email, DM and the bell. Previously only
+	# Resolved and Closed fired, and only as a realtime ping that a person had
+	# to be looking at to receive.
+	try:
+		from duty_board.notify_events import announce
+
+		announce(
+			doc, "issue",
+			_("Ticket {0}").format(status),
+			body=doc.title,
+			note=resolution,
+		)
+	except Exception:
+		frappe.log_error(frappe.get_traceback()[-1200:], "issue status announce")
 	return _issue_payload(doc)
 
 
@@ -2063,7 +2180,8 @@ def update_issue(name, severity=None, due_date=None, add_assignees=None, issue_t
 		if t in existing:
 			continue
 		_validate_target(t)
-		doc.append("assignees", {"user": t})
+		# assigned_by is why somebody who delegates a ticket hears when it moves
+		doc.append("assignees", {"user": t, "assigned_by": frappe.session.user})
 		if t != frappe.session.user:
 			_notify_user(
 				t,
@@ -2073,6 +2191,32 @@ def update_issue(name, severity=None, due_date=None, add_assignees=None, issue_t
 	doc.save(ignore_permissions=True)
 	frappe.db.commit()
 	added = [t for t in new_targets if t not in existing]
+	# assignment_email is consultant-only by design, so it cannot carry this on
+	# its own — announce reaches staff too, and on the DM the request asked for.
+	try:
+		from duty_board.notify_events import announce
+
+		if added:
+			announce(
+				doc, "issue",
+				_("Ticket assigned to you by {0}").format(first),
+				body=doc.title,
+			)
+		elif severity or due_date or issue_type:
+			bits = []
+			if severity:
+				bits.append(_("severity {0}").format(severity))
+			if due_date:
+				bits.append(_("due {0}").format(frappe.utils.formatdate(due_date)))
+			if issue_type:
+				bits.append(_("type {0}").format(issue_type))
+			announce(
+				doc, "issue",
+				_("Ticket updated by {0}").format(first),
+				body=", ".join(bits),
+			)
+	except Exception:
+		frappe.log_error(frappe.get_traceback()[-1200:], "issue update announce")
 	if added:
 		try:
 			from duty_board.notify import assignment_email

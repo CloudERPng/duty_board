@@ -14,12 +14,17 @@ scrolls; completed chapters tracked; minutes accumulated coarsely.
 """
 
 import json
+import re
 
 import frappe
 from frappe import _
 from frappe.utils import cint, flt, now_datetime
 
-from duty_board.permissions import require_staff, require_staff_or_consultant
+# The Library is System Manager only. It holds licensed books rather than
+# operational data, so the audience is narrower than staff-at-large — every
+# whitelisted endpoint in this module is gated, not only the page, because a
+# rail entry that is merely hidden is not a permission.
+from duty_board.permissions import require_sysadmin
 
 
 def import_book_json(path):
@@ -58,7 +63,7 @@ def _progress(user, book):
 @frappe.whitelist()
 def library():
 	"""All active books with the caller's progress."""
-	require_staff_or_consultant()
+	require_sysadmin()
 	user = frappe.session.user
 	from duty_board.uat import _is_manager
 
@@ -66,19 +71,50 @@ def library():
 	books = frappe.get_all(
 		"Duty Book",
 		filters={"active": 1},
-		fields=["name", "title", "author", "description", "category", "cover", "chapter_count"],
+		fields=["name", "title", "author", "description", "category", "cover",
+				"chapter_count", "shelf_status", "plan_month", "plan_note",
+				"revisit_after", "times_read", "last_finished"],
 		order_by="creation desc",
+		limit_page_length=0,
 	)
 	all_reviews = frappe.get_all(
 		"Duty Book Review", fields=["book", "user", "stars"], limit_page_length=0
 	)
-	for b in books:
-		b.words = cint(
-			frappe.db.sql(
-				"select sum(words) from `tabDuty Book Chapter` where book=%s", b.name
-			)[0][0]
+	# Word counts and progress were each fetched per book — two round trips per
+	# row, so forty books was fine and a thousand would not have been. Both are
+	# now one query, grouped in Python.
+	words_by_book = {
+		r[0]: cint(r[1])
+		for r in frappe.db.sql(
+			"select book, sum(words) from `tabDuty Book Chapter` group by book"
 		)
-		p = _progress(user, b.name)
+	}
+	prog_by_book = {
+		r.book: r
+		for r in frappe.get_all(
+			"Duty Book Progress",
+			filters={"user": user},
+			fields=["book", "chapter", "chapters_done", "last_read_at"],
+			limit_page_length=0,
+		)
+	}
+	# topics and authors in two queries, grouped in Python — the same discipline
+	# as the word counts above, so shelf size does not change the query count
+	topics_by_book = {}
+	for r in frappe.get_all(
+		"Duty Book Topic", fields=["parent", "topic"], limit_page_length=0
+	):
+		topics_by_book.setdefault(r.parent, []).append(r.topic)
+	authors_by_book = {}
+	for r in frappe.get_all(
+		"Duty Book Author", fields=["parent", "author"], limit_page_length=0
+	):
+		authors_by_book.setdefault(r.parent, []).append(r.author)
+	for b in books:
+		b.words = words_by_book.get(b.name, 0)
+		b.topic_list = topics_by_book.get(b.name, [])
+		b.author_list = authors_by_book.get(b.name, [])
+		p = prog_by_book.get(b.name)
 		done = len([c for c in (p.chapters_done or "").split(",") if c]) if p else 0
 		b.done_chapters = done
 		b.pct = int(done * 100 / b.chapter_count) if b.chapter_count else 0
@@ -95,7 +131,7 @@ def library():
 @frappe.whitelist()
 def open_book(book):
 	"""Chapter list + full text of the resume chapter."""
-	require_staff_or_consultant()
+	require_sysadmin()
 	user = frappe.session.user
 	b = frappe.get_doc("Duty Book", book)
 	chapters = frappe.get_all(
@@ -122,7 +158,7 @@ def open_book(book):
 
 @frappe.whitelist()
 def chapter(name):
-	require_staff_or_consultant()
+	require_sysadmin()
 	ch = frappe.get_doc("Duty Book Chapter", name)
 	return {"name": ch.name, "title": ch.title, "content": ch.content, "idx_no": ch.idx_no}
 
@@ -130,7 +166,7 @@ def chapter(name):
 @frappe.whitelist()
 def mark(book, chapter=None, scroll_pct=0, minutes=0, done=None):
 	"""Save the reader's position. `done` marks a chapter completed."""
-	require_staff_or_consultant()
+	require_sysadmin()
 	user = frappe.session.user
 	p = _progress(user, book)
 	if not p:
@@ -155,7 +191,7 @@ def mark(book, chapter=None, scroll_pct=0, minutes=0, done=None):
 @frappe.whitelist()
 def reading_overview():
 	"""Managers: who is where in which book."""
-	require_staff_or_consultant()
+	require_sysadmin()
 	from duty_board.uat import _is_manager
 
 	if not _is_manager():
@@ -362,7 +398,7 @@ def _convert_job(file_url, title, author, description, requested_by, category=No
 @frappe.whitelist()
 def convert_pdf(file_url, title=None, author=None, description=None, category=None, cover_url=None):
 	"""Managers: turn an uploaded PDF into a Library book (background job)."""
-	require_staff()
+	require_sysadmin()
 	from duty_board.uat import _is_manager
 
 	if not _is_manager():
@@ -384,7 +420,7 @@ def convert_pdf(file_url, title=None, author=None, description=None, category=No
 
 @frappe.whitelist()
 def delete_book(book):
-	require_staff()
+	require_sysadmin()
 	from duty_board.uat import _is_manager
 
 	if not _is_manager():
@@ -539,7 +575,7 @@ def _epub_to_chapters(content_bytes):
 
 @frappe.whitelist()
 def rate_book(book, stars, review=None):
-	require_staff_or_consultant()
+	require_sysadmin()
 	stars = cint(stars)
 	if stars < 1 or stars > 5:
 		frappe.throw(_("Stars must be 1–5."))
@@ -559,7 +595,7 @@ def rate_book(book, stars, review=None):
 
 @frappe.whitelist()
 def book_reviews(book):
-	require_staff_or_consultant()
+	require_sysadmin()
 	rows = frappe.get_all(
 		"Duty Book Review",
 		filters={"book": book},
@@ -581,7 +617,7 @@ def book_reviews(book):
 
 @frappe.whitelist()
 def update_book(book, title=None, author=None, category=None, description=None):
-	require_staff()
+	require_sysadmin()
 	from duty_board.uat import _is_manager
 
 	if not _is_manager():
@@ -604,7 +640,7 @@ def update_book(book, title=None, author=None, category=None, description=None):
 @frappe.whitelist()
 def apply_book_meta(book, title=None, author=None, description=None, category=None, cover_url=None):
 	"""Enrich an existing shelved book from a picked search match."""
-	require_staff()
+	require_sysadmin()
 	from duty_board.uat import _is_manager
 
 	if not _is_manager():
@@ -622,7 +658,7 @@ def apply_book_meta(book, title=None, author=None, description=None, category=No
 def search_books(query):
 	"""Book metadata search: Google Books first, Open Library fallback
 	(Google's keyless API is often blocked/empty from datacenter IPs)."""
-	require_staff_or_consultant()
+	require_sysadmin()
 	q = (query or "").strip()
 	if not q:
 		return []
@@ -745,7 +781,7 @@ def _hl_norm(t):
 @frappe.whitelist()
 def highlight_add(book, chapter, text, note=None):
 	"""Mark a passage; visible to the whole team by design."""
-	require_staff_or_consultant()
+	require_sysadmin()
 	text = _hl_norm(text)
 	if len(text) < 3:
 		frappe.throw(_("Select a little more text."))
@@ -764,7 +800,7 @@ def highlight_add(book, chapter, text, note=None):
 @frappe.whitelist()
 def highlight_remove(name):
 	"""Only your own marks come off the page."""
-	require_staff_or_consultant()
+	require_sysadmin()
 	doc = frappe.get_doc("Duty Book Highlight", name)
 	if doc.user != frappe.session.user:
 		frappe.throw(_("Not your highlight."), frappe.PermissionError)
@@ -777,7 +813,7 @@ def highlight_remove(name):
 def highlights(chapter):
 	"""Every mark on this chapter, grouped by passage: who, notes, and
 	whether the caller is among the markers."""
-	require_staff_or_consultant()
+	require_sysadmin()
 	rows = frappe.get_all(
 		"Duty Book Highlight",
 		filters={"chapter": chapter},
@@ -801,7 +837,7 @@ def highlights(chapter):
 @frappe.whitelist()
 def my_highlights(book):
 	"""The caller's marks across one book, chapter-ordered."""
-	require_staff_or_consultant()
+	require_sysadmin()
 	rows = frappe.db.sql(
 		"""
 		select h.name, h.text, h.note, h.chapter, c.title as ch_title, c.idx_no
@@ -819,7 +855,7 @@ def my_highlights(book):
 @frappe.whitelist()
 def search_in_book(book, q):
 	"""Find a phrase across the book's chapters; returns snippets."""
-	require_staff_or_consultant()
+	require_sysadmin()
 	q = (q or "").strip()
 	if len(q) < 2:
 		return []
@@ -849,7 +885,7 @@ def search_in_book(book, q):
 
 @frappe.whitelist()
 def bookmark_add(book, chapter, scroll_pct=0, note=None):
-	require_staff_or_consultant()
+	require_sysadmin()
 	frappe.get_doc({
 		"doctype": "Duty Book Bookmark",
 		"user": frappe.session.user,
@@ -864,7 +900,7 @@ def bookmark_add(book, chapter, scroll_pct=0, note=None):
 
 @frappe.whitelist()
 def bookmark_remove(name):
-	require_staff_or_consultant()
+	require_sysadmin()
 	doc = frappe.get_doc("Duty Book Bookmark", name)
 	if doc.user != frappe.session.user:
 		frappe.throw(_("Not your bookmark."), frappe.PermissionError)
@@ -876,7 +912,7 @@ def bookmark_remove(name):
 @frappe.whitelist()
 def bookmarks(book):
 	"""The caller's ribbons in one book, chapter-ordered."""
-	require_staff_or_consultant()
+	require_sysadmin()
 	return frappe.db.sql(
 		"""
 		select b.name, b.chapter, b.scroll_pct, b.note, b.creation,
@@ -889,3 +925,453 @@ def bookmarks(book):
 		(book, frappe.session.user),
 		as_dict=True,
 	)
+
+
+# ───────────────────────────── the reading plan ──────────────────────────────
+#
+# A personal library of a thousand books curated one at a time needs something
+# a shelf cannot give: a record of what you INTEND, made at the moment you make
+# the decision. Curation is the process, so the intent is captured when the book
+# lands rather than in a planning screen nobody remembers to open.
+#
+# Three decisions worth keeping:
+#
+#   REFERENCE IS EXCLUDED. A book kept to be searched rather than read has no
+#   place in a plan — including it would turn the plan into a catalogue, which
+#   is exactly what makes reading plans get abandoned.
+#
+#   THE WHEN IS A MONTH, NOT A DATE. A hard due date turns reading into homework
+#   and gets ignored within a fortnight. YYYY-MM is soft enough to be honest and
+#   specific enough to sort.
+#
+#   RE-READS ARE ROWS, NOT A COUNTER. The interesting question about a re-read is
+#   when, and what it gave you that time. A counter cannot hold either, and a
+#   book that was a 3 at thirty and a 5 at forty is the whole point of keeping it.
+
+PLAN_STATUSES = ("To read", "Reading", "Read", "Abandoned")
+
+
+def _month_key(d=None):
+	d = d or frappe.utils.nowdate()
+	return str(d)[:7]
+
+
+@frappe.whitelist()
+def reading_plan(month=None):
+	"""The plan: due now, overdue, coming, and due to revisit.
+
+	One query for the books and one for the reads — never per book, because this
+	has to stay usable at a thousand.
+	"""
+	require_sysadmin()
+	now = _month_key(month)
+	today = frappe.utils.nowdate()
+
+	books = frappe.get_all(
+		"Duty Book",
+		filters={"active": 1},
+		fields=["name", "title", "author", "category", "cover", "chapter_count",
+				"shelf_status", "plan_month", "plan_note", "revisit_after",
+				"times_read", "last_finished"],
+		order_by="plan_month asc, title asc",
+		limit_page_length=0,
+	)
+
+	prog = {}
+	for p in frappe.get_all(
+		"Duty Book Progress",
+		filters={"user": frappe.session.user},
+		fields=["book", "chapter", "chapters_done", "last_read_at"],
+		limit_page_length=0,
+	):
+		prog[p.book] = p
+
+	out = {"this_month": [], "overdue": [], "upcoming": [], "revisit": [],
+		   "reading": [], "unplanned": 0, "reference": 0, "month": now}
+
+	for b in books:
+		if b.shelf_status == "Reference":
+			out["reference"] += 1
+			continue
+		p = prog.get(b.name)
+		done = len([c for c in ((p.chapters_done if p else "") or "").split(",") if c])
+		b.pct = int(done * 100 / b.chapter_count) if b.chapter_count else 0
+		b.resume_chapter = p.chapter if p else None
+		b.last_read_at = str(p.last_read_at)[:16] if p and p.last_read_at else None
+
+		if b.shelf_status == "Reading":
+			out["reading"].append(b)
+			continue
+		if b.revisit_after and str(b.revisit_after) <= today and b.shelf_status == "Read":
+			out["revisit"].append(b)
+			continue
+		if b.shelf_status != "To read":
+			continue
+		if not b.plan_month:
+			out["unplanned"] += 1
+			continue
+		if b.plan_month < now:
+			out["overdue"].append(b)
+		elif b.plan_month == now:
+			out["this_month"].append(b)
+		else:
+			out["upcoming"].append(b)
+
+	out["upcoming"] = out["upcoming"][:20]
+	return out
+
+
+@frappe.whitelist()
+def set_book_plan(book, shelf_status=None, plan_month=None, plan_note=None, revisit_after=None):
+	"""Set intent on a book. Called at curation time and whenever it changes."""
+	require_sysadmin()
+	doc = frappe.get_doc("Duty Book", book)
+	if shelf_status is not None:
+		if shelf_status not in list(PLAN_STATUSES) + ["Reference"]:
+			frappe.throw(_("Unknown status."))
+		doc.shelf_status = shelf_status
+	if plan_month is not None:
+		pm = (plan_month or "").strip()
+		if pm and not re.match(r"^\d{4}-(0[1-9]|1[0-2])$", pm):
+			frappe.throw(_("Planned month should look like 2027-03."))
+		doc.plan_month = pm or None
+	if plan_note is not None:
+		doc.plan_note = (plan_note or "").strip() or None
+	if revisit_after is not None:
+		doc.revisit_after = revisit_after or None
+	doc.save(ignore_permissions=True)
+	frappe.db.commit()
+	return {"ok": 1}
+
+
+@frappe.whitelist()
+def start_reading(book):
+	"""Open a reading. Idempotent — re-opening an unfinished one does nothing."""
+	require_sysadmin()
+	doc = frappe.get_doc("Duty Book", book)
+	if not any(r for r in (doc.reads or []) if not r.finished_on):
+		doc.append("reads", {"started_on": frappe.utils.nowdate()})
+	doc.shelf_status = "Reading"
+	doc.save(ignore_permissions=True)
+	frappe.db.commit()
+	return {"ok": 1}
+
+
+@frappe.whitelist()
+def finish_reading(book, note=None, rating=None, revisit_after=None):
+	"""Close the open reading, or record one that was never opened."""
+	require_sysadmin()
+	doc = frappe.get_doc("Duty Book", book)
+	open_row = next((r for r in (doc.reads or []) if not r.finished_on), None)
+	if not open_row:
+		open_row = doc.append("reads", {"started_on": frappe.utils.nowdate()})
+	open_row.finished_on = frappe.utils.nowdate()
+	if note:
+		open_row.note = note.strip()[:2000]
+	if rating:
+		open_row.rating = cint(rating)
+	doc.shelf_status = "Read"
+	doc.plan_month = None
+	if revisit_after:
+		doc.revisit_after = revisit_after
+	finished = [r for r in doc.reads if r.finished_on]
+	doc.times_read = len(finished)
+	doc.last_finished = max(str(r.finished_on) for r in finished)
+	doc.save(ignore_permissions=True)
+	frappe.db.commit()
+	return {"ok": 1, "times_read": doc.times_read}
+
+
+def revisit_nudge():
+	"""Monthly: books that have come due for another pass.
+
+	Monthly rather than daily on purpose — a revisit is not urgent, and a nudge
+	that arrives often enough to be ignored is worse than none.
+
+	cron: 0 8 1 * *
+	"""
+	from duty_board.notify import _kv, _send, _shell
+
+	today = frappe.utils.nowdate()
+	rows = frappe.get_all(
+		"Duty Book",
+		filters={"active": 1, "shelf_status": "Read",
+				 "revisit_after": ["<=", today]},
+		fields=["name", "title", "author", "last_finished", "times_read"],
+		order_by="revisit_after asc",
+		limit_page_length=0,
+	)
+	if not rows:
+		return
+	admins = frappe.get_all(
+		"Has Role", filters={"role": "System Manager", "parenttype": "User"}, pluck="parent"
+	)
+	admins = [a for a in set(admins)
+			  if a not in ("Administrator", "Guest") and frappe.db.get_value("User", a, "enabled")]
+	if not admins:
+		return
+	body = "".join(
+		f'<tr><td style="padding:7px 10px;border-bottom:1px solid #EDF2EF;font-size:12px;font-weight:700">'
+		f'{frappe.utils.escape_html(r.title[:60])}<br>'
+		f'<span style="color:#8A9994;font-weight:500">{frappe.utils.escape_html(r.author or "")}</span></td>'
+		f'<td style="padding:7px 10px;border-bottom:1px solid #EDF2EF;font-size:12px">{r.last_finished or "—"}</td>'
+		f'<td style="padding:7px 10px;border-bottom:1px solid #EDF2EF;font-size:12px">{cint(r.times_read) or 1}\u00d7</td></tr>'
+		for r in rows[:25]
+	)
+	inner = (
+		f'<p style="font-size:13.5px">{_("<b>{0} book(s)</b> have come due for another pass.").format(len(rows))}</p>'
+		'<table style="border-collapse:collapse;width:100%">'
+		f'<tr><th style="text-align:left;padding:7px 10px;font-size:11px;color:#65736F">{_("Book")}</th>'
+		f'<th style="text-align:left;padding:7px 10px;font-size:11px;color:#65736F">{_("Last read")}</th>'
+		f'<th style="text-align:left;padding:7px 10px;font-size:11px;color:#65736F">{_("Times")}</th></tr>'
+		f"{body}</table>"
+	)
+	for u in admins:
+		_send(u, f"[Library] {len(rows)} book(s) due for a revisit", _shell(_("Worth another pass"), inner))
+
+
+# ───────────────────── authors, topics and collected highlights ──────────────
+#
+# The library's author and category were plain Data fields: one category per
+# book, and 'Drucker', 'Peter Drucker' and 'P. Drucker' as three different
+# people with no way to gather anything under one of them. Links autocomplete,
+# so drift stops at entry rather than being cleaned up later, and a book can
+# carry the several topics it actually belongs to.
+#
+# The old fields are kept and maintained alongside — they are what the shelf
+# tile and every existing view already read, and rewriting all of that to prove
+# a point would risk more than it gains.
+
+
+@frappe.whitelist()
+def backfill_authors_topics(dry_run=1):
+	"""Create Author and Topic records from the existing freehand fields.
+
+	Run once after migrating. Idempotent: a second run finds everything already
+	linked and does nothing. Splits on the usual separators so 'Kahneman &
+	Tversky' becomes two authors rather than one oddly named one.
+
+	bench --site <site> execute duty_board.library.backfill_authors_topics
+	bench --site <site> execute duty_board.library.backfill_authors_topics --kwargs "{'dry_run': 0}"
+	"""
+	require_sysadmin()
+	dry = cint(dry_run)
+	made_a = made_t = linked = 0
+	for b in frappe.get_all("Duty Book", fields=["name", "author", "category"], limit_page_length=0):
+		doc = frappe.get_doc("Duty Book", b.name)
+		changed = False
+		if not (doc.authors or []) and (b.author or "").strip():
+			for a in _split_names(b.author):
+				if not frappe.db.exists("Duty Author", a):
+					made_a += 1
+					if not dry:
+						frappe.get_doc({"doctype": "Duty Author", "author_name": a}).insert(
+							ignore_permissions=True
+						)
+				if not dry:
+					doc.append("authors", {"author": a})
+				changed = True
+		if not (doc.topics or []) and (b.category or "").strip():
+			for t in _split_names(b.category):
+				if not frappe.db.exists("Duty Topic", t):
+					made_t += 1
+					if not dry:
+						frappe.get_doc({"doctype": "Duty Topic", "topic_name": t}).insert(
+							ignore_permissions=True
+						)
+				if not dry:
+					doc.append("topics", {"topic": t})
+				changed = True
+		if changed:
+			linked += 1
+			if not dry:
+				doc.save(ignore_permissions=True)
+	if not dry:
+		frappe.db.commit()
+	print(
+		"%s: %d author(s), %d topic(s) created; %d book(s) linked"
+		% ("DRY RUN" if dry else "DONE", made_a, made_t, linked)
+	)
+	if dry:
+		print('Re-run with --kwargs "{\'dry_run\': 0}" to apply.')
+	return {"authors": made_a, "topics": made_t, "books": linked}
+
+
+def _split_names(raw):
+	"""Split a freehand author line into people.
+
+	Commas DO separate authors — that is how most of a real shelf is written.
+	The first version refused to split on them, protecting the rarer
+	'Surname, Firstname' form and getting the common case wrong.
+
+	Both are now handled by looking at the shape rather than picking one rule:
+	exactly two comma-parts where the second is one or two short words with no
+	surname-like length is read as an inverted single name ('Drucker, Peter'),
+	and everything else is read as a list.
+	"""
+	raw = (raw or "").strip()
+	if not raw:
+		return []
+	# ampersands, semicolons, slashes and the word 'and' always separate
+	chunks = re.split(r"\s*(?:&|;|/|\band\b|\bwith\b)\s*", raw, flags=re.I)
+	out = []
+	for chunk in chunks:
+		chunk = chunk.strip()
+		if not chunk:
+			continue
+		# strip spaces and trailing commas but NOT full stops — an initial is
+		# 'P.' and losing the stop turns it into a different name
+		parts = [p.strip(" ,") for p in chunk.split(",") if p.strip(" ,")]
+		if len(parts) == 2 and _looks_inverted(parts[0], parts[1]):
+			out.append("{1} {0}".format(parts[0], parts[1]))
+		else:
+			out.extend(parts)
+	seen = []
+	for n in out:
+		n = re.sub(r"\s+", " ", n).strip(" ,")
+		if n and n.lower() not in [x.lower() for x in seen]:
+			seen.append(n)
+	return seen[:8]
+
+
+def _looks_inverted(first, second):
+	"""'Drucker, Peter' — a surname then given names, rather than two people.
+
+	The tell is that the second part is one or two given names with no
+	connecting words. 'Drucker, Peter' inverts; 'Kahneman, Daniel Tversky' does
+	not, and neither does anything with three or more words after the comma.
+	"""
+	words = second.split()
+	if not 1 <= len(words) <= 2:
+		return False
+	# initials such as 'P.' or 'P. F.' are a strong signal of an inverted name
+	if all(re.fullmatch(r"[A-Z]\.?", w) for w in words):
+		return True
+	# a single given name after a single surname
+	return len(first.split()) == 1 and len(words) == 1
+
+
+
+@frappe.whitelist()
+def set_book_taxonomy(book, authors=None, topics=None):
+	"""Replace a book's authors and topics. Creates any name not seen before."""
+	require_sysadmin()
+	doc = frappe.get_doc("Duty Book", book)
+	if authors is not None:
+		# run the typed line through the same splitter the backfill uses, so a
+		# name entered by hand and one read from an epub end up identical
+		names = []
+		for raw in _as_list(authors):
+			for n in _split_names(raw) or [raw]:
+				if n not in names:
+					names.append(n)
+		doc.set("authors", [])
+		for a in names:
+			if not frappe.db.exists("Duty Author", a):
+				frappe.get_doc({"doctype": "Duty Author", "author_name": a}).insert(
+					ignore_permissions=True
+				)
+			doc.append("authors", {"author": a})
+		# the freehand line stays in step so the shelf tile keeps working
+		doc.author = ", ".join(names)
+	if topics is not None:
+		names = _as_list(topics)
+		doc.set("topics", [])
+		for t in names:
+			if not frappe.db.exists("Duty Topic", t):
+				frappe.get_doc({"doctype": "Duty Topic", "topic_name": t}).insert(
+					ignore_permissions=True
+				)
+			doc.append("topics", {"topic": t})
+		if names:
+			doc.category = names[0]
+	doc.save(ignore_permissions=True)
+	frappe.db.commit()
+	return {"ok": 1}
+
+
+def _as_list(v):
+	if isinstance(v, str):
+		try:
+			v = frappe.parse_json(v)
+		except Exception:
+			v = [x.strip() for x in v.split(",")]
+	out = []
+	for x in v or []:
+		x = (x or "").strip()
+		if x and x not in out:
+			out.append(x)
+	return out[:12]
+
+
+@frappe.whitelist()
+def taxonomy():
+	"""Every author and topic with a count, for the browse facets."""
+	require_sysadmin()
+	auth = frappe.db.sql(
+		"""select ba.author as name, count(*) as n
+		   from `tabDuty Book Author` ba
+		   join `tabDuty Book` b on b.name = ba.parent and b.active = 1
+		   group by ba.author order by n desc, ba.author asc""",
+		as_dict=True,
+	)
+	top = frappe.db.sql(
+		"""select bt.topic as name, count(*) as n
+		   from `tabDuty Book Topic` bt
+		   join `tabDuty Book` b on b.name = bt.parent and b.active = 1
+		   group by bt.topic order by n desc, bt.topic asc""",
+		as_dict=True,
+	)
+	return {"authors": auth, "topics": top}
+
+
+@frappe.whitelist()
+def my_highlights(book=None, q=None, limit=200):
+	"""Every highlight across the library, newest first.
+
+	Stored per book and never shown together, which meant the most valuable
+	thing a personal library produces — the distillate of everything you thought
+	worth keeping — existed only inside individual books.
+	"""
+	require_sysadmin()
+	filters = {"user": frappe.session.user}
+	if book:
+		filters["book"] = book
+	rows = frappe.get_all(
+		"Duty Book Highlight",
+		filters=filters,
+		fields=["name", "book", "chapter", "text", "note", "creation"],
+		order_by="creation desc",
+		limit_page_length=cint(limit) or 200,
+	)
+	needle = (q or "").strip().lower()
+	if needle:
+		rows = [
+			r for r in rows
+			if needle in (r.text or "").lower() or needle in (r.note or "").lower()
+		]
+	titles = {}
+	if rows:
+		for b in frappe.get_all(
+			"Duty Book",
+			filters={"name": ["in", list({r.book for r in rows})]},
+			fields=["name", "title", "author"],
+		):
+			titles[b.name] = b
+	ch_titles = {}
+	chapters = list({r.chapter for r in rows if r.chapter})
+	if chapters:
+		for c in frappe.get_all(
+			"Duty Book Chapter", filters={"name": ["in", chapters]},
+			fields=["name", "title", "idx_no"]
+		):
+			ch_titles[c.name] = c
+	for r in rows:
+		bb = titles.get(r.book) or frappe._dict()
+		r.book_title = bb.get("title")
+		r.book_author = bb.get("author")
+		cc = ch_titles.get(r.chapter) or frappe._dict()
+		r.chapter_title = cc.get("title")
+		r.chapter_no = cc.get("idx_no")
+		r.on = str(r.creation)[:10]
+	return {"highlights": rows, "total": len(rows)}

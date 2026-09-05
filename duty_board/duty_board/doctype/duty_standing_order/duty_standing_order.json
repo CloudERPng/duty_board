@@ -1,0 +1,131 @@
+{
+ "actions": [],
+ "creation": "2026-08-23 00:00:00.000000",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "title",
+  "from_account",
+  "to_account",
+  "column_break_1",
+  "amount",
+  "frequency",
+  "next_date",
+  "section_break_1",
+  "active",
+  "auto_post",
+  "last_posted",
+  "counterparty",
+  "note"
+ ],
+ "fields": [
+  {
+   "fieldname": "title",
+   "fieldtype": "Data",
+   "label": "What For",
+   "reqd": 1,
+   "in_list_view": 1
+  },
+  {
+   "fieldname": "from_account",
+   "fieldtype": "Link",
+   "options": "Duty Bank Account",
+   "label": "From",
+   "reqd": 1,
+   "in_list_view": 1,
+   "description": "The account it is taken from. This is the account checked for a shortfall."
+  },
+  {
+   "fieldname": "to_account",
+   "fieldtype": "Link",
+   "options": "Duty Bank Account",
+   "label": "Into",
+   "description": "Leave blank where it leaves your accounts entirely \u2014 rent, a subscription, somebody else's account."
+  },
+  {
+   "fieldname": "column_break_1",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "amount",
+   "fieldtype": "Float",
+   "label": "Amount",
+   "precision": "2",
+   "reqd": 1,
+   "in_list_view": 1
+  },
+  {
+   "fieldname": "frequency",
+   "fieldtype": "Select",
+   "label": "Every",
+   "options": "Monthly\nWeekly\nFortnightly\nQuarterly\nYearly",
+   "default": "Monthly",
+   "reqd": 1
+  },
+  {
+   "fieldname": "next_date",
+   "fieldtype": "Date",
+   "label": "Next Due",
+   "reqd": 1,
+   "in_list_view": 1
+  },
+  {
+   "fieldname": "section_break_1",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "active",
+   "fieldtype": "Check",
+   "label": "Active",
+   "default": "1"
+  },
+  {
+   "fieldname": "auto_post",
+   "fieldtype": "Check",
+   "label": "Post Automatically",
+   "default": "1",
+   "description": "On by default because a standing order executes at the bank whether or not anybody opens this app \u2014 the ledger should mirror that. Turn it off for one you want to confirm each time."
+  },
+  {
+   "fieldname": "last_posted",
+   "fieldtype": "Date",
+   "label": "Last Posted",
+   "read_only": 1
+  },
+  {
+   "fieldname": "counterparty",
+   "fieldtype": "Data",
+   "label": "Payee"
+  },
+  {
+   "fieldname": "note",
+   "fieldtype": "Small Text",
+   "label": "Note"
+  }
+ ],
+ "links": [],
+ "modified": "2026-08-23 00:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "Duty Board",
+ "name": "Duty Standing Order",
+ "owner": "Administrator",
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [],
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "print": 1,
+   "read": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1,
+   "report": 1,
+   "export": 1
+  }
+ ],
+ "track_changes": 1
+}

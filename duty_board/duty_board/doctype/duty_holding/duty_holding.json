@@ -1,0 +1,193 @@
+{
+ "actions": [],
+ "creation": "2026-08-23 00:00:00.000000",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "symbol",
+  "holding_name",
+  "currency",
+  "exchange",
+  "column_break_1",
+  "last_price",
+  "price_as_of",
+  "checked_on",
+  "target_weight",
+  "active",
+  "note",
+  "sec_fund",
+  "pe_ratio",
+  "forward_pe",
+  "eps",
+  "market_cap",
+  "col_fund",
+  "week52_low",
+  "week52_high",
+  "next_earnings",
+  "financial_year_end",
+  "fundamentals_as_of"
+ ],
+ "fields": [
+  {
+   "fieldname": "symbol",
+   "fieldtype": "Data",
+   "label": "Ticker",
+   "reqd": 1,
+   "in_list_view": 1
+  },
+  {
+   "fieldname": "holding_name",
+   "fieldtype": "Data",
+   "label": "Name",
+   "in_list_view": 1
+  },
+  {
+   "fieldname": "currency",
+   "fieldtype": "Link",
+   "options": "Currency",
+   "label": "Currency",
+   "reqd": 1,
+   "in_list_view": 1
+  },
+  {
+   "fieldname": "exchange",
+   "fieldtype": "Data",
+   "label": "Exchange"
+  },
+  {
+   "fieldname": "column_break_1",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "last_price",
+   "fieldtype": "Float",
+   "label": "Price Now",
+   "precision": "4",
+   "description": "Entered by hand. Nothing here fetches a quote, so this is as current as you last made it \u2014 the date beside it says how stale."
+  },
+  {
+   "fieldname": "price_as_of",
+   "fieldtype": "Date",
+   "label": "Priced As Of"
+  },
+  {
+   "fieldname": "checked_on",
+   "fieldtype": "Date",
+   "label": "Last Checked",
+   "read_only": 1,
+   "description": "When a fetch last succeeded for this holding. Distinct from Priced As Of, which is when the stock last traded \u2014 a quiet stock has an old price and a recent check, and showing only the first made it look like the fetcher had failed."
+  },
+  {
+   "fieldname": "target_weight",
+   "fieldtype": "Float",
+   "label": "Target Weight %",
+   "precision": "2",
+   "description": "The share of the portfolio this should be, as a percentage. They are meant to total 100 across the holdings you are aiming at, and the shares tab says so when they do not \u2014 which is the point of using percentages rather than bare proportions."
+  },
+  {
+   "fieldname": "active",
+   "fieldtype": "Check",
+   "label": "Active",
+   "default": "1"
+  },
+  {
+   "fieldname": "note",
+   "fieldtype": "Small Text",
+   "label": "Note"
+  },
+  {
+   "fieldname": "sec_fund",
+   "fieldtype": "Section Break",
+   "label": "Fundamentals"
+  },
+  {
+   "fieldname": "pe_ratio",
+   "fieldtype": "Float",
+   "label": "P/E Ratio",
+   "precision": "2",
+   "read_only": 1
+  },
+  {
+   "fieldname": "forward_pe",
+   "fieldtype": "Float",
+   "label": "Forward P/E",
+   "precision": "2",
+   "read_only": 1
+  },
+  {
+   "fieldname": "eps",
+   "fieldtype": "Float",
+   "label": "EPS",
+   "precision": "2",
+   "read_only": 1
+  },
+  {
+   "fieldname": "market_cap",
+   "fieldtype": "Data",
+   "label": "Market Cap",
+   "read_only": 1
+  },
+  {
+   "fieldname": "col_fund",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "week52_low",
+   "fieldtype": "Float",
+   "label": "52-Week Low",
+   "precision": "4",
+   "read_only": 1
+  },
+  {
+   "fieldname": "week52_high",
+   "fieldtype": "Float",
+   "label": "52-Week High",
+   "precision": "4",
+   "read_only": 1
+  },
+  {
+   "fieldname": "next_earnings",
+   "fieldtype": "Date",
+   "label": "Next Earnings",
+   "read_only": 1,
+   "description": "Fetched. The nearest thing to a reporting calendar that the source publishes."
+  },
+  {
+   "fieldname": "financial_year_end",
+   "fieldtype": "Data",
+   "label": "Financial Year End",
+   "description": "Typed by hand \u2014 no free source publishes it. Most NGX companies are 31 December; enter as e.g. '31 Dec' or '31 Mar'."
+  },
+  {
+   "fieldname": "fundamentals_as_of",
+   "fieldtype": "Date",
+   "label": "Fundamentals As Of",
+   "read_only": 1
+  }
+ ],
+ "links": [],
+ "modified": "2026-08-23 00:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "Duty Board",
+ "name": "Duty Holding",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "print": 1,
+   "read": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [],
+ "track_changes": 0,
+ "autoname": "field:symbol",
+ "allow_rename": 1
+}

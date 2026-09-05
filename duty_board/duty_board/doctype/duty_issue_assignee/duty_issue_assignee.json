@@ -4,10 +4,37 @@
  "doctype": "DocType",
  "editable_grid": 1,
  "engine": "InnoDB",
- "field_order": ["user", "full_name"],
+ "field_order": [
+  "user",
+  "assigned_by",
+  "full_name"
+ ],
  "fields": [
-  {"fieldname": "user", "fieldtype": "Link", "in_list_view": 1, "label": "User", "options": "User", "reqd": 1},
-  {"fetch_from": "user.full_name", "fieldname": "full_name", "fieldtype": "Data", "in_list_view": 1, "label": "Full Name", "read_only": 1}
+  {
+   "fieldname": "user",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "User",
+   "options": "User",
+   "reqd": 1
+  },
+  {
+   "fieldname": "assigned_by",
+   "fieldtype": "Link",
+   "options": "User",
+   "label": "Assigned By",
+   "read_only": 1,
+   "no_copy": 1,
+   "description": "Who added this person to the ticket."
+  },
+  {
+   "fetch_from": "user.full_name",
+   "fieldname": "full_name",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Full Name",
+   "read_only": 1
+  }
  ],
  "istable": 1,
  "links": [],

@@ -10,6 +10,13 @@
   "room",
   "status",
   "target_date",
+  "rag_set_by",
+  "rag_set_on",
+  "rag_due",
+  "rag_owner",
+  "rag_reason",
+  "rag",
+  "baseline_target_date",
   "consultants",
   "baselined_on",
   "staff"
@@ -50,6 +57,53 @@
    "fieldname": "target_date",
    "fieldtype": "Date",
    "label": "Target Date"
+  },
+  {
+   "fieldname": "baseline_target_date",
+   "fieldtype": "Date",
+   "label": "Baseline Go-Live",
+   "description": "The go-live date originally committed to. Never edit it once set: the whole point is that it does not move, so slip can be measured against something real. target_date is the current expectation and may move."
+  },
+  {
+   "fieldname": "rag",
+   "fieldtype": "Select",
+   "label": "Status (RAG)",
+   "options": "On track\nAt risk\nOff track\nCompleted",
+   "description": "Set deliberately. Left empty it means nobody has said, and the header falls back to the evidence and says so \u2014 which is honest. A default of 'On track' made every project born green and indistinguishable from one somebody had actually judged."
+  },
+  {
+   "fieldname": "rag_reason",
+   "fieldtype": "Small Text",
+   "label": "Why",
+   "depends_on": "eval:['At risk','Off track'].includes(doc.rag)",
+   "description": "Required whenever the status is not green. A RAG without a stated reason is decoration, and it is the first thing a reviewer asks about."
+  },
+  {
+   "fieldname": "rag_owner",
+   "fieldtype": "Link",
+   "options": "User",
+   "label": "Recovery Owner",
+   "depends_on": "eval:['At risk','Off track'].includes(doc.rag)"
+  },
+  {
+   "fieldname": "rag_due",
+   "fieldtype": "Date",
+   "label": "Back On Track By",
+   "depends_on": "eval:['At risk','Off track'].includes(doc.rag)"
+  },
+  {
+   "fieldname": "rag_set_on",
+   "fieldtype": "Datetime",
+   "label": "Status Set On",
+   "read_only": 1,
+   "description": "How long it has been amber is itself a finding."
+  },
+  {
+   "fieldname": "rag_set_by",
+   "fieldtype": "Link",
+   "options": "User",
+   "label": "Status Set By",
+   "read_only": 1
   },
   {
    "fieldname": "consultants",

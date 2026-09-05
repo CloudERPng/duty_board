@@ -252,6 +252,9 @@
 	.rate { margin-top: 10px; font-size: 14px; }
 	.rate a { font-size: 22px; cursor: pointer; margin-right: 10px; text-decoration: none; }
 	.msgs { display: flex; flex-direction: column; gap: 10px; max-height: 50vh; overflow-y: auto; padding-bottom: 6px; }
+	.loadolder { align-self: center; background: #fff; border: 1px solid #D4DCD8; color: #4A5B54; border-radius: 999px; padding: 5px 14px; font-size: 13px; cursor: pointer; margin-bottom: 4px; }
+	.loadolder:hover { background: #F3F6F5; }
+	.loadolder:disabled { opacity: .6; cursor: default; }
 	.m { width: fit-content; min-width: 150px; max-width: min(72ch, 85%); padding: 8px 12px;
 		border-radius: 12px; font-size: 15px; white-space: pre-wrap;
 		overflow-wrap: break-word; word-break: normal; }
@@ -669,7 +672,86 @@
 	/* ---- the reading room ---- */
 	body[data-acad] #mycerts, body[data-acad] #mytracks, body[data-acad] #adminhost { display: none !important; }
 	body[data-adm] #mycerts, body[data-adm] #mytracks, body[data-adm] #acad { display: none !important; }
+	/* An administrator who is also studying was shown both jobs stacked on one
+	   page: the team they administer, then their own certificates underneath.
+	   Two roles, one screen, and no signal which half you were looking at.
+	   They are now two sub-tabs. */
+	.tsub { display: flex; gap: 4px; margin: 2px 0 14px; border-bottom: 1px solid #E7ECEA; }
+	.tsub a { cursor: pointer; font-size: 13px; font-weight: 600; color: #6B7C77;
+		padding: 8px 14px; border-bottom: 2px solid transparent; margin-bottom: -1px; }
+	.tsub a:hover { color: #16211F; }
+	.tsub a.on { color: #0A473F; border-bottom-color: #0F5C55; }
+	body[data-tsub="mine"] #adminhost { display: none !important; }
+	body[data-tsub="team"] #mycerts, body[data-tsub="team"] #mytracks,
+	body[data-tsub="team"] #acad { display: none !important; }
+	/* what the organisation holds, on the team side */
+	.entwrap { margin-top: 18px; }
+	.enthead { font-size: 11px; font-weight: 700; letter-spacing: .05em; text-transform: uppercase;
+		color: #6B7C77; margin-bottom: 9px; }
+	.entrow { display: grid; grid-template-columns: 1fr auto auto; gap: 12px; align-items: center;
+		padding: 10px 12px; border: 1px solid #E7ECEA; border-radius: 10px; margin-bottom: 6px;
+		background: #fff; font-size: 13px; }
+	.entrow b { display: block; }
+	.entrow .em { font-size: 11.5px; color: #6B7C77; }
+	.entpill { font-size: 11.5px; font-weight: 600; border-radius: 999px; padding: 2px 10px; white-space: nowrap; }
+	.entpill.inc { background: #E4F3EC; color: #0C6B4F; }
+	.entpill.seat { background: #E9F1FA; color: #1C4E7A; }
+	.entrow a { font-size: 12px; font-weight: 600; color: #0F5C55; cursor: pointer; white-space: nowrap; }
 
+	/* one breadcrumb, replacing four Back buttons that meant three different
+	   things and never said where you were */
+	.crumbs { font-size: 12.5px; color: #6B7C77; margin-bottom: 14px; display: flex;
+		align-items: center; flex-wrap: wrap; gap: 6px; }
+	.crumbs a { color: #0F5C55; font-weight: 600; cursor: pointer; text-decoration: none; }
+	.crumbs a:hover { text-decoration: underline; }
+	.crumbs span { color: #16211F; font-weight: 700; }
+	.crumbs i { font-style: normal; color: #B7C4C0; }
+	/* the catalogue reads like the public page, because it is the same job */
+	.catlede { font-size: 14.5px; line-height: 1.65; color: #4A5A55; max-width: 640px; margin-bottom: 22px; }
+	.catlede b { display: block; font-size: 20px; line-height: 1.25; color: #0A473F; margin-bottom: 8px; }
+	/* family cards — the catalogue's front door */
+	.famgrid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
+	.famcard { border: 1px solid #E7ECEA; border-radius: 16px; padding: 20px; background: #fff;
+		cursor: pointer; display: flex; flex-direction: column;
+		transition: border-color .15s ease, box-shadow .15s ease, transform .15s ease; }
+	.famcard:hover { border-color: #0F5C55; box-shadow: 0 8px 22px rgba(16,33,31,.09);
+		transform: translateY(-2px); }
+	.catart { display: grid; place-items: center; width: 62px; height: 62px; border-radius: 14px;
+		background: linear-gradient(135deg,#0A473F,#0F5C55 60%,#146B62); color: #fff;
+		margin-bottom: 14px; flex: 0 0 auto; }
+	.catart svg { width: 34px; height: 34px; }
+	.famname { font-size: 18px; font-weight: 700; line-height: 1.25; color: #0A473F; }
+	.famblurb { font-size: 13.5px; line-height: 1.6; color: #4A5A55; margin-top: 9px; }
+	.fammeta { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 13px; font-size: 12px; }
+	.fammeta span { background: #F3F6F5; color: #4A5A55; border-radius: 999px; padding: 2px 9px; }
+	.fammeta .famfree { background: #E4F3EC; color: #0C6B4F; font-weight: 600; }
+	.fammeta .famhave { background: #E9F1FA; color: #1C4E7A; font-weight: 600; }
+	.famcard .catmore { margin-top: auto; padding-top: 14px; }
+	/* the family header on its own page */
+	.famhead { display: flex; gap: 16px; align-items: flex-start; margin-bottom: 18px;
+		padding-bottom: 16px; border-bottom: 1px solid #E7ECEA; }
+	.famhead .catart { margin-bottom: 0; width: 54px; height: 54px; }
+	.famhead .catart svg { width: 30px; height: 30px; }
+	.famhead b { font-size: 20px; color: #0A473F; }
+	.famhead .famblurb { margin-top: 5px; max-width: 620px; }
+	@media (max-width: 980px) { .famgrid { grid-template-columns: repeat(2, 1fr); } }
+	@media (max-width: 640px) { .famgrid { grid-template-columns: 1fr; } }
+	.catfam { font-size: 14px; font-weight: 700; color: #0F5C55; margin: 24px 0 10px;
+		padding-bottom: 6px; border-bottom: 1px solid #E3EAE7; display: flex; align-items: center; gap: 8px; }
+	.catfam:first-of-type { margin-top: 6px; }
+	.catfamn { font-size: 11.5px; font-weight: 600; color: #6B7C77; background: #F3F6F5;
+		border-radius: 999px; padding: 1px 8px; }
+	.catdhead { margin-bottom: 14px; }
+	.catdhead .catmeta { margin-top: 6px; }
+	.catsample { margin-top: 26px; border-top: 2px solid #E7ECEA; padding-top: 20px; }
+	.catsampt { font-size: 19px; margin: 14px 0 10px; color: #0A473F; }
+	.catsampb { font-family: Georgia, "Times New Roman", serif; font-size: 16px; line-height: 1.75;
+		color: #16211F; max-width: 660px; }
+	.catsampb blockquote { border-left: 3px solid #CBE7DE; margin: 14px 0; padding: 2px 0 2px 14px; color: #33423E; }
+	.catsampb table { width: 100%; border-collapse: collapse; font-family: inherit; font-size: 14.5px; margin: 12px 0; }
+	.catsampb th, .catsampb td { border: 1px solid #E3EAE7; padding: 6px 9px; text-align: left; }
+	.catactions { margin-top: 26px; display: flex; gap: 8px; flex-wrap: wrap;
+		border-top: 1px solid #E7ECEA; padding-top: 18px; }
 	.catgrid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
 	.catcard { border: 1px solid #E4EAE8; border-radius: 14px; padding: 18px 19px; background: #fff;
 		cursor: pointer; display: flex; flex-direction: column; transition: border-color .15s, transform .15s; }
@@ -689,7 +771,7 @@
 	.catstate.ok { color: #0C6B4F; }
 	.catstate.wait { color: #8A5A0B; }
 	.catstate.buy { color: #6B7C77; font-weight: 500; }
-	.catstate.out { color: #6B7C77; font-weight: 500; }
+	.catstate.out { color: #6B7C77; font-weight: 500; } /* unused since the product gate was removed */
 	.catdprice { margin: 10px 0 4px; }
 	.catback { cursor: pointer; font-size: 14px; color: var(--brand-700); font-weight: 700; }
 	.catdtitle { font-family: Fraunces, Georgia, serif; font-size: 28px; line-height: 1.2; font-weight: 600; margin: 4px 0 2px; letter-spacing: -.2px; }
@@ -1058,6 +1140,8 @@ body[data-tab="home"] .foot{display:block!important;grid-area:foot}
 		<a data-sub="chreqs" onclick="pmShow('chreqs')">🔁 Change requests</a>
 		<a data-sub="timeline" data-optional="1" onclick="pmShow('timeline')" style="display:none">📅 Timeline</a>
 		<a data-sub="uat" data-optional="1" onclick="pmShow('uat')" style="display:none">🧪 Acceptance testing</a>
+		<a data-sub="decs" data-optional="1" onclick="pmShow('decs')" style="display:none">⚖ Decisions</a>
+		<a data-sub="dlv" data-optional="1" onclick="pmShow('dlv')" style="display:none">✅ Deliverables</a>
 	</div>
 	<div class="card mstones">
 		<h3 class="foldh" onclick="fold(this,'mstones')"><span class="fc">▾</span> <svg class="li" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/><line x1="4" x2="4" y1="22" y2="15"/></svg> <span class="t">Project milestones</span></h3>
@@ -1067,6 +1151,14 @@ body[data-tab="home"] .foot{display:block!important;grid-area:foot}
 	<div class="card chreqs">
 		<h3 class="foldh" onclick="fold(this,'chreqs')"><span class="fc">▾</span> <svg class="li" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M16 8h-6a2 2 0 1 0 0 4h4a2 2 0 1 1 0 4H8"/><path d="M12 18V6"/></svg> <span class="t">Change requests</span></h3>
 		<div id="chreqs"><span class="muted">No change requests. Work beyond your subscription scope appears here for your formal approval.</span></div>
+	</div>
+	<div class="card dlvx" style="display:none">
+		<h3><svg class="li" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg> Deliverables</h3>
+		<div id="dlvx"></div>
+	</div>
+	<div class="card decsx" style="display:none">
+		<h3><svg class="li" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m16 16 3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z"/><path d="m2 16 3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z"/><path d="M7 21h10"/><path d="M12 3v18"/><path d="M3 7h2c2 0 5-1 7-2 2 1 5 2 7 2h2"/></svg> Decisions</h3>
+		<div id="decsx"></div>
 	</div>
 	<div class="card uatx" style="display:none">
 		<h3><svg class="li" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2v6a2 2 0 0 0 .245.96l5.51 10.08A2 2 0 0 1 18 22H6a2 2 0 0 1-1.755-2.96l5.51-10.08A2 2 0 0 0 10 8V2"/><path d="M6.453 15h11.094"/><path d="M8.5 2h7"/></svg> Acceptance testing</h3>
@@ -1086,6 +1178,10 @@ body[data-tab="home"] .foot{display:block!important;grid-area:foot}
 	</div>
 	<div class="card acad">
 		<h3 class="foldh" onclick="fold(this,'acad')"><span class="fc">▾</span> <svg class="li" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.42 10.92a2 2 0 0 0 0-3.84L12.83 3.5a2 2 0 0 0-1.66 0L2.58 7.08a2 2 0 0 0 0 3.84l8.59 3.58a2 2 0 0 0 1.66 0z"/><path d="M22 10v6"/><path d="M6 12.5V16a6 3 0 0 0 12 0v-3.5"/></svg> <span class="t">Training</span></h3>
+		<div class="tsub" id="tsub" style="display:none">
+			<a data-s="team" onclick="setTrainSub('team')">Team training</a>
+			<a data-s="mine" onclick="setTrainSub('mine')">My learning</a>
+		</div>
 		<div id="adminhost"></div>
 		<div id="acad"><span class="muted">No training records yet.</span></div>
 	</div>
@@ -1302,7 +1398,7 @@ function render(d) {
 			rows
 				.map((x) => {
 					const dd = dur(x);
-					return `<tr class="row" onclick="openTask('${esc(x.id)}','${esc(x.kind)}')"><td class="tt-title">${x.seen ? "<span class='dotc' style='background:#087A67'></span> " : ""}${esc(x.title)}</td><td class="dt" data-l="Reported">${fdt(x.reported)}</td><td class="dt" data-l="Done">${fdt(x.done)}</td><td class="dur ${dd.cls}" data-l="Time">${dd.txt}</td><td class="who" data-l="With">${esc(x.assignee_first || "—")}</td><td class="st">${x.kind === "issue" && x.status === "Done" && !x.confirmed ? `<span class="pill pcta">Awaiting your confirmation ›</span>` : `<span class="pill ${PILL[x.status]}">${esc(x.status)}${x.kind === "issue" && x.status === "Done" && x.confirmed ? " ✓" : ""}</span>`}${x.kind === "issue" && x.status === "Done" && x.confirmed && !x.stars ? `<a class="ratecta" onclick="event.stopPropagation();openTask('${esc(x.id)}','issue')">☆ rate</a>` : ""}</td></tr>`;
+					return `<tr class="row" onclick="openTask('${esc(x.id)}','${esc(x.kind)}')"><td class="tt-title">${x.seen ? "<span class='dotc' style='background:#087A67'></span> " : ""}${esc(x.title)}</td><td class="dt" data-l="Reported">${fdt(x.reported)}</td><td class="dt" data-l="Done">${fdt(x.done)}</td><td class="dur ${dd.cls}" data-l="Time">${dd.txt}</td><td class="who" data-l="With">${esc(x.assignee_first || "—")}</td><td class="st">${x.kind === "issue" && x.status === "Done" && !x.confirmed ? `<span class="pill pcta">Done — please confirm ›</span>` : `<span class="pill ${PILL[x.status]}">${esc(x.status)}${x.kind === "issue" && x.status === "Done" && x.confirmed ? " ✓" : ""}</span>`}${x.kind === "issue" && x.status === "Done" && x.confirmed && !x.stars ? `<a class="ratecta" onclick="event.stopPropagation();openTask('${esc(x.id)}','issue')">☆ rate</a>` : ""}</td></tr>`;
 				})
 				.join("") +
 			`</table>`
@@ -1323,8 +1419,21 @@ function render(d) {
 		localStorage.setItem(seen_key, latest);
 	}
 	window.DIVIDED = false;
-	box.innerHTML = (d.messages || []).length
-		? d.messages.map((m) => {
+	// The server has always paginated (before / has_more); the portal never used
+	// it, so chat was capped at the newest 40 messages with no way back.
+	window.CHAT_HAS_MORE = !!d.has_more;
+	window.CHAT_OLDEST = (d.messages || []).length ? d.messages[0].creation : null;
+	const olderBtn = window.CHAT_HAS_MORE
+		? `<button class="loadolder" id="loadolder" onclick="loadOlder()">↑ Load older messages</button>`
+		: "";
+	box.innerHTML = olderBtn + ((d.messages || []).length
+		? d.messages.map((m) => chatRow(m)).join("")
+		: '<span class="muted">Say hello — the team is listening.</span>');
+	if (stick) box.scrollTop = box.scrollHeight;
+}
+
+function chatRow(m) {
+	{
 				const url = "/api/method/duty_board.client_room.room_file?msg=" + encodeURIComponent(m.name);
 				const att = m.attachment_url
 					? `<span class="att">${m.is_image ? `<a href="${url}" target="_blank"><img src="${url}"></a>` : m.is_audio ? `<audio controls preload="none" src="${url}"></audio>` : `<a class="fcard" href="${url}" target="_blank"><span class="fci"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8Z"/><path d="M14 2v6h6"/></svg></span><span class="fcn">${esc(m.attachment_name || "file")}</span><span class="fcd">Download</span></a>`}</span>`
@@ -1335,9 +1444,40 @@ function render(d) {
 						? ((window.DIVIDED = true), '<div class="newdiv">— new since your last visit —</div>')
 						: "";
 				return `${divider}<div class="m ${m.mine ? "me" : m.is_staff ? "staff" : "peer"}" data-name="${esc(m.name)}">${m.mine ? "" : avatarFor(m.who === "Administrator" ? "Xlevel Team" : m.who)}<a class="rep" onclick='setReply(${JSON.stringify({ name: m.name, who: m.who, text: (m.message || "📎").slice(0, 80) }).replace(/'/g, "&#39;")})'>↩ reply</a><span class="w">${esc(m.who === "Administrator" ? "Xlevel Team" : m.who)}</span>${qt}${linkify(esc(m.message))}${att}<span class="tm">${esc(smartTime(m.creation))}</span></div>`;
-			}).join("")
-		: '<span class="muted">Say hello — the team is listening.</span>';
-	if (stick) box.scrollTop = box.scrollHeight;
+			}
+}
+
+// Fetch the page before the oldest message on screen and prepend it, holding
+// the reader's scroll position so the view does not jump.
+async function loadOlder() {
+	const btn = document.getElementById("loadolder");
+	const box = document.getElementById("msgs");
+	if (!btn || !box || !window.CHAT_OLDEST) return;
+	btn.disabled = true;
+	btn.textContent = "Loading…";
+	const anchorH = box.scrollHeight;
+	try {
+		const d = await api("client_get_room", { before: window.CHAT_OLDEST });
+		const older = d.messages || [];
+		if (!older.length) {
+			btn.remove();
+			window.CHAT_HAS_MORE = false;
+			return;
+		}
+		const html = older.map((m) => chatRow(m)).join("");
+		btn.insertAdjacentHTML("afterend", html);
+		window.CHAT_OLDEST = older[0].creation;
+		window.CHAT_HAS_MORE = !!d.has_more;
+		if (!window.CHAT_HAS_MORE) btn.remove();
+		else {
+			btn.disabled = false;
+			btn.textContent = "↑ Load older messages";
+		}
+		box.scrollTop = box.scrollHeight - anchorH;
+	} catch (e) {
+		btn.disabled = false;
+		btn.textContent = "↑ Load older messages — retry";
+	}
 }
 function showAfterHours(a) {
 	if (!a) {
@@ -1608,8 +1748,16 @@ function _pselMatch(projectId) {
 
 /* ---- milestones ---- */
 function loadMilestones() {
+	loadDecisions();
+	loadDeliverables();
 	api("client_get_milestones")
-		.then((r) => { if (r && r.rows) { window._pjpm = r.pm || null; renderMilestones(r.rows); } else renderMilestones(r); })
+		.then((r) => {
+			if (r && r.rows) {
+				window._pjpm = r.pm || null;
+				window._pjhead = r.header || {};
+				renderMilestones(r.rows);
+			} else renderMilestones(r);
+		})
 		.catch((e) => console.warn("milestones:", e.message));
 }
 function _phaseFocusProject(allRows) {
@@ -1645,15 +1793,21 @@ function renderMilestones(rows) {
 			const st = m.status === "Approved" ? "d" : i === cur ? "a" : "u";
 			return `<div class="mss ${st}"><span class="mssd">${st === "d" ? "✓" : i + 1}</span><span class="mssl">${esc(m.title)}</span>${st === "a" ? `<span class="msshere">You are here${m.target_date ? ` · 🎯 ${esc(m.target_date)}` : ""}</span>` : ""}</div>`;
 		}).join('<span class="mssline"></span>')}</div>
-		<div id="msbar"><i></i></div><div id="mscount" class="muted"></div>`;
+		<div id="msbar"><i></i></div><div id="mscount" class="muted"></div>
+		${phaseTimeline(rows)}`;
 		document.querySelector("#msbar i").style.width = Math.round((done / rows.length) * 100) + "%";
 		document.getElementById("mscount").textContent = cur >= 0 ? `${rows[cur].title} in progress · ${done} of ${rows.length} phases signed off` : `All ${rows.length} phases signed off 🎉`;
 		const allT = rows.reduce((a, m) => a.concat(m.tasks || []), []);
 		const tDone = allT.filter((t) => t.status === "Done").length;
 		const pct = allT.length ? Math.round((tDone / allT.length) * 100) : Math.round((done / rows.length) * 100);
-		const golive = (rows[rows.length - 1] || {}).target_date;
-		const overdueT = allT.some((t) => t.overdue && t.status !== "Done");
-		const health = cur < 0 ? ["Completed", "#0E8A63"] : overdueT ? ["At risk", "#B45309"] : ["On track", "#0E8A63"];
+		// the server works these out now: health somebody actually decided,
+		// progress weighted by effort, and slip against a baseline that does not
+		// move. The browser used to guess health from "is anything overdue",
+		// which has no reason behind it and nothing to ask about in a review.
+		const H = window._pjhead || {};
+		const golive = H.golive || (rows[rows.length - 1] || {}).target_date;
+		const COL = { "On track": "#0E8A63", "At risk": "#B45309", "Off track": "#B91C1C", "Completed": "#0E8A63" };
+		const health = cur < 0 ? ["Completed", COL.Completed] : [H.rag || "On track", COL[H.rag] || "#0E8A63"];
 		const waitMs = rows.find((m) => m.status === "Awaiting Approval" && m.can_approve !== 0);
 		const awaitingN = rows.reduce((n, m) => n + (m.awaiting || 0), 0);
 		const nextAct = waitMs ? [`Sign off the ${esc(waitMs.title)} phase`, `approveMilestone('${esc(waitMs.name)}','${esc(waitMs.title)}')`]
@@ -1664,10 +1818,22 @@ function renderMilestones(rows) {
 			<div class="pjgrid">
 				<div><i>Status</i><b style="color:${health[1]}">${health[0]}</b></div>
 				<div><i>Current phase</i><b>${cur >= 0 ? esc(rows[cur].title) : "—"}</b></div>
-				<div><i>Overall progress</i><b>${pct}%</b></div>
-				<div><i>Target go-live</i><b>${golive ? esc(golive) : "To be scheduled"}</b></div>
+				<div><i>Overall progress</i><b>${H.progress !== undefined ? H.progress : pct}%</b>
+					${H.progress_basis ? `<u>${esc(H.progress_basis)}</u>` : ""}</div>
+				<div><i>Target go-live</i><b>${golive ? esc(golive) : "To be scheduled"}</b>
+					${H.baseline
+						? `<u>${H.slip_days === 0
+							? "on the date we committed to"
+							: H.slip_days > 0
+								? `${H.slip_days} day${H.slip_days === 1 ? "" : "s"} later than baseline ${esc(H.baseline)}`
+								: `${-H.slip_days} day${H.slip_days === -1 ? "" : "s"} ahead of baseline ${esc(H.baseline)}`}</u>`
+						: ""}</div>
 				${window._pjpm ? `<div><i>Project manager</i><b>${esc(window._pjpm)}</b></div>` : ""}
+				${H.ball && H.ball.total_days ? `<div><i>Waiting time</i><b><span style="color:#B27409">${H.ball.client_days}d</span> <span style="color:#65736F;font-weight:400">you</span> <span style="color:#087A67">${H.ball.xlevel_days}d</span> <span style="color:#65736F;font-weight:400">us</span></b><u>${esc(H.ball.basis)}</u></div>` : ""}
 			</div>
+			${H.rag_contradiction ? `<div class="pjrag"><b>Marked on track${H.rag_set_by ? ` by ${esc(H.rag_set_by)}` : ""}${H.rag_days ? `, ${H.rag_days} day${H.rag_days === 1 ? "" : "s"} ago` : ""}</b><span>Phases below are past their planned dates. If the plan has moved, the dates should move with it; if it has not, the status should.</span></div>` : ""}
+			${(H.rag === "At risk" || H.rag === "Off track") ? `<div class="pjrag ${H.rag === "Off track" ? "red" : ""}"><b>${esc(H.rag)}${H.rag_days ? ` for ${H.rag_days} day${H.rag_days === 1 ? "" : "s"}` : ""}</b>${H.rag_reason ? `<span>${esc(H.rag_reason)}</span>` : `<span class="pjrag-none">No reason has been recorded yet — ask your project manager.</span>`}<div class="pjrag-m">${H.rag_owner ? `<span>Recovery owner: <b>${esc(H.rag_owner)}</b></span>` : ""}${H.rag_due ? `<span>Back on track by: <b>${esc(H.rag_due)}</b></span>` : ""}${!H.rag_stated ? `<span>Flagged automatically because a phase is past its date.</span>` : ""}</div></div>` : ""}
+			${(H.late_phases || []).length ? `<div class="pjlate"><b>${H.late_phases.length} phase${H.late_phases.length === 1 ? "" : "s"} past the planned date</b>${H.late_phases.map((p) => `<span>${esc(p.title)} — due ${esc(p.target_date)}, ${p.days} day${p.days === 1 ? "" : "s"} ago · ${p.done} of ${p.total} tasks done</span>`).join("")}</div>` : ""}
 			${nextAct ? `<div class="pjnext">⏳ <b>Your next action:</b> ${nextAct[0]}${nextAct[1] ? ` <button onclick="${nextAct[1]}">Go ›</button>` : ""}</div>` : `<div class="pjnext pjok">✅ <b>Nothing needed from you right now</b> — we're on it.</div>`}`;
 	} else wrap.style.display = "none";
 	const tt = document.querySelector('.tabbar a[data-tab="home"]');
@@ -2119,8 +2285,17 @@ function loadAdminTraining() {
 	if (!host) return;
 	api("client_training_admin_home")
 		.then((h) => {
-			if (!h || !h.admin) { host.innerHTML = ""; return; }
+			const bar = document.getElementById("tsub");
+			if (!h || !h.admin) {
+				// not an administrator: one role, so no bar and no team side
+				host.innerHTML = "";
+				if (bar) bar.style.display = "none";
+				document.body.setAttribute("data-tsub", "mine");
+				return;
+			}
 			window._adm = h;
+			if (bar) bar.style.display = "flex";
+			setTrainSub(localStorage.getItem("xl_tsub") || "team");
 			const s = h.stats;
 			const tile = (n, l, warn) =>
 				`<div class="atile${warn ? " warn" : ""}"><b>${n}</b><span>${l}</span></div>`;
@@ -2157,7 +2332,10 @@ function loadAdminTraining() {
 							<div class="admdetail" id="det-${esc(p.user)}"></div>
 						</div>`).join("")
 						: `<span class="muted">Nobody is enrolled yet.</span>`}
-				</div>`;
+				</div>
+				<div class="entwrap" id="entitlements"></div>`;
+			window._entLoaded = 0;
+			if (document.body.getAttribute("data-tsub") !== "mine") loadEntitlements();
 			document.getElementById("admassign").onclick = openAssign;
 			document.getElementById("admcat").onclick = openCatalogue;
 			document.getElementById("admppl").onclick = openPeople;
@@ -2247,8 +2425,8 @@ function openOrders() {
 		.then((rows) => {
 			host.innerHTML = `
 				<div class="admwrap">
-					<div class="admhead"><div><b>Seat orders</b><span class="muted"> \u00b7 what you have requested and where it stands</span></div>
-						<button style="background:#E2E8E5;color:#2A3833" onclick="admFocus(0);loadAdminTraining()">Back</button></div>
+					${crumb([{ label: "Team training", go: "loadTraining()" }, { label: "Seat orders" }])}
+					<div class="admhead"><div><b>Seat orders</b><span class="muted"> \u00b7 what you have requested and where it stands</span></div></div>
 					${(rows || []).length ? rows.map((o) => `
 					<div class="ordrow">
 						<div class="ordwho"><b>${esc(o.track_title)}</b>
@@ -2279,8 +2457,8 @@ function openPeople() {
 			</div>`;
 		host.innerHTML = `
 			<div class="admwrap">
-				<div class="admhead"><div><b>People</b><span class="muted"> · who from your organisation can use the portal</span></div>
-					<button style="background:#E2E8E5;color:#2A3833" onclick="loadAdminTraining()">Back</button></div>
+				${crumb([{ label: "Team training", go: "loadTraining()" }, { label: "People" }])}
+				<div class="admhead"><div><b>People</b><span class="muted"> · who from your organisation can use the portal</span></div></div>
 				<div class="admfield"><label>Invite colleagues</label>
 					<textarea id="pplmails" rows="3" placeholder="Paste email addresses — commas, spaces or one per line"></textarea></div>
 				<button id="pplgo">Send invitations</button>
@@ -2313,86 +2491,278 @@ function openPeople() {
 	};
 	api("client_admin_people").then(paint).catch(fail);
 }
-function openCatalogue() {
-	admFocus(1);
-	const host = document.getElementById("adminhost");
-	const money = (v) => "₦" + Number(v || 0).toLocaleString();
-	const hrs = (mins) => {
-		if (!mins) return "";
-		const h = Math.round((mins / 60) * 10) / 10;
-		return h < 1 ? mins + " min" : h + (h === 1 ? " hour" : " hours");
-	};
-	const priceTag = (r) =>
-		r.access === "Paid"
-			? `<span class="cattag paid">${money(r.seat_price)} / seat</span>`
-			: `<span class="cattag free">Free</span>`;
-	const stateLine = (r) =>
-		r.included ? `<span class="catstate ok">\u2713 Included with your subscription</span>`
-		: r.pending ? `<span class="catstate wait">Request for ${r.pending_seats} seat${r.pending_seats === 1 ? "" : "s"} received</span>`
-		: r.seats ? `<span class="catstate ok">\u2713 ${r.seats_left} of ${r.seats} seats available</span>`
-		: r.access === "Paid" ? `<span class="catstate buy">No seats purchased yet</span>`
-		: `<span class="catstate out">Comes with ${esc(r.product || "another product")} \u2014 not in your subscription</span>`;
+// ── Catalogue and Team training are two jobs, so they are two screens ────────
+//
+// They used to share one host with four different Back buttons meaning three
+// different things, and no indication of where you were. Browsing to decide and
+// administering seats are different tasks for the same person in different
+// moods, and one screen serving both served neither.
+//
+// The catalogue is now a replica of the public /academy page — grouped into
+// families with counts, the same card, and the sample chapter on the detail —
+// because a client spending money on seats deserves at least what a stranger
+// on the public site gets.
+
+const CAT_ORDER = ["Retail & Point of Sale", "CRM & Ecommerce", "ERP by Role",
+	"Finance, Control & Compliance", "Leadership & Management"];
+
+// Families get a face and a sentence. Drawn as inline SVG rather than uploaded
+// artwork: nothing to host, nothing to 404 in two years, and it takes the
+// portal's own colour. A photograph would say less and weigh more.
+const CAT_META = {
+	"Retail & Point of Sale": {
+		blurb: "The counter and everything behind it — the till, the shift, the stock that moves through it, and the people who answer for the drawer at close.",
+		art: '<rect x="10" y="26" width="52" height="30" rx="4"/><path d="M18 26V16h36v10"/><path d="M22 38h28M22 46h16"/>',
+	},
+	"CRM & Ecommerce": {
+		blurb: "Leads, orders and the campaigns that create them — from the form a customer fills in to the call that closes it and the report that judges the spend.",
+		art: '<path d="M12 18h10l7 26h28l6-18H24"/><circle cx="32" cy="54" r="4"/><circle cx="52" cy="54" r="4"/>',
+	},
+	"ERP by Role": {
+		blurb: "One system, learned the way people actually work in it — a track per role, so a storekeeper and a payroll officer each get their own product rather than a tour of everyone else's.",
+		art: '<rect x="10" y="12" width="22" height="18" rx="3"/><rect x="40" y="12" width="22" height="18" rx="3"/><rect x="10" y="42" width="22" height="18" rx="3"/><rect x="40" y="42" width="22" height="18" rx="3"/>',
+	},
+	"Finance, Control & Compliance": {
+		blurb: "The books, the controls around them and the statutory work that follows — written for people who sign things rather than for people who read about signing things.",
+		art: '<path d="M36 10 12 20v14c0 14 10 24 24 30 14-6 24-16 24-30V20Z"/><path d="M27 34l7 7 13-14"/>',
+	},
+	"Leadership & Management": {
+		blurb: "Running a team rather than doing its work: what to look at weekly, what to say when a number is bad, and how to tell coaching from performance management.",
+		art: '<circle cx="24" cy="22" r="8"/><circle cx="48" cy="22" r="8"/><path d="M10 56c0-9 6-14 14-14s14 5 14 14"/><path d="M38 44c2-1 5-2 10-2 8 0 14 5 14 14"/>',
+	},
+	"Other": {
+		blurb: "Everything that does not sit in one of the families above.",
+		art: '<path d="M14 14h30a8 8 0 0 1 8 8v36H22a8 8 0 0 1-8-8Z"/><path d="M22 58a8 8 0 0 1 8-8h28"/>',
+	},
+};
+// One breadcrumb rather than four Back buttons. It says where you are, which no
+// arrangement of Back buttons can.
+// An administrator is two people on this page: the one who assigns training and
+// the one who has to sit it. The sub-tab decides which of them you are being
+// right now, and defaults to the administrator because that is the job only
+// they can do. Somebody who is not an administrator never sees the bar at all —
+// there is only one role for them and a tab strip of one is noise.
+function setTrainSub(which) {
+	document.body.setAttribute("data-tsub", which);
+	localStorage.setItem("xl_tsub", which);
+	document.querySelectorAll("#tsub a").forEach((a2) =>
+		a2.classList.toggle("on", a2.getAttribute("data-s") === which));
+	if (which === "team" && !window._entLoaded) loadEntitlements();
+}
+
+// What the organisation actually holds, as opposed to what exists. The catalogue
+// answers "what could we train on"; this answers "what have we already got",
+// which is the question an administrator opens this page with.
+function loadEntitlements() {
+	const host = document.getElementById("entitlements");
+	if (!host) return;
+	window._entLoaded = 1;
 	api("duty_board.academy.academy_catalogue")
 		.then((rows) => {
 			window._cat = rows;
+			const mine = (rows || []).filter((r) => r.included || r.seats);
+			host.innerHTML = `
+				<div class="enthead">Your certifications \u00B7 what this organisation can assign</div>
+				${mine.length ? mine.map((r) => `
+					<div class="entrow">
+						<div>
+							<b>${esc(r.title)}</b>
+							<span class="em">${esc(r.product || "")} \u00B7 ${r.courses} course${r.courses === 1 ? "" : "s"}</span>
+						</div>
+						${r.included
+							? `<span class="entpill inc">Included</span>`
+							: `<span class="entpill seat">${r.seats_left} of ${r.seats} seats left</span>`}
+						<a onclick="openAssign('${jsq(r.track)}')">Assign \u2192</a>
+					</div>`).join("")
+					: `<span class="muted">Nothing yet. Browse the
+						<a onclick="openCatalogue()" style="cursor:pointer;font-weight:600">catalogue</a>
+						to see what is included with your subscription and what can be bought.</span>`}`;
+		})
+		.catch(() => { host.innerHTML = ""; });
+}
+
+function crumb(parts) {
+	return `<div class="crumbs">${parts.map((p) =>
+		p.go ? `<a onclick="${p.go}">${esc(p.label)}</a>` : `<span>${esc(p.label)}</span>`
+	).join('<i>\u203A</i>')}</div>`;
+}
+
+function catMoney(v) { return "\u20A6" + Number(v || 0).toLocaleString(); }
+function catHrs(mins) {
+	if (!mins) return "";
+	const h = Math.round((mins / 60) * 10) / 10;
+	return h < 1 ? mins + " min" : h + (h === 1 ? " hour" : " hours");
+}
+function catPriceTag(r) {
+	return r.access === "Paid"
+		? `<span class="cattag paid">${catMoney(r.seat_price)} / seat</span>`
+		: `<span class="cattag free">Free</span>`;
+}
+function catStateLine(r) {
+	return r.included ? `<span class="catstate ok">\u2713 Included with your subscription</span>`
+		: r.pending ? `<span class="catstate wait">Request for ${r.pending_seats} seat${r.pending_seats === 1 ? "" : "s"} received</span>`
+		: r.seats ? `<span class="catstate ok">\u2713 ${r.seats_left} of ${r.seats} seats available</span>`
+		: r.access === "Paid" ? `<span class="catstate buy">No seats purchased yet</span>`
+		: `<span class="catstate ok">\u2713 Free to assign</span>`;
+}
+
+// Category names carry ampersands and apostrophes, and they end up inside a
+// JavaScript string inside an HTML attribute. esc() handles the HTML half; this
+// handles the JavaScript half. Missing it breaks "Finance, Control & Compliance"
+// and nothing else, which is the kind of bug that ships.
+function jsq(v) {
+	return String(v == null ? "" : v).replace(/\\/g, "\\\\").replace(/'/g, "\\'");
+}
+function catArt(cat) {
+	const m = CAT_META[cat] || CAT_META.Other;
+	return `<span class="catart"><svg viewBox="0 0 72 72" fill="none" stroke="currentColor"
+		stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round">${m.art}</svg></span>`;
+}
+
+// The catalogue is two levels now. One page of every track was fine at a dozen
+// and will not be at fifty — families first, tracks inside. The grouping was
+// already there as headings; this makes it the navigation.
+function catGroups(rows) {
+	const buckets = {};
+	rows.forEach((r, i) => {
+		r._i = i;
+		(buckets[r.category || "Other"] = buckets[r.category || "Other"] || []).push(r);
+	});
+	const order = CAT_ORDER.filter((c) => buckets[c])
+		.concat(Object.keys(buckets).filter((c) => CAT_ORDER.indexOf(c) < 0).sort());
+	return { buckets: buckets, order: order };
+}
+
+function openCatalogue() {
+	admFocus(1);
+	const host = document.getElementById("adminhost");
+	api("duty_board.academy.academy_catalogue")
+		.then((rows) => {
+			window._cat = rows;
+			const g = catGroups(rows);
 			host.innerHTML = `
 				<div class="admwrap">
-					<div class="admhead"><div><b>Certification catalogue</b><span class="muted"> · what your organisation can train on</span></div>
-						<button style="background:#E2E8E5;color:#2A3833" onclick="admFocus(0);loadAdminTraining()">Back</button></div>
-					${rows.length ? `<div class="catgrid">${rows.map((r, i) => `
-						<div class="catcard${r.assignable ? "" : " dim"}" data-i="${i}">
-							<div class="catcardtop">${priceTag(r)}</div>
-							<b class="catname">${esc(r.title)}</b>
-							<div class="catmeta">${esc(r.product || "")} · ${r.courses} course${r.courses === 1 ? "" : "s"}${r.minutes ? " · " + hrs(r.minutes) : ""}</div>
-							<div class="catstateline">${stateLine(r)}</div>
-							<div class="catblurb">${esc(r.description || "")}</div>
-							<span class="catmore">Details →</span>
-						</div>`).join("")}</div>`
+					${crumb([{ label: "Team training", go: "loadTraining()" }, { label: "Catalogue" }])}
+					<div class="catlede">
+						<b>Certifications for people who run things</b>
+						Written from live retail, distribution and finance operations rather than from a
+						textbook. Your staff read at their own pace, sit a proctored assessment, and earn a
+						certificate with a serial anyone can verify.
+					</div>
+					${rows.length ? `<div class="famgrid">${g.order.map((cat) => {
+						const list = g.buckets[cat];
+						const free = list.filter((r) => r.access !== "Paid").length;
+						const mine = list.filter((r) => r.included || r.seats).length;
+						return `
+							<div class="famcard" data-cat="${esc(cat)}">
+								${catArt(cat)}
+								<b class="famname">${esc(cat)}</b>
+								<div class="famblurb">${esc((CAT_META[cat] || CAT_META.Other).blurb)}</div>
+								<div class="fammeta">
+									<span>${list.length} certification${list.length === 1 ? "" : "s"}</span>
+									${free ? `<span class="famfree">${free} free</span>` : ""}
+									${mine ? `<span class="famhave">\u2713 ${mine} available to you</span>` : ""}
+								</div>
+								<span class="catmore">Browse \u2192</span>
+							</div>`;
+					}).join("")}</div>`
 						: `<span class="muted">No certification tracks have been published yet.</span>`}
 				</div>`;
-			host.querySelectorAll(".catcard").forEach((el) =>
-				el.addEventListener("click", () => openTrack(parseInt(el.getAttribute("data-i"), 10))));
+			host.querySelectorAll(".famcard").forEach((el) =>
+				el.addEventListener("click", () => openCategory(el.getAttribute("data-cat"))));
 		})
 		.catch(fail);
 }
+
+function openCategory(cat) {
+	const rows = window._cat || [];
+	if (!rows.length) return openCatalogue();
+	admFocus(1);
+	window._catCur = cat;
+	const list = catGroups(rows).buckets[cat] || [];
+	const host = document.getElementById("adminhost");
+	host.innerHTML = `
+		<div class="admwrap">
+			${crumb([{ label: "Team training", go: "loadTraining()" },
+					 { label: "Catalogue", go: "openCatalogue()" },
+					 { label: cat }])}
+			<div class="famhead">
+				${catArt(cat)}
+				<div>
+					<b>${esc(cat)}</b>
+					<div class="famblurb">${esc((CAT_META[cat] || CAT_META.Other).blurb)}</div>
+				</div>
+			</div>
+			${list.length ? `<div class="catgrid">${list.map((r) => `
+				<div class="catcard${r.assignable ? "" : " dim"}" data-i="${r._i}">
+					<div class="catcardtop">${catPriceTag(r)}</div>
+					<b class="catname">${esc(r.title)}</b>
+					<div class="catmeta">${esc(r.product || "")} \u00B7 ${r.courses} course${r.courses === 1 ? "" : "s"}${r.minutes ? " \u00B7 " + catHrs(r.minutes) : ""}</div>
+					<div class="catstateline">${catStateLine(r)}</div>
+					<div class="catblurb">${esc(r.description || "")}</div>
+					<span class="catmore">See what it covers \u2192</span>
+				</div>`).join("")}</div>`
+				: `<span class="muted">Nothing published in this family yet.</span>`}
+		</div>`;
+	host.querySelectorAll(".catcard").forEach((el) =>
+		el.addEventListener("click", () => openTrack(parseInt(el.getAttribute("data-i"), 10))));
+}
+
 function openTrack(i) {
 	const r = (window._cat || [])[i];
 	if (!r) return;
 	const host = document.getElementById("adminhost");
-	const money = (v) => "₦" + Number(v || 0).toLocaleString();
-	const hrs = (m) => (!m ? "—" : (m < 60 ? m + " min" : Math.round((m / 60) * 10) / 10 + " hours"));
 	const state =
-		r.included ? `<div class="catnote ok">Included in your subscription — assign it to as many colleagues as you like.</div>`
+		r.included ? `<div class="catnote ok">Included in your subscription \u2014 assign it to as many colleagues as you like.</div>`
 		: r.pending ? `<div class="catnote">Request for ${r.pending_seats} seat(s) received. We will confirm once payment is processed.</div>`
-		: r.seats ? `<div class="catnote ok">${r.seats_left} of ${r.seats} seats available${r.expires_on ? " · until " + esc(String(r.expires_on).slice(0, 10)) : ""}</div>`
-		: r.access === "Paid" ? `<div class="catnote">${money(r.seat_price)} per seat. One seat covers one member of staff for the whole track, and the certificate they earn does not expire.</div>`
-		: `<div class="catnote">This track comes with a product you are not subscribed to. Ask us about adding it.</div>`;
+		: r.seats ? `<div class="catnote ok">${r.seats_left} of ${r.seats} seats available${r.expires_on ? " \u00B7 until " + esc(String(r.expires_on).slice(0, 10)) : ""}</div>`
+		: r.access === "Paid" ? `<div class="catnote">${catMoney(r.seat_price)} per seat. One seat covers one member of staff for the whole track, and the certificate they earn does not expire.</div>`
+		: `<div class="catnote ok">Free \u2014 assign it to as many colleagues as you like.</div>`;
 	host.innerHTML = `
 		<div class="admwrap">
-			<div class="admhead"><div><a class="catback" onclick="openCatalogue()">← Catalogue</a></div></div>
-			<h3 class="catdtitle">${esc(r.title)}</h3>
-			<div class="catmeta">${esc(r.product || "")} · ${r.courses} course${r.courses === 1 ? "" : "s"} · about ${hrs(r.minutes)} of study</div>
-			<div class="catdprice">${r.access === "Paid" ? `<span class="cattag paid">${money(r.seat_price)} per seat</span>` : `<span class="cattag free">Free</span>`}</div>
+			${crumb([{ label: "Team training", go: "loadTraining()" },
+					 { label: "Catalogue", go: "openCatalogue()" },
+					 { label: r.category || "Other", go: esc(`openCategory('${jsq(r.category || "Other")}')`) },
+					 { label: r.title }])}
+			<div class="catdhead">
+				${catPriceTag(r)}
+				<h3 class="catdtitle">${esc(r.title)}</h3>
+				<div class="catmeta">${esc(r.product || "")} \u00B7 ${r.courses} course${r.courses === 1 ? "" : "s"}${r.minutes ? " \u00B7 about " + catHrs(r.minutes) + " of study" : ""}</div>
+			</div>
 			${state}
-			${r.description ? `<div class="catsec"><b>What this track covers</b><p>${esc(r.description)}</p></div>` : ""}
+			${r.description ? `<div class="catsec"><b>What this covers</b><p>${esc(r.description)}</p></div>` : ""}
 			${r.who_for ? `<div class="catsec"><b>Who it is for</b><p>${esc(r.who_for)}</p></div>` : ""}
 			${r.outcomes ? `<div class="catsec"><b>What your staff will be able to do</b><p>${esc(r.outcomes)}</p></div>` : ""}
-			${(r.course_list || []).length ? `<div class="catsec"><b>Courses in this track</b><ol class="catlist">${r.course_list.map((x) => `<li>${esc(x.title)}${x.minutes ? ` <span class="muted">· ${hrs(x.minutes)}</span>` : ""}</li>`).join("")}</ol></div>` : ""}
-			<div class="catsec"><b>How it is assessed</b><p>Each course ends with a timed, proctored assessment drawn at random from a larger question bank. Passing every course earns a certificate with a serial anyone can verify.</p></div>
-			<div class="catacts">
-				${r.assignable ? `<button onclick="admFocus(0);openAssign('${esc(r.track)}')">Assign to staff</button>` : ""}
+			${(r.course_list || []).length ? `<div class="catsec"><b>Courses in this track</b><ol class="catlist">${
+				r.course_list.map((x) => `<li>${esc(x.title)}${x.minutes ? ` <span class="muted">\u00B7 ${catHrs(x.minutes)}</span>` : ""}</li>`).join("")}</ol></div>` : ""}
+			<div class="catsec"><b>How it is assessed</b><p>Each course ends with a timed, proctored
+				assessment drawn at random from a larger question bank. Passing every course earns a
+				certificate carrying a serial anyone can verify. Certificates do not expire.</p></div>
+			${r.sample ? `
+				<div class="catsample">
+					<div class="catsec" style="margin-top:0"><b>A sample chapter</b>
+						<p class="muted">From ${esc(r.sample.course)} \u2014 read it and judge the writing for yourself.</p></div>
+					<h4 class="catsampt">${esc(r.sample.title)}</h4>
+					<div class="catsampb">${r.sample.html || ""}</div>
+				</div>` : ""}
+			<div class="catactions">
+				${r.assignable ? `<button onclick="openAssign('${esc(r.track)}','catalogue')">Assign to staff</button>` : ""}
 				${r.access === "Paid" && !r.pending ? `<button style="background:#E2E8E5;color:#2A3833" onclick="requestSeats('${esc(r.track)}','${esc(r.title)}',${r.seat_price})">${r.seats ? "Request more seats" : "Request seats"}</button>` : ""}
 			</div>
 		</div>`;
 }
+
 function requestSeats(track, title, price) {
 	admFocus(1);
 	const host = document.getElementById("adminhost");
 	const money = (v) => "₦" + Number(v || 0).toLocaleString();
 	host.innerHTML = `
 		<div class="admwrap">
-			<div class="admhead"><div><b>Request seats — ${esc(title)}</b></div>
-				<button style="background:#E2E8E5;color:#2A3833" onclick="openCatalogue()">Cancel</button></div>
+			${crumb([{ label: "Team training", go: "loadTraining()" },
+					 { label: "Catalogue", go: "openCatalogue()" },
+					 { label: title, go: "openCatalogue()" },
+					 { label: "Request seats" }])}
+			<div class="admhead"><div><b>Request seats — ${esc(title)}</b></div></div>
 			<div class="admfield"><label>How many seats?</label>
 				<input type="number" id="seatn" min="1" value="5" style="max-width:140px"></div>
 			<div class="admfield"><label>Anything we should know <span class="muted">(optional)</span></label>
@@ -2417,12 +2787,13 @@ function requestSeats(track, title, price) {
 				host.innerHTML = `<div class="admwrap"><div class="catnote ok">
 					Request ${esc(r.order)} received. The proforma is on its way to your inbox and is filed under Documents.
 					We will activate your seats once payment is confirmed.</div>
-					<button style="background:#E2E8E5;color:#2A3833;margin-top:12px" onclick="loadAdminTraining()">Back to team training</button></div>`;
+					<button style="background:#E2E8E5;color:#2A3833;margin-top:12px" onclick="loadTraining()">Back to team training</button></div>`;
 			})
 			.catch((e) => { document.getElementById("seatgo").disabled = false; fail(e); });
 	};
 }
-function openAssign(preselect) {
+function openAssign(preselect, from) {
+	window._assignFrom = from || "";
 	admFocus(1);
 	const host = document.getElementById("adminhost");
 	api("client_training_admin_options")
@@ -2433,8 +2804,13 @@ function openAssign(preselect) {
 			}
 			host.innerHTML = `
 				<div class="admwrap">
-					<div class="admhead"><div><b>Assign training</b></div>
-						<button style="background:#E2E8E5;color:#2A3833" onclick="loadAdminTraining()">Cancel</button></div>
+					${crumb(window._assignFrom === "catalogue"
+						? [{ label: "Team training", go: "loadTraining()" },
+						   { label: "Catalogue", go: "openCatalogue()" },
+						   { label: "Assign training" }]
+						: [{ label: "Team training", go: "loadTraining()" },
+						   { label: "Assign training" }])}
+					<div class="admhead"><div><b>Assign training</b></div></div>
 					<div class="admfield"><label>Track</label>
 						<select id="admtrack">${o.tracks.map((t) => `<option value="${esc(t.name)}"${t.name === preselect ? " selected" : ""}>${esc(t.title)} · ${t.modules} course${t.modules === 1 ? "" : "s"}${t.seats_left ? ` · ${t.seats_left} seat${t.seats_left === 1 ? "" : "s"} left` : ""}</option>`).join("")}</select></div>
 					<div class="admfield"><label>Due date <span class="muted">(optional)</span></label>
@@ -3288,7 +3664,15 @@ if (window.innerWidth >= 900) {
 	});
 }
 function setTab(t) {
+	// Pressing a tab must always land you at the top of that tab, rebuilt.
+	// Two independent flags hide parts of Training — data-adm for the admin
+	// sub-views and data-acad for the reading room — and clearing one without
+	// the other, or clearing both without re-rendering, leaves an empty card.
+	// loadTraining is the only function that restores all of it.
+	admFocus(0);
+	acadFocus("");
 	document.body.dataset.tab = t;
+	if (t === "training" && typeof loadTraining === "function") loadTraining();
 	localStorage.setItem("xl_tab", t);
 	document.querySelectorAll(".tabbar a").forEach((a) =>
 		a.classList.toggle("active", a.dataset.tab === t)
@@ -3308,6 +3692,134 @@ function setTab(t) {
 	}
 }
 window._pmsub = "phases";
+function phaseTimeline(rows) {
+	// The phase plan as bars on a real timescale. The stepper says which phase
+	// you are in; this says when each is expected and whether any has moved
+	// from the date first agreed — which the stepper cannot show at all.
+	//
+	// Phases only. The task-level Gantt is a working tool for the delivery team
+	// and would be noise here; what a client needs is the shape of the plan and
+	// where the slip is.
+	const dated = rows.filter((m) => m.target_date);
+	if (dated.length < 2) return "";
+	const day = 86400000;
+	const starts = dated.map((m) => new Date(m.target_date).getTime());
+	let t0 = Math.min(...starts), t1 = Math.max(...starts);
+	// a phase runs from the one before it, so the first needs a lead-in
+	t0 -= 30 * day;
+	const span = Math.max(day, t1 - t0);
+	const pos = (t) => ((t - t0) / span) * 100;
+	const today = Date.now();
+	let prev = t0 + 30 * day - 21 * day;
+	const bars = dated.map((m, i) => {
+		const end = new Date(m.target_date).getTime();
+		const start = i === 0 ? prev : new Date(dated[i - 1].target_date).getTime();
+		const base = m.baseline_date ? new Date(m.baseline_date).getTime() : null;
+		const slip = base ? Math.round((end - base) / day) : null;
+		const done = m.status === "Approved";
+		const late = !done && end < today;
+		return `<div class="ptrow">
+			<div class="ptlab"><b>${esc(m.title)}</b>
+				<span>${esc(m.target_date)}${slip ? ` · ${slip > 0 ? "+" : ""}${slip}d` : ""}</span></div>
+			<div class="ptlane">
+				${base && slip ? `<div class="ptbase" style="left:${pos(start)}%;width:${Math.max(1, pos(base) - pos(start))}%"
+					title="originally ${esc(m.baseline_date)}"></div>` : ""}
+				<div class="ptbar ${done ? "done" : late ? "late" : ""}"
+					 style="left:${pos(start)}%;width:${Math.max(1.5, pos(end) - pos(start))}%"
+					 title="${esc(m.title)} · ${esc(m.target_date)}"></div>
+			</div></div>`;
+	}).join("");
+	return `<div class="pttl">
+		<div class="ptnote">The plan on a timescale. A hatched bar behind a phase means its date has moved from the one first agreed.</div>
+		<div class="ptwrap">
+			${today >= t0 && today <= t1 ? `<div class="pttoday" style="left:${pos(today)}%"><span>today</span></div>` : ""}
+			${bars}
+		</div>
+	</div>`;
+}
+
+function loadDeliverables() {
+	// What the client is being asked to accept, and against what. The criteria
+	// matter most: criteria they cannot read are not criteria they agreed to,
+	// and an acceptance argued at the end is one that was never set up front.
+	const host = document.getElementById("dlvx");
+	const card = document.querySelector(".card.dlvx");
+	if (!host) return;
+	api("client_get_deliverables")
+		.then((r) => {
+			const rows = (r && r.rows) || [];
+			if (!rows.length) { if (card) card.style.display = "none"; if (window.pmSyncOptionalTabs) pmSyncOptionalTabs(); return; }
+			card.style.display = "";
+			const st = (z) => z.status === "Accepted" ? "accepted"
+				: z.status === "Submitted" ? "waiting"
+				: z.status === "Rejected" ? "rejected" : "pending";
+			host.innerHTML = `
+				${r.awaiting_you ? `<div class="dlvnote">
+					<b>${r.awaiting_you} waiting for your sign-off.</b>
+					Check each against what it says below, then tell your project manager \u2014 or say what is missing.</div>`
+					: `<div class="dlvnote">${r.accepted} of ${r.total} accepted. Nothing is waiting on you.</div>`}
+				${rows.map((z) => `
+					<div class="dlvrow ${st(z)}${z.overdue ? " late" : ""}">
+						<div class="dlvh">
+							<b>${esc(z.title)}</b>
+							<span class="dlvst">${esc(z.status)}</span>
+							${z.due_date ? `<em>due ${esc(z.due_date)}${z.overdue ? " · overdue" : ""}</em>` : ""}
+						</div>
+						<div class="dlvm">
+							${z.phase ? `<span>${esc(z.phase)}</span>` : ""}
+							${z.reviewer ? `<span>for ${esc(z.reviewer)} to accept</span>` : ""}
+						</div>
+						${z.criteria
+							? `<p><b>Accepted when:</b> ${esc(z.criteria)}</p>`
+							: `<p class="dlvnc">No acceptance criteria were recorded for this one \u2014 ask for them before signing it off.</p>`}
+						${z.accepted_by ? `<p class="dlvok">\u2713 Accepted by ${esc(z.accepted_by)} on ${esc(String(z.accepted_at).slice(0, 10))}${z.accept_note ? ` \u2014 ${esc(z.accept_note)}` : ""}</p>` : ""}
+						${z.reject_reason ? `<p class="dlvno">Sent back: ${esc(z.reject_reason)}</p>` : ""}
+						${z.artefact_url ? `<p><a href="${esc(z.artefact_url)}" target="_blank" rel="noopener">Open the document \u2192</a></p>` : ""}
+					</div>`).join("")}
+				<div class="dlvfoot">Criteria are agreed before the work starts, not at the end. If any of these do not describe what you are expecting, say so now rather than at sign-off.</div>`;
+			if (window.pmSyncOptionalTabs) pmSyncOptionalTabs();
+		})
+		.catch((e) => console.warn("deliverables:", e.message));
+}
+
+function loadDecisions() {
+	// The decision log, as the client sees it. Half the value of a decision log
+	// is that both sides were reading the same record all along — one only the
+	// supplier can see is a private diary, and a reviewer will treat it as one.
+	const host = document.getElementById("decsx");
+	const card = document.querySelector(".card.decsx");
+	if (!host) return;
+	api("client_get_decisions")
+		.then((r) => {
+			const rows = (r && r.rows) || [];
+			if (!rows.length) { if (card) card.style.display = "none"; if (window.pmSyncOptionalTabs) pmSyncOptionalTabs(); return; }
+			card.style.display = "";
+			host.innerHTML = `
+				<div class="dcnote">Every scope call and agreement on this project, with who made it and why.
+					${r.agreed ? `<b>${r.agreed} agreed.</b>` : ""}</div>
+				${rows.map((z) => `
+					<div class="dcrow ${(z.status || "").toLowerCase()}">
+						<div class="dch">
+							<b>${esc(z.title)}</b>
+							<span class="dcst">${esc(z.status)}</span>
+							<em>${esc(z.decided_on)}</em>
+						</div>
+						<div class="dcm">
+							${z.decided_by ? `<span>Decided by <b>${esc(z.decided_by)}</b></span>` : ""}
+							${z.raised_by ? `<span>Raised by ${esc(z.raised_by)}</span>` : ""}
+							${z.phase ? `<span>Affects ${esc(z.phase)}</span>` : ""}
+						</div>
+						${z.context ? `<p><b>Why:</b> ${esc(z.context)}</p>` : ""}
+						${z.options_considered ? `<p><b>Alternatives considered:</b> ${esc(z.options_considered)}</p>` : ""}
+						${z.impact ? `<p><b>Consequences:</b> ${esc(z.impact)}</p>` : ""}
+						${z.replaced_by ? `<p class="dcsup">Later superseded by “${esc(z.replaced_by)}”.</p>` : ""}
+					</div>`).join("")}
+				<div class="dcfoot">A decision is never deleted once agreed — where one is changed, the original stays and the replacement is recorded against it.</div>`;
+			if (window.pmSyncOptionalTabs) pmSyncOptionalTabs();
+		})
+		.catch((e) => console.warn("decisions:", e.message));
+}
+
 function pmShow(panel) {
 	window._pmsub = panel;
 	document.body.dataset.pmsub = panel;
@@ -3316,7 +3828,7 @@ function pmShow(panel) {
 function pmSyncOptionalTabs() {
 	// A Timeline / UAT tab appears only when its card has content. The render
 	// functions set card.style.display; we mirror that onto the tab button.
-	const map = { timeline: ".card.tlx", uat: ".card.uatx" };
+	const map = { timeline: ".card.tlx", uat: ".card.uatx", decs: ".card.decsx", dlv: ".card.dlvx" };
 	Object.entries(map).forEach(([sub, sel]) => {
 		const card = document.querySelector(sel);
 		const tab = document.querySelector(`#pmsubbar a[data-sub="${sub}"]`);
@@ -3766,6 +4278,67 @@ function uatSign() {
 #pjsum { background: #fff; border: 1px solid #DCE8E0; border-radius: 14px; padding: 14px 18px; margin: 0 0 14px; }
 .pjgrid { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 12px; }
 .pjgrid i { display: block; font-style: normal; font-size: 10.5px; text-transform: uppercase; letter-spacing: .4px; color: #65736F; font-weight: 800; }
+/* the header carries facts a reviewer asks about, so each figure says what it is
+   measured against rather than standing alone */
+.pttl { margin-top: 16px; padding-top: 14px; border-top: 1px solid #E7ECEA; }
+.ptnote { font-size: 11.5px; color: #65736F; margin-bottom: 10px; }
+.ptwrap { position: relative; }
+.ptrow { display: grid; grid-template-columns: 160px 1fr; align-items: center; min-height: 22px; margin-bottom: 6px; }
+.ptlab b { display: block; font-size: 12px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; padding-right: 10px; }
+.ptlab span { font-size: 10px; color: #65736F; }
+.ptlane { position: relative; height: 16px; }
+.ptbar { position: absolute; top: 2px; height: 12px; border-radius: 4px; background: #0F5C55; min-width: 4px; }
+.ptbar.done { background: #0E8A63; opacity: .55; }
+.ptbar.late { background: #C2410C; }
+.ptbase { position: absolute; top: 2px; height: 12px; border-radius: 4px;
+	background: repeating-linear-gradient(45deg,#DDE6EE,#DDE6EE 3px,#EEF3F7 3px,#EEF3F7 6px); }
+.pttoday { position: absolute; top: 0; bottom: 0; border-left: 2px solid #B45309; z-index: 2; margin-left: 160px; }
+.pttoday span { position: absolute; top: -12px; left: 4px; font-size: 9.5px; color: #B45309; font-weight: 700; }
+@media (max-width: 640px) { .ptrow { grid-template-columns: 108px 1fr; } .pttoday { margin-left: 108px; } }
+.dlvnote { font-size: 12.5px; color: #4A4132; background: #FEF6EC; border: 1px solid #F0DCB8; border-radius: 9px; padding: 9px 13px; margin-bottom: 10px; }
+.dlvnote b { color: #8A5A0B; }
+.dlvrow { border: 1px solid #E7ECEA; border-left: 3px solid #C9D2CF; border-radius: 10px; padding: 11px 14px; margin-bottom: 8px; background: #fff; }
+.dlvrow.waiting { border-left-color: #B45309; background: #FFFDF9; }
+.dlvrow.accepted { border-left-color: #0E8A63; }
+.dlvrow.rejected { border-left-color: #B91C1C; }
+.dlvh { display: flex; align-items: baseline; gap: 9px; flex-wrap: wrap; }
+.dlvh b { font-size: 13.5px; }
+.dlvst { font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: .5px; color: #65736F; background: #F3F6F5; border-radius: 999px; padding: 1px 8px; }
+.dlvrow.waiting .dlvst { color: #8A5A0B; background: #FEF6EC; }
+.dlvrow.accepted .dlvst { color: #0C6B4F; background: #E4F3EC; }
+.dlvrow.rejected .dlvst { color: #B91C1C; background: #FEF0F0; }
+.dlvh em { margin-left: auto; font-style: normal; font-size: 11px; color: #65736F; }
+.dlvrow.late .dlvh em { color: #B91C1C; font-weight: 600; }
+.dlvm { display: flex; gap: 13px; flex-wrap: wrap; margin: 5px 0 6px; font-size: 11.5px; color: #65736F; }
+.dlvrow p { margin: 3px 0; font-size: 12.5px; line-height: 1.55; color: #33423E; }
+.dlvnc { color: #B27409 !important; font-style: italic; }
+.dlvok { color: #0C6B4F !important; }
+.dlvno { color: #B91C1C !important; }
+.dlvfoot { font-size: 11.5px; color: #65736F; margin-top: 10px; padding-top: 8px; border-top: 1px solid #E7ECEA; }
+.dcnote { font-size: 12.5px; color: #65736F; margin-bottom: 10px; }
+.dcrow { border: 1px solid #E7ECEA; border-left: 3px solid #5B3E86; border-radius: 10px; padding: 11px 14px; margin-bottom: 8px; background: #fff; }
+.dcrow.proposed { border-left-color: #B27409; }
+.dcrow.superseded, .dcrow.reversed { border-left-color: #C9C4D2; opacity: .68; }
+.dch { display: flex; align-items: baseline; gap: 9px; flex-wrap: wrap; }
+.dch b { font-size: 13.5px; }
+.dcst { font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: .5px; color: #5B3E86; background: #F6F3FB; border-radius: 999px; padding: 1px 8px; }
+.dcrow.proposed .dcst { color: #8A5A0B; background: #FEF6EC; }
+.dch em { margin-left: auto; font-style: normal; font-size: 11px; color: #65736F; }
+.dcm { display: flex; gap: 14px; flex-wrap: wrap; margin: 5px 0 7px; font-size: 11.5px; color: #65736F; }
+.dcrow p { margin: 3px 0; font-size: 12.5px; line-height: 1.55; color: #33423E; }
+.dcsup { color: #65736F; font-style: italic; }
+.dcfoot { font-size: 11.5px; color: #65736F; margin-top: 10px; padding-top: 8px; border-top: 1px solid #E7ECEA; }
+.pjgrid u { display: block; text-decoration: none; font-size: 10.5px; line-height: 1.4; color: #65736F; font-weight: 500; margin-top: 3px; }
+.pjrag { margin-top: 12px; padding: 11px 14px; border-radius: 10px; background: #FEF6EC; border: 1px solid #F0DCB8; font-size: 13px; }
+.pjrag.red { background: #FEF6F6; border-color: #F3D4D4; }
+.pjrag > b { display: block; color: #B45309; margin-bottom: 3px; }
+.pjrag.red > b { color: #B91C1C; }
+.pjrag > span { display: block; line-height: 1.55; color: #4A4132; }
+.pjrag-none { font-style: italic; color: #8A7B5F !important; }
+.pjrag-m { display: flex; gap: 16px; flex-wrap: wrap; margin-top: 7px; font-size: 11.5px; color: #65736F; }
+.pjlate { margin-top: 10px; padding: 11px 14px; border-radius: 10px; background: #FBFAF8; border: 1px solid #E7E2D8; font-size: 12.5px; }
+.pjlate > b { display: block; color: #8A5A0B; margin-bottom: 5px; }
+.pjlate > span { display: block; color: #5A5245; line-height: 1.6; }
 .pjgrid b { font-size: 14.5px; color: #17211F; }
 .pjnext { margin-top: 11px; padding: 9px 13px; background: #FFFBEB; border: 1px solid #F0D9A8; border-radius: 10px; font-size: 13px; color: #4A3E22; display: flex; gap: 7px; align-items: center; flex-wrap: wrap; }
 .pjnext.pjok { background: #F0FAF4; border-color: #CBE6D4; color: #12503C; }

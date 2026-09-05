@@ -1,0 +1,132 @@
+{
+ "actions": [],
+ "creation": "2026-08-23 00:00:00.000000",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "title",
+  "amount",
+  "currency",
+  "category",
+  "column_break_1",
+  "start_month",
+  "end_month",
+  "due_day",
+  "section_break_1",
+  "carries_forward",
+  "account",
+  "standing_order",
+  "active",
+  "note"
+ ],
+ "fields": [
+  {
+   "fieldname": "title",
+   "fieldtype": "Data",
+   "label": "What",
+   "reqd": 1,
+   "in_list_view": 1
+  },
+  {
+   "fieldname": "amount",
+   "fieldtype": "Float",
+   "label": "Amount",
+   "precision": "2",
+   "reqd": 1,
+   "in_list_view": 1
+  },
+  {
+   "fieldname": "currency",
+   "fieldtype": "Link",
+   "options": "Currency",
+   "label": "Currency",
+   "reqd": 1,
+   "in_list_view": 1
+  },
+  {
+   "fieldname": "category",
+   "fieldtype": "Link",
+   "label": "Category",
+   "options": "Duty Money Category"
+  },
+  {
+   "fieldname": "column_break_1",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "start_month",
+   "fieldtype": "Data",
+   "label": "From",
+   "reqd": 1,
+   "description": "YYYY-MM. The first month it is owed."
+  },
+  {
+   "fieldname": "end_month",
+   "fieldtype": "Data",
+   "label": "Until",
+   "description": "YYYY-MM, or blank for no end. This is how an expense goes away \u2014 it stops counting after this month rather than being deleted, so past months stay truthful."
+  },
+  {
+   "fieldname": "due_day",
+   "fieldtype": "Int",
+   "label": "Due Day"
+  },
+  {
+   "fieldname": "section_break_1",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "carries_forward",
+   "fieldtype": "Check",
+   "label": "Unpaid Months Accumulate",
+   "default": "0",
+   "description": "Off by default. A missed subscription is simply missed; missed rent is owed twice next month. Only you know which this is, so it is per expense rather than a rule."
+  },
+  {
+   "fieldname": "account",
+   "fieldtype": "Link",
+   "options": "Duty Bank Account",
+   "label": "Usually Paid From"
+  },
+  {
+   "fieldname": "standing_order",
+   "fieldtype": "Link",
+   "options": "Duty Standing Order",
+   "label": "Paid By Standing Order",
+   "description": "If it pays itself, say so here and it marks itself paid when the order posts."
+  },
+  {
+   "fieldname": "active",
+   "fieldtype": "Check",
+   "label": "Active",
+   "default": "1"
+  },
+  {
+   "fieldname": "note",
+   "fieldtype": "Small Text",
+   "label": "Note"
+  }
+ ],
+ "links": [],
+ "modified": "2026-08-23 00:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "Duty Board",
+ "name": "Duty Monthly Expense",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "print": 1,
+   "read": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [],
+ "track_changes": 0
+}

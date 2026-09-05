@@ -238,3 +238,30 @@ def timeline_pdf(room):
 	).insert(ignore_permissions=True)
 	frappe.db.commit()
 	return {"file_url": fdoc.file_url, "file_name": fname}
+
+
+def ball_in_court(room_name):
+	"""Days the engagement sat with each side, for the project header.
+
+	The same figures the timeline reports, lifted out so the header can carry
+	them. This is the most useful number in the product for a project reviewer:
+	when a schedule slips the first question is whose delay it was, and most
+	implementation partners cannot answer it at all.
+
+	It reuses _collect rather than recomputing, so the header and the timeline
+	can never disagree — two calculations of the same thing eventually diverge,
+	and the one on the header would be the one nobody checked.
+	"""
+	t = _collect(room_name, for_client=True)
+	s = t.get("summary") or {}
+	c, x = cint(s.get("client_days")), cint(s.get("xlevel_days"))
+	tot = c + x
+	return {
+		"client_days": c,
+		"xlevel_days": x,
+		"total_days": tot,
+		"client_pct": round(c * 100 / tot) if tot else None,
+		# stated plainly, because the number is only fair if what it counts is
+		# clear: it is waiting time, not effort
+		"basis": _("Days each side held an open item waiting on them, not effort spent."),
+	}

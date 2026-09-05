@@ -108,9 +108,10 @@ def seed_hr_pro_track():
 		frappe.get_doc(
 			{
 				"doctype": "Duty Certification Track",
+			"category": "ERP by Role",
 				"title": TRACK["title"],
 				"product": "ZhiftERP HR",
-				"audience": "Consultant",
+				"audience": "Both",
 				"serial_prefix": TRACK["serial_prefix"],
 				"description": TRACK["description"],
 				"active": 1,

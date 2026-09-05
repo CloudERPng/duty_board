@@ -19,6 +19,25 @@ from frappe import _
 CONSULTANT_ROLE = "Duty Consultant"
 
 
+def is_sysadmin(user=None):
+	"""System Manager — the convention already used for fees, pricing and
+	privileged actions across this app rather than a new role."""
+	user = user or frappe.session.user
+	if not user or user in ("Guest",):
+		return False
+	if user == "Administrator":
+		return True
+	return "System Manager" in frappe.get_roles(user)
+
+
+def require_sysadmin():
+	"""Gate for the Library, which holds licensed material rather than
+	operational data — a narrower audience than staff-at-large."""
+	if not is_sysadmin():
+		frappe.throw(_("Not permitted."), frappe.PermissionError)
+	return True
+
+
 def is_consultant(user=None):
 	"""External consultant: a System User carrying the Duty Consultant role.
 	They get desk credentials (so the Duty Board page opens) but must never

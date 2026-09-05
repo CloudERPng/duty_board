@@ -1,0 +1,143 @@
+{
+ "actions": [],
+ "creation": "2026-08-23 00:00:00.000000",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "bond_name",
+  "issuer",
+  "currency",
+  "coupon_rate",
+  "column_break_1",
+  "first_coupon",
+  "maturity",
+  "broker",
+  "active",
+  "section_break_1",
+  "valuation",
+  "mark_price",
+  "mark_on",
+  "note"
+ ],
+ "fields": [
+  {
+   "fieldname": "bond_name",
+   "fieldtype": "Data",
+   "label": "Bond",
+   "reqd": 1,
+   "unique": 1,
+   "in_list_view": 1,
+   "description": "As the market quotes it, e.g. FGN 18.74% MAR 2034."
+  },
+  {
+   "fieldname": "issuer",
+   "fieldtype": "Select",
+   "label": "Issuer",
+   "options": "FGN\nState\nCorporate\nOther",
+   "default": "FGN",
+   "reqd": 1,
+   "description": "Decides the tax treatment. FGN and State coupons are exempt under s.163(1)(n) of the Nigeria Tax Act 2025; corporate coupons bear 10% withholding. Getting this wrong misstates every yield on the holding."
+  },
+  {
+   "fieldname": "currency",
+   "fieldtype": "Link",
+   "options": "Currency",
+   "label": "Currency",
+   "default": "NGN",
+   "reqd": 1
+  },
+  {
+   "fieldname": "coupon_rate",
+   "fieldtype": "Float",
+   "label": "Coupon %",
+   "precision": "4",
+   "reqd": 1,
+   "description": "Annual, as quoted. Paid in two equal halves."
+  },
+  {
+   "fieldname": "column_break_1",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "first_coupon",
+   "fieldtype": "Date",
+   "label": "First Coupon Date",
+   "reqd": 1,
+   "description": "Any coupon date will do \u2014 the rest of the schedule is generated six months apart from it."
+  },
+  {
+   "fieldname": "maturity",
+   "fieldtype": "Date",
+   "label": "Maturity",
+   "reqd": 1
+  },
+  {
+   "fieldname": "broker",
+   "fieldtype": "Link",
+   "options": "Duty Broker",
+   "label": "Broker"
+  },
+  {
+   "fieldname": "active",
+   "fieldtype": "Check",
+   "label": "Active",
+   "default": "1"
+  },
+  {
+   "fieldname": "section_break_1",
+   "fieldtype": "Section Break",
+   "label": "Valuation"
+  },
+  {
+   "fieldname": "valuation",
+   "fieldtype": "Select",
+   "label": "Carried At",
+   "options": "Amortised cost\nManual mark",
+   "default": "Amortised cost",
+   "reqd": 1,
+   "description": "Amortised cost drifts from what you paid to par over the life of the bond, which is the honest treatment for something you intend to hold \u2014 a market price pulls to par anyway, and reporting that drift as a gain says something happened when nothing did. Use a manual mark only for a bond you might sell."
+  },
+  {
+   "fieldname": "mark_price",
+   "fieldtype": "Float",
+   "label": "Mark (per 100)",
+   "precision": "4",
+   "depends_on": "eval:doc.valuation=='Manual mark'"
+  },
+  {
+   "fieldname": "mark_on",
+   "fieldtype": "Date",
+   "label": "Marked On",
+   "depends_on": "eval:doc.valuation=='Manual mark'"
+  },
+  {
+   "fieldname": "note",
+   "fieldtype": "Small Text",
+   "label": "Note"
+  }
+ ],
+ "links": [],
+ "modified": "2026-08-23 00:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "Duty Board",
+ "name": "Duty Bond",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "print": 1,
+   "read": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [],
+ "track_changes": 0,
+ "autoname": "field:bond_name",
+ "allow_rename": 1
+}

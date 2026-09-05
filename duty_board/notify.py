@@ -118,7 +118,7 @@ def _issue_rows(doc):
 def _task_rows(doc):
 	return [
 		(_("Task"), doc.title),
-		(_("Project"), frappe.db.get_value("Duty Project", doc.project, "title") or doc.project),
+		(_("Project"), frappe.db.get_value("Duty Project", doc.project, "project_name") or doc.project),
 		(_("Customer"), frappe.db.get_value("Duty Project", doc.project, "customer")),
 		(_("Urgency"), doc.urgency),
 		(_("Column"), doc.column),
@@ -162,7 +162,10 @@ def closure_email(doc, hours=None, kind="issue"):
 # ────────────── consultant/open-issue helpers for jobs ──────────────
 
 def _consultant_open_map():
-	"""{consultant: [issue rows]} for Open/In Progress issues."""
+	"""{user: [issue rows]} for Open/In Progress issues.
+
+	Name kept for its callers; it covers staff as well as consultants now.
+	"""
 	rows = frappe.db.sql(
 		"""
 		select i.name, i.title, i.customer, i.severity, i.status, i.due_date,
@@ -175,7 +178,12 @@ def _consultant_open_map():
 	)
 	out = {}
 	for r in rows:
-		if is_consultant(r.user):
+		# Was: consultants only. Both reminder jobs therefore skipped staff
+		# entirely, so a staff member with six open tickets got no stale-ticket
+		# nudge and no morning list — the same consultant-only assumption that
+		# made task assignment silent for staff. Now everybody assigned an open
+		# ticket is reminded; disabled users are excluded.
+		if frappe.db.get_value("User", r.user, "enabled"):
 			out.setdefault(r.user, []).append(r)
 	return out
 
@@ -216,6 +224,19 @@ def remind_stale_issues():
 					(_("Due"), str(r.due_date) if r.due_date else None),
 				])
 			)
+			try:
+				from duty_board.notify_events import deep_link
+
+				_l = deep_link("Duty Issue", r.name)
+				if _l:
+					inner += (
+						'<p style="margin:18px 0 0">'
+						f'<a href="{_l}" style="display:inline-block;background:#0F5C55;'
+						'color:#fff;text-decoration:none;padding:10px 18px;border-radius:6px;'
+						f'font-weight:600;font-size:14px">{_("Open the ticket")}</a></p>'
+					)
+			except Exception:
+				pass
 			_send(
 				user,
 				f"[Duty Board] ⏰ {due_stage}h without an update — {r.title[:70]}",
@@ -241,9 +262,20 @@ def daily_pending():
 			age = "—"
 			if last:
 				age = f"{int((now_datetime() - get_datetime(last)).total_seconds() // 3600)}h"
+			# each row's title is the link, so the digest is a list of doors
+			# rather than a list of names to go and search for
+			try:
+				from duty_board.notify_events import deep_link
+
+				_l = deep_link("Duty Issue", r.name)
+			except Exception:
+				_l = None
+			_title = frappe.utils.escape_html(r.title[:60])
+			if _l:
+				_title = f'<a href="{_l}" style="color:#0F5C55;text-decoration:none">{_title}</a>'
 			trs += (
 				f'<tr>'
-				f'<td style="padding:7px 10px;border-bottom:1px solid #EDF2EF;font-size:12px;font-weight:700">{frappe.utils.escape_html(r.title[:60])}<br>'
+				f'<td style="padding:7px 10px;border-bottom:1px solid #EDF2EF;font-size:12px;font-weight:700">{_title}<br>'
 				f'<span style="color:#8A9994;font-weight:500">{frappe.utils.escape_html(r.customer or "")} · {r.name}</span></td>'
 				f'<td style="padding:7px 10px;border-bottom:1px solid #EDF2EF;font-size:12px">{r.severity}</td>'
 				f'<td style="padding:7px 10px;border-bottom:1px solid #EDF2EF;font-size:12px;{"color:#C94646;font-weight:800" if overdue else ""}">{("⚠ " if overdue else "") + str(r.due_date) if r.due_date else "—"}</td>'
@@ -346,3 +378,197 @@ def setup_email_jobs():
 			made.append(f"created {method}")
 	frappe.db.commit()
 	return made
+
+
+# ─────────────────── escalation, aging digest, unacknowledged sweep ───────────
+#
+# Three jobs added on request. All three share two disciplines:
+#
+#   They send to a CONFIGURED audience — Duty Settings.issue_escalation_to —
+#   and send nothing at all when it is blank. Guessing an audience for an
+#   escalation is worse than not sending one, because the wrong person receiving
+#   it teaches everybody to ignore the channel.
+#
+#   They dedupe through Duty Notify Log, the same store the stale ladder uses,
+#   so a scheduler that fires twice or a job re-run does not re-mail anybody.
+
+
+def _escalation_recipients():
+	"""Configured escalation audience. Empty means these jobs stay silent."""
+	raw = (frappe.get_cached_doc("Duty Settings").get("issue_escalation_to") or "").strip()
+	out = []
+	for part in raw.replace("\n", ",").split(","):
+		u = part.strip()
+		if u and frappe.db.get_value("User", u, "enabled") and u not in out:
+			out.append(u)
+	return out
+
+
+def _issue_link(name):
+	try:
+		from duty_board.notify_events import deep_link
+
+		return deep_link("Duty Issue", name)
+	except Exception:
+		return None
+
+
+def _rows_table(headers, rows):
+	th = "".join(
+		f'<th style="text-align:left;padding:7px 10px;font-size:11px;color:#65736F">{h}</th>'
+		for h in headers
+	)
+	return (
+		'<table style="border-collapse:collapse;width:100%">'
+		f"<tr>{th}</tr>{rows}</table>"
+	)
+
+
+def escalate_silent_issues():
+	"""Second-day escalation: a ticket silent past 48h goes above the assignee.
+
+	The existing ladder stops at 24 hours and keeps nudging the same person, who
+	by then has demonstrably not responded to four reminders. This raises it once
+	— once per ticket, ever — to whoever is configured.
+
+	cron: 0 9 * * 1-5
+	"""
+	to = _escalation_recipients()
+	if not to:
+		return
+	now = now_datetime()
+	rows = ""
+	count = 0
+	for user, issues in _consultant_open_map().items():
+		for r in issues:
+			base = _last_update_at(r.name, user) or r.assigned_at or r.creation
+			hrs = (now - get_datetime(base)).total_seconds() / 3600.0
+			if hrs < 48:
+				continue
+			# once per ticket per assignee, ever — an escalation that repeats is
+			# an escalation that gets filtered
+			if _logged(user, "escalate", ref=r.name):
+				continue
+			link = _issue_link(r.name)
+			title = frappe.utils.escape_html(r.title[:60])
+			if link:
+				title = f'<a href="{link}" style="color:#0F5C55;text-decoration:none">{title}</a>'
+			rows += (
+				"<tr>"
+				f'<td style="padding:7px 10px;border-bottom:1px solid #EDF2EF;font-size:12px;font-weight:700">{title}<br>'
+				f'<span style="color:#8A9994;font-weight:500">{frappe.utils.escape_html(r.customer or "")} · {r.name}</span></td>'
+				f'<td style="padding:7px 10px;border-bottom:1px solid #EDF2EF;font-size:12px">{frappe.utils.escape_html(frappe.utils.get_fullname(user))}</td>'
+				f'<td style="padding:7px 10px;border-bottom:1px solid #EDF2EF;font-size:12px">{r.severity}</td>'
+				f'<td style="padding:7px 10px;border-bottom:1px solid #EDF2EF;font-size:12px;color:#C94646;font-weight:800">{int(hrs)}h</td>'
+				"</tr>"
+			)
+			count += 1
+			_log(user, "escalate", ref=r.name)
+	if not count:
+		return
+	inner = (
+		f'<p style="font-size:13.5px">{_("<b>{0} ticket(s)</b> have had no update from the assignee for more than 48 hours. The assignee has already had four reminders.").format(count)}</p>'
+		+ _rows_table([_("Ticket"), _("Assignee"), _("Severity"), _("Silent")], rows)
+	)
+	for u in to:
+		_send(u, f"[Duty Board] \u26a0 {count} ticket(s) silent for 48h+",
+			  _shell(_("Escalation"), inner).replace(BRAND, "#C94646", 1))
+
+
+def weekly_aging_digest():
+	"""Monday portfolio view: every open ticket, oldest-without-update first.
+
+	The Oversight face as an email — for the person who owns the relationships
+	rather than the queue.
+
+	cron: 0 7 * * 1
+	"""
+	to = _escalation_recipients()
+	if not to:
+		return
+	now = now_datetime()
+	items = []
+	for user, issues in _consultant_open_map().items():
+		for r in issues:
+			base = _last_update_at(r.name, user) or r.assigned_at or r.creation
+			items.append((int((now - get_datetime(base)).total_seconds() / 3600.0), user, r))
+	if not items:
+		return
+	items.sort(key=lambda x: -x[0])
+	rows = ""
+	for hrs, user, r in items[:40]:
+		link = _issue_link(r.name)
+		title = frappe.utils.escape_html(r.title[:55])
+		if link:
+			title = f'<a href="{link}" style="color:#0F5C55;text-decoration:none">{title}</a>'
+		overdue = r.due_date and str(r.due_date) < today()
+		rows += (
+			"<tr>"
+			f'<td style="padding:7px 10px;border-bottom:1px solid #EDF2EF;font-size:12px;font-weight:700">{title}<br>'
+			f'<span style="color:#8A9994;font-weight:500">{frappe.utils.escape_html(r.customer or "")}</span></td>'
+			f'<td style="padding:7px 10px;border-bottom:1px solid #EDF2EF;font-size:12px">{frappe.utils.escape_html(frappe.utils.get_fullname(user).split(" ")[0])}</td>'
+			f'<td style="padding:7px 10px;border-bottom:1px solid #EDF2EF;font-size:12px;{"color:#C94646;font-weight:800" if overdue else ""}">{str(r.due_date) if r.due_date else "—"}</td>'
+			f'<td style="padding:7px 10px;border-bottom:1px solid #EDF2EF;font-size:12px;{"color:#C94646;font-weight:800" if hrs >= 48 else ""}">{hrs}h</td>'
+			"</tr>"
+		)
+	inner = (
+		f'<p style="font-size:13.5px">{_("<b>{0} open ticket(s)</b> across the portfolio, longest without an update first.").format(len(items))}</p>'
+		+ _rows_table([_("Ticket"), _("Assignee"), _("Due"), _("Since update")], rows)
+	)
+	if len(items) > 40:
+		inner += f'<p style="font-size:11px;color:#8A9994;margin-top:8px">{_("Showing the 40 oldest of {0}.").format(len(items))}</p>'
+	for u in to:
+		if _logged(u, "aging", on=today()):
+			continue
+		_send(u, f"[Duty Board] Portfolio aging — {len(items)} open ticket(s)",
+			  _shell(_("Weekly aging"), inner))
+		_log(u, "aging", on=today())
+
+
+def unacknowledged_sweep():
+	"""End of day: tickets nobody has even opened.
+
+	Distinct from the stale ladder, which measures silence after somebody has
+	engaged. A ticket with no acknowledgement is a different failure — nobody
+	has looked at it at all — and it is cheap to detect.
+
+	cron: 0 18 * * 1-5
+	"""
+	to = _escalation_recipients()
+	if not to:
+		return
+	rows = frappe.get_all(
+		"Duty Issue",
+		filters={"status": ["in", ["Open", "In Progress"]], "acknowledged_at": ["is", "not set"]},
+		fields=["name", "title", "customer", "severity", "due_date", "creation"],
+		order_by="creation asc",
+		limit_page_length=0,
+	)
+	rows = [r for r in rows if str(r.creation)[:10] <= today()]
+	if not rows:
+		return
+	trs = ""
+	for r in rows[:30]:
+		link = _issue_link(r.name)
+		title = frappe.utils.escape_html((r.title or "")[:55])
+		if link:
+			title = f'<a href="{link}" style="color:#0F5C55;text-decoration:none">{title}</a>'
+		age = frappe.utils.time_diff_in_hours(now_datetime(), get_datetime(r.creation))
+		trs += (
+			"<tr>"
+			f'<td style="padding:7px 10px;border-bottom:1px solid #EDF2EF;font-size:12px;font-weight:700">{title}<br>'
+			f'<span style="color:#8A9994;font-weight:500">{frappe.utils.escape_html(r.customer or "")} · {r.name}</span></td>'
+			f'<td style="padding:7px 10px;border-bottom:1px solid #EDF2EF;font-size:12px">{r.severity}</td>'
+			f'<td style="padding:7px 10px;border-bottom:1px solid #EDF2EF;font-size:12px">{int(age)}h</td>'
+			"</tr>"
+		)
+	inner = (
+		f'<p style="font-size:13.5px">{_("<b>{0} ticket(s)</b> have not been acknowledged by anybody. Nobody has opened them — this is different from a ticket being worked slowly.").format(len(rows))}</p>'
+		+ _rows_table([_("Ticket"), _("Severity"), _("Age")], trs)
+	)
+	for u in to:
+		if _logged(u, "unack", on=today()):
+			continue
+		_send(u, f"[Duty Board] {len(rows)} unacknowledged ticket(s)",
+			  _shell(_("Unacknowledged"), inner).replace(BRAND, "#B27409", 1))
+		_log(u, "unack", on=today())

@@ -7,6 +7,7 @@
  "field_order": [
   "title",
   "product",
+  "category",
   "audience",
   "serial_prefix",
   "description",
@@ -32,11 +33,19 @@
    "reqd": 1
   },
   {
+   "fieldname": "category",
+   "fieldtype": "Select",
+   "label": "Category",
+   "options": "\nRetail & Point of Sale\nERP by Role\nFinance, Control & Compliance\nCRM & Ecommerce\nLeadership & Management",
+   "description": "Groups the track on the public academy page. Blank falls into Other."
+  },
+  {
    "default": "Client",
    "fieldname": "audience",
    "fieldtype": "Select",
    "label": "Audience",
-   "options": "Client\nConsultant"
+   "options": "Client\nConsultant\nBoth",
+   "description": "Client shows on the public academy and in client rooms. Consultant shows to staff and consultants. Both shows everywhere."
   },
   {
    "description": "e.g. XLV-CRM-CLOSER",

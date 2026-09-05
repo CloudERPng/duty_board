@@ -6,7 +6,16 @@
  "field_order": [
   "title",
   "author",
+  "authors",
   "category",
+  "topics",
+  "shelf_status",
+  "plan_month",
+  "plan_note",
+  "revisit_after",
+  "reads",
+  "times_read",
+  "last_finished",
   "description",
   "active",
   "chapter_count",
@@ -27,10 +36,69 @@
    "in_list_view": 1
   },
   {
+   "fieldname": "authors",
+   "fieldtype": "Table",
+   "options": "Duty Book Author",
+   "label": "Authors",
+   "description": "A book can have more than one. The old freehand author field is kept as the display line and is backfilled from here."
+  },
+  {
    "fieldname": "category",
    "fieldtype": "Data",
    "label": "Category",
    "in_list_view": 1
+  },
+  {
+   "fieldname": "topics",
+   "fieldtype": "Table",
+   "options": "Duty Book Topic",
+   "label": "Topics",
+   "description": "Many per book \u2014 a book is rarely one subject. The single category field remains for the shelf's primary grouping."
+  },
+  {
+   "fieldname": "shelf_status",
+   "fieldtype": "Select",
+   "label": "Status",
+   "options": "To read\nReading\nRead\nReference\nAbandoned",
+   "default": "To read",
+   "description": "Reference means kept to be searched rather than read cover to cover \u2014 it is excluded from the reading plan entirely so the plan stays a list of intentions rather than a catalogue."
+  },
+  {
+   "fieldname": "plan_month",
+   "fieldtype": "Data",
+   "label": "Planned For",
+   "description": "YYYY-MM. A month rather than a date, deliberately: a hard due date turns reading into homework and gets ignored, while a month is soft enough to be honest and specific enough to sort by."
+  },
+  {
+   "fieldname": "plan_note",
+   "fieldtype": "Small Text",
+   "label": "Why You Kept It",
+   "description": "One line, written at the moment of curating. In two years this is the field you will be most glad exists."
+  },
+  {
+   "fieldname": "revisit_after",
+   "fieldtype": "Date",
+   "label": "Revisit After",
+   "description": "For a book worth another pass. Nothing else on a shelf can express this, and it is the most useful field in a library that has been accumulating for years."
+  },
+  {
+   "fieldname": "reads",
+   "fieldtype": "Table",
+   "options": "Duty Book Read",
+   "label": "Reading History"
+  },
+  {
+   "fieldname": "times_read",
+   "fieldtype": "Int",
+   "label": "Times Read",
+   "read_only": 1,
+   "description": "Derived from the reading history rather than typed."
+  },
+  {
+   "fieldname": "last_finished",
+   "fieldtype": "Date",
+   "label": "Last Finished",
+   "read_only": 1
   },
   {
    "fieldname": "description",

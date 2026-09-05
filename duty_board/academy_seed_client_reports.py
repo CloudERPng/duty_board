@@ -86,6 +86,7 @@ def _ensure_track(module_name):
 	frappe.get_doc(
 		{
 			"doctype": "Duty Certification Track",
+			"category": "Finance, Control & Compliance",
 			"title": title,
 			"product": "Accounting Services",
 			"audience": "Client",

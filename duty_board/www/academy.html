@@ -10,6 +10,9 @@
 	.wrap { max-width: 1040px; margin: 34px auto 60px; padding: 0 18px; }
 	.lede { font-size: 17px; line-height: 1.65; color: #33423E; max-width: 640px; margin-bottom: 30px; }
 	.lede h1 { font-size: 30px; line-height: 1.2; margin: 0 0 12px; color: #0A473F; }
+	.famhead { font-size: 15px; font-weight: 700; color: #0F5C55; margin: 28px 0 10px; padding-bottom: 6px; border-bottom: 1px solid #E3EAE7; display: flex; align-items: center; gap: 8px; }
+	.famhead:first-of-type { margin-top: 14px; }
+	.famcount { font-size: 12px; font-weight: 600; color: #6B7C77; background: #F3F6F5; border-radius: 999px; padding: 1px 8px; }
 	.grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
 	.card { background: #fff; border: 1px solid #E7ECEA; border-radius: 16px; padding: 20px; display: flex; flex-direction: column; text-decoration: none; color: inherit; }
 	.card:hover { border-color: #0F5C55; }
@@ -32,13 +35,26 @@
 	.cta { margin-top: 30px; background: #F4F7F6; border-radius: 12px; padding: 18px 20px; font-size: 15px; line-height: 1.65; }
 	.back { font-size: 13.5px; font-weight: 700; color: #0F5C55; text-decoration: none; }
 	.foot { margin-top: 40px; font-size: 12.5px; color: #93A19C; line-height: 1.7; }
+	.art { display: grid; place-items: center; width: 62px; height: 62px; border-radius: 14px;
+		background: linear-gradient(135deg,#0A473F,#0F5C55 60%,#146B62); color: #fff; margin-bottom: 14px; }
+	.art svg { width: 34px; height: 34px; }
+	.famcard .name { font-size: 20px; }
+	.fammeta { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 13px; font-size: 12.5px; }
+	.fammeta span { background: #F3F6F5; color: #4A5A55; border-radius: 999px; padding: 2px 10px; }
+	.fammeta .ff { background: #E4F3EC; color: #0C6B4F; font-weight: 600; }
+	.famtop { display: flex; gap: 18px; align-items: flex-start; margin: 14px 0 26px; }
+	.famtop .art { margin-bottom: 0; }
+	.famtop h1 { font-size: 27px; margin: 0 0 8px; color: #0A473F; }
+	.famtop p { margin: 0; font-size: 15px; line-height: 1.65; color: #4A5A55; max-width: 620px; }
 	@media (max-width: 900px) { .grid { grid-template-columns: repeat(2, 1fr); } }
 	@media (max-width: 620px) { .grid { grid-template-columns: 1fr; } .detail { padding: 22px; } }
 </style></head><body>
 <div class="top"><a href="/academy">CloudERP.One Academy</a></div>
 <div class="wrap">
 {% if track %}
-	<a class="back" href="/academy">&larr; All certifications</a>
+	<a class="back" href="/academy">&larr; All certifications</a>{% if track.category %}
+	<span style="color:#B7C4C0"> &rsaquo; </span>
+	<a class="back" href="/academy?family={{ track.category | urlencode }}">{{ track.category }}</a>{% endif %}
 	<div class="detail" style="margin-top:12px">
 		<span class="tag {{ 'paid' if track.paid else 'free' }}">{{ track.price + ' per seat' if track.paid else 'Free' }}</span>
 		<h1>{{ track.title }}</h1>
@@ -59,19 +75,39 @@
 		{% endif %}
 		<div class="cta"><b>Interested?</b> Training is delivered through your CloudERP.One portal. Speak to Xlevel Retail Systems and we will set your organisation up — your administrator then invites staff and assigns courses themselves.</div>
 	</div>
-{% else %}
-	<div class="lede">
-		<h1>Certifications for people who run things</h1>
-		Written from live retail, distribution and finance operations rather than from a textbook. Your staff read at their own pace, sit a proctored assessment, and earn a certificate with a serial anyone can <a href="/verify">verify</a>.
+{% elif group %}
+	<a class="back" href="/academy">&larr; All certifications</a>
+	<div class="famtop">
+		<span class="art"><svg viewBox="0 0 72 72" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round">{{ group.art }}</svg></span>
+		<div><h1>{{ group.title }}</h1><p>{{ group.blurb }}</p></div>
 	</div>
 	<div class="grid">
-	{% for t in tracks %}
+	{% for t in group.tracks %}
 		<a class="card" href="/academy?track={{ t.name | urlencode }}">
 			<span class="tag {{ 'paid' if t.paid else 'free' }}">{{ t.price + ' / seat' if t.paid else 'Free' }}</span>
 			<span class="name">{{ t.title }}</span>
 			<span class="meta">{{ t.product }} · {{ t.courses|length }} course{{ '' if t.courses|length == 1 else 's' }}{% if t.hours %} · ~{{ t.hours }} hrs{% endif %}</span>
 			{% if t.description %}<span class="blurb">{{ t.description }}</span>{% endif %}
 			<span class="more">See what it covers &rarr;</span>
+		</a>
+	{% endfor %}
+	</div>
+{% else %}
+	<div class="lede">
+		<h1>Certifications for people who run things</h1>
+		Written from live retail, distribution and finance operations rather than from a textbook. Your staff read at their own pace, sit a proctored assessment, and earn a certificate with a serial anyone can <a href="/verify">verify</a>.
+	</div>
+	<div class="grid famgrid">
+	{% for g in groups %}
+		<a class="card famcard" href="/academy?family={{ g.title | urlencode }}">
+			<span class="art"><svg viewBox="0 0 72 72" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round">{{ g.art }}</svg></span>
+			<span class="name">{{ g.title }}</span>
+			<span class="blurb">{{ g.blurb }}</span>
+			<span class="fammeta">
+				<span>{{ g.tracks|length }} certification{{ '' if g.tracks|length == 1 else 's' }}</span>
+				{% if g.free %}<span class="ff">{{ g.free }} free</span>{% endif %}
+			</span>
+			<span class="more">Browse &rarr;</span>
 		</a>
 	{% else %}
 		<div style="color:#6B7C77">No certifications published yet.</div>

@@ -10,7 +10,10 @@
   "column",
   "column_break_1",
   "assignee",
+  "assigned_by",
+  "start_date",
   "due_date",
+  "completed_on",
   "urgency",
   "sort_order",
   "linked_todo",
@@ -22,7 +25,9 @@
   "awaiting_client",
   "subtasks",
   "blocked_by",
-  "estimate_hours"
+  "estimate_hours",
+  "recurring",
+  "meeting"
  ],
  "fields": [
   {
@@ -63,9 +68,31 @@
    "options": "User"
   },
   {
+   "fieldname": "assigned_by",
+   "fieldtype": "Link",
+   "options": "User",
+   "label": "Assigned By",
+   "read_only": 1,
+   "no_copy": 1,
+   "description": "Who gave this card to its assignee. Notifications go to them as well as to the assignee, so somebody who delegates hears when the work moves."
+  },
+  {
+   "fieldname": "start_date",
+   "fieldtype": "Date",
+   "label": "Starts",
+   "description": "When work is expected to begin. Optional: where it is blank the bar on the Gantt is derived from the due date and the estimate, and shown hollow so a derived bar is never mistaken for a planned one."
+  },
+  {
    "fieldname": "due_date",
    "fieldtype": "Date",
    "label": "Due Date"
+  },
+  {
+   "fieldname": "completed_on",
+   "fieldtype": "Datetime",
+   "label": "Completed On",
+   "read_only": 1,
+   "description": "Stamped when the task moves to Completed and cleared if it moves back. Without it there is no actual curve to plot against the plan \u2014 only a count of what is done now, which cannot show whether you are ahead or behind at any point in the past."
   },
   {
    "default": "Medium",
@@ -141,6 +168,22 @@
    "fieldtype": "Float",
    "label": "Estimate (hours)",
    "precision": "1"
+  },
+  {
+   "fieldname": "recurring",
+   "fieldtype": "Link",
+   "options": "Duty Recurring Task",
+   "label": "From Recurrence",
+   "read_only": 1,
+   "description": "The rule that created this task, so a repeated item can be traced back to what makes it and switched off at the source rather than deleted one at a time."
+  },
+  {
+   "fieldname": "meeting",
+   "fieldtype": "Link",
+   "options": "Duty Meeting",
+   "label": "Scheduled As",
+   "read_only": 1,
+   "description": "Where this task is a meeting, the meeting that was booked for it. Set by scheduling from the task rather than by hand, so the two can never point at different dates."
   }
  ],
  "links": [],

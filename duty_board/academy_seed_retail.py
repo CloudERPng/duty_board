@@ -159,6 +159,7 @@ def seed_retail_track():
     else:
         frappe.get_doc({
             "doctype": "Duty Certification Track",
+			"category": "Leadership & Management",
             "title": TRACK,
             "product": PRODUCT,
             "audience": "Client",

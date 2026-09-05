@@ -7,7 +7,7 @@ runs through doc_events (see hooks.py), from the card side inline here.
 
 import frappe
 from frappe import _
-from frappe.utils import cint, getdate, now_datetime, today
+from frappe.utils import add_days, add_months, cint, date_diff, flt, getdate, now_datetime, nowdate, today
 from duty_board.permissions import require_staff
 
 COLUMNS = ["To Do", "In Progress", "Completed", "Suspended"]
@@ -21,6 +21,64 @@ def _notify(user, title, body):
 		_notify_user(user, title, body)
 	except Exception:
 		pass
+
+
+
+def _notify_assignment(doc, actor=None, changed=None):
+	"""Assignment and change notifications for a card.
+
+	Everything routes through notify_events.announce so the task and issue sides
+	cannot drift apart again — they already had once, with tasks silent for
+	staff while issues notified.
+	"""
+	from duty_board.notify_events import announce
+
+	actor = actor or frappe.session.user
+	if changed:
+		announce(
+			doc, "task",
+			_("Task updated by {0}").format(frappe.utils.get_fullname(actor).split(" ")[0]),
+			body=", ".join(changed),
+			actor=actor,
+		)
+		return
+	if not doc.assignee or doc.assignee == actor:
+		return
+	who = frappe.utils.get_fullname(actor).split(" ")[0]
+	when = _(" · due {0}").format(frappe.utils.formatdate(doc.due_date)) if doc.due_date else ""
+	announce(
+		doc, "task",
+		_("Task assigned to you by {0}").format(who),
+		body="{0}{1}".format(doc.title, when),
+		actor=actor,
+	)
+
+
+def _stamp_assigner(doc, actor=None):
+	"""Record who handed the card over, so they can be told when it moves."""
+	actor = actor or frappe.session.user
+	if doc.assignee and doc.assignee != actor:
+		doc.assigned_by = actor
+	elif doc.assignee == actor and not doc.get("assigned_by"):
+		doc.assigned_by = actor
+
+
+def _notify_status(doc, event, actor=None, note=None):
+	"""Work started, completed, reopened — told to assignee and assigner both.
+
+	This is the case that had no coverage at all: somebody delegating a card
+	had no way of hearing it was finished.
+	"""
+	from duty_board.notify_events import announce
+
+	actor = actor or frappe.session.user
+	announce(
+		doc, "task",
+		_("{0} — {1}").format(event, frappe.utils.get_fullname(actor).split(" ")[0]),
+		body=doc.title,
+		actor=actor,
+		note=note,
+	)
 
 
 @frappe.whitelist()
@@ -350,11 +408,16 @@ def get_project_board(project):
 				t.blocked_title = blk.title
 		tasks.setdefault(t.column, []).append(t)
 	from duty_board.client_room import _project_milestone_rows
+	from duty_board.plan_templates import plan_labels
 
 	return {
 		"columns": COLUMNS,
 		"tasks": tasks,
 		"milestones": _project_milestone_rows(project),
+		# plan picker is built from PLAN_TYPES so adding a plan type needs no JS
+		# change. The old picker hardcoded "standard" only, which is why the CRM
+		# plan existed for months and was unreachable from the interface.
+		"plan_types": [{"key": k, "label": lbl} for k, lbl in plan_labels()],
 		"consultants": [
 			r.user
 			for r in frappe.get_all(
@@ -371,7 +434,8 @@ def get_project_board(project):
 
 
 @frappe.whitelist()
-def create_task(project, title, column="To Do", assignee=None, due_date=None, urgency="Medium"):
+def create_task(project, title, column="To Do", assignee=None, due_date=None,
+				urgency="Medium", milestone=None):
 	from duty_board.permissions import require_staff_or_consultant, consultant_project_names
 	if require_staff_or_consultant() and project not in consultant_project_names():
 		frappe.throw(_("Not permitted."), frappe.PermissionError)
@@ -392,10 +456,16 @@ def create_task(project, title, column="To Do", assignee=None, due_date=None, ur
 			"assignee": assignee or None,
 			"due_date": due_date or None,
 			"urgency": urgency,
+			# set here rather than by a second call: a task created in a phase
+			# column belongs to that phase from the moment it exists
+			"milestone": milestone or None,
 		}
 	).insert(ignore_permissions=True)
 	if doc.assignee:
+		_stamp_assigner(doc)
+		doc.db_set("assigned_by", doc.assigned_by, update_modified=False)
 		_ensure_todo(doc)
+		_notify_assignment(doc)
 	frappe.db.commit()
 	return get_project_board(project)
 
@@ -441,13 +511,23 @@ def reschedule_task(name, due_date=None):
 
 
 @frappe.whitelist()
-def update_task(name, title=None, assignee=None, due_date=None, urgency=None, column=None, description=None, client_visible=None, awaiting_client=None, hours=None, milestone=None, blocked_by=None, estimate_hours=None):
+def update_task(name, title=None, assignee=None, due_date=None, urgency=None, column=None, description=None, client_visible=None, awaiting_client=None, hours=None, milestone=None, blocked_by=None, estimate_hours=None, start_date=None):
 	from duty_board.permissions import require_staff_or_consultant
 	_is_c = require_staff_or_consultant()
 	if _is_c:
 		_consultant_task_check(name)
 
 	doc = frappe.get_doc("Duty Project Task", name)
+	# When it was finished, stamped on the transition. Without it there is only
+	# a count of what is done NOW, which cannot say whether the project was
+	# ahead or behind at any point in the past — and a plan-versus-actual curve
+	# is exactly that question asked at every date.
+	if column and column != doc.column:
+		if column == "Completed":
+			doc.db_set("completed_on", now_datetime(), update_modified=False)
+		elif doc.column == "Completed":
+			# moved back out: the completion did not happen, so the date goes
+			doc.db_set("completed_on", None, update_modified=False)
 	if _is_c and column == "Completed" and doc.column != "Completed":
 		from frappe.utils import flt
 		if not flt(hours) > 0:
@@ -471,6 +551,12 @@ def update_task(name, title=None, assignee=None, due_date=None, urgency=None, co
 	if title and title.strip():
 		doc.title = title.strip()
 	_apply_due(doc, due_date)
+	if start_date is not None:
+		doc.start_date = start_date or None
+		# a start after the due date is a typo, and letting it through would
+		# draw a bar running backwards on the Gantt
+		if doc.start_date and doc.due_date and getdate(doc.start_date) > getdate(doc.due_date):
+			frappe.throw(_("The start is after the due date."))
 	if urgency in URGENCIES:
 		doc.urgency = urgency
 	doc.description = description
@@ -507,13 +593,9 @@ def update_task(name, title=None, assignee=None, due_date=None, urgency=None, co
 				)
 		doc.db_set("linked_todo", None, update_modified=False)
 		if doc.assignee:
+			_stamp_assigner(doc)
 			_ensure_todo(doc)
-			try:
-				from duty_board.notify import assignment_email
-
-				assignment_email(doc, [doc.assignee], kind="task")
-			except Exception:
-				frappe.log_error(frappe.get_traceback()[-1200:], "task assign email")
+			_notify_assignment(doc)
 	elif doc.linked_todo and frappe.db.exists("Daily Todo", doc.linked_todo):
 		frappe.db.set_value(
 			"Daily Todo", doc.linked_todo, "description", doc.title, update_modified=False
@@ -582,11 +664,15 @@ def move_task(name, column, hours=None):
 			closure_email(doc, hours, kind="task")
 		except Exception:
 			frappe.log_error(frappe.get_traceback()[-1200:], "task closure email")
+	prev_col = doc.column
 	doc.db_set("column", column, update_modified=False)
 	_sync_todo_from_card(doc, column)
 	if column == "Completed":
 		_stop_my_session_on(doc.name)
 	frappe.db.commit()
+	if column != prev_col:
+		doc.column = column
+		_notify_status(doc, _("Moved to {0}").format(column))
 	return get_project_board(doc.project)
 
 
@@ -657,6 +743,17 @@ def _stop_my_session_on(card_name):
 		s.save(ignore_permissions=True)
 
 
+def _meeting_when(name):
+	"""Date and time of a booked meeting, for the task drawer."""
+	if not name:
+		return None
+	m = frappe.db.get_value("Duty Meeting", name,
+							["meeting_date", "start_time", "status"], as_dict=True)
+	if not m or m.status in ("Cancelled", "Declined"):
+		return None
+	return "%s %s" % (m.meeting_date, str(m.start_time)[:5])
+
+
 @frappe.whitelist()
 def get_card(name):
 	from duty_board.permissions import require_staff_or_consultant
@@ -710,6 +807,11 @@ def get_card(name):
 		"subs_done": len([s for s in subtasks if s["status"] == "Done"]),
 		"subs_total": len(subtasks),
 		"assignee": doc.assignee,
+		# without this the drawer opens with the field blank even where a start
+		# is set, and saving would silently clear it
+		"start_date": str(doc.start_date) if doc.start_date else None,
+		"meeting": doc.meeting,
+		"meeting_when": _meeting_when(doc.meeting),
 		"due_date": str(doc.due_date) if doc.due_date else None,
 		"urgency": doc.urgency,
 		"milestone": doc.milestone,
@@ -794,6 +896,9 @@ def add_card_note(name, note):
 	except Exception:
 		pass
 	frappe.publish_realtime("duty_board_note", {"kind": "card", "id": name})
+	# doc above is bound inside a try; fetch our own so a failure there cannot
+	# leave this line raising NameError on a path that otherwise succeeded
+	_notify_status(frappe.get_doc("Duty Project Task", name), _("Progress update"), note=note)
 	return get_card(name)
 
 
@@ -850,6 +955,7 @@ def start_card_work(name):
 		doc.db_set("column", "In Progress", update_modified=False)
 		_sync_todo_from_card(doc, "In Progress")
 	frappe.db.commit()
+	_notify_status(doc, _("Work started"))
 	return get_card(name)
 
 
@@ -1180,3 +1286,929 @@ def project_staff_set(project, users):
 		except Exception:
 			pass
 	return project_staff_options(project)
+
+
+@frappe.whitelist()
+def set_project_rag(project, rag, reason=None, owner_user=None, due=None):
+	"""Record the project's health as a decision somebody made.
+
+	It used to be worked out in the browser from "is any task overdue", which
+	gives a colour with nothing behind it: no reason, no owner, no recovery
+	date, and nothing to ask about in a review. Amber has to be explained, so
+	a reason is required for anything that is not green.
+	"""
+	require_staff()
+	if rag not in ("On track", "At risk", "Off track", "Completed"):
+		frappe.throw(_("Unknown status."))
+	if rag in ("At risk", "Off track") and not (reason or "").strip():
+		frappe.throw(_("Say why it is {0}. A status with no reason behind it is the first thing a reviewer asks about, and nobody will be able to answer.").format(rag.lower()))
+	prev = frappe.db.get_value("Duty Project", project, "rag")
+	frappe.db.set_value("Duty Project", project, {
+		"rag": rag,
+		"rag_reason": (reason or "").strip() or None,
+		"rag_owner": owner_user or None,
+		"rag_due": due or None,
+		# only restarted when the colour itself changes, so "amber for 19 days"
+		# stays true when the reason is edited
+		"rag_set_on": now_datetime() if prev != rag else
+					  (frappe.db.get_value("Duty Project", project, "rag_set_on") or now_datetime()),
+		"rag_set_by": frappe.session.user,
+	})
+	frappe.db.commit()
+	return {"ok": 1}
+
+
+@frappe.whitelist()
+def set_project_baseline(project, baseline_target_date=None, force=0):
+	"""Fix the go-live date the engagement is measured against.
+
+	Set once, at the point the plan is agreed. It must not move afterwards or
+	slip becomes unmeasurable — a baseline that follows the target always
+	reports no slip, which is the most common way a plan quietly stops being a
+	commitment.
+	"""
+	require_staff()
+	cur = frappe.db.get_value("Duty Project", project, "baseline_target_date")
+	if cur and not cint(force):
+		frappe.throw(_("The baseline is already {0}. Changing it erases the slip measured against it, so it takes a deliberate override — and a re-baseline should normally be a change request instead.").format(cur))
+	d = baseline_target_date or frappe.db.get_value("Duty Project", project, "target_date")
+	if not d:
+		frappe.throw(_("There is no target date to baseline."))
+	frappe.db.set_value("Duty Project", project,
+						{"baseline_target_date": d, "baselined_on": now_datetime()})
+	frappe.db.commit()
+	return {"ok": 1, "baseline": str(d)}
+
+
+# ───────────────────────── actuals against estimates ─────────────────────────
+#
+# The estimate has been captured since the beginning and nothing ever recorded
+# what a task actually took — so there was no variance, no forecast, and no
+# evidence the estimates meant anything. It is the first thing a project
+# consultant asks for.
+#
+# Nothing new is captured. Work Session already carries project_task and
+# duration; it was only ever read to show who is working right now. This sums
+# it, which is arithmetic on data you already have.
+
+
+def _actuals_for_tasks(names):
+	"""Hours booked against each task, from the sessions already recorded."""
+	if not names:
+		return {}
+	rows = frappe.db.sql(
+		"""select project_task as t, coalesce(sum(duration), 0) as secs,
+				  count(name) as sessions, count(distinct user) as people
+		   from `tabWork Session`
+		   where project_task in %(names)s and duration is not null
+		   group by project_task""",
+		{"names": tuple(names)}, as_dict=True)
+	return {r.t: {"hours": round(flt(r.secs) / 3600.0, 2),
+				  "sessions": cint(r.sessions), "people": cint(r.people)}
+			for r in rows}
+
+
+@frappe.whitelist()
+def project_effort(project):
+	"""Estimated against actual, per phase and per task.
+
+	VARIANCE IS REPORTED ONLY WHERE BOTH NUMBERS EXIST. A task with hours booked
+	and no estimate is not "over" — nobody said what it should take. Counting
+	those as overruns is how an effort report becomes an argument rather than
+	evidence, so they are listed apart and named.
+	"""
+	require_staff()
+	tasks = frappe.get_all(
+		"Duty Project Task",
+		filters={"project": project},
+		fields=["name", "title", "milestone", "column", "estimate_hours", "assignee"],
+		limit_page_length=0)
+	names = [t.name for t in tasks]
+	act = _actuals_for_tasks(names)
+
+	ms = {m.name: m for m in frappe.get_all(
+		"Duty Milestone", filters={"project": project},
+		fields=["name", "title", "sort_order", "status", "target_date"],
+		order_by="sort_order asc", limit_page_length=0)}
+
+	rows, phases = [], {}
+	for t in tasks:
+		a = act.get(t.name) or {}
+		est = flt(t.estimate_hours) or 0.0
+		hrs = flt(a.get("hours") or 0)
+		done = (t.column or "").lower() in ("done", "complete", "completed")
+		var = (hrs - est) if (est > 0 and hrs > 0) else None
+		rows.append({
+			"task": t.name, "title": t.title, "milestone": t.milestone,
+			"phase": (ms.get(t.milestone) or {}).get("title"),
+			"assignee": frappe.utils.get_fullname(t.assignee) if t.assignee else None,
+			"estimate": est, "actual": hrs, "done": 1 if done else 0,
+			"sessions": a.get("sessions", 0), "people": a.get("people", 0),
+			"variance": var,
+			"variance_pct": round(var * 100 / est, 1) if (var is not None and est) else None,
+			"no_estimate": 1 if (hrs > 0 and est <= 0) else 0,
+			"not_started": 1 if (est > 0 and hrs <= 0) else 0,
+		})
+		key = t.milestone or "_none"
+		p = phases.setdefault(key, {
+			"milestone": t.milestone,
+			"phase": (ms.get(t.milestone) or {}).get("title") or _("Unassigned"),
+			"sort": (ms.get(t.milestone) or {}).get("sort_order") or 999,
+			"estimate": 0.0, "actual": 0.0, "tasks": 0, "done": 0,
+			"est_done": 0.0, "act_done": 0.0, "unestimated_hours": 0.0})
+		p["estimate"] += est
+		p["actual"] += hrs
+		p["tasks"] += 1
+		if est <= 0 and hrs > 0:
+			p["unestimated_hours"] += hrs
+		if done:
+			p["done"] += 1
+			p["est_done"] += est
+			p["act_done"] += hrs
+
+	for p in phases.values():
+		# only completed work with an estimate can say anything about accuracy
+		p["variance"] = (p["act_done"] - p["est_done"]) if p["est_done"] > 0 else None
+		p["variance_pct"] = (round(p["variance"] * 100 / p["est_done"], 1)
+							 if p["est_done"] > 0 else None)
+		# what the phase is likely to cost, if the rest behaves like the part done
+		rate = (p["act_done"] / p["est_done"]) if p["est_done"] > 0 else None
+		p["forecast"] = round(p["estimate"] * rate, 1) if rate else None
+
+	est_all = sum(p["estimate"] for p in phases.values())
+	act_all = sum(p["actual"] for p in phases.values())
+	est_done = sum(p["est_done"] for p in phases.values())
+	act_done = sum(p["act_done"] for p in phases.values())
+	rate = (act_done / est_done) if est_done > 0 else None
+
+	rows.sort(key=lambda r: -(abs(r["variance"]) if r["variance"] is not None else 0))
+	return {
+		"project": project,
+		"phases": sorted(phases.values(), key=lambda p: p["sort"]),
+		"tasks": rows,
+		"estimate": est_all, "actual": act_all,
+		"estimate_done": est_done, "actual_done": act_done,
+		"burn_rate": round(rate, 2) if rate else None,
+		"forecast": round(est_all * rate, 1) if rate else None,
+		"overrun": round(est_all * rate - est_all, 1) if rate else None,
+		"unestimated": len([r for r in rows if r["no_estimate"]]),
+		"unestimated_hours": round(sum(r["actual"] for r in rows if r["no_estimate"]), 2),
+		"no_actuals": len([r for r in rows if r["not_started"] and r["done"]]),
+	}
+
+
+# ────────────────────────────── decision log ─────────────────────────────────
+
+
+@frappe.whitelist()
+def decisions(project=None, client_only=0):
+	"""Every decision taken, newest first."""
+	f = {}
+	if project:
+		f["project"] = project
+	if cint(client_only):
+		f["client_visible"] = 1
+	rows = frappe.get_all(
+		"Duty Project Decision", filters=f,
+		fields=["name", "project", "title", "decided_on", "status", "raised_by",
+				"decided_by", "milestone", "context", "options_considered",
+				"impact", "client_visible", "change_request", "supersedes", "note"],
+		order_by="decided_on desc, creation desc", limit_page_length=0)
+	ms = {m.name: m.title for m in frappe.get_all(
+		"Duty Milestone", fields=["name", "title"], limit_page_length=0)}
+	# a superseded decision keeps its place; what replaced it is named on it
+	replaced_by = {}
+	for r in rows:
+		if r.supersedes:
+			replaced_by[r.supersedes] = {"name": r.name, "title": r.title,
+										 "on": str(r.decided_on)}
+	for r in rows:
+		r.phase = ms.get(r.milestone)
+		r.replaced_by = replaced_by.get(r.name)
+	return {
+		"rows": rows,
+		"agreed": len([r for r in rows if r.status == "Agreed"]),
+		"open": len([r for r in rows if r.status == "Proposed"]),
+		"superseded": len([r for r in rows if r.status in ("Superseded", "Reversed")]),
+	}
+
+
+@frappe.whitelist()
+def save_decision(name=None, **kwargs):
+	require_staff()
+	allowed = ("project", "title", "decided_on", "status", "raised_by", "decided_by",
+			   "milestone", "context", "options_considered", "impact",
+			   "client_visible", "change_request", "supersedes", "note")
+	doc = (frappe.get_doc("Duty Project Decision", name) if name
+		   else frappe.new_doc("Duty Project Decision"))
+	for k in allowed:
+		if k in kwargs and kwargs[k] is not None:
+			doc.set(k, kwargs[k])
+	if not (doc.title or "").strip():
+		frappe.throw(_("Say what was decided."))
+	if not (doc.decided_by or "").strip():
+		frappe.throw(_("Record who made the call. A decision with nobody's name against it settles nothing when it is questioned later."))
+	if not doc.decided_on:
+		doc.decided_on = nowdate()
+	doc.save(ignore_permissions=True)
+
+	# superseding marks the old one rather than deleting it: the sequence is the
+	# record, and a log that can be edited backwards is not evidence
+	if doc.supersedes and frappe.db.exists("Duty Project Decision", doc.supersedes):
+		old = frappe.db.get_value("Duty Project Decision", doc.supersedes, "status")
+		if old not in ("Superseded", "Reversed"):
+			frappe.db.set_value("Duty Project Decision", doc.supersedes,
+								"status", "Superseded")
+	frappe.db.commit()
+	return {"ok": 1, "name": doc.name}
+
+
+@frappe.whitelist()
+def delete_decision(name):
+	"""Only a decision nobody has acted on. Anything agreed is superseded."""
+	require_staff()
+	st = frappe.db.get_value("Duty Project Decision", name, "status")
+	if st != "Proposed":
+		frappe.throw(_("Only a proposed decision can be deleted. One that was agreed stays on the record and is superseded instead — that is the difference between a log and a draft."))
+	frappe.delete_doc("Duty Project Decision", name, ignore_permissions=True)
+	frappe.db.commit()
+	return {"ok": 1}
+
+
+# ─────────────────────────── weekly status pack ──────────────────────────────
+#
+# The document a project consultant lives on, assembled from what the system
+# already knows rather than typed into a deck once a week. That is the whole
+# argument: theirs is written by an analyst on Friday afternoon and is a
+# snapshot of what somebody remembered; this one cannot disagree with the
+# system because it IS the system.
+
+RISK_SCORE = {"Low": 1, "Medium": 2, "High": 3}
+
+
+@frappe.whitelist()
+def status_pack(project, days=7):
+	"""Everything that happened this week, and what it means for the plan."""
+	require_staff()
+	back = abs(cint(days) or 7)
+	since = add_days(nowdate(), -back)
+	today = nowdate()
+
+	p = frappe.db.get_value(
+		"Duty Project", project,
+		["name", "project_name", "customer", "room", "target_date",
+		 "baseline_target_date", "rag", "rag_reason", "rag_owner", "rag_due",
+		 "rag_set_on"], as_dict=True)
+	if not p:
+		frappe.throw(_("No such project."))
+
+	# ---- phases, with slip against their own baseline
+	phases = []
+	for m in frappe.get_all(
+		"Duty Milestone", filters={"project": project},
+		fields=["name", "title", "status", "target_date", "baseline_date", "sort_order"],
+		order_by="sort_order asc", limit_page_length=0):
+		tasks = frappe.get_all(
+			"Duty Project Task", filters={"milestone": m.name},
+			fields=["name", "column"], limit_page_length=0)
+		done = len([t for t in tasks if (t.column or "").lower() in ("done", "complete", "completed")])
+		slip = (date_diff(m.target_date, m.baseline_date)
+				if (m.target_date and m.baseline_date) else None)
+		late = (date_diff(today, m.target_date)
+				if (m.target_date and str(m.target_date) < today and m.status != "Approved") else None)
+		phases.append({
+			"title": m.title, "status": m.status,
+			"target_date": str(m.target_date) if m.target_date else None,
+			"baseline_date": str(m.baseline_date) if m.baseline_date else None,
+			"slip_days": slip, "days_late": late,
+			"done": done, "total": len(tasks),
+		})
+
+	# ---- what actually moved this week, rather than what is open
+	moved = frappe.db.sql(
+		"""select t.name, t.title, t.column, t.assignee, m.title as phase
+		   from `tabDuty Project Task` t
+		   left join `tabDuty Milestone` m on m.name = t.milestone
+		   where t.project = %(p)s and t.modified >= %(since)s
+		   order by t.modified desc""",
+		{"p": project, "since": since}, as_dict=True)
+	completed = [r for r in moved
+				 if (r.column or "").lower() in ("done", "complete", "completed")]
+
+	# ---- decisions taken in the window
+	decs = frappe.get_all(
+		"Duty Project Decision",
+		filters={"project": project, "decided_on": [">=", since]},
+		fields=["title", "status", "decided_on", "decided_by", "impact"],
+		order_by="decided_on desc", limit_page_length=0)
+
+	# ---- risks, scored so the order is defensible rather than a matter of taste
+	risks = []
+	for r in frappe.get_all(
+		"Duty Project Risk", filters={"project": project, "status": ["!=", "Closed"]},
+		fields=["title", "likelihood", "impact", "mitigation", "owner_user", "status"],
+		limit_page_length=0):
+		score = RISK_SCORE.get(r.likelihood, 1) * RISK_SCORE.get(r.impact, 1)
+		risks.append(dict(r, score=score,
+						  owner=frappe.utils.get_fullname(r.owner_user) if r.owner_user else None))
+	risks.sort(key=lambda r: -r["score"])
+
+	# ---- change requests raised or settled in the window
+	# `title` is not a field on Duty Change Request — the request itself is in
+	# original_request. audit_fields caught this before it reached the page.
+	crs = frappe.get_all(
+		"Duty Change Request", filters={"project": project, "modified": [">=", since]},
+		fields=["name", "original_request", "status", "cost_impact", "timeline_impact"],
+		limit_page_length=0)
+
+	# ---- effort, reusing the same calculation the effort screen shows
+	try:
+		eff = project_effort(project)
+	except Exception:
+		eff = {}
+
+	# ---- what is due next, which is the only forward-looking part
+	nxt = frappe.db.sql(
+		"""select t.title, t.due_date, t.assignee, m.title as phase
+		   from `tabDuty Project Task` t
+		   left join `tabDuty Milestone` m on m.name = t.milestone
+		   where t.project = %(p)s and t.due_date is not null
+			 and t.due_date <= %(until)s
+			 and lower(coalesce(t.column,'')) not in ('done','complete','completed')
+		   order by t.due_date asc limit 12""",
+		{"p": project, "until": add_days(today, back)}, as_dict=True)
+	for r in nxt:
+		r["overdue"] = 1 if str(r["due_date"]) < today else 0
+		r["assignee"] = frappe.utils.get_fullname(r["assignee"]) if r["assignee"] else None
+
+	# the schedule question belongs in the weekly document, not only on a screen
+	try:
+		cp = critical_path(project)
+	except Exception:
+		cp = {}
+	try:
+		dlv = deliverables(project)
+	except Exception:
+		dlv = {}
+
+	late_phases = [x for x in phases if x["days_late"]]
+	golive, base = p.get("target_date"), p.get("baseline_target_date")
+	return {
+		"project": p.name, "project_name": p.project_name, "customer": p.customer,
+		"from_date": since, "to_date": today, "days": back,
+		"rag": p.rag or ("At risk" if late_phases else "On track"),
+		"rag_stated": 1 if p.rag_set_on else 0,
+		"rag_reason": p.rag_reason,
+		"rag_owner": frappe.utils.get_fullname(p.rag_owner) if p.rag_owner else None,
+		"rag_due": str(p.rag_due) if p.rag_due else None,
+		"golive": str(golive) if golive else None,
+		"baseline": str(base) if base else None,
+		"slip_days": date_diff(golive, base) if (golive and base) else None,
+		"days_to_golive": date_diff(golive, today) if golive else None,
+		"phases": phases, "late_phases": late_phases,
+		"completed": completed, "touched": len(moved),
+		"decisions": decs,
+		"risks": risks, "risks_high": [r for r in risks if r["score"] >= 6],
+		"change_requests": crs,
+		"effort": {"estimate": eff.get("estimate"), "actual": eff.get("actual"),
+				   "burn_rate": eff.get("burn_rate"), "forecast": eff.get("forecast"),
+				   "overrun": eff.get("overrun")},
+		"next": nxt,
+		"deliverables": {
+			"accepted": dlv.get("accepted"), "total": dlv.get("total"),
+			"awaiting": dlv.get("awaiting"), "overdue": dlv.get("overdue"),
+			"no_criteria": dlv.get("no_criteria"),
+			"recent": [r for r in (dlv.get("rows") or [])
+					   if r.get("accepted_at") and str(r["accepted_at"])[:10] >= since][:6],
+			"pending": [r for r in (dlv.get("rows") or [])
+						if r.get("status") == "Submitted"][:6],
+		},
+		"critical": {
+			"tasks": (cp.get("critical") or [])[-6:],
+			"remaining_hours": cp.get("remaining_hours"),
+			"holders": (cp.get("holders") or [])[:3],
+			"unlinked": cp.get("unlinked"), "total": cp.get("total"),
+		},
+	}
+
+
+# ────────────────────────────── critical path ────────────────────────────────
+#
+# blocked_by has been captured since the beginning and nothing ever computed
+# what it implies. The question a reviewer asks when a date slips is "which
+# task moved it", and until now nothing here could answer.
+#
+# blocked_by is a single link, so dependencies form CHAINS rather than a
+# network. That is a real limitation and it is stated rather than hidden: this
+# finds the longest chain of unfinished work, which on a chain is the critical
+# path. A task blocked by two things can only record one of them.
+
+
+def _chain(name, tasks, seen=None):
+	"""Walk back up the blockers. Returns (path, hit_a_cycle)."""
+	seen = seen or set()
+	if name in seen:
+		return [], True
+	seen.add(name)
+	b = (tasks.get(name) or {}).get("blocked_by")
+	if not b or b not in tasks:
+		return [name], False
+	up, cyc = _chain(b, tasks, seen)
+	if cyc:
+		return [], True
+	return up + [name], False
+
+
+@frappe.whitelist()
+def critical_path(project):
+	"""The longest chain of unfinished work, and what it does to the date."""
+	require_staff()
+	rows = frappe.get_all(
+		"Duty Project Task", filters={"project": project},
+		fields=["name", "title", "blocked_by", "estimate_hours", "due_date",
+				"column", "assignee", "milestone"], limit_page_length=0)
+	tasks = {}
+	for r in rows:
+		tasks[r.name] = {
+			"name": r.name, "title": r.title, "blocked_by": r.blocked_by,
+			"est": flt(r.estimate_hours) or 0.0,
+			"due": str(r.due_date) if r.due_date else None,
+			"done": 1 if (r.column or "").lower() in ("done", "complete", "completed") else 0,
+			"assignee": frappe.utils.get_fullname(r.assignee) if r.assignee else None,
+			"milestone": r.milestone,
+		}
+	ms = {m.name: m.title for m in frappe.get_all(
+		"Duty Milestone", filters={"project": project},
+		fields=["name", "title"], limit_page_length=0)}
+
+	chains, cycles = [], []
+	for n in tasks:
+		path, cyc = _chain(n, tasks)
+		if cyc:
+			cycles.append(n)
+			continue
+		rem = sum(tasks[x]["est"] for x in path if not tasks[x]["done"])
+		chains.append({"tail": n, "path": path, "remaining": rem, "length": len(path)})
+	chains.sort(key=lambda c: (-c["remaining"], -c["length"]))
+
+	def decorate(path):
+		out = []
+		for x in path:
+			t = dict(tasks[x])
+			t["phase"] = ms.get(t.pop("milestone"))
+			out.append(t)
+		return out
+
+	longest = chains[0] if chains else None
+	blocking = {}
+	for c in chains:
+		for x in c["path"][:-1]:
+			if not tasks[x]["done"]:
+				blocking[x] = blocking.get(x, 0) + 1
+	# what is holding up the most work — the thing to unblock first
+	holders = sorted(
+		[{"task": k, "title": tasks[k]["title"], "blocks": v,
+		  "assignee": tasks[k]["assignee"], "due": tasks[k]["due"],
+		  "overdue": 1 if (tasks[k]["due"] and tasks[k]["due"] < nowdate()) else 0}
+		 for k, v in blocking.items()],
+		key=lambda h: -h["blocks"])[:8]
+
+	no_deps = len([t for t in tasks.values() if not t["blocked_by"]])
+	return {
+		"project": project,
+		"critical": decorate(longest["path"]) if longest else [],
+		"remaining_hours": longest["remaining"] if longest else 0,
+		"chains": len(chains),
+		"holders": holders,
+		"cycles": [tasks[c]["title"] for c in cycles],
+		"unlinked": no_deps,
+		"total": len(tasks),
+		# stated plainly: a chain is not a network, and pretending otherwise
+		# would be the kind of claim a reviewer tests and breaks
+		"basis": _("Each task records one blocker, so dependencies form chains rather than a network. This is the longest chain of unfinished work."),
+	}
+
+
+@frappe.whitelist()
+def progress_curve(project):
+	"""Planned against actual, week by week.
+
+	The plan is built from due dates: work counts as planned-complete on the day
+	it was due. The actual is built from completed_on. Both are weighted by
+	estimated hours where they exist and by task count where they do not, and
+	which one is in use is reported rather than assumed.
+
+	COMPLETION DATES ONLY EXIST FROM THE DAY THE FIELD WAS ADDED. Tasks finished
+	before that have no date, so they are counted at the start of the window and
+	the number of them is returned — a curve that silently omits finished work
+	would read as catastrophic underperformance.
+	"""
+	require_staff()
+	rows = frappe.get_all(
+		"Duty Project Task", filters={"project": project},
+		fields=["name", "title", "due_date", "completed_on", "column", "estimate_hours"],
+		limit_page_length=0)
+	if not rows:
+		return {"points": [], "total": 0}
+
+	use_hours = any(flt(r.estimate_hours) for r in rows)
+	weight = (lambda r: flt(r.estimate_hours) or 0.0) if use_hours else (lambda r: 1.0)
+	total = sum(weight(r) for r in rows) or 1.0
+
+	done_rows = [r for r in rows
+				 if (r.column or "").lower() in ("done", "complete", "completed")]
+	undated = [r for r in done_rows if not r.completed_on]
+
+	dates = [str(r.due_date) for r in rows if r.due_date]
+	dates += [str(r.completed_on)[:10] for r in done_rows if r.completed_on]
+	if not dates:
+		return {"points": [], "total": total, "no_dates": 1}
+	start, end = min(dates), max(max(dates), nowdate())
+
+	points, d = [], getdate(start)
+	stop = getdate(end)
+	guard = 0
+	while d <= stop and guard < 400:
+		guard += 1
+		ds = str(d)
+		planned = sum(weight(r) for r in rows if r.due_date and str(r.due_date) <= ds)
+		actual = sum(weight(r) for r in done_rows
+					 if r.completed_on and str(r.completed_on)[:10] <= ds)
+		# finished before the field existed: counted from the start rather than
+		# left out, or the curve would libel the team
+		actual += sum(weight(r) for r in undated)
+		points.append({
+			"d": ds,
+			"planned": round(planned * 100 / total, 1),
+			"actual": round(actual * 100 / total, 1),
+			"future": 1 if ds > nowdate() else 0,
+		})
+		d = add_days(d, 7)
+
+	now = [p for p in points if not p["future"]]
+	cur = now[-1] if now else None
+	return {
+		"points": points,
+		"total": total,
+		"basis": _("weighted by estimated hours") if use_hours else _("by task count - no estimates recorded"),
+		"planned_now": cur["planned"] if cur else None,
+		"actual_now": cur["actual"] if cur else None,
+		"variance": round(cur["actual"] - cur["planned"], 1) if cur else None,
+		"undated_done": len(undated),
+		"no_due_dates": len([r for r in rows if not r.due_date]),
+		"tasks": len(rows),
+	}
+
+
+# ────────────────────── deliverables and their acceptance ────────────────────
+#
+# A phase sign-off says the phase is done; it says nothing about which document
+# was reviewed, by whom, or against what. That is the record a Big 4 audit asks
+# for, and criteria agreed BEFORE the work starts are what stop acceptance
+# becoming an argument about taste at the end.
+
+
+@frappe.whitelist()
+def deliverables(project, client_only=0):
+	f = {"project": project}
+	if cint(client_only):
+		f["client_visible"] = 1
+	rows = frappe.get_all(
+		"Duty Project Deliverable", filters=f,
+		fields=["name", "title", "milestone", "status", "owner_user", "due_date",
+				"submitted_on", "criteria", "reviewer", "accepted_by", "accepted_at",
+				"accept_note", "reject_reason", "artefact_url", "client_visible", "note"],
+		order_by="due_date asc, creation asc", limit_page_length=0)
+	ms = {m.name: m.title for m in frappe.get_all(
+		"Duty Milestone", filters={"project": project},
+		fields=["name", "title"], limit_page_length=0)}
+	today = nowdate()
+	for r in rows:
+		r.phase = ms.get(r.milestone)
+		r.owner_name = frappe.utils.get_fullname(r.owner_user) if r.owner_user else None
+		r.overdue = 1 if (r.due_date and str(r.due_date) < today
+						  and r.status not in ("Accepted",)) else 0
+		# a deliverable with no criteria can be rejected for any reason and
+		# accepted for none, so it is flagged rather than left to be discovered
+		r.no_criteria = 0 if (r.criteria or "").strip() else 1
+	return {
+		"rows": rows,
+		"accepted": len([r for r in rows if r.status == "Accepted"]),
+		"awaiting": len([r for r in rows if r.status == "Submitted"]),
+		"overdue": len([r for r in rows if r.overdue]),
+		"no_criteria": len([r for r in rows if r.no_criteria]),
+		"total": len(rows),
+	}
+
+
+@frappe.whitelist()
+def save_deliverable(name=None, **kwargs):
+	require_staff()
+	allowed = ("project", "title", "milestone", "status", "owner_user", "due_date",
+			   "criteria", "reviewer", "artefact_url", "client_visible", "note")
+	doc = (frappe.get_doc("Duty Project Deliverable", name) if name
+		   else frappe.new_doc("Duty Project Deliverable"))
+	prev = doc.get("status")
+	for k in allowed:
+		if k in kwargs and kwargs[k] is not None:
+			doc.set(k, kwargs[k])
+	if not (doc.title or "").strip():
+		frappe.throw(_("Give the deliverable a name."))
+	if doc.status == "Submitted" and not (doc.criteria or "").strip():
+		frappe.throw(_("Set the acceptance criteria before submitting this. Without them it can be rejected for any reason and accepted for none, and the argument happens at the end instead of the beginning."))
+	if doc.status == "Submitted" and prev != "Submitted":
+		doc.submitted_on = now_datetime()
+	doc.save(ignore_permissions=True)
+	frappe.db.commit()
+	return {"ok": 1, "name": doc.name}
+
+
+@frappe.whitelist()
+def accept_deliverable(name, accepted_by, note=None, accept=1):
+	"""Record acceptance or rejection with a name and a timestamp.
+
+	A rejection must say which criterion failed. One that cites none is a change
+	request wearing a rejection's clothes, and the difference matters
+	commercially — the first is our cost, the second is theirs.
+	"""
+	require_staff()
+	doc = frappe.get_doc("Duty Project Deliverable", name)
+	if not (accepted_by or "").strip():
+		frappe.throw(_("Record who accepted it. An acceptance with nobody's name against it proves nothing."))
+	if cint(accept):
+		doc.status = "Accepted"
+		doc.accepted_by = accepted_by
+		doc.accepted_at = now_datetime()
+		doc.accept_note = note or None
+		doc.reject_reason = None
+	else:
+		if not (note or "").strip():
+			frappe.throw(_("Say which criterion was not met. A rejection that cites none is a change request rather than a rejection, and they are not the same thing commercially."))
+		doc.status = "Rejected"
+		doc.reject_reason = note
+		doc.accepted_by = None
+		doc.accepted_at = None
+	doc.save(ignore_permissions=True)
+	frappe.db.commit()
+	return {"ok": 1, "status": doc.status}
+
+
+@frappe.whitelist()
+def delete_deliverable(name):
+	require_staff()
+	st = frappe.db.get_value("Duty Project Deliverable", name, "status")
+	if st == "Accepted":
+		frappe.throw(_("An accepted deliverable stays on the record. Acceptance is the thing this exists to prove."))
+	frappe.delete_doc("Duty Project Deliverable", name, ignore_permissions=True)
+	frappe.db.commit()
+	return {"ok": 1}
+
+
+@frappe.whitelist()
+def get_milestones_for_project(project):
+	"""Phases, for pickers."""
+	return frappe.get_all(
+		"Duty Milestone", filters={"project": project},
+		fields=["name", "title"], order_by="sort_order asc", limit_page_length=0)
+
+
+# ─────────────────────────────── gantt ───────────────────────────────────────
+#
+# A bar needs a start and an end, and tasks carry only a due date. Rather than
+# demand start dates before the view works at all, a missing start is derived
+# from the due date and the estimate at HOURS_A_DAY, and the bar is marked as
+# derived so it is never mistaken for something somebody planned.
+
+HOURS_A_DAY = 6.0
+
+
+@frappe.whitelist()
+def gantt(project):
+	"""Phases and tasks as bars, with baselines, dependencies and today."""
+	require_staff()
+	proj = frappe.db.get_value(
+		"Duty Project", project,
+		["name", "project_name", "target_date", "baseline_target_date"], as_dict=True)
+	if not proj:
+		frappe.throw(_("No such project."))
+
+	ms = frappe.get_all(
+		"Duty Milestone", filters={"project": project},
+		fields=["name", "title", "status", "target_date", "baseline_date", "sort_order"],
+		order_by="sort_order asc, target_date asc", limit_page_length=0)
+
+	tasks = frappe.get_all(
+		"Duty Project Task", filters={"project": project},
+		fields=["name", "title", "milestone", "column", "assignee", "start_date",
+				"due_date", "estimate_hours", "blocked_by", "urgency", "completed_on"],
+		order_by="due_date asc, sort_order asc", limit_page_length=0)
+
+	# a phase runs from the previous phase's date to its own — the only start a
+	# phase actually has, since nobody enters one
+	bars, prev = [], None
+	for m in ms:
+		start = prev or (min([str(t.start_date or t.due_date) for t in tasks
+							  if (t.start_date or t.due_date)], default=None))
+		bars.append({
+			"kind": "phase", "id": m.name, "title": m.title, "status": m.status,
+			"start": start, "end": str(m.target_date) if m.target_date else None,
+			"baseline_end": str(m.baseline_date) if m.baseline_date else None,
+			"slip_days": (date_diff(m.target_date, m.baseline_date)
+						  if (m.target_date and m.baseline_date) else None),
+			"done": len([t for t in tasks if t.milestone == m.name
+						 and (t.column or "").lower() in ("done", "complete", "completed")]),
+			"total": len([t for t in tasks if t.milestone == m.name]),
+		})
+		if m.target_date:
+			prev = str(m.target_date)
+
+	import math
+
+	for t in tasks:
+		end = str(t.due_date) if t.due_date else None
+		if t.start_date:
+			start, derived = str(t.start_date), 0
+		elif end:
+			days = max(1, int(math.ceil((flt(t.estimate_hours) or HOURS_A_DAY) / HOURS_A_DAY)))
+			start, derived = str(add_days(getdate(end), -(days - 1))), 1
+		else:
+			start, derived = None, 1
+		done = (t.column or "").lower() in ("done", "complete", "completed")
+		bars.append({
+			"kind": "task", "id": t.name, "title": t.title,
+			"milestone": t.milestone, "column": t.column,
+			"assignee": frappe.utils.get_fullname(t.assignee) if t.assignee else None,
+			"start": start, "end": end, "derived": derived,
+			"estimate": flt(t.estimate_hours) or None,
+			"blocked_by": t.blocked_by, "urgency": t.urgency,
+			"done": 1 if done else 0,
+			"overdue": 1 if (end and end < nowdate() and not done) else 0,
+		})
+
+	dated = [b for b in bars if b["start"] and b["end"]]
+	span_from = min([b["start"] for b in dated], default=nowdate())
+	span_to = max([b["end"] for b in dated]
+				  + ([str(proj.target_date)] if proj.target_date else []), default=nowdate())
+	return {
+		"project": proj.name, "project_name": proj.project_name,
+		"golive": str(proj.target_date) if proj.target_date else None,
+		"baseline": str(proj.baseline_target_date) if proj.baseline_target_date else None,
+		"from": span_from, "to": span_to, "today": nowdate(),
+		"bars": bars,
+		"undated": len([b for b in bars if b["kind"] == "task" and not b["end"]]),
+		"derived": len([b for b in bars if b["kind"] == "task" and b.get("derived") and b["end"]]),
+		"hours_a_day": HOURS_A_DAY,
+	}
+
+
+# ─────────────────────────── recurring tasks ─────────────────────────────────
+
+RECUR_DAYS = {"Daily": 1, "Weekly": 7, "Fortnightly": 14}
+RECUR_MONTHS = {"Monthly": 1, "Quarterly": 3, "Yearly": 12}
+
+
+def _recur_next(d, frequency):
+	d = getdate(d)
+	if frequency in RECUR_DAYS:
+		return add_days(d, RECUR_DAYS[frequency])
+	return add_months(d, RECUR_MONTHS.get(frequency, 1))
+
+
+@frappe.whitelist()
+def recurring(project=None):
+	f = {}
+	if project:
+		f["project"] = project
+	rows = frappe.get_all(
+		"Duty Recurring Task", filters=f,
+		fields=["name", "title", "project", "milestone", "assignee", "frequency",
+				"next_date", "ends_on", "lead_days", "urgency", "estimate_hours",
+				"client_visible", "active", "skip_if_open", "description",
+				"last_created", "created_count"],
+		order_by="active desc, next_date asc", limit_page_length=0)
+	ms = {m.name: m.title for m in frappe.get_all(
+		"Duty Milestone", fields=["name", "title"], limit_page_length=0)}
+	today = nowdate()
+	for r in rows:
+		r.phase = ms.get(r.milestone)
+		r.owner_name = frappe.utils.get_fullname(r.assignee) if r.assignee else None
+		r.due_in = date_diff(r.next_date, today) if r.next_date else None
+		r.finished = 1 if (r.ends_on and str(r.ends_on) < today) else 0
+		# whether the previous one is still sitting open, which is what decides
+		# if the next is skipped
+		r.open_now = frappe.db.count("Duty Project Task", {
+			"recurring": r.name,
+			"column": ["not in", ["Completed", "Suspended"]]})
+	return {"rows": rows,
+			"active": len([r for r in rows if r.active and not r.finished]),
+			"blocked": len([r for r in rows if r.skip_if_open and r.open_now])}
+
+
+@frappe.whitelist()
+def save_recurring(name=None, **kwargs):
+	require_staff()
+	allowed = ("title", "project", "milestone", "assignee", "frequency", "next_date",
+			   "ends_on", "lead_days", "urgency", "estimate_hours", "client_visible",
+			   "active", "skip_if_open", "description")
+	doc = (frappe.get_doc("Duty Recurring Task", name) if name
+		   else frappe.new_doc("Duty Recurring Task"))
+	for k in allowed:
+		if k in kwargs and kwargs[k] is not None:
+			doc.set(k, kwargs[k])
+	if not (doc.title or "").strip():
+		frappe.throw(_("Give the task a name."))
+	if not doc.next_date:
+		frappe.throw(_("When is the next one due?"))
+	if doc.ends_on and getdate(doc.ends_on) < getdate(doc.next_date):
+		frappe.throw(_("It stops before the next one is due, so it would never create anything."))
+	doc.save(ignore_permissions=True)
+	frappe.db.commit()
+	return {"ok": 1, "name": doc.name}
+
+
+@frappe.whitelist()
+def delete_recurring(name, keep_tasks=1):
+	"""Stop the rule. Tasks it already made are real work and stay by default."""
+	require_staff()
+	if not cint(keep_tasks):
+		for t in frappe.get_all("Duty Project Task", filters={"recurring": name},
+								pluck="name"):
+			frappe.delete_doc("Duty Project Task", t, ignore_permissions=True)
+	else:
+		# the link is cleared so the tasks survive the rule going away
+		for t in frappe.get_all("Duty Project Task", filters={"recurring": name},
+								pluck="name"):
+			frappe.db.set_value("Duty Project Task", t, "recurring", None,
+								update_modified=False)
+	frappe.delete_doc("Duty Recurring Task", name, ignore_permissions=True)
+	frappe.db.commit()
+	return {"ok": 1}
+
+
+def _make_one(r, due):
+	doc = frappe.get_doc({
+		"doctype": "Duty Project Task",
+		"project": r.project, "milestone": r.milestone or None,
+		"title": r.title, "description": r.description or None,
+		"assignee": r.assignee or None, "due_date": due,
+		"urgency": r.urgency or "Medium",
+		"estimate_hours": flt(r.estimate_hours) or None,
+		"client_visible": cint(r.client_visible),
+		"column": "To Do", "recurring": r.name,
+	})
+	doc.insert(ignore_permissions=True)
+	return doc.name
+
+
+@frappe.whitelist()
+def run_recurring(dry_run=0):
+	"""Create whatever is due, and move each rule on.
+
+	cron: 0 6 * * *
+
+	CATCHES UP RATHER THAN POSTING ONCE. A rule dormant while nobody looked
+	should produce the instances it owed, not one and a claim to be current —
+	the same reasoning as the standing orders. Capped, so a bad date cannot spin.
+	"""
+	today = nowdate()
+	made, skipped = [], []
+	for name in frappe.get_all(
+		"Duty Recurring Task", filters={"active": 1}, pluck="name"):
+		r = frappe.get_doc("Duty Recurring Task", name)
+		for _i in range(24):
+			if not r.next_date:
+				break
+			if r.ends_on and getdate(r.next_date) > getdate(r.ends_on):
+				r.db_set("active", 0, update_modified=False)
+				break
+			# lead_days brings it forward: a monthly review wanted a week early
+			# should appear a week early, not on the day
+			appear = add_days(getdate(r.next_date), -abs(cint(r.lead_days)))
+			if str(appear) > today:
+				break
+			if cint(r.skip_if_open) and frappe.db.count("Duty Project Task", {
+					"recurring": r.name,
+					"column": ["not in", ["Completed", "Suspended"]]}):
+				# a weekly check nobody is doing must not become fifty open
+				# tasks — the rule waits rather than piling up
+				skipped.append("%s (previous still open)" % r.title)
+				break
+			if not cint(dry_run):
+				_make_one(r, str(r.next_date))
+				r.db_set("last_created", today, update_modified=False)
+				r.db_set("created_count", cint(r.created_count) + 1, update_modified=False)
+			made.append("%s -> %s" % (r.title, r.next_date))
+			nxt = _recur_next(r.next_date, r.frequency)
+			if cint(dry_run):
+				break
+			r.db_set("next_date", nxt, update_modified=False)
+			r.reload()
+	if not cint(dry_run):
+		frappe.db.commit()
+	print("%s: %d task(s) created, %d rule(s) waiting"
+		  % ("DRY RUN" if cint(dry_run) else "DONE", len(made), len(skipped)))
+	for m in made[:15]:
+		print("   + %s" % m)
+	for m in skipped[:8]:
+		print("   . %s" % m)
+	return {"created": len(made), "skipped": len(skipped), "detail": made}

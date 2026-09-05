@@ -21,8 +21,59 @@ frappe.pages["duty-board"].on_page_load = function (wrapper) {
 	// sidebar and overflows small viewports (measured: 106px at 1315px).
 	// Fluid containers on THIS page only — head and body stay aligned.
 	$(wrapper).find(".container").addClass("duty-fluid");
+	// marks the body while this page is open, so the padding overrides apply
+	// here and are gone the moment you navigate away
+	document.body.classList.add("duty-board-page");
+	$(window).on("hashchange.dutypad", () => {
+		if ((frappe.get_route() || [])[0] !== "duty-board") {
+			document.body.classList.remove("duty-board-page");
+		} else {
+			document.body.classList.add("duty-board-page");
+		}
+	});
 	const board = new DutyBoard(page);
 	board.refresh();
+
+	// Deep links: /app/duty-board?issue=NAME or ?task=NAME opens that item
+	// directly. Emails and DMs about a ticket are far more useful when the
+	// recipient lands on the ticket rather than on the board, and the param is
+	// stripped afterwards so a refresh does not reopen it.
+	(function open_deep_link() {
+		let q;
+		try {
+			q = new URLSearchParams(window.location.search);
+		} catch (e) {
+			return;
+		}
+		const issue = q.get("issue");
+		const task = q.get("task");
+		if (!issue && !task) return;
+		const strip = () => {
+			try {
+				q.delete("issue");
+				q.delete("task");
+				const rest = q.toString();
+				history.replaceState({}, "", window.location.pathname + (rest ? "?" + rest : ""));
+			} catch (e) {
+				/* older browsers: leaving the param is harmless */
+			}
+		};
+		setTimeout(() => {
+			if (issue) {
+				board.issue_detail_dialog(issue);
+				strip();
+				return;
+			}
+			frappe.call({
+				method: "duty_board.projects.get_card",
+				args: { name: task },
+				callback: (r) => {
+					if (r.message) board.task_dialog(r.message.project, r.message);
+					strip();
+				},
+			});
+		}, 600);
+	})();
 
 	board.face_btn = null;
 	board.sales_btn = null;
@@ -48,6 +99,7 @@ frappe.pages["duty-board"].on_page_load = function (wrapper) {
 		{ id: "sales", ic: RSVG.sales, label: __("Sales"), go: () => board.show_face("sales") },
 		{ id: "chat", ic: '<path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>', label: __("Chat"), go: () => board.show_face("chat") },
 		{ id: "clients", ic: RSVG.rooms, label: __("Client Rooms"), go: () => board.show_face("clients") },
+		{ id: "oversight", ic: '<path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/>', label: __("Oversight"), go: () => board.show_face("oversight") },
 		{ id: "me", ic: RSVG.me, label: __("My Dashboard"), go: () => board.show_face("me") },
 		{ id: "news", ic: '<path d="M4 22h16a2 2 0 0 0 2-2V4a2 2 0 0 0-2-2H8a2 2 0 0 0-2 2v16a2 2 0 0 1-2 2Zm0 0a2 2 0 0 1-2-2v-9c0-1.1.9-2 2-2h2"/><path d="M18 14h-8"/><path d="M15 18h-5"/><path d="M10 6h8v4h-8V6Z"/>', label: __("News"), go: () => board.show_face("news") },
 	];
@@ -57,6 +109,13 @@ frappe.pages["duty-board"].on_page_load = function (wrapper) {
 	// Consultants keep the standalone face; mobile keeps its \ud83d\udc64 chip.
 	if (!board._is_consultant && !board.is_mobile()) {
 		board.rail = board.rail.filter((r) => r.id !== "me");
+	}
+	// Oversight is a portfolio view across every customer with a room, so it is
+	// staff-only — oversight.py calls require_staff() and would throw for a
+	// consultant. Removing the rail entry rather than letting them find a face
+	// that errors.
+	if (board._is_consultant) {
+		board.rail = board.rail.filter((r) => r.id !== "oversight");
 	}
 	// show_face only runs on clicks; fire it once so the day tabs (and
 	// every other face-state toggle) are correct on first paint.
@@ -103,7 +162,17 @@ frappe.pages["duty-board"].on_page_load = function (wrapper) {
 		callback: (r) => {
 			const q = r.message || {};
 			board.is_pricer = !!q.pricer;
-			board.rail.splice(5, 0, { id: "library", ic: board._rsvg.lib, label: __("Library"), go: () => board.show_face("library") });
+			board.is_sysadmin = !!q.sysadmin;
+			// Library holds licensed books rather than operational data, so it is
+			// System Manager only. The rail entry is hidden to match the server
+			// gate — hiding alone would not be a permission, which is why every
+			// endpoint in library.py is gated too.
+			if (board.is_sysadmin) {
+				board.rail.splice(5, 0, { id: "library", ic: board._rsvg.lib, label: __("Library"), go: () => board.show_face("library") });
+				// personal finances inside a shared tool: same gate as the
+				// Library, and every endpoint in money.py checks it again
+				board.rail.push({ id: "money", ic: '<path d="M2 7h20v12H2z"/><path d="M2 11h20"/><circle cx="7" cy="15" r="1.4"/>', label: __("Money"), go: () => board.show_face("money") });
+			}
 			board.rail.push({ id: "training", ic: board._rsvg.cap, label: __("Team training"), go: () => board.team_training_dialog() });
 			board.rail.push({ id: "academyhealth", ic: board._rsvg.pulse, label: __("Academy health"), go: () => board.academy_health_dialog() });
 			board.rail.push({ id: "lessonq", ic: board._rsvg.ask, label: __("Lesson questions"), go: () => board.lesson_questions_dialog() });
@@ -232,6 +301,15 @@ class DutyBoard {
 			<div class="duty-clients" style="display:none">
 				<div class="duty-cr-list"></div>
 				<div class="duty-cr-room" style="display:none"></div>
+			</div>
+		`).appendTo(page.body);
+		this.$money = $(`
+			<div class="duty-money" style="display:none"></div>
+		`).appendTo(page.body);
+		this.$oversight = $(`
+			<div class="duty-oversight" style="display:none">
+				<div class="duty-ov-list"></div>
+				<div class="duty-ov-detail" style="display:none"></div>
 			</div>
 		`).appendTo(page.body);
 		this.$chatface = $(`
@@ -1537,6 +1615,12 @@ class DutyBoard {
 	}
 
 	clear_unread() {
+		// the rail badge is the server's number rather than this counter, so it
+		// is zeroed here and re-asked on the next tick — otherwise it would keep
+		// showing a count for messages you are currently reading. clear_unread
+		// is a method of the board itself, so there is no object to go through.
+		this._unread_n = 0;
+		if (this.paint_unread) this.paint_unread();
 		this.unread = 0;
 		this.$badge.hide();
 		this.$rail.find(".duty-rail-badge").hide();
@@ -1645,7 +1729,7 @@ class DutyBoard {
 
 	consultant_shell() {
 		this.rail = (this.rail || []).filter((r) => ["issues", "chat", "projects", "me", "news"].includes(r.id));
-		if (!this.rail.some((r) => r.id === "library")) {
+		if (this.is_sysadmin && !this.rail.some((r) => r.id === "library")) {
 			this.rail.splice(this.rail.length - 1, 0, { id: "library", ic: this._rsvg.lib, label: __("Library"), go: () => this.show_face("library") });
 		}
 		this.build_rail();
@@ -2252,6 +2336,7 @@ class DutyBoard {
 			this._pj_open = {};
 			if (this.is_mobile()) this.$projects.removeClass("pj-detail");
 		}
+		if (face === "oversight" && prev_face !== "oversight") this._ov_cust = null;
 		if (face === "clients" && prev_face !== "clients") {
 			this._cr_open = {};
 			Object.keys(localStorage)
@@ -2272,6 +2357,8 @@ class DutyBoard {
 		if (this.$chatface) this.$chatface.toggle(face === "chat");
 		if (face !== "chat") this._ch_return_team();
 		this.$clients.toggle(face === "clients");
+		if (this.$oversight) this.$oversight.toggle(face === "oversight");
+		if (this.$money) this.$money.toggle(face === "money");
 		this.$me.toggle(merged ? face === "board" && dtab === "dash" : face === "me");
 		this.$books.toggle(face === "books");
 		if (this.$library) this.$library.toggle(face === "library");
@@ -2283,6 +2370,8 @@ class DutyBoard {
 		if (face === "sales") this.refresh_sales();
 		if (face === "chat") this.refresh_chat();
 		if (face === "clients") this.refresh_clients();
+		if (face === "oversight") this.refresh_oversight();
+		if (face === "money") this.refresh_money();
 		if (face === "me" || (face === "board" && merged && dtab === "dash")) this.refresh_me();
 	}
 
@@ -4222,8 +4311,861 @@ this.$me.find(".duty-req-ok").on("click", (e) => {
 			const target = cur.target_date
 				? ` <span class="duty-proj-target ${cur.days_left != null && cur.days_left < 0 ? "duty-lead-over" : ""}">🎯 ${frappe.datetime.str_to_user(cur.target_date)}${cur.days_left != null ? ` (${cur.days_left}d)` : ""}</span>`
 				: "";
+			// The six analysis screens used to sit in a row of their own above the
+			// board, unconnected to anything and competing with the view tabs
+			// for attention. They are one menu now, next to the views, because
+			// they are things you occasionally open rather than places you work.
 			$t.html(target ? `<span class="text-muted" style="font-size:12.5px">${target}</span>` : "");
 		} else $t.empty();
+	}
+
+	// Estimated against actual. The estimate has been captured since the
+	// beginning and nothing ever recorded what a task took, so there was no
+	// variance and no evidence the estimates meant anything — the first thing a
+	// project consultant asks for. Nothing new is captured: Work Session already
+	// carries the task and the duration.
+	// The decision log. RAID is Risks, Actions, Issues and Decisions and this had
+	// three of four. On an implementation the decisions ARE the audit trail:
+	// when something is questioned in month five, this is the document that
+	// settles who agreed what and what else was considered.
+	// The weekly status pack. A Big 4 engagement runs on this document, and
+	// theirs is assembled by an analyst on a Friday from what people remembered.
+	// This one cannot disagree with the system because it IS the system — which
+	// is the whole argument, and it only holds if every figure here is the same
+	// calculation the screens use rather than a second one written for the pack.
+	// The critical path. blocked_by has been captured since the beginning and
+	// nothing ever computed what it implies — the question a reviewer asks when
+	// a date slips is "which task moved it".
+	// Plan against actual over time. A status figure says where you are; this
+	// says whether you have been falling behind steadily or lost it in one bad
+	// fortnight, which are different problems with different answers.
+	// Deliverables and their acceptance. A phase sign-off says the phase is
+	// done; it says nothing about which document was reviewed, by whom, or
+	// against what. That is the record an audit asks for.
+	_pj_deliverables(project) {
+		const esc = frappe.utils.escape_html;
+		const d = new frappe.ui.Dialog({ title: __("Deliverables"), size: "extra-large" });
+		const draw = () => {
+			$(d.body).html(`<div class="duty-hl-load">${__("Loading…")}</div>`);
+			frappe.call({
+				method: "duty_board.projects.deliverables",
+				args: { project: project },
+				callback: (r) => {
+					const x = r.message || {};
+					const rows = x.rows || [];
+					$(d.body).html(`
+						<div class="duty-st-top">
+							<div><span>${__("Accepted")}</span><b>${x.accepted}/${x.total}</b></div>
+							<div><span>${__("Awaiting sign-off")}</span><b>${x.awaiting}</b></div>
+							<div><span>${__("Overdue")}</span><b class="${x.overdue ? "down" : ""}">${x.overdue}</b></div>
+						</div>
+						${x.no_criteria ? `<div class="duty-rv-warn" style="margin:8px 0;color:#B27409">${
+							__("{0} deliverable(s) have no acceptance criteria. Set them before the work is submitted \u2014 without them a deliverable can be rejected for any reason and accepted for none.", [x.no_criteria])}</div>` : ""}
+						<div class="duty-sh-bar"><a class="btn btn-xs btn-primary dl-new">+ ${__("Deliverable")}</a>
+							<span>${__("Criteria agreed before the work starts are what stop sign-off becoming an argument about taste at the end.")}</span></div>
+						${rows.length ? rows.map((z) => `
+							<div class="duty-dl ${(z.status || "").toLowerCase().replace(/ /g, "-")} ${z.overdue ? "late" : ""}" data-l="${esc(z.name)}">
+								<div class="duty-dl-h">
+									<b>${esc(z.title)}</b>
+									<span class="duty-dl-st">${esc(z.status)}</span>
+									${z.due_date ? `<em>${__("due")} ${esc(z.due_date)}${z.overdue ? ` · ${__("overdue")}` : ""}</em>` : ""}
+								</div>
+								<div class="duty-dl-m">
+									${z.phase ? `<span>${esc(z.phase)}</span>` : ""}
+									${z.owner_name ? `<span>${__("by")} ${esc(z.owner_name)}</span>` : ""}
+									${z.reviewer ? `<span>${__("reviewer")} ${esc(z.reviewer)}</span>` : ""}
+								</div>
+								${z.criteria
+									? `<p><b>${__("Accepted when")}:</b> ${esc(z.criteria)}</p>`
+									: `<p class="duty-dl-nc">${__("No acceptance criteria set.")}</p>`}
+								${z.accepted_by ? `<p class="duty-dl-ok">${__("Accepted by")} <b>${esc(z.accepted_by)}</b> ${__("on")} ${esc(String(z.accepted_at).slice(0, 16))}${z.accept_note ? ` — ${esc(z.accept_note)}` : ""}</p>` : ""}
+								${z.reject_reason ? `<p class="duty-dl-no">${__("Rejected")}: ${esc(z.reject_reason)}</p>` : ""}
+								<div class="duty-dl-a">
+									<a class="dl-edit">${__("Edit")}</a>
+									${z.status === "Submitted" ? `<a class="dl-ok">${__("Accept")}</a><a class="dl-no">${__("Reject")}</a>` : ""}
+								</div>
+							</div>`).join("")
+							: `<div class="duty-lb-empty">${__("No deliverables listed. Name what the client is actually accepting \u2014 a requirements document, a configured chart of accounts, a migration reconciliation \u2014 and what makes each acceptable.")}</div>`}`);
+					const find = (n) => rows.find((z) => z.name === n) || {};
+					$(d.body).find(".dl-new").on("click", () => this._pj_deliverable_dialog(project, null, draw));
+					$(d.body).find(".dl-edit").on("click", (e) =>
+						this._pj_deliverable_dialog(project, find($(e.currentTarget).closest(".duty-dl").data("l")), draw));
+					const decide = (el, ok) => {
+						const z = find($(el).closest(".duty-dl").data("l"));
+						frappe.prompt([
+							{ fieldtype: "Data", fieldname: "who", label: __("Who signed"), reqd: 1,
+							  default: z.reviewer || "" },
+							{ fieldtype: "Small Text", fieldname: "note",
+							  label: ok ? __("Note (optional)") : __("Which criterion was not met"),
+							  reqd: ok ? 0 : 1,
+							  description: ok ? "" : __("A rejection that cites no criterion is a change request, and the difference matters commercially.") },
+						], (v) => frappe.call({
+							method: "duty_board.projects.accept_deliverable",
+							args: { name: z.name, accepted_by: v.who, note: v.note, accept: ok ? 1 : 0 },
+							callback: draw,
+						}), ok ? __("Accept deliverable") : __("Reject deliverable"), ok ? __("Accept") : __("Reject"));
+					};
+					$(d.body).find(".dl-ok").on("click", (e) => decide(e.currentTarget, 1));
+					$(d.body).find(".dl-no").on("click", (e) => decide(e.currentTarget, 0));
+				},
+			});
+		};
+		draw();
+		d.show();
+	}
+
+	_pj_deliverable_dialog(project, existing, after) {
+		const e = existing || {};
+		frappe.call({
+			method: "duty_board.projects.get_milestones_for_project",
+			args: { project: project },
+			callback: (r) => {
+				const ms = [{ value: "", label: "" }].concat(
+					(r.message || []).map((m) => ({ value: m.name, label: m.title })));
+				const dl = new frappe.ui.Dialog({
+					title: e.name ? __("Deliverable") : __("New deliverable"),
+					fields: [
+						{ fieldtype: "Data", fieldname: "title", label: __("Deliverable"), reqd: 1,
+						  default: e.title || "" },
+						{ fieldtype: "Select", fieldname: "milestone", label: __("Phase"),
+						  options: ms, default: e.milestone || "" },
+						{ fieldtype: "Date", fieldname: "due_date", label: __("Due"), default: e.due_date || "" },
+						{ fieldtype: "Small Text", fieldname: "criteria", label: __("Accepted when"),
+						  default: e.criteria || "",
+						  description: __("What has to be true for the client to sign this off. Agreed before the work starts, or the argument happens at the end.") },
+						{ fieldtype: "Data", fieldname: "reviewer", label: __("Who will accept it"),
+						  default: e.reviewer || "",
+						  description: __("Named up front, so it is not discovered at submission that the person who must sign is on leave.") },
+						{ fieldtype: "Select", fieldname: "status", label: __("Status"),
+						  options: "Not started\nIn progress\nSubmitted\nAccepted\nRejected",
+						  default: e.status || "Not started" },
+						{ fieldtype: "Data", fieldname: "artefact_url", label: __("Where it lives"),
+						  default: e.artefact_url || "" },
+						{ fieldtype: "Check", fieldname: "client_visible", label: __("Show to the client"),
+						  default: e.client_visible === 0 ? 0 : 1 },
+					],
+					primary_action_label: e.name ? __("Save") : __("Add"),
+					primary_action: (v) => {
+						frappe.call({
+							method: "duty_board.projects.save_deliverable",
+							args: Object.assign({ name: e.name || null, project: project }, v),
+							callback: () => { dl.hide(); if (after) after(); },
+						});
+					},
+				});
+				dl.show();
+			},
+		});
+	}
+
+	_pj_curve(project) {
+		const esc = frappe.utils.escape_html;
+		const d = new frappe.ui.Dialog({ title: __("Plan against actual"), size: "large" });
+		frappe.call({
+			method: "duty_board.projects.progress_curve",
+			args: { project: project },
+			callback: (r) => {
+				const x = r.message || {};
+				const pts = x.points || [];
+				const W = 660, H = 220, PAD = 34;
+				const n = pts.length;
+				const px = (i) => PAD + (n > 1 ? (i * (W - PAD * 2)) / (n - 1) : 0);
+				const py = (v) => H - PAD - (v / 100) * (H - PAD * 2);
+				const line = (key) => pts.map((p, i) => `${i ? "L" : "M"}${px(i).toFixed(1)},${py(p[key]).toFixed(1)}`).join(" ");
+				const todayI = pts.findIndex((p) => p.future);
+				const v = x.variance;
+				$(d.body).html(`
+					<div class="duty-st-top">
+						<div><span>${__("Should be")}</span><b>${x.planned_now !== null ? `${x.planned_now}%` : "—"}</b></div>
+						<div><span>${__("Actually")}</span><b>${x.actual_now !== null ? `${x.actual_now}%` : "—"}</b></div>
+						<div><span>${__("Variance")}</span><b class="${v > 0 ? "up" : v < 0 ? "down" : ""}">${
+							v === null || v === undefined ? "—" : `${v > 0 ? "+" : ""}${v} ${__("pts")}`}</b></div>
+					</div>
+					${v !== null && v !== undefined ? `<div class="duty-rv-warn" style="margin:8px 0">${
+						v < -10 ? __("Behind the plan by {0} points. The shape of the gap matters: a curve that separates steadily is a resourcing problem, one that drops away suddenly is a blocker.", [Math.abs(v)])
+						: v < 0 ? __("Slightly behind — {0} points.", [Math.abs(v)])
+						: __("At or ahead of the plan.")}</div>` : ""}
+					${n > 1 ? `
+						<svg viewBox="0 0 ${W} ${H}" style="width:100%;height:auto">
+							${[0, 25, 50, 75, 100].map((g) => `
+								<line x1="${PAD}" y1="${py(g)}" x2="${W - PAD}" y2="${py(g)}" stroke="#E7ECEA" stroke-width="1"/>
+								<text x="${PAD - 6}" y="${py(g) + 3}" font-size="9" fill="#8A9A95" text-anchor="end">${g}%</text>`).join("")}
+							${todayI > 0 ? `<line x1="${px(todayI)}" y1="${PAD}" x2="${px(todayI)}" y2="${H - PAD}" stroke="#B45309" stroke-width="1" stroke-dasharray="3 3"/>
+								<text x="${px(todayI) + 4}" y="${PAD + 9}" font-size="9" fill="#B45309">${__("today")}</text>` : ""}
+							<path d="${line("planned")}" fill="none" stroke="#8A9A95" stroke-width="2" stroke-dasharray="5 4"/>
+							<path d="${line("actual")}" fill="none" stroke="#0C6B4F" stroke-width="2.5"/>
+							<text x="${PAD}" y="${H - 8}" font-size="9" fill="#8A9A95">${esc(pts[0].d)}</text>
+							<text x="${W - PAD}" y="${H - 8}" font-size="9" fill="#8A9A95" text-anchor="end">${esc(pts[n - 1].d)}</text>
+						</svg>
+						<div class="duty-cv-k">
+							<span><i style="background:#8A9A95"></i>${__("Planned, from due dates")}</span>
+							<span><i style="background:#0C6B4F"></i>${__("Actual, from completion dates")}</span>
+						</div>`
+						: `<div class="duty-rv-warn">${__("Not enough dated work to draw a curve.")}</div>`}
+					${x.no_due_dates ? `<div class="duty-rv-warn" style="margin-top:8px;color:#B27409">${
+						__("{0} of {1} tasks have no due date, so they are not in the planned line. A plan without dates cannot be measured against.", [x.no_due_dates, x.tasks])}</div>` : ""}
+					${x.undated_done ? `<div class="duty-rv-warn" style="margin-top:8px">${
+						__("{0} finished task(s) have no completion date — they were completed before the date began being recorded, and are counted from the start of the window rather than left out.", [x.undated_done])}</div>` : ""}
+					<p class="duty-st-f">${__("Measured {0}. Planned counts work on the day it was due; actual counts it on the day it was finished.", [esc(x.basis || "")])}</p>`);
+			},
+		});
+		d.show();
+	}
+
+	_pj_critical(project) {
+		const esc = frappe.utils.escape_html;
+		const d = new frappe.ui.Dialog({ title: __("Critical path"), size: "large" });
+		frappe.call({
+			method: "duty_board.projects.critical_path",
+			args: { project: project },
+			callback: (r) => {
+				const x = r.message || {};
+				const c = x.critical || [];
+				$(d.body).html(`
+					<div class="duty-st-top">
+						<div><span>${__("Longest chain")}</span><b>${c.length} ${__("tasks")}</b></div>
+						<div><span>${__("Work remaining on it")}</span><b>${this._num(x.remaining_hours || 0, 1)}h</b></div>
+						<div><span>${__("Tasks with no blocker")}</span><b>${x.unlinked} / ${x.total}</b></div>
+					</div>
+					${x.unlinked === x.total ? `<div class="duty-rv-warn" style="margin:8px 0">${
+						__("No task records a blocker, so there is no chain to follow. Set 'blocked by' on the tasks that genuinely wait on another and this becomes the answer to which slip moves the date.")}</div>` : ""}
+					${(x.cycles || []).length ? `<div class="duty-rv-warn" style="margin:8px 0;color:#B91C1C">${
+						__("These tasks block each other in a loop and are excluded: {0}. A circular dependency cannot be scheduled and is always a mistake.", [esc(x.cycles.join(", "))])}</div>` : ""}
+					${c.length ? `
+						<div class="duty-rv-h">${__("The chain")}</div>
+						<div class="duty-cp">
+							${c.map((t, i) => `
+								<div class="duty-cp-i ${t.done ? "done" : ""} ${t.due && t.due < frappe.datetime.get_today() && !t.done ? "late" : ""}">
+									<span class="duty-cp-n">${i + 1}</span>
+									<div>
+										<b>${esc(t.title)}</b>
+										<span>${[t.phase, t.assignee, t.due ? `due ${t.due}` : null,
+												 t.est ? `${this._num(t.est, 1)}h` : null]
+											.filter(Boolean).map(esc).join(" · ")}</span>
+									</div>
+									<em>${t.done ? __("done") : t.due && t.due < frappe.datetime.get_today() ? __("overdue") : ""}</em>
+								</div>`).join("")}
+						</div>` : ""}
+					${(x.holders || []).length ? `
+						<div class="duty-rv-h" style="margin-top:16px">${__("Unblock these first")}</div>
+						<table class="duty-st-t"><tr><th>${__("Task")}</th><th>${__("Who")}</th>
+							<th>${__("Due")}</th><th>${__("Chains held up")}</th></tr>
+							${x.holders.map((h) => `<tr class="${h.overdue ? "duty-rv-miss" : ""}">
+								<td><b>${esc(h.title)}</b></td>
+								<td>${esc(h.assignee || "—")}</td>
+								<td>${h.due ? esc(h.due) : "—"}${h.overdue ? ` <span class="duty-st-n">${__("overdue")}</span>` : ""}</td>
+								<td><b>${h.blocks}</b></td></tr>`).join("")}
+						</table>` : ""}
+					<p class="duty-st-f">${esc(x.basis || "")}</p>`);
+			},
+		});
+		d.show();
+	}
+
+	// Printing without window.open + document.write.
+	//
+	// That pair is the standard shape of a popup injector, so virus scanners
+	// flag it on sight — and it is fragile besides: a popup blocker stops the
+	// window opening at all, and the print button then does nothing with no
+	// error. A hidden iframe on the page has neither problem.
+	_print_node(id, title) {
+		const src = document.getElementById(id);
+		if (!src) return;
+		const old = document.getElementById("duty-print-frame");
+		if (old) old.remove();
+		const f = document.createElement("iframe");
+		f.id = "duty-print-frame";
+		f.setAttribute("aria-hidden", "true");
+		f.style.cssText = "position:fixed;right:0;bottom:0;width:0;height:0;border:0;visibility:hidden";
+		document.body.appendChild(f);
+		const doc = f.contentDocument;
+		// built as nodes rather than written as a string: nothing is parsed
+		// from markup, so there is no injection shape here at all
+		const style = doc.createElement("style");
+		style.textContent = `
+			body{font-family:-apple-system,Segoe UI,Roboto,sans-serif;color:#16211F;margin:32px;font-size:13px}
+			h3{margin:0}h4{margin:18px 0 6px;font-size:12px;text-transform:uppercase;letter-spacing:.06em;color:#65736F}
+			table{width:100%;border-collapse:collapse;margin:6px 0}
+			th,td{border:1px solid #E3EAE7;padding:5px 8px;text-align:left;font-size:12px}
+			th{background:#F5F8F7}ul{margin:4px 0;padding-left:18px}li{margin:3px 0}
+			li span{color:#65736F;font-size:11.5px}
+			.duty-pk-g{display:flex;gap:26px;margin:14px 0;padding:12px 0;border-top:1px solid #E3EAE7;border-bottom:1px solid #E3EAE7}
+			.duty-pk-g i{display:block;font-style:normal;font-size:10px;text-transform:uppercase;color:#65736F}
+			.duty-pk-g b{font-size:17px}
+			.duty-pk-g u{display:block;text-decoration:none;font-size:10.5px;color:#65736F}
+			.duty-pk-rag{float:right;border:2px solid;border-radius:6px;padding:4px 12px;font-weight:700}
+			.duty-pk-rag u{display:block;text-decoration:none;font-size:9px;font-weight:400}
+			.duty-pk-f{margin-top:22px;font-size:10.5px;color:#65736F;border-top:1px solid #E3EAE7;padding-top:8px}
+			.duty-pk-n{color:#65736F;font-style:italic}
+			.duty-hl-load,.duty-sh-bar{display:none}`;
+		doc.head.appendChild(style);
+		doc.title = title || document.title;
+		doc.body.appendChild(src.cloneNode(true));
+		const go = () => {
+			try {
+				f.contentWindow.focus();
+				f.contentWindow.print();
+			} catch (e) {
+				frappe.show_alert({ message: __("Could not open the print dialog"), indicator: "orange" });
+			}
+			// left in place briefly: removing it before the dialog appears
+			// cancels the print in some browsers
+			setTimeout(() => f.remove(), 1500);
+		};
+		if (doc.readyState === "complete") go();
+		else f.onload = go;
+	}
+
+	_pj_status_pack(project) {
+		const esc = frappe.utils.escape_html;
+		const d = new frappe.ui.Dialog({ title: __("Weekly status"), size: "extra-large" });
+		frappe.call({
+			method: "duty_board.projects.status_pack",
+			args: { project: project, days: 7 },
+			callback: (r) => {
+				const x = r.message || {};
+				const RAG = { "On track": "#0C6B4F", "At risk": "#B45309", "Off track": "#B91C1C", "Completed": "#0C6B4F" };
+				const hrs = (v) => v ? `${this._num(v, 1)}h` : "—";
+				const sec = (t, body) => `<div class="duty-pk-s"><h4>${t}</h4>${body}</div>`;
+				const none = (t) => `<p class="duty-pk-n">${t}</p>`;
+				$(d.body).html(`
+					<div class="duty-pk" id="duty-pk">
+						<div class="duty-pk-h">
+							<div>
+								<span>${esc(x.customer || "")}</span>
+								<h3>${esc(x.project_name || "")}</h3>
+								<i>${__("Week to {0}", [frappe.datetime.str_to_user(x.to_date)])}</i>
+							</div>
+							<div class="duty-pk-rag" style="border-color:${RAG[x.rag]};color:${RAG[x.rag]}">
+								${esc(x.rag)}
+								${x.rag_stated ? "" : `<u>${__("not stated — from the evidence")}</u>`}
+							</div>
+						</div>
+						${x.rag_reason ? `<div class="duty-pk-why"><b>${__("Why")}:</b> ${esc(x.rag_reason)}
+							${x.rag_owner ? ` · ${__("Recovery")}: ${esc(x.rag_owner)}` : ""}
+							${x.rag_due ? ` · ${__("by")} ${esc(x.rag_due)}` : ""}</div>` : ""}
+
+						<div class="duty-pk-g">
+							<div><i>${__("Go-live")}</i><b>${x.golive ? esc(x.golive) : "—"}</b>
+								<u>${x.baseline
+									? (x.slip_days === 0 ? __("on baseline")
+										: x.slip_days > 0 ? __("{0}d after baseline {1}", [x.slip_days, x.baseline])
+										: __("{0}d ahead of baseline", [-x.slip_days]))
+									: __("no baseline set")}</u></div>
+							<div><i>${__("Days remaining")}</i><b>${x.days_to_golive !== null ? x.days_to_golive : "—"}</b></div>
+							<div><i>${__("Effort")}</i><b>${hrs(x.effort.actual)} / ${hrs(x.effort.estimate)}</b>
+								<u>${x.effort.burn_rate ? __("burn {0}× · forecast {1}", [x.effort.burn_rate, hrs(x.effort.forecast)]) : __("no completed estimates yet")}</u></div>
+							<div><i>${__("Phases late")}</i><b>${(x.late_phases || []).length}</b></div>
+						</div>
+
+						${sec(__("Phases"), `<table class="duty-st-t"><tr>
+							<th>${__("Phase")}</th><th>${__("Status")}</th><th>${__("Due")}</th>
+							<th>${__("Slip")}</th><th>${__("Tasks")}</th></tr>
+							${(x.phases || []).map((p) => `<tr class="${p.days_late ? "duty-rv-miss" : ""}">
+								<td><b>${esc(p.title)}</b></td>
+								<td>${esc(p.status)}</td>
+								<td>${p.target_date ? esc(p.target_date) : "—"}${
+									p.days_late ? `<div class="duty-st-n">${__("{0}d late", [p.days_late])}</div>` : ""}</td>
+								<td>${p.slip_days === null || p.slip_days === undefined ? "—"
+									: p.slip_days === 0 ? __("none") : `${p.slip_days > 0 ? "+" : ""}${p.slip_days}d`}</td>
+								<td>${p.done} / ${p.total}</td></tr>`).join("")}
+						</table>`)}
+
+						${sec(__("Completed this week"), (x.completed || []).length
+							? `<ul class="duty-pk-l">${x.completed.map((t) =>
+								`<li>${esc(t.title)}${t.phase ? ` <span>${esc(t.phase)}</span>` : ""}</li>`).join("")}</ul>`
+							: none(__("Nothing was completed in the period. {0} task(s) were touched.", [x.touched || 0])))}
+
+						${sec(__("Decisions taken"), (x.decisions || []).length
+							? `<ul class="duty-pk-l">${x.decisions.map((z) =>
+								`<li><b>${esc(z.title)}</b> — ${esc(z.decided_by || "")}, ${esc(z.decided_on)}
+									${z.impact ? `<span>${esc(z.impact)}</span>` : ""}</li>`).join("")}</ul>`
+							: none(__("No decisions were recorded this week.")))}
+
+						${sec(__("Risks"), (x.risks || []).length
+							? `<table class="duty-st-t"><tr><th>${__("Risk")}</th><th>${__("L")}</th>
+								<th>${__("I")}</th><th>${__("Score")}</th><th>${__("Owner")}</th><th>${__("Mitigation")}</th></tr>
+								${x.risks.slice(0, 8).map((z) => `<tr class="${z.score >= 6 ? "duty-rv-miss" : ""}">
+									<td><b>${esc(z.title)}</b></td><td>${esc(z.likelihood || "—")}</td>
+									<td>${esc(z.impact || "—")}</td><td><b>${z.score}</b></td>
+									<td>${esc(z.owner || "—")}</td><td>${esc(z.mitigation || "—")}</td></tr>`).join("")}
+							</table>`
+							: none(__("No open risks are recorded. On an implementation of this size that is itself worth a comment.")))}
+
+						${sec(__("Change requests moved"), (x.change_requests || []).length
+							? `<ul class="duty-pk-l">${x.change_requests.map((c) =>
+								`<li>${esc(c.original_request || c.name)} — <b>${esc(c.status)}</b></li>`).join("")}</ul>`
+							: none(__("None in the period.")))}
+
+						${(x.deliverables && x.deliverables.total) ? sec(__("Deliverables"),
+							`<p>${__("{0} of {1} accepted. {2} awaiting sign-off{3}.", [
+								x.deliverables.accepted, x.deliverables.total, x.deliverables.awaiting,
+								x.deliverables.overdue ? __(", {0} overdue", [x.deliverables.overdue]) : ""])}</p>
+							${(x.deliverables.recent || []).length ? `<ul class="duty-pk-l">${
+								x.deliverables.recent.map((z) => `<li>\u2713 ${esc(z.title)}
+									<span>${__("accepted by")} ${esc(z.accepted_by || "")} ${esc(String(z.accepted_at || "").slice(0, 10))}</span></li>`).join("")}</ul>` : ""}
+							${(x.deliverables.pending || []).length ? `<p class="duty-pk-n">${
+								__("Awaiting the client: {0}.", [esc(x.deliverables.pending.map((z) => z.title).join(", "))])}</p>` : ""}
+							${x.deliverables.no_criteria ? `<p class="duty-pk-n">${
+								__("{0} carry no acceptance criteria.", [x.deliverables.no_criteria])}</p>` : ""}`) : ""}
+
+						${(x.critical && (x.critical.tasks || []).length) ? sec(__("What moves the end date"),
+							`<ul class="duty-pk-l">${x.critical.tasks.map((t) =>
+								`<li>${t.done ? "\u2713 " : ""}${esc(t.title)}
+									<span>${[t.phase, t.assignee, t.due ? `due ${t.due}` : null].filter(Boolean).map(esc).join(" \u00b7 ")}</span></li>`).join("")}</ul>
+							<p class="duty-pk-n">${__("{0}h of unfinished work sits on this chain.", [this._num(x.critical.remaining_hours || 0, 1)])}
+							${(x.critical.holders || []).length ? __("Unblock first: {0}.", [
+								esc(x.critical.holders.map((h) => h.title).join(", "))]) : ""}</p>`) : ""}
+
+						${sec(__("Due in the coming week"), (x.next || []).length
+							? `<ul class="duty-pk-l">${x.next.map((t) =>
+								`<li class="${t.overdue ? "late" : ""}">${esc(t.title)}
+									<span>${esc(t.due_date)}${t.assignee ? ` · ${esc(t.assignee)}` : ""}${
+										t.overdue ? ` · ${__("already overdue")}` : ""}</span></li>`).join("")}</ul>`
+							: none(__("Nothing is dated in the coming week — which on a live project usually means the plan needs dates, not that there is no work.")))}
+
+						<div class="duty-pk-f">${__("Assembled from the project record at {0}. Every figure here is the same calculation the screens show; nothing is retyped.", [frappe.datetime.now_datetime()])}</div>
+					</div>
+					<div class="duty-sh-bar"><a class="btn btn-xs btn-default pk-print">${__("Print or save as PDF")}</a></div>`);
+				$(d.body).find(".pk-print").on("click", () => this._print_node("duty-pk", x.project_name || "Status"));
+			},
+		});
+		d.show();
+	}
+
+	_pj_decisions(project) {
+		const esc = frappe.utils.escape_html;
+		const d = new frappe.ui.Dialog({ title: __("Decision log"), size: "extra-large" });
+		const draw = () => {
+			$(d.body).html(`<div class="duty-hl-load">${__("Loading…")}</div>`);
+			frappe.call({
+				method: "duty_board.projects.decisions",
+				args: { project: project },
+				callback: (r) => {
+					const x = r.message || {};
+					const rows = x.rows || [];
+					$(d.body).html(`
+						<div class="duty-st-top">
+							<div><span>${__("Agreed")}</span><b>${x.agreed || 0}</b></div>
+							<div><span>${__("Proposed")}</span><b>${x.open || 0}</b></div>
+							<div><span>${__("Superseded")}</span><b>${x.superseded || 0}</b></div>
+						</div>
+						<div class="duty-sh-bar"><a class="btn btn-xs btn-primary dc-new">+ ${__("Decision")}</a>
+							<span>${__("Recorded while the reasoning is still obvious. In month five it will not be.")}</span></div>
+						${rows.length ? rows.map((z) => `
+							<div class="duty-dc ${(z.status || "").toLowerCase()}" data-d="${esc(z.name)}">
+								<div class="duty-dc-h">
+									<b>${esc(z.title)}</b>
+									<span class="duty-dc-st">${esc(z.status)}</span>
+									<em>${esc(frappe.datetime.str_to_user(z.decided_on))}</em>
+								</div>
+								<div class="duty-dc-m">
+									${z.decided_by ? `<span>${__("Decided by")} <b>${esc(z.decided_by)}</b></span>` : ""}
+									${z.raised_by ? `<span>${__("Raised by")} ${esc(z.raised_by)}</span>` : ""}
+									${z.phase ? `<span>${__("Affects")} ${esc(z.phase)}</span>` : ""}
+									${z.client_visible ? "" : `<span class="duty-dc-priv">${__("internal only")}</span>`}
+								</div>
+								${z.context ? `<p><b>${__("Why")}:</b> ${esc(z.context)}</p>` : ""}
+								${z.options_considered ? `<p><b>${__("Alternatives")}:</b> ${esc(z.options_considered)}</p>` : ""}
+								${z.impact ? `<p><b>${__("Consequences")}:</b> ${esc(z.impact)}</p>` : ""}
+								${z.replaced_by ? `<p class="duty-dc-sup">${__("Superseded by")} \u201c${esc(z.replaced_by.title)}\u201d ${__("on")} ${esc(frappe.datetime.str_to_user(z.replaced_by.on))}</p>` : ""}
+								<div class="duty-dc-a">
+									<a class="dc-edit">${__("Edit")}</a>
+									${z.status === "Agreed" ? `<a class="dc-sup">${__("Supersede")}</a>` : ""}
+								</div>
+							</div>`).join("")
+							: `<div class="duty-lb-empty">${__("Nothing recorded yet. Every scope call, every deferral, every 'we agreed to do it this way' belongs here — it is what a reviewer asks for first when a project is questioned.")}</div>`}`);
+					const find = (n) => rows.find((z) => z.name === n) || {};
+					$(d.body).find(".dc-new").on("click", () => this._pj_decision_dialog(project, null, draw));
+					$(d.body).find(".dc-edit").on("click", (e) =>
+						this._pj_decision_dialog(project, find($(e.currentTarget).closest(".duty-dc").data("d")), draw));
+					$(d.body).find(".dc-sup").on("click", (e) => {
+						const old = find($(e.currentTarget).closest(".duty-dc").data("d"));
+						this._pj_decision_dialog(project, { supersedes: old.name,
+							title: "", context: __("Replaces: {0}", [old.title]) }, draw);
+					});
+				},
+			});
+		};
+		draw();
+		d.show();
+	}
+
+	_pj_decision_dialog(project, existing, after) {
+		const e = existing || {};
+		const dl = new frappe.ui.Dialog({
+			title: e.name ? __("Decision") : __("Record a decision"),
+			fields: [
+				{ fieldtype: "Data", fieldname: "title", label: __("What was decided"), reqd: 1,
+				  default: e.title || "",
+				  description: __("One line a stranger could follow \u2014 'three warehouses, not five', not 'warehouse discussion'.") },
+				{ fieldtype: "Date", fieldname: "decided_on", label: __("Decided on"), reqd: 1,
+				  default: e.decided_on || frappe.datetime.get_today() },
+				{ fieldtype: "Select", fieldname: "status", label: __("Status"), reqd: 1,
+				  options: "Proposed\nAgreed\nSuperseded\nReversed", default: e.status || "Agreed" },
+				{ fieldtype: "Data", fieldname: "decided_by", label: __("Decided by"), reqd: 1,
+				  default: e.decided_by || "",
+				  description: __("Who made the call. When this is questioned later it is the field that settles it.") },
+				{ fieldtype: "Data", fieldname: "raised_by", label: __("Raised by"), default: e.raised_by || "" },
+				{ fieldtype: "Small Text", fieldname: "context", label: __("Why"), default: e.context || "",
+				  description: __("The reasoning at the time. Obvious now, gone in three months.") },
+				{ fieldtype: "Small Text", fieldname: "options_considered", label: __("Alternatives considered"),
+				  default: e.options_considered || "",
+				  description: __("What else was on the table. A decision with no alternatives recorded reads as an assumption.") },
+				{ fieldtype: "Small Text", fieldname: "impact", label: __("Consequences"), default: e.impact || "",
+				  description: __("Cost, timeline, scope or risk \u2014 what this commits the project to.") },
+				{ fieldtype: "Check", fieldname: "client_visible", label: __("Show to the client"),
+				  default: e.client_visible === 0 ? 0 : 1,
+				  description: __("On by default. A decision log the client cannot see is a private diary, not an audit trail.") },
+			],
+			primary_action_label: e.name ? __("Save") : __("Record"),
+			primary_action: (v) => {
+				frappe.call({
+					method: "duty_board.projects.save_decision",
+					args: Object.assign({ name: e.name || null, project: project,
+										  supersedes: e.supersedes || null }, v),
+					callback: () => { dl.hide(); if (after) after(); },
+				});
+			},
+		});
+		dl.show();
+	}
+
+	// Gantt and List, beside the board. Same tasks, three ways of looking at
+	// them — which is the one thing every other tool has and this did not.
+	// the board's own route into a card, reused so all three views open the
+	// same dialog rather than three near-identical ones
+	_pj_open(project, name) {
+		frappe.call({
+			method: "duty_board.projects.get_card",
+			args: { name: name },
+			callback: (r) => r.message && this.task_dialog(project, r.message),
+		});
+	}
+
+	_pj_gantt(project, $wrap) {
+		const esc = frappe.utils.escape_html;
+		// reused rather than appended, so a redraw does not stack hosts
+		let $w = $wrap.find(".duty-gt-host");
+		if (!$w.length) $w = $('<div class="duty-gt-host"></div>').appendTo($wrap);
+		$w.html(`<div class="duty-hl-load">${__("Loading…")}</div>`);
+		frappe.call({
+			method: "duty_board.projects.gantt",
+			args: { project: project },
+			callback: (r) => {
+				const x = r.message || {};
+				const bars = (x.bars || []).filter((b) => b.start && b.end);
+				if (!bars.length) {
+					$w.html(`<div class="duty-lb-empty">${__("Nothing is dated yet. A bar needs a due date; give the tasks dates and the plan draws itself.")}</div>`);
+					return;
+				}
+				const day = 86400000;
+				const t0 = new Date(x.from).getTime(), t1 = new Date(x.to).getTime();
+				const span = Math.max(day, t1 - t0);
+				const pos = (d) => ((new Date(d).getTime() - t0) / span) * 100;
+				// a floor in pixels, not percent: at five months a one-day task is
+				// three pixels and reads as a dot rather than a bar
+				const px = Math.max(760, Math.round(span / day) * 7);
+				const wid = (a, b) => {
+					const w = ((new Date(b).getTime() - new Date(a).getTime() + day) / span) * 100;
+					return Math.max((14 / px) * 100, w);
+				};
+
+				// month ticks across the top, so a bar can be placed in time
+				const ticks = [];
+				const c = new Date(t0); c.setDate(1);
+				while (c.getTime() <= t1) {
+					ticks.push({ d: c.toISOString().slice(0, 10),
+						label: c.toLocaleDateString(undefined, { month: "short", year: "2-digit" }) });
+					c.setMonth(c.getMonth() + 1);
+				}
+				const rows = [];
+				(x.bars || []).filter((b) => b.kind === "phase").forEach((ph) => {
+					rows.push(ph);
+					(x.bars || []).filter((b) => b.kind === "task" && b.milestone === ph.id)
+						.forEach((t) => rows.push(t));
+				});
+				(x.bars || []).filter((b) => b.kind === "task" && !b.milestone).forEach((t) => rows.push(t));
+
+				$w.html(`
+					<div class="duty-gt">
+						<div class="duty-gt-note">
+							${__("{0} of {1}", [x.from, x.to])}
+							${x.derived ? ` \u00b7 ${__("{0} bar(s) have no start date and are drawn back from the due date at {1}h a day \u2014 shown hollow", [x.derived, x.hours_a_day])}` : ""}
+							${x.undated ? ` \u00b7 ${__("{0} task(s) have no due date and are not shown", [x.undated])}` : ""}
+						</div>
+						<div class="duty-gt-scroll" style="--gtw:${px}px">
+							<div class="duty-gt-grid">
+								${ticks.map((t) => `<div class="duty-gt-tick" style="left:${pos(t.d)}%"><span>${esc(t.label)}</span></div>`).join("")}
+								${x.today >= x.from && x.today <= x.to
+									? `<div class="duty-gt-today" style="left:${pos(x.today)}%"><span>${__("today")}</span></div>` : ""}
+								${x.golive && x.golive >= x.from && x.golive <= x.to
+									? `<div class="duty-gt-golive" style="left:${pos(x.golive)}%"><span>${__("go-live")}</span></div>` : ""}
+							</div>
+							${rows.map((b) => `
+								<div class="duty-gt-row ${b.kind}">
+									<div class="duty-gt-lab" title="${esc(b.title)}">
+										<b>${esc(b.title)}</b>
+										${b.kind === "phase"
+											? `<span>${b.done}/${b.total}${b.slip_days ? ` \u00b7 ${b.slip_days > 0 ? "+" : ""}${b.slip_days}d` : ""}</span>`
+											: `<span>${[b.assignee, b.estimate ? `${b.estimate}h` : null].filter(Boolean).map(esc).join(" \u00b7 ")}</span>`}
+									</div>
+									<div class="duty-gt-lane">
+										${b.kind === "phase" && b.baseline_end && b.baseline_end !== b.end
+											? `<div class="duty-gt-base" style="left:${pos(b.start)}%;width:${wid(b.start, b.baseline_end)}%"
+												title="${__("baseline {0}", [esc(b.baseline_end)])}"></div>` : ""}
+										<div class="duty-gt-bar ${b.kind}${b.done ? " done" : ""}${b.overdue ? " late" : ""}${b.derived ? " derived" : ""}"
+											 style="left:${pos(b.start)}%;width:${wid(b.start, b.end)}%"
+											 data-t="${esc(b.id)}"
+											 title="${esc(b.title)} \u00b7 ${esc(b.start)} \u2192 ${esc(b.end)}${b.derived ? ` \u00b7 ${__("start derived")}` : ""}">
+										</div>
+									</div>
+								</div>`).join("")}
+						</div>
+					</div>`);
+				$w.find(".duty-gt-bar.task").on("click", (e) => this._pj_open(project, $(e.currentTarget).data("t")));
+			},
+		});
+	}
+
+	_pj_list(project, $wrap) {
+		const esc = frappe.utils.escape_html;
+		let $w = $wrap.find(".duty-gt-host");
+		if (!$w.length) $w = $('<div class="duty-gt-host"></div>').appendTo($wrap);
+		$w.html(`<div class="duty-hl-load">${__("Loading…")}</div>`);
+		frappe.call({
+			method: "duty_board.projects.gantt",
+			args: { project: project },
+			callback: (r) => {
+				const x = r.message || {};
+				const phases = (x.bars || []).filter((b) => b.kind === "phase");
+				const tasks = (x.bars || []).filter((b) => b.kind === "task");
+				const sort = this._pj_sort || "due";
+				const cmp = {
+					due: (a, b) => (a.end || "9999") > (b.end || "9999") ? 1 : -1,
+					who: (a, b) => (a.assignee || "zz").localeCompare(b.assignee || "zz"),
+					state: (a, b) => (a.column || "").localeCompare(b.column || ""),
+				}[sort];
+				const group = (t) => (phases.find((p) => p.id === t.milestone) || {}).title || __("No phase");
+				const sorted = tasks.slice().sort(cmp);
+				$w.html(`
+					<div class="duty-pl">
+						<div class="duty-pl-bar">
+							${__("Sort by")}
+							${["due", "who", "state"].map((k) => `<a data-s="${k}" class="${sort === k ? "on" : ""}">${
+								{ due: __("due date"), who: __("owner"), state: __("status") }[k]}</a>`).join("")}
+							<span>${tasks.length} ${__("tasks")} \u00b7 ${tasks.filter((t) => t.done).length} ${__("done")}</span>
+						</div>
+						<div class="duty-pl-head">
+							<div>${__("Task")}</div><div>${__("Phase")}</div><div>${__("Owner")}</div>
+							<div>${__("Starts")}</div><div>${__("Due")}</div><div>${__("Est")}</div><div>${__("Status")}</div>
+						</div>
+						${sorted.map((t) => `
+							<div class="duty-pl-row${t.done ? " done" : ""}${t.overdue ? " late" : ""}" data-t="${esc(t.id)}">
+								<div class="duty-pl-t"><b>${esc(t.title)}</b>
+									${t.blocked_by ? `<span>${__("blocked")}</span>` : ""}</div>
+								<div>${esc(group(t))}</div>
+								<div>${esc(t.assignee || "\u2014")}</div>
+								<div>${t.derived ? `<span class="duty-pl-guess">${__("not set")}</span>` : esc(t.start || "\u2014")}</div>
+								<div>${t.end ? esc(t.end) : "\u2014"}${
+									t.overdue ? `<span class="duty-pl-od">${__("overdue")}</span>` : ""}</div>
+								<div>${t.estimate ? `${t.estimate}h` : "\u2014"}</div>
+								<div><span class="duty-pl-st">${esc(t.column || "")}</span></div>
+							</div>`).join("")}
+						${tasks.length ? "" : `<div class="duty-lb-empty">${__("No tasks on this project yet.")}</div>`}
+					</div>`);
+				$w.find(".duty-pl-bar a").on("click", (e) => {
+					this._pj_sort = $(e.currentTarget).data("s");
+					this._pj_list(project, $wrap);
+				});
+				$w.find(".duty-pl-row").on("click", (e) => this._pj_open(project, $(e.currentTarget).data("t")));
+			},
+		});
+	}
+
+	// Recurring tasks. The rule is a record; what it makes are ordinary tasks,
+	// so they time, sort and report exactly like any other. See projects.py.
+	_pj_recurring(project) {
+		const esc = frappe.utils.escape_html;
+		const d = new frappe.ui.Dialog({ title: __("Repeating tasks"), size: "large" });
+		const draw = () => {
+			$(d.body).html(`<div class="duty-hl-load">${__("Loading…")}</div>`);
+			frappe.call({
+				method: "duty_board.projects.recurring",
+				args: { project: project },
+				callback: (r) => {
+					const x = r.message || {};
+					const rows = x.rows || [];
+					$(d.body).html(`
+						<div class="duty-sh-bar"><a class="btn btn-xs btn-primary rc-new">+ ${__("Repeating task")}</a>
+							<span>${__("Weekly reconciliations, hypercare checks, monthly reviews \u2014 anything you would otherwise remember to create.")}</span></div>
+						${rows.length ? rows.map((z) => `
+							<div class="duty-rc ${z.active && !z.finished ? "" : "off"}" data-r="${esc(z.name)}">
+								<div class="duty-rc-h">
+									<b>${esc(z.title)}</b>
+									<span class="duty-rc-fq">${esc(z.frequency)}</span>
+									${z.finished ? `<em>${__("finished")}</em>`
+										: !z.active ? `<em>${__("paused")}</em>`
+										: `<em>${z.due_in === 0 ? __("due today")
+											: z.due_in > 0 ? __("next in {0}d", [z.due_in])
+											: __("{0}d overdue", [-z.due_in])}</em>`}
+								</div>
+								<div class="duty-rc-m">
+									${z.phase ? `<span>${esc(z.phase)}</span>` : ""}
+									${z.owner_name ? `<span>${esc(z.owner_name)}</span>` : ""}
+									${z.estimate_hours ? `<span>${z.estimate_hours}h</span>` : ""}
+									${z.lead_days ? `<span>${__("appears {0}d early", [z.lead_days])}</span>` : ""}
+									${z.ends_on ? `<span>${__("until {0}", [esc(z.ends_on)])}</span>` : ""}
+									${z.created_count ? `<span>${__("{0} made so far", [z.created_count])}</span>` : ""}
+								</div>
+								${z.skip_if_open && z.open_now
+									? `<p class="duty-rc-wait">${__("Waiting \u2014 the last one is still open, so no new task is being made.")}</p>` : ""}
+								<div class="duty-rc-a">
+									<a class="rc-edit">${__("Edit")}</a>
+									<a class="rc-toggle">${z.active ? __("Pause") : __("Resume")}</a>
+									<a class="rc-del">${__("Delete")}</a>
+								</div>
+							</div>`).join("")
+							: `<div class="duty-lb-empty">${__("Nothing repeats on this project yet.")}</div>`}`);
+					const find = (n) => rows.find((z) => z.name === n) || {};
+					const nm = (e) => $(e.currentTarget).closest(".duty-rc").data("r");
+					$(d.body).find(".rc-new").on("click", () => this._pj_recurring_dialog(project, null, draw));
+					$(d.body).find(".rc-edit").on("click", (e) =>
+						this._pj_recurring_dialog(project, find(nm(e)), draw));
+					$(d.body).find(".rc-toggle").on("click", (e) => {
+						const z = find(nm(e));
+						frappe.call({ method: "duty_board.projects.save_recurring",
+							args: { name: z.name, active: z.active ? 0 : 1 }, callback: draw });
+					});
+					$(d.body).find(".rc-del").on("click", (e) => {
+						const z = find(nm(e));
+						frappe.confirm(
+							__("Stop <b>{0}</b> repeating? Tasks it has already made are real work and stay on the board.",
+							   [frappe.utils.escape_html(z.title || "")]),
+							() => frappe.call({ method: "duty_board.projects.delete_recurring",
+								args: { name: z.name, keep_tasks: 1 }, callback: draw }));
+					});
+				},
+			});
+		};
+		draw();
+		d.show();
+	}
+
+	_pj_recurring_dialog(project, existing, after) {
+		const e = existing || {};
+		frappe.call({
+			method: "duty_board.projects.get_milestones_for_project",
+			args: { project: project },
+			callback: (r) => {
+				const ms = [{ value: "", label: "" }].concat(
+					(r.message || []).map((m) => ({ value: m.name, label: m.title })));
+				const dl = new frappe.ui.Dialog({
+					title: e.name ? __("Repeating task") : __("New repeating task"),
+					fields: [
+						{ fieldtype: "Data", fieldname: "title", label: __("Task"), reqd: 1,
+						  default: e.title || "" },
+						{ fieldtype: "Select", fieldname: "frequency", label: __("Repeats"), reqd: 1,
+						  options: "Daily\nWeekly\nFortnightly\nMonthly\nQuarterly\nYearly",
+						  default: e.frequency || "Weekly" },
+						{ fieldtype: "Date", fieldname: "next_date", label: __("Next one due"), reqd: 1,
+						  default: e.next_date || frappe.datetime.get_today() },
+						{ fieldtype: "Int", fieldname: "lead_days", label: __("Appears this many days early"),
+						  default: e.lead_days || 0,
+						  description: __("A monthly review you want to prepare for is 7. Left at zero it lands on the board the day it is due, which is often too late to plan around.") },
+						{ fieldtype: "Date", fieldname: "ends_on", label: __("Stops after"),
+						  default: e.ends_on || "",
+						  description: __("Hypercare and retainers end. A recurrence with no end quietly creates tasks into a project nobody is working on.") },
+						{ fieldtype: "Select", fieldname: "milestone", label: __("Phase"),
+						  options: ms, default: e.milestone || "" },
+						{ fieldtype: "Link", fieldname: "assignee", label: __("Owner"), options: "User",
+						  default: e.assignee || "" },
+						{ fieldtype: "Select", fieldname: "urgency", label: __("Urgency"),
+						  options: "Low\nMedium\nHigh\nCritical", default: e.urgency || "Medium" },
+						{ fieldtype: "Float", fieldname: "estimate_hours", label: __("Estimate hours"),
+						  precision: 2, default: e.estimate_hours || 0 },
+						{ fieldtype: "Small Text", fieldname: "description", label: __("Description"),
+						  default: e.description || "" },
+						{ fieldtype: "Check", fieldname: "skip_if_open", label: __("Skip if the last one is still open"),
+						  default: e.skip_if_open === 0 ? 0 : 1,
+						  description: __("On by default. Otherwise a weekly check nobody is doing becomes fifty open tasks and the board stops meaning anything.") },
+						{ fieldtype: "Check", fieldname: "client_visible", label: __("Show to the client"),
+						  default: e.client_visible || 0 },
+					],
+					primary_action_label: e.name ? __("Save") : __("Create"),
+					primary_action: (v) => {
+						frappe.call({
+							method: "duty_board.projects.save_recurring",
+							args: Object.assign({ name: e.name || null, project: project }, v),
+							callback: () => { dl.hide(); if (after) after(); },
+						});
+					},
+				});
+				dl.show();
+			},
+		});
+	}
+
+	_pj_effort(project) {
+		const esc = frappe.utils.escape_html;
+		const d = new frappe.ui.Dialog({ title: __("Effort — estimate against actual"), size: "extra-large" });
+		frappe.call({
+			method: "duty_board.projects.project_effort",
+			args: { project: project },
+			callback: (r) => {
+				const x = r.message || {};
+				const hrs = (v) => `${this._num(v || 0, 1)}h`;
+				const varCell = (v, pct) => v === null || v === undefined
+					? `<span class="muted">—</span>`
+					: `<span class="${v > 0 ? "down" : v < 0 ? "up" : ""}">${v > 0 ? "+" : ""}${this._num(v, 1)}h${
+						pct !== null && pct !== undefined ? ` <small>(${pct > 0 ? "+" : ""}${pct}%)</small>` : ""}</span>`;
+				$(d.body).html(`
+					<div class="duty-st-top">
+						<div><span>${__("Estimated")}</span><b>${hrs(x.estimate)}</b></div>
+						<div><span>${__("Booked so far")}</span><b>${hrs(x.actual)}</b></div>
+						<div><span>${__("Burn rate")}</span><b class="${x.burn_rate > 1.05 ? "down" : x.burn_rate ? "up" : ""}">${
+							x.burn_rate ? `${x.burn_rate}\u00d7` : "—"}</b></div>
+						<div><span>${__("Forecast at finish")}</span><b class="${x.overrun > 0 ? "down" : ""}">${
+							x.forecast ? hrs(x.forecast) : "—"}</b></div>
+					</div>
+					${x.burn_rate ? `<div class="duty-rv-warn" style="margin:8px 0">${
+						x.burn_rate > 1
+							? __("Completed work took {0}% longer than estimated. If the rest behaves the same way this project finishes at {1}, which is {2} over.", [
+								Math.round((x.burn_rate - 1) * 100), hrs(x.forecast), hrs(x.overrun)])
+							: __("Completed work came in {0}% under estimate. At that rate this project finishes at {1}.", [
+								Math.round((1 - x.burn_rate) * 100), hrs(x.forecast)])}
+						${__("Measured only on finished tasks that carried an estimate — the only work that can say anything about accuracy.")}</div>`
+						: `<div class="duty-rv-warn" style="margin:8px 0">${
+							__("No finished task yet carries both an estimate and booked time, so there is nothing to measure accuracy against.")}</div>`}
+					${x.unestimated ? `<div class="duty-rv-warn" style="margin:8px 0;color:#B27409">${
+						__("{0} task(s) have {1} booked against them and no estimate. They are left out of the variance — nobody said what they should take, so they cannot be over.", [
+							x.unestimated, hrs(x.unestimated_hours)])}</div>` : ""}
+					<table class="duty-st-t"><tr>
+						<th>${__("Phase")}</th><th>${__("Tasks")}</th><th>${__("Estimated")}</th>
+						<th>${__("Booked")}</th><th>${__("Variance on done")}</th><th>${__("Forecast")}</th></tr>
+						${(x.phases || []).map((p) => `<tr>
+							<td><b>${esc(p.phase)}</b></td>
+							<td>${p.done} / ${p.tasks}</td>
+							<td>${hrs(p.estimate)}</td>
+							<td>${hrs(p.actual)}</td>
+							<td>${varCell(p.variance, p.variance_pct)}</td>
+							<td>${p.forecast ? hrs(p.forecast) : "—"}</td></tr>`).join("")}
+					</table>
+					<div class="duty-rv-h" style="margin-top:16px">${__("Biggest differences")}</div>
+					<table class="duty-st-t"><tr>
+						<th>${__("Task")}</th><th>${__("Who")}</th><th>${__("Est")}</th>
+						<th>${__("Actual")}</th><th>${__("Variance")}</th></tr>
+						${(x.tasks || []).filter((t) => t.variance !== null).slice(0, 12).map((t) => `<tr>
+							<td><b>${esc(t.title)}</b>${t.phase ? `<div class="duty-st-n">${esc(t.phase)}</div>` : ""}</td>
+							<td>${esc(t.assignee || "—")}</td>
+							<td>${hrs(t.estimate)}</td>
+							<td>${hrs(t.actual)}</td>
+							<td>${varCell(t.variance, t.variance_pct)}</td></tr>`).join("")}
+					</table>
+					<p class="duty-st-f">${__("Actuals come from the work timer — every session recorded against a task. Nothing is entered twice.")}</p>`);
+			},
+		});
+		d.show();
 	}
 
 	render_agenda(project, data, $wrap) {
@@ -4405,7 +5347,13 @@ this.$me.find(".duty-req-ok").on("click", (e) => {
 
 	render_risks(project, $wrap) {
 		const esc = frappe.utils.escape_html;
-		$wrap.html(`<div class="text-muted duty-plan-empty">${__("Loading risks…")}</div>`);
+		// Every other view appends into the wrapper; this one replaced it, which
+		// took the header bar with it — no back link, no title, no way to leave
+		// the risk register except a page refresh. It renders into its own host
+		// now, like the rest.
+		let $host = $host.find(".duty-risk-host");
+		if (!$host.length) $host = $('<div class="duty-risk-host"></div>').appendTo($wrap);
+		$host.html(`<div class="text-muted duty-plan-empty">${__("Loading risks…")}</div>`);
 		const SEVC = (s) => s >= 6 ? "#C2410C" : s >= 3 ? "#B45309" : "#65736F";
 		const reload = () => frappe.call({ method: "duty_board.projects.project_risks", args: { project: project }, callback: (r) => draw(r.message || []) });
 		const draw = (rows) => {
@@ -4420,7 +5368,7 @@ this.$me.find(".duty-req-ok").on("click", (e) => {
 					<td>${esc(x.status)}</td>
 					<td class="duty-risk-acts"><a data-a="edit">✎</a> ${x.status !== "Closed" ? `<a data-a="close">✅</a>` : ""} <a data-a="del">🗑</a></td>
 				</tr>`).join("");
-			$wrap.html(`
+			$host.html(`
 				<div class="duty-pf">
 					<div class="duty-pf-head"><b>⚠ ${__("Risk register")}</b><span class="text-muted">${open} ${__("open")}</span><button class="btn btn-xs btn-primary duty-risk-add" style="margin-left:auto">＋ ${__("Log a risk")}</button></div>
 					${rows.length ? `<table class="duty-pf-table"><thead><tr><th>${__("Sev")}</th><th>${__("Risk & mitigation")}</th><th>${__("Likelihood")}</th><th>${__("Impact")}</th><th>${__("Owner")}</th><th>${__("Status")}</th><th></th></tr></thead><tbody>${body}</tbody></table>` : `<div class="text-muted duty-plan-empty">${__("No risks logged. A major project with an empty register usually means nobody looked.")}</div>`}
@@ -4441,8 +5389,8 @@ this.$me.find(".duty-req-ok").on("click", (e) => {
 				}),
 				x ? __("Edit risk") : __("Log a risk"), __("Save")
 			);
-			$wrap.find(".duty-risk-add").on("click", () => dlg(null));
-			$wrap.find(".duty-risk-acts a").on("click", (e) => {
+			$host.find(".duty-risk-add").on("click", () => dlg(null));
+			$host.find(".duty-risk-acts a").on("click", (e) => {
 				const a = $(e.currentTarget).data("a");
 				const nm = $(e.currentTarget).closest("tr").data("name");
 				const x = rows.find((z) => z.name === nm);
@@ -4452,6 +5400,109 @@ this.$me.find(".duty-req-ok").on("click", (e) => {
 			});
 		};
 		reload();
+	}
+
+	// Kanban with the phases as columns. The same cards, the same drag, the
+	// same inline add as the status board — only the columns mean something
+	// different: dropping a card here moves it BETWEEN PHASES rather than
+	// between statuses, which is the thing that was previously a dropdown
+	// buried in the card dialog.
+	_pj_phase_board(project, data, $wrap) {
+		const esc = frappe.utils.escape_html;
+		const ms = (data.milestones || []).slice();
+		if (!ms.length) return this.render_phases(project, data, $wrap);
+
+		const dense = (localStorage.getItem("duty_kb_density") || "comfortable") === "compact";
+		const $board = $(`<div class="duty-kanban duty-kb-phase ${dense ? "duty-kb-compact" : ""}"></div>`)
+			.appendTo($wrap);
+
+		// every task on the project, bucketed by phase — plus one column for
+		// anything not in a phase, which is otherwise invisible on this view
+		const all = [];
+		Object.keys(data.tasks || {}).forEach((c) => (data.tasks[c] || []).forEach((t) => all.push(t)));
+		const byPhase = {};
+		all.forEach((t) => {
+			const k = t.milestone || "_none";
+			(byPhase[k] = byPhase[k] || []).push(t);
+		});
+		const cols = ms.map((m) => ({ id: m.name, title: m.title, m: m }));
+		if ((byPhase._none || []).length) {
+			cols.push({ id: "_none", title: __("No phase"), m: null });
+		}
+
+		cols.forEach((c, i) => {
+			const cards = byPhase[c.id] || [];
+			const done = cards.filter((t) => t.column === "Completed").length;
+			const m = c.m || {};
+			const late = m.target_date && String(m.target_date) < frappe.datetime.get_today()
+				&& m.status !== "Approved";
+			const $col = $(`
+				<div class="duty-kb-col duty-kb-pcol${late ? " late" : ""}" data-ms="${esc(c.id)}">
+					<div class="duty-kb-col-head">
+						<span class="duty-kb-pix">${c.m ? i + 1 : "–"}</span>
+						<span class="duty-kb-ptitle" title="${esc(c.title)}">${esc(c.title)}</span>
+						<span class="duty-kb-count">${done}/${cards.length}</span>
+					</div>
+					${c.m ? `<div class="duty-kb-pmeta">
+						${m.target_date ? `<span class="${late ? "late" : ""}">${esc(m.target_date)}</span>` : ""}
+						${m.status && m.status !== "Upcoming" ? `<span>${esc(m.status)}</span>` : ""}
+						${(m.baselined && m.slip_days) ? `<span class="slip">${m.slip_days > 0 ? "+" : ""}${m.slip_days}d</span>` : ""}
+					</div>` : ""}
+					${c.m ? `<input type="text" class="form-control input-sm duty-kb-add"
+						placeholder="${__("Add to this phase and press Enter…")}">` : ""}
+					<div class="duty-kb-cards" data-ms="${esc(c.id)}">
+						${cards.map((t) => this.kb_card(t)).join("")}
+					</div>
+				</div>`).appendTo($board);
+
+			// a task typed into a phase column belongs to that phase
+			$col.find(".duty-kb-add").on("keydown", (e) => {
+				if (e.key !== "Enter") return;
+				const title = e.target.value.trim();
+				if (!title) return;
+				e.target.value = "";
+				frappe.call({
+					method: "duty_board.projects.create_task",
+					args: { project: project, title: title,
+							milestone: c.id === "_none" ? null : c.id },
+					callback: (r) => {
+						if (r.message) this.render_kanban(project, r.message);
+						else this.refresh_projects();
+					},
+				});
+			});
+
+			$col.on("dragover", (e) => { e.preventDefault(); $col.addClass("duty-kb-over"); });
+			$col.on("dragleave drop", () => $col.removeClass("duty-kb-over"));
+			$col.on("drop", (e) => {
+				e.preventDefault();
+				const name = e.originalEvent.dataTransfer.getData("text");
+				if (!name) return;
+				// already in this phase: a mis-drag should cost nothing
+				if ($col.find(`.duty-kb-card[data-name="${name}"]`).length) return;
+				frappe.call({
+					method: "duty_board.projects.update_task",
+					args: { name: name, milestone: c.id === "_none" ? "" : c.id },
+					callback: () => {
+						frappe.show_alert({ message: __("Moved to {0}", [c.title]), indicator: "green" });
+						this.refresh_projects();
+					},
+				});
+			});
+		});
+
+		// cards drag and open exactly as they do on the status board
+		$board.find(".duty-kb-card").each((_i, el) => {
+			const $card = $(el);
+			el.addEventListener("dragstart", (ev) =>
+				ev.dataTransfer.setData("text", $card.data("name")));
+			$card.on("click", () =>
+				frappe.call({
+					method: "duty_board.projects.get_card",
+					args: { name: $card.data("name") },
+					callback: (r) => r.message && this.task_dialog(project, r.message),
+				}));
+		});
 	}
 
 	render_phases(project, data, $wrap) {
@@ -4464,8 +5515,10 @@ this.$me.find(".duty-req-ok").on("click", (e) => {
 				<div class="duty-phases-empty">
 					<p class="text-muted">${__("No phases yet. Seed the Xlevel delivery method, or add phases one at a time below.")}</p>
 					<div class="duty-phase-seed">
-						<select class="form-control duty-seed-plan" style="max-width:280px;display:inline-block">
-							<option value="standard">${__("Standard plan (phases + starter tasks)")}</option>
+						<select class="form-control duty-seed-plan" style="max-width:320px;display:inline-block">
+							${(data.plan_types || [{ key: "standard", label: "Standard plan" }])
+								.map((p) => `<option value="${esc(p.key)}">${esc(p.label)}</option>`)
+								.join("")}
 							<option value="">${__("Phases only (no tasks)")}</option>
 						</select>
 						<button class="btn btn-primary btn-sm duty-seed-go">🚩 ${__("Seed the Xlevel method")}</button>
@@ -4489,8 +5542,18 @@ this.$me.find(".duty-req-ok").on("click", (e) => {
 				<div class="duty-phase-row duty-phase-${st}" data-id="${esc(m.name)}">
 					<span class="duty-phase-ix">${st === "done" ? "✓" : i + 1}</span>
 					<div class="duty-phase-main">
-						<div class="duty-phase-title">${esc(m.title)}${m.status === "Awaiting Approval" ? ` <span class="duty-phase-wait">⏳ ${__("awaiting client")}</span>` : ""}</div>
-						<div class="duty-phase-meta">${esc(m.status)}${m.target_date ? ` · 🎯 ${esc(m.target_date)}` : ""} · ${m.cards_done || 0}/${m.cards_total || 0} ${__("tasks")}${m.est_hours ? ` · ⏱ <span class="${m.act_hours > m.est_hours ? "duty-est-over" : ""}">${m.act_hours || 0}h/${m.est_hours}h</span>` : m.act_hours ? ` · ⏱ ${m.act_hours}h` : ""}${m.baselined && m.slip_days !== null && m.slip_days !== undefined ? ` · <span class="duty-phase-slip ${m.slip_days > 0 ? "late" : m.slip_days < 0 ? "early" : "onplan"}">${m.slip_days > 0 ? `⚠ +${m.slip_days}d vs plan` : m.slip_days < 0 ? `${m.slip_days}d vs plan` : "✓ on plan"}</span>` : ""}</div>
+						<div class="duty-phase-title">${esc(m.title)}
+							<span class="duty-ph-st ${st}">${m.status === "Awaiting Approval" ? `\u23f3 ${__("awaiting client")}` : esc(m.status)}</span>
+							${m.approved_at ? `<span class="duty-ph-appr">\u2713 ${esc(String(m.approved_at).slice(0, 10))}${m.approved_full ? ` \u00b7 ${esc(m.approved_full)}` : ""}</span>` : ""}</div>
+						<div class="duty-ph-facts">
+							<span class="duty-ph-fact"><i>${__("Due")}</i><b>${m.target_date ? esc(m.target_date) : "\u2014"}</b></span>
+							<span class="duty-ph-fact"><i>${__("Tasks")}</i><b>${m.cards_done || 0}<u>/${m.cards_total || 0}</u></b></span>
+							${(m.est_hours || m.act_hours) ? `<span class="duty-ph-fact"><i>${__("Effort")}</i><b class="${m.act_hours > m.est_hours ? "duty-est-over" : ""}">${m.act_hours || 0}h<u>${m.est_hours ? `/${m.est_hours}h` : ""}</u></b></span>` : ""}
+							${(m.baselined && m.slip_days !== null && m.slip_days !== undefined)
+								? `<span class="duty-ph-fact"><i>${__("Vs plan")}</i><b class="duty-phase-slip ${m.slip_days > 0 ? "late" : m.slip_days < 0 ? "early" : "onplan"}">${m.slip_days > 0 ? `+${m.slip_days}d` : m.slip_days < 0 ? `${m.slip_days}d` : __("on plan")}</b></span>`
+								: ""}
+						</div>
+						${m.cards_total ? `<div class="duty-ph-bar"><i style="width:${Math.round((m.cards_done || 0) * 100 / m.cards_total)}%"></i></div>` : ""}
 					</div>
 					<div class="duty-phase-acts">
 						<a data-a="up" title="${__("Move up")}">▲</a>
@@ -4501,7 +5564,7 @@ this.$me.find(".duty-req-ok").on("click", (e) => {
 						${!locked && m.status !== "Awaiting Approval" ? `<a data-a="ask" title="${__("Request client sign-off")}">✅</a>` : ""}
 						${!locked ? `<a data-a="del" title="${__("Delete phase")}">🗑</a>` : ""}
 					</div>
-					${(m.tasks || []).length ? `<div class="duty-phase-tasks">${m.tasks.map((tk) => `<div class="duty-phase-task"><span class="duty-pt-dot ${tk.status === "Done" ? "done" : ""}"></span><span class="duty-pt-title">${esc(tk.title)}</span><span class="duty-pt-st">${esc(tk.status || "")}</span>${tk.assignee ? `<span class="duty-pt-who">${esc(tk.assignee)}</span>` : ""}</div>`).join("")}</div>` : `<div class="duty-phase-tasks empty">${__("No tasks in this phase yet — 📋 to add.")}</div>`}
+					${(m.tasks || []).length ? `<div class="duty-phase-tasks">${m.tasks.map((tk) => `<div class="duty-phase-task" draggable="true" data-tk="${esc(tk.name)}"><span class="duty-pt-dot ${tk.status === "Done" ? "done" : ""}"></span><span class="duty-pt-title">${esc(tk.title)}</span><span class="duty-pt-st">${esc(tk.status || "")}</span>${tk.assignee ? `<span class="duty-pt-who">${esc(tk.assignee)}</span>` : ""}</div>`).join("")}</div>` : `<div class="duty-phase-tasks empty">${__("No tasks in this phase yet — 📋 to add.")}</div>`}
 				</div>`;
 			}).join("");
 			const anyBaselined = ms.some((m) => m.baselined);
@@ -4524,6 +5587,39 @@ this.$me.find(".duty-req-ok").on("click", (e) => {
 				});
 				if (anyBaselined) frappe.confirm(__("Re-baseline this project? The frozen plan is replaced by the current dates — do this only for a deliberate, agreed re-plan."), go);
 				else go();
+			});
+			// Drag a task from one phase card to another to move it. Doing this
+			// through the card dialog means opening it, finding the Phase
+			// dropdown and saving — tedious on a sixty-seven task plan, and it
+			// is a thing you do constantly while a plan settles.
+			$p.find(".duty-phase-task").each((_i, el) => {
+				el.addEventListener("dragstart", (ev) => {
+					ev.dataTransfer.setData("text/plain", el.getAttribute("data-tk"));
+					ev.dataTransfer.effectAllowed = "move";
+				});
+			});
+			$p.find(".duty-phase-row").each((_i, el) => {
+				const $row = $(el);
+				el.addEventListener("dragover", (ev) => { ev.preventDefault(); $row.addClass("drop"); });
+				el.addEventListener("dragleave", () => $row.removeClass("drop"));
+				el.addEventListener("drop", (ev) => {
+					ev.preventDefault();
+					$row.removeClass("drop");
+					const tk = ev.dataTransfer.getData("text/plain");
+					const to = $row.data("id");
+					if (!tk || !to) return;
+					// dropping a task back where it already is is a no-op, not
+					// a save — otherwise every mis-drag writes to the database
+					if ($row.find(`.duty-phase-task[data-tk="${tk}"]`).length) return;
+					frappe.call({
+						method: "duty_board.projects.update_task",
+						args: { name: tk, milestone: to },
+						callback: () => {
+							frappe.show_alert({ message: __("Moved"), indicator: "green" });
+							this.refresh_projects();
+						},
+					});
+				});
 			});
 			$p.find(".duty-phase-acts a").on("click", (e) => {
 				const a = $(e.currentTarget).data("a");
@@ -4619,23 +5715,76 @@ this.$me.find(".duty-req-ok").on("click", (e) => {
 		const $bar = $(`
 			<div class="duty-kb-bar">
 				<a class="duty-pj-back">‹ ${__("Projects")}</a>
-				<span>
+				<span class="duty-pj-name">
 					<b style="color:${this._kb_color}">${frappe.utils.escape_html(proj ? proj.project_name : project)}</b>
-					${proj && proj.customer ? `<span class="duty-proj-cust-inline">· ${frappe.utils.escape_html(proj.customer)}</span>` : ""}
+					${(() => {
+						// The customer is usually already in the project name —
+						// "CloudERP.One Implementation — Montaigne AH Ltd" — so
+						// appending it printed the client twice on one line and
+						// stole the room the view tabs needed. Shown only when
+						// the name does not already carry it.
+						const c = (proj && proj.customer) || "";
+						const n = (proj && proj.project_name) || "";
+						if (!c || n.toLowerCase().indexOf(c.toLowerCase()) >= 0) return "";
+						return `<span class="duty-proj-cust-inline">\u00b7 ${frappe.utils.escape_html(c)}</span>`;
+					})()}
 				</span>
 				<span class="duty-pj-views">
-					<a class="duty-pj-v ${(this._pj_view || "board") === "board" ? "on" : ""}" data-v="board">▦ ${__("Board")}</a>
-					<a class="duty-pj-v ${this._pj_view === "cal" ? "on" : ""}" data-v="cal">📅 ${__("Calendar")}</a>
-					<a class="duty-pj-v ${this._pj_view === "phases" ? "on" : ""}" data-v="phases">🚩 ${__("Phases")}${(data.milestones || []).length ? ` <b>${data.milestones.length}</b>` : ""}</a>
-					<a class="duty-pj-v ${this._pj_view === "risks" ? "on" : ""}" data-v="risks">⚠ ${__("Risks")}</a>
-					<a class="duty-kb-dense" title="${__("Toggle density")}">${(localStorage.getItem("duty_kb_density") || "comfortable") === "compact" ? "▤ " + __("Compact") : "▢ " + __("Comfortable")}</a>
+					<a class="duty-pj-v ${(this._pj_view || "board") === "board" ? "on" : ""}" data-v="board" title="${__("Board")}">▦ ${__("Board")}</a>
+					<a class="duty-pj-v ${this._pj_view === "list" ? "on" : ""}" data-v="list" title="${__("List")}">☰ ${__("List")}</a>
+					<a class="duty-pj-v ${this._pj_view === "gantt" ? "on" : ""}" data-v="gantt" title="${__("Gantt")}">▬ ${__("Gantt")}</a>
+					<a class="duty-pj-v ${this._pj_view === "cal" ? "on" : ""}" data-v="cal" title="${__("Calendar")}">📅 ${__("Calendar")}</a>
+					<a class="duty-pj-v ${this._pj_view === "phases" ? "on" : ""}" data-v="phases" title="${__("Phases as columns")}">🚩 ${__("Phases")}</a>
+					<a class="duty-pj-v ${this._pj_view === "phaselist" ? "on" : ""}" data-v="phaselist" title="${__("Phases with sign-off and slip")}">📑 ${__("Sign-off")}</a>
+					<a class="duty-pj-v ${this._pj_view === "risks" ? "on" : ""}" data-v="risks" title="${__("Risks")}">⚠ ${__("Risks")}</a>
 				</span>
-				<a class="duty-proj-staffb">👥 ${__("Team")}${(data.staff || []).length ? ` <b>${data.staff.length}</b>` : ""}</a>
-				<a class="duty-proj-cons">👷 ${__("Consultants")}${(data.consultants || []).length ? ` <b>${data.consultants.length}</b>` : ""}</a>
-				<a class="duty-proj-archive">${__("Archive project")}</a>
+				<a class="duty-proj-cons" style="display:none"></a>
+				<a class="duty-proj-archive" style="display:none"></a>
+				<span class="duty-pj-tools">
+					<a class="duty-pj-analysis">${__("Analysis")} <i>▾</i></a>
+					<a class="duty-proj-staffb" title="${__("Project team")}">👥${(data.staff || []).length ? ` ${data.staff.length}` : ""}</a>
+					<a class="duty-kb-dense" title="${__("Toggle density")}">${(localStorage.getItem("duty_kb_density") || "comfortable") === "compact" ? "▤" : "▢"}</a>
+					<a class="duty-pj-more" title="${__("More")}">⋯</a>
+				</span>
 			</div>
 		`).appendTo($wrap);
 		$bar.find(".duty-pj-back").on("click", () => this.$projects.removeClass("pj-detail"));
+		const menu = (items) => {
+			const d = new frappe.ui.Dialog({ title: __("Analysis"), size: "small" });
+			$(d.body).html(`<div class="duty-pj-menu">${items.map((i, n) =>
+				`<a data-n="${n}"><b>${i[0]}</b><span>${i[1]}</span></a>`).join("")}</div>`);
+			$(d.body).find("a").on("click", (e) => {
+				d.hide();
+				items[parseInt($(e.currentTarget).data("n"), 10)][2]();
+			});
+			d.show();
+			return d;
+		};
+		$bar.find(".duty-pj-analysis").on("click", () => menu([
+			["⏱ " + __("Effort"), __("Estimate against actual, and the burn rate"),
+			 () => this._pj_effort(project)],
+			["⚖ " + __("Decisions"), __("What was agreed, by whom, and why"),
+			 () => this._pj_decisions(project)],
+			["✅ " + __("Deliverables"), __("What the client accepts, and against what criteria"),
+			 () => this._pj_deliverables(project)],
+			["🔗 " + __("Critical path"), __("Which chain of work moves the end date"),
+			 () => this._pj_critical(project)],
+			["📈 " + __("Curve"), __("Plan against actual over time"),
+			 () => this._pj_curve(project)],
+			["📄 " + __("Status pack"), __("This week as a document, ready to send"),
+			 () => this._pj_status_pack(project)],
+			["🔁 " + __("Repeating tasks"), __("Work that comes back — checks, reviews, reconciliations"),
+			 () => this._pj_recurring(project)],
+		]));
+		$bar.find(".duty-pj-more").on("click", () => {
+			const d = menu([
+				["👷 " + __("Consultants"), __("Who outside the team can see this project"),
+				 () => $bar.find(".duty-proj-cons").trigger("click")],
+				["🗄 " + __("Archive project"), __("Remove it from the tabs. Nothing is deleted"),
+				 () => $bar.find(".duty-proj-archive").trigger("click")],
+			]);
+			d.set_title(__("Project"));
+		});
 		$bar.find(".duty-pj-v").on("click", (e) => {
 			this._pj_view = $(e.currentTarget).data("v");
 			this.render_kanban(project, data);
@@ -4723,7 +5872,19 @@ this.$me.find(".duty-req-ok").on("click", (e) => {
 			return;
 		}
 		if (this._pj_view === "phases") {
+			this._pj_phase_board(project, data, $wrap);
+			return;
+		}
+		if (this._pj_view === "phaselist") {
 			this.render_phases(project, data, $wrap);
+			return;
+		}
+		if (this._pj_view === "gantt") {
+			this._pj_gantt(project, $wrap);
+			return;
+		}
+		if (this._pj_view === "list") {
+			this._pj_list(project, $wrap);
 			return;
 		}
 		if (this._pj_view === "risks") {
@@ -4840,6 +6001,65 @@ this.$me.find(".duty-req-ok").on("click", (e) => {
 		);
 	}
 
+	// Booking a task as a meeting. Eleven of the sixty-seven tasks on an
+	// implementation are meetings — the kick-off, the workshops, the readiness
+	// review. Left as tasks they have a due date and nothing else: no time, no
+	// attendees, nothing in anybody's calendar.
+	//
+	// The task stays the unit of work and the meeting is how it happens, linked
+	// both ways so they cannot end up on different dates.
+	_task_meeting_dialog(t, after) {
+		const staff = this.staff_options().filter((o) => o.value);
+		const d = new frappe.ui.Dialog({
+			title: __("Schedule — {0}", [t.title || ""]),
+			fields: [
+				{ fieldtype: "Data", fieldname: "topic", label: __("Topic"),
+				  default: t.title || "" },
+				{ fieldtype: "Date", fieldname: "date", label: __("Date"), reqd: 1,
+				  default: t.due_date || frappe.datetime.get_today() },
+				{ fieldtype: "Time", fieldname: "time", label: __("Starts"), reqd: 1,
+				  default: "10:00:00" },
+				{ fieldtype: "Select", fieldname: "duration_mins", label: __("Runs for"),
+				  options: [{ value: 30, label: __("30 minutes") },
+							{ value: 60, label: __("1 hour") },
+							{ value: 90, label: __("90 minutes") },
+							{ value: 120, label: __("2 hours") },
+							{ value: 240, label: __("Half a day") }],
+				  default: 60 },
+				{ fieldtype: "MultiSelectPills", fieldname: "staff", label: __("Who from our side"),
+				  get_data: () => staff.map((o) => ({ value: o.value, description: o.label })),
+				  default: t.assignee ? [t.assignee] : [] },
+				{ fieldtype: "Check", fieldname: "confirm", label: __("Send the calendar invitations now"),
+				  default: 1,
+				  description: __("A meeting left unconfirmed is a note to yourself. Confirming is what puts it in people's calendars.") },
+			],
+			primary_action_label: __("Book it"),
+			primary_action: (v) => {
+				frappe.call({
+					method: "duty_board.client_room.schedule_task_meeting",
+					args: {
+						task: t.name, date: v.date, time: String(v.time).slice(0, 5),
+						duration_mins: v.duration_mins, topic: v.topic,
+						staff: (v.staff || []).map((x) => x.value || x),
+						confirm: v.confirm ? 1 : 0,
+					},
+					callback: (r) => {
+						const x = r.message || {};
+						d.hide();
+						frappe.show_alert({
+							indicator: "green",
+							message: x.confirmed
+								? __("Booked and {0} invitation(s) sent", [x.invited])
+								: __("Booked — not yet confirmed, so no invitations have gone out"),
+						});
+						if (after) after();
+					},
+				});
+			},
+		});
+		d.show();
+	}
+
 	task_dialog(project, t) {
 		if (!t) return;
 		const esc = frappe.utils.escape_html;
@@ -4865,11 +6085,54 @@ this.$me.find(".duty-req-ok").on("click", (e) => {
 			},
 		};
 		$dw.find(".duty-td-x").off("click").on("click", () => d.hide());
+		$dw.find(".tk-meet").off("click").on("click", () =>
+			this._task_meeting_dialog(t, () => { d.hide(); this.refresh_projects(); }));
+		$dw.find(".tk-remeet").off("click").on("click", () => {
+			const was = (t.meeting_when || "").split(" ");
+			frappe.prompt([
+				{ fieldtype: "Date", fieldname: "date", label: __("New date"), reqd: 1,
+				  default: was[0] || frappe.datetime.get_today() },
+				{ fieldtype: "Time", fieldname: "time", label: __("New time"), reqd: 1,
+				  default: (was[1] || "10:00") + ":00" },
+				{ fieldtype: "Data", fieldname: "note", label: __("Why (optional)"),
+				  description: __("Shown to the client in the room alongside the change.") },
+			], (v) => frappe.call({
+				method: "duty_board.client_room.reschedule_meeting",
+				args: { id: t.meeting, date: v.date, time: String(v.time).slice(0, 5), note: v.note },
+				callback: (r) => {
+					const x = r.message || {};
+					if (x.warning) {
+						frappe.msgprint({ title: __("Moved, but not re-invited"),
+							indicator: "orange", message: x.warning });
+					} else {
+						frappe.show_alert({ indicator: "green",
+							message: x.reinvited
+								? __("Moved to {0} — updated invitations sent", [x.now])
+								: __("Nothing changed") });
+					}
+					d.hide();
+					this.refresh_projects();
+				},
+			}), __("Move the meeting"), __("Move it"));
+		});
+		$dw.find(".tk-unmeet").off("click").on("click", () => {
+			frappe.confirm(
+				__("Cancel the meeting booked for this task? Anyone invited gets a cancellation in their calendar."),
+				() => frappe.call({
+					method: "duty_board.client_room.staff_cancel_meeting",
+					args: { id: t.meeting },
+					callback: () => { d.hide(); this.refresh_projects(); },
+				}));
+		});
 		$dw.find(".duty-td-form").html(`
 			<div class="duty-ld-form">
 				<label class="duty-ld-f duty-ld-wide"><span>${__("Task")}</span><input type="text" data-f="title" value="${esc(t.title)}"></label>
 				<label class="duty-ld-f"><span>${__("Assign to")}</span><select data-f="assignee"><option value=""></option>${this.staff_options().filter((o) => o.value).map((o) => `<option value="${o.value}" ${o.value === (t.assignee || "") ? "selected" : ""}>${esc(o.label)}</option>`).join("")}</select></label>
+				<label class="duty-ld-f"><span>${__("Starts")}</span><input type="date" data-f="start_date" value="${t.start_date || ""}" title="${__("When work is expected to begin. Left blank, the Gantt draws the bar back from the due date using the estimate and marks it as a guess.")}"></label>
 				<label class="duty-ld-f"><span>${__("Due Date")}</span><input type="date" data-f="due_date" value="${t.due_date || ""}"></label>
+				<label class="duty-ld-f"><span>${__("Meeting")}</span>${t.meeting
+					? `<span class="duty-ld-met">${__("booked")} ${esc(t.meeting_when || "")}<a class="tk-remeet">${__("move")}</a><a class="tk-unmeet">${__("cancel")}</a></span>`
+					: `<a class="tk-meet" title="${__("Book this as a meeting and send calendar invitations")}">\u{1F4C5} ${__("Schedule this")}</a>`}</label>
 				<label class="duty-ld-f"><span>${__("Urgency")}</span><select data-f="urgency">${["Low", "Medium", "High", "Critical"].map((s) => `<option ${(t.urgency || "Medium") === s ? "selected" : ""}>${s}</option>`).join("")}</select></label>
 				<label class="duty-ld-f"><span>${__("Column")}</span><select data-f="column">${["To Do", "In Progress", "Completed", "Suspended"].map((s) => `<option ${t.column === s ? "selected" : ""}>${s}</option>`).join("")}</select></label>
 				<label class="duty-ld-f"><span>🚩 ${__("Phase")}</span><select data-f="milestone"><option value="">${__("— none —")}</option>${Object.entries(this._ms_names || {}).map(([id, nm]) => `<option value="${id}" ${t.milestone === id ? "selected" : ""}>${esc(nm)}</option>`).join("")}</select></label>
@@ -4911,6 +6174,7 @@ this.$me.find(".duty-req-ok").on("click", (e) => {
 					name: t.name,
 					title: v.title,
 					assignee: v.assignee || null,
+					start_date: v.start_date || null,
 					due_date: v.due_date || null,
 					urgency: v.urgency,
 					column: v.column,
@@ -5159,6 +6423,3617 @@ this.$me.find(".duty-req-ok").on("click", (e) => {
 
 	// ---------------- Clients face ----------------
 
+	/* ---------------------------------------------------------------- Oversight
+	   Customer-first view for whoever owns the relationship. The Projects face is
+	   organised by project, which is right for delivery and wrong for oversight —
+	   a customer with three projects appears in three places and nowhere whole.
+
+	   Every action here calls the same endpoints the Projects face calls
+	   (start_card_work, move_task, update_task, create_task) rather than a
+	   parallel implementation, so a task touched here behaves identically: same
+	   work sessions, same trail, same permission checks. */
+
+	/* ------------------------------------------------------------------ Money
+	   Personal accounts across banks and currencies.
+
+	   Two things drive the layout. Currencies are never added together — each
+	   gets its own headline, because a single number across NGN, GBP and USD is
+	   either wrong or built on a rate that was invented. And an account at risk
+	   of not covering its standing orders is the only thing on the screen that
+	   shouts, because it is the only thing that needs a decision this week. */
+
+	refresh_money() {
+		const $m = this.$money;
+		if (!$m.children().length) $m.html(`<div class="duty-hl-load">${__("Loading…")}</div>`);
+		frappe.call({
+			method: "duty_board.money.overview",
+			args: { rates: JSON.stringify(this._fx || {}) },
+			freeze: false,
+			callback: (r) => this.render_money(r.message || {}),
+		});
+	}
+
+	_fmt(cur, n) {
+		const v = Math.abs(n || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+		return `${(n || 0) < 0 ? "−" : ""}${cur ? cur + " " : ""}${v}`;
+	}
+
+	render_money(d) {
+		const esc = frappe.utils.escape_html;
+		const $m = this.$money;
+		const accounts = d.accounts || [];
+		const risky = accounts.filter((a) => a.at_risk);
+		const due = d.due || [];
+
+		const card = (a) => {
+			const ring = a.target_balance
+				? `<div class="duty-mn-ring" style="--p:${a.target_pct || 0}"><span>${a.target_pct || 0}%</span></div>`
+				: "";
+			return `
+			<div class="duty-mn-card${a.at_risk ? " risk" : ""}" data-acc="${esc(a.name)}" style="--accent:${esc(a.colour || "#0F5C55")}">
+				<div class="duty-mn-top">
+					<div>
+						<div class="duty-mn-nick">${esc(a.nickname)}</div>
+						<div class="duty-mn-bank">${esc(a.bank_name || "")}${a.account_no ? ` · ${esc(a.account_no)}` : ""} · ${esc(a.account_type || "")}</div>
+					</div>
+					${ring}
+				</div>
+				<div class="duty-mn-bal">
+					<span class="duty-mn-ccy">${esc(a.currency || "")}</span>
+					<b>${esc(this._fmt("", a.is_credit ? -Math.abs(a.balance) : a.balance))}</b>
+				</div>
+				${(() => {
+					// One context line, always present even when empty, so every
+					// balance in the grid sits on the same line. Cards used to
+					// carry nought to three of these and the row ragged as a
+					// result — the eye cannot scan a column that moves.
+					if (a.is_credit && a.limit) {
+						const used = Math.min(100, a.used_pct || 0);
+						return `<div class="duty-mn-ctx">
+							<div class="duty-mn-meter"><i style="width:${used}%" class="${used > 80 ? "hot" : ""}"></i></div>
+							<div class="duty-mn-ctxt"><b>${esc(this._fmt("", a.available))}</b> ${__("still available")}</div>
+						</div>`;
+					}
+					if (a.grows && (a.growth || a.contributed)) {
+						const pct = a.return_pct;
+						return `<div class="duty-mn-ctx">
+							<div class="duty-mn-meter"><i style="width:${Math.min(100, Math.abs(pct || 0) * 4)}%" class="${a.growth < 0 ? "hot" : "good"}"></i></div>
+							<div class="duty-mn-ctxt ${a.growth < 0 ? "down" : "up"}">
+								<b>${a.growth >= 0 ? "+" : "−"}${esc(this._fmt("", Math.abs(a.growth)))}</b>${
+									pct !== null && pct !== undefined ? ` · ${pct > 0 ? "+" : ""}${pct}%` : ""}
+								<span>${__("grown")}</span></div>
+						</div>`;
+					}
+					if (a.committed) {
+						return `<div class="duty-mn-ctx">
+							<div class="duty-mn-ctxt ${a.at_risk ? "down" : ""}">${a.at_risk
+								? `${__("Short {0} after standing orders", [this._fmt("", a.short_by)])}`
+								: `${__("{0} left after standing orders", [this._fmt("", a.projected)])}`}</div>
+						</div>`;
+					}
+					return `<div class="duty-mn-ctx"></div>`;
+				})()}
+				<div class="duty-mn-acts">
+					<a class="mn-in" title="${__("Money in")}">＋</a>
+					<a class="mn-out" title="${__("Money out")}">−</a>
+					<a class="mn-tf" title="${__("Transfer")}">⇄</a>
+					<a class="mn-st" title="${__("Statement")}">☰</a>
+					${a.grows ? `<a class="mn-gr" title="${__("Interest or value change")}">%</a>` : ""}
+				</div>
+			</div>`;
+		};
+
+		const byBank = {};
+		accounts.forEach((a) => (byBank[a.bank_name || "—"] = byBank[a.bank_name || "—"] || []).push(a));
+
+		$m.html(`
+			<div class="duty-mn-head">
+				<b>${__("Money")}</b>
+				<span class="duty-mn-sub">${accounts.length} ${__("accounts")} · ${Object.keys(byBank).length} ${__("banks")}</span>
+				${this._mn_tab === "shares"
+					? `<a class="btn btn-xs btn-primary duty-mn-newhold" style="margin-left:auto">+ ${__("Holding")}</a>` : ""}
+				${(() => {
+					const t = this._tg;
+					if (!t || !t.behind) return "";
+					// A pulse rather than a blink: it should catch the eye from
+					// across the room without making the header unreadable while
+					// you are trying to use it.
+					// three figures rather than one: the month's bill, what has gone
+					// in against it, and what is left. The last on its own says
+					// nothing about whether you are moving.
+					const raised = t.ngn_raised || 0;
+					const bill = t.ngn_month || 0;
+					const pct = bill > 0 ? Math.max(0, Math.min(100, Math.round(raised * 100 / bill))) : 0;
+					return `<div class="duty-mn-money" style="margin-left:auto">
+						<a class="duty-mn-chip need-bill${t.incomplete ? " partial" : ""}">
+							<span>${__("Needed this month")}</span>
+							<b>₦${this._num(bill, 0)}${t.incomplete ? "<u>+</u>" : ""}</b>
+							<i>${t.incomplete
+								? __("no rate for {0}", [(t.missing_rates || []).join(", ")])
+								: t.outflow_month
+									? __("{0} targets + {1} one-off", [
+										t.targets ? t.targets.length : 0, this._fmt("", t.outflow_month)])
+									: `${t.targets ? t.targets.length : 0} ${__("targets")}`}</i>
+						</a>
+						<a class="duty-mn-chip need-raised${raised > 0 ? " good" : ""}${t.incomplete ? " partial" : ""}">
+							<span>${__("Raised this month")}</span>
+							<b>₦${this._num(raised, 0)}${t.incomplete ? "<u>+</u>" : ""}</b>
+							<i>${t.incomplete ? __("some currencies excluded") : `${pct}% ${__("of the month")}`}</i>
+						</a>
+						${(() => {
+							const rn = this._rn;
+							if (!rn || !rn.customers) return "";
+							const fig = (rn.totals || []).map((x) => `${x.currency} ${this._num(x.amount, 0)}`).join(" · ");
+							const od = rn.overdue_customers || 0;
+							return `<a class="duty-mn-chip need-renew${od ? " partial" : ""}" title="${
+								__("Annual renewals falling due in the next 90 days, overdue included")}">
+								<span>${__("Renewals due")}</span>
+								<b>${fig || "—"}</b>
+								<i>${rn.customers} ${rn.customers === 1 ? __("customer") : __("customers")}${
+									od ? ` · ${od} ${__("already past")}` : ""}</i>
+							</a>`;
+						})()}
+						${t.in_hand ? `
+							<a class="duty-mn-chip need-hand" title="${
+								__("Balance of the accounts money arrives in on its way elsewhere. Not counted as raised — it has not done its job yet.")}">
+								<span>${__("In hand")}</span>
+								<b>₦${this._num(t.in_hand, 0)}</b>
+								<i>${(t.in_hand_accounts || []).length} ${__("funding accounts")}</i>
+							</a>` : ""}
+						<a class="duty-mn-need${(t.shortfall || 0) > 0 ? " pulse" : " done"}" title="${
+							__("What is still missing after the money already in hand")}">
+							<span>${(t.shortfall || 0) > 0 ? __("Still short by") : __("Covered")}</span>
+							<b>₦${this._num(t.shortfall !== undefined ? t.shortfall : (t.ngn_needed || 0), 0)}</b>
+							<i>${t.in_hand
+									? __("{0} to find, {1} in hand", [`₦${this._num(t.ngn_needed || 0, 0)}`, `₦${this._num(t.in_hand, 0)}`])
+									: `${t.days_left} ${__("days left")}`}${
+								t.ngn_per_day && !t.in_hand ? ` · ₦${this._num(t.ngn_per_day, 0)}/${__("day")}` : ""}${
+								(t.unconverted || []).length ? ` · +${__("some unconverted")}` : ""}</i>
+						</a>
+					</div>`;
+				})()}
+				<span class="duty-mn-tabs">
+					<a class="${!this._mn_tab || this._mn_tab === "accounts" ? "on" : ""}" data-t="accounts">${__("Accounts")}</a>
+					<a class="${this._mn_tab === "shares" ? "on" : ""}" data-t="shares">${__("Shares")}</a>
+					<a class="${this._mn_tab === "bonds" ? "on" : ""}" data-t="bonds">${__("Bonds")}</a>
+					<a class="${this._mn_tab === "targets" ? "on" : ""}" data-t="targets">${__("Targets")}</a>
+					<a class="${this._mn_tab === "review" ? "on" : ""}" data-t="review">${__("Review")}</a>
+					<a class="${this._mn_tab === "renewals" ? "on" : ""}" data-t="renewals">${__("Renewals")}</a>
+				</span>
+				<a class="btn btn-xs btn-default duty-mn-newacc">＋ ${__("Account")}</a>
+				<a class="btn btn-xs btn-default duty-mn-newso">＋ ${__("Standing order")}</a>
+				<a class="duty-mn-refresh" title="${__("Refresh")}">&#8635;</a>
+			</div>
+
+			${risky.length ? `
+				<div class="duty-mn-alert">
+					<b>⚠ ${risky.length === 1 ? __("One account will not cover what is due") : __("{0} accounts will not cover what is due", [risky.length])}</b>
+					${risky.map((a) => `<div>${esc(a.nickname)} — ${__("short by")} <b>${esc(this._fmt(a.currency, a.short_by))}</b> ${__("within {0} days", [d.window])}</div>`).join("")}
+				</div>` : ""}
+
+			<div class="duty-mn-totals">
+				${(() => {
+					// Money you could spend today and money locked in a pension are
+					// not the same number and were sharing one: a naira total of
+					// 18.8m read as cash when 18.8m of it was pension. The rail is
+					// split, and each side says what it is.
+					const cur = d.by_currency || [];
+					const cash = cur.filter((c) => c.cash || c.owed);
+					const inv = cur.filter((c) => c.invested);
+					return `
+						${cash.length ? `<div class="duty-mn-tgrp"><span class="duty-mn-glab">${__("To hand")}</span></div>` : ""}
+						${cash.map((c) => `
+							<div class="duty-mn-tot">
+								<span class="duty-mn-cur">${esc(c.currency)}</span>
+								<span class="duty-mn-amt">${esc(this._fmt("", c.cash - (c.owed || 0)))}</span>
+								<span class="duty-mn-n">${c.cash_accounts} ${c.cash_accounts === 1 ? __("account") : __("accounts")}${
+									c.owed ? ` · ${__("after")} ${esc(this._fmt("", c.owed))} ${__("owed")}` : ""}</span>
+								${c.owed ? `<span class="duty-mn-n duty-mn-avail">${esc(this._fmt("", c.available))} ${__("credit available")}</span>` : ""}
+							</div>`).join("")}
+						${(inv.length || (d.shares || []).length) ? `<div class="duty-mn-tgrp inv"><span class="duty-mn-glab">${__("Put away")}</span></div>` : ""}
+						${inv.map((c) => `
+							<div class="duty-mn-tot inv">
+								<span class="duty-mn-cur">${esc(c.currency)}</span>
+								<span class="duty-mn-amt">${esc(this._fmt("", c.invested))}</span>
+								<span class="duty-mn-n">${c.invested_accounts} ${c.invested_accounts === 1 ? __("investment") : __("investments")}</span>
+							</div>`).join("")}`;
+				})()}
+				${(d.shares || []).map((sh) => `
+					<a class="duty-mn-tot inv duty-mn-shcard${(sh.gain_pct || 0) < 0 ? " down" : ""}">
+						<span class="duty-mn-cur">${__("Shares")} ${esc(sh.currency)}</span>
+						<span class="duty-mn-amt">${esc(this._fmt("", sh.value))}</span>
+						<span class="duty-mn-n">${sh.gain_pct === null || sh.gain_pct === undefined ? __("no price set")
+							: `${sh.gain_pct > 0 ? "▲ +" : sh.gain_pct < 0 ? "▼ " : ""}${sh.gain_pct}% ${__("on cost")}`}</span>
+						<span class="duty-mn-n">${sh.holdings} ${sh.holdings === 1 ? __("holding") : __("holdings")}${
+							sh.realised ? ` · ${sh.realised > 0 ? "+" : ""}${esc(this._fmt("", sh.realised))} ${__("banked")}` : ""}</span>
+					</a>`).join("")}
+				${(d.bonds || []).map((bd) => `
+					<a class="duty-mn-tot inv duty-mn-bdcard">
+						<span class="duty-mn-cur">${__("Bonds")} ${esc(bd.currency)}</span>
+						<span class="duty-mn-amt">${esc(this._fmt("", bd.value))}</span>
+						<span class="duty-mn-n">${bd.running_yield
+							? `${bd.running_yield}% ${__("running yield")}`
+							: __("no coupon set")}</span>
+						<span class="duty-mn-n">${bd.holdings} ${bd.holdings === 1 ? __("bond") : __("bonds")}${
+							bd.income ? ` · +${esc(this._fmt("", bd.income))} ${__("received")}` : ""}</span>
+					</a>`).join("")}
+			</div>
+			${(d.by_currency || []).length > 1 ? `<div class="duty-mn-note">${__("Currencies are shown apart — adding them needs a rate, and a rate is an opinion.")}</div>` : ""}
+
+			${(() => {
+				// One card per BANK, not per account. Thirteen account cards was
+				// thirteen things to read; nine banks is nine, and a bank is how
+				// you actually think about where money sits. Clicking one opens
+				// its accounts beneath, so the detail is a keystroke away rather
+				// than permanently on screen.
+				//
+				// Four columns across half the width, standing orders in the
+				// other half — because what is committed belongs beside what is
+				// held, not a scroll below it.
+				const banks = Object.keys(byBank).sort();
+				const open = this._mn_open || null;
+				const bankCard = (bk) => {
+					const list = byBank[bk] || [];
+					const colour = (list[0] || {}).colour || "#0F5C55";
+					const byC = {};
+					list.forEach((a2) => {
+						const c = byC[a2.currency] = byC[a2.currency] || { v: 0, n: 0 };
+						c.v += a2.is_credit ? -Math.abs(a2.balance) : a2.balance;
+						c.n += 1;
+					});
+					const ccys = Object.keys(byC).sort((x, y) => Math.abs(byC[y].v) - Math.abs(byC[x].v));
+					const risky = list.filter((a2) => a2.at_risk).length;
+					return `
+						<a class="duty-mn-bank${open === bk ? " open" : ""}${risky ? " risk" : ""}"
+						   data-bank="${esc(bk)}" style="--accent:${esc(colour)}">
+							<div class="duty-mn-bkname">${esc(bk)}</div>
+							<div class="duty-mn-bkfig">
+								${ccys.slice(0, 2).map((c) => `
+									<div><span>${esc(c)}</span><b>${esc(this._fmt("", byC[c].v))}</b></div>`).join("")}
+								${ccys.length > 2 ? `<i>+${ccys.length - 2} ${__("more")}</i>` : ""}
+							</div>
+							<div class="duty-mn-bkfoot">
+								${list.length} ${list.length === 1 ? __("account") : __("accounts")}
+								${risky ? `<em>${__("short")}</em>` : ""}
+							</div>
+						</a>`;
+				};
+				const rows = (open && byBank[open]) ? byBank[open] : [];
+				return `
+					<div class="duty-mn-split">
+						<div class="duty-mn-left">
+							<div class="duty-mn-banks">${banks.map(bankCard).join("")}</div>
+							${open ? `
+								<div class="duty-mn-drawer" style="--accent:${esc((rows[0] || {}).colour || "#0F5C55")}">
+									<div class="duty-mn-dhead">
+										<b>${esc(open)}</b>
+										<span>${rows.length} ${rows.length === 1 ? __("account") : __("accounts")}</span>
+										<a class="duty-mn-dclose" title="${__("Close")}">&times;</a>
+									</div>
+									${rows.map(card).join("")}
+								</div>` : ""}
+							${!accounts.length ? `<div class="duty-lb-empty">${__("No accounts yet. Add one to begin.")}</div>` : ""}
+						</div>
+						<div class="duty-mn-right">
+							${(() => {
+								const all = d.orders || [];
+								if (!all.length) return `<div class="duty-mn-ch">${__("Standing orders")}</div>
+									<div class="duty-lb-empty">${__("None set up. They post themselves and settle the fixed costs they pay.")}</div>`;
+								const on = all.filter((o) => o.active);
+								const off = all.filter((o) => !o.active);
+								const orow = (o) => `
+									<div class="duty-mn-so2${o.active ? "" : " off"}${o.overdue && o.active ? " late" : ""}" data-so="${esc(o.name)}">
+										<div class="duty-mn-sowhen">
+											<b>${o.next_date ? esc(frappe.datetime.str_to_user(String(o.next_date))) : "—"}</b>
+											<span>${!o.active ? __("paused")
+												: o.overdue ? __("overdue")
+												: o.due_in === 0 ? __("today")
+												: o.due_in === 1 ? __("tomorrow")
+												: __("in {0}d", [o.due_in])}</span>
+										</div>
+										<div class="duty-mn-sowhat">
+											<b>${esc(o.title)}</b>
+											<span>${esc(o.from_name || "")}${o.to_name ? ` → ${esc(o.to_name)}` : ""}</span>
+										</div>
+										<div class="duty-mn-soamt2">${esc(this._fmt(o.currency, o.amount))}<i>${esc(o.frequency || "")}</i></div>
+										<div class="duty-mn-soact">
+											<a class="so-edit">${__("Edit")}</a>
+											<a class="so-toggle">${o.active ? __("Pause") : __("Resume")}</a>
+										</div>
+									</div>`;
+								return `
+									<div class="duty-mn-ch">${__("Standing orders")} <span>${on.length}</span>${
+										off.length ? `<i>${off.length} ${__("paused")}</i>` : ""}</div>
+									${on.map(orow).join("")}${off.map(orow).join("")}`;
+							})()}
+						</div>
+					</div>`;
+			})()}
+
+			</div>
+		`);
+
+		$m.find(".duty-mn-bank").on("click", (e) => {
+			const bk = $(e.currentTarget).data("bank");
+			this._mn_open = (this._mn_open === bk) ? null : bk;
+			this.render_money(d);
+		});
+		$m.find(".duty-mn-dclose").on("click", (e) => {
+			e.stopPropagation();
+			this._mn_open = null;
+			this.render_money(d);
+		});
+		$m.find(".duty-mn-refresh").on("click", () => this.refresh_money());
+		$m.find(".duty-mn-newacc").on("click", () => this.money_account_dialog());
+		$m.find(".duty-mn-newso").on("click", () => this.money_so_dialog(accounts));
+		$m.find(".mn-in").on("click", (e) => { e.stopPropagation(); this.money_move_dialog("In", $(e.currentTarget).closest(".duty-mn-card").data("acc"), accounts); });
+		$m.find(".mn-out").on("click", (e) => { e.stopPropagation(); this.money_move_dialog("Out", $(e.currentTarget).closest(".duty-mn-card").data("acc"), accounts); });
+		$m.find(".mn-st").on("click", (e) => {
+			e.stopPropagation();
+			this.money_statement($(e.currentTarget).closest(".duty-mn-card").data("acc"));
+		});
+		$m.find(".mn-tf").on("click", (e) => { e.stopPropagation(); this.money_move_dialog("Transfer", $(e.currentTarget).closest(".duty-mn-card").data("acc"), accounts); });
+		$m.find(".mn-gr").on("click", (e) => {
+			e.stopPropagation();
+			const acc = $(e.currentTarget).closest(".duty-mn-card").data("acc");
+			this.money_revalue_dialog(acc, accounts);
+		});
+		this._mn_accounts = accounts;
+		$m.find(".duty-mn-money a").not(".need-renew").on("click", () => { this._mn_tab = "targets"; this.render_money(d); });
+		$m.find(".duty-mn-money .need-renew").on("click", () => { this._mn_tab = "renewals"; this.render_money(d); });
+		$m.find(".duty-mn-tabs a").on("click", (e) => {
+			this._mn_tab = $(e.currentTarget).data("t");
+			this.render_money(d);
+		});
+		// the header figure needs the targets whichever tab is open, so it is
+		// fetched once and reused rather than only when the tab is
+		if (!this._tg) {
+			frappe.call({ method: "duty_board.targets.targets", freeze: false,
+				callback: (r) => { this._tg = r.message || {}; if (this._tg.behind) this.render_money(d); } });
+		}
+		if (!this._rn) {
+			frappe.call({ method: "duty_board.money.renewals", args: { horizon: 90 },
+				freeze: false,
+				callback: (r) => {
+					this._rn = (r.message || {}).summary || {};
+					if (this._rn.customers) this.render_money(d);
+				} });
+		}
+		if (this._mn_tab === "renewals") {
+			$m.find(".duty-mn-split").hide();
+			if (!$m.find(".duty-mn-body").length) $m.append('<div class="duty-mn-body"></div>');
+			this._rn_render($m);
+			return;
+		}
+		if (this._mn_tab === "review") {
+			$m.find(".duty-mn-split").hide();
+			if (!$m.find(".duty-mn-body").length) $m.append('<div class="duty-mn-body"></div>');
+			this._rv_render($m);
+			return;
+		}
+		if (this._mn_tab === "targets") {
+			$m.find(".duty-mn-split").hide();
+			if (!$m.find(".duty-mn-body").length) $m.append('<div class="duty-mn-body"></div>');
+			this._tg_render($m);
+			return;
+		}
+		// The shares tab replaces the account grid and the standing orders
+		// beneath it, but keeps the header and the summary cards — the portfolio
+		// figure belongs beside the currency totals whichever tab you are on.
+		if (this._mn_tab === "bonds") {
+			$m.find(".duty-mn-split").hide();
+			if (!$m.find(".duty-mn-body").length) $m.append('<div class="duty-mn-body"></div>');
+			this._bonds_render($m);
+			return;
+		}
+		if (this._mn_tab === "shares") {
+			$m.find(".duty-mn-split").hide();
+			if (!$m.find(".duty-mn-body").length) $m.append('<div class="duty-mn-body"></div>');
+			this._shares_render($m);
+			$m.find(".duty-mn-newhold").on("click", () => this._sh_holding_dialog());
+			return;
+		}
+		$m.find(".duty-mn-body").remove();
+
+		$m.find(".so-edit").on("click", (e) => {
+			e.stopPropagation();
+			const nm = $(e.currentTarget).closest(".duty-mn-sorow").data("so");
+			const o = (d.orders || []).find((x) => x.name === nm);
+			if (o) this.money_so_dialog(accounts, o);
+		});
+		$m.find(".so-toggle").on("click", (e) => {
+			e.stopPropagation();
+			const $r = $(e.currentTarget).closest(".duty-mn-sorow");
+			const nm = $r.data("so");
+			const o = (d.orders || []).find((x) => x.name === nm) || {};
+			frappe.call({
+				method: "duty_board.money.toggle_standing_order",
+				args: { name: nm, active: o.active ? 0 : 1 },
+				callback: () => this.refresh_money(),
+			});
+		});
+		$m.find(".mn-post").on("click", (e) => {
+			e.stopPropagation();
+			const so = $(e.currentTarget).closest(".duty-mn-so").data("so");
+			const post = (force) => frappe.call({
+				method: "duty_board.money.post_standing_order",
+				args: { name: so, force: force ? 1 : 0 },
+				// the server refuses when the account will not cover it. That
+				// refusal is the point, so it is shown as a question rather
+				// than swallowed — and the override exists because the money
+				// may genuinely have moved.
+				error: (r) => {
+					// matched on the exception type rather than on the wording,
+					// which would break the first time the message changed
+					const t = (r && (r.exc_type || r.exception)) || "";
+					if (force || t.indexOf("InsufficientFunds") < 0) return;
+					frappe.confirm(
+						__("The account will not cover this, so it would have failed at the bank. Post it anyway?"),
+						() => post(1));
+				},
+				callback: () => { frappe.show_alert({ message: __("Posted"), indicator: "green" }); this.refresh_money(); },
+			});
+			post(0);
+		});
+		$m.find(".mn-skip").on("click", (e) => {
+			e.stopPropagation();
+			frappe.confirm(__("Roll this forward without posting it?"), () =>
+				frappe.call({ method: "duty_board.money.skip_standing_order",
+					args: { name: $(e.currentTarget).closest(".duty-mn-so").data("so") },
+					callback: () => this.refresh_money() }));
+		});
+	}
+
+	money_move_dialog(kind, account, accounts) {
+		// Frappe Select takes {value,label} pairs. This built a label map and then
+		// passed the bare names, so every picker showed the record hash —
+		// 'prdmd5q5ce' — rather than the account you named.
+		const opts = accounts.map((a) => ({
+			value: a.name,
+			label: `${a.nickname} · ${a.bank} (${a.currency})`,
+		}));
+		const fields = [
+			{ fieldtype: "Select", fieldname: "account", reqd: 1, default: account,
+			  label: kind === "Transfer" ? __("Out of") : __("Account"), options: opts },
+		];
+		if (kind === "Transfer") {
+			fields.push({ fieldtype: "Select", fieldname: "to_account", reqd: 1, label: __("Into"), options: opts });
+		}
+		fields.push(
+			{ fieldtype: "Float", fieldname: "amount", reqd: 1, precision: 2,
+			  label: kind === "Growth" ? __("Gain (or loss, as a negative)") : __("Amount"),
+			  description: kind === "Growth" ? __("What the account gained on its own, apart from anything you paid in. A fall goes in as a negative.") : "" },
+			...(kind === "Transfer" ? [{ fieldtype: "Float", fieldname: "amount_received", precision: 2,
+				label: __("Amount received"),
+				description: __("Only when the two accounts hold different currencies. Enter what actually landed rather than a rate — the rate you got is not the rate anybody published.") }] : []),
+			{ fieldtype: "Date", fieldname: "move_date", label: __("Date"), default: frappe.datetime.get_today(), reqd: 1 },
+			{ fieldtype: "Data", fieldname: "counterparty",
+			  label: kind === "In" ? __("Where from") : kind === "Out" ? __("Where to")
+				: kind === "Growth" ? __("What kind") : __("Reference"),
+			  description: kind === "Growth" ? __("Interest, dividend, market movement — whatever it was.") : "" },
+			{ fieldtype: "Link", fieldname: "category", label: __("Category"), options: "Duty Money Category" },
+			{ fieldtype: "Small Text", fieldname: "note", label: __("Note") }
+		);
+		const d = new frappe.ui.Dialog({
+			title: kind === "In" ? __("Money in") : kind === "Out" ? __("Money out")
+				: kind === "Growth" ? __("Interest or value change") : __("Transfer"),
+			fields: fields,
+			primary_action_label: __("Record"),
+			primary_action: (v) => {
+				const $b = d.get_primary_btn();
+				$b.prop("disabled", true);
+				frappe.call({
+					method: "duty_board.money.move_money",
+					args: { kind: kind, account: v.account, to_account: v.to_account || null,
+						amount: v.amount, amount_received: v.amount_received || null,
+						move_date: v.move_date, counterparty: v.counterparty || null,
+						category: v.category || null, note: v.note || null },
+					callback: () => { d.hide(); frappe.show_alert({ message: __("Recorded"), indicator: "green" }); this.refresh_money(); },
+					error: () => $b.prop("disabled", false),
+				});
+			},
+		});
+		d.show();
+	}
+
+	// A pension or a fund never tells you it earned 412.60 — it tells you the pot
+	// is now worth 18,940. So the value is what gets typed and the difference is
+	// booked as growth. Doing that subtraction by hand every month is how a
+	// ledger quietly drifts.
+	money_revalue_dialog(account, accounts) {
+		const a = (accounts || []).find((x) => x.name === account) || {};
+		const d = new frappe.ui.Dialog({
+			title: __("Value of {0}", [a.nickname || ""]),
+			fields: [
+				{ fieldtype: "Float", fieldname: "new_balance", reqd: 1, precision: 2,
+				  label: __("What it is worth now"), default: a.balance || 0,
+				  description: __("Straight off the statement. The difference against {0} is recorded as interest or a market move.",
+					[this._fmt(a.currency, a.balance || 0)]) },
+				{ fieldtype: "Date", fieldname: "move_date", label: __("As at"), reqd: 1,
+				  default: frappe.datetime.get_today() },
+				{ fieldtype: "Small Text", fieldname: "note", label: __("Note") },
+			],
+			primary_action_label: __("Record"),
+			primary_action: (v) => {
+				frappe.call({
+					method: "duty_board.money.revalue_account",
+					args: { account: account, new_balance: v.new_balance,
+						move_date: v.move_date, note: v.note || "" },
+					callback: (r) => {
+						d.hide();
+						const delta = (r.message || {}).delta || 0;
+						frappe.show_alert({
+							message: delta
+								? (delta > 0 ? __("Up {0}", [this._fmt(a.currency, delta)])
+											 : __("Down {0}", [this._fmt(a.currency, Math.abs(delta))]))
+								: __("Unchanged"),
+							indicator: delta < 0 ? "orange" : "green",
+						});
+						this.refresh_money();
+					},
+				});
+			},
+			secondary_action_label: __("Enter a gain instead"),
+			secondary_action: () => { d.hide(); this.money_move_dialog("Growth", account, accounts); },
+		});
+		d.show();
+	}
+
+	/* ------------------------------------------------------------ Shares tab
+	   Per holding: what you hold, what it cost, what it is worth, what it has
+	   made on paper, and what has already been banked.
+
+	   Realised and unrealised are kept apart everywhere rather than added into
+	   one "gain". Money taken off the table is a different fact from a paper
+	   movement that can reverse before Friday, and a single blended figure
+	   hides which of the two you are looking at. */
+
+	/* ───────────────────────────────────────────────────────────── Bonds
+	   Not shares with a coupon. Quoted per 100 of face, bought with accrued
+	   interest that is a prepayment rather than a cost, repaid at par, and
+	   carried at amortised cost because a price that pulls to par is not a
+	   gain. See bonds.py. */
+
+	_bonds_render($m) {
+		const esc = frappe.utils.escape_html;
+		$m.find(".duty-mn-body").html(`<div class="duty-hl-load">${__("Loading…")}</div>`);
+		frappe.call({
+			method: "duty_board.bonds.bonds",
+			callback: (r) => {
+				this._bd = r.message || {};
+				frappe.call({
+					method: "duty_board.bonds.coupon_calendar",
+					args: { months: 18 },
+					callback: (c) => { this._bdcal = c.message || {}; this._bonds_paint($m); },
+				});
+			},
+		});
+	}
+
+	_bonds_paint($m) {
+		const esc = frappe.utils.escape_html;
+		const d = this._bd || {}, cal = this._bdcal || {};
+		const rows = d.bonds || [];
+		const money = (c, v) => esc(this._fmt(c, v));
+		$m.find(".duty-mn-body").html(`
+			${(d.by_currency || []).length ? `
+				<div class="duty-bd-tot">
+					${d.by_currency.map((c) => `
+						<span><i>${__("Face held")}</i><b>${money(c.currency, c.face)}</b></span>
+						<span><i>${__("Carried at")}</i><b>${money("", c.value)}</b></span>
+						<span><i>${__("Coupon a year")}</i><b>${money("", c.annual_coupon)}</b>
+							${c.running_yield ? `<u>${c.running_yield}% ${__("running")}</u>` : ""}</span>
+						<span><i>${__("Income to date")}</i><b>${money("", c.income)}</b></span>`).join("")}
+				</div>` : ""}
+
+			${(cal.next && cal.next.net > 0.005) ? `
+				<div class="duty-bd-next">
+					<b>${__("Next coupon")}</b>
+					${esc(frappe.datetime.str_to_user(cal.next.date))} \u00b7
+					${esc(cal.next.bond_name)} \u00b7 <b>${money(cal.next.currency, cal.next.net)}</b>
+					${cal.next.taxed ? `<em>${__("net of 10% withholding")}</em>` : `<em>${__("tax free")}</em>`}
+					${cal.twelve_month_net ? `<span>${__("{0} due over the next twelve months", [this._fmt("", cal.twelve_month_net)])}</span>` : ""}
+				</div>` : ""}
+
+			<div class="duty-bd-head">
+				<div>${__("Bond")}</div><div>${__("Face")}</div><div>${__("Paid")}</div>
+				<div>${__("Carried")}</div><div>${__("Coupon")}</div><div>${__("Net YTM")}</div>
+				<div>${__("Matures")}</div><div>${__("Income")}</div><div></div>
+			</div>
+			${rows.length ? rows.map((b) => `
+				<div class="duty-bd-row${b.held ? "" : " none"}" data-b="${esc(b.name)}">
+					<div class="duty-bd-nm">
+						<b>${esc(b.bond_name)}</b>
+						<span>${[esc(b.issuer), b.broker ? esc(b.broker) : null,
+								 b.held ? esc(b.basis) : __("none held yet \u2014 press Buy")]
+								.filter(Boolean).join(" \u00b7 ")}</span>
+						${b.accrued_outstanding > 0.5 ? `<span class="duty-bd-acc">${
+							__("{0} accrued still to come back", [this._fmt("", b.accrued_outstanding)])}</span>` : ""}
+					</div>
+					<div>${b.held ? money("", b.face) : "\u2014"}</div>
+					<div>${b.held ? money("", b.cost) : "\u2014"}</div>
+					<div><b>${b.held ? money("", b.value) : "\u2014"}</b>
+						${b.amortised_frac !== null && b.amortised_frac !== undefined
+							? `<span class="duty-bd-am">${Math.round(b.amortised_frac * 100)}% ${__("to par")}</span>` : ""}</div>
+					<div>${this._num(b.coupon_rate, 2)}%
+						${b.running_yield ? `<span class="duty-bd-am">${b.running_yield}% ${__("running")}</span>` : ""}</div>
+					<div><b>${b.ytm ? `${b.ytm}%` : "\u2014"}</b></div>
+					<div>${esc(String(b.maturity).slice(0, 10))}
+						<span class="duty-bd-am">${b.years_to_maturity}y</span></div>
+					<div>${b.income ? `+${money("", b.income)}` : "\u2014"}
+						${b.coupons ? `<span class="duty-bd-am">${b.coupons} ${__("paid")}</span>` : ""}</div>
+					<div class="duty-bd-a">
+						<a class="bd-cal" title="${__("Coupon schedule")}">\u{1F4C5}</a>
+						<a class="bd-cpn">${__("Coupon")}</a>
+						<a class="bd-buy">${__("Buy")}</a>
+						<a class="bd-edit">${__("Edit")}</a>
+					</div>
+				</div>`).join("")
+				: `<div class="duty-lb-empty">${__("No bonds set up. Add one \u2014 its name, coupon, a coupon date and maturity \u2014 then press Buy on its row to record what you actually purchased.")}</div>`}
+
+			${(cal.by_month || []).length ? `
+				<div class="duty-rv-h" style="margin-top:18px">${__("Coupons ahead")}</div>
+				<div class="duty-of-ahead">
+					${cal.by_month.map((m) => `<span><b>${esc(this._month_label(m.month))}</b>
+						\u20a6${this._num(m.net, 0)}${m.n > 1 ? ` <i>(${m.n})</i>` : ""}</span>`).join("")}
+				</div>` : ""}
+
+			<div class="duty-sh-bar">
+				<a class="btn btn-xs btn-primary bd-new">+ ${__("Bond")}</a>
+				<span>${__("Carried at amortised cost: what you paid drifting to par as maturity approaches. A market price does the same thing on its own, and calling that drift a gain would say something happened when nothing did.")}</span>
+			</div>`);
+		this._bonds_wire($m);
+	}
+
+	_bonds_wire($m) {
+		const find = (n) => ((this._bd || {}).bonds || []).find((b) => b.name === n) || {};
+		const nm = (e) => $(e.currentTarget).closest(".duty-bd-row").data("b");
+		$m.find(".bd-new").on("click", () => this._bd_dialog());
+		$m.find(".bd-edit").on("click", (e) => this._bd_dialog(find(nm(e))));
+		$m.find(".bd-buy").on("click", (e) => this._bd_trade_dialog(find(nm(e))));
+		$m.find(".bd-cpn").on("click", (e) => this._bd_coupon_dialog(find(nm(e))));
+		$m.find(".bd-cal").on("click", (e) => this._bd_calendar(find(nm(e))));
+	}
+
+	_bd_dialog(existing) {
+		const e = existing || {};
+		const d = new frappe.ui.Dialog({
+			title: e.name ? __("Bond") : __("New bond"),
+			fields: [
+				{ fieldtype: "Data", fieldname: "bond_name", label: __("Bond"), reqd: 1,
+				  default: e.bond_name || "",
+				  description: __("As the market quotes it \u2014 FGN 18.74% MAR 2034.") },
+				{ fieldtype: "Select", fieldname: "issuer", label: __("Issuer"), reqd: 1,
+				  options: "FGN\nState\nCorporate\nOther", default: e.issuer || "FGN",
+				  description: __("FGN and State coupons are exempt from tax; corporate coupons bear 10% withholding. This decides every yield figure on the holding.") },
+				{ fieldtype: "Float", fieldname: "coupon_rate", label: __("Coupon %"), reqd: 1,
+				  precision: 4, default: e.coupon_rate || 0,
+				  description: __("Annual, as quoted. Paid in two equal halves.") },
+				{ fieldtype: "Date", fieldname: "first_coupon", label: __("A coupon date"), reqd: 1,
+				  default: e.first_coupon || "",
+				  description: __("Any one will do \u2014 the rest are generated six months apart from it.") },
+				{ fieldtype: "Date", fieldname: "maturity", label: __("Matures"), reqd: 1,
+				  default: e.maturity || "" },
+				{ fieldtype: "Link", fieldname: "currency", label: __("Currency"), options: "Currency",
+				  reqd: 1, default: e.currency || "NGN" },
+				{ fieldtype: "Select", fieldname: "valuation", label: __("Carried at"), reqd: 1,
+				  options: "Amortised cost\nManual mark", default: e.valuation || "Amortised cost",
+				  description: __("Amortised cost unless you might sell it. A market price pulls to par on its own, and reporting that as a gain is misleading for something you intend to hold.") },
+				{ fieldtype: "Float", fieldname: "mark_price", label: __("Mark (per 100)"),
+				  precision: 4, default: e.mark_price || 0,
+				  depends_on: "eval:doc.valuation=='Manual mark'" },
+			],
+			primary_action_label: e.name ? __("Save") : __("Add"),
+			primary_action: (v) => {
+				frappe.call({
+					method: "duty_board.bonds.save_bond",
+					args: Object.assign({ name: e.name || null }, v),
+					callback: () => { d.hide(); this._bd = null; this.refresh_money(); },
+				});
+			},
+		});
+		d.show();
+	}
+
+	_bd_trade_dialog(b) {
+		const accs = (this._mn_accounts || [])
+			.filter((a) => a.currency === b.currency)
+			.map((a) => ({ value: a.name, label: `${a.nickname} · ${a.bank}` }));
+		const d = new frappe.ui.Dialog({
+			title: __("Buy {0}", [b.bond_name || ""]),
+			fields: [
+				{ fieldtype: "Select", fieldname: "kind", label: __("Kind"), reqd: 1,
+				  options: "Buy\nSell", default: "Buy" },
+				{ fieldtype: "Select", fieldname: "source", label: __("Where"), reqd: 1,
+				  options: "Auction\nSecondary", default: "Secondary",
+				  description: __("An auction fills at par on a coupon date, so no accrued interest changes hands. A secondary purchase between coupon dates does, and it is worked out for you.") },
+				{ fieldtype: "Float", fieldname: "face_value", label: __("Face value"), reqd: 1,
+				  precision: 2, description: __("What matures \u2014 not what you pay.") },
+				{ fieldtype: "Float", fieldname: "clean_price", label: __("Clean price per 100"),
+				  reqd: 1, precision: 4, default: 100 },
+				{ fieldtype: "Date", fieldname: "trade_date", label: __("Settles"), reqd: 1,
+				  default: frappe.datetime.get_today() },
+				{ fieldtype: "Float", fieldname: "charges", label: __("Charges"), precision: 2, default: 0 },
+				{ fieldtype: "Select", fieldname: "account", label: __("Settled from"),
+				  options: [{ value: "", label: __("\u2014 do not move cash \u2014") }].concat(accs),
+				  default: accs.length === 1 ? accs[0].value : "" },
+			],
+			primary_action_label: __("Record"),
+			primary_action: (v) => {
+				frappe.call({
+					method: "duty_board.bonds.record_bond_trade",
+					args: Object.assign({ bond: b.name, move_cash: v.account ? 1 : 0 }, v),
+					callback: (r) => {
+						const x = r.message || {};
+						d.hide();
+						frappe.msgprint({
+							title: __("Recorded"), indicator: "green",
+							message: `${__("Principal")}: ${this._fmt(b.currency, x.principal)}<br>`
+								+ (x.accrued ? `${__("Accrued interest paid to the seller")}: ${this._fmt("", x.accrued)}<br>` : "")
+								+ `<b>${__("Cash settled")}: ${this._fmt("", x.cash)}</b>`
+								+ (x.ytm ? `<br>${__("Net yield to maturity")}: <b>${x.ytm}%</b>` : "")
+								+ (x.accrued ? `<br><small>${__("The accrued comes back to you in the next coupon and is not counted as income.")}</small>` : ""),
+						});
+						this._bd = null;
+						this.refresh_money();
+					},
+				});
+			},
+		});
+		d.show();
+	}
+
+	_bd_coupon_dialog(b) {
+		const accs = (this._mn_accounts || [])
+			.filter((a) => a.currency === b.currency)
+			.map((a) => ({ value: a.name, label: `${a.nickname} · ${a.bank}` }));
+		const d = new frappe.ui.Dialog({
+			title: __("Coupon \u2014 {0}", [b.bond_name || ""]),
+			fields: [
+				{ fieldtype: "Float", fieldname: "gross", label: __("Gross"), reqd: 1, precision: 2 },
+				{ fieldtype: "Float", fieldname: "tax", label: __("Withholding tax"), precision: 2,
+				  description: __("Leave blank and it is worked out from the issuer and how long is left to maturity. Enter what the agent actually deducted if it differs.") },
+				{ fieldtype: "Date", fieldname: "pay_date", label: __("Paid on"), reqd: 1,
+				  default: frappe.datetime.get_today() },
+				{ fieldtype: "Select", fieldname: "account", label: __("Paid into"),
+				  options: [{ value: "", label: __("\u2014 do not post cash \u2014") }].concat(accs),
+				  default: accs.length === 1 ? accs[0].value : "" },
+			],
+			primary_action_label: __("Record"),
+			primary_action: (v) => {
+				frappe.call({
+					method: "duty_board.bonds.record_coupon",
+					args: Object.assign({ bond: b.name, move_cash: v.account ? 1 : 0 }, v),
+					callback: (r) => {
+						const x = r.message || {};
+						d.hide();
+						if (x.accrued_returned > 0.5) {
+							frappe.msgprint({
+								title: __("Recorded"), indicator: "green",
+								message: `${__("Net received")}: ${this._fmt(b.currency, x.net)}<br>`
+									+ `${__("Of which accrued interest coming back")}: ${this._fmt("", x.accrued_returned)}<br>`
+									+ `<b>${__("Income for the period")}: ${this._fmt("", x.income)}</b>`,
+							});
+						} else {
+							frappe.show_alert({ indicator: "green",
+								message: __("Coupon of {0} recorded", [this._fmt(b.currency, x.net)]) });
+						}
+						this._bd = null;
+						this.refresh_money();
+					},
+				});
+			},
+		});
+		d.show();
+	}
+
+	_bd_calendar(b) {
+		const esc = frappe.utils.escape_html;
+		const d = new frappe.ui.Dialog({ title: __("Coupons \u2014 {0}", [b.bond_name || ""]), size: "large" });
+		frappe.call({
+			method: "duty_board.bonds.bond_schedule",
+			args: { bond: b.name },
+			callback: (r) => {
+				const x = r.message || {};
+				$(d.body).html(`
+					<div class="duty-rv-warn" style="margin-bottom:10px">${esc(x.exempt_note || "")}
+						${x.first_taxed ? ` ${__("The first taxed coupon is {0}.", [esc(x.first_taxed)])}` : ""}</div>
+					<table class="duty-st-t"><tr>
+						<th>${__("Date")}</th><th>${__("Gross")}</th><th>${__("Tax")}</th>
+						<th>${__("Net")}</th><th></th></tr>
+						${(x.rows || []).map((z) => `<tr class="${z.paid ? "" : z.future ? "" : "duty-rv-miss"}">
+							<td>${esc(z.date)}</td>
+							<td>${esc(this._num(z.gross, 2))}</td>
+							<td>${z.tax ? esc(this._num(z.tax, 2)) : `<span class="muted">${__("exempt")}</span>`}</td>
+							<td><b>${esc(this._num(z.net, 2))}</b></td>
+							<td>${z.paid ? `<span class="up">\u2713 ${__("received")}</span>`
+								: z.future ? `<span class="muted">${__("due")}</span>`
+								: `<span class="down">${__("not recorded")}</span>`}</td></tr>`).join("")}
+					</table>
+					<p class="duty-st-f">${__("Amounts assume the face value you hold today. A coupon marked 'not recorded' fell due and has not been entered.")}</p>`);
+			},
+		});
+		d.show();
+	}
+
+	_shares_render($m) {
+		const esc = frappe.utils.escape_html;
+		$m.find(".duty-mn-body").html(`<div class="duty-hl-load">${__("Loading…")}</div>`);
+		frappe.call({
+			method: "duty_board.shares.price_series",
+			args: { days: 180 },
+			callback: (sr) => {
+				this._sh_series = (sr.message || {}).series || {};
+				this._sh_last_fetch = (sr.message || {}).last_fetch || null;
+				this._shares_render2($m);
+			},
+		});
+	}
+
+	_shares_render2($m) {
+		const esc = frappe.utils.escape_html;
+		frappe.call({
+			method: "duty_board.shares.portfolio",
+			callback: (r) => {
+				const d = r.message || {};
+				this._sh = d;
+				const hs = d.holdings || [];
+				const open = hs.filter((h) => h.open);
+				// three different things, not two: owned, watched but never
+				// bought, and bought then sold out
+				const watch = hs.filter((h) => h.watching);
+				const closed = hs.filter((h) => !h.open && h.trades);
+				const spark = (h) => this._sh_chart((this._sh_series || {})[h.name] || [],
+					{ w: 130, h: 34, bare: 1 });
+				const sign = (n) => (n > 0 ? "+" : "");
+				const cls = (n) => (n > 0 ? "up" : n < 0 ? "down" : "");
+				const row = (h) => `
+					<div class="duty-sh-row${h.open ? " live" : h.watching ? " watch" : " shut"}" data-h="${esc(h.name)}">
+						<div class="duty-sh-nm">
+							<b class="duty-sh-tk">${esc(h.symbol)}</b>
+							<span>${esc(h.holding_name || "")}${h.exchange ? ` · ${esc(h.exchange)}` : ""}</span>
+							${(h.pe_ratio || h.market_cap || h.financial_year_end) ? `<span class="duty-sh-fund">${
+								[h.pe_ratio ? `<b class="duty-sh-pe ${h.pe_ratio < 8 ? "cheap" : h.pe_ratio > 25 ? "rich" : "mid"}" title="${
+									__("A low P/E is as often a warning as a bargain — the market may know something.")}">P/E ${h.pe_ratio}</b>` : "",
+								 h.market_cap ? `${__("cap")} ${esc(h.market_cap)}` : "",
+								 h.eps ? `EPS ${h.eps}` : "",
+								 h.financial_year_end ? `${__("FYE")} ${esc(h.financial_year_end)}` : "",
+								 h.next_earnings ? `${__("results")} ${esc(frappe.datetime.str_to_user(String(h.next_earnings)))}` : ""
+								].filter(Boolean).join(" · ")}</span>` : ""}
+						</div>
+						<div class="duty-sh-q">${h.open ? esc(this._num(h.qty)) : `<i>${__("closed")}</i>`}
+							${h.open ? `<span>@ ${esc(this._num(h.avg_cost, 4))}</span>` : ""}</div>
+						<div class="duty-sh-px">${h.last_price ? esc(this._num(h.last_price, 4)) : `<i>${__("no price")}</i>`}
+							${h.price_as_of ? `<span class="${h.stale_days > 6 ? "stale" : ""}" title="${
+								__("This is the closing price for {0}. Checked {1}. An end-of-day source cannot give today's close until the session has closed and the feed has published it.", [
+									frappe.datetime.str_to_user(String(h.price_as_of)),
+									h.checked_on ? frappe.datetime.str_to_user(String(h.checked_on)) : __("never")])}">${
+								// A date, not an age. 'traded 1d ago' reads as decay
+								// when it is simply yesterday's close, which is the
+								// newest close that exists during a session — and
+								// an end-of-day source can never say otherwise.
+								h.stale_days === 0 ? __("today's close")
+								: __("{0} close", [frappe.datetime.str_to_user(String(h.price_as_of)).slice(0, 5)])}</span>` : ""}
+							${h.stale_days > 6
+								? `<span class="stale">${__("{0} sessions old", [h.stale_days])}</span>` : ""}
+							${h.week52_low && h.week52_high && h.last_price ? (() => {
+								// where today's price sits between the 52-week low
+								// and high — a number nobody reads, a bar everybody does
+								const span = h.week52_high - h.week52_low;
+								const at = span > 0 ? Math.max(0, Math.min(100,
+									((h.last_price - h.week52_low) / span) * 100)) : 50;
+								const tone = at > 66 ? "hi" : at < 33 ? "lo" : "mid";
+								return `<span class="duty-sh-52 ${tone}" title="${__("52-week range")} ${this._num(h.week52_low, 2)} – ${this._num(h.week52_high, 2)}">
+									<i style="left:${at.toFixed(0)}%"></i></span>`;
+							})() : ""}</div>
+						<div class="duty-sh-val">${h.open ? esc(this._fmt(h.currency, h.value)) : "—"}</div>
+						<div class="duty-sh-wt">${h.weight_pct !== null && h.weight_pct !== undefined
+							? `<b>${h.weight_pct}%</b><span class="duty-sh-wtbar"><i style="width:${Math.min(100, h.weight_pct)}%"></i></span>`
+							: "—"}</div>
+						<div class="duty-sh-tw">${h.target_weight > 0
+							? `<b>${this._num(h.target_weight, h.target_weight % 1 ? 1 : 0)}%</b><span class="${
+								(h.drift || 0) > 1 ? "over" : (h.drift || 0) < -1 ? "under" : ""}">${
+								h.drift === null || h.drift === undefined ? ""
+								: Math.abs(h.drift) <= 1 ? __("on target")
+								: `${h.drift > 0 ? "+" : ""}${h.drift} ${__("pts")}`}</span>`
+							: `<a class="sh-wt">${__("set")}</a>`}</div>
+						<div class="duty-sh-un ${cls(h.unrealised)}">${h.open && h.last_price
+							? `${sign(h.unrealised)}${esc(this._fmt("", h.unrealised))}<span>${h.gain_pct !== null ? `${sign(h.gain_pct)}${h.gain_pct}%` : ""}</span>`
+							: "—"}</div>
+						<div class="duty-sh-re ${cls(h.realised)}">${h.realised ? `${sign(h.realised)}${esc(this._fmt("", h.realised))}` : "—"}</div>
+						<div class="duty-sh-div">${h.div_net
+							? `<b>+${esc(this._fmt("", h.div_net))}</b>${h.yield_pct ? `<span>${h.yield_pct}% ${__("yield")}</span>` : ""}`
+							: `<a class="sh-div" title="${__("Record a dividend")}">+</a>`}</div>
+						<div class="duty-sh-spark">${spark(h)}</div>
+						<div class="duty-sh-acts">
+							<a class="sh-chart" title="${__("Price history")}">📈</a>
+							<a class="sh-buy">${__("Buy")}</a>
+							${h.open ? `<a class="sh-sell">${__("Sell")}</a>` : ""}
+							<a class="sh-px">${__("Price")}</a>
+							<a class="sh-rm" title="${h.trades ? __("Hide") : __("Stop watching")}">&times;</a>
+						</div>
+					</div>`;
+
+				$m.find(".duty-mn-body").html(`
+					<div class="duty-tape-slot"></div>
+					${(d.by_currency || []).filter((c) => c.cost || c.value || c.realised).map((c) => `
+						<div class="duty-sh-tot">
+							<div><span>${esc(c.currency)} ${__("value")}</span><b>${esc(this._fmt("", c.value))}</b></div>
+							<div><span>${__("cost")}</span><b>${esc(this._fmt("", c.cost))}</b></div>
+							<div><span>${__("on paper")}</span><b class="${cls(c.unrealised)}">${sign(c.unrealised)}${esc(this._fmt("", c.unrealised))}${
+								c.gain_pct !== null ? ` (${sign(c.gain_pct)}${c.gain_pct}%)` : ""}</b></div>
+							<div><span>${__("banked")}</span><b class="${cls(c.realised)}">${sign(c.realised)}${esc(this._fmt("", c.realised))}</b></div>
+						</div>`).join("")}
+
+					<div class="duty-sh-table">
+					<div class="duty-bk-strip">
+						<span class="duty-bk-lab">${__("Held at")}</span>
+						${(d.brokers || []).length
+							? d.brokers.map((b) => `
+								<span class="duty-bk${b.holdings ? "" : " empty"}"><b>${esc(b.broker)}</b>
+									${b.holdings
+										? `${esc(this._fmt(b.currency, b.value))}<i>${b.holdings} ${
+											b.holdings === 1 ? __("holding") : __("holdings")}</i>`
+										: `<i>${__("nothing held yet")}</i>`}</span>`).join("")
+							: `<span class="duty-bk muted">${__("no broker recorded yet")}</span>`}
+						${(d.brokers || []).length ? `<a class="bk-break">${__("Breakdown")}</a>` : ""}
+						<a class="bk-perf">${__("Performance")}</a>
+						<a class="bk-new">+ ${__("Broker")}</a>
+					</div>
+					<div class="duty-sh-head">
+						<div>${__("Holding")}</div><div>${__("Held")}</div><div>${__("Price")}</div>
+						<div>${__("Value")}</div><div>${__("of total")}</div><div>${__("Target")}</div>
+						<div>${__("On paper")}</div><div>${__("Banked")}</div><div>${__("Paid out")}</div>
+						<div>${__("Trend")}</div><div></div>
+					</div>
+					${open.map(row).join("")}
+					${(() => {
+						if (!open.length) return "";
+						// one line per currency: adding them would need a rate,
+						// and the rate belongs on the Targets tab, not here
+						const by = {};
+						open.forEach((h) => {
+							const c = by[h.currency] = by[h.currency] || { v: 0, u: 0, r: 0, d: 0, n: 0 };
+							c.v += h.value; c.u += h.unrealised; c.r += h.realised;
+							c.d = (c.d || 0) + (h.div_net || 0); c.n += 1;
+						});
+						return Object.keys(by).map((c) => {
+							const t = by[c];
+							return `<div class="duty-sh-row duty-sh-totrow">
+								<div class="duty-sh-nm"><b>${__("Total held")}</b>
+									<span>${t.n} ${t.n === 1 ? __("holding") : __("holdings")} · ${esc(c)}</span></div>
+								<div></div><div></div>
+								<div class="duty-sh-val">${esc(this._fmt(c, t.v))}</div>
+								<div class="duty-sh-wt"><b>100%</b></div>
+								<div></div>
+								<div class="duty-sh-un ${t.u > 0 ? "up" : t.u < 0 ? "down" : ""}">${
+									t.u > 0 ? "+" : ""}${esc(this._fmt("", t.u))}</div>
+								<div class="duty-sh-re ${t.r > 0 ? "up" : t.r < 0 ? "down" : ""}">${
+									t.r ? `${t.r > 0 ? "+" : ""}${esc(this._fmt("", t.r))}` : "—"}</div>
+								<div class="duty-sh-div">${t.d ? `<b>+${esc(this._fmt("", t.d))}</b>` : "—"}</div>
+								<div></div><div></div>
+							</div>`;
+						}).join("");
+					})()}
+					${watch.length ? `<div class="duty-mn-ch" style="margin-top:16px">${__("Watching")} <span>${watch.length}</span><i>${__("tracked, not owned")}</i></div>${watch.map(row).join("")}` : ""}
+					${closed.length ? `<div class="duty-mn-ch" style="margin-top:16px">${__("Closed")} <span>${closed.length}</span></div>${closed.map(row).join("")}` : ""}
+					</div>
+					${!hs.length ? `<div class="duty-lb-empty">${__("Nothing here yet. Add a holding to watch it, then record a buy when you own it.")}</div>` : ""}
+
+					${(() => {
+						// the one thing percentages buy you over proportions: the
+						// system can say when they are wrong
+						const wt = (d.weights_total || {});
+						const parts = Object.keys(wt).filter((c) => wt[c] > 0).map((c) => {
+							const v = wt[c];
+							const off = Math.abs(v - 100) > 0.05;
+							return `<span class="duty-sh-wsum ${off ? "off" : "ok"}">${esc(c)} ${
+								__("weights total")} <b>${this._num(v, v % 1 ? 1 : 0)}%</b>${
+								off ? ` \u2014 ${v > 100 ? __("{0} over", [this._num(v - 100, 1)])
+													  : __("{0} unallocated", [this._num(100 - v, 1)])}` : ""}</span>`;
+						});
+						return parts.length ? `<div class="duty-sh-wsums">${parts.join("")}</div>` : "";
+					})()}
+					<div class="duty-sh-bar">
+						<a class="btn btn-xs btn-primary sh-need">${__("What do I need?")}</a>
+						<a class="btn btn-xs btn-default sh-weights">${__("Invest to my weights")}</a>
+						<a class="btn btn-xs btn-default sh-alloc">${__("Spread evenly")}</a>
+						<a class="btn btn-xs btn-default sh-fetch">${__("Fetch prices now")}</a>
+						<a class="btn btn-xs btn-default sh-fund">${__("Fundamentals")}</a>
+						<a class="btn btn-xs btn-default sh-hist">${__("Load past prices")}</a>
+						<span>${(() => {
+							const dated = hs.filter((z) => z.price_as_of);
+							if (!dated.length) return __("Prices are fetched each weekday after the NGX close. Nothing has run yet.");
+							const newest = dated.map((z) => String(z.price_as_of)).sort().slice(-1)[0];
+							const stale = dated.filter((z) => (z.stale_days || 0) > 5).length;
+							return __("Priced to {0} · {1} of {2} holdings{3}. Fetched each weekday after the NGX close.", [
+								frappe.datetime.str_to_user(newest), dated.length, hs.length,
+								stale ? `, ${stale} ${__("over 5 days stale")}` : ""]);
+						})()}</span>
+					</div>
+					<div class="duty-sh-foot">
+						${__("Gains use weighted average cost, walked in trade order. Charges are added to a buy and taken off a sell, so a gain is what you actually made. A starting point for a tax return, not a filing.")}
+					</div>`);
+
+				$m.find(".sh-chart").on("click", (e) => { e.stopPropagation();
+					this._sh_chart_dialog($(e.currentTarget).closest(".duty-sh-row").data("h")); });
+				$m.find(".sh-fetch").on("click", () => {
+					frappe.show_alert({ message: __("Fetching…"), indicator: "blue" });
+					frappe.call({
+						method: "duty_board.shares.fetch_prices",
+						callback: (r) => {
+							const x = r.message || {};
+							// fetched mid-session, the newest close is yesterday's,
+							// and that is the source being right rather than late
+							if (x.note) frappe.show_alert({ message: x.note, indicator: "blue" }, 8);
+							frappe.msgprint({
+								title: __("Prices"),
+								indicator: (x.failed || []).length ? "orange" : "green",
+								message: `${__("{0} priced.", [x.fetched || 0])}${
+									(x.failed || []).length
+										? `<br><br><b>${__("Did not price")}:</b><ul style="margin:4px 0 0 16px">${
+											x.failed.map((t) => `<li>${frappe.utils.escape_html(t)}${
+												(x.why || {})[t] ? ` — <span style="opacity:.75">${frappe.utils.escape_html(x.why[t])}</span>` : ""}</li>`).join("")
+										  }</ul><span style="font-size:11.5px;color:#8A9994">${__("Their previous prices are unchanged and now a day staler.")}</span>`
+										: ""}`,
+							});
+							this.refresh_money();
+						},
+					});
+				});
+				this._sh_tape($m);
+				$m.find(".sh-rm").on("click", (e) => { e.stopPropagation();
+					this._sh_remove($(e.currentTarget).closest(".duty-sh-row").data("h")); });
+				$m.find(".sh-alloc").on("click", () => this._sh_allocate());
+				$m.find(".sh-weights").on("click", () => this._sh_weight_plan());
+				$m.find(".sh-need").on("click", () => this._sh_requirement());
+				$m.find(".sh-wt").on("click", (e) => { e.stopPropagation();
+					this._sh_weight_dialog($(e.currentTarget).closest(".duty-sh-row").data("h")); });
+				$m.find(".duty-sh-tw b").on("click", (e) => { e.stopPropagation();
+					this._sh_weight_dialog($(e.currentTarget).closest(".duty-sh-row").data("h")); });
+				$m.find(".sh-fund").on("click", () => {
+					frappe.show_alert({ message: __("Fetching…"), indicator: "blue" });
+					frappe.call({ method: "duty_board.shares.fetch_fundamentals",
+						callback: (r) => {
+							const x = r.message || {};
+							frappe.msgprint({ title: __("Fundamentals"),
+								indicator: (x.failed || []).length ? "orange" : "green",
+								message: `${__("{0} updated.", [x.updated || 0])}${
+									(x.failed || []).length ? `<br>${__("No data for")}: ${frappe.utils.escape_html(x.failed.join(", "))}` : ""}` });
+							this.refresh_money();
+						} });
+				});
+				$m.find(".sh-hist").on("click", () => {
+					frappe.confirm(
+						__("Load the published daily closes for every holding? About fifty trading days each, so a chart is useful today rather than in a month. Safe to run more than once."),
+						() => {
+							frappe.show_alert({ message: __("Loading…"), indicator: "blue" });
+							frappe.call({ method: "duty_board.shares.backfill_history",
+								callback: (r) => {
+									const x = r.message || {};
+									frappe.msgprint({ title: __("Past prices"),
+										indicator: (x.failed || []).length ? "orange" : "green",
+										message: `${__("{0} closes loaded.", [x.total || 0])}${
+											(x.failed || []).length ? `<br>${__("Nothing for")}: ${frappe.utils.escape_html(x.failed.join(", "))}` : ""}` });
+									this.refresh_money();
+								} });
+						});
+				});
+				$m.find(".sh-buy").on("click", (e) => { e.stopPropagation();
+					this._sh_trade_dialog($(e.currentTarget).closest(".duty-sh-row").data("h"), "Buy"); });
+				$m.find(".sh-sell").on("click", (e) => { e.stopPropagation();
+					this._sh_trade_dialog($(e.currentTarget).closest(".duty-sh-row").data("h"), "Sell"); });
+				$m.find(".bk-break").on("click", () => this._sh_broker_breakdown());
+				$m.find(".bk-perf").on("click", () => this._sh_performance());
+				$m.find(".bk-new").on("click", () => {
+					frappe.prompt([
+						{ fieldtype: "Data", fieldname: "broker_name", label: __("Broker"), reqd: 1 },
+						{ fieldtype: "Data", fieldname: "account_ref", label: __("Account reference"),
+						  description: __("Optional — your account number with them, so a statement can be matched.") },
+					], (v) => frappe.call({
+						method: "duty_board.shares.save_broker",
+						args: { broker_name: v.broker_name, account_ref: v.account_ref },
+						callback: () => { frappe.show_alert({ message: __("Added"), indicator: "green" }); this.refresh_money(); },
+					}), __("New broker"), __("Add"));
+				});
+				$m.find(".sh-div, .duty-sh-div b").on("click", (e) => { e.stopPropagation();
+					this._sh_dividend_dialog($(e.currentTarget).closest(".duty-sh-row").data("h")); });
+				$m.find(".sh-px").on("click", (e) => { e.stopPropagation();
+					this._sh_price_dialog($(e.currentTarget).closest(".duty-sh-row").data("h")); });
+				$m.find(".duty-sh-row").on("click", (e) => {
+					if ($(e.target).closest(".duty-sh-acts").length) return;
+					this._sh_history($(e.currentTarget).data("h"));
+				});
+			},
+		});
+	}
+
+	_num(n, dp) {
+		return (parseFloat(n) || 0).toLocaleString(undefined, {
+			minimumFractionDigits: dp || 0, maximumFractionDigits: dp || 2 });
+	}
+
+	// A price chart drawn as plain SVG rather than pulled from a library.
+	// The series is a few hundred points at most, the shape is a line, and a
+	// chart dependency is a thing that breaks on an upgrade for no gain here.
+	/* --------------------------------------------------------- The market tape
+	   The whole NGX scrolling across the top of the Shares tab.
+
+	   It is a strip of facts, not a dashboard: ticker, price, move. Held and
+	   watched stocks are marked so your own appear out of 142 rather than
+	   being lost in them, and clicking any ticker offers to start watching it.
+
+	   The animation pauses on hover, because a thing that will not hold still
+	   while you read it is a gimmick rather than a feature. */
+
+	// Remove a watched stock. Anything traded is hidden rather than deleted —
+	// its realised gains are part of your totals and deleting it would quietly
+	// change history.
+	_sh_remove(holding) {
+		const h = (this._sh.holdings || []).find((x) => x.name === holding) || {};
+		const traded = (h.trades || 0) > 0;
+		frappe.confirm(
+			traded
+				? __("<b>{0}</b> has trades recorded, so it cannot be deleted — the gains it made are part of your totals. Hide it instead?", [frappe.utils.escape_html(h.symbol || "")])
+				: __("Stop watching <b>{0}</b>? Its price history goes too. Nothing was ever owned, so nothing is lost.", [frappe.utils.escape_html(h.symbol || "")]),
+			() => frappe.call({
+				method: traded ? "duty_board.shares.hide_holding" : "duty_board.shares.delete_holding",
+				args: traded ? { name: holding, active: 0 } : { name: holding },
+				callback: () => {
+					frappe.show_alert({ message: traded ? __("Hidden") : __("Removed"), indicator: "green" });
+					this.refresh_money();
+				},
+			}));
+	}
+
+	/* ------------------------------------------------------ Share allocation
+	   You say what you have; it says how many of each to buy.
+
+	   Equal money rather than equal shares — the only split that needs no view
+	   about the companies. Whole shares only, because fractions are not a thing
+	   on the NGX, and the remainder that flooring leaves is swept: cheapest
+	   share first, one more bought wherever it still fits. That turns a few
+	   percent of idle cash into under one share's worth. */
+
+	// Set a target weight from the row. Weights are proportions rather than
+	// percentages that must total 100 — 2/1/1 says the same as 50/25/25, which
+	// is far easier to keep tidy when a holding is added or dropped.
+	// The question the weights actually raise: not "what shall I do with this
+	// money" but "how much do I need". With no selling it has a closed form —
+	// the most overweight holding sets the size the whole portfolio must reach.
+	_sh_requirement() {
+		const esc = frappe.utils.escape_html;
+		const d = new frappe.ui.Dialog({ title: __("What do I need?"), size: "large" });
+		const draw = (pct) => {
+			$(d.body).html(`<div class="duty-hl-load">${__("Working it out…")}</div>`);
+			frappe.call({
+				method: "duty_board.shares.weight_requirement",
+				args: { charges_pct: pct },
+				callback: (r) => {
+					const x = r.message || {};
+					const p = x.plan || [];
+					$(d.body).html(`
+						<div class="duty-req">
+							<span>${__("To reach your weights you need")}</span>
+							<b>${esc(this._fmt(x.currency, x.cash_needed))}</b>
+							<i>${__("{0} of shares plus {1} charges at {2}%", [
+								this._fmt("", x.spend), this._fmt("", x.charges), x.charges_pct])}</i>
+						</div>
+						${x.anchor ? `<div class="duty-req-why">
+							<b>${esc(x.anchor)}</b> ${__("sets this.")} ${
+							__("It is {0}% of the book against a {1}% target, and nothing is being sold — so the portfolio has to grow to {2} before it is only {1}%.", [
+								x.anchor_pct, x.anchor_target, this._fmt(x.currency, x.need_total)])}
+						</div>` : ""}
+						<div class="duty-st-top">
+							<div><span>${__("Held today")}</span><b>${esc(this._fmt("", x.held_now))}</b></div>
+							<div><span>${__("Must reach")}</span><b>${esc(this._fmt("", x.need_total))}</b></div>
+							<div><span>${__("Charges")}</span>
+								<b><input type="number" step="0.1" min="0" id="reqpct" value="${x.charges_pct}"
+									style="width:62px;padding:2px 6px;border:1px solid var(--border-color);border-radius:6px">%</b></div>
+						</div>
+						<table class="duty-st-t"><tr>
+							<th>${__("Stock")}</th><th>${__("Price")}</th><th>${__("Buy")}</th>
+							<th>${__("Cost")}</th><th>${__("Now")}</th><th>${__("After")}</th><th>${__("Target")}</th></tr>
+							${p.map((z) => `<tr class="${z.is_anchor ? "duty-rv-miss" : ""}">
+								<td><b>${esc(z.symbol)}</b>${
+									z.is_anchor ? `<div class="duty-st-n">${__("sets the requirement")}</div>`
+									: z.watching ? `<div class="duty-st-n">${__("watching — first purchase")}</div>` : ""}</td>
+								<td>${esc(this._num(z.price, 2))}</td>
+								<td><b>${z.qty ? esc(this._num(z.qty, 0)) : "—"}</b></td>
+								<td>${z.cost ? esc(this._num(z.cost, 2)) : "—"}</td>
+								<td>${z.now_pct}%</td>
+								<td><b>${z.after_pct}%</b></td>
+								<td>${z.target_pct}%</td></tr>`).join("")}
+						</table>
+						<p class="duty-st-f">${__("Quantities are rounded up, so the figure is enough rather than nearly enough. Prices are the last fetched. If this is more than you have, use \\u2018Invest to my weights\\u2019 with what you do have — it moves toward the same place from below.")}</p>
+						<div class="duty-sh-bar"><a class="btn btn-xs btn-default req-copy">${__("Copy plan")}</a></div>`);
+					const inp = document.getElementById("reqpct");
+					if (inp) inp.addEventListener("change", () => draw(parseFloat(inp.value) || 0));
+					$(d.body).find(".req-copy").on("click", () => {
+						frappe.utils.copy_to_clipboard(
+							[`Cash needed,${x.cash_needed.toFixed(2)}`, "Stock,Price,Qty,Cost"].concat(
+								p.filter((z) => z.qty).map((z) =>
+									[z.symbol, z.price.toFixed(2), z.qty, z.cost.toFixed(2)].join(","))).join("\n"));
+						frappe.show_alert({ message: __("Copied"), indicator: "green" });
+					});
+				},
+			});
+		};
+		draw(1);
+		d.show();
+	}
+
+	_sh_weight_dialog(holding) {
+		const h = (this._sh.holdings || []).find((x) => x.name === holding) || {};
+		const d = new frappe.ui.Dialog({
+			title: __("Target weight — {0}", [h.symbol || ""]),
+			fields: [
+				{ fieldtype: "Float", fieldname: "target_weight", label: __("Weight %"),
+				  precision: 2, default: h.target_weight || 0,
+				  description: __("The share of the portfolio this should be. Across everything you are aiming at these should total 100, and the tab says so when they do not. Set 0 to leave this holding out of the plan.") },
+			],
+			primary_action_label: __("Save"),
+			primary_action: (v) => {
+				frappe.call({
+					method: "duty_board.shares.save_holding",
+					args: { name: holding, target_weight: v.target_weight },
+					callback: () => { d.hide(); this.refresh_money(); },
+				});
+			},
+		});
+		d.show();
+	}
+
+	// What to buy with new money so the portfolio moves toward its weights.
+	// Nothing is sold, which is the whole difficulty — see allocate_to_weights.
+	_sh_weight_plan() {
+		const esc = frappe.utils.escape_html;
+		const weighted = (this._sh.holdings || []).filter((h) => h.target_weight > 0);
+		if (!weighted.length) {
+			frappe.msgprint(__("Set a target weight on at least one holding first — the plan has nothing to aim at otherwise."));
+			return;
+		}
+		const d = new frappe.ui.Dialog({
+			title: __("Money to invest"), size: "large",
+			fields: [
+				{ fieldtype: "Float", fieldname: "amount", label: __("Amount you have"), reqd: 1, precision: 2 },
+				{ fieldtype: "Float", fieldname: "charges_pct", label: __("Charges %"), precision: 3, default: 0,
+				  description: __("Whatever your broker takes. Left at zero it plans as if trading were free, which it is not.") },
+			],
+			primary_action_label: __("Work it out"),
+			primary_action: (v) => {
+				frappe.call({
+					method: "duty_board.shares.allocate_to_weights",
+					args: { amount: v.amount, charges_pct: v.charges_pct || 0 },
+					callback: (r) => {
+						const x = r.message || {};
+						const p = (x.plan || []).filter((z) => z.qty || z.frozen);
+						d.set_title(__("Buy plan"));
+						$(d.body).html(`
+							<div class="duty-st-top">
+								<div><span>${__("You have")}</span><b>${esc(this._fmt(x.currency, x.amount))}</b></div>
+								<div><span>${__("Shares")}</span><b>${esc(this._fmt("", x.spent))}</b></div>
+								<div><span>${__("Charges")}</span><b>${esc(this._fmt("", x.charges))}</b></div>
+								<div><span>${__("Left over")}</span><b>${esc(this._fmt("", x.leftover))}</b></div>
+							</div>
+							${(x.frozen || []).length ? `<div class="duty-rv-warn" style="margin:10px 0">${
+								__("Already above target and not sold: {0}. Nothing is bought for these; the money goes to the rest.", [esc(x.frozen.join(", "))])}</div>` : ""}
+							<table class="duty-st-t"><tr>
+								<th>${__("Stock")}</th><th>${__("Price")}</th><th>${__("Buy")}</th>
+								<th>${__("Cost")}</th><th>${__("Now")}</th><th>${__("After")}</th><th>${__("Target")}</th></tr>
+								${p.map((z) => `<tr class="${z.frozen ? "duty-rv-miss" : ""}">
+									<td><b>${esc(z.symbol)}</b>${z.watching ? `<div class="duty-st-n">${__("watching — first purchase")}</div>` : ""}</td>
+									<td>${esc(this._num(z.price, 2))}</td>
+									<td><b>${z.frozen ? "—" : esc(this._num(z.qty, 0))}</b></td>
+									<td>${z.frozen ? "—" : esc(this._num(z.cost, 2))}</td>
+									<td>${esc(this._num((z.value_now / (x.value_before || 1)) * 100, 1))}%</td>
+									<td><b>${z.after_pct}%</b></td>
+									<td>${z.target_pct}%</td></tr>`).join("")}
+							</table>
+							<p class="duty-st-f">${__("Nothing is sold. A holding already above its target keeps what it has and the money goes to the rest, so the plan closes the gap from below. Prices are the last fetched — record the real fills afterwards.")}</p>
+							<div class="duty-sh-bar"><a class="btn btn-xs btn-default wp-copy">${__("Copy plan")}</a></div>`);
+						$(d.body).find(".wp-copy").on("click", () => {
+							frappe.utils.copy_to_clipboard(
+								["Stock,Price,Qty,Cost"].concat(p.filter((z) => z.qty).map((z) =>
+									[z.symbol, z.price.toFixed(2), z.qty, z.cost.toFixed(2)].join(","))).join("\n"));
+							frappe.show_alert({ message: __("Copied"), indicator: "green" });
+						});
+					},
+				});
+			},
+		});
+		d.show();
+	}
+
+	_sh_allocate() {
+		const esc = frappe.utils.escape_html;
+		const priced = (this._sh.holdings || []).filter((h) => h.last_price > 0);
+		if (!priced.length) {
+			frappe.msgprint(__("Nothing has a price yet. Fetch prices first."));
+			return;
+		}
+		const d = new frappe.ui.Dialog({
+			title: __("Spread an amount across stocks"), size: "large",
+			fields: [
+				{ fieldtype: "Float", fieldname: "amount", label: __("Amount you have"), reqd: 1, precision: 2 },
+				{ fieldtype: "Float", fieldname: "charges_pct", label: __("Charges %"), precision: 3, default: 0,
+				  description: __("Broker commission, exchange and CSCS fees, stamp duty — whatever your broker actually takes. Nothing here assumes a rate; left at zero it plans as if trading were free, which it is not.") },
+				{ fieldtype: "MultiCheck", fieldname: "picks", label: __("Buy these"), columns: 2,
+				  options: priced.map((h) => ({
+					  label: `${h.symbol} — ${this._num(h.last_price, 2)}${h.open ? " ·  held" : ""}`,
+					  value: h.name, checked: 0 })) },
+			],
+			primary_action_label: __("Work it out"),
+			primary_action: (v) => {
+				const picks = (v.picks || []).filter(Boolean);
+				if (!picks.length) { frappe.msgprint(__("Choose at least one stock.")); return; }
+				frappe.call({
+					method: "duty_board.shares.allocate",
+					args: { amount: v.amount, holdings: JSON.stringify(picks),
+							charges_pct: v.charges_pct || 0 },
+					callback: (r) => {
+						const x = r.message || {};
+						const p = x.plan || [];
+						d.set_title(__("Buy plan"));
+						$(d.body).html(`
+							<div class="duty-st-top">
+								<div><span>${__("You have")}</span><b>${esc(this._fmt(x.currency, x.amount))}</b></div>
+								<div><span>${__("Shares")}</span><b>${esc(this._fmt("", x.spent))}</b></div>
+								<div><span>${__("Charges")}</span><b>${esc(this._fmt("", x.charges))}</b></div>
+								<div><span>${__("Left over")}</span><b>${esc(this._fmt("", x.leftover))}</b></div>
+							</div>
+							<table class="duty-st-t"><tr>
+								<th>${__("Stock")}</th><th>${__("Price")}</th><th>${__("Buy")}</th>
+								<th>${__("Cost")}</th><th>${__("Share")}</th></tr>
+								${p.map((z) => `<tr>
+									<td><b>${esc(z.symbol)}</b>${z.priced_on ? `<div class="duty-st-n">${__("priced")} ${esc(frappe.datetime.str_to_user(z.priced_on))}</div>` : ""}</td>
+									<td>${esc(this._num(z.price, 2))}</td>
+									<td><b>${esc(this._num(z.qty, 0))}</b></td>
+									<td>${esc(this._num(z.cost, 2))}</td>
+									<td>${z.pct}%</td></tr>`).join("")}
+							</table>
+							<p class="duty-st-f">${__("Equal money across the stocks chosen, whole shares only, with the remainder swept into whichever share still fits. Prices are the last fetched, not live — what you actually pay will differ, so record the real fills afterwards.")}</p>
+							<div class="duty-sh-bar"><a class="btn btn-xs btn-default al-copy">${__("Copy plan")}</a></div>`);
+						$(d.body).find(".al-copy").on("click", () => {
+							frappe.utils.copy_to_clipboard(
+								["Stock,Price,Qty,Cost"].concat(p.map((z) =>
+									[z.symbol, z.price.toFixed(2), z.qty, z.cost.toFixed(2)].join(","))).join("\n"));
+							frappe.show_alert({ message: __("Copied"), indicator: "green" });
+						});
+					},
+				});
+			},
+		});
+		d.show();
+	}
+
+	/* ------------------------------------------------------- Growth targets
+	   What must still go in this month, and what is owed from before.
+
+	   Measured against a cumulative line — baseline plus monthly times months
+	   elapsed — so a miss stays owed without any carry-forward bookkeeping, and
+	   a strong month clears an earlier miss by itself. */
+
+	/* ---------------------------------------------------------------- Review
+	   The month put away, what everything is worth over time, where the money
+	   went, and what is coming. A tab you visit occasionally rather than daily,
+	   which is why it carries more than the others. */
+
+	// Categories are records now, so their kind can be set once and every screen
+	// that groups money respects it — rather than each screen guessing from a
+	// string it happens to recognise.
+	_rv_categories() {
+		const esc = frappe.utils.escape_html;
+		const d = new frappe.ui.Dialog({ title: __("Money categories"), size: "large" });
+		const draw = () => {
+			$(d.body).html(`<div class="duty-hl-load">${__("Loading…")}</div>`);
+			frappe.call({
+				method: "duty_board.review.categories",
+				callback: (r) => {
+					const rows = r.message || [];
+					$(d.body).html(`
+						${rows.length ? `<table class="duty-st-t"><tr>
+							<th>${__("Category")}</th><th>${__("Kind")}</th><th>${__("Used")}</th></tr>
+							${rows.map((c) => `<tr data-c="${esc(c.name)}">
+								<td><b>${esc(c.name)}</b></td>
+								<td><select class="cat-kind">
+									${["Spending", "Fixed cost", "Not spending"].map((k) =>
+										`<option ${c.kind === k ? "selected" : ""}>${k}</option>`).join("")}
+								</select></td>
+								<td>${c.used}</td></tr>`).join("")}
+							</table>`
+						: `<p class="text-muted">${__("No categories yet. They appear as you use them, or run the backfill to create records from what is already recorded.")}</p>`}
+						<p class="duty-st-f">${__("Not spending is money that moved without leaving you — buying shares, interest posted. It is kept out of the spending totals. Fixed cost is rent and the like, shown apart from everything else.")}</p>`);
+					$(d.body).find(".cat-kind").on("change", (e) => {
+						const $t = $(e.currentTarget);
+						frappe.call({
+							method: "duty_board.review.save_category",
+							args: { name: $t.closest("tr").data("c"), kind: $t.val() },
+							callback: () => { frappe.show_alert({ message: __("Saved"), indicator: "green" }); },
+						});
+					});
+				},
+			});
+		};
+		draw();
+		d.show();
+	}
+
+	/* ------------------------------------------------------------- Renewals
+	   Annual renewals falling due, bucketed by how soon.
+
+	   Overdue is its own bucket rather than folded into the first thirty days:
+	   a renewal that has passed is a different conversation from one coming up,
+	   and one number covering both loses the one that needs a call today. */
+
+	_rn_render($m) {
+		const esc = frappe.utils.escape_html;
+		$m.find(".duty-mn-body").html(`<div class="duty-hl-load">${__("Loading…")}</div>`);
+		frappe.call({
+			method: "duty_board.money.renewals",
+			args: { horizon: 90 },
+			callback: (r) => {
+				const d = r.message || {};
+				const money = (t) => t.map((x) => `${esc(x.currency)} ${this._num(x.amount, 2)}`).join(" · ") || "—";
+				const block = (key, label, tone) => {
+					const b = d[key] || { items: [], totals: [], count: 0 };
+					return `
+						<div class="duty-rn-block ${tone}">
+							<div class="duty-rn-h">
+								<b>${label}</b>
+								<span>${b.count} ${b.count === 1 ? __("customer") : __("customers")}</span>
+								<em>${money(b.totals)}</em>
+							</div>
+							${b.items.length ? `
+								<table class="duty-st-t"><tr>
+									<th>${__("Customer")}</th><th>${__("Due")}</th><th>${__("Amount")}</th><th></th></tr>
+									${b.items.map((i) => `<tr data-c="${esc(i.customer)}" class="duty-rn-row">
+										<td><b title="${esc(i.name)}">${esc(i.name)}</b></td>
+										<td class="duty-rn-due">${esc(frappe.datetime.str_to_user(i.due))}
+											<span>${i.days < 0 ? __("{0}d ago", [Math.abs(i.days)])
+												: i.days === 0 ? __("today") : __("in {0}d", [i.days])}</span></td>
+										<td class="duty-rn-amt">${i.amount
+											? `${esc(i.currency)} ${this._num(i.amount, 2)}`
+											: `<span class="duty-rn-no">${__("no fee set")}</span>`}</td>
+										<td class="duty-rn-act">
+											<a class="rn-roll" title="${__("Renewed — move on a year from this date")}">↻</a>
+											<a class="rn-edit" title="${__("Edit")}">${__("Edit")}</a>
+										</td></tr>`).join("")}
+								</table>`
+								: `<p class="text-muted duty-rn-none">${__("None.")}</p>`}
+						</div>`;
+				};
+				const grand = {};
+				["overdue", "d30", "d60", "d90"].forEach((k) => {
+					((d[k] || {}).totals || []).forEach((t) => {
+						grand[t.currency] = (grand[t.currency] || 0) + t.amount;
+					});
+				});
+				$m.find(".duty-mn-body").html(`
+					${(() => {
+						// The book first, the window second. What the renewals are
+						// worth in a year is the number that describes the
+						// business; ninety days is what needs doing about it.
+						const bk = d.book || { customers: 0, totals: [] };
+						const money = (t) => t.map((x) => `${esc(x.currency)} ${this._num(x.amount, 2)}`).join(" · ") || "—";
+						return `<div class="duty-st-top duty-rn-top">
+							<div class="wide"><span>${__("On the books")}</span>
+								<b>${money(bk.totals)}</b>
+								<i>${__("a year, across {0} {1} with a renewal date", [
+									bk.customers, bk.customers === 1 ? __("customer") : __("customers")])}</i></div>
+							<div><span>${__("Next 90 days")}</span>
+								<b>${Object.keys(grand).map((c) => `${esc(c)} ${this._num(grand[c], 2)}`).join(" · ") || "—"}</b>
+								<i>${["overdue", "d30", "d60", "d90"].reduce((n, k) => n + ((d[k] || {}).count || 0), 0)} ${__("customers")}</i></div>
+							<div class="${d.missing ? "warn" : ""}"><span>${__("No renewal date")}</span>
+								<b>${d.missing || 0}</b>
+								<i>${d.missing ? __("invisible here until one is set") : __("all accounted for")}</i></div>
+							${bk.no_fee ? `<div class="warn"><span>${__("No fee set")}</span>
+								<b>${bk.no_fee}</b><i>${__("counted as nothing")}</i></div>` : ""}
+							${(d.accounting || {}).customers ? `
+								<div class="acct"><span>${__("Accounting, monthly")}</span>
+									<b>${money(d.accounting.monthly)}</b>
+									<i>${d.accounting.customers} ${d.accounting.customers === 1 ? __("customer") : __("customers")}</i></div>
+								<div class="acct"><span>${__("Accounting, a year")}</span>
+									<b>${money(d.accounting.annual)}</b>
+									<i>${__("the monthly figure twelve times over")}</i></div>` : ""}
+						</div>`;
+					})()}
+					<div class="duty-rn-split">
+						<div class="duty-rn-col">
+							${block("overdue", __("Already past"), "late")}
+							${block("d30", __("Within 30 days"), "soon")}
+							${block("d60", __("31 to 60 days"), "mid")}
+							${block("d90", __("61 to 90 days"), "far")}
+						</div>
+						<div class="duty-rn-col">
+							${(() => {
+								// Accounting is a monthly fee, not an annual renewal —
+								// a different shape of income, so its own list rather
+								// than a fifth bucket in a window it does not belong to.
+								const ac = d.accounting || { items: [], customers: 0 };
+								const m = (t) => (t || []).map((x) => `${esc(x.currency)} ${this._num(x.amount, 2)}`).join(" · ") || "—";
+								return `
+									<div class="duty-rn-block acct">
+										<div class="duty-rn-h">
+											<b>${__("Accounting services")}</b>
+											<span>${ac.customers} ${ac.customers === 1 ? __("customer") : __("customers")}</span>
+											<em>${m(ac.monthly)}<u>${__("a month")}</u></em>
+										</div>
+										${ac.items.length ? `
+											<table class="duty-st-t"><tr>
+												<th>${__("Customer")}</th><th>${__("Monthly")}</th>
+												<th>${__("A year")}</th><th></th></tr>
+												${ac.items.map((i) => `<tr class="duty-rn-row" data-c="${esc(i.customer)}">
+													<td><b title="${esc(i.name)}">${esc(i.name)}</b></td>
+													<td class="duty-rn-amt">${i.monthly
+														? `${esc(i.currency)} ${this._num(i.monthly, 2)}`
+														: `<span class="duty-rn-no">${__("no fee set")}</span>`}</td>
+													<td class="duty-rn-amt duty-rn-yr">${i.monthly ? this._num(i.annual, 2) : "—"}</td>
+													<td class="duty-rn-act"><a class="ac-edit">${__("Edit")}</a></td></tr>`).join("")}
+											</table>
+											<div class="duty-rn-foot">
+												<span>${__("A year")}</span><b>${m(ac.annual)}</b>
+											</div>`
+											: `<p class="text-muted duty-rn-none">${__("No customers on accounting services.")}</p>`}
+										${ac.no_fee ? `<div class="duty-rv-warn">${
+											__("{0} on the service with no fee set — counted as nothing above.", [ac.no_fee])}</div>` : ""}
+									</div>`;
+							})()}
+						</div>
+					</div>
+					<div class="duty-rv-warn">
+						${__("The annual renewal fee is held in the customer's monthly_fee field, which is misnamed — it is read here as the yearly figure.")}
+						${d.missing ? ` ${__("{0} active customers have no renewal date and cannot appear here.", [d.missing])}` : ""}
+						${d.no_fee ? ` ${__("{0} of those below have no fee set.", [d.no_fee])}` : ""}
+					</div>`);
+				$m.find(".duty-rn-row").on("click", (e) => {
+					if ($(e.target).closest(".duty-rn-act").length) return;
+					frappe.set_route("Form", "Customer", $(e.currentTarget).data("c"));
+				});
+				const find = (c) => ["overdue", "d30", "d60", "d90"]
+					.flatMap((k) => ((d[k] || {}).items || []))
+					.find((x) => x.customer === c) || {};
+				$m.find(".ac-edit").on("click", (e) => {
+					e.stopPropagation();
+					const c = $(e.currentTarget).closest("tr").data("c");
+					const i = ((d.accounting || {}).items || []).find((x) => x.customer === c) || {};
+					const dlg = new frappe.ui.Dialog({
+						title: i.name || __("Accounting fee"),
+						fields: [
+							{ fieldtype: "Float", fieldname: "accounting_fees", label: __("Monthly fee"),
+							  precision: 2, default: i.monthly || 0,
+							  description: __("Charged every month. The yearly figure beside it is simply this twelve times over.") },
+							{ fieldtype: "Check", fieldname: "off_board", label: __("Take off accounting services"),
+							  default: 0,
+							  description: __("Clears the service flag on the customer. The customer stays, and so does everything else about them.") },
+						],
+						primary_action_label: __("Save"),
+						primary_action: (v) => {
+							frappe.call({
+								method: "duty_board.money.save_accounting_fee",
+								args: { customer: c, accounting_fees: v.accounting_fees,
+										off_board: v.off_board ? 1 : 0 },
+								callback: () => {
+									dlg.hide();
+									frappe.show_alert({ message: __("Saved"), indicator: "green" });
+									this._rn = null;
+									this._rn_render($m);
+								},
+							});
+						},
+					});
+					dlg.show();
+				});
+				$m.find(".rn-edit").on("click", (e) => {
+					e.stopPropagation();
+					this._rn_edit(find($(e.currentTarget).closest("tr").data("c")), $m);
+				});
+				$m.find(".rn-roll").on("click", (e) => {
+					e.stopPropagation();
+					const i = find($(e.currentTarget).closest("tr").data("c"));
+					frappe.confirm(
+						__("Move <b>{0}</b> on a year, to {1}?", [
+							frappe.utils.escape_html(i.name || ""),
+							frappe.datetime.str_to_user(frappe.datetime.add_months(i.due, 12))]),
+						() => frappe.call({
+							method: "duty_board.money.roll_renewal",
+							args: { customer: i.customer },
+							callback: () => { frappe.show_alert({ message: __("Moved on a year"), indicator: "green" }); this._rn_render($m); },
+						}));
+				});
+			},
+		});
+	}
+
+	// Edited from the list, because the list is where you notice the problem.
+	// Writes straight to Customer rather than keeping a copy — a renewal is the
+	// customer's fact, and a copy would drift the first time someone edited the
+	// customer directly.
+	_rn_edit(i, $m) {
+		const d = new frappe.ui.Dialog({
+			title: i.name || __("Renewal"),
+			fields: [
+				{ fieldtype: "Date", fieldname: "renewal_date", label: __("Renews on"),
+				  default: i.due || "" },
+				{ fieldtype: "Float", fieldname: "monthly_fee", label: __("Annual fee"),
+				  precision: 2, default: i.amount || 0,
+				  description: __("Held in the customer's monthly_fee field, which is misnamed — this is the yearly amount.") },
+				{ fieldtype: "Check", fieldname: "disabled", label: __("Disable this customer"), default: 0,
+				  description: __("A disabled customer drops out of this list and everywhere else that counts active customers. Nothing is deleted.") },
+			],
+			primary_action_label: __("Save"),
+			primary_action: (v) => {
+				frappe.call({
+					method: "duty_board.money.save_renewal",
+					args: { customer: i.customer, renewal_date: v.renewal_date || "",
+							monthly_fee: v.monthly_fee, disabled: v.disabled ? 1 : 0 },
+					callback: () => {
+						d.hide();
+						frappe.show_alert({ message: v.disabled ? __("Disabled") : __("Saved"), indicator: "green" });
+						this._rn = null; this._rn_render($m);
+					},
+				});
+			},
+		});
+		d.show();
+	}
+
+	_rv_render($m) {
+		const esc = frappe.utils.escape_html;
+		$m.find(".duty-mn-body").html(`<div class="duty-hl-load">${__("Loading…")}</div>`);
+		frappe.call({
+			method: "duty_board.review.net_worth_series",
+			args: { months: 18 },
+			callback: (a) => {
+				const nw = a.message || {};
+				frappe.call({
+					method: "duty_board.review.month_history",
+					callback: (b) => {
+						const hist = b.message || {};
+						frappe.call({
+							method: "duty_board.review.spending",
+							args: { months: 6 },
+							callback: (c) => {
+								const sp = c.message || {};
+								frappe.call({
+									method: "duty_board.review.forecast",
+									args: { days: 45 },
+									callback: (e) => {
+										const fc = e.message || {};
+										frappe.call({
+											method: "duty_board.review.runway",
+											callback: (rw) => {
+												frappe.call({
+													method: "duty_board.review.exposure",
+													callback: (ex) => {
+														this._rv = { nw: nw, hist: hist, sp: sp, fc: fc,
+																	 rw: rw.message || {}, ex: ex.message || {} };
+														this._rv_paint($m);
+													},
+												});
+											},
+										});
+									},
+								});
+							},
+						});
+					},
+				});
+			},
+		});
+	}
+
+	_rv_paint($m) {
+		const esc = frappe.utils.escape_html;
+		const { nw, hist, sp, fc, rw, ex } = this._rv;
+		const b = nw.buckets || {};
+		const bar = (label, v, tot, cls) => !v ? "" : `
+			<div class="duty-rv-bk">
+				<span>${label}</span>
+				<i class="${cls}" style="width:${tot ? Math.max(2, Math.round(v * 100 / tot)) : 0}%"></i>
+				<b>₦${this._num(v, 0)}</b>
+			</div>`;
+		const gross = (b.cash || 0) + (b.savings || 0) + (b.investments || 0) + (b.shares || 0);
+
+		$m.find(".duty-mn-body").html(`
+			${(fc.trouble || []).length ? `
+				<div class="duty-mn-alert">
+					<b>⚠ ${__("An account runs out before its commitments do")}</b>
+					${fc.trouble.map((t) => `<div>${esc(t.nickname)} — ${
+						__("short by")} <b>${esc(this._fmt(t.currency, t.short_by))}</b> ${
+						__("on")} ${esc(frappe.datetime.str_to_user(t.date))}</div>`).join("")}
+				</div>` : ""}
+
+			${(() => {
+				// Runway leads the tab. It is the one figure that changes
+				// behaviour on the day it is read, and burying it under four
+				// panels would waste it.
+				if (!rw) return "";
+				// With little history the spending average is an estimate from a
+				// partial month, so the reliable figure leads: fixed costs are a
+				// commitment written down, ordinary spending is a guess until
+				// there are a few complete months behind it.
+				const thin = rw.thin_history;
+				const m = thin ? rw.months_fixed : rw.months;
+				if (m === null || m === undefined) return "";
+				const tone = m < 3 ? "bad" : m < 6 ? "warn" : "good";
+				const other = (rw.discretionary_top || [])
+					.map((c) => `${esc(c.category)} ₦${this._num(c.per_month, 0)}`).join(" · ");
+				return `
+					<div class="duty-rw ${tone}">
+						<div class="duty-rw-n">
+							<span>${__("Runway")}</span>
+							<b>${this._num(m, 1)}</b>
+							<i>${m === 1 ? __("month") : __("months")}</i>
+						</div>
+						<div class="duty-rw-t">
+							${thin
+								? __("With nothing coming in, your cash covers {0} of your fixed costs.", [
+									m < 1 ? __("under a month") : __("{0} months", [this._num(m, 1)])])
+								: __("With nothing coming in, your cash covers {0} of fixed costs and ordinary spending.", [
+									m < 1 ? __("under a month") : __("{0} months", [this._num(m, 1)])])}
+							<span>${__("₦{0} available after debt · fixed costs ₦{1} a month", [
+								this._num(rw.available, 0), this._num(rw.fixed, 0)])}</span>
+							${thin
+								? `<span class="duty-rv-warn" style="margin:4px 0 0">${
+									__("Fixed costs only. There are {0} month(s) of spending history, which is not enough to say what a typical month costs — with ₦{1} of other spending included it would read {2} months, but that is a guess from a part-month.", [
+										rw.months_of_data || 0, this._num(rw.discretionary, 0),
+										rw.months !== null ? this._num(rw.months, 1) : "—"])}</span>`
+								: `<span>${__("plus about ₦{0} a month of other spending{1}", [
+									this._num(rw.discretionary, 0), other ? ` — ${other}` : ""])}</span>`}
+							${rw.double_count_n ? `<span class="duty-rv-warn" style="margin:4px 0 0;color:#B27409;font-weight:600">${
+								__("{0} payment(s) look like fixed costs recorded as ordinary spending — {1}. Fixed costs are counted from your setup, so those would be counted twice. Pay them with the tick on the fixed cost, or give them a Fixed cost category.", [
+									rw.double_count_n,
+									(rw.double_count || []).map((x) => esc(x.matched)).join(", ")])}</span>` : ""}
+							<span class="duty-rv-warn" style="margin:4px 0 0">${
+								__("Fixed costs come from your setup, not from what you paid. Everything else is actual spending over {0} month(s) elapsed.", [rw.spending_window || 1])}</span>
+							<span class="duty-rv-warn" style="margin:4px 0 0">${
+								__("Cash only. Investments and shares are left out — a pension you cannot draw is not what carries you through a bad quarter.")}</span>
+						</div>
+					</div>`;
+			})()}
+			<div class="duty-rv-grid">
+				<div class="duty-rv-card">
+					<div class="duty-rv-h">${__("Net worth")}
+						<b>₦${this._num(nw.now || 0, 0)}</b></div>
+					${(nw.points || []).length > 1
+						? this._sh_chart(nw.points.map((p) => ({ d: p.d, p: p.p })), { w: 520, h: 130 })
+						: `<div class="duty-rv-warn">${__("The line starts once there are two days of history. Yours begins {0}.", [
+							nw.first ? frappe.datetime.str_to_user(nw.first) : __("today")])}</div>`}
+					${(() => {
+						// A line shows the shape; a rate answers "how fast". The
+						// two together are the trajectory — one without the other
+						// is either a pretty picture or a number with no context.
+						const t = nw.trends || {};
+						const cell = (label, v) => !v ? "" : `
+							<div class="duty-rv-tr ${v.delta >= 0 ? "up" : "down"}">
+								<span>${label}</span>
+								<b>${v.delta >= 0 ? "+" : "−"}₦${this._num(Math.abs(v.delta), 0)}</b>
+								<i>${v.pct !== null && v.pct !== undefined ? `${v.pct > 0 ? "+" : ""}${v.pct}%` : ""}</i>
+							</div>`;
+						const rate = nw.per_month;
+						return `
+							<div class="duty-rv-trs">
+								${cell(__("past month"), t.month)}
+								${cell(__("past quarter"), t.quarter)}
+								${cell(__("past year"), t.year)}
+							</div>
+							${rate ? `<div class="duty-rv-rate ${rate >= 0 ? "up" : "down"}">
+								${rate >= 0 ? "▲" : "▼"} <b>₦${this._num(Math.abs(rate), 0)}</b> ${__("a month lately")}
+								${nw.projected_year ? `<span>${__("at that pace, ₦{0} in a year", [this._num(nw.projected_year, 0)])}</span>` : ""}
+							</div>`
+							: nw.since ? `<div class="duty-rv-rate ${nw.since.delta >= 0 ? "up" : "down"}">
+								${nw.since.delta >= 0 ? "▲" : "▼"} <b>₦${this._num(Math.abs(nw.since.delta), 0)}</b> ${
+									__("since {0}", [frappe.datetime.str_to_user(nw.since.from)])}
+								<span>${__("A monthly rate needs a fortnight — turning {0} days into a year would be a confident number made from nothing.", [nw.since.days])}</span>
+							</div>`
+							: `<div class="duty-rv-warn">${__("Nothing to compare against yet.")}</div>`}`;
+					})()}
+					<div class="duty-rv-bks">
+						${bar(__("cash"), b.cash, gross, "c1")}
+						${bar(__("savings"), b.savings, gross, "c2")}
+						${bar(__("investments"), b.investments, gross, "c3")}
+						${bar(__("shares"), b.shares, gross, "c4")}
+						${b.debt ? bar(__("debt"), b.debt, gross, "c5") : ""}
+					</div>
+					${(nw.unpriced || []).length ? `<div class="duty-rv-warn">${
+						__("Excludes {0} — no rate set", [nw.unpriced.join(", ")])}</div>` : ""}
+					<div class="duty-sh-bar"><a class="btn btn-xs btn-default rv-snap">${__("Record today")}</a>
+						<span>${__("Kept weekly.")}${nw.reconstructed ? ` ${__("{0} earlier points were rebuilt from the ledger.", [nw.reconstructed])}` : ""} ${
+							__("Foreign balances use today's rate throughout, so the line shows money gained rather than the naira moving underneath it.")}</span></div>
+				</div>
+
+				<div class="duty-rv-card">
+					<div class="duty-rv-h">${__("Months met")}
+						<b>${hist.hit || 0}/${hist.of || 0}</b></div>
+					${(hist.months || []).length ? `
+						<table class="duty-st-t"><tr>
+							<th>${__("Month")}</th><th>${__("Needed")}</th><th>${__("Raised")}</th>
+							<th>${__("Short")}</th><th>${__("Targets")}</th><th>${__("Costs")}</th></tr>
+							${hist.months.map((r) => `<tr class="${r.met ? "" : "duty-rv-miss"}">
+								<td><b>${esc(this._month_label(r.month))}</b></td>
+								<td>₦${this._num(r.ngn_needed, 0)}</td>
+								<td>₦${this._num(r.ngn_raised, 0)}</td>
+								<td class="${r.met ? "up" : "down"}">${r.met ? __("met") : `₦${this._num(r.ngn_short, 0)}`}</td>
+								<td>${r.targets_met}/${r.targets_total}</td>
+								<td>${r.expenses_paid}/${r.expenses_total}</td></tr>`).join("")}
+						</table>`
+						: `<p class="text-muted">${__("No month has been closed yet. A month closes itself on the 1st; you can close this one early to see how it reads.")}</p>`}
+					<div class="duty-sh-bar"><a class="btn btn-xs btn-default rv-close">${
+						hist.closed_current ? __("Re-close this month") : __("Close this month now")}</a>
+						<span>${__("A closed month is frozen — editing a target later must not rewrite a verdict already given.")}</span></div>
+				</div>
+
+				<div class="duty-rv-card">
+					<div class="duty-rv-h">${__("Where it goes")}
+						<b>₦${this._num(sp.per_month || 0, 0)}<u>${__("a month")}</u></b></div>
+					<div class="duty-rv-split">
+						<div><span>${__("committed")}</span><b>₦${this._num(sp.committed || 0, 0)}</b></div>
+						<div class="hot"><span>${__("everything else")}</span>
+							<b>₦${this._num(sp.discretionary_per_month || 0, 0)}<u>${__("a month")}</u></b></div>
+					</div>
+					${(sp.categories || []).length ? `
+						<div class="duty-rv-cats">
+							${sp.categories.map((c) => `
+								<div class="duty-rv-cat">
+									<span>${esc(c.category)}${c.fixed ? ` <i>${__("fixed")}</i>` : ""}</span>
+									<i style="width:${Math.max(2, c.pct)}%" class="${c.fixed ? "fix" : ""}"></i>
+									<b>₦${this._num(c.total, 0)}</b>
+								</div>`).join("")}
+						</div>`
+						: `<p class="text-muted">${__("Nothing spent in the period, or no rate for the accounts it left.")}</p>`}
+					<div class="duty-rv-warn">${__("Over {0} months. Transfers between your own accounts are not spending and are left out.", [sp.months || 0])}${
+						sp.excluded ? ` ${__("So is ₦{0} that moved without leaving you — buying shares, interest posted. Category kinds decide this.", [this._num(sp.excluded, 0)])}` : ""}
+						<a class="rv-cats">${__("Categories")}</a></div>
+				</div>
+
+				<div class="duty-rv-card">
+					<div class="duty-rv-h">${__("Currency exposure")}
+						<b>${ex && ex.foreign_pct ? `${ex.foreign_pct}%` : "0%"}<u>${__("not naira")}</u></b></div>
+					${(ex && (ex.currencies || []).length) ? `
+						<div class="duty-rv-bks">
+							${ex.currencies.map((c) => `
+								<div class="duty-rv-bk">
+									<span>${esc(c.currency)}</span>
+									<i class="${c.currency === "NGN" ? "c1" : "c3"}" style="width:${Math.max(2, Math.abs(c.share))}%"></i>
+									<b>₦${this._num(c.total, 0)}</b>
+								</div>`).join("")}
+						</div>
+						<div class="duty-rv-warn">${
+							ex.currencies.filter((c) => c.rate && c.currency !== "NGN")
+								.map((c) => `1 ${esc(c.currency)} = ₦${this._num(c.rate, 2)}${
+									c.rate_as_of ? ` (${frappe.datetime.str_to_user(c.rate_as_of)})` : ""}`).join(" · ")
+							|| __("All in naira.")}
+							${__("A naira move is the largest single risk to this figure, and it is only as good as the rates above.")}</div>`
+						: `<p class="text-muted">${__("Nothing to convert.")}</p>`}
+				</div>
+
+				<div class="duty-rv-card">
+					<div class="duty-rv-h">${__("Coming up")}
+						<b>₦${this._num(fc.committed_ngn || 0, 0)}</b></div>
+					${(fc.events || []).length ? `
+						<table class="duty-st-t"><tr>
+							<th>${__("When")}</th><th>${__("What")}</th>
+							<th>${__("Out")}</th><th>${__("Leaves")}</th></tr>
+							${fc.events.slice(0, 24).map((v) => `<tr class="${v.balance_after < 0 ? "duty-rv-miss" : ""}">
+								<td>${esc(frappe.datetime.str_to_user(v.date))}</td>
+								<td><b>${esc(v.title)}</b><span> · ${esc(v.nickname || "")}</span></td>
+								<td class="down">${this._num(Math.abs(v.amount), 2)}</td>
+								<td class="${v.balance_after < 0 ? "down" : ""}">${this._num(v.balance_after, 2)}</td></tr>`).join("")}
+						</table>`
+						: `<p class="text-muted">${__("Nothing scheduled in the next {0} days.", [fc.days])}</p>`}
+					<div class="duty-rv-warn">${__("Only what is scheduled — standing orders and fixed costs with a due day. Ordinary spending is not guessed at, because a forecast that guesses is one nobody can act on.")}</div>
+				</div>
+			</div>`);
+
+		$m.find(".rv-cats").on("click", () => this._rv_categories());
+		$m.find(".rv-snap").on("click", () => frappe.call({
+			method: "duty_board.review.snapshot_net_worth",
+			callback: (r) => {
+				frappe.show_alert({ indicator: "green",
+					message: __("Recorded — ₦{0}", [this._num((r.message || {}).total || 0, 0)]) });
+				this._rv_render($m);
+			},
+		}));
+		$m.find(".rv-close").on("click", () => frappe.confirm(
+			__("Close <b>{0}</b>? It is judged as it stands now and then frozen.", [this._month_label(hist.current)]),
+			() => frappe.call({
+				method: "duty_board.review.close_month",
+				args: { month: hist.current },
+				callback: (r) => {
+					const x = r.message || {};
+					frappe.show_alert({ indicator: x.short > 0 ? "orange" : "green",
+						message: x.short > 0 ? __("Closed — short by ₦{0}", [this._num(x.short, 0)]) : __("Closed — met") });
+					this._rv_render($m);
+				},
+			})));
+	}
+
+	_tg_render($m) {
+		const esc = frappe.utils.escape_html;
+		$m.find(".duty-mn-body").html(`<div class="duty-hl-load">${__("Loading…")}</div>`);
+		frappe.call({
+			method: "duty_board.targets.targets",
+			callback: (r) => {
+				const d = r.message || {};
+				this._tg = d;
+				const ts = d.targets || [];
+				const row = (t) => {
+					const state = t.state || (t.met ? "met" : t.carried > 0 ? "behind" : "due");
+					return `
+					<div class="duty-tg-row ${state}" data-t="${esc(t.name)}">
+						<div class="duty-tg-nm">
+							<b>${esc(t.title)}</b>
+							<span>${esc(t.what)} · ${__("{0} {1}", [
+								this._fmt(t.currency, t.per_period || t.monthly),
+								esc(t.cadence_label || __("a month"))])}${
+								t.cadence && t.cadence !== "Monthly"
+									? ` · ${__("{0} this month", [this._fmt("", t.month_worth)])}`
+									: ""}</span>
+							${t.mismatch ? `<span class="duty-tg-bad">${
+								__("Target is in {0} but the account is in {1} — edit it, the naira total is wrong until you do.",
+								   [esc(t.currency), esc(t.mismatch)])}</span>` : ""}
+						</div>
+						<div class="duty-tg-bar">
+							<i style="width:${t.pct}%"></i>
+							<u>${t.pct}%</u>
+						</div>
+						<div class="duty-tg-fig">
+							<span>${__("now")}</span><b>${esc(this._fmt("", t.actual))}</b>
+						</div>
+						<div class="duty-tg-fig">
+							<span>${__("needs to be")}</span><b>${esc(this._fmt("", t.required))}</b>
+						</div>
+						<div class="duty-tg-fig">
+							<span>${__("raised this month")}</span>
+							<b class="${t.raised > 0 ? "up" : t.raised < 0 ? "down" : ""}">${
+								t.raised > 0 ? "+" : ""}${esc(this._fmt("", t.raised))}${t.raised_approx ? "≈" : ""}</b>
+						</div>
+						<div class="duty-tg-fig duty-tg-ngn">
+							<span>${__("in naira")}</span>
+							<b>${t.rate ? `₦${this._num(t.still * t.rate, 0)}` : `<span class="down">${__("no rate")}</span>`}</b>
+							${t.rate && t.currency !== "NGN" ? `<i>@ ${this._num(t.rate, 2)}</i>` : ""}
+						</div>
+						<div class="duty-tg-need">
+							${t.met
+								? `<b class="up">${__("met")}</b><span>${t.ahead ? `+${this._fmt("", t.ahead)} ${__("ahead")}` : ""}</span>`
+								: `<b class="${state === "due" ? "due" : "down"}">${esc(this._fmt("", t.still))}</b>
+								   <span>${t.carried > 0
+									? __("{0} owed from earlier", [this._fmt("", t.carried)])
+									: t.cadence === "Working day" ? __("today, not yet late")
+									: t.cadence === "Weekly" ? __("this week, not yet late")
+									: __("this month")}</span>`}
+						</div>
+						<div class="duty-tg-acts"><a class="tg-edit">${__("Edit")}</a></div>
+					</div>`;
+				};
+				$m.find(".duty-mn-body").html(`
+					<div class="duty-tg-top ${d.behind ? "behind" : "ok"}">
+						<div>
+							<span>${__("This month")}</span>
+							<b>${esc(this._month_label(d.month))}</b>
+						</div>
+						<div>
+							<span>${__("Days left")}</span><b>${d.days_left}</b>
+						</div>
+						<div>
+							<span>${d.behind ? __("Still to find") : __("Status")}</span>
+							<b class="${d.behind ? "down" : "up"}">${d.behind
+								? `₦${this._num(d.ngn_needed || 0, 2)}`
+								: __("all met")}</b>
+						</div>
+						<div>
+							<span>${__("Targets")}</span>
+							<b>${ts.length - d.behind}/${ts.length} ${__("met")}</b>
+						</div>
+					</div>
+					${ts.length ? ts.map(row).join("")
+						: `<div class="duty-lb-empty">${__("No targets yet. Set one for a savings account, an investment account, or the share portfolio.")}</div>`}
+					${(d.ngn_needed || (d.unconverted || []).length) ? `
+						<div class="duty-tg-fx">
+							<b>₦${this._num(d.ngn_needed || 0, 2)}</b> ${__("to find this month")}
+							${Object.keys(d.rates_used || {}).length
+								? `<span>${__("at")} ${Object.entries(d.rates_used).map(([c, r]) => `1 ${c} = ₦${this._num(r, 2)}`).join(", ")}</span>`
+								: ""}
+							${(d.unconverted || []).length
+								? `<span class="warn">${__("Not included, no rate set")}: ${
+									d.unconverted.map((u) => `${this._num(u.amount, 2)} ${u.currency}`).join(", ")}</span>`
+								: ""}
+							<a class="tg-rates">${__("Rates")}</a>
+						</div>` : ""}
+					${this._ex_render($m, d)}
+					${this._of_render($m, d)}
+					<div class="duty-sh-bar">
+						<a class="btn btn-xs btn-primary tg-new">+ ${__("Target")}</a>
+						<span>${__("Measured against a running line: opening balance plus the monthly amount for every month since the start. A month missed stays owed until it is made up, and a strong month clears it by itself. Growth is the balance itself — a deposit and a gain in value count alike, and a withdrawal counts against.")}</span>
+					</div>`);
+				$m.find(".tg-new").on("click", () => this._tg_dialog());
+				$m.find(".tg-rates").on("click", () => this._tg_rates());
+				this._ex_wire($m);
+				this._of_wire($m);
+				$m.find(".tg-edit").on("click", (e) => {
+					e.stopPropagation();
+					const nm = $(e.currentTarget).closest(".duty-tg-row").data("t");
+					this._tg_dialog((this._tg.targets || []).find((x) => x.name === nm));
+				});
+			},
+		});
+	}
+
+	// Rates are yours: typed, dated, and marked with where they came from.
+	// Public APIs publish the official naira rate, which has at times been a
+	// long way from the rate anybody actually transacts at — so fetching is
+	// offered as a convenience and labelled, never silently applied over a rate
+	// you set deliberately.
+	/* ─────────────────────────────────────────── planned one-off outflows
+	   Not a fixed cost and not a standing order: once, on a date, and only when
+	   you decide. They compete with the targets rather than pausing them, so a
+	   television makes the month harder rather than the savings target smaller. */
+
+	_of_render($m, d) {
+		const esc = frappe.utils.escape_html;
+		const xs = (d.outflows || []).filter((x) => x.status !== "Dropped");
+		const open = xs.filter((x) => x.status === "Planned" || x.status === "Committed");
+		const row = (x) => `
+			<div class="duty-of-row ${x.status === "Done" ? "done" : x.overdue ? "late" : x.confidence.toLowerCase()}" data-o="${esc(x.name)}">
+				<div class="duty-of-when">
+					<b>${esc(frappe.datetime.str_to_user(x.due_on))}</b>
+					<span>${x.status === "Done" ? __("spent")
+						: x.overdue ? __("was due")
+						: x.days === 0 ? __("today")
+						: __("in {0}d", [x.days])}</span>
+				</div>
+				<div class="duty-of-what">
+					<b>${esc(x.title)}</b>
+					<span>${[x.account_name, x.category].filter(Boolean).map(esc).join(" · ")}${
+						x.money_move ? ` · ${__("posted")}` : ""}</span>
+				</div>
+				<div class="duty-of-amt">${esc(this._fmt(x.currency, x.amount))}
+					<i>${x.status === "Done" ? __("done") : esc(x.confidence.toLowerCase())}</i></div>
+				<div class="duty-of-acts">
+					${x.status !== "Done" ? `<a class="of-done">${__("Mark spent")}</a>` : `<a class="of-undo">${__("Undo")}</a>`}
+					<a class="of-edit">${__("Edit")}</a>
+				</div>
+			</div>`;
+		return `
+			<div class="duty-of-wrap">
+				<div class="duty-mn-ch">${__("Planned one-offs")} <span>${open.length}</span>${
+					d.outflow_month ? `<i>${this._fmt("", d.outflow_month)} ${__("this month")}</i>` : ""}</div>
+				${xs.length ? xs.map(row).join("")
+					: `<div class="duty-lb-empty">${__("Nothing planned. Add a one-off — a television in October, a school fee, a trip — and it joins the month's requirement and the forecast.")}</div>`}
+				${(d.outflow_by_month || []).length > 1 ? `
+					<div class="duty-of-ahead">
+						${d.outflow_by_month.map((m) => `<span><b>${esc(this._month_label(m.month))}</b>
+							₦${this._num(m.likely, 0)}${m.all > m.likely ? ` <i>(${__("up to")} ₦${this._num(m.all, 0)})</i>` : ""}</span>`).join("")}
+					</div>` : ""}
+				<div class="duty-sh-bar">
+					<a class="btn btn-xs btn-default of-new">+ ${__("One-off")}</a>
+					<span>${__("These compete with your targets rather than pausing them: the month's requirement stands and the outflow is added to it, so the shortfall shows rather than hiding. Marking one spent posts the money out of the account.")}</span>
+				</div>
+			</div>`;
+	}
+
+	_of_wire($m) {
+		const find = (n) => ((this._tg || {}).outflows || []).find((x) => x.name === n) || {};
+		$m.find(".of-new").on("click", () => this._of_dialog());
+		$m.find(".of-edit").on("click", (e) => { e.stopPropagation();
+			this._of_dialog(find($(e.currentTarget).closest(".duty-of-row").data("o"))); });
+		$m.find(".of-done").on("click", (e) => {
+			e.stopPropagation();
+			const x = find($(e.currentTarget).closest(".duty-of-row").data("o"));
+			if (!x.account) { this._of_dialog(x); frappe.show_alert({
+				message: __("Say which account it came from first"), indicator: "orange" }); return; }
+			frappe.confirm(__("Mark <b>{0}</b> spent? {1} comes out of {2}.", [
+				frappe.utils.escape_html(x.title), this._fmt(x.currency, x.amount),
+				frappe.utils.escape_html(x.account_name || "")]),
+				() => frappe.call({ method: "duty_board.targets.save_outflow",
+					args: { name: x.name, status: "Done" },
+					callback: () => { this._tg = null; this.refresh_money(); } }));
+		});
+		$m.find(".of-undo").on("click", (e) => {
+			e.stopPropagation();
+			const x = find($(e.currentTarget).closest(".duty-of-row").data("o"));
+			frappe.confirm(__("Put <b>{0}</b> back to planned? The payment it posted is removed too.",
+				[frappe.utils.escape_html(x.title)]),
+				() => frappe.call({ method: "duty_board.targets.save_outflow",
+					args: { name: x.name, status: "Planned" },
+					callback: () => { this._tg = null; this.refresh_money(); } }));
+		});
+	}
+
+	_of_dialog(existing) {
+		const e = existing || {};
+		const accs = (this._mn_accounts || []).map((a) => ({
+			value: a.name, label: `${a.nickname} · ${a.bank} (${a.currency})` }));
+		const d = new frappe.ui.Dialog({
+			title: existing ? __("Planned outflow") : __("New one-off"),
+			fields: [
+				{ fieldtype: "Data", fieldname: "title", label: __("What"), reqd: 1, default: e.title || "" },
+				{ fieldtype: "Float", fieldname: "amount", label: __("Amount"), reqd: 1, precision: 2,
+				  default: e.amount || 0 },
+				{ fieldtype: "Link", fieldname: "currency", label: __("Currency"), options: "Currency",
+				  reqd: 1, default: e.currency || "NGN" },
+				{ fieldtype: "Date", fieldname: "due_on", label: __("Expected"), reqd: 1,
+				  default: e.due_on || frappe.datetime.get_today(),
+				  description: __("Roughly is fine. It decides which month this counts against and where it lands in the forecast.") },
+				{ fieldtype: "Select", fieldname: "confidence", label: __("How sure"), reqd: 1,
+				  options: "Certain\nLikely\nMaybe", default: e.confidence || "Certain",
+				  description: __("A firm commitment and a maybe are both future spending and should not read alike. Only 'certain' counts in the firm line ahead; the rest widen the worst case.") },
+				{ fieldtype: "Select", fieldname: "account", label: __("Paid from"),
+				  options: [{ value: "", label: "" }].concat(accs), default: e.account || "",
+				  description: __("Needed before it can be marked spent, since that posts the money out.") },
+				{ fieldtype: "Link", fieldname: "category", label: __("Category"),
+				  options: "Duty Money Category", default: e.category || "" },
+				{ fieldtype: "Small Text", fieldname: "note", label: __("Note"), default: e.note || "" },
+			],
+			primary_action_label: existing ? __("Save") : __("Add"),
+			primary_action: (v) => {
+				frappe.call({
+					method: "duty_board.targets.save_outflow",
+					args: Object.assign({ name: existing ? e.name : null }, v),
+					callback: () => { d.hide(); this._tg = null; this.refresh_money(); },
+				});
+			},
+			secondary_action_label: existing ? __("Delete") : null,
+			secondary_action: existing ? () => frappe.confirm(
+				__("Delete <b>{0}</b>?", [frappe.utils.escape_html(e.title || "")]),
+				() => frappe.call({ method: "duty_board.targets.delete_outflow", args: { name: e.name },
+					callback: () => { d.hide(); this._tg = null; this.refresh_money(); } })) : null,
+		});
+		d.show();
+	}
+
+	_ex_render($m, d) {
+		const esc = frappe.utils.escape_html;
+		const xs = d.expenses || [];
+		const row = (x) => `
+			<div class="duty-ex-row${x.settled ? " done" : ""}${x.arrears ? " arrears" : ""}" data-x="${esc(x.name)}">
+				<div class="duty-ex-tick"><a class="ex-toggle ${x.part_paid ? "part" : ""}" title="${
+					x.settled ? __("Undo the last payment")
+					: x.part_paid ? __("Pay the rest, or another instalment")
+					: __("Record a payment")}">${x.settled ? "✓" : x.part_paid ? "◐" : ""}</a></div>
+				<div class="duty-ex-nm">
+					<b>${esc(x.title)}</b>
+					<span>${[x.category, x.due_day ? __("due the {0}", [x.due_day]) : "",
+						x.standing_order ? __("standing order") : ""].filter(Boolean).join(" · ")}</span>
+					${x.part_paid ? `<span class="duty-ex-part">${
+						__("{0} paid of {1}{2} — {3} still owed", [
+							this._fmt(x.currency, x.paid), this._fmt("", x.amount),
+							x.payments > 1 ? __(" over {0} payments", [x.payments]) : "",
+							this._fmt("", x.owed)])}</span>` : ""}
+					${x.arrears ? `<span class="duty-tg-bad">${
+						__("{0} owed from earlier months", [this._fmt(x.currency, x.arrears)])}</span>` : ""}
+				</div>
+				<div class="duty-ex-amt">${esc(this._fmt(x.currency, x.amount))}</div>
+				<div class="duty-ex-owed">${x.settled
+					? `<b class="up">${__("paid")}</b>${
+						x.money_move ? "" : `<i>${__("money not moved")}</i>`}`
+					: `<b class="down">${esc(this._fmt("", x.owed))}</b>${
+						x.rate && x.currency !== "NGN" ? `<i>₦${this._num(x.ngn, 0)}</i>` : ""}`}</div>
+				<div class="duty-ex-acts"><a class="ex-edit">${__("Edit")}</a></div>
+			</div>`;
+		return `
+			<div class="duty-ex-wrap">
+				<div class="duty-mn-ch">${__("Fixed costs this month")} <span>${xs.length}</span>${
+					d.expenses_unsettled ? `<i>${d.expenses_unsettled} ${__("still to pay")}</i>` : `<i>${__("all paid")}</i>`}</div>
+				${xs.length ? xs.map(row).join("")
+					: `<div class="duty-lb-empty">${__("No fixed costs yet. Add rent, fees, subscriptions — anything that comes round every month.")}</div>`}
+				<div class="duty-sh-bar">
+					<a class="btn btn-xs btn-default ex-new">+ ${__("Fixed cost")}</a>
+					<span>${__("An expense is owed each month and then paid — it is not a running total like a target. Unpaid months only pile up where you have said they should, which is right for rent and wrong for a subscription.")}</span>
+				</div>
+			</div>`;
+	}
+
+	_ex_wire($m) {
+		$m.find(".ex-new").on("click", () => this._ex_dialog());
+		$m.find(".ex-edit").on("click", (e) => {
+			e.stopPropagation();
+			const nm = $(e.currentTarget).closest(".duty-ex-row").data("x");
+			this._ex_dialog(((this._tg || {}).expenses || []).find((x) => x.name === nm));
+		});
+		$m.find(".ex-toggle").on("click", (e) => {
+			e.stopPropagation();
+			const nm = $(e.currentTarget).closest(".duty-ex-row").data("x");
+			const x = ((this._tg || {}).expenses || []).find((z) => z.name === nm) || {};
+			if (x.settled) {
+				frappe.confirm(
+					x.payments > 1
+						? __("Remove the most recent payment on <b>{0}</b>? The earlier ones stay.", [frappe.utils.escape_html(x.title || "")])
+						: x.money_move
+						? __("Mark <b>{0}</b> unpaid? The payment it posted is removed too.", [frappe.utils.escape_html(x.title || "")])
+						: __("Mark <b>{0}</b> unpaid?", [frappe.utils.escape_html(x.title || "")]),
+					() => frappe.call({
+						method: "duty_board.targets.unmark_expense_paid",
+						args: { expense: nm },
+						callback: () => { this._tg = null; this.refresh_money(); },
+					}));
+				return;
+			}
+			// Paying is one action, not two. Ticking used to record only that it
+			// was settled and leave the payment to be entered separately, and
+			// either half could be forgotten — a dashboard saying paid while the
+			// balance still holds the money is worse than one that asks.
+			const accs = (this._mn_accounts || [])
+				.filter((a) => a.currency === x.currency)
+				.map((a) => ({ value: a.name, label: `${a.nickname} · ${a.bank} (${a.currency})` }));
+			const d = new frappe.ui.Dialog({
+				title: x.part_paid ? __("Pay more towards {0}", [x.title || ""])
+									: __("Pay {0}", [x.title || ""]),
+				fields: [
+					{ fieldtype: "Float", fieldname: "amount", label: __("Amount"), reqd: 1,
+					  precision: 2, default: x.owed || x.amount || 0,
+					  description: x.part_paid
+						? __("{0} already paid this month. Pay less than the balance and the rest stays owed — a cost can be settled in as many instalments as you like.", [this._fmt(x.currency, x.paid)])
+						: x.arrears ? __("Includes {0} owed from earlier months. Pay less and the rest stays owed.", [this._fmt(x.currency, x.arrears)])
+						: __("Pay less than the full amount and the rest stays owed. Each payment is recorded separately.") },
+					{ fieldtype: "Select", fieldname: "account", label: __("Paid from"),
+					  options: [{ value: "", label: __("— do not move any money —") }].concat(accs),
+					  default: x.account || (accs.length === 1 ? accs[0].value : ""),
+					  description: accs.length
+						? __("The money comes out of this account. Leave blank if you have already recorded it.")
+						: __("No account in {0} to pay from — this will only mark it settled.", [x.currency]) },
+					{ fieldtype: "Date", fieldname: "paid_on", label: __("Paid on"), reqd: 1,
+					  default: frappe.datetime.get_today() },
+				],
+				primary_action_label: __("Paid"),
+				primary_action: (v) => {
+					frappe.call({
+						method: "duty_board.targets.mark_expense_paid",
+						args: { expense: nm, amount: v.amount, paid_on: v.paid_on,
+								account: v.account || null, move_cash: v.account ? 1 : 0 },
+						callback: (r) => {
+							d.hide();
+							const c = (r.message || {}).cash;
+							if (c && c.skipped) {
+								frappe.msgprint({ title: __("Money not moved"), indicator: "orange", message: c.skipped });
+							} else if (c) {
+								frappe.show_alert({ indicator: "green",
+									message: __("Paid — {0} taken from the account", [this._fmt(x.currency, c.amount)]) });
+							} else {
+								frappe.show_alert({ message: __("Marked paid"), indicator: "green" });
+							}
+							this._tg = null;
+							this.refresh_money();
+						},
+					});
+				},
+			});
+			d.show();
+		});
+	}
+
+	_ex_dialog(existing) {
+		const e = existing || {};
+		const accs = (this._mn_accounts || []).map((a) => ({
+			value: a.name, label: `${a.nickname} · ${a.bank} (${a.currency})` }));
+		const months = this._month_options(24, 24);
+		const d = new frappe.ui.Dialog({
+			title: existing ? __("Fixed cost") : __("New fixed cost"),
+			fields: [
+				{ fieldtype: "Data", fieldname: "title", label: __("What"), reqd: 1, default: e.title || "" },
+				{ fieldtype: "Float", fieldname: "amount", label: __("Amount each month"), reqd: 1,
+				  precision: 2, default: e.amount || 0 },
+				{ fieldtype: "Link", fieldname: "currency", label: __("Currency"), options: "Currency",
+				  reqd: 1, default: e.currency || "NGN" },
+				{ fieldtype: "Link", fieldname: "category", label: __("Category"), options: "Duty Money Category", default: e.category || "" },
+				{ fieldtype: "Int", fieldname: "due_day", label: __("Due day of the month"), default: e.due_day || 0 },
+				{ fieldtype: "Select", fieldname: "start_month", label: __("From"), reqd: 1,
+				  options: months, default: e.start_month || this._month_options(0, 0)[1] },
+				{ fieldtype: "Select", fieldname: "end_month", label: __("Until"),
+				  options: [""].concat(months), default: e.end_month || "",
+				  description: __("Blank for no end. This is how a cost goes away — it stops counting after this month, and past months stay truthful.") },
+				{ fieldtype: "Check", fieldname: "carries_forward", label: __("Unpaid months pile up"),
+				  default: existing ? (e.carries_forward ? 1 : 0) : 0,
+				  description: __("Right for rent, wrong for a subscription. A missed subscription is simply missed; missed rent is owed twice next month.") },
+				{ fieldtype: "Select", fieldname: "account", label: __("Usually paid from"),
+				  options: [{ value: "", label: "" }].concat(accs), default: e.account || "" },
+				{ fieldtype: "Small Text", fieldname: "note", label: __("Note"), default: e.note || "" },
+			],
+			primary_action_label: existing ? __("Save") : __("Add"),
+			primary_action: (v) => {
+				frappe.call({
+					method: "duty_board.targets.save_expense",
+					args: Object.assign({ name: existing ? e.name : null, active: 1 }, v),
+					callback: () => { d.hide(); this._tg = null; this.refresh_money(); },
+				});
+			},
+			secondary_action_label: existing ? __("Delete") : null,
+			secondary_action: existing ? () => frappe.confirm(
+				__("Delete <b>{0}</b> and its payment history? To stop it without losing the record, set an end month instead.", [frappe.utils.escape_html(e.title || "")]),
+				() => frappe.call({ method: "duty_board.targets.delete_expense", args: { name: e.name },
+					callback: () => { d.hide(); this._tg = null; this.refresh_money(); } })) : null,
+		});
+		d.show();
+	}
+
+	_tg_rates() {
+		const esc = frappe.utils.escape_html;
+		const d = new frappe.ui.Dialog({ title: __("Exchange rates"), size: "large" });
+		const draw = () => {
+			$(d.body).html(`<div class="duty-hl-load">${__("Loading…")}</div>`);
+			frappe.call({
+				method: "duty_board.targets.rates",
+				callback: (r) => {
+					const x = r.message || {};
+					const rows = x.rates || [];
+					$(d.body).html(`
+						${rows.length ? `<table class="duty-st-t"><tr>
+							<th>${__("Currency")}</th><th>${__("1 unit = NGN")}</th>
+							<th>${__("As at")}</th><th>${__("Source")}</th><th></th></tr>
+							${rows.map((z) => `<tr data-c="${esc(z.currency)}">
+								<td><b>${esc(z.currency)}</b></td>
+								<td>${z.rate ? esc(this._num(z.rate, 2)) : `<span class="down">${__("not set")}</span>`}</td>
+								<td>${z.as_of ? `${esc(frappe.datetime.str_to_user(z.as_of))}${
+									z.stale_days > 30 ? ` <span class="down">(${z.stale_days}d)</span>` : ""}` : "—"}</td>
+								<td>${esc(z.source || "—")}</td>
+								<td><a class="fx-set">${__("Set")}</a></td></tr>`).join("")}
+							</table>`
+						: `<p class="text-muted">${__("Every account and holding is in naira, so no rate is needed.")}</p>`}
+						<p class="duty-st-f">${__("A converted total is only as good as the rate under it. Set the rate you actually get — fetching brings the official published rate, which for the naira can be a long way from that, and it will never overwrite one you set by hand.")}</p>
+						<div class="duty-sh-bar"><a class="btn btn-xs btn-default fx-fetch">${__("Fetch official rates")}</a></div>`);
+					$(d.body).find(".fx-set").on("click", (e) => {
+						const c = $(e.currentTarget).closest("tr").data("c");
+						const cur = rows.find((z) => z.currency === c) || {};
+						frappe.prompt([
+							{ fieldtype: "Float", fieldname: "rate", label: __("1 {0} = how many naira?", [c]),
+							  reqd: 1, precision: 4, default: cur.rate || 0 },
+							{ fieldtype: "Date", fieldname: "as_of", label: __("As at"), reqd: 1,
+							  default: frappe.datetime.get_today() },
+						], (v) => frappe.call({
+							method: "duty_board.targets.set_rate",
+							args: { currency: c, rate_to_ngn: v.rate, as_of: v.as_of, source: "manual" },
+							callback: () => { draw(); this._tg = null; this.refresh_money(); },
+						}), __("Rate for {0}", [c]), __("Save"));
+					});
+					$(d.body).find(".fx-fetch").on("click", () => {
+						frappe.call({
+							method: "duty_board.targets.fetch_rates",
+							callback: (rr) => {
+								const y = rr.message || {};
+								frappe.msgprint({ title: __("Rates"), indicator: y.ok ? "orange" : "red",
+									message: y.ok
+										? `${y.set && y.set.length ? `${__("Set")}: ${frappe.utils.escape_html(y.set.join(", "))}<br>` : ""}${
+											y.kept_manual && y.kept_manual.length ? `${__("Left alone")}: ${frappe.utils.escape_html(y.kept_manual.join(", "))}<br>` : ""}<span style="font-size:11.5px;color:#8A9994">${y.note || ""}</span>`
+										: (y.error || __("Could not fetch.")) });
+								draw(); this._tg = null; this.refresh_money();
+							},
+						});
+					});
+				},
+			});
+		};
+		draw();
+		d.show();
+	}
+
+	_tg_dialog(existing) {
+		const e = existing || {};
+		const accs = (this._mn_accounts || []).map((a) => ({
+			value: a.name, label: `${a.nickname} · ${a.bank} (${a.currency})` }));
+		const months = this._month_options(18, 12);
+		const d = new frappe.ui.Dialog({
+			title: existing ? __("Target") : __("New target"),
+			fields: [
+				{ fieldtype: "Data", fieldname: "title", label: __("Name"), reqd: 1,
+				  default: e.title || "", description: __("What you call it — 'Pension pot', 'Emergency fund'.") },
+				{ fieldtype: "Select", fieldname: "target_kind", label: __("Applies to"), reqd: 1,
+				  options: "Account\nShare Portfolio\nBond Portfolio", default: e.kind || "Account",
+				  description: __("An account is measured by its balance, the share portfolio by what the holdings are worth, the bond portfolio by carrying value.") },
+				{ fieldtype: "Select", fieldname: "account", label: __("Account"),
+				  options: [{ value: "", label: "" }].concat(accs), default: e.account || "",
+				  depends_on: "eval:doc.target_kind=='Account'" },
+				{ fieldtype: "Link", fieldname: "currency", label: __("Currency"), options: "Currency",
+				  reqd: 1, default: e.currency || "NGN" },
+				{ fieldtype: "Select", fieldname: "cadence", label: __("How often"), reqd: 1,
+				  options: "Monthly\nWeekly\nWorking day", default: e.cadence || "Monthly",
+				  description: __("A working-day target of 50,000 is about 1.1m a month. The dashboard shows the month's worth; the row shows the rhythm.") },
+				{ fieldtype: "Float", fieldname: "monthly_amount", label: __("Amount each time"),
+				  reqd: 1, precision: 2, default: e.per_period || e.monthly || 0 },
+				{ fieldtype: "Date", fieldname: "start_date", label: __("Starting on"),
+				  depends_on: "eval:doc.cadence!='Monthly'",
+				  default: e.start_date || frappe.datetime.get_today(),
+				  description: __("Weekly and working-day targets count from a date rather than a month.") },
+				{ fieldtype: "Select", fieldname: "start_month", label: __("Starting month"), reqd: 1,
+				  options: months, default: e.start_month || this._month_options(0, 0)[1] },
+				{ fieldtype: "Float", fieldname: "baseline", label: __("Opening balance"), precision: 2,
+				  default: e.baseline || 0,
+				  description: __("What it was worth at the start of that month. Stored rather than recalculated, so correcting an old transaction cannot move the goalposts later.") },
+				{ fieldtype: "Button", fieldname: "suggest", label: __("Work out the opening balance") },
+				{ fieldtype: "Small Text", fieldname: "note", label: __("Note"), default: e.note || "" },
+			],
+			primary_action_label: existing ? __("Save") : __("Add"),
+			primary_action: (v) => {
+				frappe.call({
+					method: "duty_board.targets.save_target",
+					args: Object.assign({ name: existing ? e.name : null, active: 1 }, v),
+					callback: () => { d.hide(); this.refresh_money(); },
+				});
+			},
+			secondary_action_label: existing ? __("Delete") : null,
+			secondary_action: existing ? () => frappe.confirm(
+				__("Delete <b>{0}</b>?", [frappe.utils.escape_html(e.title || "")]),
+				() => frappe.call({ method: "duty_board.targets.delete_target", args: { name: e.name },
+					callback: () => { d.hide(); this.refresh_money(); } })) : null,
+		});
+		d.fields_dict.suggest.$input.on("click", () => {
+			const v = d.get_values(true);
+			frappe.call({
+				method: "duty_board.targets.suggest_baseline",
+				args: { target_kind: v.target_kind, account: v.account || null,
+						start_month: v.start_month },
+				callback: (r) => {
+					const x = r.message || {};
+					d.set_value("baseline", x.baseline || 0);
+					if (x.approximate) {
+						frappe.msgprint({ title: __("Approximate"), indicator: "orange",
+							message: __("That is today's portfolio value, not its value at the start of the month — the prices of that day are not all known. Correct it if you have the real figure, because a wrong opening balance quietly distorts every month after it.") });
+					}
+				},
+			});
+		});
+		d.show();
+	}
+
+	_sh_tape($m) {
+		const esc = frappe.utils.escape_html;
+		frappe.call({
+			method: "duty_board.shares.market_tape",
+			callback: (r) => {
+				const x = r.message || {};
+				const rows = x.rows || [];
+				const $slot = $m.find(".duty-tape-slot");
+				if (!rows.length) {
+					$slot.html(`<div class="duty-tape-none">${
+						__("Market tape not loaded yet.")} <a class="tape-get">${__("Fetch the market")}</a></div>`);
+					$slot.find(".tape-get").on("click", () => this._sh_tape_fetch($m));
+					return;
+				}
+				const mine = {};
+				(this._sh.holdings || []).forEach((h) => (mine[h.symbol] = h.open ? "own" : "watch"));
+				const cell = (t) => {
+					const c = t.c;
+					const dir = c > 0 ? "up" : c < 0 ? "down" : "flat";
+					return `<a class="duty-tape-i ${dir} ${mine[t.s] || ""}" data-s="${esc(t.s)}"
+						title="${esc(t.n || t.s)}">
+						<b>${esc(t.s)}</b> ${this._num(t.p, 2)}
+						<i>${c === null || c === undefined ? "–" : `${c > 0 ? "▲" : c < 0 ? "▼" : ""}${Math.abs(c).toFixed(2)}%`}</i></a>`;
+				};
+				// the strip is rendered twice so the loop has no seam
+				const strip = rows.map(cell).join("");
+				const when = x.fetched_at ? String(x.fetched_at).slice(0, 16).replace("T", " ") : "";
+				$slot.html(`
+					<div class="duty-tape">
+						<span class="duty-tape-tag">NGX</span>
+						<div class="duty-tape-win"><div class="duty-tape-run">${strip}${strip}</div></div>
+					</div>
+					<div class="duty-tape-foot">
+						<span class="up">▲ ${x.gainers || 0}</span>
+						<span class="down">▼ ${x.losers || 0}</span>
+						<span>${x.stocks || rows.length} ${__("stocks")}${when ? ` · ${when}` : ""}</span>
+						<a class="tape-get">${__("Refresh")}</a>
+					</div>`);
+				// speed scales with length so a longer list is not a faster blur
+				$slot.find(".duty-tape-run").css("animation-duration", Math.max(60, rows.length * 1.6) + "s");
+				$slot.find(".tape-get").on("click", () => this._sh_tape_fetch($m));
+				$slot.find(".duty-tape-i").on("click", (e) => {
+					const sym = $(e.currentTarget).data("s");
+                    if (mine[sym]) { this._mn_tab = "shares"; return; }
+					frappe.confirm(__("Track <b>{0}</b>? It joins your watchlist — nothing is bought.", [frappe.utils.escape_html(sym)]),
+						() => frappe.call({
+							method: "duty_board.shares.save_holding",
+							args: { symbol: sym, currency: "NGN",
+									holding_name: (rows.find((z) => z.s === sym) || {}).n || "" },
+							callback: () => { frappe.show_alert({ message: __("Watching {0}", [sym]), indicator: "green" }); this.refresh_money(); },
+						}));
+				});
+			},
+		});
+	}
+
+	_sh_tape_fetch($m) {
+		frappe.show_alert({ message: __("Fetching the market…"), indicator: "blue" });
+		frappe.call({
+			method: "duty_board.shares.fetch_tape",
+			callback: (r) => {
+				const x = r.message || {};
+				if (!x.ok) {
+					frappe.msgprint({ title: __("Market tape"), indicator: "orange",
+						message: x.error || __("Could not load the market.") });
+					return;
+				}
+				frappe.show_alert({ indicator: "green",
+					message: __("{0} stocks · {1} up · {2} down", [x.stocks, x.gainers, x.losers]) });
+				this._sh_tape($m);
+			},
+		});
+	}
+
+	// Reading a price off the line. Bound once and delegated, because charts are
+	// drawn into dialogs long after this runs and re-binding on every render
+	// would stack handlers.
+	//
+	// The SVG stretches (preserveAspectRatio="none"), so the pointer is mapped
+	// by fraction of the element's width rather than by SVG coordinates — using
+	// the viewBox directly would drift as soon as the dialog was resized.
+	_shc_hover() {
+		if (this._shc_bound) return;
+		this._shc_bound = 1;
+		const move = (ev) => {
+			const el = ev.target.closest ? ev.target.closest(".duty-shc[data-cid]") : null;
+			if (!el) return;
+			const rec = (this._shc_data || {})[el.getAttribute("data-cid")];
+			if (!rec) return;
+			const pts = rec.pts;
+			const [W, H, PAD, lo, hi] = rec.geo;
+			const svg = el.querySelector(".duty-shc-svg");
+			const cross = el.querySelector(".duty-shc-cross");
+			const dot = el.querySelector(".duty-shc-dot");
+			const tip = el.querySelector(".duty-shc-tip");
+			if (!svg || !cross || !dot || !tip || pts.length < 2) return;
+			const r = svg.getBoundingClientRect();
+			const plotL = (PAD / W) * r.width, plotR = r.width - (PAD / W) * r.width;
+			let f = (ev.clientX - r.left - plotL) / Math.max(1, plotR - plotL);
+			f = Math.max(0, Math.min(1, f));
+			const i = Math.round(f * (pts.length - 1));
+			const [when, price] = pts[i];
+			const sx = PAD + (i * (W - PAD * 2)) / (pts.length - 1);
+			const sy = H - PAD - ((price - lo) / (hi - lo || 1)) * (H - PAD * 2);
+			cross.setAttribute("x1", sx); cross.setAttribute("x2", sx);
+			cross.style.display = "";
+			dot.setAttribute("cx", sx); dot.setAttribute("cy", sy);
+			dot.style.display = "";
+			tip.innerHTML = `<b>${this._num(price, 4)}</b>${
+				when ? `<span>${frappe.datetime.str_to_user(String(when))}</span>` : ""}`;
+			tip.style.display = "";
+			// keep the label inside the chart rather than letting it run off the
+			// right-hand edge on the last few points
+			const px = (sx / W) * r.width;
+			tip.style.left = Math.max(4, Math.min(r.width - tip.offsetWidth - 4, px - tip.offsetWidth / 2)) + "px";
+			tip.style.top = Math.max(0, (sy / H) * r.height - tip.offsetHeight - 10) + "px";
+		};
+		const leave = (ev) => {
+			const el = ev.target.closest ? ev.target.closest(".duty-shc[data-cid]") : null;
+			if (!el) return;
+			["duty-shc-cross", "duty-shc-dot", "duty-shc-tip"].forEach((c) => {
+				const n = el.querySelector("." + c);
+				if (n) n.style.display = "none";
+			});
+		};
+		document.addEventListener("mousemove", move, true);
+		document.addEventListener("mouseleave", leave, true);
+		// touch: a tap reads the price and it stays until the next tap elsewhere
+		document.addEventListener("touchmove", (e) => {
+			if (e.touches && e.touches[0]) move({ target: e.target, clientX: e.touches[0].clientX });
+		}, { passive: true });
+		document.addEventListener("touchstart", (e) => {
+			if (e.touches && e.touches[0]) move({ target: e.target, clientX: e.touches[0].clientX });
+		}, { passive: true });
+	}
+
+	_sh_chart(points, opts) {
+		const o = opts || {};
+		if (!o.bare) this._shc_hover();
+		// the series is kept in memory against an id rather than encoded into a
+		// data attribute. Smuggling JSON through markup and parsing it back is
+		// a shape scanners flag, and holding it directly is less code.
+		this._shc_data = this._shc_data || {};
+		const cid = "c" + (++this._shc_seq || (this._shc_seq = 1));
+		const W = o.w || 560, H = o.h || 150, PAD = 26;
+		if (!points || points.length < 2) {
+			return o.bare ? `<span class="duty-shc-flat">—</span>`
+				: `<div class="duty-shc-none">${__("Not enough prices yet — a line needs at least two days.")}</div>`;
+		}
+		const ps = points.map((p) => p.p);
+		let lo = Math.min(...ps), hi = Math.max(...ps);
+		if (hi === lo) { hi = lo * 1.01 || 1; lo = lo * 0.99; }
+		const x = (i) => PAD + (i * (W - PAD * 2)) / (points.length - 1);
+		const y = (v) => H - PAD - ((v - lo) / (hi - lo)) * (H - PAD * 2);
+		const line = points.map((p, i) => `${i ? "L" : "M"}${x(i).toFixed(1)},${y(p.p).toFixed(1)}`).join("");
+		const area = `${line}L${x(points.length - 1).toFixed(1)},${H - PAD}L${PAD},${H - PAD}Z`;
+		const first = ps[0], last = ps[ps.length - 1];
+		const up = last >= first;
+		const col = up ? "#0E8A63" : "#C94646";
+		const pct = first ? (((last - first) / first) * 100).toFixed(1) : "0.0";
+		const id = "g" + Math.random().toString(36).slice(2, 8);
+		if (!o.bare) {
+			this._shc_data[cid] = { pts: points.map((p) => [p.d || "", p.p]),
+									geo: [W, H, PAD, lo, hi] };
+		}
+		return `
+			<div class="duty-shc"${o.bare ? "" : ` data-cid="${cid}"`}>
+				<svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="none" class="duty-shc-svg">
+					<defs><linearGradient id="${id}" x1="0" x2="0" y1="0" y2="1">
+						<stop offset="0%" stop-color="${col}" stop-opacity=".22"/>
+						<stop offset="100%" stop-color="${col}" stop-opacity="0"/>
+					</linearGradient></defs>
+					<line x1="${PAD}" x2="${W - PAD}" y1="${H - PAD}" y2="${H - PAD}" class="duty-shc-ax"/>
+					<path d="${area}" fill="url(#${id})"/>
+					<path d="${line}" fill="none" stroke="${col}" stroke-width="2"
+						  stroke-linejoin="round" stroke-linecap="round"/>
+					<circle cx="${x(points.length - 1).toFixed(1)}" cy="${y(last).toFixed(1)}" r="3.2" fill="${col}"/>
+					${o.bare ? "" : `<line class="duty-shc-cross" x1="0" x2="0" y1="${PAD - 6}" y2="${H - PAD}" style="display:none"/>
+					<circle class="duty-shc-dot" r="4" fill="${col}" stroke="#fff" stroke-width="1.5" style="display:none"/>`}
+				</svg>
+				${o.bare ? "" : `<div class="duty-shc-tip" style="display:none"></div>`}
+				${o.bare ? "" : `<div class="duty-shc-meta">
+					<span>${__("high")} <b>${this._num(hi, 2)}</b></span>
+					<span>${__("low")} <b>${this._num(lo, 2)}</b></span>
+					<span class="${up ? "up" : "down"}">${up ? "▲ +" : "▼ "}${pct}% ${__("over the period")}</span>
+					<span>${points.length} ${__("closes")}</span>
+				</div>`}
+			</div>`;
+	}
+
+	_sh_chart_dialog(holding) {
+		const h = (this._sh.holdings || []).find((x) => x.name === holding) || {};
+		const d = new frappe.ui.Dialog({ title: `${h.symbol || ""} — ${__("price")}`, size: "large" });
+		const draw = (days) => {
+			this._sh_days = days;
+			$(d.body).html(`<div class="duty-hl-load">${__("Loading…")}</div>`);
+			frappe.call({
+				method: "duty_board.shares.price_series",
+				args: { holding: holding, days: days },
+				callback: (r) => {
+					const pts = ((r.message || {}).series || {})[holding] || [];
+					$(d.body).html(`
+						<div class="duty-shc-pk">
+							${[[30, "1M"], [90, "3M"], [180, "6M"], [365, "1Y"], [3650, __("All")]]
+								.map(([v, l]) => `<a data-d="${v}" class="${days === v ? "on" : ""}">${l}</a>`).join("")}
+						</div>
+						${this._sh_chart(pts, { w: 640, h: 190 })}
+						${pts.length ? `<div class="duty-shc-range">${
+							frappe.datetime.str_to_user(pts[0].d)} → ${frappe.datetime.str_to_user(pts[pts.length - 1].d)}</div>` : ""}`);
+					$(d.body).find(".duty-shc-pk a").on("click", (e) => draw(parseInt($(e.currentTarget).data("d"), 10)));
+				},
+			});
+		};
+		draw(this._sh_days || 180);
+		d.show();
+	}
+
+	_sh_holding_dialog(existing) {
+		const e = existing || {};
+		const d = new frappe.ui.Dialog({
+			title: existing ? __("Holding") : __("New holding"),
+			fields: [
+				{ fieldtype: "Data", fieldname: "symbol", label: __("Ticker"), reqd: 1, default: e.symbol || "" },
+				{ fieldtype: "Data", fieldname: "holding_name", label: __("Name"), default: e.holding_name || "" },
+				{ fieldtype: "Link", fieldname: "currency", label: __("Currency"), options: "Currency", reqd: 1,
+				  default: e.currency || "GBP" },
+				{ fieldtype: "Data", fieldname: "exchange", label: __("Exchange"), default: e.exchange || "" },
+				{ fieldtype: "Float", fieldname: "last_price", label: __("Price now"), precision: 4,
+				  default: e.last_price || 0,
+				  description: __("Entered by hand — nothing here fetches a quote. The date beside it shows how stale it is.") },
+				{ fieldtype: "Data", fieldname: "financial_year_end", label: __("Financial year end"),
+				  default: e.financial_year_end || "",
+				  description: __("Typed by hand — no free source publishes it. Most NGX companies are 31 Dec.") },
+				{ fieldtype: "Small Text", fieldname: "note", label: __("Note"), default: e.note || "" },
+			],
+			primary_action_label: existing ? __("Save") : __("Add"),
+			primary_action: (v) => {
+				frappe.call({
+					method: "duty_board.shares.save_holding",
+					args: Object.assign({ name: existing ? e.name : null }, v),
+					callback: () => { d.hide(); this.refresh_money(); },
+				});
+			},
+		});
+		d.show();
+	}
+
+	_sh_trade_dialog(holding, kind) {
+		const h = (this._sh.holdings || []).find((x) => x.name === holding) || {};
+		const accs = (this._mn_accounts || []).map((a) => ({
+			value: a.name, label: `${a.nickname} · ${a.bank} (${a.currency})` }));
+		// every broker known, plus any this holding already sits at, so a sale
+		// can name the parcel it comes from even for a broker since retired
+		const known = (this._sh.brokers || []).map((b) => b.broker)
+			.concat((h.broker_list || []).map((b) => b.broker));
+		const uniq = known.filter((v, i) => v && known.indexOf(v) === i);
+		const brokerOpts = [{ value: "", label: "" }]
+			.concat(uniq.map((b) => ({ value: b, label: b })));
+		// a sale defaults to wherever most of it is held; a purchase to the only
+		// broker if there is only one, and to nothing if there is a choice
+		const defBroker = kind === "Sell"
+			? ((h.broker_list || [])[0] || {}).broker || ""
+			: (uniq.length === 1 ? uniq[0] : "");
+		const d = new frappe.ui.Dialog({
+			title: `${kind === "Buy" ? __("Buy") : __("Sell")} ${h.symbol || ""}`,
+			fields: [
+				{ fieldtype: "Float", fieldname: "quantity", label: __("Quantity"), reqd: 1, precision: 6,
+				  description: kind === "Sell" && h.qty ? __("You hold {0}.", [this._num(h.qty, 4)]) : "" },
+				{ fieldtype: "Float", fieldname: "price", label: __("Price each"), reqd: 1, precision: 4,
+				  default: h.last_price || 0 },
+				{ fieldtype: "Float", fieldname: "charges", label: __("Charges"), precision: 2,
+				  description: __("Everything the broker took. Added to the cost on a buy, taken off the proceeds on a sell.") },
+				{ fieldtype: "Date", fieldname: "trade_date", label: __("Date"), reqd: 1,
+				  default: frappe.datetime.get_today() },
+				{ fieldtype: "Select", fieldname: "broker", label: __("Broker"),
+				  options: brokerOpts, default: defBroker,
+				  description: kind === "Sell"
+					? __("Which parcel this comes out of. A sale cannot exceed what that broker holds.")
+					: __("Where this parcel will be held. The same stock can sit at more than one broker.") },
+				{ fieldtype: "Select", fieldname: "account",
+				  label: kind === "Buy" ? __("Paid from") : __("Proceeds into"),
+				  options: [{ value: "", label: "" }].concat(accs),
+				  description: __("Leave blank if you would rather record the cash yourself.") },
+				{ fieldtype: "Check", fieldname: "move_cash", default: 1,
+				  depends_on: "account",
+				  label: kind === "Buy" ? __("Take the cash out of that account")
+										: __("Put the proceeds into that account"),
+				  description: __("Only when the account and the holding share a currency. Where they differ, a rate was involved and no rate here would be the one you got — record that movement by hand.") },
+				{ fieldtype: "Small Text", fieldname: "note", label: __("Note") },
+			],
+			primary_action_label: __("Record"),
+			primary_action: (v) => {
+				frappe.call({
+					method: "duty_board.shares.record_trade",
+					args: Object.assign({ holding: holding, kind: kind }, v),
+					callback: (r) => {
+						d.hide();
+						const c = (r.message || {}).cash;
+						if (c && c.skipped) {
+							frappe.msgprint({ title: __("Cash not moved"), indicator: "orange", message: c.skipped });
+						} else if (c) {
+							frappe.show_alert({ indicator: "green", message: c.kind === "Out"
+								? __("Recorded — {0} taken from the account", [this._num(c.amount, 2)])
+								: __("Recorded — {0} added to the account", [this._num(c.amount, 2)]) });
+						}
+						this.refresh_money();
+					},
+				});
+			},
+		});
+		d.show();
+	}
+
+	// A dividend is income, recorded apart from price. It also puts real cash in
+	// a real account, so recording one posts that movement — same reasoning as a
+	// trade or a fixed cost, and the same failure avoided: a shares tab saying
+	// paid while the bank balance says nothing arrived.
+	// Holdings per broker. The strip totals a broker and the row totals a stock;
+	// neither answers "how many DANGCEM are at ARM ONE" — which is the question
+	// a broker statement asks. Readable both ways round, because reconciling
+	// against a statement and checking concentration are different jobs.
+	// Performance between two dates you choose. Price movement is not
+	// performance — buy a million halfway through and end-minus-start reports a
+	// million of gain — so contributions and withdrawals are stripped out and
+	// dividends added back. See shares.performance.
+	_sh_performance() {
+		const esc = frappe.utils.escape_html;
+		const d = new frappe.ui.Dialog({ title: __("Performance"), size: "extra-large" });
+		const today = frappe.datetime.get_today();
+		this._pf = this._pf || { from: frappe.datetime.add_months(today, -3), to: today };
+		const preset = (label, from) => `<a data-f="${from}" data-t="${today}"
+			class="${this._pf.from === from && this._pf.to === today ? "on" : ""}">${label}</a>`;
+		const draw = () => {
+			$(d.body).html(`<div class="duty-hl-load">${__("Working it out…")}</div>`);
+			frappe.call({
+				method: "duty_board.shares.performance",
+				args: { from_date: this._pf.from, to_date: this._pf.to },
+				callback: (r) => {
+					const x = r.message || {};
+					const rows = x.rows || [];
+					const cur = (x.by_currency || [])[0] || {};
+					const g = cur.gain || 0;
+					$(d.body).html(`
+						<div class="duty-shc-pk">
+							${preset(__("1M"), frappe.datetime.add_months(today, -1))}
+							${preset(__("3M"), frappe.datetime.add_months(today, -3))}
+							${preset(__("6M"), frappe.datetime.add_months(today, -6))}
+							${preset(__("1Y"), frappe.datetime.add_months(today, -12))}
+							${preset(__("YTD"), today.slice(0, 4) + "-01-01")}
+						</div>
+						<div class="duty-pf-dates">
+							<label>${__("From")} <input type="date" id="pffrom" value="${this._pf.from}"></label>
+							<label>${__("To")} <input type="date" id="pfto" value="${this._pf.to}"></label>
+							<a class="btn btn-xs btn-default pf-go">${__("Show")}</a>
+						</div>
+						<div class="duty-pf-head ${g >= 0 ? "up" : "down"}">
+							<div>
+								<span>${__("Gain over the period")}</span>
+								<b>${g >= 0 ? "+" : "−"}${esc(this._fmt(cur.currency, Math.abs(g)))}</b>
+								<i>${cur.gain_pct !== null && cur.gain_pct !== undefined
+									? `${cur.gain_pct > 0 ? "+" : ""}${cur.gain_pct}% ${__("on what was at risk")}`
+									: __("nothing at risk in this window")}</i>
+							</div>
+							<div class="duty-pf-sub">
+								<span>${__("Worth {0} at the start, {1} at the end.", [
+									this._fmt("", cur.value_start || 0), this._fmt("", cur.value_end || 0)])}</span>
+								<span>${__("You put in {0} and took out {1} during the window; dividends of {2} are counted as gain.", [
+									this._fmt("", cur.bought || 0), this._fmt("", cur.sold || 0),
+									this._fmt("", cur.dividends || 0)])}</span>
+							</div>
+						</div>
+						${(x.series || []).length > 1
+							? this._sh_chart(x.series, { w: 700, h: 170 })
+							: `<div class="duty-rv-warn">${__("Not enough stored prices to draw a line for this window.")}</div>`}
+						${(x.incomplete || []).length ? `<div class="duty-rv-warn" style="margin:8px 0">${
+							__("No stored price at the start for {0}, so their opening value counts as zero and their gain will read high. Price history only goes back as far as it was fetched.",
+							   [esc(x.incomplete.join(", "))])}</div>` : ""}
+						<table class="duty-st-t"><tr>
+							<th>${__("Stock")}</th><th>${__("Start")}</th><th>${__("End")}</th>
+							<th>${__("Bought")}</th><th>${__("Sold")}</th><th>${__("Divs")}</th>
+							<th>${__("Gain")}</th><th>${__("%")}</th></tr>
+							${rows.map((z) => `<tr>
+								<td><b>${esc(z.symbol)}</b>${
+									z.new_in_period ? `<div class="duty-st-n">${__("bought in this window")}</div>`
+									: z.no_start_price ? `<div class="duty-st-n">${__("no opening price")}</div>` : ""}</td>
+								<td>${z.value_start ? esc(this._num(z.value_start, 0)) : "—"}</td>
+								<td>${z.value_end ? esc(this._num(z.value_end, 0)) : "—"}</td>
+								<td>${z.bought ? esc(this._num(z.bought, 0)) : "—"}</td>
+								<td>${z.sold ? esc(this._num(z.sold, 0)) : "—"}</td>
+								<td>${z.dividends ? esc(this._num(z.dividends, 0)) : "—"}</td>
+								<td class="${z.gain > 0 ? "up" : z.gain < 0 ? "down" : ""}"><b>${
+									z.gain ? `${z.gain > 0 ? "+" : ""}${this._num(z.gain, 0)}` : "—"}</b></td>
+								<td class="${z.gain > 0 ? "up" : z.gain < 0 ? "down" : ""}">${
+									z.gain_pct !== null && z.gain_pct !== undefined
+										? `${z.gain_pct > 0 ? "+" : ""}${z.gain_pct}%` : "—"}</td></tr>`).join("")}
+						</table>
+						<p class="duty-st-f">${__("Gain is the change in value with money you added taken out and money you withdrew added back, plus dividends. A purchase is not a gain. The percentage is against the opening value plus what you added, since that is what was at risk.")}</p>`);
+					$(d.body).find(".duty-shc-pk a").on("click", (e) => {
+						this._pf = { from: $(e.currentTarget).data("f"), to: $(e.currentTarget).data("t") };
+						draw();
+					});
+					$(d.body).find(".pf-go").on("click", () => {
+						const f = document.getElementById("pffrom").value;
+						const t = document.getElementById("pfto").value;
+						if (f && t && f < t) { this._pf = { from: f, to: t }; draw(); }
+						else frappe.show_alert({ message: __("The start has to come before the end"), indicator: "orange" });
+					});
+				},
+			});
+		};
+		draw();
+		d.show();
+	}
+
+	_sh_broker_breakdown() {
+		const esc = frappe.utils.escape_html;
+		const d = new frappe.ui.Dialog({ title: __("Holdings by broker"), size: "extra-large" });
+		this._bbBy = this._bbBy || "broker";
+		const draw = () => {
+			$(d.body).html(`<div class="duty-hl-load">${__("Loading…")}</div>`);
+			frappe.call({
+				method: "duty_board.shares.broker_breakdown",
+				callback: (r) => {
+					const x = r.message || {};
+					const cells = x.cells || [];
+					const byBroker = this._bbBy === "broker";
+					const groups = {};
+					cells.forEach((c) => {
+						const k = byBroker ? c.broker : c.symbol;
+						(groups[k] = groups[k] || []).push(c);
+					});
+					const order = byBroker
+						? (x.brokers || []).map((b) => b.broker).filter((k) => groups[k])
+						: (x.symbols || []).map((s) => s.symbol).filter((k) => groups[k]);
+					const meta = {};
+					(byBroker ? (x.brokers || []) : (x.symbols || [])).forEach((m) =>
+						(meta[byBroker ? m.broker : m.symbol] = m));
+					$(d.body).html(`
+						<div class="duty-shc-pk">
+							<a data-b="broker" class="${byBroker ? "on" : ""}">${__("By broker")}</a>
+							<a data-b="symbol" class="${byBroker ? "" : "on"}">${__("By stock")}</a>
+							<a class="bb-csv">${__("Copy as CSV")}</a>
+						</div>
+						${(x.split || []).length ? `<div class="duty-rv-warn" style="margin-bottom:10px">${
+							__("Held in more than one place: {0}. Each parcel carries its own cost, so the same stock can show a different gain at each broker.",
+							   [esc(x.split.join(", "))])}</div>` : ""}
+						${order.map((k) => {
+							const m = meta[k] || {};
+							return `
+							<div class="duty-bb-grp">
+								<div class="duty-bb-h">
+									<b>${esc(k)}</b>
+									<span>${byBroker
+										? `${m.lines || 0} ${(m.lines === 1 ? __("stock") : __("stocks"))}`
+										: `${m.brokers || 0} ${(m.brokers === 1 ? __("broker") : __("brokers"))}`}</span>
+									<em>${esc(this._fmt(m.currency, m.value))}${
+										m.share ? ` · ${m.share}%` : ""}</em>
+								</div>
+								<table class="duty-st-t"><tr>
+									<th>${byBroker ? __("Stock") : __("Broker")}</th>
+									<th>${__("Units")}</th><th>${__("Avg cost")}</th><th>${__("Price")}</th>
+									<th>${__("Value")}</th><th>${__("On paper")}</th></tr>
+									${groups[k].map((c) => `<tr>
+										<td><b>${esc(byBroker ? c.symbol : c.broker)}</b>${
+											byBroker && c.name ? `<div class="duty-st-n">${esc(c.name)}</div>` : ""}</td>
+										<td>${esc(this._num(c.qty, c.qty % 1 ? 4 : 0))}</td>
+										<td>${esc(this._num(c.avg_cost, 4))}</td>
+										<td>${esc(this._num(c.price, 4))}</td>
+										<td><b>${esc(this._num(c.value, 2))}</b></td>
+										<td class="${c.unrealised > 0 ? "up" : c.unrealised < 0 ? "down" : ""}">${
+											c.unrealised ? `${c.unrealised > 0 ? "+" : ""}${this._num(c.unrealised, 2)}${
+												c.gain_pct !== null ? ` <span class="muted">(${c.gain_pct > 0 ? "+" : ""}${c.gain_pct}%)</span>` : ""}` : "—"}</td>
+									</tr>`).join("")}
+								</table>
+							</div>`;
+						}).join("")}
+						${cells.length ? "" : `<p class="text-muted">${__("Nothing held yet.")}</p>`}
+						<p class="duty-st-f">${__("A parcel's average cost is what that broker's shares cost, which can differ from the holding's overall average when the two were bought at different times.")}</p>`);
+					$(d.body).find(".duty-shc-pk a[data-b]").on("click", (e) => {
+						this._bbBy = $(e.currentTarget).data("b"); draw();
+					});
+					$(d.body).find(".bb-csv").on("click", () => {
+						frappe.utils.copy_to_clipboard(
+							["Broker,Stock,Units,AvgCost,Price,Value"].concat(cells.map((c) =>
+								[c.broker, c.symbol, c.qty, c.avg_cost.toFixed(4),
+								 c.price.toFixed(4), c.value.toFixed(2)].join(","))).join("\n"));
+						frappe.show_alert({ message: __("Copied"), indicator: "green" });
+					});
+				},
+			});
+		};
+		draw();
+		d.show();
+	}
+
+	_sh_dividend_dialog(holding) {
+		const h = (this._sh.holdings || []).find((x) => x.name === holding) || {};
+		const accs = (this._mn_accounts || [])
+			.filter((a) => a.currency === h.currency)
+			.map((a) => ({ value: a.name, label: `${a.nickname} · ${a.bank}` }));
+		const bks = ((this._sh.brokers || []).map((b) => b.broker)
+			.concat((h.broker_list || []).map((b) => b.broker)));
+		const uniq = bks.filter((v, i) => bks.indexOf(v) === i);
+		const d = new frappe.ui.Dialog({
+			title: __("Dividend — {0}", [h.symbol || ""]),
+			fields: [
+				{ fieldtype: "Float", fieldname: "gross", label: __("Gross"), reqd: 1, precision: 2,
+				  description: h.qty ? __("You hold {0} units.", [this._num(h.qty, 4)]) : "" },
+				{ fieldtype: "Float", fieldname: "tax", label: __("Withholding tax"), precision: 2,
+				  description: __("Deducted at source. Kept apart so the yield reads both ways — what was declared, and what reached you.") },
+				{ fieldtype: "Date", fieldname: "pay_date", label: __("Paid on"), reqd: 1,
+				  default: frappe.datetime.get_today() },
+				{ fieldtype: "Select", fieldname: "broker", label: __("Broker"),
+				  options: [{ value: "", label: "" }].concat(uniq.map((b) => ({ value: b, label: b }))) },
+				{ fieldtype: "Select", fieldname: "account", label: __("Paid into"),
+				  options: [{ value: "", label: __("— do not post the cash —") }].concat(accs),
+				  default: accs.length === 1 ? accs[0].value : "",
+				  description: __("The net lands in this account. Leave blank if you have recorded it already.") },
+				{ fieldtype: "Small Text", fieldname: "note", label: __("Note") },
+			],
+			primary_action_label: __("Record"),
+			primary_action: (v) => {
+				frappe.call({
+					method: "duty_board.shares.record_dividend",
+					args: Object.assign({ holding: holding, move_cash: v.account ? 1 : 0 }, v),
+					callback: (r) => {
+						d.hide();
+						const c = (r.message || {}).cash;
+						if (c && c.skipped) {
+							frappe.msgprint({ title: __("Cash not posted"), indicator: "orange", message: c.skipped });
+						} else if (c) {
+							frappe.show_alert({ indicator: "green",
+								message: __("Recorded — {0} into the account", [this._fmt(h.currency, c.amount)]) });
+						}
+						this.refresh_money();
+					},
+				});
+			},
+		});
+		d.show();
+	}
+
+	_sh_price_dialog(holding) {
+		const h = (this._sh.holdings || []).find((x) => x.name === holding) || {};
+		const d = new frappe.ui.Dialog({
+			title: __("Price of {0}", [h.symbol || ""]),
+			fields: [
+				{ fieldtype: "Float", fieldname: "last_price", label: __("Price each"), reqd: 1, precision: 4,
+				  default: h.last_price || 0 },
+				{ fieldtype: "Date", fieldname: "price_as_of", label: __("As at"), reqd: 1,
+				  default: frappe.datetime.get_today() },
+			],
+			primary_action_label: __("Save"),
+			primary_action: (v) => {
+				frappe.call({
+					method: "duty_board.shares.set_price",
+					args: { holding: holding, last_price: v.last_price, price_as_of: v.price_as_of },
+					callback: () => { d.hide(); this.refresh_money(); },
+				});
+			},
+		});
+		d.show();
+	}
+
+	_sh_history(holding) {
+		const esc = frappe.utils.escape_html;
+		const h = (this._sh.holdings || []).find((x) => x.name === holding) || {};
+		frappe.call({
+			method: "duty_board.shares.trades",
+			args: { holding: holding },
+			callback: (r) => {
+				const ts = r.message || [];
+				const d = new frappe.ui.Dialog({ title: `${h.symbol || ""} — ${__("trades")}`, size: "large" });
+				$(d.body).html(`
+					${ts.length ? `<table class="duty-sh-tt"><tr>
+						<th>${__("Date")}</th><th>${__("Kind")}</th><th>${__("Qty")}</th>
+						<th>${__("Price")}</th><th>${__("Charges")}</th><th>${__("Net")}</th></tr>
+						${ts.map((t) => `<tr data-t="${esc(t.name)}">
+							<td>${esc(frappe.datetime.str_to_user(String(t.trade_date)))}</td>
+							<td class="${t.kind === "Buy" ? "up" : "down"}">${esc(t.kind)}</td>
+							<td>${esc(this._num(t.quantity, 4))}</td>
+							<td>${esc(this._num(t.price, 4))}</td>
+							<td>${esc(this._num(t.charges, 2))}</td>
+							<td><b>${esc(this._num(t.net, 2))}</b></td>
+							<td><a class="sh-del" title="${__("Delete")}">&times;</a></td></tr>`).join("")}
+						</table>`
+					: `<p class="text-muted">${__("No trades recorded.")}</p>`}
+					<p class="text-muted" style="font-size:11.5px;margin-top:10px">${
+						__("Net is what left or reached your account, charges included.")}</p>`);
+				$(d.body).find(".sh-del").on("click", (e) => {
+					const nm = $(e.currentTarget).closest("tr").data("t");
+					frappe.confirm(__("Delete this trade? Every figure is recomputed from the trades, so removing one changes the position."),
+						() => frappe.call({
+							method: "duty_board.shares.delete_trade", args: { name: nm },
+							callback: () => { d.hide(); this.refresh_money(); },
+						}));
+				});
+				d.show();
+			},
+		});
+	}
+
+	/* ------------------------------------------------------ Account statement
+	   One account, in order, with a running balance.
+
+	   The face only ever showed the last 25 movements across every account
+	   mixed together — which answers "what happened lately" and not "what
+	   happened on this account", the question you ask when a balance looks
+	   wrong. The running column starts from the balance the day before the
+	   window, so it reconciles to the card rather than starting at zero and
+	   disagreeing with it. */
+
+	money_statement(account) {
+		const esc = frappe.utils.escape_html;
+		const d = new frappe.ui.Dialog({ title: __("Statement"), size: "extra-large" });
+		const draw = (days) => {
+			$(d.body).html(`<div class="duty-hl-load">${__("Loading…")}</div>`);
+			frappe.call({
+				method: "duty_board.money.statement",
+				args: { account: account, days: days },
+				callback: (r) => {
+					const x = r.message || {};
+					d.set_title(`${x.nickname || ""} — ${__("statement")}`);
+					const rows = x.rows || [];
+					$(d.body).html(`
+						<div class="duty-st-top">
+							<div><span>${__("Opening")}</span><b>${esc(this._fmt(x.currency, x.opening))}</b></div>
+							<div><span>${__("In")}</span><b class="up">+${esc(this._fmt("", x.in_total))}</b></div>
+							<div><span>${__("Out")}</span><b class="down">-${esc(this._fmt("", x.out_total))}</b></div>
+							<div><span>${__("Closing")}</span><b>${esc(this._fmt(x.currency, x.closing))}</b></div>
+						</div>
+						<div class="duty-shc-pk">
+							${[[30, "30d"], [90, "90d"], [180, "6M"], [365, "1Y"], [3650, __("All")]]
+								.map(([v, l]) => `<a data-d="${v}" class="${days === v ? "on" : ""}">${l}</a>`).join("")}
+							<a class="duty-st-csv">${__("Copy as CSV")}</a>
+						</div>
+						${rows.length ? `<table class="duty-st-t">
+							<tr><th>${__("Date")}</th><th>${__("What")}</th><th>${__("In")}</th>
+								<th>${__("Out")}</th><th>${__("Balance")}</th></tr>
+							${rows.map((t) => `<tr>
+								<td>${esc(frappe.datetime.str_to_user(t.date))}</td>
+								<td><b>${esc(t.label || t.kind)}</b>${
+									t.category ? `<span> · ${esc(t.category)}</span>` : ""}${
+									t.standing_order ? `<span> · ${__("standing order")}</span>` : ""}${
+									t.note ? `<div class="duty-st-n">${esc(t.note)}</div>` : ""}</td>
+								<td class="up">${t.delta > 0 ? esc(this._num(t.delta, 2)) : ""}</td>
+								<td class="down">${t.delta < 0 ? esc(this._num(-t.delta, 2)) : ""}</td>
+								<td class="duty-st-b">${esc(this._num(t.balance, 2))}</td></tr>`).join("")}
+						</table>` : `<p class="text-muted">${__("Nothing moved on this account in the period.")}</p>`}
+						<p class="duty-st-f">${__("Newest first. The balance column is computed forward from the opening figure, so the last row equals the account balance.")}</p>`);
+					$(d.body).find(".duty-shc-pk a[data-d]").on("click", (e) =>
+						draw(parseInt($(e.currentTarget).data("d"), 10)));
+					$(d.body).find(".duty-st-csv").on("click", () => {
+						const csv = ["Date,What,Category,In,Out,Balance"].concat(
+							rows.slice().reverse().map((t) => [
+								t.date, `"${(t.label || t.kind).replace(/"/g, "''")}"`,
+								`"${(t.category || "").replace(/"/g, "''")}"`,
+								t.delta > 0 ? t.delta.toFixed(2) : "",
+								t.delta < 0 ? (-t.delta).toFixed(2) : "",
+								t.balance.toFixed(2)].join(","))).join("\n");
+						frappe.utils.copy_to_clipboard(csv);
+						frappe.show_alert({ message: __("Copied — oldest first, for a spreadsheet"), indicator: "green" });
+					});
+				},
+			});
+		};
+		draw(180);
+		d.show();
+	}
+
+	money_account_dialog() {
+		const d = new frappe.ui.Dialog({
+			title: __("New account"),
+			fields: [
+				{ fieldtype: "Data", fieldname: "nickname", label: __("What you call it"), reqd: 1 },
+				{ fieldtype: "Link", fieldname: "bank", options: "Duty Bank", label: __("Bank"), reqd: 1 },
+				{ fieldtype: "Select", fieldname: "account_type", label: __("Type"),
+				  options: "Current\nSavings\nInvestment\nCash\nCredit Card\nLoan", default: "Current",
+				  description: __("A loan is a debt like a card: enter the opening balance as a negative number and payments into it move it toward zero.") },
+				{ fieldtype: "Link", fieldname: "currency", options: "Currency", label: __("Currency"), reqd: 1 },
+				{ fieldtype: "Float", fieldname: "opening_balance", label: __("Balance today"), precision: 2,
+				  description: __("For a credit card, enter what you owe as a negative figure.") },
+				{ fieldtype: "Date", fieldname: "opening_date", label: __("As at"), default: frappe.datetime.get_today(), reqd: 1 },
+				{ fieldtype: "Float", fieldname: "target_balance", label: __("Target"), precision: 2,
+				  depends_on: "eval:!['Credit Card','Loan'].includes(doc.account_type)",
+				  description: __("Optional. Shown as a ring on the card. Not offered for a card or a loan, where the only sensible target is zero.") },
+				{ fieldtype: "Float", fieldname: "credit_limit", precision: 2,
+				  label: __("Credit limit / original loan"),
+				  depends_on: "eval:['Credit Card','Loan'].includes(doc.account_type)",
+				  description: __("For a card, the limit. For a loan, what you originally borrowed — it is what the progress bar measures against, so you see how much has been cleared rather than only what is left.") },
+				{ fieldtype: "Check", fieldname: "funding", label: __("Money here funds targets and fixed costs"),
+				  default: 0,
+				  description: __("For an account money lands in on its way somewhere else — a salary account, a Wise balance. Its balance counts as money IN HAND against what you still need. It is not counted as raised, because raised means money that has done its job and this has not yet.") },
+				{ fieldtype: "Data", fieldname: "account_no", label: __("Reference"),
+				  description: __("Last four digits or a note. Do not store a full account number.") },
+			],
+			primary_action_label: __("Add"),
+			primary_action: (v) => {
+				frappe.call({
+					method: "frappe.client.insert",
+					args: { doc: Object.assign({ doctype: "Duty Bank Account", active: 1 }, v) },
+					callback: () => { d.hide(); this.refresh_money(); },
+				});
+			},
+		});
+		d.show();
+	}
+
+	money_so_dialog(accounts, existing) {
+		const e = existing || {};
+		const opts = accounts.map((a) => ({
+			value: a.name,
+			label: `${a.nickname} · ${a.bank} (${a.currency})`,
+		}));
+		const d = new frappe.ui.Dialog({
+			title: existing ? __("Standing order") : __("New standing order"),
+			fields: [
+				{ fieldtype: "Data", fieldname: "title", label: __("What for"), reqd: 1, default: e.title || "" },
+				{ fieldtype: "Select", fieldname: "from_account", label: __("From"), options: opts, reqd: 1, default: e.from_account || "",
+				  description: __("The account checked for a shortfall.") },
+				{ fieldtype: "Select", fieldname: "to_account", label: __("Into"), options: [{ value: "", label: "" }].concat(opts), default: e.to_account || "",
+				  description: __("Leave blank where it leaves your accounts entirely.") },
+				{ fieldtype: "Float", fieldname: "amount", label: __("Amount"), reqd: 1, precision: 2, default: e.amount || 0 },
+				{ fieldtype: "Select", fieldname: "frequency", label: __("Every"),
+				  options: "Monthly\nWeekly\nFortnightly\nQuarterly\nYearly", default: e.frequency || "Monthly" },
+				{ fieldtype: "Date", fieldname: "next_date", label: __("Next due"), reqd: 1,
+				  default: e.next_date || frappe.datetime.add_days(frappe.datetime.get_today(), 30) },
+				{ fieldtype: "Check", fieldname: "auto_post", label: __("Post automatically"), default: existing ? (e.auto_post ? 1 : 0) : 1,
+				  description: __("A standing order runs at the bank whether or not you open this. Leave on so the ledger mirrors that.") },
+				{ fieldtype: "Data", fieldname: "counterparty", label: __("Payee"), default: e.counterparty || "" },
+			],
+			primary_action_label: existing ? __("Save") : __("Add"),
+			primary_action: (v) => {
+				// one endpoint for both, so an amendment validates the same way a
+				// new one does rather than going straight to the doctype
+				frappe.call({
+					method: "duty_board.money.save_standing_order",
+					args: Object.assign({ name: existing ? e.name : null, active: 1 }, v),
+					callback: () => { d.hide(); this.refresh_money(); },
+				});
+			},
+			secondary_action_label: existing ? __("Delete") : null,
+			secondary_action: existing
+				? () => frappe.confirm(
+					__("Delete <b>{0}</b>? Pausing keeps its history; deleting does not.", [frappe.utils.escape_html(e.title || "")]),
+					() => frappe.call({
+						method: "duty_board.money.delete_standing_order",
+						args: { name: e.name },
+						callback: () => { d.hide(); this.refresh_money(); },
+					}))
+				: null,
+		});
+		d.show();
+	}
+
+	refresh_oversight() {
+		if (this._ov_cust) return this.render_ov_detail(this._ov_cust);
+		const $l = this.$oversight.find(".duty-ov-list");
+		this.$oversight.find(".duty-ov-detail").hide();
+		$l.show();
+		if (!$l.children().length) $l.html(`<div class="text-muted">${__("Loading...")}</div>`);
+		frappe.call({
+			method: "duty_board.oversight.customers",
+			freeze: false,
+			callback: (r) => {
+				this._ov_rows = r.message || [];
+				this.render_ov_list(this._ov_rows);
+			},
+		});
+	}
+
+	render_ov_list(rows) {
+		const esc = frappe.utils.escape_html;
+		const $l = this.$oversight.find(".duty-ov-list");
+		const sum = (k) => rows.reduce((a, b) => a + (b[k] || 0), 0);
+		const tot = sum("open"), late = sum("overdue");
+		const iss = sum("issues"), issLate = sum("issues_overdue"), issUn = sum("issues_unassigned");
+		const tsk = sum("tasks");
+		// Non-project work summarised in its own right. Issues were being added
+		// into one 'open' number with project tasks, which hid the split — a
+		// customer with 40 tasks and no tickets is a different situation from
+		// one with 40 tickets, and only the second needs somebody today.
+		this._ov_filter = this._ov_filter || "all";
+		const f = this._ov_filter;
+		const shown = rows.filter((c) =>
+			f === "issues" ? (c.issues || 0) > 0 :
+			f === "issues_overdue" ? (c.issues_overdue || 0) > 0 :
+			f === "issues_unassigned" ? (c.issues_unassigned || 0) > 0 :
+			f === "tasks" ? (c.tasks || 0) > 0 : true
+		);
+		const pill = (key, label, n, cls) =>
+			`<a class="duty-ov-pill ${cls || ""}${this._ov_filter === key ? " on" : ""}" data-f="${key}">${n} ${label}</a>`;
+		$l.html(`
+			<div class="duty-ov-head">
+				<b>${__("Oversight")}</b>
+				<span class="duty-ov-sub">${rows.length} ${__("customers")} · ${tot} ${__("open")}${late ? ` · <span class="duty-ov-late">${late} ${__("overdue")}</span>` : ""}</span>
+				<div class="duty-ov-summary">
+					<span class="duty-ov-slabel">${__("Tickets & issues")}</span>
+					${pill("all", __("all"), tot)}
+					${pill("issues", __("tickets"), iss, "iss")}
+					${issLate ? pill("issues_overdue", __("overdue"), issLate, "late") : ""}
+					${issUn ? pill("issues_unassigned", __("unassigned"), issUn, "un") : ""}
+					${tsk ? pill("tasks", __("project tasks"), tsk, "tsk") : ""}
+				</div>
+				<a class="duty-ov-refresh" title="${__("Refresh")}">&#8635;</a>
+			</div>
+			<div class="duty-ov-cards">
+			${shown.length ? shown.map((c) => `
+				<div class="duty-ov-card${c.overdue ? " has-late" : ""}" data-c="${esc(c.customer)}">
+					<div class="duty-ov-cname">${esc(c.customer)}</div>
+					<div class="duty-ov-meta">
+						${c.projects} ${c.projects === 1 ? __("project") : __("projects")} ·
+						${c.rooms} ${c.rooms === 1 ? __("room") : __("rooms")}
+					</div>
+					<div class="duty-ov-chips">
+						<span class="duty-ov-chip">${c.open} ${__("open")}</span>
+						${c.in_progress ? `<span class="duty-ov-chip prog">${c.in_progress} ${__("in progress")}</span>` : ""}
+						${c.overdue ? `<span class="duty-ov-chip late">${c.overdue} ${__("overdue")}</span>` : ""}
+						${c.unassigned ? `<span class="duty-ov-chip un">${c.unassigned} ${__("unassigned")}</span>` : ""}
+					</div>
+				</div>`).join("") : `<div class="text-muted" style="padding:14px">${__("No customers with an open client room.")}</div>`}
+			</div>
+		`);
+		$l.find(".duty-ov-refresh").off("click").on("click", () => { this._ov_cust = null; this.refresh_oversight(); });
+		$l.find(".duty-ov-pill").off("click").on("click", (e) => {
+			this._ov_filter = $(e.currentTarget).data("f");
+			this.render_ov_list(this._ov_rows || []);
+		});
+		$l.find(".duty-ov-card").off("click").on("click", (e) => {
+			this._ov_cust = $(e.currentTarget).data("c");
+			this.render_ov_detail(this._ov_cust);
+		});
+	}
+
+	render_ov_detail(customer) {
+		const esc = frappe.utils.escape_html;
+		const $d = this.$oversight.find(".duty-ov-detail");
+		this.$oversight.find(".duty-ov-list").hide();
+		$d.show().html(`<div class="text-muted" style="padding:14px">${__("Loading...")}</div>`);
+		frappe.call({
+			method: "duty_board.oversight.customer_tasks",
+			args: { customer: customer },
+			freeze: false,
+			callback: (r) => {
+				const d = r.message || {};
+				this._ov_data = d;
+				const ts = d.tasks || [];
+				const byCol = { "In Progress": [], "To Do": [], Suspended: [] };
+				ts.forEach((t) => (byCol[t.column] || byCol["To Do"]).push(t));
+				const iss = d.issues || [];
+				const group = (label, arr) => !arr.length ? "" : `
+					<div class="duty-ov-group"><div class="duty-ov-glabel">${label} <span>${arr.length}</span></div>
+					${arr.map((t) => this.ov_task_row(t)).join("")}</div>`;
+				// Issues link to the customer directly rather than through a
+				// project, and they are what a client actually raises — so they
+				// lead rather than being appended below the project work.
+				const iGroup = (label, arr) => !arr.length ? "" : `
+					<div class="duty-ov-group"><div class="duty-ov-glabel">${label} <span>${arr.length}</span></div>
+					${arr.map((i) => this.ov_issue_row(i)).join("")}</div>`;
+				const iProg = iss.filter((i) => i.status === "In Progress");
+				const iOpen = iss.filter((i) => i.status === "Open");
+				$d.html(`
+					<div class="duty-ov-head">
+						<a class="duty-ov-back">&#8592; ${__("All customers")}</a>
+						<b>${esc(customer)}</b>
+						<span class="duty-ov-sub">${(d.issues || []).length} ${__("issues")} · ${ts.length} ${__("project tasks")}</span>
+						<a class="btn btn-xs btn-default duty-ov-newissue">+ ${__("New issue")}</a>
+						<a class="btn btn-xs btn-primary duty-ov-new">+ ${__("New task")}</a>
+					</div>
+					${!(d.projects || []).length ? `<div class="duty-ov-warn">${__("This customer has no project, so there is nothing to hold a task. Create a project first.")}</div>` : ""}
+					<div class="duty-ov-tasks">
+						${iGroup(__("Issues — in progress"), iProg)}
+						${iGroup(__("Issues — open"), iOpen)}
+						${group(__("Project work — in progress"), byCol["In Progress"])}
+						${group(__("Project work — to do"), byCol["To Do"])}
+						${group(__("Project work — suspended"), byCol.Suspended)}
+						${!ts.length && !iss.length ? `<div class="text-muted" style="padding:14px">${__("Nothing open for this customer.")}</div>` : ""}
+					</div>
+				`);
+				$d.find(".duty-ov-back").on("click", () => { this._ov_cust = null; this.refresh_oversight(); });
+				$d.find(".duty-ov-new").on("click", () => this.ov_new_task(d));
+				$d.find(".duty-ov-newissue").on("click", () => this.ov_new_issue(d));
+				this.wire_ov_rows($d);
+				this.wire_ov_issues($d);
+			},
+		});
+	}
+
+	// Reload the oversight list once whatever was opened is closed, so an edit
+	// made in the drawer or the card dialog is reflected rather than leaving a
+	// stale list the user would reasonably trust.
+	ov_reload_on_close() {
+		const back = () => { if (this._ov_cust) this.render_ov_detail(this._ov_cust); };
+		setTimeout(() => {
+			// issue drawer: wrap its hide once
+			const shim = this._idshim;
+			if (shim && !shim._ov_wrapped) {
+				const orig = shim.hide;
+				shim.hide = () => { orig(); back(); };
+				shim._ov_wrapped = 1;
+			}
+			// card dialog: a normal modal
+			const dlg = window.cur_dialog;
+			if (dlg && dlg.$wrapper && !dlg._ov_wrapped) {
+				dlg._ov_wrapped = 1;
+				dlg.$wrapper.one("hidden.bs.modal", back);
+			}
+		}, 0);
+	}
+
+	ov_task_row(t) {
+		const esc = frappe.utils.escape_html;
+		const due = t.due_date ? frappe.datetime.str_to_user(t.due_date) : __("no date");
+		return `
+			<div class="duty-ov-task${t.overdue ? " late" : ""}" data-n="${esc(t.name)}">
+				<div class="duty-ov-tmain">
+					<div class="duty-ov-ttitle">${esc(t.title)}</div>
+					<div class="duty-ov-tmeta">
+						${esc(t.project_title || "")} ·
+						<span class="${t.overdue ? "duty-ov-late" : ""}">${due}</span> ·
+						${t.assignee_name ? esc(t.assignee_name) : `<span class="duty-ov-un">${__("unassigned")}</span>`}
+						${t.working_by ? ` · <span class="duty-ov-live">&#9679; ${esc(t.working_by)} ${__("working")}</span>` : ""}
+						${t.awaiting_client ? ` · <span class="duty-ov-await">&#9203; ${__("awaiting client")}</span>` : ""}
+					</div>
+				</div>
+				<div class="duty-ov-tacts">
+					${t.column !== "In Progress" ? `<a class="btn btn-xs btn-default ov-start">${__("Start")}</a>` : ""}
+					<a class="btn btn-xs btn-default ov-assign">${__("Reassign")}</a>
+					<a class="btn btn-xs btn-primary ov-done">${__("Complete")}</a>
+				</div>
+			</div>`;
+	}
+
+	wire_ov_rows($d) {
+		const reload = () => this.render_ov_detail(this._ov_cust);
+		// Open the real thing rather than a summary. The Issues face and the
+		// Projects face already own "what this looks like open", and the client
+		// room opens them the same way — reusing both means description,
+		// attachments, notes, subtasks, checklists, SLA and the activity trail
+		// all appear without a second implementation to keep in step.
+		$d.find(".duty-ov-task:not(.is-issue) .duty-ov-tmain").off("click").on("click", (e) => {
+			const n = $(e.currentTarget).closest(".duty-ov-task").data("n");
+			frappe.call({
+				method: "duty_board.projects.get_card",
+				args: { name: n },
+				callback: (r) => {
+					if (!r.message) return;
+					this.task_dialog(r.message.project, r.message);
+					this.ov_reload_on_close();
+				},
+			});
+		});
+		$d.find(".ov-start").off("click").on("click", (e) => {
+			const n = $(e.currentTarget).closest(".duty-ov-task").data("n");
+			frappe.call({
+				method: "duty_board.projects.start_card_work",
+				args: { name: n },
+				callback: () => { frappe.show_alert({ message: __("Started"), indicator: "green" }); reload(); },
+			});
+		});
+		$d.find(".ov-done").off("click").on("click", (e) => {
+			const $t = $(e.currentTarget).closest(".duty-ov-task");
+			frappe.confirm(__("Mark <b>{0}</b> complete?", [frappe.utils.escape_html($t.find(".duty-ov-ttitle").text())]), () => {
+				frappe.call({
+					method: "duty_board.projects.move_task",
+					args: { name: $t.data("n"), column: "Completed" },
+					callback: () => { frappe.show_alert({ message: __("Completed"), indicator: "green" }); reload(); },
+				});
+			});
+		});
+		$d.find(".ov-assign").off("click").on("click", (e) => {
+			const $t = $(e.currentTarget).closest(".duty-ov-task");
+			const n = $t.data("n");
+			const task = (this._ov_data.tasks || []).find((x) => x.name === n) || {};
+			const staff = (this._ov_data.staff || []).map((s) => ({ label: s.full_name || s.user, value: s.user }));
+			const dlg = new frappe.ui.Dialog({
+				title: __("Reassign"),
+				fields: [
+					{ fieldtype: "Select", fieldname: "assignee", label: __("Assign to"), reqd: 1,
+					  options: staff.map((s) => s.value).join("\n"), default: task.assignee || "" },
+					{ fieldtype: "Date", fieldname: "due_date", label: __("Due date"), reqd: 1,
+					  default: task.due_date || frappe.datetime.add_days(frappe.datetime.get_today(), 3) },
+				],
+				primary_action_label: __("Reassign"),
+				primary_action: (v) => {
+					frappe.call({
+						method: "duty_board.projects.update_task",
+						args: { name: n, assignee: v.assignee, due_date: v.due_date },
+						callback: () => { dlg.hide(); frappe.show_alert({ message: __("Reassigned"), indicator: "green" }); reload(); },
+					});
+				},
+			});
+			dlg.show();
+		});
+	}
+
+	ov_issue_row(i) {
+		const esc = frappe.utils.escape_html;
+		const due = i.due_date ? frappe.datetime.str_to_user(i.due_date) : __("no date");
+		return `
+			<div class="duty-ov-task is-issue${i.overdue ? " late" : ""}" data-i="${esc(i.name)}">
+				<div class="duty-ov-tmain">
+					<div class="duty-ov-ttitle">
+						<span class="duty-ov-sev sev-${esc((i.severity || "Medium").toLowerCase())}">${esc(i.severity || "")}</span>
+						${esc(i.title)}
+					</div>
+					<div class="duty-ov-tmeta">
+						${esc(i.issue_type || __("Issue"))} ·
+						<span class="${i.overdue ? "duty-ov-late" : ""}">${due}</span> ·
+						${i.assignee_name ? esc(i.assignee_name) : `<span class="duty-ov-un">${__("unassigned")}</span>`}
+						${i.client_requested ? ` · <span class="duty-ov-await">${__("client raised")}</span>` : ""}
+						${i.raised_by_name ? ` · ${__("by")} ${esc(i.raised_by_name)}` : ""}
+						${i.working ? ` · <span class="duty-ov-live">&#9679; ${__("being worked")}</span>` : ""}
+						${!i.acknowledged_at ? ` · <span class="duty-ov-un">${__("not acknowledged")}</span>` : ""}
+					</div>
+				</div>
+				<div class="duty-ov-tacts">
+					${i.status !== "In Progress" ? `<a class="btn btn-xs btn-default ovi-start">${__("Start")}</a>` : ""}
+					<a class="btn btn-xs btn-default ovi-assign">${__("Assign")}</a>
+					<a class="btn btn-xs btn-primary ovi-done">${__("Resolve")}</a>
+				</div>
+			</div>`;
+	}
+
+	wire_ov_issues($d) {
+		const reload = () => this.render_ov_detail(this._ov_cust);
+		$d.find(".duty-ov-task.is-issue .duty-ov-tmain").off("click").on("click", (e) => {
+			this.issue_detail_dialog($(e.currentTarget).closest(".duty-ov-task").data("i"));
+			this.ov_reload_on_close();
+		});
+		$d.find(".ovi-start").off("click").on("click", (e) => {
+			const n = $(e.currentTarget).closest(".duty-ov-task").data("i");
+			frappe.call({
+				method: "duty_board.api.start_issue_work",
+				args: { name: n },
+				callback: () => { frappe.show_alert({ message: __("Started"), indicator: "green" }); reload(); },
+			});
+		});
+		$d.find(".ovi-done").off("click").on("click", (e) => {
+			const n = $(e.currentTarget).closest(".duty-ov-task").data("i");
+			const dlg = new frappe.ui.Dialog({
+				title: __("Resolve issue"),
+				fields: [{ fieldtype: "Small Text", fieldname: "resolution", label: __("What was done"), reqd: 1 }],
+				primary_action_label: __("Resolve"),
+				primary_action: (v) => {
+					frappe.call({
+						method: "duty_board.api.update_issue_status",
+						args: { name: n, status: "Resolved", resolution: v.resolution },
+						callback: () => { dlg.hide(); frappe.show_alert({ message: __("Resolved"), indicator: "green" }); reload(); },
+					});
+				},
+			});
+			dlg.show();
+		});
+		$d.find(".ovi-assign").off("click").on("click", (e) => {
+			const n = $(e.currentTarget).closest(".duty-ov-task").data("i");
+			const iss = (this._ov_data.issues || []).find((x) => x.name === n) || {};
+			const staff = (this._ov_data.staff || []).map((s) => s.user);
+			const dlg = new frappe.ui.Dialog({
+				title: __("Assign issue"),
+				fields: [
+					{ fieldtype: "Select", fieldname: "user", label: __("Add assignee"), reqd: 1,
+					  options: staff.join("\n") },
+					{ fieldtype: "Date", fieldname: "due_date", label: __("Due date"), reqd: 1,
+					  default: iss.due_date || frappe.datetime.add_days(frappe.datetime.get_today(), 3) },
+					{ fieldtype: "HTML", fieldname: "note",
+					  options: `<div class="text-muted" style="font-size:12px">${__("Issues carry a list of assignees rather than one owner, so this adds a person. Removing somebody is done on the issue itself.")}</div>` },
+				],
+				primary_action_label: __("Assign"),
+				primary_action: (v) => {
+					frappe.call({
+						method: "duty_board.api.update_issue",
+						args: { name: n, add_assignees: JSON.stringify([v.user]), due_date: v.due_date },
+						callback: () => { dlg.hide(); frappe.show_alert({ message: __("Assigned"), indicator: "green" }); reload(); },
+					});
+				},
+			});
+			dlg.show();
+		});
+	}
+
+	ov_new_issue(d) {
+		const staff = (d.staff || []).map((s) => s.user);
+		const dlg = new frappe.ui.Dialog({
+			title: __("New issue for {0}", [d.customer]),
+			fields: [
+				{ fieldtype: "Data", fieldname: "title", label: __("Issue"), reqd: 1 },
+				{ fieldtype: "Small Text", fieldname: "description", label: __("Detail") },
+				{ fieldtype: "Select", fieldname: "severity", label: __("Severity"),
+				  options: "Low\nMedium\nHigh\nCritical", default: "Medium" },
+				{ fieldtype: "Select", fieldname: "issue_type", label: __("Type"),
+				  options: "Support\nBug\nFeature Request\nConfiguration\nTraining\nData Correction" },
+				{ fieldtype: "Select", fieldname: "assignee", label: __("Assign to"),
+				  options: [""].concat(staff).join("\n") },
+				{ fieldtype: "Date", fieldname: "due_date", label: __("Due date"),
+				  default: frappe.datetime.add_days(frappe.datetime.get_today(), 3) },
+			],
+			primary_action_label: __("Create"),
+			primary_action: (v) => {
+				frappe.call({
+					method: "duty_board.api.create_issue",
+					args: {
+						title: v.title, customer: d.customer, severity: v.severity || "Medium",
+						due_date: v.due_date || null, description: v.description || null,
+						issue_type: v.issue_type || null,
+						assignees: v.assignee ? JSON.stringify([v.assignee]) : null,
+						source_type: "Oversight",
+					},
+					callback: () => {
+						dlg.hide();
+						frappe.show_alert({ message: __("Issue created"), indicator: "green" });
+						this.render_ov_detail(this._ov_cust);
+					},
+				});
+			},
+		});
+		dlg.show();
+	}
+
+	ov_new_task(d) {
+		const projects = d.projects || [];
+		if (!projects.length) {
+			frappe.msgprint(__("This customer has no project. A task has to belong to one — create a project first."));
+			return;
+		}
+		const staff = (d.staff || []).map((s) => s.user);
+		const dlg = new frappe.ui.Dialog({
+			title: __("New task for {0}", [d.customer]),
+			fields: [
+				{ fieldtype: "Data", fieldname: "title", label: __("Task"), reqd: 1 },
+				{ fieldtype: "Select", fieldname: "project", label: __("Project"), reqd: 1,
+				  options: projects.map((p) => p.name).join("\n"),
+				  default: projects.length === 1 ? projects[0].name : "",
+				  description: projects.length > 1 ? __("This customer has more than one project.") : "" },
+				{ fieldtype: "Select", fieldname: "assignee", label: __("Assign to"),
+				  options: [""].concat(staff).join("\n") },
+				{ fieldtype: "Date", fieldname: "due_date", label: __("Due date"),
+				  default: frappe.datetime.add_days(frappe.datetime.get_today(), 3) },
+				{ fieldtype: "Select", fieldname: "urgency", label: __("Urgency"),
+				  options: "Low\nMedium\nHigh\nCritical", default: "Medium" },
+			],
+			primary_action_label: __("Create"),
+			primary_action: (v) => {
+				frappe.call({
+					method: "duty_board.projects.create_task",
+					args: { project: v.project, title: v.title, column: "To Do",
+							assignee: v.assignee || null, due_date: v.due_date || null,
+							urgency: v.urgency || "Medium" },
+					callback: () => {
+						dlg.hide();
+						frappe.show_alert({ message: __("Task created"), indicator: "green" });
+						this.render_ov_detail(this._ov_cust);
+					},
+				});
+			},
+		});
+		dlg.show();
+	}
+
 	refresh_clients(silent) {
 		frappe.call({
 			method: "duty_board.client_room.get_rooms",
@@ -5323,6 +10198,7 @@ this.$me.find(".duty-req-ok").on("click", (e) => {
 	}
 
 	load_client_room(name, silent) {
+		this._open_room = name;
 		frappe.call({
 			method: "duty_board.client_room.get_room",
 			args: { name: name },
@@ -5330,9 +10206,38 @@ this.$me.find(".duty-req-ok").on("click", (e) => {
 		});
 	}
 
+	// The server has always paginated (before / has_more); neither front end used
+	// it, so chat was capped at the newest 40 messages with no way back. Fetch the
+	// page before the oldest message on screen and prepend it, holding the
+	// reader's scroll position so the view does not jump.
+	cr_load_older($wrap) {
+		const $btn = $wrap.find(".duty-cr-older");
+		const $box = $wrap.find(".duty-cr-msgs");
+		const oldest = $box.find(".duty-cr-msg").first().data("creation");
+		if (!oldest || !this._open_room) return;
+		$btn.prop("disabled", true).text(__("Loading…"));
+		const prevH = $box[0].scrollHeight;
+		frappe.call({
+			method: "duty_board.client_room.get_room",
+			args: { name: this._open_room, before: oldest },
+			callback: (r) => {
+				const msgs = (r.message && r.message.messages) || [];
+				if (!msgs.length) {
+					$btn.remove();
+					return;
+				}
+				$btn.after(msgs.map((m) => this.cr_msg(m)).join(""));
+				if (r.message.has_more) $btn.prop("disabled", false).text("↑ " + __("Load older messages"));
+				else $btn.remove();
+				$box[0].scrollTop = $box[0].scrollHeight - prevH;
+			},
+			error: () => $btn.prop("disabled", false).text("↑ " + __("Load older messages")),
+		});
+	}
+
 	cr_msg(m) {
 		return `
-			<div class="duty-cr-msg ${m.internal ? "duty-cr-internal" : m.mine ? "duty-cr-mine" : m.is_staff ? "duty-cr-staff" : "duty-cr-client"}" data-name="${m.name}">
+			<div class="duty-cr-msg ${m.internal ? "duty-cr-internal" : m.mine ? "duty-cr-mine" : m.is_staff ? "duty-cr-staff" : "duty-cr-client"}" data-name="${m.name}" data-creation="${m.creation}" data-who="${frappe.utils.escape_html((m.who || m.owner).split(" ")[0])}" data-msg="${frappe.utils.escape_html((m.message || "\u{1F4CE}").slice(0, 80))}">
 				<a class="duty-cr-reply" title="${__("Reply")}">↩</a>
 				<span class="duty-msg-who" style="color:${this.user_color(m.owner)}">${m.internal ? "🔒 " : ""}${frappe.utils.escape_html((m.who || m.owner).split(" ")[0])}${m.is_staff ? "" : ` · ${__("client")}`}</span>
 				${m.ref ? `<a class="duty-cr-quote" data-target="${m.ref}"><b>${frappe.utils.escape_html(m.ref_who || "")}</b>: ${frappe.utils.escape_html(m.ref_text || "")}</a>` : ""}
@@ -5379,7 +10284,7 @@ this.$me.find(".duty-req-ok").on("click", (e) => {
 			</div>
 			<div class="duty-cr-main">
 			<div class="duty-cr-chatcol">
-			<div class="duty-cr-msgs">${(x.messages || []).map((m) => this.cr_msg(m)).join("") || `<div class="text-muted">${__("No messages yet.")}</div>`}</div>
+			<div class="duty-cr-msgs">${x.has_more ? `<button class="btn btn-xs btn-default duty-cr-older">↑ ${__("Load older messages")}</button>` : ""}${(x.messages || []).map((m) => this.cr_msg(m)).join("") || `<div class="text-muted">${__("No messages yet.")}</div>`}</div>
 			<div class="duty-cr-typing" style="display:none"></div>
 			<div class="duty-cr-replychip"></div>
 			<div class="duty-cr-pending"></div>
@@ -5462,19 +10367,21 @@ this.$me.find(".duty-req-ok").on("click", (e) => {
 			}
 		};
 		const $msgs2 = $room.find(".duty-cr-msgs");
-		$msgs2.find(".duty-cr-edit").on("click", (e) => {
+		$msgs2.on("click", ".duty-cr-edit", (e) => {
 			const $t = $(e.currentTarget);
 			this.edit_prompt("room", $t.data("name"), $t.data("text"), !!$t.data("att"),
 				() => { if (this._open_room) this.load_client_room(this._open_room); });
 		});
-		$msgs2.find(".duty-cr-reply").on("click", (e) => {
+		$msgs2.on("click", ".duty-cr-older", () => this.cr_load_older($room));
+		// delegated so messages prepended by "load older" are live too, and read
+		// from the DOM rather than x.messages, which only holds the newest page
+		$msgs2.on("click", ".duty-cr-reply", (e) => {
 			const $m = $(e.currentTarget).closest(".duty-cr-msg");
-			const mm = (x.messages || []).find((q) => q.name === $m.data("name"));
-			if (!mm) return;
+			if (!$m.length) return;
 			this._cr_reply = {
-				name: mm.name,
-				who: (mm.who || mm.owner).split(" ")[0],
-				text: (mm.message || "📎").slice(0, 80),
+				name: $m.data("name"),
+				who: $m.data("who"),
+				text: $m.data("msg"),
 			};
 			if (mm.internal) {
 				$int.prop("checked", true);
@@ -6180,6 +11087,299 @@ this.$me.find(".duty-req-ok").on("click", (e) => {
 		});
 	}
 
+	/* ---------------------------------------------------------------- The Plan
+	   The Library viewed by intention rather than by shelf.
+
+	   Books with no planned month do not appear here at all — they keep their
+	   place on the shelf and stay searchable, but a planner that lists
+	   everything you own is a catalogue, and catalogues get ignored. What shows
+	   is only what you decided to read, and when.
+
+	   Reference books are excluded server-side for the same reason. */
+
+	_lib_plan_render($L) {
+		frappe.call({
+			method: "duty_board.library.reading_plan",
+			callback: (r) => {
+				const d = r.message || {};
+				this._plan = d;
+				const esc = frappe.utils.escape_html;
+				const row = (b, kind) => {
+					const cover = b.cover
+						? `<span class="duty-pl-cov" style="background-image:url('${esc(b.cover)}')"></span>`
+						: `<span class="duty-pl-cov" style="background:${this._lib_grad(b.title)}"></span>`;
+					const when = b.plan_month ? this._month_label(b.plan_month) : "";
+					const times = (b.times_read || 0) > 1 ? ` · ${b.times_read}\u00d7 read` : "";
+					return `
+						<div class="duty-pl-row" data-book="${esc(b.name)}">
+							${cover}
+							<div class="duty-pl-main">
+								<div class="duty-pl-t">${esc(b.title)}</div>
+								<div class="duty-pl-m">${esc(b.author || "")}${when ? ` · ${esc(when)}` : ""}${
+									b.pct ? ` · ${b.pct}%` : ""}${times}${
+									kind === "revisit" && b.last_finished ? ` · ${__("last read")} ${esc(String(b.last_finished))}` : ""}</div>
+								${b.plan_note ? `<div class="duty-pl-why">${esc(b.plan_note)}</div>` : ""}
+							</div>
+							<div class="duty-pl-acts">
+								${kind !== "reading" ? `<a class="btn btn-xs btn-default pl-start">${__("Start")}</a>` : ""}
+								${kind === "reading" ? `<a class="btn btn-xs btn-primary pl-finish">${__("Finished")}</a>` : ""}
+								<a class="btn btn-xs btn-default pl-edit">${__("Plan")}</a>
+							</div>
+						</div>`;
+				};
+				const block = (label, arr, kind, hint) => !arr || !arr.length ? "" : `
+					<div class="duty-pl-block">
+						<div class="duty-pl-h">${label} <span>${arr.length}</span>${hint ? `<i>${hint}</i>` : ""}</div>
+						${arr.map((b) => row(b, kind)).join("")}
+					</div>`;
+
+				const nothing = !(d.reading || []).length && !(d.this_month || []).length &&
+					!(d.overdue || []).length && !(d.revisit || []).length && !(d.upcoming || []).length;
+
+				$L.append(`
+					<div class="duty-pl-wrap">
+						<div class="duty-pl-top">
+							<b>${__("Reading plan")}</b>
+							<span class="duty-pl-sub">${this._month_label(d.month)}${
+								d.unplanned ? ` · ${d.unplanned} ${__("unplanned on the shelf")}` : ""}${
+								d.reference ? ` · ${d.reference} ${__("reference")}` : ""}</span>
+						</div>
+						${block(`📖 ${__("Reading now")}`, d.reading, "reading")}
+						${block(`⚠ ${__("Overdue")}`, d.overdue, "plan", __("planned for a month that has passed"))}
+						${block(`🗓 ${__("This month")}`, d.this_month, "plan")}
+						${block(`↻ ${__("Due to revisit")}`, d.revisit, "revisit", __("you marked these worth another pass"))}
+						${block(`→ ${__("Coming up")}`, d.upcoming, "plan")}
+						${nothing ? `<div class="duty-lb-empty">${__("Nothing planned. Open any book on the shelf and set a month.")}</div>` : ""}
+					</div>`);
+
+				$L.find(".pl-start").on("click", (e) => {
+					const bk = $(e.currentTarget).closest(".duty-pl-row").data("book");
+					frappe.call({ method: "duty_board.library.start_reading", args: { book: bk },
+						callback: () => this._lib_render() });
+				});
+				$L.find(".pl-finish").on("click", (e) => {
+					const bk = $(e.currentTarget).closest(".duty-pl-row").data("book");
+					this._lib_finish_dialog(bk);
+				});
+				$L.find(".pl-edit").on("click", (e) => {
+					const bk = $(e.currentTarget).closest(".duty-pl-row").data("book");
+					const b = (this._lib_books || []).find((x) => x.name === bk) || { name: bk };
+					this._lib_plan_dialog(b);
+				});
+				$L.find(".duty-pl-row").on("click", (e) => {
+					if ($(e.target).closest(".duty-pl-acts").length) return;
+					this.open_reader($(e.currentTarget).data("book"));
+				});
+			},
+		});
+	}
+
+	/* ---------------------------------------------------------- Highlights
+	   Everything you marked worth keeping, from every book, in one place.
+
+	   These were stored per book and only ever shown inside the book they came
+	   from — so the thing a personal library actually produces over years, the
+	   distillate of everything you read, existed nowhere as a whole. */
+
+	/* ------------------------------------------------------- The author index
+	   Rendered as the index at the back of a book: A–Z, in columns, with counts.
+
+	   Deliberately not a chip row. A few topics work as chips; several hundred
+	   authors would be a wall, and a wall is the tacky version of this. An index
+	   is a pattern a reader already knows how to use, it scales to a thousand
+	   names, and it rewards browsing — which a dropdown does not. */
+
+	_lib_authors_render($L) {
+		const esc = frappe.utils.escape_html;
+		$L.append(`<div class="duty-az-wrap"><div class="duty-hl-load">${__("Loading…")}</div></div>`);
+		frappe.call({
+			method: "duty_board.library.taxonomy",
+			callback: (r) => {
+				const rows = ((r.message || {}).authors || []);
+				const $w = $L.find(".duty-az-wrap").empty();
+				if (!rows.length) {
+					$w.append(`<div class="duty-lb-empty">${__("No authors recorded yet. Edit a book to name one.")}</div>`);
+					return;
+				}
+				// surname where there is one, so Peter Drucker files under D
+				const key = (n) => {
+					const parts = String(n).trim().split(/\s+/);
+					const last = parts.length > 1 ? parts[parts.length - 1] : parts[0];
+					const c = (last[0] || "?").toUpperCase();
+					return /[A-Z]/.test(c) ? c : "#";
+				};
+				const q = (this._lib_q || "").toLowerCase();
+				const list = q ? rows.filter((a) => a.name.toLowerCase().includes(q)) : rows;
+				const groups = {};
+				list.forEach((a) => (groups[key(a.name)] = groups[key(a.name)] || []).push(a));
+				const letters = Object.keys(groups).sort();
+				letters.forEach((L) =>
+					groups[L].sort((a, b) => {
+						const s = (n) => { const p = String(n).trim().split(/\s+/); return (p.length > 1 ? p[p.length - 1] : p[0]) + " " + n; };
+						return s(a.name).localeCompare(s(b.name));
+					})
+				);
+				const most = rows.slice(0, 8);
+				$w.append(`
+					<div class="duty-pl-top">
+						<b>${__("Authors")}</b>
+						<span class="duty-pl-sub">${rows.length} ${__("names")}${
+							q ? ` · ${__("matching")} “${esc(this._lib_q)}”` : ""}</span>
+					</div>
+					${!q && most.length > 1 ? `
+						<div class="duty-az-most">
+							<span>${__("Most on the shelf")}</span>
+							${most.map((a) => `<a class="duty-az-n duty-az-big" data-a="${esc(a.name)}">${esc(a.name)} <i>${a.n}</i></a>`).join("")}
+						</div>` : ""}
+					<div class="duty-az-jump">${letters.map((L) => `<a href="#duty-az-${L}">${L}</a>`).join("")}</div>
+					${letters.map((L) => `
+						<div class="duty-az-sec" id="duty-az-${L}">
+							<div class="duty-az-l">${L}</div>
+							<div class="duty-az-cols">
+								${groups[L].map((a) => `<a class="duty-az-n" data-a="${esc(a.name)}">${esc(a.name)} <i>${a.n}</i></a>`).join("")}
+							</div>
+						</div>`).join("")}
+					${!list.length ? `<div class="duty-lb-empty">${__("No author matches — try fewer letters.")}</div>` : ""}`);
+				$w.find(".duty-az-n").on("click", (e) => {
+					e.preventDefault();
+					this._lib_author = $(e.currentTarget).data("a");
+					this._lib_mode = "shelf";
+					this._lib_cat = "All";
+					this._lib_render();
+				});
+			},
+		});
+	}
+
+	_lib_hl_render($L) {
+		const esc = frappe.utils.escape_html;
+		$L.append(`<div class="duty-hl-wrap"><div class="duty-hl-load">${__("Loading…")}</div></div>`);
+		frappe.call({
+			method: "duty_board.library.my_highlights",
+			args: { q: this._lib_q || "", limit: 400 },
+			callback: (r) => {
+				const d = r.message || {};
+				const hl = d.highlights || [];
+				const byBook = {};
+				hl.forEach((h) => (byBook[h.book] = byBook[h.book] || []).push(h));
+				const $w = $L.find(".duty-hl-wrap").empty();
+				$w.append(`
+					<div class="duty-pl-top">
+						<b>${__("Highlights")}</b>
+						<span class="duty-pl-sub">${hl.length} ${__("from")} ${Object.keys(byBook).length} ${__("books")}${
+							this._lib_q ? ` · ${__("matching")} “${esc(this._lib_q)}”` : ""}</span>
+					</div>`);
+				if (!hl.length) {
+					$w.append(`<div class="duty-lb-empty">${
+						this._lib_q ? __("No highlights match — try fewer letters.")
+						: __("Nothing highlighted yet. Select text while reading to keep it.")}</div>`);
+					return;
+				}
+				Object.keys(byBook).forEach((bk) => {
+					const rows = byBook[bk];
+					const b0 = rows[0];
+					$w.append(`
+						<div class="duty-hl-book">
+							<div class="duty-hl-bh" data-book="${esc(bk)}">
+								<b>${esc(b0.book_title || bk)}</b>
+								<span>${esc(b0.book_author || "")} · ${rows.length} ${__("kept")}</span>
+							</div>
+							${rows.map((h) => `
+								<div class="duty-hl-item" data-book="${esc(h.book)}" data-ch="${esc(h.chapter || "")}">
+									<div class="duty-hl-q">${esc(h.text || "")}</div>
+									${h.note ? `<div class="duty-hl-n">${esc(h.note)}</div>` : ""}
+									<div class="duty-hl-m">${h.chapter_no ? `${__("Ch")} ${h.chapter_no}` : ""}${
+										h.chapter_title ? ` · ${esc(h.chapter_title)}` : ""} · ${esc(h.on)}</div>
+								</div>`).join("")}
+						</div>`);
+				});
+				$w.find(".duty-hl-bh, .duty-hl-item").on("click", (e) => {
+					this.open_reader($(e.currentTarget).data("book"));
+				});
+			},
+		});
+	}
+
+	_month_label(ym) {
+		if (!ym) return "";
+		const [y, m] = String(ym).split("-");
+		const names = ["January", "February", "March", "April", "May", "June", "July",
+			"August", "September", "October", "November", "December"];
+		return `${__(names[parseInt(m, 10) - 1] || "")} ${y}`;
+	}
+
+	// Month picker rather than free text: this gets used a thousand times, and a
+	// typo in a date you will not look at for a year is expensive to notice.
+	_month_options(back, fwd) {
+		const now = new Date();
+		const out = [""];
+		for (let i = -(back || 0); i <= (fwd || 24); i++) {
+			const d = new Date(now.getFullYear(), now.getMonth() + i, 1);
+			out.push(`${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`);
+		}
+		return out;
+	}
+
+	_lib_plan_dialog(b) {
+		const months = this._month_options(0, 36);
+		const d = new frappe.ui.Dialog({
+			title: __("Plan — {0}", [b.title || b.name]),
+			fields: [
+				{ fieldtype: "Select", fieldname: "shelf_status", label: __("Status"),
+				  options: ["To read", "Reading", "Read", "Reference", "Abandoned"].join("\n"),
+				  default: b.shelf_status || "To read",
+				  description: __("Reference is kept to be searched rather than read — it stays on the shelf and never appears in the plan.") },
+				{ fieldtype: "Select", fieldname: "plan_month", label: __("Read it in"),
+				  options: months.join("\n"), default: b.plan_month || "",
+				  description: __("A month rather than a date. Leave blank and it stays on the shelf, out of the plan.") },
+				{ fieldtype: "Small Text", fieldname: "plan_note", label: __("Why you kept it"),
+				  default: b.plan_note || "" },
+				{ fieldtype: "Date", fieldname: "revisit_after", label: __("Revisit after"),
+				  default: b.revisit_after || "",
+				  description: __("For a book worth another pass later.") },
+			],
+			primary_action_label: __("Save"),
+			primary_action: (v) => {
+				frappe.call({
+					method: "duty_board.library.set_book_plan",
+					args: { book: b.name, shelf_status: v.shelf_status,
+						plan_month: v.plan_month || "", plan_note: v.plan_note || "",
+						revisit_after: v.revisit_after || "" },
+					callback: () => { d.hide(); this.refresh_library(); },
+				});
+			},
+		});
+		d.show();
+	}
+
+	_lib_finish_dialog(book) {
+		const d = new frappe.ui.Dialog({
+			title: __("Finished"),
+			fields: [
+				{ fieldtype: "Int", fieldname: "rating", label: __("Stars, this reading"),
+				  description: __("How it landed this time. A book can be a 3 at thirty and a 5 at forty.") },
+				{ fieldtype: "Small Text", fieldname: "note", label: __("What it gave you") },
+				{ fieldtype: "Date", fieldname: "revisit_after", label: __("Revisit after"),
+				  description: __("Leave blank unless it is worth another pass.") },
+			],
+			primary_action_label: __("Mark finished"),
+			primary_action: (v) => {
+				frappe.call({
+					method: "duty_board.library.finish_reading",
+					args: { book: book, note: v.note || "", rating: v.rating || 0,
+						revisit_after: v.revisit_after || "" },
+					callback: (r) => {
+						d.hide();
+						const n = (r.message || {}).times_read || 1;
+						frappe.show_alert({ message: n > 1 ? __("Finished — {0} times read", [n]) : __("Finished"), indicator: "green" });
+						this.refresh_library();
+					},
+				});
+			},
+		});
+		d.show();
+	}
+
 	_lib_grad(seed) {
 		const G = [
 			["#123C35", "#0E8A63"], ["#1C2E4A", "#3D6B9E"], ["#4A1C3A", "#9E3D6B"],
@@ -6198,24 +11398,84 @@ this.$me.find(".duty-req-ok").on("click", (e) => {
 		const q = (this._lib_q || "").toLowerCase();
 		const cat = this._lib_cat || "All";
 		const $L = this.$library.empty();
+		// One definition of "which topics is this book under", used by the chip
+		// counts, the filter and the shelf grouping alike. There were three
+		// copies and one was missed, so a secondary topic counted correctly and
+		// then rendered nothing.
+		const topicsOf = (b) => (b.topic_list && b.topic_list.length)
+			? b.topic_list : [b.category || __("Uncategorised")];
 		const counts = {};
-		books.forEach((b) => {
-			const c = b.category || __("Uncategorised");
-			counts[c] = (counts[c] || 0) + 1;
-		});
+		books.forEach((b) => topicsOf(b).forEach((c) => { counts[c] = (counts[c] || 0) + 1; }));
 		const cats = Object.keys(counts).sort((a, b2) => (a === __("Uncategorised")) - (b2 === __("Uncategorised")) || a.localeCompare(b2));
-		const visible = books.filter((b) =>
-			(cat === "All" || (b.category || __("Uncategorised")) === cat) &&
-			(!q || (b.title + " " + (b.author || "")).toLowerCase().includes(q))
-		);
+		const inCat = (b) => cat === "All" || topicsOf(b).includes(cat);
+		const hay = (b) => (b.title + " " + (b.author || "") + " " +
+			((b.author_list || []).join(" ")) + " " + ((b.topic_list || []).join(" "))).toLowerCase();
+		// An author is a filter in its own right rather than another chip row:
+		// hundreds of names as chips is exactly the wall this was meant to avoid.
+		const who = this._lib_author || null;
+		const byAuthor = (b) => !who ||
+			(b.author_list || []).includes(who) ||
+			(b.author || "").trim() === who;
+		let visible = books.filter((b) => inCat(b) && byAuthor(b) && (!q || hay(b).includes(q)));
+		const S = this._lib_sort || "added";
+		if (S === "title") visible = visible.slice().sort((a2, b2) => a2.title.localeCompare(b2.title));
+		else if (S === "author") visible = visible.slice().sort((a2, b2) => (a2.author || "~").localeCompare(b2.author || "~"));
+		else if (S === "read") visible = visible.slice().sort((a2, b2) => (b2.last_read_at || "").localeCompare(a2.last_read_at || ""));
+		else if (S === "long") visible = visible.slice().sort((a2, b2) => (b2.words || 0) - (a2.words || 0));
 		const chip = (c, n) => `<a class="duty-lb-chip ${cat === c ? "on" : ""}" data-cat="${esc(c)}">${esc(__(c))}${n != null ? ` <i>${n}</i>` : ""}</a>`;
 		$L.append(`
 			<div class="duty-lb-head">
 				<h3>📚 ${__("Library")}</h3>
 				<input type="text" class="duty-lb-search" placeholder="🔎 ${__("Search title or author…")}" value="${esc(this._lib_q || "")}">
+				<a class="duty-lb-planbtn ${this._lib_mode === "plan" ? "on" : ""}">🗓 ${__("Plan")}</a>
+				<a class="duty-lb-hlbtn ${this._lib_mode === "highlights" ? "on" : ""}">✎ ${__("Highlights")}</a>
+				<a class="duty-lb-azbtn ${this._lib_mode === "authors" ? "on" : ""}">${__("A–Z authors")}</a>
+				<select class="duty-lb-sort">
+					${[["added", __("Recently added")], ["title", __("Title")], ["author", __("Author")],
+					   ["read", __("Last read")], ["long", __("Longest")]]
+						.map(([v, l]) => `<option value="${v}" ${(this._lib_sort || "added") === v ? "selected" : ""}>${l}</option>`).join("")}
+				</select>
 				${mgr ? `<span class="duty-lb-admin"><input type="file" accept=".pdf,.epub" class="duty-bk-file"><button class="btn btn-sm btn-primary duty-bk-up">＋ ${__("Add book")}</button></span>` : ""}
 			</div>
-			<div class="duty-lb-chips">${chip("All", books.length)}${cats.map((c) => chip(c, counts[c])).join("")}</div>`);
+			${this._lib_author
+				? `<div class="duty-lb-whoband"><b>${esc(this._lib_author)}</b><span>${visible.length} ${visible.length === 1 ? __("book") : __("books")}</span><a class="duty-lb-whox">&times;</a></div>`
+				: `<div class="duty-lb-chips">${chip("All", books.length)}${cats.map((c) => chip(c, counts[c])).join("")}</div>`}`);
+		$L.find(".duty-lb-whox").on("click", () => { this._lib_author = null; this._lib_render(); });
+
+		$L.find(".duty-lb-planbtn").on("click", () => {
+			this._lib_mode = this._lib_mode === "plan" ? "shelf" : "plan";
+			this._lib_render();
+		});
+		$L.find(".duty-lb-hlbtn").on("click", () => {
+			this._lib_mode = this._lib_mode === "highlights" ? "shelf" : "highlights";
+			this._lib_render();
+		});
+		$L.find(".duty-lb-sort").on("change", (e) => {
+			this._lib_sort = $(e.currentTarget).val();
+			this._lib_render();
+		});
+		$L.find(".duty-lb-azbtn").on("click", () => {
+			this._lib_mode = this._lib_mode === "authors" ? "shelf" : "authors";
+			this._lib_render();
+		});
+		if (this._lib_mode === "highlights") {
+			$L.find(".duty-lb-chips").remove();
+			this._lib_hl_render($L);
+			return;
+		}
+		if (this._lib_mode === "authors") {
+			$L.find(".duty-lb-chips").remove();
+			this._lib_authors_render($L);
+			return;
+		}
+		// The plan lives inside the Library rather than on the rail: it is the
+		// same shelf viewed by intention, and a separate face would make it feel
+		// like a different app.
+		if (this._lib_mode === "plan") {
+			$L.find(".duty-lb-chips").remove();
+			this._lib_plan_render($L);
+			return;
+		}
 
 		const TILE = (b, mini) => {
 			const done = b.pct >= 100;
@@ -6231,7 +11491,10 @@ this.$me.find(".duty-req-ok").on("click", (e) => {
 			<a class="duty-lb-tile ${mini ? "duty-lb-mini" : ""}" data-book="${b.name}">
 				<span class="duty-lb-coverwrap">${cover}${ring}${mgr && !mini ? `<span class="duty-lb-menu" data-book="${b.name}">⋯</span>` : ""}</span>
 				<span class="duty-lb-title">${esc(b.title)}</span>
-				<span class="duty-lb-meta">${esc(b.author || "")}</span>
+				<span class="duty-lb-meta">${
+					((b.author_list && b.author_list.length) ? b.author_list : (b.author ? [b.author] : []))
+						.map((a2) => `<span class="duty-lb-au" data-a="${esc(a2)}">${esc(a2)}</span>`)
+						.join(", ")}</span>
 				<span class="duty-lb-meta2">${b.chapter_count} ${__("ch")}${b.words ? ` · ${Math.round(b.words / 200)}m` : ""}${stars ? ` · <b>${stars}</b>` : ""}</span>
 			</a>`;
 		};
@@ -6247,7 +11510,7 @@ this.$me.find(".duty-req-ok").on("click", (e) => {
 			$L.append(`<div class="duty-lb-empty">${q ? __("Nothing matches — try fewer letters.") : __("No books on this shelf yet.")}</div>`);
 		}
 		cats.filter((c) => cat === "All" || c === cat).forEach((c) => {
-			const shelf = visible.filter((b) => (b.category || __("Uncategorised")) === c)
+			const shelf = visible.filter((b) => topicsOf(b).includes(c))
 				.sort((a, b2) => (b2.pct > 0 && b2.pct < 100) - (a.pct > 0 && a.pct < 100) || a.title.localeCompare(b2.title));
 			if (!shelf.length) return;
 			$L.append(`
@@ -6271,8 +11534,17 @@ this.$me.find(".duty-req-ok").on("click", (e) => {
 			this._lib_cat = $(e.currentTarget).data("cat");
 			this._lib_render();
 		});
+		// clicking the author on a book filters to them — discoverable, and needs
+		// no chrome of its own
+		$L.find(".duty-lb-au").on("click", (e) => {
+			e.preventDefault();
+			e.stopPropagation();
+			this._lib_author = $(e.currentTarget).data("a");
+			this._lib_cat = "All";
+			this._lib_render();
+		});
 		$L.find(".duty-lb-tile").on("click", (e) => {
-			if ($(e.target).is(".duty-lb-menu")) return;
+			if ($(e.target).is(".duty-lb-menu") || $(e.target).is(".duty-lb-au")) return;
 			e.preventDefault();
 			this.open_reader($(e.currentTarget).data("book"));
 		});
@@ -6283,6 +11555,7 @@ this.$me.find(".duty-req-ok").on("click", (e) => {
 			const bk = $(e.currentTarget).data("book");
 			const $pop = $(`
 				<div class="duty-lb-pop">
+					<a class="duty-bk-plan" data-book="${bk}">🗓 ${__("Plan to read")}</a>
 					<a class="duty-bk-edit" data-book="${bk}">✎ ${__("Edit")}</a>
 					<a class="duty-bk-fetch" data-book="${bk}">🔎 ${__("Fetch cover & info")}</a>
 					<a class="duty-bk-del" data-book="${bk}">🗑 ${__("Remove")}</a>
@@ -6331,6 +11604,16 @@ this.$me.find(".duty-req-ok").on("click", (e) => {
 	}
 
 	_lib_bind_admin($host) {
+		// planning is reachable from any book on the shelf, not only from inside
+		// the plan — the decision usually happens while browsing
+		$host.find(".duty-bk-plan").off("click").on("click", (e) => {
+			e.preventDefault();
+			e.stopPropagation();
+			$(".duty-lb-pop").remove();
+			const bk = $(e.currentTarget).data("book");
+			const b = (this._lib_books || []).find((x) => x.name === bk) || { name: bk };
+			this._lib_plan_dialog(b);
+		});
 		const books = this._lib_books || [];
 		$host.find(".duty-bk-fetch").off("click").on("click", (e) => {
 			e.stopPropagation();
@@ -6363,10 +11646,36 @@ this.$me.find(".duty-req-ok").on("click", (e) => {
 				[
 					{ fieldname: "title", fieldtype: "Data", label: __("Title"), default: b.title, reqd: 1 },
 					{ fieldname: "author", fieldtype: "Data", label: __("Author"), default: b.author || "" },
-					{ fieldname: "category", fieldtype: "Data", label: __("Category"), default: b.category || "" },
+					{ fieldname: "category", fieldtype: "Data", label: __("Category"),
+					  default: b.category || "", description: __("The shelf's primary grouping.") },
+					// Comma-separated rather than a MultiSelectList: names are typed
+					// once and then autocompleted server-side against existing
+					// records, so 'Drucker' and 'Peter Drucker' stop being two people.
+					{ fieldname: "topics", fieldtype: "Data", label: __("Topics"),
+					  default: (b.topic_list || []).join(", "),
+					  description: __("Comma-separated. A book can sit under several.") },
+					{ fieldname: "authors", fieldtype: "Data", label: __("Authors"),
+					  default: (b.author_list || []).join(", "),
+					  description: __("Comma-separated where a book has more than one.") },
 					{ fieldname: "description", fieldtype: "Small Text", label: __("Description"), default: b.description || "" },
 				],
-				(v) => frappe.call({ method: "duty_board.library.update_book", args: { book: bk, title: v.title, author: v.author || "", category: v.category || "", description: v.description || "" }, callback: () => this.refresh_library() }),
+				(v) => frappe.call({
+					method: "duty_board.library.update_book",
+					args: { book: bk, title: v.title, author: v.author || "", category: v.category || "", description: v.description || "" },
+					callback: () => {
+						// send the line whole — the server splits it, so 'Drucker,
+						// Peter' stays one person and 'Ries, Trout' becomes two.
+						// Splitting here as well would get the first case wrong.
+						const A = (v.authors || "").trim() ? [v.authors.trim()] : [];
+						const T = (v.topics || "").split(",").map((x) => x.trim()).filter(Boolean);
+						if (!A.length && !T.length) return this.refresh_library();
+						frappe.call({
+							method: "duty_board.library.set_book_taxonomy",
+							args: { book: bk, authors: JSON.stringify(A), topics: JSON.stringify(T) },
+							callback: () => this.refresh_library(),
+						});
+					},
+				}),
 				__("Edit book"), __("Save")
 			);
 		});
@@ -6420,7 +11729,7 @@ this.$me.find(".duty-req-ok").on("click", (e) => {
 									<button class="btn btn-sm btn-default duty-rd-pgprev">‹ ${__("Page")}</button>
 									<button class="btn btn-sm btn-default duty-rd-pgnext">${__("Page")} ›</button>
 								</span>
-								<button class="btn btn-sm btn-primary duty-rd-next" style="margin-left:auto">${__("Finish chapter & continue")} ›</button>
+								<button class="btn btn-sm btn-primary duty-rd-next" style="margin-left:auto">${__("Next")} ›</button>
 							</div>
 						</div>
 					</div>`);
@@ -6430,6 +11739,9 @@ this.$me.find(".duty-req-ok").on("click", (e) => {
 				const chIdx = (name) => m.chapters.findIndex((c) => c.name === name);
 				const prefs = Object.assign({ toc: 1, two: 0, just: 1, fs: 16, serif: 0, lh: 0, theme: "paper", rate: 1, ls: 0, ps: 0, mg: 0, dys: 0, flip: 1 }, JSON.parse(localStorage.getItem("duty_rd_prefs") || "{}"));
 				const GAP = 56;
+				// Breathing room at each edge that text never occupies, so a pixel
+				// of scroll rounding cannot clip the first letter of a line.
+				const EDGE = 20;
 				const applyPrefs = () => {
 					localStorage.setItem("duty_rd_prefs", JSON.stringify(prefs));
 					$L.find(".duty-rd-opt").each((_, el) => {
@@ -6454,15 +11766,21 @@ this.$me.find(".duty-req-ok").on("click", (e) => {
 					$dyn.text(`.duty-rd-body p { margin-bottom: ${(0.9 + (prefs.ps || 0)).toFixed(2)}em; } .duty-rd-col { padding: 0 ${prefs.mg || 0}px; }`);
 					$L.find(".duty-rd-pgbtns").toggle(!!prefs.two);
 					if (prefs.two) {
-						$sc.css({ height: "calc(100vh - 250px)", "overflow-x": "auto", "overflow-y": "hidden" });
+						// EDGE is breathing room the text never occupies. Columns
+						// were sized to fill the width exactly, so a single pixel
+						// of scroll rounding clipped the first glyph of the left
+						// column — which is what made letters disappear.
+						$sc.css({ height: "calc(100vh - 250px)", "overflow-x": "auto",
+								  "overflow-y": "hidden", "scroll-behavior": "auto" });
 						$bd.css({ "max-width": "none" });
 						requestAnimationFrame(() => {
-							const w = $sc[0].clientWidth;
-							const colw = Math.floor((w - GAP) / 2);
-							$bd.css({ height: "100%", "column-width": colw + "px", "column-gap": GAP + "px", "column-fill": "auto" });
 							const el = $sc[0];
-							const step = el.clientWidth + GAP;
-							el.scrollLeft = Math.round(el.scrollLeft / step) * step;
+							const w = el.clientWidth - EDGE * 2;
+							const colw = Math.floor((w - GAP) / 2);
+							$bd.css({ height: "100%", "column-width": colw + "px",
+									  "column-gap": GAP + "px", "column-fill": "auto",
+									  "padding": "0 " + EDGE + "px", "box-sizing": "content-box" });
+							pgSnap();
 						});
 					} else {
 						$sc.css({ height: "", "overflow-x": "", "overflow-y": "" });
@@ -6470,19 +11788,55 @@ this.$me.find(".duty-req-ok").on("click", (e) => {
 						$L.find(".duty-rd-nav").css("max-width", "68ch");
 					}
 				};
+				const pgStep = () => $sc[0].clientWidth - EDGE * 2 + GAP;
+				// A trackpad swipe or a scrollbar drag left the scroller resting
+				// between pages, and a page that is 3px out shows a column with
+				// its first letters shaved off. Nothing re-snapped after a free
+				// scroll — only the buttons and keys did. This does.
+				let snapT = null;
+				$sc.off("scroll.dutysnap").on("scroll.dutysnap", () => {
+					if (!prefs.two) return;
+					clearTimeout(snapT);
+					snapT = setTimeout(() => {
+						const el = $sc[0];
+						const step = pgStep();
+						const off = el.scrollLeft % step;
+						if (off > 1 && off < step - 1) pgSnap();
+						else updProg();
+					}, 140);
+				});
 				const pgSnap = () => {
 					const el = $sc[0];
-					const step = el.clientWidth + GAP;
+					const step = pgStep();
 					el.scrollLeft = Math.round(el.scrollLeft / step) * step;
+					// the window does not scroll in two-page mode, so the
+					// scroll-driven refresh never fires and the page number
+					// would sit on 1 for the whole chapter
+					setTimeout(() => { try { updProg(); } catch (e) {} }, 60);
 				};
 				const pageBy = (dir) => {
 					const el = $sc[0];
+					// Paging past the end of a chapter now carries into the next
+					// one rather than stopping dead. It stopping dead is why a
+					// "Finish chapter & continue" button had to exist — the
+					// reader was being asked to perform a step the page turn
+					// should already mean.
+					const atEnd = el.scrollLeft + el.clientWidth >= el.scrollWidth - 4;
+					const atStart = el.scrollLeft <= 4;
+					const i = chIdx(cur);
+					if (dir > 0 && atEnd) {
+						if (i < m.chapters.length - 1) return advance();
+						return finishBook();
+					}
+					if (dir < 0 && atStart && i > 0) {
+						return go(m.chapters[i - 1].name, 100);
+					}
 					if (prefs.flip && prefs.two) {
 						const $t = $(`<div class="duty-rd-turn ${dir > 0 ? "duty-turn-fwd" : "duty-turn-bck"}"></div>`).appendTo($sc.parent().css("position", "relative"));
 						setTimeout(() => $t.remove(), 560);
 					}
 					pgSnap();
-					el.scrollBy({ left: dir * (el.clientWidth + GAP), behavior: "smooth" });
+					el.scrollBy({ left: dir * pgStep(), behavior: "smooth" });
 				};
 				const renderToc = () => {
 					$toc.empty();
@@ -6547,12 +11901,45 @@ this.$me.find(".duty-req-ok").on("click", (e) => {
 						? Math.round((window.scrollY / (document.documentElement.scrollHeight - window.innerHeight)) * 100) : 100;
 				};
 				const N = m.chapters.length || 1;
+				// Page numbers, of two honest kinds.
+				//
+				// In two-page mode the scroller lays out real, countable pages, so
+				// "3 / 11" through the chapter is exact.
+				//
+				// A book-wide number cannot be exact for an epub — it has no pages
+				// until something decides a font size and a window width, and it
+				// would change on every device. So the book figure is derived from
+				// WORDS at 250 to the page, which is what a printed page holds. It
+				// stays the same everywhere and is marked with ≈ because it is a
+				// measure of how far in you are, not a location in an edition.
+				const WPP = 250;
+				const chWords = m.chapters.map((c) => c.words || 0);
+				const bookWords = chWords.reduce((a2, b2) => a2 + b2, 0);
+				const bookPages = Math.max(1, Math.round(bookWords / WPP));
+				const pagesBefore = (i) => chWords.slice(0, i).reduce((a2, b2) => a2 + b2, 0);
 				const updProg = () => {
 					const pct = curPct();
 					const words = ($bd.text() || "").split(/\s+/).length;
 					const left = Math.max(0, Math.ceil((words * (1 - pct / 100)) / 220));
-					if (!this._scrub_drag) $L.find(".duty-rd-scrub").val(Math.round(((chIdx(cur) + pct / 100) / N) * 1000));
-					$L.find(".duty-rd-prog span").text(left > 0 ? __("≈ {0} min left in this chapter", [left]) : __("chapter end"));
+					const i = chIdx(cur);
+					if (!this._scrub_drag) $L.find(".duty-rd-scrub").val(Math.round(((i + pct / 100) / N) * 1000));
+
+					let phys = "";
+					if (prefs.two) {
+						const el = $sc[0];
+						const step = pgStep();
+						const total = Math.max(1, Math.round(el.scrollWidth / step));
+						const at = Math.min(total, Math.round(el.scrollLeft / step) + 1);
+						phys = __("Page {0} of {1}", [at, total]) + " · ";
+					}
+					const at_book = bookWords
+						? Math.max(1, Math.round((pagesBefore(i) + (chWords[i] || 0) * pct / 100) / WPP))
+						: 0;
+					const bookNo = bookWords ? `≈ ${__("p{0} of {1}", [at_book, bookPages])} · ` : "";
+					const tail = left > 0 ? __("{0} min left in this chapter", [left]) : __("chapter end");
+					$L.find(".duty-rd-prog span").html(
+						`<b class="duty-rd-pg">${phys}${bookNo}</b>${tail}`
+					);
 				};
 				$L.find("#duty-rd-ticks").html(m.chapters.map((_, i2) => `<option value="${Math.round((i2 / N) * 1000)}"></option>`).join(""));
 				$L.find(".duty-rd-scrub")
@@ -7006,6 +12393,24 @@ this.$me.find(".duty-req-ok").on("click", (e) => {
 						if (document.visibilityState === "visible" && this._reading) wake();
 					});
 				}
+				// One definition of "move on", used by the page turn, the Next
+				// button and the keyboard alike — marking the chapter read is a
+				// consequence of leaving it rather than a thing to click.
+				const advance = () => {
+					const i = chIdx(cur);
+					if (i >= m.chapters.length - 1) return finishBook();
+					doneSet.add(cur);
+					save(cur);
+					go(m.chapters[i + 1].name, 0);
+				};
+				const finishBook = () => {
+					if (doneSet.has(cur)) return;
+					doneSet.add(cur);
+					save(cur);
+					renderToc();
+					this.confetti();
+					frappe.show_alert({ message: __("📚 Book finished"), indicator: "green" });
+				};
 				const go = (name, scrollPct) => {
 					frappe.call({
 						method: "duty_board.library.chapter",
@@ -7020,8 +12425,11 @@ this.$me.find(".duty-req-ok").on("click", (e) => {
 							setTimeout(updProg, 300);
 							requestAnimationFrame(() => {
 								if (prefs.two) {
+									// this runs on every chapter open, so a stale
+									// step here would re-break the alignment each
+									// time even with the snap in place
 									const el = $sc[0];
-									const step = el.clientWidth + GAP;
+									const step = pgStep();
 									const raw = scrollPct ? ((el.scrollWidth - el.clientWidth) * scrollPct) / 100 : 0;
 									el.scrollLeft = Math.round(raw / step) * step;
 								} else {
@@ -7060,18 +12468,9 @@ this.$me.find(".duty-req-ok").on("click", (e) => {
 				});
 				$L.find(".duty-rd-prev").on("click", () => { const i = chIdx(cur); if (i > 0) go(m.chapters[i - 1].name, 0); });
 				$L.find(".duty-rd-next").on("click", () => {
-					doneSet.add(cur);
-					save(cur);
 					const i = chIdx(cur);
-					const done_title = (m.chapters[i] || {}).title || "";
-					if (i < m.chapters.length - 1) {
-						go(m.chapters[i + 1].name, 0);
-						frappe.show_alert({ message: __("✓ “{0}” done — next: {1}", [done_title.slice(0, 40), (m.chapters[i + 1].title || "").slice(0, 40)]), indicator: "green" });
-					} else {
-						renderToc();
-						this.confetti();
-						frappe.show_alert({ message: __("📚 Book finished — rate it for the team!"), indicator: "green" });
-					}
+					if (i < m.chapters.length - 1) advance();
+					else finishBook();
 				});
 				$bd.html(m.content || "");
 				renderToc();
@@ -7093,8 +12492,22 @@ this.$me.find(".duty-req-ok").on("click", (e) => {
 					const x = e.clientX / window.innerWidth;
 					const Lz = mob ? 0.3 : 0.15;
 					const Rz = mob ? 0.7 : 0.85;
-					if (x < Lz) prefs.two ? pageBy(-1) : window.scrollBy({ top: -window.innerHeight * 0.85, behavior: "smooth" });
-					else if (x > Rz) prefs.two ? pageBy(1) : window.scrollBy({ top: window.innerHeight * 0.85, behavior: "smooth" });
+					// scroll mode has the same boundary: tapping forward at the
+					// foot of a chapter should carry on rather than do nothing
+					const scrollOn = (dir) => {
+						const doc = document.documentElement;
+						const bottom = window.scrollY + window.innerHeight >= doc.scrollHeight - 8;
+						const top = window.scrollY <= 8;
+						const i = chIdx(cur);
+						if (dir > 0 && bottom) {
+							if (i < m.chapters.length - 1) return advance();
+							return finishBook();
+						}
+						if (dir < 0 && top && i > 0) return go(m.chapters[i - 1].name, 100);
+						window.scrollBy({ top: dir * window.innerHeight * 0.85, behavior: "smooth" });
+					};
+					if (x < Lz) prefs.two ? pageBy(-1) : scrollOn(-1);
+					else if (x > Rz) prefs.two ? pageBy(1) : scrollOn(1);
 					else if (mob) zen();
 				});
 				let tX = null;
@@ -8765,18 +14178,22 @@ this.$me.find(".duty-req-ok").on("click", (e) => {
 		const owner = `<span style="color:${this.user_color(l.lead_owner)}">${frappe.utils.escape_html((this.name_map[l.lead_owner] || l.lead_owner).split(" ")[0])}</span>`;
 		return `
 			<div class="duty-kb-card duty-lead-card" draggable="true" data-name="${l.name}" style="border-left: 3px solid ${this.user_color(l.lead_owner)}">
-				<div class="duty-lead-company">${frappe.utils.escape_html(l.company)}</div>
-				${l.value ? `<div class="duty-lead-value">${this.naira(l.value)}</div>` : ""}
-				${l.contact_name ? `<div class="duty-lead-contact">${frappe.utils.escape_html(l.contact_name)}</div>` : ""}
+				<div class="duty-lead-top">
+					<span class="duty-lead-company" title="${frappe.utils.escape_html(l.company)}">${frappe.utils.escape_html(l.company)}</span>
+					${l.value ? `<span class="duty-lead-value">${this.naira(l.value)}</span>` : ""}
+				</div>
 				<div class="duty-kb-meta">
 					${owner}
+					${l.contact_name ? `<span class="duty-lead-contact" title="${frappe.utils.escape_html(l.contact_name)}">${frappe.utils.escape_html(l.contact_name)}</span>` : ""}
 					<span class="duty-lead-badges">
-						${l.stale_days >= 7 ? `<span class="duty-stale ${l.stale_days >= 14 ? "duty-stale-red" : ""}" title="${__("Days since last touch")}">🕸 ${l.stale_days}d</span>` : ""}
-						${l.expected_close ? `<span class="${l.close_overdue ? "duty-lead-over" : ""}" title="${__("Expected close")}">🎯 ${frappe.datetime.str_to_user(l.expected_close)}</span>` : ""}
-						${l.tasks_open ? `<span class="${l.tasks_overdue ? "duty-lead-over" : ""}">📋 ${l.tasks_open}</span>` : ""}
-						${l.notes ? `<span>💬 ${frappe.utils.escape_html(l.notes)}</span>` : ""}
-						${l.no_step ? `<span class="duty-step-none" title="${__("No next step — every open lead needs one")}">❗ ${__("no next step")}</span>` : l.next_step ? `<span class="duty-step ${l.step_overdue ? "duty-lead-over" : ""}" title="${frappe.utils.escape_html(l.next_step)}">📞 ${l.next_step_due ? frappe.datetime.str_to_user(l.next_step_due).slice(0, 17) : ""}</span>` : ""}
-						${l.meeting_next ? `<span title="${__("Next meeting")}">📅 ${l.meeting_next.slice(5, 16)}</span>` : ""}
+						${l.stale_days >= 7 ? `<span class="duty-stale ${l.stale_days >= 14 ? "duty-stale-red" : ""}" title="${__("Days since last touch")}">🕸${l.stale_days}</span>` : ""}
+						${l.expected_close ? `<span class="${l.close_overdue ? "duty-lead-over" : ""}" title="${__("Expected close")} ${frappe.datetime.str_to_user(l.expected_close)}">🎯${String(l.expected_close).slice(8, 10)}/${String(l.expected_close).slice(5, 7)}</span>` : ""}
+						${l.tasks_open ? `<span class="${l.tasks_overdue ? "duty-lead-over" : ""}" title="${__("Open tasks")}">📋${l.tasks_open}</span>` : ""}
+						${l.notes ? `<span title="${__("Notes")}">💬${frappe.utils.escape_html(l.notes)}</span>` : ""}
+						${l.no_step
+							? `<span class="duty-step-none" title="${__("No next step — every open lead needs one")}">❗</span>`
+							: l.next_step ? `<span class="duty-step ${l.step_overdue ? "duty-lead-over" : ""}" title="${frappe.utils.escape_html(l.next_step)}${l.next_step_due ? " · " + frappe.datetime.str_to_user(l.next_step_due) : ""}">📞${l.next_step_due ? `${String(l.next_step_due).slice(8, 10)}/${String(l.next_step_due).slice(5, 7)}` : ""}</span>` : ""}
+						${l.meeting_next ? `<span title="${__("Next meeting")} ${frappe.utils.escape_html(l.meeting_next)}">📅${l.meeting_next.slice(8, 10)}/${l.meeting_next.slice(5, 7)}</span>` : ""}
 					</span>
 				</div>
 			</div>`;
@@ -9050,7 +14467,7 @@ this.$me.find(".duty-req-ok").on("click", (e) => {
 			fields_dict: { extras: { wrapper: $dw.find(".duty-ld-activity")[0] } },
 		};
 		this._lead_dialog = d;
-		const stages = ["New", "Contacted", "Qualified", "Proposal", "Negotiation"];
+		const stages = ["New", "Contacted", "Proposal", "Negotiation", "Awaiting Payment"];
 		$dw.find(".duty-ld-head").html(`
 			<a class="duty-ld-x">✕</a>
 			<b class="duty-ld-co">${esc(x.company)}</b>
@@ -9649,22 +15066,62 @@ this.$me.find(".duty-req-ok").on("click", (e) => {
 			],
 			primary_action_label: __("Schedule"),
 			primary_action: (v) => {
-				frappe.call({
-					method: "duty_board.api.create_meeting",
-					args: {
-						topic: v.topic,
-						meeting_date: v.meeting_date,
-						start_time: v.start_time || null,
-						duration_mins: v.duration_mins || 30,
-						customer: v.customer || null,
-						attendees: v.attendees && v.attendees.length ? JSON.stringify(v.attendees) : null,
-					},
-					callback: () => {
-						md.hide();
-						frappe.show_alert({ message: __("Meeting scheduled"), indicator: "green" });
-						this.refresh_me((this._me_data || {}).month);
-					},
-				});
+				// The button is disabled for the whole round trip. Without this
+				// a slow request looks like a dead button, which is what
+				// produced duplicate meetings — the server refuses repeats too,
+				// but the button should not invite them in the first place.
+				const $btn = md.get_primary_btn();
+				if ($btn.prop("disabled")) return;
+				const go = (confirm_conflicts) => {
+					$btn.prop("disabled", true).text(__("Scheduling…"));
+					frappe.call({
+						method: "duty_board.api.create_meeting",
+						args: {
+							topic: v.topic,
+							meeting_date: v.meeting_date,
+							start_time: v.start_time || null,
+							duration_mins: v.duration_mins || 30,
+							customer: v.customer || null,
+							attendees: v.attendees && v.attendees.length ? JSON.stringify(v.attendees) : null,
+							confirm_conflicts: confirm_conflicts ? 1 : 0,
+						},
+						callback: (r) => {
+							const res = r.message || {};
+							$btn.prop("disabled", false).text(__("Schedule"));
+							if (res.duplicate) {
+								md.hide();
+								frappe.show_alert({ message: __("That meeting was already scheduled"), indicator: "orange" });
+								this.refresh_me((this._me_data || {}).month);
+								return;
+							}
+							if (res.conflicts && res.conflicts.length) {
+								const esc = frappe.utils.escape_html;
+								const rows = res.conflicts
+									.map((c) => `<li><b>${esc(c.full_name)}</b> — ${esc(c.topic || __("Meeting"))} ${esc(c.start)}–${esc(c.end)}${c.customer ? ` (${esc(c.customer)})` : ""}</li>`)
+									.join("");
+								frappe.confirm(
+									`${__("This clashes with an existing meeting:")}<ul style="margin:8px 0 0 18px">${rows}</ul><p style="margin-top:10px">${__("Schedule it anyway?")}</p>`,
+									() => go(true)
+								);
+								return;
+							}
+							md.hide();
+							frappe.show_alert({ message: __("Meeting scheduled"), indicator: "green" }, 5);
+							frappe.msgprint({
+								title: __("Scheduled"),
+								indicator: "green",
+								message: __("{0} — {1}{2}. Invites are on their way to everyone attending.", [
+									frappe.utils.escape_html(v.topic),
+									frappe.datetime.str_to_user(v.meeting_date),
+									v.start_time ? ` ${String(v.start_time).slice(0, 5)}` : "",
+								]),
+							});
+							this.refresh_me((this._me_data || {}).month);
+						},
+						error: () => $btn.prop("disabled", false).text(__("Schedule")),
+					});
+				};
+				go(false);
 			},
 		});
 		md.show();
@@ -10774,7 +16231,7 @@ this.$me.find(".duty-req-ok").on("click", (e) => {
 		}
 		const ic = (paths) => `<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${paths}</svg>`;
 		$r.html(
-			(this.rail || []).map((e) => `<a class="duty-rl ${e.id === (this.face || "board") ? "on" : ""}" data-id="${e.id}" title="${e.label}">${ic(e.ic)}<span>${e.label}</span></a>`).join("") +
+			(this.rail || []).map((e) => `<a class="duty-rl ${e.id === (this.face || "board") ? "on" : ""}" data-id="${e.id}" title="${e.label}">${ic(e.ic)}<span>${e.label}</span><b class="duty-rl-n" style="display:none"></b></a>`).join("") +
 			`<a class="duty-rl duty-rl-min" title="${__("Collapse")}">${ic('<path d="m11 17-5-5 5-5"/><path d="m18 17-5-5 5-5"/>')}<span>${__("Collapse")}</span></a>`
 		);
 		$r.find(".duty-rl").not(".duty-rl-min").on("click", (ev) => {
@@ -10788,7 +16245,47 @@ this.$me.find(".duty-req-ok").on("click", (e) => {
 		});
 	}
 
+	// The unread count on the rail, visible from any face.
+	//
+	// The badge machinery already existed but counted only the Duty Room, and
+	// only from messages arriving while the page was open — so someone working
+	// in Money all morning saw nothing, which is exactly the case it was for.
+	// This asks the server, which knows about client rooms and DMs too.
+	start_unread_poll() {
+		if (this._unread_t) return;
+		const tick = () => {
+			frappe.call({
+				method: "duty_board.chat.unread_total",
+				freeze: false, silent: true,
+				callback: (r) => {
+					const n = ((r && r.message) || {}).total || 0;
+					this._unread_n = n;
+					this.paint_unread();
+				},
+			});
+		};
+		tick();
+		// half a minute: often enough to feel live, rare enough that a count is
+		// not worth a websocket of its own
+		this._unread_t = setInterval(tick, 30 * 1000);
+	}
+
+	paint_unread() {
+		const n = this._unread_n || 0;
+		const $b = $('.duty-rail .duty-rl[data-id="chat"] .duty-rl-n');
+		if (!$b.length) return;
+		if (n > 0 && this.face !== "chat") {
+			$b.text(n > 99 ? "99+" : n).show();
+			$('.duty-rail .duty-rl[data-id="chat"]').addClass("has-unread");
+		} else {
+			$b.hide();
+			$('.duty-rail .duty-rl[data-id="chat"]').removeClass("has-unread");
+		}
+	}
+
 	rail_sync(face) {
+		this.start_unread_poll();
+		this.paint_unread();
 		$(".duty-rail .duty-rl").removeClass("on");
 		$(`.duty-rail .duty-rl[data-id="${face}"]`).addClass("on");
 	}
@@ -11988,8 +17485,19 @@ this.$me.find(".duty-req-ok").on("click", (e) => {
 			.duty-chatface .duty-cr-msgs .duty-cr-msg { margin-bottom: 14px; line-height: 1.55; }
 			.duty-chatface .duty-dm-list { padding: 16px 20px; }
 			.duty-chatface .duty-dm-list .duty-msg { margin-bottom: 14px; line-height: 1.55; }
-			/* .duty-fluid.container out-specifies Bootstrap's .container breakpoints. */
-			.duty-fluid.container { max-width: 100%; }
+			/* .duty-fluid.container out-specifies Bootstrap's .container breakpoints.
+			   max-width alone was not enough: Frappe also puts horizontal padding
+			   on the page container and the layout section, which left a wide
+			   empty strip between the workspace rail and the first kanban column
+			   — pure waste on a board that wants every pixel of width. */
+			.duty-fluid.container { max-width: 100%; padding-left: 12px; padding-right: 12px; }
+			/* a body class rather than :has(), which is not worth depending on
+			   for something this load-bearing */
+			body.duty-board-page .layout-main-section-wrapper,
+			body.duty-board-page .layout-main-section,
+			body.duty-board-page .page-content { padding-left: 0; padding-right: 0; }
+			body.duty-board-page .page-head .container { padding-left: 12px; padding-right: 12px; }
+			.duty-pj-main { padding-left: 10px; }
 			.duty-daytabs { display: flex; gap: 8px; margin: 0 0 12px; }
 			.duty-daytabs a { padding: 7px 18px; border-radius: 10px; font-weight: 600; cursor: pointer; border: 1px solid var(--border-color, #e0e0e0); background: var(--card-bg, #fff); color: var(--text-muted, #666); text-decoration: none; }
 			.duty-daytabs a:hover { color: var(--text-color, #333); text-decoration: none; }
@@ -12007,20 +17515,57 @@ this.$me.find(".duty-req-ok").on("click", (e) => {
 			.duty-phases { padding: 12px 4px; max-width: 720px; }
 			.duty-phases-empty { text-align: center; padding: 24px; }
 			.duty-phase-seed { display: flex; gap: 10px; justify-content: center; align-items: center; flex-wrap: wrap; }
-			.duty-phase-row { display: flex; align-items: center; gap: 12px; padding: 10px 12px; border: 1px solid var(--border-color, #e6e6e6); border-radius: 10px; margin-bottom: 8px; background: #fff; }
+			/* A card, not a row. The facts each have a place instead of being run
+			   together into one dense line, which is what made this screen read
+			   as untidy rather than informative. */
+			/* The tasks are a SIBLING of the content in this row, not a child —
+			   so without wrapping they sit beside it and squeeze the facts into
+			   a narrow column, which is exactly what my first attempt did. The
+			   row wraps and the task list is forced onto its own line. */
+			.duty-phase-row { display: flex; flex-wrap: wrap; align-items: flex-start;
+				gap: 10px 13px; padding: 14px 16px;
+				border: 1px solid var(--border-color, #e6e6e6); border-left: 3px solid #C9D2CF;
+				border-radius: 12px; margin-bottom: 10px; background: #fff; }
+			.duty-phase-row.drop { border-color: #0F5C55; background: #F3F8F7;
+				box-shadow: 0 0 0 2px #0F5C55 inset; }
+			.duty-phase-task[draggable] { cursor: grab; }
+			.duty-phase-task[draggable]:active { cursor: grabbing; }
+			.duty-ph-facts { display: flex; gap: 26px; flex-wrap: wrap; margin-top: 9px; }
+			.duty-ph-fact { white-space: nowrap; }
+			.duty-ph-fact i { display: block; font-style: normal; font-size: 9.5px; font-weight: 700;
+				text-transform: uppercase; letter-spacing: .05em; color: var(--text-muted); }
+			.duty-ph-fact b { font-size: 15px; font-variant-numeric: tabular-nums; color: #16211F; }
+			.duty-ph-fact u { text-decoration: none; font-size: 11.5px; font-weight: 500;
+				color: var(--text-muted); }
+			.duty-ph-bar { height: 4px; border-radius: 2px; background: #EEF2F1; margin-top: 10px; overflow: hidden; }
+			.duty-ph-bar i { display: block; height: 100%; background: #0E8A63; }
+			.duty-phase-title { display: flex; align-items: baseline; gap: 8px; flex-wrap: wrap; }
+			.duty-ph-st { font-size: 9.5px; font-weight: 800; text-transform: uppercase;
+				letter-spacing: .05em; padding: 2px 8px; border-radius: 999px;
+				background: #F3F6F5; color: var(--text-muted); }
+			.duty-ph-st.active { background: #E7F1EF; color: #0F5C55; }
+			.duty-ph-st.done { background: #E4F3EC; color: #0C6B4F; }
+			.duty-ph-appr { font-size: 10.5px; color: #0C6B4F; }
 			.duty-phase-active { border-color: #0F5C55; box-shadow: 0 0 0 1px #0F5C55 inset; }
 			.duty-phase-done { opacity: .7; }
 			.duty-phase-ix { width: 26px; height: 26px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 800; background: #EEF4F3; color: #0F5C55; flex: none; }
 			.duty-phase-done .duty-phase-ix { background: #0E8A63; color: #fff; }
-			.duty-phase-main { flex: 1; min-width: 0; }
-			.duty-phase-title { font-weight: 700; }
+			.duty-phase-main { flex: 1 1 320px; min-width: 0; }
+			.duty-phase-title { font-weight: 700; font-size: 15px; line-height: 1.3; }
+			/* full width on its own line, under everything else */
+			.duty-phase-row > .duty-phase-tasks { flex: 0 0 100%; order: 9;
+				border-top: 1px solid var(--border-color); padding-top: 9px; }
+			/* the icons sat on top of the title because they were given no room
+			   of their own in the row */
+			.duty-phase-acts { order: 2; flex: 0 0 auto; align-self: flex-start;
+				margin-left: auto; padding-top: 2px; }
 			.duty-phase-meta { font-size: 12px; color: var(--text-muted, #888); }
 			.duty-phase-wait { color: #B45309; font-size: 11px; font-weight: 700; }
-			.duty-phase-acts { display: flex; gap: 8px; }
+			.duty-phase-acts { display: flex; gap: 9px; white-space: nowrap; }
 			.duty-phase-acts a { cursor: pointer; opacity: .65; text-decoration: none; }
 			.duty-phase-acts a:hover { opacity: 1; }
 			.duty-phase-add { margin-top: 10px; }
-			.duty-phase-tasks { margin: 4px 0 2px 38px; display: flex; flex-direction: column; gap: 3px; }
+			.duty-phase-tasks { margin: 4px 0 2px 38px; display: flex; flex-direction: column; gap: 4px; }
 			.duty-phase-tasks.empty { color: var(--text-muted, #9aa4a0); font-size: 12px; font-style: italic; }
 			.duty-phase-task { display: flex; align-items: center; gap: 8px; font-size: 12.5px; }
 			.duty-pt-dot { width: 7px; height: 7px; border-radius: 50%; background: #C4CFC9; flex: none; }
@@ -12252,16 +17797,69 @@ this.$me.find(".duty-req-ok").on("click", (e) => {
 				font-size: var(--text-xs); font-weight: 700; margin-left: 6px;
 			}
 			.duty-chat-tools a { font-size: var(--text-xs); color: var(--text-muted); cursor: pointer; font-weight: 400; }
+			/* WhatsApp-shaped: a flex column so a message can align itself to a
+			   side. The classes were always emitted — duty-msg-mine has existed
+			   in both the Duty Room and DM renderers — but the list was a plain
+			   block, so mine only ever picked up a background and every message
+			   still ran full width. The client room got this right; these two
+			   never did. */
 			.duty-chat-list {
 				flex: 1 1 auto; overflow-y: auto; margin: 10px 0;
 				border-top: 1px solid var(--border-color); padding-top: 8px;
+				display: flex; flex-direction: column; gap: 6px;
+			}
+			.duty-dm-list {
+				display: flex; flex-direction: column; gap: 6px;
 			}
 			.duty-load-earlier { text-align: center; padding: 4px 0 8px; }
 			.duty-load-earlier a { cursor: pointer; font-size: var(--text-xs); color: var(--text-muted); }
 			.duty-load-earlier a:hover { color: var(--text-color); }
+			.duty-chat-list > .duty-msg, .duty-dm-list > .duty-msg {
+				position: relative; max-width: 78%; align-self: flex-start;
+				background: var(--card-bg, #fff); border: 1px solid var(--border-color);
+				border-radius: 12px 12px 12px 3px; padding: 6px 10px 5px;
+				box-shadow: 0 1px 1px rgba(0,0,0,0.04);
+			}
+			.duty-chat-list > .duty-msg-mine, .duty-dm-list > .duty-msg-mine {
+				align-self: flex-end; background: #d9fdd3; border-color: #c5f2bd;
+				border-radius: 12px 12px 3px 12px;
+			}
+			[data-theme="dark"] .duty-chat-list > .duty-msg-mine,
+			[data-theme="dark"] .duty-dm-list > .duty-msg-mine { background: #075e54; border-color: #0b7a6d; }
+			/* sender name is redundant on your own bubble — the side says it */
+			.duty-chat-list > .duty-msg-mine .duty-msg-who,
+			.duty-dm-list > .duty-msg-mine .duty-msg-who { display: none; }
 			.duty-msg { padding: 4px 2px; font-size: var(--text-sm); line-height: 1.5; }
-			.duty-msg-who { font-weight: 700; color: var(--text-color); margin-right: 6px; }
+			.duty-msg-who { font-weight: 700; color: var(--text-color); margin-right: 6px; display: block; font-size: var(--text-xs); margin-bottom: 1px; }
 			.duty-msg-mine { background: #e7f4ec; border-radius: 10px; padding: 4px 8px; }
+			/* time and ticks sit bottom-right inside the bubble, as in WhatsApp */
+			.duty-chat-list > .duty-msg .duty-msg-time,
+			.duty-dm-list > .duty-msg .duty-msg-time { float: right; margin: 3px 0 0 10px; font-size: 11px; opacity: .65; }
+			.duty-chat-list > .duty-msg .duty-msg-quote,
+			.duty-dm-list > .duty-msg .duty-msg-quote {
+				border-left: 3px solid var(--green-600, #2e7d32); background: rgba(0,0,0,0.04);
+				border-radius: 5px; padding: 3px 7px; margin-bottom: 4px;
+				font-size: var(--text-xs); opacity: .85;
+			}
+			/* actions stay hidden until hover so the bubble is not a row of icons */
+			.duty-chat-list > .duty-msg .duty-msg-edit,
+			.duty-chat-list > .duty-msg .duty-msg-reply,
+			.duty-chat-list > .duty-msg .duty-msg-react,
+			.duty-chat-list > .duty-msg .duty-msg-issue,
+			.duty-chat-list > .duty-msg .duty-msg-del { opacity: 0; transition: opacity .12s; margin-left: 5px; font-size: 12px; text-decoration: none; }
+			.duty-chat-list > .duty-msg:hover .duty-msg-edit,
+			.duty-chat-list > .duty-msg:hover .duty-msg-reply,
+			.duty-chat-list > .duty-msg:hover .duty-msg-react,
+			.duty-chat-list > .duty-msg:hover .duty-msg-issue,
+			.duty-chat-list > .duty-msg:hover .duty-msg-del { opacity: .75; }
+			@media (max-width: 767px) {
+				.duty-chat-list > .duty-msg, .duty-dm-list > .duty-msg { max-width: 88%; }
+				.duty-chat-list > .duty-msg .duty-msg-edit,
+				.duty-chat-list > .duty-msg .duty-msg-reply,
+				.duty-chat-list > .duty-msg .duty-msg-react,
+				.duty-chat-list > .duty-msg .duty-msg-issue,
+				.duty-chat-list > .duty-msg .duty-msg-del { opacity: .75; }
+			}
 			.duty-tc-emojibtn, .duty-tc-mic, .duty-cr-mic { cursor: pointer; font-size: 18px; align-self: center; padding: 0 4px; text-decoration: none; user-select: none; }
 			@keyframes duty-pulse { 0% { opacity: 1; } 50% { opacity: .35; } 100% { opacity: 1; } }
 			.duty-msg-mine .duty-msg-who { color: var(--green-600, #2e7d32); }
@@ -12284,6 +17882,19 @@ this.$me.find(".duty-req-ok").on("click", (e) => {
 				color: var(--blue-600, #1565c0); font-weight: 700;
 				background: var(--blue-100, #e3f2fd); border-radius: 4px; padding: 0 3px;
 			}
+			/* non-bubble children of the flex list — dividers, the load-earlier link
+			   and any notice — must span the width rather than shrink to content */
+			.duty-chat-list > .duty-load-earlier,
+			.duty-chat-list > .duty-new-divider,
+			.duty-chat-list > .duty-search-notice,
+			.duty-chat-list > .text-muted,
+			.duty-dm-list > .duty-load-earlier,
+			.duty-dm-list > .text-muted,
+			.duty-dm-list > .duty-plan-empty { align-self: stretch; width: 100%; }
+			/* mention and unread tints must beat the bubble background */
+			.duty-chat-list > .duty-msg-mentioned { background: var(--yellow-50, #fffbeb) !important; border-color: #fcd34d; }
+			.duty-chat-list > .duty-msg-new { background: var(--blue-50, #eff6ff) !important; }
+			.duty-chat-list > .duty-msg-mine.duty-msg-mentioned { background: #fef3c7 !important; }
 			.duty-msg-mentioned { background: var(--yellow-50, #fffbeb); border-radius: 6px; }
 			.duty-msg-new { background: var(--blue-50, #eff6ff); border-radius: 6px; }
 			.duty-new-divider {
@@ -12616,7 +18227,21 @@ this.$me.find(".duty-req-ok").on("click", (e) => {
 			.duty-tr-group span.duty-tr-done { color: #0E8A63; }
 			.duty-tr-row { padding-left: 10px; }
 			.duty-projects { display: flex; gap: 0; align-items: stretch; min-height: calc(100vh - 120px); }
-			.duty-pj-side { width: 250px; flex: none; border-right: 1px solid #e5e7eb; padding: 8px 8px 8px 0; overflow-y: auto; max-height: calc(100vh - 110px); }
+			.duty-pj-side { width: 250px; flex: none; border-right: 1px solid #e5e7eb;
+				padding: 8px 8px 8px 0; overflow-y: auto; max-height: calc(100vh - 110px);
+				transition: width .16s ease, padding .16s ease; }
+			/* With a project open the list is 250px of mostly empty column and
+			   the board is the thing you came for. It narrows to a spine and
+			   opens again on hover, so switching project still takes one move. */
+			.duty-projects.pj-detail .duty-pj-side { width: 34px; padding-right: 0; overflow: hidden; }
+			.duty-projects.pj-detail .duty-pj-side:hover { width: 250px; padding-right: 8px;
+				overflow-y: auto; background: var(--card-bg, #fff); position: relative; z-index: 20;
+				box-shadow: 6px 0 18px rgba(0,0,0,.06); }
+			.duty-projects.pj-detail .duty-pj-side > * { opacity: 0; transition: opacity .12s ease; }
+			.duty-projects.pj-detail .duty-pj-side:hover > * { opacity: 1; }
+			.duty-projects.pj-detail .duty-pj-side::after { content: "›"; position: absolute;
+				left: 11px; top: 14px; color: var(--text-muted); font-size: 17px; }
+			.duty-projects.pj-detail .duty-pj-side:hover::after { display: none; }
 			.duty-pj-sidehead { display: flex; gap: 6px; margin-bottom: 8px; }
 			.duty-pj-main { flex: 1; min-width: 0; padding-left: 14px; }
 			.duty-pj-title { font-size: 15px; padding: 2px 0 10px; }
@@ -12627,9 +18252,47 @@ this.$me.find(".duty-req-ok").on("click", (e) => {
 			.duty-pj-item.active { background: #eef2f0; }
 			.duty-pj-item .t { display: block; font-weight: 600; font-size: 12.5px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 			.duty-pj-item .s { display: block; font-size: 11px; color: #8a938f; }
-			.duty-pj-views { display: inline-flex; gap: 2px; margin-left: 14px; background: #f0efe9; border-radius: 8px; padding: 2px; }
-			.duty-pj-v { font-size: 12px; padding: 3px 10px; border-radius: 6px; cursor: pointer; color: #6B7772; text-decoration: none; }
+			/* the name yields first when the bar is tight, so the tabs stay on
+			   one line and keep their shape */
+			.duty-pj-name { min-width: 0; overflow: hidden; text-overflow: ellipsis;
+				white-space: nowrap; flex: 0 1 auto; }
+			.duty-pj-views { display: inline-flex; gap: 2px; margin-left: 16px; background: #f0efe9;
+				border-radius: 9px; padding: 3px; flex: 0 0 auto; }
+			.duty-pj-v { font-size: 12px; padding: 5px 13px; border-radius: 7px; cursor: pointer;
+				color: #6B7772; text-decoration: none; white-space: nowrap; line-height: 1.4; }
 			.duty-pj-v.on { background: #fff; color: #182420; font-weight: 600; box-shadow: 0 1px 2px rgba(0,0,0,.08); }
+			/* the right-hand group: things you reach for occasionally, kept small
+			   and together so they stop competing with the views */
+			.duty-pj-tools { display: inline-flex; gap: 4px; align-items: center; margin-left: auto; }
+			.duty-pj-tools a { font-size: 12px; padding: 3px 10px; border-radius: 7px;
+				cursor: pointer; color: #6B7772; text-decoration: none;
+				border: 1px solid transparent; white-space: nowrap; }
+			.duty-pj-tools a:hover { background: #f0efe9; color: #182420; }
+			.duty-pj-analysis { border-color: #DDE2E0 !important; }
+			.duty-pj-analysis i { font-style: normal; font-size: 9px; opacity: .6; }
+			.duty-rc { border: 1px solid var(--border-color); border-left: 3px solid #4A8FBF;
+				border-radius: 10px; padding: 11px 14px; margin-bottom: 8px; background: #fff; }
+			.duty-rc.off { border-left-color: #C9D2CF; opacity: .62; }
+			.duty-rc-h { display: flex; align-items: baseline; gap: 9px; flex-wrap: wrap; }
+			.duty-rc-h b { font-size: 13.5px; }
+			.duty-rc-fq { font-size: 10px; font-weight: 700; text-transform: uppercase;
+				letter-spacing: .05em; color: #1C4E7A; background: #EAF2F8;
+				border-radius: 999px; padding: 1px 8px; }
+			.duty-rc-h em { margin-left: auto; font-style: normal; font-size: 11px; color: var(--text-muted); }
+			.duty-rc-m { display: flex; gap: 13px; flex-wrap: wrap; margin: 5px 0 0;
+				font-size: 11.5px; color: var(--text-muted); }
+			.duty-rc-wait { margin: 6px 0 0; font-size: 11.5px; color: #B27409; }
+			.duty-rc-a { display: flex; gap: 6px; margin-top: 8px; }
+			.duty-rc-a a { cursor: pointer; font-size: 11px; color: var(--text-muted);
+				border: 1px solid var(--border-color); border-radius: 5px; padding: 1px 8px;
+				text-decoration: none; }
+			.duty-rc-a a:hover { background: #123C35; border-color: #123C35; color: #fff; }
+			.duty-pj-menu a { display: block; padding: 10px 12px; border-radius: 9px;
+				text-decoration: none; cursor: pointer; margin-bottom: 4px;
+				border: 1px solid var(--border-color); }
+			.duty-pj-menu a:hover { border-color: #123C35; background: #F5F8F7; }
+			.duty-pj-menu b { display: block; font-size: 13.5px; color: #16211F; }
+			.duty-pj-menu span { font-size: 11.5px; color: var(--text-muted); }
 			.duty-cal-head { display: flex; gap: 10px; align-items: center; margin: 8px 0; }
 			.duty-cal-nav, .duty-cal-today { cursor: pointer; padding: 2px 8px; border-radius: 6px; background: #f0efe9; text-decoration: none; color: #182420; font-size: 12.5px; }
 			.duty-cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); border: 1px solid #e5e7eb; border-radius: 10px; overflow: hidden; }
@@ -12660,11 +18323,130 @@ this.$me.find(".duty-req-ok").on("click", (e) => {
 				background: var(--gray-200, #e5e7eb); overflow: hidden; margin-top: 4px;
 			}
 			.duty-proj-bar span { display: block; height: 100%; border-radius: 99px; }
+			.duty-dl { border: 1px solid var(--border-color); border-left: 3px solid #8A9A95;
+				border-radius: 10px; padding: 11px 14px; margin-bottom: 8px; background: #fff; }
+			.duty-dl.submitted { border-left-color: #B45309; }
+			.duty-dl.accepted { border-left-color: #0E8A63; }
+			.duty-dl.rejected { border-left-color: #B91C1C; }
+			.duty-dl.late { background: #FEF9F9; }
+			.duty-dl-h { display: flex; align-items: baseline; gap: 9px; flex-wrap: wrap; }
+			.duty-dl-h b { font-size: 13.5px; }
+			.duty-dl-st { font-size: 10px; font-weight: 700; text-transform: uppercase;
+				letter-spacing: .05em; color: var(--text-muted); background: #F3F6F5;
+				border-radius: 999px; padding: 1px 8px; }
+			.duty-dl.submitted .duty-dl-st { color: #8A5A0B; background: #FEF6EC; }
+			.duty-dl.accepted .duty-dl-st { color: #0C6B4F; background: #E4F3EC; }
+			.duty-dl.rejected .duty-dl-st { color: #B91C1C; background: #FEF0F0; }
+			.duty-dl-h em { margin-left: auto; font-style: normal; font-size: 11px; color: var(--text-muted); }
+			.duty-dl-m { display: flex; gap: 13px; flex-wrap: wrap; margin: 5px 0 6px;
+				font-size: 11.5px; color: var(--text-muted); }
+			.duty-dl p { margin: 3px 0; font-size: 12.5px; line-height: 1.55; color: #33423E; }
+			.duty-dl-nc { color: #B27409 !important; font-style: italic; }
+			.duty-dl-ok { color: #0C6B4F !important; }
+			.duty-dl-no { color: #B91C1C !important; }
+			.duty-dl-a { display: flex; gap: 6px; margin-top: 8px; }
+			.duty-dl-a a { cursor: pointer; font-size: 11px; color: var(--text-muted);
+				border: 1px solid var(--border-color); border-radius: 5px; padding: 1px 8px;
+				text-decoration: none; }
+			.duty-dl-a a:hover { background: #123C35; border-color: #123C35; color: #fff; }
+			.duty-cv-k { display: flex; gap: 18px; justify-content: center; margin-top: 4px;
+				font-size: 11px; color: var(--text-muted); }
+			.duty-cv-k i { display: inline-block; width: 14px; height: 3px; border-radius: 2px;
+				margin-right: 5px; vertical-align: middle; }
+			.duty-cp { margin-top: 6px; }
+			.duty-cp-i { display: flex; gap: 11px; align-items: center; padding: 8px 12px;
+				border: 1px solid var(--border-color); border-radius: 9px; margin-bottom: 5px;
+				border-left: 3px solid #B45309; background: #fff; }
+			.duty-cp-i.done { border-left-color: #0E8A63; opacity: .6; }
+			.duty-cp-i.late { border-left-color: #B91C1C; background: #FEF6F6; }
+			.duty-cp-n { flex: 0 0 auto; width: 22px; height: 22px; border-radius: 50%;
+				background: #F3F6F5; display: grid; place-items: center; font-size: 11px;
+				font-weight: 700; color: var(--text-muted); }
+			.duty-cp-i b { display: block; font-size: 13px; }
+			.duty-cp-i span:not(.duty-cp-n) { font-size: 11px; color: var(--text-muted); }
+			.duty-cp-i em { margin-left: auto; font-style: normal; font-size: 10.5px;
+				font-weight: 700; text-transform: uppercase; color: var(--text-muted); }
+			.duty-cp-i.late em { color: #B91C1C; }
+			.duty-pk { font-size: 13px; }
+			.duty-pk-h { display: flex; align-items: flex-start; gap: 16px; }
+			.duty-pk-h span { font-size: 11px; text-transform: uppercase; letter-spacing: .06em;
+				color: var(--text-muted); font-weight: 700; }
+			.duty-pk-h h3 { margin: 2px 0; font-size: 20px; }
+			.duty-pk-h i { font-style: normal; font-size: 12px; color: var(--text-muted); }
+			.duty-pk-rag { margin-left: auto; border: 2px solid; border-radius: 8px;
+				padding: 5px 14px; font-weight: 800; font-size: 14px; text-align: center; }
+			.duty-pk-rag u { display: block; text-decoration: none; font-size: 9.5px;
+				font-weight: 400; color: var(--text-muted); }
+			.duty-pk-why { background: #FEF6EC; border: 1px solid #F0DCB8; border-radius: 8px;
+				padding: 9px 13px; margin-top: 10px; font-size: 12.5px; }
+			.duty-pk-g { display: flex; gap: 26px; flex-wrap: wrap; margin: 14px 0; padding: 12px 0;
+				border-top: 1px solid var(--border-color); border-bottom: 1px solid var(--border-color); }
+			.duty-pk-g i { display: block; font-style: normal; font-size: 10px;
+				text-transform: uppercase; letter-spacing: .05em; color: var(--text-muted); }
+			.duty-pk-g b { font-size: 18px; font-variant-numeric: tabular-nums; }
+			.duty-pk-g u { display: block; text-decoration: none; font-size: 10.5px; color: var(--text-muted); }
+			.duty-pk-s h4 { margin: 16px 0 5px; font-size: 11px; text-transform: uppercase;
+				letter-spacing: .06em; color: var(--text-muted); }
+			.duty-pk-l { margin: 4px 0; padding-left: 18px; }
+			.duty-pk-l li { margin: 3px 0; line-height: 1.5; }
+			.duty-pk-l li span { display: block; color: var(--text-muted); font-size: 11.5px; }
+			.duty-pk-l li.late { color: #B91C1C; }
+			.duty-pk-n { color: var(--text-muted); font-style: italic; font-size: 12.5px; margin: 4px 0; }
+			.duty-pk-f { margin-top: 20px; padding-top: 8px; border-top: 1px solid var(--border-color);
+				font-size: 10.5px; color: var(--text-muted); }
+			.duty-ld-met { font-size: 12px; color: #0C6B4F; }
+			.duty-ld-met a { margin-left: 8px; font-size: 11px; color: var(--text-muted);
+				cursor: pointer; text-decoration: underline; }
+			.duty-ld-met a:hover { color: #123C35; }
+			.duty-dc { border: 1px solid var(--border-color); border-left: 3px solid #5B3E86;
+				border-radius: 10px; padding: 11px 14px; margin-bottom: 8px; background: #fff; }
+			.duty-dc.proposed { border-left-color: #B27409; }
+			.duty-dc.superseded, .duty-dc.reversed { border-left-color: #C9C4D2; opacity: .68; }
+			.duty-dc-h { display: flex; align-items: baseline; gap: 9px; flex-wrap: wrap; }
+			.duty-dc-h b { font-size: 13.5px; }
+			.duty-dc-st { font-size: 10px; font-weight: 700; text-transform: uppercase;
+				letter-spacing: .05em; color: #5B3E86; background: #F6F3FB;
+				border-radius: 999px; padding: 1px 8px; }
+			.duty-dc.proposed .duty-dc-st { color: #8A5A0B; background: #FEF6EC; }
+			.duty-dc-h em { margin-left: auto; font-style: normal; font-size: 11px; color: var(--text-muted); }
+			.duty-dc-m { display: flex; gap: 14px; flex-wrap: wrap; margin: 5px 0 7px;
+				font-size: 11.5px; color: var(--text-muted); }
+			.duty-dc-priv { color: #B27409; font-weight: 600; }
+			.duty-dc p { margin: 3px 0; font-size: 12.5px; line-height: 1.55; color: #33423E; }
+			.duty-dc-sup { color: #6B7C77; font-style: italic; }
+			.duty-dc-a { display: flex; gap: 6px; margin-top: 8px; }
+			.duty-dc-a a { cursor: pointer; font-size: 11px; color: var(--text-muted);
+				border: 1px solid var(--border-color); border-radius: 5px; padding: 1px 8px;
+				text-decoration: none; }
+			.duty-dc-a a:hover { background: #5B3E86; border-color: #5B3E86; color: #fff; }
+			.duty-pj-title .pj-effort { cursor: pointer; font-size: 12px; color: var(--text-muted);
+				border: 1px solid var(--border-color); border-radius: 6px; padding: 2px 9px;
+				margin-left: 8px; text-decoration: none; white-space: nowrap; }
+			.duty-pj-title .pj-effort:hover { border-color: #123C35; color: #123C35; }
 			.duty-proj-target { font-size: var(--text-xs); color: var(--text-muted); font-weight: 600; }
 			.duty-kb-working { font-weight: 600; }
 			.duty-kb-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
 			.duty-kb-bar a { cursor: pointer; font-size: var(--text-xs); color: var(--text-muted); }
 			.duty-kanban { display: flex; gap: 12px; align-items: flex-start; overflow-x: auto; padding-bottom: 8px; }
+			/* Phase columns: narrower than status columns because there are
+			   seven of them rather than four, and each carries its date and
+			   slip in the head so the column itself says where it stands. */
+			.duty-kb-phase .duty-kb-col { flex: 0 0 262px; min-width: 262px; }
+			.duty-kb-pcol { border-top: 3px solid #0F5C55; }
+			/* space-between suits two children; these heads have three */
+			.duty-kb-pcol .duty-kb-col-head { justify-content: flex-start; gap: 8px;
+				align-items: center; }
+			.duty-kb-pcol .duty-kb-count { margin-left: auto; flex: none; }
+			.duty-kb-pcol.late { border-top-color: #C2410C; }
+			.duty-kb-col-head .duty-kb-pix { width: 20px; height: 20px; border-radius: 50%;
+				background: #E7F1EF; color: #0F5C55; font-size: 11px; font-weight: 800;
+				display: inline-flex; align-items: center; justify-content: center; flex: none; }
+			.duty-kb-ptitle { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis;
+				white-space: nowrap; }
+			.duty-kb-pmeta { display: flex; gap: 9px; flex-wrap: wrap; margin: -2px 0 7px 2px;
+				font-size: 10.5px; color: var(--text-muted); }
+			.duty-kb-pmeta .late { color: #C2410C; font-weight: 700; }
+			.duty-kb-pmeta .slip { color: #B45309; font-weight: 700; }
 			.duty-kb-col {
 				flex: 1 1 0; min-width: 230px; background: var(--gray-50, #fafafa);
 				border: 1px solid var(--border-color); border-radius: 10px; padding: 10px;
@@ -12917,9 +18699,29 @@ this.$me.find(".duty-req-ok").on("click", (e) => {
 			.duty-md .duty-md-i.on { background: #B27409; }
 			.duty-cr-intbanner { background: #B27409; color: #fff; font-size: 12px; font-weight: 700; padding: 5px 12px; border-radius: 8px 8px 0 0; }
 			.duty-cr-send.duty-send-internal { background: #B27409 !important; border-color: #B27409 !important; }
-			.duty-strip { position: fixed; bottom: 14px; left: 50%; transform: translateX(-50%); z-index: 300;
-				display: flex; align-items: center; gap: 9px; background: #123C35; color: #fff;
-				border-radius: 99px; padding: 8px 16px; font-size: 12.5px; box-shadow: 0 6px 22px rgba(12,34,30,.35); }
+			/* THE DUTY STRIP SAT ACROSS THE MIDDLE OF THE BOTTOM EDGE, over the
+			   chat composer and the foot of every board. It is a status
+			   indicator, not a dialog: it belongs out of the way. Moved to the
+			   right, above the rail, and it fades until pointed at so it never
+			   hides what is under it. */
+			/* It sat in the bottom-right corner over the chat and everything else
+			   that lives there. Moved to the bottom-left, out of the way of the
+			   things you actually click, and it collapses to a dot until you
+			   reach for it — the elapsed time matters when you look, not while
+			   you work. */
+			.duty-strip { position: fixed; bottom: 12px; left: 12px; right: auto; transform: none;
+				z-index: 120; display: flex; align-items: center; gap: 9px; background: #123C35;
+				color: #fff; border-radius: 99px; padding: 7px 14px; font-size: 12.5px;
+				box-shadow: 0 4px 16px rgba(12,34,30,.28);
+				opacity: .5; transition: opacity .15s ease, max-width .18s ease, padding .18s ease;
+				max-width: 44px; overflow: hidden; white-space: nowrap; cursor: default; }
+			.duty-strip:hover, .duty-strip.working { opacity: 1; max-width: 620px; }
+			/* a task actually running is worth interrupting for; idle is not */
+			.duty-strip.working { padding: 8px 16px; }
+			.duty-strip .ds-dot { flex: none; }
+			@media (max-width: 900px) {
+				.duty-strip { right: 10px; bottom: 10px; padding: 6px 12px; font-size: 11.5px; }
+			}
 			.duty-strip .ds-dot { width: 9px; height: 9px; border-radius: 50%; background: #8A9994; flex: none; }
 			.duty-strip .ds-dot.on { background: #2FD08C; box-shadow: 0 0 0 3px rgba(47,208,140,.25); }
 			.duty-strip .ds-lab { color: rgba(255,255,255,.65); }
@@ -12938,7 +18740,16 @@ this.$me.find(".duty-req-ok").on("click", (e) => {
 			.duty-iv.on { background: #123C35; color: #fff; }
 			.duty-rail { position: fixed; left: 0; top: var(--navbar-height, 60px); bottom: 0; width: 172px; z-index: 90;
 				background: #123C35; display: flex; flex-direction: column; padding: 10px 8px; gap: 2px; overflow-y: auto; }
-			.duty-rl { display: flex; align-items: center; gap: 10px; color: rgba(255,255,255,.72); font-size: 13px; font-weight: 600;
+			/* the unread count sits on the rail so it is visible from any face —
+			   being seen while you are elsewhere is the whole point of it */
+			.duty-rl-n { position: absolute; right: 10px; top: 50%; transform: translateY(-50%);
+				background: #C94646; color: #fff; font-size: 10px; font-weight: 800;
+				line-height: 1; padding: 3px 6px; border-radius: 999px; min-width: 18px;
+				text-align: center; box-shadow: 0 0 0 2px rgba(0,0,0,.18); }
+			.duty-rail-min .duty-rl-n { right: 4px; top: 5px; transform: none;
+				font-size: 8.5px; padding: 2px 4px; min-width: 14px; }
+			.duty-rl.has-unread { color: #fff; }
+			.duty-rl { position: relative; display: flex; align-items: center; gap: 10px; color: rgba(255,255,255,.72); font-size: 13px; font-weight: 600;
 				border-radius: 9px; padding: 8px 10px; cursor: pointer; white-space: nowrap; transition: background .14s, color .14s; }
 			.duty-rl:hover { color: #fff; background: rgba(255,255,255,.08); text-decoration: none; }
 			.duty-rl.on { background: #fff; color: #123C35; font-weight: 700; }
@@ -13202,6 +19013,1002 @@ this.$me.find(".duty-req-ok").on("click", (e) => {
 			.duty-lb-search:focus { border-color: #0E8A63; outline: none; }
 			.duty-lb-admin { margin-left: auto; display: flex; gap: 8px; align-items: center; }
 			.duty-lb-admin .duty-bk-file { width: 200px; font-size: 11px; }
+			/* ---- money ---- */
+			.duty-money { padding: 4px 0 40px; }
+			.duty-mn-head { display: flex; align-items: center; gap: 10px; padding: 10px 2px 14px;
+				border-bottom: 1px solid var(--border-color); margin-bottom: 16px; flex-wrap: wrap; }
+			.duty-mn-head b { font-size: var(--text-lg); }
+			.duty-mn-sub { color: var(--text-muted); font-size: var(--text-sm); }
+			.duty-mn-head .duty-mn-newacc { margin-left: auto; }
+			.duty-mn-refresh { cursor: pointer; color: var(--text-muted); font-size: 16px; }
+			.duty-mn-alert { background: #FFF1F1; border: 1px solid #F6C9C9; border-left: 4px solid #C94646;
+				border-radius: 10px; padding: 12px 16px; margin-bottom: 18px; font-size: 13.5px; color: #7A2323; }
+			.duty-mn-alert b { display: block; margin-bottom: 5px; font-size: 14px; }
+			.duty-mn-alert div { margin-top: 2px; }
+			/* four dark slabs became one rail: the totals are one fact about the
+			   portfolio, not four competing objects above the thing you came for */
+			.duty-mn-totals { display: flex; flex-wrap: wrap; align-items: stretch; gap: 0;
+				border-radius: 12px; overflow: hidden; background: linear-gradient(100deg, #0E3B34 0%, #12564C 100%);
+				box-shadow: 0 2px 10px rgba(16,24,20,.14); margin-bottom: 18px; }
+			.duty-mn-tot { background: transparent; color: #fff; border-radius: 0;
+				padding: 11px 20px; min-width: 138px;
+				border-right: 1px solid rgba(255,255,255,.13); }
+			.duty-mn-tot:last-of-type { border-right: 0; }
+			/* the rail reads left to right as: what you can spend, then what is
+			   put away. A label rather than a colour, because the two sides are
+			   equally good news and only one of them is available */
+			.duty-mn-tgrp { display: flex; align-items: center; padding: 0 4px 0 14px;
+				border-right: 1px solid rgba(255,255,255,.13); }
+			.duty-mn-glab { font-size: 8.5px; font-weight: 800; letter-spacing: .12em;
+				text-transform: uppercase; color: rgba(255,255,255,.5);
+				writing-mode: vertical-rl; transform: rotate(180deg); }
+			.duty-mn-tot.inv { background: rgba(255,255,255,.055); }
+			@media (max-width: 900px) {
+				.duty-mn-glab { writing-mode: horizontal-tb; transform: none; }
+				.duty-mn-tgrp { padding: 6px 14px 0; }
+			}
+			.duty-mn-cur { display: block; font-size: 11px; font-weight: 700; letter-spacing: .12em;
+				text-transform: uppercase; opacity: .68; }
+			.duty-mn-amt { display: block; font-size: 20px; font-weight: 800; letter-spacing: -.02em;
+				margin: 2px 0 1px; font-variant-numeric: tabular-nums; }
+			.duty-mn-n { font-size: 10.5px; opacity: .62; }
+			.duty-mn-avail { display: block; margin-top: 2px; opacity: .78; }
+			.duty-mn-bankblock { margin-bottom: 13px; }
+			.duty-mn-bh { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .06em;
+				color: var(--text-muted); margin-bottom: 5px; }
+			/* ── banks left, commitments right ─────────────────────────────
+			   Held and committed are the same question asked twice, so they sit
+			   side by side rather than one scrolling below the other. */
+			.duty-mn-split { display: grid; grid-template-columns: 1fr 1fr; gap: 22px;
+				align-items: start; }
+			.duty-mn-left, .duty-mn-right { min-width: 0; }
+			/* four columns, with room for a tenth and eleventh bank */
+			.duty-mn-banks { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
+			.duty-mn-bank { position: relative; display: block; cursor: pointer; text-decoration: none;
+				border: 1px solid var(--border-color); border-radius: 10px;
+				padding: 9px 10px 8px 12px; background: var(--card-bg, #fff);
+				color: var(--text-color); min-width: 0;
+				transition: box-shadow .15s ease, transform .15s ease, border-color .15s ease; }
+			.duty-mn-bank::before { content: ""; position: absolute; left: 0; top: 9px; bottom: 9px;
+				width: 3px; border-radius: 0 3px 3px 0; background: var(--accent); }
+			.duty-mn-bank:hover { transform: translateY(-1px); box-shadow: 0 6px 16px rgba(16,24,20,.09);
+				border-color: var(--accent); }
+			.duty-mn-bank.open { border-color: var(--accent); box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent) 22%, transparent); }
+			.duty-mn-bank.risk::before { background: #C94646; }
+			.duty-mn-bkname { font-weight: 650; font-size: 12.5px; line-height: 1.2;
+				overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+			.duty-mn-bkfig { margin: 6px 0 5px; }
+			.duty-mn-bkfig div { display: flex; align-items: baseline; gap: 5px; }
+			.duty-mn-bkfig span { font-size: 9px; font-weight: 700; letter-spacing: .05em;
+				color: var(--text-muted); }
+			.duty-mn-bkfig b { font-size: 15px; font-weight: 750; letter-spacing: -.02em;
+				font-variant-numeric: tabular-nums; }
+			.duty-mn-bkfig i { font-style: normal; font-size: 9.5px; color: var(--text-muted); }
+			.duty-mn-bkfoot { font-size: 9.5px; color: var(--text-muted);
+				text-transform: uppercase; letter-spacing: .05em; }
+			.duty-mn-bkfoot em { font-style: normal; color: #C94646; font-weight: 700; margin-left: 5px; }
+			/* the drawer: accounts of the open bank, full width of the left half */
+			.duty-mn-drawer { margin-top: 10px; border: 1px solid var(--border-color);
+				border-left: 3px solid var(--accent); border-radius: 10px; padding: 10px 12px 12px;
+				background: var(--card-bg, #fff); }
+			.duty-mn-dhead { display: flex; align-items: baseline; gap: 9px; margin-bottom: 9px; }
+			.duty-mn-dhead b { font-size: 13px; }
+			.duty-mn-dhead span { font-size: 10px; color: var(--text-muted);
+				text-transform: uppercase; letter-spacing: .05em; }
+			.duty-mn-dclose { margin-left: auto; cursor: pointer; font-size: 17px; line-height: 1;
+				color: var(--text-muted); padding: 0 3px; }
+			.duty-mn-dclose:hover { color: var(--text-color); }
+			.duty-mn-drawer .duty-mn-card { margin-bottom: 7px; }
+			.duty-mn-drawer .duty-mn-card:last-child { margin-bottom: 0; }
+			/* standing orders, compressed for half a window */
+			.duty-mn-so2 { display: grid; grid-template-columns: 88px 1fr auto; gap: 9px;
+				align-items: center; padding: 8px 11px; margin-bottom: 5px;
+				border: 1px solid var(--border-color); border-radius: 9px;
+				background: var(--card-bg, #fff); border-left: 3px solid #0E8A63;
+				font-size: 12px; font-variant-numeric: tabular-nums; }
+			.duty-mn-so2.late { border-left-color: #C94646; }
+			.duty-mn-so2.off { opacity: .55; border-left-color: var(--border-color); }
+			.duty-mn-sowhen b { display: block; font-weight: 650; font-size: 11.5px; }
+			.duty-mn-sowhen span { font-size: 9.5px; color: var(--text-muted); }
+			.duty-mn-so2.late .duty-mn-sowhen span { color: #C94646; font-weight: 700; }
+			.duty-mn-sowhat { min-width: 0; }
+			.duty-mn-sowhat b { display: block; font-size: 12.5px; font-weight: 600;
+				overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+			.duty-mn-sowhat span { font-size: 10px; color: var(--text-muted);
+				overflow: hidden; text-overflow: ellipsis; white-space: nowrap; display: block; }
+			.duty-mn-soamt2 { text-align: right; font-weight: 700; }
+			.duty-mn-soamt2 i { display: block; font-style: normal; font-size: 9.5px;
+				font-weight: 400; color: var(--text-muted); }
+			.duty-mn-soact { grid-column: 1 / -1; display: flex; gap: 5px; justify-content: flex-end;
+				opacity: 0; height: 0; overflow: hidden; transition: opacity .14s ease; }
+			.duty-mn-so2:hover .duty-mn-soact { opacity: 1; height: auto; margin-top: 4px; }
+			.duty-mn-soact a { cursor: pointer; font-size: 11px; color: var(--text-muted);
+				border: 1px solid var(--border-color); border-radius: 5px; padding: 1px 8px;
+				text-decoration: none; }
+			.duty-mn-soact a:hover { background: #123C35; border-color: #123C35; color: #fff; }
+			@media (max-width: 1180px) {
+				.duty-mn-split { grid-template-columns: 1fr; gap: 18px; }
+				.duty-mn-banks { grid-template-columns: repeat(3, 1fr); }
+			}
+			@media (max-width: 720px) { .duty-mn-banks { grid-template-columns: repeat(2, 1fr); }
+				.duty-mn-soact { opacity: 1; height: auto; margin-top: 4px; } }
+			.duty-mn-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(196px, 1fr)); gap: 9px; }
+			/* ── account cards ──────────────────────────────────────────────
+			   Four fixed rows — name, balance, context, actions — so every
+			   balance in the grid sits on the same line. Cards previously
+			   carried nought to three context blocks and ragged accordingly,
+			   and the eye cannot scan a column that moves.
+
+			   The bank's own colour, which the data has always held and the
+			   design spent on a 3px top border, becomes a full-height spine and
+			   a faint wash. Colour is unusual in a finance grid; it earns its
+			   place here because there are nine banks and this screen's whole
+			   job is telling you where the money is. */
+			/* color-mix is well supported but not universal; without it the card
+			   keeps a flat white background and the spine still does its job */
+			@supports not (background: color-mix(in srgb, red 10%, transparent)) {
+				.duty-mn-card { background: var(--card-bg, #fff) !important; }
+				.duty-mn-meter i { background: #0E8A63; }
+			}
+			.duty-mn-card { position: relative; border-radius: 12px;
+				padding: 11px 13px 9px 15px;
+				display: grid; grid-template-rows: auto auto 30px auto; gap: 0;
+				background:
+					linear-gradient(180deg, color-mix(in srgb, var(--accent) 7%, transparent) 0%,
+					                        color-mix(in srgb, var(--accent) 2%, transparent) 46%,
+					                        transparent 100%),
+					var(--card-bg, #fff);
+				border: 1px solid var(--border-color);
+				box-shadow: 0 1px 2px rgba(16,24,20,.05);
+				transition: box-shadow .16s ease, transform .16s ease, border-color .16s ease; }
+			/* the spine, drawn rather than bordered so the radius stays honest */
+			.duty-mn-card::before { content: ""; position: absolute; left: 0; top: 10px; bottom: 10px;
+				width: 3px; border-radius: 0 3px 3px 0; background: var(--accent); }
+			.duty-mn-card:hover { box-shadow: 0 8px 22px rgba(16,24,20,.10);
+				transform: translateY(-2px); border-color: color-mix(in srgb, var(--accent) 34%, var(--border-color)); }
+			.duty-mn-card.risk { border-color: #E8A0A0; background: #FFFBFB; }
+			.duty-mn-card.risk::before { background: #C94646; }
+			.duty-mn-top { display: flex; align-items: flex-start; gap: 10px; }
+			.duty-mn-nick { font-weight: 650; font-size: 13.5px; line-height: 1.2;
+				letter-spacing: -.005em; }
+			.duty-mn-bank { font-size: 9.5px; color: var(--text-muted); margin-top: 3px;
+				text-transform: uppercase; letter-spacing: .05em; }
+			/* the number leads and the currency steps back — you know what
+			   currency an account is in, you are here to read the figure */
+			.duty-mn-bal { display: flex; align-items: baseline; gap: 5px; margin: 9px 0 2px; }
+			.duty-mn-ccy { font-size: 10px; font-weight: 700; letter-spacing: .06em;
+				color: var(--text-muted); }
+			.duty-mn-bal b { font-size: 23px; font-weight: 750; letter-spacing: -.025em;
+				font-variant-numeric: tabular-nums; line-height: 1.1; }
+			/* one context row, fixed height, empty where an account has nothing
+			   to say — a blank line that holds its place beats a card that shrinks */
+			.duty-mn-ctx { display: flex; flex-direction: column; justify-content: center; gap: 3px; }
+			.duty-mn-meter { height: 3px; border-radius: 2px; background: #E9EEEC; overflow: hidden; }
+			.duty-mn-meter i { display: block; height: 100%; border-radius: 2px;
+				background: color-mix(in srgb, var(--accent) 70%, #0E8A63); }
+			.duty-mn-meter i.hot { background: #C94646; }
+			.duty-mn-meter i.good { background: #0E8A63; }
+			.duty-mn-ctxt { font-size: 10.5px; color: var(--text-muted); line-height: 1.3; }
+			.duty-mn-ctxt b { font-weight: 700; color: var(--text-color); }
+			.duty-mn-ctxt.up b { color: #0E8A63; }
+			.duty-mn-ctxt.down, .duty-mn-ctxt.down b { color: #C94646; }
+			.duty-mn-fore { font-size: 10.5px; margin-top: 3px; line-height: 1.35; }
+			.duty-mn-fore.ok { color: var(--text-muted); }
+			.duty-mn-fore.bad { color: #C94646; font-weight: 700; }
+			/* Five glyphs on every card was sixty-five on screen at once, and
+			   none of them told you anything until you hovered. They rest as one
+			   quiet segmented strip and come forward when the card is under the
+			   cursor. Always visible below 768px, where nothing hovers. */
+			.duty-mn-acts { display: flex; margin-top: 9px; border-radius: 7px;
+				border: 1px solid var(--border-color); overflow: hidden;
+				opacity: .32; transition: opacity .16s ease; }
+			.duty-mn-card:hover .duty-mn-acts,
+			.duty-mn-acts:focus-within { opacity: 1; }
+			.duty-mn-acts a { flex: 1; text-align: center; cursor: pointer;
+				padding: 3px 0; font-size: 12.5px; line-height: 1.35;
+				color: var(--text-muted); text-decoration: none;
+				border-right: 1px solid var(--border-color); }
+			.duty-mn-acts a:last-child { border-right: 0; }
+			.duty-mn-acts a:hover { background: var(--accent); color: #fff; }
+			.duty-mn-acts a:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }
+			@media (max-width: 767px), (hover: none) { .duty-mn-acts { opacity: 1; } }
+			.duty-mn-ring { flex: 0 0 auto; width: 28px; height: 28px; border-radius: 50%;
+				background: conic-gradient(var(--accent) calc(var(--p) * 1%), #E9EEEC 0);
+				display: grid; place-items: center; }
+			.duty-mn-ring span { background: var(--card-bg, #fff); width: 20px; height: 20px; border-radius: 50%;
+				display: grid; place-items: center; font-size: 8px; font-weight: 800; color: var(--text-muted); }
+			/* credit cards read as "what is left", not "what is spent" */
+			.duty-mn-credit { margin-top: 5px; }
+			.duty-mn-cbar { height: 4px; border-radius: 3px; background: #E9EEEC; overflow: hidden; }
+			.duty-mn-cbar i { display: block; height: 100%; background: var(--accent); border-radius: 3px; }
+			.duty-mn-cbar i.hot { background: #C94646; }
+			.duty-mn-cnum { font-size: 10px; color: var(--text-muted); margin-top: 3px; }
+			.duty-mn-cnum b { font-size: 11.5px; color: var(--text-color); }
+			.duty-mn-cnum span { opacity: .8; }
+			/* bank filter chips — the bank headings were costing a screen-wide
+			   empty row each, so the bank moved into a filter instead */
+			/* ---- bonds ---- */
+			.duty-bd-tot { display: flex; gap: 26px; flex-wrap: wrap; padding: 12px 16px;
+				background: #F4F7FA; border: 1px solid #DDE6EE; border-radius: 11px; margin-bottom: 12px; }
+			.duty-bd-tot i { display: block; font-style: normal; font-size: 10px; font-weight: 700;
+				text-transform: uppercase; letter-spacing: .05em; color: var(--text-muted); }
+			.duty-bd-tot b { font-size: 17px; font-variant-numeric: tabular-nums; color: #1C4E7A; }
+			.duty-bd-tot u { display: block; text-decoration: none; font-size: 10px; color: var(--text-muted); }
+			.duty-bd-next { padding: 10px 14px; border-radius: 10px; background: #F3FAF6;
+				border: 1px solid #CFE7DA; margin-bottom: 12px; font-size: 12.5px; }
+			.duty-bd-next > b:first-child { color: #0C6B4F; margin-right: 6px; }
+			.duty-bd-next em { font-style: normal; font-size: 11px; color: var(--text-muted); margin-left: 6px; }
+			.duty-bd-next span { display: block; font-size: 11px; color: var(--text-muted); margin-top: 3px; }
+			.duty-bd-head, .duty-bd-row { display: grid;
+				grid-template-columns: minmax(150px,1.5fr) 108px 108px 118px 92px 78px 104px 104px 176px;
+				gap: 10px; align-items: center; }
+			.duty-bd-head { padding: 0 12px 6px; font-size: 10px; font-weight: 700;
+				text-transform: uppercase; letter-spacing: .05em; color: var(--text-muted);
+				border-bottom: 1px solid var(--border-color); }
+			.duty-bd-head > div:nth-child(n+2):nth-child(-n+8),
+			.duty-bd-row > div:nth-child(n+2):nth-child(-n+8) { text-align: right; }
+			.duty-bd-row { padding: 9px 12px; border: 1px solid var(--border-color);
+				border-left: 3px solid #1C4E7A; border-radius: 9px; margin-top: 6px;
+				background: var(--card-bg,#fff); font-size: 12.5px;
+				font-variant-numeric: tabular-nums; }
+			.duty-bd-nm { text-align: left !important; min-width: 0; }
+			.duty-bd-row.none { border-left-color: #C9D2CF; background: #FBFCFC; }
+			.duty-bd-nm b { display: block; font-size: 13px; overflow: hidden;
+				text-overflow: ellipsis; white-space: nowrap; }
+			.duty-bd-nm span { display: block; font-size: 10px; color: var(--text-muted); }
+			.duty-bd-acc { color: #B27409 !important; }
+			.duty-bd-am { display: block; font-size: 9.5px; color: var(--text-muted); font-weight: 400; }
+			.duty-bd-a { display: flex; gap: 4px; justify-content: flex-end; flex-wrap: wrap; }
+			.duty-bd-a a { cursor: pointer; font-size: 11px; color: var(--text-muted);
+				border: 1px solid var(--border-color); border-radius: 5px; padding: 1px 7px;
+				text-decoration: none; white-space: nowrap; }
+			.duty-bd-a a:hover { background: #1C4E7A; border-color: #1C4E7A; color: #fff; }
+			/* ---- renewals ---- */
+			.duty-rn-top .wide b { font-size: 21px; }
+			.duty-rn-top i { display: block; font-style: normal; font-size: 10.5px;
+				color: var(--text-muted); margin-top: 1px; }
+			.duty-rn-top .warn b { color: #B27409; }
+			/* Four blocks each demanding 330px came to more than most windows have,
+			   so they squeezed and the date column collapsed to one character per
+			   line. Two across on anything but a very wide screen gives each
+			   block room to hold a date on one line. */
+			/* Renewals run down the left in the order you act on them — past
+			   first, furthest last — and accounting sits alongside rather than
+			   below, because it is a different kind of income and reads better
+			   next to the thing it is not. */
+			.duty-rn-split { display: grid; grid-template-columns: 1fr 1fr; gap: 16px;
+				align-items: start; }
+			.duty-rn-col { min-width: 0; display: flex; flex-direction: column; gap: 12px; }
+			@media (max-width: 1080px) { .duty-rn-split { grid-template-columns: 1fr; } }
+			.duty-rn-block.acct { border-left-color: #5B3E86; background: #FBF9FE; }
+			.duty-rn-h em u { text-decoration: none; font-size: 9.5px; font-weight: 500;
+				color: var(--text-muted); margin-left: 4px; }
+			.duty-rn-yr { color: var(--text-muted); font-weight: 500; }
+			.duty-rn-foot { display: flex; align-items: baseline; gap: 8px; margin-top: 8px;
+				padding-top: 8px; border-top: 1px solid var(--border-color); }
+			.duty-rn-foot span { font-size: 10px; font-weight: 700; text-transform: uppercase;
+				letter-spacing: .05em; color: var(--text-muted); }
+			.duty-rn-foot b { margin-left: auto; font-size: 15px; font-variant-numeric: tabular-nums; }
+			.duty-rn-top .acct b { color: #5B3E86; }
+			/* the date is one thing and must never break across lines */
+			.duty-rn-due { white-space: nowrap; width: 1%; }
+			.duty-rn-block .duty-st-t { table-layout: auto; width: 100%; }
+			.duty-rn-block .duty-st-t td { vertical-align: middle; }
+			/* break-word split "Approach" into "Approac / h". Names break at
+			   spaces like anything else written down, take up to two lines, and
+			   the full name is on the title where a long one is cut. */
+			.duty-rn-block .duty-st-t td:first-child { min-width: 108px; }
+			.duty-rn-block .duty-st-t td:first-child b {
+				display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;
+				overflow: hidden; overflow-wrap: normal; word-break: normal;
+				line-height: 1.3; }
+			.duty-rn-block { border: 1px solid var(--border-color); border-radius: 11px;
+				padding: 11px 14px 12px; background: var(--card-bg, #fff);
+				border-left: 3px solid var(--border-color); min-width: 0; }
+			.duty-rn-block.late { border-left-color: #C94646; background: #FEFAFA; }
+			.duty-rn-block.soon { border-left-color: #E9A23B; }
+			.duty-rn-block.mid { border-left-color: #3B82F6; }
+			.duty-rn-block.far { border-left-color: #0E8A63; }
+			.duty-rn-h { display: flex; align-items: baseline; gap: 9px; flex-wrap: wrap;
+				padding-bottom: 8px; }
+			.duty-rn-h b { font-size: 12.5px; }
+			.duty-rn-h span { font-size: 10px; color: var(--text-muted);
+				text-transform: uppercase; letter-spacing: .05em; }
+			.duty-rn-h em { margin-left: auto; font-style: normal; font-weight: 750;
+				font-size: 14px; font-variant-numeric: tabular-nums; }
+			.duty-rn-row { cursor: pointer; }
+			.duty-rn-row:hover td { background: #F3F7F5; }
+			.duty-rn-row td span { display: block; font-size: 10px; color: var(--text-muted); }
+			.duty-rn-amt { text-align: right; font-weight: 650; font-variant-numeric: tabular-nums;
+				white-space: nowrap; width: 1%; }
+			.duty-rn-no { font-weight: 400; color: #B27409; font-size: 11px; }
+			.duty-rn-act { text-align: right; white-space: nowrap; opacity: 0; transition: opacity .14s; }
+			.duty-rn-row:hover .duty-rn-act { opacity: 1; }
+			.duty-rn-act a { cursor: pointer; font-size: 11px; color: var(--text-muted);
+				border: 1px solid var(--border-color); border-radius: 5px; padding: 1px 7px;
+				text-decoration: none; margin-left: 4px; }
+			.duty-rn-act a:hover { background: #123C35; border-color: #123C35; color: #fff; }
+			@media (hover: none) { .duty-rn-act { opacity: 1; } }
+			.duty-rn-none { font-size: 12px; margin: 4px 0 0; }
+			/* ---- review ---- */
+			.duty-rw { display: flex; gap: 20px; align-items: center; padding: 16px 20px;
+				border-radius: 12px; margin-bottom: 16px; border: 1px solid; }
+			.duty-rw.good { background: #F3FAF6; border-color: #CFE7DA; }
+			.duty-rw.warn { background: #FEFAF2; border-color: #F0DCB8; }
+			.duty-rw.bad { background: #FEF6F6; border-color: #F3D4D4; }
+			.duty-rw-n { text-align: center; flex: 0 0 auto; }
+			.duty-rw-n span { display: block; font-size: 10px; font-weight: 700;
+				text-transform: uppercase; letter-spacing: .06em; color: var(--text-muted); }
+			.duty-rw-n b { font-size: 44px; font-weight: 800; letter-spacing: -.03em; line-height: 1;
+				font-variant-numeric: tabular-nums; }
+			.duty-rw.good .duty-rw-n b { color: #0C6B4F; }
+			.duty-rw.warn .duty-rw-n b { color: #B27409; }
+			.duty-rw.bad .duty-rw-n b { color: #B91C1C; }
+			.duty-rw-n i { font-style: normal; font-size: 11px; color: var(--text-muted); }
+			.duty-rw-t { font-size: 13.5px; line-height: 1.55; color: #33423E; min-width: 0; }
+			.duty-rw-t span { display: block; font-size: 11px; color: var(--text-muted); margin-top: 3px; }
+			.duty-rv-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(430px, 1fr));
+				gap: 14px; align-items: start; }
+			.duty-rv-card { border: 1px solid var(--border-color); border-radius: 11px;
+				padding: 13px 16px; background: var(--card-bg, #fff); min-width: 0; }
+			.duty-rv-h { display: flex; align-items: baseline; gap: 10px; font-size: 11px;
+				font-weight: 700; text-transform: uppercase; letter-spacing: .05em;
+				color: var(--text-muted); padding-bottom: 10px; }
+			.duty-rv-h b { margin-left: auto; font-size: 20px; text-transform: none;
+				letter-spacing: -.02em; color: var(--text-color); font-variant-numeric: tabular-nums; }
+			.duty-rv-h b u { text-decoration: none; font-size: 10px; font-weight: 500;
+				color: var(--text-muted); margin-left: 4px; }
+			.duty-rv-trs { display: flex; gap: 20px; flex-wrap: wrap; margin-top: 10px; }
+			.duty-rv-tr span { display: block; font-size: 9.5px; font-weight: 700;
+				text-transform: uppercase; letter-spacing: .05em; color: var(--text-muted); }
+			.duty-rv-tr b { font-size: 14px; font-variant-numeric: tabular-nums; }
+			.duty-rv-tr i { font-style: normal; font-size: 10px; margin-left: 4px; }
+			.duty-rv-tr.up b, .duty-rv-tr.up i { color: #0E8A63; }
+			.duty-rv-tr.down b, .duty-rv-tr.down i { color: #C94646; }
+			.duty-rv-rate { margin-top: 10px; padding: 8px 12px; border-radius: 8px;
+				background: #F3FAF6; border: 1px solid #CFE7DA; font-size: 12px; }
+			.duty-rv-rate.down { background: #FEF6F6; border-color: #F3D4D4; }
+			.duty-rv-rate b { font-size: 15px; font-variant-numeric: tabular-nums; }
+			.duty-rv-rate.up b { color: #0E8A63; } .duty-rv-rate.down b { color: #C94646; }
+			.duty-rv-rate span { display: block; font-size: 10.5px; color: var(--text-muted); margin-top: 2px; }
+			.duty-rv-bks { margin-top: 12px; }
+			.duty-rv-bk { display: grid; grid-template-columns: 92px 1fr 118px; gap: 9px;
+				align-items: center; margin-bottom: 4px; font-size: 11.5px; }
+			.duty-rv-bk span { color: var(--text-muted); text-transform: capitalize; }
+			.duty-rv-bk i { display: block; height: 8px; border-radius: 4px; }
+			.duty-rv-bk b { text-align: right; font-variant-numeric: tabular-nums; }
+			.duty-rv-bk i.c1 { background: #0F5C55; } .duty-rv-bk i.c2 { background: #1C7A6B; }
+			.duty-rv-bk i.c3 { background: #3B82F6; } .duty-rv-bk i.c4 { background: #7C3AED; }
+			.duty-rv-bk i.c5 { background: #C94646; }
+			.duty-rv-split { display: flex; gap: 24px; margin: 4px 0 12px; }
+			.duty-rv-split span { display: block; font-size: 10px; font-weight: 700;
+				text-transform: uppercase; letter-spacing: .05em; color: var(--text-muted); }
+			.duty-rv-split b { font-size: 16px; font-variant-numeric: tabular-nums; }
+			.duty-rv-split b u { text-decoration: none; font-size: 10px; font-weight: 500;
+				color: var(--text-muted); margin-left: 3px; }
+			.duty-rv-split .hot b { color: #B27409; }
+			.duty-rv-cat { display: grid; grid-template-columns: 128px 1fr 108px; gap: 9px;
+				align-items: center; margin-bottom: 4px; font-size: 11.5px; }
+			.duty-rv-cat span { color: var(--text-color); overflow: hidden; text-overflow: ellipsis;
+				white-space: nowrap; }
+			.duty-rv-cat span i { font-style: normal; font-size: 9px; color: var(--text-muted);
+				text-transform: uppercase; letter-spacing: .04em; }
+			.duty-rv-cat i { display: block; height: 8px; border-radius: 4px; background: #B27409; }
+			.duty-rv-cat i.fix { background: #9CA3AF; }
+			.duty-rv-cat b { text-align: right; font-variant-numeric: tabular-nums; }
+			.duty-rv-warn { font-size: 10.5px; color: var(--text-muted); margin-top: 9px; }
+			.duty-rv-miss td { background: #FEF6F6; }
+			.duty-rv-card .duty-st-t td span { color: var(--text-muted); font-weight: 400; }
+			/* ---- growth targets ---- */
+			.duty-tg-top { display: flex; gap: 30px; flex-wrap: wrap; padding: 12px 16px; margin-bottom: 14px;
+				border-radius: 10px; border: 1px solid var(--border-color); background: var(--card-bg, #fff); }
+			.duty-tg-top.behind { border-left: 4px solid #C94646; background: #FEF6F6; }
+			.duty-tg-top.ok { border-left: 4px solid #0E8A63; background: #F3FAF6; }
+			.duty-tg-top span { display: block; font-size: 10px; font-weight: 700; text-transform: uppercase;
+				letter-spacing: .05em; color: var(--text-muted); }
+			.duty-tg-top b { font-size: 17px; font-variant-numeric: tabular-nums; }
+			.duty-tg-row { display: grid; gap: 12px; align-items: center; padding: 10px 14px;
+				grid-template-columns: minmax(140px,1.4fr) 96px 104px 104px 108px 110px 128px 64px;
+				border: 1px solid var(--border-color); border-radius: 9px; margin-bottom: 6px;
+				background: var(--card-bg, #fff); font-size: 12.5px; font-variant-numeric: tabular-nums; }
+			.duty-tg-row.met { border-left: 3px solid #0E8A63; }
+			.duty-tg-row.due { border-left: 3px solid #E9A23B; }
+			/* due is not behind — the period is still open and the amber says so */
+			.duty-tg-need b.due { color: #B27409; }
+			.duty-tg-row.behind { border-left: 3px solid #C94646; }
+			.duty-tg-nm b { display: block; font-size: 13.5px; }
+			.duty-tg-nm span { font-size: 10.5px; color: var(--text-muted); }
+			.duty-tg-bad { display: block; color: #B91C1C; font-weight: 600; margin-top: 2px; }
+			.duty-tg-bar { position: relative; height: 7px; border-radius: 4px; background: #E9EEEC; }
+			.duty-tg-bar i { display: block; height: 100%; border-radius: 4px; background: #0E8A63; }
+			.duty-tg-row.behind .duty-tg-bar i { background: #C94646; }
+			.duty-tg-row.due .duty-tg-bar i { background: #E9A23B; }
+			.duty-tg-bar u { position: absolute; top: 10px; left: 0; text-decoration: none;
+				font-size: 10px; color: var(--text-muted); }
+			.duty-tg-fig span { display: block; font-size: 9.5px; text-transform: uppercase;
+				letter-spacing: .05em; color: var(--text-muted); }
+			.duty-tg-fig b { font-weight: 600; }
+			/* the naira figure beside each target, with the rate that produced it
+			   — a headline you cannot trace to its rows is a headline you cannot
+			   check, and this one has been questioned twice */
+			.duty-tg-ngn b { font-weight: 700; }
+			.duty-tg-ngn i { display: block; font-style: normal; font-size: 9.5px;
+				color: var(--text-muted); }
+			.duty-tg-need b { display: block; font-size: 15px; font-weight: 800; }
+			.duty-tg-need span { font-size: 10.5px; color: var(--text-muted); }
+			.duty-tg-acts a { cursor: pointer; font-size: 11.5px; color: var(--text-muted);
+				border: 1px solid var(--border-color); border-radius: 5px; padding: 1px 8px; text-decoration: none; }
+			.duty-tg-acts a:hover { background: #123C35; border-color: #123C35; color: #fff; }
+			/* The headline: what must still be found this month, in naira.
+			   A slow pulse rather than a blink — it should catch the eye from
+			   across the room without making the header unreadable while you
+			   are trying to use it. It stops entirely under reduced motion. */
+			.duty-mn-money { display: flex; gap: 7px; align-items: stretch; flex-wrap: wrap; }
+			.duty-mn-chip { display: block; text-align: right; text-decoration: none; cursor: pointer;
+				border: 1px solid var(--border-color); border-radius: 10px; padding: 6px 14px;
+				background: var(--card-bg, #fff); color: var(--text-color); }
+			.duty-mn-chip:hover { border-color: var(--gray-500, #6b7280); }
+			.duty-mn-chip span { display: block; font-size: 9.5px; font-weight: 700;
+				text-transform: uppercase; letter-spacing: .06em; color: var(--text-muted); }
+			.duty-mn-chip b { display: block; font-size: 17px; font-weight: 800; letter-spacing: -.02em;
+				font-variant-numeric: tabular-nums; line-height: 1.15; }
+			.duty-mn-chip i { display: block; font-style: normal; font-size: 10px; color: var(--text-muted); }
+			.duty-mn-chip.need-raised.good { border-color: #A7D8C3; background: #F1F9F5; }
+			.duty-mn-chip.need-raised.good b { color: #0E8A63; }
+			/* money in hand reads as neither good nor bad — it is simply there,
+			   and it is the difference between short and merely unapplied */
+			.duty-mn-chip.need-renew { border-color: #D9CBE9; background: #F8F5FC; }
+			.duty-mn-chip.need-renew b { color: #5B3E86; font-size: 15px; }
+			.duty-mn-chip.need-renew.partial { border-color: #E8A0A0; background: #FEF7F7; }
+			.duty-mn-chip.need-renew.partial b { color: #B91C1C; }
+			.duty-mn-chip.need-hand { border-color: #BBD6EA; background: #F2F8FC; }
+			.duty-mn-chip.need-hand b { color: #1C4E7A; }
+			/* a figure missing a currency is marked on its face — the plus is
+			   there to say "and more that could not be converted" */
+			.duty-mn-chip.partial { border-color: #E9C46A; background: #FFFBF0; }
+			.duty-mn-chip.partial i { color: #B27409; font-weight: 600; }
+			.duty-mn-chip b u { text-decoration: none; color: #B27409; font-size: 15px; }
+			.duty-mn-need.done { background: linear-gradient(135deg, #0F5C55 0%, #0E8A63 100%); }
+			.duty-mn-need { display: block; text-align: right; text-decoration: none;
+				background: linear-gradient(135deg, #7F1D1D 0%, #B91C1C 100%); color: #fff;
+				border-radius: 10px; padding: 6px 15px; cursor: pointer;
+				box-shadow: 0 0 0 0 rgba(185,28,28,.6); }
+			.duty-mn-need span { display: block; font-size: 9.5px; font-weight: 700;
+				text-transform: uppercase; letter-spacing: .06em; opacity: .8; }
+			.duty-mn-need b { display: block; font-size: 19px; font-weight: 800;
+				letter-spacing: -.02em; font-variant-numeric: tabular-nums; line-height: 1.15; }
+			.duty-mn-need i { display: block; font-style: normal; font-size: 10px; opacity: .85; }
+			.duty-mn-need.pulse { animation: duty-need-pulse 2.4s ease-out infinite; }
+			@keyframes duty-need-pulse {
+				0%   { box-shadow: 0 0 0 0 rgba(185,28,28,.55); }
+				70%  { box-shadow: 0 0 0 12px rgba(185,28,28,0); }
+				100% { box-shadow: 0 0 0 0 rgba(185,28,28,0); }
+			}
+			@media (prefers-reduced-motion: reduce) { .duty-mn-need.pulse { animation: none; } }
+			/* fixed costs: a tick, a name, an amount, what is owed. Nothing else,
+			   because the point is to answer in one glance and get out */
+			.duty-ex-wrap { margin-top: 18px; }
+			.duty-of-wrap { margin-top: 18px; }
+			.duty-of-row { display: grid; grid-template-columns: 104px 1fr 128px auto; gap: 10px;
+				align-items: center; padding: 8px 12px; margin-bottom: 5px;
+				border: 1px solid var(--border-color); border-radius: 9px;
+				background: var(--card-bg, #fff); font-size: 12.5px;
+				font-variant-numeric: tabular-nums; border-left: 3px solid #5B3E86; }
+			.duty-of-row.likely { border-left-color: #8A6DB0; }
+			.duty-of-row.maybe { border-left-color: #C4B5D8; }
+			.duty-of-row.late { border-left-color: #C94646; }
+			.duty-of-row.done { border-left-color: #0E8A63; opacity: .6; }
+			.duty-of-when b { display: block; font-weight: 650; font-size: 11.5px; }
+			.duty-of-when span { font-size: 9.5px; color: var(--text-muted); }
+			.duty-of-row.late .duty-of-when span { color: #C94646; font-weight: 700; }
+			.duty-of-what { min-width: 0; }
+			.duty-of-what b { display: block; font-size: 13px; overflow: hidden;
+				text-overflow: ellipsis; white-space: nowrap; }
+			.duty-of-what span { font-size: 10px; color: var(--text-muted); }
+			.duty-of-amt { text-align: right; font-weight: 700; }
+			.duty-of-amt i { display: block; font-style: normal; font-size: 9.5px;
+				font-weight: 400; color: var(--text-muted); text-transform: capitalize; }
+			.duty-of-acts { display: flex; gap: 5px; justify-content: flex-end; }
+			.duty-of-acts a { cursor: pointer; font-size: 11px; color: var(--text-muted);
+				border: 1px solid var(--border-color); border-radius: 5px; padding: 1px 8px;
+				text-decoration: none; white-space: nowrap; }
+			.duty-of-acts a:hover { background: #5B3E86; border-color: #5B3E86; color: #fff; }
+			.duty-of-ahead { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 10px; }
+			.duty-of-ahead span { font-size: 11.5px; background: #F6F3FB; color: #4A3A66;
+				border-radius: 999px; padding: 3px 12px; }
+			.duty-of-ahead i { font-style: normal; color: #6B7C77; }
+			.duty-ex-row { display: grid; grid-template-columns: 34px minmax(150px,1fr) 130px 150px 66px;
+				gap: 10px; align-items: center; padding: 8px 12px; margin-bottom: 5px;
+				border: 1px solid var(--border-color); border-radius: 9px;
+				background: var(--card-bg, #fff); font-size: 12.5px;
+				font-variant-numeric: tabular-nums; border-left: 3px solid #E9A23B; }
+			.duty-ex-row.done { border-left-color: #0E8A63; opacity: .62; }
+			/* part paid is neither: money has moved and more is owed */
+			.duty-ex-tick a.part { color: #B27409; border-color: #E9C88A; background: #FEF6EC; }
+			.duty-ex-part { color: #B27409; font-size: 10.5px; }
+			.duty-ex-row.arrears { border-left-color: #C94646; }
+			.duty-ex-tick a { display: grid; place-items: center; width: 22px; height: 22px;
+				border-radius: 6px; border: 1px solid var(--border-color); cursor: pointer;
+				font-weight: 800; color: #0E8A63; text-decoration: none; }
+			.duty-ex-tick a:hover { border-color: #0E8A63; background: #F1F9F5; }
+			.duty-ex-row.done .duty-ex-tick a { background: #0E8A63; border-color: #0E8A63; color: #fff; }
+			.duty-ex-nm b { display: block; font-size: 13px; }
+			.duty-ex-nm span { font-size: 10.5px; color: var(--text-muted); }
+			.duty-ex-amt { text-align: right; font-weight: 600; }
+			.duty-ex-owed { text-align: right; }
+			.duty-ex-owed b { font-size: 14px; font-weight: 800; }
+			.duty-ex-owed i { display: block; font-style: normal; font-size: 10px; color: #B27409; }
+			.duty-ex-acts { text-align: right; }
+			.duty-ex-acts a { cursor: pointer; font-size: 11.5px; color: var(--text-muted);
+				border: 1px solid var(--border-color); border-radius: 5px; padding: 1px 8px; text-decoration: none; }
+			.duty-ex-acts a:hover { background: #123C35; border-color: #123C35; color: #fff; }
+			@media (max-width: 900px) {
+				.duty-ex-row { grid-template-columns: 34px 1fr auto; }
+				.duty-ex-amt { display: none; }
+			}
+			.duty-tg-fx { display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap;
+				padding: 9px 14px; margin-top: 12px; border-radius: 9px;
+				background: #FEF6F6; border: 1px solid #F3D4D4; font-size: 12px; }
+			.duty-tg-fx b { font-size: 17px; font-variant-numeric: tabular-nums; color: #B91C1C; }
+			.duty-tg-fx span { color: var(--text-muted); font-size: 11px; }
+			.duty-tg-fx span.warn { color: #B27409; font-weight: 600; }
+			.duty-tg-fx a { margin-left: auto; cursor: pointer; text-decoration: underline;
+				font-size: 11.5px; color: var(--text-muted); }
+			.duty-mn-tgwarn { background: #FEE2E2; color: #B91C1C; border-radius: 999px;
+				padding: 3px 12px; font-size: 11.5px; font-weight: 700; cursor: pointer; text-decoration: none; }
+			@media (max-width: 1000px) {
+				.duty-tg-row { grid-template-columns: 1fr auto; }
+				.duty-tg-bar { grid-column: 1 / -1; }
+			}
+			/* ---- market tape ---- */
+			.duty-tape-slot { margin-bottom: 14px; }
+			.duty-tape { display: flex; align-items: stretch; border: 1px solid var(--border-color);
+				border-radius: 9px; overflow: hidden; background: var(--card-bg, #fff); }
+			.duty-tape-tag { flex: 0 0 auto; display: grid; place-items: center; padding: 0 12px;
+				background: #123C35; color: #fff; font-size: 11px; font-weight: 800; letter-spacing: .08em; }
+			.duty-tape-win { flex: 1 1 auto; overflow: hidden; position: relative; }
+			.duty-tape-run { display: flex; width: max-content; animation: duty-tape-roll linear infinite; }
+			/* a thing that will not hold still while you read it is a gimmick */
+			.duty-tape-win:hover .duty-tape-run { animation-play-state: paused; }
+			@keyframes duty-tape-roll { from { transform: translateX(0); } to { transform: translateX(-50%); } }
+			.duty-tape-i { flex: 0 0 auto; padding: 7px 14px; font-size: 12px; text-decoration: none;
+				color: var(--text-muted); border-right: 1px solid var(--border-color); white-space: nowrap;
+				font-variant-numeric: tabular-nums; cursor: pointer; }
+			.duty-tape-i b { color: var(--text-color); font-weight: 700; margin-right: 5px; }
+			.duty-tape-i i { font-style: normal; font-weight: 700; margin-left: 6px; font-size: 11px; }
+			.duty-tape-i.up i { color: #0E8A63; }
+			.duty-tape-i.down i { color: #C94646; }
+			.duty-tape-i.flat i, .duty-tape-i i:empty { color: var(--text-muted); }
+			.duty-tape-i:hover { background: #F3F7F5; }
+			/* yours, marked, so they are findable among a hundred and forty */
+			.duty-tape-i.own { background: #E7F1EC; }
+			.duty-tape-i.own b { color: #0E8A63; }
+			.duty-tape-i.watch b { color: #1E40AF; }
+			.duty-tape-foot { display: flex; gap: 14px; align-items: center; margin-top: 5px;
+				font-size: 11px; color: var(--text-muted); }
+			.duty-tape-foot .up { color: #0E8A63; font-weight: 700; }
+			.duty-tape-foot .down { color: #C94646; font-weight: 700; }
+			.duty-tape-foot a, .duty-tape-none a { cursor: pointer; margin-left: auto;
+				text-decoration: underline; }
+			.duty-tape-none { font-size: 12px; color: var(--text-muted); padding: 9px 12px;
+				border: 1px dashed var(--border-color); border-radius: 9px; }
+			.duty-tape-none a { margin-left: 6px; }
+			@media (prefers-reduced-motion: reduce) {
+				.duty-tape-run { animation: none; }
+				.duty-tape-win { overflow-x: auto; }
+			}
+			/* ---- shares ---- */
+			.duty-mn-tabs { display: inline-flex; gap: 2px; background: var(--gray-100, #f3f4f6);
+				border-radius: 999px; padding: 2px; margin-left: 10px; }
+			.duty-mn-tabs a { cursor: pointer; font-size: 12px; padding: 3px 14px; border-radius: 999px;
+				color: var(--text-muted); text-decoration: none; }
+			.duty-mn-tabs a.on { background: #123C35; color: #fff; font-weight: 600; }
+			.duty-mn-note { font-size: 11px; color: var(--text-muted); font-style: italic;
+				margin: -12px 0 16px; }
+			/* bonds get their own tile rather than joining the shares one: an
+			   equity position and a bond held to maturity are different
+			   decisions, and one "investments" figure would hide the split */
+			.duty-mn-bdcard { background: linear-gradient(135deg, #143A34 0%, #1C5A4A 100%);
+				color: #fff; }
+			.duty-mn-bdcard .duty-mn-cur, .duty-mn-bdcard .duty-mn-n { color: rgba(255,255,255,.72); }
+			.duty-mn-bdcard .duty-mn-amt { color: #fff; }
+			.duty-mn-shcard { background: linear-gradient(135deg, #1C3B5A 0%, #0E4C6B 100%);
+				text-decoration: none; cursor: pointer; }
+			.duty-mn-shcard.down { background: linear-gradient(135deg, #5A2323 0%, #7A2E2E 100%); }
+			.duty-sh-tot { display: flex; flex-wrap: wrap; gap: 26px; padding: 11px 15px; margin-bottom: 14px;
+				border: 1px solid var(--border-color); border-radius: 10px; background: var(--card-bg, #fff); }
+			.duty-sh-tot span { display: block; font-size: 10px; font-weight: 700; text-transform: uppercase;
+				letter-spacing: .05em; color: var(--text-muted); }
+			.duty-sh-tot b { font-size: 17px; font-variant-numeric: tabular-nums; }
+			.up { color: #0E8A63; } .down { color: #C94646; }
+			/* Header and rows share ONE grid. Two grids side by side only line up
+			   while every column resolves identically in both, which is a
+			   condition that keeps quietly breaking — an auto column sized to
+			   its content, a border on one and not the other. Subgrid makes the
+			   columns shared by construction, so there is nothing left to keep
+			   in step. */
+			.duty-sh-table { display: grid;
+				grid-template-columns: minmax(100px,1fr) 70px 82px 92px 62px 68px 92px 76px 88px 96px 214px; }
+			.duty-sh-table > * { grid-column: 1 / -1; }
+			.duty-sh-head, .duty-sh-row { display: grid; grid-template-columns: subgrid;
+				/* Every row is its own grid, so they align only if each column
+				   resolves to the same width independently. The last column was
+				   minmax(146px, auto) — auto grows to its content, and a held
+				   row has five buttons where the header has none, so the rows'
+				   flexible first column shrank to compensate and everything
+				   after it slid left. Every column but the first is now a fixed
+				   width, which makes identical resolution a certainty rather
+				   than something that happens to hold while the content
+				   cooperates. */
+				gap: 9px; align-items: center; }
+			@supports not (grid-template-columns: subgrid) {
+				.duty-sh-head, .duty-sh-row {
+					grid-template-columns: minmax(100px,1fr) 70px 82px 92px 62px 68px 92px 76px 88px 96px 214px; }
+			}
+			/* sparkline: a shape, not a chart — no axes, no labels */
+			.duty-sh-spark { height: 34px; }
+			.duty-shc-flat { color: var(--text-muted); }
+			.duty-shc-svg { width: 100%; height: 100%; display: block; overflow: visible; }
+			.duty-shc-ax { stroke: var(--border-color); stroke-width: 1; }
+			/* the crosshair: a line, a dot, and the price at that point */
+			.duty-shc { position: relative; }
+			.duty-shc-cross { stroke: #8A9A95; stroke-width: 1; stroke-dasharray: 3 3; pointer-events: none; }
+			.duty-shc-dot { pointer-events: none; }
+			.duty-shc-tip { position: absolute; pointer-events: none; z-index: 3;
+				background: #16211F; color: #fff; border-radius: 6px; padding: 4px 9px;
+				font-size: 11.5px; line-height: 1.35; white-space: nowrap;
+				box-shadow: 0 3px 10px rgba(0,0,0,.18); }
+			.duty-shc-tip b { font-size: 13px; font-variant-numeric: tabular-nums; display: block; }
+			.duty-shc-tip span { color: rgba(255,255,255,.68); font-size: 10px; }
+			.duty-shc-meta { display: flex; gap: 18px; flex-wrap: wrap; margin-top: 8px;
+				font-size: 11px; color: var(--text-muted); }
+			.duty-shc-meta b { color: var(--text-color); font-variant-numeric: tabular-nums; }
+			.duty-shc-none { color: var(--text-muted); font-size: 12.5px; padding: 20px 0; }
+			.duty-shc-pk { display: flex; gap: 3px; margin-bottom: 12px; }
+			.duty-shc-pk a { cursor: pointer; font-size: 11.5px; font-weight: 700; padding: 2px 11px;
+				border-radius: 999px; color: var(--text-muted); text-decoration: none;
+				border: 1px solid var(--border-color); }
+			.duty-shc-pk a.on { background: #123C35; border-color: #123C35; color: #fff; }
+			.duty-shc-range { font-size: 11px; color: var(--text-muted); margin-top: 8px; }
+			.duty-sh-bar { display: flex; align-items: center; gap: 12px; flex-wrap: wrap;
+				margin-top: 16px; padding-top: 12px; border-top: 1px solid var(--border-color); }
+			.duty-sh-bar span { font-size: 11.5px; color: var(--text-muted); }
+			/* The header must carry the SAME box as a row or its columns are 4px
+			   wider — rows have a 1px border plus a 3px left accent, the header
+			   had neither — and that difference lands entirely on the flexible
+			   first column, shifting every label right of the data beneath it.
+			   Transparent borders rather than matching padding, so the two grids
+			   are identical by construction rather than by arithmetic. */
+			.duty-sh-head { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .05em;
+				color: var(--text-muted); padding: 0 12px 5px;
+				border: 1px solid transparent; border-left-width: 3px; }
+			.duty-sh-row { padding: 8px 12px; border: 1px solid var(--border-color); border-radius: 9px;
+				margin-bottom: 5px; background: var(--card-bg, #fff); font-size: 12.5px; cursor: pointer;
+				font-variant-numeric: tabular-nums; }
+			.duty-sh-row:hover { border-color: var(--gray-400, #9ca3af); box-shadow: 0 1px 6px rgba(0,0,0,.06); }
+			/* Only a genuinely closed position is dimmed. Watching rows were
+			   caught by the same rule, which is why a whole screen of them read
+			   as greyed-out — they are live, not finished. */
+			.duty-sh-row.shut { opacity: .55; }
+			.duty-sh-row.live { border-left: 3px solid #0E8A63; }
+			.duty-sh-row.watch { border-left: 3px solid #3B82F6; }
+			.duty-sh-row.watch .duty-sh-q i { color: #3B82F6; font-weight: 600; }
+			.duty-sh-tk { letter-spacing: .01em; color: #123C35; }
+			.duty-sh-row.watch .duty-sh-tk { color: #1E40AF; }
+			/* P/E band — cheap, ordinary, rich. The tooltip carries the caveat,
+			   because on the NGX a very low P/E is as often a warning as a bargain. */
+			.duty-sh-pe { font-weight: 700; padding: 0 5px; border-radius: 4px; cursor: help; }
+			.duty-sh-pe.cheap { background: #DCFCE7; color: #15803D; }
+			.duty-sh-pe.mid { background: #E0E7FF; color: #3730A3; }
+			.duty-sh-pe.rich { background: #FFEDD5; color: #C2410C; }
+			/* where today sits in the 52-week range */
+			.duty-sh-52 { display: block; position: relative; height: 4px; width: 62px;
+				border-radius: 3px; margin-top: 4px; cursor: help;
+				background: linear-gradient(90deg, #C94646 0%, #E9C46A 50%, #0E8A63 100%); opacity: .55; }
+			.duty-sh-52 i { position: absolute; top: -2px; width: 2px; height: 8px;
+				background: var(--text-color); border-radius: 1px; margin-left: -1px; }
+			.duty-sh-52.hi { opacity: .9; }
+			.duty-sh-52.lo { opacity: .9; }
+			.duty-sh-nm { min-width: 0; }
+			.duty-sh-nm > b { display: block; font-size: 13.5px; }
+			.duty-sh-nm .duty-sh-pe { display: inline; font-size: 10px; }
+			.duty-sh-nm span { font-size: 10.5px; color: var(--text-muted); }
+			.duty-sh-fund { display: block; font-size: 10px; opacity: .8; margin-top: 1px; }
+			/* statement */
+			.duty-st-top { display: flex; gap: 28px; flex-wrap: wrap; padding: 10px 14px; margin-bottom: 12px;
+				border: 1px solid var(--border-color); border-radius: 10px; background: var(--card-bg, #fff); }
+			.duty-st-top span { display: block; font-size: 10px; font-weight: 700; text-transform: uppercase;
+				letter-spacing: .05em; color: var(--text-muted); }
+			.duty-st-top b { font-size: 16px; font-variant-numeric: tabular-nums; }
+			.duty-st-t { width: 100%; border-collapse: collapse; font-size: 12.5px; font-variant-numeric: tabular-nums; }
+			.duty-st-t th { text-align: left; font-size: 10px; text-transform: uppercase; letter-spacing: .05em;
+				color: var(--text-muted); padding: 5px 8px; border-bottom: 1px solid var(--border-color); }
+			.duty-st-t th:nth-child(3), .duty-st-t th:nth-child(4), .duty-st-t th:nth-child(5),
+			.duty-st-t td:nth-child(3), .duty-st-t td:nth-child(4), .duty-st-t td:nth-child(5) { text-align: right; }
+			.duty-st-t td { padding: 6px 8px; border-bottom: 1px solid var(--border-color); vertical-align: top; }
+			.duty-st-t td span { color: var(--text-muted); font-weight: 400; }
+			.duty-st-n { font-size: 11px; color: var(--text-muted); margin-top: 2px; }
+			.duty-st-b { font-weight: 700; }
+			.duty-st-f { font-size: 11px; color: var(--text-muted); margin-top: 10px; }
+			.duty-st-csv { margin-left: auto; }
+			.duty-sh-px span[title] { opacity: .7; }
+			.duty-sh-q span, .duty-sh-px span { display: block; font-size: 10px; color: var(--text-muted); }
+			.duty-sh-px span.stale { color: #B27409; font-weight: 700; }
+			/* a fetch that worked on a stock that did not trade is not a problem,
+			   and the row now says so rather than showing only an old date */
+			.duty-sh-px span.fresh { color: #0E8A63; font-size: 9px; }
+			.duty-sh-q i, .duty-sh-px i { font-style: normal; color: var(--text-muted); font-size: 11px; }
+			.duty-sh-head > div:nth-child(n+2):nth-child(-n+9),
+			.duty-sh-row > div:nth-child(n+2):nth-child(-n+9) { text-align: right; }
+			/* bars are block-level, so text-align does not move them — they are
+			   pinned to the right edge so they line up under their own figure */
+			.duty-sh-wtbar { margin-left: auto; }
+			/* target beside actual: the number, and how far off it is in points */
+			.duty-sh-tw b { display: block; font-weight: 700; font-size: 12px; color: #5B3E86; }
+			.duty-sh-tw span { display: block; font-size: 9.5px; color: var(--text-muted); }
+			.duty-sh-tw span.over { color: #B27409; font-weight: 600; }
+			.duty-sh-tw span.under { color: #1C4E7A; font-weight: 600; }
+			.duty-sh-tw b { cursor: pointer; }
+			.duty-req { border: 1px solid #CFE7DA; background: #F3FAF6; border-radius: 11px;
+				padding: 14px 16px; margin-bottom: 12px; }
+			.duty-req span { display: block; font-size: 10.5px; font-weight: 700;
+				text-transform: uppercase; letter-spacing: .05em; color: var(--text-muted); }
+			.duty-req b { display: block; font-size: 26px; font-weight: 800; letter-spacing: -.02em;
+				color: #0C6B4F; font-variant-numeric: tabular-nums; line-height: 1.2; }
+			.duty-req i { font-style: normal; font-size: 11.5px; color: var(--text-muted); }
+			.duty-req-why { font-size: 12.5px; line-height: 1.6; color: #4A5A55;
+				background: #FEF6F6; border: 1px solid #F3D4D4; border-radius: 9px;
+				padding: 10px 13px; margin-bottom: 12px; }
+			.duty-req-why b { color: #B91C1C; }
+			.duty-sh-wsums { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 12px; }
+			.duty-sh-wsum { font-size: 11.5px; border-radius: 999px; padding: 3px 12px; }
+			.duty-sh-wsum b { font-variant-numeric: tabular-nums; }
+			.duty-sh-wsum.ok { background: #E7F1EC; color: #0C6B4F; }
+			.duty-sh-wsum.off { background: #FEF3E2; color: #B27409; font-weight: 600; }
+			.duty-sh-tw a { cursor: pointer; font-size: 10.5px; color: var(--text-muted);
+				text-decoration: underline; }
+			.duty-sh-52 { margin-left: auto; margin-right: 0; }
+			/* income, beside capital rather than mixed into it */
+			.duty-sh-div b { display: block; font-weight: 700; color: #0E8A63; cursor: pointer; }
+			.duty-sh-div span { display: block; font-size: 9.5px; color: var(--text-muted); }
+			.duty-sh-div a { cursor: pointer; color: var(--text-muted); border: 1px dashed var(--border-color);
+				border-radius: 5px; padding: 0 6px; font-size: 12px; text-decoration: none; }
+			.duty-sh-div a:hover { border-color: #0E8A63; color: #0E8A63; border-style: solid; }
+			/* where the shares actually are */
+			.duty-bk-strip { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; margin-bottom: 12px; }
+			.duty-bk-lab { font-size: 10px; font-weight: 700; letter-spacing: .05em;
+				text-transform: uppercase; color: var(--text-muted); }
+			.duty-bk { font-size: 12px; background: #F3F7F5; border: 1px solid var(--border-color);
+				border-radius: 999px; padding: 4px 13px; font-variant-numeric: tabular-nums; }
+			.duty-bk b { color: #123C35; margin-right: 5px; }
+			.duty-bk.muted { color: var(--text-muted); font-style: italic; }
+			.duty-bk.empty { opacity: .62; }
+			.duty-bk.empty b { color: var(--text-muted); }
+			.duty-pf-dates { display: flex; gap: 12px; align-items: center; flex-wrap: wrap;
+				margin: 10px 0 14px; font-size: 12px; }
+			.duty-pf-dates label { display: flex; gap: 6px; align-items: center;
+				color: var(--text-muted); margin: 0; }
+			.duty-pf-dates input { padding: 3px 8px; border: 1px solid var(--border-color);
+				border-radius: 6px; font-size: 12px; }
+			.duty-pf-head { display: flex; gap: 22px; align-items: flex-start; padding: 14px 16px;
+				border-radius: 11px; margin-bottom: 12px; border: 1px solid; }
+			.duty-pf-head.up { background: #F3FAF6; border-color: #CFE7DA; }
+			.duty-pf-head.down { background: #FEF6F6; border-color: #F3D4D4; }
+			.duty-pf-head span { display: block; font-size: 10px; font-weight: 700;
+				text-transform: uppercase; letter-spacing: .05em; color: var(--text-muted); }
+			.duty-pf-head b { display: block; font-size: 28px; font-weight: 800; letter-spacing: -.02em;
+				font-variant-numeric: tabular-nums; line-height: 1.15; }
+			.duty-pf-head.up b { color: #0C6B4F; } .duty-pf-head.down b { color: #B91C1C; }
+			.duty-pf-head i { font-style: normal; font-size: 11.5px; color: var(--text-muted); }
+			.duty-pf-sub { font-size: 12px; line-height: 1.6; color: #4A5A55; }
+			.duty-pf-sub span { text-transform: none; letter-spacing: 0; font-weight: 400;
+				font-size: 12px; color: #4A5A55; }
+			.duty-bk-strip .bk-perf { cursor: pointer; font-size: 11.5px; color: var(--text-muted);
+				text-decoration: underline; }
+			.duty-bk-strip .bk-perf:hover { color: #123C35; }
+			.duty-bb-grp { margin-bottom: 18px; }
+			.duty-bb-h { display: flex; align-items: baseline; gap: 9px; padding-bottom: 6px;
+				border-bottom: 1px solid var(--border-color); margin-bottom: 6px; }
+			.duty-bb-h b { font-size: 13.5px; color: #123C35; }
+			.duty-bb-h span { font-size: 10px; text-transform: uppercase; letter-spacing: .05em;
+				color: var(--text-muted); }
+			.duty-bb-h em { margin-left: auto; font-style: normal; font-weight: 700;
+				font-variant-numeric: tabular-nums; }
+			.duty-bk-strip .bk-break { cursor: pointer; font-size: 11.5px; color: var(--text-muted);
+				text-decoration: underline; }
+			.duty-bk-strip .bk-break:hover { color: #123C35; }
+			.duty-bk-strip .bk-new { cursor: pointer; font-size: 11.5px; color: var(--text-muted);
+				border: 1px dashed var(--border-color); border-radius: 999px; padding: 3px 12px;
+				text-decoration: none; }
+			.duty-bk-strip .bk-new:hover { border-style: solid; border-color: #123C35; color: #123C35; }
+			.duty-bk i { font-style: normal; color: var(--text-muted); font-size: 10.5px; margin-left: 5px; }
+			.duty-sh-val { font-weight: 700; color: #123C35; }
+			.duty-sh-row.watch .duty-sh-val, .duty-sh-row.shut .duty-sh-val { color: var(--text-muted); font-weight: 500; }
+			.duty-sh-un { font-weight: 700; }
+			.duty-sh-un span { display: block; font-size: 10px; font-weight: 600; opacity: .85; }
+			/* wraps rather than clipping. The chart link sat first in the row and
+			   was silently cut off when the dividend column arrived — a hidden
+			   overflow removes a feature without saying so. */
+			.duty-sh-acts { display: flex; gap: 4px; justify-content: flex-end;
+				min-width: 0; flex-wrap: wrap; row-gap: 3px; }
+			.duty-sh-acts a { white-space: nowrap; }
+			.duty-sh-acts a { cursor: pointer; font-size: 11.5px; color: var(--text-muted);
+				border: 1px solid var(--border-color); border-radius: 5px; padding: 1px 8px; text-decoration: none; }
+			.duty-sh-acts a:hover { background: #123C35; border-color: #123C35; color: #fff; }
+			.duty-sh-acts .sh-rm { color: var(--text-muted); font-size: 13px; line-height: 1.15; padding: 0 7px; }
+			.duty-sh-acts .sh-rm:hover { background: #C94646; border-color: #C94646; color: #fff; }
+			.duty-sh-foot { margin-top: 16px; font-size: 11px; color: var(--text-muted);
+				border-top: 1px solid var(--border-color); padding-top: 9px; max-width: 760px; }
+			.duty-sh-tt { width: 100%; border-collapse: collapse; font-size: 12.5px; font-variant-numeric: tabular-nums; }
+			.duty-sh-tt th { text-align: left; font-size: 10px; text-transform: uppercase; letter-spacing: .05em;
+				color: var(--text-muted); padding: 5px 8px; }
+			.duty-sh-tt td { padding: 6px 8px; border-top: 1px solid var(--border-color); }
+			.duty-sh-tt .sh-del { cursor: pointer; color: var(--text-muted); font-size: 15px; }
+			.duty-sh-tt .sh-del:hover { color: #C94646; }
+			@media (max-width: 980px) {
+				.duty-sh-head { display: none; }
+				.duty-sh-row { grid-template-columns: 1fr auto; row-gap: 4px; }
+				.duty-sh-acts { grid-column: 1 / -1; justify-content: flex-start; }
+			}
+			/* growth on an investment or savings account */
+			.duty-mn-grow { margin-top: 4px; font-size: 10.5px; display: flex; gap: 6px;
+				align-items: baseline; flex-wrap: wrap; }
+			.duty-mn-grow b { font-size: 12px; }
+			.duty-mn-grow.up b, .duty-mn-grow.up span { color: #0E8A63; }
+			.duty-mn-grow.down b, .duty-mn-grow.down span { color: #C94646; }
+			.duty-mn-grow span { font-weight: 700; }
+			.duty-mn-grow i { font-style: normal; color: var(--text-muted); }
+			/* the full standing-order list — a table, because these are compared
+			   against each other rather than read one at a time */
+			.duty-mn-sowrap { margin: 4px 0 18px; }
+			.duty-mn-sohead, .duty-mn-sorow { display: grid;
+				grid-template-columns: minmax(160px,1.6fr) 150px 120px 96px minmax(132px,auto);
+				gap: 10px; align-items: center; }
+			.duty-mn-sohead { font-size: 10px; font-weight: 700; text-transform: uppercase;
+				letter-spacing: .05em; color: var(--text-muted); padding: 0 11px 5px; }
+			.duty-mn-sorow { padding: 7px 11px; border: 1px solid var(--border-color);
+				border-radius: 8px; margin-bottom: 5px; background: var(--card-bg, #fff); font-size: 12.5px; }
+			.duty-mn-sorow.late { border-left: 3px solid #C94646; }
+			.duty-mn-sorow.off { opacity: .55; background: var(--gray-50, #f9fafb); }
+			.duty-mn-sonm b { display: block; font-size: 13px; }
+			.duty-mn-sonm span { font-size: 10.5px; color: var(--text-muted); }
+			.duty-mn-soamt { font-weight: 700; font-variant-numeric: tabular-nums; }
+			.duty-mn-sofreq { color: var(--text-muted); }
+			/* the date reads even on a paused order — hiding it behind the word
+			   "paused" removed the one figure the row exists to show */
+			.duty-mn-sonext b { display: block; font-weight: 600; font-variant-numeric: tabular-nums; }
+			.duty-mn-sonext b.late { color: #C94646; }
+			.duty-mn-sonext span { font-size: 10.5px; color: var(--text-muted); }
+			.duty-mn-sorow.off .duty-mn-sonext b { font-weight: 500; }
+			.duty-mn-soacts { display: flex; gap: 6px; justify-content: flex-end; align-items: center; }
+			.duty-mn-soacts a { cursor: pointer; font-size: 11.5px; color: var(--text-muted);
+				border: 1px solid var(--border-color); border-radius: 5px; padding: 1px 8px; text-decoration: none; }
+			.duty-mn-soacts a:hover { background: #123C35; border-color: #123C35; color: #fff; }
+			.duty-mn-auto { font-size: 9px; font-weight: 800; letter-spacing: .05em; text-transform: uppercase;
+				background: #E7F1EC; color: #0F5C55; border-radius: 4px; padding: 1px 5px; }
+			.duty-sh-table > .duty-mn-ch { margin-top: 16px; }
+			.duty-mn-ch i { font-style: normal; font-weight: 500; text-transform: none;
+				letter-spacing: 0; opacity: .7; margin-left: 4px; }
+			@media (max-width: 900px) {
+				.duty-mn-sohead { display: none; }
+				.duty-mn-sorow { grid-template-columns: 1fr auto; row-gap: 3px; }
+				.duty-mn-soacts { grid-column: 1 / -1; justify-content: flex-start; }
+			}
+			.duty-mn-cols { display: grid; grid-template-columns: 1fr 1fr; gap: 22px; margin-top: 10px; }
+			.duty-mn-ch { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .06em;
+				color: var(--text-muted); margin-bottom: 8px; display: flex; gap: 7px; align-items: center; }
+			.duty-mn-ch span { background: var(--gray-100, #f3f4f6); border-radius: 999px; padding: 0 7px; }
+			.duty-mn-so, .duty-mn-tx { display: flex; align-items: center; gap: 11px; padding: 8px 12px;
+				border: 1px solid var(--border-color); border-radius: 9px; margin-bottom: 6px;
+				background: var(--card-bg, #fff); }
+			.duty-mn-so.late { border-left: 3px solid #C94646; }
+			.duty-mn-sm, .duty-mn-tm { flex: 1 1 auto; min-width: 0; }
+			.duty-mn-st { font-weight: 600; font-size: 13px; }
+			.duty-mn-sd, .duty-mn-td { font-size: 11px; color: var(--text-muted); margin-top: 1px; }
+			.duty-mn-sa { font-weight: 700; font-variant-numeric: tabular-nums; font-size: 13px; }
+			.duty-mn-sx { display: flex; gap: 4px; }
+			.duty-mn-sx a { cursor: pointer; width: 24px; height: 24px; display: grid; place-items: center;
+				border-radius: 6px; border: 1px solid var(--border-color); color: var(--text-muted); font-size: 12px; }
+			.duty-mn-sx a:hover { background: #123C35; border-color: #123C35; color: #fff; }
+			.duty-mn-k { flex: 0 0 auto; width: 26px; height: 26px; border-radius: 50%; display: grid;
+				place-items: center; font-size: 13px; font-weight: 700; }
+			.duty-mn-k.k-in { background: #E4F6EC; color: #0E7A4A; }
+			.duty-mn-k.k-out { background: #FDECEC; color: #B94141; }
+			.duty-mn-k.k-transfer { background: #E9EFFA; color: #34509B; }
+			.duty-mn-ta { font-weight: 700; font-variant-numeric: tabular-nums; font-size: 13px; }
+			.duty-mn-ta.in { color: #0E7A4A; }
+			.duty-mn-none { color: var(--text-muted); font-size: 12.5px; padding: 8px 2px; }
+			@media (max-width: 900px) {
+				.duty-mn-cols { grid-template-columns: 1fr; }
+				.duty-mn-grid { grid-template-columns: 1fr; }
+				.duty-mn-tot { flex: 1 1 100%; }
+			}
+			/* ---- author index ---- */
+			.duty-lb-azbtn { cursor: pointer; border: 1px solid var(--border-color); border-radius: 999px;
+				padding: 4px 13px; font-size: 12.5px; color: var(--text-muted); text-decoration: none; white-space: nowrap; }
+			.duty-lb-azbtn:hover { border-color: var(--gray-500, #6b7280); color: var(--text-color); }
+			.duty-lb-azbtn.on { background: #1C2E4A; border-color: #1C2E4A; color: #fff; font-weight: 600; }
+			.duty-lb-au { cursor: pointer; }
+			.duty-lb-au:hover { color: var(--text-color); text-decoration: underline; }
+			.duty-lb-whoband { display: flex; align-items: baseline; gap: 10px; margin-bottom: 10px;
+				padding: 7px 14px; background: #EDF2EF; border-radius: 9px; border-left: 3px solid #1C2E4A; }
+			.duty-lb-whoband b { font-size: var(--text-md); }
+			.duty-lb-whoband span { color: var(--text-muted); font-size: var(--text-xs); }
+			.duty-lb-whox { margin-left: auto; cursor: pointer; font-size: 17px; line-height: 1;
+				color: var(--text-muted); padding: 0 4px; }
+			.duty-lb-whox:hover { color: var(--text-color); }
+			.duty-az-wrap { max-width: 900px; }
+			.duty-az-most { margin-bottom: 18px; padding-bottom: 14px; border-bottom: 1px solid var(--border-color);
+				display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+			.duty-az-most > span { font-size: 11px; font-weight: 700; text-transform: uppercase;
+				letter-spacing: .04em; color: var(--text-muted); margin-right: 4px; }
+			.duty-az-big { background: #EDF2EF; border-radius: 999px; padding: 3px 12px; font-size: 13px; }
+			.duty-az-jump { display: flex; gap: 3px; flex-wrap: wrap; margin-bottom: 16px; }
+			.duty-az-jump a { font-size: 11.5px; font-weight: 700; color: var(--text-muted);
+				padding: 2px 7px; border-radius: 5px; text-decoration: none; }
+			.duty-az-jump a:hover { background: #123C35; color: #fff; }
+			.duty-az-sec { margin-bottom: 18px; }
+			.duty-az-l { font-size: 15px; font-weight: 800; color: #123C35; border-bottom: 1px solid var(--border-color);
+				padding-bottom: 3px; margin-bottom: 8px; }
+			.duty-az-cols { column-width: 230px; column-gap: 28px; }
+			.duty-az-n { display: block; break-inside: avoid; cursor: pointer; padding: 2px 0;
+				font-size: 13.5px; color: var(--text-color); text-decoration: none; }
+			.duty-az-n:hover { color: #0E8A63; text-decoration: underline; }
+			.duty-az-n i { font-style: normal; color: var(--text-muted); font-size: 11.5px; }
+			/* ---- highlights & shelf controls ---- */
+			.duty-lb-hlbtn { cursor: pointer; border: 1px solid var(--border-color); border-radius: 999px;
+				padding: 4px 14px; font-size: 13px; color: var(--text-muted); text-decoration: none; white-space: nowrap; }
+			.duty-lb-hlbtn:hover { border-color: var(--gray-500, #6b7280); color: var(--text-color); }
+			.duty-lb-hlbtn.on { background: #4A3A1C; border-color: #4A3A1C; color: #fff; font-weight: 600; }
+			.duty-lb-sort { border: 1px solid var(--border-color); border-radius: 999px; padding: 3px 10px;
+				font-size: 13px; background: var(--card-bg, #fff); color: var(--text-muted); max-width: 170px; }
+			.duty-hl-wrap { max-width: 780px; }
+			.duty-hl-book { margin-bottom: 22px; }
+			.duty-hl-bh { cursor: pointer; padding-bottom: 5px; margin-bottom: 8px;
+				border-bottom: 1px solid var(--border-color); display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; }
+			.duty-hl-bh b { font-size: var(--text-md); }
+			.duty-hl-bh span { color: var(--text-muted); font-size: var(--text-xs); }
+			.duty-hl-item { cursor: pointer; padding: 9px 14px; margin-bottom: 7px; border-radius: 8px;
+				background: var(--card-bg, #fff); border: 1px solid var(--border-color);
+				border-left: 3px solid #FFC53D; transition: border-color .12s; }
+			.duty-hl-item:hover { border-color: var(--gray-400, #9ca3af); border-left-color: #FFC53D; }
+			.duty-hl-q { font-size: 14px; line-height: 1.55; }
+			.duty-hl-n { font-size: 13px; font-style: italic; opacity: .8; margin-top: 5px;
+				padding-left: 9px; border-left: 2px solid var(--border-color); }
+			.duty-hl-m { font-size: 11px; color: var(--text-muted); margin-top: 6px; }
+			.duty-hl-load { color: var(--text-muted); padding: 14px; }
+			/* ---- reading plan ---- */
+			.duty-lb-planbtn { cursor: pointer; border: 1px solid var(--border-color); border-radius: 999px;
+				padding: 4px 14px; font-size: 13px; color: var(--text-muted); text-decoration: none;
+				white-space: nowrap; }
+			.duty-lb-planbtn:hover { border-color: var(--gray-500, #6b7280); color: var(--text-color); }
+			.duty-lb-planbtn.on { background: #123C35; border-color: #123C35; color: #fff; font-weight: 600; }
+			.duty-pl-wrap { max-width: 860px; }
+			.duty-pl-top { display: flex; align-items: baseline; gap: 10px; padding: 6px 0 14px;
+				border-bottom: 1px solid var(--border-color); margin-bottom: 14px; flex-wrap: wrap; }
+			.duty-pl-top b { font-size: var(--text-lg); }
+			.duty-pl-sub { color: var(--text-muted); font-size: var(--text-sm); }
+			.duty-pl-block { margin-bottom: 20px; }
+			.duty-pl-h { font-size: var(--text-xs); font-weight: 700; text-transform: uppercase;
+				letter-spacing: .04em; color: var(--text-muted); margin-bottom: 7px;
+				display: flex; align-items: center; gap: 8px; }
+			.duty-pl-h span { background: var(--gray-100, #f3f4f6); border-radius: 999px; padding: 0 7px; }
+			.duty-pl-h i { font-style: normal; font-weight: 500; text-transform: none; letter-spacing: 0; opacity: .75; }
+			.duty-pl-row { display: flex; align-items: center; gap: 12px; padding: 9px 12px; cursor: pointer;
+				border: 1px solid var(--border-color); border-radius: 9px; margin-bottom: 6px;
+				background: var(--card-bg, #fff); transition: border-color .12s; }
+			.duty-pl-row:hover { border-color: var(--gray-400, #9ca3af); }
+			.duty-pl-cov { flex: 0 0 auto; width: 34px; height: 48px; border-radius: 4px;
+				background-size: cover; background-position: center; box-shadow: 0 1px 3px rgba(0,0,0,.18); }
+			.duty-pl-main { flex: 1 1 auto; min-width: 0; }
+			.duty-pl-t { font-weight: 600; }
+			.duty-pl-m { color: var(--text-muted); font-size: var(--text-xs); margin-top: 2px; }
+			.duty-pl-why { font-size: var(--text-xs); font-style: italic; opacity: .8; margin-top: 3px; }
+			.duty-pl-acts { display: flex; gap: 5px; flex: 0 0 auto; }
+			@media (max-width: 767px) {
+				.duty-pl-row { flex-wrap: wrap; }
+				.duty-pl-acts { width: 100%; justify-content: flex-end; }
+			}
 			.duty-lb-chips { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 6px; }
 			.duty-lb-chip { font-size: 11.5px; font-weight: 800; color: #51605C; background: #EDF2EF; border-radius: 99px; padding: 4px 13px; cursor: pointer; }
 			.duty-lb-chip i { font-style: normal; opacity: .6; font-weight: 700; }
@@ -13236,6 +20043,9 @@ this.$me.find(".duty-req-ok").on("click", (e) => {
 			.duty-lb-pop a:hover { background: #EDF2EF; }
 			.duty-lb-pop .duty-bk-del { color: #C94646; }
 			.duty-rd-prog { position: sticky; top: 0; z-index: 20; height: 22px; display: flex; align-items: center; background: transparent; margin-bottom: 6px; }
+			/* the page number leads, the time estimate follows — one is a fact
+			   and the other is a guess, and they should not look alike */
+			.duty-rd-pg { font-weight: 700; color: var(--text-color); font-variant-numeric: tabular-nums; }
 			.duty-rd-prog i { display: block; height: 4px; background: linear-gradient(90deg, #B27409, #0E8A63); border-radius: 99px; flex: none; transition: width .3s; min-width: 0; }
 			.duty-rd-prog { gap: 10px; }
 			.duty-rd-prog span { font-size: 10.5px; font-weight: 800; color: #8A9994; white-space: nowrap; }
@@ -13524,17 +20334,32 @@ this.$me.find(".duty-req-ok").on("click", (e) => {
 			.duty-sales-kanban .duty-kb-col[data-col="New"] .duty-kb-col-head { color: #475569; }
 			.duty-sales-kanban .duty-kb-col[data-col="Contacted"] { border-top: 3px solid #0284c7; }
 			.duty-sales-kanban .duty-kb-col[data-col="Contacted"] .duty-kb-col-head { color: #0369a1; }
-			.duty-sales-kanban .duty-kb-col[data-col="Qualified"] { border-top: 3px solid #0F5C55; }
-			.duty-sales-kanban .duty-kb-col[data-col="Qualified"] .duty-kb-col-head { color: #0F5C55; }
 			.duty-sales-kanban .duty-kb-col[data-col="Proposal"] { border-top: 3px solid #d97706; }
 			.duty-sales-kanban .duty-kb-col[data-col="Proposal"] .duty-kb-col-head { color: #b45309; }
 			.duty-sales-kanban .duty-kb-col[data-col="Negotiation"] { border-top: 3px solid #dc2626; }
 			.duty-sales-kanban .duty-kb-col[data-col="Negotiation"] .duty-kb-col-head { color: #b91c1c; }
+			.duty-sales-kanban .duty-kb-col[data-col="Awaiting Payment"] { border-top: 3px solid #7c3aed; }
+			.duty-sales-kanban .duty-kb-col[data-col="Awaiting Payment"] .duty-kb-col-head { color: #6d28d9; }
 			.duty-lead-card:hover { box-shadow: 0 3px 10px rgba(0,0,0,0.08); transform: translateY(-1px); transition: all 0.12s; }
-			.duty-lead-company { font-weight: 700; color: var(--text-color); }
-			.duty-lead-value { color: #0F5C55; font-weight: 700; }
-			.duty-lead-contact { font-size: var(--text-xs); color: var(--text-muted); }
-			.duty-lead-badges { display: flex; gap: 8px; font-size: var(--text-xs); }
+			/* Company, value, contact and badges each had a line of their own and
+			   the badges wrapped to two more — six lines for four facts. Two
+			   lines now: name and value across the top, everyone and everything
+			   else beneath. Twice as many leads fit a column, which was the ask.
+
+			   Badges lost their words and kept their icons; "no next step" is a
+			   red ❗ with the sentence on hover, since it was wider on its own
+			   than the whole card. */
+			.duty-lead-top { display: flex; align-items: baseline; gap: 8px; min-width: 0; }
+			.duty-lead-company { font-weight: 700; color: var(--text-color);
+				overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; flex: 1 1 auto; }
+			.duty-lead-value { color: #0F5C55; font-weight: 700; margin-left: auto;
+				white-space: nowrap; font-variant-numeric: tabular-nums; }
+			.duty-lead-contact { font-size: var(--text-xs); color: var(--text-muted);
+				overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+				max-width: 90px; flex: 0 1 auto; }
+			.duty-lead-badges { display: flex; gap: 6px; font-size: var(--text-xs);
+				margin-left: auto; white-space: nowrap; flex: 0 0 auto; }
+			.duty-lead-badges span { white-space: nowrap; }
 			.duty-lead-over { color: var(--red-600, #dc2626); font-weight: 700; }
 			.duty-stale { color: #b45309; font-weight: 700; }
 			.duty-stale-red { color: var(--red-600, #dc2626); }
@@ -13571,15 +20396,82 @@ this.$me.find(".duty-req-ok").on("click", (e) => {
 			.duty-kb-add { margin-bottom: 8px; font-size: 16px; }
 			.duty-kb-cards { min-height: 40px; display: flex; flex-direction: column; gap: 8px; }
 			.duty-kb-over { outline: 2px dashed #0F5C55; outline-offset: -4px; }
+			/* ---- gantt ---- */
+			.duty-gt-note { font-size: 11.5px; color: var(--text-muted); margin-bottom: 10px; }
+			/* the chart gets a real width and scrolls; compressing five months
+			   into a screen turns every task into a dot */
+			.duty-gt-host { overflow-x: auto; }
+			.duty-gt-scroll { position: relative; min-width: calc(220px + var(--gtw, 760px)); }
+			.duty-gt-grid { position: absolute; left: 220px; right: 0; top: 0; bottom: 0; pointer-events: none; }
+			.duty-gt-tick { position: absolute; top: 0; bottom: 0; border-left: 1px dashed #E7ECEA; }
+			.duty-gt-tick span { position: absolute; top: -2px; left: 4px; font-size: 9.5px;
+				color: var(--text-muted); white-space: nowrap; }
+			.duty-gt-today { position: absolute; top: 12px; bottom: 0; border-left: 2px solid #B45309; }
+			.duty-gt-today span { position: absolute; top: -2px; left: 4px; font-size: 9.5px;
+				color: #B45309; font-weight: 700; }
+			.duty-gt-golive { position: absolute; top: 12px; bottom: 0; border-left: 2px dotted #0C6B4F; }
+			.duty-gt-golive span { position: absolute; top: -2px; left: 4px; font-size: 9.5px;
+				color: #0C6B4F; font-weight: 700; }
+			.duty-gt-row { display: grid; grid-template-columns: 220px 1fr; align-items: center;
+				min-height: 26px; margin-top: 14px; }
+			.duty-gt-row.phase { margin-top: 18px; }
+			.duty-gt-lab { padding-right: 12px; min-width: 0; }
+			.duty-gt-lab b { display: block; font-size: 12px; overflow: hidden;
+				text-overflow: ellipsis; white-space: nowrap; }
+			.duty-gt-row.phase .duty-gt-lab b { font-size: 13px; color: #0A473F; }
+			.duty-gt-lab span { font-size: 10px; color: var(--text-muted); }
+			.duty-gt-lane { position: relative; height: 20px; }
+			/* a task bar carries its own label once there is room for one */
+			.duty-gt-bar { position: absolute; top: 4px; height: 12px; border-radius: 4px;
+				background: #4A8FBF; cursor: pointer; min-width: 3px; }
+			.duty-gt-bar.phase { top: 1px; height: 18px; background: #0F5C55; border-radius: 5px; }
+			.duty-gt-bar.done { background: #0E8A63; opacity: .55; }
+			.duty-gt-bar.late { background: #C94646; }
+			/* a derived bar is drawn hollow, so a guess never reads as a plan */
+			.duty-gt-bar.derived { background: transparent; border: 1.5px dashed #4A8FBF; }
+			.duty-gt-bar.derived.done { border-color: #0E8A63; }
+			.duty-gt-bar.derived.late { border-color: #C94646; }
+			.duty-gt-base { position: absolute; top: 1px; height: 18px; border-radius: 5px;
+				background: repeating-linear-gradient(45deg,#DDE6EE,#DDE6EE 3px,#EEF3F7 3px,#EEF3F7 6px); }
+			/* ---- list ---- */
+			.duty-pl-bar { display: flex; gap: 8px; align-items: center; font-size: 11.5px;
+				color: var(--text-muted); margin-bottom: 10px; }
+			.duty-pl-bar a { cursor: pointer; border: 1px solid var(--border-color);
+				border-radius: 999px; padding: 2px 10px; text-decoration: none; color: var(--text-muted); }
+			.duty-pl-bar a.on { background: #123C35; border-color: #123C35; color: #fff; }
+			.duty-pl-bar span { margin-left: auto; }
+			.duty-pl-head, .duty-pl-row { display: grid;
+				grid-template-columns: minmax(170px,2fr) 120px 120px 104px 104px 58px 92px;
+				gap: 10px; align-items: center; }
+			.duty-pl-head { padding: 0 12px 6px; font-size: 10px; font-weight: 700;
+				text-transform: uppercase; letter-spacing: .05em; color: var(--text-muted);
+				border-bottom: 1px solid var(--border-color); }
+			.duty-pl-row { padding: 8px 12px; border: 1px solid var(--border-color);
+				border-left: 3px solid #4A8FBF; border-radius: 9px; margin-top: 5px;
+				background: var(--card-bg,#fff); font-size: 12.5px; cursor: pointer; }
+			.duty-pl-row:hover { border-color: #123C35; }
+			.duty-pl-row.done { border-left-color: #0E8A63; opacity: .6; }
+			.duty-pl-row.late { border-left-color: #C94646; }
+			.duty-pl-t b { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+			.duty-pl-t span { font-size: 10px; color: #B27409; }
+			.duty-pl-guess { color: #B27409; font-style: italic; font-size: 11px; }
+			.duty-pl-od { display: block; font-size: 9.5px; color: #C94646; font-weight: 700; }
+			.duty-pl-st { font-size: 10.5px; background: #F3F6F5; border-radius: 999px; padding: 2px 9px; }
 			.duty-kb-card {
 				background: var(--card-bg, #fff); border: 1px solid var(--border-color);
 				border-radius: 8px; padding: 8px 10px; cursor: grab;
 			}
+			/* the pipeline is scanned rather than read, so its cards are tighter
+			   than the general kanban card they inherit from */
+			.duty-lead-card { padding: 6px 9px; margin-bottom: 5px; line-height: 1.35; }
 			.duty-kb-card:active { cursor: grabbing; }
 			.duty-kb-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px; }
 			.duty-kb-due { font-size: var(--text-xs); color: var(--text-muted); }
 			.duty-kb-title { font-weight: 600; color: var(--text-color); }
-			.duty-kb-meta { font-size: var(--text-xs); margin-top: 4px; }
+			/* one row, never wrapping — the badges are what used to push a card
+			   to five and six lines */
+			.duty-kb-meta { font-size: var(--text-xs); margin-top: 3px;
+				display: flex; align-items: center; gap: 7px; min-width: 0; flex-wrap: nowrap; }
 			@media (max-width: 767px) {
 				.duty-kb-col { min-width: 240px; flex: 0 0 240px; }
 			}
@@ -13653,6 +20545,85 @@ this.$me.find(".duty-req-ok").on("click", (e) => {
 			.duty-daynum-ok td b { color: var(--green-600, #2e7d32); }
 			.duty-daynum-remark {
 				margin-top: 8px; padding: 8px 12px; border-radius: 8px; font-size: var(--text-sm);
+			}
+			/* ---- Oversight ---- */
+			.duty-oversight { padding: 4px 0 24px; }
+			.duty-ov-head { display: flex; align-items: center; gap: 10px; padding: 10px 2px 12px;
+				border-bottom: 1px solid var(--border-color); margin-bottom: 12px; flex-wrap: wrap; }
+			.duty-ov-head b { font-size: var(--text-lg); }
+			.duty-ov-sub { color: var(--text-muted); font-size: var(--text-sm); }
+			.duty-ov-head .duty-ov-new { margin-left: auto; }
+			.duty-ov-back { cursor: pointer; color: var(--text-muted); font-size: var(--text-sm); }
+			.duty-ov-back:hover { color: var(--text-color); }
+			.duty-ov-refresh { margin-left: auto; cursor: pointer; color: var(--text-muted); font-size: 16px; }
+			.duty-ov-late { color: var(--red-600, #dc2626); font-weight: 600; }
+			/* non-project work summarised in its own right, and clickable so the
+			   figure is a filter rather than decoration */
+			.duty-ov-summary { display: flex; align-items: center; gap: 6px; flex-wrap: wrap;
+				margin-left: 18px; padding: 4px 10px 4px 12px; border-left: 3px solid var(--purple-500, #8b5cf6);
+				background: var(--gray-50, #f9fafb); border-radius: 0 8px 8px 0; }
+			.duty-ov-slabel { font-size: 11px; font-weight: 700; text-transform: uppercase;
+				letter-spacing: .04em; color: var(--text-muted); margin-right: 2px; }
+			.duty-ov-pill { font-size: 12px; padding: 2px 10px; border-radius: 999px; cursor: pointer;
+				background: #fff; border: 1px solid var(--border-color); color: var(--text-muted);
+				text-decoration: none; white-space: nowrap; }
+			.duty-ov-pill:hover { border-color: var(--gray-500, #6b7280); color: var(--text-color); }
+			.duty-ov-pill.on { background: #0F5C55; border-color: #0F5C55; color: #fff; font-weight: 600; }
+			.duty-ov-pill.iss.on { background: #6d28d9; border-color: #6d28d9; }
+			.duty-ov-pill.late { color: #b91c1c; border-color: #fecaca; }
+			.duty-ov-pill.late.on { background: #b91c1c; border-color: #b91c1c; color: #fff; }
+			.duty-ov-pill.un { color: #92400e; border-color: #fde68a; }
+			.duty-ov-pill.un.on { background: #92400e; border-color: #92400e; color: #fff; }
+			@media (max-width: 991px) {
+				.duty-ov-summary { margin-left: 0; width: 100%; border-left: none;
+					border-top: 1px solid var(--border-color); border-radius: 0; padding: 8px 0 0; }
+			}
+			.duty-ov-cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 10px; }
+			.duty-ov-card { border: 1px solid var(--border-color); border-radius: 10px; padding: 12px 14px;
+				cursor: pointer; background: var(--card-bg, #fff); transition: box-shadow .12s, border-color .12s; }
+			.duty-ov-card:hover { box-shadow: 0 2px 8px rgba(0,0,0,.07); border-color: var(--gray-400, #9ca3af); }
+			.duty-ov-card.has-late { border-left: 3px solid var(--red-500, #ef4444); }
+			.duty-ov-cname { font-weight: 700; margin-bottom: 3px; }
+			.duty-ov-meta { color: var(--text-muted); font-size: var(--text-xs); margin-bottom: 8px; }
+			.duty-ov-chips { display: flex; flex-wrap: wrap; gap: 5px; }
+			.duty-ov-chip { font-size: 11px; padding: 2px 8px; border-radius: 999px;
+				background: var(--gray-100, #f3f4f6); color: var(--text-muted); }
+			.duty-ov-chip.prog { background: #dbeafe; color: #1e40af; }
+			.duty-ov-chip.late { background: #fee2e2; color: #b91c1c; }
+			.duty-ov-chip.un { background: #fef3c7; color: #92400e; }
+			.duty-ov-warn { background: var(--orange-100, #fff3e0); color: var(--orange-700, #e65100);
+				padding: 8px 12px; border-radius: 8px; font-size: var(--text-sm); margin-bottom: 12px; }
+			.duty-ov-group { margin-bottom: 16px; }
+			.duty-ov-glabel { font-size: var(--text-xs); font-weight: 700; text-transform: uppercase;
+				letter-spacing: .04em; color: var(--text-muted); margin-bottom: 6px; }
+			.duty-ov-glabel span { background: var(--gray-100, #f3f4f6); border-radius: 999px; padding: 0 6px; }
+			.duty-ov-task { display: flex; align-items: center; gap: 12px; padding: 9px 12px;
+				border: 1px solid var(--border-color); border-radius: 8px; margin-bottom: 6px;
+				background: var(--card-bg, #fff); }
+			.duty-ov-task.late { border-left: 3px solid var(--red-500, #ef4444); }
+			.duty-ov-tmain { flex: 1 1 auto; min-width: 0; cursor: pointer; }
+			.duty-ov-tmain:hover .duty-ov-ttitle { text-decoration: underline; }
+			.duty-ov-ttitle { font-weight: 600; }
+			.duty-ov-tmeta { color: var(--text-muted); font-size: var(--text-xs); margin-top: 2px; }
+			.duty-ov-un { color: var(--orange-700, #e65100); }
+			.duty-ov-live { color: var(--green-600, #16a34a); font-weight: 600; }
+			.duty-ov-await { color: var(--orange-700, #e65100); }
+			.duty-ov-tacts { display: flex; gap: 5px; flex: 0 0 auto; }
+			/* issues read differently from project work — a left accent and a
+			   severity badge, so the eye separates them without reading labels */
+			.duty-ov-task.is-issue { border-left: 3px solid var(--purple-500, #8b5cf6); }
+			.duty-ov-task.is-issue.late { border-left-color: var(--red-500, #ef4444); }
+			.duty-ov-sev { font-size: 10px; font-weight: 700; text-transform: uppercase;
+				letter-spacing: .03em; padding: 1px 6px; border-radius: 4px; margin-right: 6px;
+				background: var(--gray-100, #f3f4f6); color: var(--text-muted); vertical-align: 1px; }
+			.duty-ov-sev.sev-critical { background: #fee2e2; color: #b91c1c; }
+			.duty-ov-sev.sev-high { background: #ffedd5; color: #c2410c; }
+			.duty-ov-sev.sev-medium { background: #e0e7ff; color: #3730a3; }
+			.duty-ov-sev.sev-low { background: #f3f4f6; color: #6b7280; }
+			@media (max-width: 767px) {
+				.duty-ov-cards { grid-template-columns: 1fr; }
+				.duty-ov-task { flex-direction: column; align-items: stretch; }
+				.duty-ov-tacts { justify-content: flex-end; }
 			}
 			.duty-daynum-warn { background: var(--orange-100, #fff3e0); color: var(--orange-700, #e65100); }
 			.duty-daynum-good { background: var(--green-100, #e8f5e9); color: var(--green-700, #2e7d32); }

@@ -1,0 +1,67 @@
+{
+ "actions": [],
+ "autoname": "format:{holding}::{price_date}",
+ "allow_rename": 0,
+ "creation": "2026-08-23 00:00:00.000000",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "holding",
+  "price_date",
+  "price",
+  "source"
+ ],
+ "fields": [
+  {
+   "fieldname": "holding",
+   "fieldtype": "Link",
+   "options": "Duty Holding",
+   "label": "Holding",
+   "reqd": 1,
+   "in_list_view": 1
+  },
+  {
+   "fieldname": "price_date",
+   "fieldtype": "Date",
+   "label": "Date",
+   "reqd": 1,
+   "in_list_view": 1
+  },
+  {
+   "fieldname": "price",
+   "fieldtype": "Float",
+   "label": "Close",
+   "precision": "4",
+   "reqd": 1,
+   "in_list_view": 1
+  },
+  {
+   "fieldname": "source",
+   "fieldtype": "Data",
+   "label": "Source",
+   "description": "Where the number came from \u2014 a fetch or a hand entry. Worth keeping: a price you typed and one a scraper found are not equally trustworthy."
+  }
+ ],
+ "links": [],
+ "modified": "2026-08-23 00:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "Duty Board",
+ "name": "Duty Price Point",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "print": 1,
+   "read": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "sort_field": "price_date",
+ "sort_order": "DESC",
+ "states": [],
+ "track_changes": 0
+}

@@ -22,7 +22,9 @@
   "outcome",
   "outcome_note",
   "ics_seq",
-  "lead"
+  "lead",
+  "project",
+  "project_task"
  ],
  "fields": [
   {
@@ -141,6 +143,21 @@
    "fieldtype": "Link",
    "label": "Lead",
    "options": "Duty Lead"
+  },
+  {
+   "fieldname": "project",
+   "fieldtype": "Link",
+   "options": "Duty Project",
+   "label": "Project",
+   "description": "The project this meeting belongs to, so a workshop or a readiness review appears on the plan rather than only in somebody's calendar."
+  },
+  {
+   "fieldname": "project_task",
+   "fieldtype": "Link",
+   "options": "Duty Project Task",
+   "label": "From Task",
+   "read_only": 1,
+   "description": "The task this meeting was scheduled from. The task stays the unit of work; the meeting is how it happens."
   }
  ],
  "links": [],

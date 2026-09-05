@@ -1,0 +1,88 @@
+{
+ "actions": [],
+ "creation": "2026-08-23 00:00:00.000000",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "expense",
+  "pay_month",
+  "amount",
+  "paid_on",
+  "money_move",
+  "source",
+  "note"
+ ],
+ "fields": [
+  {
+   "fieldname": "expense",
+   "fieldtype": "Link",
+   "options": "Duty Monthly Expense",
+   "label": "Expense",
+   "reqd": 1,
+   "in_list_view": 1
+  },
+  {
+   "fieldname": "pay_month",
+   "fieldtype": "Data",
+   "label": "Month",
+   "reqd": 1,
+   "in_list_view": 1
+  },
+  {
+   "fieldname": "amount",
+   "fieldtype": "Float",
+   "label": "Paid",
+   "precision": "2",
+   "in_list_view": 1,
+   "description": "What was paid on this occasion, not what the cost is. A cost paid in instalments has one record per instalment, and the month is settled once they add up to the amount due."
+  },
+  {
+   "fieldname": "paid_on",
+   "fieldtype": "Date",
+   "label": "Paid On"
+  },
+  {
+   "fieldname": "money_move",
+   "fieldtype": "Link",
+   "options": "Duty Money Move",
+   "label": "Money Movement",
+   "read_only": 1,
+   "no_copy": 1,
+   "description": "The payment this settlement posted. Linked so unticking removes it rather than leaving an orphan nobody can account for later."
+  },
+  {
+   "fieldname": "source",
+   "fieldtype": "Data",
+   "label": "How",
+   "read_only": 1
+  },
+  {
+   "fieldname": "note",
+   "fieldtype": "Small Text",
+   "label": "Note"
+  }
+ ],
+ "links": [],
+ "modified": "2026-08-23 00:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "Duty Board",
+ "name": "Duty Expense Payment",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "print": 1,
+   "read": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [],
+ "track_changes": 0,
+ "autoname": "hash"
+}

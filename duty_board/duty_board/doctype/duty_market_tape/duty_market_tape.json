@@ -1,0 +1,76 @@
+{
+ "actions": [],
+ "creation": "2026-08-23 00:00:00.000000",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "issingle": 1,
+ "field_order": [
+  "fetched_at",
+  "as_of",
+  "stocks",
+  "gainers",
+  "losers",
+  "payload"
+ ],
+ "fields": [
+  {
+   "fieldname": "fetched_at",
+   "fieldtype": "Datetime",
+   "label": "Fetched At",
+   "read_only": 1
+  },
+  {
+   "fieldname": "as_of",
+   "fieldtype": "Data",
+   "label": "Source Date",
+   "read_only": 1
+  },
+  {
+   "fieldname": "stocks",
+   "fieldtype": "Int",
+   "label": "Stocks",
+   "read_only": 1
+  },
+  {
+   "fieldname": "gainers",
+   "fieldtype": "Int",
+   "label": "Gainers",
+   "read_only": 1
+  },
+  {
+   "fieldname": "losers",
+   "fieldtype": "Int",
+   "label": "Losers",
+   "read_only": 1
+  },
+  {
+   "fieldname": "payload",
+   "fieldtype": "Long Text",
+   "label": "Payload",
+   "read_only": 1,
+   "description": "The whole market as JSON. A single row rather than 142 records: this is a snapshot to display, not history to query \u2014 the history that matters is already kept per holding in Duty Price Point."
+  }
+ ],
+ "links": [],
+ "modified": "2026-08-23 00:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "Duty Board",
+ "name": "Duty Market Tape",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "print": 1,
+   "read": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [],
+ "track_changes": 0
+}

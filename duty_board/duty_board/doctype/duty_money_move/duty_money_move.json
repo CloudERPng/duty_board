@@ -1,0 +1,129 @@
+{
+ "actions": [],
+ "creation": "2026-08-23 00:00:00.000000",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "move_date",
+  "kind",
+  "account",
+  "to_account",
+  "column_break_1",
+  "amount",
+  "amount_received",
+  "category",
+  "section_break_1",
+  "counterparty",
+  "standing_order",
+  "note"
+ ],
+ "fields": [
+  {
+   "fieldname": "move_date",
+   "fieldtype": "Date",
+   "label": "Date",
+   "reqd": 1,
+   "in_list_view": 1
+  },
+  {
+   "fieldname": "kind",
+   "fieldtype": "Select",
+   "label": "Kind",
+   "options": "In\nOut\nTransfer\nGrowth",
+   "reqd": 1,
+   "default": "Out",
+   "in_list_view": 1,
+   "description": "Growth is value the account gained or lost on its own \u2014 interest, a portfolio moving \u2014 as opposed to money you put in. Kept apart so a return can be told from a contribution, which is the only way to know whether an investment is actually working."
+  },
+  {
+   "fieldname": "account",
+   "fieldtype": "Link",
+   "options": "Duty Bank Account",
+   "label": "Account",
+   "reqd": 1,
+   "in_list_view": 1,
+   "description": "For a transfer this is the account the money leaves."
+  },
+  {
+   "fieldname": "to_account",
+   "fieldtype": "Link",
+   "options": "Duty Bank Account",
+   "label": "Into",
+   "depends_on": "eval:doc.kind=='Transfer'"
+  },
+  {
+   "fieldname": "column_break_1",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "amount",
+   "fieldtype": "Float",
+   "label": "Amount",
+   "precision": "2",
+   "reqd": 1,
+   "in_list_view": 1,
+   "description": "In the currency of the account it leaves or enters."
+  },
+  {
+   "fieldname": "amount_received",
+   "fieldtype": "Float",
+   "label": "Amount Received",
+   "precision": "2",
+   "depends_on": "eval:doc.kind=='Transfer'",
+   "description": "Only when the two accounts hold different currencies. Left blank it is the same as the amount \u2014 which is why a cross-currency transfer never has to be guessed at from a rate."
+  },
+  {
+   "fieldname": "category",
+   "fieldtype": "Link",
+   "label": "Category",
+   "options": "Duty Money Category"
+  },
+  {
+   "fieldname": "section_break_1",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "counterparty",
+   "fieldtype": "Data",
+   "label": "Source or Payee",
+   "description": "Where it came from or went \u2014 a salary, a client, a shop. Outside the named banks."
+  },
+  {
+   "fieldname": "standing_order",
+   "fieldtype": "Link",
+   "options": "Duty Standing Order",
+   "label": "From Standing Order",
+   "read_only": 1
+  },
+  {
+   "fieldname": "note",
+   "fieldtype": "Small Text",
+   "label": "Note"
+  }
+ ],
+ "links": [],
+ "modified": "2026-08-23 00:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "Duty Board",
+ "name": "Duty Money Move",
+ "owner": "Administrator",
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [],
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "print": 1,
+   "read": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1,
+   "report": 1,
+   "export": 1
+  }
+ ],
+ "track_changes": 1
+}

@@ -1,0 +1,119 @@
+{
+ "actions": [],
+ "creation": "2026-08-23 00:00:00.000000",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "bond",
+  "pay_date",
+  "gross",
+  "tax",
+  "net",
+  "column_break_1",
+  "accrued_returned",
+  "income",
+  "account",
+  "money_move",
+  "note"
+ ],
+ "fields": [
+  {
+   "fieldname": "bond",
+   "fieldtype": "Link",
+   "options": "Duty Bond",
+   "label": "Bond",
+   "reqd": 1,
+   "in_list_view": 1
+  },
+  {
+   "fieldname": "pay_date",
+   "fieldtype": "Date",
+   "label": "Paid On",
+   "reqd": 1,
+   "in_list_view": 1
+  },
+  {
+   "fieldname": "gross",
+   "fieldtype": "Float",
+   "label": "Gross",
+   "precision": "2",
+   "reqd": 1,
+   "in_list_view": 1
+  },
+  {
+   "fieldname": "tax",
+   "fieldtype": "Float",
+   "label": "Withholding Tax",
+   "precision": "2",
+   "description": "Zero on FGN and State coupons. Applied where the paying agent deducted."
+  },
+  {
+   "fieldname": "net",
+   "fieldtype": "Float",
+   "label": "Net Received",
+   "precision": "2",
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_1",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "accrued_returned",
+   "fieldtype": "Float",
+   "label": "Of Which Accrued Returned",
+   "precision": "2",
+   "read_only": 1,
+   "description": "The part of this coupon that is the accrued interest you prepaid coming back. Not income."
+  },
+  {
+   "fieldname": "income",
+   "fieldtype": "Float",
+   "label": "Income",
+   "precision": "2",
+   "read_only": 1,
+   "description": "Net less the accrued returned \u2014 what you actually earned in the period."
+  },
+  {
+   "fieldname": "account",
+   "fieldtype": "Link",
+   "options": "Duty Bank Account",
+   "label": "Paid Into"
+  },
+  {
+   "fieldname": "money_move",
+   "fieldtype": "Link",
+   "options": "Duty Money Move",
+   "label": "Money Movement",
+   "read_only": 1,
+   "no_copy": 1
+  },
+  {
+   "fieldname": "note",
+   "fieldtype": "Small Text",
+   "label": "Note"
+  }
+ ],
+ "links": [],
+ "modified": "2026-08-23 00:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "Duty Board",
+ "name": "Duty Coupon",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "print": 1,
+   "read": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [],
+ "track_changes": 0
+}

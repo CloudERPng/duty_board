@@ -173,6 +173,7 @@ def seed_control_track():
     else:
         t = frappe.get_doc({
             "doctype": "Duty Certification Track",
+			"category": "Finance, Control & Compliance",
             "title": TRACK["title"],
             "product": PRODUCT,
             "audience": "Client",

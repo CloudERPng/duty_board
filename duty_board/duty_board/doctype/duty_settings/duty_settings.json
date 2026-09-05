@@ -17,6 +17,7 @@
   "work_end_hour",
   "workdays",
   "books_managers",
+  "issue_escalation_to",
   "books_monthly_requests",
   "books_onboarding_steps",
   "books_invoice_item",
@@ -126,6 +127,12 @@
    "fieldtype": "Small Text",
    "label": "Books Managers",
    "description": "Comma-separated user emails who may see client fees and profitability (System Managers always can)"
+  },
+  {
+   "fieldname": "issue_escalation_to",
+   "fieldtype": "Small Text",
+   "label": "Issue Escalation Recipients",
+   "description": "Comma-separated users who receive the second-day escalation on a silent ticket, the Monday aging digest, and the end-of-day unacknowledged sweep. Blank means these are not sent \u2014 deliberately, so the feature never mails a guessed audience."
   },
   {
    "fieldname": "books_monthly_requests",

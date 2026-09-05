@@ -292,3 +292,48 @@ def get_rail():
 	entries.sort(key=lambda e: e.get("last_when") or "", reverse=True)
 	entries.sort(key=lambda e: (0 if e.get("pinned") else 1, 0 if e.get("last_when") else 1))
 	return entries
+
+
+@frappe.whitelist()
+def unread_total():
+	"""Just the number, for the badge on the rail.
+
+	get_rail() answers the same question but assembles every conversation with
+	its last message and preview text to do it — far too much to poll every
+	half minute from a face that is not the chat. This counts and returns.
+
+	The count matches what the Chats panel shows: the team room, client rooms,
+	and direct messages, with your own messages never counting.
+	"""
+	from duty_board.permissions import require_staff_or_consultant
+
+	require_staff_or_consultant()
+	me = frappe.session.user
+
+	seen = frappe.db.get_value("Chat Seen", {"user": me}, "last_seen")
+	filters = {"user": ["!=", me]}
+	if seen:
+		filters["creation"] = [">", seen]
+	team = cint(frappe.db.count("Team Message", filters))
+
+	rooms = _visible_rooms(me)
+	room_names = [r.name for r in rooms]
+	rooms_unread = 0
+	if room_names:
+		# _room_unread returns {"client", "other", "total"} per room — not an
+		# "unread" key, which is what I first wrote and which would have summed
+		# zero for every room while looking entirely correct.
+		for v in (_room_unread(room_names, me) or {}).values():
+			rooms_unread += cint(v.get("total", 0)) if isinstance(v, dict) else cint(v)
+
+	dms = 0
+	try:
+		from duty_board import dm
+
+		for v in (dm.get_unread_map(me) or {}).values():
+			dms += cint(v)
+	except Exception:
+		pass
+
+	return {"total": team + rooms_unread + dms,
+			"team": team, "rooms": rooms_unread, "dms": dms}

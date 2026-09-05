@@ -11,7 +11,7 @@ import re
 
 import frappe
 from frappe import _
-from frappe.utils import add_to_date, cint, get_datetime, getdate, now_datetime, today
+from frappe.utils import add_to_date, cint, date_diff, flt, get_datetime, getdate, now_datetime, nowdate, today
 from frappe.utils.pdf import get_pdf
 from frappe.rate_limiter import rate_limit
 
@@ -188,8 +188,11 @@ def _work_rows(room):
 			"creation", "work_started_at", "resolved_at", "acknowledged_by", "client_confirmed_at", "client_stars",
 			"source_type", "source",
 		],
-		order_by="creation desc",
-		limit=100,
+		# ordered by last activity rather than creation: an issue raised a year
+		# ago and resolved this week belongs in this week's count, and ordering
+		# by creation with a cap of 100 is exactly how it fell out of it
+		order_by="modified desc",
+		limit=200,
 	)
 	issues = [i for i in issues if _issue_in_room(i, room)]
 	names = [i.name for i in issues]
@@ -1607,10 +1610,20 @@ def weekly_room_pulse():
 			continue
 		room = frappe.get_doc("Client Room", r.name)
 		rows = [x for x in _work_rows(room) if x["kind"] == "issue"]
+		# Dated by WHEN IT WAS RESOLVED, not when the record was last touched.
+		# `modified` moves whenever anything is edited, so an issue finished in
+		# June and commented on yesterday counted as this week's work, while one
+		# finished this week and since untouched still counts — the field simply
+		# does not mean "completed on".
+		#
+		# `done` carries resolved_at. Where that is empty on an older record the
+		# modified date is used as a fallback rather than dropping the row, so a
+		# count is never silently short.
 		done = sum(
 			1
 			for x in rows
-			if x["status"] == "Done" and str(x.get("modified") or "") >= str(week_ago)
+			if x["status"] == "Done"
+			and str(x.get("done") or x.get("modified") or "") >= str(week_ago)
 		)
 		prog = sum(1 for x in rows if x["status"] == "In Progress")
 		queued = sum(1 for x in rows if x["status"] == "Queued")
@@ -1971,7 +1984,6 @@ def _milestone_decorate(rows, pnames):
 
 
 @frappe.whitelist()
-@frappe.whitelist()
 def project_seed_milestones(project, plan_type=None):
 	"""Seed the Xlevel method onto a PROJECT (room-independent). Guards per
 	project, so each project in a room gets its own phase journey."""
@@ -1986,11 +1998,11 @@ def project_seed_milestones(project, plan_type=None):
 
 	plan = None
 	if plan_type:
-		from duty_board.plan_templates import PLAN_TYPES
+		from duty_board.plan_templates import PLAN_TYPES, build_plan
 
 		if plan_type not in PLAN_TYPES:
 			frappe.throw(_("Unknown plan type."))
-		plan = PLAN_TYPES[plan_type][1]
+		plan = build_plan(plan_type)
 
 	from frappe.utils import add_days
 
@@ -2010,7 +2022,7 @@ def project_seed_milestones(project, plan_type=None):
 				else None,
 			}
 		).insert(ignore_permissions=True)
-		for t_title, t_desc, t_urg, t_off in phase_tasks:
+		for t_title, t_desc, t_urg, t_off, t_owner in phase_tasks:
 			frappe.get_doc(
 				{
 					"doctype": "Duty Project Task",
@@ -2020,6 +2032,8 @@ def project_seed_milestones(project, plan_type=None):
 					"urgency": t_urg if t_urg in ("Low", "Medium", "High", "Critical") else "Medium",
 					"description": t_desc or None,
 					"due_date": add_days(today(), t_off) if t_off else None,
+					"awaiting_client": 1 if t_owner == "Client" else 0,
+					"client_visible": 1,
 					"milestone": ms.name,
 				}
 			).insert(ignore_permissions=True)
@@ -2100,11 +2114,11 @@ def milestones_seed(name, plan_type=None):
 
 	plan = None
 	if plan_type:
-		from duty_board.plan_templates import PLAN_TYPES
+		from duty_board.plan_templates import PLAN_TYPES, build_plan
 
 		if plan_type not in PLAN_TYPES:
 			frappe.throw(_("Unknown plan type."))
-		plan = PLAN_TYPES[plan_type][1]
+		plan = build_plan(plan_type)
 		if not room.project:
 			from duty_board.projects import create_project
 
@@ -2132,7 +2146,7 @@ def milestones_seed(name, plan_type=None):
 				else None,
 			}
 		).insert(ignore_permissions=True)
-		for t_title, t_desc, t_urg, t_off in phase_tasks:
+		for t_title, t_desc, t_urg, t_off, t_owner in phase_tasks:
 			frappe.get_doc(
 				{
 					"doctype": "Duty Project Task",
@@ -2142,6 +2156,8 @@ def milestones_seed(name, plan_type=None):
 					"urgency": t_urg if t_urg in ("Low", "Medium", "High", "Critical") else "Medium",
 					"description": t_desc or None,
 					"due_date": add_days(today(), t_off) if t_off else None,
+					"awaiting_client": 1 if t_owner == "Client" else 0,
+					"client_visible": 1,
 					"milestone": ms.name,
 				}
 			).insert(ignore_permissions=True)
@@ -2371,7 +2387,115 @@ def client_get_milestones():
 	pm = None
 	if room.get("owner_user"):
 		pm = frappe.utils.get_fullname(room.owner_user)
-	return {"rows": rows, "pm": pm}
+	return dict({"rows": rows, "pm": pm}, **_project_header(room, rows))
+
+
+def _project_header(room, rows):
+	"""The facts a reviewer asks for, computed rather than left to the browser.
+
+	The client view worked out its own health from "is any task overdue", which
+	cannot be defended in a review: it has no reason, no owner, no recovery date,
+	and it contradicted the line beneath it saying nothing was needed. Health is
+	now a decision somebody made and can be asked about.
+
+	Progress is weighted by estimated hours rather than counting tasks, because
+	a Discovery task and a data-migration task are not the same size and a
+	percentage that treats them alike is not defensible.
+
+	Slip is measured against the BASELINE go-live, which never moves. Measuring
+	against a date that moves with the project always reports no slip.
+	"""
+	today = nowdate()
+	proj = None
+	pnames = [r.get("project") for r in rows if r.get("project")]
+	if pnames:
+		proj = frappe.db.get_value(
+			"Duty Project", pnames[0],
+			["name", "project_name", "target_date", "baseline_target_date",
+			 "rag", "rag_reason", "rag_owner", "rag_due", "rag_set_on",
+			 "rag_set_by"], as_dict=True)
+
+	# weighted progress: hours where they exist, tasks where they do not
+	est_done = est_all = n_done = n_all = 0.0
+	for m in rows:
+		for t in (m.get("tasks") or []):
+			e = flt(t.get("estimate_hours")) or 0.0
+			n_all += 1
+			est_all += e
+			if t.get("status") == "Done":
+				n_done += 1
+				est_done += e
+	if est_all > 0:
+		pct = round(est_done * 100 / est_all)
+		basis = _("weighted by estimated effort")
+	else:
+		pct = round(n_done * 100 / n_all) if n_all else 0
+		basis = _("by task count - no estimates recorded")
+
+	# phases past their date and not signed off, named rather than implied
+	late = [{"title": m.get("title"), "target_date": str(m.get("target_date")),
+			 "days": date_diff(today, m.get("target_date")),
+			 "done": len([t for t in (m.get("tasks") or []) if t.get("status") == "Done"]),
+			 "total": len(m.get("tasks") or [])}
+			for m in rows
+			if m.get("target_date") and str(m.get("target_date")) < today
+			and m.get("status") != "Approved"]
+	late.sort(key=lambda x: -x["days"])
+
+	golive = (proj or {}).get("target_date") or (rows[-1].get("target_date") if rows else None)
+	base = (proj or {}).get("baseline_target_date")
+	slip = date_diff(golive, base) if (golive and base) else None
+
+	# A DECISION IS MARKED BY rag_set_on, NOT BY THE FIELD HAVING A VALUE. The
+	# field carried a default of "On track", so every project was born green and
+	# a real judgement was indistinguishable from one nobody had made — two
+	# phases could be a fortnight late under a green header. Only a status
+	# somebody set through set_project_rag stamps rag_set_on.
+	stated = bool((proj or {}).get("rag_set_on"))
+	rag = (proj or {}).get("rag") if stated else None
+	if not rag:
+		rag = "At risk" if late else "On track"
+		rag_stated = 0
+	else:
+		rag_stated = 1
+
+	# a green status while phases are visibly late is a contradiction, and a
+	# reviewer will ask about it. Better that the screen raises it first.
+	contradiction = 1 if (rag_stated and rag == "On track" and late) else 0
+
+	# whose court the engagement has been sitting in. Reused from the timeline
+	# rather than recomputed, so the two can never disagree.
+	try:
+		from duty_board.timeline import ball_in_court
+
+		ball = ball_in_court(room.name)
+	except Exception:
+		ball = None
+
+	return {
+		"header": {
+			"ball": ball,
+			"project": (proj or {}).get("name"),
+			"project_name": (proj or {}).get("project_name"),
+			"rag": rag, "rag_stated": rag_stated,
+			"rag_contradiction": contradiction,
+			"rag_set_by": (frappe.utils.get_fullname((proj or {}).get("rag_set_by"))
+						   if (proj or {}).get("rag_set_by") else None),
+			"rag_reason": (proj or {}).get("rag_reason"),
+			"rag_owner": (frappe.utils.get_fullname((proj or {}).get("rag_owner"))
+						  if (proj or {}).get("rag_owner") else None),
+			"rag_due": str((proj or {}).get("rag_due") or "") or None,
+			"rag_days": (date_diff(today, str((proj or {}).get("rag_set_on"))[:10])
+						 if (proj or {}).get("rag_set_on") else None),
+			"progress": pct, "progress_basis": basis,
+			"hours_done": est_done, "hours_all": est_all,
+			"golive": str(golive) if golive else None,
+			"baseline": str(base) if base else None,
+			"slip_days": slip,
+			"late_phases": late,
+			"days_to_golive": date_diff(golive, today) if golive else None,
+		}
+	}
 
 
 @frappe.whitelist()
@@ -3509,20 +3633,22 @@ def room_training(name):
 
 @frappe.whitelist()
 def room_tracks_for_assign(name):
-	"""Client-audience tracks matching this room's products, for the assign dialog."""
+	"""Every client-audience track, for the assign dialog.
+
+	It used to list only tracks matching the room's products, which is why a
+	room set to one product offered a short list and looked broken. Training is
+	no longer bundled to a subscription.
+	"""
 	_staff_only()
 	room = frappe.get_doc("Client Room", name)
-	prods = _room_products(room)
 	out = []
 	for t in frappe.get_all(
 		"Duty Certification Track",
-		filters={"active": 1, "audience": "Client",
+		filters={"active": 1, "audience": ["in", ["Client", "Both"]],
 				 "private_to_room": ["in", [None, "", room.name]]},
 		fields=["name", "title", "product"],
 		order_by="product asc, title asc",
 	):
-		if (t.product or "").strip().lower() not in prods:
-			continue
 		n = frappe.db.count("Duty Certification Track Module", {"parent": t.name})
 		if n:
 			out.append({"name": t.name, "title": t.title, "product": t.product, "module_count": n})
@@ -3542,8 +3668,9 @@ def training_assign_track_room(name, track, user):
 	)
 	if not t or not cint(t.active) or t.audience != "Client":
 		frappe.throw(_("Not found."))
-	if (t.product or "").strip().lower() not in _room_products(room):
-		frappe.throw(_("This track is not part of this room's products."))
+	# The product gate is gone: training is sold on its own merits rather than
+	# bundled to a subscription, so a free track is assignable by anyone and a
+	# paid one is limited by its seats and nothing else.
 	mods = frappe.get_all(
 		"Duty Certification Track Module", filters={"parent": track}, pluck="module", order_by="idx asc"
 	)
@@ -3842,7 +3969,7 @@ def _track_for_module(room, user, module):
 	names = list({p.parent for p in parents})
 	tracks = frappe.get_all(
 		"Duty Certification Track",
-		filters={"name": ["in", names], "active": 1, "audience": "Client",
+		filters={"name": ["in", names], "active": 1, "audience": ["in", ["Client", "Both"]],
 				 "private_to_room": ["in", [None, "", room.name]]},
 		fields=["name", "title", "product"],
 		order_by="title asc",
@@ -4503,8 +4630,7 @@ def client_training_admin_assign(users, track, due_on=None):
 	)
 	if not t or not cint(t.active) or t.audience != "Client":
 		frappe.throw(_("Not found."))
-	if (t.product or "").strip().lower() not in _room_products(room):
-		frappe.throw(_("That track is not part of your subscription."))
+	# product gate removed — see track_catalogue in academy.py
 	mods = frappe.get_all(
 		"Duty Certification Track Module", filters={"parent": track}, pluck="module", order_by="idx asc"
 	)
@@ -6038,9 +6164,14 @@ def _learning_room():
 	return _client_room(allow_frozen=True)
 
 
-def _visible_tracks(room, tracks, prods, user=None):
-	"""Included tracks come with the room's products, as they always have.
-	Paid tracks appear only where seats have actually been bought."""
+def _visible_tracks(room, tracks, prods=None, user=None):
+	"""Free tracks are visible to everyone; paid ones only where seats exist.
+
+	Free tracks used to require the room to carry the matching product, which
+	made the same certification available in one room of a customer and absent
+	in another, and gave a client no way to buy something they wanted. `prods`
+	is kept in the signature so existing callers still work, and ignored.
+	"""
 	from duty_board.academy import entitlement_for
 
 	out = []
@@ -6049,18 +6180,17 @@ def _visible_tracks(room, tracks, prods, user=None):
 			if entitlement_for(room.name, t.name)["seats"]:
 				out.append(t)
 			continue
-		if (t.product or "").strip().lower() in prods:
-			out.append(t)
+		out.append(t)
 	return out
 
 
 def _tracks_for_room(room, user):
+	# A room with no products used to return nothing at all, so its whole
+	# training tab was empty — not "no tracks for your products" but blank.
 	prods = _room_products(room)
-	if not prods:
-		return []
 	tracks = frappe.get_all(
 		"Duty Certification Track",
-		filters={"active": 1, "audience": "Client",
+		filters={"active": 1, "audience": ["in", ["Client", "Both"]],
 				 "private_to_room": ["in", [None, "", room.name]]},
 		fields=["name", "title", "product", "description", "access"],
 		order_by="product asc, title asc",
@@ -6285,8 +6415,7 @@ def client_pursue_track(track):
 	)
 	if not t or not cint(t.active) or t.audience != "Client":
 		frappe.throw(_("Not found."), frappe.PermissionError)
-	if (t.product or "").strip().lower() not in _room_products(room):
-		frappe.throw(_("This track is not part of your subscription."), frappe.PermissionError)
+	# product gate removed — see track_catalogue in academy.py
 	mods = frappe.get_all(
 		"Duty Certification Track Module", filters={"parent": track}, pluck="module"
 	)
@@ -6840,7 +6969,12 @@ def _send_meeting_invite(doc, method="REQUEST"):
 				verb, doc.meeting_date, str(doc.start_time)[:5], cint(doc.duration_mins) or 30,
 			),
 			attachments=[{"fname": "invite.ics", "fcontent": ics.encode()}],
-			delayed=False,
+			# delayed=True: this was sending synchronously, so scheduling a
+			# meeting held the request open through an SMTP round trip per
+			# attendee. The Schedule button looked dead, people clicked again,
+			# and each click created another meeting. The invite is not urgent
+			# enough to justify blocking the user who is creating it.
+			delayed=True,
 		)
 		doc.db_set("ics_seq", cint(doc.ics_seq) + 1, update_modified=False)
 	except Exception:
@@ -7718,3 +7852,238 @@ def set_room_staff_access(name, users=None, owner=None):
 		room.db_set("owner_user", owner or None, update_modified=False)
 	frappe.db.commit()
 	return room_staff_access(name)
+
+
+@frappe.whitelist()
+def client_get_decisions():
+	"""The decisions taken on this client's projects, as they may see them.
+
+	Client-visible by default. A decision log the client cannot read is a private
+	diary rather than an audit trail, and its value in a review is precisely that
+	both sides were looking at the same record all along.
+	"""
+	room = _client_room()
+	projs = frappe.get_all("Duty Project", filters={"room": room.name}, pluck="name")
+	if not projs:
+		return {"rows": []}
+	rows = frappe.get_all(
+		"Duty Project Decision",
+		filters={"project": ["in", projs], "client_visible": 1},
+		fields=["name", "title", "decided_on", "status", "raised_by", "decided_by",
+				"milestone", "context", "options_considered", "impact", "supersedes"],
+		order_by="decided_on desc, creation desc", limit_page_length=0)
+	ms = {m.name: m.title for m in frappe.get_all(
+		"Duty Milestone", filters={"room": room.name},
+		fields=["name", "title"], limit_page_length=0)}
+	replaced = {r.supersedes: r.title for r in rows if r.supersedes}
+	for r in rows:
+		r.phase = ms.get(r.milestone)
+		r.replaced_by = replaced.get(r.name)
+	return {"rows": rows, "agreed": len([r for r in rows if r.status == "Agreed"])}
+
+
+@frappe.whitelist()
+def client_get_deliverables():
+	"""What this client is being asked to accept, and against what.
+
+	The staff side has carried a client_visible flag since deliverables were
+	built and there was no client view to honour it — so the half of the feature
+	that faces the client did not exist. Acceptance is the thing a client cares
+	most about on an implementation, and criteria they cannot read are not
+	criteria they agreed to.
+	"""
+	room = _client_room()
+	projs = frappe.get_all("Duty Project", filters={"room": room.name}, pluck="name")
+	if not projs:
+		return {"rows": []}
+	rows = frappe.get_all(
+		"Duty Project Deliverable",
+		filters={"project": ["in", projs], "client_visible": 1},
+		fields=["name", "title", "milestone", "status", "due_date", "submitted_on",
+				"criteria", "reviewer", "accepted_by", "accepted_at", "accept_note",
+				"reject_reason", "artefact_url"],
+		order_by="due_date asc, creation asc", limit_page_length=0)
+	ms = {m.name: m.title for m in frappe.get_all(
+		"Duty Milestone", filters={"room": room.name},
+		fields=["name", "title"], limit_page_length=0)}
+	today = nowdate()
+	for r in rows:
+		r.phase = ms.get(r.milestone)
+		r.overdue = 1 if (r.due_date and str(r.due_date) < today
+						  and r.status != "Accepted") else 0
+		# what the client is actually waiting on
+		r.yours = 1 if r.status == "Submitted" else 0
+	return {
+		"rows": rows,
+		"awaiting_you": len([r for r in rows if r.yours]),
+		"accepted": len([r for r in rows if r.status == "Accepted"]),
+		"total": len(rows),
+	}
+
+
+@frappe.whitelist()
+def schedule_task_meeting(task, date, time, duration_mins=60, staff=None,
+						  topic=None, confirm=1):
+	"""Book a meeting for a task that is really a meeting.
+
+	Eleven of the sixty-seven tasks on an implementation are meetings — the
+	kick-off, the module workshops, the blueprint walkthrough, the readiness
+	review. Left as tasks they have a due date and nothing else: no time, no
+	attendees, and nothing in anybody's calendar.
+
+	The task stays the unit of work; the meeting is how it happens. They are
+	linked both ways so the two can never end up pointing at different dates,
+	which is what would happen if the meeting were booked separately by hand.
+	"""
+	_staff_only()
+	t = frappe.get_doc("Duty Project Task", task)
+	if t.meeting and frappe.db.exists("Duty Meeting", t.meeting):
+		st = frappe.db.get_value("Duty Meeting", t.meeting, "status")
+		if st not in ("Cancelled", "Declined"):
+			frappe.throw(_("This task already has a meeting booked. Cancel that one first."))
+
+	proj = frappe.db.get_value("Duty Project", t.project,
+							   ["customer", "room"], as_dict=True)
+	if not proj or not proj.room:
+		frappe.throw(_("This project has no client room, so there is nobody to invite."))
+
+	ids = frappe.parse_json(staff) if isinstance(staff, str) else (staff or [])
+	if not ids:
+		ids = [t.assignee] if t.assignee else [frappe.session.user]
+	ids = [u for u in ids if u]
+
+	doc = frappe.get_doc({
+		"doctype": "Duty Meeting",
+		"room": proj.room, "customer": proj.customer,
+		"project": t.project, "project_task": t.name,
+		"topic": (topic or t.title)[:140],
+		"meeting_date": date, "start_time": str(time)[:5] + ":00",
+		"duration_mins": cint(duration_mins) or 60,
+		"status": "Pending", "requested_by": frappe.session.user,
+		"attendees": [{"user": u} for u in ids],
+	}).insert(ignore_permissions=True)
+
+	# the task carries the meeting, and its dates follow it — a task due on one
+	# day and met on another is the confusion this link exists to prevent
+	t.db_set("meeting", doc.name, update_modified=False)
+	if str(t.due_date or "") != str(date):
+		t.db_set("due_date", date, update_modified=False)
+	if not t.start_date or str(t.start_date) > str(date):
+		t.db_set("start_date", date, update_modified=False)
+	frappe.db.commit()
+
+	sent = 0
+	if cint(confirm):
+		# confirming is what sends the calendar invitation; a meeting left
+		# pending is a note to self, not an appointment
+		try:
+			confirm_meeting(doc.name)
+			sent = 1
+		except Exception:
+			frappe.log_error(frappe.get_traceback()[-800:], "schedule task meeting")
+	return {"ok": 1, "meeting": doc.name, "invited": len(ids), "confirmed": sent}
+
+
+@frappe.whitelist()
+def project_meetings(project):
+	"""Every meeting on a project, so they sit on the plan not just in inboxes."""
+	_staff_only()
+	rows = frappe.get_all(
+		"Duty Meeting", filters={"project": project},
+		fields=["name", "topic", "meeting_date", "start_time", "duration_mins",
+				"status", "project_task", "outcome"],
+		order_by="meeting_date asc, start_time asc", limit_page_length=0)
+	for r in rows:
+		r.attendees = frappe.get_all(
+			"Duty Meeting Attendee", filters={"parent": r.name}, pluck="user")
+		r.who = ", ".join(frappe.utils.get_fullname(u).split(" ")[0]
+						  for u in r.attendees)
+		r.past = 1 if str(r.meeting_date) < nowdate() else 0
+	return {"rows": rows,
+			"upcoming": len([r for r in rows if not r.past
+							 and r.status not in ("Cancelled", "Declined")])}
+
+
+@frappe.whitelist()
+def staff_cancel_meeting(id, reason=None):
+	"""Cancel a meeting from our side, confirmed or not.
+
+	decline_meeting only handles a Pending request; a meeting already confirmed
+	could not be cancelled by staff at all, which is the case that actually
+	arises — a workshop is booked, the client moves it, and the invitation in
+	everyone's calendar has to be withdrawn rather than left standing.
+	"""
+	_staff_only()
+	doc = frappe.get_doc("Duty Meeting", id)
+	if doc.status in ("Cancelled", "Declined"):
+		return {"ok": 1, "already": 1}
+	_settle_meeting(doc, "Cancelled")
+	if reason:
+		doc.db_set("decline_reason", reason, update_modified=False)
+	# the task is freed so it can be rebooked; it is still work that has to
+	# happen, so it is not touched beyond losing the link
+	if doc.project_task and frappe.db.exists("Duty Project Task", doc.project_task):
+		frappe.db.set_value("Duty Project Task", doc.project_task, "meeting", None,
+							update_modified=False)
+	frappe.db.commit()
+	return {"ok": 1}
+
+
+@frappe.whitelist()
+def reschedule_meeting(id, date=None, time=None, duration_mins=None, topic=None,
+					   note=None):
+	"""Move a meeting, and tell everybody's calendar.
+
+	doc.save() rather than db_set, deliberately: db_set writes the column and
+	skips on_update, so the record would move and the invitations would not.
+	That is exactly the bug this endpoint exists to close.
+	"""
+	_staff_only()
+	doc = frappe.get_doc("Duty Meeting", id)
+	if doc.status in ("Cancelled", "Declined"):
+		frappe.throw(_("That meeting was cancelled. Book a new one."))
+	was = "%s %s" % (doc.meeting_date, str(doc.start_time)[:5])
+
+	# The re-invite normally happens in Duty Meeting.on_update. If that file is
+	# not installed the save succeeds, the meeting moves, and no calendar hears
+	# — silently, which is the failure this whole change exists to prevent. So
+	# the sequence number is checked afterwards and the invite sent here if the
+	# hook did not. It cannot double-send: the check is whether it already went.
+	seq_before = cint(doc.ics_seq)
+	if date:
+		doc.meeting_date = date
+	if time:
+		doc.start_time = str(time)[:5] + ":00"
+	if duration_mins:
+		doc.duration_mins = cint(duration_mins)
+	if topic:
+		doc.topic = topic[:140]
+	doc.save(ignore_permissions=True)
+
+	# a task booked as this meeting follows it, or the board and the calendar
+	# disagree about when the work happens
+	if doc.project_task and frappe.db.exists("Duty Project Task", doc.project_task):
+		frappe.db.set_value("Duty Project Task", doc.project_task,
+							"due_date", doc.meeting_date, update_modified=False)
+	doc.reload()
+	hook_ran = cint(doc.ics_seq) > seq_before
+	now = "%s %s" % (doc.meeting_date, str(doc.start_time)[:5])
+	if was != now and not hook_ran and doc.status == "Confirmed":
+		try:
+			_send_meeting_invite(doc, "REQUEST")
+			hook_ran = True
+		except Exception:
+			frappe.log_error(frappe.get_traceback()[-800:], "reschedule re-invite")
+	if was != now:
+		try:
+			room = frappe.get_doc("Client Room", doc.room)
+			_post(room, _("📅 Moved: “{0}” — was {1}, now {2}{3}").format(
+				doc.topic or _("Meeting"), was, now,
+				_(" · {0}").format(note) if note else ""))
+		except Exception:
+			pass
+	frappe.db.commit()
+	return {"ok": 1, "was": was, "now": now,
+			"reinvited": 1 if (was != now and hook_ran) else 0,
+			"warning": (None if (was == now or hook_ran)
+						else _("The meeting moved but the updated invitation could not be sent. Tell the attendees directly."))}

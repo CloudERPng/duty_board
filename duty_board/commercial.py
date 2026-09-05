@@ -216,8 +216,13 @@ def _require_pricer():
 def pricing_queue():
 	"""The pricer's desk: everything awaiting pricing, oldest first, with age."""
 	require_staff()
+	# sysadmin rides on this call because it already gates the rail — one round
+	# trip rather than two, and the Library entry is built from it
+	from duty_board.permissions import is_sysadmin
+
+	_sa = 1 if is_sysadmin() else 0
 	if frappe.session.user.lower() not in _pricer_users():
-		return {"pricer": 0}
+		return {"pricer": 0, "sysadmin": _sa}
 	rows = frappe.get_all(
 		"Duty Change Request",
 		filters={"pricing_status": "Awaiting Pricing", "status": ["!=", "Declined"]},
@@ -229,7 +234,7 @@ def pricing_queue():
 	for r in rows:
 		r["customer"] = frappe.db.get_value("Client Room", r.room, "customer")
 		r["age_days"] = date_diff(tdy, str(r.creation)[:10])
-	return {"pricer": 1, "queue": rows}
+	return {"pricer": 1, "queue": rows, "sysadmin": _sa}
 
 
 @frappe.whitelist()

@@ -168,6 +168,7 @@ def seed_pos_tracks():
 
         frappe.get_doc({
             "doctype": "Duty Certification Track",
+			"category": "Retail & Point of Sale",
             "title": spec["title"],
             "product": PRODUCT,
             "audience": "Client",

@@ -1,0 +1,165 @@
+{
+ "actions": [],
+ "creation": "2026-08-23 00:00:00.000000",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "project",
+  "title",
+  "milestone",
+  "status",
+  "column_break_1",
+  "owner_user",
+  "due_date",
+  "submitted_on",
+  "section_break_1",
+  "criteria",
+  "reviewer",
+  "accepted_by",
+  "accepted_at",
+  "accept_note",
+  "reject_reason",
+  "section_break_2",
+  "client_visible",
+  "artefact_url",
+  "note"
+ ],
+ "fields": [
+  {
+   "fieldname": "project",
+   "fieldtype": "Link",
+   "options": "Duty Project",
+   "label": "Project",
+   "reqd": 1
+  },
+  {
+   "fieldname": "title",
+   "fieldtype": "Data",
+   "label": "Deliverable",
+   "reqd": 1,
+   "in_list_view": 1
+  },
+  {
+   "fieldname": "milestone",
+   "fieldtype": "Link",
+   "options": "Duty Milestone",
+   "label": "Phase"
+  },
+  {
+   "fieldname": "status",
+   "fieldtype": "Select",
+   "label": "Status",
+   "options": "Not started\nIn progress\nSubmitted\nAccepted\nRejected",
+   "default": "Not started",
+   "reqd": 1,
+   "in_list_view": 1
+  },
+  {
+   "fieldname": "column_break_1",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "owner_user",
+   "fieldtype": "Link",
+   "options": "User",
+   "label": "Produced By"
+  },
+  {
+   "fieldname": "due_date",
+   "fieldtype": "Date",
+   "label": "Due",
+   "in_list_view": 1
+  },
+  {
+   "fieldname": "submitted_on",
+   "fieldtype": "Datetime",
+   "label": "Submitted On",
+   "read_only": 1
+  },
+  {
+   "fieldname": "section_break_1",
+   "fieldtype": "Section Break",
+   "label": "Acceptance"
+  },
+  {
+   "fieldname": "criteria",
+   "fieldtype": "Small Text",
+   "label": "Acceptance Criteria",
+   "description": "What has to be true for this to be accepted, agreed BEFORE work starts. A deliverable without criteria can be rejected for any reason and accepted for none, which is how sign-off becomes an argument about taste."
+  },
+  {
+   "fieldname": "reviewer",
+   "fieldtype": "Data",
+   "label": "Reviewer",
+   "description": "Who on the client side is accepting it. Named up front, so it is not discovered at submission that the person who must sign is on leave."
+  },
+  {
+   "fieldname": "accepted_by",
+   "fieldtype": "Data",
+   "label": "Accepted By",
+   "read_only": 1
+  },
+  {
+   "fieldname": "accepted_at",
+   "fieldtype": "Datetime",
+   "label": "Accepted At",
+   "read_only": 1
+  },
+  {
+   "fieldname": "accept_note",
+   "fieldtype": "Small Text",
+   "label": "Acceptance Note",
+   "read_only": 1
+  },
+  {
+   "fieldname": "reject_reason",
+   "fieldtype": "Small Text",
+   "label": "Rejection Reason",
+   "read_only": 1,
+   "description": "Recorded against the criteria. A rejection that cites no criterion is a change request, not a rejection."
+  },
+  {
+   "fieldname": "section_break_2",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "client_visible",
+   "fieldtype": "Check",
+   "label": "Show To Client",
+   "default": "1"
+  },
+  {
+   "fieldname": "artefact_url",
+   "fieldtype": "Data",
+   "label": "Where It Lives",
+   "description": "A link to the document, report or configuration this refers to."
+  },
+  {
+   "fieldname": "note",
+   "fieldtype": "Small Text",
+   "label": "Note"
+  }
+ ],
+ "links": [],
+ "modified": "2026-08-23 00:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "Duty Board",
+ "name": "Duty Project Deliverable",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "print": 1,
+   "read": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "sort_field": "due_date",
+ "sort_order": "ASC",
+ "states": [],
+ "track_changes": 1
+}

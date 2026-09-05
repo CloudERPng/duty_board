@@ -1,0 +1,143 @@
+{
+ "actions": [],
+ "creation": "2026-08-23 00:00:00.000000",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "bond",
+  "kind",
+  "source",
+  "trade_date",
+  "column_break_1",
+  "face_value",
+  "clean_price",
+  "accrued",
+  "charges",
+  "section_break_1",
+  "cash",
+  "account",
+  "cash_move",
+  "note"
+ ],
+ "fields": [
+  {
+   "fieldname": "bond",
+   "fieldtype": "Link",
+   "options": "Duty Bond",
+   "label": "Bond",
+   "reqd": 1,
+   "in_list_view": 1
+  },
+  {
+   "fieldname": "kind",
+   "fieldtype": "Select",
+   "label": "Kind",
+   "options": "Buy\nSell",
+   "default": "Buy",
+   "reqd": 1
+  },
+  {
+   "fieldname": "source",
+   "fieldtype": "Select",
+   "label": "Bought At",
+   "options": "Auction\nSecondary",
+   "default": "Secondary",
+   "reqd": 1,
+   "description": "An auction fills at par on a coupon date, so no accrued interest changes hands. A secondary purchase between coupon dates does."
+  },
+  {
+   "fieldname": "trade_date",
+   "fieldtype": "Date",
+   "label": "Settlement Date",
+   "reqd": 1,
+   "in_list_view": 1
+  },
+  {
+   "fieldname": "column_break_1",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "face_value",
+   "fieldtype": "Float",
+   "label": "Face Value",
+   "precision": "2",
+   "reqd": 1,
+   "in_list_view": 1,
+   "description": "What matures, not what you pay."
+  },
+  {
+   "fieldname": "clean_price",
+   "fieldtype": "Float",
+   "label": "Clean Price (per 100)",
+   "precision": "4",
+   "default": "100",
+   "reqd": 1
+  },
+  {
+   "fieldname": "accrued",
+   "fieldtype": "Float",
+   "label": "Accrued Interest",
+   "precision": "2",
+   "read_only": 1,
+   "description": "Interest earned by the seller since the last coupon, which you pay them and get back at the next coupon. A prepayment, not a cost \u2014 booking it as cost overstates the holding and makes the first coupon look like a windfall."
+  },
+  {
+   "fieldname": "charges",
+   "fieldtype": "Float",
+   "label": "Charges",
+   "precision": "2"
+  },
+  {
+   "fieldname": "section_break_1",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "cash",
+   "fieldtype": "Float",
+   "label": "Cash Settled",
+   "precision": "2",
+   "read_only": 1
+  },
+  {
+   "fieldname": "account",
+   "fieldtype": "Link",
+   "options": "Duty Bank Account",
+   "label": "Settled From"
+  },
+  {
+   "fieldname": "cash_move",
+   "fieldtype": "Link",
+   "options": "Duty Money Move",
+   "label": "Money Movement",
+   "read_only": 1,
+   "no_copy": 1
+  },
+  {
+   "fieldname": "note",
+   "fieldtype": "Small Text",
+   "label": "Note"
+  }
+ ],
+ "links": [],
+ "modified": "2026-08-23 00:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "Duty Board",
+ "name": "Duty Bond Trade",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "print": 1,
+   "read": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [],
+ "track_changes": 0
+}

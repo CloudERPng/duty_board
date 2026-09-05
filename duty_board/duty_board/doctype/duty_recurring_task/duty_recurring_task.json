@@ -1,0 +1,164 @@
+{
+ "actions": [],
+ "creation": "2026-08-23 00:00:00.000000",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "title",
+  "project",
+  "milestone",
+  "assignee",
+  "column_break_1",
+  "frequency",
+  "next_date",
+  "ends_on",
+  "lead_days",
+  "section_break_1",
+  "urgency",
+  "estimate_hours",
+  "client_visible",
+  "active",
+  "skip_if_open",
+  "description",
+  "last_created",
+  "created_count"
+ ],
+ "fields": [
+  {
+   "fieldname": "title",
+   "fieldtype": "Data",
+   "label": "Task",
+   "reqd": 1,
+   "in_list_view": 1,
+   "description": "What the task will be called each time. A date is added automatically where the frequency makes one useful."
+  },
+  {
+   "fieldname": "project",
+   "fieldtype": "Link",
+   "options": "Duty Project",
+   "label": "Project",
+   "reqd": 1
+  },
+  {
+   "fieldname": "milestone",
+   "fieldtype": "Link",
+   "options": "Duty Milestone",
+   "label": "Phase"
+  },
+  {
+   "fieldname": "assignee",
+   "fieldtype": "Link",
+   "options": "User",
+   "label": "Owner"
+  },
+  {
+   "fieldname": "column_break_1",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "frequency",
+   "fieldtype": "Select",
+   "label": "Repeats",
+   "options": "Daily\nWeekly\nFortnightly\nMonthly\nQuarterly\nYearly",
+   "default": "Weekly",
+   "reqd": 1
+  },
+  {
+   "fieldname": "next_date",
+   "fieldtype": "Date",
+   "label": "Next One Due",
+   "reqd": 1,
+   "in_list_view": 1,
+   "description": "The due date of the next task to be created. It moves on by the frequency each time one is made."
+  },
+  {
+   "fieldname": "ends_on",
+   "fieldtype": "Date",
+   "label": "Stops After",
+   "description": "Optional. Hypercare and retainers end; a recurrence with no end quietly creates tasks into a project nobody is working on any more."
+  },
+  {
+   "fieldname": "lead_days",
+   "fieldtype": "Int",
+   "label": "Create Days Ahead",
+   "default": "0",
+   "description": "How long before it is due the task should appear. A monthly review wanted a week in advance is lead 7 \u2014 otherwise it lands on the board the day it is due, which is too late to plan around."
+  },
+  {
+   "fieldname": "section_break_1",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "urgency",
+   "fieldtype": "Select",
+   "label": "Urgency",
+   "options": "Low\nMedium\nHigh\nCritical",
+   "default": "Medium"
+  },
+  {
+   "fieldname": "estimate_hours",
+   "fieldtype": "Float",
+   "label": "Estimate Hours",
+   "precision": "2"
+  },
+  {
+   "fieldname": "client_visible",
+   "fieldtype": "Check",
+   "label": "Show To Client",
+   "default": "0"
+  },
+  {
+   "fieldname": "active",
+   "fieldtype": "Check",
+   "label": "Active",
+   "default": "1"
+  },
+  {
+   "fieldname": "skip_if_open",
+   "fieldtype": "Check",
+   "label": "Skip If The Last One Is Still Open",
+   "default": "1",
+   "description": "On by default. Where the previous instance has not been done, another is not created \u2014 otherwise a weekly check nobody is doing becomes fifty open tasks and the board stops meaning anything."
+  },
+  {
+   "fieldname": "description",
+   "fieldtype": "Small Text",
+   "label": "Description"
+  },
+  {
+   "fieldname": "last_created",
+   "fieldtype": "Date",
+   "label": "Last Created",
+   "read_only": 1
+  },
+  {
+   "fieldname": "created_count",
+   "fieldtype": "Int",
+   "label": "Created So Far",
+   "read_only": 1,
+   "default": "0"
+  }
+ ],
+ "links": [],
+ "modified": "2026-08-23 00:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "Duty Board",
+ "name": "Duty Recurring Task",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "print": 1,
+   "read": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "sort_field": "next_date",
+ "sort_order": "ASC",
+ "states": [],
+ "track_changes": 0
+}

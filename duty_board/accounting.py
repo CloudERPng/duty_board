@@ -1744,6 +1744,7 @@ def _generate_invoices(period):
 	company = frappe.defaults.get_global_default("company")
 	rooms, custs = _accounting_rooms()
 	created, existing, no_fee = 0, 0, []
+	submitted, left_draft = 0, []
 	marker = _period_marker(period)
 	for r in rooms:
 		fee = flt(custs.get(r.customer, frappe._dict()).get("accounting_fees"))
@@ -1789,9 +1790,23 @@ def _generate_invoices(period):
 					},
 				)
 		si.insert(ignore_permissions=True)
+		# Submitted rather than left in draft. A draft invoice is not a
+		# receivable — it does not age, does not appear in outstanding, and
+		# quietly does nothing until somebody remembers it. Submitting is the
+		# act that makes it real.
+		try:
+			si.submit()
+			submitted += 1
+		except Exception:
+			# a submit can fail on tax or account setup; the invoice still
+			# exists as a draft and the count says so rather than pretending
+			frappe.log_error(frappe.get_traceback()[-1500:],
+							 "books invoice submit %s" % si.name)
+			left_draft.append(si.name)
 		created += 1
 	frappe.db.commit()
-	return {"period": period, "created": created, "existing": existing, "no_fee": no_fee}
+	return {"period": period, "created": created, "existing": existing,
+			"no_fee": no_fee, "submitted": submitted, "left_draft": left_draft}
 
 
 @frappe.whitelist()

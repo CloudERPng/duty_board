@@ -112,6 +112,7 @@ def seed_closer_tracks():
 		frappe.get_doc(
 			{
 				"doctype": "Duty Certification Track",
+			"category": "CRM & Ecommerce",
 				"title": t["title"],
 				"product": "ZhiftCRM",
 				"audience": "Client",

@@ -1,0 +1,154 @@
+{
+ "actions": [],
+ "creation": "2026-08-23 00:00:00.000000",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "project",
+  "title",
+  "decided_on",
+  "status",
+  "column_break_1",
+  "raised_by",
+  "decided_by",
+  "milestone",
+  "section_break_1",
+  "context",
+  "options_considered",
+  "impact",
+  "section_break_2",
+  "client_visible",
+  "change_request",
+  "supersedes",
+  "note"
+ ],
+ "fields": [
+  {
+   "fieldname": "project",
+   "fieldtype": "Link",
+   "options": "Duty Project",
+   "label": "Project",
+   "reqd": 1
+  },
+  {
+   "fieldname": "title",
+   "fieldtype": "Data",
+   "label": "Decision",
+   "reqd": 1,
+   "in_list_view": 1,
+   "description": "What was decided, in one line a stranger could follow. 'Three warehouses, not five' rather than 'warehouse discussion'."
+  },
+  {
+   "fieldname": "decided_on",
+   "fieldtype": "Date",
+   "label": "Decided On",
+   "reqd": 1,
+   "in_list_view": 1
+  },
+  {
+   "fieldname": "status",
+   "fieldtype": "Select",
+   "label": "Status",
+   "options": "Proposed\nAgreed\nSuperseded\nReversed",
+   "default": "Agreed",
+   "reqd": 1,
+   "in_list_view": 1
+  },
+  {
+   "fieldname": "column_break_1",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "raised_by",
+   "fieldtype": "Data",
+   "label": "Raised By",
+   "description": "Who asked for it. Often the client, and that is the point of recording it."
+  },
+  {
+   "fieldname": "decided_by",
+   "fieldtype": "Data",
+   "label": "Decided By",
+   "reqd": 1,
+   "description": "Who actually made the call. When a decision is questioned months later this is the field that settles it."
+  },
+  {
+   "fieldname": "milestone",
+   "fieldtype": "Link",
+   "options": "Duty Milestone",
+   "label": "Affects Phase"
+  },
+  {
+   "fieldname": "section_break_1",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "context",
+   "fieldtype": "Small Text",
+   "label": "Why",
+   "description": "The reasoning at the time. Written now while it is obvious, because in month five it will not be."
+  },
+  {
+   "fieldname": "options_considered",
+   "fieldtype": "Small Text",
+   "label": "Alternatives Considered",
+   "description": "What else was on the table and why it was not chosen. A decision with no alternatives recorded reads as an assumption."
+  },
+  {
+   "fieldname": "impact",
+   "fieldtype": "Small Text",
+   "label": "Consequences",
+   "description": "Cost, timeline, scope or risk. What this decision commits the project to."
+  },
+  {
+   "fieldname": "section_break_2",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "client_visible",
+   "fieldtype": "Check",
+   "label": "Show To Client",
+   "default": "1",
+   "description": "On by default. A decision log the client cannot see is a private diary, not an audit trail."
+  },
+  {
+   "fieldname": "change_request",
+   "fieldtype": "Link",
+   "options": "Duty Change Request",
+   "label": "Change Request"
+  },
+  {
+   "fieldname": "supersedes",
+   "fieldtype": "Link",
+   "options": "Duty Project Decision",
+   "label": "Supersedes",
+   "description": "A reversed decision is never deleted. It is superseded, and both remain readable \u2014 the sequence is the record."
+  },
+  {
+   "fieldname": "note",
+   "fieldtype": "Small Text",
+   "label": "Note"
+  }
+ ],
+ "links": [],
+ "modified": "2026-08-23 00:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "Duty Board",
+ "name": "Duty Project Decision",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "print": 1,
+   "read": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "sort_field": "decided_on",
+ "sort_order": "DESC",
+ "states": [],
+ "track_changes": 1
+}

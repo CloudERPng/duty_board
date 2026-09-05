@@ -331,6 +331,11 @@ def record_result(name, result, observed=None, evidence_url=None, evidence_name=
 	else:
 		doc.status = "Failed"
 	doc.save(ignore_permissions=True)
+	# The client has engaged, so the ladder starts again. Otherwise somebody who
+	# went quiet, was chased three times, then came back and did half the tests
+	# would still be treated as unresponsive — and would never be reminded about
+	# the half they left.
+	frappe.db.set_value("Client Room", doc.room, "uat_nudges", 0, update_modified=False)
 	frappe.db.commit()
 	if result == "Fail":
 		_spawn_defect(doc)
@@ -490,15 +495,98 @@ def heartbeat():
 		n = frappe.db.count("Duty UAT Case", {"room": room, "status": "Awaiting Client"})
 		due = frappe.db.get_value("Client Room", room, "uat_due")
 		left = (getdate(due) - tdy).days if due else None
-		_post_room(
-			room,
-			_("🧪 A gentle reminder — {0} test scenario(s) still await you{1}. Stuck on any? Request a walkthrough from the testing card.").format(
-				n, _(" · {0} day(s) to your target of {1}").format(left, due) if due and left is not None and left >= 0 else (_(" · your target date {0} has passed").format(due) if due else "")
-			),
-		)
-		_push_clients(room, _("🧪 Your tests are waiting · Xlevel"), _("{0} scenarios still to go").format(n))
-		frappe.db.set_value("Client Room", room, "uat_nudged_on", tdy, update_modified=False)
+		overdue = -left if (left is not None and left < 0) else None
+		sent = cint(frappe.db.get_value("Client Room", room, "uat_nudges"))
+
+		# AN ESCALATION LADDER, NOT A LOOP. The same message every three days
+		# forever teaches people that these messages do not need reading, and
+		# costs the ones that do. Two reminders, then it goes to a person, then
+		# it stops asking the client and becomes our problem to chase.
+		if sent >= 3:
+			# stop posting to the room: the client has been told three times and
+			# the answer is evidently not another message
+			_uat_escalate_internal(room, n, due, overdue, sent)
+			frappe.db.set_value("Client Room", room,
+								{"uat_nudged_on": tdy, "uat_nudges": sent + 1},
+								update_modified=False)
+			continue
+
+		if sent == 0:
+			msg = _("🧪 {0} test scenario(s) are ready for you{1}. Walk through each and mark it pass or fail — failures go straight to our fix queue.").format(
+				n, _(" · your target is {0}").format(due) if due else "")
+		elif sent == 1:
+			msg = _("🧪 {0} scenario(s) are still waiting{1}. If any are unclear, ask for a walkthrough from the testing card rather than leaving them — testing is the last gate before go-live.").format(
+				n, _(" · {0} day(s) past your target of {1}").format(overdue, due) if overdue else (
+					_(" · {0} day(s) to your target").format(left) if left is not None else ""))
+		else:
+			msg = _("🧪 {0} scenario(s) have now been waiting{1}. This is the third reminder, so we are also raising it with your project sponsor — sign-off cannot proceed until testing is done, and every day here moves go-live by a day.").format(
+				n, _(" · {0} day(s) past your target of {1}").format(overdue, due) if overdue else "")
+
+		_post_room(room, msg)
+		_push_clients(room, _("🧪 Your tests are waiting · Xlevel"),
+					  _("{0} scenarios still to go").format(n))
+		if sent >= 2:
+			# the third one goes to a person by email as well as into the room,
+			# because a message nobody opened is not a message anybody received
+			_uat_escalate_client(room, n, due, overdue)
+			_uat_escalate_internal(room, n, due, overdue, sent)
+		frappe.db.set_value("Client Room", room,
+							{"uat_nudged_on": tdy, "uat_nudges": sent + 1},
+							update_modified=False)
 	frappe.db.commit()
+
+
+
+def _uat_escalate_client(room, n, due, overdue):
+	"""Email the people who can actually unblock it, not just the room."""
+	try:
+		from duty_board.notify import _send, _shell
+
+		# Client Room Member is where room clients live — the same table
+		# _push_room_clients reads. I first wrote _room_client_users, which is
+		# not a function that exists anywhere in this app.
+		users = frappe.get_all(
+			"Client Room Member", filters={"room": room, "active": 1}, pluck="user")
+	except Exception:
+		frappe.log_error(frappe.get_traceback()[-800:], "uat escalate client")
+		return
+	title = frappe.db.get_value("Client Room", room, "title") or room
+	body = (
+		"<p>%s</p><p>%s</p>"
+		% (_("{0} acceptance test scenario(s) are waiting on your team{1}.").format(
+			n, _(" and are {0} day(s) past the target of {1}").format(overdue, due) if overdue else ""),
+		   _("Testing is the last gate before go-live and sign-off cannot proceed without it. "
+			 "If the scenarios are unclear or the wrong people are assigned, say so and we will "
+			 "walk your team through them.")))
+	for u in users:
+		try:
+			_send(u, _("Acceptance testing is holding up go-live - {0}").format(title),
+				  _shell(_("Tests still waiting"), body))
+		except Exception:
+			pass
+
+
+def _uat_escalate_internal(room, n, due, overdue, sent):
+	"""Tell our own side. After three tries this stops being the client's move."""
+	try:
+		from duty_board.notify import _send, _shell
+
+		owner = frappe.db.get_value("Client Room", room, "owner_user")
+		title = frappe.db.get_value("Client Room", room, "title") or room
+		if not owner:
+			return
+		_send(owner,
+			  _("[UAT] {0} - {1} scenario(s) still not tested after {2} reminders").format(
+				  title, n, sent),
+			  _shell(_("Testing is stuck"),
+					 "<p>%s</p><p>%s</p>" % (
+						 _("{0} scenario(s) outstanding{1}. The client has been reminded {2} time(s) "
+						   "and the room is no longer being posted to.").format(
+							 n, _(", {0} day(s) past target").format(overdue) if overdue else "", sent),
+						 _("Reminders have stopped because they were not working. This needs a call, "
+						   "a change of testers, or a decision to move the date."))))
+	except Exception:
+		frappe.log_error(frappe.get_traceback()[-800:], "uat escalate internal")
 
 
 def _issue_certificate(room_name, user, full, note, exceptions, prog, rows):

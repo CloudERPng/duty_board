@@ -22,6 +22,7 @@
   "support_plan",
   "uat_due",
   "uat_nudged_on",
+  "uat_nudges",
   "is_financial_room",
   "allow_consultant_internal",
   "staff_users"
@@ -129,6 +130,14 @@
    "fieldname": "uat_nudged_on",
    "fieldtype": "Date",
    "label": "UAT Last Nudge"
+  },
+  {
+   "fieldname": "uat_nudges",
+   "fieldtype": "Int",
+   "label": "UAT Nudges Sent",
+   "read_only": 1,
+   "default": "0",
+   "description": "How many times the client has been chased about outstanding tests. Chasing identically forever teaches people the message does not need reading; after the third it escalates and stops posting to the room."
   },
   {
    "fieldname": "is_financial_room",

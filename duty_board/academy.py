@@ -143,23 +143,29 @@ def seat_gate(room, track, new_learners):
 def track_catalogue(room, assignable_only=False):
 	"""Every PUBLISHED client track and this room's standing against it.
 
-	Three states, and the catalogue shows all three, because a client should see
-	what exists rather than only what they already hold:
-	  included  - covered by the products on their room; assign freely
+	Two states now, not three:
+	  included  - a free track; anybody may assign it
 	  entitled  - a Paid track with live seats; assign until the seats run out
-	  offered   - not bought, or outside their products; visible with a price or
-	              a note, never assignable
-	"""
-	from duty_board.client_room import _room_products
 
-	prods = _room_products(room)
+	A free track used to be gated on the room carrying the matching product, so
+	the same certification was included for one room of a customer and
+	unavailable on another — and a client who wanted to buy a course was told
+	they could not because of a product they had never asked about. Training is
+	sold on its own merits; the gate is removed and the only thing that limits
+	anything now is seats on a paid track.
+	"""
 	out = []
 	for t in frappe.get_all(
 		"Duty Certification Track",
-		filters={"active": 1, "audience": "Client",
+		# A track marked "Both" serves staff and clients alike, and this filter
+		# admitted only "Client" — so the whole ERP-by-Role family appeared on
+		# the public /academy page and silently vanished from the portal a
+		# client actually buys through. client_room.py has always used
+		# ["Client", "Both"]; this was the one place that did not.
+		filters={"active": 1, "audience": ["in", ["Client", "Both"]],
 				 "private_to_room": ["in", [None, "", room.name]]},
 		fields=["name", "title", "product", "description", "access", "seat_price",
-				"who_for", "outcomes"],
+				"who_for", "outcomes", "category"],
 		order_by="product asc, title asc",
 	):
 		n = frappe.db.count("Duty Certification Track Module", {"parent": t.name})
@@ -167,7 +173,7 @@ def track_catalogue(room, assignable_only=False):
 			continue
 		access = t.access or "Included"
 		paid = access == "Paid"
-		included = not paid and (t.product or "").strip().lower() in prods
+		included = not paid
 		ent = entitlement_for(room.name, t.name) if paid else None
 		used = seats_used(room.name, t.name) if paid else 0
 		left = max(ent["seats"] - used, 0) if ent else None
@@ -180,6 +186,7 @@ def track_catalogue(room, assignable_only=False):
 			["name", "seats"], as_dict=True,
 		)
 		course_list = []
+		sample = None
 		minutes = 0
 		for m in frappe.get_all(
 			"Duty Certification Track Module", filters={"parent": t.name},
@@ -193,12 +200,21 @@ def track_catalogue(room, assignable_only=False):
 			)
 			minutes += mins
 			course_list.append({"title": title, "minutes": mins})
+			if sample is None:
+				sm = frappe.get_all(
+					"Duty Lesson", filters={"module": m.module, "is_sample": 1},
+					fields=["title", "content"], order_by="idx asc", limit_page_length=1)
+				if sm:
+					sample = {"course": title, "title": sm[0].title,
+							  "html": sm[0].content}
 		out.append({
 			"track": t.name,
 			"name": t.name,
 			"who_for": t.who_for,
 			"outcomes": t.outcomes,
 			"course_list": course_list,
+			"category": t.get("category") or "Other",
+			"sample": sample,
 			"minutes": minutes,
 			"title": t.title,
 			"product": t.product,
@@ -286,7 +302,9 @@ def academy_request(track, seats, note=None):
 		"Duty Certification Track", track,
 		["title", "access", "seat_price", "active", "audience"], as_dict=True,
 	)
-	if not t or not cint(t.active) or t.audience != "Client":
+	# the same widening, or a client could see a track in the catalogue and be
+	# refused when they tried to buy seats on it
+	if not t or not cint(t.active) or t.audience not in ("Client", "Both"):
 		frappe.throw(_("Not found."))
 	if (t.access or "Included") != "Paid":
 		frappe.throw(_("That track is already included in your subscription."))

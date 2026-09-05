@@ -479,3 +479,191 @@ def push_lesson_checks(dry_run=0):
           % ("DRY RUN" if dry_run else "APPLIED", created, updated, retired))
     print("A lesson with checks now requires them to be answered before it can be marked read.")
     return {"created": created, "updated": updated, "retired": retired}
+
+
+# Matched on PRODUCT rather than on exact title. The first version of this
+# matched titles and missed five tracks, because the real titles carry
+# qualifiers the map did not — "System-Based Internal Control in a Retail
+# Environment" against "System-Based Internal Control". Product is the stable
+# key: every ZhiftCRM track is CRM whatever it is called.
+CATEGORY_BY_PRODUCT = {
+	"ZhiftPOS": "Retail & Point of Sale",
+	"Retail Foundations": "Retail & Point of Sale",
+	"ZhiftCRM": "CRM & Ecommerce",
+	"Retail Leadership": "Leadership & Management",
+	"Accounting Services": "Finance, Control & Compliance",
+	"Xlevel Academy": "Finance, Control & Compliance",
+}
+
+# Product prefixes, checked after the exact map. Catches ZhiftERP Accounts,
+# ZhiftERP Payroll and every other role product without listing them.
+CATEGORY_BY_PRODUCT_PREFIX = [
+	("ZhiftERP", "ERP by Role"),
+	("ZhiftPOS", "Retail & Point of Sale"),
+	("ZhiftCRM", "CRM & Ecommerce"),
+	("CloudERP", "Finance, Control & Compliance"),
+]
+
+# Last resort, for tracks whose product does not resolve.
+CATEGORY_BY_TITLE_PREFIX = [
+	("ZhiftERP ", "ERP by Role"),
+	("ZhiftPOS ", "Retail & Point of Sale"),
+	("Certified ZhiftPOS ", "Retail & Point of Sale"),
+	("ZhiftCRM ", "CRM & Ecommerce"),
+	("Retail Foundations", "Retail & Point of Sale"),
+	("Retail Leadership", "Leadership & Management"),
+]
+
+
+def _category_for(title, product):
+	p = (product or "").strip()
+	if p in CATEGORY_BY_PRODUCT:
+		return CATEGORY_BY_PRODUCT[p]
+	for pref, cat in CATEGORY_BY_PRODUCT_PREFIX:
+		if p.startswith(pref):
+			return cat
+	t = (title or "").strip()
+	for pref, cat in CATEGORY_BY_TITLE_PREFIX:
+		if t.startswith(pref):
+			return cat
+	return None
+
+
+@frappe.whitelist()
+def backfill_track_categories(dry_run=1, overwrite=0):
+	"""Set category on tracks already seeded, so the academy page can group them.
+
+	Matches on product first, then product prefix, then title prefix. Anything
+	unresolved is left blank rather than guessed — it shows under Other on the
+	page, which is visible and fixable rather than silently wrong.
+
+	Pass overwrite=1 to recategorise tracks that already have one, which is what
+	you want after changing the maps above.
+
+	bench --site <site> execute duty_board.academy_repair.backfill_track_categories
+	bench --site <site> execute duty_board.academy_repair.backfill_track_categories --kwargs "{'dry_run': 0}"
+	"""
+	dry = int(dry_run or 0)
+	over = int(overwrite or 0)
+	rows = frappe.get_all(
+		"Duty Certification Track", fields=["name", "title", "product", "category"]
+	)
+	plan, kept, skipped = [], [], []
+	for r in rows:
+		if r.category and not over:
+			kept.append(r.title)
+			continue
+		cat = _category_for(r.title, r.product)
+		if not cat:
+			skipped.append("%s  (product: %s)" % (r.title, r.product or "none"))
+			continue
+		if cat == r.category:
+			kept.append(r.title)
+			continue
+		plan.append((r.name, r.title, r.category, cat))
+		if not dry:
+			frappe.db.set_value(
+				"Duty Certification Track", r.name, "category", cat, update_modified=False
+			)
+	if not dry and plan:
+		frappe.db.commit()
+	print("%s: %d track(s) to set, %d already correct" % (
+		"DRY RUN" if dry else "SET", len(plan), len(kept)))
+	for _n, title, old, cat in plan:
+		print("   %-48s %s-> %s" % (title[:48], ("[%s] " % old) if old else "", cat))
+	if skipped:
+		print("\nNOT categorised — these will show under Other:")
+		for t in skipped:
+			print("   %s" % t)
+	if dry and plan:
+		print("\nRe-run with --kwargs \"{'dry_run': 0}\" to apply.")
+	return {"set": len(plan), "kept": len(kept), "skipped": skipped}
+
+
+@frappe.whitelist()
+def academy_visibility():
+	"""Report, per track, whether it appears on the public academy page and why not.
+
+	The page applies four gates and a track failing any one of them simply is not
+	there — with nothing to say so. This prints the gates rather than making
+	anybody reason about them from the seeders, which is unreliable because site
+	data drifts from the seeders over time.
+
+	bench --site <site> execute duty_board.academy_repair.academy_visibility
+	"""
+	rows = frappe.get_all(
+		"Duty Certification Track",
+		fields=["name", "title", "product", "category", "audience", "active",
+				"private_to_room", "access", "seat_price"],
+		order_by="title asc",
+	)
+	shown, hidden = [], []
+	for r in rows:
+		mods = frappe.db.count("Duty Certification Track Module", {"parent": r.name})
+		why = []
+		if not frappe.utils.cint(r.active):
+			why.append("inactive")
+		if r.audience not in ("Client", "Both"):
+			why.append("audience=%s" % (r.audience or "none"))
+		if r.private_to_room:
+			why.append("private to %s" % r.private_to_room)
+		if not mods:
+			why.append("no modules attached")
+		row = (r.title, r.product, r.category or "-", mods, why)
+		(hidden if why else shown).append(row)
+
+	print("ON THE PUBLIC ACADEMY PAGE (%d)" % len(shown))
+	for t, p_, c, m, _ in shown:
+		print("   %-46s %-22s %-30s %d mod" % (t[:46], (p_ or "")[:22], c[:30], m))
+	print()
+	print("NOT ON THE PAGE (%d)" % len(hidden))
+	for t, p_, c, m, why in hidden:
+		print("   %-46s %-22s %s" % (t[:46], (p_ or "")[:22], "; ".join(why)))
+	return {"shown": len(shown), "hidden": len(hidden)}
+
+
+ERP_ROLE_TRACK_PREFIX = "ZhiftERP "
+
+
+@frappe.whitelist()
+def open_tracks_to_clients(titles=None, dry_run=1):
+	"""Move consultant-only tracks to audience Both so clients can see and buy them.
+
+	The ZhiftERP role tracks were built as consultant enablement and seeded
+	audience=Consultant, which keeps them off the client catalogue and off the
+	public page entirely. They have since been priced for client staff, so they
+	need to be visible to both — Both rather than Client, so consultants do not
+	lose them from their own catalogue.
+
+	Pass titles as a comma-separated list to be selective; default is every
+	ZhiftERP role track plus ZhiftPOS Professional.
+
+	bench --site <site> execute duty_board.academy_repair.open_tracks_to_clients
+	bench --site <site> execute duty_board.academy_repair.open_tracks_to_clients --kwargs "{'dry_run': 0}"
+	"""
+	dry = int(dry_run or 0)
+	if titles:
+		wanted = [t.strip() for t in str(titles).split(",") if t.strip()]
+		rows = frappe.get_all(
+			"Duty Certification Track", filters={"title": ["in", wanted]},
+			fields=["name", "title", "audience"],
+		)
+	else:
+		rows = [
+			r for r in frappe.get_all(
+				"Duty Certification Track", fields=["name", "title", "audience"])
+			if r.title.startswith(ERP_ROLE_TRACK_PREFIX)
+			or r.title == "ZhiftPOS Professional"
+		]
+	plan = [r for r in rows if r.audience != "Both"]
+	print("%s: %d track(s) to open to clients" % ("DRY RUN" if dry else "SET", len(plan)))
+	for r in plan:
+		print("   %-50s %s -> Both" % (r.title[:50], r.audience or "none"))
+		if not dry:
+			frappe.db.set_value("Duty Certification Track", r.name, "audience", "Both",
+								update_modified=False)
+	if not dry and plan:
+		frappe.db.commit()
+	if dry and plan:
+		print("\nRe-run with --kwargs \"{'dry_run': 0}\" to apply.")
+	return {"changed": len(plan)}

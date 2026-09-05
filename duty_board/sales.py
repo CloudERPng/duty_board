@@ -10,7 +10,46 @@ from frappe import _
 from frappe.utils import cint, flt, getdate, today
 from duty_board.permissions import require_staff
 
-STAGES = ["New", "Contacted", "Qualified", "Proposal", "Negotiation"]
+STAGES = ["New", "Contacted", "Proposal", "Negotiation", "Awaiting Payment"]
+
+# Stages changed: Contacted and Qualified merged, "Awaiting Payment" added after
+# Negotiation. Any lead still carrying "Qualified" has a stage no column matches,
+# so it would silently vanish from the board rather than error. This moves them.
+# Idempotent — safe to run more than once, and a no-op once clean.
+RETIRED_STAGES = {"Qualified": "Contacted"}
+
+
+@frappe.whitelist()
+def migrate_retired_stages(dry_run=1):
+	"""Move leads out of retired stages. Run once after deploying the stage change.
+
+	bench --site <site> execute duty_board.sales.migrate_retired_stages
+	bench --site <site> execute duty_board.sales.migrate_retired_stages --kwargs "{'dry_run': 0}"
+	"""
+	if not frappe.has_permission("Duty Lead", "write"):
+		frappe.throw(_("Not permitted."))
+	dry = int(dry_run or 0)
+	moved = {}
+	for old, new in RETIRED_STAGES.items():
+		rows = frappe.get_all("Duty Lead", filters={"stage": old}, fields=["name", "company"])
+		moved[old] = {"count": len(rows), "to": new,
+		              "leads": [r.company or r.name for r in rows][:25]}
+		if dry or not rows:
+			continue
+		for r in rows:
+			frappe.db.set_value("Duty Lead", r.name, "stage", new, update_modified=False)
+			_auto_note(r.name, f"stage {old} retired \u2192 {new}")
+		frappe.db.commit()
+	total = sum(v["count"] for v in moved.values())
+	print("%s: %d lead(s) in retired stages" % ("DRY RUN" if dry else "MOVED", total))
+	for old, v in moved.items():
+		if v["count"]:
+			print("  %s -> %s : %d" % (old, v["to"], v["count"]))
+			for c in v["leads"]:
+				print("      %s" % c)
+	if dry and total:
+		print("\nRe-run with --kwargs \"{'dry_run': 0}\" to apply.")
+	return moved
 
 
 def _sees_value():

@@ -1,0 +1,149 @@
+{
+ "actions": [],
+ "creation": "2026-08-23 00:00:00.000000",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "nickname",
+  "bank",
+  "account_type",
+  "currency",
+  "column_break_1",
+  "opening_balance",
+  "opening_date",
+  "target_balance",
+  "credit_limit",
+  "active",
+  "section_break_1",
+  "account_no",
+  "sort_order",
+  "note",
+  "funding"
+ ],
+ "fields": [
+  {
+   "fieldname": "nickname",
+   "fieldtype": "Data",
+   "label": "Account Name",
+   "reqd": 1,
+   "in_list_view": 1,
+   "description": "What you call it, not what the bank calls it."
+  },
+  {
+   "fieldname": "bank",
+   "fieldtype": "Link",
+   "options": "Duty Bank",
+   "label": "Bank",
+   "reqd": 1,
+   "in_list_view": 1
+  },
+  {
+   "fieldname": "account_type",
+   "fieldtype": "Select",
+   "label": "Type",
+   "options": "Current\nSavings\nInvestment\nCash\nCredit Card\nLoan",
+   "default": "Current",
+   "in_list_view": 1,
+   "description": "Credit Card is a liability: its balance is what you owe, it counts against the total rather than toward it, and the card shows how much of the limit is left."
+  },
+  {
+   "fieldname": "currency",
+   "fieldtype": "Link",
+   "options": "Currency",
+   "label": "Currency",
+   "reqd": 1,
+   "in_list_view": 1
+  },
+  {
+   "fieldname": "column_break_1",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "opening_balance",
+   "fieldtype": "Float",
+   "label": "Opening Balance",
+   "precision": "2",
+   "description": "For a loan, enter what you owed on the opening date as a NEGATIVE number. A debt is money you do not have, and storing it negative means every total in the app subtracts it without a special case \u2014 a payment into the loan then moves it toward zero on its own."
+  },
+  {
+   "fieldname": "opening_date",
+   "fieldtype": "Date",
+   "label": "Opening Date",
+   "reqd": 1
+  },
+  {
+   "fieldname": "target_balance",
+   "fieldtype": "Float",
+   "label": "Target",
+   "precision": "2",
+   "description": "Optional. A savings goal, shown as a ring on the card."
+  },
+  {
+   "fieldname": "credit_limit",
+   "fieldtype": "Float",
+   "label": "Credit Limit / Original Loan",
+   "precision": "2",
+   "depends_on": "eval:['Credit Card','Loan'].includes(doc.account_type)",
+   "description": "For a card, the limit. For a loan, the amount originally borrowed \u2014 it is what the progress bar measures against, so you can see how much has been paid off rather than only what is left."
+  },
+  {
+   "fieldname": "active",
+   "fieldtype": "Check",
+   "label": "Active",
+   "default": "1"
+  },
+  {
+   "fieldname": "section_break_1",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "account_no",
+   "fieldtype": "Data",
+   "label": "Reference",
+   "description": "Last four digits or a note to recognise it by. Do not store a full account number."
+  },
+  {
+   "fieldname": "sort_order",
+   "fieldtype": "Int",
+   "label": "Sort Order"
+  },
+  {
+   "fieldname": "note",
+   "fieldtype": "Small Text",
+   "label": "Note"
+  },
+  {
+   "fieldname": "funding",
+   "fieldtype": "Check",
+   "label": "Money Here Funds Targets And Fixed Costs",
+   "default": "0",
+   "description": "For an account that money arrives in on its way somewhere else \u2014 a salary account, a Wise balance. Its balance counts as money IN HAND against what you still need. It is not counted as raised: raised is money that has done its job, and this has not yet."
+  }
+ ],
+ "links": [],
+ "modified": "2026-08-23 00:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "Duty Board",
+ "name": "Duty Bank Account",
+ "owner": "Administrator",
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [],
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "print": 1,
+   "read": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1,
+   "report": 1,
+   "export": 1
+  }
+ ],
+ "track_changes": 1,
+ "title_field": "nickname"
+}
