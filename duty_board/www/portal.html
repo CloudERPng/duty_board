@@ -110,9 +110,13 @@
 		body[data-tab="pm"][data-pmsub="phases"] .rightcol .card:not(.mstones),
 		body[data-tab="pm"][data-pmsub="chreqs"] .rightcol .card:not(.chreqs),
 		body[data-tab="pm"][data-pmsub="timeline"] .rightcol .card:not(.tlx),
-		body[data-tab="pm"][data-pmsub="uat"] .rightcol .card:not(.uatx) { display: none !important; }
+		body[data-tab="pm"][data-pmsub="uat"] .rightcol .card:not(.uatx),
+		body[data-tab="pm"][data-pmsub="decs"] .rightcol .card:not(.decsx),
+		body[data-tab="pm"][data-pmsub="dlv"] .rightcol .card:not(.dlvx),
+		body[data-tab="pm"][data-pmsub="status"] .rightcol .card:not(.stpx),
+		body[data-tab="pm"][data-pmsub="risks"] .rightcol .card:not(.rskx) { display: none !important; }
 		body[data-tab="training"] .rightcol { width: auto; display: block; padding-bottom: 90px; }
-		body[data-tab="pm"] .card:not(.mstones):not(.chreqs):not(.uatx):not(.tlx) { display: none; }
+		body[data-tab="pm"] .card:not(.mstones):not(.chreqs):not(.uatx):not(.tlx):not(.decsx):not(.dlvx):not(.stpx):not(.rskx) { display: none; }
 		body[data-tab="home"] .card.chreqs { display: none; }
 		body[data-tab="training"] .card:not(.acad) { display: none; }
 		body[data-tab="docs"] .card:not(.docs) { display: none; }
@@ -137,7 +141,7 @@
 		body[data-tab="home"] .card:not(.chat):not(.tasks):not(.meets):not(.metrics):not(.books) { display: none; }
 		body[data-tab="home"] .wrap { display: flex; flex-direction: column; }
 		body[data-tab="home"] .card.chat { order: -1; }
-		body[data-tab="pm"] .card:not(.mstones):not(.chreqs):not(.uatx):not(.tlx) { display: none; }
+		body[data-tab="pm"] .card:not(.mstones):not(.chreqs):not(.uatx):not(.tlx):not(.decsx):not(.dlvx):not(.stpx):not(.rskx) { display: none; }
 		body[data-tab="pm"] #pmsubbar { display: flex !important; }
 		body[data-tab="training"] .card:not(.acad) { display: none; }
 		body[data-tab="docs"] .card:not(.docs) { display: none; }
@@ -378,6 +382,13 @@
 	.dwdl { font-size: 15px; color: #087A67; padding: 4px 8px; flex: none; text-decoration: none; }
 	#dwprev { background: #fff; border: 1px solid #E2E8E5; border-radius: 14px; overflow: hidden; display: none; align-items: center; justify-content: center; }
 	#dwprev iframe { width: 100%; height: 70vh; border: 0; display: block; }
+	.dwsend { display: flex; align-items: center; gap: 12px; margin: 2px 0 12px; padding: 10px 14px; background: #F4F6F5; border-radius: 10px; }
+	.dwsendbtn { margin-left: auto; white-space: nowrap; cursor: pointer; }
+	.dwtag { display: inline-block; font-size: 9.5px; font-weight: 800; letter-spacing: .5px; border-radius: 4px; padding: 1px 6px; background: #E4F3EC; color: #0F5C55; vertical-align: 1px; }
+	.dwtag.you { background: #FEF6EC; color: #8A5A0B; }
+	.dwrow.dwyou { border-left: 3px solid #E0A458; background: #FFFCF7; }
+	.dwc-you { border-color: #E0A458 !important; color: #8A5A0B !important; }
+	.dwnote { font-size: 11.5px; color: #65736F; margin-top: 2px; font-style: italic; }
 	#dwprev img { max-width: 100%; max-height: 70vh; display: block; margin: 0 auto; }
 	#dwprev .muted { padding: 30px; display: block; text-align: center; }
 	.dwnop { display: flex; flex-direction: column; gap: 8px; align-items: center; padding: 40px 20px; }
@@ -1098,7 +1109,7 @@ body[data-tab="home"] .foot{display:block!important;grid-area:foot}
 		<div class="mmbox">
 			<div class="mmhead"><b>Request a meeting</b><span class="mmx" onclick="document.getElementById('mmodal').style.display='none'">✕</span></div>
 			<div class="mmstep" id="mst1"><div class="mmlab"><i>1</i> Who should be there?</div><div id="mstaff" class="mrow"></div></div>
-			<div class="mmstep" id="mst2" style="display:none"><div class="mmlab"><i>2</i> Which day?</div><input type="date" id="mdate"></div>
+			<div class="mmstep" id="mst2" style="display:none"><div class="mmlab"><i>2</i> Which day?</div><input type="date" id="mdate"><div class="muted" style="font-size:12px;margin-top:5px">From tomorrow &#8212; same-day meetings can&#8217;t be booked here. If something is urgent today, say so in chat.</div></div>
 			<div class="mmstep" id="mst3" style="display:none"><div class="mmlab"><i>3</i> Pick a time <span class="muted" style="font-weight:400">(times the team is genuinely free)</span></div><div id="mslots" class="mrow"></div></div>
 			<div class="mmstep" id="mst4" style="display:none"><div class="mmlab"><i>4</i> What is it about?</div>
 				<input id="mtopic" maxlength="120" placeholder="e.g. July statement walkthrough">
@@ -1137,11 +1148,13 @@ body[data-tab="home"] .foot{display:block!important;grid-area:foot}
 	<div id="pselwrap" style="display:none"></div>
 	<div id="pmsubbar">
 		<a data-sub="phases" class="on" onclick="pmShow('phases')">🚩 Phases</a>
+		<a data-sub="status" data-optional="1" onclick="pmShow('status')" style="display:none">📋 Status</a>
 		<a data-sub="chreqs" onclick="pmShow('chreqs')">🔁 Change requests</a>
 		<a data-sub="timeline" data-optional="1" onclick="pmShow('timeline')" style="display:none">📅 Timeline</a>
 		<a data-sub="uat" data-optional="1" onclick="pmShow('uat')" style="display:none">🧪 Acceptance testing</a>
 		<a data-sub="decs" data-optional="1" onclick="pmShow('decs')" style="display:none">⚖ Decisions</a>
 		<a data-sub="dlv" data-optional="1" onclick="pmShow('dlv')" style="display:none">✅ Deliverables</a>
+		<a data-sub="risks" data-optional="1" onclick="pmShow('risks')" style="display:none">⚠ Risks</a>
 	</div>
 	<div class="card mstones">
 		<h3 class="foldh" onclick="fold(this,'mstones')"><span class="fc">▾</span> <svg class="li" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/><line x1="4" x2="4" y1="22" y2="15"/></svg> <span class="t">Project milestones</span></h3>
@@ -1150,11 +1163,19 @@ body[data-tab="home"] .foot{display:block!important;grid-area:foot}
 	</div>
 	<div class="card chreqs">
 		<h3 class="foldh" onclick="fold(this,'chreqs')"><span class="fc">▾</span> <svg class="li" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M16 8h-6a2 2 0 1 0 0 4h4a2 2 0 1 1 0 4H8"/><path d="M12 18V6"/></svg> <span class="t">Change requests</span></h3>
-		<div id="chreqs"><span class="muted">No change requests. Work beyond your subscription scope appears here for your formal approval.</span></div>
+		<div id="chreqs"><span class="muted">No change requests. Work beyond your subscription scope appears here for your formal approval. Need something beyond scope? Raise it in Tasks or chat and we&#8217;ll price it for approval here.</span></div>
 	</div>
 	<div class="card dlvx" style="display:none">
 		<h3><svg class="li" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg> Deliverables</h3>
 		<div id="dlvx"></div>
+	</div>
+	<div class="card stpx" style="display:none">
+		<h3><svg class="li" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="3" width="16" height="18" rx="2"/><path d="M8 8h8M8 12h8M8 16h5"/></svg> <span class="t">Weekly status</span></h3>
+		<div id="stpx"></div>
+	</div>
+	<div class="card rskx" style="display:none">
+		<h3><svg class="li" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/><path d="M12 9v4M12 17h.01"/></svg> <span class="t">Risks we are watching</span></h3>
+		<div id="rskx"></div>
 	</div>
 	<div class="card decsx" style="display:none">
 		<h3><svg class="li" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m16 16 3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z"/><path d="m2 16 3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z"/><path d="M7 21h10"/><path d="M12 3v18"/><path d="M3 7h2c2 0 5-1 7-2 2 1 5 2 7 2h2"/></svg> Decisions</h3>
@@ -1596,12 +1617,14 @@ function load() {
 			const docs = data.docs || [];
 			const el = document.getElementById("docs");
 			window._DOCS = docs;
-			if (!docs.length) { el.innerHTML = '<span class="muted">Nothing on your shelf yet.</span>'; return; }
-			const cats = [...new Set(docs.map((d) => d.category).filter(Boolean))].sort();
-			el.innerHTML = `
+			const sendBar = `<div class="dwsend"><span class="muted">Need to send us something — a spreadsheet, a signed form, a screenshot? It goes to your account manager and stays listed here under <b>Sent by you</b>.</span><label class="dwbtn dwsendbtn">📎 Send us a file<input type="file" hidden onchange="sendShelfFile(this)"></label></div>`;
+			if (!docs.length) { el.innerHTML = sendBar + '<span class="muted">Nothing on your shelf yet.</span>'; return; }
+			const cats = [...new Set(docs.filter((d) => d.source !== "Client").map((d) => d.category).filter(Boolean))].sort();
+			const nSent = docs.filter((d) => d.source === "Client").length;
+			el.innerHTML = sendBar + `
 				<div class="dwtool">
 					<input id="dwq" type="text" placeholder="Search documents…" value="${esc(window._docq || "")}">
-					<div class="dwcats"><a class="dwc ${!window._doccat ? "on" : ""}" data-c="">All</a>${cats.map((c) => `<a class="dwc ${window._doccat === c ? "on" : ""}" data-c="${esc(c)}">${esc(c)}</a>`).join("")}</div>
+					<div class="dwcats"><a class="dwc ${!window._doccat ? "on" : ""}" data-c="">All</a>${cats.map((c) => `<a class="dwc ${window._doccat === c ? "on" : ""}" data-c="${esc(c)}">${esc(c)}</a>`).join("")}${nSent ? `<a class="dwc dwc-you ${window._doccat === "__you" ? "on" : ""}" data-c="__you">Sent by you · ${nSent}</a>` : ""}</div>
 				</div>
 				<div class="dwlayout"><div id="dwlist"></div><div id="dwprev"><span class="muted">Select a document to preview it here.</span></div></div>`;
 			const url = (d) => `/api/method/duty_board.client_room.client_shelf_file?id=${encodeURIComponent(d.name)}`;
@@ -1613,13 +1636,13 @@ function load() {
 			const renderList = () => {
 				const q = (window._docq || "").toLowerCase();
 				const rows = window._DOCS.filter((d) => _pselMatch(d.project)).filter((d) =>
-					(!window._doccat || d.category === window._doccat) &&
+					(window._doccat === "__you" ? d.source === "Client" : (!window._doccat || (d.source !== "Client" && d.category === window._doccat))) &&
 					(!q || (d.title || "").toLowerCase().includes(q) || (d.category || "").toLowerCase().includes(q)));
 				document.getElementById("dwlist").innerHTML = rows.length
 					? rows.map((d) => `
-						<div class="dwrow" data-id="${esc(d.name)}" data-fn="${esc(d.file_name || "")}">
+						<div class="dwrow ${d.source === "Client" ? "dwyou" : ""}" data-id="${esc(d.name)}" data-fn="${esc(d.file_name || "")}">
 							${ficon(d.file_name)}
-							<span class="dwmain"><b>${esc(d.title)}</b><span class="dwmeta">${d.category ? esc(d.category) + " · " : ""}${d.by ? esc(d.by) + " · " : ""}${esc(d.creation)}</span></span>
+							<span class="dwmain"><b>${esc(d.title)}</b><span class="dwmeta">${d.source === "Client" ? `<span class="dwtag you">SENT BY YOU</span> ${esc(d.by_full || d.by || "")} · ` : `<span class="dwtag">FROM XLEVEL</span> ${d.category ? esc(d.category) + " · " : ""}${d.by ? esc(d.by) + " · " : ""}`}${esc(d.creation)}${d.note ? `<div class="dwnote">${esc(d.note)}</div>` : ""}</span></span>
 							<a class="dwdl" href="${url(d)}" target="_blank" onclick="event.stopPropagation()" title="Download">⬇</a>
 						</div>`).join("")
 					: `<div class="muted" style="padding:14px 4px">No documents match.</div>`;
@@ -1750,6 +1773,8 @@ function _pselMatch(projectId) {
 function loadMilestones() {
 	loadDecisions();
 	loadDeliverables();
+	loadStatusPack();
+	loadRisks();
 	api("client_get_milestones")
 		.then((r) => {
 			if (r && r.rows) {
@@ -2027,7 +2052,7 @@ function renderChreqs(rows) {
 			</div>`
 				)
 				.join("")
-		: '<span class="muted">No change requests. Work beyond your subscription scope appears here for your formal approval.</span>';
+		: '<span class="muted">No change requests. Work beyond your subscription scope appears here for your formal approval. Need something beyond scope? Raise it in Tasks or chat and we&#8217;ll price it for approval here.</span>';
 }
 function approveChreq(id) {
 	const c = (window._chreqs || []).find((r) => r.name === id) || {};
@@ -3460,7 +3485,10 @@ function mPick(cb) {
 }
 document.addEventListener("DOMContentLoaded", () => {
 	const md = document.getElementById("mdate");
-	md.min = new Date().toISOString().slice(0, 10);
+	// tomorrow until the server says otherwise — same-day is never bookable
+	const tmr = new Date(); tmr.setDate(tmr.getDate() + 1);
+	md.min = tmr.toISOString().slice(0, 10);
+	api("client_meeting_rules").then((r) => { if (r && r.earliest) md.min = r.earliest; }).catch(() => {});
 	md.addEventListener("change", () => { MSLOT = null; mSlots(); mSteps(); });
 	initRooms();
 	loadMeetings();
@@ -3479,6 +3507,10 @@ function mSlots() {
 	}
 	api("client_meeting_slots", { date: d, staff: JSON.stringify(MSTAFF) })
 		.then((r) => {
+			if (r.too_soon) {
+				box.innerHTML = `<span class="muted">Meetings need a day\u2019s notice so the team can prepare \u2014 the earliest date is ${esc(r.earliest)}.</span>`;
+				return;
+			}
 			box.innerHTML = (r.slots || []).length
 				? r.slots
 						.map((s) => `<span class="slot" onclick="mSet(this,'${s}')">${s}</span>`)
@@ -3782,6 +3814,80 @@ function loadDeliverables() {
 		.catch((e) => console.warn("deliverables:", e.message));
 }
 
+function loadStatusPack() {
+	// The weekly pack, read-only. Same function staff read, client edition:
+	// the point of showing it here is that nobody can produce a Friday deck
+	// that disagrees with it.
+	const host = document.getElementById("stpx");
+	const card = document.querySelector(".card.stpx");
+	if (!host) return;
+	const sync = () => { if (window.pmSyncOptionalTabs) pmSyncOptionalTabs(); };
+	const d = (v) => v ? esc(String(v).slice(0, 10)) : "\u2014";
+	const sgn = (n) => n > 0 ? `+${n}` : String(n);
+	api("client_status_pack", { days: 7 })
+		.then((r) => {
+			const packs = (r && r.packs) || [];
+			if (!packs.length) { if (card) card.style.display = "none"; sync(); return; }
+			card.style.display = "";
+			host.innerHTML = packs.map((p) => {
+				const rag = (p.rag || "On track").toLowerCase().replace(/\s+/g, "-");
+				const lateRows = (p.phases || []).filter((x) => x.days_late || x.slip_days);
+				return `
+				<div class="stp">
+					<div class="stph">
+						<div><b>${esc(p.project_name || p.project)}</b><div class="muted">Week of ${d(p.from_date)} to ${d(p.to_date)}</div></div>
+						<span class="stprag ${rag}">${esc(p.rag || "On track")}</span>
+					</div>
+					${p.rag_reason ? `<p class="stpreason"><b>Why:</b> ${esc(p.rag_reason)}${p.rag_owner ? ` \u00b7 owner ${esc(p.rag_owner)}` : ""}${p.rag_due ? ` \u00b7 recovery by ${d(p.rag_due)}` : ""}</p>` : ""}
+					<div class="stpkpi">
+						<div><span>Go-live</span><b>${d(p.golive)}</b><i>${p.slip_days ? `${sgn(p.slip_days)}d vs baseline` : "on the date we committed to"}</i></div>
+						<div><span>Days to go-live</span><b>${p.days_to_golive == null ? "\u2014" : p.days_to_golive}</b><i>&nbsp;</i></div>
+						<div><span>Moved this week</span><b>${(p.completed || []).length}</b><i>tasks completed \u00b7 ${p.touched || 0} touched</i></div>
+						<div><span>Deliverables</span><b>${p.deliverables && p.deliverables.total != null ? `${p.deliverables.accepted || 0}/${p.deliverables.total}` : "\u2014"}</b><i>${p.deliverables && p.deliverables.awaiting ? `${p.deliverables.awaiting} awaiting you` : "accepted"}</i></div>
+					</div>
+					<h4>Phases</h4>
+					<table class="stpt"><thead><tr><th>Phase</th><th>Status</th><th>Target</th><th>Baseline</th><th>Slip</th><th>Tasks</th></tr></thead><tbody>
+					${(p.phases || []).map((x) => `<tr class="${x.days_late ? "late" : ""}"><td>${esc(x.title)}</td><td>${esc(x.status || "\u2014")}</td><td>${d(x.target_date)}</td><td>${d(x.baseline_date)}</td><td>${x.slip_days ? `${sgn(x.slip_days)}d` : "\u2014"}${x.days_late ? ` <em>${x.days_late}d late</em>` : ""}</td><td>${x.done}/${x.total}</td></tr>`).join("")}
+					</tbody></table>
+					${lateRows.length ? "" : `<p class="muted stpok">No phase has moved from its agreed date.</p>`}
+					${(p.completed || []).length ? `<h4>Completed this week</h4><ul class="stpl">${p.completed.map((t) => `<li>${esc(t.title)}${t.phase ? ` <span>${esc(t.phase)}</span>` : ""}</li>`).join("")}</ul>` : ""}
+					${(p.decisions || []).length ? `<h4>Decisions taken</h4><ul class="stpl">${p.decisions.map((t) => `<li>${esc(t.title)} <span>${d(t.decided_on)}${t.decided_by ? ` \u00b7 ${esc(t.decided_by)}` : ""}</span>${t.impact ? `<div class="muted">${esc(t.impact)}</div>` : ""}</li>`).join("")}</ul>` : ""}
+					${(p.risks || []).length ? `<h4>Risks we are watching</h4><ul class="stpl">${p.risks.map((t) => `<li><b class="sev${t.score >= 6 ? " hi" : t.score >= 3 ? " mid" : ""}">${t.score}</b> ${esc(t.title)}${t.mitigation ? `<div class="muted">${esc(t.mitigation)}</div>` : ""}</li>`).join("")}</ul>` : ""}
+					${(p.change_requests || []).length ? `<h4>Change requests</h4><ul class="stpl">${p.change_requests.map((t) => `<li>${esc(t.original_request || t.name)} <span>${esc(t.status || "")}</span></li>`).join("")}</ul>` : ""}
+					${(p.next || []).length ? `<h4>Due in the next week</h4><ul class="stpl">${p.next.map((t) => `<li class="${t.overdue ? "late" : ""}">${esc(t.title)} <span>${d(t.due_date)}${t.overdue ? " \u00b7 overdue" : ""}${t.assignee ? ` \u00b7 ${esc(t.assignee)}` : ""}</span></li>`).join("")}</ul>` : ""}
+					<div class="stpfoot">Generated from the live plan when you opened this page \u2014 not typed up on a Friday. It cannot disagree with the Phases, Decisions and Deliverables tabs because it is the same record.</div>
+				</div>`;
+			}).join("");
+			sync();
+		})
+		.catch((e) => { console.warn("status pack:", e.message); if (card) card.style.display = "none"; sync(); });
+}
+
+function loadRisks() {
+	// Open risks your project manager has chosen to share. Not the whole
+	// register: some risks are about you, and those are raised in a meeting.
+	const host = document.getElementById("rskx");
+	const card = document.querySelector(".card.rskx");
+	if (!host) return;
+	api("client_get_risks")
+		.then((r) => {
+			const rows = (r && r.rows) || [];
+			if (!rows.length) { if (card) card.style.display = "none"; if (window.pmSyncOptionalTabs) pmSyncOptionalTabs(); return; }
+			card.style.display = "";
+			host.innerHTML = `
+				<div class="dcnote">${r.high ? `<b>${r.high} high-severity.</b> ` : ""}Severity is likelihood \u00d7 impact, each scored 1\u20133, so the order is arithmetic rather than opinion.</div>
+				${rows.map((z) => `
+					<div class="rskrow${z.severity >= 6 ? " hi" : z.severity >= 3 ? " mid" : ""}">
+						<div class="rskh"><b class="sev">${z.severity}</b><b>${esc(z.title)}</b><span class="dcst">${esc(z.status)}</span><em>${esc(z.likelihood)} likelihood \u00b7 ${esc(z.impact)} impact</em></div>
+						${z.mitigation ? `<p><b>What we are doing:</b> ${esc(z.mitigation)}</p>` : `<p class="dlvnc">No mitigation recorded yet.</p>`}
+						${z.owner ? `<div class="dcm"><span>Owned by ${esc(z.owner)}</span></div>` : ""}
+					</div>`).join("")}
+				<div class="dcfoot">If you know of a risk that is not listed, tell your project manager \u2014 the register is only as good as what reaches it.</div>`;
+			if (window.pmSyncOptionalTabs) pmSyncOptionalTabs();
+		})
+		.catch((e) => console.warn("risks:", e.message));
+}
+
 function loadDecisions() {
 	// The decision log, as the client sees it. Half the value of a decision log
 	// is that both sides were reading the same record all along — one only the
@@ -3828,7 +3934,7 @@ function pmShow(panel) {
 function pmSyncOptionalTabs() {
 	// A Timeline / UAT tab appears only when its card has content. The render
 	// functions set card.style.display; we mirror that onto the tab button.
-	const map = { timeline: ".card.tlx", uat: ".card.uatx", decs: ".card.decsx", dlv: ".card.dlvx" };
+	const map = { timeline: ".card.tlx", uat: ".card.uatx", decs: ".card.decsx", dlv: ".card.dlvx", status: ".card.stpx", risks: ".card.rskx" };
 	Object.entries(map).forEach(([sub, sel]) => {
 		const card = document.querySelector(sel);
 		const tab = document.querySelector(`#pmsubbar a[data-sub="${sub}"]`);
@@ -3867,6 +3973,25 @@ function addEmoji(x) {
 	el.focus();
 	el.selectionStart = el.selectionEnd = p + x.length;
 }
+async function sendShelfFile(inp) {
+	const f = inp.files[0];
+	if (inp.value !== undefined) inp.value = "";
+	if (!f) return;
+	const title = prompt("Title for this file", f.name.replace(/\.[^.]+$/, ""));
+	if (title === null) return;
+	const note = prompt("Anything we should know about it? (optional)", "") || "";
+	const btn = document.querySelector(".dwsendbtn"); if (btn) btn.textContent = "Sending…";
+	try {
+		const up = await uploadOne(f);
+		await api("client_send_file", { attachment_url: up.url, attachment_name: up.name, title: title, note: note, project: window._psel && window._psel !== "__general__" ? window._psel : null });
+		window._doccat = "__you";
+		load();
+	} catch (e) {
+		alert("Could not send the file: " + (e.message || e));
+		if (btn) btn.textContent = "📎 Send us a file";
+	}
+}
+
 async function uploadOne(f) {
 	const fd = new FormData();
 	fd.append("file", f, f.name);
@@ -4328,6 +4453,41 @@ function uatSign() {
 .dcrow p { margin: 3px 0; font-size: 12.5px; line-height: 1.55; color: #33423E; }
 .dcsup { color: #65736F; font-style: italic; }
 .dcfoot { font-size: 11.5px; color: #65736F; margin-top: 10px; padding-top: 8px; border-top: 1px solid #E7ECEA; }
+.rskrow { border: 1px solid #E7ECEA; border-left: 3px solid #C9D2CF; border-radius: 10px; padding: 11px 14px; margin-bottom: 8px; background: #fff; }
+.rskrow.mid { border-left-color: #B45309; }
+.rskrow.hi { border-left-color: #C2410C; background: #FFFBF8; }
+.rskh { display: flex; align-items: baseline; gap: 9px; flex-wrap: wrap; }
+.rskh em { margin-left: auto; font-style: normal; font-size: 11px; color: #65736F; }
+.rskrow p { margin: 5px 0 3px; font-size: 12.5px; line-height: 1.55; color: #33423E; }
+.sev { display: inline-block; min-width: 20px; text-align: center; font-size: 11px; font-weight: 800; color: #65736F; background: #EEF2F0; border-radius: 6px; padding: 1px 5px; }
+.rskrow.mid .sev, .sev.mid { color: #8A5A0B; background: #FEF6EC; }
+.rskrow.hi .sev, .sev.hi { color: #9A3412; background: #FEEDE4; }
+.stp { border: 1px solid #E7ECEA; border-radius: 12px; padding: 14px 16px; background: #fff; margin-bottom: 12px; }
+.stph { display: flex; align-items: flex-start; gap: 12px; }
+.stph b { font-size: 15px; }
+.stprag { margin-left: auto; font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: .5px; border-radius: 999px; padding: 3px 10px; color: #0C6B4F; background: #E4F3EC; white-space: nowrap; }
+.stprag.at-risk, .stprag.amber { color: #8A5A0B; background: #FEF6EC; }
+.stprag.off-track, .stprag.red, .stprag.late { color: #9A3412; background: #FEEDE4; }
+.stpreason { margin: 8px 0 0; font-size: 12.5px; color: #33423E; background: #FEF6EC; border: 1px solid #F0DCB8; border-radius: 9px; padding: 8px 12px; }
+.stpkpi { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin: 12px 0 4px; }
+.stpkpi > div { background: #F6F8F7; border-radius: 10px; padding: 9px 11px; }
+.stpkpi span { display: block; font-size: 10px; font-weight: 700; letter-spacing: .5px; text-transform: uppercase; color: #65736F; }
+.stpkpi b { display: block; font-size: 17px; margin: 2px 0; }
+.stpkpi i { display: block; font-style: normal; font-size: 11px; color: #65736F; }
+.stp h4 { margin: 14px 0 6px; font-size: 11.5px; font-weight: 800; letter-spacing: .5px; text-transform: uppercase; color: #65736F; }
+.stpt { width: 100%; border-collapse: collapse; font-size: 12.5px; }
+.stpt th { text-align: left; font-size: 10.5px; font-weight: 700; color: #65736F; padding: 4px 6px; border-bottom: 1px solid #E7ECEA; }
+.stpt td { padding: 5px 6px; border-bottom: 1px solid #F0F3F2; vertical-align: top; }
+.stpt tr.late td { background: #FFF7F3; }
+.stpt em { font-style: normal; color: #9A3412; font-weight: 700; }
+.stpok { margin: 6px 0 0; font-size: 12px; }
+.stpl { list-style: none; margin: 0; padding: 0; font-size: 12.5px; }
+.stpl li { padding: 5px 0; border-bottom: 1px solid #F0F3F2; line-height: 1.5; }
+.stpl li span { color: #65736F; font-size: 11.5px; margin-left: 6px; }
+.stpl li.late { color: #9A3412; }
+.stpl .muted { font-size: 12px; }
+.stpfoot { font-size: 11.5px; color: #65736F; margin-top: 12px; padding-top: 8px; border-top: 1px solid #E7ECEA; }
+@media (max-width: 640px) { .stpkpi { grid-template-columns: repeat(2, 1fr); } }
 .pjgrid u { display: block; text-decoration: none; font-size: 10.5px; line-height: 1.4; color: #65736F; font-weight: 500; margin-top: 3px; }
 .pjrag { margin-top: 12px; padding: 11px 14px; border-radius: 10px; background: #FEF6EC; border: 1px solid #F0DCB8; font-size: 13px; }
 .pjrag.red { background: #FEF6F6; border-color: #F3D4D4; }

@@ -172,6 +172,9 @@ frappe.pages["duty-board"].on_page_load = function (wrapper) {
 				// personal finances inside a shared tool: same gate as the
 				// Library, and every endpoint in money.py checks it again
 				board.rail.push({ id: "money", ic: '<path d="M2 7h20v12H2z"/><path d="M2 11h20"/><circle cx="7" cy="15" r="1.4"/>', label: __("Money"), go: () => board.show_face("money") });
+				// partner programme: commercial data about partners' earnings,
+				// so the same manager gate as Money; every endpoint checks again
+				board.rail.push({ id: "partners", ic: '<circle cx="8" cy="8" r="3"/><circle cx="16" cy="8" r="3"/><path d="M2 20c0-3.3 2.7-6 6-6h0M22 20c0-3.3-2.7-6-6-6h0"/><path d="M9 20l3-3 3 3"/>', label: __("Partners"), go: () => board.show_face("partners") });
 			}
 			board.rail.push({ id: "training", ic: board._rsvg.cap, label: __("Team training"), go: () => board.team_training_dialog() });
 			board.rail.push({ id: "academyhealth", ic: board._rsvg.pulse, label: __("Academy health"), go: () => board.academy_health_dialog() });
@@ -305,6 +308,9 @@ class DutyBoard {
 		`).appendTo(page.body);
 		this.$money = $(`
 			<div class="duty-money" style="display:none"></div>
+		`).appendTo(page.body);
+		this.$partners = $(`
+			<div class="duty-partners" style="display:none"></div>
 		`).appendTo(page.body);
 		this.$oversight = $(`
 			<div class="duty-oversight" style="display:none">
@@ -2359,6 +2365,7 @@ class DutyBoard {
 		this.$clients.toggle(face === "clients");
 		if (this.$oversight) this.$oversight.toggle(face === "oversight");
 		if (this.$money) this.$money.toggle(face === "money");
+		if (this.$partners) this.$partners.toggle(face === "partners");
 		this.$me.toggle(merged ? face === "board" && dtab === "dash" : face === "me");
 		this.$books.toggle(face === "books");
 		if (this.$library) this.$library.toggle(face === "library");
@@ -2372,6 +2379,7 @@ class DutyBoard {
 		if (face === "clients") this.refresh_clients();
 		if (face === "oversight") this.refresh_oversight();
 		if (face === "money") this.refresh_money();
+		if (face === "partners") this.refresh_partners();
 		if (face === "me" || (face === "board" && merged && dtab === "dash")) this.refresh_me();
 	}
 
@@ -4939,7 +4947,8 @@ this.$me.find(".duty-req-ok").on("click", (e) => {
 			callback: (r) => {
 				const x = r.message || {};
 				const phases = (x.bars || []).filter((b) => b.kind === "phase");
-				const tasks = (x.bars || []).filter((b) => b.kind === "task");
+				const who = this._pj_who_get(project);
+				const tasks = (x.bars || []).filter((b) => b.kind === "task" && this._pj_who_match(who, b.assignee_user));
 				const sort = this._pj_sort || "due";
 				const cmp = {
 					due: (a, b) => (a.end || "9999") > (b.end || "9999") ? 1 : -1,
@@ -4972,7 +4981,7 @@ this.$me.find(".duty-req-ok").on("click", (e) => {
 								<div>${t.estimate ? `${t.estimate}h` : "\u2014"}</div>
 								<div><span class="duty-pl-st">${esc(t.column || "")}</span></div>
 							</div>`).join("")}
-						${tasks.length ? "" : `<div class="duty-lb-empty">${__("No tasks on this project yet.")}</div>`}
+						${tasks.length ? "" : `<div class="duty-lb-empty">${who ? __("No tasks match this filter — 👥 above changes it.") : __("No tasks on this project yet.")}</div>`}
 					</div>`);
 				$w.find(".duty-pl-bar a").on("click", (e) => {
 					this._pj_sort = $(e.currentTarget).data("s");
@@ -5351,7 +5360,7 @@ this.$me.find(".duty-req-ok").on("click", (e) => {
 		// took the header bar with it — no back link, no title, no way to leave
 		// the risk register except a page refresh. It renders into its own host
 		// now, like the rest.
-		let $host = $host.find(".duty-risk-host");
+		let $host = $wrap.find(".duty-risk-host");
 		if (!$host.length) $host = $('<div class="duty-risk-host"></div>').appendTo($wrap);
 		$host.html(`<div class="text-muted duty-plan-empty">${__("Loading risks…")}</div>`);
 		const SEVC = (s) => s >= 6 ? "#C2410C" : s >= 3 ? "#B45309" : "#65736F";
@@ -5361,7 +5370,7 @@ this.$me.find(".duty-req-ok").on("click", (e) => {
 			const body = rows.map((x) => `
 				<tr class="${x.status === "Closed" ? "duty-risk-closed" : ""}" data-name="${x.name}">
 					<td><b style="color:${SEVC(x.severity)}">${x.severity}</b></td>
-					<td><b>${esc(x.title)}</b>${x.mitigation ? `<div class="duty-risk-mit">${esc(x.mitigation)}</div>` : ""}</td>
+					<td><b>${esc(x.title)}</b>${x.client_visible ? ` <span class="text-muted" title="${__("Shown on the client portal")}">👁</span>` : ""}${x.mitigation ? `<div class="duty-risk-mit">${esc(x.mitigation)}</div>` : ""}</td>
 					<td>${esc(x.likelihood)}</td>
 					<td>${esc(x.impact)}</td>
 					<td>${x.owner_name ? esc(x.owner_name) : `<span class="text-muted">—</span>`}</td>
@@ -5381,6 +5390,8 @@ this.$me.find(".duty-req-ok").on("click", (e) => {
 					{ fieldname: "mitigation", fieldtype: "Small Text", label: __("Mitigation"), default: x ? x.mitigation || "" : "" },
 					{ fieldname: "owner_user", fieldtype: "Link", options: "User", label: __("Owner"), default: x ? x.owner_user || "" : "" },
 					{ fieldname: "status", fieldtype: "Select", label: __("Status"), options: ["Open", "Mitigating", "Closed"], default: x ? x.status : "Open" },
+					{ fieldname: "client_visible", fieldtype: "Check", label: __("Show to client"), default: x ? (x.client_visible ? 1 : 0) : 0,
+					  description: __("Off by default — some risks are about the client's own readiness and belong in a meeting, not on their portal.") },
 				],
 				(v) => frappe.call({
 					method: "duty_board.projects.risk_save",
@@ -5395,7 +5406,7 @@ this.$me.find(".duty-req-ok").on("click", (e) => {
 				const nm = $(e.currentTarget).closest("tr").data("name");
 				const x = rows.find((z) => z.name === nm);
 				if (a === "edit") return dlg(x);
-				if (a === "close") return frappe.call({ method: "duty_board.projects.risk_save", args: { project: project, name: nm, title: x.title, likelihood: x.likelihood, impact: x.impact, mitigation: x.mitigation, owner_user: x.owner_user, status: "Closed" }, callback: (r) => draw(r.message || []) });
+				if (a === "close") return frappe.call({ method: "duty_board.projects.risk_save", args: { project: project, name: nm, title: x.title, likelihood: x.likelihood, impact: x.impact, mitigation: x.mitigation, owner_user: x.owner_user, status: "Closed", client_visible: x.client_visible ? 1 : 0 }, callback: (r) => draw(r.message || []) });
 				if (a === "del") return frappe.confirm(__("Delete this risk entry?"), () => frappe.call({ method: "duty_board.projects.risk_delete", args: { name: nm }, callback: (r) => draw(r.message || []) }));
 			});
 		};
@@ -5705,6 +5716,30 @@ this.$me.find(".duty-req-ok").on("click", (e) => {
 			</div>`;
 	}
 
+	// Assignee filter for the project views. One state, applied to the board
+	// payload before any view reads it, so Board, Phases and Calendar agree;
+	// List fetches its own rows and applies the same predicate. Stored per
+	// project — "mine" on one project and "everyone" on another is normal.
+	_pj_who_get(project) {
+		return localStorage.getItem("duty_pj_who:" + project) || "";
+	}
+	_pj_who_set(project, who) {
+		if (who) localStorage.setItem("duty_pj_who:" + project, who);
+		else localStorage.removeItem("duty_pj_who:" + project);
+	}
+	_pj_who_match(who, assignee) {
+		if (!who) return true;
+		if (who === "me") return assignee === frappe.session.user;
+		if (who === "none") return !assignee;
+		return assignee === who;
+	}
+	_pj_who_label(who, staff) {
+		if (who === "me") return __("Me");
+		if (who === "none") return __("Unassigned");
+		const u = (staff || []).find((x) => x.user === who);
+		return ((u && u.full_name) || this.name_map[who] || who).split(" ")[0];
+	}
+
 	render_kanban(project, data) {
 		if (project !== this.current_project) return;
 		this._ms_names = {};
@@ -5712,6 +5747,17 @@ this.$me.find(".duty-req-ok").on("click", (e) => {
 		const $wrap = this.$projects.find(".duty-kanban-wrap").empty();
 		const proj = (this._projects || []).find((p) => p.name === project);
 		this._kb_color = this.proj_color(project);
+		// `full` is what the server sent; `data` is what the views see. Every
+		// re-render from inside this function passes `full`, otherwise switching
+		// the filter from one person to another would filter an already
+		// filtered set and show nothing.
+		const full = data;
+		const who = this._pj_who_get(project);
+		if (who) {
+			const t = {};
+			Object.keys(full.tasks || {}).forEach((c) => { t[c] = (full.tasks[c] || []).filter((x) => this._pj_who_match(who, x.assignee)); });
+			data = Object.assign({}, full, { tasks: t });
+		}
 		const $bar = $(`
 			<div class="duty-kb-bar">
 				<a class="duty-pj-back">‹ ${__("Projects")}</a>
@@ -5742,7 +5788,8 @@ this.$me.find(".duty-req-ok").on("click", (e) => {
 				<a class="duty-proj-archive" style="display:none"></a>
 				<span class="duty-pj-tools">
 					<a class="duty-pj-analysis">${__("Analysis")} <i>▾</i></a>
-					<a class="duty-proj-staffb" title="${__("Project team")}">👥${(data.staff || []).length ? ` ${data.staff.length}` : ""}</a>
+					<a class="duty-proj-staffb ${who ? "on" : ""}" title="${who ? __("Showing tasks for {0} — click to change", [this._pj_who_label(who, full.staff)]) : __("Filter by assignee · project team")}">${
+						who ? `👤 ${frappe.utils.escape_html(this._pj_who_label(who, full.staff))}` : `👥${(full.staff || []).length ? ` ${full.staff.length}` : ""}`}</a>
 					<a class="duty-kb-dense" title="${__("Toggle density")}">${(localStorage.getItem("duty_kb_density") || "comfortable") === "compact" ? "▤" : "▢"}</a>
 					<a class="duty-pj-more" title="${__("More")}">⋯</a>
 				</span>
@@ -5787,9 +5834,9 @@ this.$me.find(".duty-req-ok").on("click", (e) => {
 		});
 		$bar.find(".duty-pj-v").on("click", (e) => {
 			this._pj_view = $(e.currentTarget).data("v");
-			this.render_kanban(project, data);
+			this.render_kanban(project, full);
 		});
-		$bar.find(".duty-proj-staffb").on("click", () => {
+		const openTeam = () => {
 			frappe.call({
 				method: "duty_board.projects.project_staff_options",
 				args: { project: this.current_project },
@@ -5820,6 +5867,34 @@ this.$me.find(".duty-req-ok").on("click", (e) => {
 					d.show();
 				},
 			});
+		};
+		$bar.find(".duty-proj-staffb").on("click", () => {
+			// counts are open work, from the unfiltered payload
+			const open = [];
+			Object.keys(full.tasks || {}).forEach((c) => { if (c !== "Completed") (full.tasks[c] || []).forEach((t) => open.push(t)); });
+			const n = (pred) => open.filter(pred).length;
+			const me = frappe.session.user;
+			const staff = (full.staff || []).slice().sort((a, b) => (a.full_name || a.user).localeCompare(b.full_name || b.user));
+			const seen = new Set(staff.map((u) => u.user));
+			// people with tasks who are not on the team roster still get a row
+			open.forEach((t) => { if (t.assignee && !seen.has(t.assignee)) { seen.add(t.assignee); staff.push({ user: t.assignee, full_name: this.name_map[t.assignee] || t.assignee }); } });
+			const rows = [
+				["", "👥 " + __("Everyone"), n(() => true)],
+				["me", "👤 " + __("Assigned to me"), n((t) => t.assignee === me)],
+				...staff.filter((u) => u.user !== me).map((u) => [u.user, frappe.utils.escape_html(u.full_name || u.user), n((t) => t.assignee === u.user)]),
+				["none", "○ " + __("Unassigned"), n((t) => !t.assignee)],
+			];
+			const d = new frappe.ui.Dialog({ title: __("Show tasks for"), size: "small" });
+			$(d.body).html(`<div class="duty-pj-menu duty-pj-whomenu">${rows.map((r) =>
+				`<a data-w="${r[0]}" class="${r[0] === who ? "on" : ""}"><b>${r[1]}</b><span>${r[2]} ${__("open")}</span></a>`).join("")}
+				<a class="duty-pj-whoteam"><b>⚙ ${__("Manage project team…")}</b><span>${__("Who is on this project")}</span></a></div>`);
+			$(d.body).find("a[data-w]").on("click", (e) => {
+				d.hide();
+				this._pj_who_set(project, $(e.currentTarget).data("w"));
+				this.render_kanban(project, full);
+			});
+			$(d.body).find(".duty-pj-whoteam").on("click", () => { d.hide(); openTeam(); });
+			d.show();
 		});
 		$bar.find(".duty-proj-cons").on("click", () => {
 			frappe.call({
@@ -5894,7 +5969,7 @@ this.$me.find(".duty-req-ok").on("click", (e) => {
 		const dense = (localStorage.getItem("duty_kb_density") || "comfortable") === "compact";
 		$bar.find(".duty-kb-dense").on("click", () => {
 			localStorage.setItem("duty_kb_density", dense ? "comfortable" : "compact");
-			this.render_kanban(project, data);
+			this.render_kanban(project, full);
 		});
 		const $board = $(`<div class="duty-kanban ${dense ? "duty-kb-compact" : ""}"></div>`).appendTo($wrap);
 		this._kb_expand = this._kb_expand || {};
@@ -5902,7 +5977,7 @@ this.$me.find(".duty-req-ok").on("click", (e) => {
 			const cards = (data.tasks && data.tasks[col]) || [];
 			if (!cards.length && col !== "To Do" && !this._kb_expand[col]) {
 				const $slim = $(`<div class="duty-kb-col duty-kb-colslim" data-col="${col}" title="${__("Show {0}", [__(col)])}"><span>${__(col)} · 0</span></div>`).appendTo($board);
-				$slim.on("click", () => { this._kb_expand[col] = 1; this.render_kanban(project, data); });
+				$slim.on("click", () => { this._kb_expand[col] = 1; this.render_kanban(project, full); });
 				return;
 			}
 			const $col = $(`
@@ -6009,7 +6084,15 @@ this.$me.find(".duty-req-ok").on("click", (e) => {
 	// The task stays the unit of work and the meeting is how it happens, linked
 	// both ways so they cannot end up on different dates.
 	_task_meeting_dialog(t, after) {
+		// the client's people come from the project's room; fetch them first so
+		// the picker is populated when the dialog opens
+		frappe.call({ method: "duty_board.client_room.project_client_members", args: { project: t.project || this.current_project },
+			callback: (r) => this._task_meeting_dialog_build(t, after, (r.message || {}).rows || []) });
+	}
+
+	_task_meeting_dialog_build(t, after, clientRows) {
 		const staff = this.staff_options().filter((o) => o.value);
+		const clients = clientRows.map((m) => ({ value: m.user, description: `${m.full_name}${m.is_admin ? " · admin" : ""}` }));
 		const d = new frappe.ui.Dialog({
 			title: __("Schedule — {0}", [t.title || ""]),
 			fields: [
@@ -6029,6 +6112,11 @@ this.$me.find(".duty-req-ok").on("click", (e) => {
 				{ fieldtype: "MultiSelectPills", fieldname: "staff", label: __("Who from our side"),
 				  get_data: () => staff.map((o) => ({ value: o.value, description: o.label })),
 				  default: t.assignee ? [t.assignee] : [] },
+				{ fieldtype: "MultiSelectPills", fieldname: "clients", label: __("Who from the client"),
+				  get_data: () => clients,
+				  description: clients.length
+					? __("Only the people you pick are invited. Leave empty to invite everyone in the client's room ({0} people).", [clients.length])
+					: __("This client's room has no members yet — nobody on their side can be invited.") },
 				{ fieldtype: "Check", fieldname: "confirm", label: __("Send the calendar invitations now"),
 				  default: 1,
 				  description: __("A meeting left unconfirmed is a note to yourself. Confirming is what puts it in people's calendars.") },
@@ -6041,6 +6129,7 @@ this.$me.find(".duty-req-ok").on("click", (e) => {
 						task: t.name, date: v.date, time: String(v.time).slice(0, 5),
 						duration_mins: v.duration_mins, topic: v.topic,
 						staff: (v.staff || []).map((x) => x.value || x),
+						clients: (v.clients || []).map((x) => x.value || x),
 						confirm: v.confirm ? 1 : 0,
 					},
 					callback: (r) => {
@@ -6085,9 +6174,11 @@ this.$me.find(".duty-req-ok").on("click", (e) => {
 			},
 		};
 		$dw.find(".duty-td-x").off("click").on("click", () => d.hide());
-		$dw.find(".tk-meet").off("click").on("click", () =>
+		// Delegated: the form these links live in is rendered further down, so a
+		// direct find() here bound to nothing and all three buttons were dead.
+		$dw.off("click.tkmeet").on("click.tkmeet", ".tk-meet", () =>
 			this._task_meeting_dialog(t, () => { d.hide(); this.refresh_projects(); }));
-		$dw.find(".tk-remeet").off("click").on("click", () => {
+		$dw.off("click.tkremeet").on("click.tkremeet", ".tk-remeet", () => {
 			const was = (t.meeting_when || "").split(" ");
 			frappe.prompt([
 				{ fieldtype: "Date", fieldname: "date", label: __("New date"), reqd: 1,
@@ -6115,7 +6206,7 @@ this.$me.find(".duty-req-ok").on("click", (e) => {
 				},
 			}), __("Move the meeting"), __("Move it"));
 		});
-		$dw.find(".tk-unmeet").off("click").on("click", () => {
+		$dw.off("click.tkunmeet").on("click.tkunmeet", ".tk-unmeet", () => {
 			frappe.confirm(
 				__("Cancel the meeting booked for this task? Anyone invited gets a cancellation in their calendar."),
 				() => frappe.call({
@@ -11495,7 +11586,7 @@ this.$me.find(".duty-req-ok").on("click", (e) => {
 					((b.author_list && b.author_list.length) ? b.author_list : (b.author ? [b.author] : []))
 						.map((a2) => `<span class="duty-lb-au" data-a="${esc(a2)}">${esc(a2)}</span>`)
 						.join(", ")}</span>
-				<span class="duty-lb-meta2">${b.chapter_count} ${__("ch")}${b.words ? ` · ${Math.round(b.words / 200)}m` : ""}${stars ? ` · <b>${stars}</b>` : ""}</span>
+				<span class="duty-lb-meta2">${b.format === "PDF" ? `${b.page_count} ${__("pp")}` : `${b.chapter_count} ${__("ch")}`}${b.words ? ` · ${Math.round(b.words / 200)}m` : ""}${stars ? ` · <b>${stars}</b>` : ""}</span>
 			</a>`;
 		};
 
@@ -11509,13 +11600,41 @@ this.$me.find(".duty-req-ok").on("click", (e) => {
 		if (!visible.length) {
 			$L.append(`<div class="duty-lb-empty">${q ? __("Nothing matches — try fewer letters.") : __("No books on this shelf yet.")}</div>`);
 		}
+		// Sort key for a book's first author: surname, then the rest, so
+		// "Cal Newport" shelves under N. No author sorts last.
+		const authorKey = (b) => {
+			const a = (b.author_list && b.author_list[0]) || b.author || "";
+			if (!a) return "\uffff";
+			const parts = a.trim().split(/\s+/);
+			return (parts.pop() + " " + parts.join(" ")).toLowerCase();
+		};
 		cats.filter((c) => cat === "All" || c === cat).forEach((c) => {
 			const shelf = visible.filter((b) => topicsOf(b).includes(c))
-				.sort((a, b2) => (b2.pct > 0 && b2.pct < 100) - (a.pct > 0 && a.pct < 100) || a.title.localeCompare(b2.title));
+				.sort((a, b2) => cat === "All"
+					// the full shelf keeps in-progress books first, then title
+					? (b2.pct > 0 && b2.pct < 100) - (a.pct > 0 && a.pct < 100) || a.title.localeCompare(b2.title)
+					// a chosen category reads like a bookshop shelf: by author, then title
+					: authorKey(a).localeCompare(authorKey(b2)) || a.title.localeCompare(b2.title));
 			if (!shelf.length) return;
-			$L.append(`
-				<div class="duty-lb-cat"><b>${esc(c)}</b><span>${shelf.length}</span></div>
-				<div class="duty-lb-shelf">${shelf.map((b) => TILE(b)).join("")}</div>`);
+			if (cat === "All") {
+				$L.append(`
+					<div class="duty-lb-cat"><b>${esc(c)}</b><span>${shelf.length}</span></div>
+					<div class="duty-lb-shelf">${shelf.map((b) => TILE(b)).join("")}</div>`);
+				return;
+			}
+			// inside a category: one row per author, in author order, so a
+			// seventeen-book shelf reads as five short rows instead of one long scroll
+			const rows = [];
+			shelf.forEach((b) => {
+				const name = (b.author_list && b.author_list[0]) || b.author || "";
+				const last = rows[rows.length - 1];
+				if (last && last.name === name) last.books.push(b);
+				else rows.push({ name, books: [b] });
+			});
+			$L.append(`<div class="duty-lb-cat"><b>${esc(c)}</b><span>${shelf.length} · ${rows.length} ${__("authors")}</span></div>`);
+			rows.forEach((r) => $L.append(`
+				<div class="duty-lb-aurow"><b>${r.name ? esc(r.name) : __("Author not set")}</b><span>${r.books.length}</span></div>
+				<div class="duty-lb-shelf">${r.books.map((b) => TILE(b)).join("")}</div>`));
 		});
 
 		// ── bindings ──
@@ -11558,6 +11677,7 @@ this.$me.find(".duty-req-ok").on("click", (e) => {
 					<a class="duty-bk-plan" data-book="${bk}">🗓 ${__("Plan to read")}</a>
 					<a class="duty-bk-edit" data-book="${bk}">✎ ${__("Edit")}</a>
 					<a class="duty-bk-fetch" data-book="${bk}">🔎 ${__("Fetch cover & info")}</a>
+					<a class="duty-bk-cover" data-book="${bk}">🖼 ${__("Set cover")}</a>
 					<a class="duty-bk-del" data-book="${bk}">🗑 ${__("Remove")}</a>
 				</div>`).appendTo(document.body);
 			const r2 = e.currentTarget.getBoundingClientRect();
@@ -11637,6 +11757,56 @@ this.$me.find(".duty-req-ok").on("click", (e) => {
 				frappe.call({ method: "duty_board.library.delete_book", args: { book: bk }, callback: () => this.refresh_library() })
 			);
 		});
+		$host.find(".duty-bk-cover").off("click").on("click", (e) => {
+			e.stopPropagation();
+			$(".duty-lb-pop").remove();
+			const bk = $(e.currentTarget).data("book");
+			const b = books.find((x) => x.name === bk) || {};
+			const save = (args, label) => frappe.call({
+				method: "duty_board.library.set_cover", args: Object.assign({ book: bk }, args),
+				freeze: true, freeze_message: label,
+				callback: () => { frappe.show_alert({ message: __("Cover updated."), indicator: "green" }); this.refresh_library(); },
+			});
+			const d = new frappe.ui.Dialog({
+				title: __("Cover for “{0}”", [frappe.utils.escape_html(b.title || "")]),
+				fields: [
+					{ fieldname: "img", fieldtype: "Attach Image", label: __("Upload an image"),
+					  description: __("JPG, PNG or WebP, under 3 MB. Portrait works best — the shelf shows roughly 2:3.") },
+					...(b.format === "PDF" && b.source_file ? [
+						{ fieldname: "sep", fieldtype: "Section Break" },
+						{ fieldname: "first", fieldtype: "Button", label: __("Use the PDF's first page"),
+						  description: __("Rendered in your browser from the file itself — usually the actual cover.") },
+					] : []),
+					...(b.cover ? [
+						{ fieldname: "sep2", fieldtype: "Section Break" },
+						{ fieldname: "clear", fieldtype: "Button", label: __("Remove current cover") },
+					] : []),
+				],
+				primary_action_label: __("Save"),
+				primary_action: (v) => {
+					if (!v.img) { frappe.msgprint(__("Upload an image, or use one of the buttons below.")); return; }
+					d.hide(); save({ file_url: v.img }, __("Saving cover…"));
+				},
+			});
+			if (b.format === "PDF" && b.source_file) d.fields_dict.first.$input.on("click", () => {
+				frappe.dom.freeze(__("Rendering first page…"));
+				this._pdfjs()
+					.then((lib) => lib.getDocument({ url: b.source_file, withCredentials: true }).promise)
+					.then((pdf) => pdf.getPage(1).then((page) => {
+						// 600px tall is plenty for a shelf thumbnail and keeps the upload small
+						const vp0 = page.getViewport({ scale: 1 });
+						const vp = page.getViewport({ scale: 600 / vp0.height });
+						const c = document.createElement("canvas");
+						c.width = Math.floor(vp.width); c.height = Math.floor(vp.height);
+						return page.render({ canvasContext: c.getContext("2d"), viewport: vp }).promise
+							.then(() => { const url = c.toDataURL("image/jpeg", 0.85); pdf.loadingTask.destroy(); return url; });
+					}))
+					.then((dataUrl) => { frappe.dom.unfreeze(); d.hide(); save({ data_b64: dataUrl }, __("Saving cover…")); })
+					.catch((err) => { frappe.dom.unfreeze(); frappe.msgprint(__("Could not render the first page: {0}", [frappe.utils.escape_html((err && err.message) || "")])); });
+			});
+			if (b.cover) d.fields_dict.clear.$input.on("click", () => { d.hide(); save({ clear: 1 }, __("Removing…")); });
+			d.show();
+		});
 		$host.find(".duty-bk-edit").off("click").on("click", (e) => {
 			e.stopPropagation();
 			$(".duty-lb-pop").remove();
@@ -11681,6 +11851,554 @@ this.$me.find(".duty-req-ok").on("click", (e) => {
 		});
 	}
 
+	// ─────────────────────────── PDF reader ───────────────────────────
+	//
+	// Fixed-page books. The text reader flows chapters; a PDF's meaning is in
+	// its layout, so the browser renders the actual pages (pdf.js, vendored
+	// under public/pdfjs). Position is a page number, progress is the furthest
+	// page reached, bookmarks are pages, and search runs over the text layer in
+	// the browser — the server never sees the book's text.
+
+	// ─────────────────────────── Partners (managers) ───────────────────────────
+	//
+	// People who bring Xlevel leads and earn a share of what those clients pay.
+	// Everything a manager does with them lives here: create, invite, watch
+	// their leads move, see what their clients have paid and what is owed,
+	// issue the monthly statements and mark them paid. The desk forms exist
+	// but nothing requires them.
+
+	refresh_partners() {
+		if (!this.$partners) return;
+		const $P = this.$partners;
+		if (!$P.data("built")) {
+			$P.data("built", 1).html(`
+				<div class="duty-pt-head">
+					<h3>🤝 ${__("Partners")}</h3>
+					<span class="text-muted duty-pt-sub"></span>
+					<span style="margin-left:auto;display:flex;gap:8px">
+						<button class="btn btn-default btn-sm duty-pt-stmts">📄 ${__("Issue statements…")}</button>
+						<button class="btn btn-primary btn-sm duty-pt-new">＋ ${__("New partner")}</button>
+					</span>
+				</div>
+				<div class="duty-pt-list"></div>
+				<div class="duty-pt-detail" style="display:none"></div>`);
+			$P.find(".duty-pt-new").on("click", () => this.partner_dialog());
+			$P.find(".duty-pt-stmts").on("click", () => this.partner_statements_run());
+		}
+		if (this._pt_open) return this.partner_open(this._pt_open);
+		$P.find(".duty-pt-detail").hide().empty();
+		$P.find(".duty-pt-list").show();
+		frappe.call({ method: "duty_board.partners.partner_overview", callback: (r) => this.render_partners((r.message || {}).rows || []) });
+	}
+
+	render_partners(rows) {
+		const $L = this.$partners.find(".duty-pt-list");
+		const esc = frappe.utils.escape_html, N = (v) => format_currency(v || 0, "NGN", 0);
+		this.$partners.find(".duty-pt-sub").text(rows.length
+			? __("{0} partner(s) · {1} awaiting payment", [rows.length, N(rows.reduce((a, r) => a + (r.awaiting || 0), 0))])
+			: "");
+		if (!rows.length) {
+			$L.html(`<div class="duty-lb-empty">${__("No partners yet. A partner is someone who brings you leads and earns a percentage of what those clients pay, for the client's lifetime.")}</div>`);
+			return;
+		}
+		$L.html(rows.map((p) => `
+			<div class="duty-pt-card ${p.status !== "Active" ? "off" : ""}" data-n="${p.name}">
+				<div class="duty-pt-row1">
+					<b>${esc(p.partner)}</b>
+					<span class="duty-lead-chip">${p.rate}%</span>
+					${p.status !== "Active" ? `<span class="duty-lead-chip" style="color:#b45309">${__(p.status)}</span>` : ""}
+					${p.invited ? "" : `<span class="duty-lead-chip" style="color:#9A3412">${__("Not invited")}</span>`}
+					<span class="text-muted" style="margin-left:auto;font-size:var(--text-xs)">${esc(p.email)}</span>
+				</div>
+				<div class="duty-pt-kpis">
+					<div><span>${__("Open leads")}</span><b>${p.open_leads}</b><i>${p.won_leads} ${__("won")}</i></div>
+					<div><span>${__("Clients")}</span><b>${p.clients.length}</b><i>${esc(p.clients.slice(0, 2).join(", "))}${p.clients.length > 2 ? "…" : ""}&nbsp;</i></div>
+					<div><span>${__("Accrued")}</span><b>${N(p.accrued)}</b><i>${__("gross, lifetime")}</i></div>
+					<div><span>${__("Awaiting payment")}</span><b>${N(p.awaiting)}</b><i>${__("paid out")} ${N(p.paid_out)}</i></div>
+				</div>
+			</div>`).join(""));
+		$L.find(".duty-pt-card").on("click", (e) => this.partner_open($(e.currentTarget).data("n")));
+	}
+
+	partner_open(name) {
+		this._pt_open = name;
+		const $P = this.$partners, $D = $P.find(".duty-pt-detail");
+		$P.find(".duty-pt-list").hide();
+		$D.show().html(`<div class="text-muted" style="padding:30px;text-align:center">${__("Loading…")}</div>`);
+		frappe.call({ method: "duty_board.partners.partner_detail", args: { name }, callback: (r) => this.render_partner(r.message) });
+	}
+
+	render_partner(d) {
+		const $D = this.$partners.find(".duty-pt-detail");
+		const esc = frappe.utils.escape_html, N = (v) => format_currency(v || 0, "NGN", 0);
+		const DT = (v) => v ? frappe.datetime.str_to_user(String(v).slice(0, 10)) : "—";
+		const p = d.partner, m = d.money;
+		const stagePill = (l) => l.status === "Won" ? `<span class="duty-lead-chip" style="color:#0E5A4A">${__("Won")}</span>`
+			: l.status === "Lost" ? `<span class="duty-lead-chip">${__("Lost")}</span>`
+			: l.lapsed ? `<span class="duty-lead-chip" style="color:#9A3412">${__("Lapsed")}</span>`
+			: `<span class="duty-lead-chip" style="color:#8A5A0B">${esc(l.stage)}</span>`;
+		$D.html(`
+			<div class="duty-pt-head">
+				<a class="duty-pt-back" style="cursor:pointer;font-weight:600;color:#6B7772">‹ ${__("Partners")}</a>
+				<h3 style="margin:0">${esc(p.partner_name)}</h3>
+				<span class="duty-lead-chip">${p.rate}%</span>
+				${p.status !== "Active" ? `<span class="duty-lead-chip" style="color:#b45309">${__(p.status)}</span>` : ""}
+				<span class="text-muted" style="font-size:var(--text-xs)">${esc(p.contact_name || "")}${p.contact_name ? " · " : ""}${esc(p.email)}${p.phone ? " · " + esc(p.phone) : ""}${p.agreement_date ? " · " + __("since") + " " + DT(p.agreement_date) : ""}</span>
+				<span style="margin-left:auto;display:flex;gap:6px;flex-wrap:wrap">
+					${p.user
+						? `<button class="btn btn-default btn-sm duty-pt-link">🔗 ${__("New login link")}</button>`
+						: `<button class="btn btn-primary btn-sm duty-pt-invite">✉ ${__("Invite to portal")}</button>`}
+					<button class="btn btn-default btn-sm duty-pt-edit">✎ ${__("Edit")}</button>
+					<button class="btn btn-default btn-sm duty-pt-attr">＋ ${__("Attribute a customer")}</button>
+					${p.status === "Active"
+						? `<button class="btn btn-default btn-sm duty-pt-status" data-s="Suspended">⏸ ${__("Suspend")}</button>`
+						: `<button class="btn btn-default btn-sm duty-pt-status" data-s="Active">▶ ${__("Reactivate")}</button>`}
+				</span>
+			</div>
+			${p.user ? "" : `<div class="duty-pt-note">${__("No portal login yet — until you invite them, this partner cannot register leads or see their earnings.")}</div>`}
+			<div class="duty-pt-kpis wide">
+				<div><span>${__("Accrued, lifetime")}</span><b>${N(m.accrued)}</b><i>${__("gross")}</i></div>
+				<div><span>${__("Not yet statemented")}</span><b>${N(m.unstatemented)}</b><i>${__("on the next statement")}</i></div>
+				<div><span>${__("Awaiting payment")}</span><b>${N(m.awaiting)}</b><i>${__("issued statements")}</i></div>
+				<div><span>${__("Paid out")}</span><b>${N(m.paid_out)}</b><i>${__("net of WHT at {0}%", [p.effective_wht])}</i></div>
+			</div>
+
+			<div class="duty-pt-sec"><b>${__("Leads")}</b><span>${d.leads.length}</span></div>
+			${d.leads.length ? `<table class="duty-pt-t"><thead><tr><th>${__("Company")}</th><th>${__("Contact")}</th><th>${__("Stage")}</th><th>${__("Owner")}</th><th>${__("Next step")}</th><th class="num">${__("Value")}</th><th>${__("Registered")}</th><th>${__("Lapses")}</th></tr></thead><tbody>
+				${d.leads.map((l) => `<tr class="duty-pt-lead" data-l="${l.name}" style="cursor:pointer">
+					<td><b>${esc(l.company)}</b>${l.erp_customer ? `<div class="text-muted">${esc(l.erp_customer)}</div>` : ""}</td>
+					<td>${esc(l.contact_name || "")}</td><td>${stagePill(l)}</td><td>${esc(l.owner_name || "—")}</td>
+					<td>${l.status === "Open" && l.next_step ? `${esc(l.next_step)}<div class="text-muted">${DT(l.next_step_due)}</div>` : "—"}</td>
+					<td class="num">${l.value ? N(l.value) : "—"}</td><td>${DT(l.partner_registered_on)}</td><td>${l.status === "Open" ? DT(l.lapses_on) : "—"}</td></tr>`).join("")}
+			</tbody></table>` : `<div class="duty-lb-empty">${__("No leads registered by this partner yet.")}</div>`}
+
+			<div class="duty-pt-sec"><b>${__("Clients")}</b><span>${d.clients.length}</span></div>
+			${d.clients.length ? `<table class="duty-pt-t"><thead><tr><th>${__("Customer")}</th><th>${__("Since")}</th><th class="num">${__("Locked rate")}</th><th>${__("Renews")}</th><th class="num">${__("Invoices")}</th><th class="num">${__("Commissionable sales")}</th><th class="num">${__("Paid")}</th><th class="num">${__("Unpaid")}</th><th class="num">${__("Accrued")}</th><th class="num">${__("Outstanding incl. VAT")}</th></tr></thead><tbody>
+				${d.clients.map((c) => `<tr><td><b>${esc(c.customer)}</b>${c.status !== "Active" ? ` <span class="duty-lead-chip">${__(c.status)}</span>` : ""}</td><td>${DT(c.since)}</td><td class="num">${c.rate}%</td><td>${DT(c.renewal_date)}</td><td class="num">${c.invoices}</td><td class="num">${N(c.commissionable_total)}</td><td class="num">${N(c.paid_commissionable_net)}</td><td class="num">${N(c.commissionable_unpaid)}</td><td class="num"><b>${N(c.accrued)}</b></td><td class="num text-muted">${N(c.outstanding)}</td></tr>`).join("")}
+			</tbody></table><div class="text-muted" style="font-size:11px;margin-top:4px">${__("Commissionable sales, Paid, Unpaid and Accrued are net of VAT and limited to Implementation and Subscription lines: Paid + Unpaid = Commissionable sales; Accrued = Paid × locked rate. Outstanding is the ledger figure on all invoices, VAT included.")}</div>` : `<div class="duty-lb-empty">${__("No clients yet — a client appears when one of this partner's leads is won, or when you attribute a customer above.")}</div>`}
+
+			<div class="duty-pt-sec"><b>${__("Statements")}</b><span>${d.statements.length}</span></div>
+			${d.statements.length ? `<table class="duty-pt-t"><thead><tr><th>${__("Period")}</th><th>${__("Status")}</th><th class="num">${__("Gross")}</th><th class="num">${__("WHT")}</th><th class="num">${__("Net payable")}</th><th>${__("Issued")}</th><th>${__("Paid")}</th><th></th></tr></thead><tbody>
+				${d.statements.map((s) => `<tr>
+					<td><b>${DT(s.period_start)} – ${DT(s.period_end)}</b><div class="text-muted">${esc(s.name)}</div></td>
+					<td><span class="duty-lead-chip" style="color:${s.status === "Paid" ? "#0E5A4A" : s.status === "Void" ? "#6B7772" : "#8A5A0B"}">${__(s.status)}</span></td>
+					<td class="num">${N(s.gross)}</td><td class="num">${N(s.wht_amount)} <span class="text-muted">${s.wht_rate}%</span></td><td class="num"><b>${N(s.net_payable)}</b></td>
+					<td>${DT(s.issued_on)}</td><td>${s.paid_on ? `${DT(s.paid_on)}${s.paid_reference ? `<div class="text-muted">${esc(s.paid_reference)}</div>` : ""}` : "—"}</td>
+					<td>${s.status === "Issued" ? `<button class="btn btn-xs btn-primary duty-pt-paid" data-s="${s.name}" data-amt="${s.net_payable}">${__("Mark paid")}</button>` : ""}
+						<a class="btn btn-xs btn-default" href="/app/duty-partner-statement/${s.name}" target="_blank" title="${__("Open / print")}">🖨</a></td></tr>`).join("")}
+			</tbody></table>` : `<div class="duty-lb-empty">${__("No statements yet. They are issued monthly for the previous month — the button at the top runs it.")}</div>`}
+		`);
+		$D.find(".duty-pt-back").on("click", () => { this._pt_open = null; this.refresh_partners(); });
+		$D.find(".duty-pt-edit").on("click", () => this.partner_dialog(p));
+		$D.find(".duty-pt-invite").on("click", () => frappe.confirm(
+			__("Create a portal login for {0}? A welcome email is attempted, and you get a link to send yourself.", [esc(p.email)]),
+			() => frappe.call({ method: "duty_board.partners.partner_invite", args: { name: p.name }, freeze: true,
+				callback: (r) => { this.partner_show_link(r.message.link); this.partner_open(p.name); } })));
+		$D.find(".duty-pt-link").on("click", () => frappe.call({ method: "duty_board.partners.partner_login_link", args: { name: p.name }, freeze: true,
+			callback: (r) => this.partner_show_link(r.message.link) }));
+		$D.find(".duty-pt-status").on("click", (e) => {
+			const s = $(e.currentTarget).data("s");
+			frappe.confirm(s === "Suspended"
+				? __("Suspend {0}? Their portal stops working and no new leads can be registered. Existing clients keep accruing — the agreement is for the client's lifetime.", [esc(p.partner_name)])
+				: __("Reactivate {0}?", [esc(p.partner_name)]),
+				() => frappe.call({ method: "duty_board.partners.partner_set_status", args: { name: p.name, status: s }, callback: () => this.partner_open(p.name) }));
+		});
+		$D.find(".duty-pt-attr").on("click", () => frappe.prompt([
+			{ fieldname: "customer", fieldtype: "Link", options: "Customer", label: __("Customer"), reqd: 1 },
+			{ fieldname: "rate", fieldtype: "Percent", label: __("Rate to lock"), default: p.rate, reqd: 1,
+			  description: __("What was agreed for this client. Defaults to the partner's current rate.") },
+			{ fieldname: "from_date", fieldtype: "Date", label: __("Count invoices from"), default: frappe.datetime.get_today(), reqd: 1,
+			  description: __("Invoices dated before this earn nothing. Today if the partner's involvement starts now; the date they introduced the client if they brought it originally.") },
+		], (v) => frappe.call({ method: "duty_board.partners.partner_client_add", args: { partner: p.name, customer: v.customer, rate: v.rate, from_date: v.from_date },
+			callback: () => this.partner_open(p.name) }), __("Attribute an existing customer to {0}", [esc(p.partner_name)]), __("Attribute")));
+		$D.find(".duty-pt-paid").on("click", (e) => {
+			const st = $(e.currentTarget).data("s"), amt = $(e.currentTarget).data("amt");
+			frappe.prompt([
+				{ fieldname: "paid_on", fieldtype: "Date", label: __("Paid on"), reqd: 1, default: frappe.datetime.get_today() },
+				{ fieldname: "ref", fieldtype: "Data", label: __("Payment reference") },
+			], (v) => frappe.call({ method: "duty_board.partners.statement_mark_paid", args: { name: st, paid_on: v.paid_on, reference: v.ref || null }, freeze: true,
+				callback: () => this.partner_open(p.name) }), __("Record payment of {0}", [N(amt)]), __("Mark paid"));
+		});
+		$D.find(".duty-pt-lead").on("click", (e) => this.lead_dialog($(e.currentTarget).data("l")));
+	}
+
+	partner_show_link(link) {
+		if (!link) { frappe.msgprint(__("Login created, but no link could be generated — check Error Log.")); return; }
+		const d = new frappe.ui.Dialog({ title: __("Send this link to the partner"), fields: [
+			{ fieldtype: "Small Text", fieldname: "link", label: __("Set-password link (valid 24 hours)"), default: link, read_only: 1 },
+			{ fieldtype: "HTML", fieldname: "h", options: `<p class="text-muted">${__("Paste it into WhatsApp or email. It takes them to a page to choose a password, then to their portal at /partner.")}</p>` },
+		], primary_action_label: __("Copy link"), primary_action: () => { frappe.utils.copy_to_clipboard(link); d.hide(); } });
+		d.show();
+	}
+
+	partner_dialog(p) {
+		const d = new frappe.ui.Dialog({
+			title: p ? __("Edit partner") : __("New partner"),
+			fields: [
+				{ fieldname: "partner_name", fieldtype: "Data", label: __("Partner (person or company)"), reqd: 1, default: p ? p.partner_name : "" },
+				{ fieldname: "contact_name", fieldtype: "Data", label: __("Contact name"), default: p ? p.contact_name : "" },
+				{ fieldname: "email", fieldtype: "Data", options: "Email", label: __("Email"), reqd: 1, default: p ? p.email : "",
+				  read_only: !!(p && p.user), description: p && p.user ? __("Locked — the portal login is on this address.") : __("Their portal login will be created on this address.") },
+				{ fieldname: "phone", fieldtype: "Data", label: __("Phone"), default: p ? p.phone : "" },
+				{ fieldname: "cb", fieldtype: "Column Break" },
+				{ fieldname: "rate", fieldtype: "Percent", label: __("Commission rate %"), reqd: 1, default: p ? p.rate : 5,
+				  description: __("Applies to clients that convert from now on. Existing clients keep the rate they were locked at.") },
+				{ fieldname: "wht_rate", fieldtype: "Percent", label: __("WHT rate % (blank = default)"), default: p && p.wht_rate ? p.wht_rate : "" },
+				{ fieldname: "agreement_date", fieldtype: "Date", label: __("Agreement date"), default: p ? p.agreement_date : frappe.datetime.get_today() },
+				{ fieldname: "sb", fieldtype: "Section Break" },
+				{ fieldname: "notes", fieldtype: "Small Text", label: __("Notes"), default: p ? p.notes : "" },
+			],
+			primary_action_label: p ? __("Save") : __("Create"),
+			primary_action: (v) => {
+				d.hide();
+				frappe.call({ method: "duty_board.partners.partner_save", args: Object.assign({ name: p ? p.name : null }, v), freeze: true,
+					callback: (r) => { this._pt_open = r.message.name; this.refresh_partners(); } });
+			},
+		});
+		d.show();
+	}
+
+	partner_statements_run() {
+		// pick the period, dry-run it, show what would be issued, then issue
+		const lastMonthEnd = frappe.datetime.add_days(frappe.datetime.month_start(), -1);
+		const lastMonthStart = frappe.datetime.month_start(lastMonthEnd);
+		const d = new frappe.ui.Dialog({
+			title: __("Issue partner statements"),
+			fields: [
+				{ fieldname: "period_start", fieldtype: "Date", label: __("From"), reqd: 1, default: lastMonthStart },
+				{ fieldname: "period_end", fieldtype: "Date", label: __("To"), reqd: 1, default: lastMonthEnd },
+				{ fieldname: "h", fieldtype: "HTML", options: `<p class="text-muted" style="margin-top:4px">${__("Default is last month. For a catch-up — commission on payments received before statements existed — set From to the earliest attribution date and To to today. Anything already on a statement is skipped, so overlapping periods are safe.")}</p>` },
+			],
+			primary_action_label: __("Preview"),
+			primary_action: (v) => {
+				d.hide();
+				frappe.call({ method: "duty_board.partners.generate_statements", args: { period_start: v.period_start, period_end: v.period_end, dry_run: 1 }, freeze: true, callback: (r) => {
+					const m = r.message, N = (x) => format_currency(x || 0, "NGN", 0), esc = frappe.utils.escape_html;
+					const rows = (m.partners || []).filter((x) => x.lines);
+					if (!rows.length) { frappe.msgprint(__("Nothing to statement for {0} to {1} — no client payments in that period that are not already on a statement.", [m.period[0], m.period[1]])); return; }
+					frappe.confirm(`<p>${__("Statements for {0} to {1}:", [m.period[0], m.period[1]])}</p><ul>${rows.map((x) => `<li><b>${esc(x.partner)}</b> — ${x.lines} ${__("line(s)")}, ${N(x.gross)} ${__("gross")}</li>`).join("")}</ul><p>${__("Issue them? Each partner is notified.")}</p>`,
+						() => frappe.call({ method: "duty_board.partners.generate_statements", args: { period_start: v.period_start, period_end: v.period_end, dry_run: 0 }, freeze: true,
+							callback: () => { frappe.show_alert({ message: __("Statements issued."), indicator: "green" }); this.refresh_partners(); } }));
+				} });
+			},
+		});
+		d.show();
+	}
+
+	_pdfjs() {
+		if (window.pdfjsLib) return Promise.resolve(window.pdfjsLib);
+		if (this._pdfjs_p) return this._pdfjs_p;
+		this._pdfjs_p = new Promise((resolve, reject) => {
+			const base = "/assets/duty_board/pdfjs/";
+			const onReady = () => {
+				window.removeEventListener("duty-pdfjs-ready", onReady);
+				try {
+					window.pdfjsLib.GlobalWorkerOptions.workerSrc = base + "pdf.worker.min.js";
+					resolve(window.pdfjsLib);
+				} catch (e) { reject(e); }
+			};
+			window.addEventListener("duty-pdfjs-ready", onReady);
+			const s = document.createElement("script");
+			s.type = "module";
+			// a module script cannot be read back by the caller, so it hands the
+			// namespace to window and raises an event we wait for
+			s.textContent = `import * as p from "${base}pdf.min.js"; window.pdfjsLib = p; window.dispatchEvent(new Event("duty-pdfjs-ready"));`;
+			s.onerror = () => reject(new Error("pdf.js failed to load"));
+			document.head.appendChild(s);
+			setTimeout(() => reject(new Error("pdf.js did not load in time")), 15000);
+		});
+		return this._pdfjs_p;
+	}
+
+	open_pdf_reader(book, m) {
+		const esc = frappe.utils.escape_html;
+		const $L = this.$library.empty();
+		if (!document.getElementById("duty-pdf-css")) {
+			// the minimum pdf.js needs for a selectable text layer, plus ours
+			$(`<style id="duty-pdf-css">
+				.duty-pdf-scroll { overflow: auto; height: calc(100vh - 170px); background: #E6E4DD; border-radius: 12px; padding: 14px 0; }
+				.duty-rd-zenmode .duty-pdf-scroll { height: calc(100vh - 60px); border-radius: 0; }
+				.duty-pdf-page { position: relative; margin: 0 auto 14px; background: #fff; box-shadow: 0 2px 8px rgba(0,0,0,.14); }
+				.duty-pdf-page canvas { display: block; }
+				.duty-pdf-page .pgno { position: absolute; right: 6px; bottom: -13px; font-size: 10px; color: #6B7772; }
+				.duty-pdf-night .duty-pdf-scroll { background: #0F1B17; }
+				.duty-pdf-night .duty-pdf-page canvas { filter: invert(0.92) hue-rotate(180deg); }
+				.duty-pdf-outline a { display: block; padding: 4px 6px; border-radius: 6px; font-size: 12.5px; color: #182420; text-decoration: none; cursor: pointer; }
+				.duty-pdf-outline a:hover { background: #F0EFE9; }
+				.duty-pdf-outline a.on { background: #E4F3EC; font-weight: 700; }
+				.duty-pdf-outline .lvl1 { padding-left: 18px; font-size: 12px; } .duty-pdf-outline .lvl2 { padding-left: 30px; font-size: 11.5px; }
+				.duty-pdf-tool { display: inline-flex; gap: 2px; background: #f0efe9; border-radius: 8px; padding: 2px; }
+				.duty-pdf-tool a { padding: 3px 9px; border-radius: 6px; cursor: pointer; text-decoration: none; color: #6B7772; user-select: none; }
+				.duty-pdf-tool a.on { background: #fff; color: #182420; font-weight: 700; box-shadow: 0 1px 2px rgba(0,0,0,.08); }
+				.duty-pdf-pgin { width: 54px; text-align: center; border: 1px solid #E8E5DD; border-radius: 6px; padding: 2px 4px; font-size: 12.5px; }
+				.duty-pdf-panel { border: 1px solid #E8E5DD; border-radius: 12px; padding: 10px 14px; margin-bottom: 10px; background: #fff; }
+				.duty-pdf-panel .hit { padding: 5px 0; border-bottom: 1px solid #F0EFE9; font-size: 12.5px; cursor: pointer; }
+				.duty-pdf-panel .hit b { color: #0E5A4A; margin-right: 6px; }
+				.duty-pdf-panel .hit mark { background: #FFE9A8; padding: 0 1px; }
+				.textLayer { position: absolute; inset: 0; overflow: clip; line-height: 1; text-align: initial; transform-origin: 0 0; z-index: 0;
+					--min-font-size: 1; --scale-round-x: 1px; --scale-round-y: 1px;
+					--text-scale-factor: calc(var(--total-scale-factor) * var(--min-font-size)); --min-font-size-inv: calc(1 / var(--min-font-size)); }
+				.textLayer :is(span, br) { color: transparent; position: absolute; white-space: pre; cursor: text; transform-origin: 0% 0%; user-select: text; }
+				.textLayer > :not(.markedContent), .textLayer .markedContent span:not(.markedContent) { z-index: 1; --font-height: 0;
+					font-size: calc(var(--text-scale-factor) * var(--font-height)); --scale-x: 1; --rotate: 0deg;
+					transform: rotate(var(--rotate)) scaleX(var(--scale-x)) scale(var(--min-font-size-inv)); }
+				.textLayer .markedContent { display: contents; }
+				.textLayer ::selection { background: rgba(14, 90, 74, .35); }
+				.textLayer .endOfContent { display: block; position: absolute; inset: 100% 0 0; z-index: 0; cursor: default; user-select: none; }
+			</style>`).appendTo("head");
+		}
+		$L.append(`
+			<div class="duty-rd-head" style="display:flex;align-items:center;gap:12px;margin:4px 0 10px;flex-wrap:wrap">
+				<a class="duty-rd-back" style="cursor:pointer;font-weight:600;color:#6B7772">‹ ${__("Library")}</a>
+				<b style="font-size:16px">${esc(m.title)}</b>
+				${m.author ? `<span class="text-muted" style="font-size:12.5px">${esc(m.author)}</span>` : ""}
+				<span style="margin-left:auto;display:inline-flex;align-items:center;gap:6px;font-size:12.5px">
+					<input class="duty-pdf-pgin" type="number" min="1" max="${m.page_count}" value="${m.page}"> <span class="text-muted">/ ${m.page_count}</span>
+				</span>
+				<span class="duty-pdf-tool">
+					<a data-o="toc" title="${__("Contents")}">☰</a>
+					<a data-o="zoomout" title="${__("Zoom out")}">−</a>
+					<a data-o="fit" title="${__("Fit width")}">⤢</a>
+					<a data-o="zoomin" title="${__("Zoom in")}">+</a>
+					<a data-o="night" title="${__("Night")}">☾</a>
+					<a data-o="bmk" title="${__("Bookmark this page")}">🔖</a>
+					<a data-o="marks" title="${__("Bookmarks")}">🖍</a>
+					<a data-o="find" title="${__("Search inside this book")}">🔎</a>
+					<a data-o="zen" title="${__("Immersive mode")}">⛶</a>
+				</span>
+			</div>
+			<div class="duty-pdf-panel duty-pdf-marks" style="display:none"></div>
+			<div class="duty-pdf-panel duty-pdf-find" style="display:none"></div>
+			<div style="display:flex;gap:16px">
+				<div class="duty-pdf-outline" style="width:240px;flex:none;position:sticky;top:60px;align-self:flex-start;max-height:calc(100vh - 170px);overflow-y:auto;border-right:1px solid #E8E5DD;padding-right:8px"></div>
+				<div class="duty-pdf-scroll" style="flex:1;min-width:0"><div class="text-muted" style="text-align:center;padding:40px">${__("Opening…")}</div></div>
+			</div>`);
+		const $sc = $L.find(".duty-pdf-scroll"), $ol = $L.find(".duty-pdf-outline"), $pg = $L.find(".duty-pdf-pgin");
+		const prefs = Object.assign({ toc: 1, zoom: 0, night: 0 }, JSON.parse(localStorage.getItem("duty_pdf_prefs") || "{}"));
+		const savePrefs = () => localStorage.setItem("duty_pdf_prefs", JSON.stringify(prefs));
+		const total = m.page_count;
+		let pdf = null, scale = 1, baseW = 0, baseH = 0, cur = m.page || 1, furthest = cur, opened = Date.now(), lastSave = Date.now();
+		const rendered = new Map(); // pageno → { canvas, textLayer } for the current scale
+		const pageEls = [];
+		const textCache = new Map();
+		let outlineTargets = []; // [{ page, $a }]
+
+		const applyChrome = () => {
+			$L.find(".duty-pdf-tool a[data-o=toc]").toggleClass("on", !!prefs.toc);
+			$L.find(".duty-pdf-tool a[data-o=night]").toggleClass("on", !!prefs.night);
+			$ol.toggle(!!prefs.toc);
+			this.$library.toggleClass("duty-pdf-night", !!prefs.night);
+		};
+
+		// ---- rendering. Pages are placeholders sized from page 1; a page is
+		// drawn when it comes within two screens of the viewport and dropped
+		// when it leaves, so a 600-page book costs a handful of canvases.
+		const fitScale = () => {
+			const avail = $sc[0].clientWidth - 32;
+			return baseW ? Math.max(0.4, Math.min(3, avail / baseW)) : 1;
+		};
+		const layout = () => {
+			scale = prefs.zoom ? prefs.zoom : fitScale();
+			rendered.forEach((r) => { r.canvas.remove(); r.tl && r.tl.remove(); });
+			rendered.clear();
+			pageEls.forEach(($p) => $p.css({ width: Math.floor(baseW * scale), height: Math.floor(baseH * scale) }));
+			schedule();
+		};
+		const drawPage = (n) => {
+			if (rendered.has(n) || !pdf) return;
+			rendered.set(n, { canvas: $("<canvas>")[0], tl: null });
+			const slot = rendered.get(n);
+			pdf.getPage(n).then((page) => {
+				if (rendered.get(n) !== slot) return; // zoomed since
+				const vp = page.getViewport({ scale });
+				const dpr = window.devicePixelRatio || 1;
+				// draw at device resolution, lay out at CSS resolution
+				const vpc = dpr !== 1 ? page.getViewport({ scale: scale * dpr }) : vp;
+				const c = slot.canvas, ctx = c.getContext("2d");
+				c.width = Math.floor(vpc.width); c.height = Math.floor(vpc.height);
+				c.style.width = Math.floor(vp.width) + "px"; c.style.height = Math.floor(vp.height) + "px";
+				const $p = pageEls[n - 1];
+				$p.css({ width: Math.floor(vp.width), height: Math.floor(vp.height) });
+				$p.find("canvas,.textLayer").remove();
+				$p.prepend(c);
+				const task = page.render({ canvasContext: ctx, viewport: vpc });
+				return task.promise.then(() => {
+					if (rendered.get(n) !== slot) return;
+					const tl = document.createElement("div");
+					tl.className = "textLayer";
+					tl.style.setProperty("--scale-factor", String(scale));
+					tl.style.setProperty("--total-scale-factor", String(scale));
+					$p.append(tl);
+					slot.tl = tl;
+					return new window.pdfjsLib.TextLayer({ textContentSource: page.streamTextContent(), container: tl, viewport: vp }).render();
+				});
+			}).catch((e) => console.warn("pdf page", n, e && e.message));
+		};
+		const dropPage = (n) => {
+			const r = rendered.get(n);
+			if (!r) return;
+			r.canvas.remove(); r.tl && r.tl.remove();
+			rendered.delete(n);
+		};
+		let schedT = null;
+		const schedule = () => { clearTimeout(schedT); schedT = setTimeout(update, 40); };
+		const update = () => {
+			if (!pageEls.length) return;
+			const top = $sc.scrollTop(), h = $sc[0].clientHeight;
+			const ph = Math.floor(baseH * scale) + 14;
+			const first = Math.max(1, Math.floor(top / ph) + 1);
+			const last = Math.min(total, Math.ceil((top + h) / ph) + 1);
+			const mid = Math.min(total, Math.max(1, Math.floor((top + h / 2) / ph) + 1));
+			for (let n = Math.max(1, first - 2); n <= Math.min(total, last + 2); n++) drawPage(n);
+			rendered.forEach((_, n) => { if (n < first - 4 || n > last + 4) dropPage(n); });
+			if (mid !== cur) {
+				cur = mid; furthest = Math.max(furthest, cur);
+				$pg.val(cur);
+				const t = outlineTargets.filter((o) => o.page <= cur).pop();
+				$ol.find("a").removeClass("on");
+				if (t) t.$a.addClass("on");
+				if (Date.now() - lastSave > 20000) save();
+			}
+		};
+		const goTo = (n) => {
+			n = Math.max(1, Math.min(total, parseInt(n, 10) || 1));
+			$sc.scrollTop((n - 1) * (Math.floor(baseH * scale) + 14));
+			cur = n; furthest = Math.max(furthest, n); $pg.val(n);
+			schedule();
+		};
+		const save = () => {
+			const mins = Math.round((Date.now() - opened) / 60000);
+			if (mins) opened = Date.now();
+			lastSave = Date.now();
+			frappe.call({ method: "duty_board.library.mark", args: { book: book, page: furthest, minutes: mins }, callback: () => {} });
+		};
+
+		// ---- outline (the PDF's own table of contents, when the file has one)
+		const buildOutline = () => pdf.getOutline().then((items) => {
+			if (!items || !items.length) { $ol.html(`<div class="text-muted" style="font-size:12px;padding:6px">${__("This PDF has no table of contents.")}</div>`); return; }
+			const walk = (list, lvl) => Promise.all(list.map((it) => {
+				const $a = $(`<a class="lvl${Math.min(lvl, 2)}">${esc(it.title || "")}</a>`).appendTo($ol);
+				const dest = it.dest;
+				const resolve = typeof dest === "string" ? pdf.getDestination(dest) : Promise.resolve(dest);
+				return resolve.then((d) => (d && d[0] ? pdf.getPageIndex(d[0]) : Promise.reject()))
+					.then((idx) => { const pg = idx + 1; outlineTargets.push({ page: pg, $a }); $a.on("click", () => goTo(pg)); })
+					.catch(() => $a.addClass("text-muted"))
+					.then(() => (it.items && it.items.length && lvl < 2 ? walk(it.items, lvl + 1) : null));
+			}));
+			return walk(items, 0).then(() => outlineTargets.sort((a, b) => a.page - b.page));
+		}).catch(() => {});
+
+		// ---- bookmarks, by page
+		const $marks = $L.find(".duty-pdf-marks");
+		const showMarks = () => frappe.call({ method: "duty_board.library.bookmarks", args: { book: book }, callback: (r) => {
+			const rows = (r.message || []).filter((b) => b.page);
+			$marks.show().html(`<div style="display:flex;align-items:center;gap:8px;margin-bottom:6px"><b>${__("Bookmarks")}</b><a class="duty-pdf-x" style="margin-left:auto;cursor:pointer">✕</a></div>` +
+				(rows.length ? rows.map((b) => `<div class="hit" data-p="${b.page}"><b>p. ${b.page}</b>${b.note ? esc(b.note) : `<span class="text-muted">${__("No note")}</span>`}<a class="duty-pdf-rm text-muted" data-n="${b.name}" style="float:right;cursor:pointer">🗑</a></div>`).join("")
+					: `<div class="text-muted" style="font-size:12.5px">${__("No bookmarks yet — 🔖 adds one at the page you are on.")}</div>`));
+			$marks.find(".duty-pdf-x").on("click", () => $marks.hide());
+			$marks.find(".hit").on("click", (e) => { if ($(e.target).hasClass("duty-pdf-rm")) return; goTo($(e.currentTarget).data("p")); });
+			$marks.find(".duty-pdf-rm").on("click", (e) => frappe.call({ method: "duty_board.library.bookmark_remove", args: { name: $(e.currentTarget).data("n") }, callback: showMarks }));
+		} });
+		const addMark = () => frappe.prompt(
+			[{ fieldname: "note", fieldtype: "Small Text", label: __("Note (optional)") }],
+			(v) => frappe.call({ method: "duty_board.library.bookmark_add", args: { book: book, page: cur, note: v.note || null },
+				callback: () => { frappe.show_alert({ message: __("Bookmarked page {0}", [cur]), indicator: "green" }); if ($marks.is(":visible")) showMarks(); } }),
+			__("Bookmark page {0}", [cur]), __("Save"));
+
+		// ---- search over the text layer, page by page, cached once read
+		const $find = $L.find(".duty-pdf-find");
+		const pageText = (n) => textCache.has(n) ? Promise.resolve(textCache.get(n))
+			: pdf.getPage(n).then((p) => p.getTextContent()).then((tc) => { const t = tc.items.map((i) => i.str).join(" ").replace(/\s+/g, " "); textCache.set(n, t); return t; });
+		const runFind = (q) => {
+			q = (q || "").trim();
+			const $res = $find.find(".res");
+			if (q.length < 2) { $res.html(""); return; }
+			$res.html(`<div class="text-muted" style="font-size:12px">${__("Searching…")}</div>`);
+			const needle = q.toLowerCase(); const hits = []; let n = 1;
+			const step = () => {
+				if (n > total || hits.length >= 200) return done();
+				const batch = []; for (let k = 0; k < 8 && n <= total; k++, n++) batch.push(pageText(n));
+				return Promise.all(batch).then((texts) => {
+					texts.forEach((t, k) => {
+						const pg = n - texts.length + k; const low = t.toLowerCase(); let i = low.indexOf(needle);
+						while (i !== -1 && hits.length < 200) { hits.push({ pg, snip: t.slice(Math.max(0, i - 60), i + q.length + 60), i: Math.min(i, 60), len: q.length }); i = low.indexOf(needle, i + q.length + 60); }
+					});
+					if (hits.length && n % 40 < 8) render(false);
+					return step();
+				});
+			};
+			const render = (final) => $res.html(
+				`<div class="text-muted" style="font-size:12px;margin-bottom:4px">${hits.length}${hits.length >= 200 ? "+" : ""} ${__("matches")}${final ? "" : " · " + __("still searching…")}</div>` +
+				hits.map((h) => `<div class="hit" data-p="${h.pg}"><b>p. ${h.pg}</b>…${esc(h.snip.slice(0, h.i))}<mark>${esc(h.snip.slice(h.i, h.i + h.len))}</mark>${esc(h.snip.slice(h.i + h.len))}…</div>`).join(""));
+			const done = () => { render(true); $res.find(".hit").on("click", (e) => goTo($(e.currentTarget).data("p"))); if (!hits.length) $res.html(`<div class="text-muted" style="font-size:12.5px">${__("Nothing found for “{0}”.", [esc(q)])}</div>`); };
+			step();
+		};
+		const showFind = () => {
+			$find.show().html(`<div style="display:flex;align-items:center;gap:8px"><input class="form-control input-sm duty-pdf-q" placeholder="${__("Search inside this book…")}" style="max-width:360px"><a class="duty-pdf-x" style="margin-left:auto;cursor:pointer">✕</a></div><div class="res" style="margin-top:6px;max-height:280px;overflow:auto"></div>`);
+			$find.find(".duty-pdf-x").on("click", () => $find.hide());
+			let t = null; $find.find(".duty-pdf-q").on("input", (e) => { clearTimeout(t); t = setTimeout(() => runFind(e.target.value), 350); }).focus();
+		};
+
+		// ---- chrome
+		const zen = (on) => {
+			this.$library.toggleClass("duty-rd-zenmode", on === undefined ? !this.$library.hasClass("duty-rd-zenmode") : !!on);
+			if (this.$library.hasClass("duty-rd-zenmode") && !$L.find(".duty-rd-zenx").length) $(`<a class="duty-rd-zenx">✕</a>`).appendTo($L).on("click", () => zen(0));
+			if (!this.$library.hasClass("duty-rd-zenmode")) $L.find(".duty-rd-zenx").remove();
+			setTimeout(layout, 60);
+		};
+		$L.find(".duty-pdf-tool a").on("click", (e) => {
+			const o = $(e.currentTarget).data("o");
+			if (o === "toc") { prefs.toc = prefs.toc ? 0 : 1; savePrefs(); applyChrome(); setTimeout(layout, 30); }
+			else if (o === "night") { prefs.night = prefs.night ? 0 : 1; savePrefs(); applyChrome(); }
+			else if (o === "zoomin") { prefs.zoom = Math.min(3, (prefs.zoom || scale) * 1.15); savePrefs(); layout(); }
+			else if (o === "zoomout") { prefs.zoom = Math.max(0.4, (prefs.zoom || scale) / 1.15); savePrefs(); layout(); }
+			else if (o === "fit") { prefs.zoom = 0; savePrefs(); layout(); }
+			else if (o === "bmk") addMark();
+			else if (o === "marks") ($marks.is(":visible") ? $marks.hide() : showMarks());
+			else if (o === "find") ($find.is(":visible") ? $find.hide() : showFind());
+			else if (o === "zen") zen();
+			if (o === "zoomin" || o === "zoomout" || o === "fit") setTimeout(() => goTo(cur), 50);
+		});
+		$pg.on("change keydown", (e) => { if (e.type === "change" || e.key === "Enter") goTo($pg.val()); });
+		$sc.on("scroll", schedule);
+		$(window).on("resize.dutypdf", () => { if (!prefs.zoom) layout(); });
+		$(document).on("keydown.dutypdf", (e) => {
+			if ($(e.target).is("input,textarea")) return;
+			if (e.key === "ArrowRight" || e.key === "PageDown") { e.preventDefault(); goTo(cur + 1); }
+			else if (e.key === "ArrowLeft" || e.key === "PageUp") { e.preventDefault(); goTo(cur - 1); }
+			else if (e.key === "Home") goTo(1);
+			else if (e.key === "End") goTo(total);
+			else if (e.key === "Escape") zen(0);
+		});
+		const leave = () => {
+			save();
+			$(document).off("keydown.dutypdf"); $(window).off("resize.dutypdf");
+			this.$library.removeClass("duty-rd-zenmode duty-pdf-night");
+			// pdf.js 6: destroy() lives on the loading task, not the document
+			if (pdf) { try { pdf.loadingTask.destroy(); } catch (e) {} }
+			this.refresh_library();
+		};
+		$L.find(".duty-rd-back").on("click", leave);
+		applyChrome();
+
+		// ---- open the file
+		this._pdfjs().then((lib) => lib.getDocument({ url: m.file_url, withCredentials: true }).promise).then((doc) => {
+			pdf = doc;
+			return pdf.getPage(1).then((p1) => {
+				const vp = p1.getViewport({ scale: 1 });
+				baseW = vp.width; baseH = vp.height;
+				$sc.empty();
+				for (let n = 1; n <= total; n++) pageEls.push($(`<div class="duty-pdf-page" data-p="${n}"><span class="pgno">${n}</span></div>`).appendTo($sc));
+				layout();
+				buildOutline();
+				if (cur > 1) setTimeout(() => goTo(cur), 30);
+				if (m.last_read_at && cur > 1) frappe.show_alert({ message: __("Resumed at page {0}", [cur]), indicator: "blue" });
+			});
+		}).catch((e) => {
+			$sc.html(`<div class="text-muted" style="text-align:center;padding:40px">${__("Could not open this PDF.")}<br><span style="font-size:12px">${esc((e && e.message) || "")}</span></div>`);
+		});
+	}
+
 	open_reader(book) {
 		frappe.call({
 			method: "duty_board.library.open_book",
@@ -11688,6 +12406,7 @@ this.$me.find(".duty-req-ok").on("click", (e) => {
 			callback: (r) => {
 				const m = r.message;
 				if (!m) return;
+				if (m.format === "PDF") return this.open_pdf_reader(book, m);
 				const $L = this.$library.empty();
 				let cur = m.current;
 				let opened_at = Date.now();
@@ -13731,7 +14450,9 @@ this.$me.find(".duty-req-ok").on("click", (e) => {
 					${docs
 						.map(
 							(s) =>
-								`<div class="duty-cr-mem"><a href="/api/method/duty_board.client_room.staff_shelf_file?id=${encodeURIComponent(s.name)}" target="_blank"><b>📄 ${frappe.utils.escape_html(s.title)}</b></a> ${s.category ? `<span class="duty-lead-chip">${frappe.utils.escape_html(s.category)}</span>` : ""} <span class="text-muted">${s.creation}</span> <a class="duty-cr-shelfrm" data-name="${s.name}" style="margin-left:auto;color:var(--red-600,#dc2626)">${__("Remove")}</a></div>`
+								`<div class="duty-cr-mem ${s.source === "Client" ? "duty-sh-fromclient" : ""}"><a href="/api/method/duty_board.client_room.staff_shelf_file?id=${encodeURIComponent(s.name)}" target="_blank"><b>📄 ${frappe.utils.escape_html(s.title)}</b></a> ${s.source === "Client"
+									? `<span class="duty-sh-tag client">📥 ${__("FROM CLIENT")} · ${frappe.utils.escape_html(s.by_full || s.by || "")}</span>`
+									: `<span class="duty-sh-tag">📤 ${__("PUBLISHED BY US")}${s.by ? " · " + frappe.utils.escape_html(s.by) : ""}</span>`} ${s.category && s.source !== "Client" ? `<span class="duty-lead-chip">${frappe.utils.escape_html(s.category)}</span>` : ""} <span class="text-muted">${s.creation}</span>${s.note ? `<div class="text-muted" style="width:100%;font-size:11.5px;font-style:italic">${frappe.utils.escape_html(s.note)}</div>` : ""} <a class="duty-cr-shelfrm" data-name="${s.name}" style="margin-left:auto;color:var(--red-600,#dc2626)">${__("Remove")}</a></div>`
 						)
 						.join("") || `<div class="text-muted">${__("Empty shelf — add the manuals and agreements this client should always have.")}</div>`}
 				</div>
@@ -13742,7 +14463,7 @@ this.$me.find(".duty-req-ok").on("click", (e) => {
 					<label class="btn btn-sm btn-default" style="margin:0">📎 ${__("Choose file")}<input type="file" hidden class="duty-sh-file"></label>
 					<button type="button" class="btn btn-sm btn-primary duty-sh-add">＋ ${__("Publish")}</button>
 				</div>
-				<p class="text-muted duty-attach-hint">${__("Everything here is permanently visible on the client's portal.")}</p>
+				<p class="text-muted duty-attach-hint">${__("Everything you publish here is permanently visible on the client's portal. Files marked FROM CLIENT were sent by them through the portal — they also appear in the room's chat.")}</p>
 			`);
 			let pending = null;
 			$(d.body).find(".duty-sh-file").on("change", (e) => {
@@ -13794,7 +14515,7 @@ this.$me.find(".duty-req-ok").on("click", (e) => {
 					${(data.members || [])
 						.map(
 							(m) =>
-								`<div class="duty-cr-mem">${m.is_admin ? "★ " : ""}<b>${frappe.utils.escape_html(m.full_name)}</b>${m.member_type === "Consultant" ? ` <span class="duty-cons-chip">${__("CONSULTANT")}</span>` : ""} <span class="text-muted">${frappe.utils.escape_html(m.user)}${m.is_admin ? " · " + __("administrator") : ""}</span> <a class="duty-cr-memadmin" data-name="${m.name}" data-on="${m.is_admin ? 0 : 1}">${m.is_admin ? "☆ " + __("Demote") : "★ " + __("Make admin")}</a> <a class="duty-cr-memrm" data-name="${m.name}">${__("Remove")}</a></div>`
+								`<div class="duty-cr-mem">${m.is_admin ? "★ " : ""}<b>${frappe.utils.escape_html(m.full_name)}</b>${m.member_type === "Consultant" ? ` <span class="duty-cons-chip">${__("CONSULTANT")}</span>` : ""} <span class="text-muted">${frappe.utils.escape_html(m.user)}${m.is_admin ? " · " + __("administrator") : ""}</span> <a class="duty-cr-memadmin" data-name="${m.name}" data-on="${m.is_admin ? 0 : 1}">${m.is_admin ? "☆ " + __("Demote") : "★ " + __("Make admin")}</a> <a class="duty-cr-memrm" data-name="${m.name}">${__("Remove")}</a>${m.member_type === "Consultant" ? "" : ` <a class="duty-cr-meminv" data-name="${m.name}" title="${__("Send a fresh portal invitation with a new set-password link")}">✉ ${__("Resend invite")}</a>`}</div>`
 						)
 						.join("") || `<div class="text-muted">${__("No client members yet.")}</div>`}
 				</div>
@@ -13919,6 +14640,17 @@ this.$me.find(".duty-req-ok").on("click", (e) => {
 					},
 				});
 			});
+			$(d.body).find(".duty-cr-meminv").on("click", (e) => frappe.call({
+				method: "duty_board.client_room.resend_member_invite",
+				args: { member_name: $(e.currentTarget).data("name") }, freeze: true,
+				callback: (r) => {
+					const link = r.message && r.message.link;
+					const ld = new frappe.ui.Dialog({ title: __("Invitation sent to {0}", [r.message.user]), fields: [
+						{ fieldtype: "Small Text", fieldname: "link", label: __("Same link, to send by WhatsApp if the email does not arrive (valid 24 hours)"), default: link, read_only: 1 },
+					], primary_action_label: __("Copy link"), primary_action: () => { frappe.utils.copy_to_clipboard(link); ld.hide(); } });
+					ld.show();
+				},
+			}));
 			$(d.body).find(".duty-cr-memrm").on("click", (e) =>
 				frappe.confirm(__("Remove this member's access?"), () =>
 					frappe.call({
@@ -14189,6 +14921,7 @@ this.$me.find(".duty-req-ok").on("click", (e) => {
 						${l.stale_days >= 7 ? `<span class="duty-stale ${l.stale_days >= 14 ? "duty-stale-red" : ""}" title="${__("Days since last touch")}">🕸${l.stale_days}</span>` : ""}
 						${l.expected_close ? `<span class="${l.close_overdue ? "duty-lead-over" : ""}" title="${__("Expected close")} ${frappe.datetime.str_to_user(l.expected_close)}">🎯${String(l.expected_close).slice(8, 10)}/${String(l.expected_close).slice(5, 7)}</span>` : ""}
 						${l.tasks_open ? `<span class="${l.tasks_overdue ? "duty-lead-over" : ""}" title="${__("Open tasks")}">📋${l.tasks_open}</span>` : ""}
+						${l.partner_name ? `<span title="${__("Registered by partner {0} — commission applies on conversion", [frappe.utils.escape_html(l.partner_name)])}">🤝</span>` : ""}
 						${l.notes ? `<span title="${__("Notes")}">💬${frappe.utils.escape_html(l.notes)}</span>` : ""}
 						${l.no_step
 							? `<span class="duty-step-none" title="${__("No next step — every open lead needs one")}">❗</span>`
@@ -14476,6 +15209,7 @@ this.$me.find(".duty-req-ok").on("click", (e) => {
 				${x.value ? `<span class="duty-ld-val">${esc(x.value_fmt || String(x.value))}</span>` : ""}
 				${x.lead_owner ? `<span class="duty-ld-own" style="color:${this.user_color(x.lead_owner)}">${esc((this.name_map[x.lead_owner] || x.lead_owner).split(" ")[0])}</span>` : ""}
 				${x.expected_close ? `<span class="duty-ld-close-d">🗓 ${frappe.datetime.str_to_user(x.expected_close)}</span>` : ""}
+				${x.partner_name ? `<span class="duty-lead-chip" title="${__("Partner-registered lead: the partner's rate locks onto this client when it converts")}">🤝 ${esc(x.partner_name)}</span>` : ""}
 			</div>`);
 		$dw.find(".duty-ld-x").on("click", () => d.hide());
 		$dw.find(".duty-ld-stage").on("change", (e) =>
@@ -16446,6 +17180,7 @@ this.$me.find(".duty-req-ok").on("click", (e) => {
 		}
 		if (t.carry_count > 0)
 			chips += `<span class="duty-carry-chip">${__("carried")} ×${t.carry_count}</span>`;
+		if (t.private) chips += `<span class="duty-carry-chip" title="${__("Only you can see this")}">🔒</span>`;
 		return chips;
 	}
 
@@ -16591,6 +17326,7 @@ this.$me.find(".duty-req-ok").on("click", (e) => {
 				{ fieldname: "description", fieldtype: "Data", label: __("To-do"), default: t.description, reqd: 1 },
 				{ fieldname: "customer", fieldtype: "Link", label: __("Customer"), options: "Customer", default: t.customer || "" },
 				{ fieldname: "due_time", fieldtype: "Time", label: __("Time (optional)"), default: t.due_time || "" },
+				...(t.assigned_by || t.project_task || t.duty_issue || t.lead ? [] : [{ fieldname: "private", fieldtype: "Check", label: __("Private — only I can see this"), default: t.private ? 1 : 0 }]),
 			],
 			primary_action_label: __("Save"),
 			primary_action: (v) => {
@@ -16600,6 +17336,7 @@ this.$me.find(".duty-req-ok").on("click", (e) => {
 					description: v.description,
 					customer: v.customer || null,
 					due_time: v.due_time || null,
+					private: "private" in v ? (v.private ? 1 : 0) : null,
 				});
 			},
 		});
@@ -16732,9 +17469,19 @@ this.$me.find(".duty-req-ok").on("click", (e) => {
 					label: __("Customer (optional)"),
 					options: "Customer",
 				},
+				{
+					fieldname: "private",
+					fieldtype: "Check",
+					label: __("Private — only I can see this"),
+					description: __("Others see \"+1 private\" on the team board and nothing else. Only for to-dos you keep for yourself."),
+				},
 			],
 			primary_action_label: __("Add"),
 			primary_action: (values) => {
+				if (values.private && values.for_users && values.for_users.length) {
+					frappe.msgprint(__("A private to-do can only be for yourself — clear the For field or untick Private."));
+					return;
+				}
 				d.hide();
 				this.action("add_todo", {
 					description: values.description,
@@ -16745,6 +17492,7 @@ this.$me.find(".duty-req-ok").on("click", (e) => {
 					date: values.date,
 					due_time: values.due_time || null,
 					customer: values.customer || null,
+					private: values.private ? 1 : 0,
 				});
 			},
 		});
@@ -16861,7 +17609,9 @@ this.$me.find(".duty-req-ok").on("click", (e) => {
 					${this.todo_chips(t)}
 				</div>`
 			)
-			.join("");
+			.join("") + (r.todos_private
+				? `<div class="duty-todo-row text-muted" title="${__("Personal items — only {0} can see them", [frappe.utils.escape_html(r.full_name)])}"><span class="duty-detail-tick">🔒</span><span class="duty-todo-desc">+${r.todos_private} ${__("private")}</span></div>`
+				: "");
 
 		const session_rows = (r.sessions || [])
 			.map(
@@ -18894,6 +19644,12 @@ this.$me.find(".duty-req-ok").on("click", (e) => {
 			.duty-cons-chip { font-size: 9px; font-weight: 800; letter-spacing: .1em; color: #fff; background: #123C35; border-radius: 99px; padding: 2px 8px; vertical-align: 1px; }
 			.duty-proj-cons { font-size: var(--text-xs); font-weight: 700; color: #087A67; cursor: pointer; margin-right: 10px; }
 			.duty-proj-staffb { font-size: var(--text-xs); font-weight: 700; color: #0F5C55; cursor: pointer; margin-right: 10px; }
+			.duty-proj-staffb.on { background: #0F5C55; color: #fff; border-radius: 7px; padding: 3px 9px; }
+			.duty-sh-tag { display: inline-block; font-size: 9.5px; font-weight: 800; letter-spacing: .5px; border-radius: 4px; padding: 1px 6px; background: #E4F3EC; color: #0F5C55; }
+			.duty-sh-tag.client { background: #FEF6EC; color: #8A5A0B; }
+			.duty-sh-fromclient { border-left: 3px solid #E0A458; background: #FFFCF7; flex-wrap: wrap; }
+			.duty-pj-whomenu a.on { background: #E4F3EC; }
+			.duty-pj-whomenu a.on b::after { content: " ✓"; }
 			.duty-td-form .duty-ld-form { margin-bottom: 4px; }
 			.duty-td-chk { display: flex; align-items: center; gap: 7px; font-size: 12.5px; margin: 0; grid-column: 1 / -1; font-weight: 600; color: #17211F; }
 			.duty-td-bar { justify-content: flex-start; }
@@ -19015,6 +19771,29 @@ this.$me.find(".duty-req-ok").on("click", (e) => {
 			.duty-lb-admin .duty-bk-file { width: 200px; font-size: 11px; }
 			/* ---- money ---- */
 			.duty-money { padding: 4px 0 40px; }
+			.duty-partners { padding: 4px 0 40px; }
+			.duty-pt-head { display: flex; align-items: center; gap: 12px; margin: 6px 0 14px; flex-wrap: wrap; }
+			.duty-pt-head h3 { margin: 0; font-size: 18px; }
+			.duty-pt-card { border: 1px solid #E7ECEA; border-radius: 12px; padding: 12px 16px; margin-bottom: 10px; background: #fff; cursor: pointer; }
+			.duty-pt-card:hover { border-color: #0F5C55; }
+			.duty-pt-card.off { opacity: .6; }
+			.duty-pt-row1 { display: flex; align-items: baseline; gap: 8px; flex-wrap: wrap; }
+			.duty-pt-row1 b { font-size: 15px; }
+			.duty-pt-kpis { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-top: 10px; }
+			.duty-pt-kpis.wide { margin: 0 0 18px; }
+			.duty-pt-kpis > div { background: #F6F8F7; border-radius: 10px; padding: 8px 11px; }
+			.duty-pt-kpis span { display: block; font-size: 10px; font-weight: 700; letter-spacing: .5px; text-transform: uppercase; color: #65736F; }
+			.duty-pt-kpis b { display: block; font-size: 16px; margin: 2px 0; }
+			.duty-pt-kpis i { display: block; font-style: normal; font-size: 11px; color: #65736F; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+			.duty-pt-note { background: #FEF6EC; border: 1px solid #F0DCB8; border-radius: 9px; padding: 8px 12px; font-size: 12.5px; margin-bottom: 14px; }
+			.duty-pt-sec { display: flex; align-items: baseline; gap: 8px; margin: 18px 0 8px; }
+			.duty-pt-sec b { font-size: 13px; color: #123C35; letter-spacing: .02em; text-transform: uppercase; }
+			.duty-pt-sec span { font-size: 11px; font-weight: 800; color: #8A9994; }
+			.duty-pt-t { width: 100%; border-collapse: collapse; font-size: 12.5px; background: #fff; border: 1px solid #E7ECEA; border-radius: 10px; overflow: hidden; }
+			.duty-pt-t th { text-align: left; font-size: 10.5px; font-weight: 700; color: #65736F; padding: 6px 9px; border-bottom: 1px solid #E7ECEA; background: #FAFBFB; }
+			.duty-pt-t td { padding: 7px 9px; border-bottom: 1px solid #F0F3F2; vertical-align: top; }
+			.duty-pt-t .num { text-align: right; white-space: nowrap; font-variant-numeric: tabular-nums; }
+			@media (max-width: 720px) { .duty-pt-kpis { grid-template-columns: repeat(2, 1fr); } }
 			.duty-mn-head { display: flex; align-items: center; gap: 10px; padding: 10px 2px 14px;
 				border-bottom: 1px solid var(--border-color); margin-bottom: 16px; flex-wrap: wrap; }
 			.duty-mn-head b { font-size: var(--text-lg); }
@@ -20016,6 +20795,9 @@ this.$me.find(".duty-req-ok").on("click", (e) => {
 			.duty-lb-cat { display: flex; align-items: baseline; gap: 8px; margin: 20px 0 10px; }
 			.duty-lb-cat b { font-size: 14px; color: #123C35; letter-spacing: .02em; }
 			.duty-lb-cat span { font-size: 11px; font-weight: 800; color: #8A9994; }
+			.duty-lb-aurow { display: flex; align-items: baseline; gap: 8px; margin: 10px 0 6px; padding-left: 2px; border-left: 3px solid #D8E2DE; padding-left: 9px; }
+			.duty-lb-aurow b { font-size: 12.5px; color: #33423E; font-weight: 700; }
+			.duty-lb-aurow span { font-size: 10.5px; font-weight: 800; color: #8A9994; }
 			.duty-lb-shelf { display: flex; gap: 16px; overflow-x: auto; padding: 4px 2px 14px; scroll-snap-type: x proximity; }
 			.duty-lb-shelf::-webkit-scrollbar { height: 8px; }
 			.duty-lb-shelf::-webkit-scrollbar-thumb { background: #D5DEDA; border-radius: 99px; }

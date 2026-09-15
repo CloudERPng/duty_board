@@ -6,6 +6,9 @@ app_email = "support@clouderp.one"
 app_license = "MIT"
 
 scheduler_events = {
+    "monthly": ["duty_board.partners.generate_statements_job"],
+    # 07:00 site time — the day ahead for each client's administrators
+    "0 7 * * *": ["duty_board.client_room.daily_client_brief"],
     "daily": [
         "duty_board.accounting.scheduled_open_period",
     ],
@@ -70,4 +73,11 @@ doc_events = {
     "Communication": {
         "after_insert": "duty_board.accounting.handle_communication",
     },
+}
+
+permission_query_conditions = {
+    "Daily Todo": "duty_board.duty_board.doctype.daily_todo.daily_todo.permission_query_conditions",
+}
+has_permission = {
+    "Daily Todo": "duty_board.duty_board.doctype.daily_todo.daily_todo.has_permission",
 }

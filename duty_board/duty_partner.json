@@ -1,0 +1,110 @@
+{
+ "doctype": "DocType",
+ "name": "Duty Partner",
+ "module": "Duty Board",
+ "custom": 0,
+ "autoname": "format:PTR-{####}",
+ "field_order": [
+  "partner_name",
+  "status",
+  "rate",
+  "wht_rate",
+  "agreement_date",
+  "column_break_1",
+  "contact_name",
+  "email",
+  "phone",
+  "user",
+  "section_notes",
+  "notes"
+ ],
+ "fields": [
+  {
+   "fieldname": "partner_name",
+   "fieldtype": "Data",
+   "label": "Partner",
+   "reqd": 1,
+   "in_list_view": 1
+  },
+  {
+   "fieldname": "status",
+   "fieldtype": "Select",
+   "label": "Status",
+   "options": "Active\nSuspended\nEnded",
+   "default": "Active",
+   "in_list_view": 1
+  },
+  {
+   "fieldname": "rate",
+   "fieldtype": "Percent",
+   "label": "Commission Rate (%)",
+   "default": "5",
+   "reqd": 1,
+   "description": "The partner's rate for new conversions. Each client keeps the rate that applied on the day it converted; changing this never rewrites an existing client."
+  },
+  {
+   "fieldname": "wht_rate",
+   "fieldtype": "Percent",
+   "label": "WHT Rate (%)",
+   "description": "Withholding tax deducted on statements. Leave blank to use the default in Duty Settings; set here when this partner's status (individual vs company) needs a different rate."
+  },
+  {
+   "fieldname": "agreement_date",
+   "fieldtype": "Date",
+   "label": "Agreement Date"
+  },
+  {
+   "fieldname": "column_break_1",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "contact_name",
+   "fieldtype": "Data",
+   "label": "Contact Name"
+  },
+  {
+   "fieldname": "email",
+   "fieldtype": "Data",
+   "label": "Email",
+   "options": "Email",
+   "reqd": 1,
+   "unique": 1
+  },
+  {
+   "fieldname": "phone",
+   "fieldtype": "Data",
+   "label": "Phone"
+  },
+  {
+   "fieldname": "user",
+   "fieldtype": "Link",
+   "label": "Portal Login",
+   "options": "User",
+   "read_only": 1,
+   "description": "Created by Invite. The Website User who sees this partner's portal."
+  },
+  {
+   "fieldname": "section_notes",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "notes",
+   "fieldtype": "Small Text",
+   "label": "Notes"
+  }
+ ],
+ "permissions": [
+  {
+   "role": "System Manager",
+   "read": 1,
+   "write": 1,
+   "create": 1,
+   "delete": 1
+  }
+ ],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "track_changes": 1,
+ "title_field": "partner_name",
+ "show_title_field_in_link": 1
+}

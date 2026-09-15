@@ -16,6 +16,8 @@
   "phone",
   "expected_close",
   "source",
+  "partner",
+  "partner_registered_on",
   "closed_on",
   "section_break_1",
   "description",
@@ -115,7 +117,21 @@
    "fieldtype": "Select",
    "in_standard_filter": 1,
    "label": "Source",
-   "options": "\nReferral\nExisting Client\nWebsite\nCold Outreach\nEvent\nRadar\nOther"
+   "options": "\nReferral\nPartner\nExisting Client\nWebsite\nCold Outreach\nEvent\nRadar\nOther"
+  },
+  {
+   "fieldname": "partner",
+   "fieldtype": "Link",
+   "label": "Partner",
+   "options": "Duty Partner",
+   "description": "Set when a partner registers the lead from their portal. Attribution follows this field at conversion."
+  },
+  {
+   "fieldname": "partner_registered_on",
+   "fieldtype": "Datetime",
+   "label": "Partner Registered On",
+   "read_only": 1,
+   "description": "The timestamp that settles who brought the lead. A registered lead lapses 12 months later if not converted."
   },
   {
    "fieldname": "erp_lead",

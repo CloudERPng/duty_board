@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Xlevel · Partner portal</title>
+<style>
+	:root { --ink: #182420; --mute: #65736F; --line: #E7ECEA; --brand: #0F5C55; --brand2: #E4F3EC; --bg: #F4F6F5; --warn: #8A5A0B; --warnbg: #FEF6EC; --bad: #9A3412; --badbg: #FEEDE4; }
+	* { box-sizing: border-box; }
+	body { margin: 0; font-family: -apple-system, "Segoe UI", Inter, Roboto, sans-serif; color: var(--ink); background: var(--bg); font-size: 14px; }
+	header { background: #fff; border-bottom: 1px solid var(--line); padding: 0 24px; height: 52px; display: flex; align-items: center; gap: 14px; }
+	header .logo { font-weight: 800; color: var(--brand); font-size: 17px; }
+	header .logo span { color: var(--mute); font-weight: 500; }
+	header .who { margin-left: auto; color: var(--mute); font-size: 13px; }
+	header a { color: var(--mute); text-decoration: none; }
+	main { max-width: 1120px; margin: 0 auto; padding: 22px 20px 60px; }
+	nav.tabs { display: inline-flex; gap: 2px; background: #E8ECEA; border-radius: 10px; padding: 3px; margin-bottom: 18px; }
+	nav.tabs a { padding: 7px 16px; border-radius: 8px; cursor: pointer; color: var(--mute); font-weight: 600; text-decoration: none; }
+	nav.tabs a.on { background: #fff; color: var(--ink); box-shadow: 0 1px 2px rgba(0,0,0,.08); }
+	section { display: none; } section.on { display: block; }
+	.card { background: #fff; border: 1px solid var(--line); border-radius: 14px; padding: 18px 20px; margin-bottom: 16px; }
+	.card h3 { margin: 0 0 12px; font-size: 12px; letter-spacing: .6px; text-transform: uppercase; color: var(--mute); }
+	.kpis { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
+	.kpi { background: var(--bg); border-radius: 12px; padding: 12px 14px; }
+	.kpi span { display: block; font-size: 10.5px; font-weight: 700; letter-spacing: .5px; text-transform: uppercase; color: var(--mute); }
+	.kpi b { display: block; font-size: 22px; margin: 3px 0 2px; }
+	.kpi i { font-style: normal; font-size: 11.5px; color: var(--mute); }
+	.muted { color: var(--mute); font-size: 12.5px; }
+	table { width: 100%; border-collapse: collapse; font-size: 13px; }
+	th { text-align: left; font-size: 10.5px; letter-spacing: .4px; text-transform: uppercase; color: var(--mute); padding: 6px 8px; border-bottom: 1px solid var(--line); }
+	td { padding: 9px 8px; border-bottom: 1px solid #F0F3F2; vertical-align: top; }
+	tr.sub td { background: #FAFBFB; font-size: 12.5px; }
+	.num { text-align: right; white-space: nowrap; font-variant-numeric: tabular-nums; }
+	.pill { display: inline-block; font-size: 10.5px; font-weight: 800; letter-spacing: .4px; text-transform: uppercase; border-radius: 999px; padding: 2px 9px; background: #EEF2F0; color: var(--mute); white-space: nowrap; }
+	.pill.ok { background: var(--brand2); color: var(--brand); }
+	.pill.warn { background: var(--warnbg); color: var(--warn); }
+	.pill.bad { background: var(--badbg); color: var(--bad); }
+	.btn { display: inline-block; background: var(--brand); color: #fff; border: 0; border-radius: 9px; padding: 9px 16px; font-weight: 700; cursor: pointer; font-size: 13px; }
+	.btn.ghost { background: #fff; color: var(--brand); border: 1px solid var(--brand); }
+	.btn:disabled { opacity: .5; cursor: default; }
+	form.lead { display: grid; grid-template-columns: 1fr 1fr; gap: 10px 14px; }
+	form.lead label { display: block; font-size: 11.5px; font-weight: 700; color: var(--mute); margin-bottom: 4px; }
+	form.lead input, form.lead textarea { width: 100%; border: 1px solid #D5DDDA; border-radius: 8px; padding: 8px 10px; font: inherit; }
+	form.lead .full { grid-column: 1 / -1; }
+	.note { background: var(--warnbg); border: 1px solid #F0DCB8; border-radius: 10px; padding: 9px 13px; font-size: 12.5px; color: #4d3a12; }
+	.rule { font-size: 12.5px; color: var(--mute); margin-top: 10px; line-height: 1.55; }
+	.tog { cursor: pointer; color: var(--brand); font-weight: 700; font-size: 12px; }
+	.err { color: var(--bad); font-size: 12.5px; margin-top: 6px; }
+	@media (max-width: 720px) { .kpis { grid-template-columns: repeat(2, 1fr); } form.lead { grid-template-columns: 1fr; } main { padding: 14px 12px; } table { font-size: 12px; } }
+</style>
+</head>
+<body>
+<header>
+	<div class="logo">Xlevel <span>· Partner portal</span></div>
+	<div class="who" id="who"></div>
+	<a href="/?cmd=web_logout">Log out</a>
+</header>
+<main>
+	<nav class="tabs">
+		<a data-t="home" class="on">Overview</a>
+		<a data-t="leads">Leads</a>
+		<a data-t="clients">Clients &amp; earnings</a>
+		<a data-t="statements">Statements</a>
+	</nav>
+
+	<section id="home" class="on">
+		<div class="card">
+			<h3>Your programme</h3>
+			<div class="kpis" id="kpis"></div>
+			<div class="rule" id="homenote"></div>
+		</div>
+		<div class="card">
+			<h3>Money</h3>
+			<div class="kpis" id="money"></div>
+		</div>
+		<div class="card">
+			<h3>How it works</h3>
+			<div class="rule">
+				<b>Register the lead first.</b> A lead counts as yours when you register it here before Xlevel is in contact with the company — the timestamp on the registration settles it. A registered lead lapses after 12 months if it hasn't converted.<br>
+				<b>Your cut.</b> Your rate applies to Implementation and Subscription fees your clients pay, net of VAT — not hardware, message fees or change requests. The rate in force on the day a client converts is locked to that client for its lifetime.<br>
+				<b>Earned when paid.</b> Commission accrues when the client's payment reaches Xlevel, not when the invoice is issued. Each client's page shows every invoice, what has been paid and when.<br>
+				<b>Statements.</b> On the first working days of each month you get a statement for the previous month: every payment your clients made, the commission on each, withholding tax deducted, and the net Xlevel pays you. Credit notes reverse commission in the month they are issued.
+			</div>
+		</div>
+	</section>
+
+	<section id="leads">
+		<div class="card">
+			<h3>Register a lead</h3>
+			<form class="lead" id="leadform" onsubmit="return false">
+				<div><label>Company *</label><input id="f_company" maxlength="140"></div>
+				<div><label>Contact name *</label><input id="f_contact" maxlength="140"></div>
+				<div><label>Email</label><input id="f_email" type="email"></div>
+				<div><label>Phone</label><input id="f_phone"></div>
+				<div><label>Estimated value (₦)</label><input id="f_value" type="number" min="0" step="1000"></div>
+				<div><label>Expected close</label><input id="f_close" type="date"></div>
+				<div class="full"><label>What they need — branches, modules, current system, who decides, anything that helps us land it</label><textarea id="f_desc" rows="4" maxlength="2000"></textarea></div>
+				<div class="full"><button class="btn" id="f_go">Register lead</button> <span class="muted" style="margin-left:10px">Company, contact and one of email or phone are required.</span><div class="err" id="f_err"></div></div>
+			</form>
+		</div>
+		<div class="card">
+			<h3>Your leads</h3>
+			<div id="leadlist" class="muted">Loading…</div>
+		</div>
+	</section>
+
+	<section id="clients">
+		<div id="clientlist" class="muted">Loading…</div>
+	</section>
+
+	<section id="statements">
+		<div id="stlist" class="muted">Loading…</div>
+	</section>
+</main>
+
+<script>
+const csrf = () => { const m = document.cookie.match(/csrf_token=([^;]+)/); return m ? m[1] : ""; };
+const api = (method, args) => fetch("/api/method/duty_board.partners." + method, {
+	method: "POST", headers: { "Content-Type": "application/json", "X-Frappe-CSRF-Token": csrf() },
+	credentials: "same-origin", body: JSON.stringify(args || {}),
+}).then(async (r) => {
+	const j = await r.json();
+	if (!r.ok) throw new Error((j._server_messages && JSON.parse(JSON.parse(j._server_messages)[0]).message) || j.exception || "Request failed");
+	return j.message;
+});
+const esc = (s) => String(s == null ? "" : s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+const N = (v) => "₦" + Number(v || 0).toLocaleString("en-NG", { minimumFractionDigits: 0, maximumFractionDigits: 0 });
+const D = (v) => v ? new Date(v).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" }) : "—";
+const stagePill = (l) => l.status === "Won" ? `<span class="pill ok">Won · client</span>` : l.status === "Lost" ? `<span class="pill">Lost</span>` : l.lapsed ? `<span class="pill bad">Lapsed</span>` : `<span class="pill warn">${esc(l.stage)}</span>`;
+
+document.querySelectorAll("nav.tabs a").forEach((a) => a.addEventListener("click", () => {
+	document.querySelectorAll("nav.tabs a").forEach((x) => x.classList.toggle("on", x === a));
+	document.querySelectorAll("section").forEach((s) => s.classList.toggle("on", s.id === a.dataset.t));
+}));
+
+function loadHome() {
+	api("partner_me").then((m) => {
+		document.getElementById("who").textContent = `${m.partner}${m.contact ? " · " + m.contact : ""} · ${m.rate}%`;
+		document.getElementById("kpis").innerHTML = `
+			<div class="kpi"><span>Accrued to date</span><b>${N(m.accrued)}</b><i>indicative, gross of WHT</i></div>
+			<div class="kpi"><span>Clients</span><b>${m.clients}</b><i>lifetime attribution</i></div>
+			<div class="kpi"><span>Open leads</span><b>${m.open_leads}</b><i>${m.won_leads} won so far</i></div>
+			<div class="kpi"><span>Your rate</span><b>${m.rate}%</b><i>${m.since ? "partner since " + D(m.since) : "&nbsp;"}</i></div>`;
+		document.getElementById("homenote").textContent = m.note || "";
+		document.getElementById("money").innerHTML = `
+			<div class="kpi"><span>Paid to you</span><b>${N(m.paid_out)}</b><i>net of WHT, all statements</i></div>
+			<div class="kpi"><span>Awaiting payment</span><b>${N(m.awaiting)}</b><i>statements issued, not yet paid</i></div>
+			<div class="kpi"><span>Not yet statemented</span><b>${N(m.unstatemented)}</b><i>gross — on next month's statement</i></div>
+			<div class="kpi"><span>Accrued to date</span><b>${N(m.accrued)}</b><i>gross, lifetime</i></div>`;
+	}).catch((e) => { document.getElementById("kpis").innerHTML = `<div class="err">${esc(e.message)}</div>`; });
+}
+
+function loadLeads() {
+	api("partner_leads").then((r) => {
+		const rows = r.rows || [];
+		document.getElementById("leadlist").innerHTML = rows.length ? `
+			<table><thead><tr><th>Company</th><th>Contact</th><th>Stage</th><th>Next step</th><th class="num">Est. value</th><th>Registered</th><th>Lapses</th></tr></thead><tbody>
+			${rows.map((l) => `<tr>
+				<td><b>${esc(l.company)}</b>${l.erp_customer ? `<div class="muted">Customer: ${esc(l.erp_customer)}</div>` : ""}</td>
+				<td>${esc(l.contact_name)}<div class="muted">${esc(l.email || "")}${l.email && l.phone ? " · " : ""}${esc(l.phone || "")}</div></td>
+				<td>${stagePill(l)}</td>
+				<td>${l.status === "Open" && l.next_step ? `${esc(l.next_step)}<div class="muted">${D(l.next_step_due)}</div>` : `<span class="muted">—</span>`}</td>
+				<td class="num">${l.value ? N(l.value) : "—"}</td>
+				<td>${D(l.partner_registered_on)}</td>
+				<td>${l.status === "Open" ? D(l.lapses_on) : "—"}</td></tr>`).join("")}
+			</tbody></table>` : `<span class="muted">No leads registered yet. The form above is where it starts.</span>`;
+	}).catch((e) => { document.getElementById("leadlist").innerHTML = `<div class="err">${esc(e.message)}</div>`; });
+}
+
+document.getElementById("f_go").addEventListener("click", () => {
+	const g = (id) => document.getElementById(id).value.trim();
+	const err = document.getElementById("f_err"); err.textContent = "";
+	const btn = document.getElementById("f_go"); btn.disabled = true;
+	api("partner_lead_add", { company: g("f_company"), contact_name: g("f_contact"), email: g("f_email"), phone: g("f_phone"),
+		description: g("f_desc"), value: g("f_value") || null, expected_close: g("f_close") || null })
+		.then(() => { document.getElementById("leadform").querySelectorAll("input,textarea").forEach((i) => (i.value = "")); loadLeads(); loadHome(); })
+		.catch((e) => { err.textContent = e.message; })
+		.then(() => { btn.disabled = false; });
+});
+
+function loadClients() {
+	api("partner_clients").then((r) => {
+		const rows = r.rows || [];
+		if (!rows.length) { document.getElementById("clientlist").innerHTML = `<div class="card"><span class="muted">No clients yet. When one of your leads is won, it appears here with its invoices and your cut.</span></div>`; return; }
+		document.getElementById("clientlist").innerHTML = rows.map((c, i) => `
+			<div class="card">
+				<div style="display:flex;align-items:baseline;gap:12px;flex-wrap:wrap">
+					<b style="font-size:16px">${esc(c.customer)}</b>
+					<span class="pill ${c.status === "Active" ? "ok" : ""}">${esc(c.status)}</span>
+					<span class="muted">client since ${D(c.since)} · your rate ${c.rate}%</span>
+					<span style="margin-left:auto"><span class="muted">accrued</span> <b>${N(c.accrued)}</b></span>
+				</div>
+				<div class="kpis" style="margin:12px 0 6px">
+					<div class="kpi"><span>Subscription renews</span><b>${c.renewal_date ? D(c.renewal_date) : "—"}</b><i>${c.renewal_date ? "next annual fee due" : "not yet set"}</i></div>
+					<div class="kpi"><span>Next payment due (incl. VAT)</span><b>${c.next_due ? N(c.next_due.outstanding) : "—"}</b><i>${c.next_due ? "by " + D(c.next_due.due_date) : "nothing outstanding"}</i></div>
+					<div class="kpi"><span>Commissionable sales, net</span><b>${N(c.commissionable_total)}</b><i>paid ${N(c.paid_commissionable_net)} · unpaid ${N(c.commissionable_unpaid)}</i></div>
+					<div class="kpi"><span>Your cut on that</span><b>${N(c.accrued)}</b><i>gross of WHT</i></div>
+				</div>
+				<div class="tog" data-i="${i}">Show invoices ▾</div>
+				<div id="inv${i}" style="display:none;margin-top:8px">
+					<table><thead><tr><th>Invoice</th><th>Issued</th><th>Due</th><th class="num">Total (incl. VAT)</th><th class="num">Commissionable (net)</th><th class="num">Paid</th><th>Paid on</th><th>Status</th><th class="num">Your cut</th></tr></thead><tbody>
+					${c.invoices.length ? c.invoices.map((v) => `<tr>
+						<td>${esc(v.invoice)}</td><td>${D(v.date)}</td><td>${D(v.due_date)}</td>
+						<td class="num">${N(v.grand_total)}</td>
+						<td class="num">${N(v.commissionable_net)}${v.commissionable_share < 1 && v.commissionable_share > 0 ? `<div class="muted">${Math.round(v.commissionable_share * 100)}% of invoice</div>` : v.commissionable_share === 0 ? `<div class="muted">not commissionable</div>` : ""}</td>
+						<td class="num">${N(v.paid_gross)}</td>
+						<td>${v.paid_on ? D(v.paid_on) : "—"}${v.payments.length > 1 ? `<div class="muted">${v.payments.length} payments</div>` : ""}</td>
+						<td><span class="pill ${v.outstanding <= 0 ? "ok" : v.status === "Overdue" ? "bad" : "warn"}">${v.outstanding <= 0 ? "Paid" : esc(v.status)}</span></td>
+						<td class="num"><b>${N(v.your_cut)}</b></td></tr>`).join("") : `<tr><td colspan="9" class="muted">No invoices yet.</td></tr>`}
+					</tbody></table>
+				</div>
+			</div>`).join("");
+		document.querySelectorAll(".tog").forEach((t) => t.addEventListener("click", () => {
+			const el = document.getElementById("inv" + t.dataset.i); const open = el.style.display === "none";
+			el.style.display = open ? "" : "none"; t.textContent = open ? "Hide invoices ▴" : "Show invoices ▾";
+		}));
+	}).catch((e) => { document.getElementById("clientlist").innerHTML = `<div class="card err">${esc(e.message)}</div>`; });
+}
+
+function loadStatements() {
+	api("partner_statements").then((r) => {
+		const rows = r.rows || [];
+		if (!rows.length) { document.getElementById("stlist").innerHTML = `<div class="card"><span class="muted">No statements yet. The first one is issued after the first month in which one of your clients pays an invoice.</span></div>`; return; }
+		document.getElementById("stlist").innerHTML = `
+			<div class="card"><div class="kpis" style="grid-template-columns:repeat(2,1fr)">
+				<div class="kpi"><span>Paid to you</span><b>${N(r.paid_out)}</b><i>net of WHT</i></div>
+				<div class="kpi"><span>Awaiting payment</span><b>${N(r.awaiting)}</b><i>issued, not yet paid</i></div>
+			</div></div>` + rows.map((s, i) => `
+			<div class="card">
+				<div style="display:flex;align-items:baseline;gap:12px;flex-wrap:wrap">
+					<b style="font-size:15px">${D(s.period_start)} – ${D(s.period_end)}</b>
+					<span class="pill ${s.status === "Paid" ? "ok" : "warn"}">${esc(s.status)}</span>
+					<span class="muted">${esc(s.name)} · issued ${D(s.issued_on)}${s.paid_on ? ` · paid ${D(s.paid_on)}${s.paid_reference ? " · ref " + esc(s.paid_reference) : ""}` : ""}</span>
+					<span style="margin-left:auto"><span class="muted">net payable</span> <b>${N(s.net_payable)}</b></span>
+				</div>
+				<div class="kpis" style="margin:12px 0 6px;grid-template-columns:repeat(3,1fr)">
+					<div class="kpi"><span>Gross commission</span><b>${N(s.gross)}</b><i>${s.lines.length} line(s)</i></div>
+					<div class="kpi"><span>Withholding tax</span><b>${N(s.wht_amount)}</b><i>at ${s.wht_rate}%</i></div>
+					<div class="kpi"><span>Net payable</span><b>${N(s.net_payable)}</b><i>${s.status === "Paid" ? "paid" : "due from Xlevel"}</i></div>
+				</div>
+				<div class="tog" data-s="${i}">Show lines ▾</div>
+				<div id="st${i}" style="display:none;margin-top:8px">
+					<table><thead><tr><th>Date</th><th>Customer</th><th>Invoice</th><th>Kind</th><th class="num">Paid (incl. VAT)</th><th class="num">Commissionable net</th><th class="num">Rate</th><th class="num">Commission</th></tr></thead><tbody>
+					${s.lines.map((l) => `<tr class="${l.commission < 0 ? "sub" : ""}"><td>${D(l.event_date)}</td><td>${esc(l.customer)}</td><td>${esc(l.invoice)}</td><td>${esc(l.kind)}</td><td class="num">${N(l.paid_gross)}</td><td class="num">${N(l.paid_net)}${l.share < 100 ? `<div class="muted">${l.share}% of invoice</div>` : ""}</td><td class="num">${l.rate}%</td><td class="num"><b>${N(l.commission)}</b></td></tr>`).join("")}
+					</tbody></table>
+				</div>
+			</div>`).join("");
+		document.querySelectorAll(".tog[data-s]").forEach((t) => t.addEventListener("click", () => {
+			const el = document.getElementById("st" + t.dataset.s); const open = el.style.display === "none";
+			el.style.display = open ? "" : "none"; t.textContent = open ? "Hide lines ▴" : "Show lines ▾";
+		}));
+	}).catch((e) => { document.getElementById("stlist").innerHTML = `<div class="card err">${esc(e.message)}</div>`; });
+}
+
+loadHome(); loadLeads(); loadClients(); loadStatements();
+</script>
+</body>
+</html>

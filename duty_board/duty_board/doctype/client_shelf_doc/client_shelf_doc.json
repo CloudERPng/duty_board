@@ -11,6 +11,9 @@
   "file_url",
   "file_name",
   "active",
+  "source",
+  "sent_by",
+  "note",
   "project"
  ],
  "fields": [
@@ -50,6 +53,28 @@
    "fieldname": "active",
    "fieldtype": "Check",
    "label": "Active"
+  },
+  {
+   "fieldname": "source",
+   "fieldtype": "Select",
+   "label": "Source",
+   "options": "Xlevel\nClient",
+   "default": "Xlevel",
+   "in_list_view": 1,
+   "description": "Xlevel: published by staff for the client. Client: sent by the client for Xlevel. Shown differently on both sides so nobody mistakes one for the other."
+  },
+  {
+   "fieldname": "sent_by",
+   "fieldtype": "Link",
+   "label": "Sent By",
+   "options": "User",
+   "description": "The client member who sent it, for Client-source documents."
+  },
+  {
+   "fieldname": "note",
+   "fieldtype": "Small Text",
+   "label": "Note",
+   "description": "What the client said about it when they sent it."
   },
   {
    "fieldname": "project",

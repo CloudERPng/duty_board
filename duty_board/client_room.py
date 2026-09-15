@@ -11,7 +11,7 @@ import re
 
 import frappe
 from frappe import _
-from frappe.utils import add_to_date, cint, date_diff, flt, get_datetime, getdate, now_datetime, nowdate, today
+from frappe.utils import add_days, add_to_date, cint, date_diff, flt, get_datetime, getdate, now_datetime, nowdate, today
 from frappe.utils.pdf import get_pdf
 from frappe.rate_limiter import rate_limit
 
@@ -847,6 +847,20 @@ def client_post_message(message, attachment_url=None, attachment_name=None, ref=
 	return ret
 
 
+def _content_disposition(kind, fname):
+	"""HTTP headers are ASCII. A filename with an em dash or an accent made
+	gunicorn refuse the whole response ("Invalid HTTP Header") and the client
+	saw a 500 instead of their document. Send an ASCII fallback in filename=
+	and the real name RFC 5987-encoded in filename*=, which browsers prefer."""
+	from urllib.parse import quote
+
+	fname = (fname or "file").replace('"', "").replace("\r", "").replace("\n", "")
+	ascii_name = fname.encode("ascii", "ignore").decode().strip() or "file"
+	if ascii_name == fname:
+		return f'{kind}; filename="{fname}"'
+	return f"{kind}; filename=\"{ascii_name}\"; filename*=UTF-8''{quote(fname)}"
+
+
 def _serve_file(fdoc, filename):
 	"""Images, PDFs and plain text display INLINE (a real werkzeug
 	Response — frappe's binary builder ignores display_content_as);
@@ -862,7 +876,7 @@ def _serve_file(fdoc, filename):
 			fdoc.get_content(),
 			mimetype=mimetype,
 			headers={
-				"Content-Disposition": 'inline; filename="{0}"'.format(fname),
+				"Content-Disposition": _content_disposition("inline", fname),
 				"Cache-Control": "private, max-age=300",
 			},
 		)
@@ -1113,7 +1127,7 @@ def _shelf_rows(room):
 	rows = frappe.get_all(
 		"Client Shelf Doc",
 		filters={"room": room.name, "active": 1},
-		fields=["name", "title", "category", "file_name", "creation", "owner", "project"],
+		fields=["name", "title", "category", "file_name", "creation", "owner", "project", "source", "sent_by", "note"],
 		order_by="creation desc",
 		limit=200,
 	)
@@ -1121,10 +1135,13 @@ def _shelf_rows(room):
 	for r in rows:
 		r.creation = str(r.creation)[:10]
 		r.project_name = _shpn.get(r.project) if r.project else None
+		r.source = r.source or "Xlevel"
 		try:
-			r.by = (frappe.utils.get_fullname(r.owner) or "").split(" ")[0]
+			who = r.sent_by if r.source == "Client" else r.owner
+			r.by = (frappe.utils.get_fullname(who) or "").split(" ")[0]
+			r.by_full = frappe.utils.get_fullname(who) or who
 		except Exception:
-			r.by = ""
+			r.by = r.by_full = ""
 		r.pop("owner", None)
 	return rows
 
@@ -1470,6 +1487,35 @@ def client_get_documents():
 	room = _client_room()
 	stm = _statement_rows(room)
 	return {"docs": _shelf_rows(room), "statements": stm, "year_strip": _statement_year_strip(stm)}
+
+
+@frappe.whitelist()
+def client_send_file(attachment_url, attachment_name=None, title=None, note=None, project=None):
+	"""A client sends Xlevel a file unprompted. It goes on the shelf marked
+	Source = Client, so it can be found again, and into the room's chat as a
+	message from the sender, so it lands on a person and not in a folder.
+	The shelf's Xlevel documents are untouched: the client cannot add to,
+	alter or remove what Xlevel has published."""
+	room = _client_room()
+	if not attachment_url:
+		frappe.throw(_("Choose a file first."))
+	if not frappe.db.exists("File", {"file_url": attachment_url}):
+		frappe.throw(_("That upload could not be found — please try again."))
+	title = (title or attachment_name or "File").strip()[:140]
+	note = (note or "").strip()[:1000] or None
+	if project and not frappe.db.exists("Duty Project", {"name": project, "room": room.name}):
+		project = None
+	doc = frappe.get_doc({
+		"doctype": "Client Shelf Doc", "room": room.name, "title": title,
+		"category": "From you", "file_url": attachment_url,
+		"file_name": (attachment_name or attachment_url.rsplit("/", 1)[-1])[:140],
+		"active": 1, "source": "Client", "sent_by": frappe.session.user,
+		"note": note, "project": project,
+	}).insert(ignore_permissions=True)
+	msg = _("📎 Sent a file: {0}").format(title) + ((" — " + note) if note else "")
+	client_post_message(msg, attachment_url=attachment_url, attachment_name=attachment_name)
+	frappe.db.commit()
+	return {"name": doc.name}
 
 
 @frappe.whitelist()
@@ -6597,6 +6643,10 @@ def rca_publish(issue, what_happened=None, root_cause=None, resolution_action=No
 
 MEETING_SLOTS = ["10:00", "11:00", "12:00", "13:00", "14:00", "15:00", "16:00"]
 MEETING_DAY_CAP = 2
+# Earliest a client can book is tomorrow. Same-day requests were landing an
+# hour ahead of the meeting, before anyone had read them. Raise to 2 for two
+# clear days; the portal reads the same rule through client_meeting_rules.
+MEETING_MIN_NOTICE_DAYS = 1
 
 
 def _staff_hour_load(user, date):
@@ -6627,10 +6677,14 @@ def _staff_hour_load(user, date):
 	return busy, count
 
 
+def _meeting_earliest_date():
+	return add_days(getdate(frappe.utils.today()), MEETING_MIN_NOTICE_DAYS)
+
+
 def _meeting_slots(staff_list, date):
 	d = getdate(date)
-	if d < getdate(frappe.utils.today()):
-		return []
+	if d < _meeting_earliest_date():
+		return []  # too soon — same day (or inside the notice window) is never offered
 	if d.weekday() >= 5:  # Sat/Sun — the banner's promise holds
 		return []
 	from duty_board.leave import holidays, is_on_leave
@@ -6645,15 +6699,7 @@ def _meeting_slots(staff_list, date):
 		if count >= MEETING_DAY_CAP:
 			return []  # someone is fully booked that day
 		blocked |= busy
-	now = frappe.utils.now_datetime()
-	out = []
-	for s in MEETING_SLOTS:
-		if s[:2] in blocked:
-			continue
-		if d == getdate(frappe.utils.today()) and int(s[:2]) <= now.hour:
-			continue
-		out.append(s)
-	return out
+	return [s for s in MEETING_SLOTS if s[:2] not in blocked]
 
 
 def _valid_staff_ids(ids):
@@ -6740,7 +6786,18 @@ def client_meeting_slots(date, staff):
 	ids = _valid_staff_ids(frappe.parse_json(staff) or [])
 	if not ids:
 		frappe.throw(_("Pick at least one team member."))
+	earliest = _meeting_earliest_date()
+	if getdate(date) < earliest:
+		# say why, rather than showing an empty list the client reads as "all busy"
+		return {"slots": [], "too_soon": 1, "earliest": str(earliest)}
 	return {"slots": _meeting_slots(ids, date)}
+
+
+@frappe.whitelist()
+def client_meeting_rules():
+	"""What the booking form needs to know before the client picks a date."""
+	_client_room()
+	return {"earliest": str(_meeting_earliest_date()), "notice_days": MEETING_MIN_NOTICE_DAYS}
 
 
 def _meeting_caps_check(room, ids, date):
@@ -6823,6 +6880,9 @@ def client_request_meeting(date, time, staff, topic):
 	) >= 3:
 		frappe.throw(_("You have several meetings awaiting confirmation already."))
 	_meeting_caps_check(room, ids, date)
+	if getdate(date) < _meeting_earliest_date():
+		frappe.throw(_("Meetings need at least a day's notice — the earliest date is {0}.").format(
+			frappe.utils.formatdate(_meeting_earliest_date(), "EEEE d MMMM")))
 	if time not in _meeting_slots(ids, date):
 		frappe.throw(_("That slot just became unavailable — pick another."))
 	doc = frappe.get_doc(
@@ -6943,7 +7003,14 @@ def _send_meeting_invite(doc, method="REQUEST"):
 	courtesy layer over the booking, not part of it."""
 	try:
 		recipients = [a.user for a in doc.attendees if a.user and "@" in a.user]
-		if doc.room:
+		# If the booker named client attendees, only they are invited. If not,
+		# every active member of the room is — the old rule, kept for meetings
+		# the client requests themselves and for rooms with one or two contacts.
+		client_named = any(
+			frappe.db.get_value("User", a.user, "user_type") == "Website User"
+			for a in doc.attendees if a.user
+		)
+		if doc.room and not client_named:
 			recipients += [
 				m.user
 				for m in frappe.get_all(
@@ -7663,8 +7730,7 @@ def client_shelf_preview(id):
 	from werkzeug.wrappers import Response
 
 	resp = Response(fdoc.get_content(), mimetype=mt)
-	safe_name = (d.file_name or "file").replace('"', "")
-	resp.headers["Content-Disposition"] = f'inline; filename="{safe_name}"'
+	resp.headers["Content-Disposition"] = _content_disposition("inline", d.file_name or fdoc.file_name)
 	resp.headers["Cache-Control"] = "private, max-age=300"
 	return resp
 
@@ -7883,6 +7949,53 @@ def client_get_decisions():
 
 
 @frappe.whitelist()
+def client_get_risks():
+	"""The risk register as the client may see it: open risks flagged
+	client_visible, severity-sorted the same way staff see them.
+
+	Off by default per risk — the internal register includes risks about the
+	client's own readiness, and those are raised in a meeting, not on a wall.
+	"""
+	from duty_board.projects import _RISK_SCORE
+
+	room = _client_room()
+	projs = frappe.get_all("Duty Project", filters={"room": room.name}, pluck="name")
+	if not projs:
+		return {"rows": []}
+	rows = frappe.get_all(
+		"Duty Project Risk",
+		filters={"project": ["in", projs], "client_visible": 1, "status": ["!=", "Closed"]},
+		fields=["name", "project", "title", "likelihood", "impact", "mitigation", "owner_user", "status"],
+		limit_page_length=0)
+	for r in rows:
+		r.severity = _RISK_SCORE.get(r.likelihood, 2) * _RISK_SCORE.get(r.impact, 2)
+		r.owner = frappe.utils.get_fullname(r.owner_user) if r.owner_user else None
+		r.pop("owner_user", None)
+	rows.sort(key=lambda r: -r.severity)
+	return {"rows": rows, "high": len([r for r in rows if r.severity >= 6])}
+
+
+@frappe.whitelist()
+def client_status_pack(days=7):
+	"""The weekly status pack for each of this client's projects, in the
+	client edition (visible rows only, no effort or critical-path internals).
+	Served from the same function staff read, so the two cannot disagree."""
+	from duty_board.projects import _status_pack
+
+	room = _client_room()
+	projs = frappe.get_all(
+		"Duty Project", filters={"room": room.name}, fields=["name"],
+		order_by="creation asc", limit_page_length=0)
+	packs = []
+	for p in projs:
+		try:
+			packs.append(_status_pack(p.name, days, client=True))
+		except Exception:
+			frappe.log_error(frappe.get_traceback(), "client_status_pack")
+	return {"packs": packs}
+
+
+@frappe.whitelist()
 def client_get_deliverables():
 	"""What this client is being asked to accept, and against what.
 
@@ -7922,8 +8035,76 @@ def client_get_deliverables():
 
 
 @frappe.whitelist()
+def project_client_members(project):
+	"""Active client members of the project's room, for the meeting picker."""
+	_staff_only()
+	room = frappe.db.get_value("Duty Project", project, "room")
+	if not room:
+		return {"rows": []}
+	rows = frappe.get_all("Client Room Member", filters={"room": room, "active": 1},
+						  fields=["user", "is_admin"], order_by="is_admin desc, user asc")
+	for r in rows:
+		r.full_name = frappe.utils.get_fullname(r.user) or r.user
+	return {"rows": rows}
+
+
+def _portal_invite(room, email):
+	"""The client-portal invitation, sent by name from the staff member who
+	issues it, with a fresh set-password link. Returns the link so it can
+	also be sent by WhatsApp when email is unreliable."""
+	user = frappe.get_doc("User", email)
+	key = frappe.generate_hash()
+	user.db_set("reset_password_key", key, update_modified=False)
+	try:
+		user.db_set("last_reset_password_key_generated_on", now_datetime(), update_modified=False)
+	except Exception:
+		pass
+	link = frappe.utils.get_url("/update-password?key=" + key)
+	who = frappe.utils.get_fullname(frappe.session.user)
+	org = room.customer or ""
+	try:
+		frappe.sendmail(
+			recipients=[email],
+			subject=_("Your {0} project portal").format(org),
+			message="""<p>Hello,</p>
+<p><b>{who}</b> at Xlevel has set up your access to the <b>{org}</b> project portal —
+the one place for your project's plan, tasks, meetings, documents and training.</p>
+<p><a href="{link}" style="display:inline-block;background:#0A473F;color:#fff;
+text-decoration:none;padding:11px 22px;border-radius:8px;font-weight:600">
+Set your password and open the portal</a></p>
+<p style="font-size:12px;color:#6B7C77">If the button does not work, copy this
+into your browser:<br>{link}</p>
+<p style="font-size:12px;color:#6B7C77">The link works once and expires in 24 hours.
+If it has expired, ask {who} to send a new one.</p>
+<p>&mdash; Xlevel Retail Systems Ltd</p>""".format(
+				who=frappe.utils.escape_html(who), org=frappe.utils.escape_html(org), link=link),
+			now=True,
+		)
+	except Exception:
+		frappe.log_error(frappe.get_traceback()[-800:], "portal invite mail")
+	return link
+
+
+@frappe.whitelist()
+def resend_member_invite(member_name):
+	"""Staff: a fresh portal invitation for a client member who never got, or
+	lost, the first one. Sends the email and hands back the link."""
+	_staff_only()
+	m = frappe.db.get_value("Client Room Member", member_name, ["room", "user", "active"], as_dict=True)
+	if not m or not cint(m.active):
+		frappe.throw(_("That member is not active in this room."))
+	if not frappe.db.exists("User", m.user):
+		frappe.throw(_("No login exists for {0} — remove and re-add the member.").format(m.user))
+	frappe.db.set_value("User", m.user, "enabled", 1, update_modified=False)
+	room = frappe.get_doc("Client Room", m.room)
+	link = _portal_invite(room, m.user)
+	frappe.db.commit()
+	return {"link": link, "user": m.user}
+
+
+@frappe.whitelist()
 def schedule_task_meeting(task, date, time, duration_mins=60, staff=None,
-						  topic=None, confirm=1):
+						  topic=None, confirm=1, clients=None):
 	"""Book a meeting for a task that is really a meeting.
 
 	Eleven of the sixty-seven tasks on an implementation are meetings — the
@@ -7951,6 +8132,15 @@ def schedule_task_meeting(task, date, time, duration_mins=60, staff=None,
 	if not ids:
 		ids = [t.assignee] if t.assignee else [frappe.session.user]
 	ids = [u for u in ids if u]
+	# client attendees: only active members of this project's room may be
+	# named, so a typo cannot invite a stranger to a client meeting
+	cids = frappe.parse_json(clients) if isinstance(clients, str) else (clients or [])
+	if cids:
+		allowed = set(frappe.get_all("Client Room Member", filters={"room": proj.room, "active": 1}, pluck="user"))
+		bad = [c for c in cids if c not in allowed]
+		if bad:
+			frappe.throw(_("Not members of this client's room: {0}").format(", ".join(bad)))
+		ids += [c for c in cids if c not in ids]
 
 	doc = frappe.get_doc({
 		"doctype": "Duty Meeting",
@@ -8087,3 +8277,135 @@ def reschedule_meeting(id, date=None, time=None, duration_mins=None, topic=None,
 			"reinvited": 1 if (was != now and hook_ran) else 0,
 			"warning": (None if (was == now or hook_ran)
 						else _("The meeting moved but the updated invitation could not be sent. Tell the attendees directly."))}
+
+
+# ---------------------------------------------------------------- daily client brief
+
+def _brief_for_room(room, day):
+	"""Today's meetings and deliverables for one room, or None when there is
+	nothing — an empty brief teaches admins to stop opening them."""
+	projs = frappe.get_all("Duty Project", filters={"room": room.name, "status": "Active"},
+						   fields=["name", "project_name"])
+	pmap = {p.name: p.project_name for p in projs}
+	members = {m.user: m for m in frappe.get_all(
+		"Client Room Member", filters={"room": room.name, "active": 1}, fields=["user", "is_admin"])}
+	meetings = frappe.get_all(
+		"Duty Meeting", filters={"room": room.name, "meeting_date": day, "status": "Confirmed"},
+		fields=["name", "topic", "start_time", "duration_mins", "project", "project_task"],
+		order_by="start_time asc")
+	for m in meetings:
+		att = frappe.get_all("Duty Meeting Attendee", filters={"parent": m.name}, pluck="user")
+		ours, theirs = [], []
+		for u in att:
+			if not u:
+				continue
+			name = frappe.utils.get_fullname(u) or u
+			(theirs if frappe.db.get_value("User", u, "user_type") == "Website User" else ours).append(name)
+		if not theirs:
+			# no client attendee was named, so the whole room was invited
+			theirs = [frappe.utils.get_fullname(u) or u for u in members]
+		m.ours, m.theirs = ours, theirs
+		m.time = str(m.start_time)[:5] if m.start_time else ""
+		m.project_name = pmap.get(m.project)
+	dlv = []
+	if projs:
+		dlv = frappe.get_all(
+			"Duty Project Deliverable",
+			filters={"project": ["in", list(pmap)], "due_date": day, "client_visible": 1,
+					 "status": ["!=", "Accepted"]},
+			fields=["name", "title", "project", "milestone", "status", "owner_user", "criteria"],
+			order_by="project asc, title asc")
+		for d in dlv:
+			d.project_name = pmap.get(d.project)
+			d.phase = frappe.db.get_value("Duty Milestone", d.milestone, "title") if d.milestone else None
+			d.owner = frappe.utils.get_fullname(d.owner_user) if d.owner_user else None
+			d.yours = d.status == "Submitted"
+	awaiting = []
+	if projs:
+		awaiting = frappe.get_all(
+			"Duty Project Deliverable",
+			filters={"project": ["in", list(pmap)], "client_visible": 1, "status": "Submitted",
+					 "due_date": ["!=", day]},
+			fields=["title", "project", "due_date"], order_by="due_date asc")
+		for a in awaiting:
+			a.project_name = pmap.get(a.project)
+	if not meetings and not dlv:
+		return None
+	return {"meetings": meetings, "deliverables": dlv, "awaiting": awaiting, "members": members}
+
+
+def _brief_html(room, day, b):
+	e = frappe.utils.escape_html
+	nice = frappe.utils.formatdate(day, "EEEE d MMMM")
+	url = frappe.utils.get_url("/portal")
+	out = [f"<p>Good morning,</p><p>Here is <b>{e(room.customer or '')}</b>'s day with Xlevel for <b>{nice}</b>.</p>"]
+	out.append("<h3 style='font-size:14px;margin:18px 0 6px'>Meetings today</h3>")
+	if b["meetings"]:
+		for m in b["meetings"]:
+			when = f"{m.time} · {cint(m.duration_mins) or 60} min"
+			out.append(
+				f"<div style='border:1px solid #E7ECEA;border-radius:8px;padding:10px 12px;margin-bottom:8px'>"
+				f"<b>{e(m.topic or '')}</b> <span style='color:#65736F'>— {e(when)}</span>"
+				+ (f"<div style='color:#65736F;font-size:12px'>{e(m.project_name)}</div>" if m.project_name else "")
+				+ f"<div style='font-size:12.5px;margin-top:4px'><b>From your side:</b> {e(', '.join(m.theirs) or '—')}</div>"
+				+ f"<div style='font-size:12.5px'><b>From Xlevel:</b> {e(', '.join(m.ours) or '—')}</div>"
+				+ "</div>")
+	else:
+		out.append("<p style='color:#65736F'>No meetings today.</p>")
+	out.append("<h3 style='font-size:14px;margin:18px 0 6px'>Deliverables due today</h3>")
+	if b["deliverables"]:
+		for d in b["deliverables"]:
+			tag = ("<span style='background:#FEF6EC;color:#8A5A0B;font-size:11px;font-weight:700;padding:1px 7px;border-radius:999px'>awaiting your acceptance</span>"
+				   if d.yours else f"<span style='color:#65736F;font-size:12px'>{e(d.status)}</span>")
+			out.append(
+				f"<div style='border:1px solid #E7ECEA;border-radius:8px;padding:10px 12px;margin-bottom:8px'>"
+				f"<b>{e(d.title)}</b> {tag}"
+				+ f"<div style='color:#65736F;font-size:12px'>{e(d.project_name or '')}{' · ' + e(d.phase) if d.phase else ''}{' · Xlevel owner: ' + e(d.owner) if d.owner else ''}</div>"
+				+ (f"<div style='font-size:12px;margin-top:4px'><b>Accepted when:</b> {e((d.criteria or '')[:240])}</div>" if d.criteria else "")
+				+ "</div>")
+	else:
+		out.append("<p style='color:#65736F'>Nothing due today.</p>")
+	if b["awaiting"]:
+		out.append("<h3 style='font-size:14px;margin:18px 0 6px'>Still awaiting your acceptance</h3><ul style='padding-left:18px;font-size:12.5px'>")
+		for a in b["awaiting"][:8]:
+			out.append(f"<li>{e(a.title)} <span style='color:#65736F'>— {e(a.project_name or '')}, due {e(str(a.due_date))}</span></li>")
+		out.append("</ul>")
+	out.append(f"<p style='margin-top:16px'><a href='{url}' style='display:inline-block;background:#0A473F;color:#fff;text-decoration:none;padding:9px 18px;border-radius:8px;font-weight:600'>Open your portal</a></p>")
+	out.append("<p style='font-size:11.5px;color:#65736F'>Sent to your portal administrators on days with a meeting or a deliverable. &mdash; Xlevel Retail Systems Ltd</p>")
+	return "".join(out)
+
+
+def daily_client_brief(room=None, dry_run=0):
+	"""07:00 site time (hooks.py › scheduler_events › cron). One email per
+	active room to its client administrators, only on days that have a
+	confirmed meeting or a client-visible deliverable due. Pass room= to
+	send for one room; dry_run=1 prints who would get what and sends nothing."""
+	day = frappe.utils.today()
+	filters = {"status": "Active"}
+	if room:
+		filters["name"] = room
+	sent, skipped = [], []
+	for r in frappe.get_all("Client Room", filters=filters, fields=["name", "customer"]):
+		b = _brief_for_room(r, day)
+		if not b:
+			continue
+		admins = [u for u, m in b["members"].items() if cint(m.is_admin) and "@" in (u or "")]
+		if not admins:
+			skipped.append(r.customer)
+			continue
+		if cint(dry_run):
+			print("  would send to %s (%s): %d meeting(s), %d deliverable(s)"
+				  % (r.customer, ", ".join(admins), len(b["meetings"]), len(b["deliverables"])))
+			sent.append(r.customer)
+			continue
+		try:
+			frappe.sendmail(
+				recipients=admins,
+				subject=_("Today with Xlevel — {0}").format(frappe.utils.formatdate(day, "EEE d MMM")),
+				message=_brief_html(r, day, b), now=False)
+			sent.append(r.customer)
+		except Exception:
+			frappe.log_error(frappe.get_traceback()[-800:], "daily client brief")
+	if skipped:
+		print("  rooms with content but no administrator: " + ", ".join(skipped))
+	return {"sent": sent, "no_admin": skipped}

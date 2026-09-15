@@ -19,6 +19,9 @@
   "description",
   "active",
   "chapter_count",
+  "format",
+  "source_file",
+  "page_count",
   "cover"
  ],
  "fields": [
@@ -116,6 +119,25 @@
    "fieldname": "chapter_count",
    "fieldtype": "Int",
    "label": "Chapters"
+  },
+  {
+   "fieldname": "format",
+   "fieldtype": "Select",
+   "label": "Format",
+   "options": "Text\nPDF",
+   "default": "Text",
+   "description": "Text books are chaptered HTML (ePub, JSON bundles). PDF books keep the original file and are read page by page."
+  },
+  {
+   "fieldname": "source_file",
+   "fieldtype": "Attach",
+   "label": "Source File",
+   "description": "The original PDF, for PDF-format books."
+  },
+  {
+   "fieldname": "page_count",
+   "fieldtype": "Int",
+   "label": "Page Count"
   },
   {
    "fieldname": "cover",

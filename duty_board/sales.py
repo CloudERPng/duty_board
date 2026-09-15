@@ -76,11 +76,17 @@ def get_pipeline():
 			"name", "company", "lead_owner", "stage", "value",
 			"contact_name", "email", "phone", "expected_close", "source", "modified",
 			"erp_lead", "erp_quotation", "erp_customer", "erp_sales_order",
-			"next_step", "next_step_due", "next_step_user",
+			"next_step", "next_step_due", "next_step_user", "partner",
 		],
 		order_by="modified desc",
 	)
 	names = [l.name for l in leads]
+	pnames = {l.partner for l in leads if l.partner}
+	if pnames:
+		pmap = {r.name: r.partner_name for r in frappe.get_all(
+			"Duty Partner", filters={"name": ["in", list(pnames)]}, fields=["name", "partner_name"])}
+		for l in leads:
+			l.partner_name = pmap.get(l.partner) if l.partner else None
 	task_stats, note_counts = {}, {}
 	if names:
 		tday = getdate(today())
@@ -300,6 +306,8 @@ def get_lead(name):
 		"lead_owner": doc.lead_owner,
 		"stage": doc.stage,
 		"status": doc.status,
+		"partner": doc.get("partner"),
+		"partner_name": frappe.db.get_value("Duty Partner", doc.get("partner"), "partner_name") if doc.get("partner") else None,
 		"value": flt(doc.value) if _sees_value() else None,
 		"can_edit_value": _sees_value(),
 		"contact_name": doc.contact_name,
@@ -676,6 +684,9 @@ def lead_won_convert(name):
 	so.submit()
 	doc.db_set("erp_sales_order", so.name, update_modified=False)
 	doc.db_set("status", "Won", update_modified=True)
+	# partner-registered lead: lock the partner's rate onto this client now
+	from duty_board.partners import attribute_on_conversion
+	attribute_on_conversion(doc, cust)
 	first = frappe.utils.get_fullname(frappe.session.user).split(" ")[0]
 	frappe.get_doc({"doctype": "Duty Lead Note", "lead": name,
 		"note": _("🏆 {0} closed WON — customer {1}, sales order {2}. Sales process complete.").format(first, cust, so.name)}).insert(ignore_permissions=True)

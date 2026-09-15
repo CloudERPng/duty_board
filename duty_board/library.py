@@ -72,7 +72,7 @@ def library():
 		"Duty Book",
 		filters={"active": 1},
 		fields=["name", "title", "author", "description", "category", "cover",
-				"chapter_count", "shelf_status", "plan_month", "plan_note",
+				"chapter_count", "format", "page_count", "source_file", "shelf_status", "plan_month", "plan_note",
 				"revisit_after", "times_read", "last_finished"],
 		order_by="creation desc",
 		limit_page_length=0,
@@ -94,7 +94,7 @@ def library():
 		for r in frappe.get_all(
 			"Duty Book Progress",
 			filters={"user": user},
-			fields=["book", "chapter", "chapters_done", "last_read_at"],
+			fields=["book", "chapter", "page", "chapters_done", "last_read_at"],
 			limit_page_length=0,
 		)
 	}
@@ -117,7 +117,12 @@ def library():
 		p = prog_by_book.get(b.name)
 		done = len([c for c in (p.chapters_done or "").split(",") if c]) if p else 0
 		b.done_chapters = done
-		b.pct = int(done * 100 / b.chapter_count) if b.chapter_count else 0
+		if b.format == "PDF":
+			# a page-based book measures progress by the furthest page reached
+			b.resume_page = cint(p.page) if p else 0
+			b.pct = min(100, int(b.resume_page * 100 / b.page_count)) if b.page_count else 0
+		else:
+			b.pct = int(done * 100 / b.chapter_count) if b.chapter_count else 0
 		b.last_read_at = str(p.last_read_at)[:16] if p and p.last_read_at else None
 		b.resume_chapter = p.chapter if p else None
 		rv = [r for r in all_reviews if r.book == b.name and cint(r.stars)]
@@ -134,6 +139,20 @@ def open_book(book):
 	require_sysadmin()
 	user = frappe.session.user
 	b = frappe.get_doc("Duty Book", book)
+	p = _progress(user, book)
+	if b.format == "PDF":
+		# Fixed-page book: the browser renders the file itself. Nothing here is
+		# chaptered, so the text reader's fields are returned empty on purpose.
+		return {
+			"format": "PDF",
+			"title": b.title,
+			"author": b.author,
+			"file_url": b.source_file,
+			"page_count": cint(b.page_count),
+			"page": max(1, cint(p.page)) if p else 1,
+			"last_read_at": str(p.last_read_at) if p and p.last_read_at else None,
+			"chapters": [], "done": [], "current": None, "scroll_pct": 0, "content": "",
+		}
 	chapters = frappe.get_all(
 		"Duty Book Chapter",
 		filters={"book": book},
@@ -141,10 +160,10 @@ def open_book(book):
 		order_by="idx_no asc",
 		limit_page_length=0,
 	)
-	p = _progress(user, book)
 	done = [c for c in (p.chapters_done or "").split(",") if c] if p else []
 	cur = p.chapter if p and p.chapter else (chapters[0].name if chapters else None)
 	return {
+		"format": "Text",
 		"title": b.title,
 		"author": b.author,
 		"chapters": chapters,
@@ -164,8 +183,9 @@ def chapter(name):
 
 
 @frappe.whitelist()
-def mark(book, chapter=None, scroll_pct=0, minutes=0, done=None):
-	"""Save the reader's position. `done` marks a chapter completed."""
+def mark(book, chapter=None, scroll_pct=0, minutes=0, done=None, page=None):
+	"""Save the reader's position. `done` marks a chapter completed.
+	`page` is the PDF reader's position; the furthest page is what counts."""
 	require_sysadmin()
 	user = frappe.session.user
 	p = _progress(user, book)
@@ -175,6 +195,8 @@ def mark(book, chapter=None, scroll_pct=0, minutes=0, done=None):
 		).insert(ignore_permissions=True)
 	if chapter:
 		p.chapter = chapter
+	if page is not None:
+		p.page = max(cint(p.page), cint(page))
 	p.scroll_pct = flt(scroll_pct)
 	p.minutes = cint(p.minutes) + cint(minutes)
 	if done:
@@ -198,28 +220,31 @@ def reading_overview():
 		frappe.throw(_("The reading overview is for managers."), frappe.PermissionError)
 	rows = frappe.get_all(
 		"Duty Book Progress",
-		fields=["user", "book", "chapter", "chapters_done", "last_read_at", "minutes"],
+		fields=["user", "book", "chapter", "page", "chapters_done", "last_read_at", "minutes"],
 		order_by="last_read_at desc",
 		limit_page_length=0,
 	)
 	books = {
 		b.name: b
-		for b in frappe.get_all("Duty Book", fields=["name", "title", "chapter_count"])
+		for b in frappe.get_all("Duty Book", fields=["name", "title", "chapter_count", "format", "page_count"])
 	}
 	out = []
 	for r in rows:
 		b = books.get(r.book)
 		if not b:
 			continue
-		done = len([c for c in (r.chapters_done or "").split(",") if c])
+		if b.format == "PDF":
+			done, total = cint(r.page), cint(b.page_count)
+		else:
+			done, total = len([c for c in (r.chapters_done or "").split(",") if c]), cint(b.chapter_count)
 		out.append(
 			{
 				"user": r.user,
 				"who": frappe.utils.get_fullname(r.user),
 				"book": b.title,
-				"pct": int(done * 100 / b.chapter_count) if b.chapter_count else 0,
+				"pct": min(100, int(done * 100 / total)) if total else 0,
 				"done": done,
-				"total": b.chapter_count,
+				"total": total,
 				"last": str(r.last_read_at)[:16] if r.last_read_at else None,
 				"minutes": cint(r.minutes),
 			}
@@ -349,15 +374,33 @@ def _pdf_to_chapters(content_bytes):
 	return out, method
 
 
-def _convert_job(file_url, title, author, description, requested_by, category=None, cover_url=None):
+def _pdf_page_count(content_bytes):
+	import io
+	from pypdf import PdfReader
+
+	return len(PdfReader(io.BytesIO(content_bytes)).pages)
+
+
+def _convert_job(file_url, title, author, description, requested_by, category=None, cover_url=None, as_text=0):
 	fname = frappe.db.get_value("File", {"file_url": file_url}, "name")
 	fdoc = frappe.get_doc("File", fname)
+	fmt, chapters, page_count = "Text", [], 0
 	if (fdoc.file_name or "").lower().endswith(".epub"):
 		chapters, meta_title, meta_author = _epub_to_chapters(fdoc.get_content())
 		title = title or meta_title
 		author = author or meta_author
-	else:
+	elif cint(as_text):
+		# the old path: extract the words and lose the layout. Kept for the
+		# rare PDF that is really just prose and wanted in the flowing reader.
 		chapters, method = _pdf_to_chapters(fdoc.get_content())
+	else:
+		# A PDF's meaning is in its layout — tables, code, figures, columns —
+		# and text extraction throws that away by design. Keep the file and
+		# let the browser render the pages.
+		fmt = "PDF"
+		page_count = _pdf_page_count(fdoc.get_content())
+		if not page_count:
+			frappe.throw(_("This PDF has no pages."))
 	book = frappe.get_doc(
 		{
 			"doctype": "Duty Book",
@@ -366,9 +409,16 @@ def _convert_job(file_url, title, author, description, requested_by, category=No
 			"description": (description or "")[:500] or None,
 			"category": (category or "")[:80] or None,
 			"active": 1,
+			"format": fmt,
+			"source_file": file_url if fmt == "PDF" else None,
+			"page_count": page_count,
 			"chapter_count": len(chapters),
 		}
 	).insert(ignore_permissions=True)
+	if fmt == "PDF":
+		# the File was uploaded loose; attach it so it is not orphaned
+		frappe.db.set_value("File", fname, {"attached_to_doctype": "Duty Book", "attached_to_name": book.name,
+											"attached_to_field": "source_file"}, update_modified=False)
 	for i, ch in enumerate(chapters, start=1):
 		frappe.get_doc(
 			{
@@ -389,15 +439,17 @@ def _convert_job(file_url, title, author, description, requested_by, category=No
 		_notify_user(
 			requested_by,
 			_("📚 Book ready"),
-			_("“{0}” — {1} chapters, on the shelf.").format(book.title, len(chapters)),
+			(_("“{0}” — {1} pages, on the shelf.").format(book.title, page_count) if fmt == "PDF"
+			 else _("“{0}” — {1} chapters, on the shelf.").format(book.title, len(chapters))),
 		)
 	except Exception:
 		pass
 
 
 @frappe.whitelist()
-def convert_pdf(file_url, title=None, author=None, description=None, category=None, cover_url=None):
-	"""Managers: turn an uploaded PDF into a Library book (background job)."""
+def convert_pdf(file_url, title=None, author=None, description=None, category=None, cover_url=None, as_text=0):
+	"""Managers: put an uploaded PDF/ePub on the shelf (background job).
+	PDFs are kept as pages unless as_text=1 asks for the old text extraction."""
 	require_sysadmin()
 	from duty_board.uat import _is_manager
 
@@ -413,6 +465,7 @@ def convert_pdf(file_url, title=None, author=None, description=None, category=No
 		description=description,
 		category=category,
 		cover_url=cover_url,
+		as_text=cint(as_text),
 		requested_by=frappe.session.user,
 	)
 	return {"queued": 1}
@@ -429,6 +482,8 @@ def delete_book(book):
 		frappe.delete_doc("Duty Book Chapter", c, ignore_permissions=True, force=True)
 	for p in frappe.get_all("Duty Book Progress", filters={"book": book}, pluck="name"):
 		frappe.delete_doc("Duty Book Progress", p, ignore_permissions=True, force=True)
+	for bm in frappe.get_all("Duty Book Bookmark", filters={"book": book}, pluck="name"):
+		frappe.delete_doc("Duty Book Bookmark", bm, ignore_permissions=True, force=True)
 	frappe.delete_doc("Duty Book", book, ignore_permissions=True, force=True)
 	frappe.db.commit()
 	return {"ok": 1}
@@ -635,6 +690,60 @@ def update_book(book, title=None, author=None, category=None, description=None):
 		frappe.db.set_value("Duty Book", book, vals, update_modified=False)
 		frappe.db.commit()
 	return {"ok": 1}
+
+
+@frappe.whitelist()
+def set_cover(book, file_url=None, data_b64=None, clear=0):
+	"""Managers: set a book's cover by hand. Either an already-uploaded File
+	(file_url) or raw image bytes (data_b64 — how the reader sends a PDF's
+	first page). The image is re-saved as a public File attached to the book
+	so every reader's browser can load it; an upload left private would show
+	only for whoever uploaded it."""
+	require_sysadmin()
+	from duty_board.uat import _is_manager
+
+	if not _is_manager():
+		frappe.throw(_("Only managers manage the Library."), frappe.PermissionError)
+	if not frappe.db.exists("Duty Book", book):
+		frappe.throw(_("Book not found."))
+	if cint(clear):
+		frappe.db.set_value("Duty Book", book, "cover", None, update_modified=False)
+		frappe.db.commit()
+		return {"ok": 1, "cover": None}
+
+	content, ext = None, "jpg"
+	if data_b64:
+		import base64
+
+		raw = data_b64.split(",", 1)[1] if data_b64.startswith("data:") else data_b64
+		content = base64.b64decode(raw)
+		ext = "png" if content[:8] == b"\x89PNG\r\n\x1a\n" else "jpg"
+	elif file_url:
+		fname = frappe.db.get_value("File", {"file_url": file_url}, "name")
+		if not fname:
+			frappe.throw(_("Upload the image first."))
+		fdoc = frappe.get_doc("File", fname)
+		content = fdoc.get_content()
+		ext = (fdoc.file_name or "").rsplit(".", 1)[-1].lower() or "jpg"
+		if ext not in ("jpg", "jpeg", "png", "webp"):
+			frappe.throw(_("Covers must be JPG, PNG or WebP."))
+	if not content:
+		frappe.throw(_("No image received."))
+	if len(content) > 3 * 1024 * 1024:
+		frappe.throw(_("Keep the cover under 3 MB."))
+	f = frappe.get_doc(
+		{
+			"doctype": "File",
+			"file_name": f"cover-{book}.{ext}",
+			"is_private": 0,
+			"content": content,
+			"attached_to_doctype": "Duty Book",
+			"attached_to_name": book,
+		}
+	).insert(ignore_permissions=True)
+	frappe.db.set_value("Duty Book", book, "cover", f.file_url, update_modified=False)
+	frappe.db.commit()
+	return {"ok": 1, "cover": f.file_url}
 
 
 @frappe.whitelist()
@@ -884,13 +993,16 @@ def search_in_book(book, q):
 # ─────────────────────────── bookmarks ───────────────────────────
 
 @frappe.whitelist()
-def bookmark_add(book, chapter, scroll_pct=0, note=None):
+def bookmark_add(book, chapter=None, scroll_pct=0, note=None, page=None):
 	require_sysadmin()
+	if not chapter and not page:
+		frappe.throw(_("A bookmark needs a chapter or a page."))
 	frappe.get_doc({
 		"doctype": "Duty Book Bookmark",
 		"user": frappe.session.user,
 		"book": book,
-		"chapter": chapter,
+		"chapter": chapter or None,
+		"page": cint(page) or None,
 		"scroll_pct": flt(scroll_pct),
 		"note": (note or "")[:300] or None,
 	}).insert(ignore_permissions=True)
@@ -915,12 +1027,12 @@ def bookmarks(book):
 	require_sysadmin()
 	return frappe.db.sql(
 		"""
-		select b.name, b.chapter, b.scroll_pct, b.note, b.creation,
+		select b.name, b.chapter, b.page, b.scroll_pct, b.note, b.creation,
 		       c.title as ch_title, c.idx_no
 		from `tabDuty Book Bookmark` b
-		join `tabDuty Book Chapter` c on c.name = b.chapter
+		left join `tabDuty Book Chapter` c on c.name = b.chapter
 		where b.book = %s and b.user = %s
-		order by c.idx_no asc, b.scroll_pct asc
+		order by coalesce(c.idx_no, b.page) asc, b.scroll_pct asc
 		""",
 		(book, frappe.session.user),
 		as_dict=True,

@@ -584,15 +584,17 @@ def plan_existing(kind, source, date=None):
 
 
 @frappe.whitelist()
-def add_todo(description, customer=None, for_user=None, for_users=None, date=None, due_time=None):
+def add_todo(description, customer=None, for_user=None, for_users=None, date=None, due_time=None, private=0):
 	require_staff()
 	session = frappe.session.user
 	if not (description or "").strip():
 		frappe.throw(_("Please type the to-do first."))
 
 	targets = _parse_targets(for_users) or ([for_user] if for_user else [session])
+	if cint(private) and targets != [session]:
+		frappe.throw(_("A private to-do can only be for yourself."))
 	for target in targets:
-		_create_todo_for(target, description, customer, date, due_time)
+		_create_todo_for(target, description, customer, date, due_time, private=cint(private))
 	frappe.db.commit()
 	return get_board()
 
@@ -618,7 +620,7 @@ def _validate_target(target):
 		frappe.throw(_("Cannot assign to {0}.").format(target))
 
 
-def _create_todo_for(target, description, customer=None, date=None, due_time=None, notify=True):
+def _create_todo_for(target, description, customer=None, date=None, due_time=None, notify=True, private=0):
 	session = frappe.session.user
 	_validate_target(target)
 	target_today = user_today(target)
@@ -636,6 +638,7 @@ def _create_todo_for(target, description, customer=None, date=None, due_time=Non
 			"customer": customer or None,
 			"status": "Open",
 			"assigned_by": session if target != session else None,
+			"private": 1 if (cint(private) and target == session) else 0,
 		}
 	).insert()
 	if notify and target != session:
@@ -694,7 +697,7 @@ def share_todo(name, users, date=None):
 
 
 @frappe.whitelist()
-def update_todo(name, description=None, customer=None, due_time=None, date=None):
+def update_todo(name, description=None, customer=None, due_time=None, date=None, private=None):
 	require_staff()
 	doc = frappe.get_doc("Daily Todo", name)
 	_check_todo_owner(doc)
@@ -702,6 +705,8 @@ def update_todo(name, description=None, customer=None, due_time=None, date=None)
 		doc.description = description.strip()
 	doc.customer = customer or None
 	doc.due_time = due_time or None
+	if private is not None and doc.user == frappe.session.user:
+		doc.private = 1 if cint(private) else 0  # validate() rejects it on linked/assigned rows
 	doc.save(ignore_permissions=True)
 	frappe.db.commit()
 	return get_board()
@@ -2376,7 +2381,12 @@ def bring_old_todos():
 
 
 def _check_todo_owner(doc):
-	if doc.user != frappe.session.user and "System Manager" not in frappe.get_roles():
+	session = frappe.session.user
+	if doc.private and doc.user != session:
+		# no manager exception for private rows — even a throw that names
+		# the to-do would leak it, so this is the generic message
+		frappe.throw(_("You can only manage your own to-do list."), frappe.PermissionError)
+	if doc.user != session and "System Manager" not in frappe.get_roles():
 		frappe.throw(_("You can only manage your own to-do list."))
 
 
@@ -2755,6 +2765,7 @@ def get_board():
 		"project",
 		"lead",
 		"lead_title",
+		"private",
 	]
 	local_dates = {u.name: user_today(u.name) for u in users}
 	todos = frappe.get_all(
@@ -2824,6 +2835,12 @@ def get_board():
 
 		utodos = todos_by_user.get(u.name, [])
 		todos_done = sum(1 for t in utodos if t.status == "Done")
+		# private rows leave the board as a count. Totals stay inclusive so
+		# "3/5 done" is still true; the reader just cannot see what two were.
+		todos_private = 0
+		if u.name != session:
+			todos_private = sum(1 for t in utodos if t.private)
+			utodos = [t for t in utodos if not t.private]
 
 		board.append(
 			{
@@ -2838,7 +2855,8 @@ def get_board():
 				"task": task,
 				"summary": summary,
 				"todos_done": todos_done,
-				"todos_total": len(utodos),
+				"todos_total": len(utodos) + todos_private,
+				"todos_private": todos_private,
 				"todos": utodos,
 				"sessions": sessions_by_user.get(u.name, []),
 			}

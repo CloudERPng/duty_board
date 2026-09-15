@@ -1,0 +1,80 @@
+{
+ "doctype": "DocType",
+ "name": "Duty Partner Client",
+ "module": "Duty Board",
+ "custom": 0,
+ "autoname": "format:PTC-{####}",
+ "field_order": [
+  "partner",
+  "customer",
+  "lead",
+  "column_break_1",
+  "rate",
+  "attributed_on",
+  "status"
+ ],
+ "fields": [
+  {
+   "fieldname": "partner",
+   "fieldtype": "Link",
+   "label": "Partner",
+   "options": "Duty Partner",
+   "reqd": 1,
+   "in_list_view": 1
+  },
+  {
+   "fieldname": "customer",
+   "fieldtype": "Link",
+   "label": "Customer",
+   "options": "Customer",
+   "reqd": 1,
+   "in_list_view": 1,
+   "unique": 1
+  },
+  {
+   "fieldname": "lead",
+   "fieldtype": "Link",
+   "label": "Lead",
+   "options": "Duty Lead"
+  },
+  {
+   "fieldname": "column_break_1",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "rate",
+   "fieldtype": "Percent",
+   "label": "Locked Rate (%)",
+   "reqd": 1,
+   "read_only": 1,
+   "description": "The partner's rate on the day this client converted. Never changes."
+  },
+  {
+   "fieldname": "attributed_on",
+   "fieldtype": "Date",
+   "label": "Attributed On",
+   "read_only": 1
+  },
+  {
+   "fieldname": "status",
+   "fieldtype": "Select",
+   "label": "Status",
+   "options": "Active\nEnded",
+   "default": "Active",
+   "in_list_view": 1,
+   "description": "Lifetime of the client. Ended only when the client itself is gone."
+  }
+ ],
+ "permissions": [
+  {
+   "role": "System Manager",
+   "read": 1,
+   "write": 1,
+   "create": 1,
+   "delete": 1
+  }
+ ],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "track_changes": 1
+}

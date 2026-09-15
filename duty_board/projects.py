@@ -244,7 +244,7 @@ def project_risks(project):
 	rows = frappe.get_all(
 		"Duty Project Risk",
 		filters={"project": project},
-		fields=["name", "title", "likelihood", "impact", "mitigation", "owner_user", "status"],
+		fields=["name", "title", "likelihood", "impact", "mitigation", "owner_user", "status", "client_visible"],
 	)
 	for r in rows:
 		r.severity = _RISK_SCORE.get(r.likelihood, 2) * _RISK_SCORE.get(r.impact, 2)
@@ -254,7 +254,7 @@ def project_risks(project):
 
 
 @frappe.whitelist()
-def risk_save(project, title, likelihood="Medium", impact="Medium", mitigation=None, owner_user=None, status="Open", name=None):
+def risk_save(project, title, likelihood="Medium", impact="Medium", mitigation=None, owner_user=None, status="Open", name=None, client_visible=0):
 	"""Create (no name) or update (name given) a risk."""
 	require_staff()
 	title = (title or "").strip()
@@ -267,6 +267,7 @@ def risk_save(project, title, likelihood="Medium", impact="Medium", mitigation=N
 		"mitigation": (mitigation or "").strip()[:1000] or None,
 		"owner_user": owner_user or None,
 		"status": status if status in ("Open", "Mitigating", "Closed") else "Open",
+		"client_visible": 1 if cint(client_visible) else 0,
 	}
 	if name:
 		frappe.db.set_value("Duty Project Risk", name, vals, update_modified=True)
@@ -1550,6 +1551,14 @@ RISK_SCORE = {"Low": 1, "Medium": 2, "High": 3}
 def status_pack(project, days=7):
 	"""Everything that happened this week, and what it means for the plan."""
 	require_staff()
+	return _status_pack(project, days)
+
+
+def _status_pack(project, days=7, client=False):
+	"""The pack itself. client=True is the version the portal serves: the same
+	facts, restricted to rows flagged client_visible and CRs already released,
+	and without effort/critical-path internals — hours burned against a fixed
+	scope are the supplier's problem, not a number to hand a reviewer."""
 	back = abs(cint(days) or 7)
 	since = add_days(nowdate(), -back)
 	today = nowdate()
@@ -1596,16 +1605,22 @@ def status_pack(project, days=7):
 				 if (r.column or "").lower() in ("done", "complete", "completed")]
 
 	# ---- decisions taken in the window
+	dec_f = {"project": project, "decided_on": [">=", since]}
+	if client:
+		dec_f["client_visible"] = 1
 	decs = frappe.get_all(
 		"Duty Project Decision",
-		filters={"project": project, "decided_on": [">=", since]},
+		filters=dec_f,
 		fields=["title", "status", "decided_on", "decided_by", "impact"],
 		order_by="decided_on desc", limit_page_length=0)
 
 	# ---- risks, scored so the order is defensible rather than a matter of taste
 	risks = []
+	risk_f = {"project": project, "status": ["!=", "Closed"]}
+	if client:
+		risk_f["client_visible"] = 1
 	for r in frappe.get_all(
-		"Duty Project Risk", filters={"project": project, "status": ["!=", "Closed"]},
+		"Duty Project Risk", filters=risk_f,
 		fields=["title", "likelihood", "impact", "mitigation", "owner_user", "status"],
 		limit_page_length=0):
 		score = RISK_SCORE.get(r.likelihood, 1) * RISK_SCORE.get(r.impact, 1)
@@ -1616,16 +1631,21 @@ def status_pack(project, days=7):
 	# ---- change requests raised or settled in the window
 	# `title` is not a field on Duty Change Request — the request itself is in
 	# original_request. audit_fields caught this before it reached the page.
+	cr_f = {"project": project, "modified": [">=", since]}
+	if client:
+		cr_f["released"] = 1
 	crs = frappe.get_all(
-		"Duty Change Request", filters={"project": project, "modified": [">=", since]},
+		"Duty Change Request", filters=cr_f,
 		fields=["name", "original_request", "status", "cost_impact", "timeline_impact"],
 		limit_page_length=0)
 
 	# ---- effort, reusing the same calculation the effort screen shows
-	try:
-		eff = project_effort(project)
-	except Exception:
-		eff = {}
+	eff = {}
+	if not client:
+		try:
+			eff = project_effort(project)
+		except Exception:
+			eff = {}
 
 	# ---- what is due next, which is the only forward-looking part
 	nxt = frappe.db.sql(
@@ -1642,12 +1662,14 @@ def status_pack(project, days=7):
 		r["assignee"] = frappe.utils.get_fullname(r["assignee"]) if r["assignee"] else None
 
 	# the schedule question belongs in the weekly document, not only on a screen
+	cp = {}
+	if not client:
+		try:
+			cp = critical_path(project)
+		except Exception:
+			cp = {}
 	try:
-		cp = critical_path(project)
-	except Exception:
-		cp = {}
-	try:
-		dlv = deliverables(project)
+		dlv = deliverables(project, client_only=1 if client else 0)
 	except Exception:
 		dlv = {}
 
@@ -2038,6 +2060,7 @@ def gantt(project):
 			"kind": "task", "id": t.name, "title": t.title,
 			"milestone": t.milestone, "column": t.column,
 			"assignee": frappe.utils.get_fullname(t.assignee) if t.assignee else None,
+			"assignee_user": t.assignee,  # the id, so "mine" is matched by id not by name
 			"start": start, "end": end, "derived": derived,
 			"estimate": flt(t.estimate_hours) or None,
 			"blocked_by": t.blocked_by, "urgency": t.urgency,
