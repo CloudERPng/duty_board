@@ -486,6 +486,7 @@
 	}
 	.m .w { font-size: 11px; font-weight: 700; display: block; margin-bottom: 2px; }
 	.m .tm { font-size: 10px; color: #8A9994; display: block; margin-top: 3px; }
+	.m .mn { color: #087A67; font-weight: 700; }
 	.m.staff { background: #ecfdf5; align-self: flex-start; }
 	.m.staff .w { color: #087A67; }
 	.m.me { background: #e0e7ff; align-self: flex-end; }
@@ -1297,6 +1298,13 @@ function renderPlan(plan, scope) {
 		${scope ? `<span class="muted">Scope: ${esc(scope)}</span>` : ""}
 	</div>`;
 }
+
+/* File links open in a new tab as plain navigation, so the server never sees
+   the xl_room the JSON calls carry; without it a person on more than one
+   room is served their FIRST room, and a file from any other one is 403. */
+function fileUrl(method, key, value) {
+	return `/api/method/duty_board.client_room.${method}?${key}=${encodeURIComponent(value)}${ROOM ? `&xl_room=${encodeURIComponent(ROOM)}` : ""}`;
+}
 function renderRenewal(r, mgr) {
 	const bar = document.getElementById("renewbar");
 	if (!r) { bar.style.display = "none"; return; }
@@ -1341,6 +1349,10 @@ function linkify(escaped) {
 		const core = trail ? u.slice(0, -trail.length) : u;
 		return `<a href="${core}" target="_blank" rel="noopener noreferrer" style="color:#087A67;text-decoration:underline">${core}</a>${trail}`;
 	});
+}
+function mentionify(html) {
+	// "@Molade" → highlighted handle; an email like x@y.com is left alone (no "@" mid-word)
+	return (html || "").replace(/(^|[\s(>])@([A-Za-z0-9._-]*[A-Za-z0-9])/g, (all, pre, h) => `${pre}<span class="mn">@${h}</span>`);
 }
 function stmToggle(i) {
 	const p = document.getElementById("stp_" + i);
@@ -1464,7 +1476,7 @@ function chatRow(m) {
 					window.SESSION_PREV && m.creation > window.SESSION_PREV && !window.DIVIDED
 						? ((window.DIVIDED = true), '<div class="newdiv">— new since your last visit —</div>')
 						: "";
-				return `${divider}<div class="m ${m.mine ? "me" : m.is_staff ? "staff" : "peer"}" data-name="${esc(m.name)}">${m.mine ? "" : avatarFor(m.who === "Administrator" ? "Xlevel Team" : m.who)}<a class="rep" onclick='setReply(${JSON.stringify({ name: m.name, who: m.who, text: (m.message || "📎").slice(0, 80) }).replace(/'/g, "&#39;")})'>↩ reply</a><span class="w">${esc(m.who === "Administrator" ? "Xlevel Team" : m.who)}</span>${qt}${linkify(esc(m.message))}${att}<span class="tm">${esc(smartTime(m.creation))}</span></div>`;
+				return `${divider}<div class="m ${m.mine ? "me" : m.is_staff ? "staff" : "peer"}" data-name="${esc(m.name)}">${m.mine ? "" : avatarFor(m.who === "Administrator" ? "Xlevel Team" : m.who)}<a class="rep" onclick='setReply(${JSON.stringify({ name: m.name, who: m.who, text: (m.message || "📎").slice(0, 80) }).replace(/'/g, "&#39;")})'>↩ reply</a><span class="w">${esc(m.who === "Administrator" ? "Xlevel Team" : m.who)}</span>${qt}${mentionify(linkify(esc(m.message)))}${att}<span class="tm">${esc(smartTime(m.creation))}</span></div>`;
 			}
 }
 
@@ -1577,7 +1589,7 @@ function load() {
 					? stm
 							.map((s, i) =>
 								s.published
-									? `<div class="doc stdoc"><div class="strow"><a href="/api/method/duty_board.client_room.client_statement_file?id=${encodeURIComponent(s.name)}" target="_blank">📊 ${esc(s.label)}</a>${s.publish_seq > 1 ? `<span class="cat">v${s.publish_seq}</span>` : ""}${chip(s)}<a class="stmore" onclick="stmToggle(${i})">💬 ${(s.thread || []).length || ""} ▾</a><span class="dt2">${esc(s.published_on || "")}</span></div>
+									? `<div class="doc stdoc"><div class="strow"><a href="${fileUrl("client_statement_file","id",s.name)}" target="_blank">📊 ${esc(s.label)}</a>${s.publish_seq > 1 ? `<span class="cat">v${s.publish_seq}</span>` : ""}${chip(s)}<a class="stmore" onclick="stmToggle(${i})">💬 ${(s.thread || []).length || ""} ▾</a><span class="dt2">${esc(s.published_on || "")}</span></div>
 									${(s.highlight_lines || []).length ? `<div class="sthl">${s.highlight_lines.map((h) => `<span class="sthlp">${esc(h)}</span>`).join("")}</div>` : ""}
 									<div class="stpanel" id="stp_${i}" style="display:none">
 										${(s.thread || []).map((t) => `<div class="stent ${t.entry_type === "Feedback" ? "me" : ""}"><b>${t.entry_type === "Feedback" ? esc("You") : t.entry_type === "Approval" ? "✅" : esc("Xlevel")}</b> <span class="dt2">${esc(t.when || "")}${t.at_version ? ` · v${t.at_version}` : ""}</span><div>${esc(t.note || "")}</div></div>`).join("") || `<div class="muted">${esc("No comments yet.")}</div>`}
@@ -1627,7 +1639,7 @@ function load() {
 					<div class="dwcats"><a class="dwc ${!window._doccat ? "on" : ""}" data-c="">All</a>${cats.map((c) => `<a class="dwc ${window._doccat === c ? "on" : ""}" data-c="${esc(c)}">${esc(c)}</a>`).join("")}${nSent ? `<a class="dwc dwc-you ${window._doccat === "__you" ? "on" : ""}" data-c="__you">Sent by you · ${nSent}</a>` : ""}</div>
 				</div>
 				<div class="dwlayout"><div id="dwlist"></div><div id="dwprev"><span class="muted">Select a document to preview it here.</span></div></div>`;
-			const url = (d) => `/api/method/duty_board.client_room.client_shelf_file?id=${encodeURIComponent(d.name)}`;
+			const url = (d) => fileUrl("client_shelf_file","id",d.name);
 			const ficon = (fn) => {
 				const ex = (fn || "").split(".").pop().toLowerCase();
 				const map = { pdf: "#C94646", doc: "#2563EB", docx: "#2563EB", xls: "#0E8A63", xlsx: "#0E8A63", png: "#5B4FC7", jpg: "#5B4FC7", jpeg: "#5B4FC7" };
@@ -1655,7 +1667,7 @@ function load() {
 					const ex = (d.file_name || "").split(".").pop().toLowerCase();
 					const u = url(d);
 					const prev = document.getElementById("dwprev");
-					const pu = `/api/method/duty_board.client_room.client_shelf_preview?id=${encodeURIComponent(d.name)}`;
+					const pu = fileUrl("client_shelf_preview","id",d.name);
 					if (ex === "pdf") prev.innerHTML = `<iframe src="${pu}"></iframe>`;
 					else if (["png", "jpg", "jpeg", "gif", "webp"].includes(ex)) prev.innerHTML = `<img src="${pu}">`;
 					else prev.innerHTML = `<div class="dwnop"><b>${esc(d.title)}</b><span class="muted">No inline preview for .${esc(ex)} files.</span><a class="dwbtn" href="${u}" target="_blank">Download</a></div>`;
@@ -2408,7 +2420,7 @@ function loadAdminTraining() {
 							<span class="detmeta">${c.lessons_total ? `${c.lessons_done}/${c.lessons_total}` : ""}</span>
 							${state}
 							<span class="detdue${c.overdue ? " late" : ""}" data-r="${esc(c.record)}" title="Click to change the due date">${c.due_on ? `${c.overdue ? "overdue " : "due "}${esc(String(c.due_on).slice(0, 10))}` : "set a due date"}</span>
-							${c.cert ? `<a href="/api/method/duty_board.client_room.client_shelf_file?id=${esc(c.cert)}" target="_blank">Certificate</a>` : ""}
+							${c.cert ? `<a href="${fileUrl("client_shelf_file","id",c.cert)}" target="_blank">Certificate</a>` : ""}
 						</div>`;
 					}).join("") || `<span class="muted">Nothing assigned.</span>`;
 					box.querySelectorAll(".detdue").forEach((el) =>
@@ -2967,7 +2979,7 @@ function loadTraining() {
 						<div class="lmsmeta">${esc(r.product || "")}${r.lessons_total ? `${r.product ? " \u00b7 " : ""}${r.lessons_total} lesson${r.lessons_total === 1 ? "" : "s"}` : ""}${r.minutes_left && st !== "done" ? ` \u00b7 ${mins(r.minutes_left)} left` : ""}</div>
 						${due}
 						${st === "done"
-							? `<div class="lmsdone">Completed${r.completed_on ? " \u00b7 " + esc(r.completed_on) : ""}</div>${r.cert ? `<div class="certacts"><a href="/api/method/duty_board.client_room.client_shelf_file?id=${esc(r.cert)}" target="_blank" onclick="event.stopPropagation()">Certificate</a></div>` : ""}`
+							? `<div class="lmsdone">Completed${r.completed_on ? " \u00b7 " + esc(r.completed_on) : ""}</div>${r.cert ? `<div class="certacts"><a href="${fileUrl("client_shelf_file","id",r.cert)}" target="_blank" onclick="event.stopPropagation()">Certificate</a></div>` : ""}`
 							: `<div class="lmsbar"><i style="width:${pct}%"></i></div>
 							<div class="lmsfoot"><span class="lmsmeta">${r.lessons_total ? `${r.lessons_done} of ${r.lessons_total} read` : ""}</span>
 							<span class="lmscta">${st === "ready" ? "Take the assessment \u2192" : st === "started" ? "Resume \u2192" : "Start course \u2192"}</span></div>`}
@@ -3031,7 +3043,7 @@ function openAchievement(track) {
 						<span><b>${hrs(s.minutes)}</b> of study</span>
 					</div>
 					<div class="achvsec"><b>What you covered</b>
-						<ol>${(s.courses || []).map((c) => `<li>${esc(c.title)}${c.completed_on ? ` <span class="muted">\u00b7 ${esc(c.completed_on)}</span>` : ""}${c.cert ? ` <a href="/api/method/duty_board.client_room.client_shelf_file?id=${esc(c.cert)}" target="_blank">certificate</a>` : ""}</li>`).join("")}</ol>
+						<ol>${(s.courses || []).map((c) => `<li>${esc(c.title)}${c.completed_on ? ` <span class="muted">\u00b7 ${esc(c.completed_on)}</span>` : ""}${c.cert ? ` <a href="${fileUrl("client_shelf_file","id",c.cert)}" target="_blank">certificate</a>` : ""}</li>`).join("")}</ol>
 					</div>
 					${s.next ? `<div class="achvnext"><b>What next</b>
 						<div class="achvnexttitle">${esc(s.next.title)}</div>
@@ -3626,7 +3638,7 @@ function openTask(id, kind) {
 				? `<div class="atts">` +
 					d.attachments
 						.map((a) => {
-							const u = "/api/method/duty_board.client_room.client_issue_file?fid=" + encodeURIComponent(a.id);
+							const u = fileUrl("client_issue_file","fid",a.id);
 							return a.is_image
 								? `<a href="${u}" target="_blank"><img src="${u}"></a>`
 								: `<a class="fcard" href="${u}" target="_blank"><span class="fci"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8Z"/><path d="M14 2v6h6"/></svg></span><span class="fcn">${esc(a.file_name)}</span><span class="fcd">Download</span></a>`;
@@ -4071,6 +4083,7 @@ function send() {
 	const v = el.value.trim();
 	if (!v && !PENDING) return;
 	el.value = "";
+	const picked = keptMentions(v);
 	uploadPending()
 		.then((up) =>
 			api("client_post_message", {
@@ -4078,9 +4091,11 @@ function send() {
 				attachment_url: up ? up.url : null,
 				attachment_name: up ? up.name : null,
 				ref: REPLY ? REPLY.name : null,
+				mentions: JSON.stringify(picked),
 			})
 		)
 		.then((d) => {
+			MENTIONS = [];
 			REPLY = null;
 			document.getElementById("replychip").innerHTML = "";
 			showAfterHours(d && d.after_hours);
@@ -4130,32 +4145,60 @@ function requestTask() {
 		})
 		.catch(fail);
 }
+/* ---- @ mentions: pick from the room directory, send the picks explicitly ----
+   STAFF is the room's service team plus your colleagues (names only). A pick
+   inserts "@First " and remembers who that was; send() forwards the picks whose
+   handle is still in the text, so the server never has to guess from a first
+   name. Freehand "@name" still works server-side. Picks fire on pointerdown so
+   a tap on a phone lands before the keyboard steals focus. */
 let STAFF = [];
-api("client_get_staff").then((s) => (STAFF = s || [])).catch(() => {});
+let MENTIONS = [];
+let BRAND = "Xlevel";
 const ta = document.getElementById("text");
 const mdd = document.getElementById("mdd");
+const PICK_EV = window.PointerEvent ? "pointerdown" : "mousedown";
+api("client_get_staff").then((s) => {
+	STAFF = s || [];
+	const b = STAFF.find((x) => x.brand);
+	if (b && b.brand) BRAND = b.brand;
+	ta.placeholder = `Write to the ${BRAND} team… @ to mention someone`;
+}).catch(() => {});
 function frag() {
 	const pos = ta.selectionStart;
-	const m = ta.value.slice(0, pos).match(/@([A-Za-z]*)$/);
+	const m = ta.value.slice(0, pos).match(/@([A-Za-z0-9._-]*)$/);
 	return m ? { start: pos - m[0].length, q: m[1].toLowerCase(), pos: pos } : null;
+}
+function pickerMatch(s, q) {
+	if (!q) return true;
+	return s.first.toLowerCase().startsWith(q)
+		|| s.full.toLowerCase().split(/[\s._-]+/).some((w) => w.startsWith(q));
+}
+function pickMention(s) {
+	const f2 = frag();
+	if (!f2) return;
+	ta.value = ta.value.slice(0, f2.start) + "@" + s.first + " " + ta.value.slice(f2.pos);
+	if (!MENTIONS.some((m) => m.full === s.full && m.kind === s.kind)) MENTIONS.push({ first: s.first, full: s.full, kind: s.kind });
+	mdd.style.display = "none";
+	ta.focus();
 }
 function pickerRender() {
 	const f = frag();
 	if (!f) { mdd.style.display = "none"; return; }
-	const opts = STAFF.filter((s) => s.first.toLowerCase().startsWith(f.q)).slice(0, 8);
+	const opts = STAFF.filter((s) => pickerMatch(s, f.q)).slice(0, 8);
 	if (!opts.length) { mdd.style.display = "none"; return; }
-	mdd.innerHTML = opts.map((s) => `<a data-f="${esc(s.first)}">${esc(s.full)}${s.kind === "colleague" ? ' <span style="color:#8A9994;font-weight:400">· your team</span>' : ' <span style="color:#8A9994;font-weight:400">· Xlevel</span>'}</a>`).join("");
+	mdd.innerHTML = opts.map((s, i) => `<a data-i="${i}">${esc(s.full)} <span style="color:#8A9994;font-weight:400">· ${s.kind === "colleague" ? "your team" : esc(s.brand || BRAND)}</span></a>`).join("");
 	mdd.style.display = "flex";
-	[...mdd.querySelectorAll("a")].forEach((a) =>
-		a.addEventListener("mousedown", (e) => {
+	[...mdd.querySelectorAll("a")].forEach((a) => {
+		a.addEventListener(PICK_EV, (e) => {
 			e.preventDefault();
-			const f2 = frag();
-			if (!f2) return;
-			ta.value = ta.value.slice(0, f2.start) + "@" + a.dataset.f + " " + ta.value.slice(f2.pos);
-			mdd.style.display = "none";
-			ta.focus();
-		})
-	);
+			pickMention(opts[Number(a.dataset.i)]);
+		});
+		// the compat mousedown that may still follow a cancelled pointerdown must not move focus either
+		if (PICK_EV !== "mousedown") a.addEventListener("mousedown", (e) => e.preventDefault());
+	});
+}
+function keptMentions(text) {
+	return MENTIONS.filter((m) => text.includes("@" + m.first)).map((m) => m.full);
 }
 ta.addEventListener("input", pickerRender);
 ta.addEventListener("click", pickerRender);
@@ -4164,7 +4207,7 @@ ta.addEventListener("keydown", (e) => {
 	if (e.key === "Enter" && mdd.style.display === "flex") {
 		e.preventDefault();
 		const first = mdd.querySelector("a");
-		if (first) first.dispatchEvent(new Event("mousedown"));
+		if (first) first.dispatchEvent(new Event(PICK_EV, { cancelable: true }));
 		return;
 	}
 	if (e.key === "Escape") mdd.style.display = "none";

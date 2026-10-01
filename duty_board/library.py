@@ -150,6 +150,8 @@ def open_book(book):
 			"file_url": b.source_file,
 			"page_count": cint(b.page_count),
 			"page": max(1, cint(p.page)) if p else 1,
+			"comic": (b.category or "").strip().lower() == "comic",
+			"rtl": (b.reading_direction or "") == "Right to left",
 			"last_read_at": str(p.last_read_at) if p and p.last_read_at else None,
 			"chapters": [], "done": [], "current": None, "scroll_pct": 0, "content": "",
 		}
@@ -374,6 +376,80 @@ def _pdf_to_chapters(content_bytes):
 	return out, method
 
 
+COMIC_EXTS = (".cbz", ".cbr")
+IMAGE_EXTS = (".jpg", ".jpeg", ".png", ".webp", ".gif", ".bmp")
+
+
+def _looks_manga(title, description):
+	t = f"{title or ''} {description or ''}".lower()
+	return any(k in t for k in ("manga", "manhwa", "tankobon", "shonen", "shojo", "seinen"))
+
+
+def _natural_key(name):
+	"""'page2.jpg' before 'page10.jpg' — the order a comic was scanned in."""
+	import re
+
+	return [int(t) if t.isdigit() else t.lower() for t in re.split(r"(\d+)", name)]
+
+
+def _comic_to_pdf(content_bytes, file_name):
+	"""A CBZ (zip) or CBR (rar) of page images, joined into one PDF in reading
+	order. Returns (pdf_bytes, page_count). The PDF path then treats it like
+	any other page-image book — rendering, page memory, covers and offline all
+	come for free, which is the whole point of not building a comic reader.
+
+	CBR needs the `rarfile` module and an `unrar` binary on the server; if
+	either is missing the error says so plainly rather than failing deep."""
+	import io
+
+	from PIL import Image
+
+	low = (file_name or "").lower()
+	names, read = [], None
+	if low.endswith(".cbz"):
+		import zipfile
+
+		zf = zipfile.ZipFile(io.BytesIO(content_bytes))
+		names = [n for n in zf.namelist() if not n.endswith("/")]
+		read = zf.read
+	elif low.endswith(".cbr"):
+		try:
+			import rarfile
+		except ImportError:
+			frappe.throw(_("CBR needs the rarfile package: bench pip install rarfile"))
+		try:
+			rf = rarfile.RarFile(io.BytesIO(content_bytes))
+			names = [i.filename for i in rf.infolist() if not i.isdir()]
+			read = rf.read
+		except rarfile.RarCannotExec:
+			frappe.throw(_("CBR needs the unrar tool on the server: sudo apt install unrar"))
+	else:
+		frappe.throw(_("Not a comic archive."))
+	pages = sorted(
+		[n for n in names if n.lower().endswith(IMAGE_EXTS) and not n.split("/")[-1].startswith((".", "__"))],
+		key=_natural_key,
+	)
+	if not pages:
+		frappe.throw(_("No page images found inside this archive."))
+	images = []
+	for n in pages:
+		try:
+			im = Image.open(io.BytesIO(read(n)))
+			im.load()
+			if im.mode in ("RGBA", "P", "LA"):
+				im = im.convert("RGB")
+			elif im.mode != "RGB":
+				im = im.convert("RGB")
+			images.append(im)
+		except Exception:
+			continue  # a corrupt page is skipped, not fatal
+	if not images:
+		frappe.throw(_("None of the pages in this archive could be read as images."))
+	out = io.BytesIO()
+	images[0].save(out, format="PDF", save_all=True, append_images=images[1:], resolution=150.0)
+	return out.getvalue(), len(images)
+
+
 def _pdf_page_count(content_bytes):
 	import io
 	from pypdf import PdfReader
@@ -385,7 +461,23 @@ def _convert_job(file_url, title, author, description, requested_by, category=No
 	fname = frappe.db.get_value("File", {"file_url": file_url}, "name")
 	fdoc = frappe.get_doc("File", fname)
 	fmt, chapters, page_count = "Text", [], 0
-	if (fdoc.file_name or "").lower().endswith(".epub"):
+	is_comic = (fdoc.file_name or "").lower().endswith(COMIC_EXTS)
+	if is_comic:
+		# join the page images into a PDF and swap the File's content for it,
+		# so everything downstream sees a plain page-image book
+		pdf_bytes, page_count = _comic_to_pdf(fdoc.get_content(), fdoc.file_name)
+		new_name = fdoc.file_name.rsplit(".", 1)[0] + ".pdf"
+		pdf_doc = frappe.get_doc({
+			"doctype": "File", "file_name": new_name, "is_private": 1, "content": pdf_bytes,
+		}).insert(ignore_permissions=True)
+		file_url = pdf_doc.file_url
+		fdoc = pdf_doc
+		fname = pdf_doc.name
+		fmt = "PDF"
+		category = category or "Comic"
+	if is_comic:
+		pass  # already a page-image PDF with its page_count; nothing else to convert
+	elif (fdoc.file_name or "").lower().endswith(".epub"):
 		chapters, meta_title, meta_author = _epub_to_chapters(fdoc.get_content())
 		title = title or meta_title
 		author = author or meta_author
@@ -413,6 +505,7 @@ def _convert_job(file_url, title, author, description, requested_by, category=No
 			"source_file": file_url if fmt == "PDF" else None,
 			"page_count": page_count,
 			"chapter_count": len(chapters),
+			"reading_direction": "Right to left" if (is_comic and _looks_manga(title, description)) else "Left to right",
 		}
 	).insert(ignore_permissions=True)
 	if fmt == "PDF":

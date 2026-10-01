@@ -1,0 +1,169 @@
+{
+ "actions": [],
+ "allow_rename": 0,
+ "autoname": "field:user",
+ "creation": "2026-09-20 18:00:00.000000",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "user",
+  "active",
+  "working_days",
+  "column_break_1",
+  "work_start",
+  "work_end",
+  "break_start",
+  "break_end",
+  "standup_section",
+  "standup",
+  "standup_topic",
+  "standup_start",
+  "standup_mins",
+  "notify_section",
+  "notify_email",
+  "notify_push",
+  "budgets_section",
+  "budgets"
+ ],
+ "fields": [
+  {
+   "fieldname": "user",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "User",
+   "options": "User",
+   "reqd": 1,
+   "unique": 1
+  },
+  {
+   "default": "1",
+   "fieldname": "active",
+   "fieldtype": "Check",
+   "in_list_view": 1,
+   "label": "Active"
+  },
+  {
+   "default": "Mon,Tue,Wed,Thu,Fri",
+   "description": "Comma-separated day names. Public holidays and leave are skipped automatically.",
+   "fieldname": "working_days",
+   "fieldtype": "Data",
+   "label": "Working Days"
+  },
+  {
+   "fieldname": "column_break_1",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "09:00:00",
+   "fieldname": "work_start",
+   "fieldtype": "Time",
+   "label": "Work Start",
+   "reqd": 1
+  },
+  {
+   "default": "20:00:00",
+   "fieldname": "work_end",
+   "fieldtype": "Time",
+   "label": "Work End",
+   "reqd": 1
+  },
+  {
+   "default": "15:00:00",
+   "description": "No meeting or block is placed in the break, and the booking tools never offer it.",
+   "fieldname": "break_start",
+   "fieldtype": "Time",
+   "label": "Break Start"
+  },
+  {
+   "default": "17:00:00",
+   "fieldname": "break_end",
+   "fieldtype": "Time",
+   "label": "Break End"
+  },
+  {
+   "fieldname": "standup_section",
+   "fieldtype": "Section Break",
+   "label": "Daily Standup"
+  },
+  {
+   "default": "1",
+   "description": "Everyone but external consultants, as a meeting with no room, so nobody is mailed about it every day.",
+   "fieldname": "standup",
+   "fieldtype": "Check",
+   "label": "Put a daily standup on everyone's calendar"
+  },
+  {
+   "default": "Daily standup",
+   "fieldname": "standup_topic",
+   "fieldtype": "Data",
+   "label": "Standup Topic"
+  },
+  {
+   "default": "08:30:00",
+   "fieldname": "standup_start",
+   "fieldtype": "Time",
+   "label": "Standup Start"
+  },
+  {
+   "default": "30",
+   "fieldname": "standup_mins",
+   "fieldtype": "Int",
+   "label": "Standup Minutes"
+  },
+  {
+   "fieldname": "notify_section",
+   "fieldtype": "Section Break",
+   "label": "Morning Brief (08:00)"
+  },
+  {
+   "default": "1",
+   "fieldname": "notify_email",
+   "fieldtype": "Check",
+   "label": "Email"
+  },
+  {
+   "default": "1",
+   "fieldname": "notify_push",
+   "fieldtype": "Check",
+   "label": "Push"
+  },
+  {
+   "fieldname": "budgets_section",
+   "fieldtype": "Section Break",
+   "label": "Budgets"
+  },
+  {
+   "description": "Daily = hours a day. Weekly = hours a week, spread over the days left; a rotation list means one item a week (ISO week number decides). Fixed = a daily block at a set time. Slack = hours a day kept free.",
+   "fieldname": "budgets",
+   "fieldtype": "Table",
+   "label": "Budgets",
+   "options": "Duty Day Plan Budget"
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "links": [],
+ "modified": "2026-09-20 18:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "Duty Board",
+ "name": "Duty Day Plan",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [],
+ "track_changes": 1
+}

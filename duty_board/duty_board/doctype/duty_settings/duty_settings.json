@@ -50,7 +50,13 @@
   "partner_section",
   "partner_lead_owner",
   "partner_commissionable",
-  "partner_wht_rate"
+  "partner_wht_rate",
+  "portal_section",
+  "default_brand",
+  "shelf_categories",
+  "wealth_section",
+  "wealth_target",
+  "wealth_tranches"
  ],
  "fields": [
   {
@@ -334,11 +340,49 @@
    "label": "Default WHT Rate (%)",
    "default": "5",
    "description": "Withholding tax deducted from partner statements unless the partner record sets its own. Confirm the applicable rate with your accountant."
+  },
+  {
+   "fieldname": "portal_section",
+   "fieldtype": "Section Break",
+   "label": "Client Portal"
+  },
+  {
+   "default": "Xlevel",
+   "description": "How the company reads to clients in emails and on the portal \u2014 e.g. Xlevel. A room's own Brand overrides this.",
+   "fieldname": "default_brand",
+   "fieldtype": "Data",
+   "label": "Default Brand"
+  },
+  {
+   "default": "Guide\nAgreement\nProposal\nMonthly Report\nStatement\nMinutes\nCertificate\nOther",
+   "description": "One per line. Staff pick from this list when publishing to a client's shelf, so the client's category chips stay tidy. Empty = free text.",
+   "fieldname": "shelf_categories",
+   "fieldtype": "Small Text",
+   "label": "Shelf Categories"
+  },
+  {
+   "fieldname": "wealth_section",
+   "fieldtype": "Section Break",
+   "label": "Currency Target"
+  },
+  {
+   "default": "NGN 40, GBP 40, USD 20",
+   "description": "Your target split of total wealth by naira value. One per line or comma-separated as CURRENCY PERCENT (e.g. NGN 40, GBP 40, USD 20). Must add to 100. Drives \u201chow to apportion the next inflow\u201d on the Currency exposure card.",
+   "fieldname": "wealth_target",
+   "fieldtype": "Small Text",
+   "label": "Wealth Target Mix"
+  },
+  {
+   "default": "5000000, 10000000, 20000000",
+   "description": "The inflow amounts (in naira) the apportion tool plans for. Comma-separated.",
+   "fieldname": "wealth_tranches",
+   "fieldtype": "Small Text",
+   "label": "Apportion Tranches (NGN)"
   }
  ],
  "issingle": 1,
  "links": [],
- "modified": "2026-08-02 19:23:18.538617",
+ "modified": "2026-09-21 16:00:00.000000",
  "modified_by": "Administrator",
  "module": "Duty Board",
  "name": "Duty Settings",

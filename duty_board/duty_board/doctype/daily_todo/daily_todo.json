@@ -10,6 +10,10 @@
   "full_name",
   "date",
   "due_time",
+  "duration_mins",
+  "plan_key",
+  "planned",
+  "pinned",
   "column_break_1",
   "description",
   "customer",
@@ -79,11 +83,11 @@
    "options": "Open\nDone"
   },
   {
+   "default": "0",
+   "description": "Only the owner can see it. Others see a count on the team board, nothing more. Cannot be set on a to-do someone else assigned or one linked to a project, issue or lead.",
    "fieldname": "private",
    "fieldtype": "Check",
-   "label": "Private",
-   "default": "0",
-   "description": "Only the owner can see it. Others see a count on the team board, nothing more. Cannot be set on a to-do someone else assigned or one linked to a project, issue or lead."
+   "label": "Private"
   },
   {
    "fieldname": "completed_at",
@@ -95,6 +99,30 @@
    "fieldname": "due_time",
    "fieldtype": "Time",
    "label": "Due Time"
+  },
+  {
+   "description": "Set by the day planner; a timed to-do without one counts as 30 minutes.",
+   "fieldname": "duration_mins",
+   "fieldtype": "Int",
+   "label": "Duration (mins)"
+  },
+  {
+   "description": "Which day-plan budget this block belongs to.",
+   "fieldname": "plan_key",
+   "fieldtype": "Data",
+   "label": "Plan Key"
+  },
+  {
+   "description": "Created by the day planner.",
+   "fieldname": "planned",
+   "fieldtype": "Check",
+   "label": "Planned"
+  },
+  {
+   "description": "Placed by hand — the planner leaves it where it is.",
+   "fieldname": "pinned",
+   "fieldtype": "Check",
+   "label": "Pinned"
   },
   {
    "fieldname": "assigned_by",
@@ -144,7 +172,7 @@
  ],
  "index_web_pages_for_search": 0,
  "links": [],
- "modified": "2026-07-09 09:00:00.000000",
+ "modified": "2026-09-20 18:00:00.000000",
  "modified_by": "Administrator",
  "module": "Duty Board",
  "name": "Daily Todo",

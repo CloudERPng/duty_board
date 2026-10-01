@@ -22,6 +22,7 @@
   "format",
   "source_file",
   "page_count",
+  "reading_direction",
   "cover"
  ],
  "fields": [
@@ -140,6 +141,15 @@
    "label": "Page Count"
   },
   {
+   "default": "Left to right",
+   "depends_on": "eval:doc.format=='PDF'",
+   "description": "Comics and manga: which way the pages turn. Right to left for manga.",
+   "fieldname": "reading_direction",
+   "fieldtype": "Select",
+   "label": "Reading Direction",
+   "options": "Left to right\nRight to left"
+  },
+  {
    "fieldname": "cover",
    "fieldtype": "Attach Image",
    "label": "Cover"
@@ -148,7 +158,7 @@
  "index_web_pages_for_search": 0,
  "istable": 0,
  "links": [],
- "modified": "2026-07-30 09:00:00",
+ "modified": "2026-09-26 15:00:00.000000",
  "modified_by": "Administrator",
  "module": "Duty Board",
  "name": "Duty Book",

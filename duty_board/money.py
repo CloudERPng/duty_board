@@ -129,7 +129,7 @@ def overview(rates=None):
 	orders = frappe.get_all(
 		"Duty Standing Order",
 		fields=["name", "title", "from_account", "to_account", "amount", "active",
-				"frequency", "next_date", "auto_post", "counterparty", "last_posted"],
+				"frequency", "next_date", "auto_post", "counterparty", "last_posted", "remind_days"],
 		order_by="active desc, next_date asc",
 		limit_page_length=0,
 	)
@@ -623,13 +623,173 @@ def shortfall_watch():
 			  _shell(_("Shortfall ahead"), inner))
 
 
+def _order_rows(horizon_days=None):
+	"""Active standing orders with a date, oldest due first, each with the
+	account's nickname and currency and `days` (negative = overdue)."""
+	today = getdate(nowdate())
+	accounts = {
+		a.name: a
+		for a in frappe.get_all(
+			"Duty Bank Account", fields=["name", "nickname", "currency"], limit_page_length=0
+		)
+	}
+	out = []
+	for o in frappe.get_all(
+		"Duty Standing Order",
+		filters={"active": 1},
+		fields=["name", "title", "from_account", "amount", "frequency", "next_date",
+				"auto_post", "counterparty", "remind_days"],
+		order_by="next_date asc",
+		limit_page_length=0,
+	):
+		if not o.next_date:
+			continue
+		o.days = (getdate(o.next_date) - today).days
+		if horizon_days is not None and o.days > horizon_days:
+			continue
+		a = accounts.get(o.from_account)
+		o.account = a.nickname if a else (o.from_account or "")
+		o.currency = a.currency if a else ""
+		out.append(o)
+	return out
+
+
+def _order_line(o, when=None):
+	how = _("posts automatically") if cint(o.auto_post) else _("pay by hand")
+	payee = f" · {frappe.utils.escape_html(o.counterparty)}" if o.counterparty else ""
+	when = when or str(o.next_date)
+	return (
+		f'<tr><td style="padding:5px 10px;border-bottom:1px solid #EDF2EF;font-size:12.5px">'
+		f'<b>{frappe.utils.escape_html(o.title)}</b>{payee}<br>'
+		f'<span style="color:#6B7772;font-size:11.5px">{frappe.utils.escape_html(o.account)} · {how}</span></td>'
+		f'<td style="padding:5px 10px;border-bottom:1px solid #EDF2EF;font-size:12.5px;white-space:nowrap">{when}</td>'
+		f'<td style="padding:5px 10px;border-bottom:1px solid #EDF2EF;font-size:12.5px;text-align:right;white-space:nowrap">'
+		f'{o.currency} {flt(o.amount):,.2f}</td></tr>'
+	)
+
+
+def _totals_line(rows):
+	"""Per currency, never added together."""
+	tot = {}
+	for o in rows:
+		tot[o.currency] = tot.get(o.currency, 0) + flt(o.amount)
+	return " · ".join(f"{c} {v:,.2f}" for c, v in sorted(tot.items()))
+
+
+def _money_notice(subject, title, inner, push_title, push_body):
+	"""Email (the shell every Duty Board mail wears) plus a desk/push nudge,
+	to the same people the shortfall watch tells."""
+	from duty_board.api import _notify_user
+	from duty_board.notify import _send, _shell
+
+	for u in _money_admins():
+		try:
+			_send(u, subject, _shell(title, inner))
+		except Exception:
+			frappe.log_error(frappe.get_traceback()[-1200:], "money notice email")
+		try:
+			_notify_user(u, push_title, push_body)
+		except Exception:
+			frappe.log_error(frappe.get_traceback()[-1200:], "money notice push")
+
+
+def due_notices():
+	"""The nudge the shortfall watch never sends: a payment is coming, or is
+	due today, or (hand-paid) went past its date and nobody pressed Paid.
+
+	Per order, `remind_days` before the date and again on the day; hand-paid
+	orders past their date every morning until they are posted or skipped.
+	Auto-post orders past their date are the 06:00 run's business — it posts
+	them or emails that it could not — so they are not repeated here.
+	Silent when there is nothing to say.
+
+	cron: 0 7 * * *
+	"""
+	lead, today_due, overdue = [], [], []
+	for o in _order_rows():
+		rd = cint(o.remind_days) if o.remind_days is not None else 3
+		if o.days == 0:
+			today_due.append(o)
+		elif o.days > 0 and rd > 0 and o.days == rd:
+			lead.append(o)
+		elif o.days < 0 and not cint(o.auto_post):
+			overdue.append(o)
+	if not (lead or today_due or overdue):
+		return {"sent": 0}
+
+	def block(heading, rows, colour, when=None):
+		if not rows:
+			return ""
+		lines = "".join(_order_line(o, when(o) if when else None) for o in rows)
+		return (
+			f'<div style="margin:0 0 18px"><div style="font-weight:800;font-size:14px;color:{colour};margin-bottom:6px">'
+			f'{heading}</div><table style="border-collapse:collapse;width:100%">{lines}</table></div>'
+		)
+
+	inner = (
+		block(_("Due today"), today_due, "#C94646")
+		+ block(_("Overdue — not yet posted"), overdue, "#8A5A0B", lambda o: _("{0}d ago · {1}").format(-o.days, o.next_date))
+		+ block(_("Coming up"), lead, "#0F5C55", lambda o: _("in {0}d · {1}").format(o.days, o.next_date))
+		+ f'<p style="font-size:12px;color:#6B7772">{_("Post or skip hand-paid ones from Money; the amounts above are what each account will lose.")}</p>'
+	)
+	n = len(lead) + len(today_due) + len(overdue)
+	parts = []
+	if today_due:
+		parts.append(_("{0} due today").format(len(today_due)))
+	if overdue:
+		parts.append(_("{0} overdue").format(len(overdue)))
+	if lead:
+		parts.append(_("{0} coming up").format(len(lead)))
+	subject = "[Money] " + ", ".join(parts)
+	first = (today_due or overdue or lead)[0]
+	push_body = "; ".join(
+		f"{o.title} {o.currency} {flt(o.amount):,.0f}" for o in (today_due + overdue + lead)[:3]
+	)
+	_money_notice(subject, _("Payments due"), inner, "💳 " + ", ".join(parts), push_body)
+	return {"sent": n, "today": [o.name for o in today_due], "overdue": [o.name for o in overdue], "lead": [o.name for o in lead]}
+
+
+def monday_digest():
+	"""Everything falling due in the next seven days (hand-paid overdue
+	included), by day, with per-currency totals. Silent when the week is
+	clear — an empty digest is noise.
+
+	cron: 0 7 * * 1
+	"""
+	rows = [o for o in _order_rows(WINDOW_DAYS) if o.days >= 0 or not cint(o.auto_post)]
+	if not rows:
+		return {"sent": 0}
+	by_day = {}
+	for o in rows:
+		by_day.setdefault(str(o.next_date), []).append(o)
+	blocks = ""
+	for day in sorted(by_day):
+		day_rows = by_day[day]
+		d0 = day_rows[0].days
+		label = _("Overdue") if d0 < 0 else _("Today") if d0 == 0 else frappe.utils.formatdate(day, "EEE d MMM")
+		lines = "".join(_order_line(o, label) for o in day_rows)
+		blocks += f'<table style="border-collapse:collapse;width:100%;margin-bottom:6px">{lines}</table>'
+	inner = (
+		f'<p style="font-size:13.5px"><b>{len(rows)}</b> {_("payment(s) this week")} — {_totals_line(rows)}</p>'
+		+ blocks
+	)
+	_money_notice(
+		"[Money] %d payment(s) this week — %s" % (len(rows), _totals_line(rows)),
+		_("This week's payments"),
+		inner,
+		"💳 " + _("This week: {0} payment(s)").format(len(rows)),
+		_totals_line(rows),
+	)
+	return {"sent": len(rows), "orders": [o.name for o in rows]}
+
+
 @frappe.whitelist()
 def save_standing_order(name=None, **kwargs):
 	"""Create or amend one. The full list had no way to edit or stop an order —
 	they could be created and then only skipped, one month at a time."""
 	require_sysadmin()
 	allowed = ("title", "from_account", "to_account", "amount", "frequency",
-			   "next_date", "active", "auto_post", "counterparty", "note")
+			   "next_date", "active", "auto_post", "counterparty", "note", "remind_days")
 	doc = frappe.get_doc("Duty Standing Order", name) if name else frappe.new_doc("Duty Standing Order")
 	for k in allowed:
 		if k in kwargs and kwargs[k] is not None:
@@ -752,6 +912,56 @@ def statement(account, days=180):
 	}
 
 
+MONTH_LABELS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
+
+
+def _renewal_months(rows):
+	"""The year's renewal income by calendar month, January to December —
+	where the book is strong and where it is thin.
+
+	Each customer lands in the month of their renewal date, whatever the
+	year: renewals are annual, so the month is the thing that repeats. The
+	yardstick currency is the one most customers pay in; a month is `weak`
+	when its yardstick total is under half the twelve-month average (empty
+	months included in the average, since an empty month is the point).
+	Other currencies are shown beside, never added in.
+	"""
+	months = [{"month": m, "label": MONTH_LABELS[m - 1], "customers": 0, "by": {}, "items": []} for m in range(1, 13)]
+	ccy_count = {}
+	for r in rows:
+		if not r.renewal_date:
+			continue
+		m = getdate(r.renewal_date).month
+		ccy = r.default_currency or "NGN"
+		amt = flt(r.monthly_fee)
+		slot = months[m - 1]
+		slot["customers"] += 1
+		slot["by"][ccy] = slot["by"].get(ccy, 0.0) + amt
+		slot["items"].append({"customer": r.name, "name": r.customer_name or r.name, "amount": amt, "currency": ccy,
+							  "day": getdate(r.renewal_date).day})
+		ccy_count[ccy] = ccy_count.get(ccy, 0) + 1
+	yardstick = max(ccy_count, key=ccy_count.get) if ccy_count else "NGN"
+	ys = [flt(s["by"].get(yardstick, 0.0)) for s in months]
+	mean = sum(ys) / 12.0
+	peak = max(ys) if ys else 0.0
+	for s, y in zip(months, ys):
+		s["totals"] = [{"currency": c, "amount": v} for c, v in sorted(s["by"].items())]
+		s["yardstick_total"] = y
+		s["share"] = (y / peak) if peak else 0.0
+		s["weak"] = bool(mean) and y < mean * 0.5
+		s["items"].sort(key=lambda i: (-i["amount"], i["name"]))
+		del s["by"]
+	return {
+		"yardstick": yardstick,
+		"mean": mean,
+		"peak": peak,
+		"current": getdate(nowdate()).month,
+		"weak": [s["label"] for s in months if s["weak"]],
+		"strongest": max(months, key=lambda s: s["yardstick_total"])["label"] if peak else None,
+		"rows": months,
+	}
+
+
 @frappe.whitelist()
 def renewals(horizon=90):
 	"""Customers whose annual renewal falls due, bucketed by how soon.
@@ -854,6 +1064,7 @@ def renewals(horizon=90):
 		"totals": total(book_items),
 		"no_fee": len([i for i in book_items if not i["amount"]]),
 	}
+	out["months"] = _renewal_months(rows)
 	out["missing"] = cint(frappe.db.count(
 		"Customer", {"renewal_date": ["is", "not set"], "disabled": 0}))
 	out["no_fee"] = len([i for b in buckets.values() for i in b if not i["amount"]])

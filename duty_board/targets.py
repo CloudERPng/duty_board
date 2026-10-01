@@ -207,7 +207,8 @@ def targets():
 	rows = frappe.get_all(
 		"Duty Growth Target", filters={"active": 1},
 		fields=["name", "title", "target_kind", "account", "currency",
-				"monthly_amount", "start_month", "baseline", "note"],
+				"monthly_amount", "start_month", "baseline", "note",
+				"cadence", "start_date"],
 		order_by="target_kind asc, title asc", limit_page_length=0)
 	if not rows:
 		return {"targets": [], "month": _month_key()}
@@ -307,6 +308,7 @@ def targets():
 			"state": ("met" if still <= 0.005
 					  else "behind" if carried > 0.005 else "due"),
 			"cadence": t.get("cadence") or "Monthly",
+			"start_date": str(t.get("start_date")) if t.get("start_date") else None,
 			"cadence_label": _cadence_label(t),
 			"per_period": monthly,
 			"periods": elapsed,

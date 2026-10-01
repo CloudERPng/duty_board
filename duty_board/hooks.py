@@ -7,8 +7,6 @@ app_license = "MIT"
 
 scheduler_events = {
     "monthly": ["duty_board.partners.generate_statements_job"],
-    # 07:00 site time — the day ahead for each client's administrators
-    "0 7 * * *": ["duty_board.client_room.daily_client_brief"],
     "daily": [
         "duty_board.accounting.scheduled_open_period",
     ],
@@ -22,11 +20,11 @@ scheduler_events = {
             "duty_board.tasks.weekly_digest",
             # Monday portfolio aging — the Oversight face as an email
             "duty_board.notify.weekly_aging_digest",
+            "duty_board.money.monday_digest",
         ],
         # Monday 08:00 site time — weekly pulse into each client room
         "0 8 * * 1": ["duty_board.client_room.weekly_room_pulse"],
         "0 7 1 * *": ["duty_board.client_room.monthly_service_reports"],
-        "0 6 * * *": ["duty_board.projects.run_recurring"],
         "30 9 * * 1-5": ["duty_board.accounting.books_client_chase"],
         "0 18 * * 1-5": [
             "duty_board.accounting.books_evening_digest",
@@ -51,12 +49,11 @@ scheduler_events = {
         # The source updates daily, so hourly would be eight requests for the
         # same numbers — and the strip carries its own timestamp anyway.
         "0 13,17 * * 1-5": ["duty_board.shares.scheduled_fetch_tape"],
-        # standing orders post themselves, because they run at the bank whether
-        # or not anybody opens this — the ledger mirrors reality rather than
-        # waiting to be told
-        "0 6 * * *": ["duty_board.money.run_due_standing_orders"],
-        # then the shortfall watch, after the day's postings have landed
-        "0 7 * * *": ["duty_board.money.shortfall_watch"],
+        # 06:00 — standing orders post themselves, then recurring project tasks
+        "0 6 * * *": ["duty_board.money.run_due_standing_orders", "duty_board.projects.run_recurring"],
+        "0 8 * * *": ["duty_board.dayplan.morning_plan"],
+        # 07:00 — shortfall watch after the day's postings, then each client's daily brief
+        "0 7 * * *": ["duty_board.money.shortfall_watch", "duty_board.money.due_notices", "duty_board.client_room.daily_client_brief"],
     },
     "hourly": [
         "duty_board.document_hub.doctype.client_document.client_document.alert_stale_checkouts",

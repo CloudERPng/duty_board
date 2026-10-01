@@ -17,7 +17,8 @@
   "auto_post",
   "last_posted",
   "counterparty",
-  "note"
+  "note",
+  "remind_days"
  ],
  "fields": [
   {
@@ -102,10 +103,17 @@
    "fieldname": "note",
    "fieldtype": "Small Text",
    "label": "Note"
+  },
+  {
+   "default": "3",
+   "description": "An email and a push at 07:00 this many days before it falls due, and again on the day. 0 = only on the day.",
+   "fieldname": "remind_days",
+   "fieldtype": "Int",
+   "label": "Remind (days before)"
   }
  ],
  "links": [],
- "modified": "2026-08-23 00:00:00.000000",
+ "modified": "2026-09-18 15:10:00.000000",
  "modified_by": "Administrator",
  "module": "Duty Board",
  "name": "Duty Standing Order",

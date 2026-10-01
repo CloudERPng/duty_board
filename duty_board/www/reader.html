@@ -1,0 +1,761 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=5">
+<meta name="theme-color" content="#0F5C55">
+<link rel="manifest" href="/assets/duty_board/mobile/reader.webmanifest">
+<link rel="apple-touch-icon" href="/assets/duty_board/icon-192.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>Library</title>
+<style>
+	:root{
+		--bg:#F4F2EC; --card:#FFFFFF; --ink:#1C2420; --muted:#6B7772; --line:#E4E0D6;
+		--accent:#0F5C55; --accent2:#087A67; --amber:#B5541C;
+		--reader-bg:#FBF9F3; --reader-ink:#211D17;
+		box-sizing:border-box;
+		padding-top:env(safe-area-inset-top,0px); padding-bottom:env(safe-area-inset-bottom,0px);
+	}
+	:root[data-reader="sepia"]{--reader-bg:#F4ECD8;--reader-ink:#453A28;}
+	:root[data-reader="dark"]{--reader-bg:#15171A;--reader-ink:#D6D2C8;}
+	@media (prefers-color-scheme: dark){
+		:root:not([data-theme="light"]){--bg:#14161A;--card:#1D2024;--ink:#E6E3DC;--muted:#96A09B;--line:#2C3036;}
+	}
+	*{box-sizing:inherit;-webkit-tap-highlight-color:transparent;}
+	html,body{margin:0;height:100%;}
+	body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;background:var(--bg);color:var(--ink);
+		overscroll-behavior-y:none;}
+	button,input,select{font:inherit;color:inherit;}
+	.hidden{display:none !important;}
+	a{color:var(--accent2);text-decoration:none;}
+
+	/* ---- shelf ---- */
+	.top{position:sticky;top:0;z-index:20;background:var(--bg);padding:calc(env(safe-area-inset-top,0px) + 10px) 14px 8px;border-bottom:1px solid var(--line);}
+	.top h1{margin:0 0 8px;font-size:20px;display:flex;align-items:center;gap:8px;}
+	.top h1 .dot{width:22px;height:22px;border-radius:6px;background:var(--accent);display:inline-flex;align-items:center;justify-content:center;font-size:13px;}
+	.search{width:100%;padding:10px 12px;border:1px solid var(--line);border-radius:11px;background:var(--card);font-size:15px;}
+	.chips{display:flex;gap:6px;overflow-x:auto;padding:8px 0 2px;-webkit-overflow-scrolling:touch;}
+	.chips::-webkit-scrollbar{display:none;}
+	.chip{white-space:nowrap;font-size:12.5px;font-weight:600;padding:6px 12px;border-radius:999px;background:var(--card);border:1px solid var(--line);color:var(--muted);cursor:pointer;}
+	.chip.on{background:var(--accent);color:#fff;border-color:var(--accent);}
+	.wrap{padding:12px 14px 40px;}
+	.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:14px;}
+	@media(max-width:360px){.grid{grid-template-columns:repeat(2,1fr);gap:10px;}}
+	.book{cursor:pointer;}
+	.cover{position:relative;aspect-ratio:2/3;border-radius:12px;overflow:hidden;background:linear-gradient(135deg,#26534c,#0F5C55);
+		box-shadow:0 2px 8px rgba(0,0,0,.12);display:flex;align-items:flex-end;}
+	.cover img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;}
+	.cover .fallback{position:relative;padding:12px;color:#EAF3F1;font-weight:700;font-size:14px;line-height:1.25;text-shadow:0 1px 3px rgba(0,0,0,.4);}
+	.cover .ring{position:absolute;top:8px;right:8px;width:34px;height:34px;}
+	.cover .pct{position:absolute;top:8px;right:8px;width:34px;height:34px;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:800;color:#fff;}
+	.cover .badge{position:absolute;top:8px;left:8px;font-size:10px;font-weight:800;padding:2px 7px;border-radius:999px;background:rgba(0,0,0,.55);color:#fff;text-transform:uppercase;letter-spacing:.03em;}
+	.bt{margin-top:6px;font-size:13px;font-weight:700;line-height:1.25;}
+	.ba{font-size:11.5px;color:var(--muted);margin-top:1px;}
+	.empty{color:var(--muted);text-align:center;padding:40px 20px;}
+	.signin{background:#FFF6E5;color:#8A5A0B;border:1px solid #F1D9B3;border-radius:10px;padding:10px 12px;font-size:13px;margin-bottom:10px;}
+	.signin a{color:#8A5A0B;font-weight:700;text-decoration:underline;cursor:pointer;}
+
+	/* ---- reader ---- */
+	#reader{position:fixed;inset:0;z-index:60;background:var(--reader-bg);color:var(--reader-ink);display:flex;flex-direction:column;}
+	.rtop{position:absolute;top:0;left:0;right:0;z-index:5;display:flex;align-items:center;gap:6px;padding:calc(env(safe-area-inset-top,0px) + 8px) 12px 8px;
+		background:linear-gradient(var(--reader-bg),transparent);transition:opacity .2s;}
+	.rtop.hide{opacity:0;pointer-events:none;}
+	.rbtn{background:var(--card);border:1px solid var(--line);color:var(--ink);border-radius:9px;padding:7px 10px;font-size:14px;cursor:pointer;line-height:1;}
+	.rtitle{flex:1;min-width:0;font-size:13px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:var(--reader-ink);opacity:.75;}
+	/* Paged reading: the chapter is laid into CSS columns exactly one viewport
+	   wide, and we slide the column strip sideways one column per page. The
+	   browser does the pagination; we only move by whole page widths. */
+	#page{flex:1;overflow:hidden;position:relative;}
+	.pagebox{position:absolute;inset:0;padding:calc(env(safe-area-inset-top,0px) + 58px) 0 calc(env(safe-area-inset-bottom,0px) + 56px);}
+	.doc{height:100%;column-width:var(--pw,360px);column-gap:44px;column-fill:auto;
+		padding:0 22px;box-sizing:border-box;
+		font-size:var(--rsize,19px);line-height:1.66;font-family:Georgia,"Iowan Old Style","Times New Roman",serif;
+		transform:translateX(0);transition:transform .22s ease-out;will-change:transform;}
+	.doc.nofx{transition:none;}
+	#page.scrollmode{overflow-y:auto;-webkit-overflow-scrolling:touch;}
+	#page.scrollmode .pagebox{position:static;padding:calc(env(safe-area-inset-top,0px) + 58px) 0 calc(env(safe-area-inset-bottom,0px) + 64px);}
+	#page.scrollmode .doc{height:auto;column-width:auto;column-gap:0;max-width:40rem;margin:0 auto;padding:0 22px;transform:none;}
+	.doc h1,.doc h2,.doc h3{line-height:1.25;}
+	.doc img{max-width:100%;height:auto;border-radius:6px;}
+	.doc p{margin:0 0 1.05em;}
+	.rbot{position:absolute;left:0;right:0;bottom:0;z-index:5;display:flex;align-items:center;gap:10px;padding:8px 14px calc(env(safe-area-inset-bottom,0px) + 10px);
+		background:linear-gradient(transparent,var(--reader-bg));transition:opacity .2s;}
+	.rbot.hide{opacity:0;pointer-events:none;}
+	.rbot .nav{background:var(--card);border:1px solid var(--line);color:var(--ink);border-radius:10px;padding:9px 14px;font-size:14px;font-weight:700;cursor:pointer;}
+	.rbot .prog{flex:1;text-align:center;font-size:11.5px;color:var(--muted);}
+	.tapzone{position:absolute;top:64px;bottom:64px;width:32%;z-index:2;}
+	.tapzone.left{left:0;} .tapzone.right{right:0;}
+
+	/* pdf (documents): a vertical scroll of pages */
+	#pdfwrap{flex:1;overflow:auto;-webkit-overflow-scrolling:touch;text-align:center;padding-top:calc(env(safe-area-inset-top,0px) + 52px);}
+	#pdfwrap canvas{max-width:100%;height:auto;margin:0 auto 8px;box-shadow:0 1px 6px rgba(0,0,0,.2);}
+	/* comics: one page (or a spread) fitted to the screen, swipe to turn, pinch to zoom */
+	#comic{flex:1;position:relative;overflow:hidden;background:#111;touch-action:pan-y pinch-zoom;user-select:none;-webkit-user-select:none;}
+	#comic .stage canvas{touch-action:pan-y pinch-zoom;}
+	#comic .stage{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;gap:0;
+		padding:calc(env(safe-area-inset-top,0px) + 48px) 0 calc(env(safe-area-inset-bottom,0px) + 48px);box-sizing:border-box;}
+	#comic canvas{max-height:100%;max-width:100%;object-fit:contain;box-shadow:0 2px 12px rgba(0,0,0,.6);background:#fff;}
+	#comic.spread .stage{gap:2px;}
+	#comic.spread canvas{max-width:50%;}
+	#comic .zoom{position:absolute;inset:0;overflow:auto;-webkit-overflow-scrolling:touch;display:none;}
+	#comic.zoomed .stage{display:none;} #comic.zoomed .zoom{display:block;}
+	#comic .zoom canvas{max-width:none;max-height:none;}
+	.rtop.dark{background:linear-gradient(rgba(0,0,0,.65),transparent);} .rbot.dark{background:linear-gradient(transparent,rgba(0,0,0,.65));}
+	.rtop.dark .rtitle,.rbot.dark .prog{color:#ddd;}
+
+	/* sheets: chapters, settings */
+	.sheet{position:fixed;inset:0;z-index:70;background:rgba(0,0,0,.4);display:flex;align-items:flex-end;}
+	.sheet.hidden{display:none;}
+	.sheet .panel{background:var(--card);width:100%;max-height:78vh;border-radius:16px 16px 0 0;padding:14px 16px calc(env(safe-area-inset-bottom,0px) + 16px);overflow-y:auto;}
+	.sheet h3{margin:2px 0 12px;font-size:16px;}
+	.chap{padding:11px 4px;border-bottom:1px solid var(--line);font-size:14.5px;display:flex;gap:8px;cursor:pointer;}
+	.chap.done{color:var(--muted);} .chap.cur{font-weight:800;color:var(--accent2);}
+	.chap .ck{width:18px;}
+	.setrow{display:flex;align-items:center;justify-content:space-between;padding:12px 2px;border-bottom:1px solid var(--line);}
+	.seg{display:flex;gap:4px;}
+	.seg button{border:1px solid var(--line);background:var(--bg);border-radius:8px;padding:7px 12px;cursor:pointer;}
+	.seg button.on{background:var(--accent);color:#fff;border-color:var(--accent);}
+	.offline{position:fixed;left:50%;bottom:calc(env(safe-area-inset-bottom,0px) + 14px);transform:translateX(-50%);z-index:80;
+		background:#1C2420;color:#fff;padding:7px 14px;border-radius:999px;font-size:12px;opacity:0;transition:opacity .3s;pointer-events:none;}
+	.offline.show{opacity:.94;}
+	.spin{width:26px;height:26px;border:3px solid var(--line);border-top-color:var(--accent);border-radius:50%;animation:sp .8s linear infinite;margin:40px auto;}
+	@keyframes sp{to{transform:rotate(360deg);}}
+</style>
+</head>
+<body>
+
+<!-- shelf -->
+<div id="shelf">
+	<div class="top">
+		<h1><span class="dot">📚</span> Library</h1>
+		<input class="search" id="q" placeholder="Search title or author…" autocomplete="off">
+		<div class="chips" id="chips"></div>
+	</div>
+	<div class="wrap">
+		<div id="signin" class="signin hidden">You're signed out — showing your saved shelf. <a onclick="goLogin()">Sign in</a> to sync and open more.</div>
+		<div id="grid" class="grid"></div>
+		<div id="loading" class="spin"></div>
+		<div id="empty" class="empty hidden">Nothing on this shelf.</div>
+	</div>
+</div>
+
+<!-- reader -->
+<div id="reader" class="hidden">
+	<div class="rtop" id="rtop">
+		<button class="rbtn" id="r-close">‹ Shelf</button>
+		<span class="rtitle" id="r-title"></span>
+		<button class="rbtn" id="r-chapters" title="Chapters">☰</button>
+		<button class="rbtn" id="r-settings" title="Text">Aa</button>
+	</div>
+	<div id="page"><div class="pagebox" id="pagebox"><div class="doc" id="doc"></div></div></div>
+	<div id="pdfwrap" class="hidden"></div>
+	<div id="comic" class="hidden"><div class="stage"></div><div class="zoom"></div></div>
+	<div class="tapzone left" id="tap-left"></div>
+	<div class="tapzone right" id="tap-right"></div>
+	<div class="rbot" id="rbot">
+		<button class="nav" id="r-prev">‹</button>
+		<div class="prog" id="r-prog"></div>
+		<button class="nav" id="r-next">›</button>
+	</div>
+</div>
+
+<!-- chapters sheet -->
+<div class="sheet hidden" id="sheet-ch">
+	<div class="panel">
+		<h3>Chapters</h3>
+		<div id="ch-list"></div>
+	</div>
+</div>
+
+<!-- settings sheet -->
+<div class="sheet hidden" id="sheet-set">
+	<div class="panel">
+		<h3>Reading</h3>
+		<div class="setrow"><span>Text size</span>
+			<div class="seg" id="seg-size">
+				<button data-s="16">A-</button><button data-s="19">A</button><button data-s="22">A+</button><button data-s="26">A++</button>
+			</div></div>
+		<div class="setrow"><span>Layout</span>
+			<div class="seg" id="seg-mode">
+				<button data-m="pages">Pages</button><button data-m="scroll">Scroll</button>
+			</div></div>
+		<div class="setrow"><span>Theme</span>
+			<div class="seg" id="seg-theme">
+				<button data-t="light">Light</button><button data-t="sepia">Sepia</button><button data-t="dark">Dark</button>
+			</div></div>
+	</div>
+</div>
+
+<div class="offline" id="offline">Offline — showing saved books</div>
+
+<script>
+const CSRF = "{{ frappe.session.csrf_token if frappe else '' }}";
+const API = "/api/method/duty_board.library.";
+const LS = {
+	size: () => localStorage.getItem("lib_size") || "19",
+	theme: () => localStorage.getItem("lib_theme") || "light",
+	chip: () => localStorage.getItem("lib_chip") || "",
+};
+let BOOKS = [], CHIP = LS.chip(), Q = "";
+let R = null; // active reader state
+
+class AuthError extends Error {}
+function api(method, args){
+	const opts = { method:"POST", headers:{ "Content-Type":"application/json","X-Frappe-CSRF-Token":CSRF }, body:JSON.stringify(args||{}) };
+	return fetch(API+method, opts).then(r=>{
+		// 401/403 = no session (or it expired). That is not "offline": send the
+		// reader to sign in and come straight back here.
+		if(r.status===401 || r.status===403){ throw new AuthError(String(r.status)); }
+		if(!r.ok) throw new Error(r.status);
+		return r.json();
+	}).then(d=>{
+		// Frappe can answer 200 with an exception body when the session is gone
+		if(d && d.exc_type && /PermissionError|AuthenticationError|SessionExpired/i.test(d.exc_type)) throw new AuthError(d.exc_type);
+		if(d && d.session_expired) throw new AuthError("session_expired");
+		return d.message;
+	});
+}
+function navigate(url){ location.href = url; }
+function goLogin(){ navigate("/login?redirect-to=" + encodeURIComponent("/reader")); }
+function isAuth(e){ return e instanceof AuthError; }
+const esc = s => String(s==null?"":s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");
+
+/* ---------- shelf ---------- */
+function ringSvg(pct){
+	const r=15, c=2*Math.PI*r, off=c*(1-pct/100);
+	return `<svg class="ring" viewBox="0 0 34 34"><circle cx="17" cy="17" r="${r}" fill="rgba(0,0,0,.35)" stroke="rgba(255,255,255,.25)" stroke-width="3"/>`+
+		`<circle cx="17" cy="17" r="${r}" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-dasharray="${c}" stroke-dashoffset="${off}" transform="rotate(-90 17 17)"/></svg>`+
+		`<span class="pct">${pct}%</span>`;
+}
+function bookCard(b){
+	const cover = b.cover ? `<img src="${esc(b.cover)}" alt="" loading="lazy" onerror="this.style.display='none'">` : "";
+	const fb = `<div class="fallback">${esc(b.title)}</div>`;
+	const badge = b.format === "PDF" ? `<span class="badge">PDF</span>` : "";
+	const ring = b.pct>0 ? ringSvg(b.pct) : "";
+	return `<div class="book" data-name="${esc(b.name)}">
+		<div class="cover">${cover}${fb}${badge}${ring}</div>
+		<div class="bt">${esc(b.title)}</div>
+		<div class="ba">${esc((b.author_list&&b.author_list.join(", ")) || b.author || "")}</div>
+	</div>`;
+}
+const SHELVES = [
+	{ k:"", label:"All" },
+	{ k:"reading", label:"Reading" },
+	{ k:"to-read", label:"To read" },
+	{ k:"finished", label:"Finished" },
+];
+function matchesShelf(b){
+	if(!CHIP) return true;
+	if(CHIP==="reading") return b.pct>0 && b.pct<100;
+	if(CHIP==="to-read") return (!b.pct || b.pct===0);
+	if(CHIP==="finished") return b.pct>=100 || (b.times_read||0)>0;
+	if(CHIP.startsWith("cat:")) return (b.category||"") === CHIP.slice(4);
+	return true;
+}
+function renderChips(){
+	const cats = [...new Set(BOOKS.map(b=>b.category).filter(Boolean))].sort();
+	const all = SHELVES.concat(cats.map(c=>({k:"cat:"+c,label:c})));
+	document.getElementById("chips").innerHTML = all.map(s=>`<a class="chip ${CHIP===s.k?"on":""}" data-k="${esc(s.k)}">${esc(s.label)}</a>`).join("");
+	document.querySelectorAll("#chips .chip").forEach(a=>a.onclick=()=>{ CHIP=a.dataset.k; localStorage.setItem("lib_chip",CHIP); renderChips(); renderGrid(); });
+}
+function renderGrid(){
+	const q = Q.trim().toLowerCase();
+	const rows = BOOKS.filter(matchesShelf).filter(b=>{
+		if(!q) return true;
+		const hay = [b.title, b.author, (b.author_list||[]).join(" "), (b.topic_list||[]).join(" ")].join(" ").toLowerCase();
+		return hay.includes(q);
+	});
+	document.getElementById("grid").innerHTML = rows.map(bookCard).join("");
+	document.getElementById("empty").classList.toggle("hidden", rows.length>0);
+	document.querySelectorAll("#grid .book").forEach(el=>el.onclick=()=>openBook(el.dataset.name));
+}
+function loadShelf(){
+	document.getElementById("signin").classList.add("hidden");
+	api("library").then(d=>{
+		BOOKS = (d && d.books) || [];
+		try{ localStorage.setItem("lib_shelf", JSON.stringify(BOOKS)); }catch(e){}
+		document.getElementById("loading").classList.add("hidden");
+		renderChips(); renderGrid();
+	}).catch(e=>{
+		document.getElementById("loading").classList.add("hidden");
+		if(isAuth(e)){
+			// not signed in: offer the way in, and if nothing is saved, go straight there
+			let saved=[]; try{ saved = JSON.parse(localStorage.getItem("lib_shelf")||"[]"); }catch(x){}
+			if(!saved.length){ goLogin(); return; }
+			BOOKS = saved; document.getElementById("signin").classList.remove("hidden");
+			renderChips(); renderGrid(); return;
+		}
+		// genuinely offline: last saved shelf
+		try{ BOOKS = JSON.parse(localStorage.getItem("lib_shelf")||"[]"); }catch(x){ BOOKS=[]; }
+		showOffline(); renderChips(); renderGrid();
+	});
+}
+
+/* ---------- reader ---------- */
+function openBook(name){
+	const b = BOOKS.find(x=>x.name===name);
+	document.getElementById("reader").classList.remove("hidden");
+	document.getElementById("r-title").textContent = b ? b.title : "";
+	document.getElementById("doc").innerHTML = `<div class="spin"></div>`;
+	applyReaderPrefs();
+	api("open_book",{book:name}).then(d=>{
+		try{ localStorage.setItem("lib_book:"+name, JSON.stringify(d)); }catch(e){}
+		startReader(name, d);
+	}).catch(e=>{
+		if(isAuth(e)){ goLogin(); return; }
+		let d=null; try{ d=JSON.parse(localStorage.getItem("lib_book:"+name)); }catch(x){}
+		if(d){ showOffline(); startReader(name, d); }
+		else document.getElementById("doc").innerHTML = `<p style="text-align:center;color:var(--muted)">This book isn't saved for offline yet.</p>`;
+	});
+}
+function startReader(name, d){
+	R = { name, data:d, ch:d.current, chapters:d.chapters||[], done:new Set(d.done||[]), format:d.format, dirty:false, comic:!!d.comic, rtl:!!d.rtl };
+	document.getElementById("comic").classList.add("hidden");
+	document.getElementById("rtop").classList.toggle("dark", !!d.comic);
+	document.getElementById("rbot").classList.toggle("dark", !!d.comic);
+	if(d.format==="PDF" && d.comic){ startComic(name, d); return; }
+	if(d.format==="PDF"){ startPdf(name, d); return; }
+	document.getElementById("pdfwrap").classList.add("hidden");
+	document.getElementById("page").classList.remove("hidden");
+	renderChapterList();
+	showChapter(d.current, d.content, d.scroll_pct||0);
+}
+function chapterIndex(chName){ return R.chapters.findIndex(c=>c.name===chName); }
+function showChapter(chName, content, scrollPct){
+	R.ch = chName;
+	const doc = document.getElementById("doc");
+	if(content!=null){ paint(content, scrollPct); }
+	else {
+		doc.innerHTML = `<div class="spin"></div>`;
+		const cached = R.data._chapters && R.data._chapters[chName];
+		const done = html => paint(html, 0);
+		if(cached) done(cached);
+		else api("chapter",{name:chName}).then(c=>{
+			R.data._chapters=(R.data._chapters||{}); R.data._chapters[chName]=c.content;
+			try{ localStorage.setItem("lib_book:"+R.name, JSON.stringify(R.data)); }catch(e){}
+			done(c.content);
+		}).catch(()=>{ doc.innerHTML=`<p style="text-align:center;color:var(--muted)">Chapter not saved offline.</p>`; showOffline(); });
+	}
+	updateProg(); renderChapterList();
+	saveMark(scrollPct||0);
+}
+/* ---- pagination ----
+   Layout is CSS multi-column: the doc is one viewport tall and columns are
+   one viewport wide, so the browser breaks the chapter into pages for us.
+   P = { n: page count, i: current page, w: page width incl. gap }. Position
+   is remembered as a fraction (page/pages) so it survives a font change or a
+   different phone. In Scroll mode none of this applies. */
+let P = { n:1, i:0, w:0 };
+const mode = () => localStorage.getItem("lib_mode") || "pages";
+
+function layoutPages(keepFrac){
+	const doc = document.getElementById("doc"), box = document.getElementById("pagebox");
+	if(mode()==="scroll"){ doc.style.transform=""; return; }
+	// One page = the doc's CONTENT width (the box minus the doc's own side
+	// padding). Setting column-width to the full box width made each column
+	// 44px narrower than a page, so every slide overshot by the padding and
+	// the error grew page by page — page 2 already showed a sliver of page 3.
+	const cs = getComputedStyle(doc);
+	const padL = parseFloat(cs.paddingLeft)||0, padR = parseFloat(cs.paddingRight)||0;
+	const pw = box.clientWidth - padL - padR;
+	doc.style.setProperty("--pw", pw + "px");
+	// measure the pitch the browser actually used, not a number we assume
+	const gap = parseFloat(cs.columnGap) || 44;
+	P.w = pw + gap;
+	// the strip: content columns of pw, separated by gap; scrollWidth includes the
+	// left padding, so subtract it before counting
+	const total = doc.scrollWidth - padL;
+	P.n = Math.max(1, Math.round((total + gap) / P.w));
+	const frac = keepFrac==null ? (P.n>1 ? P.i/(P.n-1) : 0) : keepFrac;
+	P.i = Math.min(P.n-1, Math.max(0, Math.round(frac * (P.n-1))));
+	slideTo(P.i, true);
+}
+function slideTo(i, instant){
+	const doc = document.getElementById("doc");
+	P.i = Math.min(P.n-1, Math.max(0, i));
+	doc.classList.toggle("nofx", !!instant);
+	doc.style.transform = `translateX(${-P.i * P.w}px)`;
+	if(instant) requestAnimationFrame(()=>doc.classList.remove("nofx"));
+	updateProg();
+}
+function pageFrac(){ return P.n>1 ? P.i/(P.n-1) : 0; }
+
+function paint(html, scrollPct){
+	const doc = document.getElementById("doc");
+	doc.innerHTML = html || "<p></p>";
+	const pg = document.getElementById("page");
+	pg.classList.toggle("scrollmode", mode()==="scroll");
+	if(R && R._openAtEnd){ scrollPct = 1; R._openAtEnd=false; }
+	requestAnimationFrame(()=>{
+		if(mode()==="scroll"){
+			pg.scrollTop = scrollPct>0 ? (pg.scrollHeight - pg.clientHeight) * scrollPct : 0;
+		} else {
+			// images may still be loading; lay out now and again once they settle
+			layoutPages(scrollPct||0);
+			[...doc.querySelectorAll("img")].forEach(im=>{ if(!im.complete) im.addEventListener("load", ()=>layoutPages(pageFrac()), {once:true}); });
+		}
+	});
+}
+
+/* next/prev PAGE: within the chapter first, then across the chapter boundary */
+function nextPage(){
+	if(R && R.comic){ if(document.getElementById("comic").classList.contains("zoomed")) return; comicNext(); return; }
+	if(!R || R.format==="PDF") return;
+	if(mode()==="scroll"){ nextChapter(); return; }
+	if(P.i < P.n-1){ slideTo(P.i+1); saveMark(pageFrac()); }
+	else nextChapter();
+}
+function prevPage(){
+	if(R && R.comic){ if(document.getElementById("comic").classList.contains("zoomed")) return; comicPrev(); return; }
+	if(!R || R.format==="PDF") return;
+	if(mode()==="scroll"){ prevChapter(); return; }
+	if(P.i > 0){ slideTo(P.i-1); saveMark(pageFrac()); }
+	else { const i=chapterIndex(R.ch); if(i>0){ R._openAtEnd=true; prevChapter(); } }
+}
+function updateProg(){
+	if(!R) return;
+	const i = chapterIndex(R.ch);
+	const ch = R.chapters.length ? `${i+1} / ${R.chapters.length}` : "";
+	const pg = (mode()==="pages" && P.n>1) ? ` · p.${P.i+1}/${P.n}` : "";
+	document.getElementById("r-prog").textContent = ch + pg;
+}
+function renderChapterList(){
+	document.getElementById("ch-list").innerHTML = R.chapters.map(c=>{
+		const cls = (c.name===R.ch?"cur ":"") + (R.done.has(c.name)?"done":"");
+		return `<div class="chap ${cls}" data-ch="${esc(c.name)}"><span class="ck">${R.done.has(c.name)?"✓":""}</span><span>${esc(c.title||("Chapter "+c.idx_no))}</span></div>`;
+	}).join("");
+	document.querySelectorAll("#ch-list .chap").forEach(el=>el.onclick=()=>{ closeSheets(); showChapter(el.dataset.ch, null, 0); });
+}
+function nextChapter(){
+	const i=chapterIndex(R.ch);
+	if(i>=0 && i<R.chapters.length-1){
+		// mark the one we finish as done
+		saveMark(1, R.ch);
+		showChapter(R.chapters[i+1].name, null, 0);
+	}
+}
+function prevChapter(){ const i=chapterIndex(R.ch); if(i>0) showChapter(R.chapters[i-1].name, null, 0); }
+
+let markTimer=null, lastScrollSave=0;
+function saveMark(scrollPct, doneCh){
+	if(!R) return;
+	// a "done" mark is a discrete event tied to the chapter we are leaving —
+	// send it now, not through the position debounce, or the next chapter's
+	// save (which fires immediately) would cancel it before it left.
+	if(doneCh){ R.done.add(doneCh); api("mark",{ book:R.name, chapter:doneCh, scroll_pct:1, done:doneCh }).catch(()=>{}); }
+	const args = { book:R.name, chapter:R.ch, scroll_pct:scrollPct };
+	clearTimeout(markTimer);
+	markTimer = setTimeout(()=>{ api("mark",args).catch(()=>{}); }, 400);
+}
+function onScroll(){
+	if(mode()!=="scroll") return;
+	const pg=document.getElementById("page");
+	const max = pg.scrollHeight - pg.clientHeight;
+	const pct = max>0 ? pg.scrollTop/max : 0;
+	const now = Date.now();
+	if(now-lastScrollSave>1500){ lastScrollSave=now; saveMark(pct); }
+	// finished the chapter by reading to the bottom
+	if(pct>0.98 && R && !R.done.has(R.ch)){ saveMark(1, R.ch); }
+}
+
+/* pdf */
+let pdfDoc=null, pdfScale=1.3;
+function startPdf(name, d){
+	document.getElementById("page").classList.add("hidden");
+	const wrap=document.getElementById("pdfwrap"); wrap.classList.remove("hidden"); wrap.innerHTML=`<div class="spin"></div>`;
+	R.pdfPage = d.page||1; R.pdfCount = d.page_count||0;
+	openPdf(d.file_url).then(doc=>{
+		pdfDoc=doc; wrap.innerHTML="";
+		renderPdfFrom(d.page||1);
+	}).catch(e=>{ if(isAuth(e)) return goLogin(); openFail(wrap, "PDF", e); });
+}
+function renderPdfFrom(start){
+	const wrap=document.getElementById("pdfwrap"); wrap.innerHTML="";
+	const dpr=Math.min(window.devicePixelRatio||1, 2);
+	let done=0;
+	for(let n=1;n<=pdfDoc.numPages;n++){
+		const cv=document.createElement("canvas"); cv.dataset.page=n; wrap.appendChild(cv);
+		pdfDoc.getPage(n).then(pg=>{
+			const vp=pg.getViewport({scale:pdfScale*dpr});
+			cv.width=vp.width; cv.height=vp.height; cv.style.width=(vp.width/dpr)+"px";
+			pg.render({canvasContext:cv.getContext("2d"), viewport:vp});
+		});
+	}
+	updatePdfProg();
+	requestAnimationFrame(()=>{ const el=wrap.querySelector(`canvas[data-page="${start}"]`); if(el) el.scrollIntoView(); });
+}
+function updatePdfProg(){ document.getElementById("r-prog").textContent = R.pdfCount ? `p. ${R.pdfPage} / ${R.pdfCount}` : ""; }
+function onPdfScroll(){
+	const wrap=document.getElementById("pdfwrap");
+	const mid = wrap.scrollTop + wrap.clientHeight/2;
+	let cur=R.pdfPage;
+	wrap.querySelectorAll("canvas").forEach(cv=>{ if(cv.offsetTop<=mid) cur=+cv.dataset.page; });
+	if(cur!==R.pdfPage){ R.pdfPage=cur; updatePdfProg();
+		const now=Date.now(); if(now-lastScrollSave>1500){ lastScrollSave=now; api("mark",{book:R.name,page:cur}).catch(()=>{}); } }
+}
+/* ---- comic viewer ----
+   A comic is a page-image PDF read one page at a time (two on a landscape
+   tablet, since comics are drawn for the spread). C = { page, count, spread }.
+   Pages are rendered on demand and the neighbours pre-rendered, so a turn is
+   instant. Right-to-left flips both the swipe and the spread order. */
+let C = { page:1, count:0, spread:false, cache:new Map(), rendering:null };
+/* Show a two-page spread when the screen is wide enough for two pages side by
+   side — a shape test, not a pixel floor. A comic page is about 2:3, so two
+   of them fill a box that is ~1.33× wider than tall; a browser tab on a
+   landscape tablet loses height to its chrome but is still that shape.
+   (The old rule needed the shorter side ≥ 600px, which a browser tab on a
+   tablet fails, so it showed one small page with black either side.) */
+function isTabletLandscape(){
+	const w=window.innerWidth, h=window.innerHeight;
+	return w > h && (w / h) >= 1.25 && w >= 700;
+}
+function startComic(name, d){
+	document.getElementById("page").classList.add("hidden");
+	document.getElementById("pdfwrap").classList.add("hidden");
+	const wrap=document.getElementById("comic"); wrap.classList.remove("hidden");
+	wrap.querySelector(".stage").innerHTML=`<div class="spin"></div>`;
+	C = { page: d.page||1, count: d.page_count||0, spread:isTabletLandscape(), cache:new Map(), rendering:null };
+	R.pdfPage=C.page; R.pdfCount=C.count;
+	openPdf(d.file_url).then(doc=>{
+		pdfDoc=doc; C.count=doc.numPages; R.pdfCount=C.count;
+		showComicPage(C.page, true);
+	}).catch(e=>{ if(isAuth(e)) return goLogin(); openFail(wrap.querySelector(".stage"), "comic", e); });
+}
+function comicPagesFor(p){
+	// a spread shows p and p+1 (RTL: the same two, drawn right-to-left); page 1 (the cover) sits alone
+	if(!C.spread || p===1 || p>=C.count) return [p];
+	return [p, p+1];
+}
+function renderComicPage(n){
+	if(C.cache.has(n)) return Promise.resolve(C.cache.get(n));
+	return pdfDoc.getPage(n).then(pg=>{
+		const dpr=Math.min(window.devicePixelRatio||1, 2);
+		const base=pg.getViewport({scale:1});
+		const stage=document.querySelector("#comic .stage");
+		const availH=stage.clientHeight, availW=stage.clientWidth/(C.spread?2:1);
+		const scale=Math.min(availH/base.height, availW/base.width) * dpr;
+		const vp=pg.getViewport({scale});
+		const cv=document.createElement("canvas"); cv.width=vp.width; cv.height=vp.height; cv.dataset.page=n;
+		return pg.render({canvasContext:cv.getContext("2d"), viewport:vp}).promise.then(()=>{ C.cache.set(n, cv); if(C.cache.size>8){ const k=C.cache.keys().next().value; C.cache.delete(k); } return cv; });
+	});
+}
+function showComicPage(p, instant){
+	p=Math.max(1, Math.min(C.count||1, p));
+	C.page=p; R.pdfPage=p;
+	const pages=comicPagesFor(p);
+	const stage=document.querySelector("#comic .stage");
+	document.getElementById("comic").classList.toggle("spread", pages.length===2);
+	document.getElementById("comic").classList.remove("zoomed");
+	Promise.all(pages.map(renderComicPage)).then(cvs=>{
+		if(C.page!==p) return; // a faster turn superseded this
+		const order = R.rtl ? cvs.slice().reverse() : cvs;
+		stage.innerHTML=""; order.forEach(cv=>stage.appendChild(cv));
+		updateComicProg();
+		// pre-render the neighbours so the next turn is instant
+		[p-2,p-1,p+1,p+2,p+3].filter(n=>n>=1&&n<=C.count).forEach(n=>renderComicPage(n).catch(()=>{}));
+	});
+	if(!instant){ clearTimeout(markTimer); markTimer=setTimeout(()=>api("mark",{book:R.name,page:p}).catch(()=>{}),400); }
+}
+function updateComicProg(){
+	const pages=comicPagesFor(C.page);
+	const label = pages.length===2 ? `${pages[0]}–${pages[1]}` : `${C.page}`;
+	document.getElementById("r-prog").textContent = C.count ? `p. ${label} / ${C.count}${R.rtl?" · ⇐":""}` : "";
+}
+function comicNext(){ showComicPage(C.page + (comicPagesFor(C.page).length===2 ? 2 : 1)); }
+function comicPrev(){ const back = (C.spread && C.page>2) ? 2 : 1; showComicPage(C.page - back); }
+function comicZoom(){
+	const wrap=document.getElementById("comic"); const cv=wrap.querySelector(".stage canvas");
+	if(!cv) return;
+	const z=wrap.querySelector(".zoom"); z.innerHTML="";
+	const big=cv.cloneNode(true); big.getContext("2d").drawImage(cv,0,0);
+	big.style.width=(cv.width/ (Math.min(window.devicePixelRatio||1,2)) * 2)+"px"; big.style.height="auto";
+	z.appendChild(big); wrap.classList.add("zoomed");
+}
+function comicUnzoom(){ document.getElementById("comic").classList.remove("zoomed"); }
+window.addEventListener("resize", ()=>{ if(R && R.comic){ const wasSpread=C.spread; C.spread=isTabletLandscape(); if(wasSpread!==C.spread){ C.cache.clear(); } C.cache.clear(); showComicPage(C.page, true); } });
+window.addEventListener("orientationchange", ()=>setTimeout(()=>{ if(R && R.comic){ C.spread=isTabletLandscape(); C.cache.clear(); showComicPage(C.page, true); } }, 150));
+
+/* A file URL is a path with real characters in it — spaces, parentheses,
+   apostrophes — that a desktop tolerates and a phone browser does not. Encode
+   each segment (never the slashes) before handing it to pdf.js. And say what
+   actually failed: "offline" only when the device is offline; otherwise the
+   file could not be fetched, which is a different problem to chase. */
+function fileSrc(url){
+	if(!url) return url;
+	if(/^https?:\/\//.test(url)) return url;
+	return url.split("/").map((seg,i)=> i===0 ? seg : encodeURIComponent(decodeURIComponent(seg))).join("/");
+}
+function openFail(el, what, err){
+	const off = ("onLine" in navigator) && !navigator.onLine;
+	// show the real reason — a friendly line that hides it costs a day of guessing
+	const detail = err ? String((err && (err.message || err.name)) || err).slice(0, 300) : "";
+	el.innerHTML = `<div style="padding:40px 20px;color:#bbb;text-align:center;font-family:-apple-system,sans-serif">
+		<p>${off ? `This ${what} isn't saved for offline reading.` : `Couldn't open this ${what}.`}</p>
+		${detail ? `<p style="font-size:12px;color:#8a8;word-break:break-word;margin-top:10px"><b>Detail:</b> ${detail.replace(/</g,"&lt;")}</p>` : ""}
+		<p style="font-size:12px;color:#888;margin-top:10px">stage: ${window.rdStage||"?"}</p>
+	</div>`;
+	if(off) showOffline();
+}
+/* pdf.js normally reads a PDF with byte-range requests so it can show one
+   page without the rest. Frappe's private-file route answers a Range request
+   with the whole file and a 200, not a 206, and pdf.js gives up on a phone.
+   A plain fetch of the whole file works everywhere (that is what a browser
+   does when you open the URL), so fetch the bytes and hand pdf.js the data. */
+function loadPdfBytes(url){
+	window.rdStage="fetch:"+fileSrc(url);
+	return fetch(fileSrc(url), { credentials:"same-origin" }).then(r=>{
+		window.rdStage="fetched "+r.status+" "+(r.headers.get("content-type")||"")+" len="+(r.headers.get("content-length")||"?");
+		if(r.status===401||r.status===403) throw new AuthError(String(r.status));
+		if(!r.ok) throw new Error("file "+r.status);
+		return r.arrayBuffer();
+	}).then(buf=>{ window.rdStage="bytes="+buf.byteLength; return buf; });
+}
+function openPdf(url){
+	window.rdStage="pdfjs load";
+	return ensurePdfLib().then(()=>{ window.rdStage="pdfjs ready v"+(pdfjsLib.version||"?"); return loadPdfBytes(url); })
+		.then(buf=>{ window.rdStage="parse "+buf.byteLength+" bytes"; return pdfjsLib.getDocument({ data:buf }).promise; });
+}
+let pdfLibP=null;
+/* The vendored pdf.js 6 is an ES-module build: it contains `export` and sets
+   globalThis.pdfjsLib only when run AS a module. A classic <script src> cannot
+   execute it — on a phone the tag fires onload, nothing is defined, and every
+   later step fails with "pdfjsLib is not defined". Load it the way the desktop
+   Library does: a module script that imports the namespace and hands it to
+   window, then signals. */
+function ensurePdfLib(){
+	if(window.pdfjsLib) return Promise.resolve();
+	if(pdfLibP) return pdfLibP;
+	const base="/assets/duty_board/pdfjs/";
+	pdfLibP = new Promise((res,rej)=>{
+		const onReady=()=>{ window.removeEventListener("rd-pdfjs-ready", onReady); try{ pdfjsLib.GlobalWorkerOptions.workerSrc=base+"pdf.worker.min.js"; res(); }catch(e){ rej(e); } };
+		window.addEventListener("rd-pdfjs-ready", onReady);
+		const s=document.createElement("script"); s.type="module";
+		s.textContent=`import * as p from "${base}pdf.min.js"; window.pdfjsLib = p; window.dispatchEvent(new Event("rd-pdfjs-ready"));`;
+		s.onerror=()=>rej(new Error("pdf.js failed to load as a module"));
+		document.head.appendChild(s);
+		setTimeout(()=>{ if(!window.pdfjsLib) rej(new Error("pdf.js did not load in time")); }, 15000);
+	});
+	return pdfLibP;
+}
+
+/* chrome show/hide on tap-centre */
+function toggleChrome(){
+	document.getElementById("rtop").classList.toggle("hide");
+	document.getElementById("rbot").classList.toggle("hide");
+}
+function closeReader(){
+	if(R && R.comic){ api("mark",{book:R.name,page:C.page}).catch(()=>{}); }
+	if(R && R.format!=="PDF"){
+		if(mode()==="scroll"){ const pg=document.getElementById("page"); const max=pg.scrollHeight-pg.clientHeight; saveMark(max>0?pg.scrollTop/max:0); }
+		else saveMark(pageFrac());
+	}
+	document.getElementById("reader").classList.add("hidden");
+	R=null; loadShelf(); // refresh progress rings
+}
+
+/* prefs */
+function applyReaderPrefs(){
+	document.documentElement.style.setProperty("--rsize", LS.size()+"px");
+	document.documentElement.setAttribute("data-reader", LS.theme());
+	document.querySelectorAll("#seg-size button").forEach(b=>b.classList.toggle("on", b.dataset.s===LS.size()));
+	document.querySelectorAll("#seg-theme button").forEach(b=>b.classList.toggle("on", b.dataset.t===LS.theme()));
+	document.querySelectorAll("#seg-mode button").forEach(b=>b.classList.toggle("on", b.dataset.m===mode()));
+	document.getElementById("page").classList.toggle("scrollmode", mode()==="scroll");
+	// a size or layout change reflows: keep the reader's place by fraction
+	if(R && R.format!=="PDF"){ const f=pageFrac(); requestAnimationFrame(()=>{ if(mode()==="pages") layoutPages(f); }); }
+}
+window.addEventListener("resize", ()=>{ if(R && R.format!=="PDF" && mode()==="pages") layoutPages(pageFrac()); });
+window.addEventListener("orientationchange", ()=>setTimeout(()=>{ if(R && R.format!=="PDF" && mode()==="pages") layoutPages(pageFrac()); }, 120));
+function closeSheets(){ document.getElementById("sheet-ch").classList.add("hidden"); document.getElementById("sheet-set").classList.add("hidden"); }
+let offlineT=null;
+function showOffline(){ const o=document.getElementById("offline"); o.classList.add("show"); clearTimeout(offlineT); offlineT=setTimeout(()=>o.classList.remove("show"),2600); }
+
+/* wiring */
+document.getElementById("q").addEventListener("input", e=>{ Q=e.target.value; renderGrid(); });
+document.getElementById("r-close").onclick = closeReader;
+document.getElementById("r-chapters").onclick = ()=>{ if(R&&(R.format==="PDF")) return; renderChapterList(); document.getElementById("sheet-ch").classList.remove("hidden"); };
+document.getElementById("r-settings").onclick = ()=>document.getElementById("sheet-set").classList.remove("hidden");
+document.getElementById("r-next").onclick = nextPage;
+document.getElementById("r-prev").onclick = prevPage;
+document.getElementById("tap-left").onclick = prevPage;
+document.getElementById("tap-right").onclick = nextPage;
+document.getElementById("page").addEventListener("scroll", onScroll, {passive:true});
+document.getElementById("pdfwrap").addEventListener("scroll", onPdfScroll, {passive:true});
+document.querySelectorAll(".sheet").forEach(sh=>sh.addEventListener("click", e=>{ if(e.target===sh) closeSheets(); }));
+document.querySelectorAll("#seg-size button").forEach(b=>b.onclick=()=>{ localStorage.setItem("lib_size",b.dataset.s); applyReaderPrefs(); });
+document.querySelectorAll("#seg-theme button").forEach(b=>b.onclick=()=>{ localStorage.setItem("lib_theme",b.dataset.t); applyReaderPrefs(); });
+document.querySelectorAll("#seg-mode button").forEach(b=>b.onclick=()=>{ const f=pageFrac(); localStorage.setItem("lib_mode",b.dataset.m); applyReaderPrefs(); if(R&&R.format!=="PDF"){ const c=R.data._chapters&&R.data._chapters[R.ch]; if(mode()==="pages") layoutPages(f); } });
+// centre tap toggles chrome (the doc between the two edge zones)
+document.getElementById("page").addEventListener("click", e=>{ const w=window.innerWidth; if(e.clientX>w*0.32 && e.clientX<w*0.68) toggleChrome(); });
+
+/* Swipe to turn the chapter — the gesture every reading app teaches a thumb.
+   A swipe is horizontal on purpose: it must move clearly sideways (≥ 60px) and
+   be more sideways than up-or-down, otherwise it is the reader scrolling the
+   page and we leave it alone. Left = next, right = previous. Text books only;
+   a PDF scrolls page-by-page vertically and pinch-zooms, so a horizontal
+   swipe there would fight the zoom. */
+(function(){
+	const pg = document.getElementById("page");
+	let sx=0, sy=0, st=0, tracking=false;
+	const cm=document.getElementById("comic");
+	let csx=0, csy=0, cst=0, ctrack=false;
+	cm.addEventListener("touchstart", e=>{ if(!R||!R.comic||e.touches.length!==1||cm.classList.contains("zoomed")){ctrack=false;return;} csx=e.touches[0].clientX; csy=e.touches[0].clientY; cst=Date.now(); ctrack=true; }, {passive:true});
+	cm.addEventListener("touchend", e=>{
+		if(!ctrack) return; ctrack=false;
+		const t=e.changedTouches[0]; const dx=t.clientX-csx, dy=t.clientY-csy, dt=Date.now()-cst;
+		if(Math.abs(dx)<50 || Math.abs(dx)<Math.abs(dy) || dt>800) return;
+		// swipe left = forward for LTR; for RTL the book reads the other way, so swipe left = back
+		const forward = R.rtl ? dx>0 : dx<0;
+		forward ? comicNext() : comicPrev();
+	}, {passive:true});
+	// a phone fires touchcancel when it decides the gesture is its own (scroll, back-swipe): reset, don't stay armed
+	cm.addEventListener("touchcancel", ()=>{ ctrack=false; }, {passive:true});
+	// pointer events as a second route: some tablets deliver a mouse-like pointer for a stylus or trackpad flick
+	let psx=0, ptrack=false;
+	cm.addEventListener("pointerdown", e=>{ if(e.pointerType==="touch"||!R||!R.comic||cm.classList.contains("zoomed")){ptrack=false;return;} psx=e.clientX; ptrack=true; });
+	cm.addEventListener("pointerup", e=>{ if(!ptrack) return; ptrack=false; const dx=e.clientX-psx; if(Math.abs(dx)<60) return; (R.rtl ? dx>0 : dx<0) ? comicNext() : comicPrev(); });
+	// double-tap toggles panel zoom; single tap on the edges turns, centre toggles chrome
+	let lastTap=0;
+	cm.addEventListener("click", e=>{
+		if(!R||!R.comic) return;
+		const now=Date.now();
+		if(now-lastTap<300){ lastTap=0; cm.classList.contains("zoomed") ? comicUnzoom() : comicZoom(); return; }
+		lastTap=now;
+		setTimeout(()=>{ if(lastTap!==now) return; lastTap=0;
+			if(cm.classList.contains("zoomed")) return;
+			const w=window.innerWidth;
+			if(e.clientX<w*0.3){ R.rtl ? comicNext() : comicPrev(); }
+			else if(e.clientX>w*0.7){ R.rtl ? comicPrev() : comicNext(); }
+			else toggleChrome();
+		}, 300);
+	});
+	pg.addEventListener("touchstart", e=>{
+		if(!R || R.format==="PDF" || e.touches.length!==1) { tracking=false; return; }
+		sx=e.touches[0].clientX; sy=e.touches[0].clientY; st=Date.now(); tracking=true;
+	}, {passive:true});
+	pg.addEventListener("touchend", e=>{
+		if(!tracking) return; tracking=false;
+		const t=e.changedTouches[0]; const dx=t.clientX-sx, dy=t.clientY-sy, dt=Date.now()-st;
+		if(Math.abs(dx) < 60) return;                 // too short to be a turn
+		if(mode()==="scroll" && Math.abs(dx) < Math.abs(dy)*1.5) return;   // mostly vertical in scroll mode: that was a scroll
+		if(Math.abs(dx) < Math.abs(dy)) return;                             // pages mode: still ignore a clearly vertical drag
+		if(dt > 800) return;                          // a slow drag is a select, not a swipe
+		if(dx < 0) nextPage(); else prevPage();
+	}, {passive:true});
+})();
+// keyboard, for tablets with a keyboard or a desktop check
+document.addEventListener("keydown", e=>{
+	if(!R || (R.format==="PDF" && !R.comic)) return;
+	if(e.key==="ArrowRight") (R.comic&&R.rtl) ? prevPage() : nextPage();
+	else if(e.key==="ArrowLeft") (R.comic&&R.rtl) ? nextPage() : prevPage();
+});
+window.addEventListener("online", ()=>{ if(!R) loadShelf(); });
+window.addEventListener("offline", showOffline);
+
+if("serviceWorker" in navigator){ navigator.serviceWorker.register("/assets/duty_board/mobile/reader_sw.js").catch(()=>{}); }
+applyReaderPrefs();
+loadShelf();
+</script>
+</body>
+</html>

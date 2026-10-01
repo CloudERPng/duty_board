@@ -781,6 +781,157 @@ def runway(months_of_spending=3):
 	}
 
 
+DEFAULT_TARGET_MIX = {"NGN": 40.0, "GBP": 40.0, "USD": 20.0}
+DEFAULT_TRANCHES = [5_000_000.0, 10_000_000.0, 20_000_000.0]
+
+
+def _wealth_target():
+	"""Target split from Duty Settings › Wealth Target Mix, as
+	{currency: percent}. Lines or commas, each 'CCY PCT'. Falls back to
+	40/40/20 if unset or malformed; normalises to 100 if it does not quite
+	add up, so a 33/33/33 that the user meant as thirds still works."""
+	try:
+		raw = frappe.get_cached_doc("Duty Settings").get("wealth_target") or ""
+	except Exception:
+		raw = ""
+	mix = {}
+	for part in raw.replace("\n", ",").split(","):
+		part = part.strip()
+		if not part:
+			continue
+		bits = part.replace("=", " ").replace(":", " ").split()
+		if len(bits) >= 2:
+			ccy = bits[0].upper()[:3]
+			try:
+				mix[ccy] = flt(bits[1])
+			except Exception:
+				pass
+	mix = {c: p for c, p in mix.items() if p > 0}
+	if not mix:
+		return dict(DEFAULT_TARGET_MIX)
+	tot = sum(mix.values())
+	if abs(tot - 100) > 0.5 and tot > 0:
+		mix = {c: round(p * 100 / tot, 2) for c, p in mix.items()}
+	return mix
+
+
+def _wealth_tranches():
+	try:
+		raw = frappe.get_cached_doc("Duty Settings").get("wealth_tranches") or ""
+	except Exception:
+		raw = ""
+	out = []
+	for part in raw.replace("\n", ",").split(","):
+		part = part.strip().replace(",", "")
+		if not part:
+			continue
+		try:
+			v = flt(part)
+			if v > 0:
+				out.append(v)
+		except Exception:
+			pass
+	return out or list(DEFAULT_TRANCHES)
+
+
+def _allocate(totals, target, incoming):
+	"""Split `incoming` (naira) across the target currencies so the new mix
+	moves toward `target`, buying only — never selling what is already over.
+
+	Water-filling: the pool is today's value plus the inflow; each currency's
+	goal is its share of that pool. Currencies already at or above goal get
+	nothing; the inflow fills the under-target ones in proportion to how far
+	each is below goal, so the biggest gap is closed fastest. If the whole
+	inflow cannot lift every under-target currency to goal (the usual case),
+	that proportional fill is exactly right; if it more than covers them, the
+	remainder is split by target weight."""
+	incoming = flt(incoming)
+	pool = sum(max(0.0, flt(totals.get(c, 0))) for c in target) + incoming
+	goal = {c: pool * target[c] / 100.0 for c in target}
+	gap = {c: max(0.0, goal[c] - max(0.0, flt(totals.get(c, 0)))) for c in target}
+	need = sum(gap.values())
+	alloc = {c: 0.0 for c in target}
+	if need <= 0:
+		w = sum(target.values())
+		for c in target:
+			alloc[c] = incoming * target[c] / w
+	elif incoming <= need:
+		for c in target:
+			alloc[c] = incoming * gap[c] / need
+	else:
+		for c in target:
+			alloc[c] = gap[c]
+		extra = incoming - need
+		w = sum(target.values())
+		for c in target:
+			alloc[c] += extra * target[c] / w
+	return alloc, goal
+
+
+@frappe.whitelist()
+def rebalance_plan(amounts=None):
+	"""For each incoming naira amount, how to split it across NGN/GBP/USD to
+	move toward the 40/40/20 target — with the naira slice, the current and
+	resulting share, and the foreign amount to convert at today's rate.
+
+	Buys only: a currency already over target is left alone and the money
+	goes where you are short, so you reach the mix by adding rather than
+	selling. Read the tool's own comment in the source for the maths.
+	"""
+	import json as _json
+
+	from duty_board.targets import _rate_map
+
+	mix = _wealth_target()
+	order = sorted(mix, key=lambda c: (c != "NGN", -mix[c], c))  # NGN first, then biggest target
+	ex = exposure()
+	fx = _rate_map()
+	totals = {c["currency"]: flt(c["total"]) for c in ex["currencies"]}
+	for c in mix:
+		totals.setdefault(c, 0.0)
+	total_now = sum(max(0.0, v) for v in totals.values())
+
+	if isinstance(amounts, str):
+		try:
+			amounts = _json.loads(amounts)
+		except Exception:
+			amounts = None
+	tranches = [flt(a) for a in amounts if flt(a) > 0] if amounts else _wealth_tranches()
+
+	target_rows = []
+	for c in order:
+		now = max(0.0, totals.get(c, 0.0))
+		target_rows.append({
+			"currency": c, "target_pct": mix[c],
+			"now_ngn": now, "now_pct": round(now * 100 / total_now, 1) if total_now else 0,
+			"rate": fx.get(c), "off": round((now * 100 / total_now if total_now else 0) - mix[c], 1),
+		})
+
+	plans = []
+	for amt in tranches:
+		alloc, _goal = _allocate(totals, mix, amt)
+		after_total = total_now + amt
+		rows = []
+		for c in order:
+			ngn = alloc.get(c, 0.0)
+			now = max(0.0, totals.get(c, 0.0))
+			rate = fx.get(c)
+			rows.append({
+				"currency": c, "ngn": round(ngn, 2),
+				"pct_of_inflow": round(ngn * 100 / amt, 1) if amt else 0,
+				"foreign": round(ngn / rate, 2) if rate and c != "NGN" else (round(ngn, 2) if c == "NGN" else None),
+				"rate": rate,
+				"after_pct": round((now + ngn) * 100 / after_total, 1) if after_total else 0,
+			})
+		plans.append({"amount": amt, "rows": rows})
+
+	return {
+		"target": mix, "total_now": total_now, "targets": target_rows,
+		"plans": plans, "unpriced": ex.get("unpriced", []),
+		"reachable": all(r["off"] <= 0.05 or fx.get(r["currency"]) for r in target_rows),
+	}
+
+
 @frappe.whitelist()
 def exposure():
 	"""How much of you is not in naira.

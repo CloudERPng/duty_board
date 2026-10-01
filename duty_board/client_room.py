@@ -570,16 +570,10 @@ def post_message(name, message, internal=0, attachment_url=None, attachment_name
 		if not cint(internal):
 			from duty_board.api import _push_safe
 
-			member_mentions = set(_room_member_mentions(room, message))
+			member_mentions = set(_room_member_mentions(room, message, me=me))
 			for m in member_mentions:
-				if frappe.db.exists("Duty Push Subscription", {"user": m}):
-					_push_safe(
-						m,
-						_("💬 {0} mentioned you").format(first),
-						(message or "📎")[:120],
-					)
-				else:
-					_email_mention(m, room, first, message)
+				_notify_member_mention(m, room, first, message)
+			brand = _room_brand(room)
 			for mm in frappe.get_all(
 				"Client Room Member", filters={"room": room.name, "active": 1}, fields=["user"]
 			):
@@ -588,11 +582,11 @@ def post_message(name, message, internal=0, attachment_url=None, attachment_name
 				if frappe.db.exists("Duty Push Subscription", {"user": mm.user}):
 					_push_safe(
 						mm.user,
-						_("🤝 Xlevel · {0}").format(first),
+						_("🤝 {0} · {1}").format(brand, first),
 						(message or "📎")[:120],
 					)
 	except Exception:
-		pass
+		frappe.log_error(frappe.get_traceback()[-1500:], "duty mention notify")
 	return get_room(name)
 
 
@@ -794,7 +788,11 @@ def _after_hours_payload():
 	}
 
 @frappe.whitelist()
-def client_post_message(message, attachment_url=None, attachment_name=None, ref=None):
+def client_post_message(message, attachment_url=None, attachment_name=None, ref=None, mentions=None):
+	"""`mentions` is what the portal's @ picker recorded (JSON list of full
+	names); freehand @handles in the text count too. Staff hear about client
+	words; @mentioned staff hear personally; @mentioned colleagues get an
+	email (and a push when they have one)."""
 	room = _client_room()
 	_post(
 		room,
@@ -804,12 +802,16 @@ def client_post_message(message, attachment_url=None, attachment_name=None, ref=
 		attachment_name=attachment_name,
 		ref=ref,
 	)
-	# staff hear about client words; @mentioned staff hear personally
 	try:
 		from duty_board.api import _notify_user, parse_mentions
 
-		first = frappe.utils.get_fullname(frappe.session.user).split(" ")[0]
-		mentioned = set(parse_mentions(message))
+		me = frappe.session.user
+		first = frappe.utils.get_fullname(me).split(" ")[0]
+		directory = _client_directory(room, me)
+		# staff: picked from the room's service team, or named freehand from the roster
+		mentioned = set(_resolve_mentions(directory, message, mentions, kinds=("staff",)))
+		mentioned.update(parse_mentions(message))
+		mentioned.discard(me)
 		for m in mentioned:
 			_notify_user(
 				m,
@@ -829,17 +831,13 @@ def client_post_message(message, attachment_url=None, attachment_name=None, ref=
 					_("🤝 {0} · {1}").format(first, room.customer),
 					(message or "")[:120],
 				)
-		from duty_board.api import _push_safe as _ps
-
-		for m in _room_member_mentions(room, message):
-			if m == frappe.session.user:
+		# colleagues: email always, push as well when subscribed
+		for m in _resolve_mentions(directory, message, mentions, kinds=("colleague",)):
+			if m == me:
 				continue
-			if frappe.db.exists("Duty Push Subscription", {"user": m}):
-				_ps(m, _("💬 {0} mentioned you").format(first), (message or "")[:120])
-			else:
-				_email_mention(m, room, first, message)
+			_notify_member_mention(m, room, first, message)
 	except Exception:
-		pass
+		frappe.log_error(frappe.get_traceback()[-1500:], "duty mention notify")
 	ret = client_get_room()
 	ret["after_hours"] = _after_hours_payload()
 	ret["scope_note"] = frappe.db.get_value("Client Room", ret.get("room"), "scope_note") if ret.get("room") else ""
@@ -1123,15 +1121,44 @@ def client_issue_file(fid):
 	return _serve_file(fdoc, fdoc.file_name)
 
 
-def _shelf_rows(room):
+def _shelf_categories():
+	"""Duty Settings › Shelf Categories, one per line. An empty list means
+	anything goes (how the shelf worked before the list existed)."""
+	try:
+		raw = frappe.get_cached_doc("Duty Settings").get("shelf_categories") or ""
+	except Exception:
+		raw = ""
+	out = []
+	for line in str(raw).replace(",", "\n").splitlines():
+		c = line.strip()[:60]
+		if c and c not in out:
+			out.append(c)
+	return out
+
+
+def _shelf_rows(room, archived=0):
+	"""The room's shelf, newest first. archived=1 lists what staff removed or
+	replaced instead — the client never sees those. Each row carries its
+	version (1 + the chain of files it replaced) and, when archived, what
+	replaced it."""
 	rows = frappe.get_all(
 		"Client Shelf Doc",
-		filters={"room": room.name, "active": 1},
-		fields=["name", "title", "category", "file_name", "creation", "owner", "project", "source", "sent_by", "note"],
+		filters={"room": room.name, "active": 0 if cint(archived) else 1},
+		fields=["name", "title", "category", "file_name", "creation", "owner", "project", "source", "sent_by", "note", "replaces"],
 		order_by="creation desc",
-		limit=200,
+		limit=1000,
 	)
 	_shpn = _project_names(room)
+	chain = {}
+	if any(r.replaces for r in rows) or cint(archived):
+		chain = dict(
+			frappe.get_all("Client Shelf Doc", filters={"room": room.name}, fields=["name", "replaces"], as_list=True, limit=5000)
+		)
+	replaced_by = {}
+	if cint(archived):
+		for n, rep in chain.items():
+			if rep:
+				replaced_by[rep] = n
 	for r in rows:
 		r.creation = str(r.creation)[:10]
 		r.project_name = _shpn.get(r.project) if r.project else None
@@ -1143,6 +1170,16 @@ def _shelf_rows(room):
 		except Exception:
 			r.by = r.by_full = ""
 		r.pop("owner", None)
+		v, cur, guard = 1, r.replaces, 0
+		while cur and guard < 50:
+			v += 1
+			cur = chain.get(cur)
+			guard += 1
+		r.version = v
+		if cint(archived):
+			nb = replaced_by.get(r.name)
+			r.replaced_by = nb
+			r.replaced_on = str(frappe.db.get_value("Client Shelf Doc", nb, "creation") or "")[:10] if nb else None
 	return rows
 
 
@@ -1403,12 +1440,18 @@ def client_statement_file(id):
 
 
 @frappe.whitelist()
-def shelf_add(name, title, attachment_url, attachment_name=None, category=None, project=None):
+def shelf_add(name, title, attachment_url, attachment_name=None, category=None, project=None, light=0):
+	"""light=1 returns just the new doc's name instead of the whole room —
+	the Documents panel publishes several files in a row and reloads once."""
 	_staff_only()
 	room = frappe.get_doc("Client Room", name)
 	title = (title or "").strip()
 	if not title:
 		frappe.throw(_("Give the document a title."))
+	category = (category or "").strip()[:60] or None
+	cats = _shelf_categories()
+	if cats and category not in cats:
+		frappe.throw(_("Pick a category from the list — Duty Settings › Shelf Categories decides what is on it."))
 	owned = frappe.db.get_value(
 		"File", {"file_url": attachment_url, "owner": frappe.session.user}, "file_name"
 	)
@@ -1419,12 +1462,12 @@ def shelf_add(name, title, attachment_url, attachment_name=None, category=None, 
 	proj = None if (not project or project == "__general__") else _validate_milestone_project(room.name, project)
 	if not proj:
 		proj = _ensure_project(room)
-	frappe.get_doc(
+	doc = frappe.get_doc(
 		{
 			"doctype": "Client Shelf Doc",
 			"room": room.name,
 			"title": title[:140],
-			"category": (category or "").strip()[:60] or None,
+			"category": category,
 			"file_url": attachment_url,
 			"file_name": attachment_name or owned,
 			"active": 1,
@@ -1432,6 +1475,8 @@ def shelf_add(name, title, attachment_url, attachment_name=None, category=None, 
 		}
 	).insert(ignore_permissions=True)
 	frappe.db.commit()
+	if cint(light):
+		return {"ok": True, "name": doc.name}
 	return get_room(name)
 
 
@@ -1441,6 +1486,71 @@ def shelf_remove(doc_name):
 	frappe.db.set_value("Client Shelf Doc", doc_name, "active", 0, update_modified=False)
 	frappe.db.commit()
 	return {"ok": True}
+
+
+@frappe.whitelist()
+def shelf_restore(doc_name):
+	"""Put an archived document back on the client's shelf. A version that
+	was replaced stays where it is — the current one is the way forward."""
+	_staff_only()
+	d = frappe.db.get_value("Client Shelf Doc", doc_name, ["name", "active"], as_dict=True)
+	if not d:
+		frappe.throw(_("Not found."))
+	newer = frappe.db.get_value("Client Shelf Doc", {"replaces": doc_name}, "name")
+	if newer:
+		frappe.throw(_("This version was replaced — restore isn't the way back. Replace again from the current one if the old file was right."))
+	frappe.db.set_value("Client Shelf Doc", doc_name, "active", 1, update_modified=False)
+	frappe.db.commit()
+	return {"ok": True}
+
+
+@frappe.whitelist()
+def shelf_replace(doc_name, attachment_url, attachment_name=None):
+	"""A new file on an existing document: same title, category, project and
+	note; the old file steps into the archive as the previous version and
+	stays openable by staff. The client sees one document, the current one."""
+	_staff_only()
+	old = frappe.get_doc("Client Shelf Doc", doc_name)
+	if (old.source or "Xlevel") == "Client":
+		frappe.throw(_("A file the client sent can't be replaced — publish your own document instead."))
+	if not cint(old.active):
+		frappe.throw(_("Restore it first, or replace the current version."))
+	owned = frappe.db.get_value(
+		"File", {"file_url": attachment_url, "owner": frappe.session.user}, "file_name"
+	)
+	if not owned:
+		frappe.throw(_("Upload not found — try attaching again."))
+	new = frappe.get_doc(
+		{
+			"doctype": "Client Shelf Doc",
+			"room": old.room,
+			"title": old.title,
+			"category": old.category,
+			"note": old.note,
+			"project": old.project,
+			"source": old.source or "Xlevel",
+			"file_url": attachment_url,
+			"file_name": attachment_name or owned,
+			"active": 1,
+			"replaces": old.name,
+		}
+	).insert(ignore_permissions=True)
+	old.db_set("active", 0, update_modified=False)
+	frappe.db.commit()
+	return {"ok": True, "name": new.name}
+
+
+@frappe.whitelist()
+def shelf_list(name, archived=0):
+	"""The Documents panel: this room's shelf (or its archive), the category
+	list and the room's projects, in one call."""
+	_staff_only()
+	room = frappe.get_doc("Client Room", name)
+	return {
+		"rows": _shelf_rows(room, archived=cint(archived)),
+		"categories": _shelf_categories(),
+		"projects": [{"name": k, "title": v} for k, v in _project_names(room).items()],
+	}
 
 
 def _statement_year_strip(rows):
@@ -2088,6 +2198,18 @@ def project_seed_milestones(project, plan_type=None):
 
 
 @frappe.whitelist()
+@frappe.whitelist()
+def project_shift_plan(project, days=None, start=None, rebaseline=0, include_done=0, dry_run=1):
+	"""Front-end wrapper for shift_plan.shift: preview or move a project's
+	whole timeline. Staff only; the heavy lifting and all the rules live in
+	shift_plan."""
+	_staff_only()
+	from duty_board.shift_plan import shift
+
+	return shift(project, days=days, start=start, rebaseline=rebaseline,
+				 include_done=include_done, move_meetings=1, dry_run=dry_run)
+
+
 def project_set_baseline(project):
 	"""Freeze the current phase target dates as the project's baseline. Call
 	once the plan is agreed; variance is measured against this line. Safe to
@@ -6699,6 +6821,14 @@ def _meeting_slots(staff_list, date):
 		if count >= MEETING_DAY_CAP:
 			return []  # someone is fully booked that day
 		blocked |= busy
+		# a person with a day plan is never offered their break or the hours
+		# outside their window — the same rule the portal and Schedule-this share
+		try:
+			from duty_board.dayplan import plan_blocked_hours
+
+			blocked |= plan_blocked_hours(u, d)
+		except Exception:
+			frappe.log_error(frappe.get_traceback()[-1200:], "day plan slots")
 	return [s for s in MEETING_SLOTS if s[:2] not in blocked]
 
 
@@ -7250,30 +7380,157 @@ def settle_meeting_outcome(id, outcome, note=None):
 	return get_room(doc.room)
 
 
-def _room_member_mentions(room, text):
-	low = (text or "").lower()
-	if "@" not in low:
-		return []
+# ─── @mentions in client rooms ───────────────────────────────────────────
+#
+# Rules:
+#  - The composer sends explicit picks (full names, as its picker showed
+#    them). Those resolve exactly, within this room's directory only.
+#  - Anything typed freehand still counts if it reads as @first, @surname,
+#    @full name, @email or @email-local-part of someone in the directory —
+#    word-bounded, so "@Molade" is not "@Moladek" and "@molade.alex" is not
+#    a mention of a second Molade. A trailing full stop ("cc @Molade.") is
+#    fine.
+#  - A mentioned colleague ALWAYS gets the email; a browser push goes too
+#    when they have one. Push is a heads-up, email is the record.
+#  - Everything that fails is logged (Error Log › "duty mention ..."), never
+#    swallowed, so the next "we didn't get it" is a one-line lookup.
+#  - The brand in the email is the room's own (Persianas contracted with
+#    Zhift), else Duty Settings › Default brand, else Xlevel.
+
+MENTION_DEFAULT_BRAND = "Xlevel"
+_MENTION_TAIL = r"(?![\w-])(?!\.[\w-])"
+
+
+def _room_brand(room):
+	"""How the company should read to this client — the room's own brand,
+	else Duty Settings › Default brand, else Xlevel."""
+	b = ""
+	try:
+		b = (room.get("brand") or "").strip()
+	except Exception:
+		b = ""
+	if not b:
+		try:
+			b = (frappe.get_cached_doc("Duty Settings").get("default_brand") or "").strip()
+		except Exception:
+			b = ""
+	return b or MENTION_DEFAULT_BRAND
+
+
+def _client_directory(room, me=None):
+	"""Everyone a message in this room can address: the client's service
+	team (room owner, bookkeeper, meeting staff, listed staff users, and
+	staff who have spoken here) and the client's own colleagues. Each entry
+	carries the user id for server-side resolution — strip it before
+	handing the list to a client."""
+	me = me or frappe.session.user
+	brand = _room_brand(room)
 	out = []
-	for m in frappe.get_all(
-		"Client Room Member", filters={"room": room.name, "active": 1}, fields=["user"]
+	staff_users = set()
+	for field in ("owner_user", "bookkeeper", "meeting_staff", "staff_users"):
+		v = room.get(field)
+		if v:
+			staff_users.update(
+				s.strip() for s in str(v).replace("\n", ",").split(",") if s.strip()
+			)
+	for owner in frappe.get_all(
+		"Client Room Message",
+		filters={"room": room.name, "internal": 0},
+		pluck="owner",
+		distinct=True,
+		limit_page_length=0,
 	):
+		if frappe.db.get_value("User", owner, "user_type") == "System User":
+			staff_users.add(owner)
+	seen = set()
+	for su in sorted(staff_users):
+		if not su or su == me or not frappe.db.get_value("User", su, "enabled"):
+			continue
+		full = frappe.utils.get_fullname(su)
+		if not full or full == "Administrator" or full in seen:
+			continue
+		seen.add(full)
+		out.append({"user": su, "first": full.split(" ")[0], "full": full, "kind": "staff", "brand": brand})
+	for m in frappe.get_all(
+		"Client Room Member", filters={"room": room.name, "active": 1}, fields=["user"], order_by="creation asc"
+	):
+		if m.user == me:
+			continue
 		full = frappe.utils.get_fullname(m.user) or m.user
-		first = full.split(" ")[0].lower()
-		if f"@{first}" in low or f"@{m.user.lower()}" in low:
-			out.append(m.user)
+		if "@" in full:
+			full = full.split("@")[0]
+		out.append({"user": m.user, "first": full.split(" ")[0], "full": full, "kind": "colleague", "brand": brand})
 	return out
 
 
+def _mention_tokens(entry):
+	"""The handles that count as this person, longest first: full name,
+	email, email local part, then each word of the name and each segment
+	of the local part (3+ letters — so @Adesina and @Sena both land)."""
+	full = (entry.get("full") or "").strip()
+	user = (entry.get("user") or "").strip()
+	toks = [full, entry.get("first") or ""]
+	if "@" in user:
+		local = user.split("@")[0]
+		toks += [user, local]
+		toks += [p for p in re.split(r"[._-]+", local) if len(p) >= 3]
+	toks += [p for p in re.split(r"[\s._-]+", full) if len(p) >= 3]
+	seen, out = set(), []
+	for t in toks:
+		t = t.strip().lower()
+		if t and t not in seen:
+			seen.add(t)
+			out.append(t)
+	return out
+
+
+def _mention_hit(low, token):
+	"""True when @token appears in the (already lowercased) text as a whole
+	handle: not followed by more name characters, and not by ".more"."""
+	if not token:
+		return False
+	return re.search("@" + re.escape(token) + _MENTION_TAIL, low) is not None
+
+
+def _resolve_mentions(directory, text, explicit=None, kinds=None):
+	"""Users a message addresses, in directory order. `explicit` is what the
+	composer's picker recorded (a JSON list or list of full names / user
+	ids); anything else is read freehand from the text."""
+	if isinstance(explicit, str):
+		try:
+			explicit = json.loads(explicit)
+		except Exception:
+			explicit = [explicit]
+	want = {str(x).strip().lower() for x in (explicit or []) if str(x).strip()}
+	low = (text or "").lower()
+	out = []
+	for e in directory:
+		if kinds and e.get("kind") not in kinds:
+			continue
+		hit = bool(want) and ((e.get("full") or "").strip().lower() in want or (e.get("user") or "").lower() in want)
+		if not hit and "@" in low:
+			hit = any(_mention_hit(low, t) for t in _mention_tokens(e))
+		if hit and e["user"] not in out:
+			out.append(e["user"])
+	return out
+
+
+def _room_member_mentions(room, text, explicit=None, me=None):
+	"""Colleagues (room members) a message mentions — never the sender."""
+	return _resolve_mentions(_client_directory(room, me), text, explicit, kinds=("colleague",))
+
+
 def _email_mention(user, room, sender_first, message):
+	brand = _room_brand(room)
 	try:
 		frappe.sendmail(
 			recipients=[user],
-			subject=_("💬 {0} mentioned you — {1} × Xlevel").format(
-				sender_first, room.customer
+			subject=_("💬 {0} mentioned you — {1} × {2}").format(
+				sender_first, room.customer, brand
 			),
 			message=(
-				f"<p><b>{frappe.utils.escape_html(sender_first)}</b> mentioned you in your Xlevel room:</p>"
+				f"<p><b>{frappe.utils.escape_html(sender_first)}</b> mentioned you in your "
+				f"{frappe.utils.escape_html(brand)} room:</p>"
 				f"<blockquote style='border-left:3px solid #0F5C55;padding-left:10px;color:#374151'>"
 				f"{frappe.utils.escape_html((message or '')[:300])}</blockquote>"
 				f"<p><a href='{frappe.utils.get_url()}/portal'>Open your portal</a></p>"
@@ -7281,7 +7538,19 @@ def _email_mention(user, room, sender_first, message):
 			delayed=True,
 		)
 	except Exception:
-		pass
+		frappe.log_error(frappe.get_traceback()[-1500:], "duty mention email")
+
+
+def _notify_member_mention(user, room, sender_first, message):
+	"""Email always; push as well when the person has a browser subscription."""
+	_email_mention(user, room, sender_first, message)
+	try:
+		if frappe.db.exists("Duty Push Subscription", {"user": user}):
+			from duty_board.api import _push_safe
+
+			_push_safe(user, _("💬 {0} mentioned you").format(sender_first), (message or "📎")[:120])
+	except Exception:
+		frappe.log_error(frappe.get_traceback()[-1500:], "duty mention push")
 
 
 @frappe.whitelist()
@@ -7382,46 +7651,15 @@ def client_push_ping():
 
 @frappe.whitelist()
 def client_get_staff():
-	"""Names a client may address: their own service team, not the whole
-	company roster — room owner, bookkeeper, configured meeting staff, and
-	staff who have actually spoken in this room."""
+	"""Names a client may address, for the portal's @ picker: their own
+	service team (room owner, bookkeeper, meeting staff, listed staff
+	users, staff who have spoken here) and their colleagues — never the
+	whole company roster. Names and brand only; user ids stay server-side."""
 	room = _client_room()
-	staff_users = set()
-	for field in ("owner_user", "bookkeeper", "meeting_staff"):
-		v = room.get(field)
-		if v:
-			staff_users.update(s.strip() for s in str(v).split(",") if s.strip())
-	for owner in frappe.get_all(
-		"Client Room Message",
-		filters={"room": room.name, "internal": 0},
-		pluck="owner",
-		distinct=True,
-		limit_page_length=0,
-	):
-		if frappe.db.get_value("User", owner, "user_type") == "System User":
-			staff_users.add(owner)
-	out = []
-	seen = set()
-	for su in staff_users:
-		if not su or not frappe.db.get_value("User", su, "enabled"):
-			continue
-		full = frappe.utils.get_fullname(su)
-		if not full or full == "Administrator" or full in seen:
-			continue
-		seen.add(full)
-		out.append({"first": full.split(" ")[0], "full": full, "kind": "staff"})
-	me = frappe.session.user
-	for m in frappe.get_all(
-		"Client Room Member", filters={"room": room.name, "active": 1}, fields=["user"]
-	):
-		if m.user == me:
-			continue
-		full = frappe.utils.get_fullname(m.user) or m.user
-		if "@" in full:
-			full = full.split("@")[0]
-		first = full.split(" ")[0]
-		out.append({"first": first, "full": full, "kind": "colleague"})
-	return out
+	return [
+		{"first": e["first"], "full": e["full"], "kind": e["kind"], "brand": e["brand"]}
+		for e in _client_directory(room, frappe.session.user)
+	]
 
 
 @frappe.whitelist(allow_guest=True)
