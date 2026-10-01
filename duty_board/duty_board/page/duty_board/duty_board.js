@@ -6874,6 +6874,7 @@ this.$me.find(".duty-req-ok").on("click", (e) => {
 				</span>
 				<a class="btn btn-xs btn-default duty-mn-newacc">＋ ${__("Account")}</a>
 				<a class="btn btn-xs btn-default duty-mn-newso">＋ ${__("Standing order")}</a>
+				<a class="btn btn-xs btn-default duty-mn-newinf">＋ ${__("Expected in")}</a>
 				<a class="duty-mn-refresh" title="${__("Refresh")}">&#8635;</a>
 			</div>
 
@@ -7020,6 +7021,7 @@ this.$me.find(".duty-req-ok").on("click", (e) => {
 										off.length ? `<i>${off.length} ${__("paused")}</i>` : ""}</div>
 									${on.map(orow).join("")}${off.map(orow).join("")}`;
 							})()}
+							${this._mn_inflows_html(d)}
 						</div>
 					</div>`;
 			})()}
@@ -7109,15 +7111,18 @@ this.$me.find(".duty-req-ok").on("click", (e) => {
 		}
 		$m.find(".duty-mn-body").remove();
 
+		this._mn_inflows_bind($m, d);
 		$m.find(".so-edit").on("click", (e) => {
 			e.stopPropagation();
-			const nm = $(e.currentTarget).closest(".duty-mn-sorow").data("so");
+			// rows are .duty-mn-so2 — the old .duty-mn-sorow selector matched nothing,
+			// so Edit did nothing and Pause posted without a name
+			const nm = $(e.currentTarget).closest("[data-so]").data("so");
 			const o = (d.orders || []).find((x) => x.name === nm);
 			if (o) this.money_so_dialog(accounts, o);
 		});
 		$m.find(".so-toggle").on("click", (e) => {
 			e.stopPropagation();
-			const $r = $(e.currentTarget).closest(".duty-mn-sorow");
+			const $r = $(e.currentTarget).closest("[data-so]");
 			const nm = $r.data("so");
 			const o = (d.orders || []).find((x) => x.name === nm) || {};
 			frappe.call({
@@ -10034,6 +10039,97 @@ this.$me.find(".duty-req-ok").on("click", (e) => {
 					callback: () => { d.hide(); this.refresh_money(); },
 				});
 			},
+		});
+		d.show();
+	}
+
+	/* Expected in: money you are waiting for. Freehand, with a plain tick —
+	   the tick posts nothing and changes no balance (record the money in its
+	   account separately), and the total is never netted against "still
+	   short by". Open ones sort soonest first; received ones fold away. */
+	_mn_inflows_html(d) {
+		const esc = frappe.utils.escape_html;
+		const all = d.inflows || [];
+		const open = all.filter((r) => !r.received);
+		const done = all.filter((r) => r.received);
+		const tot = {};
+		open.forEach((r) => { tot[r.currency || "NGN"] = (tot[r.currency || "NGN"] || 0) + (+r.amount || 0); });
+		const totals = Object.keys(tot).sort().map((c) => esc(this._fmt(c, tot[c]))).join(" · ");
+		const row = (r) => `
+			<div class="duty-mn-in2${r.late ? " late" : ""}${r.received ? " got" : ""}" data-inf="${esc(r.name)}">
+				<label class="duty-mn-intick" title="${r.received ? __("Received — untick if that was a mistake") : __("Tick when it lands")}">
+					<input type="checkbox" class="inf-tick" ${r.received ? "checked" : ""}></label>
+				<div class="duty-mn-sowhen">
+					<b>${r.received ? esc(frappe.datetime.str_to_user(r.received_on || "")) : r.expected_date ? esc(frappe.datetime.str_to_user(r.expected_date)) : "—"}</b>
+					<span>${r.received ? __("received")
+						: r.days == null ? __("no date")
+						: r.late ? __("{0}d late", [-r.days])
+						: r.days === 0 ? __("today")
+						: r.days === 1 ? __("tomorrow")
+						: __("in {0}d", [r.days])}</span>
+				</div>
+				<div class="duty-mn-sowhat inf-edit" title="${__("Edit")}">
+					<b>${esc(r.title)}</b>
+					<span>${esc(r.payer || "")}${r.note ? ` · ${esc(r.note)}` : ""}</span>
+				</div>
+				<div class="duty-mn-soamt2">${esc(this._fmt(r.currency || "NGN", r.amount || 0))}</div>
+			</div>`;
+		const showDone = !!this._mn_inf_done;
+		return `
+			<div class="duty-mn-ch" style="margin-top:14px">${__("Expected in")} <span>${open.length}</span>${
+				totals ? `<i title="${__("Not counted as cash in hand")}">${totals}</i>` : ""}</div>
+			${open.length ? open.map(row).join("") : `<div class="duty-lb-empty">${__("Nothing expected. Add money you are waiting for and tick it when it lands.")}</div>`}
+			${done.length ? `<a class="duty-mn-indone">${showDone ? "▾" : "▸"} ${__("Received")} (${done.length})</a>
+				${showDone ? done.map(row).join("") : ""}` : ""}`;
+	}
+
+	_mn_inflows_bind($m, d) {
+		$m.find(".duty-mn-newinf").on("click", () => this.money_inflow_dialog());
+		$m.find(".inf-tick").on("change", (e) => {
+			e.stopPropagation();
+			const nm = $(e.currentTarget).closest("[data-inf]").data("inf");
+			frappe.call({
+				method: "duty_board.money.tick_inflow",
+				args: { name: nm, received: e.currentTarget.checked ? 1 : 0 },
+				callback: () => this.refresh_money(),
+			});
+		});
+		$m.find(".inf-edit").on("click", (e) => {
+			e.stopPropagation();
+			const nm = $(e.currentTarget).closest("[data-inf]").data("inf");
+			const r = (d.inflows || []).find((x) => x.name === nm);
+			if (r) this.money_inflow_dialog(r);
+		});
+		$m.find(".duty-mn-indone").on("click", () => { this._mn_inf_done = !this._mn_inf_done; this.render_money(d); });
+	}
+
+	money_inflow_dialog(existing) {
+		const e = existing || {};
+		const d = new frappe.ui.Dialog({
+			title: existing ? __("Expected in") : __("Money you are expecting"),
+			fields: [
+				{ fieldtype: "Data", fieldname: "title", label: __("What"), reqd: 1, default: e.title || "",
+				  description: __("Whatever you will recognise — 'Referral fee', 'VAT refund', 'Loan repayment'.") },
+				{ fieldtype: "Data", fieldname: "payer", label: __("From"), default: e.payer || "" },
+				{ fieldtype: "Float", fieldname: "amount", label: __("Amount"), precision: 2, default: e.amount || 0 },
+				{ fieldtype: "Link", fieldname: "currency", label: __("Currency"), options: "Currency", default: e.currency || "NGN" },
+				{ fieldtype: "Date", fieldname: "expected_date", label: __("Expected on"), default: e.expected_date || "",
+				  description: __("Optional. Once it passes unticked, it appears in the 07:00 email every morning until you tick it.") },
+				{ fieldtype: "Small Text", fieldname: "note", label: __("Note"), default: e.note || "" },
+			],
+			primary_action_label: existing ? __("Save") : __("Add"),
+			primary_action: (v) => {
+				frappe.call({
+					method: "duty_board.money.save_inflow",
+					args: Object.assign({ name: existing ? e.name : null }, v),
+					callback: () => { d.hide(); this.refresh_money(); },
+				});
+			},
+			secondary_action_label: existing ? __("Delete") : null,
+			secondary_action: existing ? () => frappe.confirm(
+				__("Delete <b>{0}</b>?", [frappe.utils.escape_html(e.title || "")]),
+				() => frappe.call({ method: "duty_board.money.delete_inflow", args: { name: e.name },
+					callback: () => { d.hide(); this.refresh_money(); } })) : null,
 		});
 		d.show();
 	}
@@ -20425,6 +20521,20 @@ this.$me.find(".duty-req-ok").on("click", (e) => {
 				background: var(--card-bg, #fff); border-left: 3px solid #0E8A63;
 				font-size: 12px; font-variant-numeric: tabular-nums; }
 			.duty-mn-so2.late { border-left-color: #C94646; }
+			.duty-mn-in2 { display: grid; grid-template-columns: 22px 80px 1fr auto; gap: 9px;
+				align-items: center; padding: 8px 11px; margin-bottom: 5px;
+				border: 1px solid var(--border-color); border-radius: 9px;
+				background: var(--card-bg, #fff); border-left: 3px solid #087A67;
+				font-size: 12px; font-variant-numeric: tabular-nums; }
+			.duty-mn-in2.late { border-left-color: #B5541C; }
+			.duty-mn-in2.late .duty-mn-sowhen span { color: #B5541C; font-weight: 700; }
+			.duty-mn-in2.got { opacity: .6; border-left-color: var(--border-color); }
+			.duty-mn-in2.got .duty-mn-sowhat b { text-decoration: line-through; }
+			.duty-mn-in2 .inf-edit { cursor: pointer; }
+			.duty-mn-intick { margin: 0; display: flex; align-items: center; justify-content: center; cursor: pointer; }
+			.duty-mn-intick input { margin: 0; width: 16px; height: 16px; cursor: pointer; accent-color: #087A67; }
+			.duty-mn-indone { display: inline-block; margin: 6px 0 4px; font-size: 11.5px; font-weight: 700;
+				color: var(--text-muted); cursor: pointer; }
 			.duty-mn-so2.off { opacity: .55; border-left-color: var(--border-color); }
 			.duty-mn-sowhen b { display: block; font-weight: 650; font-size: 11.5px; }
 			.duty-mn-sowhen span { font-size: 9.5px; color: var(--text-muted); }

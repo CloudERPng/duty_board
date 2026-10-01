@@ -309,6 +309,7 @@ def overview(rates=None):
 		"by_currency": sorted(by_currency.values(), key=lambda x: -x["total"]),
 		"converted": converted,
 		"due": due_list,
+		"inflows": _inflow_rows(),
 		"orders": orders,
 		"recent": recent,
 		"window": WINDOW_DAYS,
@@ -714,8 +715,25 @@ def due_notices():
 			lead.append(o)
 		elif o.days < 0 and not cint(o.auto_post):
 			overdue.append(o)
-	if not (lead or today_due or overdue):
+	in_today, in_late = [], []
+	for r in _inflow_rows():
+		if r.received or r.days is None:
+			continue
+		if r.days == 0:
+			in_today.append(r)
+		elif r.days < 0:
+			in_late.append(r)
+	if not (lead or today_due or overdue or in_today or in_late):
 		return {"sent": 0}
+
+	def inblock(heading, rows, colour, when):
+		if not rows:
+			return ""
+		lines = "".join(_inflow_line(r, when(r)) for r in rows)
+		return (
+			f'<div style="margin:0 0 18px"><div style="font-weight:800;font-size:14px;color:{colour};margin-bottom:6px">'
+			f'{heading}</div><table style="border-collapse:collapse;width:100%">{lines}</table></div>'
+		)
 
 	def block(heading, rows, colour, when=None):
 		if not rows:
@@ -730,9 +748,14 @@ def due_notices():
 		block(_("Due today"), today_due, "#C94646")
 		+ block(_("Overdue — not yet posted"), overdue, "#8A5A0B", lambda o: _("{0}d ago · {1}").format(-o.days, o.next_date))
 		+ block(_("Coming up"), lead, "#0F5C55", lambda o: _("in {0}d · {1}").format(o.days, o.next_date))
-		+ f'<p style="font-size:12px;color:#6B7772">{_("Post or skip hand-paid ones from Money; the amounts above are what each account will lose.")}</p>'
+		+ (f'<p style="font-size:12px;color:#6B7772">{_("Post or skip hand-paid ones from Money; the amounts above are what each account will lose.")}</p>'
+		   if (today_due or overdue or lead) else "")
+		+ inblock(_("Expected in today"), in_today, "#0F5C55", lambda r: _("today"))
+		+ inblock(_("Expected in — not arrived"), in_late, "#8A5A0B", lambda r: _("{0}d late · {1}").format(-r.days, r.expected_date))
+		+ (f'<p style="font-size:12px;color:#6B7772">{_("Tick them on the Money screen when they land. Expected money is never counted as cash in hand.")}</p>'
+		   if (in_today or in_late) else "")
 	)
-	n = len(lead) + len(today_due) + len(overdue)
+	n = len(lead) + len(today_due) + len(overdue) + len(in_today) + len(in_late)
 	parts = []
 	if today_due:
 		parts.append(_("{0} due today").format(len(today_due)))
@@ -740,13 +763,17 @@ def due_notices():
 		parts.append(_("{0} overdue").format(len(overdue)))
 	if lead:
 		parts.append(_("{0} coming up").format(len(lead)))
+	if in_today or in_late:
+		parts.append(_("{0} expected in").format(len(in_today) + len(in_late)))
 	subject = "[Money] " + ", ".join(parts)
-	first = (today_due or overdue or lead)[0]
 	push_body = "; ".join(
-		f"{o.title} {o.currency} {flt(o.amount):,.0f}" for o in (today_due + overdue + lead)[:3]
-	)
-	_money_notice(subject, _("Payments due"), inner, "💳 " + ", ".join(parts), push_body)
-	return {"sent": n, "today": [o.name for o in today_due], "overdue": [o.name for o in overdue], "lead": [o.name for o in lead]}
+		[f"{o.title} {o.currency} {flt(o.amount):,.0f}" for o in (today_due + overdue + lead)]
+		+ [f"⬇ {r.title} {r.currency} {flt(r.amount):,.0f}" for r in (in_today + in_late)]
+	)[:160]
+	title = _("Payments due") if (today_due or overdue or lead) else _("Money expected in")
+	_money_notice(subject, title, inner, "💳 " + ", ".join(parts), push_body)
+	return {"sent": n, "today": [o.name for o in today_due], "overdue": [o.name for o in overdue], "lead": [o.name for o in lead],
+			"in_today": [r.name for r in in_today], "in_late": [r.name for r in in_late]}
 
 
 def monday_digest():
@@ -781,6 +808,88 @@ def monday_digest():
 		_totals_line(rows),
 	)
 	return {"sent": len(rows), "orders": [o.name for o in rows]}
+
+
+# ─────────────────── expected inflows ───────────────────
+# Money you are waiting for. Freehand and deliberately light: a tick records
+# that it arrived and nothing else — it posts to no account (record the money
+# in the account separately) and it never counts toward "still short by",
+# because money that has not arrived must not make the month look covered.
+
+INFLOW_RECEIVED_SHOWN = 15
+
+
+def _inflow_rows():
+	"""Open ones (soonest first, undated last) then the last few received."""
+	today = getdate(nowdate())
+	open_ = frappe.get_all(
+		"Duty Expected Inflow", filters={"received": 0},
+		fields=["name", "title", "payer", "amount", "currency", "expected_date", "note", "received", "received_on"],
+		limit_page_length=0,
+	)
+	for r in open_:
+		r.days = (getdate(r.expected_date) - today).days if r.expected_date else None
+		r.late = r.days is not None and r.days < 0
+	open_.sort(key=lambda r: (r.expected_date is None, r.expected_date or today, r.title or ""))
+	done = frappe.get_all(
+		"Duty Expected Inflow", filters={"received": 1},
+		fields=["name", "title", "payer", "amount", "currency", "expected_date", "note", "received", "received_on"],
+		order_by="received_on desc, modified desc", limit_page_length=INFLOW_RECEIVED_SHOWN,
+	)
+	for r in done:
+		r.days, r.late = None, False
+	for r in open_ + done:
+		r.expected_date = str(r.expected_date) if r.expected_date else None
+		r.received_on = str(r.received_on) if r.received_on else None
+	return open_ + done
+
+
+@frappe.whitelist()
+def save_inflow(name=None, **kwargs):
+	require_sysadmin()
+	allowed = ("title", "payer", "amount", "currency", "expected_date", "note")
+	doc = frappe.get_doc("Duty Expected Inflow", name) if name else frappe.new_doc("Duty Expected Inflow")
+	for k in allowed:
+		if k in kwargs:
+			doc.set(k, kwargs[k] or None)
+	if not (doc.title or "").strip():
+		frappe.throw(_("Say what you are expecting."))
+	if not doc.currency:
+		doc.currency = "NGN"
+	doc.save(ignore_permissions=True)
+	frappe.db.commit()
+	return {"ok": 1, "name": doc.name}
+
+
+@frappe.whitelist()
+def tick_inflow(name, received=1):
+	"""The tick. Nothing else moves — no posting, no balance change."""
+	require_sysadmin()
+	doc = frappe.get_doc("Duty Expected Inflow", name)
+	doc.received = 1 if cint(received) else 0
+	doc.received_on = nowdate() if doc.received else None
+	doc.save(ignore_permissions=True)
+	frappe.db.commit()
+	return {"ok": 1}
+
+
+@frappe.whitelist()
+def delete_inflow(name):
+	require_sysadmin()
+	frappe.delete_doc("Duty Expected Inflow", name, ignore_permissions=True)
+	frappe.db.commit()
+	return {"ok": 1}
+
+
+def _inflow_line(r, when):
+	payer = f" · {frappe.utils.escape_html(r.payer)}" if r.payer else ""
+	return (
+		f'<tr><td style="padding:5px 10px;border-bottom:1px solid #EDF2EF;font-size:12.5px">'
+		f'<b>{frappe.utils.escape_html(r.title)}</b>{payer}</td>'
+		f'<td style="padding:5px 10px;border-bottom:1px solid #EDF2EF;font-size:12.5px;white-space:nowrap">{when}</td>'
+		f'<td style="padding:5px 10px;border-bottom:1px solid #EDF2EF;font-size:12.5px;text-align:right;white-space:nowrap">'
+		f'{r.currency or ""} {flt(r.amount):,.2f}</td></tr>'
+	)
 
 
 @frappe.whitelist()
