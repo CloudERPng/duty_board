@@ -699,9 +699,13 @@ document.getElementById("page").addEventListener("click", e=>{ const w=window.in
 	const pg = document.getElementById("page");
 	let sx=0, sy=0, st=0, tracking=false;
 	const cm=document.getElementById("comic");
+	// Swipes are heard on #reader, not on #page/#comic: the edge tap-zones sit ON TOP of
+	// those, so a swipe starting in either outer third never reached them. Toolbars excluded.
+	const rd=document.getElementById("reader");
+	const onBar=(e)=>!!(e.target && e.target.closest && e.target.closest(".rtop,.rbot"));
 	let csx=0, csy=0, cst=0, ctrack=false;
-	cm.addEventListener("touchstart", e=>{ if(!R||!R.comic||e.touches.length!==1||cm.classList.contains("zoomed")){ctrack=false;return;} csx=e.touches[0].clientX; csy=e.touches[0].clientY; cst=Date.now(); ctrack=true; }, {passive:true});
-	cm.addEventListener("touchend", e=>{
+	rd.addEventListener("touchstart", e=>{ if(onBar(e)||!R||!R.comic||e.touches.length!==1||cm.classList.contains("zoomed")){ctrack=false;return;} csx=e.touches[0].clientX; csy=e.touches[0].clientY; cst=Date.now(); ctrack=true; }, {passive:true});
+	rd.addEventListener("touchend", e=>{
 		if(!ctrack) return; ctrack=false;
 		const t=e.changedTouches[0]; const dx=t.clientX-csx, dy=t.clientY-csy, dt=Date.now()-cst;
 		if(Math.abs(dx)<50 || Math.abs(dx)<Math.abs(dy) || dt>800) return;
@@ -710,11 +714,11 @@ document.getElementById("page").addEventListener("click", e=>{ const w=window.in
 		forward ? comicNext() : comicPrev();
 	}, {passive:true});
 	// a phone fires touchcancel when it decides the gesture is its own (scroll, back-swipe): reset, don't stay armed
-	cm.addEventListener("touchcancel", ()=>{ ctrack=false; }, {passive:true});
+	rd.addEventListener("touchcancel", ()=>{ ctrack=false; tracking=false; }, {passive:true});
 	// pointer events as a second route: some tablets deliver a mouse-like pointer for a stylus or trackpad flick
 	let psx=0, ptrack=false;
-	cm.addEventListener("pointerdown", e=>{ if(e.pointerType==="touch"||!R||!R.comic||cm.classList.contains("zoomed")){ptrack=false;return;} psx=e.clientX; ptrack=true; });
-	cm.addEventListener("pointerup", e=>{ if(!ptrack) return; ptrack=false; const dx=e.clientX-psx; if(Math.abs(dx)<60) return; (R.rtl ? dx>0 : dx<0) ? comicNext() : comicPrev(); });
+	rd.addEventListener("pointerdown", e=>{ if(e.pointerType==="touch"||onBar(e)||!R||!R.comic||cm.classList.contains("zoomed")){ptrack=false;return;} psx=e.clientX; ptrack=true; });
+	rd.addEventListener("pointerup", e=>{ if(!ptrack) return; ptrack=false; const dx=e.clientX-psx; if(Math.abs(dx)<60) return; (R.rtl ? dx>0 : dx<0) ? comicNext() : comicPrev(); });
 	// double-tap toggles panel zoom; single tap on the edges turns, centre toggles chrome
 	let lastTap=0;
 	cm.addEventListener("click", e=>{
@@ -730,11 +734,11 @@ document.getElementById("page").addEventListener("click", e=>{ const w=window.in
 			else toggleChrome();
 		}, 300);
 	});
-	pg.addEventListener("touchstart", e=>{
-		if(!R || R.format==="PDF" || e.touches.length!==1) { tracking=false; return; }
+	rd.addEventListener("touchstart", e=>{
+		if(onBar(e) || !R || R.format==="PDF" || e.touches.length!==1) { tracking=false; return; }
 		sx=e.touches[0].clientX; sy=e.touches[0].clientY; st=Date.now(); tracking=true;
 	}, {passive:true});
-	pg.addEventListener("touchend", e=>{
+	rd.addEventListener("touchend", e=>{
 		if(!tracking) return; tracking=false;
 		const t=e.changedTouches[0]; const dx=t.clientX-sx, dy=t.clientY-sy, dt=Date.now()-st;
 		if(Math.abs(dx) < 60) return;                 // too short to be a turn
