@@ -457,7 +457,8 @@ def _pdf_page_count(content_bytes):
 	return len(PdfReader(io.BytesIO(content_bytes)).pages)
 
 
-def _convert_job(file_url, title, author, description, requested_by, category=None, cover_url=None, as_text=0):
+def _convert_job(file_url, title, author, description, requested_by, category=None, cover_url=None, as_text=0,
+				 lookup=0, skip_dupes=0, quiet=0):
 	fname = frappe.db.get_value("File", {"file_url": file_url}, "name")
 	fdoc = frappe.get_doc("File", fname)
 	fmt, chapters, page_count = "Text", [], 0
@@ -493,10 +494,29 @@ def _convert_job(file_url, title, author, description, requested_by, category=No
 		page_count = _pdf_page_count(fdoc.get_content())
 		if not page_count:
 			frappe.throw(_("This PDF has no pages."))
+	title = (title or fdoc.file_name.rsplit(".", 1)[0]).strip()
+	if cint(lookup) and not is_comic:
+		# fill only what is missing; a match that doesn't fit the title is ignored
+		hit = _best_match(title, author)
+		if hit:
+			if not author and hit.get("authors"):
+				author = hit["authors"]
+				title = _strip_author(title, author) or hit.get("title") or title
+			description = description or hit.get("description") or None
+			cover_url = cover_url or hit.get("thumbnail") or None
+	if cint(skip_dupes):
+		dupe = _find_dupe(title, author)
+		if dupe:
+			# already on the shelf: drop what this upload created and say so
+			for fn in {fname, frappe.db.get_value("File", {"file_url": file_url}, "name")}:
+				if fn and not frappe.db.get_value("File", fn, "attached_to_name"):
+					frappe.delete_doc("File", fn, ignore_permissions=True, force=True)
+			frappe.db.commit()
+			return {"skipped": dupe, "title": title}
 	book = frappe.get_doc(
 		{
 			"doctype": "Duty Book",
-			"title": (title or fdoc.file_name.rsplit(".", 1)[0])[:140],
+			"title": title[:140],
 			"author": (author or "")[:140] or None,
 			"description": (description or "")[:500] or None,
 			"category": (category or "")[:80] or None,
@@ -526,6 +546,8 @@ def _convert_job(file_url, title, author, description, requested_by, category=No
 	frappe.db.commit()
 	_save_cover(book.name, cover_url)
 	frappe.db.commit()
+	if cint(quiet):
+		return {"book": book.name, "title": book.title}
 	try:
 		from duty_board.api import _notify_user
 
@@ -537,6 +559,171 @@ def _convert_job(file_url, title, author, description, requested_by, category=No
 		)
 	except Exception:
 		pass
+
+
+# ---------------- bulk import ----------------
+# Many files at once from the desktop Library. Each file goes through the same
+# _convert_job as a single upload, with three differences: nothing is asked
+# (EPUBs bring their own title and author; PDFs use the filename), the cover
+# and description come from the best lookup match that actually fits the
+# title, and a book already on the shelf is skipped, not duplicated. Each
+# file's outcome sits in Redis for two days under its ref, for the progress
+# list to poll; when the last file of a batch finishes, one summary notice
+# goes out instead of one per book.
+
+BULK_TTL = 2 * 24 * 3600
+
+
+def _norm(s):
+	import re
+
+	return " ".join(re.sub(r"[^a-z0-9]+", " ", (s or "").lower()).split())
+
+
+def _same_author(a, b):
+	"""'John Grisham' = 'Grisham, John' = 'J. Grisham'? The last two are the same
+	person often enough: equal if one name's words are all in the other's."""
+	x, y = set(_norm(a).split()), set(_norm(b).split())
+	x = {w for w in x if len(w) > 1}
+	y = {w for w in y if len(w) > 1}
+	return bool(x) and bool(y) and (x <= y or y <= x)
+
+
+def _find_dupe(title, author):
+	t = _norm(title)
+	if not t:
+		return None
+	for b in frappe.get_all("Duty Book", filters={"active": 1}, fields=["name", "title", "author"], limit_page_length=0):
+		if _norm(b.title) != t:
+			continue
+		if not author or not b.author or _same_author(author, b.author):
+			return b.name
+	return None
+
+
+def _strip_author(title, author):
+	"""'John Grisham - The Firm' → 'The Firm' once the author is known."""
+	import re
+
+	parts = [p.strip() for p in re.split(r"\s+[-–—]\s+", title or "") if p.strip()]
+	if len(parts) < 2:
+		return title
+	rest = [p for p in parts if not _same_author(p, author)]
+	return " - ".join(rest) if rest and len(rest) < len(parts) else title
+
+
+def _best_match(title, author=None):
+	"""The first lookup hit whose title words all appear in ours (in any order —
+	'Grisham - The Firm' and 'The Firm (John Grisham)' both match 'The Firm').
+	No hit beats a wrong one: a wrong cover is worse than a plain tile."""
+	q = " ".join(x for x in [title, author] if x)
+	hits = _google_books(q) or _open_library(q)
+	ours = set(_norm(" ".join(x for x in [title, author] if x)).split())
+	stop = {"the", "a", "an", "of", "and"}
+	for h in hits:
+		ht = set(_norm(h.get("title")).split()) - stop
+		if not ht or not ht <= ours:
+			continue
+		if author and h.get("authors") and not _same_author(author, h["authors"]):
+			continue
+		# 'Dan Brown - Origin': words beyond the title are probably the author,
+		# so the hit's author must be among them — not any book called Origin
+		extra = ours - ht - stop
+		if not author and extra and h.get("authors"):
+			if not (set(_norm(h["authors"]).split()) & extra):
+				continue
+		return h
+	return None
+
+
+def _bulk_set(ref, val):
+	if ref:
+		frappe.cache().set_value(f"duty_lib_bulk::{ref}", val, expires_in_sec=BULK_TTL)
+
+
+def _bulk_job(ref, batch, requested_by, **kw):
+	try:
+		res = _convert_job(requested_by=requested_by, skip_dupes=1, quiet=1, **kw) or {}
+		if res.get("skipped"):
+			_bulk_set(ref, {"state": "skipped", "title": res.get("title"), "book": res["skipped"]})
+		else:
+			_bulk_set(ref, {"state": "done", "title": res.get("title"), "book": res.get("book")})
+	except Exception as e:
+		frappe.db.rollback()
+		frappe.log_error(frappe.get_traceback()[-2000:], "library bulk import")
+		_bulk_set(ref, {"state": "failed", "error": str(e)[:200] or e.__class__.__name__})
+	_bulk_summary(batch, requested_by)
+
+
+def _bulk_summary(batch, user):
+	"""When every file of the batch has an outcome, one notice — not fifty."""
+	refs = frappe.cache().get_value(f"duty_lib_batch::{batch}") or []
+	if not refs:
+		return
+	states = [(frappe.cache().get_value(f"duty_lib_bulk::{r}") or {}).get("state") for r in refs]
+	if any(s in (None, "queued") for s in states):
+		return
+	if frappe.cache().get_value(f"duty_lib_batch_done::{batch}"):
+		return
+	frappe.cache().set_value(f"duty_lib_batch_done::{batch}", 1, expires_in_sec=BULK_TTL)
+	done, skipped, failed = states.count("done"), states.count("skipped"), states.count("failed")
+	try:
+		from duty_board.api import _notify_user
+
+		msg = _("{0} added").format(done)
+		if skipped:
+			msg += _(", {0} already on the shelf").format(skipped)
+		if failed:
+			msg += _(", {0} failed").format(failed)
+		_notify_user(user, _("📚 Import finished"), msg)
+	except Exception:
+		pass
+
+
+@frappe.whitelist()
+def bulk_precheck(items):
+	"""Before uploading: which of these (title, author) guesses are already on
+	the shelf? Saves uploading a file only to skip it. The job checks again
+	after conversion, when an EPUB's real title is known."""
+	import json
+
+	require_sysadmin()
+	items = json.loads(items) if isinstance(items, str) else (items or [])
+	return [_find_dupe(i.get("title"), i.get("author")) for i in items]
+
+
+@frappe.whitelist()
+def bulk_add(file_url, ref, batch, refs=None, title=None, author=None, category=None, lookup=1):
+	"""Queue one file of a batch. `refs` (the whole batch's refs, JSON) is sent
+	with the first file so the batch knows when it is complete."""
+	import json
+
+	require_sysadmin()
+	from duty_board.uat import _is_manager
+
+	if not _is_manager():
+		frappe.throw(_("Only managers stock the Library."), frappe.PermissionError)
+	if refs:
+		frappe.cache().set_value(f"duty_lib_batch::{batch}", json.loads(refs) if isinstance(refs, str) else refs,
+								 expires_in_sec=BULK_TTL)
+	_bulk_set(ref, {"state": "queued"})
+	frappe.enqueue(
+		"duty_board.library._bulk_job",
+		queue="long", timeout=1200,
+		ref=ref, batch=batch, requested_by=frappe.session.user,
+		file_url=file_url, title=title or None, author=author or None, description=None,
+		category=category or None, cover_url=None, as_text=0, lookup=cint(lookup),
+	)
+	return {"queued": 1}
+
+
+@frappe.whitelist()
+def bulk_status(refs):
+	import json
+
+	require_sysadmin()
+	refs = json.loads(refs) if isinstance(refs, str) else (refs or [])
+	return {r: (frappe.cache().get_value(f"duty_lib_bulk::{r}") or {"state": "unknown"}) for r in refs}
 
 
 @frappe.whitelist()

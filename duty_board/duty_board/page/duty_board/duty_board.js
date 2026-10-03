@@ -11990,7 +11990,7 @@ this.$me.find(".duty-req-ok").on("click", (e) => {
 					   ["read", __("Last read")], ["long", __("Longest")]]
 						.map(([v, l]) => `<option value="${v}" ${(this._lib_sort || "added") === v ? "selected" : ""}>${l}</option>`).join("")}
 				</select>
-				${mgr ? `<span class="duty-lb-admin"><input type="file" accept=".pdf,.epub,.cbz,.cbr" class="duty-bk-file"><button class="btn btn-sm btn-primary duty-bk-up">＋ ${__("Add book")}</button></span>` : ""}
+				${mgr ? `<span class="duty-lb-admin"><input type="file" accept=".pdf,.epub,.cbz,.cbr" class="duty-bk-file"><button class="btn btn-sm btn-primary duty-bk-up">＋ ${__("Add book")}</button><button class="btn btn-sm btn-default duty-bk-bulk" title="${__("Many books at once — pick files, or a folder whose subfolders become shelves")}">＋ ${__("Add many")}</button></span>` : ""}
 			</div>
 			${this._lib_author
 				? `<div class="duty-lb-whoband"><b>${esc(this._lib_author)}</b><span>${visible.length} ${visible.length === 1 ? __("book") : __("books")}</span><a class="duty-lb-whox">&times;</a></div>`
@@ -12151,6 +12151,7 @@ this.$me.find(".duty-req-ok").on("click", (e) => {
 		});
 		this._lib_bind_admin($L);
 		if (mgr) {
+			$L.find(".duty-bk-bulk").on("click", () => this._lib_bulk_dialog());
 			$L.find(".duty-bk-up").on("click", () => {
 				const f = $L.find(".duty-bk-file")[0].files[0];
 				if (!f) {
@@ -12185,6 +12186,166 @@ this.$me.find(".duty-req-ok").on("click", (e) => {
 				));
 			});
 		}
+	}
+
+	/* ---- Add many: bulk import into the Library ----
+	   Files or a folder. Nothing is asked per book: EPUBs bring their own title
+	   and author, PDFs and comics use the filename, and the cover/description
+	   come from the best lookup match that fits the title (server side, after
+	   conversion, so an EPUB is matched on its real title). A folder's first
+	   level of subfolders become shelves; loose files take the batch category
+	   (Novels by default) — except comics, which default to Comic. Files go up
+	   one at a time, so a dropped connection costs one book, not the batch;
+	   anything already on the shelf is skipped, before upload when the name
+	   says so and after conversion when only the EPUB knows. */
+	_lib_bulk_dialog() {
+		const E = frappe.utils.escape_html;
+		const BOOK = /\.(pdf|epub|cbz|cbr)$/i;
+		let picked = [];
+		const d = new frappe.ui.Dialog({
+			title: __("Add many books"),
+			size: "large",
+			fields: [
+				{ fieldtype: "HTML", fieldname: "pick" },
+				{ fieldtype: "Data", fieldname: "category", label: __("Shelf for these books"), default: "Novels",
+				  description: __("Used for books not inside a subfolder. Comics default to Comic.") },
+				{ fieldtype: "Check", fieldname: "lookup", label: __("Look up covers and descriptions"), default: 1 },
+				{ fieldtype: "HTML", fieldname: "list" },
+			],
+			primary_action_label: __("Import"),
+			primary_action: (v) => {
+				if (!picked.length) { frappe.msgprint(__("Pick some books first.")); return; }
+				d.set_df_property("category", "read_only", 1);
+				d.set_df_property("lookup", "read_only", 1);
+				d.get_primary_btn().prop("disabled", true).text(__("Importing…"));
+				d.$wrapper.find(".duty-bk-pickbtn").prop("disabled", true);
+				this._lib_bulk_run(picked, (v.category || "").trim() || "Novels", v.lookup ? 1 : 0, $list, d);
+			},
+		});
+		const $pick = d.get_field("pick").$wrapper.html(`
+			<div class="duty-bk-pick">
+				<label class="btn btn-sm btn-default duty-bk-pickbtn">📄 ${__("Choose files")}<input type="file" multiple accept=".pdf,.epub,.cbz,.cbr" hidden class="duty-bk-files"></label>
+				<label class="btn btn-sm btn-default duty-bk-pickbtn">📁 ${__("Choose a folder")}<input type="file" webkitdirectory directory multiple hidden class="duty-bk-folder"></label>
+				<span class="text-muted duty-bk-pickhint">${__("A folder's subfolders become shelves — e.g. Novels/, Comics/, Business/.")}</span>
+			</div>`);
+		const $list = d.get_field("list").$wrapper;
+		const take = (files, fromFolder) => {
+			const add = [];
+			let ignored = 0;
+			[...files].forEach((f) => {
+				if (!BOOK.test(f.name)) { ignored++; return; }
+				let shelf = null;
+				if (fromFolder && f.webkitRelativePath) {
+					const parts = f.webkitRelativePath.split("/");
+					if (parts.length > 2) shelf = parts[1];   // Root/<Shelf>/…/file
+				}
+				add.push({ file: f, shelf, guess: this._lib_bulk_guess(f.name), status: "waiting" });
+			});
+			picked = picked.concat(add);
+			this._lib_bulk_paint($list, picked, ignored);
+		};
+		$pick.find(".duty-bk-files").on("change", (e) => { take(e.target.files, false); e.target.value = ""; });
+		$pick.find(".duty-bk-folder").on("change", (e) => { take(e.target.files, true); e.target.value = ""; });
+		this._lib_bulk_paint($list, picked, 0);
+		// stop polling only when the dialog is really closed (the server still
+		// sends one "Import finished" notice when the batch completes)
+		this._lib_bulk_closed = false;
+		d.onhide = () => { this._lib_bulk_closed = true; };
+		d.show();
+	}
+
+	_lib_bulk_guess(name) {
+		// keep " - " (it separates author and title); drop download-site tags and extensions
+		return name.replace(/\.(pdf|epub|cbz|cbr)$/i, "")
+			.replace(/\((z-lib|zlib|libgen|1lib)[^)]*\)|z-?library|1lib\.\w+/gi, "")
+			.replace(/_+/g, " ").replace(/\s+/g, " ").trim();
+	}
+
+	_lib_bulk_paint($list, picked, ignored) {
+		const E = frappe.utils.escape_html;
+		const label = {
+			waiting: __("waiting"), there: __("already on the shelf"), uploading: __("uploading…"),
+			queued: __("converting…"), done: __("on the shelf"), skipped: __("already on the shelf"),
+			failed: __("failed"), unknown: __("converting…"),
+		};
+		const counts = {};
+		picked.forEach((p) => { counts[p.status] = (counts[p.status] || 0) + 1; });
+		const summary = picked.length
+			? [__("{0} books", [picked.length]), counts.done ? __("{0} added", [counts.done]) : "",
+			   (counts.there || 0) + (counts.skipped || 0) ? __("{0} already there", [(counts.there || 0) + (counts.skipped || 0)]) : "",
+			   counts.failed ? __("{0} failed", [counts.failed]) : ""].filter(Boolean).join(" · ")
+			: __("No books picked yet.");
+		$list.html(`
+			<div class="duty-bk-bsum">${E(summary)}${ignored ? ` <span class="text-muted">· ${__("{0} non-book files ignored", [ignored])}</span>` : ""}</div>
+			<div class="duty-bk-blist">${picked.map((p) => `
+				<div class="duty-bk-brow s-${p.status}">
+					<span class="duty-bk-bname" title="${E(p.file.name)}">${E(p.result && p.result.title ? p.result.title : p.guess)}</span>
+					<span class="duty-bk-bshelf">${E(p.shelf || "")}</span>
+					<span class="duty-bk-bstate">${E(label[p.status] || p.status)}${p.error ? ` — ${E(p.error)}` : ""}</span>
+				</div>`).join("")}</div>`);
+	}
+
+	async _lib_bulk_run(picked, category, lookup, $list, d) {
+		const isComic = (n) => /\.(cbz|cbr)$/i.test(n);
+		const isEpub = (n) => /\.epub$/i.test(n);
+		const paint = () => this._lib_bulk_paint($list, picked, 0);
+		const call = (method, args) => new Promise((res, rej) =>
+			frappe.call({ method, args, callback: (r) => res(r.message), error: (r) => rej(new Error((r && r.message) || "error")) }));
+		// 1. skip what the names already say is on the shelf — no point uploading it
+		try {
+			const pre = await call("duty_board.library.bulk_precheck", { items: JSON.stringify(picked.map((p) => ({ title: p.guess }))) });
+			(pre || []).forEach((dupe, i) => { if (dupe) picked[i].status = "there"; });
+		} catch (e) { /* the job checks again; carry on */ }
+		paint();
+		const todo = picked.filter((p) => p.status === "waiting");
+		const batch = "b" + Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
+		todo.forEach((p, i) => (p.ref = batch + "-" + i));
+		// 2. one at a time: upload, then queue
+		for (let i = 0; i < todo.length; i++) {
+			const p = todo[i];
+			p.status = "uploading"; paint();
+			try {
+				const fd = new FormData();
+				fd.append("file", p.file);
+				fd.append("is_private", "1");
+				const res = await fetch("/api/method/upload_file", { method: "POST", headers: { "X-Frappe-CSRF-Token": frappe.csrf_token }, body: fd });
+				const j = await res.json();
+				const url = j.message && j.message.file_url;
+				if (!url) throw new Error(__("upload refused ({0})", [res.status]));
+				await call("duty_board.library.bulk_add", {
+					file_url: url, ref: p.ref, batch,
+					refs: i === 0 ? JSON.stringify(todo.map((t) => t.ref)) : null,
+					title: isEpub(p.file.name) ? null : p.guess,
+					category: p.shelf || (isComic(p.file.name) ? null : category),
+					lookup,
+				});
+				p.status = "queued";
+			} catch (e) {
+				p.status = "failed"; p.error = e.message || __("upload failed");
+			}
+			paint();
+		}
+		// 3. watch the conversions finish
+		const open = () => todo.filter((p) => p.status === "queued" || p.status === "unknown");
+		const poll = async () => {
+			if (!open().length) {
+				d.get_primary_btn().prop("disabled", false).text(__("Close")).off("click").on("click", () => d.hide());
+				this.refresh_library();
+				return;
+			}
+			try {
+				const st = await call("duty_board.library.bulk_status", { refs: JSON.stringify(open().map((p) => p.ref)) });
+				open().forEach((p) => {
+					const s = (st || {})[p.ref] || {};
+					if (["done", "skipped", "failed"].includes(s.state)) {
+						p.status = s.state; p.result = s; p.error = s.error || null;
+					}
+				});
+			} catch (e) { /* try again next tick */ }
+			paint();
+			if (!this._lib_bulk_closed) setTimeout(poll, 4000);
+		};
+		setTimeout(poll, 3000);
 	}
 
 	_lib_bind_admin($host) {
@@ -20404,6 +20565,22 @@ this.$me.find(".duty-req-ok").on("click", (e) => {
 			.duty-lb-search:focus { border-color: #0E8A63; outline: none; }
 			.duty-lb-admin { margin-left: auto; display: flex; gap: 8px; align-items: center; }
 			.duty-lb-admin .duty-bk-file { width: 200px; font-size: 11px; }
+			.duty-lb-admin .duty-bk-bulk { margin-left: 6px; }
+			.duty-bk-pick { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-bottom: 4px; }
+			.duty-bk-pickbtn { margin: 0; }
+			.duty-bk-pickhint { font-size: 11.5px; }
+			.duty-bk-bsum { font-weight: 700; font-size: 12.5px; margin: 6px 0; }
+			.duty-bk-blist { max-height: 46vh; overflow-y: auto; border: 1px solid var(--border-color); border-radius: 8px; }
+			.duty-bk-brow { display: grid; grid-template-columns: 1fr auto 150px; gap: 10px; align-items: center;
+				padding: 6px 10px; border-bottom: 1px solid var(--border-color); font-size: 12px; }
+			.duty-bk-brow:last-child { border-bottom: 0; }
+			.duty-bk-bname { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+			.duty-bk-bshelf { font-size: 11px; color: var(--text-muted); }
+			.duty-bk-bstate { font-size: 11px; font-weight: 700; color: var(--text-muted); text-align: right; }
+			.duty-bk-brow.s-done .duty-bk-bstate { color: #087A67; }
+			.duty-bk-brow.s-failed .duty-bk-bstate { color: #C94646; }
+			.duty-bk-brow.s-there .duty-bk-bstate, .duty-bk-brow.s-skipped .duty-bk-bstate { color: #8A5A0B; }
+			.duty-bk-brow.s-uploading .duty-bk-bstate, .duty-bk-brow.s-queued .duty-bk-bstate { color: #1F5FA8; }
 			/* ---- money ---- */
 			.duty-money { padding: 4px 0 40px; }
 			.duty-partners { padding: 4px 0 40px; }
